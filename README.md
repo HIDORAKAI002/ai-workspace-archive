@@ -21,9 +21,15 @@ ai_skills/
 │   ├── cursor/              # Extracted rules configurations (.cursorrules, .mdc)
 │   └── cline/               # Agent presets
 │
+├── 📁 system_prompts/       # 30+ Cloned System Prompts & Frameworks
+│   ├── official_sources/    # Official docs from Anthropic, OpenAI, etc.
+│   ├── safety_guardrails/   # Prompt injection & detection setups
+│   └── (... and 4 other categories)
+│
 ├── 📄 all_mcp_servers.json  # The raw metadata map of the MCP library
-├── 📄 setup_mcps.py         # The master extraction and cloning script
-└── 📄 setup_ide_rules.py    # The automated extraction agent for IDE rules
+├── 📄 setup_mcps.py         # The master extraction script for MCPs
+├── 📄 setup_ide_rules.py    # The automated extraction agent for IDE rules
+└── 📄 setup_system_prompts.py # The scraper module for System Prompts 
 ```
 
 ## 1. AI Skills & Prompts Library (`/ai_skills`)

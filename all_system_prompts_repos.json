@@ -1,0 +1,212 @@
+{
+  "system_prompts_leaks_collections": [
+    {
+      "name": "x1xhlol/system-prompts-and-models-of-ai-tools",
+      "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools",
+      "stars": 111000,
+      "description": "30,000+ lines of system prompts from 36+ AI tools (Claude, Cursor, Windsurf, v0, Devin, etc.)"
+    },
+    {
+      "name": "EliFuzz/awesome-system-prompts",
+      "url": "https://github.com/EliFuzz/awesome-system-prompts",
+      "stars": 151,
+      "description": "System prompts from AI coding agents: Augment Code, Claude Code, Cluely, Cursor, Devin AI, Kiro, Perplexity, VSCode Agent, Gemini, Codex, OpenAI"
+    },
+    {
+      "name": "dontriskit/awesome-ai-system-prompts",
+      "url": "https://github.com/dontriskit/awesome-ai-system-prompts",
+      "stars": 85,
+      "description": "Curated collection for ChatGPT, Claude, Perplexity, Manus, Claude-Code, Loveable, v0, Grok, Windsurf, Notion, MetaAI"
+    },
+    {
+      "name": "oxbshw/System-Prompt-Agent-Prompts",
+      "url": "https://github.com/oxbshw/System-Prompt-Agent-Prompts",
+      "stars": 200,
+      "description": "202 system prompts from major AI models and development tools"
+    },
+    {
+      "name": "guy915/System-Prompts",
+      "url": "https://github.com/guy915/System-Prompts",
+      "stars": 120,
+      "description": "Collection of LLM system prompts (ChatGPT, Claude, Gemini, etc.)"
+    },
+    {
+      "name": "asgeirtj/system_prompts_leaks",
+      "url": "https://github.com/asgeirtj/system_prompts_leaks",
+      "stars": 95,
+      "description": "Extracted system prompts from ChatGPT, Claude & Gemini"
+    },
+    {
+      "name": "0xeb/TheBigPromptLibrary",
+      "url": "https://github.com/0xeb/TheBigPromptLibrary",
+      "stars": 2500,
+      "description": "System prompts, custom instructions, jailbreak prompts, GPT protections for various LLM providers"
+    },
+    {
+      "name": "LouisShark/chatgpt_system_prompt",
+      "url": "https://github.com/LouisShark/chatgpt_system_prompt",
+      "stars": 1800,
+      "description": "GPT system prompts and prompt injection/leaking knowledge"
+    },
+    {
+      "name": "marckrenn/claude-code-changelog",
+      "url": "https://github.com/marckrenn/claude-code-changelog",
+      "stars": 300,
+      "description": "Unofficial tracking of Claude Code prompt and feature-flag evolution"
+    },
+    {
+      "name": "DoctorDiffusion/LLM-System-Prompts",
+      "url": "https://github.com/DoctorDiffusion/LLM-System-Prompts",
+      "stars": 45,
+      "description": "System prompts for specialized LLM agent use cases"
+    },
+    {
+      "name": "spsanderson/LLM_Prompts",
+      "url": "https://github.com/spsanderson/LLM_Prompts",
+      "stars": 30,
+      "description": "Personal collection of LLM prompts"
+    }
+  ],
+  "prompt_engineering_guides": [
+    {
+      "name": "NirDiamant/Prompt_Engineering",
+      "url": "https://github.com/NirDiamant/Prompt_Engineering",
+      "stars": 8500,
+      "description": "22 hands-on tutorials covering prompt engineering techniques from basic to advanced"
+    },
+    {
+      "name": "natnew/Awesome-Prompt-Engineering",
+      "url": "https://github.com/natnew/Awesome-Prompt-Engineering",
+      "stars": 3200,
+      "description": "Comprehensive guide to prompt engineering, context engineering, and AI agents"
+    },
+    {
+      "name": "ai-boost/awesome-prompts",
+      "url": "https://github.com/ai-boost/awesome-prompts",
+      "stars": 2800,
+      "description": "Top-rated GPTs prompts from GPT Store, prompt attack & protect, advanced papers"
+    },
+    {
+      "name": "f/awesome-chatgpt-prompts",
+      "url": "https://github.com/f/awesome-chatgpt-prompts",
+      "stars": 115000,
+      "description": "157+ prompts to make ChatGPT better (the original awesome list)"
+    },
+    {
+      "name": "Grow-Online-Digital/awesome-aipromptlibrary-templates",
+      "url": "https://github.com/Grow-Online-Digital/awesome-aipromptlibrary-templates",
+      "stars": 150,
+      "description": "Battle-tested AI prompt templates for Claude, ChatGPT & other LLMs"
+    },
+    {
+      "name": "jonverrier/PromptRepository",
+      "url": "https://github.com/jonverrier/PromptRepository",
+      "stars": 200,
+      "description": "Framework for managing and testing LLM prompts"
+    }
+  ],
+  "official_sources": [
+    {
+      "name": "Anthropic Official System Prompts",
+      "url": "https://platform.claude.com/docs/en/release-notes/system-prompts",
+      "stars": 0,
+      "description": "Official Anthropic published system prompts (Claude.ai/mobile)"
+    },
+    {
+      "name": "Simon Willison's Claude 4 Analysis",
+      "url": "https://simonwillison.net/2025/May/25/claude-4-system-prompt/",
+      "stars": 0,
+      "description": "Deep-dive into Claude 4 system prompt (May 2025)"
+    },
+    {
+      "name": "PromptHub Technical Breakdown",
+      "url": "https://www.prompthub.us/blog/an-analysis-of-the-claude-4-system-prompt",
+      "stars": 0,
+      "description": "Detailed analysis of Claude 4 prompt engineering patterns (June 2025)"
+    }
+  ],
+  "prompt_management_tools": [
+    {
+      "name": "conradBruchmann/claude-admin",
+      "url": "https://github.com/conradBruchmann/claude-admin",
+      "stars": 250,
+      "description": "Web admin console for managing Claude Code config, skills, rules, memory, MCP servers, system prompts"
+    },
+    {
+      "name": "promptlayer/promptlayer",
+      "url": "https://github.com/promptlayer/promptlayer",
+      "stars": 1500,
+      "description": "Version control, logging, and analytics for prompts"
+    },
+    {
+      "name": "agenta-ai/agenta",
+      "url": "https://github.com/agenta-ai/agenta",
+      "stars": 1200,
+      "description": "Open-source platform for prompt testing with side-by-side LLM comparisons"
+    },
+    {
+      "name": "langfuse/langfuse",
+      "url": "https://github.com/langfuse/langfuse",
+      "stars": 3500,
+      "description": "Open-source LLM engineering platform with prompt management"
+    },
+    {
+      "name": "comet-ml/opik",
+      "url": "https://github.com/comet-ml/opik",
+      "stars": 800,
+      "description": "Open-source platform for LLM observability, evaluations, and prompt optimization"
+    },
+    {
+      "name": "helicone/helicone",
+      "url": "https://github.com/helicone/helicone",
+      "stars": 1800,
+      "description": "Lightweight prompt logging and analytics"
+    }
+  ],
+  "prompt_testing_evaluation": [
+    {
+      "name": "promptfoo/promptfoo",
+      "url": "https://github.com/promptfoo/promptfoo",
+      "stars": 4500,
+      "description": "Open-source prompt testing and evaluation"
+    },
+    {
+      "name": "truera/trulens",
+      "url": "https://github.com/truera/trulens",
+      "stars": 1200,
+      "description": "Feedback and evaluation for LLM applications"
+    },
+    {
+      "name": "wandb/weave",
+      "url": "https://github.com/wandb/weave",
+      "stars": 900,
+      "description": "Trace-based debugging and scoring from Weights & Biases"
+    }
+  ],
+  "safety_guardrails": [
+    {
+      "name": "guardrails-ai/guardrails",
+      "url": "https://github.com/guardrails-ai/guardrails",
+      "stars": 2000,
+      "description": "Define schemas and constraints for model outputs"
+    },
+    {
+      "name": "NVIDIA/NeMo-Guardrails",
+      "url": "https://github.com/NVIDIA/NeMo-Guardrails",
+      "stars": 3500,
+      "description": "NVIDIA's toolkit for LLM safety"
+    },
+    {
+      "name": "protectai/rebuff",
+      "url": "https://github.com/protectai/rebuff",
+      "stars": 800,
+      "description": "Prompt injection detection and prevention"
+    },
+    {
+      "name": "lakeraai/lakera-guard",
+      "url": "https://github.com/lakeraai/lakera-guard",
+      "stars": 600,
+      "description": "Real-time protection against prompt attacks"
+    }
+  ]
+}
