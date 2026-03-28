@@ -1,7 +1,7 @@
 # 🧠 AI Workspace Archive
 
 > **The most comprehensive self-hostable AI toolbox on GitHub.**
-> One repository. Five massive libraries. Everything you need to build, run, and supercharge AI agents — available offline, right on your machine.
+> One repository. Six massive libraries. Everything you need to build, run, and supercharge AI agents — available offline, right on your machine.
 
 ---
 
@@ -55,6 +55,14 @@ ai-workspace-archive/
     ├── unified_api_platforms/  # OpenRouter (300+ models, one endpoint)
     ├── cloud_provider_ai_services/ # Azure OpenAI, AWS Bedrock
     └── open_source_models/     # Meta Llama (self-hostable, free weights)
+
+└── 📁 nocode_platforms/        # 15 Cloned No-Code & Visual AI Workflow Builders
+    ├── ai_workflow_automation_platforms/ # n8n, Dify, Flowise, Langflow, Trigger.dev, Windmill
+    ├── low_code_internal_tools/          # Appsmith, ToolJet, Budibase, NocoDB
+    ├── n8n_templates_resources/          # 2,000+ ready-made n8n workflow templates
+    ├── flowise_related_tools/            # Flowise → LangChain converter, official docs
+    ├── dify_related_tools/               # Dify docs, Kubernetes Helm chart
+    └── additional_no_code_platforms/     # Directus, Hoppscotch, Plane, Rowy
 ```
 
 ---
