@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# UV lock file
+uv.lock
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+/bandit-report.json
+/safety-report.json
+/coverage.xml
+/.coverage
+/htmlcov/

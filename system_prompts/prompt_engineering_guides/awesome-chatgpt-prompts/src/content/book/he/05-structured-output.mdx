@@ -1,0 +1,411 @@
+קבלת פלט עקבי ומעוצב היטב היא חיונית עבור יישומי ייצור וזרימות עבודה יעילות. פרק זה מכסה טכניקות לשליטה מדויקת באופן שבו מודלי AI מעצבים את תגובותיהם.
+
+<Callout type="info" title="מטקסט חופשי לנתונים">
+פלט מובנה הופך תגובות AI מטקסט חופשי לנתונים ניתנים לפעולה ולניתוח.
+</Callout>
+
+## למה מבנה חשוב
+
+<StructuredOutputDemo />
+
+## טכניקות עיצוב בסיסיות
+
+### רשימות
+
+רשימות מתאימות בצורה מושלמת להוראות צעד-אחר-צעד, פריטים מדורגים, או אוספים של נקודות קשורות. הן קלות לסריקה ולניתוח. השתמשו ב**רשימות ממוספרות** כאשר הסדר חשוב (שלבים, דירוגים) וב**נקודות תבליט** עבור אוספים לא מסודרים.
+
+<TryIt 
+  compact
+  title="עיצוב רשימות"
+  prompt={`ספק 5 טיפים לשינה טובה יותר.
+
+פורמט: רשימה ממוספרת עם הסבר קצר לכל טיפ.
+כל טיפ צריך להיות מודגש, ואחריו מקף והסבר.`}
+/>
+
+<Callout type="tip" title="שיטות עבודה מומלצות לרשימות">
+ציינו את מספר הפריטים המדויק שאתם רוצים, האם לכלול הסברים, והאם הפריטים צריכים להיות מודגשים או בעלי מבנה מסוים.
+</Callout>
+
+### טבלאות
+
+טבלאות מצטיינות בהשוואת פריטים מרובים על פני אותם ממדים. הן אידיאליות להשוואות תכונות, סיכומי נתונים, וכל מידע עם מאפיינים עקביים. הגדירו תמיד את כותרות העמודות שלכם במפורש.
+
+<TryIt 
+  compact
+  title="עיצוב טבלאות"
+  prompt={`השווה בין 4 מסגרות Web מובילות של Python.
+
+עצב כטבלת Markdown עם עמודות:
+| Framework | הכי מתאים ל | עקומת למידה | ביצועים |`}
+/>
+
+<Callout type="tip" title="שיטות עבודה מומלצות לטבלאות">
+ציינו שמות עמודות, סוגי נתונים צפויים (טקסט, מספרים, דירוגים), וכמה שורות אתם צריכים. להשוואות מורכבות, הגבילו ל-4-6 עמודות לקריאות.
+</Callout>
+
+### כותרות וסעיפים
+
+כותרות יוצרות מבנה מסמך ברור, מה שהופך תגובות ארוכות לניתנות לסריקה ומאורגנות. השתמשו בהן לדוחות, ניתוחים, או כל תגובה מרובת חלקים. כותרות היררכיות (##, ###) מראות יחסים בין סעיפים.
+
+```
+נתח את ההצעה העסקית הזו.
+
+מבנה התגובה שלך עם הסעיפים הבאים:
+## תקציר מנהלים
+## חוזקות
+## חולשות
+## המלצות
+## הערכת סיכונים
+```
+
+<Callout type="tip" title="שיטות עבודה מומלצות לסעיפים">
+רשמו את הסעיפים שלכם בסדר הרצוי. לעקביות, ציינו מה כל סעיף צריך להכיל (למשל, "תקציר מנהלים: 2-3 משפטים בלבד").
+</Callout>
+
+### הדגשה באמצעות הנחיות באותיות גדולות
+
+מילים באותיות גדולות משמשות כאותות חזקים למודל, המדגישים אילוצים או דרישות קריטיים. השתמשו בהן במשורה להשפעה מרבית — שימוש יתר מדלל את האפקטיביות שלהן.
+
+**הנחיות נפוצות באותיות גדולות:**
+
+<InfoGrid items={[
+  { label: "NEVER", description: "איסור מוחלט: \"NEVER include personal opinions\"", color: "red" },
+  { label: "ALWAYS", description: "דרישה חובה: \"ALWAYS cite sources\"", color: "green" },
+  { label: "IMPORTANT", description: "הוראה קריטית: \"IMPORTANT: Keep responses under 100 words\"", color: "amber" },
+  { label: "DO NOT", description: "איסור חזק: \"DO NOT make up statistics\"", color: "red" },
+  { label: "MUST", description: "פעולה נדרשת: \"Output MUST be valid JSON\"", color: "blue" },
+  { label: "ONLY", description: "הגבלה: \"Return ONLY the code, no explanations\"", color: "purple" },
+]} />
+
+```
+סכם את המאמר הזה.
+
+IMPORTANT: שמור על הסיכום מתחת ל-100 מילים.
+NEVER הוסף מידע שלא קיים במקור.
+ALWAYS שמור על הטון והפרספקטיבה המקוריים.
+DO NOT כלול את דעותיך או הניתוח שלך.
+```
+
+<Callout type="warning" title="השתמשו במשורה">
+אם הכל באותיות גדולות או מסומן כקריטי, שום דבר לא בולט. שמרו הנחיות אלו לאילוצים באמת חשובים.
+</Callout>
+
+## פלט JSON
+
+JSON (JavaScript Object Notation) הוא הפורמט הפופולרי ביותר לפלט AI מובנה. הוא קריא למכונה, נתמך באופן נרחב על ידי שפות תכנות, ומושלם עבור APIs, מסדי נתונים, וזרימות עבודה אוטומטיות. המפתח ל-JSON אמין הוא מתן סכמה ברורה.
+
+### בקשת JSON בסיסית
+
+התחילו עם תבנית המראה את המבנה המדויק שאתם רוצים. כללו שמות שדות, סוגי נתונים, וערכים לדוגמה. זה משמש כחוזה שהמודל יעקוב אחריו.
+
+<TryIt 
+  title="חילוץ JSON"
+  description="חילוץ נתונים מובנים מטקסט לא מובנה."
+  prompt={`חלץ מידע מהטקסט הזה והחזר כ-JSON:
+
+{
+    "company_name": "string",
+    "founding_year": number,
+    "headquarters": "string",
+    "employees": number,
+    "industry": "string"
+}
+
+Text: "Apple Inc., founded in 1976, is headquartered in Cupertino, California. The technology giant employs approximately 164,000 people worldwide."`}
+/>
+
+### מבני JSON מורכבים
+
+עבור נתונים מקוננים, השתמשו ב-JSON היררכי עם אובייקטים בתוך אובייקטים, מערכים של אובייקטים, וסוגים מעורבים. הגדירו כל רמה בבירור והשתמשו בהערות בסגנון TypeScript (`"positive" | "negative"`) כדי להגביל ערכים.
+
+```
+נתח את ביקורת המוצר הזו והחזר JSON:
+
+{
+  "review_id": "string (generate unique)",
+  "sentiment": {
+    "overall": "positive" | "negative" | "mixed" | "neutral",
+    "score": 0.0-1.0
+  },
+  "aspects": [
+    {
+      "aspect": "string (e.g., 'price', 'quality')",
+      "sentiment": "positive" | "negative" | "neutral",
+      "mentions": ["exact quotes from review"]
+    }
+  ],
+  "purchase_intent": {
+    "would_recommend": boolean,
+    "confidence": 0.0-1.0
+  },
+  "key_phrases": ["string array of notable phrases"]
+}
+
+Return ONLY valid JSON, no additional text.
+
+Review: "[review text]"
+```
+
+### הבטחת JSON תקין
+
+מודלים לפעמים מוסיפים טקסט הסברי או עיצוב Markdown סביב JSON. מנעו זאת עם הוראות מפורשות לגבי פורמט הפלט. תוכלו לבקש JSON גולמי או JSON בתוך בלוקי קוד — בחרו בהתאם לצרכי הניתוח שלכם.
+
+הוסיפו הוראות מפורשות:
+
+```
+IMPORTANT:
+- Return ONLY the JSON object, no markdown code blocks
+- Ensure all strings are properly escaped
+- Use null for missing values, not undefined
+- Validate that the output is parseable JSON
+```
+
+או בקשו בלוקי קוד על ידי בקשה מהמודל לעטוף את הפלט שלו:
+
+````
+החזר את התוצאה כבלוק קוד JSON:
+```json
+{ ... }
+```
+````
+
+## פלט YAML
+
+YAML קריא יותר לבני אדם מאשר JSON, משתמש בהזחה במקום סוגריים. זהו הסטנדרט עבור קבצי תצורה (Docker, Kubernetes, GitHub Actions) ועובד היטב כאשר הפלט ייקרא על ידי בני אדם או ישמש בהקשרי DevOps. YAML רגיש להזחה, אז היו ספציפיים לגבי דרישות העיצוב.
+
+<TryIt 
+  compact
+  title="יצירת YAML"
+  prompt={`צור workflow של GitHub Actions עבור פרויקט Node.js.
+
+החזר כ-YAML תקין:
+- כלול: שלבי install, lint, test, build
+- השתמש ב-Node.js 18
+- אחסן במטמון תלויות npm
+- הרץ בעת push ל-main ו-pull requests`}
+/>
+
+## פלט XML
+
+XML עדיין נדרש עבור מערכות ארגוניות רבות, APIs של SOAP, ואינטגרציות legacy. הוא יותר מפורט מ-JSON אך מציע תכונות כמו attributes, namespaces, וסעיפי CDATA לנתונים מורכבים. ציינו שמות אלמנטים, מבנה קינון, והיכן להשתמש ב-attributes לעומת אלמנטים צאצאים.
+
+```
+המר את הנתונים האלה לפורמט XML:
+
+Requirements:
+- Root element: <catalog>
+- Each item in <book> element
+- Include attributes where appropriate
+- Use CDATA for description text
+
+Data: [book data]
+```
+
+## פורמטים מותאמים אישית
+
+לפעמים פורמטים סטנדרטיים לא מתאימים לצרכים שלכם. תוכלו להגדיר כל פורמט מותאם אישית על ידי מתן תבנית ברורה. פורמטים מותאמים אישית עובדים היטב לדוחות, לוגים, או פלטים ספציפיים לתחום שייקראו על ידי בני אדם.
+
+### פורמט ניתוח מובנה
+
+השתמשו במפרידים (===, ---, [SECTION]) כדי ליצור מסמכים ניתנים לסריקה עם גבולות ברורים בין סעיפים. פורמט זה מצוין לסקירות קוד, ביקורות, וניתוחים.
+
+```
+נתח את הקוד הזה באמצעות הפורמט המדויק הזה:
+
+=== CODE ANALYSIS ===
+
+[SUMMARY]
+One paragraph overview
+
+[ISSUES]
+• CRITICAL: [issue] — [file:line]
+• WARNING: [issue] — [file:line]  
+• INFO: [issue] — [file:line]
+
+[METRICS]
+Complexity: [Low/Medium/High]
+Maintainability: [score]/10
+Test Coverage: [estimated %]
+
+[RECOMMENDATIONS]
+1. [Priority 1 recommendation]
+2. [Priority 2 recommendation]
+
+=== END ANALYSIS ===
+```
+
+### פורמט מילוי חללים
+
+תבניות עם חללים (___) מנחות את המודל למלא שדות ספציפיים תוך שמירה על עיצוב מדויק. גישה זו מצוינת לטפסים, תקצירים, ומסמכים סטנדרטיים שבהם עקביות חשובה.
+
+```
+השלם את התבנית הזו עבור המוצר הנתון:
+
+PRODUCT BRIEF
+─────────────
+Name: _______________
+Tagline: _______________
+Target User: _______________
+Problem Solved: _______________
+Key Features:
+  1. _______________
+  2. _______________
+  3. _______________
+Differentiator: _______________
+
+Product: [product description]
+```
+
+## תגובות מוקלדות
+
+תגובות מוקלדות מגדירות קטגוריות או סוגי ישויות שהמודל צריך לזהות ולתייג. טכניקה זו חיונית לזיהוי ישויות בשם (NER), משימות סיווג, וכל חילוץ שבו אתם צריכים לסווג מידע באופן עקבי. הגדירו את הסוגים שלכם בבירור עם דוגמאות.
+
+<TryIt 
+  compact
+  title="חילוץ ישויות"
+  prompt={`חלץ ישויות מהטקסט הזה.
+
+סוגי ישויות:
+- PERSON: שמות מלאים של אנשים
+- ORG: שמות ארגונים/חברות
+- LOCATION: ערים, מדינות, כתובות
+- DATE: תאריכים בפורמט ISO (YYYY-MM-DD)
+- MONEY: סכומי כסף עם מטבע
+
+עצב כל אחד כ: [TYPE]: [value]
+
+Text: "Tim Cook announced that Apple will invest $1 billion in a new Austin facility by December 2024."`}
+/>
+
+## תגובות מובנות מרובות חלקים
+
+כאשר אתם צריכים פלט מקיף המכסה היבטים מרובים, הגדירו חלקים נפרדים עם גבולות ברורים. ציינו בדיוק מה נכנס לכל חלק — פורמט, אורך, וסוג תוכן. זה מונע מהמודל לערבב סעיפים או להשמיט חלקים.
+
+```
+חקור את הנושא הזה וספק:
+
+### PART 1: EXECUTIVE SUMMARY
+[2-3 sentence overview]
+
+### PART 2: KEY FINDINGS
+[Exactly 5 bullet points]
+
+### PART 3: DATA TABLE
+| Metric | Value | Source |
+|--------|-------|--------|
+[Include 5 rows minimum]
+
+### PART 4: RECOMMENDATIONS
+[Numbered list of 3 actionable recommendations]
+
+### PART 5: FURTHER READING
+[3 suggested resources with brief descriptions]
+```
+
+## עיצוב מותנה
+
+עיצוב מותנה מאפשר לכם להגדיר פורמטי פלט שונים בהתבסס על מאפייני הקלט. זה חזק עבור מערכות סיווג, טריאז', וניתוב שבהן פורמט התגובה צריך להשתנות בהתבסס על מה שהמודל מזהה. השתמשו בלוגיקת if/then ברורה עם תבניות פלט מפורשות לכל מקרה.
+
+<TryIt 
+  compact
+  title="סיווג פניות"
+  prompt={`סווג את פנית התמיכה הזו.
+
+אם URGENT (מערכת קרסה, בעיית אבטחה, אובדן נתונים):
+  החזר: 🔴 URGENT | [Category] | [Suggested Action]
+
+אם HIGH (משפיע על משתמשים מרובים, השפעה על הכנסות):
+  החזר: 🟠 HIGH | [Category] | [Suggested Action]
+
+אם MEDIUM (משתמש יחיד מושפע, קיים פתרון עוקף):
+  החזר: 🟡 MEDIUM | [Category] | [Suggested Action]
+
+אם LOW (שאלות, בקשות תכונות):
+  החזר: 🟢 LOW | [Category] | [Suggested Action]
+
+Ticket: "I can't login to my account. I've tried resetting my password twice but still getting an error. This is blocking my entire team from accessing the dashboard."`}
+/>
+
+## מערכים ורשימות ב-JSON
+
+חילוץ פריטים מרובים למערכים דורש הגדרת סכמה זהירה. ציינו את מבנה המערך, מה כל פריט צריך להכיל, ואיך לטפל במקרי קצה (מערכים ריקים, פריטים בודדים). הכללת שדה ספירה עוזרת לאמת שלמות.
+
+```
+חלץ את כל פריטי הפעולה מתמליל הפגישה הזה.
+
+החזר כמערך JSON:
+{
+  "action_items": [
+    {
+      "task": "string describing the task",
+      "assignee": "person name or 'Unassigned'",
+      "deadline": "date if mentioned, else null",
+      "priority": "high" | "medium" | "low",
+      "context": "relevant quote from transcript"
+    }
+  ],
+  "total_count": number
+}
+
+Transcript: "[meeting transcript]"
+```
+
+## הוראות אימות
+
+אימות עצמי מנחה את המודל לבדוק את הפלט שלו לפני התגובה. זה תופס בעיות נפוצות כמו סעיפים חסרים, טקסט placeholder, או הפרות אילוצים. המודל יתקן פנימית כדי לתקן בעיות, ישפר את איכות הפלט ללא קריאות API נוספות.
+
+```
+צור את הדוח, ואז:
+
+VALIDATION CHECKLIST:
+□ All required sections present
+□ No placeholder text remaining
+□ All statistics include sources
+□ Word count within 500-700 words
+□ Conclusion ties back to introduction
+
+If any check fails, fix before responding.
+```
+
+## טיפול בשדות אופציונליים
+
+לנתונים בעולם האמיתי יש לעתים קרובות ערכים חסרים. הורו למודל במפורש איך לטפל בשדות אופציונליים — שימוש ב-`null` נקי יותר ממחרוזות ריקות וקל יותר לעיבוד תכנותי. כמו כן, מנעו "הזיה" של נתונים חסרים על ידי הדגשה שהמודל לעולם לא צריך להמציא מידע.
+
+```
+חלץ מידע ליצירת קשר. השתמש ב-null עבור שדות חסרים.
+
+{
+  "name": "string (required)",
+  "email": "string or null",
+  "phone": "string or null", 
+  "company": "string or null",
+  "role": "string or null",
+  "linkedin": "URL string or null"
+}
+
+IMPORTANT: 
+- Never invent information not in the source
+- Use null, not empty strings, for missing data
+- Phone numbers in E.164 format if possible
+```
+
+## סיכום
+
+<Callout type="tip" title="טכניקות מפתח">
+היו מפורשים לגבי הפורמט, השתמשו בדוגמאות, ציינו סוגים, טפלו במקרי קצה עם ערכי null, ובקשו מהמודל לאמת את הפלט שלו.
+</Callout>
+
+<Quiz 
+  question="מהו היתרון העיקרי של פלט מובנה על פני טקסט לא מובנה?"
+  options={[
+    "הוא משתמש בפחות tokens",
+    "קל יותר ל-AI לייצר אותו",
+    "ניתן לנתח אותו תכנותית ולאמת אותו",
+    "הוא תמיד מייצר מידע נכון"
+  ]}
+  correctIndex={2}
+  explanation="פלטים מובנים כמו JSON ניתנים לניתוח על ידי קוד, להשוואה בין שאילתות, לאינטגרציה בזרימות עבודה, ולאימות שלמות — דברים שקשים או בלתי אפשריים עם טקסט חופשי."
+/>
+
+פלטים מובנים חיוניים לבניית יישומים מונעי AI אמינים. בפרק הבא, נחקור הנחיית שרשרת מחשבה למשימות הסקה מורכבות.

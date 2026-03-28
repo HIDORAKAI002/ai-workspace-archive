@@ -1,0 +1,57 @@
+[{
+  "id": "template-prompt-001",
+  "version": "0.1.0",
+  "name": "Template Prompt",
+  "systemPrompt": "You are a helpful assistant that {ROLE_DESCRIPTION}. Your task is to {TASK_DESCRIPTION}.",
+  "systemPromptParameters": [
+    {
+      "name": "ROLE_DESCRIPTION",
+      "description": "Description of the assistant's role",
+      "type": "kString",
+      "required": true
+    },
+    {
+      "name": "TASK_DESCRIPTION",
+      "description": "Description of the main task or objective",
+      "type": "kString",
+      "required": true
+    }
+  ],
+  "userPrompt": "Please help me with {USER_REQUEST}. Consider the following context: {CONTEXT} and include {NUMBER} in your reply",
+  "userPromptParameters": [
+    {
+      "name": "USER_REQUEST",
+      "description": "The specific request or question from the user",
+      "type": "kString",
+      "required": true
+    },
+    {
+      "name": "CONTEXT",
+      "description": "Additional context or background information",
+      "type": "kString",
+      "required": false
+    },
+    {
+      "name": "NUMBER",
+      "description": "A number to include in the reply",
+      "type": "kNumber",
+      "required": false,
+      "defaultValue": "1"
+    }
+  ]
+},
+{
+   "id": "template-prompt-002",
+   "version": "0.1.0",
+   "name": "Template Prompt",
+   "systemPrompt": "You are a helpful assistant that welcomes people to motor racing events. You are careful not to duplicate words in your answers",
+   "userPrompt": "Say 'Welcome to the {LOCATION} Grand Prix'",
+   "userPromptParameters": [
+     {
+       "name": "LOCATION",
+       "description": "The location of the race",
+       "type": "kString",
+       "required": true
+     }
+   ]
+ }]

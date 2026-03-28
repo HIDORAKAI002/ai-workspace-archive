@@ -1,0 +1,343 @@
+Elke goede prompt deelt gemeenschappelijke structurele elementen. Het begrijpen van deze componenten stelt je in staat om prompts systematisch te construeren in plaats van door trial-and-error.
+
+<Callout type="tip" title="De Bouwstenen">
+Beschouw deze componenten als LEGO-blokjes. Je hebt ze niet allemaal nodig voor elke prompt, maar weten wat beschikbaar is helpt je precies te bouwen wat je nodig hebt.
+</Callout>
+
+## De Kerncomponenten
+
+Een effectieve prompt bevat doorgaans enkele of al deze elementen:
+
+<PromptBreakdown parts={[
+  { label: "Rol", text: "Je bent een senior software engineer" },
+  { label: "Context", text: "die werkt aan een React-applicatie." },
+  { label: "Taak", text: "Beoordeel deze code op bugs" },
+  { label: "Beperkingen", text: "en focus alleen op beveiligingsproblemen." },
+  { label: "Formaat", text: "Geef bevindingen als genummerde lijst." },
+  { label: "Voorbeeld", text: "Zoals: 1. SQL-injectierisico op regel 42" }
+]} />
+
+Laten we elk component in detail bekijken.
+
+## 1. Rol / Persona
+
+Het instellen van een rol richt de reacties van het model door de lens van een specifieke expertise of perspectief.
+
+<Compare 
+  before={{ label: "Zonder Rol", content: "Leg quantumcomputing uit." }}
+  after={{ label: "Met Rol", content: "Je bent een natuurkundeprofessor die gespecialiseerd is in het toegankelijk maken van complexe onderwerpen voor beginners. Leg quantumcomputing uit." }}
+/>
+
+De rol bereidt het model voor om:
+- Passend vocabulaire te gebruiken
+- Relevante expertise toe te passen
+- Een consistent perspectief te behouden
+- Het publiek op de juiste manier te benaderen
+
+### Effectieve Rolpatronen
+
+```
+"Je bent een [beroep] met [X jaar] ervaring in [specialiteit]"
+"Gedraag je als een [rol] die [kenmerk] is"
+"Je bent een expert [vakgebied] die een [type publiek] helpt"
+```
+
+## 2. Context / Achtergrond
+
+Context biedt de informatie die het model nodig heeft om jouw situatie te begrijpen. Onthoud: het model weet niets over jou, je project of je doelen tenzij je het vertelt.
+
+<Compare 
+  before={{ label: "Zwakke Context", content: "Los deze bug in mijn code op." }}
+  after={{ label: "Sterke Context", content: "Ik bouw een Node.js REST API met Express.js. De API handelt gebruikersauthenticatie af met JWT-tokens. Wanneer een gebruiker een beveiligde route probeert te openen, krijgt deze een 403-fout, zelfs met een geldig token. Hier is de relevante code: [code]" }}
+/>
+
+### Wat op te nemen in Context
+
+- **Projectdetails** — Technologiestack, architectuur, beperkingen
+- **Huidige status** — Wat je hebt geprobeerd, wat werkt, wat niet
+- **Doelen** — Wat je uiteindelijk wilt bereiken
+- **Beperkingen** — Tijdslimieten, technische vereisten, stijlrichtlijnen
+
+## 3. Taak / Instructie
+
+De taak is het hart van je prompt—wat je wilt dat het model doet. Wees specifiek en ondubbelzinnig.
+
+### Het Specificatiespectrum
+
+<SpecificitySpectrum levels={[
+  { level: "Vaag", text: "Help me met dit essay" },
+  { level: "Beter", text: "Bewerk dit essay" },
+  { level: "Goed", text: "Bewerk dit essay op grammatica en helderheid" },
+  { level: "Best", text: "Bewerk dit essay op grammatica en helderheid, behoud de originele toon maar verminder de woordrijkheid met 20%" }
+]} />
+
+### Actiewerkwoorden die Goed Werken
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">Creatie</span>
+    <span className="text-muted-foreground">Schrijf, Creëer, Genereer, Componeer, Ontwerp</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">Analyse</span>
+    <span className="text-muted-foreground">Analyseer, Evalueer, Vergelijk, Beoordeel, Review</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">Transformatie</span>
+    <span className="text-muted-foreground">Converteer, Vertaal, Herformatteer, Vat samen, Breid uit</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">Uitleg</span>
+    <span className="text-muted-foreground">Leg uit, Beschrijf, Verduidelijk, Definieer, Illustreer</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">Probleemoplossing</span>
+    <span className="text-muted-foreground">Los op, Debug, Repareer, Optimaliseer, Verbeter</span>
+  </div>
+</div>
+
+## 4. Beperkingen / Regels
+
+Beperkingen begrenzen de output van het model. Ze voorkomen veelvoorkomende problemen en zorgen voor relevantie.
+
+### Soorten Beperkingen
+
+**Lengtebeperkingen:**
+```
+"Houd je antwoord onder 200 woorden"
+"Geef precies 5 suggesties"
+"Schrijf 3-4 alinea's"
+```
+
+**Inhoudsbeperkingen:**
+```
+"Voeg geen codevoorbeelden toe"
+"Focus alleen op de technische aspecten"
+"Vermijd marketingtaal"
+```
+
+**Stijlbeperkingen:**
+```
+"Gebruik een formele, academische toon"
+"Schrijf alsof je tegen een 10-jarige praat"
+"Wees direct en vermijd vage taal"
+```
+
+**Scopebeperkingen:**
+```
+"Overweeg alleen opties beschikbaar in Python 3.10+"
+"Beperk suggesties tot gratis tools"
+"Focus op oplossingen die geen extra dependencies vereisen"
+```
+
+## 5. Outputformaat
+
+Het specificeren van het outputformaat zorgt ervoor dat je antwoorden krijgt in een bruikbare structuur.
+
+### Veelvoorkomende Formaten
+
+**Lijsten:**
+```
+"Geef als een opsommingslijst"
+"Geef een genummerde lijst van stappen"
+```
+
+**Gestructureerde data:**
+```
+"Geef als JSON met sleutels: title, description, priority"
+"Formatteer als een markdown-tabel met kolommen: Functie, Voordelen, Nadelen"
+```
+
+**Specifieke structuren:**
+```
+"Structureer je antwoord als:
+ ## Samenvatting
+ ## Belangrijkste Punten
+ ## Aanbevelingen"
+```
+
+### JSON Output Voorbeeld
+
+```
+Analyseer deze klantreview en geef JSON terug:
+{
+  "sentiment": "positive" | "negative" | "neutral",
+  "topics": ["array van hoofdonderwerpen"],
+  "rating_prediction": 1-5,
+  "key_phrases": ["opvallende zinnen"]
+}
+
+Review: "Het product kwam snel aan en werkt geweldig, maar
+de instructies waren verwarrend."
+```
+
+## 6. Voorbeelden (Few-Shot Learning)
+
+Voorbeelden zijn de krachtigste manier om het model precies te laten zien wat je wilt.
+
+### One-Shot Voorbeeld
+
+```
+Zet deze zinnen om naar de verleden tijd.
+
+Voorbeeld:
+Input: "Zij loopt naar de winkel"
+Output: "Zij liep naar de winkel"
+
+Zet nu om:
+Input: "Zij rennen elke ochtend"
+```
+
+### Few-Shot Voorbeeld
+
+```
+Classificeer deze supporttickets op urgentie.
+
+Voorbeelden:
+"Mijn account is gehackt" → Kritiek
+"Hoe verander ik mijn wachtwoord?" → Laag
+"Betaling mislukt maar ik ben wel belast" → Hoog
+
+Classificeer: "De app crasht wanneer ik instellingen open"
+```
+
+## Alles Samenvoegen
+
+Hier is een complete prompt met alle componenten:
+
+<TryIt 
+  title="Compleet Promptvoorbeeld"
+  description="Deze prompt demonstreert alle zes componenten die samenwerken. Probeer het om te zien hoe gestructureerde prompts professionele resultaten opleveren."
+  prompt={`# Rol
+Je bent een senior technisch schrijver met 10 jaar ervaring in het maken van ontwikkelaarsdocumentatie.
+
+# Context
+Ik documenteer een REST API voor een betalingsverwerkingsservice. Het publiek bestaat uit ontwikkelaars die onze API integreren in hun applicaties. Ze hebben gemiddelde programmeerkennis maar kunnen nieuw zijn met betalingsverwerkingsconcepten.
+
+# Taak
+Schrijf documentatie voor het volgende API-endpoint dat een nieuwe betalingsintentie aanmaakt.
+
+# Beperkingen
+- Gebruik duidelijke, beknopte taal
+- Voeg veelvoorkomende foutscenario's toe
+- Voeg geen implementatiedetails over onze backend toe
+- Ga ervan uit dat lezers HTTP en JSON-basis begrijpen
+
+# Outputformaat
+Structureer de documentatie als:
+1. Endpoint Overzicht (2-3 zinnen)
+2. Request (methode, URL, headers, body met voorbeeld)
+3. Response (succes- en foutvoorbeelden)
+4. Codevoorbeeld (in JavaScript/Node.js)
+
+# Endpoint Details
+POST /v1/payments/intents
+Body: { "amount": 1000, "currency": "usd", "description": "Order #1234" }`}
+/>
+
+## De Minimaal Effectieve Prompt
+
+Niet elke prompt heeft alle componenten nodig. Voor eenvoudige taken volstaat een duidelijke instructie:
+
+```
+Vertaal "Hello, how are you?" naar het Spaans.
+```
+
+Gebruik extra componenten wanneer:
+- De taak complex of dubbelzinnig is
+- Je specifieke opmaak nodig hebt
+- Resultaten niet aan verwachtingen voldoen
+- Consistentie over meerdere queries belangrijk is
+
+## Veelvoorkomende Promptpatronen
+
+Deze frameworks geven je een eenvoudige checklist om te volgen bij het schrijven van prompts. Klik op elke stap om een voorbeeld te zien.
+
+<CRISPEFramework />
+
+<RTFFramework />
+
+## Samenvatting
+
+Effectieve prompts worden geconstrueerd, niet ontdekt. Door deze structurele componenten te begrijpen en toe te passen, kun je:
+
+- Betere resultaten krijgen bij de eerste poging
+- Prompts debuggen die niet werken
+- Herbruikbare prompttemplates maken
+- Je intenties duidelijk communiceren
+
+<Quiz 
+  question="Welk component heeft de grootste impact op de kwaliteit van het antwoord?"
+  options={[
+    "Altijd de rol/persona",
+    "Altijd het outputformaat",
+    "Het hangt af van de taak",
+    "De lengte van de prompt"
+  ]}
+  correctIndex={2}
+  explanation="Verschillende taken profiteren van verschillende componenten. Een eenvoudige vertaling heeft minimale structuur nodig, terwijl een complexe analyse baat heeft bij gedetailleerde rol-, context- en formaatspecificaties."
+/>
+
+<TryIt 
+  prompt={`Je bent een senior productmanager met 10 jaar ervaring in SaaS-producten.
+
+Context: Ik bouw een taakbeheer-app voor remote teams. We zijn een kleine startup met beperkte engineeringcapaciteit.
+
+Taak: Stel 3 functies voor die we moeten prioriteren voor onze MVP.
+
+Beperkingen:
+- Functies moeten implementeerbaar zijn door een team van 2 developers in 4 weken
+- Focus op wat ons onderscheidt van Trello en Asana
+
+Formaat: Geef voor elke functie:
+1. Functienaam
+2. Beschrijving in één zin
+3. Waarom het belangrijk is voor remote teams`}
+  description="Deze prompt gebruikt alle zes componenten. Probeer het en zie hoe de gestructureerde aanpak gerichte, bruikbare resultaten oplevert."
+/>
+
+## Bouw Je Eigen Prompt
+
+Nu ben jij aan de beurt! Gebruik deze interactieve promptbouwer om je eigen prompt te construeren met de componenten die je hebt geleerd:
+
+<PromptBuilder 
+  title="Interactieve Promptbouwer"
+  description="Vul elke sectie in om een complete, goed gestructureerde prompt te bouwen"
+/>
+
+<PromptChallenge
+  title="Hoofdstuk Uitdaging: Bouw een Code Review Prompt"
+  task="Schrijf een prompt die een AI vraagt om code te reviewen op beveiligingskwetsbaarheden. Je prompt moet specifiek genoeg zijn om bruikbare feedback te krijgen."
+  criteria={[
+    "Bevat een duidelijke rol of expertiseniveau",
+    "Specificeert welk type code review (beveiligingsfocus)",
+    "Definieert het verwachte outputformaat",
+    "Stelt passende beperkingen of scope in"
+  ]}
+  hints={[
+    "Denk na over welke expertise een code reviewer moet hebben",
+    "Wees specifiek over welke beveiligingsproblemen te zoeken",
+    "Overweeg om een gestructureerd antwoordformaat te vragen"
+  ]}
+  exampleSolution={`Je bent een senior security engineer met expertise in webapplicatiebeveiliging en OWASP Top 10 kwetsbaarheden.
+
+Taak: Review de volgende code op beveiligingskwetsbaarheden.
+
+Focus op:
+- SQL-injectierisico's
+- XSS-kwetsbaarheden
+- Authenticatie/autorisatieproblemen
+- Input validatie hiaten
+
+Outputformaat:
+Voor elk gevonden probleem:
+1. Regelnummer(s)
+2. Type kwetsbaarheid
+3. Risiconiveau (Hoog/Gemiddeld/Laag)
+4. Aanbevolen oplossing
+
+[CODE OM TE REVIEWEN]`}
+  difficulty="intermediate"
+/>
+
+In het volgende hoofdstuk verkennen we de kernprincipes die beslissingen over promptconstructie sturen.

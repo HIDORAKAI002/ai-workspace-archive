@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing and Coverage
+.coverage
+.coverage.*
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.hypothesis/
+coverage.xml
+*.cover
+nosetests.xml
+
+# Virtual Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Development and IDE
+.idea/
+.vscode/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.spyderproject
+.spyproject
+.ropeproject
+.aider*
+*.swp
+*.swo
+*~
+.*.sw[op]
+
+# Jupyter
+.ipynb_checkpoints
+
+# Logs
+logs/
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# OS Generated
+.DS_Store
+Thumbs.db
+Icon?
+ehthumbs.db
+Desktop.ini
+
+# Secrets and Credentials
+*.pem
+*.key
+secrets/
+config.local.yaml
+credentials.json
+aws_credentials
+
+# Local Development
+.direnv/
+.envrc
+*.local.yml
+*.local.yaml
+local_settings.py
+
+# Distribution
+*.tar.gz
+*.tgz
+*.zip
+*.gz
+# ralphex progress logs
+progress*.txt

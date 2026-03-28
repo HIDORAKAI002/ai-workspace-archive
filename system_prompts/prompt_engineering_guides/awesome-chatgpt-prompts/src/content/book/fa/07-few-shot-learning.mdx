@@ -1,0 +1,478 @@
+یادگیری few-shot یکی از قدرتمندترین تکنیک‌های پرامپت‌نویسی است. با ارائه نمونه‌هایی از آنچه می‌خواهید، می‌توانید وظایف پیچیده را بدون هیچگونه fine-tuning به مدل آموزش دهید.
+
+<Callout type="info" title="یادگیری از طریق مثال">
+همانطور که انسان‌ها از طریق دیدن مثال‌ها یاد می‌گیرند، مدل‌های هوش مصنوعی نیز می‌توانند الگوها را از مثال‌هایی که در پرامپت خود ارائه می‌دهید، یاد بگیرند.
+</Callout>
+
+## یادگیری Few-Shot چیست؟
+
+یادگیری few-shot قبل از درخواست انجام همان وظیفه، نمونه‌هایی از جفت‌های ورودی-خروجی را به مدل نشان می‌دهد. مدل الگو را از مثال‌های شما یاد می‌گیرد و آن را روی ورودی‌های جدید اعمال می‌کند.
+
+<Compare 
+  before={{ 
+    label: "Zero-Shot (بدون مثال)", 
+    content: `Classify this review as positive or negative:
+
+"The battery lasts forever but the screen is too dim."
+
+→ Model may be inconsistent with edge cases` 
+  }}
+  after={{ 
+    label: "Few-Shot (با مثال)", 
+    content: `"Love it!" → Positive
+"Terrible quality" → Negative  
+"Good but expensive" → Mixed
+
+Now classify:
+"The battery lasts forever but the screen is too dim."
+
+→ Model learns your exact categories` 
+  }}
+/>
+
+<div className="my-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+  <div className="p-3 bg-muted/50 rounded-lg text-center">
+    <div className="text-2xl font-bold">0</div>
+    <div className="text-xs text-muted-foreground">Zero-shot</div>
+  </div>
+  <div className="p-3 bg-muted/50 rounded-lg text-center">
+    <div className="text-2xl font-bold">1</div>
+    <div className="text-xs text-muted-foreground">One-shot</div>
+  </div>
+  <div className="p-3 bg-primary/10 rounded-lg text-center border-2 border-primary">
+    <div className="text-2xl font-bold">2-5</div>
+    <div className="text-xs text-muted-foreground">Few-shot</div>
+  </div>
+  <div className="p-3 bg-muted/50 rounded-lg text-center">
+    <div className="text-2xl font-bold">5+</div>
+    <div className="text-xs text-muted-foreground">Many-shot</div>
+  </div>
+</div>
+
+## چرا مثال‌ها کار می‌کنند
+
+<FewShotDemo />
+
+مثال‌ها موارد زیر را منتقل می‌کنند:
+- **قالب**: خروجی چگونه باید ساختاربندی شود
+- **سبک**: لحن، طول، واژگان
+- **منطق**: الگوی استدلالی که باید دنبال شود
+- **موارد خاص**: نحوه برخورد با موقعیت‌های ویژه
+
+## الگوی پایه Few-Shot
+
+ساختار اساسی پرامپت‌نویسی few-shot از یک الگوی ساده پیروی می‌کند: نشان دادن مثال‌ها، سپس درخواست وظیفه جدید. یکپارچگی در قالب‌بندی بین مثال‌ها بسیار مهم است. مدل از الگویی که شما ایجاد می‌کنید یاد می‌گیرد.
+
+```
+[Example 1]
+Input: [input 1]
+Output: [output 1]
+
+[Example 2]
+Input: [input 2]
+Output: [output 2]
+
+[Example 3]
+Input: [input 3]
+Output: [output 3]
+
+Now do this one:
+Input: [new input]
+Output:
+```
+
+## Few-Shot برای طبقه‌بندی
+
+طبقه‌بندی یکی از قوی‌ترین موارد استفاده برای یادگیری few-shot است. با نشان دادن مثال‌هایی از هر دسته، مرزهای بین کلاس‌ها را دقیق‌تر از آنچه دستورالعمل‌ها به تنهایی می‌توانند انجام دهند، تعریف می‌کنید.
+
+### تحلیل احساسات
+
+<Callout type="info" title="تحلیل احساسات چیست؟">
+تحلیل احساسات متن را بر اساس لحن عاطفی طبقه‌بندی می‌کند: مثبت، منفی، خنثی، یا مختلط. این روش به طور گسترده برای بازخورد مشتریان، نظارت بر شبکه‌های اجتماعی و ردیابی ادراک برند استفاده می‌شود.
+</Callout>
+
+طبقه‌بندی احساسات از نشان دادن مثال‌هایی از هر نوع احساس بهره می‌برد، به ویژه موارد خاص مانند احساس "مختلط" که ممکن است مبهم باشد.
+
+<TryIt compact prompt={`Classify the sentiment of these customer reviews.
+
+Review: "This product exceeded all my expectations! Will buy again."
+Sentiment: Positive
+
+Review: "Arrived broken and customer service was unhelpful."
+Sentiment: Negative
+
+Review: "It works fine, nothing special but does the job."
+Sentiment: Neutral
+
+Review: "The quality is amazing but shipping took forever."
+Sentiment: Mixed
+
+Now classify:
+Review: "Love the design but the battery life is disappointing."
+Sentiment:`} />
+
+### طبقه‌بندی موضوعی
+
+برای دسته‌بندی چند کلاسه، حداقل یک مثال برای هر دسته قرار دهید. این به مدل کمک می‌کند تا طبقه‌بندی خاص شما را درک کند، که ممکن است با درک پیش‌فرض آن متفاوت باشد.
+
+<TryIt compact prompt={`Categorize these support tickets.
+
+Ticket: "I can't log into my account, password reset not working"
+Category: Authentication
+
+Ticket: "How do I upgrade to the premium plan?"
+Category: Billing
+
+Ticket: "The app crashes when I try to export data"
+Category: Bug Report
+
+Ticket: "Can you add dark mode to the mobile app?"
+Category: Feature Request
+
+Now categorize:
+Ticket: "My payment was declined but I see the charge on my card"
+Category:`} />
+
+## Few-Shot برای تبدیل
+
+وظایف تبدیل، ورودی را از یک شکل به شکل دیگر تبدیل می‌کنند در حالی که معنا را حفظ می‌کنند. مثال‌ها در اینجا ضروری هستند زیرا دقیقاً مشخص می‌کنند که "تبدیل" برای مورد استفاده شما به چه معناست.
+
+### بازنویسی متن
+
+تبدیل سبک نیاز به مثال‌هایی دارد که دقیقاً تغییر لحن مورد نظر شما را نشان دهند. دستورالعمل‌های انتزاعی مانند "حرفه‌ای‌ترش کن" به طور متفاوتی تفسیر می‌شوند. مثال‌ها آن را ملموس می‌کنند.
+
+<TryIt compact prompt={`Rewrite these sentences in a professional tone.
+
+Casual: "Hey, just wanted to check if you got my email?"
+Professional: "I wanted to follow up regarding my previous email."
+
+Casual: "This is super important and needs to be done ASAP!"
+Professional: "This matter requires urgent attention and prompt action."
+
+Casual: "Sorry for the late reply, been swamped!"
+Professional: "I apologize for the delayed response. I've had a particularly demanding schedule."
+
+Now rewrite:
+Casual: "Can't make it to the meeting, something came up."
+Professional:`} />
+
+### تبدیل قالب
+
+وظایف تبدیل قالب از مثال‌هایی که موارد خاص و ورودی‌های مبهم را نشان می‌دهند بهره می‌برند. مدل قراردادهای خاص شما را برای برخورد با موارد پیچیده یاد می‌گیرد.
+
+<TryIt compact prompt={`Convert these natural language dates to ISO format.
+
+Input: "next Tuesday"
+Output: 2024-01-16 (assuming today is 2024-01-11, Thursday)
+
+Input: "the day after tomorrow"
+Output: 2024-01-13
+
+Input: "last day of this month"
+Output: 2024-01-31
+
+Input: "two weeks from now"
+Output: 2024-01-25
+
+Now convert:
+Input: "the first Monday of next month"
+Output:`} />
+
+## Few-Shot برای تولید محتوا
+
+وظایف تولید، محتوای جدید را با پیروی از یک الگوی یاد گرفته شده ایجاد می‌کنند. مثال‌ها طول، ساختار، لحن و جزئیاتی که باید برجسته شوند را تعیین می‌کنند. مشخص کردن این موارد فقط با دستورالعمل‌ها دشوار است.
+
+### توضیحات محصول
+
+متن بازاریابی به شدت از مثال‌ها بهره می‌برد زیرا آنها صدای برند، تأکید بر ویژگی‌ها و تکنیک‌های متقاعدکننده را که توصیف انتزاعی آنها دشوار است، منتقل می‌کنند.
+
+<TryIt compact prompt={`Write product descriptions in this style:
+
+Product: Wireless Bluetooth Headphones
+Description: Immerse yourself in crystal-clear sound with our lightweight wireless headphones. Featuring 40-hour battery life, active noise cancellation, and plush memory foam ear cushions for all-day comfort.
+
+Product: Stainless Steel Water Bottle
+Description: Stay hydrated in style with our double-walled insulated bottle. Keeps drinks cold for 24 hours or hot for 12. Features a leak-proof lid and fits standard cup holders.
+
+Product: Ergonomic Office Chair
+Description: Transform your workspace with our adjustable ergonomic chair. Breathable mesh back, lumbar support, and 360° swivel combine to keep you comfortable during long work sessions.
+
+Now write:
+Product: Portable Phone Charger
+Description:`} />
+
+### مستندسازی کد
+
+<Callout type="info" title="چرا کد را مستند کنیم؟">
+مستندات خوب توضیح می‌دهد که کد چه کاری انجام می‌دهد، پارامترها، مقادیر بازگشتی و مثال‌های استفاده آن چیست. docstring‌های یکپارچه امکان تولید خودکار مستندات API را فراهم می‌کنند و به IDE‌ها کمک می‌کنند تا تکمیل کد بهتری ارائه دهند.
+</Callout>
+
+سبک مستندسازی بین پروژه‌ها بسیار متفاوت است. مثال‌ها قالب خاص شما، آنچه باید شامل شود (args، returns، examples) و سطح جزئیات مورد انتظار را آموزش می‌دهند.
+
+<TryIt compact prompt={`Write documentation comments for these functions:
+
+Function:
+def calculate_bmi(weight_kg, height_m):
+    return weight_kg / (height_m ** 2)
+
+Documentation:
+"""
+Calculate Body Mass Index (BMI) from weight and height.
+
+Args:
+    weight_kg (float): Weight in kilograms
+    height_m (float): Height in meters
+
+Returns:
+    float: BMI value (weight/height²)
+
+Example:
+    >>> calculate_bmi(70, 1.75)
+    22.86
+"""
+
+Now document:
+Function:
+def is_palindrome(text):
+    cleaned = ''.join(c.lower() for c in text if c.isalnum())
+    return cleaned == cleaned[::-1]
+
+Documentation:`} />
+
+## Few-Shot برای استخراج
+
+وظایف استخراج، اطلاعات ساختاریافته را از متن غیرساختاریافته بیرون می‌کشند. مثال‌ها مشخص می‌کنند کدام موجودیت‌ها مهم هستند، خروجی چگونه قالب‌بندی شود و چگونه با مواردی که اطلاعات گم شده یا مبهم است برخورد شود.
+
+### استخراج موجودیت
+
+<Callout type="info" title="تشخیص موجودیت نامدار چیست؟">
+تشخیص موجودیت نامدار (NER) موجودیت‌های نامدار را در متن شناسایی کرده و در دسته‌هایی مانند اشخاص، سازمان‌ها، مکان‌ها، تاریخ‌ها و محصولات طبقه‌بندی می‌کند. این روش برای بازیابی اطلاعات و گراف‌های دانش اساسی است.
+</Callout>
+
+NER از مثال‌هایی که انواع موجودیت خاص شما و نحوه برخورد با موجودیت‌هایی که می‌توانند در چند دسته قرار گیرند بهره می‌برد.
+
+<TryIt compact prompt={`Extract named entities from these sentences.
+
+Text: "Apple CEO Tim Cook announced the iPhone 15 in Cupertino."
+Entities:
+- COMPANY: Apple
+- PERSON: Tim Cook
+- PRODUCT: iPhone 15
+- LOCATION: Cupertino
+
+Text: "The European Union fined Google €4.34 billion in 2018."
+Entities:
+- ORGANIZATION: European Union
+- COMPANY: Google
+- MONEY: €4.34 billion
+- DATE: 2018
+
+Now extract from:
+Text: "Elon Musk's SpaceX launched 23 Starlink satellites from Cape Canaveral on December 3rd."
+Entities:`} />
+
+### استخراج داده‌های ساختاریافته
+
+استخراج داده‌های ساختاریافته از زبان طبیعی نیاز به مثال‌هایی دارد که نحوه برخورد با فیلدهای گمشده، اطلاعات ضمنی و قالب‌های ورودی متفاوت را نشان دهند.
+
+<TryIt compact prompt={`Extract meeting details into structured format.
+
+Email: "Let's meet tomorrow at 3pm in Conference Room B to discuss the Q4 budget. Please bring your laptop."
+
+Meeting:
+- Date: [tomorrow's date]
+- Time: 3:00 PM
+- Location: Conference Room B
+- Topic: Q4 budget discussion
+- Requirements: Bring laptop
+
+Email: "Team sync moved to Friday 10am, we'll use Zoom instead. Link in calendar invite. 30 minutes max."
+
+Meeting:
+- Date: Friday
+- Time: 10:00 AM
+- Location: Zoom (virtual)
+- Topic: Team sync
+- Duration: 30 minutes
+
+Now extract from:
+Email: "Can we do a quick call Monday morning around 9:30 to go over the client presentation? I'll send a Teams link."
+
+Meeting:`} />
+
+## تکنیک‌های پیشرفته Few-Shot
+
+فراتر از few-shot پایه، چندین تکنیک می‌توانند نتایج را برای وظایف پیچیده بهبود بخشند.
+
+### مثال‌های متنوع
+
+تنوع در مثال‌ها ارزشمندتر از تعداد است. سناریوهای مختلف، موارد خاص و ابهامات احتمالی را پوشش دهید به جای اینکه مثال‌های مشابه را به طور مکرر نشان دهید.
+
+<TryIt compact prompt={`Respond to customer complaints.
+
+Example 1 (Product Issue):
+Customer: "My order arrived damaged."
+Response: "I sincerely apologize for the damaged delivery. I'll immediately send a replacement at no charge. You don't need to return the damaged item. May I confirm your shipping address?"
+
+Example 2 (Service Issue):
+Customer: "I've been on hold for 2 hours!"
+Response: "I'm very sorry for the long wait time. That's unacceptable. I'm here now and will personally ensure your issue is resolved. What can I help you with today?"
+
+Example 3 (Billing Issue):
+Customer: "You charged me twice for the same order!"
+Response: "I apologize for this billing error. I've verified the duplicate charge and initiated a refund of $XX.XX to your original payment method. You should see it within 3-5 business days."
+
+Now respond to:
+Customer: "The product doesn't match what was shown on the website."
+Response:`} />
+
+### مثال‌های منفی
+
+<Callout type="tip" title="یادگیری تقابلی">
+نشان دادن مثال‌های "خوب" در مقابل "بد" یادگیری تقابلی نامیده می‌شود. این به مدل کمک می‌کند نه تنها آنچه می‌خواهید را درک کند، بلکه آنچه باید اجتناب شود را نیز بفهمد. این روش به ویژه برای قضاوت‌های سبک و کیفیت مفید است.
+</Callout>
+
+گاهی نشان دادن آنچه *نباید* انجام داد به اندازه نشان دادن مثال‌های صحیح ارزشمند است. مثال‌های منفی به مدل کمک می‌کنند مرزها را درک کند و از اشتباهات رایج اجتناب کند.
+
+<TryIt compact prompt={`Write concise email subject lines.
+
+Good: "Q3 Report Ready for Review"
+Bad: "Hey, I finished that report thing we talked about"
+
+Good: "Action Required: Approve PTO by Friday"
+Bad: "I need you to do something for me please read this"
+
+Good: "Meeting Rescheduled: Project Sync → Thursday 2pm"
+Bad: "Change of plans!!!!!"
+
+Now write a subject line for:
+Email about: Requesting feedback on a proposal draft
+Subject:`} />
+
+### مثال‌های موارد خاص
+
+موارد خاص اغلب تعیین می‌کنند که آیا یک راه‌حل در محیط واقعی کار می‌کند یا خیر. گنجاندن ورودی‌های غیرمعمول در مثال‌های شما از شکست مدل روی داده‌های دنیای واقعی که با "مسیر خوشحال" مطابقت ندارند جلوگیری می‌کند.
+
+<TryIt compact prompt={`Parse names into structured format.
+
+Input: "John Smith"
+Output: {"first": "John", "last": "Smith", "middle": null, "suffix": null}
+
+Input: "Mary Jane Watson-Parker"
+Output: {"first": "Mary", "middle": "Jane", "last": "Watson-Parker", "suffix": null}
+
+Input: "Dr. Martin Luther King Jr."
+Output: {"prefix": "Dr.", "first": "Martin", "middle": "Luther", "last": "King", "suffix": "Jr."}
+
+Input: "Madonna"
+Output: {"first": "Madonna", "last": null, "middle": null, "suffix": null, "mononym": true}
+
+Now parse:
+Input: "Sir Patrick Stewart III"
+Output:`} />
+
+## چند مثال؟
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">طبقه‌بندی ساده</span>
+    <span className="text-primary font-mono">2-3</span>
+    <span className="text-muted-foreground">حداقل یکی برای هر دسته</span>
+  </div>
+  <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">قالب‌بندی پیچیده</span>
+    <span className="text-primary font-mono">3-5</span>
+    <span className="text-muted-foreground">تنوع را نشان دهید</span>
+  </div>
+  <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">سبک ظریف</span>
+    <span className="text-primary font-mono">4-6</span>
+    <span className="text-muted-foreground">دامنه کامل را پوشش دهید</span>
+  </div>
+  <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">موارد خاص</span>
+    <span className="text-primary font-mono">1-2</span>
+    <span className="text-muted-foreground">در کنار مثال‌های معمولی</span>
+  </div>
+</div>
+
+## کیفیت مثال‌ها مهم است
+
+<Compare 
+  before={{ 
+    label: "مثال‌های بد", 
+    content: `"Nice product" → Good
+"Nice service" → Good
+"Nice price" → Good
+
+✗ All too similar
+✗ Same word repeated
+✗ No edge cases shown` 
+  }}
+  after={{ 
+    label: "مثال‌های خوب", 
+    content: `"Exceeded expectations!" → Positive
+"Broken on arrival" → Negative
+"Works fine, nothing special" → Neutral
+"Great quality but overpriced" → Mixed
+
+✓ Diverse scenarios
+✓ Clear boundaries
+✓ Covers edge cases` 
+  }}
+/>
+
+## ترکیب Few-Shot با تکنیک‌های دیگر
+
+یادگیری few-shot به طور قدرتمندی با تکنیک‌های دیگر پرامپت‌نویسی ترکیب می‌شود. مثال‌ها "چه چیزی" را فراهم می‌کنند در حالی که تکنیک‌های دیگر می‌توانند زمینه، استدلال یا ساختار اضافه کنند.
+
+### Few-Shot + نقش
+
+افزودن یک نقش به مدل زمینه می‌دهد که *چرا* این وظیفه را انجام می‌دهد، که می‌تواند کیفیت و یکپارچگی را بهبود بخشد.
+
+```
+You are a legal contract reviewer.
+
+[examples of contract clause analysis]
+
+Now analyze: [new clause]
+```
+
+### Few-Shot + CoT
+
+ترکیب few-shot با Chain of Thought نه تنها *چه* پاسخی باید داده شود، بلکه *چگونه* باید به آن پاسخ رسید را نشان می‌دهد. این برای وظایفی که نیاز به قضاوت دارند قدرتمند است.
+
+```
+Classify and explain reasoning.
+
+Review: "Great features but overpriced"
+Thinking: The review mentions positive aspects ("great features") 
+but also a significant negative ("overpriced"). The negative seems 
+to outweigh the positive based on the "but" conjunction.
+Classification: Mixed-Negative
+
+[more examples with reasoning]
+
+Now classify with reasoning:
+Review: "Exactly what I needed, arrived faster than expected"
+```
+
+## خلاصه
+
+<Callout type="tip" title="نکات کلیدی">
+یادگیری few-shot از طریق نمایش آموزش می‌دهد و اغلب مؤثرتر از دستورالعمل‌ها به تنهایی است. از ۲ تا ۵ مثال متنوع و صحیح استفاده کنید و برای بهترین نتایج با تکنیک‌های دیگر ترکیب کنید.
+</Callout>
+
+<Quiz 
+  question="معمولاً چند مثال باید در یادگیری few-shot ارائه دهید؟"
+  options={[
+    "هرچه بیشتر بهتر (۱۰+)",
+    "فقط ۱ مثال همیشه کافی است",
+    "۲ تا ۵ مثال متنوع و صحیح",
+    "اگر دستورالعمل‌ها واضح باشند، مثال لازم نیست"
+  ]}
+  correctIndex={2}
+  explanation="۲ تا ۵ مثال متنوع و صحیح معمولاً بهترین عملکرد را دارند. تعداد کم ممکن است الگو را منتقل نکند، در حالی که تعداد زیاد توکن‌ها را هدر می‌دهد و ممکن است مدل را گیج کند. کیفیت و تنوع مهم‌تر از تعداد است."
+/>
+
+در فصل بعدی، اصلاح تکراری را بررسی خواهیم کرد: هنر بهبود پرامپت‌ها از طریق تلاش‌های متوالی.

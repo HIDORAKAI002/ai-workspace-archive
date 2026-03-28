@@ -1,0 +1,44 @@
+
+I was given the following JSON response, which had problems due to incorrect values.
+
+{
+  "people": [
+    {
+      "name": "John Doe",
+      "age": 28,
+      "zip_code": {
+        "incorrect_value": "None",
+        "error_messages": [
+          "Zip code must be numeric.",
+          "Zip code must be in California, and start with 9."
+        ]
+      }
+    },
+    {
+      "name": "Jane Doe",
+      "age": 32,
+      "zip_code": "94103"
+    },
+    {
+      "name": "James Smith",
+      "age": 40,
+      "zip_code": "92101"
+    }
+  ]
+}
+
+Help me correct the incorrect values based on the given error messages.
+
+Given below is XML that describes the information to extract from this document and the tags to extract it into.
+
+<output description="A list of people.Args:    people (List[Person]): A list of people.">
+  <list name="people" required="true">
+    <object description="Information about a person.Args:    name (str): The name of the person.    age (int): The age of the person.    zip_code (str): The zip code of the person." required="true">
+      <string name="name" required="true"></string>
+      <integer format="age_must_be_between_0_and_150" name="age" required="true"></integer>
+      <string format="zip_code_must_be_numeric; zip_code_in_california" name="zip_code" required="true"></string>
+    </object>
+  </list>
+</output>
+
+ONLY return a valid JSON object (no other text is necessary), where the key of the field in JSON is the `name` attribute of the corresponding XML, and the value is of the type specified by the corresponding XML's tag. The JSON MUST conform to the XML format, including any types and format requests e.g. requests for lists, objects and specific types. Be correct and concise. If you are unsure anywhere, enter `null`.

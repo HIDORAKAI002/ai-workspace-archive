@@ -1,0 +1,45 @@
+{
+  "profiles": {
+    "1.8 + Forge + LiteLoader": {
+      "name": "1.8 + Forge + LiteLoader",
+      "lastVersionId": "1.8.0",
+      "javaArgs": "-Xmx1G",
+      "useHopperCrashService": false,
+      "launcherVisibilityOnGameClose": "keep the launcher open",
+      "mcpmInstalledPackages": {
+        "fake": "1.2.3",
+        "package": "2.3.4"
+      }
+    },
+    "1.7.2 + Forge + LiteLoader": {
+      "name": "1.7.2 + Forge + LiteLoader",
+      "lastVersionId": "1.7.2-LiteLoader1.7.2",
+      "launcherVisibilityOnGameClose": "keep the launcher open"
+    },
+    "1.7.2": {
+      "name": "1.7.2",
+      "lastVersionId": "1.7.2"
+    },
+    "1.8": {
+      "name": "1.8",
+      "lastVersionId": "1.8",
+      "launcherVisibilityOnGameClose": "keep the launcher open"
+    }
+  },
+  "selectedProfile": "1.8 + Forge + LiteLoader",
+  "clientToken": "23e37e54-9d3b-4286-9013-135946d37ca4",
+  "authenticationDatabase": {
+    "26a662adf3884461b9201cc37792300b": {
+      "displayName": "fakeDisplayName",
+      "accessToken": "68aab0bae65f47bc8e5e731e76fa89f1",
+      "userid": "b17a426efb88412aae62a3730f66590f",
+      "uuid": "3c7496d7-574d-44a3-8372-7f3b236f3bf1",
+      "username": "fakeUsername"
+    }
+  },
+  "selectedUser": "26a662adf3884461b9201cc37792300b",
+  "launcherVersion": {
+    "name": "1.6.13",
+    "format": 17
+  }
+}

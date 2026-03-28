@@ -1,0 +1,10 @@
+{
+	"name": "yoriiis/frontend-code-review",
+	"version": "1.0.0",
+	"summary": "Use when asked to review a MR/PR on GitHub or GitLab. Checks for XSS vulnerabilities, validates ARIA attributes and WCAG compliance, identifies render-blocking issues and race conditions, enforces semantic HTML. Produces actionable feedback.",
+	"skills": {
+		"frontend-code-review": {
+			"path": "SKILL.md"
+		}
+	}
+}

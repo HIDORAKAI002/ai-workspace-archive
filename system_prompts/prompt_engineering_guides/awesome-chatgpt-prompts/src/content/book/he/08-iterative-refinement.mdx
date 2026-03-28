@@ -1,0 +1,387 @@
+הנדסת פרומפטים היא לעיתים רחוקות תהליך של ניסיון אחד. הפרומפטים הטובים ביותר מתגבשים דרך איטרציה—בדיקה, התבוננות ושיפור עד שמשיגים את התוצאות הרצויות.
+
+<Callout type="info" title="טיוטה ראשונה, לא טיוטה סופית">
+חשבו על הפרומפט הראשון שלכם כעל טיוטה גסה. אפילו מהנדסי פרומפטים מנוסים כמעט ולא מצליחים בניסיון הראשון.
+</Callout>
+
+## מחזור האיטרציה
+
+שיפור פרומפטים אפקטיבי עוקב אחר מחזור צפוי: כתיבה, בדיקה, ניתוח ושיפור. כל איטרציה מקרבת אתכם לפרומפט שמייצר באופן אמין את התוצאות שאתם צריכים.
+
+<IterativeRefinementDemo />
+
+## דפוסי שיפור נפוצים
+
+רוב כשלונות הפרומפטים נופלים לכמה קטגוריות בלבד. לימוד לזהות דפוסים אלה מאפשר לכם לאבחן ולתקן בעיות במהירות מבלי להתחיל מאפס.
+
+### בעיה: פלט ארוך מדי
+
+אחת הבעיות הנפוצות ביותר. ללא מגבלות מפורשות, מודלים נוטים להיות יסודיים במקום תמציתיים.
+
+<DiffView 
+  before="Explain how photosynthesis works."
+  after={`Explain how photosynthesis works in 3-4 sentences suitable for a 10-year-old.`}
+  beforeLabel="מקורי"
+  afterLabel="משופר"
+/>
+
+### בעיה: פלט מעורפל מדי
+
+פרומפטים מעורפלים מייצרים פלטים מעורפלים. המודל לא יכול לקרוא את מחשבותיכם לגבי מה המשמעות של "טוב יותר" או אילו היבטים חשובים לכם ביותר.
+
+<DiffView 
+  before="Give me tips for better presentations."
+  after={`Give me 5 specific, actionable tips for improving technical presentations to non-technical stakeholders. For each tip, include a concrete example.`}
+  beforeLabel="מקורי"
+  afterLabel="משופר"
+/>
+
+### בעיה: טון שגוי
+
+טון הוא סובייקטיבי ומשתנה לפי הקשר. מה שנשמע "מקצועי" למודל עשוי שלא להתאים לקול הארגון שלכם או למערכת היחסים עם הנמען.
+
+<DiffView 
+  before="Write an apology email for missing a deadline."
+  after={`Write a professional but warm apology email for missing a project deadline. The tone should be accountable without being overly apologetic. Include a concrete plan to prevent future delays.`}
+  beforeLabel="מקורי"
+  afterLabel="משופר"
+/>
+
+### בעיה: חסר מידע מפתח
+
+בקשות פתוחות מקבלות תגובות פתוחות. אם אתם צריכים סוגים ספציפיים של משוב, עליכם לבקש אותם במפורש.
+
+<DiffView 
+  before="Review this code."
+  after={`Review this Python code for:
+1. Bugs and logical errors
+2. Performance issues
+3. Security vulnerabilities
+4. Code style (PEP 8)
+
+For each issue found, explain the problem and suggest a fix.
+
+[code]`}
+  beforeLabel="מקורי"
+  afterLabel="משופר"
+/>
+
+### בעיה: פורמט לא עקבי
+
+ללא תבנית, המודל יבנה כל תגובה אחרת, מה שמקשה על השוואה והופך אוטומציה לבלתי אפשרית.
+
+<DiffView 
+  before="Analyze these three products."
+  after={`Analyze these three products using this exact format for each:
+
+## [Product Name]
+**Price:** $X
+**Pros:** [bullet list]
+**Cons:** [bullet list]
+**Best For:** [one sentence]
+**Rating:** X/10
+
+[products]`}
+  beforeLabel="מקורי"
+  afterLabel="משופר"
+/>
+
+## גישת שיפור שיטתית
+
+שינויים אקראיים מבזבזים זמן. גישה שיטתית עוזרת לכם לזהות בעיות במהירות ולתקן אותן ביעילות.
+
+### שלב 1: אבחון הבעיה
+
+לפני שמשנים משהו, זהו מה בעצם לא עובד. השתמשו בטבלת האבחון הזו כדי למפות סימפטומים לפתרונות:
+
+<div className="my-4 grid gap-2">
+  <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 rounded-lg text-sm">
+    <span className="font-semibold">סימפטום</span>
+    <span className="font-semibold">סיבה סבירה</span>
+    <span className="font-semibold">פתרון</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>ארוך מדי</span>
+    <span className="text-muted-foreground">אין מגבלת אורך</span>
+    <span className="text-green-600 dark:text-green-400">הוסיפו מגבלות מילים/משפטים</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>קצר מדי</span>
+    <span className="text-muted-foreground">חסרה בקשה לפירוט</span>
+    <span className="text-green-600 dark:text-green-400">בקשו הרחבה</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>לא רלוונטי</span>
+    <span className="text-muted-foreground">הנחיות מעורפלות</span>
+    <span className="text-green-600 dark:text-green-400">היו יותר ספציפיים</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>פורמט שגוי</span>
+    <span className="text-muted-foreground">לא צוין פורמט</span>
+    <span className="text-green-600 dark:text-green-400">הגדירו מבנה מדויק</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>טון שגוי</span>
+    <span className="text-muted-foreground">קהל היעד לא ברור</span>
+    <span className="text-green-600 dark:text-green-400">ציינו קהל/סגנון</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm">
+    <span>לא עקבי</span>
+    <span className="text-muted-foreground">לא סופקו דוגמאות</span>
+    <span className="text-green-600 dark:text-green-400">הוסיפו דוגמאות few-shot</span>
+  </div>
+</div>
+
+### שלב 2: בצעו שינויים ממוקדים
+
+התנגדו לדחף לשכתב הכל. שינוי מספר משתנים בו-זמנית מונע ממכם לדעת מה עזר ומה הזיק. בצעו שינוי אחד, בדקו אותו, ואז המשיכו:
+
+```
+Iteration 1: Add length constraint
+Iteration 2: Specify format
+Iteration 3: Add example
+Iteration 4: Refine tone instructions
+```
+
+### שלב 3: תעדו מה עובד
+
+ידע בהנדסת פרומפטים אובד בקלות. שמרו יומן של מה שניסיתם ולמה. זה חוסך זמן כשחוזרים לפרומפט מאוחר יותר או מתמודדים עם אתגרים דומים:
+
+```markdown
+## Prompt: Customer Email Response
+
+### Version 1 (too formal)
+"Write a response to this customer complaint."
+
+### Version 2 (better tone, still missing structure)
+"Write a friendly but professional response to this complaint. 
+Show empathy first."
+
+### Version 3 (final - good results)
+"Write a response to this customer complaint. Structure:
+1. Acknowledge their frustration (1 sentence)
+2. Apologize specifically (1 sentence)  
+3. Explain solution (2-3 sentences)
+4. Offer additional help (1 sentence)
+
+Tone: Friendly, professional, empathetic but not groveling."
+```
+
+## דוגמה לאיטרציה מהעולם האמיתי
+
+בואו נעבור על מחזור איטרציה שלם כדי לראות כיצד כל שיפור בונה על הקודם. שימו לב כיצד כל גרסה מטפלת בחסרונות ספציפיים של הקודמת.
+
+### משימה: יצירת שמות מוצרים
+
+<VersionDiff versions={[
+  {
+    label: "גרסה 1",
+    content: "Generate names for a new productivity app.",
+    note: "גנרי מדי, ללא הקשר"
+  },
+  {
+    label: "גרסה 2",
+    content: `Generate names for a new productivity app. The app uses AI to automatically schedule your tasks based on energy levels and calendar availability.`,
+    note: "נוסף הקשר, עדיין גנרי"
+  },
+  {
+    label: "גרסה 3",
+    content: `Generate 10 unique, memorable names for a productivity app with these characteristics:
+- Uses AI to schedule tasks based on energy levels
+- Target audience: busy professionals aged 25-40
+- Brand tone: modern, smart, slightly playful
+- Avoid: generic words like "pro", "smart", "AI", "task"
+
+For each name, explain why it works.`,
+    note: "נוספו מגבלות ונימוקים"
+  },
+  {
+    label: "גרסה 4 (סופית)",
+    content: `Generate 10 unique, memorable names for a productivity app.
+
+Context:
+- Uses AI to schedule tasks based on energy levels
+- Target: busy professionals, 25-40
+- Tone: modern, smart, slightly playful
+
+Requirements:
+- 2-3 syllables maximum
+- Easy to spell and pronounce
+- Available as .com domain (check if plausible)
+- Avoid: generic words (pro, smart, AI, task, flow)
+
+Format:
+Name | Pronunciation | Why It Works | Domain Availability Guess`,
+    note: "פורמט מובנה, דרישות ספציפיות"
+  }
+]} />
+
+## אסטרטגיות שיפור לפי סוג משימה
+
+משימות שונות נכשלות בדרכים צפויות. הכרת מצבי הכשל הנפוצים עוזרת לכם לאבחן ולתקן בעיות מהר יותר.
+
+### ליצירת תוכן
+
+יצירת תוכן מייצרת לעיתים קרובות פלט גנרי, לא ממוקד או בפורמט לקוי. התיקון בדרך כלל כרוך בהיות יותר ספציפיים לגבי מגבלות, מתן דוגמאות קונקרטיות, או הגדרה מפורשת של קול המותג שלכם.
+
+<InfoGrid items={[
+  { icon: "target", title: "גנרי מדי", description: "הוסיפו מגבלות והקשר ספציפיים", example: "\"Write about dogs\" → \"Write about golden retrievers for first-time owners, focusing on training and exercise needs\"" },
+  { icon: "scissors", title: "ארוך מדי", description: "הגדירו מגבלות מילים/פסקאות", example: "Add: \"Keep response under 150 words\" or \"Maximum 3 paragraphs\"" },
+  { icon: "palette", title: "סגנון שגוי", description: "ספקו דוגמאות סגנון", example: "\"Write in the style of this example: [paste sample text]\"" },
+  { icon: "megaphone", title: "לא מתאים למותג", description: "כללו הנחיות קול המותג", example: "\"Use friendly, casual tone. Avoid jargon. Address reader as 'you'.\"" }
+]} />
+
+### ליצירת קוד
+
+פלט קוד יכול להיכשל טכנית (שגיאות תחביר, תכונות שפה שגויות) או ארכיטקטונית (דפוסים לקויים, מקרים חסרים). בעיות טכניות צריכות פרטי גרסה/סביבה; בעיות ארכיטקטוניות צריכות הנחיות עיצוב.
+
+<InfoGrid items={[
+  { icon: "code", title: "שגיאות תחביר", description: "ציינו גרסת שפה", example: "\"Use Python 3.11+ syntax with type hints\" or \"ES2022 JavaScript\"" },
+  { icon: "git-branch", title: "גישה שגויה", description: "תארו דפוסים מועדפים", example: "\"Use functional approach, avoid classes\" or \"Follow repository pattern\"" },
+  { icon: "shield", title: "מקרי קצה חסרים", description: "פרטו תרחישים לטיפול", example: "\"Handle: empty input, null values, network timeouts, invalid formats\"" },
+  { icon: "tag", title: "מתן שמות לקוי", description: "כללו מוסכמות מתן שמות", example: "\"Use camelCase for variables, PascalCase for classes, UPPER_SNAKE for constants\"" }
+]} />
+
+### לניתוח
+
+משימות ניתוח מייצרות לעיתים קרובות תוצאות שטחיות או לא מובנות. הנחו את המודל עם מסגרות ספציפיות (SWOT, חמשת הכוחות של פורטר), בקשו נקודות מבט מרובות, או ספקו תבנית למבנה הפלט.
+
+<InfoGrid items={[
+  { icon: "layers", title: "שטחי מדי", description: "בקשו מסגרות ספציפיות", example: "\"Analyze using SWOT framework\" or \"Apply Porter's Five Forces\"" },
+  { icon: "scale", title: "מוטה", description: "בקשו נקודות מבט מרובות", example: "\"Present arguments for and against\" or \"Include skeptic's viewpoint\"" },
+  { icon: "database", title: "חסר נתונים", description: "ציינו מה לנתח", example: "\"Focus on: market size, growth rate, key players, entry barriers\"" },
+  { icon: "layout", title: "לא מובנה", description: "ספקו תבנית ניתוח", example: "\"Format as: Summary → Key Findings → Implications → Recommendations\"" }
+]} />
+
+### לשאלות ותשובות
+
+מענה לשאלות יכול להיות תמציתי מדי או מילולי מדי, ועשוי לחסור מדדי ביטחון או מקורות. ציינו את רמת הפירוט שאתם צריכים והאם אתם רוצים ציטוטים או הבעת אי-ודאות.
+
+<InfoGrid items={[
+  { icon: "plus", title: "קצר מדי", description: "בקשו הרחבה", example: "\"Explain in detail with examples\" or \"Elaborate on each point\"" },
+  { icon: "minus", title: "ארוך מדי", description: "בקשו תשובה תמציתית", example: "\"Answer in 2-3 sentences\" or \"Give me the TL;DR\"" },
+  { icon: "help-circle", title: "לא ודאי", description: "בקשו רמת ביטחון", example: "\"Rate your confidence 1-10\" or \"Note any assumptions made\"" },
+  { icon: "link", title: "ללא מקורות", description: "בקשו ציטוטים", example: "\"Cite sources for claims\" or \"Include references where possible\"" }
+]} />
+
+## טכניקת לולאת המשוב
+
+הנה מטא-טכניקה: השתמשו במודל עצמו כדי לעזור לשפר את הפרומפטים שלכם. שתפו מה ניסיתם, מה קיבלתם ומה רציתם. המודל יכול לעיתים קרובות להציע שיפורים שלא חשבתם עליהם.
+
+```
+I used this prompt:
+"[your prompt]"
+
+And got this output:
+"[model output]"
+
+I wanted something more [describe gap]. How should I modify 
+my prompt to get better results?
+```
+
+## בדיקות A/B לפרומפטים
+
+עבור פרומפטים שישמשו שוב ושוב או בקנה מידה גדול, אל תבחרו רק את הראשון שעובד. בדקו וריאציות כדי למצוא את הגישה האמינה והאיכותית ביותר.
+
+```
+Prompt A: "Summarize this article in 3 bullet points."
+Prompt B: "Extract the 3 most important insights from this article."
+Prompt C: "What are the key takeaways from this article? List 3."
+```
+
+הריצו כל אחד מספר פעמים, השוו:
+- עקביות הפלט
+- איכות המידע
+- רלוונטיות לצרכים שלכם
+
+## מתי להפסיק לעשות איטרציות
+
+שלמות היא האויבת של טוב מספיק. דעו מתי הפרומפט שלכם מוכן לשימוש ומתי אתם פשוט מלטשים לתשואה פוחתת.
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconCheck className="h-4 w-4" /> מוכן להשקה</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">הפלט עומד בדרישות באופן עקבי</p>
+      <p className="m-0!">מקרי קצה מטופלים כראוי</p>
+      <p className="m-0!">הפורמט אמין וניתן לניתוח</p>
+      <p className="m-0!">שיפורים נוספים מראים תשואה פוחתת</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+    <p className="text-sm font-semibold text-red-700 dark:text-red-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconX className="h-4 w-4" /> המשיכו לשפר</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">הפלט לא עקבי בין הרצות</p>
+      <p className="m-0!">מקרי קצה גורמים לכשלים</p>
+      <p className="m-0!">דרישות קריטיות מוחמצות</p>
+      <p className="m-0!">לא בדקתם מספיק וריאציות</p>
+    </div>
+  </div>
+</div>
+
+## בקרת גרסאות לפרומפטים
+
+פרומפטים הם קוד. לכל פרומפט שמשמש בייצור, התייחסו אליו באותה קפדנות: בקרת גרסאות, יומני שינויים והיכולת לחזור לאחור אם משהו נשבר.
+
+<Callout type="tip" title="ניהול גרסאות מובנה">
+prompts.chat כולל היסטוריית גרסאות אוטומטית לפרומפטים שלכם. כל עריכה נשמרת, כך שתוכלו להשוות גרסאות ולשחזר איטרציות קודמות בלחיצה אחת.
+</Callout>
+
+לפרומפטים בניהול עצמי, השתמשו במבנה תיקיות:
+
+```
+prompts/
+├── customer-response/
+│   ├── v1.0.txt    # Initial version
+│   ├── v1.1.txt    # Fixed tone issue
+│   ├── v2.0.txt    # Major restructure
+│   └── current.txt # Symlink to active version
+└── changelog.md    # Document changes
+```
+
+## סיכום
+
+<Callout type="tip" title="נקודות מפתח">
+התחילו פשוט, התבוננו בזהירות, שנו דבר אחד בכל פעם, תעדו מה עובד ודעו מתי לעצור. הפרומפטים הטובים ביותר לא נכתבים—הם מתגלים דרך איטרציה שיטתית.
+</Callout>
+
+<Quiz 
+  question="מהי הגישה הטובה ביותר לשיפור פרומפט שמייצר תוצאות שגויות?"
+  options={[
+    "לשכתב את כל הפרומפט מאפס",
+    "להוסיף עוד דוגמאות עד שיעבוד",
+    "לשנות דבר אחד בכל פעם ולבדוק כל שינוי",
+    "להפוך את הפרומפט לארוך ככל האפשר"
+  ]}
+  correctIndex={2}
+  explanation="שינוי דבר אחד בכל פעם מאפשר לכם לבודד מה עובד ומה לא. אם תשנו מספר דברים בו-זמנית, לא תדעו איזה שינוי תיקן את הבעיה או איזה הרע אותה."
+/>
+
+## תרגול: שפרו את הפרומפט הזה
+
+נסו לשפר את הפרומפט החלש הזה בעצמכם. ערכו אותו, ואז השתמשו ב-AI כדי להשוות את הגרסה שלכם למקור:
+
+<BeforeAfterEditor
+  title="שפרו את פרומפט האימייל הזה"
+  badPrompt="Write an email."
+  idealPrompt={`You are a professional business writer.
+
+Task: Write a follow-up email to a potential client after a sales meeting.
+
+Context:
+- Met with Sarah Chen, VP of Marketing at TechCorp
+- Discussed our analytics platform
+- She expressed interest in the reporting features
+- Meeting was yesterday
+
+Requirements:
+- Professional but warm tone
+- Reference specific points from our meeting
+- Include a clear next step (schedule a demo)
+- Keep under 150 words
+
+Format: Subject line + email body`}
+  task="הפכו את פרומפט האימייל המעורפל הזה למשהו שייצור תוצאה מקצועית ואפקטיבית."
+/>
+
+בפרק הבא נחקור פרומפטים ב-JSON ו-YAML ליישומי נתונים מובנים.

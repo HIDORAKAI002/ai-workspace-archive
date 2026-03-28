@@ -1,0 +1,317 @@
+# Contributing Guidelines
+
+Welcome! This document describes how to contribute to this repository. Following these guidelines helps us maintain a clean history, consistent quality, and smooth review process.
+All pull requests are subject to automated and manual review against these guidelines.
+
+---
+
+## Commit Messages and PR Titles
+
+All commits and PR titles must follow the **[Conventional Commits](https://www.conventionalcommits.org/)** format.
+Both the **type** (`feat`, `fix`, `chore`, etc.) and the **scope** (the component in parentheses) are required.
+To indicate a **breaking change**, append `!` after the scope (e.g., `feat!: ...`).
+
+We use this format to determine version bumps and to generate changelogs.
+It applies to both commit messages and PR titles, since PRs are merged using squash and the PR title becomes the commit message.
+
+### Examples of Good Messages
+
+```text
+feat: Add new tool for fetching actor details
+feat!: Migrate to new MCP SDK version [internal]
+fix: Handle connection errors gracefully
+refactor: Improve type definitions [ignore]
+chore: Update dependencies
+```
+
+---
+
+## Pull Request Descriptions
+
+Your PR description should extend your commit message:
+- Explain **what**, **why**, and **how**.
+- Mention potential risks.
+- Provide instructions for reviewers.
+- Link related issues or resources.
+
+---
+
+## Pull Request Comments
+
+Use comments to guide reviewers:
+- Flag code that was **just moved**, so they don't re-review it.
+- Explain reasoning behind non-obvious changes.
+- Highlight extra cleanup or unrelated fixes.
+
+---
+
+## Pull Request Size
+
+- Aim for ≤ **300 lines changed**.
+- Large PRs should be split into smaller, focused changes.
+
+---
+
+## Coding Standards & Pitfalls
+
+### Key reminders
+*   **Keep logic flat**: avoid deep nesting and unnecessary `else`; return early instead.
+*   **Readability first**: small, focused functions and consistent naming.
+*   **Error handling**: always handle and propagate errors clearly.
+*   **Minimal parameters**: functions should only accept what they actually use.
+*   **Reuse utilities**: prefer existing helpers instead of re-implementing logic.
+*   **Consistency reinforcement**: rely on the shared ESLint config (`@apify/eslint-config`) and EditorConfig settings to enforce standards automatically.
+
+### Standards
+*   **Avoid `else`:** Return early to reduce indentation and keep logic flat.
+
+*   **Naming:** Use full, descriptive names. Avoid single-letter variables except for common loop indices (e.g., `i` for index).
+    * **Constants:** When a constant is global (defined at the module's top level), immutable, and optionally exported, use uppercase `SNAKE_CASE` format.
+        * If a different applicable naming rule is defined below, that rule takes precedence (e.g., for classes, components, functions, Zod validators, schemas, ...).
+    * **Functions & Variables:** Use `camelCase` format.
+    * **Classes, Types, Schemas, Components:** Use capitalized `PascalCase` format.
+    * **Files & Folders:** Use lowercase `snake_case` format.
+    * **Endpoint Paths:** Use lowercase `kebab-case` format.
+    * **Booleans:** Prefix with `is`, `has`, or `should` (e.g., `isValid`, `hasFinished`, `shouldRetry`).
+    * **Units:** Suffix with the unit of measure (e.g., `externalCostUsd`, `intervalMillis`).
+    * **Date/Time:** Suffix with `At` (e.g., `updateStartedAt`, `paidAt`).
+    * **Zod Validators:** Suffix with `Validator`.
+    * **Text/Copy:** Use the branded term `Actor` (capitalized) instead of `actor` in user-facing texts, labels, notifications, error messages, etc.
+
+*   **String formatting:**
+    * Use plain single-quoted strings for short one-liners.
+    * Use `dedent` (tagged template literal) for any string that would otherwise exceed `max-len` or span multiple lines — including tool `description` fields, LLM instructions, and single-sentence strings that are simply long.
+        * Inline `dedent` directly as a property or variable value — do not extract it to a named constant.
+        * `dedent` introduces `\n` at each source line break. This is fine for LLM-facing strings (tool descriptions, instructions, notes), but avoid it for strings where whitespace is significant or where `\n` would break rendering (e.g. UI labels, log messages, URLs).
+        * For strings where `\n` is not acceptable, use string concatenation (`+`) to split across lines for `max-len` compliance.
+        ```typescript
+        import dedent from 'dedent';
+
+        // Multi-line prose — always use dedent
+        export const toolEntry = {
+            name: 'example-tool',
+            description: dedent`
+                Line 1.
+                Line 2.
+
+                USAGE:
+                - Example
+            `,
+        };
+
+        // Long single sentence going to LLM — dedent is fine, \n is ok
+        const note = isLimited ? dedent`
+            You only have a preview (${count} of ${total} items).
+            Do not present this as the full output.
+        ` : '';
+
+        // Long string where \n is NOT ok (e.g. log message) — use + instead
+        const msg = `Something failed for actor "${actorName}"`
+            + ` with status ${status}.`;
+        ```
+    * Avoid `[].join('\n')` for multiline strings — it is noisy and harder to edit.
+    * When migrating existing strings, keep the wording **semantically unchanged**.
+
+*   **Comments:**
+    * Use proper English (spelling, grammar, punctuation, capitalization).
+    * Use JSDoc `/**` for documentation, `//` for generic comments, and avoid `/*` (single asterix multiline comments).
+
+*   **Parameters**
+    * **Minimal Parameters:** Pass only the parameters that the function actually uses.
+        * When the parameter is an object (e.g., User), include only the fields used by the function instead of passing full objects with unnecessary data.
+        * Use TypeScript generics or utility types to preserve correct typing while narrowing the shape.
+            ```typescript
+            export const getTransformedUser = <TUser extends FieldsRequiredForGetTransformedUser>(
+                user: TUser,
+            ): TUser & TransformedUserFields => { /* ... */ };
+            ```
+    * **Function Parameters:**
+        * You may define a function with a comma-separated list of parameters **only if it has up to 3 parameters**.
+            ```typescript
+            public async getActorBasicInfo(
+                actorId: string,
+                impersonatedUserId: string,
+                token: string
+            ): Promise<ActorBasicInfo | null> { /* ... */ };
+            ```
+        * If the function has **more than 3 parameters**, define it with a **single object parameter** that contains them.
+            ```typescript
+            private ensureActorAccess = async ({ actorId, userId, token, req }: {
+                actorId: string;
+                userId: string;
+                token: string;
+                req: AuthenticatedRequest;
+            }) => { /* ... */ };
+            ```
+        * Optional parameters must be at the end of the list.
+    * **Optional Parameters (`?` vs `| undefined`):**
+        * Use `?` if calling the function *without* the parameter makes sense.
+        * Use `| undefined` if the parameter *should* be passed but might be undefined for a specific reason (e.g., not found).
+
+*   **Async functions**
+    * **`await` vs `void`:**
+        * Use `await` when you care about the Promise result or exceptions.
+        * Use `void` when you don't need to wait for the Promise (e.g., fire-and-forget operations).
+    * **Use `return await` when returning Promises:**
+        * Ensures that exceptions are thrown within the current function, preserving accurate stack traces and making debugging easier.
+
+*   **Enumerations:**
+    * Define as `as const` object instead of TypeScript `enum`.
+    * Name both the enumeration object and its keys in singular uppercase `SNAKE_CASE` format.
+    * Ensure that each key and its value are identical.
+    * Create a TypeScript type with the same name as the enumeration object.
+        ```typescript
+        export const ACTOR_STATUS = {
+            READY: 'READY',
+            RUNNING: 'RUNNING',
+            SUCCEEDED: 'SUCCEEDED',
+        } as const;
+        export type ACTOR_STATUS = ValueOf<typeof ACTOR_STATUS>;
+        ```
+
+*   **`type` vs `interface`:**
+    * Prefer `type` for flexibility.
+    * Use `interface` only when it's required for class implementations (`implements`).
+
+*   **Types organization:**
+    * Centralize shared/public types in `src/types.ts`.
+    * Co-locate module-specific types next to their usage (same file or a local `types.ts`).
+    * Use a folder-level `types.ts` when multiple files in a folder share types, instead of inflating the root `src/types.ts`.
+
+*   **Code Structure:**
+    * Keep functions short, focused, and cohesive.
+    * Declare variables close to their first use.
+    * Extract reusable or complex logic into named helper functions.
+    * **Avoid intermediate variables for single-use expressions** — don't create a variable if it's only used once; inline it directly.
+        * ❌ Don't: `const docSourceEnum = z.enum([...]); const schema = z.object({ docSource: docSourceEnum })`
+        * ✅ Do: `const schema = z.object({ docSource: z.enum([...]) })`
+        * Exception: Only create intermediate variables if they improve readability for complex expressions.
+
+*   **Immutability:**
+    * Avoid mutating function parameters.
+    * If mutation is absolutely necessary (e.g., for performance), clearly document and explain it with a comment.
+
+*   **Imports:**
+    * Imports are ordered and grouped automatically by ESLint: builtin → external → parent/sibling → index → object, alphabetized within groups, with newlines between groups.
+    * Use `import type` for type-only imports.
+    * Do not duplicate imports — reuse existing ones.
+    * Do not use dynamic imports unless explicitly required.
+
+*   **Readability vs. Performance:**
+    * Prioritize readability over micro-optimizations.
+    * For performance-critical code, optimize only when justified and document the reasoning.
+
+*   **Assertions & Validations:**
+    * Use **Zod** for schema-based validation of complex shapes or intricate checks.
+    * Use **custom validators and assertions** for lightweight, in-code checks - e.g. validating primitive values, simple shapes, or decision logic inside functions.
+    * **No double validation:** When using Zod schemas with AJV (`ajvValidate` in tool definitions), do NOT add redundant manual validation — let the schema handle it. Use the parsed data directly.
+
+*   **Error Handling:**
+    * **User Errors:**
+        * Use appropriate error codes (4xx for client errors).
+        * Log as `softFail` or appropriate level.
+    * **Internal Errors:**
+        * Use appropriate error codes (5xx for server errors).
+        * Log with `log.exception`, `log.error`, or appropriate error logging.
+    * **Don't log then throw:** Do NOT call `log.error()` immediately before throwing — the error will be logged by the caller. This creates duplicate logs and violates separation of concerns.
+        * ❌ Don't: `log.error('Something failed'); throw new Error('Something failed');`
+        * ✅ Do: `throw new Error('Something failed');`
+
+*   **Logging:**
+    * Log meaningful information for debugging, especially errors in critical system parts.
+    * Use appropriate log levels:
+        * `softFail` - client errors
+        * `exception` / `error` - server errors
+        * `warn` - suspicious but non-critical behavior
+        * `info` - progress or important state changes
+        * `debug` - local development
+    * **Mezmo (logDNA) promotion rule:** Mezmo automatically promotes log entries to error level when the log message or data keys contain the word `"error"`. To avoid false error alerts in `softFail` calls:
+        * Use `errMessage` as the data key (not `error`) when logging an error message string.
+        * Sanitize the error message string: `.replace(/ error:/gi, ' failure:')`.
+        * Avoid the word `"error"` in the `softFail` message string itself.
+        * Example: `log.softFail('Client disconnected', { errMessage: err.message.replace(/ error:/gi, ' failure:') })`
+
+*   **Sensitive Data:**
+    * Never send sensitive information without proper permission checks.
+    * Sanitize data before sending or logging.
+    * Use appropriate data structures to limit exposed fields.
+
+*   **Common patterns:**
+    * **Tool implementation**: Tools are defined in `src/tools/` using Zod schemas for validation.
+    * **Actor interaction**: Use `src/utils/apify_client.ts` for Apify API calls — never call the Apify API directly.
+    * **Error responses**: Return user-friendly error messages with suggestions.
+    * **Input validation**: Always validate tool inputs with Zod before processing.
+    * **Caching**: Use TTL-based caching for Actor schemas and details (see `src/utils/ttl_lru.ts`).
+    * **Constants and tool names**: Always use constants and never hardcoded values. When referring to tools, ALWAYS use the `HelperTools` enum.
+        * Exception: Integration tests (`tests/integration/`) must use hardcoded strings for tool names. This ensures tests fail if a tool is renamed, preventing accidental breaking changes.
+
+*   **Anti-patterns:**
+    * Don't call Apify API directly — always use the Apify client utilities.
+    * Don't mutate function parameters without clear documentation.
+    * Don't skip input validation — all tool inputs must be validated with Zod.
+    * Don't use `Promise.then()` — prefer `async/await`.
+    * Don't create tools without proper error handling and user-friendly messages.
+    * Don't add features not in the requirements.
+    * Don't refactor working code unless asked.
+    * Don't add error handling for impossible scenarios.
+    * Don't create abstractions for one-time operations.
+    * Don't optimize prematurely.
+
+---
+
+## Design System Compliance (MANDATORY)
+
+**READ FIRST**: [DESIGN_SYSTEM_AGENT_INSTRUCTIONS.md](DESIGN_SYSTEM_AGENT_INSTRUCTIONS.md) — Complete design system rules.
+
+**Quick Rules** (Zero tolerance):
+- ✅ ALWAYS use `theme.*` tokens (colors, spacing)
+- ❌ NEVER hardcode: `#hex`, `rgb()`, `Npx` values, font sizes
+- ✅ Import from `@apify/ui-library` only
+- ✅ Check `mcp__storybook__*` and `mcp__figma__*` availability before UI work
+- ✅ Call `mcp__storybook__get-ui-building-instructions` first
+- ✅ Read 1-3 similar components for patterns (max 3 files)
+- ✅ Verify zero hardcoded values before submitting
+
+**Figma Integration**: Call `mcp__figma__get_design_context` when working from designs.
+
+---
+
+## Development Setup
+
+For local development setup, scripts, and manual testing, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+---
+
+## Code Review Guidelines
+
+- Make **two passes** on substantial PRs:
+  - First: understand changes at a high level.
+  - Second: focus on details.
+- If the PR is too complex, suggest refactoring.
+- Use the `important`, `suggestion`, and `nit` keywords to indicate how crucial the comment is.
+
+---
+
+## Testing
+
+- Write tests for new features and bug fixes.
+- Ensure all tests pass before submitting a PR.
+- Aim for good test coverage, especially for critical paths.
+- Use descriptive test names that explain what is being tested.
+
+---
+
+## Documentation
+
+- Update README.md if adding new features or changing behavior.
+- Add JSDoc comments for public APIs.
+- Keep code comments clear and concise.
+
+---
+
+## Questions?
+
+If you have questions or need help, please:
+- Open an issue for discussion
+- Check existing issues and PRs
+- Review the codebase for examples

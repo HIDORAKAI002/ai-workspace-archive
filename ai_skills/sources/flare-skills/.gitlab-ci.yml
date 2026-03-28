@@ -1,0 +1,22 @@
+# GitLab CI: validate Flare AI skills (structure, frontmatter, marketplace sync)
+default:
+  image: python:3.11-alpine
+  before_script:
+    - apk add --no-cache bash curl
+
+validate-skills:
+  stage: test
+  script:
+    - ./scripts/validate-skills.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+check-links:
+  stage: test
+  script:
+    - ./scripts/check-links.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true

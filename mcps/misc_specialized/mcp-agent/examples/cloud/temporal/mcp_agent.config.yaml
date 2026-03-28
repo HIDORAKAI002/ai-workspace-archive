@@ -1,0 +1,45 @@
+# Configuration for the Temporal workflow example
+$schema: ../../schema/mcp-agent.config.schema.json
+
+# Set the execution engine to Temporal
+execution_engine: "temporal"
+
+# Optional: preload modules that declare @workflow_task activities
+# workflow_task_modules:
+#   - my_project.custom_tasks
+
+# Optional: override retry behaviour for specific activities
+# workflow_task_retry_policies:
+#   my_project.custom_tasks.my_activity:
+#     maximum_attempts: 1
+
+# Temporal settings
+temporal:
+  host: "localhost:7233" # Default Temporal server address
+  namespace: "default" # Default Temporal namespace
+  task_queue: "mcp-agent" # Task queue for workflows and activities
+  max_concurrent_activities: 10 # Maximum number of concurrent activities
+
+logger:
+  transports: [console]
+  level: debug
+  path_settings:
+    path_pattern: "logs/mcp-agent-{unique_id}.jsonl"
+    unique_id: "timestamp"
+    timestamp_format: "%Y%m%d_%H%M%S"
+
+mcp:
+  servers:
+    fetch:
+      command: "uvx"
+      args: ["mcp-server-fetch"]
+      description: "Fetch content at URLs from the world wide web"
+    filesystem:
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem"]
+      description: "Read and write files on the filesystem"
+
+openai:
+  # Secrets (API keys, etc.) are stored in an mcp_agent.secrets.yaml file which can be gitignored
+  #  default_model: "o3-mini"
+  default_model: "gpt-4o-mini"

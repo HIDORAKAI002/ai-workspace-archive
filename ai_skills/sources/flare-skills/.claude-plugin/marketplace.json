@@ -1,0 +1,58 @@
+{
+  "name": "flare-ai-skills",
+  "owner": {
+    "name": "Flare Foundation",
+    "email": "support@flare.network"
+  },
+  "metadata": {
+    "description": "Agent Skills for Flare blockchain development",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "flare-ftso",
+      "description": "FTSO domain knowledge for Flare development. Covers decentralized block-latency price feeds, Scaling anchor feeds, feed IDs, FtsoV2Interface, FeeCalculator, onchain and offchain consumption, and delegation.",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["flare", "ftso", "oracle", "price-feeds", "blockchain", "defi", "web3"],
+      "source": "./skills/flare-ftso-skill",
+      "strict": false
+    },
+    {
+      "name": "flare-fassets",
+      "description": "FAssets domain knowledge for Flare development. Covers wrapped tokens (FXRP, FBTC, FDOGE), minting, redemption, agents, collateral, and smart contract integration.",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["flare", "fassets", "blockchain", "defi", "web3"],
+      "source": "./skills/flare-fassets-skill",
+      "strict": false
+    },
+    {
+      "name": "flare-fdc",
+      "description": "Flare Data Connector domain knowledge. Covers attestation types (EVMTransaction, Web2Json, Payment), request flow, Merkle proofs, verifier/DA Layer, and contract verification.",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["flare", "fdc", "attestation", "blockchain", "web3"],
+      "source": "./skills/flare-fdc-skill",
+      "strict": false
+    },
+    {
+      "name": "flare-smart-accounts",
+      "description": "Smart Accounts domain knowledge for Flare development. Covers account abstraction for XRPL users to interact with Flare without owning FLR.",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["flare", "smart-accounts", "xrpl", "blockchain", "web3"],
+      "source": "./skills/flare-smart-accounts-skill",
+      "strict": false
+    },
+    {
+      "name": "flare-general",
+      "description": "General Flare network knowledge for developers. Covers what Flare is, core protocols (FTSO, FDC, FAssets, Smart Accounts), networks, chain IDs, RPC endpoints, block explorers, faucets, native tokens, consensus, EVM compatibility, and developer tooling (Hardhat, Foundry, viem/wagmi).",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["flare", "blockchain", "evm", "web3", "network", "rpc", "getting-started"],
+      "source": "./skills/flare-general-skill",
+      "strict": false
+    }
+  ]
+}

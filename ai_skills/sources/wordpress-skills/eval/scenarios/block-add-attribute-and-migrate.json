@@ -1,0 +1,23 @@
+{
+  "name": "Add a block attribute safely",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-development"],
+  "query": "Add a new attribute to an existing block and make sure existing content doesn't become 'Invalid block'.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind and tooling",
+    "Step 2: Run wp-project-triage script: node skills/wp-project-triage/scripts/detect_wp_project.mjs",
+    "Step 3: Route to wp-block-development based on block.json presence",
+    "Step 4: Inspect current block.json, edit.js, and save.js to understand serialization",
+    "Step 5: Identify if the new attribute affects saved markup",
+    "Step 6: If markup changes, add a deprecated version with the old save function",
+    "Step 7: Optionally add migrate function to transform old attributes",
+    "Step 8: Test that existing content migrates without 'Invalid block' error"
+  ],
+  "success_criteria": [
+    "Triage script is run before making changes",
+    "Routes to wp-block-development skill",
+    "Inspects block.json and save function before modifying",
+    "If saved markup changes, adds deprecated entry",
+    "Provides migration path if attribute structure changes",
+    "Verifies no 'Invalid block' error on existing content"
+  ]
+}

@@ -1,0 +1,116 @@
+name: Reusable Tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: "Operating system name"
+        required: true
+        default: Ubuntu
+        type: string
+      image:
+        description: "Runner image"
+        required: true
+        default: ubuntu-latest
+        type: string
+      python-version:
+        description: "Python version to test against"
+        required: true
+        default: "3.10"
+        type: string
+      upgrade-deps:
+        description: "Whether to install all extras"
+        required: false
+        default: false
+        type: boolean
+      with-coverage:
+        description: "Whether to run tests with coverage reporting"
+        required: false
+        default: false
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+env:
+  POETRY_VERSION: 1.8.2
+
+jobs:
+  tests:
+    name: ${{ inputs.os }} / Python ${{ inputs.python-version }}
+    runs-on: ${{ inputs.image }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Get full Python version
+        id: full-python-version
+        run: echo "version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")" >> $GITHUB_OUTPUT
+
+      - name: Get runner architecture
+        id: runner-arch
+        run: echo "arch=$(uname -m)" >> $GITHUB_OUTPUT
+
+      - name: Bootstrap poetry (Linux and macOS)
+        run: |
+          curl -sSL https://install.python-poetry.org | POETRY_VERSION=${{ env.POETRY_VERSION }} python -
+
+      - name: Update PATH (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Update PATH for Windows
+        if: runner.os == 'Windows'
+        run: echo "$APPDATA\\Python\\Scripts" >> $GITHUB_PATH
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Set up cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.runner-arch.outputs.arch }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Ensure cache is healthy
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: timeout 10s poetry run pip --version || rm -rf .venv
+
+      - name: Check Poetry .lock
+        run: poetry check --lock
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ inputs.upgrade-deps}}" = "true" ]; then
+            poetry update
+            poetry install --all-extras --with dev
+          else
+            poetry install --with dev
+          fi
+
+      - name: Run pytest with coverage
+        if: inputs.with-coverage
+        run: poetry run pytest --cov=nemoguardrails tests/ --cov-report=xml:coverage.xml -v
+
+      - name: Run pytest without coverage
+        if: inputs.with-coverage == false
+        run: poetry run pytest -v
+
+      - name: Upload coverage to Codecov
+        if: inputs.with-coverage
+        uses: codecov/codecov-action@v5
+        with:
+          directory: ./coverage/reports/
+          env_vars: PYTHON
+          fail_ci_if_error: true
+          files: ./coverage.xml
+          flags: python
+          name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true

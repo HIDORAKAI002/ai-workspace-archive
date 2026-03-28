@@ -1,0 +1,108 @@
+{
+  "name": "@apify/actors-mcp-server",
+  "version": "0.9.16",
+  "type": "module",
+  "description": "Apify MCP Server",
+  "mcpName": "com.apify/apify-mcp-server",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./internals": "./dist/index_internals.js",
+    "./internals.js": "./dist/index_internals.js",
+    "./manifest.json": "./manifest.json"
+  },
+  "bin": {
+    "actors-mcp-server": "./dist/stdio.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "package.json",
+    "server.json",
+    "manifest.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apify/apify-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/apify/apify-mcp-server/issues"
+  },
+  "homepage": "https://mcp.apify.com",
+  "keywords": [
+    "apify",
+    "mcp",
+    "server",
+    "actors",
+    "model context protocol"
+  ],
+  "dependencies": {
+    "@apify/datastructures": "^2.0.3",
+    "@apify/log": "^2.5.16",
+    "@apify/utilities": "^2.25.1",
+    "@modelcontextprotocol/ext-apps": "^1.1.2",
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@segment/analytics-node": "^2.3.0",
+    "@sentry/node": "^10.38.0",
+    "ajv": "^8.17.1",
+    "algoliasearch": "^5.31.0",
+    "apify": "^3.4.2",
+    "apify-client": "^2.22.1",
+    "dedent": "^1.7.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mcp-client-capabilities": "^0.0.5",
+    "to-json-schema": "^0.2.5",
+    "yargs": "^17.7.2",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@ai-sdk/openai": "^2.0.52",
+    "@apify/eslint-config": "^1.1.0",
+    "@apify/tsconfig": "^0.1.0",
+    "@arizeai/phoenix-client": "^4.2.0",
+    "@arizeai/phoenix-evals": "^0.2.2",
+    "@sentry/cli": "^3.2.0",
+    "@types/express": "^4.0.0",
+    "@types/to-json-schema": "^0.2.4",
+    "@types/yargs": "^17.0.33",
+    "@types/yargs-parser": "^21.0.3",
+    "eslint": "^9.19.0",
+    "eventsource": "^3.0.2",
+    "openai": "^6.10.0",
+    "p-limit": "^6.1.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.23.0",
+    "vitest": "^3.0.8"
+  },
+  "scripts": {
+    "start": "npm run start:standby",
+    "dev": "node scripts/dev_standby.js",
+    "start:standby": "APIFY_META_ORIGIN=\"STANDBY\" tsx src/main.ts",
+    "build": "npm run build:core && npm run build:web",
+    "build:core": "tsc -b src",
+    "build:watch": "tsc -b src -w",
+    "build:web": "npm --prefix src/web install && npm --prefix src/web run build",
+    "postbuild": "mkdir -p dist/web && (cp -r src/web/dist dist/web/ 2>/dev/null || :)",
+    "clean": "tsc -b src --clean && rm -rf dist/web",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run type-check",
+    "check": "npm run type-check && npm run lint",
+    "check:widgets": "tsx scripts/check_widgets.ts",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "npm run build && vitest run tests/integration",
+    "inspector:stdio": "npx @modelcontextprotocol/inspector -e APIFY_TOKEN=$APIFY_TOKEN -- node dist/stdio.js",
+    "evals:create-dataset": "tsx evals/create_dataset.ts",
+    "evals:run": "tsx evals/run_evaluation.ts",
+    "evals:workflow": "npm run build && tsx evals/workflows/run_workflow_evals.ts"
+  },
+  "author": "Apify",
+  "license": "MIT"
+}

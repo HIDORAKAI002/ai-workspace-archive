@@ -1,0 +1,92 @@
+# Dependencies
+node_modules/
+package-lock.json
+.pnp/
+.pnp.js
+vendor/
+jspm_packages/
+bower_components/
+
+# Build outputs
+build/
+dist/
+out/
+*.min.js
+*.min.css
+
+# Environment & config
+dbhub.toml
+docs/plans/
+docs/testing/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.venv
+env/
+venv/
+ENV/
+config.local.js
+*.local.json
+.mcpregistry*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Cache and temp
+.npm
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.grunt
+.temp
+.tmp
+.sass-cache/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.*.sw[a-p]
+*.sublime-workspace
+*.sublime-project
+
+# Compiled binaries
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so 

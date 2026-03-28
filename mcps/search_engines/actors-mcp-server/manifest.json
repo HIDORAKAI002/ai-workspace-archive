@@ -1,0 +1,92 @@
+{
+  "manifest_version": "0.2",
+  "name": "apify-mcp-server",
+  "display_name": "Apify",
+  "version": "0.9.16",
+  "description": "Extract data from any website with thousands of scrapers, crawlers, and automations on Apify Store.",
+  "long_description": "Apify is the world's largest marketplace of tools for web scraping, crawling, data extraction, and web automation. Get structured data from social media, e-commerce, search engines, maps, travel sites, or any other website.",
+  "keywords": [
+    "apify",
+    "actors",
+    "dataset",
+    "mcp",
+    "automation",
+    "web",
+    "web automation",
+    "web scraper",
+    "web crawler",
+    "scraping",
+    "crawl",
+    "crawler",
+    "crawling",
+    "ai",
+    "data",
+    "extraction",
+    "bright",
+    "fire",
+    "data extraction",
+    "API"
+  ],
+  "author": {
+    "name": "Apify Technologies s.r.o.",
+    "url": "https://apify.com/"
+  },
+  "license": "MIT",
+  "privacy_policies": [
+    "https://docs.apify.com/legal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apify/apify-mcp-server"
+  },
+  "homepage": "https://apify.com/",
+  "support": "https://help.apify.com/",
+  "icon": "icon.png",
+  "screenshots": [
+    "docs/actors-mcp-server.png"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/stdio.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/dist/stdio.js",
+        "--tools",
+        "${user_config.tools}"
+      ],
+      "env": {
+        "APIFY_TOKEN": "${user_config.apify_token}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "prompts_generated": true,
+  "user_config": {
+    "apify_token": {
+      "type": "string",
+      "title": "Apify API token",
+      "description": "You can create a free account and get an API token at https://console.apify.com/settings/integrations",
+      "sensitive": true,
+      "required": true
+    },
+    "tools": {
+      "type": "string",
+      "title": "Enabled tools",
+      "description": "Comma-separated list of tool categories or Actors, e.g. \"actors,docs,apify/rag-web-browser\". For details, see https://mcp.apify.com",
+      "required": false,
+      "default": "actors,docs,apify/rag-web-browser"
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.2.16",
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

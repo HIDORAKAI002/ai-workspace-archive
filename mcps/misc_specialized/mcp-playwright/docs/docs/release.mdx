@@ -1,0 +1,280 @@
+---
+sidebar_position: 2
+---
+import YouTubeVideoEmbed from '@site/src/components/HomepageFeatures/YouTubeVideoEmbed';
+
+# Release Notes
+
+## Version 1.0.12 (December 2025)
+- **Automatic Browser Installation**: No more manual setup required! The server now automatically detects and installs missing browsers
+  ```bash
+  # Just run the server - browsers install automatically on first use
+  npx @executeautomation/playwright-mcp-server
+  ```
+- **Smart Browser Detection**: Automatically detects when Chromium, Firefox, or WebKit browsers are missing
+- **Auto-Install Process**: Runs `npx playwright install <browser>` automatically when needed
+- **Better User Experience**: Clear progress messages and helpful error messages if auto-install fails
+- **Zero Configuration**: Works out of the box without running `npx playwright install` manually
+- **Package Updates**: 
+  - Updated @modelcontextprotocol/sdk: 1.11.1 → 1.24.3
+  - Updated Playwright packages: 1.53.1 → 1.57.0
+  - Updated express: 4.18.2 → 4.21.1
+  - Updated mcp-evals: 1.0.18 → 2.0.1
+- **Security Improvement**: Removed shell execution for better security in browser installation
+- **Test Coverage**: All 150 tests passing with no breaking changes
+
+---
+
+## Version 1.0.11 (December 2025)
+- **Enhanced API Authentication**: Added Bearer token authentication support for all API methods (GET, POST, PUT, PATCH, DELETE)
+  ```javascript
+  await playwright_get({
+    url: 'https://api.example.com/protected-data',
+    token: 'your-bearer-token'
+  });
+  ```
+- **Custom Headers Support**: Added custom headers parameter for flexible authentication (Basic auth, API keys, etc.)
+  ```javascript
+  await playwright_post({
+    url: 'https://api.example.com/data',
+    value: '{"name":"test"}',
+    headers: {
+      'X-API-Key': 'your-api-key'
+    }
+  });
+  ```
+- **Code Quality Improvements**:
+  - Added TypeScript interfaces (`BaseRequestArgs`, `RequestWithBodyArgs`)
+  - Created `buildHeaders()` and `validateHeaders()` helper functions
+  - Improved error handling and validation
+- **Test Coverage**: Added 8 new edge case tests, 150 tests passing with 88.37% code coverage
+- **Backward Compatibility**: All changes are fully backward compatible, new parameters are optional
+
+---
+
+## Version 1.0.10 (December 2025)
+- **Device Emulation for `playwright_resize`**: Added support for 143 pre-configured device presets (iPhone, iPad, Pixel, Galaxy, Desktop)
+  ```javascript
+  await playwright_resize({ device: "iPhone 13" });
+  await playwright_resize({ device: "iPad Pro 11", orientation: "landscape" });
+  ```
+- **Device Emulation Features**: Accurate viewport dimensions, proper user-agent strings, touch event support, device pixel ratio, mobile/desktop detection
+- **Supported Devices**: iOS (iPhone SE through 15 series, iPads), Android (Pixel, Galaxy), Desktop browsers (Chrome, Firefox, Safari)
+- **Natural Language Support**: Users can use simple prompts like "Test on iPhone 13" or "Rotate to landscape"
+- **New Documentation**: Added Resize-Prompts-Guide.md and Device-Quick-Reference.md
+- **Device Discovery Tool**: `node scripts/list-devices.cjs` to list all available devices
+- **Test Coverage**: 134 tests passing (111 existing + 23 new) with 98% code coverage
+- **Backward Compatibility**: Manual width/height dimensions still work as before
+
+---
+
+## Version 1.0.9 (December 2025)
+- **Critical Fix**: Console output buffering issue when running via `npx`
+- **Problem**: Users saw no console output when running `npx @executeautomation/playwright-mcp-server --port 8931`
+- **Solution**: Replaced `console.log()` with `process.stdout.write()` for immediate, unbuffered output
+- **Impact**: Users now see immediate console output including server initialization, startup confirmation, endpoints, and configuration examples
+- **Files Changed**: `src/index.ts` and `src/http-server.ts`
+
+---
+
+## Version 1.0.8 (December 2025)
+- **Console Output Improvements**: Changed console output from `stderr` to `stdout` for better visibility in HTTP mode
+- **Server Startup**: Now displays initialization message and complete server startup information
+- **Better UX**: Shows listening address, available endpoints, client configuration example, and monitoring server info
+
+---
+
+## Version 1.0.7 (December 2025)
+- **HTTP/SSE Transport Mode**: Added standalone HTTP server mode with Server-Sent Events support
+  ```bash
+  playwright-mcp-server --port 8931
+  ```
+- **Configuration Example**:
+  ```json
+  {
+    "mcpServers": {
+      "playwright": {
+        "url": "http://localhost:8931/mcp",
+        "type": "http"
+      }
+    }
+  }
+  ```
+- **Key Features**: Multiple concurrent client sessions, health check endpoint (`/health`), graceful shutdown, session isolation
+- **Security**: Server binds to 127.0.0.1 (localhost only) by default for security
+- **Code Quality**: 40% code reduction in endpoint handlers through DRY refactoring
+- **stdio Mode Fixes**: Logging in stdio mode now writes to file only, monitoring system disabled in stdio mode
+- **Backward Compatibility**: Default stdio mode unchanged, all existing tools work in both transport modes
+- [Read the full HTTP/SSE Transport Guide](/docs/playwright-web/HTTP-SSE-Transport)
+
+---
+
+## Version 1.0.6
+- **New Tool: `playwright_upload_file`**: Added a new tool to upload files to an `input[type='file']` element.
+- **Enhanced Content Extraction**:
+  - Significantly improved `playwright_get_visible_text` tool for more accurate text extraction.
+  - Added `playwright_get_visible_html` tool to retrieve the full HTML content of the page.
+  - **By default, all `<script>` tags are now removed from the HTML output for `playwright_get_visible_html` (unless `removeScripts: false` is set). Output is also truncated to a safe length (default 20,000 characters) to prevent issues with LLM clients.**
+- **Improved Interactions**:
+  - Updated `playwright_hover` functionality in the interaction tool.
+- **Browser Support**:
+  - Added support for using locally installed browsers by specifying the Chrome executable path.
+- **Documentation Updates**:
+  - Added a new local setup and installation guide.
+  - Updated examples and documentation for the new and improved tools.
+- **Test Coverage**:
+  - Added and updated tests for the new content extraction and interaction features.
+- **Version bump**: Incremented version to 1.0.6.
+
+## Version 1.0.5
+- **Removed SSE (Server-Sent Events) Support**: All SSE-related code, endpoints, and documentation have been fully removed. The server now only supports STDIO transport for communication with clients.
+- **Codebase Cleanup**: Removed all references to SseServer, /events endpoint, and related event streaming features from the code and documentation.
+- **Version bump**: Incremented version to 1.0.5.
+
+## Version 1.0.4
+- **New Tool: `playwright_iframe_fill`**
+  - Fill input fields inside iframes using CSS selectors
+
+- **New Tool: `playwright_click_and_switch_tab`**
+  - Click a link and automatically switch to the newly opened browser tab
+
+- **Improved Error Logging**
+  - Captures uncaught exceptions and unhandled Promise rejections in browser logs for better debugging
+
+- **Documentation Updates**
+  - Added/updated documentation for new tools and improved installation/configuration instructions
+
+- **Test Coverage**
+  - Added and updated tests for new tools and features
+
+## Version 1.0.3
+- **Code Generation Capabilities**: Added new code generation capability 🎭
+  - `start_codegen_session`: Start a new session to record Playwright actions
+  - `end_codegen_session`: End a session and generate test file
+  - `get_codegen_session`: Retrieve information about a session
+  - `clear_codegen_session`: Clear a session without generating a test
+  - Ability to record real browser interactions and convert them to reusable Playwright tests
+  - Support for customizing test output path, test names, and including descriptive comments
+- **Enhanced Browser Navigation**: Added new navigation control tools 🧭
+  - `playwright_go_back`: Navigate back in browser history
+  - `playwright_go_forward`: Navigate forward in browser history
+- **Advanced Interaction**: Added new interaction tools for more complex scenarios 🔄
+  - `playwright_drag`: Drag elements from one location to another
+  - `playwright_press_key`: Press keyboard keys with optional element focus
+- **Output Capabilities**: Added content export functionality 📄
+  - `playwright_save_as_pdf`: Save the current page as a PDF file with customizable options
+- **Content Extraction**: Added tools for retrieving page content 📝
+  - `playwright_get_visible_text`: Extract all visible text content from the current page
+  - `playwright_get_visible_html`: Get the complete HTML content of the current page
+- Comprehensive test coverage for all new tools
+- Updated documentation with examples and usage detail
+
+## Version 1.0.2
+- **Multi-Browser Support**: Added support for Firefox and WebKit browsers in addition to Chromium 🌐
+  - New `browserType` parameter for `playwright_navigate` tool allows specifying browser engine 
+  - Supported browser types: "chromium" (default), "firefox", and "webkit"
+  - Seamless browser engine switching during automation sessions
+- Enhanced test coverage for different browser engines
+- Updated documentation with browser-specific examples
+
+## Version 1.0.0
+- First major release of Playwright MCP Server with the tool structure changes 🚀
+- Fixed issue with headless mode in Playwright #62
+- Fixed issue Navigation failed: page.goto: Target page, context or browser has been closed #63
+- Completed RFC: Refactor handleToolCall for better maintainability #46
+- New feature: Optional Bearer Authorization to API POST (Thanks to ***@CopilotMe***)
+- Fixed issue Exit process on host close (Thanks to ***@kiracih***)
+- New Feature: Three new tools (Thanks to ***@VinceOPS***)
+  - `playwright_except_response`
+  - `playwright_assert_response`
+  
+  Here is the scenario for the above two tools
+  ```BDD
+    Scenario: Logging in requires captcha verification
+      Given I expect the browser to receive an HTTP response from "**/security/captcha-precheck"
+      When I enter "some-identifier@test.com" in the input and I submit
+      Then The browser should have received the HTTP response
+      And Its body should contain a property "captchaFamily"
+  ```
+  - A new tool `playwright_custom_user_agent` to define a custom user agent.
+
+
+## Version 0.3.1
+- Fixed BROWSER_TOOLS as Playwright_console_logs is not required (Thanks to https://github.com/kfern)
+- Added Tests for all the Playwright MCP Server tools (Thanks to https://github.com/kfern)
+- Updated documentation with AI Courses 
+  - Gen AI Course [Details here](/docs/ai-courses/AIAgents)
+  - AI Agents Course [Details here](/docs/ai-courses/AIAgents)
+  - Machine Learning Course [Details here](/docs/ai-courses/MachineLearning)
+
+## Version 0.3.0
+- Added support for `Playwright_console_logs` to get the console logs from the browser. Following logs types
+are supported.[More Detail available here](/docs/playwright-web/Console-Logging)
+  - `log`
+  - `info`
+  - `warn`
+  - `error`
+  - `debug`
+  - `exception`
+  - `all`
+
+
+:::tip Usage Example
+To invoke `Playwright_console_logs` via MCP Playwright, use the following prompt:
+
+```plaintext
+Get the console log from the browser whenever you perform any action.
+:::
+- Added support for `Playwright_close` to close the browser and release all resources.
+
+:::tip Usage Example
+To invoke `Playwright_close` via MCP Playwright, use the following prompt:
+
+```plaintext
+Close the browser once the operation is completed.
+:::
+
+## Version 0.2.9
+- Fixed Screenshot issue with Cline, Cursor and Windows 11 (Reported by @MackDing, @mengjian-github)
+
+## Version 0.2.8
+ - Support of iFrame while running Playwright test via MCP (Supports Cline as well). Thanks to @VinceOPS 
+ - Fixed issue while saving PNG file. Thanks to @BayLee4
+ - Fixed issue with full page screenshot arguments to be passed to tool, thanks for the report @unipro-LeighMason
+ - Updated to latest version of Playwright and MCP Server library
+
+
+## Version 0.2.7
+ - Fixed the issue with Playwright MCP server not working Cline, VSCode reported in #26, #16
+ - Fixed issue #28 and now chrome version is updated
+ - Updated to latest version of Playwright and MCP Server library
+
+## Version 0.2.6
+- New Documentation site powered by docusaurus hosted in GH-Pages https://executeautomation.github.io/mcp-playwright/ 
+
+---
+
+## Version 0.2.5
+
+#### API Test Support
+- Playwright MCP Server now supports API Testing for
+  - `GET` request
+  - `POST` request
+  - `PUT` request
+  - `PATCH` request
+  - `DELETE` request
+
+  <YouTubeVideoEmbed videoId="BYYyoRxCcFE" />
+
+---
+
+## Version 0.2.4
+- Added support for smithery 
+- Added Support to save Playwright screenshot in local directory, thanks to `@s4l4x`
+
+---
+
+## Version 0.2.3
+- Added quality of life improvement
+
+---

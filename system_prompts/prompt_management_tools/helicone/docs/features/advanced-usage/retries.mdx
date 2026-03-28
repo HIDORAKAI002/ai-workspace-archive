@@ -1,0 +1,214 @@
+---
+title: "Retries"
+sidebarTitle: "Retries"
+description: "Configure Helicone to automatically retry failed LLM requests, overcoming rate limits and server issues using intelligent exponential backoff."
+"twitter:title": "Retries - Helicone OSS LLM Observability"
+---
+
+import QuestionsSection from "/snippets/questions-section.mdx";
+
+Retrying requests is a common best practice when dealing with overloaded servers or hitting rate limits. These issues typically manifest as HTTP status codes like `429` (Too Many Requests), `500` (Internal Server Error), or `503` (Service Unavailable).
+
+## Why Use Retries
+
+- **Handle rate limits gracefully** - Automatically retry when you hit provider rate limits
+- **Overcome temporary failures** - Recover from transient network issues or server overload
+- **Improve reliability** - Increase the success rate of your LLM requests without manual intervention
+
+<Note>
+If you're using the AI Gateway, [automatic failover](/gateway/provider-routing#automatic-failover) is usually better than retries. However, retries are ideal when you **must** use a specific provider endpoint (e.g., EU-hosted models for compliance, fine-tuned models, or region-specific deployments).
+</Note>
+
+## How It Works
+
+Helicone uses **exponential backoff** to intelligently space out retry attempts. This strategy:
+
+- Starts with a short delay (default 1 second)
+- Doubles the wait time after each failed attempt
+- Caps the maximum wait time (default 10 seconds)
+- Prevents overwhelming the server while maximizing success chances
+
+Example: With default settings, retries happen at: 1s → 2s → 4s → 8s → 10s
+
+## Quick Start
+
+To enable automatic retries, add the `Helicone-Retry-Enabled: true` header to your requests:
+
+<CodeGroup>
+```typescript Node.js
+import { OpenAI } from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://ai-gateway.helicone.ai",
+  apiKey: process.env.HELICONE_API_KEY,
+});
+
+const response = await client.chat.completions.create(
+  {
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: "How do I enable retries?" }]
+  },
+  {
+    headers: {
+      "Helicone-Retry-Enabled": "true", // Add this header and set to true
+    }
+  }
+);
+```
+
+```python Python
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://ai-gateway.helicone.ai",
+    api_key=os.getenv("HELICONE_API_KEY"),
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "How do I enable retries?"}],
+    extra_headers={
+      "Helicone-Retry-Enabled": "true", # Add this header and set to true
+    }
+)
+```
+
+```bash cURL
+curl --request POST \
+     --url https://ai-gateway.helicone.ai/chat/completions \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer $HELICONE_API_KEY" \
+     -H "Helicone-Retry-Enabled: true" \
+     --data '{
+        "model": "gpt-4o-mini",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Say Hello!"
+            }
+        ],
+        "temperature": 1,
+        "max_tokens": 30
+      }'
+```
+
+</CodeGroup>
+
+<Check>Each retry attempt is logged separately in Helicone, allowing you to track retry patterns and success rates.</Check>
+
+## Configuration
+
+Customize retry behavior with these optional headers:
+
+<ParamField header="Helicone-Retry-Num" type="string" default="5">
+  Maximum number of retry attempts. Set to "0" to disable retries for specific requests.
+  
+  Example: `"5"` for up to 5 retries
+</ParamField>
+
+<ParamField header="Helicone-Retry-Factor" type="string" default="2">
+  Exponential backoff multiplier. Controls how quickly the delay increases between retries.
+  
+  Example: `"2"` doubles the wait time after each attempt
+</ParamField>
+
+<ParamField header="Helicone-Retry-Min-Timeout" type="string" default="1000">
+  Minimum delay between retries in milliseconds.
+  
+  Example: `"1000"` for 1 second minimum wait
+</ParamField>
+
+<ParamField header="Helicone-Retry-Max-Timeout" type="string" default="10000">
+  Maximum delay between retries in milliseconds, regardless of exponential growth.
+  
+  Example: `"10000"` caps wait time at 10 seconds
+</ParamField>
+
+<Info>
+All header values must be strings. Numbers should be quoted: `"Helicone-Retry-Num": "3"` not `"Helicone-Retry-Num": 3`
+</Info>
+
+## Common Use Cases
+
+### EU-Hosted Model for GDPR Compliance
+```typescript
+// Must use Azure OpenAI in Europe - cannot failover to US providers
+const client = new OpenAI({
+  baseURL: "https://ai-gateway.helicone.ai",
+  apiKey: process.env.HELICONE_API_KEY,
+});
+
+const response = await client.chat.completions.create(
+  {
+    // Specify exact Azure deployment - no fallback
+    model: "gpt-4o/azure/eu-frankfurt-deployment",  
+    messages: [{ role: "user", content: "Process EU customer data" }]
+  },
+  {
+    headers: {
+      "Helicone-Retry-Enabled": "true",
+      "Helicone-Retry-Num": "5",
+      "Helicone-Retry-Min-Timeout": "2000",
+      "Helicone-Retry-Max-Timeout": "10000"
+    }
+  }
+);
+```
+
+### Fine-Tuned Model on Specific Provider
+```python
+# Must use your fine-tuned model - cannot failover to generic models
+client = OpenAI(
+    base_url="https://ai-gateway.helicone.ai",
+    api_key=os.getenv("HELICONE_API_KEY"),
+)
+
+response = client.chat.completions.create(
+    # Specify provider explicitly for fine-tuned models
+    model="ft:gpt-3.5-turbo-0125:your-org::abc123/openai",  
+    messages=[{"role": "user", "content": "Domain-specific query"}],
+    extra_headers={
+      "Helicone-Retry-Enabled": "true",
+      "Helicone-Retry-Num": "3",
+      "Helicone-Retry-Factor": "2",
+    }
+)
+```
+
+### Custom Provider Endpoint
+```typescript
+// Using a self-hosted or specialized endpoint
+const client = new OpenAI({
+  baseURL: "https://gateway.helicone.ai/v1",
+  apiKey: process.env.HELICONE_API_KEY,
+});
+
+const response = await client.chat.completions.create(
+  {
+    model: "llama-3",
+    messages: [{ role: "user", content: "Query for on-premise model" }]
+  },
+  {
+    headers: {
+      "Helicone-Target-URL": "https://your-private-llm.company.com",
+      "Helicone-Retry-Enabled": "true",
+      "Helicone-Retry-Num": "3"
+    }
+  }
+);
+```
+
+## Retry Triggers
+
+Helicone automatically retries requests that fail with these status codes:
+
+- **429** - Rate limit exceeded
+- **500** - Internal server error
+- **502** - Bad gateway
+- **503** - Service unavailable
+- **504** - Gateway timeout
+
+Requests that fail with client errors (4xx except 429) are not retried, as these typically indicate issues with the request itself.
+
+<QuestionsSection />

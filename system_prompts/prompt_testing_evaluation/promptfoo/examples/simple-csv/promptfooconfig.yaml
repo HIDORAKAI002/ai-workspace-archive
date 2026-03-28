@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: A translator built with LLM
+prompts:
+  - file://prompts.txt
+providers:
+  - openai:gpt-4.1-mini
+tests: file://tests.csv
+# Alternative: Use Excel file instead (requires `npm install read-excel-file`)
+# tests: file://tests.xlsx

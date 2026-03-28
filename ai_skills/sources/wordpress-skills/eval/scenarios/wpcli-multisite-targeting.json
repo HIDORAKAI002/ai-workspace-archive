@@ -1,0 +1,22 @@
+{
+  "name": "Multisite targeting guardrails",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-wpcli-and-ops"],
+  "query": "This is a multisite. I need to update one site's home option without changing the whole network. How should I run WP-CLI?",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect multisite configuration",
+    "Step 3: Route to wp-wpcli-and-ops skill",
+    "Step 4: Require --url=<site-url> flag for site-scoped operations",
+    "Step 5: Warn against network-wide operations when targeting single site",
+    "Step 6: Show correct command: wp option update home 'value' --url=site.example.com",
+    "Step 7: Explain difference between --url (site-scoped) and --network (all sites)",
+    "Step 8: Recommend verifying target site before running destructive commands"
+  ],
+  "success_criteria": [
+    "Routes to wp-wpcli-and-ops skill",
+    "Requires --url flag for site-scoped operations",
+    "Warns against unintended network-wide changes",
+    "Explains --url vs --network difference",
+    "Shows correct command syntax"
+  ]
+}

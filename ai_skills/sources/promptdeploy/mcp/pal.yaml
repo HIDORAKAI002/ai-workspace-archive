@@ -1,0 +1,14 @@
+name: pal
+description: PAL MCP - Provider Abstraction Layer for multi-model AI collaboration
+command: /etc/profiles/per-user/johnw/bin/pal-mcp-server
+args: []
+env:
+  ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+  GEMINI_API_KEY: "${GEMINI_API_KEY}"
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  DISABLED_TOOLS: "testgen,secaudit,docgen,tracer"
+  DEFAULT_MODEL: "auto"
+scope: user
+enabled: true
+only:
+  - claude

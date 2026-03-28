@@ -1,0 +1,9 @@
+.aider*
+.opencode*
+OpenCode.md
+dist/
+CLAUDE.md
+.claude/
+
+# go build artifact
+mcp-filesystem-server

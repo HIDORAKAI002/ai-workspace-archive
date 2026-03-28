@@ -1,0 +1,5 @@
+# Core dependencies
+-e ../../../  # mcp-agent
+
+# UI dependencies for rich terminal output
+rich>=13.0.0

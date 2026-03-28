@@ -1,0 +1,474 @@
+"""Settings for Weave.
+
+## `disabled`
+
+* Environment Variable: `WEAVE_DISABLED`
+* Settings Key: `disabled`
+* Default: `False`
+* Type: `bool`
+
+If True, all weave ops will behave like regular functions and no network requests will be made.
+"""
+
+import os
+from contextvars import ContextVar
+from pathlib import Path
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, PrivateAttr
+
+DEFAULT_RETRY_MAX_INTERVAL_SECONDS = 60 * 5  # 5 minutes
+SETTINGS_PREFIX = "WEAVE_"
+
+# Attention Devs:
+# To add new settings:
+# 1. Add a new field to `UserSettings`
+# 2. Add a new `should_{xyz}` function
+
+
+class UserSettings(BaseModel):
+    """User configuration for Weave.
+
+    All configs can be overridden with environment variables.  The precedence is
+    environment variables > `weave.trace.settings.UserSettings`.
+    """
+
+    disabled: bool = False
+    """Toggles Weave tracing.
+
+    If True, all weave ops will behave like regular functions.
+    Can be overridden with the environment variable `WEAVE_DISABLED`"""
+
+    print_call_link: bool = True
+    """Toggles link printing to the terminal.
+
+    If True, prints a link to the Weave UI when calling a weave op.
+    Can be overridden with the environment variable `WEAVE_PRINT_CALL_LINK`"""
+
+    log_level: str = "INFO"
+    """Toggles the log level.
+
+    Controls the log level of the weave logger.
+    Valid values are: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    Can be overridden with the environment variable `WEAVE_LOG_LEVEL`"""
+
+    display_viewer: Literal["auto", "rich", "print"] = "auto"
+    """Sets the display viewer for console output.
+
+    Controls which viewer implementation to use for display operations.
+    Valid values are: auto, rich, print
+    - auto: Automatically selects rich if available, otherwise falls back to print
+    - rich: Uses the rich library for enhanced terminal output
+    - print: Uses basic print functions for output
+    Can be overridden with the environment variable `WEAVE_DISPLAY_VIEWER`"""
+
+    capture_code: bool = True
+    """Toggles code capture for ops.
+
+    If True, saves code for ops so they can be reloaded for later use.
+    Can be overridden with the environment variable `WEAVE_CAPTURE_CODE`
+
+    WARNING: Switching between `save_code=True` and `save_code=False` mid-script
+    may lead to unexpected behavior.  Make sure this is only set once at the start!
+    """
+
+    implicitly_patch_integrations: bool = True
+    """Toggles implicit patching of integrations.
+
+    If True, supported libraries (OpenAI, Anthropic, etc.) are automatically patched
+    when imported, regardless of import order. If False, you must explicitly call
+    patch functions like `weave.integrations.patch_openai()` to enable tracing for integrations.
+    Can be overridden with the environment variable `WEAVE_IMPLICITLY_PATCH_INTEGRATIONS`"""
+
+    redact_pii: bool = False
+    """Toggles PII redaction using Microsoft Presidio.
+
+    If True, redacts PII from trace data before sending to the server.
+    Can be overridden with the environment variable `WEAVE_REDACT_PII`
+    """
+
+    redact_pii_fields: list[str] = []
+    """List of fields to redact.
+
+    If redact_pii is True, this list of fields will be redacted.
+    If redact_pii is False, this list is ignored.
+    If this list is left empty, the default fields will be redacted.
+
+    A list of supported fields can be found here: https://microsoft.github.io/presidio/supported_entities/
+    Can be overridden with the environment variable `WEAVE_REDACT_PII_FIELDS`
+    """
+
+    redact_pii_exclude_fields: list[str] = []
+    """List of PII entity types to exclude from redaction.
+
+    Only applies when `redact_pii` is True. Entities in this list are removed from the redaction set.
+    Can be overridden with the environment variable `WEAVE_REDACT_PII_EXCLUDE_FIELDS`
+    """
+
+    capture_client_info: bool = True
+    """Toggles capture of client information (Python version, SDK version) for ops."""
+
+    capture_system_info: bool = True
+    """Toggles capture of system information (OS name and version) for ops."""
+
+    client_parallelism: int | None = None
+    """
+    Sets the number of workers to use for background operations.
+    If not set, automatically adjusts based on the number of cores.
+
+    Setting this to 0 will effectively execute all background operations
+    immediately in the main thread. This will not be great for performance,
+    but can be useful for debugging.
+
+    This cannot be changed after the client has been initialized.
+    """
+
+    use_server_cache: bool = True
+    """
+    Toggles caching of server responses, defaults to True
+
+    If True, caches server responses to disk at `WEAVE_SERVER_CACHE_DIR`.
+    Can be overridden with the environment variable `WEAVE_USE_SERVER_CACHE`
+    """
+
+    server_cache_size_limit: int = 1_000_000_000
+    """
+    Sets the size limit in bytes for the server cache, defaults to 1GB (1_000_000_000 bytes).
+    Ignored if `use_server_cache` is False.
+
+    Can be overridden with the environment variable `WEAVE_SERVER_CACHE_SIZE_LIMIT`
+    """
+
+    server_cache_dir: str | None = None
+    """
+    Sets the directory for the server cache, defaults to None (temporary cache)
+    Ignored if `use_server_cache` is False.
+
+    Can be overridden with the environment variable `WEAVE_SERVER_CACHE_DIR`
+    """
+
+    scorers_dir: str = str(Path.home() / ".cache" / "wandb" / "weave-scorers")
+    """
+    Sets the directory for the scorers model checkpoints. Defaults to
+    ~/.cache/wandb/weave-scorers.
+
+    Can be overridden with the environment variable `WEAVE_SCORERS_DIR`
+
+    """
+    max_calls_queue_size: int = 100_000
+    """
+    Sets the maximum size of the calls queue.  Defaults to 100_000.
+    Setting a value of 0 means the queue can grow unbounded.
+
+    Can be overridden with the environment variable `WEAVE_MAX_CALLS_QUEUE_SIZE`
+    """
+
+    retry_max_interval: float = DEFAULT_RETRY_MAX_INTERVAL_SECONDS
+    """
+    Sets the maximum interval between retries.  Defaults to 5 minutes.
+
+    Can be overridden with the environment variable `WEAVE_RETRY_MAX_INTERVAL`
+    """
+
+    retry_max_attempts: int = 3
+    """
+    Sets the maximum number of retries.  Defaults to 3.
+
+    Can be overridden with the environment variable `WEAVE_RETRY_MAX_ATTEMPTS`
+    """
+
+    enable_disk_fallback: bool = True
+    """
+    Toggles disk fallback for dropped items.
+
+    If True, items that fail to be processed or are dropped due to queue limits
+    will be written to disk as a fallback instead of being lost.
+    Can be overridden with the environment variable `WEAVE_ENABLE_DISK_FALLBACK`
+    """
+
+    use_parallel_table_upload: bool = True
+    """
+    Toggles parallel table upload chunking.
+
+    If True, enables parallel upload of table chunks when tables are large enough
+    to require chunking. If False, uses incremental upload method.
+    Can be overridden with the environment variable `WEAVE_USE_PARALLEL_TABLE_UPLOAD`
+    """
+
+    http_timeout: float = 30.0
+    """
+    Sets the HTTP request timeout in seconds. Defaults to 30 seconds.
+
+    This timeout applies to all HTTP requests made by the Weave client,
+    including initialization calls and API requests.
+
+    Can be overridden with the environment variable `WEAVE_HTTP_TIMEOUT`
+    """
+
+    use_stainless_server: bool = False
+    """
+    Toggles use of the stainless-generated HTTP client for trace server communication.
+
+    If True, uses StainlessRemoteHTTPTraceServer instead of RemoteHTTPTraceServer.
+    This provides better type safety and automatic client generation from OpenAPI specs.
+    Can be overridden with the environment variable `WEAVE_USE_STAINLESS_SERVER`
+    """
+
+    use_calls_complete: bool = False
+    """
+    Toggles use of the calls_complete write path for new calls.
+
+    If True, uses the new calls_complete endpoint which batches complete calls
+    (with both start and end information) together before sending to the server.
+    This reduces the number of write operations and improves performance.
+
+    If False (default), uses the legacy call_start/call_end endpoints which
+    send start and end events separately.
+
+    Can be overridden with the environment variable `WEAVE_USE_CALLS_COMPLETE`
+    """
+
+    enable_client_side_digests: bool = False
+    """
+    Toggles client-side digest computation for objects and tables.
+
+    If True, the client computes digests locally and constructs refs
+    immediately, then sends data to the server with an expected_digest for
+    validation. This avoids blocking on server round-trips.
+
+    If False (default), the client defers digest computation to the server
+    (legacy behavior).
+    Use this if the server does not yet support internal refs or expected_digest.
+
+    Can be overridden with the environment variable `WEAVE_ENABLE_CLIENT_SIDE_DIGESTS`
+    """
+
+    enable_wal: bool = False
+    """
+    Toggles the Write-Ahead Log (WAL) for durable request persistence.
+
+    If True, all requests to the trace server are written to a local JSONL
+    WAL file before being sent.  This makes requests durable across process
+    crashes — a background consumer can replay unflushed records on restart.
+
+    If False (default), requests are only held in memory before sending.
+
+    Can be overridden with the environment variable `WEAVE_ENABLE_WAL`
+    """
+
+    disable_wal_sender: bool = False
+    """
+    Disables the background WAL sender thread.
+
+    When True and WAL is enabled, records are written to disk but never
+    drained automatically.  Useful for testing the WAL write path in
+    isolation or for scenarios where a separate process handles draining.
+
+    Can be overridden with the environment variable `WEAVE_DISABLE_WAL_SENDER`
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    _is_first_apply: bool = PrivateAttr(True)
+
+    def _reset(self) -> None:
+        for name, field in self.model_fields.items():
+            setattr(self, name, field.default)
+
+    def apply(self) -> None:
+        if self._is_first_apply:
+            self._is_first_apply = False
+        else:
+            self._reset()
+
+        for name in self.model_fields:
+            context_var = _context_vars[name]
+            context_var.set(getattr(self, name))
+
+
+def should_disable_weave() -> bool:
+    return _should("disabled")
+
+
+def should_print_call_link() -> bool:
+    return _should("print_call_link")
+
+
+def log_level() -> str:
+    return _optional_str("log_level") or "INFO"
+
+
+def display_viewer() -> str:
+    """Returns the configured display viewer.
+
+    Returns:
+        The display viewer to use (auto, rich, or print).
+    """
+    return _optional_str("display_viewer") or "auto"
+
+
+def should_capture_code() -> bool:
+    return _should("capture_code")
+
+
+def should_capture_client_info() -> bool:
+    return _should("capture_client_info")
+
+
+def should_capture_system_info() -> bool:
+    return _should("capture_system_info")
+
+
+def client_parallelism() -> int | None:
+    return _optional_int("client_parallelism")
+
+
+def should_redact_pii() -> bool:
+    return _should("redact_pii")
+
+
+def redact_pii_fields() -> list[str]:
+    return _list_str("redact_pii_fields")
+
+
+def redact_pii_exclude_fields() -> list[str]:
+    return _list_str("redact_pii_exclude_fields")
+
+
+def use_server_cache() -> bool:
+    return _should("use_server_cache")
+
+
+def server_cache_size_limit() -> int:
+    return _optional_int("server_cache_size_limit") or 1_000_000_000
+
+
+def server_cache_dir() -> str | None:
+    return _optional_str("server_cache_dir")
+
+
+def scorers_dir() -> str:
+    return _optional_str("scorers_dir")  # type: ignore
+
+
+def max_calls_queue_size() -> int:
+    max_queue_size = _optional_int("max_calls_queue_size")
+    if max_queue_size is None:
+        return 100_000
+    return max_queue_size
+
+
+def retry_max_attempts() -> int:
+    """Returns the maximum number of retry attempts."""
+    max_attempts = _optional_int("retry_max_attempts")
+    if max_attempts is None:
+        return 3
+    return max_attempts
+
+
+def retry_max_interval() -> float:
+    """Returns the maximum interval between retries in seconds."""
+    max_interval = _optional_float("retry_max_interval")
+    if max_interval is None:
+        return DEFAULT_RETRY_MAX_INTERVAL_SECONDS
+    return max_interval
+
+
+def should_enable_disk_fallback() -> bool:
+    """Returns whether disk fallback should be enabled for dropped items."""
+    return _should("enable_disk_fallback")
+
+
+def should_use_parallel_table_upload() -> bool:
+    """Returns whether parallel table upload chunking should be used."""
+    return _should("use_parallel_table_upload")
+
+
+def should_implicitly_patch_integrations() -> bool:
+    """Returns whether implicit patching of integrations is enabled."""
+    return _should("implicitly_patch_integrations")
+
+
+def http_timeout() -> float:
+    """Returns the HTTP request timeout in seconds."""
+    timeout = _optional_float("http_timeout")
+    if timeout is None:
+        return 30.0
+    return timeout
+
+
+def should_use_stainless_server() -> bool:
+    """Returns whether the stainless-generated HTTP client should be used."""
+    return _should("use_stainless_server")
+
+
+def should_use_calls_complete() -> bool:
+    """Returns whether the calls_complete write path should be used."""
+    return _should("use_calls_complete")
+
+
+def should_enable_client_side_digests() -> bool:
+    """Returns whether client-side digest computation should be used."""
+    return _should("enable_client_side_digests")
+
+
+def should_enable_wal() -> bool:
+    """Returns whether the Write-Ahead Log should be used."""
+    return _should("enable_wal")
+
+
+def should_disable_wal_sender() -> bool:
+    """Returns whether the WAL sender thread should be disabled."""
+    return _should("disable_wal_sender")
+
+
+def parse_and_apply_settings(
+    settings: UserSettings | dict[str, Any] | None = None,
+) -> None:
+    if isinstance(settings, UserSettings):
+        user_settings = settings
+    elif isinstance(settings, dict):
+        user_settings = UserSettings.model_validate(settings)
+    else:
+        user_settings = UserSettings()
+
+    user_settings.apply()
+
+
+_context_vars = {
+    name: ContextVar(name, default=field.default)
+    for name, field in UserSettings.model_fields.items()
+}
+
+
+def _str2bool_truthy(v: str) -> bool:
+    return v.lower() in {"yes", "true", "1", "on"}
+
+
+def _should(name: str) -> bool:
+    if env := os.getenv(f"{SETTINGS_PREFIX}{name.upper()}"):
+        return _str2bool_truthy(env)
+    return _context_vars[name].get()
+
+
+def _optional_int(name: str) -> int | None:
+    if env := os.getenv(f"{SETTINGS_PREFIX}{name.upper()}"):
+        return int(env)
+    return _context_vars[name].get()
+
+
+def _list_str(name: str) -> list[str]:
+    if env := os.getenv(f"{SETTINGS_PREFIX}{name.upper()}"):
+        return env.split(",")
+    return _context_vars[name].get() or []
+
+
+def _optional_str(name: str) -> str | None:
+    if env := os.getenv(f"{SETTINGS_PREFIX}{name.upper()}"):
+        return env
+    return _context_vars[name].get()
+
+
+def _optional_float(name: str) -> float | None:
+    if env := os.getenv(f"{SETTINGS_PREFIX}{name.upper()}"):
+        return float(env)
+    return _context_vars[name].get()

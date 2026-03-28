@@ -1,0 +1,84 @@
+name: Publish @kiliczsh/mcp-mongo-server
+
+on:
+  release:
+    types: [created]
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    env:
+      STATIC_VERSION: "2.0.2"
+      BUILD_ID: ${{ github.run_number }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com/
+      - name: Copy GitHub NPM configuration
+        run: cp .npmrc-github .npmrc
+      - name: Determine Version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            VERSION="${STATIC_VERSION}-main.${BUILD_ID}"
+          else
+            VERSION="${STATIC_VERSION}-build.${BUILD_ID}"
+          fi
+
+          echo "Using version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Git Tag
+        if: github.event_name != 'release'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "$VERSION" -m "Version $VERSION"
+          git push https://${{ secrets.NODE_AUTH_TOKEN }}@github.com/kiliczsh/mcp-mongo-server.git "$VERSION"
+
+      - name: Update package.json version and publishConfig
+        run: |
+          sed -i 's/"name": "mcp-mongo-server"/"name": "@kiliczsh\/mcp-mongo-server"/' package.json
+          jq --arg version "$VERSION" '.version = $version' package.json > package.tmp.json && mv package.tmp.json package.json
+
+          echo '{
+            "access": "public",
+            "registry": "https://npm.pkg.github.com"
+          }' > publishConfig.json
+
+          jq -s '.[0] * {publishConfig: .[1]}' package.json publishConfig.json > package.tmp.json && mv package.tmp.json package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+      - name: Publish package to GitHub Packages
+        run: npm publish --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}

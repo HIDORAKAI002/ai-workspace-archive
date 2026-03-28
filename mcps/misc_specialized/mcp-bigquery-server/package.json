@@ -1,0 +1,36 @@
+{
+  "name": "@ergut/mcp-bigquery-server",
+  "version": "1.0.3",
+  "description": "MCP server for interacting with BigQuery databases",
+  "license": "MIT",
+  "homepage": "https://oredata.com",
+  "type": "module",
+  "bin": {
+    "mcp-server-bigquery": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "shx chmod +x dist/index.js",
+    "prepare": "npm run build",
+    "dev": "tsc --watch",
+    "clean": "shx rm -rf dist"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.3.0",
+    "@modelcontextprotocol/sdk": "0.6.0"
+  },
+  "devDependencies": {
+    "shx": "^0.3.4",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ergut/mcp-bigquery-server"
+  }
+}

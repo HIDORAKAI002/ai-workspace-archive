@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:24
+
+# Install additional OS packages including Python
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends \
+    jq htop python3 python3-venv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set python3 as the default python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+# Set up npm directories and cache directory
+RUN mkdir -p /home/node/.promptfoo && \
+    chown -R node:node /home/node
+
+USER node
+WORKDIR /workspace
+
+# Copy package.json and package-lock.json
+COPY --chown=node:node package*.json ./

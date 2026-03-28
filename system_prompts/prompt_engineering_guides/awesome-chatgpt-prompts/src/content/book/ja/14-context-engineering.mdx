@@ -1,0 +1,287 @@
+コンテキストを理解することは、実際に機能するAIアプリケーションを構築するために不可欠です。この章では、AIに適切な情報を適切なタイミングで提供するために知っておくべきすべてのことを解説します。
+
+<Callout type="info" title="コンテキストが重要な理由">
+AIモデルはステートレスです。過去の会話を記憶していません。メッセージを送信するたびに、AIが知る必要のあるすべての情報を含める必要があります。これが「コンテキストエンジニアリング」と呼ばれるものです。
+</Callout>
+
+## コンテキストとは？
+
+コンテキストとは、質問と一緒にAIに提供するすべての情報のことです。次のように考えてください：
+
+<Compare 
+  before={{ label: "コンテキストなし", content: "状況はどうですか？" }}
+  after={{ label: "コンテキストあり", content: "あなたはプロジェクトマネージャーのアシスタントです。ユーザーは金曜日が締め切りのプロジェクトAlphaに取り組んでいます。最新の更新は：「バックエンド完了、フロントエンド80%完了」です。\n\nユーザー：状況はどうですか？" }}
+/>
+
+コンテキストがないと、AIはどの「状況」について尋ねているのかわかりません。コンテキストがあれば、有用な回答を提供できます。
+
+### コンテキストウィンドウ
+
+前の章で学んだように、AIには限られた「コンテキストウィンドウ」があります。これは一度に見ることができるテキストの最大量です。これには以下が含まれます：
+
+<InfoGrid items={[
+  { label: "システムプロンプト", description: "AIの動作を定義する指示", color: "purple" },
+  { label: "会話履歴", description: "このチャットでの過去のメッセージ", color: "blue" },
+  { label: "取得した情報", description: "このクエリのために取得したドキュメント、データ、知識", color: "green" },
+  { label: "現在のクエリ", description: "ユーザーの実際の質問", color: "amber" },
+  { label: "AIの応答", description: "回答（これも制限にカウントされます！）", color: "rose" },
+]} />
+
+## AIはステートレス
+
+<Callout type="warning" title="重要な概念">
+AIは会話間で何も記憶しません。すべてのAPI呼び出しは白紙の状態から始まります。AIに何かを「記憶」させたい場合は、あなたが毎回コンテキストにそれを含める必要があります。
+</Callout>
+
+これがチャットボットが各メッセージと一緒に会話履歴全体を送信する理由です。AIが記憶しているのではなく、アプリがすべてを再送信しているのです。
+
+<TryIt compact prompt={`これが履歴のない新しい会話だと仮定してください。
+
+私が今何について質問したか教えてください。`} />
+
+AIは本当にわからないと答えるでしょう。以前のコンテキストにアクセスできないからです。
+
+## RAG: 検索拡張生成
+
+RAGは、AIが学習していない知識にアクセスできるようにする技術です。すべてをAIのトレーニングに詰め込もうとする代わりに、以下のことを行います：
+
+1. **保存** - ドキュメントを検索可能なデータベースに保存します
+2. **検索** - ユーザーが質問したときに関連するドキュメントを検索します
+3. **取得** - 最も関連性の高い部分を取得します
+4. **拡張** - それらの部分でプロンプトを拡張します
+5. **生成** - そのコンテキストを使用して回答を生成します
+
+<div className="my-6 p-4 border rounded-lg bg-muted/30">
+  <p className="font-semibold mb-3">RAGの仕組み：</p>
+  <div className="flex flex-col gap-2 text-sm">
+    <div className="flex items-center gap-3">
+      <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold">1</span>
+      <span>ユーザーが質問：「返金ポリシーは何ですか？」</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold">2</span>
+      <span>システムがドキュメント内で「返金ポリシー」を検索</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold">3</span>
+      <span>ポリシードキュメントから関連するセクションを発見</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold">4</span>
+      <span>AIに送信：「このポリシーに基づいて：[テキスト]、回答してください：返金ポリシーは何ですか？」</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-600 font-bold">5</span>
+      <span>AIが実際のポリシーを使用して正確な回答を生成</span>
+    </div>
+  </div>
+</div>
+
+### なぜRAGなのか？
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="p-4 border rounded-lg">
+    <p className="font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-2"><IconCheck className="text-green-600" /> RAGの利点</p>
+    <ul className="text-sm space-y-1 text-muted-foreground">
+      <li>実際の最新データを使用</li>
+      <li>ハルシネーションを削減</li>
+      <li>ソースを引用可能</li>
+      <li>更新が簡単（ドキュメントを更新するだけ）</li>
+      <li>高価なファインチューニングが不要</li>
+    </ul>
+  </div>
+  <div className="p-4 border rounded-lg">
+    <p className="font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2"><IconLightbulb className="text-amber-600" /> RAGを使用するタイミング</p>
+    <ul className="text-sm space-y-1 text-muted-foreground">
+      <li>カスタマーサポートボット</li>
+      <li>ドキュメント検索</li>
+      <li>社内ナレッジベース</li>
+      <li>ドメイン固有のQ&A</li>
+      <li>正確さが重要な場合</li>
+    </ul>
+  </div>
+</div>
+
+## Embeddings: 検索の仕組み
+
+RAGはどのドキュメントが「関連性がある」かをどのように判断するのでしょうか？**Embeddings**を使用します。これはテキストを意味を捉える数値に変換する方法です。
+
+### Embeddingsとは？
+
+Embeddingは、テキストの意味を表す数値のリスト（「ベクトル」）です。類似した意味 = 類似した数値となります。
+
+<EmbeddingsDemo />
+
+### セマンティック検索
+
+Embeddingsを使用すると、キーワードだけでなく意味で検索できます：
+
+<Compare 
+  before={{ label: "キーワード検索", content: "クエリ：'返品ポリシー'\n検出：'返品'と'ポリシー'を含むドキュメント\n見逃し：'返金を受ける方法'" }}
+  after={{ label: "セマンティック検索", content: "クエリ：'返品ポリシー'\n検出：以下を含むすべての関連ドキュメント：\n- '返金ガイドライン'\n- '商品を返送する方法'\n- '返金保証'" }}
+/>
+
+これがRAGが非常に強力な理由です。正確な単語が一致しなくても、関連する情報を見つけることができます。
+
+## Function Calling / Tool Use
+
+Function callingを使用すると、AIはウェブ検索、データベースの確認、APIの呼び出しなど、外部ツールを使用できます。
+
+<Callout type="tip" title="別名">
+AIプロバイダーによって呼び方が異なります：「function calling」（OpenAI）、「tool use」（Anthropic/Claude）、または「tools」（一般的な用語）。すべて同じ意味です。
+</Callout>
+
+### 仕組み
+
+1. 利用可能なツールをAIに伝えます
+2. AIは回答にツールが必要かどうかを判断します
+3. AIはツールの構造化されたリクエストを出力します
+4. あなたのコードがツールを実行し、結果を返します
+5. AIはその結果を使用して回答を形成します
+
+<TryIt 
+  title="Function Callingの例"
+  description="このプロンプトは、AIがツールの使用をどのように決定するかを示しています："
+  prompt={`以下のツールを利用できます：
+
+1. get_weather(city: string) - 都市の現在の天気を取得
+2. search_web(query: string) - インターネットを検索
+3. calculate(expression: string) - 数学計算を実行
+
+ユーザー：東京の今の天気はどうですか？
+
+ステップバイステップで考えてください：ツールが必要ですか？どれですか？どのパラメータですか？`}
+/>
+
+## 要約: 長い会話の管理
+
+会話が長くなると、コンテキストウィンドウの制限に達します。AIはステートレス（何も記憶しない）なので、長い会話はオーバーフローする可能性があります。解決策は**要約**です。
+
+### 問題
+
+<Compare 
+  before={{ label: "要約なし", content: "メッセージ1（500トークン）\nメッセージ2（800トークン）\nメッセージ3（600トークン）\n... さらに50メッセージ ...\n────────────────────\n= 40,000以上のトークン\n= 制限超過！" }}
+  after={{ label: "要約あり", content: "[要約]：200トークン\n最近のメッセージ：2,000トークン\n現在のクエリ：100トークン\n────────────────────\n= 2,300トークン\n= 完璧に収まる！" }}
+/>
+
+### 要約戦略
+
+異なるアプローチは異なるユースケースに適しています。各戦略をクリックして、同じ会話がどのように処理されるかを確認してください：
+
+<SummarizationDemo />
+
+### 要約に含めるべき内容
+
+良い会話の要約は重要なことを保持します：
+
+<Checklist 
+  title="要約チェックリスト"
+  items={[
+    { text: "行われた重要な決定" },
+    { text: "言及された重要な事実" },
+    { text: "発見されたユーザーの好み" },
+    { text: "現在のタスクまたは目標" },
+    { text: "保留中の質問" },
+    { text: "トーンとフォーマリティのレベル" }
+  ]}
+/>
+
+### やってみよう：要約を作成する
+
+<TryIt 
+  title="会話要約ツール"
+  description="この会話からコンテキストを保持する要約を作成する練習をしてください："
+  prompt={`コンテキスト管理のためにこの会話を要約してください。要約はAIのメモリ内の完全な会話を置き換えます。
+
+会話：
+ユーザー：こんにちは、データ分析のためにPythonを学んでいます
+アシスタント：ようこそ！Pythonはデータ分析に最適です。現在の経験レベルはどの程度ですか？
+ユーザー：基本的なExcelは知っています。プログラミングは完全な初心者です。
+アシスタント：完璧なスタート地点です！変数から始めましょう。データを保存するExcelのセルのようなものです。
+ユーザー：変数について説明してもらえますか？
+アシスタント：変数はデータを格納するコンテナです。Pythonでは：name = "Alice" または age = 25
+ユーザー：リストはどうですか？複数の値を扱う必要があります。
+アシスタント：リストはExcelの列のようなものです！次のように作成します：prices = [10, 20, 30]。prices[0]でアイテムにアクセスします。
+ユーザー：リストで計算できますか？
+アシスタント：はい！sum(prices)、len(prices)、またはmax(prices)を使用します。複雑な分析には、後でpandasを使用します。
+ユーザー：pandasとは何ですか？
+アシスタント：Pandasはデータ分析のためのライブラリです。「強化版Excel」と考えてください。DataFrame（スプレッドシートのようなもの）があります。
+
+以下を含む要約を作成してください：
+1. ユーザーの目標と背景（1文）
+2. これまでに扱ったトピック（1文）
+3. ユーザーの学習スタイル/好み（1文）
+4. 次に扱うべき内容（1文）`}
+/>
+
+### いつ要約するか
+
+<TryIt compact prompt={`あなたは会話のコンテキストウィンドウを管理しています。これらの条件を考慮して、いつ要約をトリガーするか決定してください：
+
+コンテキストウィンドウ：最大8,000トークン
+現在の使用量：
+- システムプロンプト：500トークン
+- 会話履歴：6,200トークン
+- 応答用バッファ：1,500トークン
+
+ルール：
+- 履歴が利用可能なスペースの70%を超えたら要約
+- 最後の5メッセージはそのまま保持
+- すべてのユーザーの好みと決定を保持
+
+今すぐ要約すべきですか？はいの場合、どのメッセージを要約し、どのメッセージをそのまま保持すべきですか？`} />
+
+## MCP: Model Context Protocol
+
+MCP（Model Context Protocol）は、AIを外部データやツールに接続するための標準的な方法です。各AIプロバイダー用にカスタム統合を構築する代わりに、MCPはユニバーサルなインターフェースを提供します。
+
+### なぜMCPなのか？
+
+<InfoGrid columns={2} items={[
+  { label: "MCPなし", description: "ChatGPT、Claude、Gemini用に別々の統合を構築... 複数のコードベースを維持... APIが変更されると壊れる。", color: "red" },
+  { label: "MCPあり", description: "一度構築すれば、どこでも動作。標準プロトコル。AIがツールを自動的に発見して使用可能。", color: "green" },
+]} />
+
+### MCPが提供するもの
+
+- **Resources**: AIが読み取れるデータ（ファイル、データベースレコード、APIレスポンス）
+- **Tools**: AIが実行できるアクション（検索、作成、更新、削除）
+- **Prompts**: 事前構築されたプロンプトテンプレート
+
+<Callout type="info" title="prompts.chatはMCPを使用">
+このプラットフォームにはMCPサーバーがあります！Claude Desktopや他のMCP対応クライアントに接続して、AIアシスタントから直接プロンプトを検索して使用できます。
+</Callout>
+
+## コンテキストの構築：全体像
+
+<ContextPlayground />
+
+## ベストプラクティス
+
+<Checklist 
+  title="コンテキストエンジニアリングチェックリスト"
+  items={[
+    { text: "システムプロンプトは簡潔だが完全に保つ" },
+    { text: "関連するコンテキストのみを含める（すべてではない）" },
+    { text: "長い会話を要約する" },
+    { text: "ドメイン固有の知識にはRAGを使用" },
+    { text: "リアルタイムデータにはAIにツールを与える" },
+    { text: "トークン使用量を監視して制限内に収める" },
+    { text: "エッジケース（非常に長い入力など）でテスト" }
+  ]}
+/>
+
+## まとめ
+
+コンテキストエンジニアリングとは、AIに適切な情報を提供することです：
+
+- **AIはステートレス** - 毎回必要なすべてを含める
+- **RAG**は関連ドキュメントを取得してプロンプトを拡張
+- **Embeddings**はセマンティック検索を可能にする（キーワードだけでなく意味で検索）
+- **Function calling**でAIが外部ツールを使用可能
+- **要約**で長い会話を管理
+- **MCP**はAIがデータやツールに接続する方法を標準化
+
+<Callout type="tip" title="覚えておいてください">
+AIの出力の質は、あなたが提供するコンテキストの質に依存します。より良いコンテキスト = より良い回答。
+</Callout>

@@ -1,0 +1,104 @@
+/* Minimal text-link pagination */
+
+.pagination-nav {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  padding-top: 1.5rem;
+}
+
+.pagination-nav__item {
+  max-width: 48%;
+}
+
+/* Push "next" to the right when it's the only item */
+.pagination-nav__link--next:first-child {
+  margin-left: auto;
+}
+
+/* Strip card styling — plain text links */
+.pagination-nav__link {
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--ifm-font-color-base);
+  transition: color 0.15s;
+}
+
+.pagination-nav__link:hover {
+  background: none;
+  box-shadow: none;
+  border: none;
+  text-decoration: none;
+}
+
+/* Sublabel: "Previous" / "Next" */
+.pagination-nav__sublabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 0.15rem;
+}
+
+/* Page title label */
+.pagination-nav__label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ifm-color-primary);
+  transition: color 0.15s;
+}
+
+.pagination-nav__link:hover .pagination-nav__label {
+  color: var(--ifm-color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Alignment */
+.pagination-nav__link--next {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.pagination-nav__link--prev {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Remove the arrow pseudo-elements */
+.pagination-nav__link--next::after,
+.pagination-nav__link--prev::before {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pagination-nav {
+    margin-top: 2rem;
+    padding-top: 1rem;
+  }
+
+  .pagination-nav__item {
+    max-width: 49%;
+  }
+
+  .pagination-nav__label {
+    font-size: 0.875rem;
+  }
+}
+
+/* Dark mode */
+[data-theme='dark'] .pagination-nav {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pagination-nav__sublabel {
+  color: var(--ifm-color-emphasis-500);
+}

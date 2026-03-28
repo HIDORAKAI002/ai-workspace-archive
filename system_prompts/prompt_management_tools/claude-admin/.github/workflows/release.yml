@@ -1,0 +1,199 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: claude-admin
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+          - target: x86_64-apple-darwin
+            os: macos-14
+            archive: binary
+          - target: aarch64-apple-darwin
+            os: macos-14
+            archive: binary
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: nsis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown,${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install Trunk
+        run: cargo install trunk --locked
+
+      - name: Install cross-compilation tools (Linux ARM)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - name: Build frontend (WASM)
+        run: trunk build --release
+        working-directory: claude-admin-frontend
+
+      - name: Build backend (release)
+        run: cargo build --release --target ${{ matrix.target }} -p claude-admin-backend
+
+      - name: Package (Linux)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          STAGING="${{ env.BINARY_NAME }}-${{ github.ref_name }}-${{ matrix.target }}"
+          mkdir -p "$STAGING"
+          cp "target/${{ matrix.target }}/release/claude-admin-backend" "$STAGING/${{ env.BINARY_NAME }}"
+          cp LICENSE README.md "$STAGING/"
+          tar czf "$STAGING.tar.gz" "$STAGING"
+          echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
+
+      - name: Package (macOS binary only)
+        if: matrix.archive == 'binary'
+        run: |
+          cp "target/${{ matrix.target }}/release/claude-admin-backend" "claude-admin-backend-${{ matrix.target }}"
+          echo "ASSET=claude-admin-backend-${{ matrix.target }}" >> $GITHUB_ENV
+
+      - name: Install NSIS
+        if: matrix.archive == 'nsis'
+        run: choco install nsis -y
+
+      - name: Package (Windows Installer)
+        if: matrix.archive == 'nsis'
+        shell: cmd
+        run: |
+          set VERSION=%GITHUB_REF_NAME:v=%
+          mkdir nsis-staging
+          copy "target\${{ matrix.target }}\release\claude-admin-backend.exe" "nsis-staging\claude-admin-backend.exe"
+          copy "packaging\windows\launcher.bat" "nsis-staging\"
+          copy "packaging\windows\installer.nsi" "nsis-staging\"
+          copy LICENSE "nsis-staging\"
+          copy README.md "nsis-staging\"
+          cd nsis-staging
+          "%ProgramFiles(x86)%\NSIS\makensis.exe" /DVERSION=%VERSION% installer.nsi
+          move "ClaudeAdmin-%VERSION%-Setup.exe" ..
+          cd ..
+
+      - name: Set Windows asset name
+        if: matrix.archive == 'nsis'
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "ASSET=ClaudeAdmin-${VERSION}-Setup.exe" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}-${{ matrix.target }}
+          path: ${{ env.ASSET }}
+
+  package-macos:
+    name: Package macOS Universal DMG
+    needs: build
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS x86_64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}-x86_64-apple-darwin
+          path: binaries
+
+      - name: Download macOS aarch64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}-aarch64-apple-darwin
+          path: binaries
+
+      - name: Create Universal Binary
+        run: |
+          lipo -create \
+            binaries/claude-admin-backend-x86_64-apple-darwin \
+            binaries/claude-admin-backend-aarch64-apple-darwin \
+            -output claude-admin-backend-universal
+          file claude-admin-backend-universal
+
+      - name: Build .app bundle
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          mkdir -p ClaudeAdmin.app/Contents/MacOS
+          mkdir -p ClaudeAdmin.app/Contents/Resources
+
+          cp claude-admin-backend-universal ClaudeAdmin.app/Contents/MacOS/claude-admin-backend
+          chmod +x ClaudeAdmin.app/Contents/MacOS/claude-admin-backend
+
+          cp packaging/macos/launcher ClaudeAdmin.app/Contents/MacOS/launcher
+          chmod +x ClaudeAdmin.app/Contents/MacOS/launcher
+
+          sed "s/0.0.0/$VERSION/g" packaging/macos/Info.plist > ClaudeAdmin.app/Contents/Info.plist
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        run: |
+          create-dmg \
+            --volname "ClaudeAdmin" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "ClaudeAdmin.app" 150 190 \
+            --app-drop-link 450 190 \
+            "ClaudeAdmin-${{ github.ref_name }}-universal-apple-darwin.dmg" \
+            ClaudeAdmin.app
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}-macos-dmg
+          path: "ClaudeAdmin-${{ github.ref_name }}-universal-apple-darwin.dmg"
+
+  release:
+    name: Create Release
+    needs: [build, package-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Remove intermediate macOS binaries
+        run: rm -f artifacts/claude-admin-backend-*-apple-darwin
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/*

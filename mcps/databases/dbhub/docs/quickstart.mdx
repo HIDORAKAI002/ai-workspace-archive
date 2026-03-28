@@ -1,0 +1,159 @@
+---
+title: "Quickstart"
+---
+
+This guide will walk you through setting up DBHub and connecting it to an AI tool for the first time. We'll use demo mode to get started quickly, then show you how to connect to your own database.
+
+## Prerequisites
+
+Before starting, ensure you have:
+- Node.js 20+ installed (for NPM method) **OR** Docker installed
+- Access to an AI tool (Claude Desktop, Claude Code, Cursor, or VS Code)
+- Optionally: A PostgreSQL, MySQL, or other supported database
+
+## Choose Your Transport
+
+DBHub supports two [transport protocols](/config/command-line#transport):
+
+| Transport | How It Works | Best For |
+|-----------|--------------|----------|
+| **stdio** | AI tool spawns DBHub as a subprocess | Local desktop apps, single-user setups |
+| **http** | DBHub runs as a standalone HTTP server | Web clients, shared servers, remote access |
+
+## Step 1: Start DBHub in Demo Mode
+
+<Note>
+If using **stdio** transport, skip this step - your AI tool will spawn DBHub as a subprocess automatically.
+</Note>
+
+For **http** transport, start DBHub server manually:
+
+<Tabs>
+  <Tab title="NPM">
+    ```bash
+    npx @bytebase/dbhub@latest --transport http --port 8080 --demo
+    ```
+  </Tab>
+
+  <Tab title="Docker">
+    ```bash
+    docker run --rm -p 8080:8080 bytebase/dbhub --transport http --port 8080 --demo
+    ```
+  </Tab>
+</Tabs>
+
+The server will start at `http://localhost:8080`. The workbench is available at the root (`/`), and the MCP endpoint is at `/mcp`.
+
+```bash
+Running in DEMO mode - using sample employee database
+
+ _____  ____  _   _       _
+|  __ \|  _ \| | | |     | |
+| |  | | |_) | |_| |_   _| |__
+| |  | |  _ <|  _  | | | | '_ \
+| |__| | |_) | | | | |_| | |_) |
+|_____/|____/|_| |_|\__,_|_.__/
+
+v0.11.10 [DEMO] - Minimal Database MCP Server
+
+Workbench at http://localhost:8080/
+MCP server endpoint at http://localhost:8080/mcp
+```
+
+<Tip>
+Demo mode includes a sample SQLite "employee" database with realistic data.
+</Tip>
+
+## Step 2: Connect with Your AI Tool
+
+Choose your AI tool and follow the setup instructions in the [Client Integration](/installation#client-integration) section:
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" href="/installation#claude-code">
+    Anthropic's CLI for agentic coding
+  </Card>
+  <Card title="Claude Desktop" href="/installation#claude-desktop">
+    Anthropic's desktop app
+  </Card>
+  <Card title="Codex" href="/installation#codex">
+    OpenAI's CLI for agentic coding
+  </Card>
+  <Card title="Cursor" href="/installation#cursor">
+    AI-powered code editor
+  </Card>
+  <Card title="Dify" href="/installation#dify">
+    Open-source AI app platform
+  </Card>
+  <Card title="LibreChat" href="/installation#librechat">
+    Open-source chat UI
+  </Card>
+  <Card title="VS Code" href="/installation#vs-code">
+    GitHub Copilot integration
+  </Card>
+</CardGroup>
+
+## Step 3: Try It Out
+
+Try these example prompts in your AI tool:
+
+<AccordionGroup>
+  <Accordion icon="database" title="List available schemas">
+    ```
+    What schemas are available in the database?
+    ```
+
+    The AI will use the `db://schemas` resource to list all schemas.
+  </Accordion>
+
+  <Accordion icon="table" title="Show tables in a schema">
+    ```
+    What tables are in the public schema?
+    ```
+
+    The AI will use the `db://schemas/public/tables` resource.
+  </Accordion>
+
+  <Accordion icon="magnifying-glass" title="Query employee data">
+    ```
+    Show me the top 5 employees by salary
+    ```
+
+    The AI will generate and execute SQL like:
+    ```sql
+    SELECT * FROM employees ORDER BY salary DESC LIMIT 5;
+    ```
+  </Accordion>
+
+  <Accordion icon="pen" title="Change data">
+    ```
+    Update the salary of employee 10001 to 100000
+    ```
+
+    The AI will generate and execute SQL like:
+    ```sql
+    UPDATE salaries SET salary = 100000 WHERE emp_no = 10001;
+    ```
+
+    <Note>
+    This only works when the `execute_sql` tool is not configured with `readonly = true`. See [Read-Only Mode](/tools/execute-sql#read-only-mode).
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+## Step 4: Install the Agent Skill (Optional)
+
+DBHub provides an [agent skill](https://github.com/bytebase/dbhub/tree/main/skills/dbhub) that teaches your AI tool the best-practice workflow for database querying — explore the schema first, then write precise SQL. This reduces errors and back-and-forth.
+
+```bash
+npx skills add bytebase/dbhub
+```
+
+The skill guides the AI to follow the **explore-then-query** pattern: discover schemas, find tables, inspect table structure, then write targeted queries. It works with all supported AI tools.
+
+## Step 5: Connect to Your Own Database
+
+Once you've verified DBHub works in demo mode, connect it to your actual database.
+
+<Card title="DSN Configuration" icon="link" href="/config/command-line#dsn">
+  Complete connection string formats and options for PostgreSQL, MySQL, MariaDB, SQL Server, and SQLite.
+</Card>

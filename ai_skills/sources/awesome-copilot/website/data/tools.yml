@@ -1,0 +1,356 @@
+# yaml-language-server: $schema=../../.schemas/tools.schema.json
+# Tools data for the Awesome GitHub Copilot website
+# Each tool entry provides information for the tools page
+
+tools:
+  - id: mcp-server
+    name: Awesome Copilot MCP Server
+    description: >-
+      A Model Context Protocol (MCP) Server that provides prompts for searching and installing
+      prompts, instructions, agents, and skills directly from this repository. Makes it easy
+      to discover and add customizations to your editor.
+    category: MCP Servers
+    featured: true
+    requirements:
+      - Docker installed and running
+    links:
+      blog: https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server
+      vscode: https://aka.ms/awesome-copilot/mcp/vscode
+      vscode-insiders: https://aka.ms/awesome-copilot/mcp/vscode-insiders
+      visual-studio: https://aka.ms/awesome-copilot/mcp/vs
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "awesome-copilot": {
+              "type": "stdio",
+              "command": "docker",
+              "args": [
+                "run",
+                "-i",
+                "--rm",
+                "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest"
+              ]
+            }
+          }
+        }
+    tags:
+      - mcp
+      - docker
+      - search
+      - install
+
+  - id: vscode-extension
+    name: Awesome GitHub Copilot Browser
+    description: >-
+      A VS Code extension that allows you to browse, preview, and download GitHub Copilot
+      customizations from the awesome-copilot repository. Features a tree view for exploring
+      agents, prompts, instructions, and skills with smart caching for better performance.
+    category: VS Code Extensions
+    featured: true
+    requirements:
+      - VS Code version 1.103.0 or higher
+      - Internet connection to fetch repository data
+      - A workspace folder open in VS Code (for downloads)
+    links:
+      github: https://github.com/timheuer/vscode-awesome-copilot
+      vscode: vscode:extension/TimHeuer.awesome-copilot
+      vscode-insiders: vscode-insiders:extension/TimHeuer.awesome-copilot
+      marketplace: https://marketplace.visualstudio.com/items?itemName=TimHeuer.awesome-copilot
+    features:
+      - "🔍 Browse: Explore chat modes, instructions, prompts, agents, and skills in a tree view"
+      - "📖 Preview: View file content before downloading"
+      - "⬇️ Download: Save files to appropriate .github/ folders in your workspace"
+      - "🔃 Refresh: Update repository data with manual refresh"
+      - "💾 Caching: Smart caching for better performance"
+    tags:
+      - vscode
+      - extension
+      - browse
+      - preview
+      - download
+
+  - id: workspace-architect
+    name: Workspace Architect
+    description: >-
+      A comprehensive library of specialized AI personas and chat modes for GitHub Copilot.
+      Includes architectural planning, tech stack guidance, and advanced cognitive reasoning
+      models. Install via npm and use the CLI to download personas and prompts.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 20 or higher
+      - npm
+    links:
+      github: https://github.com/archubbuck/workspace-architect
+      npm: https://www.npmjs.com/package/workspace-architect
+    features:
+      - "📦 CLI tool: List and download personas, prompts, and chat modes"
+      - "🎭 Rich persona library: Architecture, React, Azure, and more"
+      - "🧠 Cognitive modes: Advanced reasoning and planning personas"
+      - "⚡ Easy install: npm install -g workspace-architect"
+    configuration:
+      type: bash
+      content: |
+        # Install globally
+        npm install -g workspace-architect
+
+        # List available items
+        workspace-architect list
+
+        # Download a specific item
+        workspace-architect download instructions:basic-setup
+    tags:
+      - cli
+      - npm
+      - personas
+      - chat-modes
+      - prompts
+
+  - id: apm
+    name: APM - Agent Package Manager
+    description: >-
+      npm for AI coding agents. The package manager for AGENTS.md, Agent Skills, and MCP servers.
+      One package installs to every AI agent (Copilot, Cursor, Claude, Codex, Gemini) in their
+      native format.
+    category: CLI Tools
+    featured: true
+    requirements:
+      - Python 3.8 or higher (for pip install)
+      - Or use the shell installer
+    links:
+      github: https://github.com/danielmeppiel/apm
+      pypi: https://pypi.org/project/apm-cli/
+    features:
+      - "📦 Universal packages: One install works for Copilot, Cursor, Claude, and more"
+      - "🔧 Skills & Instructions: Install guardrails and capabilities"
+      - "🔌 MCP Server management: Configure and manage MCP servers"
+      - "🏗️ Create packages: Share your standards and workflows"
+      - "🌐 Multi-source: GitHub, GitHub Enterprise, Azure DevOps"
+    configuration:
+      type: bash
+      content: |
+        # Install via shell script
+        curl -sSL https://raw.githubusercontent.com/danielmeppiel/apm/main/install.sh | sh
+
+        # Or install via pip
+        pip install apm-cli
+
+        # Install a skill
+        apm install danielmeppiel/form-builder
+
+        # Compile for your AI tools
+        apm compile
+    tags:
+      - cli
+      - python
+      - package-manager
+      - skills
+      - agents
+      - mcp
+
+  - id: prompt-registry
+    name: Prompt Registry
+    description: >-
+      A visual marketplace for discovering, installing, and managing GitHub Copilot prompt
+      libraries from multiple sources. Browse bundles in a tile-based interface with search,
+      filters, and one-click install. Supports GitHub, local directories, and APM repositories.
+    category: VS Code Extensions
+    featured: false
+    requirements:
+      - VS Code
+    links:
+      github: https://github.com/AmadeusITGroup/prompt-registry
+      vscode: vscode:extension/AmadeusITGroup.prompt-registry
+      vscode-insiders: vscode-insiders:extension/AmadeusITGroup.prompt-registry
+      marketplace: https://marketplace.visualstudio.com/items?itemName=AmadeusITGroup.prompt-registry
+    features:
+      - "🎨 Visual Marketplace: Browse bundles with search, filters, and one-click install"
+      - "🔌 Multi-Source: Connect to GitHub, local directories, APM, or Awesome Copilot"
+      - "📦 Version Management: Track versions and enable automatic updates"
+      - "👥 Profiles & Hubs: Organize bundles by project/team"
+      - "🌍 Cross-Platform: Works on macOS, Linux, and Windows"
+    tags:
+      - vscode
+      - extension
+      - marketplace
+      - prompts
+      - bundles
+
+  - id: github-node-vs
+    name: GitHub Node for Visual Studio
+    description: >-
+      Adds GitHub and MCP Servers nodes to Solution Explorer in Visual Studio. Quickly access
+      and manage GitHub-specific files like workflows, Copilot instructions, and agents, plus
+      MCP server configurations - all without leaving Visual Studio.
+    category: Visual Studio Extensions
+    featured: false
+    requirements:
+      - Visual Studio 2022 or higher
+    links:
+      github: https://github.com/madskristensen/GitHubNode
+      marketplace: https://marketplace.visualstudio.com/items?itemName=MadsKristensen.GitHubNode
+    features:
+      - "📁 GitHub Node: Easy access to .github folder contents in Solution Explorer"
+      - "➕ Quick Create: Add Copilot instructions, agents, prompts, skills, and workflows"
+      - "🔌 MCP Servers Node: Centralized access to MCP configurations"
+      - "🔄 Git Status Icons: See file status directly in the tree view"
+      - "🌐 Open on GitHub: Quick link to view files on GitHub.com"
+    tags:
+      - visual-studio
+      - extension
+      - solution-explorer
+      - github
+      - mcp
+
+  - id: context7
+    name: Context7
+    description: >-
+      An intelligent documentation and context management system for GitHub Copilot customizations.
+      Context7 indexes, analyzes, and provides semantic search across prompts, instructions, agents,
+      and skills in your repositories. Includes automatic documentation generation, collection validation,
+      and AI-powered discovery to help developers find and install the right customizations.
+    category: Documentation & Discovery
+    featured: true
+    requirements:
+      - Internet connection to access Context7 platform
+      - GitHub repository with Copilot customizations (prompts, instructions, agents, or skills)
+    links:
+      documentation: https://context7.com/github/awesome-copilot
+    features:
+      - "🔍 Semantic Search: Intelligently find relevant prompts, instructions, and agents across your repository"
+      - "📊 Automatic Indexing: AI-powered analysis and categorization of your customizations"
+      - "✅ Validation: Built-in tools for validating collection manifests and file structure"
+      - "📝 Documentation Generation: Auto-generate README files and discovery interfaces"
+      - "🎯 Trust Scoring: Verification and reliability scoring for community contributions"
+      - "🔗 Deep Integration: Works with awesome-copilot and other Copilot customization repositories"
+    tags:
+      - documentation
+      - discovery
+      - search
+      - github
+      - copilot-customizations
+      - validation
+
+  - id: vscode-agent-manager
+    name: VS Code Agent Manager
+    description: >-
+      VS Code Agent Manager is the essential toolkit for supercharging your GitHub Copilot experience.
+      Effortlessly discover, install, and manage custom Copilot Agents directly within VS Code.
+    category: VS Code Extensions
+    featured: true
+    requirements:
+      - VS Code version 1.106.0 or higher
+      - Internet connection to fetch repository data
+    links:
+      github: https://github.com/luizbon/vscode-agent-manager
+      vscode: vscode:extension/luizbon.vscode-agent-manager
+      vscode-insiders: vscode-insiders:extension/luizbon.vscode-agent-manager
+      marketplace: https://marketplace.visualstudio.com/items?itemName=luizbon.vscode-agent-manager
+    features:
+      - "🔍 Auto-Discovery: Point the Agent Manager to any GitHub repository, and it will automatically index all available agents"
+      - "📦 One-Click Installation: Install agents in seconds. Choose to install them globally (User Profile) for access in all projects, or locally (Workspace) for project-specific needs."
+      - "🔄 Smart Updates & Version Control: Stay up to date. The extension tracks installed versions against the remote source, alerting you when updates are available. View changelogs and author details at a glance."
+      - "🛡️ Git-Powered Reliability: Built on top of Git, ensuring that you always get the exact version of the agent you expect, with verified author and commit data."
+    tags:
+      - vscode
+      - extension
+      - copilot
+      - agent
+      - manager
+
+  - id: groundhog-day
+    name: Groundhog Day
+    description: >-
+      Autonomous backup agent for GitHub Copilot CLI skills. Watches your
+      ~/.copilot/skills/ directory in real time, commits every change with
+      meaningful messages, and pushes to GitHub automatically. Starts on boot
+      via macOS LaunchAgent, restarts if it crashes, and requires zero
+      interaction after setup. One-line installer creates a backup repo,
+      seeds it with existing skills, and starts the watcher. Includes a daily
+      health check, sync locking, push retry, and empty-source protection.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - macOS or Linux
+      - GitHub CLI (gh) authenticated
+      - git
+      - fswatch (installed automatically via Homebrew on macOS)
+    links:
+      github: https://github.com/DUBSOpenHub/groundhog-day
+    features:
+      - "👀 Real-Time Watch: Detects every create, edit, rename, and delete in your skills directory using fswatch"
+      - "🔄 Auto Sync: Commits and pushes changes to GitHub with meaningful commit messages"
+      - "🏥 Daily Health Check: Automated 6 AM checkup validates watcher, repo state, remote sync, and log health"
+      - "⚡ One-Line Install: curl installer creates a backup repo, seeds existing skills, and starts the watcher"
+      - "🛡️ Built-In Safety: Sync locking, push retry, empty-source guard, and graceful shutdown"
+      - "🔁 Survives Reboots: macOS LaunchAgent keeps it alive across restarts"
+    configuration:
+      type: bash
+      content: |
+        # Install in one line
+        curl -fsSL https://raw.githubusercontent.com/DUBSOpenHub/groundhog-day/main/install.sh | bash
+
+        # Or install with Homebrew
+        brew install DUBSOpenHub/tap/groundhog-day
+
+        # Check status
+        groundhog status
+
+        # Run a manual health check
+        groundhog checkup
+    tags:
+      - cli
+      - backup
+      - skills
+      - automation
+      - macos
+      - launchagent
+
+  - id: copilot-swarm-orchestrator
+    name: Copilot Swarm Orchestrator
+    description: >-
+      Parallel AI workflow orchestrator for GitHub Copilot CLI. Coordinates multiple
+      specialized agents across wave-based execution with dependency-aware scheduling,
+      evidence-based verification, six quality gates, cost governance, and persistent
+      learning. Runs as a standalone CLI or as an MCP server exposing execution runs,
+      agent profiles, and quality gates via JSON-RPC over stdio.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 18 or higher
+      - Git 2.20+ (worktree support)
+      - GitHub Copilot CLI installed and authenticated
+    links:
+      github: https://github.com/moonrunnerkc/copilot-swarm-orchestrator
+      npm: https://www.npmjs.com/package/copilot-swarm-orchestrator
+    features:
+      - "🌊 Wave Execution: Parallel agent scheduling with dependency-aware wave splitting"
+      - "🔍 Evidence Verification: Every agent proves its work via transcript analysis before merge"
+      - "🚦 Six Quality Gates: Lint, type-check, test coverage, security, complexity, documentation"
+      - "💰 Cost Governance: Premium request estimation, tracking, and budget enforcement"
+      - "🔌 MCP Server: 4 tools and 5 resources over JSON-RPC stdio transport"
+      - "🧠 Persistent Learning: Cross-run knowledge base with pattern detection and retry calibration"
+    configuration:
+      type: bash
+      content: |
+        # Install globally from npm
+        npm install -g copilot-swarm-orchestrator
+
+        # Run a demo
+        swarm demo-fast
+
+        # Plan and execute a goal
+        swarm run --goal "Build a REST API with auth and tests"
+
+        # Start the MCP server
+        swarm mcp-server
+    tags:
+      - cli
+      - npm
+      - mcp
+      - orchestration
+      - verification
+      - quality-gates
+      - cost-governance

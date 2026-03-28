@@ -1,0 +1,1611 @@
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+
+import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
+import dedent from 'dedent';
+import cliState from '../../cliState';
+import { getEnvString } from '../../envars';
+import { importModule, resolvePackageEntryPoint } from '../../esm';
+import logger from '../../logger';
+import {
+  type GenAISpanContext,
+  type GenAISpanResult,
+  getTraceparent,
+  withGenAISpan,
+} from '../../tracing/genaiTracer';
+import { normalizeFieldName, REDACTED, sanitizeObject } from '../../util/sanitizer';
+
+import type { EnvOverrides } from '../../types/env';
+import type {
+  ApiProvider,
+  CallApiContextParams,
+  CallApiOptionsParams,
+  ProviderResponse,
+  SkillCallEntry,
+} from '../../types/index';
+
+/**
+ * OpenAI Codex SDK Provider
+ *
+ * This provider requires the @openai/codex-sdk package to be installed separately:
+ *   npm install @openai/codex-sdk
+ *
+ * Key features:
+ * - Supports API key auth or existing Codex/ChatGPT login state
+ * - Thread-based conversations with persistence in ~/.codex/sessions
+ * - Native JSON schema output with Zod support
+ * - Git repository requirement for safety (can be disabled)
+ * - Custom binary path override support
+ * - Streaming events for real-time progress
+ *
+ * Thread Management:
+ * - No persist_threads: Creates ephemeral thread per call (default)
+ * - With persist_threads: Pools threads by cache key for reuse
+ * - With thread_id: Resumes specific thread from ~/.codex/sessions
+ */
+
+/**
+ * Sandbox modes controlling filesystem access
+ */
+export type SandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access';
+
+/**
+ * Approval policies controlling when user approval is required
+ */
+export type ApprovalPolicy = 'never' | 'on-request' | 'on-failure' | 'untrusted';
+
+/**
+ * Reasoning effort levels for model reasoning intensity.
+ *
+ * Model support varies:
+ * - gpt-5.4: 'none', 'low', 'medium', 'high', 'xhigh'
+ * - gpt-5.4-pro: 'medium', 'high', 'xhigh'
+ * - gpt-5.3-codex: 'low', 'medium', 'high', 'xhigh'
+ * - gpt-5.3-codex-spark: 'low', 'medium', 'high'
+ * - gpt-5.2 / gpt-5.2-codex: 'low', 'medium', 'high', 'xhigh'
+ * - gpt-5.1-codex-max: 'low', 'medium', 'high', 'xhigh'
+ * - gpt-5.1-codex/mini: 'low', 'medium', 'high'
+ *
+ * Values:
+ * - 'minimal': Minimal reasoning overhead
+ * - 'low': Light reasoning, faster responses
+ * - 'medium': Balanced (default)
+ * - 'high': Thorough reasoning for complex tasks
+ * - 'xhigh': Maximum reasoning depth (gpt-5.4, gpt-5.2, gpt-5.1-codex-max)
+ */
+export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+
+/**
+ * Web search modes controlling how the agent accesses the web.
+ * - 'disabled': No web search
+ * - 'cached': Use cached results only
+ * - 'live': Allow live web searches
+ */
+export type WebSearchMode = 'disabled' | 'cached' | 'live';
+
+const MINIMAL_CLI_ENV_KEYS = [
+  'PATH',
+  'Path',
+  'HOME',
+  'USER',
+  'USERNAME',
+  'USERPROFILE',
+  'TMPDIR',
+  'TMP',
+  'TEMP',
+  'SHELL',
+  'COMSPEC',
+  'SystemRoot',
+  'PATHEXT',
+  'LANG',
+  'LC_ALL',
+  'TERM',
+] as const;
+
+export interface OpenAICodexSDKConfig {
+  apiKey?: string;
+
+  /**
+   * Custom base URL for API requests (for proxies)
+   */
+  base_url?: string;
+
+  /**
+   * Working directory for Codex to operate in
+   * Defaults to process.cwd()
+   */
+  working_dir?: string;
+
+  /**
+   * Additional directories the agent can access beyond the working directory.
+   * Maps to --add-dir flag in Codex CLI.
+   */
+  additional_directories?: string[];
+
+  /**
+   * Skip Git repository check (Codex requires Git by default)
+   */
+  skip_git_repo_check?: boolean;
+
+  /**
+   * Path to custom codex binary
+   */
+  codex_path_override?: string;
+
+  /**
+   * Model to use (e.g., 'gpt-5.4', 'gpt-5.3-codex', 'gpt-5.2-codex', 'gpt-5.1-codex-mini')
+   */
+  model?: string;
+
+  /**
+   * Sandbox access level controlling filesystem permissions
+   * - 'read-only': Agent can only read files (safest)
+   * - 'workspace-write': Agent can write to working directory (default)
+   * - 'danger-full-access': Full filesystem access (use with caution)
+   */
+  sandbox_mode?: SandboxMode;
+
+  /**
+   * Model reasoning intensity. Support varies by model:
+   * - 'minimal': Minimal reasoning overhead
+   * - 'low': Light reasoning, faster responses
+   * - 'medium': Balanced (default)
+   * - 'high': Thorough reasoning for complex tasks
+   * - 'xhigh': Maximum depth (gpt-5.2, gpt-5.1-codex-max only)
+   */
+  model_reasoning_effort?: ReasoningEffort;
+
+  /**
+   * Allow network requests
+   */
+  network_access_enabled?: boolean;
+
+  /**
+   * Allow web search (boolean shorthand)
+   */
+  web_search_enabled?: boolean;
+
+  /**
+   * Web search mode for finer-grained control.
+   * - 'disabled': No web search
+   * - 'cached': Use cached results only
+   * - 'live': Allow live web searches
+   *
+   * Takes precedence over web_search_enabled if both are set.
+   */
+  web_search_mode?: WebSearchMode;
+
+  /**
+   * When to require user approval
+   * - 'never': Never require approval
+   * - 'on-request': Require approval when requested
+   * - 'on-failure': Require approval after failures
+   * - 'untrusted': Require approval for untrusted operations
+   */
+  approval_policy?: ApprovalPolicy;
+
+  /**
+   * Thread management
+   */
+  thread_id?: string; // Resume existing thread
+  persist_threads?: boolean; // Keep threads alive between calls
+  thread_pool_size?: number; // Max concurrent threads
+
+  /**
+   * Output schema for structured JSON responses
+   * Supports plain JSON schema or Zod schemas converted with zod-to-json-schema
+   */
+  output_schema?: Record<string, any>;
+
+  /**
+   * Environment variables to pass to Codex CLI
+   * When unset, Codex inherits Node.js process.env.
+   * When set, only these variables are passed unless inherit_process_env is true.
+   */
+  cli_env?: Record<string, string>;
+
+  /**
+   * Merge process.env into the Codex CLI environment even when cli_env is set.
+   * Defaults to false when cli_env is provided, preserving env isolation.
+   */
+  inherit_process_env?: boolean;
+
+  /**
+   * Enable streaming events (default: false for simplicity)
+   */
+  enable_streaming?: boolean;
+
+  /**
+   * Enable deep tracing of Codex CLI operations.
+   * When enabled, injects OTEL environment variables so the Codex CLI
+   * exports its internal spans to the local OTLP receiver.
+   * Requires tracing.enabled and tracing.otlp.http.enabled in promptfooconfig.
+   *
+   * IMPORTANT: Deep tracing is INCOMPATIBLE with thread persistence.
+   * When enabled, persist_threads, thread_id, and thread_pool_size are ignored
+   * because the CLI process must be recreated for each call to get correct span linking.
+   *
+   * Default: false (only traces at provider level, not CLI internals)
+   */
+  deep_tracing?: boolean;
+
+  /**
+   * Additional CLI config overrides passed as --config key=value to the Codex CLI.
+   * The SDK flattens the object into dotted paths and serializes values as TOML literals.
+   *
+   * Example: { collaboration_mode: 'coding', model_provider: { timeout: 30 } }
+   *
+   * @see https://developers.openai.com/codex/changelog/
+   */
+  cli_config?: Record<string, unknown>;
+}
+
+function getMinimalProcessEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const key of MINIMAL_CLI_ENV_KEYS) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.length > 0) {
+      env[key] = value;
+    }
+  }
+  return env;
+}
+
+/**
+ * Helper to load the OpenAI Codex SDK ESM module
+ * Uses resolvePackageEntryPoint to handle ESM-only packages with restrictive exports
+ */
+async function loadCodexSDK(): Promise<any> {
+  const basePaths = [
+    cliState.basePath && path.isAbsolute(cliState.basePath) ? cliState.basePath : undefined,
+    process.cwd(),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  let codexPath: string | null = null;
+  for (const basePath of new Set(basePaths)) {
+    codexPath = resolvePackageEntryPoint('@openai/codex-sdk', basePath);
+    if (codexPath) {
+      break;
+    }
+  }
+
+  if (!codexPath) {
+    throw new Error(
+      dedent`The @openai/codex-sdk package is required but not installed.
+
+      To use the OpenAI Codex SDK provider, install it with:
+        npm install @openai/codex-sdk
+
+      Requires Node.js 20.20+ or 22.22+.
+
+      For more information, see: https://www.promptfoo.dev/docs/providers/openai-codex-sdk/`,
+    );
+  }
+
+  try {
+    return await importModule(codexPath);
+  } catch (err) {
+    logger.error(`Failed to load OpenAI Codex SDK: ${err}`);
+    if ((err as any).stack) {
+      logger.error((err as any).stack);
+    }
+    throw new Error(
+      dedent`Failed to load @openai/codex-sdk.
+
+      The package was found but could not be loaded. This may be due to:
+      - Incompatible Node.js version (requires Node.js 20.20+ or 22.22+)
+      - Corrupted installation
+
+      Try reinstalling:
+        npm install @openai/codex-sdk
+
+      For more information, see: https://www.promptfoo.dev/docs/providers/openai-codex-sdk/`,
+    );
+  }
+}
+
+// Pricing per 1M tokens
+// See: https://openai.com/pricing
+const CODEX_MODEL_PRICING: Record<string, { input: number; output: number; cache_read: number }> = {
+  // GPT-5.4 models
+  'gpt-5.4': { input: 2.5, output: 15.0, cache_read: 0.25 },
+  // gpt-5.4-pro does not have discounted cached-input pricing.
+  'gpt-5.4-pro': { input: 30.0, output: 180.0, cache_read: 30.0 },
+  // GPT-5.3 Codex models
+  'gpt-5.3-codex': { input: 1.75, output: 14.0, cache_read: 0.175 },
+  'gpt-5.3-codex-spark': { input: 0.5, output: 4.0, cache_read: 0.05 },
+  // GPT-5.2 models
+  'gpt-5.2': { input: 1.75, output: 14.0, cache_read: 0.175 },
+  'gpt-5.2-codex': { input: 1.75, output: 14.0, cache_read: 0.175 },
+  // GPT-5.1 Codex models
+  'gpt-5.1-codex': { input: 2.0, output: 8.0, cache_read: 0.2 },
+  'gpt-5.1-codex-max': { input: 3.0, output: 12.0, cache_read: 0.3 },
+  'gpt-5.1-codex-mini': { input: 0.5, output: 2.0, cache_read: 0.05 },
+  // GPT-5 models
+  'gpt-5-codex': { input: 2.0, output: 8.0, cache_read: 0.2 },
+  'gpt-5-codex-mini': { input: 0.5, output: 2.0, cache_read: 0.05 },
+  'gpt-5': { input: 2.0, output: 8.0, cache_read: 0.2 },
+};
+
+export class OpenAICodexSDKProvider implements ApiProvider {
+  static OPENAI_MODELS = [
+    // GPT-5.4 models
+    'gpt-5.4',
+    'gpt-5.4-pro',
+    // GPT-5.3 Codex models
+    'gpt-5.3-codex',
+    'gpt-5.3-codex-spark',
+    // GPT-5.2 models
+    // Note: gpt-5.2-pro is not currently supported via Codex SDK.
+    'gpt-5.2',
+    'gpt-5.2-codex',
+    // GPT-5.1 Codex models
+    'gpt-5.1-codex',
+    'gpt-5.1-codex-max',
+    'gpt-5.1-codex-mini',
+    // GPT-5 Codex models
+    'gpt-5-codex',
+    'gpt-5-codex-mini',
+    // GPT-5 base
+    'gpt-5',
+  ];
+
+  config: OpenAICodexSDKConfig;
+  env?: EnvOverrides;
+  apiKey?: string;
+
+  private providerId = 'openai:codex-sdk';
+  private codexModule?: any;
+  private codexInstances: Map<string, any> = new Map();
+  private threads: Map<string, any> = new Map();
+  private deepTracingWarningShown = false; // Show warning once per instance
+
+  constructor(
+    options: {
+      id?: string;
+      config?: OpenAICodexSDKConfig;
+      env?: EnvOverrides;
+    } = {},
+  ) {
+    const { config, env, id } = options;
+    this.config = config ?? {};
+    this.env = env;
+    this.apiKey = this.getApiKey();
+    this.providerId = id ?? this.providerId;
+
+    if (this.config.model && !OpenAICodexSDKProvider.OPENAI_MODELS.includes(this.config.model)) {
+      logger.warn(`Using unknown model for OpenAI Codex SDK: ${this.config.model}`);
+    }
+  }
+
+  id(): string {
+    return this.providerId;
+  }
+
+  getApiKey(config: OpenAICodexSDKConfig = this.config): string | undefined {
+    return (
+      config?.apiKey ||
+      this.env?.OPENAI_API_KEY ||
+      this.env?.CODEX_API_KEY ||
+      getEnvString('OPENAI_API_KEY') ||
+      getEnvString('CODEX_API_KEY')
+    );
+  }
+
+  requiresApiKey(): boolean {
+    return false;
+  }
+
+  toString(): string {
+    return '[OpenAI Codex SDK Provider]';
+  }
+
+  /**
+   * Safely tear down a Codex instance by calling its cleanup method
+   * (destroy, cleanup, or close -- whichever is available).
+   */
+  private async destroyInstance(instance: any): Promise<void> {
+    if (typeof instance.destroy === 'function') {
+      await instance.destroy();
+    } else if (typeof instance.cleanup === 'function') {
+      await instance.cleanup();
+    } else if (typeof instance.close === 'function') {
+      await instance.close();
+    }
+  }
+
+  async cleanup(): Promise<void> {
+    // Clean up threads
+    this.threads.clear();
+
+    // Clean up Codex instances to release resources (child processes, file handles)
+    for (const instance of this.codexInstances.values()) {
+      try {
+        await this.destroyInstance(instance);
+      } catch (error) {
+        logger.warn('[CodexSDK] Error during cleanup', { error });
+      }
+    }
+    this.codexInstances.clear();
+  }
+
+  private prepareEnvironment(
+    config: OpenAICodexSDKConfig,
+    traceparent?: string,
+    apiKey: string | undefined = this.getApiKey(config),
+  ): Record<string, string> {
+    const inheritProcessEnv = config.cli_env === undefined || config.inherit_process_env === true;
+    const env: Record<string, string> = {
+      ...(inheritProcessEnv ? (process.env as Record<string, string>) : getMinimalProcessEnv()),
+      ...(config.cli_env ?? {}),
+    };
+
+    // Sort keys for stable cache key generation
+    const sortedEnv: Record<string, string> = {};
+    for (const key of Object.keys(env).sort()) {
+      if (env[key] !== undefined) {
+        sortedEnv[key] = env[key];
+      }
+    }
+
+    // Inject env overrides
+    if (this.env) {
+      for (const key of Object.keys(this.env).sort()) {
+        const value = this.env[key as keyof typeof this.env];
+        if (value !== undefined) {
+          sortedEnv[key] = value;
+        }
+      }
+    }
+
+    // Inject API key last so explicit config wins over inherited env state.
+    if (apiKey) {
+      sortedEnv.OPENAI_API_KEY = apiKey;
+      sortedEnv.CODEX_API_KEY = apiKey;
+    }
+
+    // Inject OpenTelemetry configuration for deep tracing
+    // This allows the Codex CLI to export its internal traces to our OTLP receiver
+    // Without deep_tracing, we still capture spans at the provider level but don't
+    // inject OTEL vars into CLI (which would cause export errors if no collector)
+    if (config.deep_tracing) {
+      // Standard OTEL environment variables - use defaults only if not already set
+      if (!sortedEnv.OTEL_EXPORTER_OTLP_ENDPOINT) {
+        sortedEnv.OTEL_EXPORTER_OTLP_ENDPOINT = 'http://127.0.0.1:4318';
+      }
+      if (!sortedEnv.OTEL_EXPORTER_OTLP_PROTOCOL) {
+        sortedEnv.OTEL_EXPORTER_OTLP_PROTOCOL = 'http/json';
+      }
+      if (!sortedEnv.OTEL_SERVICE_NAME) {
+        sortedEnv.OTEL_SERVICE_NAME = 'codex-cli';
+      }
+      if (!sortedEnv.OTEL_TRACES_EXPORTER) {
+        sortedEnv.OTEL_TRACES_EXPORTER = 'otlp';
+      }
+      // W3C Trace Context - only set if we have a traceparent for proper parent-child linking
+      if (traceparent) {
+        sortedEnv.TRACEPARENT = traceparent;
+      }
+      logger.debug('[CodexSDK] Injecting OTEL config for deep tracing', {
+        traceparent: traceparent || '(none - CLI will start own trace)',
+        endpoint: sortedEnv.OTEL_EXPORTER_OTLP_ENDPOINT,
+        userConfigured: {
+          endpoint: !!env.OTEL_EXPORTER_OTLP_ENDPOINT,
+          protocol: !!env.OTEL_EXPORTER_OTLP_PROTOCOL,
+          serviceName: !!env.OTEL_SERVICE_NAME,
+        },
+      });
+    } else {
+      // When deep_tracing is disabled, remove any inherited TRACEPARENT
+      // to prevent accidental trace linking from parent processes
+      delete sortedEnv.TRACEPARENT;
+    }
+
+    return sortedEnv;
+  }
+
+  private getSkillRootPrefixes(env: Record<string, string>): string[] {
+    const prefixes = new Set<string>();
+
+    const addPrefix = (candidate?: string) => {
+      if (!candidate) {
+        return;
+      }
+
+      const normalized = candidate.replace(/\\/g, '/').replace(/\/+$/g, '');
+      if (normalized) {
+        prefixes.add(normalized);
+      }
+    };
+
+    addPrefix(env.CODEX_HOME);
+    // Codex's system skill root is documented as /etc/codex/skills.
+    addPrefix('/etc/codex');
+
+    const homeDir = env.HOME || process.env.HOME;
+    if (homeDir) {
+      addPrefix(path.posix.join(homeDir.replace(/\\/g, '/'), '.codex'));
+    }
+
+    return Array.from(prefixes);
+  }
+
+  private isValidCodexSkillName(name: string): boolean {
+    return /^[A-Za-z0-9._:-]+$/.test(name);
+  }
+
+  private extractSkillPathCandidates(
+    text: string,
+    skillRootPrefixes: readonly string[] = [],
+  ): Array<{ name: string; path: string }> {
+    const matches = new Map<string, { name: string; path: string }>();
+
+    for (const rawToken of text.split(/\s+/)) {
+      const token = rawToken.replace(/^[`"'([{<]+|[`"',;:)\]}>]+$/g, '').trim();
+      if (!token) {
+        continue;
+      }
+
+      const normalizedPath = token.replace(/\\/g, '/');
+      const repoMatch = normalizedPath.match(/^\.agents\/skills\/([^/\s]+)\/SKILL\.md$/);
+      if (repoMatch) {
+        if (this.isValidCodexSkillName(repoMatch[1])) {
+          matches.set(normalizedPath, { name: repoMatch[1], path: normalizedPath });
+        }
+        continue;
+      }
+
+      const matchingRoot = skillRootPrefixes.find((prefix) =>
+        normalizedPath.startsWith(`${prefix}/skills/`),
+      );
+      if (!matchingRoot) {
+        continue;
+      }
+
+      const relativeSkillPath = normalizedPath.slice(matchingRoot.length + 1);
+      const customRootMatch = relativeSkillPath.match(/^skills\/([^/\s]+)\/SKILL\.md$/);
+      if (customRootMatch && this.isValidCodexSkillName(customRootMatch[1])) {
+        matches.set(normalizedPath, { name: customRootMatch[1], path: normalizedPath });
+      }
+    }
+
+    return Array.from(matches.values());
+  }
+
+  private extractSkillCallsFromItems(
+    items: any[],
+    skillRootPrefixes: readonly string[] = [],
+    options: { requireSuccessfulCommand?: boolean } = {},
+  ): SkillCallEntry[] {
+    const skillCalls = new Map<
+      string,
+      {
+        name: string;
+        path: string;
+      }
+    >();
+
+    for (const item of items) {
+      if (item?.type !== 'command_execution') {
+        continue;
+      }
+      if (options.requireSuccessfulCommand && !this.isSuccessfulCommandExecution(item)) {
+        continue;
+      }
+
+      const command =
+        typeof item.command === 'string' && item.command.trim() ? item.command : undefined;
+      if (!command) {
+        continue;
+      }
+
+      for (const skillPath of this.extractSkillPathCandidates(command, skillRootPrefixes)) {
+        const existing = skillCalls.get(skillPath.path) ?? {
+          name: skillPath.name,
+          path: skillPath.path,
+        };
+
+        skillCalls.set(skillPath.path, existing);
+      }
+    }
+
+    return Array.from(skillCalls.values()).map((skillCall) => ({
+      name: skillCall.name,
+      path: skillCall.path,
+      source: 'heuristic',
+    }));
+  }
+
+  private buildSkillMetadata(
+    items: any[],
+    skillRootPrefixes: readonly string[] = [],
+  ): { attemptedSkillCalls: SkillCallEntry[]; skillCalls: SkillCallEntry[] } | undefined {
+    if (!Array.isArray(items) || items.length === 0) {
+      return undefined;
+    }
+
+    const attemptedSkillCalls = this.extractSkillCallsFromItems(items, skillRootPrefixes);
+    const skillCalls = this.extractSkillCallsFromItems(items, skillRootPrefixes, {
+      requireSuccessfulCommand: true,
+    });
+
+    if (skillCalls.length === 0 && attemptedSkillCalls.length <= skillCalls.length) {
+      return undefined;
+    }
+
+    return { attemptedSkillCalls, skillCalls };
+  }
+
+  private isSuccessfulCommandExecution(item: any): boolean {
+    if (item?.type !== 'command_execution') {
+      return false;
+    }
+
+    if (typeof item.status === 'string' && item.status !== 'completed') {
+      return false;
+    }
+
+    if (typeof item.exit_code === 'number' && item.exit_code !== 0) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private validateWorkingDirectory(workingDir: string, skipGitCheck: boolean = false): void {
+    let stats: fs.Stats;
+    try {
+      stats = fs.statSync(workingDir);
+    } catch (err: any) {
+      throw new Error(
+        `Working directory ${workingDir} does not exist or isn't accessible: ${err.message}`,
+      );
+    }
+
+    if (!stats.isDirectory()) {
+      throw new Error(`Working directory ${workingDir} is not a directory`);
+    }
+
+    if (!skipGitCheck) {
+      const gitDir = path.join(workingDir, '.git');
+      if (!fs.existsSync(gitDir)) {
+        throw new Error(
+          dedent`Working directory ${workingDir} is not a Git repository.
+
+          Codex requires a Git repository by default to prevent unrecoverable errors.
+
+          To bypass this check, set skip_git_repo_check: true in your provider config.`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Build Codex constructor options from provider config.
+   * Used when creating both local (deep-tracing) and cached instances.
+   */
+  private buildCodexOptions(
+    env: Record<string, string>,
+    config: OpenAICodexSDKConfig,
+    apiKey: string | undefined = this.getApiKey(config),
+  ): Record<string, any> {
+    return {
+      env,
+      ...(apiKey ? { apiKey } : {}),
+      ...(config.codex_path_override ? { codexPathOverride: config.codex_path_override } : {}),
+      ...(config.base_url ? { baseUrl: config.base_url } : {}),
+      ...(config.cli_config ? { config: config.cli_config } : {}),
+    };
+  }
+
+  private buildThreadOptions(config: OpenAICodexSDKConfig): Record<string, any> {
+    return {
+      workingDirectory: config.working_dir,
+      skipGitRepoCheck: config.skip_git_repo_check ?? false,
+      ...(config.model ? { model: config.model } : {}),
+      ...(config.additional_directories?.length
+        ? { additionalDirectories: config.additional_directories }
+        : {}),
+      ...(config.sandbox_mode ? { sandboxMode: config.sandbox_mode } : {}),
+      ...(config.model_reasoning_effort
+        ? { modelReasoningEffort: config.model_reasoning_effort }
+        : {}),
+      ...(config.network_access_enabled === undefined
+        ? {}
+        : { networkAccessEnabled: config.network_access_enabled }),
+      ...(config.web_search_mode ? { webSearchMode: config.web_search_mode } : {}),
+      ...(config.web_search_enabled !== undefined && !config.web_search_mode
+        ? { webSearchEnabled: config.web_search_enabled }
+        : {}),
+      ...(config.approval_policy ? { approvalPolicy: config.approval_policy } : {}),
+    };
+  }
+
+  private async getOrCreateThread(
+    config: OpenAICodexSDKConfig,
+    cacheKey: string | undefined,
+    instanceKey: string,
+    instance: any,
+  ): Promise<any> {
+    const threadOptions = this.buildThreadOptions(config);
+
+    // When deep_tracing is enabled, skip all thread caching/persistence
+    // Each call needs a fresh thread for correct span linking
+    if (config.deep_tracing) {
+      return instance.startThread(threadOptions);
+    }
+
+    // Resume specific thread
+    if (config.thread_id) {
+      const threadIdCacheKey = `${instanceKey}:${config.thread_id}`;
+      const cached = this.threads.get(threadIdCacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      const thread = instance.resumeThread(config.thread_id, threadOptions);
+      if (config.persist_threads) {
+        this.threads.set(threadIdCacheKey, thread);
+      }
+      return thread;
+    }
+
+    // Use pooled thread
+    if (config.persist_threads && cacheKey) {
+      const cached = this.threads.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Enforce pool size limit
+      const poolSize = config.thread_pool_size ?? 1;
+      if (this.threads.size >= poolSize) {
+        const oldestKey = this.threads.keys().next().value;
+        if (oldestKey) {
+          this.threads.delete(oldestKey);
+        }
+      }
+    }
+
+    // Create new thread
+    const thread = instance.startThread(threadOptions);
+
+    if (config.persist_threads && cacheKey) {
+      this.threads.set(cacheKey, thread);
+    }
+
+    return thread;
+  }
+
+  private async runStreaming(
+    thread: any,
+    prompt: string,
+    runOptions: any,
+    callOptions?: CallApiOptionsParams,
+    skillRootPrefixes: readonly string[] = [],
+  ): Promise<any> {
+    const { events } = await thread.runStreamed(prompt, runOptions);
+    const items: any[] = [];
+    let usage: any = undefined;
+    const tracer = trace.getTracer('promptfoo.codex-sdk');
+
+    // Track in-progress spans for items (keyed by item.id)
+    const activeSpans: Map<string, ReturnType<typeof tracer.startSpan>> = new Map();
+    // Track start times for items (used for items that only have item.completed)
+    const itemStartTimes: Map<string, number> = new Map();
+    // Track the last event timestamp to estimate start times for items without item.started
+    let lastEventTime = Date.now();
+
+    // Collect reasoning for parent span event
+    const reasoningTexts: string[] = [];
+    // Track all prompts/messages in the conversation
+    const conversationMessages: Array<{ role: string; content: string }> = [];
+
+    // Add the initial user prompt
+    conversationMessages.push({ role: 'user', content: prompt });
+
+    try {
+      for await (const event of events) {
+        const eventTime = Date.now();
+
+        // Check abort signal
+        if (callOptions?.abortSignal?.aborted) {
+          const abortError = new Error('AbortError');
+          abortError.name = 'AbortError';
+          throw abortError;
+        }
+
+        switch (event.type) {
+          case 'item.started': {
+            // Guard against malformed events
+            const item = event.item;
+            if (!item) {
+              logger.warn('Codex item.started event missing item', { event });
+              break;
+            }
+            // Skip items without IDs - we can't correlate them with item.completed
+            // They'll be handled retroactively when item.completed arrives
+            if (!item.id) {
+              logger.debug('Codex item.started without id, will create span at completion', {
+                type: item.type,
+              });
+              break;
+            }
+            // Coerce id to string for consistent Map keys
+            const itemId = String(item.id);
+            // Create a child span for this item
+            const spanName = this.getSpanNameForItem(item);
+            const span = tracer.startSpan(spanName, {
+              kind: SpanKind.INTERNAL,
+              attributes: {
+                'codex.item.id': itemId,
+                'codex.item.type': item.type,
+                ...this.getAttributesForItem(item),
+              },
+            });
+            activeSpans.set(itemId, span);
+            itemStartTimes.set(itemId, eventTime);
+            logger.debug('Codex item started', { itemId, type: item.type });
+            break;
+          }
+          case 'item.completed': {
+            // Guard against malformed events
+            const item = event.item;
+            if (!item) {
+              logger.warn('Codex item.completed event missing item', { event });
+              break;
+            }
+            // Use item.id for correlation with item.started, or generate fallback for tracing
+            // Items without IDs get retroactive spans (item.started skips them)
+            const itemId = item.id ? String(item.id) : crypto.randomUUID();
+            items.push(item);
+
+            // Collect reasoning text for summary
+            if (item.type === 'reasoning' && typeof item.text === 'string') {
+              reasoningTexts.push(item.text);
+            }
+
+            // Collect agent messages for conversation history
+            if (item.type === 'agent_message' && typeof item.text === 'string') {
+              conversationMessages.push({ role: 'assistant', content: item.text });
+            }
+
+            // Get or create span for this item
+            // Some item types (like reasoning) may only emit item.completed without item.started
+            let span = activeSpans.get(itemId);
+            const hadStartEvent = span !== undefined;
+
+            if (!span) {
+              // Create span retroactively for items without item.started event
+              // Use lastEventTime as approximate start time
+              const spanName = this.getSpanNameForItem(item);
+              span = tracer.startSpan(spanName, {
+                kind: SpanKind.INTERNAL,
+                startTime: lastEventTime,
+                attributes: {
+                  'codex.item.id': itemId,
+                  'codex.item.type': item.type,
+                  'codex.timing.estimated': true, // Mark that timing is estimated
+                  ...this.getAttributesForItem(item),
+                },
+              });
+            }
+
+            // Add completion attributes
+            const completionAttrs = this.getCompletionAttributesForItem(item, skillRootPrefixes);
+            for (const [key, value] of Object.entries(completionAttrs)) {
+              span.setAttribute(key, value);
+            }
+
+            // Calculate and record duration
+            const startTime = itemStartTimes.get(itemId) || lastEventTime;
+            const durationMs = eventTime - startTime;
+            span.setAttribute('codex.duration_ms', durationMs);
+            span.setAttribute('codex.had_start_event', hadStartEvent);
+
+            // Add span events for rich content types
+            if (item.type === 'reasoning' && typeof item.text === 'string') {
+              span.addEvent('reasoning', {
+                'codex.reasoning.text': item.text,
+              });
+            }
+            if (item.type === 'agent_message' && typeof item.text === 'string') {
+              span.addEvent('message', {
+                'codex.message.text': item.text,
+              });
+            }
+            if (item.type === 'command_execution' && typeof item.aggregated_output === 'string') {
+              span.addEvent('output', {
+                'codex.command.output': item.aggregated_output,
+              });
+            }
+
+            // Set status based on item - check for any error indicators
+            const hasError =
+              item.status === 'failed' ||
+              item.type === 'error' ||
+              item.error !== undefined ||
+              (item.type === 'command_execution' &&
+                typeof item.exit_code === 'number' &&
+                item.exit_code !== 0);
+
+            if (hasError) {
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message:
+                  (typeof item.message === 'string' ? item.message : null) ||
+                  (typeof item.error?.message === 'string' ? item.error.message : null) ||
+                  (item.type === 'command_execution' && item.exit_code !== 0
+                    ? `Command exited with code ${item.exit_code}`
+                    : null) ||
+                  'Item failed',
+              });
+            } else {
+              span.setStatus({ code: SpanStatusCode.OK });
+            }
+
+            span.end();
+            activeSpans.delete(itemId);
+            itemStartTimes.delete(itemId);
+            logger.debug('Codex item completed', { itemId, type: item.type, durationMs });
+            break;
+          }
+          case 'item.updated': {
+            const item = event.item;
+            if (item?.id) {
+              const itemId = String(item.id);
+              const span = activeSpans.get(itemId);
+              if (span) {
+                const updatedAttrs = this.getCompletionAttributesForItem(item, skillRootPrefixes);
+                for (const [key, value] of Object.entries(updatedAttrs)) {
+                  span.setAttribute(key, value);
+                }
+              }
+            }
+            logger.debug('Codex item updated', { itemId: item?.id, type: item?.type });
+            break;
+          }
+          case 'turn.completed':
+            usage = event.usage;
+            logger.debug('Codex turn completed', { usage });
+            break;
+          case 'turn.failed': {
+            const errorMsg = event.error?.message || 'Turn failed';
+            logger.error('Codex turn failed', { error: errorMsg });
+            throw new Error(`Codex turn failed: ${errorMsg}`);
+          }
+          default:
+            // Log unknown event types for debugging
+            logger.debug('Codex unknown event type', { type: event.type });
+        }
+
+        // Update last event time for next iteration
+        lastEventTime = eventTime;
+      }
+    } finally {
+      // End any remaining spans (handles abort/error cases)
+      for (const [itemId, span] of activeSpans) {
+        logger.warn('Codex item span not properly closed', { itemId });
+        span.setStatus({ code: SpanStatusCode.ERROR, message: 'Span not properly closed' });
+        span.end();
+      }
+      activeSpans.clear();
+      itemStartTimes.clear();
+    }
+
+    // Extract text from agent_message items for final response
+    const agentMessages = items.filter((i) => i.type === 'agent_message');
+    const finalResponse =
+      agentMessages.length > 0 ? agentMessages.map((i) => i.text).join('\n') : '';
+
+    return {
+      finalResponse,
+      items,
+      usage,
+      // Include collected data for parent span enrichment
+      reasoningTexts,
+      conversationMessages,
+    };
+  }
+
+  /**
+   * Get a descriptive span name for a Codex item
+   */
+  private getSpanNameForItem(item: any): string {
+    switch (item.type) {
+      case 'command_execution': {
+        const cmd =
+          typeof item.command === 'string' ? item.command.split(' ')[0] || 'command' : 'command';
+        return `exec ${cmd}`;
+      }
+      case 'file_change':
+        return `file ${item.changes?.[0]?.kind || 'change'}`;
+      case 'mcp_tool_call': {
+        const server = typeof item.server === 'string' ? item.server : 'unknown';
+        const tool = typeof item.tool === 'string' ? item.tool : 'unknown';
+        return `mcp ${server}/${tool}`;
+      }
+      case 'agent_message':
+        return 'agent response';
+      case 'reasoning':
+        return 'reasoning';
+      case 'web_search': {
+        const query = typeof item.query === 'string' ? item.query.slice(0, 30) : '';
+        return `search "${query}"`;
+      }
+      case 'todo_list':
+        return 'todo update';
+      case 'error':
+        return 'error';
+      // Collaboration mode item types
+      case 'collaboration_tool_call': {
+        const tool = typeof item.tool === 'string' ? item.tool : 'unknown';
+        return `collab ${tool}`;
+      }
+      case 'spawn_agent': {
+        const role = typeof item.role === 'string' ? item.role : 'agent';
+        return `spawn ${role}`;
+      }
+      case 'send_input':
+        return 'send input';
+      case 'agent_wait':
+        return 'wait';
+      default:
+        return `codex.${item.type || 'unknown'}`;
+    }
+  }
+
+  /**
+   * Get attributes for a Codex item at start
+   */
+  private getSkillTraceAttributes(
+    item: any,
+    skillRootPrefixes: readonly string[] = [],
+    options: { requireSuccessfulCommand?: boolean } = {},
+  ): Record<string, string | number | boolean> {
+    if (item?.type !== 'command_execution') {
+      return {};
+    }
+    if (options.requireSuccessfulCommand && !this.isSuccessfulCommandExecution(item)) {
+      return {};
+    }
+
+    const command =
+      typeof item.command === 'string' && item.command.trim() ? item.command : undefined;
+    const skillCandidates = new Map<string, { name: string; path: string }>();
+
+    if (command) {
+      for (const skill of this.extractSkillPathCandidates(command, skillRootPrefixes)) {
+        skillCandidates.set(skill.path, skill);
+      }
+    }
+
+    if (skillCandidates.size === 0) {
+      return {};
+    }
+
+    const skills = Array.from(skillCandidates.values());
+    const attrs: Record<string, string | number | boolean> = {
+      'promptfoo.skill.count': skills.length,
+      'promptfoo.skill.names': skills.map((skill) => skill.name).join(','),
+      'promptfoo.skill.paths': skills.map((skill) => skill.path).join(','),
+    };
+
+    if (skills.length === 1) {
+      attrs['promptfoo.skill.name'] = skills[0].name;
+      attrs['promptfoo.skill.path'] = skills[0].path;
+    }
+
+    return attrs;
+  }
+
+  private getAttributesForItem(item: any): Record<string, string | number | boolean> {
+    const attrs: Record<string, string | number | boolean> = {};
+
+    switch (item.type) {
+      case 'command_execution':
+        if (typeof item.command === 'string') {
+          attrs['codex.command'] = item.command;
+        }
+        break;
+      case 'mcp_tool_call':
+        if (typeof item.server === 'string') {
+          attrs['codex.mcp.server'] = item.server;
+        }
+        if (typeof item.tool === 'string') {
+          attrs['codex.mcp.tool'] = item.tool;
+        }
+        {
+          const serializedArgs = this.serializeItemValue(item.arguments ?? item.args ?? item.input);
+          if (serializedArgs) {
+            attrs['codex.mcp.input'] = serializedArgs;
+          }
+        }
+        break;
+      case 'web_search':
+        if (typeof item.query === 'string') {
+          attrs['codex.search.query'] = item.query;
+        }
+        break;
+      // Collaboration mode attributes
+      case 'collaboration_tool_call':
+        if (typeof item.tool === 'string') {
+          attrs['codex.collab.tool'] = item.tool;
+        }
+        if (typeof item.target_thread_id === 'string') {
+          attrs['codex.collab.target_thread'] = item.target_thread_id;
+        }
+        break;
+      case 'spawn_agent':
+        if (typeof item.role === 'string') {
+          attrs['codex.collab.role'] = item.role;
+        }
+        if (typeof item.thread_id === 'string') {
+          attrs['codex.collab.spawned_thread'] = item.thread_id;
+        }
+        break;
+      case 'send_input':
+        if (typeof item.target_thread_id === 'string') {
+          attrs['codex.collab.target_thread'] = item.target_thread_id;
+        }
+        break;
+    }
+
+    return attrs;
+  }
+
+  private serializeItemValue(value: unknown): string | undefined {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return undefined;
+      }
+
+      try {
+        return JSON.stringify(this.redactTracePii(sanitizeObject(JSON.parse(trimmed))));
+      } catch {
+        return this.redactTracePii(
+          sanitizeObject(trimmed, { context: 'Codex MCP trace input' }),
+        ) as string;
+      }
+    }
+
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    try {
+      return JSON.stringify(
+        this.redactTracePii(sanitizeObject(value, { context: 'Codex MCP trace input' })),
+      );
+    } catch {
+      return undefined;
+    }
+  }
+
+  private redactTracePii(value: unknown): unknown {
+    if (typeof value === 'string' && /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(value)) {
+      return REDACTED;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.redactTracePii(item));
+    }
+
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => [
+          key,
+          normalizeFieldName(key).includes('email') ? REDACTED : this.redactTracePii(entryValue),
+        ]),
+      );
+    }
+
+    return value;
+  }
+
+  /**
+   * Get attributes for a Codex item at completion
+   */
+  private getCompletionAttributesForItem(
+    item: any,
+    skillRootPrefixes: readonly string[] = [],
+  ): Record<string, string | number | boolean> {
+    const attrs: Record<string, string | number | boolean> = {};
+
+    switch (item.type) {
+      case 'command_execution':
+        if (typeof item.exit_code === 'number') {
+          attrs['codex.exit_code'] = item.exit_code;
+        }
+        if (typeof item.status === 'string') {
+          attrs['codex.status'] = item.status;
+        }
+        if (typeof item.aggregated_output === 'string') {
+          attrs['codex.output'] = item.aggregated_output;
+        }
+        Object.assign(
+          attrs,
+          this.getSkillTraceAttributes(item, skillRootPrefixes, {
+            requireSuccessfulCommand: true,
+          }),
+        );
+        break;
+      case 'file_change':
+        if (typeof item.status === 'string') {
+          attrs['codex.status'] = item.status;
+        }
+        if (Array.isArray(item.changes) && item.changes.length) {
+          attrs['codex.files_changed'] = item.changes.length;
+          attrs['codex.files'] = item.changes
+            .map((c: any) => (typeof c?.path === 'string' ? c.path : ''))
+            .filter(Boolean)
+            .join(', ');
+        }
+        break;
+      case 'mcp_tool_call':
+        if (typeof item.status === 'string') {
+          attrs['codex.status'] = item.status;
+        }
+        if (typeof item.error?.message === 'string') {
+          attrs['codex.error'] = item.error.message;
+        }
+        {
+          const serializedArgs = this.serializeItemValue(item.arguments ?? item.args ?? item.input);
+          if (serializedArgs) {
+            attrs['codex.mcp.input'] = serializedArgs;
+          }
+        }
+        break;
+      case 'agent_message':
+        if (typeof item.text === 'string') {
+          attrs['codex.message'] = item.text;
+        }
+        break;
+      case 'reasoning':
+        if (typeof item.text === 'string') {
+          attrs['codex.reasoning'] = item.text;
+        }
+        break;
+      case 'error':
+        if (typeof item.message === 'string') {
+          attrs['codex.error'] = item.message;
+        }
+        break;
+    }
+
+    return attrs;
+  }
+
+  private generateInstanceKey(env: Record<string, string>, config: OpenAICodexSDKConfig): string {
+    const keyData = {
+      env,
+      base_url: config.base_url,
+      cli_config: config.cli_config,
+      codex_path_override: config.codex_path_override,
+    };
+
+    const hash = crypto.createHash('sha256').update(JSON.stringify(keyData)).digest('hex');
+    return `openai:codex-sdk:instance:${hash}`;
+  }
+
+  private generateCacheKey(
+    config: OpenAICodexSDKConfig,
+    prompt: string,
+    instanceKey: string,
+  ): string {
+    const keyData = {
+      instanceKey,
+      working_dir: config.working_dir,
+      additional_directories: config.additional_directories,
+      model: config.model,
+      output_schema: config.output_schema,
+      sandbox_mode: config.sandbox_mode,
+      model_reasoning_effort: config.model_reasoning_effort,
+      network_access_enabled: config.network_access_enabled,
+      web_search_enabled: config.web_search_enabled,
+      web_search_mode: config.web_search_mode,
+      approval_policy: config.approval_policy,
+      prompt,
+    };
+
+    const hash = crypto.createHash('sha256').update(JSON.stringify(keyData)).digest('hex');
+    return `openai:codex-sdk:${hash}`;
+  }
+
+  async callApi(
+    prompt: string,
+    context?: CallApiContextParams,
+    callOptions?: CallApiOptionsParams,
+  ): Promise<ProviderResponse> {
+    // Merge configs (prompt config takes precedence)
+    const config: OpenAICodexSDKConfig = {
+      ...this.config,
+      ...context?.prompt?.config,
+    };
+
+    const modelName = config.model || 'codex';
+
+    // Build GenAI span context for tracing
+    const spanContext: GenAISpanContext = {
+      system: 'openai',
+      operationName: 'chat',
+      model: modelName,
+      providerId: this.id(),
+      evalId: context?.evaluationId || context?.test?.metadata?.evaluationId,
+      testIndex:
+        typeof context?.test?.vars?.__testIdx === 'number'
+          ? context.test.vars.__testIdx
+          : undefined,
+      promptLabel: context?.prompt?.label,
+      traceparent: context?.traceparent,
+      requestBody: prompt,
+    };
+
+    // Result extractor for span attributes
+    const resultExtractor = (response: ProviderResponse): GenAISpanResult => {
+      const result: GenAISpanResult = {};
+
+      if (response.tokenUsage) {
+        result.tokenUsage = response.tokenUsage;
+      }
+
+      // Surface session/thread ID for debugging provider reuse
+      if (response.sessionId) {
+        result.responseId = response.sessionId;
+      }
+
+      // Surface cache status if available
+      if (response.cached !== undefined) {
+        result.cacheHit = response.cached;
+      }
+
+      // Confirm actual model used (may differ from requested)
+      result.responseModel = modelName;
+
+      if (response.output !== undefined) {
+        try {
+          result.responseBody =
+            typeof response.output === 'string' ? response.output : JSON.stringify(response.output);
+        } catch {
+          result.responseBody = '[unable to serialize output]';
+        }
+      }
+
+      // Extract reasoning summary from raw response if available
+      if (response.raw) {
+        try {
+          const rawData =
+            typeof response.raw === 'string' ? JSON.parse(response.raw) : response.raw;
+          // Include reasoning in additional attributes
+          if (rawData.reasoningTexts?.length > 0) {
+            result.additionalAttributes = {
+              'codex.reasoning.count': rawData.reasoningTexts.length,
+              'codex.reasoning.summary': rawData.reasoningTexts.join('\n---\n').slice(0, 2000),
+            };
+          }
+          // Include conversation history
+          if (rawData.conversationMessages?.length > 0) {
+            result.additionalAttributes = {
+              ...result.additionalAttributes,
+              'codex.conversation.message_count': rawData.conversationMessages.length,
+            };
+          }
+          // Include item counts for observability
+          if (rawData.items?.length > 0) {
+            const itemCounts: Record<string, number> = {};
+            for (const item of rawData.items) {
+              itemCounts[item.type] = (itemCounts[item.type] || 0) + 1;
+            }
+            result.additionalAttributes = {
+              ...result.additionalAttributes,
+              'codex.items.total': rawData.items.length,
+              'codex.items.breakdown': JSON.stringify(itemCounts),
+            };
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+
+      return result;
+    };
+
+    // Wrap the API call in a GenAI span
+    // withGenAISpan handles both exceptions and { error: ... } responses
+    return withGenAISpan(
+      spanContext,
+      () => this.callApiInternal(prompt, context, callOptions, config),
+      resultExtractor,
+    );
+  }
+
+  /**
+   * Internal implementation of callApi without tracing wrapper.
+   * Context is available for future use (e.g., _context?.vars for template rendering,
+   * _context?.bustCache for cache control, _context?.debug for debug mode).
+   */
+  private async callApiInternal(
+    prompt: string,
+    _context: CallApiContextParams | undefined,
+    callOptions: CallApiOptionsParams | undefined,
+    config: OpenAICodexSDKConfig,
+  ): Promise<ProviderResponse> {
+    // Get current trace context for deep tracing
+    // This allows the Codex CLI to export its internal spans as children of our span
+    const currentTraceparent = getTraceparent();
+    const apiKey = this.getApiKey(config);
+
+    // Prepare environment with OTEL config for deep tracing
+    const env: Record<string, string> = this.prepareEnvironment(config, currentTraceparent, apiKey);
+    const skillRootPrefixes = this.getSkillRootPrefixes(env);
+
+    if (apiKey) {
+      logger.debug('[CodexSDK] Using explicit API credentials from promptfoo config/environment');
+    } else {
+      logger.debug(
+        '[CodexSDK] No explicit API credentials configured; deferring auth resolution to Codex SDK login state',
+      );
+    }
+
+    // Validate working directory
+    if (config.working_dir) {
+      this.validateWorkingDirectory(config.working_dir, config.skip_git_repo_check);
+    }
+
+    // Check abort signal
+    if (callOptions?.abortSignal?.aborted) {
+      return { error: 'OpenAI Codex SDK call aborted before it started' };
+    }
+
+    // Load SDK module (lazy)
+    if (!this.codexModule) {
+      this.codexModule = await loadCodexSDK();
+    }
+
+    // Exclude TRACEPARENT from cache keys to preserve thread persistence across traces.
+    const stableEnv = { ...env };
+    delete stableEnv.TRACEPARENT;
+    const instanceKey = this.generateInstanceKey(stableEnv, config);
+
+    // Deep tracing requires per-call instances (each call has unique TRACEPARENT)
+    // This avoids race conditions where concurrent calls destroy shared instances
+    let localInstance: any = undefined;
+    const useLocalInstance = config.deep_tracing;
+    let activeInstance: any = undefined;
+
+    if (useLocalInstance) {
+      // Warn about ignored thread options (only once)
+      if (
+        (config.persist_threads || config.thread_id || (config.thread_pool_size ?? 0) > 1) &&
+        !this.deepTracingWarningShown
+      ) {
+        logger.warn(
+          '[CodexSDK] deep_tracing is incompatible with thread persistence. ' +
+            'Thread options (persist_threads, thread_id, thread_pool_size) are ignored when deep_tracing is enabled.',
+        );
+        this.deepTracingWarningShown = true;
+      }
+
+      // Create a fresh instance for this call only (not cached)
+      localInstance = new this.codexModule.Codex(this.buildCodexOptions(env, config, apiKey));
+      activeInstance = localInstance;
+    } else {
+      // Standard caching path for non-deep-tracing mode.
+      // Cache one Codex instance per stable constructor config so concurrent calls
+      // with different prompt-level credentials/config do not tear each other down.
+      activeInstance = this.codexInstances.get(instanceKey);
+      if (!activeInstance) {
+        activeInstance = new this.codexModule.Codex(this.buildCodexOptions(env, config, apiKey));
+        this.codexInstances.set(instanceKey, activeInstance);
+      }
+    }
+
+    // Guard against undefined instance (shouldn't happen, but defensive coding)
+    if (!activeInstance) {
+      throw new Error('Failed to create Codex instance - SDK module may have failed to load');
+    }
+
+    // Get or create thread (pass instance to avoid using stale this.codexInstance)
+    const cacheKey = this.generateCacheKey(config, prompt, instanceKey);
+    const thread = await this.getOrCreateThread(config, cacheKey, instanceKey, activeInstance);
+
+    // Prepare run options
+    const runOptions: any = {};
+    if (config.output_schema) {
+      runOptions.outputSchema = config.output_schema;
+    }
+    if (callOptions?.abortSignal) {
+      runOptions.signal = callOptions.abortSignal;
+    }
+
+    // Execute turn
+    try {
+      const turn = config.enable_streaming
+        ? await this.runStreaming(thread, prompt, runOptions, callOptions, skillRootPrefixes)
+        : await thread.run(prompt, runOptions);
+
+      // Extract response
+      const output = turn.finalResponse || '';
+      const raw = JSON.stringify(turn);
+      const skillMetadata = this.buildSkillMetadata(turn.items, skillRootPrefixes);
+      const metadata = skillMetadata
+        ? {
+            ...(skillMetadata.skillCalls.length > 0
+              ? { skillCalls: skillMetadata.skillCalls }
+              : {}),
+            ...(skillMetadata.attemptedSkillCalls.length > skillMetadata.skillCalls.length
+              ? { attemptedSkillCalls: skillMetadata.attemptedSkillCalls }
+              : {}),
+          }
+        : undefined;
+
+      const tokenUsage: ProviderResponse['tokenUsage'] = turn.usage
+        ? {
+            // cached_input_tokens is already included in input_tokens by the Codex SDK.
+            prompt: turn.usage.input_tokens,
+            completion: turn.usage.output_tokens,
+            total: turn.usage.input_tokens + turn.usage.output_tokens,
+            cached: turn.usage.cached_input_tokens || 0,
+          }
+        : undefined;
+
+      // Calculate cost from usage
+      let cost = 0;
+      if (tokenUsage && config.model) {
+        const pricing = CODEX_MODEL_PRICING[config.model];
+        if (pricing) {
+          // Pricing is per 1M tokens. Some models have discounted cached input pricing.
+          const cachedTokens = tokenUsage.cached || 0;
+          const uncachedInputTokens = (tokenUsage.prompt || 0) - cachedTokens;
+          const inputCost = uncachedInputTokens * (pricing.input / 1_000_000);
+          const cacheReadCost = cachedTokens * (pricing.cache_read / 1_000_000);
+          const outputCost = (tokenUsage.completion || 0) * (pricing.output / 1_000_000);
+          cost = inputCost + cacheReadCost + outputCost;
+        }
+      }
+
+      logger.debug('OpenAI Codex SDK response', { output, usage: turn.usage });
+
+      return {
+        output,
+        tokenUsage,
+        cost,
+        metadata,
+        raw,
+        sessionId: thread.id || 'unknown',
+      };
+    } catch (error: unknown) {
+      const isAbort =
+        (error instanceof Error && error.name === 'AbortError') ||
+        callOptions?.abortSignal?.aborted;
+
+      if (isAbort) {
+        logger.warn('OpenAI Codex SDK call aborted');
+        return { error: 'OpenAI Codex SDK call aborted' };
+      }
+
+      // Safely extract error message - error may not be an Error object
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error calling OpenAI Codex SDK', { error: errorMessage });
+      return {
+        error: `Error calling OpenAI Codex SDK: ${errorMessage}`,
+      };
+    } finally {
+      // Clean up ephemeral threads (only for non-deep-tracing mode)
+      if (!config.deep_tracing && !config.persist_threads && !config.thread_id && cacheKey) {
+        this.threads.delete(cacheKey);
+      }
+
+      // Clean up local instance used for deep tracing (not shared, safe to destroy)
+      if (useLocalInstance && localInstance) {
+        try {
+          await this.destroyInstance(localInstance);
+        } catch (cleanupError) {
+          logger.debug('[CodexSDK] Error cleaning up local instance', { error: cleanupError });
+        }
+      }
+    }
+  }
+}

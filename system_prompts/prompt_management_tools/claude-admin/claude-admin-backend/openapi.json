@@ -1,0 +1,402 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ClaudeAdmin API",
+    "description": "Central admin console for managing Claude Code configuration.",
+    "version": "1.0.0",
+    "license": { "name": "MIT" }
+  },
+  "servers": [{ "url": "/api/v1" }],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "tags": ["System"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "summary": "Dashboard overview",
+        "tags": ["Dashboard"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/projects": {
+      "get": {
+        "summary": "List projects",
+        "tags": ["Projects"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "summary": "Get project detail",
+        "tags": ["Projects"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/skills": {
+      "get": {
+        "summary": "List skills",
+        "tags": ["Skills"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "summary": "Create skill",
+        "tags": ["Skills"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/skills/{scope}/{name}": {
+      "get": {
+        "summary": "Get skill",
+        "tags": ["Skills"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update skill",
+        "tags": ["Skills"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Delete skill",
+        "tags": ["Skills"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/rules": {
+      "get": {
+        "summary": "List rules",
+        "tags": ["Rules"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "summary": "Create rule",
+        "tags": ["Rules"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/rules/{scope}/{name}": {
+      "get": {
+        "summary": "Get rule",
+        "tags": ["Rules"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update rule",
+        "tags": ["Rules"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Delete rule",
+        "tags": ["Rules"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/memory/{project}": {
+      "get": {
+        "summary": "Get project memory",
+        "tags": ["Memory"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update project memory",
+        "tags": ["Memory"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/settings/global": {
+      "get": {
+        "summary": "Get global settings",
+        "tags": ["Settings"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update global settings",
+        "tags": ["Settings"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/plans": {
+      "get": {
+        "summary": "List plans",
+        "tags": ["Plans"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/plans/{name}": {
+      "get": {
+        "summary": "Get plan",
+        "tags": ["Plans"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update plan",
+        "tags": ["Plans"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Delete plan",
+        "tags": ["Plans"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/analytics/overview": {
+      "get": {
+        "summary": "Analytics overview",
+        "tags": ["Analytics"],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/analytics/projects": {
+      "get": {
+        "summary": "Per-project analytics",
+        "tags": ["Analytics"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/analytics/export": {
+      "get": {
+        "summary": "Export analytics data",
+        "tags": ["Analytics"],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["csv", "json"] }
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sessions": {
+      "get": {
+        "summary": "List sessions",
+        "tags": ["Sessions"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sessions/{id}": {
+      "get": {
+        "summary": "Get session detail",
+        "tags": ["Sessions"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sessions/{id}/transcript": {
+      "get": {
+        "summary": "Get session transcript",
+        "tags": ["Sessions"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/mcp": {
+      "get": {
+        "summary": "List MCP servers",
+        "tags": ["MCP"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "summary": "Create MCP server",
+        "tags": ["MCP"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/backups": {
+      "get": {
+        "summary": "List backups",
+        "tags": ["Backups"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/backups/prune": {
+      "post": {
+        "summary": "Prune old backups",
+        "tags": ["Backups"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/backups/{name}/restore": {
+      "post": {
+        "summary": "Restore backup",
+        "tags": ["Backups"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/backups/{name}/diff": {
+      "get": {
+        "summary": "Diff backup against current",
+        "tags": ["Backups"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/audit": {
+      "get": {
+        "summary": "Get audit log",
+        "tags": ["Audit"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 50 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": { "type": "integer", "default": 0 }
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/budgets": {
+      "get": {
+        "summary": "Get budget status",
+        "tags": ["Budgets"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "summary": "Update budget config",
+        "tags": ["Budgets"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "summary": "List webhooks",
+        "tags": ["Webhooks"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "summary": "Create webhook",
+        "tags": ["Webhooks"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/webhooks/{id}": {
+      "put": {
+        "summary": "Update webhook",
+        "tags": ["Webhooks"],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Delete webhook",
+        "tags": ["Webhooks"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sync/manifest": {
+      "get": {
+        "summary": "Get sync manifest",
+        "tags": ["Sync"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sync/push": {
+      "post": {
+        "summary": "Push files to remote",
+        "tags": ["Sync"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/sync/pull": {
+      "post": {
+        "summary": "Pull files from remote",
+        "tags": ["Sync"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/preview/markdown": {
+      "post": {
+        "summary": "Render markdown to HTML",
+        "tags": ["Preview"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/preview/highlight": {
+      "post": {
+        "summary": "Syntax highlight code",
+        "tags": ["Preview"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/events": {
+      "get": {
+        "summary": "SSE file change events",
+        "tags": ["Events"],
+        "responses": { "200": { "description": "SSE stream" } }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Exchange master token for session token",
+        "tags": ["Auth"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/export": {
+      "get": {
+        "summary": "Export config bundle",
+        "tags": ["Export"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/import": {
+      "post": {
+        "summary": "Import config bundle",
+        "tags": ["Export"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Full-text search",
+        "tags": ["Search"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/docs": {
+      "get": {
+        "summary": "Swagger UI",
+        "tags": ["Docs"],
+        "responses": { "200": { "description": "HTML page" } }
+      }
+    },
+    "/permissions": {
+      "get": {
+        "summary": "List all project permissions",
+        "tags": ["Permissions"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/system/info": {
+      "get": {
+        "summary": "System information",
+        "tags": ["System"],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}

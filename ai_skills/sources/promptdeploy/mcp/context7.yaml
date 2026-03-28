@@ -1,0 +1,8 @@
+name: context7
+description: Context7 documentation lookup for libraries and frameworks
+command: npx
+args:
+  - -y
+  - "@context7/mcp-server"
+scope: user
+enabled: true

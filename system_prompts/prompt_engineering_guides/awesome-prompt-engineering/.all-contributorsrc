@@ -1,0 +1,94 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "natnew",
+      "name": "Natasha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37782009?v=4",
+      "profile": "https://github.com/natnew",
+      "contributions": [
+        "design",
+        "bug",
+        "code",
+        "content",
+        "doc",
+        "ideas",
+        "projectManagement",
+        "question",
+        "review",
+        "security",
+        "tool",
+        "research"
+      ]
+    },
+    {
+      "login": "DeaMariaLeon",
+      "name": "Dea María Léon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11835246?v=4",
+      "profile": "https://www.deamarialeon.com/",
+      "contributions": [
+        "doc",
+        "research",
+        "question",
+        "ideas",
+        "research",
+        "content",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Bartmr",
+      "name": "Bartolomeu Rodrigues",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13721983?v=4",
+      "profile": "https://bartolomeu-rodrigues.com/",
+      "contributions": [
+        "ideas",
+        "doc",
+        "bug"
+      ]
+    },
+    {
+      "login": "ElitePete",
+      "name": "ElitePete",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105971332?v=4",
+      "profile": "https://github.com/ElitePete",
+      "contributions": [
+        "content",
+        "ideas",
+        "question",
+        "tool"
+      ]
+    },
+    {
+      "login": "Jaimboh",
+      "name": "Jaimboh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110313204?v=4",
+      "profile": "https://github.com/Jaimboh",
+      "contributions": [
+        "tool",
+        "question",
+        "content"
+      ]
+    },
+    {
+      "login": "onestardao",
+      "name": "onestardao",
+      "avatar_url": "https://avatars.githubusercontent.com/u/158162232?v=4",
+      "profile": "https://github.com/onestardao",
+      "contributions": [
+        "content"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "Awesome-Prompt-Engineering",
+  "projectOwner": "natnew",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "commitConvention": "angular",
+  "commitType": "docs"
+}

@@ -1,0 +1,35 @@
+{
+  "UserPromptSubmit": [
+    {
+      "type": "command",
+      "command": "if [ -f task_plan.md ]; then echo '[planning-with-files] ACTIVE PLAN — current state:'; head -50 task_plan.md; echo ''; echo '=== recent progress ==='; tail -20 progress.md 2>/dev/null; echo ''; echo '[planning-with-files] Read findings.md for research context. Continue from the current phase.'; fi",
+      "timeout": 5000,
+      "description": "Inject plan context on every user message for session recovery after /clear"
+    }
+  ],
+  "PreToolUse": [
+    {
+      "type": "command",
+      "command": "cat task_plan.md 2>/dev/null | head -30 || true",
+      "matcher": { "tool_name": "Write|Edit|Bash|Read|Glob|Grep" },
+      "timeout": 5000,
+      "description": "Read plan before tool use to keep goals in active context"
+    }
+  ],
+  "PostToolUse": [
+    {
+      "type": "command",
+      "command": "if [ -f task_plan.md ]; then echo '[planning-with-files] Update progress.md with what you just did. If a phase is now complete, update task_plan.md status.'; fi",
+      "matcher": { "tool_name": "Write|Edit" },
+      "description": "Remind agent to update progress and plan status after file changes"
+    }
+  ],
+  "Stop": [
+    {
+      "type": "command",
+      "command": "sh .mastracode/skills/planning-with-files/scripts/check-complete.sh 2>/dev/null || sh ~/.mastracode/skills/planning-with-files/scripts/check-complete.sh 2>/dev/null || true",
+      "timeout": 10000,
+      "description": "Check all phases are complete before the agent stops"
+    }
+  ]
+}

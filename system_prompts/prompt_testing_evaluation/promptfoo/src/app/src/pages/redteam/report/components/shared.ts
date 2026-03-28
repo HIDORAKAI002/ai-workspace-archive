@@ -1,0 +1,101 @@
+import { type categoryAliases, categoryAliasesReverse } from '@promptfoo/redteam/constants';
+import {
+  deserializePolicyIdFromMetric,
+  isPolicyMetric,
+} from '@promptfoo/redteam/plugins/policy/utils';
+import type { EvaluateResult, GradingResult } from '@promptfoo/types';
+
+// TODO(ian): Need a much easier way to get the pluginId (and strategyId) from a result
+
+/**
+ * Represents a test with metadata used in red team report components.
+ * This interface aligns with the structure expected by getStrategyIdFromTest and getPluginIdFromResult.
+ */
+export interface TestWithMetadata {
+  prompt: string;
+  output: string;
+  gradingResult?: GradingResult;
+  result?: EvaluateResult;
+  metadata?: {
+    strategyId?: string;
+    [key: string]: unknown;
+  };
+}
+
+export function getStrategyIdFromTest(test: TestWithMetadata): string {
+  // Check metadata directly on test
+  if (test.metadata?.strategyId) {
+    return test.metadata.strategyId as string;
+  }
+
+  // Check metadata from test.result.testCase
+  if (test.result?.testCase?.metadata?.strategyId) {
+    return test.result.testCase.metadata.strategyId as string;
+  }
+
+  // Default fallback
+  return 'basic';
+}
+
+export function getPluginIdFromResult(result: EvaluateResult): string | null {
+  if (
+    result.metadata?.pluginId &&
+    // Policy plugins are handled separately
+    result.metadata.pluginId !== 'policy'
+  ) {
+    return result.metadata.pluginId as string;
+  }
+
+  const harmCategory = result.vars?.harmCategory || result.metadata?.harmCategory;
+  if (harmCategory) {
+    return categoryAliasesReverse[harmCategory as keyof typeof categoryAliases];
+  }
+
+  const metricNames =
+    result.gradingResult?.componentResults?.map((result) => result.assertion?.metric) || [];
+
+  for (const metric of metricNames) {
+    if (!metric) {
+      continue;
+    }
+
+    // Parse and return the policy ID from the policy metric
+    if (isPolicyMetric(metric)) {
+      return deserializePolicyIdFromMetric(metric);
+    }
+
+    const metricParts = metric.split('/');
+    const baseName = metricParts[0];
+
+    if (baseName && categoryAliasesReverse[baseName as keyof typeof categoryAliases]) {
+      return categoryAliasesReverse[baseName as keyof typeof categoryAliases];
+    }
+  }
+
+  return null;
+}
+
+export const getPassRateStyles = (passRate: number): { bg: string; text: string } => {
+  if (passRate >= 0.9) {
+    return {
+      bg: 'bg-emerald-500',
+      text: 'text-emerald-600 dark:text-emerald-400',
+    };
+  }
+  if (passRate >= 0.7) {
+    return {
+      bg: 'bg-amber-500',
+      text: 'text-amber-600 dark:text-amber-400',
+    };
+  }
+  if (passRate >= 0.5) {
+    return {
+      bg: 'bg-orange-500',
+      text: 'text-orange-600 dark:text-orange-400',
+    };
+  }
+  return {
+    bg: 'bg-red-500',
+    text: 'text-red-600 dark:text-red-400',
+  };
+};

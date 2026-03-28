@@ -1,0 +1,22 @@
+{
+  "name": "Add a filesystem pattern to block theme",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-themes"],
+  "query": "Add a new block pattern to a block theme and make sure it shows up in the inserter with the right title/category.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to confirm block theme (theme.json present)",
+    "Step 3: Route to wp-block-themes skill",
+    "Step 4: Create file under patterns/ directory",
+    "Step 5: Add required PHP header comment with Title and Slug",
+    "Step 6: Optionally add Categories, Keywords, Block Types headers",
+    "Step 7: Add pattern markup (block comments + HTML)",
+    "Step 8: Verify pattern appears in editor inserter"
+  ],
+  "success_criteria": [
+    "Pattern file created in patterns/ directory",
+    "File has correct PHP header format with Title and Slug",
+    "Pattern contains valid block markup",
+    "Pattern is theme-scoped (not global)",
+    "Verification step mentions checking in editor inserter"
+  ]
+}

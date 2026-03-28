@@ -1,0 +1,25 @@
+{
+  "name": "Route and debug Interactivity API issue",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-interactivity-api"],
+  "query": "My block uses data-wp-interactive and data-wp-on--click, but clicks don't do anything on the frontend. How do I debug this repo?",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect block and interactivity setup",
+    "Step 3: Route to wp-interactivity-api skill",
+    "Step 4: Search for data-wp-interactive, @wordpress/interactivity, viewScriptModule",
+    "Step 5: Check block.json has viewScriptModule field",
+    "Step 6: Verify view script module loads in browser network tab",
+    "Step 7: Confirm store namespace matches data-wp-interactive value",
+    "Step 8: Check browser console for JavaScript errors",
+    "Step 9: Verify action is exported from store",
+    "Step 10: Check interactivity scope (wp-context if needed)"
+  ],
+  "success_criteria": [
+    "Routes to wp-interactivity-api skill",
+    "Provides debugging checklist",
+    "Checks viewScriptModule configuration",
+    "Verifies namespace matching between store and directive",
+    "Mentions console error checking",
+    "Covers scope/context issues"
+  ]
+}

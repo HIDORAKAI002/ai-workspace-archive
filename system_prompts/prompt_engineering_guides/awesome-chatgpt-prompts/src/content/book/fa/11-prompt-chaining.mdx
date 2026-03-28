@@ -1,0 +1,379 @@
+زنجیره‌سازی پرامپت، وظایف پیچیده را به توالی‌هایی از پرامپت‌های ساده‌تر تقسیم می‌کند، به طوری که خروجی هر مرحله به مرحله بعدی تغذیه می‌شود. این تکنیک به طور چشمگیری قابلیت اطمینان را بهبود می‌بخشد و گردش‌های کاری پیچیده‌ای را امکان‌پذیر می‌سازد که با یک پرامپت واحد غیرممکن خواهند بود.
+
+<Callout type="tip" title="مانند خطوط مونتاژ فکر کنید">
+همان‌طور که یک خط مونتاژ کارخانه، تولید را به ایستگاه‌های تخصصی تقسیم می‌کند، زنجیره‌سازی پرامپت نیز وظایف هوش مصنوعی را به مراحل تخصصی تقسیم می‌کند. هر مرحله یک کار را به خوبی انجام می‌دهد، و خروجی ترکیبی بسیار بهتر از تلاش برای انجام همه چیز به یکباره است.
+</Callout>
+
+## چرا پرامپت‌ها را زنجیره کنیم؟
+
+پرامپت‌های تکی در وظایف پیچیده با مشکل مواجه می‌شوند زیرا سعی می‌کنند بیش از حد همزمان کار انجام دهند. هوش مصنوعی باید به طور همزمان درک کند، تحلیل کند، برنامه‌ریزی کند و تولید کند، که منجر به خطاها و ناسازگاری‌ها می‌شود.
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+    <p className="text-sm font-semibold text-red-700 dark:text-red-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconX className="h-4 w-4" /> مشکلات پرامپت تکی</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">استدلال چند مرحله‌ای سردرگم می‌شود</p>
+      <p className="m-0!">«حالت‌های» مختلف تفکر با هم تداخل می‌کنند</p>
+      <p className="m-0!">خروجی‌های پیچیده فاقد انسجام هستند</p>
+      <p className="m-0!">فرصتی برای کنترل کیفیت وجود ندارد</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconCheck className="h-4 w-4" /> زنجیره‌سازی این را حل می‌کند</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">هر مرحله روی یک وظیفه تمرکز می‌کند</p>
+      <p className="m-0!">پرامپت‌های تخصصی برای هر حالت</p>
+      <p className="m-0!">اعتبارسنجی بین مراحل</p>
+      <p className="m-0!">اشکال‌زدایی و بهبود مراحل جداگانه</p>
+    </div>
+  </div>
+</div>
+
+## الگوی پایه زنجیره‌سازی
+
+ساده‌ترین زنجیره، خروجی یک پرامپت را مستقیماً به پرامپت بعدی می‌دهد. هر مرحله هدف واضح و متمرکزی دارد.
+
+<div className="my-6 flex items-center justify-center gap-3 p-6 bg-muted/30 rounded-lg overflow-x-auto">
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-blue-700 dark:text-blue-300 m-0!">پرامپت ۱</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">(استخراج)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">ورودی</p>
+  </div>
+  <div className="text-blue-400 dark:text-blue-500">→</div>
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-purple-700 dark:text-purple-300 m-0!">پرامپت ۲</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">(تحلیل)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">میانی</p>
+  </div>
+  <div className="text-purple-400 dark:text-purple-500">→</div>
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-green-700 dark:text-green-300 m-0!">پرامپت ۳</p>
+      <p className="text-xs text-green-600 dark:text-green-400 m-0!">(تولید)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">خروجی</p>
+  </div>
+</div>
+
+<Callout type="info" title="الگوی ETG">
+رایج‌ترین الگوی زنجیره **استخراج ← تبدیل ← تولید** است. ابتدا داده‌های خام را استخراج کنید، سپس آن را برای هدف خود بازسازی کنید، و در نهایت خروجی نهایی را تولید کنید. این الگو تقریباً برای هر وظیفه محتوایی کار می‌کند.
+</Callout>
+
+## انواع زنجیره
+
+وظایف مختلف به معماری‌های زنجیره متفاوتی نیاز دارند. الگویی را انتخاب کنید که با گردش کار شما مطابقت داشته باشد.
+
+<ChainFlowDemo />
+
+### زنجیره ترتیبی
+
+ساده‌ترین الگو: هر مرحله به مرحله قبلی وابسته است. آن را مانند یک مسابقه دو امدادی در نظر بگیرید که هر دونده چوب را به دونده بعدی می‌دهد.
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "مرحله ۱: استخراج", prompt: "تمام تاریخ‌ها، نام‌ها و اعداد را از متن زیر استخراج کن: [text]", output: '{ dates: ["2024-01-15", "2024-02-20"], names: ["John Smith", "Acme Corp"], numbers: [15000, 42] }' },
+    { step: "مرحله ۲: تحلیل", prompt: "با توجه به این داده‌های استخراج‌شده: [step1_output]، روابط و الگوها را شناسایی کن.", output: '{ patterns: ["جلسات ماهانه برنامه‌ریزی شده"], relationships: ["John Smith در Acme Corp کار می‌کند"] }' },
+    { step: "مرحله ۳: تولید", prompt: "با استفاده از این الگوها: [step2_output]، یک گزارش خلاصه بنویس که مهم‌ترین یافته‌ها را برجسته کند.", output: "گزارش خلاصه: تحلیل سند نشان‌دهنده یک رابطه کاری بین John Smith و Acme Corp است، با جلسات ماهانه برنامه‌ریزی‌شده..." }
+  ]}
+/>
+
+### زنجیره موازی
+
+زمانی که به دیدگاه‌های متعدد روی یک ورودی نیاز دارید، پرامپت‌ها را به صورت موازی اجرا کنید و نتایج را ادغام کنید. این سریع‌تر از زنجیره‌های ترتیبی است و تحلیل غنی‌تری ارائه می‌دهد.
+
+<ChainExample 
+  type="parallel"
+  steps={[
+    { step: "ورودی", prompt: "متن نقد محصول", output: '"من این هدفون‌ها را دوست دارم! باتری‌شان خیلی عمر می‌کند و نمایشگر روی کیس خیلی راحت است. عالی برای رفت‌وآمد روزانه‌ام."' },
+    { step: "شاخه A: احساسات", prompt: "احساسات را تحلیل کن: [text]", output: '{ sentiment: "مثبت", score: 0.85 }' },
+    { step: "شاخه B: ویژگی‌ها", prompt: "ویژگی‌های ذکرشده را استخراج کن: [text]", output: '{ features: ["باتری", "نمایشگر"] }' },
+    { step: "شاخه C: پرسونا", prompt: "پرسونای کاربر را شناسایی کن: [text]", output: '{ persona: "مسافر روزانه" }' },
+    { step: "ادغام", prompt: "تحلیل‌ها را در یک گزارش یکپارچه ترکیب کن", output: "گزارش یکپارچه: نقد مثبت از یک مسافر روزانه که باتری و نمایشگر را برجسته کرده است." }
+  ]}
+/>
+
+### زنجیره شرطی
+
+ورودی‌ها را بر اساس طبقه‌بندی از مسیرهای مختلف عبور دهید. این مانند یک درخت تصمیم است که هوش مصنوعی ابتدا ورودی را دسته‌بندی می‌کند، سپس هر دسته را به شکل متفاوتی مدیریت می‌کند.
+
+<ChainExample 
+  type="conditional"
+  steps={[
+    { step: "طبقه‌بندی ورودی", prompt: "این پیام مشتری را به عنوان: شکایت، سؤال، بازخورد، یا سایر طبقه‌بندی کن.\n\nپیام: [text]", output: '{ classification: "شکایت", confidence: 0.92 }' },
+    { step: "مسیر: سؤال (رد شده)", prompt: "مشخص کن چه اطلاعاتی مورد نیاز است", output: "رد شده - ورودی به عنوان شکایت طبقه‌بندی شد" },
+    { step: "مسیر: شکایت", prompt: "مشکل و شدت آن را شناسایی کن: [text]", output: '{ issue: "تأخیر در ارسال", severity: "متوسط" }' },
+    { step: "تولید پاسخ", prompt: "پاسخی همدلانه با راه‌حل تولید کن: [analysis]", output: "مشتری گرامی، صمیمانه از تأخیر پیش‌آمده عذرخواهی می‌کنیم. سفارش شما با اولویت ارسال شده است..." }
+  ]}
+/>
+
+### زنجیره تکراری
+
+خروجی را تا زمانی که استانداردهای کیفیت را برآورده کند، پالایش کنید. هوش مصنوعی تولید می‌کند، ارزیابی می‌کند و در یک حلقه بهبود می‌دهد تا راضی شود یا حداکثر تکرارها به پایان برسد.
+
+<Callout type="warning" title="محدودیت تکرار تعیین کنید">
+همیشه حداکثر تعداد تکرارها را تعیین کنید (معمولاً ۳ تا ۵) تا از حلقه‌های بی‌پایان جلوگیری کنید و هزینه‌ها را کنترل کنید. قانون بازده کاهشی اعمال می‌شود: بیشتر بهبود در ۲ تا ۳ تکرار اول اتفاق می‌افتد.
+</Callout>
+
+<ChainExample 
+  type="iterative"
+  steps={[
+    { step: "تولید پیش‌نویس", prompt: "یک توضیح محصول برای [هدفون بی‌سیم] بنویس", output: "این هدفون‌های بی‌سیم کیفیت صدای خوب و راحتی مناسبی برای استفاده روزمره ارائه می‌دهند." },
+    { step: "ارزیابی (امتیاز: ۵)", prompt: "این توضیح را از ۱ تا ۱۰ بر اساس: وضوح، قانع‌کنندگی، دقت امتیاز بده.\n\nتوضیح: [current_draft]", output: '{ score: 5, improvements: ["ویژگی‌های خاص اضافه کن", "مزایای احساسی را شامل کن", "عمر باتری را ذکر کن", "فراخوان به عمل اضافه کن"] }' },
+    { step: "بهبود پیش‌نویس", prompt: "این توضیح را بر اساس این بازخورد بهبود بده:\n\nفعلی: [current_draft]\nبازخورد: [improvements]", output: "صدای کریستالی شفاف را با هدفون‌های بی‌سیم پریمیوم ما تجربه کنید. با ۳۰ ساعت عمر باتری، حذف نویز فعال، و طراحی ارگونومیک که تمام روز راحت می‌ماند. عالی برای علاقه‌مندان به موسیقی و حرفه‌ای‌ها. همین حالا سفارش دهید و تجربه شنیداری خود را متحول کنید." },
+    { step: "ارزیابی (امتیاز: ۸)", prompt: "این توضیح را از ۱ تا ۱۰ بر اساس: وضوح، قانع‌کنندگی، دقت امتیاز بده.\n\nتوضیح: [improved_draft]", output: '{ score: 8, improvements: ["جزئی: می‌توان اطلاعات گارانتی اضافه کرد"] }\n\n✓ امتیاز >= 8: خروج از حلقه' }
+  ]}
+/>
+
+## الگوهای رایج زنجیره
+
+این الگوهای آزموده‌شده مشکلات رایج را حل می‌کنند. از آن‌ها به عنوان نقطه شروع استفاده کنید و با نیازهای خود تطبیق دهید.
+
+### استخراج ← تبدیل ← تولید
+
+اصلی‌ترین الگو برای پردازش محتوا. داده‌ها را بیرون بکشید، بازسازی کنید، سپس چیز جدیدی بسازید.
+
+<div className="mb-4 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1 m-0!">بهترین برای</p>
+  <p className="text-sm text-blue-600 dark:text-blue-400 m-0!">خلاصه‌سازی سند، تولید گزارش، تغییر کاربری محتوا، تبدیل داده به روایت</p>
+</div>
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "استخراج", prompt: "از این سند استخراج کن:\n- موضوع اصلی\n- استدلال‌های کلیدی (لیست)\n- شواهد پشتیبان (لیست)\n- نتیجه‌گیری‌ها\nبه صورت JSON برگردان.", output: '{ "topic": "تأثیرات تغییرات آب‌وهوایی", "arguments": ["افزایش دما", "بالا آمدن سطح دریا"], "evidence": ["داده‌های NASA", "گزارش‌های IPCC"], "conclusions": ["اقدام فوری لازم است"] }' },
+    { step: "تبدیل", prompt: "این اطلاعات را برای [مدیران کسب‌وکار] بازسازی کن:\n[extracted_data]\nتمرکز بر: پیامدهای اقتصادی\nحذف: اصطلاحات فنی", output: '{ "summary": "ریسک‌های آب‌وهوایی برای کسب‌وکار", "key_points": ["اختلال در زنجیره تأمین", "افزایش هزینه‌های بیمه"], "action_items": ["ارزیابی آسیب‌پذیری‌ها", "برنامه‌ریزی سازگاری"] }' },
+    { step: "تولید", prompt: "با استفاده از این اطلاعات بازسازی‌شده، یک [خلاصه اجرایی] بنویس:\n[transformed_data]\nلحن: حرفه‌ای\nطول: ۲۰۰ کلمه", output: "خلاصه اجرایی: تغییرات آب‌وهوایی ریسک‌های عملیاتی قابل توجهی برای کسب‌وکار ما ایجاد می‌کند. نگرانی‌های کلیدی شامل اختلال در زنجیره تأمین ناشی از رویدادهای آب‌وهوایی شدید و افزایش حق بیمه است. ارزیابی فوری آسیب‌پذیری‌های تأسیسات و توسعه استراتژی‌های سازگاری را توصیه می‌کنیم..." }
+  ]}
+/>
+
+### تحلیل ← برنامه‌ریزی ← اجرا
+
+عالی برای بازسازی کد، برنامه‌ریزی پروژه، یا هر وظیفه‌ای که نیاز به درک قبل از عمل دارید.
+
+<div className="mb-4 p-3 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1 m-0!">بهترین برای</p>
+  <p className="text-sm text-purple-600 dark:text-purple-400 m-0!">بازسازی کد، برنامه‌ریزی پروژه، عیب‌یابی، تصمیم‌گیری استراتژیک، حل مسئله پیچیده</p>
+</div>
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "تحلیل", prompt: "ساختار این کدبیس را تحلیل کن و شناسایی کن:\n- الگوی معماری\n- اجزای اصلی\n- وابستگی‌ها\n- مشکلات بالقوه\n[code]", output: '{ "pattern": "MVC", "components": ["UserController", "AuthService", "Database"], "dependencies": ["express", "mongoose"], "issues": ["بدون اعتبارسنجی ورودی", "رمزهای هاردکد شده"] }' },
+    { step: "برنامه‌ریزی", prompt: "بر اساس این تحلیل، یک برنامه بازسازی بساز:\n[analysis_output]\nهدف: بهبود امنیت\nمحدودیت‌ها: بدون تغییرات شکننده", output: '{ "steps": ["۱. افزودن میان‌افزار اعتبارسنجی ورودی", "۲. انتقال رمزها به متغیرهای محیطی", "۳. افزودن محدودیت نرخ"], "priority": "بالا", "estimated_time": "۴ ساعت" }' },
+    { step: "اجرا", prompt: "مرحله ۱ این برنامه را پیاده‌سازی کن:\n[plan_output]\nکد بازسازی‌شده را با توضیحات نشان بده.", output: "// افزودن میان‌افزار اعتبارسنجی\nconst validateInput = (req, res, next) => {\n  const { email, password } = req.body;\n  if (!email || !isValidEmail(email)) {\n    return res.status(400).json({ error: 'ایمیل نامعتبر' });\n  }\n  next();\n};" }
+  ]}
+/>
+
+### تولید ← نقد ← پالایش
+
+حلقه خودبهبودی. محتوا تولید کنید، هوش مصنوعی آن را به صورت انتقادی ارزیابی کند، سپس بر اساس آن بازخورد بهبود دهید. این روش تقلید می‌کند از نحوه همکاری نویسندگان و ویراستاران حرفه‌ای.
+
+<div className="mb-4 p-3 rounded-lg bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1 m-0!">بهترین برای</p>
+  <p className="text-sm text-green-600 dark:text-green-400 m-0!">متن بازاریابی، نوشتن خلاقانه، پیش‌نویس ایمیل، ارائه‌ها، هر محتوایی که از بازبینی سود می‌برد</p>
+</div>
+
+<ChainExample 
+  type="iterative"
+  steps={[
+    { step: "تولید", prompt: "یک ایمیل بازاریابی برای [اپلیکیشن تناسب اندام] با هدف [افراد حرفه‌ای پرمشغله] بنویس.", output: "موضوع: سریع تناسب پیدا کنید!\n\nسلام! اپلیکیشن ما به شما کمک می‌کند ورزش کنید. همین امروز دانلود کنید و سفر تناسب اندام خود را شروع کنید. ممنون!" },
+    { step: "نقد", prompt: "به عنوان یک متخصص بازاریابی، این ایمیل را نقد کن:\n[generated_email]\nارزیابی کن: خط موضوع، قلاب، ارزش پیشنهادی، فراخوان به عمل، لحن\nهر کدام را از ۱ تا ۱۰ امتیاز بده.", output: '{ "subject_line": 4, "hook": 3, "value_proposition": 2, "cta": 5, "tone": 4, "feedback": "خیلی عمومی، بدون مزایای خاص، فوریت ضعیف" }' },
+    { step: "پالایش", prompt: "ایمیل را با در نظر گرفتن این بازخورد بازنویسی کن:\nاصلی: [generated_email]\nنقد: [critique_output]\nروی عناصر با کمترین امتیاز تمرکز کن.", output: "موضوع: تمرینات ۱۵ دقیقه‌ای برای وقت ناهار شما\n\nبرنامه شلوغی دارید؟ ما درک می‌کنیم. اپلیکیشن ما تمرینات مبتنی بر علم را ارائه می‌دهد که برای افراد حرفه‌ای طراحی شده‌اند که وقتی برای هدر دادن ندارند. به بیش از ۵۰,۰۰۰ مدیر بپیوندید که سلامت خود را در فقط ۱۵ دقیقه در روز متحول کردند. همین حالا دوره آزمایشی رایگان خود را شروع کنید—خود آینده‌تان از شما تشکر خواهد کرد." },
+    { step: "امتیاز نهایی", prompt: "ایمیل پالایش‌شده را دوباره ارزیابی کن.", output: '{ "subject_line": 8, "hook": 8, "value_proposition": 9, "cta": 8, "tone": 9, "improvement": "+۲۳ امتیاز کل" }' }
+  ]}
+/>
+
+## پیاده‌سازی زنجیره‌ها
+
+می‌توانید زنجیره‌ها را به صورت دستی برای آزمایش، یا به صورت برنامه‌نویسی برای سیستم‌های تولیدی پیاده‌سازی کنید. ساده شروع کنید و در صورت نیاز پیچیدگی اضافه کنید.
+
+### زنجیره‌سازی دستی
+
+روش کپی-پیست برای نمونه‌سازی و آزمایش عالی است. هر پرامپت را به صورت دستی اجرا کنید، خروجی را بررسی کنید، و آن را در پرامپت بعدی جای‌گذاری کنید.
+
+<CodeEditor 
+  language="python"
+  filename="manual_chain.py"
+  code={`# Pseudocode for manual chaining
+step1_output = call_ai("Extract entities from: " + input_text)
+step2_output = call_ai("Analyze relationships: " + step1_output)
+final_output = call_ai("Generate report: " + step2_output)`}
+/>
+
+### زنجیره‌سازی برنامه‌نویسی
+
+برای سیستم‌های تولیدی، زنجیره را با کد خودکار کنید. این امکان مدیریت خطا، ثبت لاگ و ادغام با برنامه شما را فراهم می‌کند.
+
+<CodeEditor 
+  language="python"
+  filename="chain.py"
+  code={`def analysis_chain(document):
+    # Step 1: Summarize
+    summary = call_ai(f"""
+        Summarize the key points of this document in 5 bullets:
+        {document}
+    """)
+    
+    # Step 2: Extract entities
+    entities = call_ai(f"""
+        Extract named entities (people, organizations, locations) 
+        from this summary. Return as JSON.
+        {summary}
+    """)
+    
+    # Step 3: Generate insights
+    insights = call_ai(f"""
+        Based on this summary and entities, generate 3 actionable 
+        insights for a business analyst.
+        Summary: {summary}
+        Entities: {entities}
+    """)
+    
+    return {
+        "summary": summary,
+        "entities": json.loads(entities),
+        "insights": insights
+    }`}
+/>
+
+### استفاده از قالب‌های زنجیره
+
+زنجیره‌ها را به عنوان فایل‌های پیکربندی برای استفاده مجدد و تغییر آسان تعریف کنید. این منطق پرامپت را از کد برنامه جدا می‌کند.
+
+<CodeEditor 
+  language="yaml"
+  filename="chain_template.yaml"
+  code={`name: "Document Analysis Chain"
+steps:
+  - name: "extract"
+    prompt: |
+      Extract key information from this document:
+      {input}
+      Return JSON with: topics, entities, dates, numbers
+    
+  - name: "analyze"
+    prompt: |
+      Analyze this extracted data for patterns:
+      {extract.output}
+      Identify: trends, anomalies, relationships
+    
+  - name: "report"
+    prompt: |
+      Generate an executive summary based on:
+      Data: {extract.output}
+      Analysis: {analyze.output}
+      Format: 3 paragraphs, business tone`}
+/>
+
+## مدیریت خطا در زنجیره‌ها
+
+زنجیره‌ها می‌توانند در هر مرحله‌ای شکست بخورند. اعتبارسنجی، تلاش مجدد و مسیرهای جایگزین بسازید تا زنجیره‌های شما مقاوم شوند.
+
+<ChainErrorDemo />
+
+<Callout type="warning" title="زباله وارد، زباله خارج">
+اگر یک مرحله خروجی بد تولید کند، هر مرحله بعدی تحت تأثیر قرار می‌گیرد. همیشه نتایج میانی حیاتی را قبل از انتقال به مرحله بعد اعتبارسنجی کنید.
+</Callout>
+
+### اعتبارسنجی بین مراحل
+
+پس از هر مرحله‌ای که داده ساختاریافته تولید می‌کند، یک مرحله اعتبارسنجی اضافه کنید. این خطاها را زودتر شناسایی می‌کند قبل از اینکه زنجیره‌ای شوند.
+
+<ValidationDemo />
+
+### زنجیره‌های جایگزین
+
+وقتی رویکرد اصلی شما شکست می‌خورد، یک پشتیبان ساده‌تر آماده داشته باشید. قابلیت را با قابلیت اطمینان معاوضه کنید.
+
+<FallbackDemo />
+
+## بهینه‌سازی زنجیره
+
+وقتی زنجیره شما کار کرد، برای سرعت، هزینه و قابلیت اطمینان بهینه‌سازی کنید. این‌ها اغلب با هم تعارض دارند.
+
+<div className="my-6 grid md:grid-cols-3 gap-4">
+  <div className="border rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 p-4">
+    <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2 m-0!">کاهش تأخیر</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">مراحل مستقل را موازی کنید</p>
+      <p className="m-0!">نتایج میانی را کش کنید</p>
+      <p className="m-0!">برای مراحل ساده از مدل‌های کوچک‌تر استفاده کنید</p>
+      <p className="m-0!">عملیات مشابه را دسته‌بندی کنید</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900 p-4">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 m-0!">کاهش هزینه</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">برای طبقه‌بندی از مدل‌های ارزان‌تر استفاده کنید</p>
+      <p className="m-0!">تکرارها را در حلقه‌ها محدود کنید</p>
+      <p className="m-0!">در صورت امکان میان‌بر بزنید</p>
+      <p className="m-0!">پرس‌وجوهای تکراری را کش کنید</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900 p-4">
+    <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-2 m-0!">بهبود قابلیت اطمینان</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">بین مراحل اعتبارسنجی اضافه کنید</p>
+      <p className="m-0!">منطق تلاش مجدد بگنجانید</p>
+      <p className="m-0!">نتایج میانی را لاگ کنید</p>
+      <p className="m-0!">مسیرهای جایگزین پیاده‌سازی کنید</p>
+    </div>
+  </div>
+</div>
+
+## مثال زنجیره دنیای واقعی
+
+بیایید یک زنجیره تولیدی کامل را مرور کنیم. این خط لوله محتوا یک ایده خام را به یک بسته مقاله صیقل‌خورده تبدیل می‌کند.
+
+### زنجیره خط لوله محتوا
+
+<ContentPipelineDemo />
+
+## خلاصه
+
+زنجیره‌سازی پرامپت با تقسیم وظایف غیرممکن به مراحل قابل انجام، آنچه هوش مصنوعی می‌تواند انجام دهد را متحول می‌کند.
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 p-4">
+    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2 m-0!">زنجیره‌سازی امکان‌پذیر می‌کند</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">گردش‌های کاری پیچیده چند مرحله‌ای</p>
+      <p className="m-0!">کیفیت بالاتر از طریق تخصصی‌سازی</p>
+      <p className="m-0!">مدیریت خطا و اعتبارسنجی بهتر</p>
+      <p className="m-0!">اجزای پرامپت ماژولار و قابل استفاده مجدد</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-cyan-50/50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-900 p-4">
+    <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-400 mb-2 m-0!">اصول کلیدی</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">وظایف پیچیده را به مراحل ساده تقسیم کنید</p>
+      <p className="m-0!">رابط‌های واضح بین مراحل طراحی کنید</p>
+      <p className="m-0!">خروجی‌های میانی را اعتبارسنجی کنید</p>
+      <p className="m-0!">مدیریت خطا و مسیرهای جایگزین بسازید</p>
+      <p className="m-0!">برای محدودیت‌های خود بهینه‌سازی کنید</p>
+    </div>
+  </div>
+</div>
+
+<Callout type="tip" title="ساده شروع کنید">
+با یک زنجیره ترتیبی ۲ تا ۳ مرحله‌ای شروع کنید. آن را به طور قابل اعتماد کار بیندازید قبل از افزودن پیچیدگی. اکثر وظایف به معماری‌های زنجیره پیچیده نیاز ندارند.
+</Callout>
+
+<Quiz 
+  question="مزیت اصلی زنجیره‌سازی پرامپت نسبت به یک پرامپت پیچیده واحد چیست؟"
+  options={[
+    "در مجموع توکن کمتری مصرف می‌کند",
+    "اجرای سریع‌تری دارد",
+    "هر مرحله می‌تواند تخصصی شود، کیفیت را بهبود می‌بخشد و مدیریت خطا را امکان‌پذیر می‌کند",
+    "برنامه‌ریزی کمتری نیاز دارد"
+  ]}
+  correctIndex={2}
+  explanation="زنجیره‌سازی پرامپت وظایف پیچیده را به مراحل تخصصی تقسیم می‌کند. هر مرحله می‌تواند روی یک چیز خوب تمرکز کند، نتایج میانی می‌توانند اعتبارسنجی شوند، خطاها می‌توانند شناسایی و مجدداً تلاش شوند، و کیفیت کلی از طریق تخصصی‌سازی بهبود می‌یابد."
+/>
+
+در فصل بعدی، پرامپت‌نویسی چندوجهی را بررسی خواهیم کرد: کار با تصاویر، صدا و سایر محتوای غیرمتنی.

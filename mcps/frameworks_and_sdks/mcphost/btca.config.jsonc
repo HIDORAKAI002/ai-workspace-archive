@@ -1,0 +1,59 @@
+{
+  "$schema": "https://btca.dev/btca.schema.json",
+  "resources": [
+    {
+      "type": "git",
+      "name": "bubbletea",
+      "url": "https://github.com/charmbracelet/bubbletea",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "lipgloss",
+      "url": "https://github.com/charmbracelet/lipgloss",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "bubbles",
+      "url": "https://github.com/charmbracelet/bubbles",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "glamour",
+      "url": "https://github.com/charmbracelet/glamour",
+      "branch": "v2-exp"
+    },
+    {
+      "type": "git",
+      "name": "fantasy",
+      "url": "https://github.com/charmbracelet/fantasy",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "catwalk",
+      "url": "https://github.com/charmbracelet/catwalk",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "crush",
+      "url": "https://github.com/charmbracelet/crush",
+      "branch": "main"
+    },
+    {
+      "type": "git",
+      "name": "pi",
+      "url": "https://github.com/badlogic/pi-mono",
+      "branch": "main",
+      "searchPaths": [
+        "packages/coding-agent",
+        "packages/tui"
+      ]
+    }
+  ],
+  "model": "claude-haiku-4-5",
+  "provider": "opencode"
+}

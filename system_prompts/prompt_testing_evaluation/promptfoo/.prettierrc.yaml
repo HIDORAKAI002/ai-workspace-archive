@@ -1,0 +1,11 @@
+trailingComma: 'all'
+singleQuote: true
+printWidth: 100
+bracketSpacing: true
+overrides:
+  - files: '*.mdc'
+    options:
+      parser: 'markdown'
+  - files: '*.j2'
+    options:
+      parser: 'markdown'

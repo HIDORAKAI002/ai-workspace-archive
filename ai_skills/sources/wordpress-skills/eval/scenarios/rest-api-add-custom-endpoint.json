@@ -1,0 +1,21 @@
+{
+  "name": "Add a custom REST endpoint with permissions and schema",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-rest-api"],
+  "query": "Add a REST endpoint /my-plugin/v1/reports that returns JSON data, requires manage_options, and validates a days query param (1-30).",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage for tooling",
+    "Step 3: Register route on rest_api_init with namespace my-plugin/v1",
+    "Step 4: Provide permission_callback using current_user_can('manage_options')",
+    "Step 5: Define args with type/validate/sanitize for days param",
+    "Step 6: Return data via rest_ensure_response or WP_REST_Response",
+    "Step 7: Avoid wp_send_json and direct $_GET usage"
+  ],
+  "success_criteria": [
+    "Uses register_rest_route with a unique namespace",
+    "Includes permission_callback (not missing)",
+    "Validates and sanitizes days parameter",
+    "Returns WP_REST_Response or rest_ensure_response",
+    "Mentions authentication or nonce if needed"
+  ]
+}

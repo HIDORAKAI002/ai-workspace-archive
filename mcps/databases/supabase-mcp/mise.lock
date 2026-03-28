@@ -1,0 +1,17 @@
+[[tools."github:modelcontextprotocol/registry"]]
+version = "1.4.1"
+backend = "github:modelcontextprotocol/registry"
+"platforms.macos-arm64" = { checksum = "sha256:60ea76f3ba283167b34a22621efa9f9529f263d3bf27cc3fe778b2eb02e43662", url = "https://github.com/modelcontextprotocol/registry/releases/download/v1.4.1/mcp-publisher_darwin_arm64.tar.gz", url_api = "https://api.github.com/repos/modelcontextprotocol/registry/releases/assets/353821557"}
+
+[[tools.node]]
+version = "24.13.0"
+backend = "core:node"
+
+[[tools.pnpm]]
+version = "10.25.0"
+backend = "aqua:pnpm/pnpm"
+"platforms.linux-arm64" = { checksum = "sha256:2bbbc1be51ca359e8ce36d5ea04cb6150d3ff91c869946e8a17120d8b4510a4d", url = "https://github.com/pnpm/pnpm/releases/download/v10.25.0/pnpm-linux-arm64"}
+"platforms.linux-x64" = { checksum = "sha256:856b2d764a362d667f8b3fe28632c7ff1870557e5b92a9ed4ba1fdca35924a1d", url = "https://github.com/pnpm/pnpm/releases/download/v10.25.0/pnpm-linux-x64"}
+"platforms.macos-arm64" = { checksum = "sha256:81533f4a222939681eaac5a5cb4673416a434c16eeeaa9441e699363173063c4", url = "https://github.com/pnpm/pnpm/releases/download/v10.25.0/pnpm-macos-arm64"}
+"platforms.macos-x64" = { checksum = "sha256:458adb599dff0e6b98ba1cd5c38b81d415ed132250b9c29d5532563b2a0f0c32", url = "https://github.com/pnpm/pnpm/releases/download/v10.25.0/pnpm-macos-x64"}
+"platforms.windows-x64" = { checksum = "sha256:f028fe36e71ddeb034d113800221ea27934bb84717bace0388069f896c55474f", url = "https://github.com/pnpm/pnpm/releases/download/v10.25.0/pnpm-win-x64.exe"}

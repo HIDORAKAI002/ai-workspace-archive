@@ -1,0 +1,77 @@
+{
+  "name": "@browserbasehq/mcp-server-browserbase",
+  "version": "3.0.0",
+  "description": "MCP server for AI web browser automation using Browserbase and Stagehand",
+  "mcpName": "io.github.browserbase/mcp-server-browserbase",
+  "license": "Apache-2.0",
+  "author": "Browserbase, Inc. (https://www.browserbase.com/)",
+  "homepage": "https://www.browserbase.com",
+  "bugs": "https://github.com/modelcontextprotocol/servers/issues",
+  "type": "module",
+  "main": "./cli.js",
+  "module": "./src/index.ts",
+  "bin": {
+    "mcp-server-browserbase": "cli.js"
+  },
+  "files": [
+    "assets",
+    "README.md",
+    "dist",
+    "cli.js",
+    "index.d.ts",
+    "index.js",
+    "config.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc && shx chmod +x dist/*.js",
+    "test": "vitest run",
+    "prepare": "husky && pnpm build",
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "evals": "tsx evals/run-evals.ts run --config evals/mcp-eval-basic.config.json && tsx evals/run-evals.ts run --config evals/mcp-eval-minimal.config.json && tsx evals/run-evals.ts run --config evals/mcp-eval.config.json",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm clean && pnpm build",
+    "pre-commit": "pnpm lint-staged",
+    "changeset": "changeset",
+    "version:packages": "changeset version",
+    "release": "changeset publish"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier --write .",
+      "eslint --fix"
+    ]
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.6.0",
+    "@browserbasehq/stagehand": "^3.0.8",
+    "@modelcontextprotocol/sdk": "^1.13.1",
+    "commander": "^14.0.0",
+    "dotenv": "^16.4.6",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.6",
+    "@eslint/js": "^9.29.0",
+    "@types/node": "^24.10.1",
+    "chalk": "^5.3.0",
+    "eslint": "^9.29.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "mcpvals": "^0.4.0",
+    "prettier": "^3.6.1",
+    "shx": "^0.3.4",
+    "tsx": "^4.20.3",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.35.0",
+    "vitest": "^4.1.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
+}

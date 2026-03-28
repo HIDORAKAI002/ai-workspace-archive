@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: DBHub Data Sources API
+  description: RESTful API for managing and inspecting database data sources
+  version: 1.0.0
+  contact:
+    name: DBHub
+    url: https://github.com/bytebase/dbhub
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /api/sources:
+    get:
+      summary: List all data sources
+      description: Returns an array of all configured database data sources
+      operationId: listSources
+      responses:
+        '200':
+          description: Successful response with array of data sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataSource'
+              examples:
+                multipleSources:
+                  summary: Multiple data sources
+                  value:
+                    - id: prod_pg
+                      type: postgres
+                      host: localhost
+                      port: 5432
+                      database: production
+                      user: dbuser
+                    - id: staging_mysql
+                      type: mysql
+                      host: localhost
+                      port: 3306
+                      database: staging
+                      user: root
+                emptySources:
+                  summary: No sources configured
+                  value: []
+
+  /api/sources/{sourceId}:
+    get:
+      summary: Get a specific data source
+      description: Returns details of a single data source by ID
+      operationId: getSource
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          description: Unique identifier of the data source
+          schema:
+            type: string
+          example: prod_pg
+      responses:
+        '200':
+          description: Successful response with data source details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSource'
+              example:
+                id: prod_pg
+                type: postgres
+                host: localhost
+                port: 5432
+                database: production
+                user: dbuser
+        '404':
+          description: Data source not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Source not found
+                source_id: unknown-id
+
+components:
+  schemas:
+    DataSource:
+      type: object
+      required:
+        - id
+        - type
+        - tools
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the data source
+          example: prod_pg
+        description:
+          type: string
+          description: Human-readable description of the data source
+          example: Production read replica for analytics queries
+        type:
+          type: string
+          enum: [postgres, mysql, mariadb, sqlserver, sqlite]
+          description: Database type
+          example: postgres
+        host:
+          type: string
+          description: Database host (not present for SQLite)
+          example: localhost
+        port:
+          type: integer
+          description: Database port (not present for SQLite)
+          example: 5432
+        database:
+          type: string
+          description: Database name or file path (for SQLite)
+          example: production
+        user:
+          type: string
+          description: Database username (not present for SQLite)
+          example: dbuser
+        ssh_tunnel:
+          $ref: '#/components/schemas/SSHTunnel'
+        tools:
+          type: array
+          description: Available MCP tools for this data source
+          items:
+            $ref: '#/components/schemas/Tool'
+
+    SSHTunnel:
+      type: object
+      description: SSH tunnel configuration (credentials excluded for security)
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+          description: Whether SSH tunneling is enabled
+          example: true
+        ssh_host:
+          type: string
+          description: SSH bastion host
+          example: bastion.example.com
+        ssh_port:
+          type: integer
+          description: SSH port
+          example: 22
+        ssh_user:
+          type: string
+          description: SSH username
+          example: deploy
+
+    Tool:
+      type: object
+      description: MCP tool available for a data source
+      required:
+        - name
+        - description
+        - parameters
+      properties:
+        name:
+          type: string
+          description: Tool name
+          example: execute_sql_prod_pg
+        description:
+          type: string
+          description: Tool description
+          example: Execute a SQL query on the 'prod_pg' postgres database (default)
+        parameters:
+          type: array
+          description: Tool input parameters
+          items:
+            $ref: '#/components/schemas/ToolParameter'
+        statement:
+          type: string
+          description: SQL statement template for custom tools (with parameter placeholders)
+          example: SELECT * FROM users WHERE id = $1
+        readonly:
+          type: boolean
+          description: Whether the tool is restricted to read-only operations (execute_sql and custom tools only)
+          example: true
+        max_rows:
+          type: integer
+          description: Maximum number of rows returned by SELECT queries (execute_sql and custom tools only)
+          example: 1000
+
+    ToolParameter:
+      type: object
+      description: Parameter definition for a tool
+      required:
+        - name
+        - type
+        - required
+        - description
+      properties:
+        name:
+          type: string
+          description: Parameter name
+          example: sql
+        type:
+          type: string
+          description: Parameter type
+          example: string
+        required:
+          type: boolean
+          description: Whether the parameter is required
+          example: true
+        description:
+          type: string
+          description: Parameter description
+          example: SQL query or multiple SQL statements to execute (separated by semicolons)
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Source not found
+        source_id:
+          type: string
+          description: The source ID that was not found (when applicable)
+          example: unknown-id

@@ -1,0 +1,45 @@
+source_root: .
+
+targets:
+  claude-personal:
+    type: claude
+    path: ~/.config/claude/personal
+    labels: [claude, personal, local]
+
+  claude-positron:
+    type: claude
+    path: ~/.config/claude/positron
+    labels: [claude, positron, local]
+
+  claude-git-ai:
+    type: claude
+    path: ~/.config/claude/git-ai
+    labels: [claude, personal, local]
+
+  droid:
+    type: droid
+    path: ~/.factory
+    labels: [personal, local]
+
+  opencode:
+    type: opencode
+    path: ~/.config/opencode
+    labels: [personal, local]
+
+  claude-vulcan:
+    type: claude
+    path: ~/.claude
+    host: vulcan
+    labels: [claude, personal, remote]
+
+  claude-vps:
+    type: claude
+    path: ~/.claude
+    host: vps
+    labels: [claude, personal, remote]
+
+  claude-andoria:
+    type: claude
+    path: ~/.claude
+    host: andoria-08
+    labels: [claude, positron, remote]

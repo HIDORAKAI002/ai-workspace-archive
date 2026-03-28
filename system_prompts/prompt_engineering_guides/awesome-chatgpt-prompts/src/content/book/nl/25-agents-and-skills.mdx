@@ -1,0 +1,551 @@
+Naarmate AI-systemen evolueren van eenvoudige vraag-en-antwoord naar autonome taakuitvoering, wordt het begrijpen van **agents** en **skills** essentieel. Dit hoofdstuk verkent hoe prompts dienen als de fundamentele bouwstenen voor AI-agents, en hoe skills expertise verpakken in herbruikbare, uitgebreide instructiesets.
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">Agent</p>
+      <p className="text-xs text-muted-foreground m-0!">Autonoom AI-systeem</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>aangedreven door</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Skill</p>
+        <p className="text-xs text-muted-foreground m-0!">Herbruikbare expertise</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Skill</p>
+        <p className="text-xs text-muted-foreground m-0!">Herbruikbare expertise</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Skill</p>
+        <p className="text-xs text-muted-foreground m-0!">Herbruikbare expertise</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>samengesteld uit</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Prompt</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Prompt</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Prompt</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Prompt</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Prompt</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">Prompts zijn atomen → Skills zijn moleculen → Agents zijn complete structuren</p>
+  </div>
+</div>
+
+## Wat zijn AI-agents?
+
+Een **AI-agent** is een AI-systeem dat autonoom taken kan plannen, uitvoeren en herhalen. In tegenstelling tot eenvoudige prompt-respons interacties kunnen agents:
+
+- **Plannen** - Complexe doelen opdelen in uitvoerbare stappen
+- **Uitvoeren** - Tools gebruiken en acties ondernemen in de echte wereld
+- **Observeren** - Feedback van hun acties verwerken
+- **Aanpassen** - Hun aanpak bijstellen op basis van resultaten
+- **Volhouden** - Context en geheugen behouden over interacties heen
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">Doel</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">Plan</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">Uitvoeren</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">Observeren</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">Aanpassen</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> Herhaal tot voltooid
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">Klaar</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Prompts als bouwstenen
+
+Elke agent, hoe geavanceerd ook, is gebouwd uit prompts. Net zoals atomen zich combineren tot moleculen, en moleculen zich combineren tot complexe structuren, combineren prompts zich tot intelligent agent-gedrag.
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">Systeemprompts</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">Identiteit & Rol</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">Planningsprompts</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">Hoe te denken</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">Tool-prompts</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">Hoe te handelen</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">Herstelprompts</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">Hoe te herstellen</p>
+  </div>
+</div>
+
+Deze prompttypes stapelen samen om compleet agent-gedrag te vormen:
+
+### Systeemprompts (De identiteit van de agent)
+
+De fundamentele prompt die vaststelt wie de agent is en hoe deze zich gedraagt:
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### Planningsprompts (Hoe te denken)
+
+Instructies die het redeneer- en planningsproces van de agent begeleiden:
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### Tool-use prompts (Hoe te handelen)
+
+Richtlijnen over wanneer en hoe beschikbare tools te gebruiken:
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### Herstelprompts (Hoe om te gaan met fouten)
+
+Instructies voor wanneer dingen misgaan:
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="De prompt-stack">
+Het gedrag van een agent ontstaat uit lagen van prompts die samenwerken. De systeemprompt legt de basis, planningsprompts begeleiden het redeneren, tool-prompts maken actie mogelijk, en herstelprompts behandelen fouten. Samen creëren ze coherent, capabel gedrag.
+</Callout>
+
+## Wat zijn skills?
+
+Als prompts de atomen zijn, dan zijn **skills de moleculen**—herbruikbare bouwstenen die agents specifieke capaciteiten geven.
+
+Een **skill** is een uitgebreid, draagbaar pakket van instructies dat een AI-agent expertise geeft in een specifiek domein of taak. Skills zijn de herbruikbare blokken van agents: je bouwt ze eenmaal, en elke agent kan ze gebruiken.
+
+<Callout type="tip" title="Skills = Herbruikbare agentblokken">
+Schrijf eenmaal een skill voor code review. Nu kan elke coding-agent—of het nu voor Python, JavaScript of Rust is—direct een expert code reviewer worden door die skill te laden. Skills laten je agent-capaciteiten bouwen als LEGO-blokken.
+</Callout>
+
+### Anatomie van een skill
+
+Een goed ontworpen skill bevat doorgaans:
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md (Vereist)</p>
+    <p className="text-sm text-muted-foreground m-0!">Het hoofdinstructiebestand. Bevat de kernexpertise, richtlijnen en gedragingen die de skill definiëren.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 Referentiedocumenten</p>
+    <p className="text-sm text-muted-foreground m-0!">Ondersteunende documentatie, voorbeelden en context waar de agent naar kan verwijzen tijdens het werk.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 Scripts & tools</p>
+    <p className="text-sm text-muted-foreground m-0!">Hulpscripts, sjablonen of tool-configuraties die de functionaliteit van de skill ondersteunen.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ Configuratie</p>
+    <p className="text-sm text-muted-foreground m-0!">Instellingen, parameters en aanpassingsopties voor het aanpassen van de skill aan verschillende contexten.</p>
+  </div>
+</div>
+
+### Voorbeeld: Code review skill
+
+Hier is hoe een code review skill eruit zou kunnen zien:
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Kernreview-richtlijnen</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Beveiligingspatronen</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Optimalisatiegids</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Python best practices</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">JavaScript-patronen</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Rust-richtlijnen</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+Het `SKILL.md`-bestand definieert de algemene aanpak:
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## Skills vs. eenvoudige prompts
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">Eenvoudige prompt</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">Enkele instructie</p>
+      <p className="m-0!">Eenmalig gebruik</p>
+      <p className="m-0!">Beperkte context</p>
+      <p className="m-0!">Generieke aanpak</p>
+      <p className="m-0!">Geen ondersteunende materialen</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">Skill</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">Uitgebreide instructieset</p>
+      <p className="m-0!">Herbruikbaar over projecten</p>
+      <p className="m-0!">Rijke context met referenties</p>
+      <p className="m-0!">Domeinspecifieke expertise</p>
+      <p className="m-0!">Ondersteunende docs, scripts, configs</p>
+    </div>
+  </div>
+</div>
+
+## Effectieve skills bouwen
+
+### 1. Definieer de expertise duidelijk
+
+Begin met een duidelijke beschrijving van wat de skill mogelijk maakt:
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### 2. Structureer kennis hiërarchisch
+
+Organiseer informatie van algemeen naar specifiek:
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### 3. Voeg concrete voorbeelden toe
+
+Abstracte regels worden duidelijk met voorbeelden:
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### 4. Bied besliskaders
+
+Help de agent keuzes te maken in onduidelijke situaties:
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### 5. Voeg herstelpatronen toe
+
+Anticipeer op wat mis kan gaan:
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## Skills combineren
+
+Agents worden krachtig wanneer meerdere skills samenwerken. Overweeg hoe skills elkaar kunnen aanvullen:
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    Code Review
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    Security Audit
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    Documentatie
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    Complete Code Quality Agent
+  </div>
+</div>
+
+Bij het combineren van skills, zorg ervoor dat ze niet conflicteren. Skills moeten zijn:
+
+- **Modulair** - Elke skill behandelt één domein goed
+- **Compatibel** - Skills mogen geen tegenstrijdige instructies geven
+- **Geprioriteerd** - Wanneer skills overlappen, definieer welke voorrang heeft
+
+## Skills delen en ontdekken
+
+Skills zijn het meest waardevol wanneer ze gedeeld worden. Platformen zoals [prompts.chat](https://prompts.chat/skills) stellen je in staat om:
+
+- **Ontdekken** - door de community gemaakte skills voor veelvoorkomende taken
+- **Downloaden** - skills direct naar je projecten
+- **Delen** - je eigen expertise als herbruikbare skills
+- **Itereren** - op skills op basis van praktijkgebruik
+
+<Callout type="tip" title="Begin met community skills">
+Voordat je een skill vanaf nul bouwt, controleer of iemand jouw probleem al heeft opgelost. Community skills zijn in de praktijk getest en vaak beter dan helemaal opnieuw beginnen.
+</Callout>
+
+## Het agent-skill ecosysteem
+
+De relatie tussen agents en skills creëert een krachtig ecosysteem:
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">AI-agent</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">Code Review</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">Skill 1</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">API Design</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">Skill 2</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">Test Writing</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">Skill 3</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">Kernprompts</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">Planning • Tools • Herstel • Geheugen</p>
+    </div>
+  </div>
+</div>
+
+De agent biedt het uitvoeringsraamwerk—planning, toolgebruik en geheugen—terwijl skills domeinexpertise bieden. Deze scheiding betekent:
+
+- **Skills zijn draagbaar** - Dezelfde skill werkt met verschillende agents
+- **Agents zijn uitbreidbaar** - Voeg nieuwe capaciteiten toe door skills toe te voegen
+- **Expertise is deelbaar** - Domeinexperts kunnen skills bijdragen zonder volledige agents te bouwen
+
+## Best practices
+
+### Voor het bouwen van skills
+
+1. **Begin specifiek, generaliseer dan** - Bouw eerst een skill voor jouw exacte gebruikssituatie, maak dan abstract
+2. **Neem faalgevallen op** - Documenteer wat de skill niet kan en hoe daarmee om te gaan
+3. **Versiebeheer van je skills** - Houd wijzigingen bij zodat agents kunnen vertrouwen op stabiele versies
+4. **Test met echte taken** - Valideer skills tegen daadwerkelijk werk, niet alleen theorie
+
+### Voor het gebruiken van skills met agents
+
+1. **Lees de skill eerst** - Begrijp wat een skill doet voordat je deze inzet
+2. **Pas doordacht aan** - Overschrijf skill-standaarden alleen wanneer nodig
+3. **Monitor prestaties** - Houd bij hoe goed skills presteren in jouw context
+4. **Draag verbeteringen bij** - Wanneer je een skill verbetert, overweeg dit terug te delen
+
+<Callout type="info" title="De toekomst is composeerbaar">
+Naarmate AI-agents capabeler worden, wordt het vermogen om skills te componeren, delen en aanpassen een kerncompetentie. De prompt-engineers van morgen schrijven niet alleen prompts—ze ontwerpen skill-ecosystemen die AI-agents echt expert maken in specifieke domeinen.
+</Callout>
+
+<Quiz 
+  question="Wat is het belangrijkste verschil tussen een eenvoudige prompt en een skill?"
+  options={[
+    "Skills zijn langer dan prompts",
+    "Skills zijn herbruikbare, multi-bestand pakketten die agents domeinexpertise geven",
+    "Skills werken alleen met specifieke AI-modellen",
+    "Skills hebben geen prompts nodig"
+  ]}
+  correctIndex={1}
+  explanation="Skills zijn uitgebreide, draagbare pakketten die meerdere prompts, referentiedocumenten, scripts en configuratie combineren. Het zijn herbruikbare bouwstenen die aan elke agent kunnen worden toegevoegd om specifieke capaciteiten te geven."
+/>
+
+<Quiz 
+  question="Wat is de agent-loop?"
+  options={[
+    "Een debugtechniek voor AI-fouten",
+    "Plan → Uitvoeren → Observeren → Aanpassen, herhaald tot het doel is bereikt",
+    "Een manier om meerdere prompts aan elkaar te koppelen",
+    "Een methode voor het trainen van nieuwe AI-modellen"
+  ]}
+  correctIndex={1}
+  explanation="AI-agents werken in een continue lus: ze plannen hoe ze een taak aanpakken, voeren acties uit, observeren de resultaten en passen hun aanpak aan op basis van feedback—herhalend tot het doel is voltooid."
+/>
+
+<Quiz 
+  question="Waarom worden skills beschreven als 'herbruikbare blokken van agents'?"
+  options={[
+    "Omdat ze maar één keer gebruikt kunnen worden",
+    "Omdat ze geschreven zijn in een blokprogrammeertaal",
+    "Omdat elke agent een skill kan laden om die capaciteit direct te verkrijgen",
+    "Omdat skills de behoefte aan agents vervangen"
+  ]}
+  correctIndex={2}
+  explanation="Skills zijn draagbare expertisepakketten. Schrijf eenmaal een code review skill, en elke coding-agent kan een expert code reviewer worden door die skill te laden—als LEGO-blokken die in elke structuur passen."
+/>

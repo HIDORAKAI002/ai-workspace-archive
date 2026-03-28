@@ -1,0 +1,60 @@
+# System Prompt: error-types-and-invalid-modifications
+
+- Source: inline
+
+## Summary
+
+List of DOM exception constants including security and network errors.
+
+# Raw Prompt Text
+null
+
+INDEX_SIZE_ERR
+
+null
+
+HIERARCHY_REQUEST_ERR
+
+WRONG_DOCUMENT_ERR
+
+INVALID_CHARACTER_ERR
+
+null
+
+NO_MODIFICATION_ALLOWED_ERR
+
+NOT_FOUND_ERR
+
+NOT_SUPPORTED_ERR
+
+INUSE_ATTRIBUTE_ERR
+
+INVALID_STATE_ERR
+
+SYNTAX_ERR
+
+INVALID_MODIFICATION_ERR
+
+NAMESPACE_ERR
+
+INVALID_ACCESS_ERR
+
+null
+
+TYPE_MISMATCH_ERR
+
+SECURITY_ERR
+
+NETWORK_ERR
+
+ABORT_ERR
+
+URL_MISMATCH_ERR
+
+QUOTA_EXCEEDED_ERR
+
+TIMEOUT_ERR
+
+INVALID_NODE_TYPE_ERR
+
+DATA_CLONE_ERR

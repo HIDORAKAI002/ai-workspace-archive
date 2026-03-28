@@ -1,0 +1,25 @@
+**/site-packages/**
+.aider*
+.coverage
+coverage
+src/app/coverage
+site/coverage
+dist
+drizzle
+examples/multiple-turn-conversation/prompt.json
+examples/openai-chat-history/prompt.json
+examples/redteam-foundation-model/redteam.yaml
+examples/simple-test/output.html
+helm/chart/promptfoo/templates/**/*.yaml
+site/.docusaurus
+site/build
+site/static/config-schema.json
+venv
+# Let Biome handle these
+*.js
+*.jsx
+*.ts
+*.tsx
+*.mjs
+*.cjs
+*.json

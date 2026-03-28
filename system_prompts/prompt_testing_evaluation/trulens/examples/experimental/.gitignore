@@ -1,0 +1,6 @@
+default.sqlite
+mlruns/
+*.zip
+# downloaded large datasets
+**/hotpotqa/
+**/hotpotqa.zip

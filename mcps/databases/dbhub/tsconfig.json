@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "strict": true,
+    "lib": ["ES2020", "ES2021.Promise", "ES2022.Error"]
+  },
+  "include": ["src/**/*"]
+}

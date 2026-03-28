@@ -1,0 +1,99 @@
+---
+sidebar_position: 5
+---
+
+import YouTubeVideoEmbed from '@site/src/components/HomepageFeatures/YouTubeVideoEmbed';
+
+# 🎥 Recording Actions
+
+Playwright MCP allows you to record your browser interactions and automatically generate test specifications. This feature helps you create automated tests without writing code manually.
+
+## Getting Started
+
+To start recording your actions and generate test files, you'll need to:
+
+1. Start a recording session
+2. Perform your actions using MCP tools
+3. End the session to generate the test file
+
+### Example
+
+Here's a complete example of recording actions and generating a test spec:
+
+1. First, start a new recording session by specifying:
+   - Where to save the generated tests (`tests/generated` directory)
+   - What to name your tests (using 'LoginTest' as a prefix)
+   - Whether to include helpful comments in the generated code
+
+2. Then perform the test actions:
+   - Navigate to the Sauce Demo website (https://www.saucedemo.com)
+   - Enter "standard_user" in the username field
+   - Enter "secret_sauce" in the password field
+   - Click the login button
+
+3. Finally, end the recording session to generate your test file
+
+The generated test file will look something like this:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('LoginTest_2024-03-23', async ({ page }) => {
+  // Navigate to the login page
+  await page.goto('https://www.saucedemo.com');
+
+  // Fill in username
+  await page.fill('#user-name', 'standard_user');
+
+  // Fill in password
+  await page.fill('#password', 'secret_sauce');
+
+  // Click login button
+  await page.click('#login-button');
+
+  // Verify successful login
+  await expect(page).toHaveURL(/.*inventory.html/);
+});
+```
+
+## Configuration Options
+
+When starting a recording session, you can configure several options:
+
+- **outputPath**: Directory where the generated test files will be saved
+- **testNamePrefix**: Prefix for the generated test names
+- **includeComments**: Whether to include descriptive comments in the generated tests
+
+For example, you might configure your session to:
+- Save tests in a 'tests/generated' folder
+- Name tests with a 'MyTest' prefix
+- Include helpful comments in the generated code
+
+## Session Management
+
+You can manage your recording sessions using these tools:
+
+- **get_codegen_session**: Retrieve information about a recording session
+- **clear_codegen_session**: Clean up a recording session without generating a test
+
+These tools help you check the status of your recording or clean up if you want to start over without generating a test file.
+
+## Best Practices
+
+1. **Organize Tests**: Use meaningful test name prefixes to organize your generated tests
+2. **Clean Up**: Always end or clear your sessions after recording
+3. **Verify Actions**: Include verification steps in your recordings
+4. **Maintain Context**: Keep related actions in the same recording session
+5. **Documentation**: Add comments during recording for better test maintainability
+
+## Running Generated Tests
+
+To run your generated tests, use the Playwright test runner:
+
+```bash
+npx playwright test tests/generated/logintest_*.spec.ts
+```
+
+:::tip
+You can modify the generated test files to add additional assertions, setup, or teardown code as needed.
+::: 

@@ -1,0 +1,15 @@
+---
+description: Supabase
+globs: *.ts, *sql
+alwaysApply: false
+---
+Do not use the Supabase Client, instead use the Jawn Client and put all new endpoints in controllers.
+Don't use RLS policies, instead enable RLS for new tables and revoke privledges. Example:
+
+```
+alter table "public"."org_rate_limits" enable row level security;
+REVOKE all PRIVILEGES on "public"."org_rate_limits"
+from authenticated;
+REVOKE all PRIVILEGES on "public"."org_rate_limits"
+from anon;
+```

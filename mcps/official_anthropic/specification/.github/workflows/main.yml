@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check TypeScript definitions
+        run: npm run check:schema:ts
+
+      - name: Check schema.json files are up to date
+        run: npm run check:schema:json
+
+      - name: Check schema.mdx files are up to date
+        run: npm run check:schema:md

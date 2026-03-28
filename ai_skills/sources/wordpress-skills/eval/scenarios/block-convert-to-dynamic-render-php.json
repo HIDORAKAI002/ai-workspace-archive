@@ -1,0 +1,23 @@
+{
+  "name": "Convert a static block to dynamic block",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-development"],
+  "query": "Convert an existing static block to be server-rendered (dynamic) using a render.php file, without breaking existing content.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect block structure",
+    "Step 3: Route to wp-block-development skill",
+    "Step 4: Recommend adding render field in block.json pointing to render.php",
+    "Step 5: Alternatively, use render_callback in register_block_type()",
+    "Step 6: Use get_block_wrapper_attributes() in PHP output for proper wrapper",
+    "Step 7: Set save function to return null or minimal InnerBlocks.Content",
+    "Step 8: If saved markup changes, add deprecated entry for migration",
+    "Step 9: Test existing blocks still render without errors"
+  ],
+  "success_criteria": [
+    "Uses render field in block.json or render_callback",
+    "PHP output uses get_block_wrapper_attributes()",
+    "Save function returns null or minimal content",
+    "Deprecations added if saved markup structure changes",
+    "Existing content continues to work"
+  ]
+}

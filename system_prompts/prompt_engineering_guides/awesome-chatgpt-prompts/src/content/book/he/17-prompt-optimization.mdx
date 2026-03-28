@@ -1,0 +1,269 @@
+פרומפט טוב משיג את המטרה. פרומפט מותאם משיג את המטרה ביעילות—מהר יותר, בזול יותר, בעקביות רבה יותר. פרק זה מלמד אתכם כיצד לשפר פרומפטים באופן שיטתי במספר ממדים.
+
+<Callout type="tip" title="נסו את משפר הפרומפטים">
+רוצים לבצע אופטימיזציה לפרומפטים שלכם באופן אוטומטי? השתמשו בכלי [משפר הפרומפטים](/developers#enhancer) שלנו. הוא מנתח את הפרומפט שלכם, מיישם טכניקות אופטימיזציה, ומציג לכם פרומפטים דומים מהקהילה להשראה.
+</Callout>
+
+## פשרות האופטימיזציה
+
+כל אופטימיזציה כרוכה בפשרות. הבנת הפשרות הללו עוזרת לכם לקבל החלטות מודעות:
+
+<InfoGrid items={[
+  { label: "איכות מול עלות", description: "איכות גבוהה יותר דורשת לעתים קרובות יותר טוקנים או מודלים טובים יותר", example: "הוספת דוגמאות משפרת דיוק אך מגדילה את ספירת הטוקנים", exampleType: "text", color: "blue" },
+  { label: "מהירות מול איכות", description: "מודלים מהירים יותר עשויים להקריב יכולת מסוימת", example: "GPT-4 חכם יותר אך איטי יותר מ-GPT-4o-mini", exampleType: "text", color: "purple" },
+  { label: "עקביות מול יצירתיות", description: "טמפרטורה נמוכה יותר = צפוי יותר אך פחות יצירתי", example: "טמפרטורה 0.2 לעובדות, 0.8 לסיעור מוחות", exampleType: "text", color: "green" },
+  { label: "פשטות מול חוסן", description: "טיפול במקרי קצה מוסיף מורכבות", example: "פרומפטים פשוטים נכשלים בקלטים חריגים", exampleType: "text", color: "amber" }
+]} />
+
+## מדידת מה שחשוב
+
+לפני אופטימיזציה, הגדירו הצלחה. מה המשמעות של "טוב יותר" עבור מקרה השימוש שלכם?
+
+<InfoGrid items={[
+  { label: "דיוק", description: "כמה פעמים הפלט נכון?", example: "90% מהצעות הקוד מתקמפלות ללא שגיאות", exampleType: "text", color: "blue" },
+  { label: "רלוונטיות", description: "האם זה מתייחס למה שנשאל בפועל?", example: "התגובה עונה ישירות על השאלה לעומת סטיות", exampleType: "text", color: "blue" },
+  { label: "שלמות", description: "האם כל הדרישות מכוסות?", example: "כל 5 החלקים המבוקשים נכללים בפלט", exampleType: "text", color: "blue" },
+  { label: "השהייה", description: "כמה זמן עד שהתגובה מגיעה?", example: "p50 < 2 שניות, p95 < 5 שניות ליישומי צ'אט", exampleType: "text", color: "purple" },
+  { label: "יעילות טוקנים", description: "כמה טוקנים לאותה תוצאה?", example: "500 טוקנים לעומת 1500 טוקנים לפלט שווה ערך", exampleType: "text", color: "purple" },
+  { label: "עקביות", description: "עד כמה דומים הפלטים לקלטים דומים?", example: "אותה שאלה מקבלת תשובות עם מבנה דומה", exampleType: "text", color: "green" }
+]} />
+
+<Callout type="info" title="מה המשמעות של p50 ו-p95?">
+מדדי אחוזון מציגים התפלגות זמני תגובה. **p50** (חציון) פירושו ש-50% מהבקשות מהירות יותר מערך זה. **p95** פירושו ש-95% מהירות יותר—זה תופס חריגים איטיים. אם ה-p50 שלכם הוא שנייה אחת אבל p95 הוא 10 שניות, רוב המשתמשים מרוצים אבל 5% חווים עיכובים מתסכלים.
+</Callout>
+
+<TryIt 
+  title="הגדירו את מדדי ההצלחה שלכם"
+  description="השתמשו בתבנית זו כדי להבהיר למה אתם מבצעים אופטימיזציה לפני ביצוע שינויים."
+  prompt={`Help me define success metrics for my prompt optimization.
+
+**My use case**: \${useCase}
+**Current pain points**: \${painPoints}
+
+For this use case, help me define:
+
+1. **Primary metric**: What single metric matters most?
+2. **Secondary metrics**: What else should I track?
+3. **Acceptable trade-offs**: What can I sacrifice for the primary metric?
+4. **Red lines**: What quality level is unacceptable?
+5. **How to measure**: Practical ways to evaluate each metric`}
+/>
+
+## אופטימיזציית טוקנים
+
+טוקנים עולים כסף ומוסיפים השהייה. הנה איך לומר את אותו הדבר עם פחות טוקנים.
+
+### עקרון הדחיסה
+
+<Compare 
+  before={{ label: "מפורט (67 טוקנים)", content: "I would like you to please help me with the following task. I need you to take the text that I'm going to provide below and create a summary of it. The summary should capture the main points and be concise. Please make sure to include all the important information. Here is the text:\n\n[text]" }}
+  after={{ label: "תמציתי (12 טוקנים)", content: "Summarize this text, capturing main points concisely:\n\n[text]" }}
+/>
+
+**אותה תוצאה, 82% פחות טוקנים.**
+
+### טכניקות לחיסכון בטוקנים
+
+<InfoGrid items={[
+  { label: "הסירו נימוסים", description: "\"Please\" ו-\"Thank you\" מוסיפים טוקנים מבלי לשפר את הפלט", example: "\"Please summarize\" → \"Summarize\"", color: "green" },
+  { label: "בטלו כפילויות", description: "אל תחזרו על עצמכם או תאמרו את המובן מאליו", example: "\"Write a summary that summarizes\" → \"Summarize\"", color: "green" },
+  { label: "השתמשו בקיצורים", description: "כאשר המשמעות ברורה, קצרו", example: "\"for example\" → \"e.g.\"", color: "green" },
+  { label: "הפנו לפי מיקום", description: "הצביעו על תוכן במקום לחזור עליו", example: "\"the text above\" במקום לצטט מחדש", color: "green" }
+]} />
+
+<TryIt 
+  title="מדחס פרומפטים"
+  description="הדביקו פרומפט מפורט כדי לקבל גרסה מותאמת לטוקנים."
+  prompt={`Compress this prompt while preserving its meaning and effectiveness:
+
+Original prompt:
+"\${verbosePrompt}"
+
+Instructions:
+1. Remove unnecessary pleasantries and filler words
+2. Eliminate redundancy
+3. Use concise phrasing
+4. Keep all essential instructions and constraints
+5. Maintain clarity—don't sacrifice understanding for brevity
+
+Provide:
+- **Compressed version**: The optimized prompt
+- **Token reduction**: Estimated percentage saved
+- **What was cut**: Brief explanation of what was removed and why it was safe to remove`}
+/>
+
+## אופטימיזציית איכות
+
+לפעמים אתם צריכים פלטים טובים יותר, לא זולים יותר. הנה איך לשפר איכות.
+
+### מגברי דיוק
+
+<InfoGrid items={[
+  { label: "הוסיפו אימות", description: "בקשו מהמודל לבדוק את העבודה שלו", example: "\"...then verify your answer is correct\"", color: "blue" },
+  { label: "בקשו רמת ביטחון", description: "הפכו אי-ודאות למפורשת", example: "\"Rate your confidence 1-10 and explain any uncertainty\"", color: "blue" },
+  { label: "גישות מרובות", description: "קבלו נקודות מבט שונות, ואז בחרו", example: "\"Provide 3 approaches and recommend the best one\"", color: "blue" },
+  { label: "חשיבה מפורשת", description: "הכריחו חשיבה שלב אחר שלב", example: "\"Think step by step and show your reasoning\"", color: "blue" }
+]} />
+
+### מגברי עקביות
+
+<InfoGrid items={[
+  { label: "מפרטי פורמט מפורטים", description: "הראו בדיוק איך הפלט צריך להיראות", example: "כללו תבנית או סכמה", exampleType: "text", color: "purple" },
+  { label: "דוגמאות Few-Shot", description: "ספקו 2-3 דוגמאות של פלט אידיאלי", example: "\"Here's what good looks like: [examples]\"", color: "purple" },
+  { label: "טמפרטורה נמוכה יותר", description: "הפחיתו אקראיות לפלט צפוי יותר", example: "טמפרטורה 0.3-0.5 לתוצאות עקביות", exampleType: "text", color: "purple" },
+  { label: "אימות פלט", description: "הוסיפו שלב אימות לשדות קריטיים", example: "\"Verify all required fields are present\"", color: "purple" }
+]} />
+
+<TryIt 
+  title="משפר איכות"
+  description="הוסיפו רכיבים לשיפור איכות לפרומפט שלכם."
+  prompt={`Enhance this prompt for higher quality outputs:
+
+Original prompt:
+"\${originalPrompt}"
+
+**What quality issue I'm seeing**: \${qualityIssue}
+
+Add appropriate quality boosters:
+1. If accuracy is the issue → add verification steps
+2. If consistency is the issue → add format specifications or examples
+3. If relevance is the issue → add context and constraints
+4. If completeness is the issue → add explicit requirements
+
+Provide the enhanced prompt with explanations for each addition.`}
+/>
+
+## אופטימיזציית השהייה
+
+כאשר מהירות חשובה, כל מילישנייה נחשבת.
+
+### בחירת מודל לפי צורך מהירות
+
+<InfoGrid items={[
+  { label: "זמן אמת (< 500ms)", description: "השתמשו במודל הקטן ביותר האפקטיבי + caching אגרסיבי", example: "GPT-4o-mini, Claude Haiku, תגובות מ-cache", exampleType: "text", color: "red" },
+  { label: "אינטראקטיבי (< 2 שניות)", description: "מודלים מהירים, streaming מופעל", example: "GPT-4o-mini עם streaming", exampleType: "text", color: "amber" },
+  { label: "סובלני (< 10 שניות)", description: "מודלים בדרג ביניים, איזון איכות/מהירות", example: "GPT-4o, Claude Sonnet", exampleType: "text", color: "green" },
+  { label: "אסינכרוני/אצווה", description: "השתמשו במודל הטוב ביותר, עבדו ברקע", example: "GPT-4, Claude Opus לעיבוד לא מקוון", exampleType: "text", color: "blue" }
+]} />
+
+### טכניקות מהירות
+
+<InfoGrid items={[
+  { label: "פרומפטים קצרים יותר", description: "פחות טוקני קלט = עיבוד מהיר יותר", example: "דחסו פרומפטים, הסירו הקשר מיותר", exampleType: "text", color: "cyan" },
+  { label: "הגבילו פלט", description: "הגדירו max_tokens כדי למנוע תגובות ארוכות מדי", example: "max_tokens: 500 לסיכומים", exampleType: "text", color: "cyan" },
+  { label: "השתמשו ב-Streaming", description: "קבלו טוקנים ראשונים מהר יותר, חוויית משתמש טובה יותר", example: "Stream לכל תגובה > 100 טוקנים", exampleType: "text", color: "cyan" },
+  { label: "Cache אגרסיבי", description: "אל תחשבו מחדש שאילתות זהות", example: "Cache לשאלות נפוצות, פלטי תבניות", exampleType: "text", color: "cyan" }
+]} />
+
+## אופטימיזציית עלות
+
+בקנה מידה גדול, חיסכון קטן מתרבה להשפעה תקציבית משמעותית.
+
+### הבנת עלויות
+
+השתמשו במחשבון זה כדי לאמוד את עלויות ה-API שלכם במודלים שונים:
+
+<CostCalculatorDemo />
+
+### אסטרטגיות להפחתת עלות
+
+<InfoGrid items={[
+  { label: "ניתוב מודלים", description: "השתמשו במודלים יקרים רק כשצריך", example: "שאלות פשוטות → GPT-4o-mini, מורכבות → GPT-4", exampleType: "text", color: "green" },
+  { label: "יעילות פרומפט", description: "פרומפטים קצרים יותר = עלות נמוכה יותר לבקשה", example: "חתכו 50% מהטוקנים = 50% חיסכון בעלות קלט", exampleType: "text", color: "green" },
+  { label: "בקרת פלט", description: "הגבילו אורך תגובה כשלא צריך פירוט מלא", example: "\"Answer in 2-3 sentences\" לעומת ללא הגבלה", color: "green" },
+  { label: "איגוד", description: "שלבו שאילתות קשורות לבקשות בודדות", example: "נתחו 10 פריטים בפרומפט אחד לעומת 10 קריאות נפרדות", exampleType: "text", color: "green" },
+  { label: "סינון מקדים", description: "אל תשלחו בקשות שלא צריכות AI", example: "התאמת מילות מפתח לפני סיווג יקר", exampleType: "text", color: "green" }
+]} />
+
+## לולאת האופטימיזציה
+
+אופטימיזציה היא איטרטיבית. הנה תהליך שיטתי:
+
+### שלב 1: קבעו בסיס
+
+אי אפשר לשפר מה שלא מודדים. לפני שינוי כלשהו, תעדו את נקודת ההתחלה שלכם בקפדנות.
+
+<InfoGrid items={[
+  { label: "תיעוד פרומפט", description: "שמרו את טקסט הפרומפט המדויק, כולל system prompts וכל תבנית", example: "נהלו בקרת גרסאות לפרומפטים כמו קוד", exampleType: "text", color: "blue" },
+  { label: "סט בדיקה", description: "צרו 20-50 קלטים מייצגים שמכסים מקרים נפוצים ומקרי קצה", example: "כללו דוגמאות קלות, בינוניות וקשות", exampleType: "text", color: "blue" },
+  { label: "מדדי איכות", description: "דרגו כל פלט מול קריטריוני ההצלחה שלכם", example: "% דיוק, ציון רלוונטיות, תאימות פורמט", exampleType: "text", color: "purple" },
+  { label: "מדדי ביצועים", description: "מדדו טוקנים ותזמון לכל מקרה בדיקה", example: "ממוצע קלט: 450 טוקנים, ממוצע פלט: 200 טוקנים, השהיית p50: 1.2 שניות", exampleType: "text", color: "purple" }
+]} />
+
+<TryIt 
+  title="תבנית תיעוד בסיס"
+  description="השתמשו בזה כדי ליצור תיעוד בסיס מקיף לפני אופטימיזציה."
+  prompt={`Create a baseline documentation for my prompt optimization project.
+
+**Current prompt**:
+"\${currentPrompt}"
+
+**What the prompt does**: \${promptPurpose}
+
+**Current issues I'm seeing**: \${currentIssues}
+
+Generate a baseline documentation template with:
+
+1. **Prompt Snapshot**: The exact prompt text (for version control)
+
+2. **Test Cases**: Suggest 10 representative test inputs I should use, covering:
+   - 3 typical/easy cases
+   - 4 medium complexity cases  
+   - 3 edge cases or difficult inputs
+
+3. **Metrics to Track**:
+   - Quality metrics specific to this use case
+   - Efficiency metrics (tokens, latency)
+   - How to score each metric
+
+4. **Baseline Hypothesis**: What do I expect the current performance to be?
+
+5. **Success Criteria**: What numbers would make me satisfied with optimization?`}
+/>
+
+### שלב 2: גבשו השערה
+
+<Compare 
+  before={{ label: "מטרה מעורפלת", content: "אני רוצה לשפר את הפרומפט שלי." }}
+  after={{ label: "השערה ניתנת לבדיקה", content: "אם אוסיף 2 דוגמאות few-shot, הדיוק ישתפר מ-75% ל-85% כי המודל ילמד את הדפוס הצפוי." }}
+/>
+
+### שלב 3: בדקו שינוי אחד
+
+שנו דבר אחד בכל פעם. הריצו את שתי הגרסאות על אותם קלטי בדיקה. מדדו את המדדים החשובים.
+
+### שלב 4: נתחו והחליטו
+
+האם זה עבד? שמרו על השינוי. האם זה הזיק? חזרו לאחור. האם זה היה ניטרלי? חזרו לאחור (פשוט יותר עדיף).
+
+### שלב 5: חזרו
+
+גבשו השערות חדשות בהתבסס על מה שלמדתם. המשיכו לבצע איטרציות עד שתגיעו ליעדים שלכם או לתשואה פוחתת.
+
+## רשימת בדיקה לאופטימיזציה
+
+<Checklist 
+  title="לפני פריסת פרומפט מותאם"
+  items={[
+    { text: "הגדרתי מדדי הצלחה ברורים" },
+    { text: "מדדתי ביצועי בסיס" },
+    { text: "בדקתי שינויים על קלטים מייצגים" },
+    { text: "אימתתי שהאיכות לא נפגעה" },
+    { text: "בדקתי טיפול במקרי קצה" },
+    { text: "חישבתי עלות בקנה מידה צפוי" },
+    { text: "בדקתי השהייה תחת עומס" },
+    { text: "תיעדתי מה השתנה ולמה" }
+  ]}
+/>
+
+<Quiz 
+  question="יש לכם פרומפט שעובד טוב אבל עולה יותר מדי בקנה מידה. מה הדבר הראשון שעליכם לעשות?"
+  options={[
+    "לעבור למודל זול יותר מיד",
+    "להסיר מילים מהפרומפט כדי להפחית טוקנים",
+    "למדוד איזה חלק בפרומפט משתמש בהכי הרבה טוקנים",
+    "להוסיף caching לכל הבקשות"
+  ]}
+  correctIndex={2}
+  explanation="לפני אופטימיזציה, מדדו. אתם צריכים להבין לאן הטוקנים הולכים לפני שתוכלו להפחית אותם ביעילות. ייתכן שלפרומפט יש הקשר מיותר, הוראות מפורטות מדי, או שהוא מייצר פלטים ארוכים מהנדרש. מדידה אומרת לכם היכן למקד את מאמצי האופטימיזציה."
+/>

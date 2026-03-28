@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "helicone_helpers"
+version = "1.2.1"
+description = "A Python wrapper for some of Helicone's common functionalities"
+license = "Apache-2.0"
+authors = ["Helicone, Inc. <help@helicone.ai>"]
+homepage = "https://www.helicone.ai"
+repository = "https://github.com/Helicone/helicone/tree/main/sdk/python/helpers"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.32.3"
+httpx = "^0.28.0"
+h11 = ">=0.16.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

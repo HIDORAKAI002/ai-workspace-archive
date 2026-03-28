@@ -1,0 +1,693 @@
+---
+title: "TOML Configuration"
+---
+
+TOML configuration is the recommended way to configure DBHub for multi-database setups and advanced configurations. It provides more flexibility than command-line options or environment variables.
+
+## Overview
+
+TOML configuration enables:
+- **Multi-database support**: Connect to multiple databases from a single DBHub instance
+- **Per-source settings**: Configure timeouts, SSL, SSH tunnels, and lazy connections individually per database
+- **Per-tool settings**: Apply different restrictions (readonly, max_rows) per tool
+- **Custom tools**: Define reusable, parameterized SQL operations as MCP tools
+- **Environment variable interpolation**: Use `${VAR}` syntax to avoid hardcoding credentials
+- **Hot reload**: Automatically detect config changes and reload connections without restarting
+
+## Hot Reload
+
+When using TOML configuration, DBHub automatically watches `dbhub.toml` for changes and reloads database connections without requiring a server restart.
+
+**How it works:**
+
+1. DBHub detects file changes and waits 500ms (debounce) to handle editors that write in multiple steps
+2. The new configuration is parsed and validated — if invalid, existing connections are preserved
+3. All database connections are disconnected and reconnected with the new configuration
+4. If reconnection fails, DBHub automatically rolls back to the previous working configuration
+
+```
+# Edit dbhub.toml while DBHub is running — changes apply automatically
+# No server restart needed
+```
+
+<Note>
+**STDIO transport limitation:** In STDIO mode (the default for Claude Desktop, Cursor, etc.), hot reload updates the underlying database connections and tool settings, but clients won't see newly added or removed tools until a full server restart. This is because STDIO clients discover tools once at startup.
+
+HTTP transport (`--transport http`) creates a fresh server per request, so all changes — including added/removed tools — take effect immediately.
+</Note>
+
+## Environment Variable Interpolation
+
+Use `${VAR_NAME}` syntax to reference environment variables in any string value. Variables are resolved from the process environment at config load time.
+
+This lets teams share a single `dbhub.toml` without hardcoding credentials:
+
+```toml dbhub.toml
+[[sources]]
+id = "production"
+dsn = "postgres://readonly_user:${DB_PASSWORD}@db.example.com:5432/mydb"
+
+[[sources]]
+id = "staging"
+type = "mysql"
+host = "${STAGING_HOST}"
+database = "myapp"
+user = "root"
+password = "${STAGING_PASSWORD}"
+ssh_host = "bastion.example.com"
+ssh_password = "${SSH_PASSWORD}"
+```
+
+```bash
+# Set env vars, then start DBHub
+export DB_PASSWORD="s3cret"
+export STAGING_HOST="staging.example.com"
+export STAGING_PASSWORD="staging_pass"
+export SSH_PASSWORD="ssh_pass"
+npx @bytebase/dbhub@latest --config dbhub.toml
+```
+
+<Note>
+Unresolved variables (where the environment variable is not set) are left as the literal `${VAR_NAME}` string. No error is thrown for missing variables.
+</Note>
+
+## Configuration Structure
+
+A TOML configuration file has two main sections:
+
+1. **`[[sources]]`** - Database connection definitions
+2. **`[[tools]]`** - Tool configuration (execution settings, custom tools)
+
+Create `dbhub.toml` in your project directory:
+
+```toml dbhub.toml
+# Define database sources
+[[sources]]
+id = "production"
+dsn = "postgres://user:pass@localhost:5432/mydb"
+connection_timeout = 60
+
+[[sources]]
+id = "staging"
+dsn = "mysql://root:pass@localhost:3306/myapp"
+
+# Configure tools for each source
+[[tools]]
+name = "execute_sql"
+source = "production"
+readonly = true
+max_rows = 1000
+
+[[tools]]
+name = "execute_sql"
+source = "staging"
+readonly = false
+```
+
+Start DBHub:
+
+```bash
+# Automatically loads ./dbhub.toml
+npx @bytebase/dbhub@latest --transport http --port 8080
+
+# Or specify custom location
+npx @bytebase/dbhub@latest --config=/path/to/config.toml
+```
+
+## Source Options
+
+Sources define database connections. Each source represents a database that DBHub can connect to.
+
+### id
+
+<ParamField path="id" type="string" required>
+  **Required.** Unique identifier for this data source. Used for routing tool calls and in tool names.
+
+  ```toml
+  [[sources]]
+  id = "production"
+  ```
+</ParamField>
+
+### description
+
+<ParamField path="description" type="string">
+  Human-readable description of this data source. Helps AI models understand the purpose and contents of each database when multiple sources are configured.
+
+  ```toml
+  [[sources]]
+  id = "production"
+  description = "Production PostgreSQL database containing customer and order data"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+  ```
+</ParamField>
+
+### dsn
+
+<ParamField path="dsn" type="string" required>
+  **Required.** Database connection string. Same format as command-line [`--dsn`](/config/command-line#--dsn).
+
+  <Tabs>
+    <Tab title="Using DSN">
+      ```toml
+      [[sources]]
+      id = "production"
+      dsn = "postgres://user:pass@prod.example.com:5432/myapp?sslmode=require"
+
+      [[sources]]
+      id = "staging"
+      dsn = "mysql://root:pass@localhost:3306/myapp_staging"
+
+      [[sources]]
+      id = "local"
+      dsn = "sqlite:///./dev.db"
+      ```
+    </Tab>
+
+    <Tab title="Individual Parameters">
+      Alternative to DSN: specify connection details individually. Useful for passwords with special characters (no URL encoding needed).
+
+      ```toml
+      # PostgreSQL with SSL
+      [[sources]]
+      id = "production"
+      type = "postgres"
+      host = "prod.example.com"
+      port = 5432
+      database = "myapp"
+      user = "app_user"
+      password = "p@ss:word"  # No URL encoding needed
+      sslmode = "require"
+
+      # SQL Server with named instance
+      [[sources]]
+      id = "sqlserver_dev"
+      type = "sqlserver"
+      host = "localhost"
+      port = 1433
+      database = "mydb"
+      user = "sa"
+      password = "YourPassword123"
+      instanceName = "SQLEXPRESS"
+
+      # SQL Server with NTLM
+      [[sources]]
+      id = "corp_sqlserver"
+      type = "sqlserver"
+      host = "sqlserver.corp.local"
+      database = "app_db"
+      user = "jsmith"
+      password = "secret"
+      authentication = "ntlm"
+      domain = "CORP"
+
+      # SQL Server with Azure AD (no password)
+      [[sources]]
+      id = "azure_sqlserver"
+      type = "sqlserver"
+      host = "myserver.database.windows.net"
+      database = "mydb"
+      user = "admin@tenant.onmicrosoft.com"
+      authentication = "azure-active-directory-access-token"
+      ```
+    </Tab>
+  </Tabs>
+</ParamField>
+
+### connection_timeout
+
+<ParamField path="connection_timeout" type="number">
+  Connection timeout in seconds. The maximum time to wait when establishing a database connection.
+
+  Supported databases: PostgreSQL, MySQL, MariaDB, SQL Server (not applicable to SQLite).
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+  connection_timeout = 60  # 60 seconds
+  ```
+
+  <Note>
+  This option is **only available via TOML**. There is no CLI flag for connection timeout.
+  </Note>
+</ParamField>
+
+### query_timeout
+
+<ParamField path="query_timeout" type="number">
+  Query timeout in seconds. The maximum time to wait for a query to complete before timing out.
+
+  Supported databases: PostgreSQL, MySQL, MariaDB, SQL Server (not applicable to SQLite).
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+  query_timeout = 30  # 30 seconds
+  ```
+
+  <Note>
+  This option is **only available via TOML**. There is no CLI flag for query timeout.
+  </Note>
+</ParamField>
+
+### lazy
+
+<ParamField path="lazy" type="boolean" default="false">
+  Defer database connection until the first query. When enabled, the connection is not established at server startup but instead when a tool first accesses this source.
+
+  This is useful for remote databases (e.g., RDS, Cloud SQL) where you want to avoid unnecessary connection overhead if the database may not be queried during a session.
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@prod-db.example.com:5432/mydb"
+  lazy = true  # Connection deferred until first query
+  ```
+
+  **Startup behavior:**
+  - Without `lazy`: Connection established immediately, errors shown at startup
+  - With `lazy = true`: Source registered but not connected, connection errors appear on first query
+
+  <Note>
+  When a lazy source is accessed for the first time, there will be a brief delay as the connection is established. Connection errors will appear in tool responses rather than at startup.
+  </Note>
+</ParamField>
+
+### sslmode
+
+<ParamField path="sslmode" type="string">
+  SSL/TLS mode for database connections.
+
+  **Options:**
+  - `disable` - No SSL/TLS encryption. Data is transmitted in plaintext.
+  - `require` - SSL/TLS encryption enabled, but server certificate is not verified.
+
+  Supported databases: PostgreSQL, MySQL, MariaDB, SQL Server (not applicable to SQLite).
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+  sslmode = "require"
+  ```
+
+  <Tip>
+  Can also be set via DSN query parameter: `?sslmode=require`
+  </Tip>
+</ParamField>
+
+### instanceName
+
+<ParamField path="instanceName" type="string">
+  SQL Server named instance. Use when connecting to a specific SQL Server instance (e.g., SQLEXPRESS, ENV1).
+
+  **SQL Server only.**
+
+  ```toml
+  [[sources]]
+  id = "sqlserver_env1"
+  dsn = "sqlserver://sa:password@localhost:1433/mydb"
+  instanceName = "ENV1"
+  ```
+
+  <Tip>
+  Can also be set via DSN query parameter: `?instanceName=ENV1`
+  </Tip>
+</ParamField>
+
+### authentication
+
+<ParamField path="authentication" type="string">
+  SQL Server authentication method. **SQL Server only.**
+
+  **Options:**
+  - `ntlm` - Windows/NTLM authentication. Requires `domain` parameter.
+  - `azure-active-directory-access-token` - Azure AD authentication. Token is fetched automatically using Azure SDK.
+
+  ```toml
+  [[sources]]
+  id = "sqlserver_corp"
+  dsn = "sqlserver://user:pass@localhost:1433/mydb"
+  authentication = "ntlm"
+  domain = "CORP"
+  ```
+
+  <Tip>
+  Can also be set via DSN query parameter: `?authentication=ntlm&domain=CORP`
+  </Tip>
+</ParamField>
+
+### domain
+
+<ParamField path="domain" type="string">
+  Windows domain for NTLM authentication. **Required when `authentication=ntlm`. SQL Server only.**
+
+  ```toml
+  [[sources]]
+  id = "sqlserver_corp"
+  dsn = "sqlserver://user:pass@localhost:1433/mydb"
+  authentication = "ntlm"
+  domain = "CORP"
+  ```
+</ParamField>
+
+### search_path
+
+<ParamField path="search_path" type="string">
+  Comma-separated list of PostgreSQL schema names to set as the session `search_path`. The first schema in the list becomes the default schema for all discovery methods (`getTables`, `getTableSchema`, etc.).
+
+  **PostgreSQL only.**
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+  search_path = "myschema,public"
+  ```
+
+  Without `search_path`, DBHub defaults to the `public` schema for all schema discovery operations.
+
+  <Note>
+  This option is **only available via TOML**. It is not supported as a DSN query parameter.
+  </Note>
+</ParamField>
+
+### SSH Tunnel Options
+
+<ParamField path="ssh_*" type="group">
+  SSH tunnel configuration for connecting to databases through bastion/jump hosts. Available fields: `ssh_host`, `ssh_port`, `ssh_user`, `ssh_password`, `ssh_key`, `ssh_passphrase`, `ssh_proxy_jump`.
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@database.internal:5432/mydb"
+
+  # SSH tunnel configuration
+  ssh_host = "bastion.example.com"
+  ssh_port = 22
+  ssh_user = "ubuntu"
+  ssh_key = "~/.ssh/id_rsa"  # File path or base64-encoded key
+  ssh_passphrase = "my_key_passphrase"  # Optional
+  ssh_proxy_jump = "jump1.example.com,admin@jump2.internal:2222"
+  ```
+
+  `ssh_key` accepts either a file path or a base64-encoded private key. DBHub automatically detects the format.
+
+  See [Command-Line Options - SSH Tunnel](/config/command-line#ssh-tunnel-options) for complete documentation and examples.
+</ParamField>
+
+## Tool Options
+
+Tools define MCP tools (like `execute_sql`) with specific execution settings. Tool options control **how** tools execute queries, not **what** databases they connect to.
+
+<Warning>
+**Tool options cannot be set via command-line flags.** They are **only available in TOML configuration** in the `[[tools]]` section.
+</Warning>
+
+### name
+
+<ParamField path="name" type="string" required>
+  **Required.** Tool name. Currently, the primary tool is `execute_sql`.
+
+  ```toml
+  [[tools]]
+  name = "execute_sql"
+  source = "production"
+  ```
+</ParamField>
+
+### source
+
+<ParamField path="source" type="string" required>
+  **Required.** The source ID this tool should use. Must match an `id` from the `[[sources]]` section.
+
+  ```toml
+  [[sources]]
+  id = "production"
+  dsn = "postgres://user:pass@localhost:5432/mydb"
+
+  [[tools]]
+  name = "execute_sql"
+  source = "production"  # References the source above
+  ```
+</ParamField>
+
+### readonly
+
+<ParamField path="readonly" type="boolean" default="false">
+  Restrict SQL execution to read-only operations (SELECT, SHOW, DESCRIBE, EXPLAIN, PRAGMA). Write operations like INSERT, UPDATE, DELETE are blocked.
+
+  ```toml
+  [[tools]]
+  name = "execute_sql"
+  source = "production"
+  readonly = true  # Read-only mode
+  ```
+
+  <Note>
+  This is a **tool-level** setting, not a source-level setting. Configure it in the `[[tools]]` section, not in `[[sources]]`.
+  </Note>
+
+  See [Execute SQL documentation](/tools/execute-sql#readonly-mode) for more details.
+</ParamField>
+
+### max_rows
+
+<ParamField path="max_rows" type="number">
+  Maximum number of rows to return from SELECT queries. Queries returning more rows will be truncated.
+
+  ```toml
+  [[tools]]
+  name = "execute_sql"
+  source = "production"
+  max_rows = 1000  # Limit to 1000 rows
+  ```
+
+  <Note>
+  This is a **tool-level** setting, not a source-level setting. Configure it in the `[[tools]]` section, not in `[[sources]]`.
+  </Note>
+
+  See [Execute SQL documentation](/tools/execute-sql#row-limits) for more details.
+</ParamField>
+
+### statement
+
+<ParamField path="statement" type="string">
+  Optional predefined SQL statement for custom tools. Enables creating reusable, parameterized database operations that are automatically registered as MCP tools.
+
+  ```toml
+  [[tools]]
+  name = "get_user_by_id"
+  description = "Retrieve user details by their unique ID"
+  source = "production"
+  statement = "SELECT id, name, email, created_at FROM users WHERE id = $1"
+
+  [[tools.parameters]]
+  name = "user_id"
+  type = "integer"
+  description = "The unique user ID"
+  ```
+
+  See [Custom Tools documentation](/tools/custom-tools) for examples and patterns.
+</ParamField>
+
+### description
+
+<ParamField path="description" type="string">
+  **Required for custom tools.** Human-readable description of the tool's purpose. Helps AI models understand when and how to use the tool.
+
+  ```toml
+  [[tools]]
+  name = "search_employees"
+  description = "Search employees by name with configurable result limit"
+  source = "production"
+  statement = "SELECT emp_no, first_name, last_name FROM employee WHERE first_name ILIKE '%' || $1 || '%' LIMIT $2"
+  ```
+</ParamField>
+
+### parameters
+
+<ParamField path="parameters" type="array">
+  Parameter definitions for custom tools. Each parameter defines a typed input that will be validated before execution.
+
+  **Parameter Fields:**
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | `name` | string | ✅ | Parameter name (must match SQL placeholder order) |
+  | `type` | string | ✅ | Data type: `string`, `integer`, `float`, `boolean`, `array` |
+  | `description` | string | ✅ | Description of the parameter's purpose |
+  | `required` | boolean | ❌ | Whether the parameter is required (default: `true`) |
+  | `default` | any | ❌ | Default value if parameter not provided |
+  | `allowed_values` | array | ❌ | List of allowed values (creates enum validation) |
+
+  **Parameter Placeholders by Database:**
+
+  | Database | Syntax | Example |
+  |----------|--------|---------|
+  | PostgreSQL | `$1`, `$2`, `$3` | `WHERE id = $1 AND status = $2` |
+  | MySQL | `?`, `?`, `?` | `WHERE id = ? AND status = ?` |
+  | MariaDB | `?`, `?`, `?` | `WHERE id = ? AND status = ?` |
+  | SQLite | `?`, `?`, `?` | `WHERE id = ? AND status = ?` |
+  | SQL Server | `@p1`, `@p2`, `@p3` | `WHERE id = @p1 AND status = @p2` |
+
+  <Warning>
+  The number of parameters must match the number of placeholders in your SQL statement. Validation occurs at server startup.
+  </Warning>
+
+  **Basic Parameter:**
+  ```toml
+  [[tools.parameters]]
+  name = "user_id"
+  type = "integer"
+  description = "The unique user ID"
+  ```
+
+  **Optional Parameter with Default:**
+  ```toml
+  [[tools.parameters]]
+  name = "limit"
+  type = "integer"
+  description = "Maximum number of results to return"
+  default = 10
+  ```
+
+  **Constrained Parameter (Enum):**
+  ```toml
+  [[tools.parameters]]
+  name = "status"
+  type = "string"
+  description = "Order status"
+  allowed_values = ["pending", "completed", "cancelled"]
+  ```
+
+  **Optional Parameter (Nullable):**
+  ```toml
+  [[tools.parameters]]
+  name = "status"
+  type = "string"
+  description = "Optional status filter"
+  required = false
+  allowed_values = ["pending", "processing", "shipped", "delivered"]
+  ```
+
+  <Tip>
+  Use optional parameters with SQL `COALESCE` to create flexible filters:
+  ```sql
+  WHERE status = COALESCE($1, status)
+  -- Or for PostgreSQL with explicit NULL handling:
+  WHERE ($1::text IS NULL OR status = $1)
+  ```
+  </Tip>
+</ParamField>
+
+## Complete Example
+
+```toml dbhub.toml
+# Multi-database configuration with different tool settings
+
+[[sources]]
+id = "production"
+dsn = "postgres://user:pass@db.prod.internal:5432/mydb"
+lazy = true  # Defer connection until first query
+connection_timeout = 60
+query_timeout = 30
+sslmode = "require"
+
+# Production SSH tunnel through bastion
+ssh_host = "bastion.prod.example.com"
+ssh_user = "deploy"
+ssh_key = "~/.ssh/prod_key"
+
+[[sources]]
+id = "staging"
+dsn = "postgres://user:pass@db.staging.internal:5432/mydb"
+connection_timeout = 30
+query_timeout = 15
+
+# Staging SSH tunnel
+ssh_host = "bastion.staging.example.com"
+ssh_user = "ubuntu"
+ssh_key = "~/.ssh/staging_key"
+
+[[sources]]
+id = "local_sqlite"
+dsn = "sqlite:///./data/local.db"
+
+# Production tool - read-only with row limits
+[[tools]]
+name = "execute_sql"
+source = "production"
+readonly = true
+max_rows = 1000
+
+# Staging tool - full access with row limits
+[[tools]]
+name = "execute_sql"
+source = "staging"
+readonly = false
+max_rows = 5000
+
+# Local tool - full access, unlimited rows
+[[tools]]
+name = "execute_sql"
+source = "local_sqlite"
+readonly = false
+
+# Custom tool - search employees with parameters
+[[tools]]
+name = "search_employees"
+description = "Search employees by name with configurable result limit"
+source = "production"
+statement = "SELECT emp_no, first_name, last_name FROM employee WHERE first_name ILIKE '%' || $1 || '%' LIMIT $2"
+
+[[tools.parameters]]
+name = "search_term"
+type = "string"
+description = "Name to search for (case-insensitive partial match)"
+
+[[tools.parameters]]
+name = "limit"
+type = "integer"
+description = "Maximum number of results"
+default = 10
+```
+
+## Quick Reference
+
+### Source Options
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | ✅ | Unique source identifier |
+| `description` | string | ❌ | Human-readable description of the data source |
+| `dsn` | string | ✅ | Database connection string |
+| `lazy` | boolean | ❌ | Defer connection until first query (default: `false`) |
+| `connection_timeout` | number | ❌ | Connection timeout (seconds) |
+| `query_timeout` | number | ❌ | Query timeout (seconds) |
+| `sslmode` | string | ❌ | SSL mode: `disable`, `require` |
+| `instanceName` | string | ❌ | SQL Server named instance |
+| `authentication` | string | ❌ | SQL Server auth method |
+| `domain` | string | ❌ | Windows domain (NTLM) |
+| `search_path` | string | ❌ | PostgreSQL schema search path (comma-separated) |
+| `ssh_host` | string | ❌ | SSH server hostname |
+| `ssh_port` | number | ❌ | SSH server port (default: 22) |
+| `ssh_user` | string | ❌ | SSH username |
+| `ssh_password` | string | ❌ | SSH password |
+| `ssh_key` | string | ❌ | SSH private key path or base64-encoded key |
+| `ssh_passphrase` | string | ❌ | SSH key passphrase |
+| `ssh_proxy_jump` | string | ❌ | ProxyJump hosts |
+
+### Tool Options
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | Tool name (e.g., `execute_sql`) |
+| `source` | string | ✅ | Source ID to use |
+| `description` | string | ✅* | Tool description (*required for custom tools) |
+| `statement` | string | ❌ | Predefined SQL for custom tools |
+| `parameters` | array | ❌ | Parameter definitions for custom tools |
+| `readonly` | boolean | ❌ | Read-only mode (default: `false`) |
+| `max_rows` | number | ❌ | Max rows limit (default: unlimited) |

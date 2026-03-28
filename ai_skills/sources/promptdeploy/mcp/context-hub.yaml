@@ -1,0 +1,6 @@
+name: context-hub
+description: Context Hub - search and retrieve LLM-optimized API docs and skills for AI agents
+command: /etc/profiles/per-user/johnw/bin/chub-mcp
+args: []
+scope: user
+enabled: true

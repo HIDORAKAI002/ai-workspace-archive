@@ -1,0 +1,23 @@
+{
+  "name": "Add typography preset via theme.json",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-themes"],
+  "query": "Add a new typography preset in theme.json and ensure it shows up in the editor.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect theme structure",
+    "Step 3: Route to wp-block-themes skill",
+    "Step 4: Locate correct theme root and theme.json file",
+    "Step 5: Understand style hierarchy (core < theme < user)",
+    "Step 6: Add preset to settings.typography.fontSizes or fontFamilies",
+    "Step 7: Include slug, name, and size/fontFamily properties",
+    "Step 8: Verify preset appears in Site Editor typography settings",
+    "Step 9: Note that user overrides may hide theme changes"
+  ],
+  "success_criteria": [
+    "Locates correct theme.json file",
+    "Adds preset to settings.typography section",
+    "Uses correct preset structure (slug, name, value)",
+    "Explains style hierarchy and user overrides",
+    "Provides verification in Site Editor"
+  ]
+}

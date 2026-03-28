@@ -1,0 +1,343 @@
+모든 훌륭한 프롬프트는 공통적인 구조적 요소를 공유합니다. 이러한 구성 요소를 이해하면 시행착오가 아닌 체계적인 방법으로 프롬프트를 작성할 수 있습니다.
+
+<Callout type="tip" title="구성 요소들">
+이러한 구성 요소를 레고 블록처럼 생각하세요. 모든 프롬프트에 모든 요소가 필요한 것은 아니지만, 무엇이 있는지 알면 필요한 것을 정확히 구축하는 데 도움이 됩니다.
+</Callout>
+
+## 핵심 구성 요소
+
+효과적인 프롬프트는 일반적으로 다음 요소의 일부 또는 전부를 포함합니다:
+
+<PromptBreakdown parts={[
+  { label: "역할", text: "당신은 시니어 소프트웨어 엔지니어입니다" },
+  { label: "맥락", text: "React 애플리케이션을 작업하고 있습니다." },
+  { label: "작업", text: "이 코드의 버그를 검토해 주세요" },
+  { label: "제약 조건", text: "보안 문제에만 집중해 주세요." },
+  { label: "형식", text: "발견 사항을 번호 목록으로 반환해 주세요." },
+  { label: "예시", text: "예: 1. 42번 줄에 SQL 인젝션 위험" }
+]} />
+
+각 구성 요소를 자세히 살펴보겠습니다.
+
+## 1. 역할 / 페르소나
+
+역할을 설정하면 모델의 응답이 특정 전문성이나 관점의 렌즈를 통해 집중됩니다.
+
+<Compare 
+  before={{ label: "역할 없이", content: "양자 컴퓨팅을 설명해 주세요." }}
+  after={{ label: "역할 있음", content: "당신은 복잡한 주제를 초보자가 이해하기 쉽게 설명하는 것을 전문으로 하는 물리학 교수입니다. 양자 컴퓨팅을 설명해 주세요." }}
+/>
+
+역할은 모델이 다음을 수행하도록 준비시킵니다:
+- 적절한 어휘 사용
+- 관련 전문 지식 적용
+- 일관된 관점 유지
+- 청중을 적절히 고려
+
+### 효과적인 역할 패턴
+
+```
+"당신은 [분야]에서 [X년]의 경험을 가진 [직업]입니다"
+"[특성]을 가진 [역할]처럼 행동하세요"
+"당신은 [청중 유형]을 돕는 [분야] 전문가입니다"
+```
+
+## 2. 맥락 / 배경
+
+맥락은 모델이 당신의 상황을 이해하는 데 필요한 정보를 제공합니다. 기억하세요: 모델은 당신이 말하지 않는 한 당신, 당신의 프로젝트, 또는 당신의 목표에 대해 아무것도 모릅니다.
+
+<Compare 
+  before={{ label: "약한 맥락", content: "내 코드의 버그를 수정해 주세요." }}
+  after={{ label: "강한 맥락", content: "저는 Express.js를 사용하여 Node.js REST API를 구축하고 있습니다. 이 API는 JWT 토큰으로 사용자 인증을 처리합니다. 사용자가 보호된 라우트에 접근하려고 할 때, 유효한 토큰이 있어도 403 오류가 발생합니다. 관련 코드는 다음과 같습니다: [코드]" }}
+/>
+
+### 맥락에 포함할 내용
+
+- **프로젝트 세부 사항** — 기술 스택, 아키텍처, 제약 조건
+- **현재 상태** — 시도한 것, 작동하는 것, 작동하지 않는 것
+- **목표** — 궁극적으로 달성하려는 것
+- **제약 조건** — 시간 제한, 기술 요구 사항, 스타일 가이드
+
+## 3. 작업 / 지시
+
+작업은 프롬프트의 핵심입니다—모델이 수행하기를 원하는 것입니다. 구체적이고 명확하게 작성하세요.
+
+### 구체성 스펙트럼
+
+<SpecificitySpectrum levels={[
+  { level: "모호함", text: "이 에세이를 도와주세요" },
+  { level: "나음", text: "이 에세이를 편집해 주세요" },
+  { level: "좋음", text: "이 에세이의 문법과 명확성을 편집해 주세요" },
+  { level: "최고", text: "이 에세이의 문법과 명확성을 편집하되, 원래 톤은 유지하면서 장황함을 20% 줄여 주세요" }
+]} />
+
+### 효과적인 동작 동사
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">생성</span>
+    <span className="text-muted-foreground">Write, Create, Generate, Compose, Design</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">분석</span>
+    <span className="text-muted-foreground">Analyze, Evaluate, Compare, Assess, Review</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">변환</span>
+    <span className="text-muted-foreground">Convert, Translate, Reformat, Summarize, Expand</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">설명</span>
+    <span className="text-muted-foreground">Explain, Describe, Clarify, Define, Illustrate</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">문제 해결</span>
+    <span className="text-muted-foreground">Solve, Debug, Fix, Optimize, Improve</span>
+  </div>
+</div>
+
+## 4. 제약 조건 / 규칙
+
+제약 조건은 모델의 출력을 제한합니다. 일반적인 문제를 방지하고 관련성을 보장합니다.
+
+### 제약 조건의 유형
+
+**길이 제약:**
+```
+"응답을 200단어 이내로 유지해 주세요"
+"정확히 5개의 제안을 제공해 주세요"
+"3-4개의 단락으로 작성해 주세요"
+```
+
+**내용 제약:**
+```
+"코드 예시를 포함하지 마세요"
+"기술적인 측면에만 집중해 주세요"
+"마케팅 언어를 피해 주세요"
+```
+
+**스타일 제약:**
+```
+"격식 있는 학술적 톤을 사용해 주세요"
+"10살 어린이에게 말하듯이 작성해 주세요"
+"직접적으로 말하고 애매한 표현을 피해 주세요"
+```
+
+**범위 제약:**
+```
+"Python 3.10+ 에서 사용 가능한 옵션만 고려해 주세요"
+"무료 도구로 제안을 제한해 주세요"
+"추가 종속성이 필요 없는 솔루션에 집중해 주세요"
+```
+
+## 5. 출력 형식
+
+출력 형식을 지정하면 사용 가능한 구조로 응답을 받을 수 있습니다.
+
+### 일반적인 형식
+
+**목록:**
+```
+"글머리 기호 목록으로 반환해 주세요"
+"단계별 번호 목록을 제공해 주세요"
+```
+
+**구조화된 데이터:**
+```
+"title, description, priority 키를 가진 JSON으로 반환해 주세요"
+"Feature, Pros, Cons 열이 있는 마크다운 테이블로 형식화해 주세요"
+```
+
+**특정 구조:**
+```
+"다음과 같이 응답을 구조화해 주세요:
+ ## 요약
+ ## 핵심 포인트
+ ## 권장 사항"
+```
+
+### JSON 출력 예시
+
+```
+이 고객 리뷰를 분석하고 JSON으로 반환해 주세요:
+{
+  "sentiment": "positive" | "negative" | "neutral",
+  "topics": ["주요 주제 배열"],
+  "rating_prediction": 1-5,
+  "key_phrases": ["주목할 만한 문구"]
+}
+
+리뷰: "제품이 빨리 도착했고 잘 작동하지만, 
+설명서가 혼란스러웠습니다."
+```
+
+## 6. 예시 (Few-Shot Learning)
+
+예시는 모델에게 원하는 것을 정확히 보여주는 가장 강력한 방법입니다.
+
+### One-Shot 예시
+
+```
+이 문장들을 과거 시제로 변환해 주세요.
+
+예시:
+입력: "She walks to the store"
+출력: "She walked to the store"
+
+이제 변환해 주세요:
+입력: "They run every morning"
+```
+
+### Few-Shot 예시
+
+```
+이 지원 티켓들을 긴급도별로 분류해 주세요.
+
+예시:
+"내 계정이 해킹당했어요" → Critical
+"비밀번호는 어떻게 변경하나요?" → Low
+"결제가 실패했는데 청구되었어요" → High
+
+분류: "설정을 열면 앱이 충돌해요"
+```
+
+## 모든 요소 조합하기
+
+다음은 모든 구성 요소를 사용한 완전한 프롬프트입니다:
+
+<TryIt 
+  title="완전한 프롬프트 예시"
+  description="이 프롬프트는 6가지 구성 요소가 모두 함께 작동하는 것을 보여줍니다. 구조화된 프롬프트가 어떻게 전문적인 결과를 생성하는지 시도해 보세요."
+  prompt={`# Role
+You are a senior technical writer with 10 years of experience creating developer documentation.
+
+# Context
+I'm documenting a REST API for a payment processing service. The audience is developers integrating our API into their applications. They have intermediate programming knowledge but may be new to payment processing concepts.
+
+# Task
+Write documentation for the following API endpoint that creates a new payment intent.
+
+# Constraints
+- Use clear, concise language
+- Include common error scenarios
+- Do not include implementation details about our backend
+- Assume readers understand HTTP and JSON basics
+
+# Output Format
+Structure the documentation as:
+1. Endpoint Overview (2-3 sentences)
+2. Request (method, URL, headers, body with example)
+3. Response (success and error examples)
+4. Code Example (in JavaScript/Node.js)
+
+# Endpoint Details
+POST /v1/payments/intents
+Body: { "amount": 1000, "currency": "usd", "description": "Order #1234" }`}
+/>
+
+## 최소한의 효과적인 프롬프트
+
+모든 프롬프트에 모든 구성 요소가 필요한 것은 아닙니다. 간단한 작업의 경우 명확한 지시만으로 충분할 수 있습니다:
+
+```
+"Hello, how are you?"를 스페인어로 번역해 주세요.
+```
+
+다음과 같은 경우 추가 구성 요소를 사용하세요:
+- 작업이 복잡하거나 모호한 경우
+- 특정 형식이 필요한 경우
+- 결과가 기대에 부합하지 않는 경우
+- 여러 쿼리에서 일관성이 중요한 경우
+
+## 일반적인 프롬프트 패턴
+
+이러한 프레임워크는 프롬프트를 작성할 때 따를 수 있는 간단한 체크리스트를 제공합니다. 각 단계를 클릭하면 예시를 볼 수 있습니다.
+
+<CRISPEFramework />
+
+<RTFFramework />
+
+## 요약
+
+효과적인 프롬프트는 발견되는 것이 아니라 구성되는 것입니다. 이러한 구조적 구성 요소를 이해하고 적용하면 다음을 할 수 있습니다:
+
+- 첫 번째 시도에서 더 나은 결과 얻기
+- 작동하지 않는 프롬프트 디버깅하기
+- 재사용 가능한 프롬프트 템플릿 만들기
+- 의도를 명확하게 전달하기
+
+<Quiz 
+  question="응답 품질에 가장 큰 영향을 미치는 구성 요소는 무엇입니까?"
+  options={[
+    "항상 역할/페르소나",
+    "항상 출력 형식",
+    "작업에 따라 다름",
+    "프롬프트의 길이"
+  ]}
+  correctIndex={2}
+  explanation="작업에 따라 다른 구성 요소가 도움이 됩니다. 간단한 번역은 최소한의 구조가 필요하지만, 복잡한 분석은 상세한 역할, 맥락, 형식 지정이 도움이 됩니다."
+/>
+
+<TryIt 
+  prompt={`You are a senior product manager with 10 years of experience in SaaS products.
+
+Context: I'm building a task management app for remote teams. We're a small startup with limited engineering resources.
+
+Task: Suggest 3 features we should prioritize for our MVP.
+
+Constraints:
+- Features must be implementable by a team of 2 developers in 4 weeks
+- Focus on what differentiates us from Trello and Asana
+
+Format: For each feature, provide:
+1. Feature name
+2. One-sentence description  
+3. Why it matters for remote teams`}
+  description="이 프롬프트는 6가지 구성 요소를 모두 사용합니다. 시도해 보고 구조화된 접근 방식이 어떻게 집중적이고 실행 가능한 결과를 생성하는지 확인하세요."
+/>
+
+## 나만의 프롬프트 만들기
+
+이제 당신 차례입니다! 이 인터랙티브 프롬프트 빌더를 사용하여 배운 구성 요소로 나만의 프롬프트를 구성해 보세요:
+
+<PromptBuilder 
+  title="인터랙티브 프롬프트 빌더"
+  description="각 섹션을 채워 완전하고 잘 구조화된 프롬프트를 만드세요"
+/>
+
+<PromptChallenge
+  title="챕터 챌린지: 코드 리뷰 프롬프트 만들기"
+  task="AI에게 보안 취약점에 대한 코드 리뷰를 요청하는 프롬프트를 작성하세요. 프롬프트는 실행 가능한 피드백을 받을 수 있을 만큼 구체적이어야 합니다."
+  criteria={[
+    "명확한 역할 또는 전문성 수준 포함",
+    "어떤 유형의 코드 리뷰인지 명시 (보안 중점)",
+    "예상 출력 형식 정의",
+    "적절한 제약 조건 또는 범위 설정"
+  ]}
+  hints={[
+    "코드 리뷰어가 어떤 전문성을 가져야 하는지 생각해 보세요",
+    "어떤 보안 문제를 찾아야 하는지 구체적으로 명시하세요",
+    "구조화된 응답 형식을 요청하는 것을 고려하세요"
+  ]}
+  exampleSolution={`You are a senior security engineer with expertise in web application security and OWASP Top 10 vulnerabilities.
+
+Task: Review the following code for security vulnerabilities.
+
+Focus on:
+- SQL injection risks
+- XSS vulnerabilities  
+- Authentication/authorization issues
+- Input validation gaps
+
+Output format:
+For each issue found:
+1. Line number(s)
+2. Vulnerability type
+3. Risk level (High/Medium/Low)
+4. Recommended fix
+
+[CODE TO REVIEW]`}
+  difficulty="intermediate"
+/>
+
+다음 장에서는 프롬프트 구성 결정을 안내하는 핵심 원칙을 살펴보겠습니다.

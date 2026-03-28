@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a bug in the ai-skills project
+labels: 'bug'
+body:
+  - type: dropdown
+    id: reference
+    validations:
+      required: true
+    attributes:
+      label: Related reference
+      description: Which reference file (skills/*/references/*.md) or project area is this about?
+      options:
+        - accessibility
+        - architecture
+        - assets
+        - ci-cd
+        - code-quality
+        - css
+        - html
+        - js-ts
+        - security
+        - templates
+        - testing
+        - Project (repo / tooling)
+        - Other
+  - type: input
+    id: reference-other
+    attributes:
+      label: If "Other", specify
+      description: Only if you selected "Other" above.
+      placeholder: e.g. my-custom-skill
+  - type: dropdown
+    id: about-skill-output
+    validations:
+      required: true
+    attributes:
+      label: Is this about the skill's own output?
+      description: Does the issue concern the skill's behavior or the feedback it produces?
+      options:
+        - Yes — the skill's output or behavior is wrong or missing
+        - No — the issue is about something else (setup, tooling, docs, etc.)
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Describe the bug
+      description: A clear description of what the bug is.
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the problem.
+      placeholder: |
+        For example:
+        1. Open Cursor / Codex
+        2. Enable the frontend-code-review skill
+        3. Ask for a MR review on [link]
+        4. See error
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Expected behavior
+      description: What should happen.
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Editor
+      description: Which editor are you using?
+      placeholder: e.g. Cursor 0.42, Codex, VS Code
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Model
+      description: Which AI model are you using (e.g. Cursor model name, Claude, GPT-4)?
+      placeholder: e.g. Claude Opus 4.5, GPT-4o
+  - type: input
+    attributes:
+      label: OS
+      placeholder: e.g. macOS 14, Windows 11
+  - type: textarea
+    attributes:
+      label: Screenshots or recordings
+      description: If applicable, add screenshots to help explain the problem.
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Any other context (project conventions, MCP config, etc.).

@@ -1,0 +1,23 @@
+{
+  "name": "Register ability and expose to REST",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-abilities-api"],
+  "query": "I want to add a new ability for my plugin feature and have the client UI check it via REST. What should I change?",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect plugin structure",
+    "Step 3: Route to wp-abilities-api skill",
+    "Step 4: Register ability category if needed with wp_register_ability_category()",
+    "Step 5: Register ability with wp_register_ability()",
+    "Step 6: Set meta.show_in_rest to true for REST exposure",
+    "Step 7: Document wp-abilities/v1 REST namespace",
+    "Step 8: Verify endpoint returns the new ability",
+    "Step 9: Show client-side consumption via @wordpress/abilities"
+  ],
+  "success_criteria": [
+    "Routes to wp-abilities-api skill",
+    "Uses wp_register_ability() correctly",
+    "Enables show_in_rest in meta",
+    "Documents REST endpoint wp-abilities/v1",
+    "Provides verification steps"
+  ]
+}

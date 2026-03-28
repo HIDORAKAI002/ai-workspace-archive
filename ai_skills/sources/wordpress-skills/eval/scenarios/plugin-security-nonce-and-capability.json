@@ -1,0 +1,24 @@
+{
+  "name": "Fix admin action security issue",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-plugin-development"],
+  "query": "This plugin has an admin POST handler that checks a nonce but not user capabilities. Fix it.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect plugin structure",
+    "Step 3: Route to wp-plugin-development skill",
+    "Step 4: Identify the POST handler code",
+    "Step 5: Verify nonce check exists with wp_verify_nonce() or check_admin_referer()",
+    "Step 6: Add capability check with current_user_can()",
+    "Step 7: Use appropriate capability (manage_options, edit_posts, custom cap)",
+    "Step 8: Sanitize/validate all input with sanitize_text_field(), absint(), etc.",
+    "Step 9: Use wp_unslash() before sanitization for $_POST data",
+    "Step 10: Escape all output with esc_html(), esc_attr(), etc."
+  ],
+  "success_criteria": [
+    "Both nonce AND capability checks present",
+    "Appropriate capability used for the action",
+    "Input is sanitized/validated",
+    "Output is properly escaped",
+    "Security vulnerability is resolved"
+  ]
+}

@@ -1,0 +1,45 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...90"
+  status:
+    project:
+      default:
+        # Target minimum coverage percentage
+        target: 80%
+        # Allow a small decrease in coverage without failing
+        threshold: 5%
+        if_ci_failed: error
+    patch:
+      default:
+        # Target coverage for new code or changes
+        target: 80%
+        threshold: 5%
+
+ignore:
+  # Deployment and configuration files
+  - "deploy/**/*"
+  - "scripts/**/*"
+  # Test files should not count toward coverage
+  - "tests/**/*"
+  # Setup and initialization files
+  - "setup.py"
+  - "aws_mcp_server/__main__.py"
+  - "aws_mcp_server/__init__.py"
+  # Documentation files
+  - "docs/**/*"
+  - "*.md"
+  # Version generated file
+  - "aws_mcp_server/_version.py"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes

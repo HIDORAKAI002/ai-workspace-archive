@@ -1,0 +1,120 @@
+{
+  "name": "brave-search-mcp",
+  "type": "module",
+  "version": "2.1.0",
+  "description": "MCP Server that uses Brave Search API to search for images, general web search, video, news and points of interest.",
+  "author": "mike.chao.one@gmail.com",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/mikechao/brave-search-mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikechao/brave-search-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mikechao/brave-search-mcp/issues"
+  },
+  "keywords": [
+    "brave",
+    "mcp",
+    "web-search",
+    "image-search",
+    "news-search",
+    "brave-search-api",
+    "brave-search",
+    "brave-search-mcp"
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "brave-search-mcp": "dist/index.js"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/index.js",
+    "dist/ui/**/*"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist build-reports",
+    "build:sdk": "pnpm -C ../../packages/brave-search run build",
+    "prebuild": "pnpm run build:sdk && pnpm run clean",
+    "build": "pnpm run build:server && pnpm run build:ui && pnpm run build:analyze:ui && shx chmod +x dist/*.js",
+    "build:all": "pnpm run typecheck && pnpm run build",
+    "build:server": "tsup --metafile && pnpm run build:analyze",
+    "build:analyze": "node scripts/analyze-bundle-metafile.js",
+    "build:analyze:ui": "node scripts/analyze-ui-build.js",
+    "prebuild:watch": "pnpm run build:sdk",
+    "build:watch": "tsup --watch",
+    "dev": "pnpm run build:watch",
+    "build:ui": "node scripts/build-ui.js",
+    "check:manifest:tools": "vitest run test/unit/manifest-tool-names.test.ts",
+    "lint": "eslint . --ext .ts,.js,.mjs,.cjs --fix",
+    "lint:check": "eslint . --ext .ts,.js,.mjs,.cjs",
+    "pretypecheck": "pnpm run build:sdk",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p ui/tsconfig.json && tsc --noEmit -p test/tsconfig.json",
+    "check": "pnpm run lint:check && pnpm run typecheck && pnpm run check:manifest:tools",
+    "prebuild:test-server": "pnpm run build:sdk",
+    "build:test-server": "tsup test/test-server.ts --format esm --target node20 --outDir .test-build --no-splitting --shims",
+    "pretest:unit": "pnpm run build:sdk && pnpm run build:ui",
+    "test": "pnpm run test:unit && pnpm run test:integration",
+    "test:unit": "vitest run test/unit",
+    "pretest:unit:watch": "pnpm run build:sdk",
+    "test:unit:watch": "vitest test/unit",
+    "pretest:integration": "pnpm run build:sdk && pnpm run build:server",
+    "test:integration": "pnpm run build:test-server && vitest run test/integration",
+    "pretest:integration:watch": "pnpm run build:sdk && pnpm run build:server",
+    "test:integration:watch": "pnpm run build:test-server && vitest test/integration",
+    "test:eval": "pnpm run build:test-server && vitest run test/eval",
+    "test:eval:smoke": "pnpm run build:test-server && EVAL_ITERATIONS=1 EVAL_MULTI_TURN_ITERATIONS=1 EVAL_MIN_ACCURACY=0 vitest run test/eval",
+    "test:eval:watch": "pnpm run build:test-server && vitest test/eval",
+    "test:coverage": "shx rm -rf coverage && vitest run test/unit --coverage",
+    "changeset:version": "changeset version && node scripts/sync-manifest-version.js && node scripts/cleanup-changesets.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.11",
+    "@modelcontextprotocol/ext-apps": "^1.1.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@openai/apps-sdk-ui": "^0.2.1",
+    "brave-search": "workspace:*",
+    "hono": "^4.12.7",
+    "pigeon-maps": "^0.22.1",
+    "preact": "^10.28.4",
+    "snarkdown": "^2.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.4.3",
+    "@changesets/cli": "^2.28.1",
+    "@eslint-react/eslint-plugin": "^2.13.0",
+    "@mcpjam/sdk": "^0.8.2",
+    "@preact/preset-vite": "^2.10.4",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^22.13.14",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@unocss/eslint-plugin": "^66.6.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.2",
+    "eslint-plugin-format": "^1.1.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.1",
+    "jsdom": "^28.1.0",
+    "postcss": "^8.5.6",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "shx": "^0.4.0",
+    "tailwindcss": "^4.1.18",
+    "terser": "^5.16.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.8.2",
+    "vite": "^8.0.0",
+    "vite-plugin-singlefile": "^2.3.2",
+    "vitest": "^4.0.18"
+  }
+}

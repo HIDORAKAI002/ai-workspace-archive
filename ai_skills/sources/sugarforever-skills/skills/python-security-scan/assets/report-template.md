@@ -1,0 +1,264 @@
+# Security Assessment Report
+
+**Project:** [PROJECT_NAME]
+**Date:** [DATE]
+**Scan Type:** [QUICK/FULL/TARGETED]
+**Framework Detected:** [FRAMEWORK]
+
+---
+
+## Executive Summary
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | [COUNT] |
+| HIGH | [COUNT] |
+| MEDIUM | [COUNT] |
+| LOW | [COUNT] |
+| INFO | [COUNT] |
+
+**Overall Risk Level:** [CRITICAL/HIGH/MEDIUM/LOW]
+
+### Key Findings
+
+1. [FINDING_1_SUMMARY]
+2. [FINDING_2_SUMMARY]
+3. [FINDING_3_SUMMARY]
+
+---
+
+## Scan Coverage
+
+### Files Scanned
+- Total Python files: [COUNT]
+- Configuration files: [COUNT]
+- Template files: [COUNT]
+
+### Categories Checked
+- [ ] Code Execution (eval, exec, compile)
+- [ ] Insecure Deserialization (pickle, yaml, marshal)
+- [ ] Command Injection (os.system, subprocess)
+- [ ] SQL Injection
+- [ ] Cross-Site Scripting (XSS)
+- [ ] Authentication Issues
+- [ ] Cryptographic Failures
+- [ ] Path Traversal
+- [ ] SSRF
+- [ ] XXE
+- [ ] Framework-Specific Issues
+- [ ] Hardcoded Secrets
+- [ ] Dependency Vulnerabilities
+
+---
+
+## Detailed Findings
+
+### CRITICAL Findings
+
+#### [FINDING_ID]: [FINDING_TITLE]
+
+**Category:** [CATEGORY]
+**CWE:** [CWE_ID]
+**File:** `[FILE_PATH]:[LINE_NUMBER]`
+
+**Vulnerable Code:**
+```python
+[CODE_SNIPPET]
+```
+
+**Description:**
+[DETAILED_DESCRIPTION]
+
+**Impact:**
+[IMPACT_DESCRIPTION]
+
+**Remediation:**
+```python
+[FIXED_CODE]
+```
+
+**References:**
+- [REFERENCE_LINK_1]
+- [REFERENCE_LINK_2]
+
+---
+
+### HIGH Findings
+
+#### [FINDING_ID]: [FINDING_TITLE]
+
+**Category:** [CATEGORY]
+**CWE:** [CWE_ID]
+**File:** `[FILE_PATH]:[LINE_NUMBER]`
+
+**Vulnerable Code:**
+```python
+[CODE_SNIPPET]
+```
+
+**Description:**
+[DETAILED_DESCRIPTION]
+
+**Impact:**
+[IMPACT_DESCRIPTION]
+
+**Remediation:**
+```python
+[FIXED_CODE]
+```
+
+---
+
+### MEDIUM Findings
+
+#### [FINDING_ID]: [FINDING_TITLE]
+
+**Category:** [CATEGORY]
+**CWE:** [CWE_ID]
+**File:** `[FILE_PATH]:[LINE_NUMBER]`
+
+**Vulnerable Code:**
+```python
+[CODE_SNIPPET]
+```
+
+**Description:**
+[DETAILED_DESCRIPTION]
+
+**Remediation:**
+[REMEDIATION_STEPS]
+
+---
+
+### LOW Findings
+
+#### [FINDING_ID]: [FINDING_TITLE]
+
+**Category:** [CATEGORY]
+**CWE:** [CWE_ID]
+**File:** `[FILE_PATH]:[LINE_NUMBER]`
+
+**Description:**
+[DETAILED_DESCRIPTION]
+
+**Recommendation:**
+[RECOMMENDATION]
+
+---
+
+## Dependency Audit Results
+
+### Vulnerable Dependencies
+
+| Package | Version | Vulnerability | Severity | CVE |
+|---------|---------|---------------|----------|-----|
+| [PACKAGE] | [VERSION] | [DESCRIPTION] | [SEVERITY] | [CVE_ID] |
+
+### Outdated Dependencies
+
+| Package | Current | Latest | Risk |
+|---------|---------|--------|------|
+| [PACKAGE] | [CURRENT] | [LATEST] | [RISK_LEVEL] |
+
+---
+
+## Framework-Specific Findings
+
+### [FRAMEWORK] Security Configuration
+
+| Setting | Current | Recommended | Status |
+|---------|---------|-------------|--------|
+| DEBUG | [VALUE] | False | [OK/WARN/FAIL] |
+| SECRET_KEY | [HARDCODED/ENV] | Environment Variable | [OK/WARN/FAIL] |
+| ALLOWED_HOSTS | [VALUE] | Specific domains | [OK/WARN/FAIL] |
+| CSRF Protection | [ENABLED/DISABLED] | Enabled | [OK/WARN/FAIL] |
+| Session Security | [SECURE/INSECURE] | Secure cookies | [OK/WARN/FAIL] |
+
+---
+
+## Recommendations
+
+### Immediate Actions (CRITICAL/HIGH)
+
+1. **[ACTION_1]**
+   - Files affected: [FILE_LIST]
+   - Estimated effort: [TIME]
+
+2. **[ACTION_2]**
+   - Files affected: [FILE_LIST]
+   - Estimated effort: [TIME]
+
+### Short-term Actions (MEDIUM)
+
+1. **[ACTION_1]**
+2. **[ACTION_2]**
+
+### Long-term Improvements (LOW/INFO)
+
+1. **[ACTION_1]**
+2. **[ACTION_2]**
+
+---
+
+## Security Best Practices Checklist
+
+### Input Validation
+- [ ] All user inputs are validated
+- [ ] Parameterized queries used for database operations
+- [ ] File uploads are validated and sanitized
+
+### Authentication & Authorization
+- [ ] Strong password hashing (bcrypt/argon2)
+- [ ] Session management is secure
+- [ ] CSRF protection enabled
+- [ ] Rate limiting implemented
+
+### Data Protection
+- [ ] Secrets stored in environment variables
+- [ ] Sensitive data encrypted at rest
+- [ ] TLS/HTTPS enforced
+- [ ] Security headers configured
+
+### Dependency Management
+- [ ] Dependencies regularly updated
+- [ ] Vulnerability scanning in CI/CD
+- [ ] Lock files committed
+
+---
+
+## Appendix
+
+### A. Scan Configuration
+
+```
+Scan Date: [DATE]
+Scan Duration: [DURATION]
+Scanner Version: [VERSION]
+Categories: [CATEGORY_LIST]
+```
+
+### B. False Positives
+
+| Finding | File | Reason |
+|---------|------|--------|
+| [FINDING] | [FILE] | [REASON] |
+
+### C. Out of Scope
+
+- [ITEM_1]
+- [ITEM_2]
+
+---
+
+## References
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [CWE/SANS Top 25](https://cwe.mitre.org/top25/)
+- [Python Security Best Practices](https://python.org/dev/security/)
+- [Django Security](https://docs.djangoproject.com/en/stable/topics/security/)
+- [Flask Security](https://flask.palletsprojects.com/en/latest/security/)
+- [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
+
+---
+
+*Report generated by Python Security Scan Skill*

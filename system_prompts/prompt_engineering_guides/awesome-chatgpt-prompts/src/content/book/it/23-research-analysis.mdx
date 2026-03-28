@@ -1,0 +1,323 @@
+L'IA può accelerare i workflow di ricerca dalla revisione della letteratura all'analisi dati. Questo capitolo copre tecniche di prompting per ricerca accademica e professionale.
+
+<Callout type="info" title="IA nella Ricerca">
+L'IA può assistere con sintesi, analisi e scrittura—ma non può sostituire il pensiero critico, il giudizio etico o l'expertise di dominio. Verifica sempre le affermazioni e cita le fonti originali.
+</Callout>
+
+## Revisione Letteratura & Informazioni
+
+### Do's e Don'ts: Prompt di Ricerca
+
+<Compare 
+  before={{ label: "❌ Richiesta vaga", content: "Riassumimi questo paper." }}
+  after={{ label: "✓ Richiesta strutturata", content: "Riassumi questo paper per la mia revisione della letteratura sul machine learning in sanità.\n\nFornisci:\n1. Tesi principale (1-2 frasi)\n2. Metodologia\n3. Findings chiave (punti elenco)\n4. Limitazioni\n5. Rilevanza per la mia ricerca\n\nLivello lettura: Studente magistrale" }}
+/>
+
+### Riassunto Paper
+
+<TryIt compact prompt={`Riassumi questo paper accademico:
+
+[abstract o testo completo del paper]
+
+Fornisci:
+1. **Tesi principale** - Argomento centrale (1-2 frasi)
+2. **Metodologia** - Come l'hanno affrontato
+3. **Findings chiave** - Risultati più importanti (punti elenco)
+4. **Contributi** - Cosa c'è di nuovo/significativo
+5. **Limitazioni** - Debolezze riconosciute o evidenti
+6. **Rilevanza per [il mio argomento di ricerca]** - Come si connette
+
+Livello lettura: \${readingLevel:magistrale}`} />
+
+### Sintesi Letteratura
+
+<TryIt compact prompt={`Sintetizza questi paper su \${topic:l'efficacia del lavoro remoto}:
+
+Paper 1: \${paper1:Rossi 2021 - ha trovato che la produttività è aumentata del 15%}
+Paper 2: \${paper2:Bianchi 2022 - ha notato sfide nella collaborazione}
+Paper 3: \${paper3:Verdi 2023 - il modello ibrido ha mostrato i migliori risultati}
+
+Analizza:
+1. **Temi comuni** - Su cosa concordano?
+2. **Contraddizioni** - Dove divergono?
+3. **Lacune** - Cosa non viene affrontato?
+4. **Evoluzione** - Come è progredito il pensiero?
+5. **Sintesi** - Comprensione integrata
+
+Formatta come: Paragrafo di revisione letteratura adatto per \${outputType:tesi}`} />
+
+### Sviluppo Domande di Ricerca
+
+<TryIt compact prompt={`Aiutami a sviluppare domande di ricerca per \${topic:adozione IA in sanità}.
+
+Contesto:
+- Campo: \${field:informatica sanitaria}
+- Conoscenza attuale: \${currentKnowledge:strumenti IA esistono ma l'adozione è lenta}
+- Lacuna identificata: \${gap:comprensione limitata dei fattori di resistenza dei medici}
+- Il mio interesse: \${interest:change management organizzativo}
+
+Genera:
+1. **RQ Primaria** - Domanda principale a cui rispondere
+2. **Sotto-domande** - Indagini di supporto (3-4)
+3. **Ipotesi** - Predizioni testabili (se applicabile)
+
+Criteri: Le domande dovrebbero essere:
+- Rispondibili con metodi disponibili
+- Significative per il campo
+- Di ambito appropriato`} />
+
+## Analisi Dati
+
+<Callout type="warning" title="L'IA Non Può Analizzare i Tuoi Dati Reali">
+L'IA può guidare la metodologia e aiutare a interpretare i risultati, ma non può accedere o elaborare i tuoi dataset reali. Non incollare mai dati di ricerca sensibili nei prompt. Usa l'IA per **guida**, non per calcoli.
+</Callout>
+
+### Guida Analisi Statistica
+
+<TryIt compact prompt={`Aiutami ad analizzare questi dati:
+
+Descrizione dati:
+- Variabili: \${variables:età (continua), gruppo trattamento (categoriale: A/B/C), punteggio outcome (continuo)}
+- Dimensione campione: \${sampleSize:n=150 (50 per gruppo)}
+- Domanda di ricerca: \${researchQuestion:Il tipo di trattamento influisce sui punteggi outcome?}
+- Caratteristiche dati: \${characteristics:distribuzione normale, nessun valore mancante}
+
+Consiglia su:
+1. **Test appropriati** - Quali test statistici usare
+2. **Assunzioni da verificare** - Prerequisiti
+3. **Come interpretare i risultati** - Cosa significano diversi outcome
+4. **Effect size** - Significatività pratica
+5. **Reporting** - Come presentare i findings
+
+Nota: Guida la mia analisi, non fabbricare risultati.`} />
+
+### Analisi Qualitativa
+
+<TryIt compact prompt={`Aiutami ad analizzare queste risposte qualitative:
+
+Risposte:
+\${responses:incolla estratti di interviste o risposte questionari qui}
+
+Usando \${method:analisi tematica}:
+
+1. **Codici iniziali** - Identifica concetti ricorrenti
+2. **Categorie** - Raggruppa codici correlati
+3. **Temi** - Pattern sovraordinati
+4. **Relazioni** - Come i temi si connettono
+5. **Citazioni rappresentative** - Evidenze per ogni tema
+
+Mantieni: Voce del partecipante e contesto`} />
+
+### Interpretazione Dati
+
+<TryIt compact prompt={`Aiutami a interpretare questi findings:
+
+Risultati:
+\${results:incolla output statistico o riepilogo dati qui}
+
+Contesto:
+- Domanda di ricerca: \${researchQuestion:X predice Y?}
+- Ipotesi: \${hypothesis:X predice positivamente Y}
+- Risultati attesi: \${expectedResults:correlazione positiva significativa}
+
+Fornisci:
+1. **Interpretazione in linguaggio semplice** - Cosa significa questo?
+2. **Significatività statistica** - Cosa ci dicono i p-value
+3. **Significatività pratica** - Significato nel mondo reale
+4. **Confronto con letteratura** - Come si inserisce?
+5. **Spiegazioni alternative** - Altre interpretazioni
+6. **Limitazioni dell'interpretazione**`} />
+
+## Framework di Analisi Strutturata
+
+### Analisi PESTLE
+
+<TryIt compact prompt={`Conduci un'analisi PESTLE per \${subject:industria veicoli elettrici in Europa}.
+
+Fattori **Politici**:
+- Politiche governative, regolamenti, stabilità politica
+
+Fattori **Economici**:
+- Crescita economica, inflazione, tassi di cambio, disoccupazione
+
+Fattori **Sociali**:
+- Demografia, trend culturali, cambiamenti stile di vita
+
+Fattori **Tecnologici**:
+- Innovazione, R&D, automazione, cambiamenti tecnologici
+
+Fattori **Legali**:
+- Legislazione, enti regolatori, diritto del lavoro
+
+Fattori **Ambientali**:
+- Clima, sostenibilità, regolamenti ambientali
+
+Per ciascuno: Stato attuale + trend + implicazioni`} />
+
+### Analisi Causa Radice
+
+<TryIt compact prompt={`Esegui analisi causa radice per \${problem:il churn clienti è aumentato del 20% ultimo trimestre}.
+
+Dichiarazione problema:
+\${problemStatement:Il tasso di churn mensile è salito dal 3% al 3.6% tra Q3 e Q4}
+
+Usando i 5 Perché:
+1. Perché? Causa primo livello
+   2. Perché? Causa più profonda
+      3. Perché? Ancora più profonda
+         4. Perché? Avvicinandosi alla radice
+            5. Perché? Causa radice
+
+Alternativa: Categorie diagramma a lisca di pesce
+- Persone
+- Processo
+- Attrezzature
+- Materiali
+- Ambiente
+- Management
+
+Fornisci: Causa/e radice + azioni raccomandate`} />
+
+### Gap Analysis
+
+<TryIt compact prompt={`Conduci una gap analysis per \${subject:le nostre operazioni di customer support}.
+
+**Stato Attuale:**
+- \${currentState:Tempo risposta medio 24 ore, CSAT 3.2/5}
+
+**Stato Desiderato:**
+- \${desiredState:Tempo risposta sotto 4 ore, CSAT 4.5/5}
+
+**Identificazione Gap:**
+| Area | Attuale | Desiderato | Gap | Priorità |
+|------|---------|------------|-----|----------|
+| ... | ... | ... | ... | A/M/B |
+
+**Piano d'Azione:**
+Per ogni gap alta priorità:
+- Azioni specifiche
+- Risorse necessarie
+- Timeline
+- Metriche di successo`} />
+
+## Supporto Scrittura Accademica
+
+### Struttura Argomentazione
+
+<TryIt compact prompt={`Aiutami a strutturare un'argomentazione per \${topic:perché il lavoro remoto dovrebbe diventare policy permanente}.
+
+Affermazione principale: \${thesis:Le organizzazioni dovrebbero adottare policy permanenti remote/ibride per i knowledge worker}
+
+Richiesto:
+1. **Premesse** - Affermazioni di supporto che portano alla conclusione
+2. **Evidenze** - Dati/fonti per ogni premessa
+3. **Controargomentazioni** - Punti di vista opposti
+4. **Confutazioni** - Risposte alle controargomentazioni
+5. **Flusso logico** - Come si connette tutto
+
+Controlla per:
+- Fallacie logiche
+- Affermazioni non supportate
+- Lacune nel ragionamento`} />
+
+### Sezione Metodi
+
+<TryIt compact prompt={`Aiutami a scrivere una sezione metodi per:
+
+Tipo di studio: \${studyType:questionario}
+Partecipanti: \${participants:200 studenti universitari, campionamento di convenienza}
+Materiali: \${materials:questionario online con scale Likert}
+Procedura: \${procedure:i partecipanti hanno completato questionario di 20 minuti online}
+Analisi: \${analysis:statistiche descrittive e analisi di regressione}
+
+Standard: Segui linee guida \${standards:APA 7a edizione}
+Includi: Dettaglio sufficiente per la replica
+Tono: Voce passiva, tempo passato`} />
+
+### Sezione Discussione
+
+<TryIt compact prompt={`Aiutami a scrivere una sezione discussione.
+
+Findings chiave:
+\${findings:1. Correlazione positiva significativa (r=0.45) tra X e Y\n2. Nessuna differenza significativa tra gruppi sulla misura secondaria}
+
+Struttura:
+1. **Riepilogo** - Breve riformulazione dei findings principali
+2. **Interpretazione** - Cosa significano i findings
+3. **Contesto** - Come i findings si relazionano alla letteratura esistente
+4. **Implicazioni** - Significatività teorica e pratica
+5. **Limitazioni** - Debolezze dello studio
+6. **Direzioni future** - Quale ricerca dovrebbe seguire
+7. **Conclusione** - Messaggio da portare a casa
+
+Evita: Esagerare i findings o introdurre nuovi risultati`} />
+
+## Analisi Critica
+
+### Valutazione Fonti
+
+<TryIt compact prompt={`Valuta questa fonte per uso accademico:
+
+Fonte: \${source:incolla citazione o link qui}
+Riepilogo contenuto: \${summary:breve descrizione di cosa afferma la fonte}
+
+Valuta usando criteri CRAAP:
+- **Attualità**: Quando pubblicato? Aggiornato? Abbastanza attuale?
+- **Rilevanza**: Si relaziona al mio argomento? Livello appropriato?
+- **Autorità**: Credenziali autore? Reputazione editore?
+- **Accuratezza**: Supportato da evidenze? Peer-reviewed?
+- **Scopo**: Perché è stato scritto? Bias evidente?
+
+Verdetto: Altamente credibile / Usare con cautela / Evitare
+Come usare: Raccomandazioni per l'incorporazione`} />
+
+### Analisi Argomentazione
+
+<TryIt compact prompt={`Analizza l'argomentazione in questo testo:
+
+\${text:incolla il testo che vuoi analizzare}
+
+Identifica:
+1. **Affermazione principale** - Cosa viene argomentato
+2. **Evidenze di supporto** - Cosa lo sostiene
+3. **Assunzioni** - Premesse non dichiarate
+4. **Struttura logica** - Come segue la conclusione
+5. **Punti di forza** - Cosa è convincente
+6. **Debolezze** - Lacune logiche o fallacie
+7. **Interpretazioni alternative**
+
+Fornisci: Valutazione equa e bilanciata`} />
+
+## Template Prompt da prompts.chat
+
+### Agisci come Assistente di Ricerca
+
+<TryIt compact prompt={`Voglio che tu agisca come assistente di ricerca. Aiutami a esplorare argomenti, trovare informazioni, sintetizzare fonti e sviluppare argomentazioni. Fai domande di chiarimento, suggerisci aree rilevanti da investigare, e aiutami a pensare criticamente alle evidenze. Sii approfondito ma riconosci i limiti della tua conoscenza.`} />
+
+### Agisci come Data Analyst
+
+<TryIt compact prompt={`Voglio che tu agisca come data analyst. Descriverò dataset e domande di ricerca, e tu suggerirai approcci di analisi, aiuterai a interpretare risultati e identificherai potenziali problemi. Concentrati su metodologia solida e comunicazione chiara dei findings.`} />
+
+### Agisci come Peer Reviewer
+
+<TryIt compact prompt={`Voglio che tu agisca come peer reviewer accademico. Condividerò manoscritti o sezioni, e tu fornirai feedback costruttivo su metodologia, argomentazione, scrittura e contributo al campo. Sii rigoroso ma supportivo, notando sia punti di forza che aree di miglioramento.`} />
+
+## Riepilogo
+
+<Callout type="tip" title="Tecniche Chiave">
+Dichiara chiaramente contesto e obiettivi di ricerca, specifica il framework analitico da usare, richiedi riconoscimento delle limitazioni, chiedi ragionamento basato su evidenze, e mantieni rigore e onestà accademica.
+</Callout>
+
+<Quiz 
+  question="Qual è la cosa più importante da ricordare quando si usa l'IA per la ricerca?"
+  options={[
+    "L'IA può sostituire il bisogno di fonti primarie",
+    "L'analisi IA è sempre accurata e aggiornata",
+    "Verifica sempre le affermazioni IA in modo indipendente e cita le fonti originali",
+    "L'IA può accedere e analizzare i tuoi dataset reali"
+  ]}
+  correctIndex={2}
+  explanation="L'IA può assistere con sintesi e struttura, ma può allucinare citazioni, avere informazioni obsolete, e non può accedere ai tuoi dati reali. Verifica sempre le affermazioni rispetto alle fonti primarie e mantieni l'integrità accademica."
+/>
+
+Ricorda: L'IA può assistere la ricerca ma non può sostituire il pensiero critico, il giudizio etico o l'expertise di dominio. Verifica sempre le affermazioni in modo indipendente.

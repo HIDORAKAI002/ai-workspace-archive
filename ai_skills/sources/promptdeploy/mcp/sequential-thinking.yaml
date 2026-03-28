@@ -1,0 +1,6 @@
+name: sequential-thinking
+description: Sequential thinking MCP server for structured reasoning
+command: /etc/profiles/per-user/johnw/bin/mcp-server-sequential-thinking
+args: []
+scope: user
+enabled: true

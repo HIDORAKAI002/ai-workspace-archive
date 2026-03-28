@@ -1,0 +1,183 @@
+---
+title: "Gemini Python SDK Integration"
+sidebarTitle: "Python"
+description: "Use Gemini's Python SDK to integrate with Helicone to log your Gemini AI usage."
+"twitter:title": "Gemini Python SDK Integration - Helicone OSS LLM Observability"
+icon: "python"
+iconType: "solid"
+---
+
+import LegacyWarning from "/snippets/legacy-provider-warning.mdx";
+
+<LegacyWarning />
+
+<Steps>
+  <Step title="Create an account + Generate an API Key">
+    Log into [Helicone](https://www.helicone.ai) or create an account. Once you have an account, you can generate an [API key](https://helicone.ai/developer).
+  </Step>
+  <Step title="Create Google Generative AI API Key">
+    Visit the [Google Generative AI API Key](https://aistudio.google.com/app/apikey) page. Follow the instructions to create a new API key. Make sure to save the key as you will need it for the next steps.
+  </Step>
+  <Step title="Set API keys as environment variables">
+    ```bash
+    export HELICONE_API_KEY=<your Helicone API key>
+    export GOOGLE_API_KEY=<your Google Generative AI API key>
+    ```
+  </Step>
+  <Step title="Install the Google Generative AI SDK">
+    Ensure you have the necessary packages installed in your Python environment:
+    ```bash
+    pip install -U -q "google-genai"
+    ```
+  </Step>
+  <Step title="Import and configure the client">
+    ```python
+    from google import genai
+    import os
+
+    client = genai.Client(
+        api_key=os.environ.get('GOOGLE_API_KEY'),
+        http_options={
+            "base_url": 'https://gateway.helicone.ai',
+            "headers": {
+                "helicone-auth": f'Bearer {os.environ.get("HELICONE_API_KEY")}',
+                "helicone-target-url": 'https://generativelanguage.googleapis.com'
+            }
+        }
+    )
+    ```
+
+    <Note>
+      If you're using Vertex AI integration (with `GOOGLE_GENAI_USE_VERTEXAI=True`), you need to modify the target URL to point to the Vertex AI endpoint:
+
+      ```python
+      # Use this target URL when GOOGLE_GENAI_USE_VERTEXAI=True
+      "helicone-target-url": f'https://{os.environ.get("GOOGLE_CLOUD_LOCATION")}-aiplatform.googleapis.com'
+      ```
+
+      Make sure the `GOOGLE_CLOUD_LOCATION` environment variable is set to your Google Cloud region (e.g., `us-central1`).
+    </Note>
+
+  </Step>
+  <Step title="Generate content using the model">
+    ```python
+    response = client.models.generate_content(
+        model='gemini-2.0-flash',
+        contents='Tell me a story in 300 words.'
+    )
+    print(response.text)
+
+    # Optional: Print the full response details
+    print(response.model_dump_json(
+        exclude_none=True, indent=4))
+    ```
+
+  </Step>
+</Steps>
+
+## Adding User-Specific Headers with Client Factory Method
+
+Currently, the Gemini Python SDK doesn't support setting headers at request time, unlike OpenAI and Anthropic SDKs (see [GitHub issue #698](https://github.com/google-gemini/generative-ai-python/issues/698)). As a workaround, you can create a factory function that dynamically generates client instances with specific headers.
+
+### Client Factory Method for User-Specific Headers
+
+```python
+from typing import Optional, List, Tuple, Any
+from google import genai
+import os
+import instructor
+
+def setup_gemini_client(
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    session_name: Optional[str] = None,
+    session_path: Optional[str] = None,
+    custom_properties: Optional[dict] = None,
+    other_metadata: Optional[dict] = None
+) -> Any:
+    """
+    Factory function to create a Gemini client with user-specific Helicone headers.
+
+    Args:
+        user_id: Optional user identifier for Helicone tracking
+        session_id: Optional session identifier for Helicone tracking
+        session_name: Optional name for the session in Helicone
+        session_path: Optional path for the session in Helicone
+        custom_properties: Optional dictionary of custom properties for Helicone
+        other_metadata: Optional dictionary of additional metadata headers
+
+    Returns:
+        Configured Gemini client with Instructor integration
+    """
+    # Base headers required for Helicone
+    metadata: List[Tuple[str, str]] = [
+        ("helicone-auth", f"Bearer {os.environ.get('HELICONE_API_KEY')}"),
+        ("helicone-target-url", "https://generativelanguage.googleapis.com"),
+    ]
+
+    # Add user_id if provided
+    if user_id:
+        metadata.append(("helicone-user-id", user_id))
+
+    # Add session_id if provided
+    if session_id:
+        metadata.append(("helicone-session-id", session_id))
+
+    # Add session_name if provided
+    if session_name:
+        metadata.append(("helicone-session-name", session_name))
+
+    # Add session_path if provided
+    if session_path:
+        metadata.append(("helicone-session-path", session_path))
+
+    # Add custom properties if provided
+    if custom_properties:
+        for key, value in custom_properties.items():
+            metadata.append((f"helicone-property-{key}", value))
+
+    # Add other metadata if provided
+    if other_metadata:
+        for key, value in other_metadata.items():
+            metadata.append((key, value))
+
+    # Configure the client with metadata
+    genai.configure(
+        api_key=os.environ.get('GOOGLE_API_KEY'),
+        client_options={
+            "api_endpoint": "gateway.helicone.ai",
+        },
+        default_metadata=metadata,
+        transport="rest",
+    )
+
+    # Create Gemini client with Instructor integration
+    gemini_client = instructor.from_gemini(
+        genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+        ),
+        mode=instructor.Mode.GEMINI_JSON,
+    )
+
+    return gemini_client
+
+session_client = setup_gemini_client(
+    user_id="user123",
+    session_id="session456",
+    session_name="Customer Support Chat",
+    session_path="/support/tickets/123",
+    custom_properties={
+        "job_id": "1234567890",
+        "job_name": "Customer Support Chat",
+    }
+)
+
+response = session_client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "What are black holes?"}
+    ],
+    response_model=Response
+)
+```
+
+This factory method approach allows you to create clients with different user identifiers, session tracking, and custom properties for each request, working around the current limitation in the Gemini SDK while providing comprehensive tracking capabilities in Helicone.

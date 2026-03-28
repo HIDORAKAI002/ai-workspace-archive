@@ -1,0 +1,335 @@
+AI kan de professionele productiviteit aanzienlijk verbeteren. Dit hoofdstuk behandelt prompts voor zakelijke communicatie, analyse, planning en workflowoptimalisatie.
+
+<Callout type="info" title="AI voor Zakelijk Gebruik">
+AI blinkt uit in het opstellen, analyseren en structureren—waardoor jij je kunt richten op strategie, relaties en beslissingen die menselijk oordeelsvermogen vereisen.
+</Callout>
+
+## Zakelijke Communicatie
+
+### Do's en Don'ts: Zakelijke E-mails
+
+<Compare 
+  before={{ label: "❌ Vaag verzoek", content: "Schrijf een e-mail naar mijn baas over het project." }}
+  after={{ label: "✓ Volledige context", content: "Schrijf een e-mail naar mijn manager (Sarah) om haar bij te praten over het Q4 marketingproject.\n\nBelangrijke punten: We liggen op schema voor de deadline van 15 november, het leveranciersprobleem is opgelost, we hebben haar goedkeuring nodig voor de budgetverhoging van €5.000.\nToon: Professioneel maar vriendelijk (we hebben een goede relatie)\nHoud het onder de 150 woorden met een duidelijke vraag aan het einde." }}
+/>
+
+### E-mails Opstellen
+
+<TryIt compact prompt={`Schrijf een professionele e-mail.
+
+Context:
+- Aan: [ontvanger en relatie]
+- Doel: [verzoek/informeren/follow-up/excuses]
+- Belangrijke punten: [wat moet worden gecommuniceerd]
+- Toon: [formeel/vriendelijk professioneel/urgent]
+
+Beperkingen:
+- Houd het onder [X] zinnen
+- Duidelijke call-to-action
+- Onderwerpregel inbegrepen`} />
+
+**Voorbeelden per doel:**
+
+<TryIt compact prompt={`\${emailType:Vergaderverzoek}: Schrijf een e-mail om een vergadering aan te vragen met een potentiële klant om partnerschapsmogelijkheden te bespreken. Houd het kort en maak het makkelijk om ja te zeggen.`} />
+
+<TryIt compact prompt={`\${emailType:Moeilijk Gesprek}: Schrijf een e-mail waarin je het voorstel van een leverancier afwijst terwijl je de relatie behoudt voor toekomstige mogelijkheden. Wees duidelijk maar diplomatiek.`} />
+
+<TryIt compact prompt={`\${emailType:Statusupdate}: Schrijf een projectstatus-e-mail naar stakeholders. Het project loopt 2 weken achter op schema door scopewijzigingen. Presenteer de situatie professioneel met een herstelplan.`} />
+
+### Presentatie-inhoud
+
+<TryIt compact prompt={`Maak presentatie-inhoud voor \${topic:Q4 verkoopstrategie}.
+
+Publiek: \${audience:directie}
+Duur: \${duration:15 minuten}
+Doel: \${goal:overtuigen om budgetverhoging goed te keuren}
+
+Lever voor elke slide:
+- Titel
+- Kernboodschap (één hoofdpunt)
+- Ondersteunende punten (maximaal 3)
+- Sprekersnotities (wat te zeggen)
+- Visuele suggestie (grafiek/afbeelding/diagram)
+
+Structuur:
+1. Haak/Aandachtstrekker
+2. Probleem/Kans
+3. Oplossing/Aanbeveling
+4. Bewijs/Onderbouwing
+5. Call to action`} />
+
+### Rapportage Schrijven
+
+<TryIt compact prompt={`Schrijf een \${reportType:aanbevelings}rapport over \${topic:uitbreiden naar Europese markten}.
+
+Type rapport: \${type:aanbeveling}
+Publiek: \${audience:directie}
+Lengte: \${length:5 pagina's}
+
+Structuur:
+1. Samenvatting (belangrijkste bevindingen, 1 alinea)
+2. Achtergrond/Context
+3. Methodologie (indien van toepassing)
+4. Bevindingen
+5. Analyse
+6. Aanbevelingen
+7. Vervolgstappen
+
+Inclusief: Suggesties voor datavisualisatie waar relevant
+Toon: \${tone:formeel zakelijk}`} />
+
+## Analyse & Besluitvorming
+
+<Callout type="tip" title="Analyseprincipe">
+AI kan je denken structureren, maar **jij levert de echte context**. De beste analyses combineren AI-frameworks met jouw domeinkennis.
+</Callout>
+
+### SWOT-analyse
+
+<TryIt compact prompt={`Voer een SWOT-analyse uit voor \${subject:het lanceren van een nieuwe mobiele app}.
+
+Context:
+\${context:We zijn een middelgroot fintech-bedrijf dat een consumenten-bankapp overweegt}
+
+Lever:
+
+**Sterktes** (interne positieven)
+- Minimaal 4 punten met korte toelichting
+
+**Zwaktes** (interne negatieven)
+- Minimaal 4 punten met korte toelichting
+
+**Kansen** (externe positieven)
+- Minimaal 4 punten met korte toelichting
+
+**Bedreigingen** (externe negatieven)
+- Minimaal 4 punten met korte toelichting
+
+**Strategische Implicaties**
+- Belangrijkste inzicht uit de analyse
+- Aanbevolen prioriteiten`} />
+
+### Beslissingskader
+
+<TryIt compact prompt={`Help me een beslissing te nemen over \${decision:welk CRM te kiezen}.
+
+Opties:
+1. \${optionA:Salesforce}
+2. \${optionB:HubSpot}
+3. \${optionC:Pipedrive}
+
+Criteria die voor mij belangrijk zijn:
+- \${criterion1:gebruiksgemak} (gewicht: hoog)
+- \${criterion2:integratie met bestaande tools} (gewicht: hoog)
+- \${criterion3:kosten} (gewicht: gemiddeld)
+
+Lever:
+1. Score elke optie tegen elk criterium (1-5)
+2. Gewogen analyse
+3. Voor- en nadelen samenvatting per optie
+4. Risicobeoordeling
+5. Aanbeveling met onderbouwing
+6. Vragen om te overwegen voordat je beslist`} />
+
+### Concurrentieanalyse
+
+<TryIt compact prompt={`Analyseer \${competitor:Slack} vergeleken met \${ourProduct:onze teamcommunicatietool}.
+
+Onderzoek hun:
+1. **Producten/Diensten** - aanbod, prijzen, positionering
+2. **Sterktes** - waar ze goed in zijn
+3. **Zwaktes** - waar ze tekortschieten
+4. **Marktpositie** - doelsegmenten, marktaandeel
+5. **Strategie** - zichtbare richting en focus
+
+Vergelijk met ons:
+- Waar wij sterker zijn
+- Waar zij sterker zijn
+- Kansen in de markt
+- Concurrentiebedreigingen
+
+Aanbeveling: Acties om onze concurrentiepositie te verbeteren`} />
+
+## Planning & Strategie
+
+### Doelen Stellen (OKR's)
+
+<TryIt compact prompt={`Help me OKR's op te stellen voor \${scope:Q1 marketingteam}.
+
+Context:
+- Bedrijfsdoelen: \${companyGoals:omzet 25% verhogen ten opzichte van vorig jaar}
+- Huidige situatie: \${currentState:merkbekendheid is laag in nieuwe markten}
+- Belangrijkste prioriteiten: \${priorities:leadgeneratie, contentmarketing}
+
+Maak 3 Objectives met elk 3-4 Key Results.
+
+Format:
+**Objective 1:** Kwalitatief doel - inspirerend
+- KR 1.1: Kwantitatieve meting (Huidig: X → Doel: Y)
+- KR 1.2: Kwantitatieve meting (Huidig: X → Doel: Y)
+- KR 1.3: Kwantitatieve meting (Huidig: X → Doel: Y)
+
+Zorg dat KR's zijn:
+- Meetbaar
+- Ambitieus maar haalbaar
+- Tijdgebonden
+- Resultaatgericht (geen taken)`} />
+
+### Projectplanning
+
+<TryIt compact prompt={`Maak een projectplan voor \${project:website herontwerp}.
+
+Scope: \${scope:nieuwe homepage, productpagina's, checkout-flow}
+Tijdlijn: \${timeline:3 maanden}
+Team: \${team:2 developers, 1 designer, 1 PM}
+Budget: \${budget:€50.000}
+
+Lever:
+1. **Projectfases** met mijlpalen
+2. **Work breakdown structure** (hoofdtaken)
+3. **Tijdlijn** (Gantt-stijl beschrijving)
+4. **Afhankelijkheden** (wat blokkeert wat)
+5. **Risico's** (potentiële problemen en mitigatie)
+6. **Succescriteria** (hoe we weten dat we klaar zijn)`} />
+
+### Vergaderagenda
+
+<TryIt compact prompt={`Maak een agenda voor \${meetingType:kwartaalplanning}.
+
+Doel: \${purpose:afstemmen op Q2 prioriteiten en resourcetoewijzing}
+Deelnemers: \${attendees:afdelingshoofden, CEO, COO}
+Duur: \${duration:90 minuten}
+
+Format:
+| Tijd | Onderwerp | Eigenaar | Doel |
+|------|-----------|----------|------|
+| 5 min | Opening | Facilitator | Context |
+| ... | ... | ... | ... |
+
+Inclusief:
+- Tijdtoewijzingen
+- Duidelijke eigenaar voor elk item
+- Specifieke verwachte uitkomsten
+- Benodigde voorbereiding
+- Template voor opvolgacties`} />
+
+## Productiviteitsworkflows
+
+### Taakprioritering
+
+<TryIt compact prompt={`Help me mijn taken te prioriteren met de Eisenhower Matrix.
+
+Mijn taken:
+\${tasks:1. Kwartaalrapport voorbereiden (deadline vrijdag)\n2. Sollicitaties beoordelen\n3. Leveranciers-e-mails beantwoorden\n4. Teamuitje plannen\n5. LinkedIn-profiel bijwerken}
+
+Categoriseer elk in:
+1. **Urgent + Belangrijk** (Eerst doen)
+2. **Belangrijk, Niet Urgent** (Inplannen)
+3. **Urgent, Niet Belangrijk** (Delegeren)
+4. **Geen van beide** (Elimineren)
+
+Lever vervolgens:
+- Aanbevolen volgorde van uitvoering
+- Tijdschattingen
+- Suggesties voor delegeren of elimineren`} />
+
+### Procesdocumentatie
+
+<TryIt compact prompt={`Documenteer dit bedrijfsproces: \${processName:klant terugbetalingsverzoek}.
+
+Maak:
+1. **Procesoverzicht** (1 alinea)
+2. **Trigger** (wat start dit proces)
+3. **Stappen** (genummerd, met verantwoordelijke partij)
+4. **Beslispunten** (als X dan Y format)
+5. **Outputs** (wat dit proces oplevert)
+6. **Betrokken systemen** (tools/software)
+7. **Uitzonderingen** (randgevallen en afhandeling)
+
+Format: Duidelijk genoeg voor een nieuwe medewerker om te volgen`} />
+
+### Standaard Operationele Procedure
+
+<TryIt compact prompt={`Schrijf een SOP voor \${task:nieuwe medewerkers onboarden in Slack}.
+
+Publiek: \${audience:HR-beheerders}
+Complexiteit: \${complexity:basisgebruikers}
+
+Inclusief:
+1. Doel en scope
+2. Voorwaarden/vereisten
+3. Stapsgewijze instructies
+4. Screenshots/visuele placeholders
+5. Kwaliteitscontrolepunten
+6. Veelvoorkomende fouten en probleemoplossing
+7. Gerelateerde SOP's/documenten
+8. Versiegeschiedenis`} />
+
+## Communicatietemplates
+
+### Stakeholder Update
+
+<TryIt compact prompt={`Schrijf een stakeholder update voor \${project:CRM-migratieproject}.
+
+Status: \${status:risicovol}
+Periode: \${period:Week van 6-10 januari}
+
+Format:
+## Projectnaam Update
+
+**Status:** 🟢/🟡/🔴
+
+**Voortgang deze periode:**
+- Prestatie 1
+- Prestatie 2
+
+**Doelen volgende periode:**
+- Doel 1
+- Doel 2
+
+**Risico's/Blokkades:**
+- Indien aanwezig
+
+**Benodigde beslissingen:**
+- Indien aanwezig`} />
+
+### Feedbackverzoek
+
+<TryIt compact prompt={`Schrijf een bericht om feedback te vragen op \${deliverable:het nieuwe productroadmap-document}.
+
+Context: \${context:Dit zal onze Q2 prioriteiten bepalen, ik wil zeker weten dat ik niets heb gemist}
+Specifieke aandachtsgebieden voor feedback: \${feedbackAreas:haalbaarheid tijdlijn, resourcetoewijzing, ontbrekende features}
+Deadline: \${deadline:vrijdag einde werkdag}
+
+Toon: Professioneel maar niet te formeel
+Maak het makkelijk om te reageren met specifieke vragen`} />
+
+## Prompt Templates van prompts.chat
+
+### Fungeer als Bedrijfsadviseur
+
+<TryIt compact prompt={`Ik wil dat je fungeert als bedrijfsadviseur. Ik zal zakelijke situaties en uitdagingen beschrijven, en jij geeft strategisch advies, denkraamwerken voor problemen en uitvoerbare aanbevelingen. Gebruik gevestigde bedrijfsprincipes terwijl je praktisch en specifiek blijft.`} />
+
+### Fungeer als Vergaderfacilitator
+
+<TryIt compact prompt={`Ik wil dat je fungeert als vergaderfacilitator. Help me effectieve vergaderingen te plannen en te leiden. Maak agenda's, stel discussiekaders voor, help gesprekken samen te vatten en stel follow-up communicatie op. Focus op het productief en actiegericht maken van vergaderingen.`} />
+
+## Samenvatting
+
+<Callout type="tip" title="Belangrijke Technieken">
+Specificeer het publiek en hun behoeften, definieer het gewenste resultaat duidelijk, voeg relevante context en beperkingen toe, vraag om specifieke formats en structuren, en houd rekening met professionele toonvereisten.
+</Callout>
+
+<Quiz 
+  question="Wat moet je altijd opnemen wanneer je AI vraagt om een zakelijke e-mail te schrijven?"
+  options={[
+    "Alleen het onderwerp dat je wilt bespreken",
+    "Ontvanger, doel, belangrijke punten en gewenste toon",
+    "Alleen de naam van de ontvanger",
+    "Een template van internet"
+  ]}
+  correctIndex={1}
+  explanation="Effectieve zakelijke e-mails hebben context nodig: aan wie je schrijft, waarom, wat moet worden gecommuniceerd en de juiste toon. AI kan je professionele relaties of organisatorische context niet afleiden."
+/>
+
+AI kan routinematige zakelijke communicatie afhandelen terwijl jij je richt op strategie en relaties.

@@ -1,0 +1,328 @@
+הנחיה מבוססת תפקידים היא אחת הטכניקות החזקות והנפוצות ביותר בהנדסת הנחיות. על ידי הקצאת תפקיד או פרסונה ספציפיים לבינה המלאכותית, ניתן להשפיע באופן משמעותי על האיכות, הסגנון והרלוונטיות של התגובות.
+
+<Callout type="tip" title="עוצמת הפרסונות">
+חשבו על תפקידים כמסננים לידע העצום של הבינה המלאכותית. התפקיד הנכון ממקד תגובות כמו עדשה שממקדת אור.
+</Callout>
+
+## למה תפקידים עובדים
+
+כאשר אתם מקצים תפקיד, אתם למעשה אומרים למודל: "סנן את הידע העצום שלך דרך העדשה הספציפית הזו." המודל מתאים את:
+
+- **אוצר המילים**: שימוש בטרמינולוגיה המתאימה לתפקיד
+- **נקודת המבט**: התייחסות לבעיות מזווית הראייה הזו
+- **עומק המומחיות**: מתן רמות פירוט מתאימות לתפקיד
+- **סגנון התקשורת**: התאמה לאופן שבו אותו תפקיד היה מתקשר
+
+### ההסבר הטכני
+
+מודלי LLM עובדים על ידי חיזוי הטוקן הסביר ביותר בהתבסס על ההקשר שניתן להם. כאשר אתם מציינים תפקיד, אתם משנים באופן מהותי את המשמעות של "סביר".
+
+**הפעלת ידע רלוונטי**: התפקיד מכין אזורים ספציפיים של האסוציאציות הנלמדות של המודל. אמירה כמו "אתה רופא" מפעילה טרמינולוגיה רפואית, דפוסי חשיבה אבחנתיים וסגנונות תקשורת קליניים מנתוני האימון.
+
+**התניה סטטיסטית**: מודלי LLM למדו ממיליוני מסמכים שנכתבו על ידי מומחים אמיתיים. כאשר אתם מקצים תפקיד, המודל מתנה את התפלגויות ההסתברות שלו כדי להתאים לדפוסים שראה מסוג המחבר הזה.
+
+**הפחתת עמימות**: ללא תפקיד, המודל מחשב ממוצע על פני כל המגיבים האפשריים. עם תפקיד, הוא מצמצם לתת-קבוצה ספציפית, מה שהופך את התגובות לממוקדות ועקביות יותר.
+
+**עיגון הקשר**: התפקיד יוצר עוגן הקשר מתמשך לאורך כל השיחה. כל תגובה עוקבת מושפעת ממסגור ראשוני זה.
+
+חשבו על זה כך: אם תשאלו "מה עלי לעשות לגבי השיעול הזה?" המודל יכול להגיב כרופא, כחבר, כרוקח או כהורה מודאג. כל אחד ייתן עצה שונה. על ידי ציון התפקיד מראש, אתם אומרים למודל באיזה "קול" להשתמש מנתוני האימון שלו.
+
+<Callout type="info" title="למה זה חשוב">
+המודל לא מעמיד פנים או משחק תפקיד במובן התיאטרלי. הוא מטה סטטיסטית את הפלטים שלו לעבר דפוסים שלמד ממומחים, אנשי מקצוע ומתמחים אמיתיים במהלך האימון. תפקיד "רופא" מפעיל מסלולי ידע רפואי; תפקיד "משורר" מפעיל דפוסים ספרותיים.
+</Callout>
+
+## דפוסי תפקיד בסיסיים
+
+דפוסי יסוד אלה עובדים ברוב מקרי השימוש. התחילו עם תבניות אלה והתאימו אותן לצרכים שלכם.
+
+### דפוס המומחה
+
+הדפוס הרב-תכליתי ביותר. ציינו את תחום המומחיות ושנות הניסיון כדי לקבל תגובות סמכותיות ומעמיקות. עובד היטב לשאלות טכניות, ניתוח וייעוץ מקצועי.
+
+<TryIt compact prompt={`You are an expert \${field} with \${years:10} years of experience in \${specialty}.
+
+\${task}`} />
+
+### דפוס איש המקצוע
+
+עגנו את התפקיד בהקשר מהעולם האמיתי על ידי ציון תפקיד וסוג ארגון. זה מוסיף ידע מוסדי ונורמות מקצועיות לתגובה.
+
+<TryIt compact prompt={`You are a \${profession} working at \${organization}.
+
+\${task}`} />
+
+### דפוס המורה
+
+מושלם ללמידה והסברים. ציון רמת הקהל מבטיח שהתגובה תתאים לרקע של הלומד, ממתחילים ועד למתרגלים מתקדמים.
+
+<TryIt compact prompt={`You are a \${subject} teacher who specializes in explaining complex concepts to \${audience}.
+
+\${task}`} />
+
+## בניית תפקידים מתקדמת
+
+### תפקידים מורכבים
+
+שלבו זהויות מרובות כדי לקבל תגובות שמשלבות נקודות מבט שונות. השילוב הזה של רופא ילדים והורה מייצר עצות שהן גם נכונות רפואית וגם נבדקו מעשית.
+
+<TryIt compact prompt={`You are a pediatrician who is also a parent of three children. You understand both the medical and practical aspects of childhood health issues. You communicate with empathy and without medical jargon.
+
+\${question}`} />
+
+### תפקידים מצביים
+
+מקמו את התפקיד בתרחיש ספציפי כדי לעצב הן תוכן והן טון. כאן, הקשר של סקירת קוד הופך את הבינה המלאכותית לבונה וחינוכית במקום רק ביקורתית.
+
+<TryIt compact prompt={`You are a senior developer conducting a code review for a junior team member. You want to be helpful and educational, not critical. You explain not just what to fix, but why.
+
+Code to review:
+\${code}`} />
+
+### תפקידי פרספקטיבה
+
+קבלו משוב מנקודת המבט של בעל עניין ספציפי. פרספקטיבה של משקיע הון סיכון מעריכה כדאיות וסקלביליות באופן שונה ממה שלקוח או מהנדס היו עושים.
+
+<TryIt compact prompt={`You are a venture capitalist evaluating startup pitches. You've seen thousands of pitches and can quickly identify strengths, weaknesses, and red flags. Be direct but constructive.
+
+Pitch: \${pitch}`} />
+
+## קטגוריות תפקידים ודוגמאות
+
+תחומים שונים נהנים מסוגי תפקידים שונים. הנה דוגמאות מוכחות מאורגנות לפי קטגוריה שתוכלו להתאים למשימות שלכם.
+
+### תפקידים טכניים
+
+**ארכיטקט תוכנה**: הטוב ביותר להחלטות עיצוב מערכת, בחירות טכנולוגיה ופשרות ארכיטקטוניות. ההתמקדות בתחזוקתיות מכוונת תגובות לפתרונות מעשיים לטווח ארוך.
+
+<TryIt compact prompt={`You are a software architect specializing in scalable distributed systems. You prioritize maintainability, performance, and team productivity in your recommendations.
+
+\${question}`} />
+
+**מומחה אבטחה**: חשיבה כתוקף היא המפתח כאן. תפקיד זה מייצר ניתוח ממוקד איומים שמזהה פגיעויות שנקודת מבט הגנתית בלבד עלולה לפספס.
+
+<TryIt compact prompt={`You are a cybersecurity specialist who conducts penetration testing. You think like an attacker to identify vulnerabilities.
+
+Analyze: \${target}`} />
+
+**מהנדס DevOps**: אידיאלי לשאלות פריסה, אוטומציה ותשתיות. הדגש על אמינות מבטיח המלצות מוכנות לייצור.
+
+<TryIt compact prompt={`You are a DevOps engineer focused on CI/CD pipelines and infrastructure as code. You value automation and reliability.
+
+\${question}`} />
+
+### תפקידים יצירתיים
+
+**קופירייטר**: התואר "זוכה פרסים" והמיקוד בהמרות מייצרים טקסט קליט ומשכנע במקום טקסט שיווקי גנרי.
+
+<TryIt compact prompt={`You are an award-winning copywriter known for creating compelling headlines and persuasive content that drives conversions.
+
+Write copy for: \${product}`} />
+
+**תסריטאי**: מפעיל ידע במבנה דרמטי, קצב ומוסכמות דיאלוג. מעולה לכל כתיבה נרטיבית שדורשת מתח וקול דמות.
+
+<TryIt compact prompt={`You are a screenwriter who has written for popular TV dramas. You understand story structure, dialogue, and character development.
+
+Write: \${scene}`} />
+
+**כותב UX**: תפקיד מתמחה לטקסט ממשק. ההתמקדות בקיצור ובהנחיית משתמש מייצרת טקסט תמציתי ומכוון פעולה.
+
+<TryIt compact prompt={`You are a UX writer specializing in microcopy. You make interfaces feel human and guide users with minimal text.
+
+Write microcopy for: \${element}`} />
+
+### תפקידים אנליטיים
+
+**אנליסט עסקי**: מגשר בין בעלי עניין טכניים ולא-טכניים. שימושי לאיסוף דרישות, כתיבת מפרטים וזיהוי פערים בתוכניות פרויקט.
+
+<TryIt compact prompt={`You are a business analyst who translates between technical teams and stakeholders. You clarify requirements and identify edge cases.
+
+Analyze: \${requirement}`} />
+
+**מדען מחקר**: הדגש על ראיות והכרה באי-ודאות מייצר תגובות מאוזנות ומבוססות מקורות שמבדילות בין עובדות להשערות.
+
+<TryIt compact prompt={`You are a research scientist who values empirical evidence and acknowledges uncertainty. You distinguish between established facts and hypotheses.
+
+Research question: \${question}`} />
+
+**אנליסט פיננסי**: משלב ניתוח כמותי עם הערכת סיכונים. המיקוד הכפול בתשואות ובסיכון מייצר פרספקטיבות השקעה מאוזנות יותר.
+
+<TryIt compact prompt={`You are a financial analyst who evaluates investments using fundamental and technical analysis. You consider risk alongside potential returns.
+
+Evaluate: \${investment}`} />
+
+### תפקידים חינוכיים
+
+**מדריך סוקרטי**: במקום לתת תשובות, תפקיד זה שואל שאלות מנחות. מצוין ללמידה מעמיקה ולעזרה לתלמידים לפתח מיומנויות חשיבה ביקורתית.
+
+<TryIt compact prompt={`You are a tutor using the Socratic method. Instead of giving answers directly, you guide students to discover answers through thoughtful questions.
+
+Topic: \${topic}`} />
+
+**מעצב הוראה**: מבנה למידה לשימור מרבי. השתמשו בתפקיד זה כאשר אתם צריכים לפרק נושאים מורכבים לחלקים ניתנים ללימוד עם התקדמות ברורה.
+
+<TryIt compact prompt={`You are an instructional designer who creates engaging learning experiences. You break complex topics into digestible modules with clear learning objectives.
+
+Create curriculum for: \${topic}`} />
+
+## טכניקת ערימת התפקידים
+
+למשימות מורכבות, שלבו היבטי תפקיד מרובים לזהות אחת ורב-שכבתית. טכניקה זו עורמת מומחיות, מודעות לקהל והנחיות סגנון כדי ליצור תגובות מתמחות במיוחד.
+
+דוגמה זו מרבדת שלושה אלמנטים: מומחיות תחום (תיעוד API), קהל (מפתחים חדשים) ומדריך סגנון (מוסכמות Google). כל שכבה מצמצמת עוד יותר את הפלט.
+
+<TryIt compact prompt={`You are a technical writer with expertise in API documentation. You write for developers who are new to REST APIs. Follow the Google developer documentation style guide: use second person ("you"), active voice, present tense, and keep sentences under 26 words.
+
+Document: \${apiEndpoint}`} />
+
+## תפקידים למשימות שונות
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">סקירת קוד</span>
+    <span className="text-muted-foreground">מפתח בכיר + מנטור</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">משוב על כתיבה</span>
+    <span className="text-muted-foreground">עורך + חבר בקהל היעד</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">אסטרטגיה עסקית</span>
+    <span className="text-muted-foreground">יועץ + מומחה תעשייה</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">למידת נושא חדש</span>
+    <span className="text-muted-foreground">מורה סבלני + מתרגל</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">כתיבה יצירתית</span>
+    <span className="text-muted-foreground">מחבר בז'אנר ספציפי</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">הסבר טכני</span>
+    <span className="text-muted-foreground">מומחה + מתקשר</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">פתרון בעיות</span>
+    <span className="text-muted-foreground">מומחה תחום + גנרליסט</span>
+  </div>
+</div>
+
+## אנטי-דפוסים להימנעות
+
+### תפקידים גנריים מדי
+
+<Compare 
+  before={{ label: "חלש", content: "You are a helpful assistant." }}
+  after={{ label: "טוב יותר", content: "You are a helpful assistant specializing in Python development, particularly web applications with Flask and Django." }}
+/>
+
+### תפקידים סותרים
+
+<Compare 
+  before={{ label: "בעייתי", content: "You are a creative writer who always follows strict templates." }}
+  after={{ label: "טוב יותר", content: "You are a creative writer who works within established story structures while adding original elements." }}
+/>
+
+### מומחיות לא ריאליסטית
+
+<Compare 
+  before={{ label: "בעייתי", content: "You are an expert in everything." }}
+  after={{ label: "טוב יותר", content: "You are a T-shaped professional: deep expertise in machine learning with broad knowledge of software engineering practices." }}
+/>
+
+## דוגמאות הנחיות מהעולם האמיתי
+
+### תיעוד טכני
+
+<TryIt 
+  title="תפקיד כותב טכני"
+  description="נסו הנחיית תיעוד טכני זו עם נקודת קצה API משלכם."
+  prompt={`You are a senior technical writer at a developer tools company. You have 10 years of experience writing API documentation, SDK guides, and developer tutorials.
+
+Your documentation style:
+- Clear, scannable structure with headers and code examples
+- Explains the "why" alongside the "how"
+- Anticipates common questions and edge cases
+- Uses consistent terminology defined in a glossary
+- Includes working code examples that users can copy-paste
+
+Document this API endpoint: GET /api/users/:id - Returns user profile data`}
+/>
+
+### כתיבה יצירתית
+
+<TryIt 
+  title="תפקיד רומנאי"
+  description="תפקיד זה משלב מומחיות ז'אנר עם תכונות סגנוניות ספציפיות."
+  prompt={`You are a novelist who writes in the style of literary fiction with elements of magical realism. Your prose is known for:
+- Lyrical but accessible language
+- Deep psychological character portraits
+- Subtle magical elements woven into everyday settings
+- Themes of memory, identity, and transformation
+
+Write the opening scene of a story about a librarian who discovers that books in her library are slowly changing their endings.`}
+/>
+
+### תקשורת עסקית
+
+<TryIt 
+  title="תפקיד מאמן מנהלים"
+  description="תפקיד זה עוזר בתקשורת עסקית רגישה."
+  prompt={`You are an executive communications coach who has worked with Fortune 500 CEOs. You help leaders communicate complex ideas simply and build trust with their teams.
+
+Review this message for a team meeting about budget cuts. Suggest improvements that:
+- Acknowledge the difficulty while maintaining confidence
+- Are transparent without creating panic  
+- Show empathy while being professional
+- Include clear next steps
+
+Draft message: "Due to budget constraints, we need to reduce project scope. Some initiatives will be paused."`}
+/>
+
+## שילוב תפקידים עם טכניקות אחרות
+
+תפקידים עובדים אפילו טוב יותר כאשר משלבים אותם עם טכניקות הנחיה אחרות:
+
+### תפקיד + דוגמאות מועטות
+
+שלבו תפקיד עם דוגמה כדי להראות בדיוק איך התפקיד צריך להגיב. הדוגמה מלמדת טון ופורמט בעוד התפקיד מספק הקשר ומומחיות.
+
+<TryIt compact prompt={`You are a customer support specialist trained to de-escalate angry customers.
+
+Example response to angry customer:
+Customer: "This is ridiculous! I've been waiting 2 weeks!"
+You: "I completely understand your frustration, and I apologize for the delay. Let me look into this right now and find out exactly where your order is. Can I have your order number?"
+
+Now respond to:
+Customer: "\${customerMessage}"`} />
+
+### תפקיד + שרשרת חשיבה
+
+תפקיד הבלש מעודד באופן טבעי חשיבה צעד-אחר-צעד. שילוב תפקידים עם שרשרת חשיבה מייצר פתרון בעיות שקוף וניתן לאימות יותר.
+
+<TryIt compact prompt={`You are a detective solving a logic puzzle. Think through each clue methodically, stating your reasoning at each step.
+
+Clues:
+\${clues}
+
+Solve step by step, explaining your deductions.`} />
+
+## סיכום
+
+<Callout type="info" title="נקודות מפתח">
+הנחיה מבוססת תפקידים היא חזקה מכיוון שהיא ממקדת את הידע העצום של המודל, קובעת ציפיות לטון וסגנון, מספקת הקשר מרומז והופכת את הפלטים לעקביים יותר.
+</Callout>
+
+<Quiz 
+  question="מה הופך הנחיה מבוססת תפקיד ליעילה יותר?"
+  options={[
+    "שימוש בכותרות תפקיד גנריות כמו 'מומחה'",
+    "הוספת פרטי מומחיות, ניסיון ופרספקטיבה ספציפיים",
+    "שמירה על תיאור התפקיד קצר ככל האפשר",
+    "בקשה מהבינה המלאכותית להחליף תפקידים לעתים קרובות"
+  ]}
+  correctIndex={1}
+  explanation="ככל שהתפקיד מפורט וריאליסטי יותר, כך התוצאות טובות יותר. ספציפיות עוזרת למודל להבין בדיוק איזה ידע, טון ופרספקטיבה להפעיל."
+/>
+
+המפתח הוא **ספציפיות**: ככל שהתפקיד מפורט וריאליסטי יותר, כך התוצאות טובות יותר. בפרק הבא, נחקור כיצד לקבל פלטים עקביים ומובנים מההנחיות שלכם.

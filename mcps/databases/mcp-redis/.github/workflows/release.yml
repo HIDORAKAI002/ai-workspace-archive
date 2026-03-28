@@ -1,0 +1,353 @@
+  name: Release to PyPI
+  
+  on:
+    release:
+      types: [published]
+    workflow_dispatch:
+      inputs:
+        version:
+          description: 'Version to release (e.g., 0.3.0)'
+          required: true
+          type: string
+        environment:
+          description: 'Target environment'
+          required: true
+          default: 'pypi'
+          type: choice
+          options:
+          - pypi
+          - testpypi
+        dry_run:
+          description: 'Dry run (build only, do not publish)'
+          required: false
+          default: false
+          type: boolean
+  
+  permissions:
+    contents: read
+  
+  jobs:
+    validate-release:
+      runs-on: ubuntu-latest
+      outputs:
+        version: ${{ steps.get-version.outputs.version }}
+        tag-version: ${{ steps.get-version.outputs.tag-version }}
+      steps:
+      - name: ⚙️ Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+  
+      - name: ⚙️ Checkout the project
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Full history for UV build
+  
+      - name: ⚙️ Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: false
+  
+      - name: ⚙️ Set up Python
+        run: uv python install 3.12
+  
+    security-scan:
+      runs-on: ubuntu-latest
+      needs: validate-release
+      steps:
+      - name: ⚙️ Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+  
+      - name: ⚙️ Checkout the project
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+  
+      - name: ⚙️ Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: false
+  
+      - name: ⚙️ Set Python up and add dependencies
+        run: |
+          uv python install 3.12
+          uv sync --all-extras --dev
+          uv add --dev bandit
+  
+      - name: ⚙️ Run security scan with bandit
+        run: |
+          uv run bandit -r src/
+  
+    test:
+      runs-on: ubuntu-latest
+      needs: validate-release
+      strategy:
+        matrix:
+          python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+  
+      services:
+        redis:
+          image: redis:latest
+          ports:
+            - 6379:6379
+          options: >-
+            --health-cmd "redis-cli ping"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+  
+      steps:
+      - name: ⚙️ Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+  
+      - name: ⚙️ Checkout the project
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+  
+      - name: ⚙️ Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: false
+  
+      - name: ⚙️ Set up Python ${{ matrix.python-version }}
+        run: |
+          uv python install ${{ matrix.python-version }}
+          uv sync --all-extras --dev
+  
+      - name: ⚙️ Run tests
+        run: uv run pytest tests/ -v --tb=short
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+  
+      - name: ⚙️ Test MCP server startup
+        run: |
+          timeout 10s uv run python src/main.py || test $? = 124
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+  
+    build-and-publish:
+      runs-on: ubuntu-latest
+      needs: [validate-release, security-scan, test]
+      environment:
+        name: ${{ github.event.inputs.environment || 'pypi' }}
+        url: ${{ github.event.inputs.environment == 'testpypi' && 'https://test.pypi.org/p/redis-mcp-server' || 'https://pypi.org/p/redis-mcp-server' }}
+      permissions:
+        id-token: write  # IMPORTANT: mandatory for trusted publishing
+        contents: read
+        attestations: write  # For build attestations
+  
+      steps:
+      - name: ⚙️ Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+  
+      - name: ⚙️ Checkout the project
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Full history for UV build
+  
+      - name: ⚙️ Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: false
+  
+      - name: ⚙️ Set up Python
+        run: uv python install 3.12
+  
+      - name: ⚙️ Override version in pyproject.toml
+        if: (github.event_name == 'workflow_dispatch' && github.event.inputs.version) || github.event_name == 'release'
+        run: |
+          # Determine the target version
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET_VERSION="${{ github.event.inputs.version }}"
+            echo "Overriding version from manual trigger: $TARGET_VERSION"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+            TARGET_VERSION=$(echo "$RELEASE_TAG" | sed 's/^v//')
+            echo "Overriding version from release tag: $TARGET_VERSION (tag: $RELEASE_TAG)"
+          fi
+            
+          # Get current version for comparison
+          CURRENT_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "Current version in pyproject.toml: $CURRENT_VERSION"
+            
+          # Check if override is needed
+          if [[ "$CURRENT_VERSION" == "$TARGET_VERSION" ]]; then
+            echo "Version already matches target: $TARGET_VERSION"
+          else
+            echo "Version override needed: $CURRENT_VERSION → $TARGET_VERSION"
+            
+            # Update version in pyproject.toml
+            sed -i "s/^version = \".*\"/version = \"$TARGET_VERSION\"/" pyproject.toml
+            
+            # Verify the change
+            NEW_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+            echo "Updated version in pyproject.toml: $NEW_VERSION"
+            
+            # Validate the change was successful
+            if [[ "$NEW_VERSION" != "$TARGET_VERSION" ]]; then
+              echo "Version override failed! Expected: $TARGET_VERSION, Got: $NEW_VERSION"
+              exit 1
+            fi
+            
+            echo "Version successfully changed: $CURRENT_VERSION → $NEW_VERSION"
+          fi
+  
+      - name: ⚙️ Build package
+        run: |
+          uv build --sdist --wheel
+  
+      - name: ⚙️ Check package
+        run: |
+          uv add --dev twine
+          uv run twine check dist/*
+  
+      - name: ⚙️ Generate build attestation
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: 'dist/*'
+  
+      - name: ⚙️ Publish to PyPI
+        if: ${{ !inputs.dry_run }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ github.event.inputs.environment == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
+          print-hash: true
+          attestations: true
+  
+      - name: ⚙️ Dry run - Package ready for publishing
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "🔍 DRY RUN MODE - Package built successfully but not published"
+          echo "📦 Built packages:"
+          ls -la dist/
+          echo ""
+          echo "✅ Package is ready for publishing to ${{ github.event.inputs.environment || 'pypi' }}"
+  
+      - name: ⚙️ Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-${{ needs.validate-release.outputs.version }}
+          path: dist/
+          retention-days: 90
+
+    publish-mcp-registry:
+      runs-on: ubuntu-latest
+      needs: [validate-release, build-and-publish]
+      if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+      permissions:
+        id-token: write  # Required for GitHub OIDC authentication
+        contents: read
+
+      steps:
+      - name: ⚙️ Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: ⚙️ Checkout the project
+        uses: actions/checkout@v6
+
+      - name: ⚙️ Update server.json version
+        run: |
+          # Determine the target version
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET_VERSION="${{ github.event.inputs.version }}"
+            echo "Using version from manual trigger: $TARGET_VERSION"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+            TARGET_VERSION=$(echo "$RELEASE_TAG" | sed 's/^v//')
+            echo "Using version from release tag: $TARGET_VERSION (tag: $RELEASE_TAG)"
+          else
+            echo "Error: Unexpected event type: ${{ github.event_name }}"
+            exit 1
+          fi
+
+          # Update version in server.json (with validation)
+          if ! jq --arg v "$TARGET_VERSION" '.version = $v | .packages[0].version = $v' server.json > tmp; then
+            echo "Error: jq failed to update server.json"
+            rm -f tmp
+            exit 1
+          fi
+
+          # Verify the updated content is valid JSON before replacing
+          if ! jq empty tmp 2>/dev/null; then
+            echo "Error: Updated server.json is not valid JSON"
+            cat tmp
+            rm -f tmp
+            exit 1
+          fi
+
+          # Replace original with validated update
+          mv tmp server.json
+
+          echo "Updated server.json:"
+          cat server.json
+
+      - name: ⚙️ Install MCP Publisher
+        run: |
+          curl -fL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xzf - mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: ⚙️ Login to MCP Registry
+        if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        run: ./mcp-publisher login github-oidc
+
+      - name: ⚙️ Publish to MCP Registry
+        if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        run: ./mcp-publisher publish
+
+      - name: ⚙️ Dry run notification
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+        run: |
+          VERSION=$(jq -r '.version' server.json)
+          echo "🔍 DRY RUN MODE - MCP Registry preparation successful!"
+          echo ""
+          echo "server.json is valid JSON and ready to publish"
+          echo "Server: io.github.redis/mcp-redis"
+          echo "Version: $VERSION"
+          echo ""
+          echo "To actually publish to MCP Registry, run this workflow again without dry_run enabled"
+
+    notify-success:
+      runs-on: ubuntu-latest
+      needs: [validate-release, build-and-publish, publish-mcp-registry]
+      if: ${{ always() && !cancelled() && needs.build-and-publish.result == 'success' }}
+      steps:
+      - name: ⚙️ Success notification
+        run: |
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "🔍 DRY RUN COMPLETED - Redis MCP Server v${{ github.event.inputs.version || needs.validate-release.outputs.version }} ready for release!"
+            echo "📦 Package built successfully but not published"
+            echo "🎯 Target environment: ${{ github.event.inputs.environment || 'pypi' }}"
+          else
+            echo "🎉 Successfully released Redis MCP Server v${{ github.event.inputs.version || needs.validate-release.outputs.version }}!"
+            echo ""
+            echo "📦 PyPI Package:"
+            if [[ "${{ github.event.inputs.environment }}" == "testpypi" ]]; then
+              echo "   https://test.pypi.org/project/redis-mcp-server/${{ github.event.inputs.version || needs.validate-release.outputs.version }}/"
+            else
+              echo "   https://pypi.org/project/redis-mcp-server/${{ github.event.inputs.version || needs.validate-release.outputs.version }}/"
+            fi
+            echo ""
+            echo "🔌 MCP Registry:"
+            echo "   https://registry.modelcontextprotocol.io/v0/servers?search=redis"
+            echo ""
+            if [[ "${{ github.event_name }}" == "release" ]]; then
+              echo "🏷️ Release: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+            else
+              echo "🚀 Manual release triggered by: ${{ github.actor }}"
+            fi
+          fi

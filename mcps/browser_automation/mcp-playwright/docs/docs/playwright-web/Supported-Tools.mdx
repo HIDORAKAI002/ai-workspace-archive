@@ -1,0 +1,443 @@
+---
+sidebar_position: 1
+---
+
+import YouTubeVideoEmbed from '@site/src/components/HomepageFeatures/YouTubeVideoEmbed';
+
+# ��️ Supported Tools
+
+Playwright MCP for Browser automation has following key features
+- Console log monitoring
+- Code Generation
+- Web Scraping
+- Screenshot capabilities
+- JavaScript execution
+- Basic web interaction (navigation, clicking, form filling, drop down select and hover)
+- Content retrieval (visible text and HTML)
+
+
+<YouTubeVideoEmbed videoId="8CcgFUE16HM" />
+
+---
+
+:::warning Note
+Playwright UI automation is supported for very limited feature sets, more features will be added in upcoming days. Please feel free to fork the repo and add the feature and raise PR, will can build the library together!
+:::
+
+## Code Generation Tools
+
+These tools allow you to record and generate reusable Playwright test scripts.
+
+### start_codegen_session
+Start a new code generation session to record Playwright actions.
+
+- **Inputs:**
+  - **`options`** *(object, required)*:  
+    Code generation options:
+    - **`outputPath`** *(string, required)*:  
+      Directory path where generated tests will be saved (use absolute path).
+    - **`testNamePrefix`** *(string, optional)*:  
+      Prefix to use for generated test names (default: 'GeneratedTest').
+    - **`includeComments`** *(boolean, optional)*:  
+      Whether to include descriptive comments in generated tests.
+
+- **Response:**
+  - Session ID for the newly created code generation session.
+
+---
+
+### end_codegen_session
+End a code generation session and generate the test file.
+
+- **Inputs:**
+  - **`sessionId`** *(string, required)*:  
+    ID of the session to end.
+
+- **Response:**
+  - Information about the generated test file.
+
+---
+
+### get_codegen_session
+Get information about a code generation session.
+
+- **Inputs:**
+  - **`sessionId`** *(string, required)*:  
+    ID of the session to retrieve.
+
+- **Response:**
+  - Session information including recorded actions and status.
+
+---
+
+### clear_codegen_session
+Clear a code generation session without generating a test.
+
+- **Inputs:**
+  - **`sessionId`** *(string, required)*:  
+    ID of the session to clear.
+
+- **Response:**
+  - Confirmation that the session was cleared.
+
+---
+
+## Browser Automation Tools
+
+### Playwright_navigate
+
+Navigate to a URL in the browser with configurable viewport and browser settings
+
+- **`url`** *(string, required)*:  
+  URL of the application under test.
+
+- **`browserType`** *(string, optional, default: "chromium")*:  
+  Browser engine to use. Supported values: "chromium", "firefox", "webkit".
+
+- **`width`** *(number, optional, default: 1280)*:  
+  Viewport width in pixels.
+
+- **`height`** *(number, optional, default: 720)*:  
+  Viewport height in pixels.
+
+- **`timeout`** *(number, optional)*:  
+  Navigation timeout in milliseconds.
+
+- **`waitUntil`** *(string, optional)*:  
+  Navigation wait condition.
+
+- **`headless`** *(boolean, optional, default: false)*:  
+  Run browser in headless mode.
+
+---
+
+### Playwright_screenshot
+
+Capture screenshots of the entire page or specific elements
+
+- **`name`** *(string, required)*:  
+  Name for the screenshot.
+
+- **`selector`** *(string, optional)*:  
+  CSS selector for the element to screenshot.
+
+- **`width`** *(number, optional, default: 800)*:  
+  Screenshot width.
+
+- **`height`** *(number, optional, default: 600)*:  
+  Screenshot height.
+
+- **`storeBase64`** *(boolean, optional, default: false)*:  
+  Store the screenshot as a base64 string.
+
+- **`fullPage`** *(boolean, optional, default: false)*:
+  Capture a screenshot of the full page.
+
+- **`savePng`** *(boolean, optional, default: false)*:
+  Save the screenshot as a PNG file.
+
+- **`downloadsDir`** *(string, optional)*:
+  Directory to save the screenshot.
+---
+
+### Playwright_resize
+
+Resize the browser viewport at runtime to test responsive layouts without closing and reopening the browser. Supports 143+ device presets with automatic user-agent and touch emulation.
+
+**Device Preset Mode (Recommended):**
+
+- **`device`** *(string, optional)*:  
+  Device preset name (e.g., 'iPhone 13', 'iPad Pro 11', 'Pixel 7', 'Galaxy S24', 'Desktop Chrome'). Automatically configures viewport, user-agent, device scale factor, and touch capabilities.
+
+- **`orientation`** *(string, optional)*:  
+  Device orientation: 'portrait' or 'landscape' (only applies when using device preset).
+
+**Manual Dimensions Mode:**
+
+- **`width`** *(number, optional)*:  
+  Viewport width in pixels. Must be between 1 and 7680 (8K resolution).
+
+- **`height`** *(number, optional)*:  
+  Viewport height in pixels. Must be between 1 and 4320 (8K resolution).
+
+**Popular Device Presets:**
+- Mobile: `iPhone 13`, `iPhone 14`, `iPhone 15`, `Pixel 5`, `Pixel 7`, `Galaxy S24`
+- Tablet: `iPad Pro 11`, `iPad Pro 12.9`, `Galaxy Tab S4`
+- Desktop: `Desktop Chrome`, `Desktop Firefox`, `Desktop Safari`
+
+**Example Usage:**
+```javascript
+// Navigate to site
+await playwright_navigate({ url: "https://example.com" });
+
+// Test with device presets (includes user-agent, touch, scale factor)
+await playwright_resize({ device: "iPhone 13" });
+await playwright_resize({ device: "iPhone 13", orientation: "landscape" });
+await playwright_resize({ device: "iPad Pro 11" });
+await playwright_resize({ device: "Desktop Chrome" });
+
+// Manual dimensions (simple viewport resize)
+await playwright_resize({ width: 768, height: 1024 });
+await playwright_resize({ width: 375, height: 667 });
+```
+
+**Device Emulation Features:**
+- ✅ Automatic viewport sizing
+- ✅ Proper user-agent strings
+- ✅ Touch event support
+- ✅ Device pixel ratio
+- ✅ Mobile/desktop detection
+
+---
+
+### Playwright_click
+Click elements on the page.
+
+- **`selector`** *(string)*:  
+  CSS selector for the element to click.
+
+---
+
+### playwright_click_and_switch_tab
+Clicks a link on the page and switches to the newly opened tab.
+
+- **Inputs:**
+  - **`selector`** *(string)*:  
+    CSS selector for the link to click.
+- **Response:**  
+  - Success message with the URL of the newly opened tab.
+
+---
+
+### Playwright_iframe_click
+Click elements in an iframe on the page.
+
+- **`iframeSelector`** *(string)*:  
+  CSS selector for the iframe containing the element to click.
+
+- **`selector`** *(string)*:  
+  CSS selector for the element to click.
+
+---
+
+### Playwright_iframe_fill
+Fill elements in an iframe on the page.
+
+- **`iframeSelector`** *(string)*:  
+  CSS selector for the iframe containing the element to fill.
+
+- **`selector`** *(string)*:  
+  CSS selector for the element to fill.
+
+---
+
+### Playwright_hover
+Hover over elements on the page.
+
+- **`selector`** *(string)*:  
+  CSS selector for the element to hover.
+
+---
+
+### Playwright_fill
+Fill out input fields.
+
+- **`selector`** *(string)*:  
+  CSS selector for the input field.  
+- **`value`** *(string)*:  
+  Value to fill.
+
+---
+
+### Playwright_select
+Select an element with the `SELECT` tag.
+
+- **`selector`** *(string)*:  
+  CSS selector for the element to select.  
+- **`value`** *(string)*:  
+  Value to select.
+
+---
+
+### playwright_upload_file
+Upload a file to an input[type='file'] element on the page.
+
+- **Inputs:**
+  - **`selector`** *(string, required)*:  
+    CSS selector for the file input element.
+  - **`filePath`** *(string, required)*:  
+    Absolute path to the file to upload.
+
+---
+
+### Playwright_evaluate
+Execute JavaScript in the browser console.
+
+- **`script`** *(string)*:  
+  JavaScript code to execute.
+
+---
+
+### Playwright_console_logs
+Retrieve console logs from the browser with filtering options
+Supports Retrieval of logs like - all, error, warning, log, info, debug, exception
+
+- **`search`** *(string)*:  
+  Text to search for in logs (handles text with square brackets).
+
+- **`limit`** *(number)*:
+  Maximum number of logs to retrieve.
+
+- **`type`** *(string)*:
+  Type of logs to retrieve (all, error, warning, log, info, debug, exception).
+
+- **`clear`** *(boolean)*:
+  Whether to clear logs after retrieval (default: false).
+
+---
+
+### Playwright_close
+  Close the browser and release all resources.
+  Useful while working with Cline, Cursor to release the resources.
+
+---
+
+### Playwright_expect_response
+Ask Playwright to start waiting for a HTTP response. This tool initiates the wait operation but does not wait for its completion.
+
+- **Inputs:**
+  - **`id`** *(string)*:  
+    Unique & arbitrary identifier to be used for retrieving this response later with `Playwright_assert_response`.
+  - **`url`** *(string)*:  
+    URL pattern to match in the response.
+
+---
+
+### Playwright_assert_response
+Wait for and validate a previously initiated HTTP response wait operation.
+
+- **Inputs:**
+  - **`id`** *(string)*:  
+    Identifier of the HTTP response initially expected using `Playwright_expect_response`.
+  - **`value`** *(string, optional)*:  
+    Data to expect in the body of the HTTP response. If provided, the assertion will fail if this value is not found in the response body.
+
+- **Response:**
+  - **`statusCode`** *(string)*:  
+    Status code of the response.
+  - **`responseUrl`** *(string)*:  
+    Full URL of the captured response.
+  - **`responseBody`** *(string)*:  
+    Full response body in JSON format.
+
+---
+
+### playwright_custom_user_agent
+Set a custom User Agent for the browser.
+
+- **Inputs:**
+  - **`userAgent`** *(string)*:  
+    Custom User Agent for the Playwright browser instance
+
+---
+
+### playwright_get_visible_text
+Get the visible text content of the current page.
+
+- **Response:**
+  - **`content`** *(string)*:  
+    The visible text content of the current page, extracted from visible DOM elements.
+    Hidden elements (with display:none or visibility:hidden) are excluded.
+
+---
+
+### playwright_get_visible_html
+Get the HTML content of the current page.
+
+- **Inputs:**
+  - **`selector`** *(string, optional)*:  
+    CSS selector to limit the HTML to a specific container. If provided, only returns the HTML for that element.
+  - **`removeScripts`** *(boolean, optional, default: false)*:  
+    Remove all script tags from the HTML to reduce noise.
+  - **`removeComments`** *(boolean, optional, default: false)*:  
+    Remove all HTML comments to clean up the output.
+  - **`removeStyles`** *(boolean, optional, default: false)*:  
+    Remove all style tags from the HTML.
+  - **`removeMeta`** *(boolean, optional, default: false)*:  
+    Remove all meta tags from the HTML head section.
+  - **`minify`** *(boolean, optional, default: false)*:  
+    Minify the HTML output by removing extra whitespace.
+  - **`cleanHtml`** *(boolean, optional, default: false)*:  
+    Convenience option that combines removeScripts, removeComments, removeStyles, and removeMeta for a cleaner HTML output.
+
+- **Response:**
+  - **`content`** *(string)*:  
+    The HTML content of the current page, optionally filtered based on the provided parameters.
+
+---
+
+### playwright_go_back
+Navigate back in browser history.
+
+- **Response:**
+  - Confirmation message that the browser has navigated back in its history.
+
+---
+
+### playwright_go_forward
+Navigate forward in browser history.
+
+- **Response:**
+  - Confirmation message that the browser has navigated forward in its history.
+
+---
+
+### playwright_drag
+Drag an element to a target location.
+
+- **Inputs:**
+  - **`sourceSelector`** *(string)*:  
+    CSS selector for the element to drag.
+  - **`targetSelector`** *(string)*:  
+    CSS selector for the target location.
+
+- **Response:**
+  - Confirmation message that the drag operation has been performed.
+
+---
+
+### playwright_press_key
+Press a keyboard key.
+
+- **Inputs:**
+  - **`key`** *(string)*:  
+    Key to press (e.g. 'Enter', 'ArrowDown', 'a').
+  - **`selector`** *(string, optional)*:  
+    CSS selector for an element to focus before pressing the key.
+
+- **Response:**
+  - Confirmation message indicating which key was pressed.
+
+---
+
+### playwright_save_as_pdf
+Save the current page as a PDF file.
+
+- **Inputs:**
+  - **`outputPath`** *(string)*:  
+    Directory path where the PDF will be saved.
+  - **`filename`** *(string, optional, default: "page.pdf")*:  
+    Name of the PDF file.
+  - **`format`** *(string, optional, default: "A4")*:  
+    Page format (e.g. 'A4', 'Letter').
+  - **`printBackground`** *(boolean, optional, default: true)*:  
+    Whether to print background graphics.
+  - **`margin`** *(object, optional)*:  
+    Page margins with the following properties:
+    - **`top`** *(string)*: Top margin (e.g. '1cm').
+    - **`right`** *(string)*: Right margin (e.g. '1cm').
+    - **`bottom`** *(string)*: Bottom margin (e.g. '1cm').
+    - **`left`** *(string)*: Left margin (e.g. '1cm').
+
+- **Response:**
+  - Path to the saved PDF file.

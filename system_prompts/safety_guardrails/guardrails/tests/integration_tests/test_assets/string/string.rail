@@ -1,0 +1,20 @@
+<rail version="0.1">
+<output
+    type="string"
+    description="Name for the pizza"
+/>
+<messages>
+<message role="system">
+You are a helpful assistant, and you are helping me come up with a name for a pizza.
+
+${complete_string_suffix}
+</message>
+<message role="user">
+Given the following ingredients, what would you call this pizza?
+
+${ingredients}
+</message>
+</messages>
+
+
+</rail>

@@ -1,0 +1,12 @@
+{
+	"name": "ai-skills",
+	"description": "Cursor AI agent skills (frontend-code-review, etc.)",
+	"scripts": {
+		"lint": "biome check",
+		"lint:fix": "biome check --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.4",
+		"prettier": "^3.4.2"
+	}
+}

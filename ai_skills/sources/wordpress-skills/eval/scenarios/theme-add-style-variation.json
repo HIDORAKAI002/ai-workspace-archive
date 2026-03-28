@@ -1,0 +1,23 @@
+{
+  "name": "Add a style variation",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-themes"],
+  "query": "Add a new style variation to a block theme and explain why an existing site might not reflect changes immediately.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect block theme structure",
+    "Step 3: Route to wp-block-themes skill",
+    "Step 4: Create JSON file under styles/ directory",
+    "Step 5: Include title and settings/styles sections in variation JSON",
+    "Step 6: Explain that selected variation is stored in database",
+    "Step 7: Note that user customizations may override theme changes",
+    "Step 8: Recommend testing on fresh site or resetting customizations",
+    "Step 9: Verify variation appears in Site Editor style switcher"
+  ],
+  "success_criteria": [
+    "Style variation file created in styles/ directory",
+    "Valid JSON structure with title",
+    "Explains database storage of user selection",
+    "Mentions user customization override behavior",
+    "Provides testing guidance for fresh vs existing sites"
+  ]
+}

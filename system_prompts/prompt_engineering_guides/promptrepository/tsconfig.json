@@ -1,0 +1,32 @@
+{
+   "compilerOptions": {
+      "module": "CommonJS",
+      "target": "ES2022",
+      "lib": [
+         "ES2022",
+         "DOM"
+      ],
+      "outDir": "dist",
+      "rootDir": ".",
+      "sourceMap": false,
+      "strict": true,
+      "noImplicitAny": true,
+      "declaration": true,
+      "declarationMap": true,
+      "composite": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "types": [
+         "node"
+      ],
+      "baseUrl": ".",
+      "paths": {}
+   },
+   "references": [],
+   "include": [
+      "**/*.json",
+      "src/**/*.ts",
+      "scripts/**/*.ts",
+      "test/**/*.ts"
+   ]
+}

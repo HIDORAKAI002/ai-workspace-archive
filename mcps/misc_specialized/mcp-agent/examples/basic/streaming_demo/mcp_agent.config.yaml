@@ -1,0 +1,13 @@
+# Streaming Demo Configuration
+
+# Default LLM model to use
+default_model: claude-3-5-sonnet-20241022
+
+# Optional: Configure MCP servers for tool calling demos
+# Uncomment to enable filesystem tools for Demo 2
+# mcp_servers:
+#   filesystem:
+#     command: uvx
+#     args:
+#       - mcp-server-filesystem
+#       - /path/to/directory

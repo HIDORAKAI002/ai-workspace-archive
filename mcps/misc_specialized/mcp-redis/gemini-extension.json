@@ -1,0 +1,25 @@
+{
+  "name": "redis",
+  "version": "0.1.0",
+  "description": "Manage and search data in Redis efficiently within Gemini CLI.",
+  "mcpServers": {
+    "redis": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "redis-mcp-server@latest",
+        "redis-mcp-server",
+        "--url",
+        "${REDIS_URL}"
+      ]
+    }
+  },
+  "settings": [
+    {
+      "name": "Redis URL",
+      "description": "Connection URL for your Redis instance (e.g., redis://localhost:6379/0)",
+      "envVar": "REDIS_URL",
+      "sensitive": true
+    }
+  ]
+}

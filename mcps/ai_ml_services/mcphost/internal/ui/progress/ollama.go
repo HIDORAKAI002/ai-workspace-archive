@@ -1,0 +1,279 @@
+package progress
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"strings"
+	"sync"
+	"time"
+
+	"charm.land/bubbles/v2/progress"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
+)
+
+var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
+
+const (
+	padding  = 2
+	maxWidth = 80
+)
+
+// OllamaPullProgress represents the progress information received from Ollama's
+// pull API when downloading model files. It includes status messages, digest
+// information, and download progress counters.
+type OllamaPullProgress struct {
+	Status    string `json:"status"`
+	Digest    string `json:"digest,omitempty"`
+	Total     int64  `json:"total,omitempty"`
+	Completed int64  `json:"completed,omitempty"`
+}
+
+// progressMsg represents progress updates
+type progressMsg struct {
+	percent float64
+	status  string
+}
+
+// progressErrMsg represents errors during progress
+type progressErrMsg struct{ err error }
+
+// progressCompleteMsg indicates completion
+type progressCompleteMsg struct{}
+
+// ProgressModel implements a tea.Model for displaying download progress with
+// a visual progress bar and status messages. It handles progress updates,
+// errors, and completion states for Ollama model downloads.
+type ProgressModel struct {
+	progress progress.Model
+	status   string
+	err      error
+	complete bool
+}
+
+// NewProgressModel creates and initializes a new ProgressModel with a gradient
+// progress bar and initial "Initializing..." status message.
+func NewProgressModel() ProgressModel {
+	return ProgressModel{
+		progress: progress.New(progress.WithDefaultBlend()),
+		status:   "Initializing...",
+	}
+}
+
+// Init implements the tea.Model interface, returning nil as no initial commands
+// are needed for the progress display.
+func (m ProgressModel) Init() tea.Cmd {
+	return nil
+}
+
+// Update implements the tea.Model interface, handling keyboard input, window
+// resize events, and progress updates. It manages the progress bar state and
+// triggers program exit on completion or cancellation.
+func (m ProgressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		if msg.String() == "q" || msg.String() == "ctrl+c" {
+			return m, tea.Quit
+		}
+		return m, nil
+
+	case tea.WindowSizeMsg:
+		newWidth := min(msg.Width-padding*2-4, maxWidth)
+		m.progress.SetWidth(newWidth)
+		return m, nil
+
+	case progressErrMsg:
+		m.err = msg.err
+		return m, tea.Quit
+
+	case progressCompleteMsg:
+		m.complete = true
+		return m, tea.Quit
+
+	case progressMsg:
+		var cmds []tea.Cmd
+		m.status = msg.status
+
+		if msg.percent >= 1.0 {
+			m.complete = true
+			cmds = append(cmds, tea.Quit)
+		}
+
+		cmds = append(cmds, m.progress.SetPercent(msg.percent))
+		return m, tea.Batch(cmds...)
+
+	case progress.FrameMsg:
+		var cmd tea.Cmd
+		m.progress, cmd = m.progress.Update(msg)
+		return m, cmd
+
+	default:
+		return m, nil
+	}
+}
+
+// View implements the tea.Model interface, rendering the progress bar with
+// status information and help text. Displays error messages if present or
+// a completion message when the download finishes.
+func (m ProgressModel) View() tea.View {
+	if m.err != nil {
+		return tea.NewView(fmt.Sprintf("Error: %s\n", m.err.Error()))
+	}
+
+	if m.complete {
+		return tea.NewView(fmt.Sprintf("\n%s%s\n\n%sComplete!\n",
+			strings.Repeat(" ", padding),
+			m.progress.View(),
+			strings.Repeat(" ", padding)))
+	}
+
+	pad := strings.Repeat(" ", padding)
+	return tea.NewView(fmt.Sprintf("\n%s%s\n%s%s\n\n%s",
+		pad, m.progress.View(),
+		pad, m.status,
+		pad+helpStyle("Press 'q' or Ctrl+C to cancel")))
+}
+
+// ProgressReader wraps an io.Reader to intercept and parse Ollama pull operation
+// responses, extracting progress information and updating a visual progress bar.
+// It manages a tea.Program for the UI and handles graceful shutdown.
+type ProgressReader struct {
+	reader   io.Reader
+	program  *tea.Program
+	model    ProgressModel
+	lastLine string
+	done     chan struct{}
+	wg       sync.WaitGroup
+}
+
+// NewProgressReader creates and initializes a ProgressReader that wraps the provided
+// io.Reader. It starts a tea.Program in a separate goroutine to display the progress
+// bar UI while reading and parsing Ollama's streaming JSON responses.
+func NewProgressReader(reader io.Reader) *ProgressReader {
+	model := NewProgressModel()
+	// Create program with standard settings
+	program := tea.NewProgram(model)
+
+	pr := &ProgressReader{
+		reader:  reader,
+		program: program,
+		model:   model,
+		done:    make(chan struct{}),
+	}
+
+	// Start the TUI in a goroutine
+	pr.wg.Go(func() {
+		_, _ = program.Run()
+		close(pr.done)
+	})
+
+	return pr
+}
+
+// Read implements the io.Reader interface, passing through data from the wrapped
+// reader while parsing JSON lines to extract progress information. Each complete
+// JSON line is processed to update the progress bar display.
+func (pr *ProgressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.reader.Read(p)
+	if n > 0 {
+		// Parse the JSON lines for progress information
+		data := string(p[:n])
+		pr.lastLine += data
+
+		// Process complete lines
+		for {
+			lineEnd := strings.Index(pr.lastLine, "\n")
+			if lineEnd == -1 {
+				break
+			}
+
+			line := strings.TrimSpace(pr.lastLine[:lineEnd])
+			pr.lastLine = pr.lastLine[lineEnd+1:]
+
+			if line != "" {
+				pr.parseProgressLine(line)
+			}
+		}
+	}
+
+	if err == io.EOF {
+		// Send completion message and ensure program quits
+		pr.program.Send(progressCompleteMsg{})
+	}
+
+	return n, err
+}
+
+// parseProgressLine parses a single JSON line from Ollama pull response
+func (pr *ProgressReader) parseProgressLine(line string) {
+	var progress OllamaPullProgress
+	if err := json.Unmarshal([]byte(line), &progress); err != nil {
+		return // Ignore malformed JSON
+	}
+
+	var percent float64
+	status := progress.Status
+
+	// Calculate progress percentage if we have total and completed
+	if progress.Total > 0 && progress.Completed >= 0 {
+		percent = float64(progress.Completed) / float64(progress.Total)
+
+		// Format status with progress info
+		if progress.Digest != "" {
+			status = fmt.Sprintf("%s (%s)", progress.Status, progress.Digest[:12])
+		}
+
+		// Add size information
+		if progress.Total > 0 {
+			totalMB := float64(progress.Total) / (1024 * 1024)
+			completedMB := float64(progress.Completed) / (1024 * 1024)
+			status = fmt.Sprintf("%s - %.1f/%.1f MB", status, completedMB, totalMB)
+		}
+	} else {
+		// For status-only updates (like "pulling manifest"), show indeterminate progress
+		if strings.Contains(strings.ToLower(progress.Status), "pulling") ||
+			strings.Contains(strings.ToLower(progress.Status), "downloading") {
+			// Keep current progress or show small progress for activity
+			percent = 0.1
+		} else if strings.Contains(strings.ToLower(progress.Status), "success") ||
+			strings.Contains(strings.ToLower(progress.Status), "complete") {
+			percent = 1.0
+		}
+	}
+
+	pr.program.Send(progressMsg{
+		percent: percent,
+		status:  status,
+	})
+}
+
+// Close gracefully shuts down the progress display, sending a completion message
+// and waiting for the tea.Program to exit. If the program doesn't exit within
+// 2 seconds, it is forcefully terminated to prevent hanging.
+func (pr *ProgressReader) Close() error {
+	// Send completion message to trigger quit
+	pr.program.Send(progressCompleteMsg{})
+
+	// Wait for the program to finish with timeout
+	done := make(chan struct{})
+	go func() {
+		pr.wg.Wait()
+		close(done)
+	}()
+
+	// Wait for completion or timeout after 2 seconds
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	select {
+	case <-done:
+		// Program finished normally
+	case <-ctx.Done():
+		// Timeout - force kill the program
+		pr.program.Kill()
+	}
+
+	return nil
+}

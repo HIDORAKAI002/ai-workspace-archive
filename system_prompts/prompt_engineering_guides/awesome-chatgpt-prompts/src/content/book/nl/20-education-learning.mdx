@@ -1,0 +1,345 @@
+AI is een krachtig hulpmiddel voor zowel onderwijs als leren. Dit hoofdstuk behandelt prompts voor educatieve contexten—van gepersonaliseerde begeleiding tot curriculumontwikkeling.
+
+<Callout type="info" title="AI als Leerpartner">
+AI blinkt uit als een geduldige, adaptieve tutor die concepten op meerdere manieren kan uitleggen, onbeperkt oefenopdrachten kan genereren en directe feedback kan geven—24/7 beschikbaar.
+</Callout>
+
+## Gepersonaliseerd Leren
+
+### Wel en Niet Doen: Leerprompts
+
+<Compare 
+  before={{ label: "❌ Passief verzoek", content: "Leg kwantumfysica aan mij uit." }}
+  after={{ label: "✓ Contextrijk verzoek", content: "Leg kwantumsuperpositie aan mij uit.\n\nMijn achtergrond: Ik begrijp basisscheikunde en klassieke fysica.\nLeerstijl: Ik leer het beste door analogieën en voorbeelden.\nLeg uit met een simpele analogie, daarna het kernconcept, en dan een praktisch voorbeeld. Toets mijn begrip met een vraag." }}
+/>
+
+### Conceptuitleg
+
+<TryIt compact prompt={`Leg [concept] aan mij uit.
+
+Mijn achtergrond:
+- Huidig niveau: [beginner/gemiddeld/gevorderd]
+- Gerelateerde kennis: [wat ik al weet]
+- Leerstijl: [visueel/voorbeelden/theoretisch]
+
+Leg uit met:
+1. Simpele analogie met iets bekends
+2. Kernconcept in eenvoudige taal
+3. Hoe het aansluit bij wat ik weet
+4. Een praktisch voorbeeld
+5. Veelvoorkomende misvattingen om te vermijden
+
+Toets daarna mijn begrip met een vraag.`} />
+
+### Adaptieve Begeleiding
+
+<TryIt compact prompt={`Je bent mijn tutor voor \${subject:calculus}. Leer mij \${topic:afgeleiden} op adaptieve wijze.
+
+Begin met een diagnostische vraag om mijn niveau te bepalen.
+Gebaseerd op mijn antwoord:
+- Als correct: Ga naar meer geavanceerde aspecten
+- Als gedeeltelijk correct: Verduidelijk het hiaat, ga dan verder
+- Als incorrect: Stap terug en bouw het fundament op
+
+Na elke uitleg:
+- Controleer begrip met een vraag
+- Pas de moeilijkheidsgraad aan op basis van mijn antwoorden
+- Geef aanmoediging en volg de voortgang`} />
+
+### Leerpad Creëren
+
+<TryIt compact prompt={`Maak een leerpad voor \${goal:webontwikkelaar worden}.
+
+Mijn situatie:
+- Huidig vaardigheidsniveau: \${skillLevel:absolute beginner}
+- Beschikbare tijd: \${timeAvailable:10 uur per week}
+- Beoogde tijdlijn: \${timeline:6 maanden}
+- Leervoorkeuren: \${preferences:projecten en tutorials}
+
+Bied:
+1. Voorkennis controle (wat ik eerst nodig heb)
+2. Mijlpalen overzicht (fases met doelen)
+3. Bronnen voor elke fase (gratis waar mogelijk)
+4. Oefenprojecten bij elke fase
+5. Beoordelingscriteria (hoe weet ik dat ik klaar ben om door te gaan)`} />
+
+## Studiehulp
+
+<Callout type="tip" title="Actief Leren Principe">
+Lees AI-uitleg niet passief. Vraag het om je te overhoren, problemen te genereren en je begrip te controleren. **Actieve herhaling overtreft passief lezen.**
+</Callout>
+
+### Samenvattingen Genereren
+
+<TryIt compact prompt={`Vat dit \${contentType:hoofdstuk} samen voor studiedoeleinden.
+
+Inhoud:
+\${content:plak hier je inhoud}
+
+Bied:
+1. **Kernconcepten** (5-7 hoofdideeën)
+2. **Belangrijke Termen** (met korte definities)
+3. **Relaties** (hoe concepten verbonden zijn)
+4. **Studievragen** (om begrip te testen)
+5. **Geheugensteuntjes** (ezelsbruggetjes of associaties)
+
+Formatteer voor makkelijk herhalen en onthouden.`} />
+
+### Flashcards Genereren
+
+<TryIt compact prompt={`Maak flashcards voor het studeren van \${topic:de Tweede Wereldoorlog}.
+
+Bronmateriaal:
+\${content:plak hier je studiemateriaal}
+
+Formatteer elke kaart:
+Voorkant: Vraag of term
+Achterkant: Antwoord of definitie
+Hint: Optioneel geheugensteuntje
+
+Categorieën om te behandelen:
+- Definities (kernbegrippen)
+- Concepten (hoofdideeën)
+- Relaties (hoe dingen verbonden zijn)
+- Toepassingen (praktisch gebruik)
+
+Genereer \${numberOfCards:20} kaarten, gebalanceerd over categorieën.`} />
+
+### Oefenopdrachten
+
+<TryIt compact prompt={`Genereer oefenopdrachten voor \${topic:kwadratische vergelijkingen}.
+
+Moeilijkheidsniveaus:
+- 3 Basis (test fundamenteel begrip)
+- 3 Gemiddeld (vereisen toepassing)
+- 2 Gevorderd (vereisen synthese/analyse)
+
+Voor elke opdracht:
+1. Duidelijke probleemstelling
+2. Ruimte voor studentenwerk
+3. Hints beschikbaar op verzoek
+4. Gedetailleerde oplossing met uitleg
+
+Inclusief variatie: \${problemTypes:berekening, conceptueel, toepassing}`} />
+
+## Lestools
+
+### Lesplan Maken
+
+<TryIt compact prompt={`Maak een lesplan voor het onderwijzen van \${topic:fotosynthese}.
+
+Context:
+- Klas/Niveau: \${audience:groep 8 biologie}
+- Lesduur: \${duration:50 minuten}
+- Klasgrootte: \${classSize:25 leerlingen}
+- Voorkennis: \${prerequisites:basiscelstructuur}
+
+Inclusief:
+1. **Leerdoelen** (SMART-formaat)
+2. **Openingshaak** (5 min) - activerende activiteit
+3. **Instructie** (15-20 min) - kerninhoud overdracht
+4. **Begeleide Oefening** (10 min) - werk met leerlingen
+5. **Zelfstandige Oefening** (10 min) - leerlingen werken alleen
+6. **Toetsing** (5 min) - begripscontrole
+7. **Afsluiting** - samenvatten en vooruitblik
+
+Benodigde materialen: lijst
+Differentiatiestrategieën: voor verschillende leerlingen`} />
+
+### Opdracht Ontwerpen
+
+<TryIt compact prompt={`Ontwerp een opdracht voor \${learningObjective:het analyseren van primaire bronnen}.
+
+Parameters:
+- Vak: \${course:VWO Geschiedenis}
+- Deadline over: \${dueIn:2 weken}
+- Individueel/Groep: \${grouping:individueel}
+- Weging: \${weight:15% van het cijfer}
+
+Inclusief:
+1. Duidelijke instructies
+2. Beoordelingsrubriek met criteria
+3. Voorbeeld van verwachte kwaliteit
+4. Inleververeisten
+5. Herinneringen over academische integriteit
+
+De opdracht moet:
+- Beoordelen \${skills:kritisch denken en bronnevaluatie}
+- Ruimte bieden voor \${allowFor:analyse en interpretatie}
+- Te voltooien zijn in ongeveer \${hours:8 uur}`} />
+
+### Toets Genereren
+
+<TryIt compact prompt={`Maak een toets over \${topic:de Amerikaanse Revolutie}.
+
+Formaat:
+- [X] Meerkeuzevragen (elk 4 opties)
+- [X] Waar/Onwaar vragen
+- [X] Korte antwoordvragen
+- [X] Één essayvraag
+
+Specificaties:
+- Behandel alle belangrijke leerdoelen
+- Varieer van herkenning tot analyse
+- Inclusief antwoordsleutel met uitleg
+- Tijdsinschatting: \${timeEstimate:30 minuten}
+- Puntwaarden voor elke sectie`} />
+
+## Gespecialiseerde Leercontexten
+
+### Talen Leren
+
+<TryIt compact prompt={`Help mij \${language:Spaans} leren.
+
+Huidig niveau: \${currentLevel:A2 - elementair}
+Moedertaal: \${nativeLanguage:Nederlands}
+Doelen: \${goals:conversatie voor reizen}
+
+Vandaag's les: \${focusArea:eten bestellen in restaurants}
+
+Inclusief:
+1. Nieuwe woordenschat (5-10 woorden) met:
+   - Uitspraakgids
+   - Voorbeeldzinnen
+   - Veelvoorkomende gebruiksnotities
+2. Grammaticapunt met duidelijke uitleg
+3. Oefeningen
+4. Culturele context notitie
+5. Conversatie oefenscenario`} />
+
+### Vaardigheidsontwikkeling
+
+<TryIt compact prompt={`Ik wil \${skill:gitaar} leren. Wees mijn coach.
+
+Mijn huidige niveau: \${currentLevel:absolute beginner}
+Doel: \${goal:5 nummers op gehoor spelen}
+Beschikbare oefentijd: \${practiceTime:30 minuten per dag}
+
+Bied:
+1. Beoordeling van startpunt
+2. Onderverdeling van benodigde deelvaardigheden
+3. Oefenroutine (specifieke oefeningen)
+4. Voortgangsmarkeringen (hoe verbetering te meten)
+5. Veelvoorkomende plateaus en hoe deze te overwinnen
+6. Gedetailleerd oefenplan voor de eerste week`} />
+
+### Examenvoorbereiding
+
+<TryIt compact prompt={`Help mij voorbereiden op \${examName:het staatsexamen}.
+
+Examenformaat: \${examFormat:Verbaal, Kwantitatief, Schrijven secties}
+Tijd tot examen: \${timeUntilExam:8 weken}
+Mijn zwakke punten: \${weakAreas:leesvaardigheid, meetkunde}
+Streefcijfer: \${targetScore:8+}
+
+Maak een studieplan:
+1. Te behandelen onderwerpen (geprioriteerd)
+2. Dagelijks studieschema
+3. Strategie voor proeftoetsen
+4. Belangrijke formules/feiten om te onthouden
+5. Toetsmakingstips specifiek voor dit examen
+6. Aanbevelingen voor de dag ervoor en de dag zelf`} />
+
+## Prompt Sjablonen van prompts.chat
+
+### Gedraag je als een Socratische Tutor
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als een Socratische tutor. Je helpt mij leren door indringende vragen te stellen in plaats van directe antwoorden te geven. Wanneer ik over een onderwerp vraag, reageer met vragen die mij begeleiden om zelf het antwoord te ontdekken. Als ik vastloop, geef hints maar geen oplossingen. Help mij kritisch denken te ontwikkelen.`} />
+
+### Gedraag je als een Educatieve Content Creator
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als een educatieve content creator. Je maakt boeiende, accurate educatieve materialen voor \${subject:biologie}. Maak complexe onderwerpen toegankelijk zonder te oversimplificeren. Gebruik analogieën, voorbeelden en visuele beschrijvingen. Voeg kenniscontroles toe en moedig actief leren aan.`} />
+
+### Gedraag je als een Studiebuddy
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als mijn studiebuddy. We studeren samen \${subject:organische chemie}. Overhoor mij over concepten, bespreek ideeën, help mij door problemen te werken en houd mij gemotiveerd. Wees bemoedigend maar daag mij ook uit om dieper na te denken. Laten we studeren interactief en effectief maken.`} />
+
+## Toegankelijkheid in Onderwijs
+
+### Content Aanpassing
+
+<TryIt compact prompt={`Pas deze educatieve inhoud aan voor \${accessibilityNeed:dyslexie-vriendelijk formaat}:
+
+Originele inhoud:
+\${content:plak hier je inhoud}
+
+Benodigde aanpassing:
+- [ ] Vereenvoudigde taal (lager leesniveau)
+- [ ] Visuele beschrijvingen (voor tekst-naar-spraak)
+- [ ] Gestructureerd formaat (voor cognitieve toegankelijkheid)
+- [ ] Overwegingen voor extra tijd
+- [ ] Alternatieve uitleg
+
+Behoud:
+- Alle belangrijke leerdoelen
+- Nauwkeurigheid van inhoud
+- Gelijkwaardigheid van beoordeling`} />
+
+### Meerdere Modaliteiten
+
+<TryIt compact prompt={`Presenteer \${concept:fotosynthese} op meerdere manieren:
+
+1. **Tekstuitleg** (duidelijke tekst)
+2. **Visuele beschrijving** (beschrijf een diagram)
+3. **Analogie** (relateer aan dagelijkse ervaring)
+4. **Verhaal/Narratief** (ingebed in een scenario)
+5. **V&A-formaat** (vraag en antwoord)
+
+Dit stelt leerlingen in staat om te leren met hun voorkeursstijl.`} />
+
+## Beoordeling & Feedback
+
+### Feedback Geven
+
+<TryIt compact prompt={`Geef educatieve feedback op dit studentenwerk:
+
+Opdracht: \${assignment:essay van 5 alinea's over klimaatverandering}
+Inlevering student: \${work:plak hier studentenwerk}
+Rubriek: \${rubric:helderheid thesis, bewijs, structuur, grammatica}
+
+Feedback formaat:
+1. **Sterke punten** - Wat ze goed deden (specifiek)
+2. **Verbeterpunten** - Wat werk nodig heeft (constructief)
+3. **Suggesties** - Hoe te verbeteren (uitvoerbaar)
+4. **Cijfer/Score** - Gebaseerd op rubriek
+5. **Aanmoediging** - Motiverende afsluiting
+
+Toon: Ondersteunend, specifiek, groei-gericht`} />
+
+### Zelfbeoordelingsprompts
+
+<TryIt compact prompt={`Help mij mijn begrip van \${topic:de Franse Revolutie} te beoordelen.
+
+Stel mij 5 vragen die testen:
+1. Basis herinnering
+2. Begrip
+3. Toepassing
+4. Analyse
+5. Synthese/Creatie
+
+Na elk antwoord, vertel mij:
+- Wat ik aantoonde te begrijpen
+- Wat ik moet herhalen
+- Hoe ik mijn kennis kan verdiepen
+
+Wees eerlijk maar bemoedigend.`} />
+
+## Samenvatting
+
+<Callout type="tip" title="Kerntechnieken">
+Pas je aan het niveau van de leerling aan, verdeel complexe onderwerpen in stappen, voeg actieve oefening toe (niet alleen uitleg), bied gevarieerde benaderingen, controleer regelmatig het begrip en geef constructieve feedback.
+</Callout>
+
+<Quiz 
+  question="Wat is de meest effectieve manier om AI te gebruiken voor leren?"
+  options={[
+    "AI-uitleg passief lezen zoals een studieboek",
+    "AI vragen om je te overhoren en oefenopdrachten te genereren",
+    "AI alleen gebruiken voor huiswerkantwoorden",
+    "AI volledig vermijden voor leren"
+  ]}
+  correctIndex={1}
+  explanation="Actieve herhaling overtreft passief lezen. Laat AI je overhoren, problemen genereren en je begrip controleren—dit bouwt sterkere herinneringen op dan alleen uitleg lezen."
+/>
+
+AI is een geduldige, altijd beschikbare leerpartner—gebruik het als aanvulling op, niet als vervanging van, menselijke instructie.

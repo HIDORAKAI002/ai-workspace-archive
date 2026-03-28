@@ -1,0 +1,1121 @@
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
+static TRANSLATIONS: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
+
+pub fn translations() -> &'static HashMap<&'static str, &'static str> {
+    TRANSLATIONS.get_or_init(|| {
+        let mut m = HashMap::new();
+
+        // ── App ──
+        m.insert("app.title", "ClaudeAdmin");
+        m.insert("app.subtitle", "Configuratiebeheer");
+
+        // ── Sidebar ──
+        m.insert("sidebar.overview", "Overzicht");
+        m.insert("sidebar.dashboard", "Dashboard");
+        m.insert("sidebar.analytics", "Statistieken");
+        m.insert("sidebar.manage", "Beheren");
+        m.insert("sidebar.projects", "Projecten");
+        m.insert("sidebar.global_skills", "Globale Skills");
+        m.insert("sidebar.skill_browser", "Skill Browser");
+        m.insert("sidebar.global_rules", "Globale regels");
+        m.insert("sidebar.plans", "Plannen");
+        m.insert("sidebar.mcp_servers", "MCP Servers");
+        m.insert("sidebar.mcp_browser", "MCP Browser");
+        m.insert("sidebar.security", "Beveiliging");
+        m.insert("sidebar.permissions", "Machtigingen");
+        m.insert("sidebar.config_health", "Configuratiecontrole");
+        m.insert("sidebar.system", "Systeem");
+        m.insert("sidebar.settings", "Instellingen");
+        m.insert("sidebar.sessions", "Sessies");
+        m.insert("sidebar.github", "GitHub");
+        m.insert("sidebar.learn", "Leren");
+        m.insert("sidebar.docs", "Documentatie");
+        m.insert("sidebar.help", "Systeeminformatie");
+
+        // ── Dashboard ──
+        m.insert("dashboard.title", "Dashboard");
+        m.insert("dashboard.subtitle", "Overzicht van uw Claude Code configuratie");
+        m.insert("dashboard.projects", "Projecten");
+        m.insert("dashboard.global_skills", "Globale Skills");
+        m.insert("dashboard.global_rules", "Globale regels");
+        m.insert("dashboard.mcp_servers", "MCP Servers");
+        m.insert("dashboard.plans", "Plannen");
+        m.insert("dashboard.config_health", "Configuratiecontrole");
+        m.insert("dashboard.recent_projects", "Recente projecten");
+        m.insert("dashboard.recent_changes", "Recente wijzigingen");
+        m.insert("dashboard.no_recent_changes", "Geen recente wijzigingen");
+        m.insert("dashboard.change_action", "Actie");
+        m.insert("dashboard.change_resource", "Resource");
+        m.insert("dashboard.change_time", "Tijd");
+        m.insert("dashboard.loading", "Laden");
+        m.insert("dashboard.error_loading", "Fout bij laden van dashboard");
+        m.insert("dashboard.col_name", "Naam");
+        m.insert("dashboard.col_claude_md", "CLAUDE.md");
+        m.insert("dashboard.col_skills", "Skills");
+        m.insert("dashboard.col_rules", "Regels");
+        m.insert("dashboard.col_memory", "Geheugen");
+        m.insert("dashboard.yes", "Ja");
+
+        // ── MCP ──
+        m.insert("mcp.title", "MCP Servers");
+        m.insert("mcp.subtitle", "Beheer Model Context Protocol servers voor Claude Code");
+        m.insert("mcp.tab_servers", "Servers");
+        m.insert("mcp.tab_health", "Gezondheidscontrole");
+        m.insert("mcp.tab_add", "Nieuwe server");
+        m.insert("mcp.tab_browse", "Catalogus bekijken");
+        m.insert("mcp.loading", "MCP servers laden");
+        m.insert("mcp.no_servers", "Geen MCP servers geconfigureerd");
+        m.insert("mcp.no_servers_hint", "Voeg servers toe via het tabblad 'Nieuwe server' of de MCP Browser.");
+        m.insert("mcp.select_server", "Selecteer een server uit de lijst om de configuratie te bekijken en bewerken.");
+        m.insert("mcp.no_servers_configured", "Geen servers geconfigureerd.");
+        m.insert("mcp.check_health", "Gezondheid controleren");
+        m.insert("mcp.save", "Opslaan");
+        m.insert("mcp.delete", "Verwijderen");
+        m.insert("mcp.saved", "Opgeslagen!");
+        m.insert("mcp.deleted", "Verwijderd!");
+        m.insert("mcp.read_only", "Alleen-lezen");
+        m.insert("mcp.read_only_hint", "Deze server wordt extern beheerd en kan hier niet worden bewerkt.");
+        m.insert("mcp.health.title", "MCP Server gezondheid");
+        m.insert("mcp.health.check_all", "Alle servers controleren");
+        m.insert("mcp.health.checking", "Controleren...");
+        m.insert("mcp.health.description", "Start elk MCP serverproces, stuurt JSON-RPC initialize + tools/list, en rapporteert de resultaten. Timeout: 10 seconden per server.");
+        m.insert("mcp.health.col_name", "Naam");
+        m.insert("mcp.health.col_source", "Bron");
+        m.insert("mcp.health.col_status", "Status");
+        m.insert("mcp.health.col_server_info", "Serverinfo");
+        m.insert("mcp.health.col_tools", "Tools");
+        m.insert("mcp.health.col_duration", "Duur");
+        m.insert("mcp.health.running", "Actief");
+        m.insert("mcp.health.error", "Fout");
+        m.insert("mcp.health.timeout", "Timeout");
+        m.insert("mcp.health.unsupported", "Niet ondersteund");
+        m.insert("mcp.health.unknown", "Onbekend");
+        m.insert("mcp.add.title", "MCP Server toevoegen");
+        m.insert("mcp.add.description", "Voeg een nieuwe MCP server toe aan uw globale ~/.claude.json configuratie.");
+        m.insert("mcp.add.name_label", "Servernaam");
+        m.insert("mcp.add.name_placeholder", "bijv. mijn-server");
+        m.insert("mcp.add.config_label", "Serverconfiguratie (JSON)");
+        m.insert("mcp.add.mode_form", "Formulier");
+        m.insert("mcp.add.mode_json", "Geavanceerd JSON");
+        m.insert("mcp.add.command_label", "Commando");
+        m.insert("mcp.add.args_label", "Argumenten");
+        m.insert("mcp.add.args_hint", "E\u{00e9}n argument per regel");
+        m.insert("mcp.add.env_label", "Omgevingsvariabelen");
+        m.insert("mcp.add.env_hint", "KEY=VALUE formaat, \u{00e9}\u{00e9}n per regel");
+        m.insert("mcp.add.submit", "Server toevoegen");
+        m.insert("mcp.add.name_required", "Voer een servernaam in");
+        m.insert("mcp.browse.title", "MCP Server Catalogus");
+        m.insert("mcp.browse.description", "Blader door populaire MCP servers en installeer ze met één klik. Bekijk de configuratie voor installatie.");
+        m.insert("mcp.browse.installed", "Geïnstalleerd");
+        m.insert("mcp.browse.install", "Installeren");
+        m.insert("mcp.browse.show_config", "Configuratie tonen");
+        m.insert("mcp.browse.hide_config", "Configuratie verbergen");
+        m.insert("mcp.browse.config_hint", "Controleer en bewerk de configuratie voor installatie. Vul de vereiste API-sleutels en paden in.");
+        m.insert("mcp.browse.cat_system", "Systeem & Bestanden");
+        m.insert("mcp.browse.cat_database", "Databases");
+        m.insert("mcp.browse.cat_api", "APIs");
+        m.insert("mcp.browse.cat_specialized", "Gespecialiseerd");
+        m.insert("mcp.browse.npm", "npm");
+        m.insert("mcp.source.claude_code", "Claude Code");
+        m.insert("mcp.source.claude_desktop", "Claude Desktop");
+        m.insert("mcp.tab_tools", "Tool Explorer");
+        m.insert("mcp.tools.title", "Tool Explorer");
+        m.insert("mcp.tools.description", "Alle tools van alle MCP servers");
+        m.insert("mcp.tools.search", "Tools zoeken...");
+        m.insert("mcp.tools.parameters", "Parameters (JSON Schema)");
+        m.insert("mcp.tools.required", "Verplicht");
+        m.insert("mcp.tools.no_tools", "Geen tools gevonden. Voer eerst een gezondheidscontrole uit.");
+        m.insert("mcp.tools.from_server", "van");
+
+        // ── MCP Browser ──
+        m.insert("mcp_browser.title", "MCP Browser");
+        m.insert("mcp_browser.subtitle", "Ontdek en installeer MCP servers voor Claude Code");
+        m.insert("mcp_browser.search_placeholder", "MCP servers zoeken...");
+        m.insert("mcp_browser.loading", "MCP catalogus laden");
+        m.insert("mcp_browser.no_results", "Geen MCP servers gevonden");
+        m.insert("mcp_browser.installed", "Ge\u{00ef}nstalleerd");
+        m.insert("mcp_browser.install", "Installeren");
+        m.insert("mcp_browser.needs_api_key", "API-sleutel vereist");
+        m.insert("mcp_browser.install_success", "succesvol ge\u{00ef}nstalleerd!");
+        m.insert("mcp_browser.install_failed", "Installatie mislukt");
+
+        // ── Projects ──
+        m.insert("projects.tab_projects", "Projecten");
+        m.insert("projects.tab_health", "Gezondheidsoverzicht");
+        m.insert("projects.title", "Projecten");
+        m.insert("projects.subtitle", "Alle projecten geregistreerd in ~/.claude.json");
+        m.insert("projects.loading", "Laden");
+        m.insert("projects.error_loading", "Fout bij laden van projecten: ");
+        m.insert("projects.col_name", "Naam");
+        m.insert("projects.col_path", "Pad");
+        m.insert("projects.col_claude_md", "CLAUDE.md");
+        m.insert("projects.col_skills", "Skills");
+        m.insert("projects.col_rules", "Regels");
+        m.insert("projects.col_memory", "Geheugen");
+        m.insert("projects.yes", "Ja");
+
+        // ── Project Detail ──
+        m.insert("project_detail.loading", "Projectdetails laden");
+        m.insert("project_detail.error_loading", "Fout bij laden van project");
+        m.insert("project_detail.tab_advisor", "Adviseur");
+        m.insert("project_detail.tab_claude_md", "CLAUDE.md");
+        m.insert("project_detail.tab_skills", "Skills");
+        m.insert("project_detail.tab_rules", "Regels");
+        m.insert("project_detail.tab_memory", "Geheugen");
+        m.insert("project_detail.tab_permissions", "Machtigingen");
+        m.insert("project_detail.tab_effective", "Effectieve configuratie");
+        m.insert("project_detail.tab_health", "Gezondheid");
+        m.insert("project_detail.no_claude_md", "Geen CLAUDE.md gevonden");
+        m.insert("project_detail.no_claude_md_hint", "Maak een CLAUDE.md in uw projectmap om Claude Code instructies te geven.");
+        m.insert("project_detail.no_skills", "Geen skills voor dit project");
+        m.insert("project_detail.no_rules", "Geen regels voor dit project");
+        m.insert("project_detail.no_memory", "Geen geheugen voor dit project");
+        m.insert("project_detail.save", "Opslaan");
+        m.insert("project_detail.saved", "Opgeslagen!");
+        m.insert("project_detail.skill_scope", "Bereik");
+        m.insert("project_detail.permissions_loading", "Machtigingen laden...");
+        m.insert("project_detail.permissions_error", "Fout bij laden van machtigingen");
+        m.insert("project_detail.permissions_entries", "Vermeldingen");
+        m.insert("project_detail.permissions_col_tool", "Tool");
+        m.insert("project_detail.permissions_col_command", "Opdracht");
+        m.insert("project_detail.permissions_no_entries", "Geen machtigingsvermeldingen");
+        m.insert("project_detail.health_loading", "Gezondheid berekenen...");
+        m.insert("project_detail.health_error", "Fout bij laden van gezondheidsgegevens");
+        m.insert("project_detail.health_score", "Gezondheidsscore");
+        m.insert("project_detail.health_claude_md", "CLAUDE.md aanwezig");
+        m.insert("project_detail.health_memory", "Geheugen aanwezig");
+        m.insert("project_detail.health_permissions", "Machtigingen");
+        m.insert("project_detail.health_security_issues", "Beveiligingsproblemen");
+        m.insert("project_detail.health_duplicated_rules", "Gedupliceerde regels");
+        m.insert("project_detail.health_no_security_issues", "Geen beveiligingsproblemen gevonden");
+        m.insert("project_detail.health_col_text", "Tekst");
+        m.insert("project_detail.health_col_found_in", "Gevonden in");
+        m.insert("project_detail.health_col_also_in", "Ook in");
+        m.insert("project_detail.health_permission_entries", "Machtigingsvermeldingen");
+        m.insert("project_detail.permissions_col_index", "#");
+        m.insert("project_detail.permissions_col_status", "Status");
+        m.insert("project_detail.permissions_fragment", "Fragment");
+        m.insert("project_detail.permissions_ok", "OK");
+        m.insert("project_detail.permissions_security_warnings", "beveiligingswaarschuwing(en)");
+        m.insert("project_detail.permissions_manage", "Machtigingen beheren");
+        m.insert("project_detail.advisor_analyze", "Project analyseren");
+        m.insert("project_detail.advisor_analyzing", "Analyseren...");
+        m.insert("project_detail.advisor_description", "Claude analyseert uw project en geeft aanbevelingen");
+        m.insert("project_detail.advisor_loading", "Claude analyseert uw project");
+        m.insert("project_detail.advisor_summary", "Projectbeoordeling");
+        m.insert("project_detail.advisor_done", "Klaar!");
+        m.insert("project_detail.advisor_preview", "Voorbeeld tonen");
+        m.insert("project_detail.advisor_category_tip", "Tip");
+        m.insert("project_detail.skills_col_name", "Naam");
+        m.insert("project_detail.skills_col_description", "Beschrijving");
+        m.insert("project_detail.skills_col_invocable", "Aanroepbaar");
+        m.insert("project_detail.rules_col_name", "Naam");
+        m.insert("project_detail.rules_col_path", "Pad");
+        m.insert("project_detail.memory_col_file", "Bestand");
+        m.insert("project_detail.memory_col_size", "Grootte");
+        m.insert("project_detail.bytes", "bytes");
+        m.insert("project_detail.unknown_tab", "Onbekend tabblad");
+        m.insert("project_detail.tab_profile", "Profiel");
+        m.insert("project_detail.profile_health", "Gezondheidsscore");
+        m.insert("project_detail.profile_rules", "Regels");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "Geheugen");
+        m.insert("project_detail.profile_mcp", "MCP Servers");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "Conflicten");
+        m.insert("project_detail.profile_analyze", "Diepgaande analyse uitvoeren");
+        m.insert("project_detail.profile_no_mcp", "Geen MCP servers");
+        m.insert("project_detail.profile_global_scope", "Globaal");
+        m.insert("project_detail.profile_project_scope", "Project");
+
+        // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "Mijn Skills");
+        m.insert("global_skills.tab_browse", "Bladeren");
+        m.insert("global_skills.tab_templates", "Sjablonen");
+        m.insert("global_skills.title", "Globale Skills");
+        m.insert("global_skills.subtitle", "Beheer skills in ~/.claude/skills/");
+        m.insert("global_skills.loading", "Skills laden");
+        m.insert("global_skills.no_skills", "Geen globale skills gevonden");
+        m.insert("global_skills.no_skills_hint", "Maak skills aan in ~/.claude/skills/ of gebruik de Skill Browser.");
+        m.insert("global_skills.select_skill", "Selecteer een skill uit de lijst.");
+        m.insert("global_skills.col_skill", "Skill");
+        m.insert("global_skills.col_invocable", "Aanroepbaar");
+        m.insert("global_skills.invocable", "Aanroepbaar");
+        m.insert("global_skills.not_invocable", "Niet aanroepbaar");
+        m.insert("global_skills.editing", "Bewerken:");
+        m.insert("global_skills.save", "Opslaan");
+        m.insert("global_skills.saved", "Opgeslagen!");
+        m.insert("global_skills.delete", "Verwijderen");
+        m.insert("global_skills.deleted", "Verwijderd!");
+        m.insert("global_skills.tab_create", "Aanmaken");
+        m.insert("skill_builder.templates", "Sjablonen");
+        m.insert("skill_builder.editor", "Editor");
+        m.insert("skill_builder.preview", "Voorbeeld");
+        m.insert("skill_builder.name", "Skillnaam");
+        m.insert("skill_builder.name_placeholder", "bijv. mijn-skill");
+        m.insert("skill_builder.name_required", "Voer een skillnaam in");
+        m.insert("skill_builder.description", "Beschrijving");
+        m.insert("skill_builder.desc_placeholder", "Wat doet deze skill?");
+        m.insert("skill_builder.user_invocable", "Door gebruiker aanroepbaar (via /opdracht)");
+        m.insert("skill_builder.content", "Skillinhoud (Markdown)");
+        m.insert("skill_builder.save", "Skill opslaan");
+        m.insert("skill_builder.saved", "Skill opgeslagen:");
+        m.insert("skill_builder.trigger", "Trigger:");
+        m.insert("skill_builder.preview_hint", "Selecteer een sjabloon of begin met typen om een live voorbeeld te zien.");
+
+        // ── Global Rules ──
+        m.insert("global_rules.title", "Globale regels");
+        m.insert("global_rules.subtitle", "Beheer regels in ~/.claude/rules/");
+        m.insert("global_rules.loading", "Regels laden");
+        m.insert("global_rules.no_rules", "Geen globale regels gevonden");
+        m.insert("global_rules.no_rules_hint", "Maak .md bestanden aan in ~/.claude/rules/");
+        m.insert("global_rules.select_rule", "Selecteer een regel uit de lijst.");
+        m.insert("global_rules.col_rule", "Regel");
+        m.insert("global_rules.editing", "Bewerken:");
+        m.insert("global_rules.save", "Opslaan");
+        m.insert("global_rules.saved", "Opgeslagen!");
+        m.insert("global_rules.delete", "Verwijderen");
+        m.insert("global_rules.deleted", "Verwijderd!");
+
+        // ── Rules Conflicts ──
+        m.insert("rules.conflicts_title", "Regelconflicten");
+        m.insert("rules.conflicts_found", "Conflicten gevonden");
+        m.insert("rules.conflict_name_collision", "Naamsbotsing");
+        m.insert("rules.conflict_content_overlap", "Inhoudsoverlap");
+        m.insert("rules.conflict_contradiction", "Tegenstrijdigheid");
+        m.insert("rules.conflict_global", "Globaal");
+        m.insert("rules.conflict_project", "Project");
+        m.insert("rules.no_conflicts", "Geen conflicten gedetecteerd");
+
+        // ── Plans ──
+        m.insert("plans.title", "Plannen");
+        m.insert("plans.subtitle", "Beheer planbestanden in ~/.claude/plans/");
+        m.insert("plans.loading", "Plannen laden");
+        m.insert("plans.no_plans", "Geen plannen gevonden");
+        m.insert("plans.no_plans_hint", "Plannen worden aangemaakt door Claude Code tijdens het plannen.");
+        m.insert("plans.select_plan", "Selecteer een plan uit de lijst.");
+        m.insert("plans.col_plan", "Plan");
+        m.insert("plans.col_modified", "Gewijzigd");
+        m.insert("plans.modified", "Gewijzigd");
+        m.insert("plans.plan_label", "Plan:");
+        m.insert("plans.save", "Opslaan");
+        m.insert("plans.saved", "Opgeslagen!");
+        m.insert("plans.delete", "Verwijderen");
+        m.insert("plans.deleted", "Verwijderd!");
+
+        // ── Settings ──
+        m.insert("settings.title", "Instellingen");
+        m.insert("settings.subtitle", "Beheer Claude Code instellingen en hooks");
+        m.insert("settings.tab_overview", "Overzicht");
+        m.insert("settings.tab_hooks", "Hook-sjablonen");
+        m.insert("settings.tab_storage", "Opslag");
+        m.insert("settings.loading", "Instellingen laden");
+        m.insert("settings.hooks_title", "Hooks");
+        m.insert("settings.no_hooks", "Geen hooks geconfigureerd");
+        m.insert("settings.pre_tool_use", "PreToolUse");
+        m.insert("settings.post_tool_use", "PostToolUse");
+        m.insert("settings.matcher", "Matcher");
+        m.insert("settings.command", "Opdracht");
+        m.insert("settings.hook_templates_title", "Hook-sjablonen");
+        m.insert("settings.hook_templates_desc", "Vooraf gebouwde hook-configuraties om toe te voegen.");
+        m.insert("settings.hook_templates_loading", "Sjablonen laden");
+        m.insert("settings.add_hook", "Toevoegen");
+        m.insert("settings.storage_title", "Opslaggebruik");
+        m.insert("settings.storage_loading", "Opslag berekenen");
+        m.insert("settings.storage_total", "Totaal");
+        m.insert("settings.storage_dir", "Map");
+        m.insert("settings.storage_size", "Grootte");
+
+        // ── Permissions ──
+        m.insert("permissions.title", "Machtigingen");
+        m.insert("permissions.subtitle", "Bekijk en beheer projectmachtigingen");
+        m.insert("permissions.loading", "Machtigingen laden");
+        m.insert("permissions.no_permissions", "Geen machtigingen gevonden");
+        m.insert("permissions.col_project", "Project");
+        m.insert("permissions.col_entries", "Vermeldingen");
+        m.insert("permissions.col_issues", "Problemen");
+        m.insert("permissions.col_fragmented", "Gefragmenteerd");
+        m.insert("permissions.detail_title", "Machtigingen");
+        m.insert("permissions.detail_loading", "Machtigingen laden");
+        m.insert("permissions.detail_col_tool", "Tool");
+        m.insert("permissions.detail_col_command", "Opdracht");
+        m.insert("permissions.detail_col_status", "Status");
+        m.insert("permissions.detail_fragmented", "Gefragmenteerd");
+        m.insert("permissions.detail_security_issue", "Beveiligingsprobleem");
+        m.insert("permissions.detail_delete_selected", "Geselecteerde verwijderen");
+        m.insert("permissions.detail_deleted", "Verwijderd!");
+        m.insert("permissions.detail_warnings_title", "Beveiligingswaarschuwingen");
+        m.insert("permissions.health_title", "Configuratiecontrole");
+        m.insert("permissions.health_subtitle", "Gezondheidsstatus van alle projecten");
+        m.insert("permissions.health_loading", "Gezondheid berekenen");
+        m.insert("permissions.health_col_project", "Project");
+        m.insert("permissions.health_col_score", "Score");
+        m.insert("permissions.health_col_issues", "Problemen");
+        m.insert("permissions.health_avg", "Gemiddelde");
+        m.insert("permissions.subtitle_manage", "Beheer machtigingslijsten voor alle projecten");
+        m.insert("permissions.col_actions", "Acties");
+        m.insert("permissions.col_security_issues", "Beveiligingsproblemen");
+        m.insert("permissions.details", "Details");
+        m.insert("permissions.detail_subtitle", "Bekijk en snoei machtigingsvermeldingen");
+        m.insert("permissions.detail_deleting", "Verwijderen...");
+        m.insert("permissions.detail_deleted_reloading", "Verwijderd! Herladen...");
+        m.insert("permissions.detail_delete_count", "Geselecteerde verwijderen");
+        m.insert("permissions.detail_col_index", "#");
+        m.insert("permissions.detail_fragment", "Fragment");
+        m.insert("permissions.detail_ok", "OK");
+        m.insert("permissions.detail_warnings_count", "Beveiligingswaarschuwingen");
+        m.insert("permissions.detail_entry", "vermelding");
+        m.insert("permissions.health_subtitle_scores", "Configuratiegezondheidsscores van alle projecten");
+        m.insert("permissions.health_avg_score", "Gemiddelde gezondheidsscore");
+        m.insert("permissions.health_projects_analyzed", "Geanalyseerde projecten");
+        m.insert("permissions.health_no_issues", "Geen problemen");
+
+        // ── Analytics ──
+        m.insert("analytics.title", "Statistieken");
+        m.insert("analytics.subtitle", "Claude Code gebruiksstatistieken");
+        m.insert("analytics.loading", "Statistieken laden");
+        m.insert("analytics.error_loading", "Fout bij laden van statistieken");
+        m.insert("analytics.total_sessions", "Totaal sessies");
+        m.insert("analytics.total_messages", "Totaal berichten");
+        m.insert("analytics.git_commits", "Git-commits");
+        m.insert("analytics.lines_added", "Regels toegevoegd");
+        m.insert("analytics.lines_removed", "Regels verwijderd");
+        m.insert("analytics.since", "sinds");
+        m.insert("analytics.activity_heatmap", "Activiteitsoverzicht");
+        m.insert("analytics.messages", "Berichten");
+        m.insert("analytics.sessions", "Sessies");
+        m.insert("analytics.tool_calls", "Tool-aanroepen");
+        m.insert("analytics.hourly_distribution", "Verdeling per uur");
+        m.insert("analytics.model_usage", "Modelgebruik");
+        m.insert("analytics.col_model", "Model");
+        m.insert("analytics.col_input_tokens", "Invoertokens");
+        m.insert("analytics.col_output_tokens", "Uitvoertokens");
+        m.insert("analytics.col_cache_tokens", "Cachetokens");
+        m.insert("analytics.tool_ranking", "Tool-ranglijst");
+        m.insert("analytics.col_cache_read", "Cache gelezen");
+        m.insert("analytics.tool_usage_top10", "Toolgebruik (Top 10)");
+        m.insert("analytics.languages", "Talen");
+        m.insert("analytics.session_outcomes", "Sessieresultaten");
+        m.insert("analytics.outcomes", "Resultaten");
+        m.insert("analytics.tips_title", "Inzichten & Tips");
+        m.insert("analytics.tips_dismiss", "Sluiten");
+        m.insert("analytics.tips_learn_more", "Meer informatie");
+        m.insert("analytics.tip_category_tool", "Tool");
+        m.insert("analytics.tip_category_workflow", "Werkproces");
+        m.insert("analytics.tip_category_performance", "Prestaties");
+        m.insert("analytics.tip_category_config", "Configuratie");
+        m.insert("analytics.no_tips", "Geen tips beschikbaar");
+
+        // ── Sessions ──
+        m.insert("sessions.title", "Sessies");
+        m.insert("sessions.subtitle", "Blader door Claude Code sessiegeschiedenis");
+        m.insert("sessions.loading", "Sessies laden");
+        m.insert("sessions.search_placeholder", "Sessies zoeken...");
+        m.insert("sessions.no_sessions", "Geen sessies gevonden");
+        m.insert("sessions.col_project", "Project");
+        m.insert("sessions.col_date", "Datum");
+        m.insert("sessions.col_duration", "Duur");
+        m.insert("sessions.col_messages", "Berichten");
+        m.insert("sessions.col_summary", "Samenvatting");
+        m.insert("sessions.col_outcome", "Resultaat");
+        m.insert("sessions.minutes", "min");
+        m.insert("sessions.load_more", "Meer laden");
+        m.insert("sessions.detail_title", "Sessiedetails");
+        m.insert("sessions.detail_loading", "Sessie laden");
+        m.insert("sessions.detail_project", "Project");
+        m.insert("sessions.detail_start", "Start");
+        m.insert("sessions.detail_duration", "Duur");
+        m.insert("sessions.detail_messages", "Berichten");
+        m.insert("sessions.detail_tools", "Tool-aanroepen");
+        m.insert("sessions.detail_tokens", "Tokens");
+        m.insert("sessions.detail_git", "Git");
+        m.insert("sessions.detail_first_prompt", "Eerste prompt");
+        m.insert("sessions.detail_summary", "Samenvatting");
+        m.insert("sessions.back", "Terug");
+        m.insert("sessions.searching", "Zoeken...");
+        m.insert("sessions.search", "Zoeken");
+        m.insert("sessions.clear", "Wissen");
+        m.insert("sessions.search_results", "Zoekresultaten");
+        m.insert("sessions.no_results", "Geen resultaten gevonden");
+        m.insert("sessions.col_prompt", "Prompt");
+        m.insert("sessions.session_prefix", "Sessie: ");
+        m.insert("sessions.detail_start_time", "Starttijd");
+        m.insert("sessions.user_messages", " gebruiker / ");
+        m.insert("sessions.assistant_messages", " assistent");
+        m.insert("sessions.tokens_in", " in / ");
+        m.insert("sessions.tokens_out", " uit");
+        m.insert("sessions.commits_label", " commits, +");
+        m.insert("sessions.lines_minus", " / -");
+        m.insert("sessions.tools_used", "Gebruikte tools");
+        m.insert("sessions.outcome_prefix", "Resultaat: ");
+        m.insert("sessions.showing", "Weergave");
+        m.insert("sessions.of", "van");
+        m.insert("sessions.previous", "Vorige");
+        m.insert("sessions.next", "Volgende");
+
+        // ── GitHub ──
+        m.insert("github.title", "GitHub");
+        m.insert("github.subtitle", "GitHub integratiestatus");
+        m.insert("github.loading", "GitHub-gegevens laden");
+        m.insert("github.auth_status", "Authenticatiestatus");
+        m.insert("github.username", "Gebruikersnaam");
+        m.insert("github.linked_repos", "Gekoppelde repo\u{2019}s");
+        m.insert("github.no_repos", "Geen gekoppelde repo\u{2019}s");
+        m.insert("github.col_repo", "Repository");
+        m.insert("github.col_recent_commits", "Recente commits");
+        m.insert("github.col_open_prs", "Open PR\u{2019}s");
+
+        // ── Help / System Info ──
+        m.insert("help.title", "Systeeminformatie");
+        m.insert("help.subtitle", "Claude Code systeeminformatie");
+        m.insert("help.loading", "Systeeminformatie laden");
+        m.insert("help.account", "Account");
+        m.insert("help.account_name", "Naam");
+        m.insert("help.account_email", "E-mail");
+        m.insert("help.subscription", "Abonnement");
+        m.insert("help.claude_version", "Claude Code versie");
+        m.insert("help.gh_cli", "GitHub CLI");
+        m.insert("help.skill_usage", "Skillgebruik");
+        m.insert("help.no_skill_usage", "Geen skillgebruik geregistreerd");
+        m.insert("help.col_skill", "Skill");
+        m.insert("help.col_count", "Aantal");
+        m.insert("help.what_is_title", "Wat is ClaudeAdmin?");
+        m.insert("help.what_is_desc", "ClaudeAdmin is de visuele beheerconsole voor Claude Code. Het biedt een webgebaseerde interface voor het beheren van alle aspecten van uw Claude Code configuratie: Projecten, Skills, Regels, Geheugen, Instellingen, Hooks, MCP Servers en Plannen.");
+        m.insert("help.system_status", "Systeemstatus");
+        m.insert("help.not_set", "Niet ingesteld");
+        m.insert("help.unknown", "Onbekend");
+        m.insert("help.not_found", "Niet gevonden");
+        m.insert("help.not_installed", "Niet ge\u{00ef}nstalleerd");
+        m.insert("help.concepts_title", "Claude Code concepten");
+        m.insert("help.concept_skills", "Herbruikbare prompts met YAML-frontmatter. Opgeslagen als SKILL.md bestanden in ~/.claude/skills/ (globaal) of .claude/skills/ (project).");
+        m.insert("help.concept_rules", "Beperkingen en richtlijnen die het gedrag van Claude vormgeven. Opgeslagen als .md bestanden in ~/.claude/rules/ of op projectniveau.");
+        m.insert("help.concept_memory", "Persistent geheugen per project. MEMORY.md wordt automatisch geladen in systeemprompts. Slaat patronen, voorkeuren en inzichten op.");
+        m.insert("help.concept_hooks", "Shell-opdrachten die worden geactiveerd door gebeurtenissen (PreToolUse, PostToolUse, Stop). Geconfigureerd in settings.json voor automatische formattering, linting, enz.");
+        m.insert("help.concept_mcp", "Model Context Protocol servers breiden Claude uit met externe tools. Geconfigureerd in ~/.claude.json met command, args en env.");
+        m.insert("help.concept_claudemd", "Instructiebestand op projectniveau. Wordt automatisch als context geladen. Bevat projectconventies, stackinfo en coderingsrichtlijnen.");
+        m.insert("help.disclaimer", "ClaudeAdmin is een onafhankelijk communityproject. Het is niet gelieerd aan, onderschreven door of goedgekeurd door Anthropic. Claude en Claude Code zijn handelsmerken van Anthropic.");
+
+        m.insert("github.subtitle_detail", "GitHub CLI integratie en gekoppelde repositories");
+        m.insert("github.linked_repositories", "Gekoppelde repositories");
+        m.insert("github.no_linked_repos", "Geen GitHub-repositories gekoppeld in ~/.claude.json");
+        m.insert("github.col_name", "Naam");
+        m.insert("github.col_path", "Pad");
+
+        // ── Skill Browser ──
+        m.insert("skill_browser.title", "Skill Browser");
+        m.insert("skill_browser.subtitle", "Ontdek en installeer offici\u{00eb}le en community skills");
+        m.insert("skill_browser.loading", "Skills laden");
+        m.insert("skill_browser.search_placeholder", "Skills zoeken...");
+        m.insert("skill_browser.no_results", "Geen skills gevonden");
+        m.insert("skill_browser.installed", "Ge\u{00ef}nstalleerd");
+        m.insert("skill_browser.install", "Installeren");
+        m.insert("skill_browser.official", "Officieel");
+        m.insert("skill_browser.community", "Community");
+        m.insert("skill_browser.tab_official", "Officieel (Anthropic)");
+        m.insert("skill_browser.tab_community", "Community");
+        m.insert("skill_browser.install_success", "succesvol ge\u{00ef}nstalleerd!");
+        m.insert("skill_browser.install_failed", "Installatie mislukt:");
+
+        // ── Docs ──
+        m.insert("docs.title", "Documentatie");
+        m.insert("docs.subtitle", "Alles wat u moet weten over Claude Code configuratie");
+        m.insert("docs.loading", "Documentatie laden");
+
+        // ── Docs: Table of Contents ──
+        m.insert("docs.toc_contents", "Inhoud");
+        m.insert("docs.toc_why_claudeadmin", "Waarom ClaudeAdmin?");
+        m.insert("docs.toc_capabilities", "Wat het wel & niet kan");
+        m.insert("docs.toc_group", "Concepten");
+        m.insert("docs.toc_claude_md", "CLAUDE.md");
+        m.insert("docs.toc_rules", "Regels");
+        m.insert("docs.toc_skills", "Skills");
+        m.insert("docs.toc_memory", "Geheugen");
+        m.insert("docs.toc_settings", "Instellingen & Hooks");
+        m.insert("docs.toc_mcp", "MCP Servers");
+        m.insert("docs.toc_plans", "Plannen");
+        m.insert("docs.toc_scopes", "Globaal vs. Project");
+        m.insert("docs.toc_tips", "Tips & Best practices");
+        m.insert("docs.toc_links", "Offici\u{00eb}le documentatie");
+
+        // ── Docs: Shared labels ──
+        m.insert("docs.tips_heading", "Tips & Trucs");
+        m.insert("docs.scope_global", "Globaal");
+        m.insert("docs.scope_project", "Project");
+        m.insert("docs.scope_user", "Gebruiker");
+        m.insert("docs.scope_parent", "Bovenliggend");
+        m.insert("docs.scope_managed", "Beheerd");
+        m.insert("docs.scope_local", "Lokaal");
+
+        // ── Docs: Overview ──
+        m.insert("docs.overview_heading", "Waarom ClaudeAdmin?");
+        m.insert("docs.overview_callout", " is de centrale beheerconsole voor uw volledige Claude Code configuratie. Het vervangt handmatig bewerken van bestanden in tientallen verborgen mappen door \u{00e9}\u{00e9}n enkele, visuele interface.");
+        m.insert("docs.overview_text1", "Claude Code slaat zijn configuratie op in een complexe hi\u{00eb}rarchie van bestanden en mappen: CLAUDE.md bestanden in projectmappen, regels en skills verspreid over ~/.claude/ submappen, geheugenbestanden gecodeerd op projectpaden, instellingen in meerdere JSON-bestanden en MCP serverconfiguraties in ~/.claude.json. Naarmate uw projecten groeien, wordt het handmatig beheren hiervan foutgevoelig en tijdrovend.");
+        m.insert("docs.overview_text2", "ClaudeAdmin biedt u:");
+        m.insert("docs.overview_li_visibility_label", "Zichtbaarheid");
+        m.insert("docs.overview_li_visibility", " \u{2013} Bekijk al uw projecten, skills, regels en geheugen op \u{00e9}\u{00e9}n plek");
+        m.insert("docs.overview_li_editing_label", "Bewerking");
+        m.insert("docs.overview_li_editing", " \u{2013} Bewerk CLAUDE.md, regels, skills en geheugen met een echte editor");
+        m.insert("docs.overview_li_health_label", "Gezondheidscontroles");
+        m.insert("docs.overview_li_health", " \u{2013} Detecteer beveiligingsproblemen in machtigingen, gedupliceerde regels en ontbrekende configuraties");
+        m.insert("docs.overview_li_analytics_label", "Statistieken");
+        m.insert("docs.overview_li_analytics", " \u{2013} Begrijp hoe u Claude Code gebruikt: sessies, tokens, tools, kosten");
+        m.insert("docs.overview_li_advisor_label", "Adviseur");
+        m.insert("docs.overview_li_advisor", " \u{2013} AI-gestuurde aanbevelingen om uw projectconfiguratie te verbeteren");
+
+        // ── Docs: Capabilities ──
+        m.insert("docs.cap_heading", "Wat ClaudeAdmin wel & niet kan");
+        m.insert("docs.cap_can_heading", "Wat het kan");
+        m.insert("docs.cap_can_1", "Alle projecten geregistreerd in ~/.claude.json bekijken en beheren");
+        m.insert("docs.cap_can_2", "CLAUDE.md bestanden voor elk project bekijken en bewerken");
+        m.insert("docs.cap_can_3", "Globale en projectspecifieke skills aanmaken, bewerken en verwijderen");
+        m.insert("docs.cap_can_4", "Globale en projectspecifieke regels aanmaken, bewerken en verwijderen");
+        m.insert("docs.cap_can_5", "Projectgeheugenbestanden bekijken en bewerken (MEMORY.md en onderwerpen)");
+        m.insert("docs.cap_can_6", "De instellingshi\u{00eb}rarchie inspecteren (globaal \u{2192} project \u{2192} lokaal)");
+        m.insert("docs.cap_can_7", "Machtigingsvermeldingen controleren en beveiligingsproblemen detecteren");
+        m.insert("docs.cap_can_8", "MCP serverconfiguraties bekijken");
+        m.insert("docs.cap_can_9", "Sessiegeschiedenis, tokengebruik en kosten analyseren");
+        m.insert("docs.cap_can_10", "AI-gestuurde projectanalyse uitvoeren met uitvoerbare aanbevelingen");
+        m.insert("docs.cap_can_11", "Skills uit communityrepositories bekijken en installeren");
+        m.insert("docs.cap_can_12", "Alle schrijfacties maken automatisch back-ups in ~/.claude/backups/");
+        m.insert("docs.cap_cannot_heading", "Wat het niet kan");
+        m.insert("docs.cap_cannot_1", "Claude Code sessies uitvoeren \u{2013} het beheert configuratie, niet uitvoering");
+        m.insert("docs.cap_cannot_2", "Beheerd beleid wijzigen (instellingen op enterprise-/organisatieniveau)");
+        m.insert("docs.cap_cannot_3", "Toegang tot externe omgevingen of SSH-sessies");
+        m.insert("docs.cap_cannot_4", "De Claude Code CLI vervangen voor het daadwerkelijke programmeerwerk");
+        m.insert("docs.cap_cannot_5", ".claude.json MCP servers direct bewerken (alleen-lezen voor de veiligheid)");
+        m.insert("docs.cap_cannot_6", "API-sleutels of authenticatiegegevens beheren");
+        m.insert("docs.cap_cannot_callout", "ClaudeAdmin is een configuratiebeheerder, geen vervanging voor Claude Code zelf. Zie het als een databasebeheertool: het helpt u inspecteren, configureren en onderhouden \u{2013} maar het daadwerkelijke werk gebeurt in Claude Code.");
+
+        // ── Docs: CLAUDE.md ──
+        m.insert("docs.claudemd_callout", "De projectgrondwet. CLAUDE.md is het belangrijkste configuratiebestand \u{2013} het wordt automatisch geladen in elke Claude Code sessie als persistente context.");
+        m.insert("docs.claudemd_how_heading", "Hoe het werkt");
+        m.insert("docs.claudemd_how_text", "Wanneer Claude Code een sessie start, zoekt het recursief naar CLAUDE.md bestanden vanaf uw huidige werkmap tot aan de root van het bestandssysteem. Alle gevonden bestanden worden geladen en samengevoegd, waarbij dichterbij gelegen bestanden voorrang krijgen. Dit betekent dat u een CLAUDE.md op monorepo-niveau kunt hebben met gedeelde conventies en CLAUDE.md bestanden op pakketniveau met specifieke overschrijvingen.");
+        m.insert("docs.claudemd_locations_heading", "Locaties");
+        m.insert("docs.claudemd_loc_project_or", " of ");
+        m.insert("docs.claudemd_loc_parent", "Monorepo-root, geladen voor alle subpakketten");
+        m.insert("docs.claudemd_loc_user", "Persoonlijke standaardinstellingen voor alle projecten");
+        m.insert("docs.claudemd_whatto_heading", "Wat erin te zetten");
+        m.insert("docs.claudemd_whatto_context_label", "Projectcontext");
+        m.insert("docs.claudemd_whatto_context", " \u{2013} Techstack, architectuurbeslissingen, belangrijke afhankelijkheden");
+        m.insert("docs.claudemd_whatto_standards_label", "Coderingsstandaarden");
+        m.insert("docs.claudemd_whatto_standards", " \u{2013} Naamgevingsconventies, opmaakregels, foutafhandelingspatronen");
+        m.insert("docs.claudemd_whatto_workflows_label", "Workflows");
+        m.insert("docs.claudemd_whatto_workflows", " \u{2013} Hoe te bouwen, testen, deployen; branchnaamgeving; PR-conventies");
+        m.insert("docs.claudemd_whatto_dodont_label", "Wel/Niet-regels");
+        m.insert("docs.claudemd_whatto_dodont", " \u{2013} Expliciete beperkingen (bijv. \u{201c}gebruik nooit any in TypeScript\u{201d})");
+        m.insert("docs.claudemd_whatto_team_label", "Teamafspraken");
+        m.insert("docs.claudemd_whatto_team", " \u{2013} Reviewproces, commit-berichtformaat, modulegrenzen");
+        m.insert("docs.claudemd_tip1", "Houd het onder de 500 regels. Claude laadt het hele bestand in de context \u{2013} opgeblazen CLAUDE.md bestanden verspillen tokens en verdunnen belangrijke instructies.");
+        m.insert("docs.claudemd_tip2", "Gebruik duidelijke sectiekoppen (## Architectuur, ## Conventies). Claude analyseert de structuur om relevante secties te vinden.");
+        m.insert("docs.claudemd_tip3", "Zet de belangrijkste regels bovenaan. In lange bestanden krijgt inhoud aan het begin meer aandacht.");
+        m.insert("docs.claudemd_tip4", "Gebruik CLAUDE.local.md voor persoonlijke voorkeuren die niet naar git gecommit moeten worden.");
+        m.insert("docs.claudemd_ext_link", "Anthropic Docs: CLAUDE.md \u{2192}");
+
+        // ── Docs: Rules ──
+        m.insert("docs.rules_heading", "Regels");
+        m.insert("docs.rules_callout", "Modulaire, thematische beperkingen die het gedrag van Claude vormgeven. In tegenstelling tot CLAUDE.md, dat \u{00e9}\u{00e9}n groot bestand is, zijn regels aparte .md bestanden \u{2013} elk gericht op een specifiek onderwerp.");
+        m.insert("docs.rules_how_heading", "Hoe het werkt");
+        m.insert("docs.rules_how_text", "Regels worden automatisch geladen bij het starten van een sessie. Globale regels (uw persoonlijke voorkeuren) worden eerst geladen, daarna worden projectregels erover heen gelegd. Zo kunt u uw codeerstijl globaal defini\u{00eb}ren terwijl projecten domeinspecifieke beperkingen toevoegen.");
+        m.insert("docs.rules_locations_heading", "Locaties");
+        m.insert("docs.rules_loc_global", "Uw persoonlijke regels, toegepast op alle projecten");
+        m.insert("docs.rules_loc_project", "Projectspecifiek, gecommit naar git voor teamgebruik");
+        m.insert("docs.rules_examples_heading", "Voorbeelden");
+        m.insert("docs.rules_example_frontend", " \u{2013} React componentpatronen, state management regels");
+        m.insert("docs.rules_example_security", " \u{2013} Invoervalidatie, authenticatiepatronen, OWASP-compliance");
+        m.insert("docs.rules_example_testing", " \u{2013} Teststructuur, dekkingsverwachtingen, mockingstrategie");
+        m.insert("docs.rules_example_rust", " \u{2013} Foutafhandeling met thiserror, modulestructuur, naamgeving");
+        m.insert("docs.rules_tip1", "E\u{00e9}n onderwerp per bestand. Meng geen frontend- en backendregels \u{2013} kleinere, gerichte bestanden zijn makkelijker te onderhouden en hergebruiken.");
+        m.insert("docs.rules_tip2", "Globale regels zijn ideaal voor persoonlijke stijlvoorkeuren: voorkeurstaal, opmaaktool, commit-berichtformaat.");
+        m.insert("docs.rules_tip3", "Projectregels overschrijven globale regels. Bij een conflict wint de regel op projectniveau.");
+        m.insert("docs.rules_tip4", "Gebruik de gezondheidscontrole van ClaudeAdmin om gedupliceerde regels tussen globaal en projectniveau te detecteren.");
+        m.insert("docs.rules_ext_link", "Anthropic Docs: Rules \u{2192}");
+
+        // ── Docs: Skills ──
+        m.insert("docs.skills_heading", "Skills");
+        m.insert("docs.skills_callout", "Herbruikbare, gestructureerde prompts met metadata. Skills zijn als plug-ins voor Claude \u{2013} ze kunnen automatisch worden geactiveerd door context of handmatig worden aangeroepen via slash-opdrachten.");
+        m.insert("docs.skills_how_heading", "Hoe het werkt");
+        m.insert("docs.skills_how_text", "Elke skill bevindt zich in een eigen map met een SKILL.md bestand met YAML-frontmatter en een markdown-body. De frontmatter definieert metadata zoals beschrijving en triggervoorwaarden. De body bevat de daadwerkelijke promptinstructies, voorbeelden en referentiemateriaal.");
+        m.insert("docs.skills_structure_heading", "Structuur");
+        m.insert("docs.skills_locations_heading", "Locaties");
+        m.insert("docs.skills_loc_global", "Beschikbaar in alle projecten");
+        m.insert("docs.skills_loc_project", "Projectspecifieke skills");
+        m.insert("docs.skills_tip1", "Stel user_invocable: true in de frontmatter in om een skill aanroepbaar te maken via /skill-naam in Claude Code.");
+        m.insert("docs.skills_tip2", "Voeg concrete voorbeelden toe in uw SKILL.md. Claude presteert veel beter met invoer-/uitvoervoorbeelden.");
+        m.insert("docs.skills_tip3", "Gebruik de Skill Browser in ClaudeAdmin om communityskills te ontdekken en installeren.");
+        m.insert("docs.skills_tip4", "Referentiebestanden in de skillmap worden alleen geladen wanneer de skill wordt geactiveerd, wat tokens bespaart.");
+        m.insert("docs.skills_ext_link", "Anthropic Docs: Skills \u{2192}");
+
+        // ── Docs: Memory ──
+        m.insert("docs.memory_heading", "Geheugen");
+        m.insert("docs.memory_callout", "Claude\u{2019}s persistente kennisbank per project. Geheugenbestanden slaan patronen, voorkeuren en inzichten op die Claude verzamelt over sessies heen.");
+        m.insert("docs.memory_how_heading", "Hoe het werkt");
+        m.insert("docs.memory_how_text", "Claude Code onderhoudt een geheugenmap voor elk project, opgeslagen in ~/.claude/projects/<gecodeerd-pad>/memory/. Het hoofdbestand MEMORY.md heeft een speciale status: de eerste 200 regels worden geladen in de systeemprompt bij het starten van een sessie. Extra onderwerpbestanden (debugging.md, api-conventions.md, enz.) worden op aanvraag geladen wanneer Claude bepaalt dat ze relevant zijn voor de huidige taak.");
+        m.insert("docs.memory_structure_heading", "Structuur");
+        m.insert("docs.memory_auto_heading", "Auto-geheugen");
+        m.insert("docs.memory_auto_text", "Claude Code kan automatisch vermeldingen toevoegen aan het geheugen wanneer het projectpatronen, debuggingoplossingen of uw voorkeuren ontdekt. U kunt automatisch gegenereerd geheugen bekijken en bewerken met de /memory opdracht in Claude Code of via de geheugeneditor van ClaudeAdmin.");
+        m.insert("docs.memory_tip1", "Zet de belangrijkste informatie in de eerste 200 regels van MEMORY.md \u{2013} dat is wat automatisch wordt geladen.");
+        m.insert("docs.memory_tip2", "Gebruik onderwerpbestanden voor diepgaande kennis. Ze worden alleen geladen wanneer nodig, wat het basistokengebruik laag houdt.");
+        m.insert("docs.memory_tip3", "Controleer automatisch geheugen regelmatig. Claude slaat soms te specifieke eenmalige oplossingen op.");
+        m.insert("docs.memory_tip4", "Geheugen is per project. Als u naar een ander project wisselt, krijgt Claude een andere set herinneringen.");
+        m.insert("docs.memory_ext_link", "Anthropic Docs: Memory \u{2192}");
+
+        // ── Docs: Settings & Hooks ──
+        m.insert("docs.settings_heading", "Instellingen & Hooks");
+        m.insert("docs.settings_heading_short", "Instellingen");
+        m.insert("docs.settings_callout", "JSON-gebaseerde configuratie voor gedrag, machtigingen en automatisering. Hooks laten u automatisch shell-opdrachten uitvoeren voor of na het gebruik van tools door Claude.");
+        m.insert("docs.settings_hierarchy_heading", "Instellingshi\u{00eb}rarchie");
+        m.insert("docs.settings_hierarchy_text", "Instellingen volgen een gelaagd model met toenemende specificiteit. Specifiekere lagen overschrijven minder specifieke:");
+        m.insert("docs.settings_managed_code", "Bedrijfsbeleid");
+        m.insert("docs.settings_managed_desc", "Hoogste prioriteit, ingesteld door de organisatie (alleen-lezen)");
+        m.insert("docs.settings_global_desc", "Uw persoonlijke globale instellingen");
+        m.insert("docs.settings_project_desc", "Teaminstellingen, gecommit naar git");
+        m.insert("docs.settings_local_desc", "Uw persoonlijke projectoverschrijvingen (genegeerd door git)");
+        m.insert("docs.settings_hooks_heading", "Hooks");
+        m.insert("docs.settings_hooks_text", "Hooks zijn shell-opdrachten die worden geactiveerd bij specifieke gebeurtenissen tijdens een Claude Code sessie. Ze worden geconfigureerd in settings.json onder de hooks-sleutel.");
+        m.insert("docs.settings_hooks_events", "Gebeurtenissen:\n\u{2022} PreToolUse  \u{2013} Voordat Claude een tool uitvoert (bijv. auto-formatteren voor schrijven)\n\u{2022} PostToolUse \u{2013} Nadat Claude een tool heeft uitgevoerd (bijv. linten na bestandswijziging)\n\u{2022} Stop        \u{2013} Wanneer Claude een antwoord afrondt");
+        m.insert("docs.settings_tip1", "Gebruik PreToolUse hooks om code automatisch te formatteren voordat Claude bestanden schrijft. Dit zorgt voor een consistente stijl.");
+        m.insert("docs.settings_tip2", "PostToolUse hooks zijn ideaal voor linting: vang problemen direct op nadat Claude code wijzigt.");
+        m.insert("docs.settings_tip3", "De instellingenpagina van ClaudeAdmin toont de effectieve hookketen over alle lagen.");
+        m.insert("docs.settings_ext_link", "Anthropic Docs: Settings \u{2192}");
+        m.insert("docs.settings_hooks_ext_link", "Anthropic Docs: Hooks \u{2192}");
+
+        // ── Docs: MCP Servers ──
+        m.insert("docs.mcp_heading", "MCP Servers");
+        m.insert("docs.mcp_callout", "Model Context Protocol servers breiden Claude uit met externe tools en gegevensbronnen. Ze stellen Claude in staat om te communiceren met databases, API\u{2019}s, bestandssystemen en andere diensten.");
+        m.insert("docs.mcp_how_heading", "Hoe het werkt");
+        m.insert("docs.mcp_how_text", "MCP servers zijn externe processen die Claude Code start en waarmee het communiceert via het MCP-protocol. Elke server biedt een set tools die Claude kan aanroepen. De configuratie staat in ~/.claude.json onder de mcpServers-sleutel.");
+        m.insert("docs.mcp_config_heading", "Configuratie");
+        m.insert("docs.mcp_management_heading", "Beheer in ClaudeAdmin");
+        m.insert("docs.mcp_management_text", "ClaudeAdmin biedt een speciale MCP Servers pagina voor volledig beheer: bekijken, toevoegen, bewerken en verwijderen van servers zonder handmatige JSON-bewerking. De gezondheidscontrole start elke server en verifieert dat deze reageert op JSON-RPC initialize en tools/list verzoeken. Gebruik de MCP Browser om populaire servers te ontdekken en met \u{00e9}\u{00e9}n klik te installeren.");
+        m.insert("docs.mcp_tip1", "MCP servers kunnen ook per project worden geconfigureerd in .claude/settings.json.");
+        m.insert("docs.mcp_tip2", "Gebruik omgevingsvariabelen voor geheimen \u{2013} codeer nooit API-sleutels direct in configuratiebestanden.");
+        m.insert("docs.mcp_tip3", "Gebruik de MCP Browser om populaire servers te ontdekken en installeren, of voeg aangepaste servers toe via het tabblad Nieuwe server.");
+        m.insert("docs.mcp_ext_link", "Anthropic Docs: MCP \u{2192}");
+        m.insert("docs.mcp_spec_ext_link", "MCP Specificatie \u{2192}");
+
+        // ── Docs: Plans ──
+        m.insert("docs.plans_heading", "Plannen");
+        m.insert("docs.plans_callout", "Markdownbestanden die Claude gebruikt om complexe taken op te splitsen. Plannen helpen Claude focus te houden bij meerstapswerkzaamheden en voortgang bij te houden.");
+        m.insert("docs.plans_how_heading", "Hoe het werkt");
+        m.insert("docs.plans_how_text", "Wanneer Claude een complexe taak aanpakt, kan het planbestanden aanmaken of raadplegen die zijn opgeslagen in ~/.claude/plans/. Plannen zijn gestructureerde markdowndocumenten met takenlijsten, afhankelijkheden en statusbijhouding. Ze blijven bewaard over sessies heen, zodat Claude kan hervatten waar het gebleven was.");
+        m.insert("docs.plans_location_heading", "Locatie");
+        m.insert("docs.plans_loc_global", "Alle planbestanden");
+        m.insert("docs.plans_tip1", "Vraag Claude om \u{201c}een plan te maken\u{201d} voor complexe refactoring. Plannen verminderen fouten bij wijzigingen aan meerdere bestanden.");
+        m.insert("docs.plans_tip2", "Ruim oude plannen periodiek op. De pagina Plannen van ClaudeAdmin toont alle opgeslagen plannen met wijzigingsdata.");
+
+        // ── Docs: Scopes ──
+        m.insert("docs.scopes_heading", "Globaal vs. projectbereik");
+        m.insert("docs.scopes_callout", "Het begrijpen van bereik is essentieel voor effectieve Claude Code configuratie. Elk configuratietype bestaat in twee lagen: globaal (uw persoonlijke standaardinstellingen) en projectspecifiek (gedeeld met uw team).");
+        m.insert("docs.scopes_overview_heading", "Bereikoverzicht");
+        m.insert("docs.scopes_col_type", "Configuratietype");
+        m.insert("docs.scopes_col_global", "Globaal (gebruiker)");
+        m.insert("docs.scopes_col_project", "Project");
+        m.insert("docs.scopes_col_priority", "Prioriteit");
+        m.insert("docs.scopes_priority_project_global", "Project > Globaal");
+        m.insert("docs.scopes_priority_both", "Beide beschikbaar");
+        m.insert("docs.scopes_memory_global", "Per project in ~/.claude/projects/");
+        m.insert("docs.scopes_priority_project_keyed", "Op projectsleutel");
+        m.insert("docs.scopes_priority_local_project_global", "Lokaal > Project > Globaal");
+        m.insert("docs.scopes_priority_merged", "Samengevoegd");
+        m.insert("docs.scopes_when_heading", "Wanneer wat gebruiken?");
+        m.insert("docs.scopes_use_global", "Gebruik Globaal voor");
+        m.insert("docs.scopes_global_1", "Persoonlijke codeerstijlvoorkeuren");
+        m.insert("docs.scopes_global_2", "Voorkeurstaal en frameworkstandaarden");
+        m.insert("docs.scopes_global_3", "Commit-berichtformaat");
+        m.insert("docs.scopes_global_4", "Editor-/IDE-integratie-instellingen");
+        m.insert("docs.scopes_global_5", "MCP servers die u in alle projecten gebruikt");
+        m.insert("docs.scopes_use_project", "Gebruik Project voor");
+        m.insert("docs.scopes_project_1", "Techstackdocumentatie en -beperkingen");
+        m.insert("docs.scopes_project_2", "Coderingsconventies van het team");
+        m.insert("docs.scopes_project_3", "Domeinspecifieke regels (beveiliging, compliance)");
+        m.insert("docs.scopes_project_4", "Projectspecifieke skills en workflows");
+        m.insert("docs.scopes_project_5", "CI/CD hooks en automatisering");
+
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "Optimalisatiegids");
+        m.insert("docs.opt_heading", "Optimalisatiegids");
+        m.insert("docs.opt_callout", "Gepersonaliseerde tips uit Analytics in detail uitgelegd. Elk onderdeel beschrijft waarom een patroon belangrijk is en hoe u kunt verbeteren, met links naar de offici\u{00eb}le Anthropic-documentatie.");
+        m.insert("docs.opt_why", "Waarom:");
+        m.insert("docs.opt_how", "Hoe:");
+        m.insert("docs.opt_task_heading", "Parallelle Agents met het Task-tool");
+        m.insert("docs.opt_task_why", "Het Task-tool start gespecialiseerde sub-agents die parallel werken. Voor complex meerstaps werk (onderzoek, code-exploratie, testen) kunnen sub-agents gelijktijdig draaien in plaats van opeenvolgend, wat de totale tijd aanzienlijk verkort.");
+        m.insert("docs.opt_task_how", "Claude Code gebruikt het Task-tool automatisch wanneer het mogelijkheden voor parallellisme herkent. U kunt ook expliciet vragen: \u{201c}Onderzoek X en Y parallel\u{201d} of \u{201c}Voer tests uit terwijl je de bug oplost.\u{201d} Elke agent krijgt zijn eigen contextvenster, zodat grote codebases effici\u{00eb}nter worden verkend.");
+        m.insert("docs.opt_task_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Automatiseren met Hooks");
+        m.insert("docs.opt_hooks_why", "Hooks zijn shellcommando\u{2019}s die automatisch worden uitgevoerd voor of na het gebruik van een tool door Claude. Zonder hooks moet u handmatig formatters, linters en tests uitvoeren. Met hooks wordt elk bestand automatisch geformateerd en elke commit automatisch getest.");
+        m.insert("docs.opt_hooks_how", "Configureer hooks in ~/.claude/settings.json onder de sleutel \u{201c}hooks\u{201d}. Gebruik PreToolUse om acties uit te voeren v\u{00f3}\u{00f3}r een tool (bijv. code formatteren voor het schrijven). Gebruik PostToolUse voor validatie na wijzigingen (bijv. lint na edit). Gebruik Stop om controles uit te voeren wanneer Claude klaar is.");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "Optimale sessielengte");
+        m.insert("docs.opt_sessions_why", "Lange sessies verzamelen context die de focus van Claude kan verwateren. Na veel berichten worden eerdere instructies minder opvallend. Tokenkosten stijgen ook naarmate het contextvenster zich vult met gespreksgeschiedenis.");
+        m.insert("docs.opt_sessions_how", "Verdeel complex werk in gerichte sessies. Gebruik /clear om de context binnen een sessie te resetten. Gebruik voor meerstapsprojecten planbestanden (Claude schrijft een plan en voert vervolgens stappen uit in gerichte sessies). Elke nieuwe sessie begint met maximale aandacht voor uw huidige taak.");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_cost_heading", "Kostenoptimalisatie");
+        m.insert("docs.opt_cost_why", "Verschillende Claude-modellen hebben zeer verschillende kosten. Opus blinkt uit in complex redeneren maar kost meer per token. Haiku is snel en goedkoop, ideaal voor eenvoudige taken. Het juiste model voor elke taak gebruiken kan de kosten drastisch verlagen.");
+        m.insert("docs.opt_cost_how", "Gebruik /model om van model te wisselen tijdens een sessie. Gebruik Haiku voor: snelle fixes, code-opmaak, eenvoudige vragen. Gebruik Sonnet voor: gemiddelde coderingstaken, reviews. Gebruik Opus voor: architectuurontwerp, complexe debugging, multi-bestandsrefactoring. De Analytics-pagina toont uw kostenverdeling per model.");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Claude Code Overzicht \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit: het juiste tool kiezen");
+        m.insert("docs.opt_write_why", "Het Write-tool maakt hele bestanden in \u{00e9}\u{00e9}n keer, terwijl Edit gerichte wijzigingen aanbrengt in bestaande bestanden. Voor nieuwe bestanden is Write effici\u{00eb}nter omdat Edit het bestand eerst moet lezen en dan exacte stringvervangingen moet opgeven.");
+        m.insert("docs.opt_write_how", "Claude kiest over het algemeen automatisch het juiste tool. Maar als u geheel nieuwe bestanden maakt (sjablonen, boilerplate, configuratie), helpt het expliciet te zeggen \u{201c}maak een nieuw bestand\u{201d}. Voor wijzigingen aan bestaande code heeft Edit altijd de voorkeur.");
+        m.insert("docs.opt_models_heading", "Modeldiversiteit");
+        m.insert("docs.opt_models_why", "Een enkel model voor alle taken gebruiken betekent ofwel te veel betalen voor eenvoudig werk (Opus voor alles) of te weinig kracht voor complexe taken (Haiku voor alles). Elk model heeft sterke punten: Haiku voor snelheid, Sonnet voor balans, Opus voor diep redeneren.");
+        m.insert("docs.opt_models_how", "Wissel van model met het /model commando. Een goed patroon: begin met Opus voor planning en architectuur, schakel over naar Sonnet voor implementatie, gebruik Haiku voor snelle fixes en opmaak. De Analytics-pagina toont welk model u het meest gebruikt.");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Claude Code Overzicht \u{2192}");
+        m.insert("docs.opt_git_heading", "Git-integratie");
+        m.insert("docs.opt_git_why", "Claude Code kan stagen, committen, pushen en PR\u{2019}s aanmaken. Zonder git-integratie commit u handmatig na elke Claude-sessie, wat de workflow onderbreekt en het risico vergroot om belangrijke wijzigingen te vergeten.");
+        m.insert("docs.opt_git_how", "Vraag Claude simpelweg om te committen: \u{201c}commit deze wijzigingen\u{201d} of gebruik /commit. Claude schrijft beschrijvende commit-berichten, staget alleen relevante bestanden en respecteert pre-commit hooks. Voor PR\u{2019}s: vraag Claude om \u{201c}een PR aan te maken\u{201d} \u{2013} het gebruikt de gh CLI om te pushen en een pull request te openen met een samenvatting.");
+        m.insert("docs.opt_git_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_churn_heading", "Code-churn verminderen");
+        m.insert("docs.opt_churn_why", "Wanneer meer regels worden verwijderd dan toegevoegd, betekent dit meestal dat Claude code heeft geschreven die herschreven moest worden. Dit verspilt tokens en tijd. Veelvoorkomende oorzaken: vage prompts, ontbrekende context, of Claude dat de vereisten raadt.");
+        m.insert("docs.opt_churn_how", "Wees specifiek in prompts: verwijs naar bestaande bestanden, noem exacte functies, beschrijf verwacht gedrag. Gebruik CLAUDE.md om conventies vast te leggen zodat Claude niet raadt. Vraag voor complexe wijzigingen Claude om eerst te plannen (/plan) voordat het implementeert. Controleer het plan van Claude voordat het begint met coderen.");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: Best Practices \u{2192}");
+
+        // ── Docs: Tips & Best Practices ──
+        m.insert("docs.bestpractices_heading", "Tips & Best practices");
+        m.insert("docs.bestpractices_hygiene_heading", "Configuratiehygi\u{00eb}ne");
+        m.insert("docs.bestpractices_hygiene_1", "Voer de configuratiecontrole van ClaudeAdmin regelmatig uit. Het detecteert gedupliceerde regels, opgeblazen machtigingslijsten en ontbrekende CLAUDE.md bestanden.");
+        m.insert("docs.bestpractices_hygiene_2", "Herhaal uzelf niet: als een regel globaal bestaat, kopieer deze dan niet naar het project-CLAUDE.md. Gebruik het bereiksysteem.");
+        m.insert("docs.bestpractices_hygiene_3", "Houd machtigingslijsten schoon. Na verloop van tijd verzamelt Claude Code honderden toestaan/weigeren vermeldingen. Gebruik de machtigingenpagina om ze op te schonen.");
+        m.insert("docs.bestpractices_tokens_heading", "Tokeneffici\u{00eb}ntie");
+        m.insert("docs.bestpractices_tokens_1", "Alles in CLAUDE.md, regels, skills (wanneer geactiveerd) en de eerste 200 regels van MEMORY.md telt mee voor uw contextvenster. Wees beknopt.");
+        m.insert("docs.bestpractices_tokens_2", "Verplaats gedetailleerd referentiemateriaal naar skillreferentiebestanden of geheugenonderwerpbestanden \u{2013} ze worden alleen geladen wanneer nodig.");
+        m.insert("docs.bestpractices_tokens_3", "Gebruik de statistiekenpagina om uw tokengebruik over projecten en sessies te monitoren.");
+        m.insert("docs.bestpractices_team_heading", "Teamsamenwerking");
+        m.insert("docs.bestpractices_team_1", "Commit .claude/rules/ en .claude/skills/ naar git. Dit deelt conventies met het team.");
+        m.insert("docs.bestpractices_team_2", "Gebruik .claude/settings.json voor teaminstellingen en .claude/settings.local.json voor persoonlijke overschrijvingen.");
+        m.insert("docs.bestpractices_team_3", "CLAUDE.md in de projectroot is het contract van uw team met Claude. Behandel het als documentatie \u{2013} beoordeel wijzigingen in PR\u{2019}s.");
+        m.insert("docs.bestpractices_debug_heading", "Claude-gedrag debuggen");
+        m.insert("docs.bestpractices_debug_1", "Als Claude een regel negeert, controleer dan de instellingshi\u{00eb}rarchie op conflicterende instellingen over lagen heen.");
+        m.insert("docs.bestpractices_debug_2", "Geheugen kan onverwacht gedrag veroorzaken. Controleer automatisch gegenereerde vermeldingen \u{2013} Claude heeft mogelijk een tijdelijke oplossing onthouden in plaats van de juiste aanpak.");
+        m.insert("docs.bestpractices_debug_3", "Gebruik de sessiepagina om eerdere gesprekken te bekijken en te begrijpen wat Claude \u{201c}dacht\u{201d}.");
+
+        // ── Docs: Links ──
+        m.insert("docs.links_heading", "Offici\u{00eb}le Anthropic documentatie");
+        m.insert("docs.links_text", "Deze links verwijzen naar de gezaghebbende documentatie onderhouden door Anthropic. ClaudeAdmin is gebouwd op basis van deze specificaties.");
+        m.insert("docs.link_overview_title", "Claude Code overzicht");
+        m.insert("docs.link_overview_desc", "Aan de slag, installatie en basisgebruik");
+        m.insert("docs.link_memory_title", "Geheugen & CLAUDE.md");
+        m.insert("docs.link_memory_desc", "Hoe Claude projectgeheugen opslaat en gebruikt");
+        m.insert("docs.link_skills_title", "Skills");
+        m.insert("docs.link_skills_desc", "Herbruikbare skills aanmaken en beheren");
+        m.insert("docs.link_settings_title", "Instellingen");
+        m.insert("docs.link_settings_desc", "Configuratiehie\u{0308}rarchie en opties");
+        m.insert("docs.link_hooks_title", "Hooks");
+        m.insert("docs.link_hooks_desc", "Gebeurtenisgestuurde automatisering met shell-opdrachten");
+        m.insert("docs.link_mcp_title", "MCP Servers");
+        m.insert("docs.link_mcp_desc", "Claude uitbreiden met externe tools");
+        m.insert("docs.link_bestpractices_title", "Best practices");
+        m.insert("docs.link_bestpractices_desc", "Tips voor effectief Claude Code gebruik");
+        m.insert("docs.link_mcp_spec_title", "MCP Specificatie");
+        m.insert("docs.link_mcp_spec_desc", "De Model Context Protocol standaard");
+
+        // ── Licenses ──
+        m.insert("sidebar.licenses", "Licenties");
+        m.insert("licenses.title", "Licenties");
+        m.insert("licenses.subtitle", "Open source licenties en afhankelijkheden");
+        m.insert("licenses.own_license", "ClaudeAdmin Licentie");
+        m.insert("licenses.third_party", "Afhankelijkheden van derden");
+        m.insert("licenses.col_name", "Crate");
+        m.insert("licenses.col_version", "Versie");
+        m.insert("licenses.col_license", "Licentie");
+        m.insert("licenses.search_placeholder", "Afhankelijkheden zoeken...");
+        m.insert("licenses.loading", "Licenties laden");
+        m.insert("licenses.count", "afhankelijkheden");
+        m.insert("licenses.mit_copyright", "Copyright (c) 2024-2026");
+        m.insert("licenses.mit_line1", "Hierbij wordt kosteloos toestemming verleend aan eenieder die een kopie van deze software en bijbehorende documentatiebestanden (de \u{201c}Software\u{201d}) verkrijgt, om zonder beperking met de Software te handelen, inclusief maar niet beperkt tot de rechten om te gebruiken, kopiëren, wijzigen, samenvoegen, publiceren, distribueren, in sublicentie te geven en/of kopieën van de Software te verkopen, en om personen aan wie de Software is verstrekt dit toe te staan, onder de volgende voorwaarden:");
+        m.insert("licenses.mit_line2", "De bovenstaande copyrightvermelding en deze toestemmingsvermelding moeten worden opgenomen in alle kopieën of substantiële delen van de Software.");
+        m.insert("licenses.mit_line3", "DE SOFTWARE WORDT GELEVERD \u{201c}ZOALS DEZE IS\u{201d}, ZONDER ENIGE GARANTIE, UITDRUKKELIJK OF IMPLICIET, INCLUSIEF MAAR NIET BEPERKT TOT DE GARANTIES VAN VERKOOPBAARHEID, GESCHIKTHEID VOOR EEN BEPAALD DOEL EN NIET-INBREUK. IN GEEN GEVAL ZULLEN DE AUTEURS OF COPYRIGHTHOUDERS AANSPRAKELIJK ZIJN VOOR ENIGE CLAIM, SCHADE OF ANDERE AANSPRAKELIJKHEID, HETZIJ IN EEN CONTRACTUELE ACTIE, ONRECHTMATIGE DAAD OF ANDERSZINS, VOORTVLOEIEND UIT, OF IN VERBAND MET DE SOFTWARE OF HET GEBRUIK OF ANDERE TRANSACTIES IN DE SOFTWARE.");
+        m.insert("licenses.direct_deps", "Directe afhankelijkheden");
+        m.insert("licenses.transitive_deps", "Transitieve afhankelijkheden");
+        m.insert("licenses.overview", "Licentieoverzicht");
+        m.insert("licenses.direct_count", "directe");
+        m.insert("licenses.transitive_count", "transitieve afhankelijkheden");
+
+        // ── Components ──
+        m.insert("component.modal.close", "Sluiten");
+        m.insert("component.editor.save", "Opslaan");
+        m.insert("component.editor.saved", "Opgeslagen!");
+        m.insert("component.json_editor.valid", "Geldige JSON");
+        m.insert("component.json_editor.invalid", "Ongeldige JSON");
+        m.insert("component.frontmatter.description", "Beschrijving");
+        m.insert("component.frontmatter.user_invocable", "Door gebruiker aanroepbaar");
+        m.insert("component.advisor.title", "Projectadviseur");
+        m.insert("component.advisor.analyze", "Analyseren");
+        m.insert("component.advisor.analyzing", "Analyseren...");
+        m.insert("component.advisor.no_api_key", "Geen ANTHROPIC_API_KEY geconfigureerd");
+        m.insert("component.advisor.error", "Fout bij laden van aanbevelingen");
+        m.insert("component.advisor.summary", "Samenvatting");
+        m.insert("component.advisor.recommendations", "Aanbevelingen");
+        m.insert("component.advisor.apply", "Toepassen");
+        m.insert("component.advisor.applied", "Klaar!");
+        m.insert("component.advisor.analyze_project", "Project analyseren");
+        m.insert("component.advisor.hint", "Claude analyseert uw project en geeft aanbevelingen");
+        m.insert("component.advisor.loading", "Claude analyseert uw project");
+        m.insert("component.advisor.assessment", "Projectbeoordeling");
+        m.insert("component.advisor.show_preview", "Voorbeeld tonen");
+        m.insert("component.advisor.category_tip", "Tip");
+        m.insert("component.frontmatter.user_invocable_label", "Door gebruiker aanroepbaar (kan worden aangeroepen met /opdracht)");
+        m.insert("component.editor.saving", "Opslaan...");
+
+        // ── Common ──
+        m.insert("common.error", "Fout");
+        m.insert("common.loading", "Laden");
+        m.insert("common.save", "Opslaan");
+        m.insert("common.delete", "Verwijderen");
+        m.insert("common.cancel", "Annuleren");
+        m.insert("common.close", "Sluiten");
+        m.insert("common.yes", "Ja");
+        m.insert("common.no", "Nee");
+        m.insert("common.ok", "OK");
+        m.insert("common.error_prefix", "Fout: ");
+        m.insert("common.invalid_json", "Ongeldige JSON: ");
+
+        // -- New features --
+        m.insert("sidebar.backups", "Backups");
+        m.insert("backups.title", "Backups");
+        m.insert("backups.subtitle", "Browse and restore configuration backups");
+        m.insert("backups.loading", "Loading backups");
+        m.insert("backups.no_backups", "No backups found");
+        m.insert("backups.col_name", "Backup");
+        m.insert("backups.col_size", "Size");
+        m.insert("backups.col_created", "Created");
+        m.insert("backups.col_original", "Original File");
+        m.insert("backups.col_actions", "Actions");
+        m.insert("backups.restore", "Restore");
+        m.insert("backups.delete", "Delete");
+        m.insert("backups.restored", "Restored!");
+        m.insert("backups.deleted", "Deleted!");
+        m.insert("backups.confirm_restore", "Are you sure you want to restore this backup?");
+        m.insert("backups.confirm_delete", "Are you sure you want to delete this backup?");
+        m.insert("settings.tab_export", "Export/Import");
+        m.insert("settings.export_title", "Configuration Export");
+        m.insert("settings.export_desc", "Export all global configuration as a JSON bundle.");
+        m.insert("settings.export_btn", "Export Configuration");
+        m.insert("settings.export_loading", "Exporting...");
+        m.insert("settings.import_title", "Configuration Import");
+        m.insert("settings.import_desc", "Import a previously exported configuration bundle.");
+        m.insert("settings.import_btn", "Import Configuration");
+        m.insert("settings.import_success", "Import successful!");
+        m.insert("settings.import_skills", "Skills imported");
+        m.insert("settings.import_rules", "Rules imported");
+        m.insert("settings.import_mcp", "MCP servers imported");
+        m.insert("sidebar.search", "Search");
+        m.insert("search.title", "Search");
+        m.insert("search.subtitle", "Search across all configuration");
+        m.insert("search.placeholder", "Search skills, rules, settings...");
+        m.insert("search.loading", "Searching...");
+        m.insert("search.no_results", "No results found");
+        m.insert("search.col_type", "Type");
+        m.insert("search.col_name", "Name");
+        m.insert("search.col_snippet", "Match");
+        m.insert("sidebar.templates", "Templates");
+        m.insert("templates.title", "Config Templates");
+        m.insert("templates.subtitle", "Pre-built configuration starter packs");
+        m.insert("templates.loading", "Loading templates");
+        m.insert("templates.apply", "Apply");
+        m.insert("templates.applied", "Applied!");
+        m.insert("templates.confirm", "Apply this template?");
+        m.insert("theme.toggle", "Toggle theme");
+        m.insert("theme.light", "Light");
+        m.insert("theme.dark", "Dark");
+        m.insert("settings.notification", "Notification");
+        m.insert("settings.stop", "Stop");
+        m.insert("settings.user_prompt_submit", "UserPromptSubmit");
+        m.insert("settings.session_start", "SessionStart");
+
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "Agents");
+        m.insert("sidebar.plugins", "Plugins");
+        m.insert("sidebar.launch_profiles", "Startprofielen");
+        m.insert("sidebar.system_prompts", "Systeemprompts");
+        m.insert("sidebar.worktrees", "Werkbomen");
+
+        // ── Agents ──
+        m.insert("agents.title", "Agents");
+        m.insert("agents.subtitle", "Aangepaste agentconfiguraties beheren");
+        m.insert("agents.tab_overview", "Overzicht");
+        m.insert("agents.tab_create", "Nieuw aanmaken");
+        m.insert("agents.loading", "Laden...");
+        m.insert("agents.empty", "Geen agents gevonden");
+        m.insert("agents.name", "Naam");
+        m.insert("agents.description", "Beschrijving");
+        m.insert("agents.prompt", "Prompt");
+        m.insert("agents.model", "Model");
+        m.insert("agents.allowed_tools", "Toegestane tools");
+        m.insert("agents.disallowed_tools", "Geblokkeerde tools");
+        m.insert("agents.custom_instructions", "Aangepaste instructies");
+        m.insert("agents.source", "Bron");
+        m.insert("agents.create_success", "Agent aangemaakt");
+        m.insert("agents.update_success", "Agent bijgewerkt");
+        m.insert("agents.delete_confirm", "Weet u zeker dat u deze agent wilt verwijderen?");
+        m.insert("agents.delete_success", "Agent verwijderd");
+        m.insert("agents.copy_cli", "CLI-opdracht kopiëren");
+        m.insert("agents.copied", "Gekopieerd");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "Plugins");
+        m.insert("plugins.subtitle", "Geïnstalleerde plugins beheren");
+        m.insert("plugins.loading", "Laden...");
+        m.insert("plugins.empty", "Geen plugins gevonden");
+        m.insert("plugins.name", "Naam");
+        m.insert("plugins.version", "Versie");
+        m.insert("plugins.path", "Pad");
+        m.insert("plugins.status", "Status");
+        m.insert("plugins.enabled", "Ingeschakeld");
+        m.insert("plugins.disabled", "Uitgeschakeld");
+        m.insert("plugins.install", "Installeren");
+        m.insert("plugins.install_path", "Installatiepad");
+        m.insert("plugins.install_success", "Plugin geïnstalleerd");
+        m.insert("plugins.delete_confirm", "Weet u zeker dat u deze plugin wilt verwijderen?");
+        m.insert("plugins.delete_success", "Plugin verwijderd");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "Startprofielen");
+        m.insert("launch_profiles.subtitle", "Claude Code startconfiguraties beheren");
+        m.insert("launch_profiles.tab_profiles", "Profielen");
+        m.insert("launch_profiles.tab_create", "Nieuw aanmaken");
+        m.insert("launch_profiles.tab_presets", "Voorinstellingen");
+        m.insert("launch_profiles.loading", "Laden...");
+        m.insert("launch_profiles.empty", "Geen profielen gevonden");
+        m.insert("launch_profiles.name", "Naam");
+        m.insert("launch_profiles.description", "Beschrijving");
+        m.insert("launch_profiles.model", "Model");
+        m.insert("launch_profiles.effort", "Redeneerniveau");
+        m.insert("launch_profiles.permission_mode", "Rechtenmodus");
+        m.insert("launch_profiles.allowed_tools", "Toegestane tools");
+        m.insert("launch_profiles.disallowed_tools", "Geblokkeerde tools");
+        m.insert("launch_profiles.system_prompt", "Systeemprompt");
+        m.insert("launch_profiles.append_system_prompt", "Aan systeemprompt toevoegen");
+        m.insert("launch_profiles.max_budget", "Maximaal budget");
+        m.insert("launch_profiles.fallback_model", "Terugvalmodel");
+        m.insert("launch_profiles.debug_filter", "Debugfilter");
+        m.insert("launch_profiles.add_dirs", "Mappen toevoegen");
+        m.insert("launch_profiles.copy_command", "Opdracht kopiëren");
+        m.insert("launch_profiles.copied", "Gekopieerd");
+        m.insert("launch_profiles.create_success", "Profiel aangemaakt");
+        m.insert("launch_profiles.delete_confirm", "Weet u zeker dat u dit profiel wilt verwijderen?");
+        m.insert("launch_profiles.delete_success", "Profiel verwijderd");
+        m.insert("launch_profiles.use_template", "Sjabloon gebruiken");
+        m.insert("launch_profiles.preset_code_review", "Codebeoordeling");
+        m.insert("launch_profiles.preset_code_review_desc", "Alleen-lezen profiel voor codebeoordeling");
+        m.insert("launch_profiles.preset_full_dev", "Volledige ontwikkeling");
+        m.insert("launch_profiles.preset_full_dev_desc", "Ontwikkelprofiel met volledige rechten");
+        m.insert("launch_profiles.preset_quick_fix", "Snelle fix");
+        m.insert("launch_profiles.preset_quick_fix_desc", "Lichtgewicht profiel voor kleine aanpassingen");
+        m.insert("launch_profiles.preset_research", "Onderzoek");
+        m.insert("launch_profiles.preset_research_desc", "Profiel voor codebase-onderzoek");
+        m.insert("launch_profiles.preset_budget", "Budgetlimiet");
+        m.insert("launch_profiles.preset_budget_desc", "Profiel met kostenlimiet");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "Systeemprompts");
+        m.insert("system_prompts.subtitle", "Herbruikbare systeemprompts beheren");
+        m.insert("system_prompts.tab_library", "Bibliotheek");
+        m.insert("system_prompts.tab_create", "Nieuw aanmaken");
+        m.insert("system_prompts.loading", "Laden...");
+        m.insert("system_prompts.empty", "Geen systeemprompts gevonden");
+        m.insert("system_prompts.name", "Naam");
+        m.insert("system_prompts.content", "Inhoud");
+        m.insert("system_prompts.modified", "Gewijzigd");
+        m.insert("system_prompts.create_success", "Systeemprompt aangemaakt");
+        m.insert("system_prompts.update_success", "Systeemprompt bijgewerkt");
+        m.insert("system_prompts.delete_confirm", "Weet u zeker dat u deze systeemprompt wilt verwijderen?");
+        m.insert("system_prompts.delete_success", "Systeemprompt verwijderd");
+        m.insert("system_prompts.copy_cli", "CLI-opdracht kopiëren");
+        m.insert("system_prompts.copied", "Gekopieerd");
+        m.insert("system_prompts.use_template", "Sjabloon gebruiken");
+        m.insert("system_prompts.template_reviewer", "Codebeoordelaar");
+        m.insert("system_prompts.template_docs", "Documentatieschrijver");
+        m.insert("system_prompts.template_security", "Beveiligingsaudit");
+        m.insert("system_prompts.template_refactor", "Refactoring");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "Werkbomen");
+        m.insert("worktrees.subtitle", "Git werkbomen beheren");
+        m.insert("worktrees.loading", "Laden...");
+        m.insert("worktrees.empty", "Geen werkbomen gevonden");
+        m.insert("worktrees.project_path", "Projectpad");
+        m.insert("worktrees.branch_name", "Branchnaam");
+        m.insert("worktrees.create", "Aanmaken");
+        m.insert("worktrees.create_success", "Werkboom aangemaakt");
+        m.insert("worktrees.delete_confirm", "Weet u zeker dat u deze werkboom wilt verwijderen?");
+        m.insert("worktrees.delete_success", "Werkboom verwijderd");
+        m.insert("worktrees.col_branch", "Branch");
+        m.insert("worktrees.col_path", "Pad");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "Status");
+        m.insert("worktrees.col_actions", "Acties");
+        m.insert("worktrees.badge_main", "Hoofd");
+        m.insert("worktrees.badge_bare", "Kaal");
+        m.insert("worktrees.badge_worktree", "Werkboom");
+
+        // ── Agents (formuliervelden) ──
+        m.insert("agents.field_name", "Naam");
+        m.insert("agents.field_description", "Beschrijving");
+        m.insert("agents.field_prompt", "Prompt");
+        m.insert("agents.field_model", "Model");
+        m.insert("agents.field_allowed_tools", "Toegestane tools");
+        m.insert("agents.field_disallowed_tools", "Geblokkeerde tools");
+        m.insert("agents.field_custom_instructions", "Aangepaste instructies");
+        m.insert("agents.tools_hint", "Kommagescheiden lijst, bijv. Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "Agent aanmaken");
+        m.insert("agents.editing", "Bewerken");
+        m.insert("agents.save_success", "Agent succesvol bijgewerkt");
+        m.insert("agents.confirm_delete", "Agent verwijderen");
+        m.insert("agents.name_required", "Naam is verplicht");
+        m.insert("agents.model_default", "Standaard (overgenomen)");
+        m.insert("agents.name_placeholder", "bijv. code-reviewer");
+        m.insert("agents.desc_placeholder", "Wat doet deze agent?");
+        m.insert("agents.prompt_placeholder", "Je bent een codebeoordelaar...");
+        m.insert("agents.instructions_placeholder", "Aanvullende instructies...");
+
+        // ── Plugins (ontbrekend) ──
+        m.insert("plugins.actions", "Acties");
+
+        // ── Startprofielen (ontbrekend) ──
+        m.insert("launch_profiles.save_btn", "Profiel aanmaken");
+
+        // ── Algemeen (ontbrekend) ──
+        m.insert("common.edit", "Bewerken");
+        m.insert("common.saved", "Opgeslagen");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "Tijdlijn");
+        m.insert("timeline.title", "Tijdlijn");
+        m.insert("timeline.subtitle", "Git-gebaseerde versiegeschiedenis van je Claude-configuratie");
+        m.insert("timeline.files", "bestanden");
+        m.insert("timeline.restore", "Herstellen");
+        m.insert("timeline.confirm_restore_title", "Configuratie herstellen");
+        m.insert("timeline.confirm_restore_msg", "Dit herstelt alle bestanden naar de geselecteerde commit. Er wordt eerst een back-up van de huidige status gemaakt. Doorgaan?");
+        m.insert("timeline.empty", "Nog geen tijdlijnvermeldingen. Wijzigingen verschijnen hier wanneer je je configuratie bewerkt.");
+        m.insert("timeline.error", "Kan tijdlijn niet laden");
+        m.insert("timeline.select_commit", "Selecteer een commit om de wijzigingen te bekijken");
+        m.insert("timeline.diff_for", "Wijzigingen in");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "Totaal regels");
+        m.insert("effective.total_skills", "Totaal skills");
+        m.insert("effective.mcp_servers", "MCP-Server");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "Geheugenbestanden");
+        m.insert("effective.inherited", "Overgeërfd");
+        m.insert("effective.own", "Eigen");
+        m.insert("effective.rules", "Regels");
+        m.insert("effective.skills", "Skills");
+        m.insert("effective.conflicts", "Conflicten");
+        m.insert("effective.none", "Geen");
+        m.insert("effective.invocable", "Oproepbaar");
+
+        // ── Helpchat ──
+        m.insert("help_chat.title", "Help");
+        m.insert("help_chat.placeholder", "Vraag over deze pagina...");
+        m.insert("help_chat.send", "Verzenden");
+        m.insert("help_chat.thinking", "Nadenken...");
+        m.insert("help_chat.clear", "Nieuw gesprek");
+        m.insert("help_chat.no_api_key", "API-sleutel vereist voor helpchat. Configureer in Instellingen.");
+
+        m
+    })
+}

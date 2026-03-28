@@ -1,0 +1,7 @@
+/target
+claude-admin-frontend/dist/
+.DS_Store
+*.swp
+*.swo
+.env
+docs/konzept.txt

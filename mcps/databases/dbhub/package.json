@@ -1,0 +1,93 @@
+{
+  "name": "dbhub",
+  "version": "0.20.0",
+  "mcpName": "io.github.bytebase/dbhub",
+  "description": "Minimal, token-efficient Database MCP Server for PostgreSQL, MySQL, SQL Server, SQLite, MariaDB",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bytebase/dbhub.git"
+  },
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "dbhub": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "pnpm run generate:api-types && tsup && cd frontend && pnpm run build",
+    "build:backend": "pnpm run generate:api-types && tsup",
+    "build:frontend": "cd frontend && pnpm run build",
+    "start": "node dist/index.js",
+    "dev": "concurrently --kill-others \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:backend": "NODE_ENV=development tsx src/index.ts --transport=http",
+    "dev:frontend": "cd frontend && pnpm run dev",
+    "crossdev": "cross-env NODE_ENV=development tsx src/index.ts",
+    "generate:api-types": "openapi-typescript src/api/openapi.yaml -o src/api/openapi.d.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --project integration"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/rds-signer": "^3.1001.0",
+    "@azure/identity": "^4.8.0",
+    "@iarna/toml": "^2.2.5",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.18.2",
+    "ssh-config": "^5.0.3",
+    "ssh2": "^1.16.0",
+    "zod": "^3.24.2"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.9.0",
+    "mariadb": "^3.4.0",
+    "mssql": "^11.0.1",
+    "mysql2": "^3.13.0",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "@testcontainers/mariadb": "^11.0.3",
+    "@testcontainers/mssqlserver": "^11.0.3",
+    "@testcontainers/mysql": "^11.0.3",
+    "@testcontainers/postgresql": "^11.0.3",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^4.17.21",
+    "@types/mssql": "^9.1.7",
+    "@types/node": "^22.13.10",
+    "@types/pg": "^8.11.11",
+    "@types/ssh2": "^1.15.5",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "openapi-typescript": "^7.10.1",
+    "prettier": "^3.5.3",
+    "testcontainers": "^11.0.3",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.6"
+  },
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

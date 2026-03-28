@@ -1,0 +1,37 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Development planning files (meta: I used this skill to build this skill!)
+task_plan.md
+findings.md
+progress.md
+research_notes.md
+notes.md
+
+# But keep example and template files
+!examples/*.md
+!examples/**/*.md
+!**/templates/*.md
+
+# ClawHub publish/upload folders (managed separately)
+clawdhub-publish/
+clawhub-upload/
+clawhub-changelog.txt
+skill-submission-targets.txt
+
+# Claude session files
+.claude/
+
+# Keep the skill folder clean
+*.log
+*.tmp
+WIKI_HOME_PAGE.md
+DISCUSSION_2_CONTENT.md

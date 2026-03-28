@@ -1,0 +1,414 @@
+The hype around AI agents has reached fever pitch—but what's actually possible with today's technology? 
+
+While we're not yet at the level of fully autonomous "super agents" that can replace humans, AI agents have matured significantly in 2025, offering practical tools that deliver real business value—unlike what the critics might have you believe.
+
+![Open-Source AI Agent Builder Cover](/static/blog/ai-agent-builders/cover.webp)
+
+This guide compares the top open-source AI agent builders and platforms for building AI agents in 2025. 
+
+{/* Whether you need a no-code AI agent builder for rapid prototyping or a powerful agent development framework for complex multi-agent systems, you'll find options that match your technical requirements and use case. */}
+
+{/* ## Table Of Contents */}
+
+{/* ## AI Agents — Hype vs. Reality
+
+For optimists, AI agents are groundbreaking tools. They excel at breaking complex problems into smaller, manageable tasks. AI Agents are particularly great at handling repetitive or complex work. Critics, on the other hand, often imagine **<span style={{color: '#0ea5e9'}}>"Super Agents"</span>** that could fully replace humans—but we're not quite there yet.
+
+However, this doesn't mean that AI agents aren't incredibly useful today. Many platforms are already making meaningful strides by helping teams work smarter, automate processes, and explore new opportunities across industries.
+
+Today, we are covering top **<span style={{color: '#0ea5e9'}}>open-source frameworks & platforms</span>** for building AI agents. comparing their features, and recommending solutions for different use cases. Whether you're looking for a no-code solution or a system for managing complex multi-agent setups, you'll find something useful here. */}
+
+{/* ## What are AI agents?
+
+An AI agent is a software tool designed to **handle tasks autonomously**. It observes its environment, makes decisions based on data, and takes action to achieve specific goals with minimal human intervention.
+
+Think of it as your code working smarter — automating processes, analyzing data, and scaling seamlessly alongside your application.
+
+### Key Benefits of AI Agents
+
+- Automate repetitive tasks to save time and manual work
+- Analyze data and identify patterns quickly
+- Operate 24/7 with no downtime
+- Scale with your app and adapt to increased demand
+- Maintain consistent performance
+
+Real-life applications of AI agents include E-commerce agents (can shop for you), Autonomous vehicles, Customer support agents, and Sales & Marketing agents, to name just a few. */}
+
+## Agent Frameworks Overview
+
+| Framework | Pricing | Open-Source |
+| --- | --- | --- |
+| [1. Dify](#1-dify-the-no-code-ai-agent-builder) (no-code) | freemium | ✔️ |
+| [2. AutoGen](#2-autogen-the-multi-agent-framework) | free | ✔️ |
+| [3. LlamaIndex](#3-llamaindex-data-driven-ai-agent-platform) | freemium | ✔️ |
+| [4. CrewAI](#4-crewai-role-based-ai-agent-teams) | freemium | ✔️ |
+| [5. LangChain](#5-langchain-modular-ai-agent-development-framework) | freemium | ✔️ |
+| [6. Pydantic AI](#6-pydantic-ai-simplify-building-agents-for-production) | free | ✔️ |
+| [7. Wordware AI](#7-wordware-ai-the-versatile-ai-toolkit) | freemium | ❌ |
+
+{/* ---
+
+## Real-life Applications of AI Agents
+
+**Customer Support**
+
+Platforms like <a href="https://openai.com/index/chatgpt/" rel="noopener" target="_blank">ChatGPT</a> and <a href="https://www.zendesk.com/in/blog/introducing-answer-bot/" rel="noopener" target="_blank">Zendesk</a>’s bots respond to inquiries, resolve issues, and improve customer experience without human help.
+
+**Code Completion**
+
+Tools like <a href="https://github.com/features/copilot" rel="noopener" target="_blank">GitHub Copilot</a> and <a href="https://www.cursor.com/" rel="noopener" target="_blank">Cursor</a> boost programmer's productivity by suggesting code, generating functions from natural language, and explaining complex code segments.
+
+**AI Research**
+
+Platforms like <a href="https://www.perplexity.ai/" rel="noopener" target="_blank">Perplexity</a> and <a href="https://elicit.com/" rel="noopener" target="_blank">Elicit</a> process large datasets, summarize academic papers, and even generate hypotheses, changing how researchers approach information gathering and analysis. */}
+
+## 1. <a href="https://dify.ai/" rel="noopener nofollow" target="_blank">Dify</a>: The No-Code AI Agent Builder
+
+**Best for**: Rapid prototyping and non-technical team collaboration
+
+**Pricing**: Freemium, open-source
+
+![Dify AI: AI Agent Builder](/static/blog/ai-agent-builders/dify-ai.webp)
+
+[![Dify AI](https://img.shields.io/github/stars/langgenius/dify.svg?stylAe=social)](https://github.com/langgenius/dify)
+
+### What is Dify?
+
+Dify AI is an open-source platform that simplifies the development of AI agents through a user-friendly, no-code interface, making it accessible to non-technical users. It combines the concepts of Backend-as-a-Service and LLMOps to enable developers to quickly build production-grade generative AI applications.
+
+### Key Features of Dify
+
+- Intuitive design for prompt orchestration (creating and debugging prompts)
+- Multi-model support (<a href="https://www.helicone.ai/blog/openai-o1-and-chatgpt-pro" rel="noopener" target="_blank">GPT</a>, <a href="https://www.helicone.ai/blog/claude-3.5-sonnet-vs-openai-o1" rel="noopener" target="_blank">Claude</a>, <a href="https://www.helicone.ai/blog/meta-llama-3-3-70-b-instruct" rel="noopener" target="_blank">Llama</a>, etc.)
+- Retrieval-Augmented Generation for more context-aware responses
+
+### Pros and Cons of Dify
+
+| **Pros**                                                                                                                         | **Cons**                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| • **Beginner friendly**: Dify’s intuitive interface makes it easy for beginners and non-technical users to build AI apps.        | • **Limited customization**: While limited to pre-built components and visual workflows, users have flexibility in configuration, custom code snippets and can integrate with external APIs. |
+| • **Strong data security**: Robust encryption and protection mechanisms to ensure data confidentiality and safety.               | • **Complex data processing**: Constraints in handling intricate machine learning models or extensive computational tasks.                                                                   |
+| • **Seamless integration**: Connects with popular AI models and supports integration with external tools like Zapier, Make, etc. | • **Scalability**: While there are limitations when it comes to building highly complex or large-scale tasks, Dify is suitable for building most AI apps.                                    |
+
+<CallToAction
+  title="Debug Your Dify Agents with Helicone Observability 🔍"
+  description="Trace your AI agent's decisions and monitor its costs and performance with Sessions. Helicone is compatible with Dify and all major agent frameworks."
+  primaryButtonText="Integrate in 1 Minute"
+  primaryButtonLink="https://docs.helicone.ai/other-integrations/dify"
+  secondaryButtonText="See How Sessions Work"
+  secondaryButtonLink="https://docs.helicone.ai/features/sessions"
+/>
+
+**You might be interested in**: <a href="https://www.helicone.ai/blog/crewai-vs-dify-ai" rel="noopener" target="_blank">Deep Dive: Dify vs. CrewAI</a>.
+
+## 2. <a href="https://microsoft.github.io/autogen/" rel="noopener nofollow" target="_blank">AutoGen</a>: The Multi-Agent Framework
+
+**Best for**: Building multi-agent systems with high customization
+
+**Pricing**: Free, open-source
+
+![AutoGen: AI Agent Builder](/static/blog/ai-agent-builders/autogen.webp)
+
+[![AutoGen](https://img.shields.io/github/stars/microsoft/autogen.svg?stylAe=social)](https://github.com/microsoft/autogen)
+
+### What is AutoGen?
+
+Developed by Microsoft, AutoGen focuses on creating multi-agent systems capable of handling complex conversations. It supports advanced customization, from conversation flows to autonomous code execution. AutoGen has embedded <a href="https://microsoft.github.io/autogen/0.2/blog/2024/06/21/AgentEval/" rel="noopener nofollow" target="_blank">AgentEval</a> as part of its library, a multi-agent LLM evaluation system that allows developers to set success criteria for their agents and compare to get the best solution.
+
+### Key features of AutoGen
+
+- Multi-agent architecture
+- Advanced customization & code execution
+- Integrates with cloud services like Azure for handling large-scale operations
+
+### Pros and Cons of AutoGen
+
+| **Pros**                                                                                                   | **Cons**                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| • **High customization:** extensive options for agent definition, LLM integration, and conversation flows. | • **Steeper learning curve**: Requires proficiency in Python and a strong understanding of AI concepts.                                                                   |
+| • **Advanced code execution**: Supports containerized code execution for complex tasks and simulations.    | • **Complex setup**: Higher technical requirements can be challenging for users without coding expertise.                                                                 |
+| • **Deep NLP Integration**: Flexibility in integrating and fine-tuning various LLMs.                       | • **Dependency on input quality**: The output is contingent on the quality of input data. To get optimal results, users must meticulously choose and verify their inputs. |
+
+**You might be interested in**: <a href="https://www.helicone.ai/blog/crewai-vs-autogen" rel="noopener" target="_blank">Deep Dive: AutoGen vs. CrewAI</a>.
+
+## 3. <a href="https://www.llamaindex.ai/" rel="noopener nofollow" target="_blank">LlamaIndex</a>: Data-driven AI Agent Platform
+
+**Best for**: Data-intensive applications requiring efficient indexing and retrieval
+
+**Pricing**: Freemium, open-source
+
+![LlamaIndex: AI Agent Builder](/static/blog/ai-agent-builders/llamaindex.webp)
+
+[![LlamaIndex](https://img.shields.io/github/stars/run-llama/llama_index.svg?stylAe=social)](https://github.com/run-llama/llama_index)
+
+### What is LlamaIndex?
+
+LlamaIndex specializes in data integration and retrieval, making it ideal for applications needing robust indexing solutions. It provides data “connectors” so your LlamaIndex agents can seamlessly access and process external data sources, such as PDFs, Google Drive folders, web pages, SQL databases, and more.
+
+### Key features of LlamaIndex
+
+- Distributed service-oriented architecture
+- Customizable workflows for Retrieval-Augmented Generation (RAG)
+- Access to ecosystem of 40+ community-built agent tools (LlamaHub)
+
+### Pros and Cons of LlamaIndex
+
+| **Pros**                                                                                                                                        | **Cons**                                                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| • **Integrating multiple data sources:** handles a wide range of data formats(support for 160+ data sources - APIs, PDF, Documents, SQL..etc).  | • **Steeper learning curve**: Powerful, but can be complex compared to some other frameworks for beginners to AI agent building. |
+| • **Focused on indexing and efficient retrieval**: its advanced indexing techniques ensure fast and accurate retrieval of relevant information. | • **Limited functionality:** Primarily focused on data retrieval, less suitable for complex NLP tasks.                          |
+| • **Customizable workflows:** Tailor the RAG process to specific use cases, including model options, retrieval strategy, etc.                   |                                                                                                                                 |
+
+<CallToAction
+  title="Debug Your LlamaIndex Agents with Helicone ⚡️"
+  description="Get full visibility into your AI agent's decisions, costs, and performance. Helicone is compatible with LlamaIndex."
+  primaryButtonText="Get Started for Free"
+  primaryButtonLink="https://helicone.ai/"
+  secondaryButtonText="Integrate with Helicone"
+  secondaryButtonLink="https://docs.helicone.ai/integrations/openai/llamaindex#llamaindex-integration"
+/>
+
+**You might be interested in**: <a href="https://www.helicone.ai/blog/llamaindex-vs-langchain" rel="noopener" target="_blank">Deep Dive: LlamaIndex vs. LangChain</a>.
+
+## 4. <a href="https://www.crewai.com/" rel="noopener nofollow" target="_blank">CrewAI</a>: Role-Based AI Agent Teams
+
+**Best for**: Creating role-specific AI agents
+
+**Pricing**: Freemium, open-source
+
+![CrewAI: AI Agent Builder](/static/blog/ai-agent-builders/crewai.webp)
+
+[![CrewAI](https://img.shields.io/github/stars/crewaiInc/crewai.svg?stylAe=social)](https://github.com/crewaiInc/crewai)
+
+### What is CrewAI?
+
+CrewAI helps build collaborative AI agent teams with specialized roles, making it suitable for projects requiring distinct task allocations.
+
+CrewAI <a href="https://docs.crewai.com/concepts/tools" rel="noopener" target="_blank">tools</a> equip agents with functionalities such as web searching, data analysis, content generation, and agent collaboration. CrewAI agents can also use LangChain tools.
+
+### Key features of CrewAI
+
+- Role-based agent design, from data analysis to customer support
+- Multi-agent collaboration
+- Extensible tools framework
+
+### Pros and Cons of CrewAI
+
+| **Pros**                                                                                                                                                   | **Cons**                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| • **Role-based collaboration:** allows for defining agents with specific roles & goals. Agents work as a team and can review and improve each other's output. | • **Basic code execution:** Not as robust in handling complex code execution as some other platforms like AutoGen. |
+| • **Quick prototype & deployment:** fast set-up and highly modular design that lets you test complex agent interactions and deploy them easily.             | • **Lacks advanced features:** Less suited for highly specialized or computation-heavy tasks.                       |
+| • **Integration with LangChain**: Integrates well with LangChain and its related tools.                                                                    | • **Limited customization:** Less flexibility compared to more developer-centric platforms.                        |
+
+<CallToAction
+  title="Debug Your CrewAI Agents with Helicone ⚡️"
+  description="Get full visibility into your AI agent's decisions, costs, and performance. Helicone is compatible with CrewAI."
+  primaryButtonText="Get Started for Free"
+  primaryButtonLink="https://helicone.ai/"
+  secondaryButtonText="Integrate with Helicone"
+  secondaryButtonLink="https://docs.helicone.ai/getting-started/integration-method/crewai"
+/>
+
+**You might be interested in**: <a href="https://www.helicone.ai/blog/crewai-vs-dify-ai" rel="noopener" target="_blank">Deep Dive: CrewAI vs. Dify</a> or <a href="https://www.helicone.ai/blog/crewai-vs-autogen" rel="noopener" target="_blank">CrewAI vs. AutoGen</a>.
+
+## 5. <a href="https://www.langchain.com/" rel="noopener nofollow" target="_blank">LangChain</a>: Modular AI Agent Development Framework
+
+**Best for**: Flexible AI application development
+
+**Pricing**: Freemium, open-source
+
+![LangChain: AI Agent Builder](/static/blog/ai-agent-builders/langchain.webp)
+
+[![LangChain](https://img.shields.io/github/stars/langchain-ai/langchain.svg?stylAe=social)](https://github.com/langchain-ai/langchain)
+
+### What is LangChain?
+
+LangChain is a modular framework that makes it easy for developers to combine pre-built and custom components to create complex AI workflows.
+
+LangChain agents use the idea of **"chains"** to let you connect multiple modules in sequence. For example, the first module can perform text generation, and then pass the result to the second module that retrieves data or transforms output. This creates clear multi-step processes that developers can easily understand and debug.
+
+### Key features of LangChain
+
+- Modular architecture with reusable components
+- Pre-built components available to speed up development
+- Create agents with specific roles and tasks
+- Memory (state and context) management to keep interactions relevant
+
+### Pros and Cons of LangChain
+
+| **Pros**                                                                                                                           | **Cons**                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| • **User-friendly interface:** Intuitive and beginner-friendly as developers with basic knowledge of LLMs can also build an agent. | • **Steep learning curve:** Offers greater flexibility and customizability, more suitable for users of higher coding proficiency. |
+| • **Scalability:** Useful for prototyping complex AI solutions and large datasets efficiently.                                     | • **Poor documentation:** often outdated or unclear, however, has a large active community for support.                           |
+| • **Integrations:** Has many integrations which requires more coding effort, but offers flexibility for custom models.             | • **Not suitable for production environments**: due to instability and frequent changes.                                          |
+
+<CallToAction
+  title="Debug Your LangChain Agents with Helicone ⚡️"
+  description="Get full visibility into your AI agent's decisions, costs, and performance. Helicone is compatible with LangChain."
+  primaryButtonText="Get Started in 1 Minute"
+  primaryButtonLink="https://helicone.ai/"
+  secondaryButtonText="Integrate with Helicone"
+  secondaryButtonLink="https://docs.helicone.ai/integrations/openai/langchain"
+/>
+
+**You might be interested in**: <a href="https://www.helicone.ai/blog/llamaindex-vs-langchain" rel="noopener" target="_blank">Deep Dive: LlamaIndex vs. LangChain</a>.
+
+## 6. <a href="https://www.pydantic.ai/" rel="noopener nofollow" target="_blank">Pydantic AI</a>: Simplify Building Agents for Production
+
+**Best for**: Production-grade AI apps requiring structured output and type safety
+
+**Pricing**: Free, open-source
+
+![Pydantic AI: AI Agent Builder](/static/blog/ai-agent-builders/pydantic-ai.webp)
+
+[![Pydantic AI](https://img.shields.io/github/stars/pydantic/pydantic-ai.svg?stylAe=social)](https://github.com/pydantic/pydantic-ai)
+
+### What is Pydantic AI?
+
+Pydantic AI is an open-source Python framework that makes it easier to build production-ready agents. Pydantic is created by the team behind the popular Pydantic <a href="https://docs.pydantic.dev/latest/" rel="noopener nofollow" target="_blank">data validation library</a>. The framework offers a set of tools to handle AI model interactions more reliably, validate AI inputs and outputs, and deploy AI agents in production environments.
+
+### Key features of Pydantic AI
+
+- Model-agnostic (supports OpenAI, Anthropic, Gemini, Ollama, Groq, Mistral, etc.)
+- Simple agent definition with a few lines of code
+- Error prevention with type safety and structured responses
+- Production readiness with observability tools like Logfire
+
+### Pros and Cons of Pydantic AI
+
+| **Pros**                                                                                                                             | **Cons**                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| • **Built on Vanilla Python:** full control and visibility into the agent's inner workings.                                          | • **Steep learning curve:** While designed for ease of use, developers still need to familiarize themselves with Pydantic's specific syntax and behavior. |
+| • **Cost Tracking:** built-in monitoring of token usage and associated costs.                                                        | • **Exception Handling:** Some developers find that Pydantic's exceptions can sometimes be difficult to debug.                                            |
+| • **Function Calling and Structured Output:** Excels in generating structured output and defining object models for agent responses. | • **Dependency on External Library:** Using Pydantic AI introduces a dependency on an external library, and may not be desirable for all projects.        |
+
+## 7. <a href="https://www.wordware.ai/" rel="noopener nofollow" target="_blank">Wordware AI</a>: The Versatile AI Toolkit
+
+**Best for**: Rapid development with collaborative features
+
+**Pricing**: Freemium, not open-source
+
+![Wordware AI: AI Agent Builder](/static/blog/ai-agent-builders/wordware.webp)
+
+### What is Wordware AI?
+
+Wordware is an AI toolkit designed for teams to collaborate and deploy production-ready AI agents. Its Notion-like interface enables teams to create highly customized agents, while its natural language programming feature bridges the gap between technical and non-technical users.
+
+### Key features of Wordware AI:
+
+- Cloud-based IDE for remote access
+- Natural language programming for simpler development
+- Multimodal support (text, images, audio, and video)
+- One-click API deployment
+
+### Pros and Cons of Wordware
+
+| **Pros**                                                                                                           | **Cons**                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| • **User-friendly interface:** Notion-like interface makes it suitable for both technical and non-technical users. | • **Code completion:** Does not have a robust coding environment with advanced code completion features, however, does support custom code integration. |
+| • **Collaborative:** Strong emphasis on collaboration and team features.                                           | • **Steeper pricing**: Pricing details are less transparent, potentially higher for advanced features.                                                 |
+| • **Multi-modal & flexible:** Users can incorporate text, images, audio, and video into their AI agents.           | • **Community:** Relatively new platform with fewer community resources compared to more established tools like LangChain.                             |
+| • **Rapid deployment:** One-click deployment for streamlined workflows.                                            |                                                                                                                                                        |
+
+## Choosing the Right Platform for Building AI Agents
+
+**Dify, AutoGen, LlamaIndex, CrewAI, LangChain, Pydantic AI, Wordware**—which is the best AI agent builder for your use case? We have a short and long answer.
+
+### The short answer
+
+| Criteria            | Dify   | AutoGen | LlamaIndex | CrewAI | LangChain | Pydantic | Wordware |
+| ------------------- | ------ | ------- | ---------- | ------ | --------- | -------- | -------- |
+| Rapid development   | ✔️✔️✔️ | ✔️      | ✔️✔️       | ✔️✔️✔️ | ✔️✔️      | ✔️✔️✔️   | ✔️✔️✔️   |
+| Deep customization  | ✔️     | ✔️✔️✔️  | ✔️✔️       | ✔️✔️   | ✔️✔️✔️    | ✔️✔️✔️   | ✔️✔️     |
+| Data integration    | ✔️✔️   | ✔️✔️    | ✔️✔️✔️     | ✔️     | ✔️✔️      | ✔️✔️✔️   | ✔️✔️     |
+| Scalability         | ✔️✔️   | ✔️✔️✔️  | ✔️✔️✔️     | ✔️✔️   | ✔️✔️      | ✔️✔️     | ✔️✔️     |
+| Ease of use         | ✔️✔️✔️ | ✔️      | ✔️         | ✔️✔️   | ✔️        | ✔️✔️✔️   | ✔️✔️✔️   |
+| Multi-agent support | ✔️     | ✔️✔️✔️  | ✔️         | ✔️✔️✔️ | ✔️✔️      | ✔️       | ✔️       |
+| Code execution      | ✔️     | ✔️✔️✔️  | ✔️         | ✔️     | ✔️✔️      | ✔️✔️     | ✔️✔️     |
+| Community support   | ✔️✔️   | ✔️✔️    | ✔️✔️       | ✔️     | ✔️✔️✔️    | ✔️       | ✔️       |
+
+### The long answer…
+
+Choosing the right platform comes down to matching your needs with the right tools. Here are some key points to consider:
+
+- **Rapid prototyping/non-technical teams:** Dify, Wordware, and Pydantic AI are great for fast development, thanks to their no-code/low-code platforms.
+- **Deep customization:** AutoGen, LangChain, and Pydantic AI are strong choices for their flexibility and customization options. Especially Pydantic AI with its vanilla Python approach.
+- **Ease of use**: For teams with mixed technical skills, Dify’s user-friendly interface is ideal.
+- **Advanced development:** Highly technical teams may prefer AutoGen, LangChain, or Pydantic AI which offer tools for advanced developers.
+- **Data integration:** If your project requires handling diverse data sources, LlamaIndex excels in retrieval. Pydantic AI is also a great option that supports robust data validation and structuring.
+- **Language processing:** Both LangChain and Pydantic AI offer better NLP capabilities and work well with multiple language models.
+- **Scalability:** AutoGen and Pydantic AI integrate easily with cloud services for enterprise-level scalability. However, all the tools mentioned can be integrated with <a href="https://www.helicone.ai/" rel="noopener" target="_blank">Helicone</a> for observability and monitoring.
+- **Large datasets:** LlamaIndex is optimized for managing and retrieving data efficiently.
+- **Conversational AI:** Dify and LangChain are strong choices for chatbots and dialogue-based tasks.
+- **Data analysis:** For research and data-heavy applications, LlamaIndex, AutoGen and Pydantic AI are well-suited.
+- **Workflow automation:** CrewAI is excellent for building teams of AI agents with specific roles and collaboration capabilities.
+
+## Final Tips
+
+Consider the learning curves of each platform and the kind of support available. If your team is new to AI Agents, prioritize ease of use and support.
+
+With the right tool, you can build agents faster and achieve your goals more efficiently.
+
+### You might find these useful:
+
+- <a
+    href="https://www.helicone.ai/blog/replaying-llm-sessions"
+    rel="noopener"
+    target="_blank"
+  >
+    Optimizing AI Agents: Replaying LLM Sessions to Improve Performance
+  </a>
+- <a
+    href="https://www.helicone.ai/blog/debugging-chatbots-and-ai-agents-with-sessions"
+    rel="noopener"
+    target="_blank"
+  >
+    Debugging RAG Chatbot and AI Agents with Sessions
+  </a>
+- <a
+    href="https://www.helicone.ai/blog/llm-stack-guide"
+    rel="noopener"
+    target="_blank"
+  >
+    The Emerging LLM Stack
+  </a>
+
+<CallToAction
+  title="Debug your agentic workflows 10x faster ⚡️"
+  description="Helicone helps you trace your AI agents with ease—helping you squash bugs and optimize costs. Try it today."
+  primaryButtonText="Get Started for Free"
+  primaryButtonLink="https://helicone.ai/"
+  secondaryButtonText="How Sessions Work"
+  secondaryButtonLink="https://docs.helicone.ai/features/sessions"
+/>
+
+<FAQ
+  items={[
+    {
+      question: "What's the difference between an AI agent and a chatbot?",
+      answer: "While chatbots primarily respond to user queries, AI agents actively take action to accomplish goals. Agents can make decisions, interact with external systems, and execute multi-step workflows autonomously. They're designed to handle complex tasks with minimal human oversight."
+    },
+    {
+      question: "Do I need coding knowledge to build an AI agent?",
+      answer: "Not necessarily. Platforms like Dify and Wordware offer no-code interfaces that allow non-technical users to build functional agents. However, more complex or customized agents on platforms like AutoGen or LangChain will require Python programming skills."
+    },
+    {
+      question: "Which platform is best for building an agent that works with my company data?",
+      answer: "LlamaIndex specializes in data integration and retrieval, with connectors for over 160 data sources. It's the ideal choice when your agent needs to access and reason over your organization's documents, databases, or APIs."
+    },
+    {
+      question: "Will AI agents replace human workers?",
+      answer: "Current AI agents excel at handling repetitive, well-defined tasks but struggle with novel situations requiring judgment or creativity. They're best viewed as tools that augment human capabilities rather than replacements for human workers. That said, they do hold the potential to do so."
+    },
+    {
+      question: "How do I choose between CrewAI and AutoGen for multi-agent systems?",
+      answer: "Choose CrewAI if you need role-based agents with clear specializations working collaboratively on well-defined workflows. Choose AutoGen if you need more flexibility in agent communication patterns or require advanced code execution capabilities."
+    },
+    {
+      question: "Is it possible to use these platforms together?",
+      answer: "Yes! Feel free to use multiple AI Agent development platforms in your stack. For example, you might quickly prototype with Dify, then use LangChain to build the full agent, while integrating both with Helicone for monitoring and analytics."
+    }
+  ]}
+/>
+
+<Questions />

@@ -1,0 +1,41 @@
+# Snyk Agent Scan — uv setup & cache per:
+# https://docs.astral.sh/uv/guides/integration/github/
+
+name: Security
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  snyk-agent-scan:
+    name: Snyk Agent Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.12"
+          enable-cache: true
+
+      - name: Run Snyk Agent Scan on skill
+        run: uvx snyk-agent-scan@latest --skills ./skills/frontend-code-review
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # https://docs.astral.sh/uv/guides/integration/github/#caching
+      - name: Minimize uv cache
+        run: uv cache prune --ci

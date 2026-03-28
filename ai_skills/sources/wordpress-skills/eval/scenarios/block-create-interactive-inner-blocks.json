@@ -1,0 +1,24 @@
+{
+  "name": "Create modern interactive container block",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-development", "wp-interactivity-api"],
+  "query": "Create a new block that uses Inner Blocks (container block), has simple frontend interactivity (a click toggles a CSS class), and uses the most modern, recommended scaffolding and metadata.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect tooling and WP version",
+    "Step 3: Route to wp-block-development for scaffolding and wp-interactivity-api for directives",
+    "Step 4: Recommend @wordpress/create-block with interactive template",
+    "Step 5: Use useInnerBlocksProps/InnerBlocks for nested content",
+    "Step 6: Set up Interactivity API store with toggle action",
+    "Step 7: Add data-wp-interactive namespace to wrapper",
+    "Step 8: Add data-wp-on--click directive for toggle",
+    "Step 9: Add data-wp-class--active for conditional class",
+    "Step 10: Verify wrapper attributes are correct in edit and save/render"
+  ],
+  "success_criteria": [
+    "Uses @wordpress/create-block for scaffolding",
+    "Uses useInnerBlocksProps for container pattern",
+    "Interactivity API directives properly set up",
+    "Store namespace matches data-wp-interactive value",
+    "Wrapper attributes maintained in editor and frontend"
+  ]
+}

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run local eval harness
+        run: node eval/harness/run.mjs
+
+      - name: Build skillpacks (Codex + VS Code)
+        run: node shared/scripts/skillpack-build.mjs --clean --out=dist --targets=codex,vscode
+
+      - name: Install skillpacks (smoke)
+        run: |
+          rm -rf /tmp/skillpack-install-test
+          mkdir -p /tmp/skillpack-install-test
+          node shared/scripts/skillpack-install.mjs --from=dist --dest=/tmp/skillpack-install-test --targets=codex,vscode
+          test -f /tmp/skillpack-install-test/.codex/skills/wordpress-router/SKILL.md
+          test -f /tmp/skillpack-install-test/.github/skills/wordpress-router/SKILL.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate skills with skills-ref (reference)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "git+https://github.com/agentskills/agentskills@main#subdirectory=skills-ref"
+          skills-ref validate skills/wordpress-router
+          skills-ref validate skills/wp-project-triage
+          skills-ref validate skills/wp-block-development
+          skills-ref validate skills/wp-block-themes
+          skills-ref validate skills/wp-plugin-development
+          skills-ref validate skills/wp-interactivity-api
+          skills-ref validate skills/wp-abilities-api
+          skills-ref validate skills/wp-wpcli-and-ops
+          skills-ref validate skills/wp-performance
+          skills-ref validate skills/wp-playground

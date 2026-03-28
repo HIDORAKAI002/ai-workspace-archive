@@ -1,0 +1,8 @@
+{
+  "name": "fake-mod",
+  "version": "0.1.0",
+  "mc": "~1.8.2",
+  "installFiles": {
+    "mods/1.8/other-fake-mod": "index.js"
+  }
+}

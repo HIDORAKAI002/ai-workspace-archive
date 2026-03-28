@@ -1,0 +1,36 @@
+# This file tells Git which files shouldn't be added to source control
+
+.idea
+.vscode
+storage
+apify_storage
+crawlee_storage
+node_modules
+dist
+tsconfig.tsbuildinfo
+storage/*
+!storage/key_value_stores
+storage/key_value_stores/*
+!storage/key_value_stores/default
+storage/key_value_stores/default/*
+!storage/key_value_stores/default/INPUT.json
+# Added by Apify CLI
+.venv
+.env
+
+# Aider coding agent files
+.aider*
+
+
+# MCP registry private key
+key.pem
+
+# Ignore MCP config for Opencode client
+opencode.json
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python

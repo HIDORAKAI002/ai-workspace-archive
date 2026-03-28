@@ -1,0 +1,373 @@
+구조를 넘어서, 효과적인 프롬프트 엔지니어링은 원칙에 의해 안내됩니다—모델, 작업, 상황에 관계없이 적용되는 근본적인 진리입니다. 이 원칙들을 마스터하면 어떤 프롬프팅 도전에도 적응할 수 있습니다.
+
+<Callout type="info" title="8가지 핵심 원칙">
+이 원칙들은 모든 AI 모델과 모든 작업에 적용됩니다. 한 번 배우면 어디서든 사용할 수 있습니다.
+</Callout>
+
+## 원칙 1: 명확함이 기교보다 중요합니다
+
+최고의 프롬프트는 기교가 아닌 명확함을 추구합니다. AI 모델은 문자 그대로 해석합니다—여러분이 제공한 것을 정확히 그대로 처리합니다.
+
+### 명시적으로 작성하세요
+
+<Compare 
+  before={{ label: "암묵적 (문제 있음)", content: "이것 좀 더 좋게 만들어줘." }}
+  after={{ label: "명시적 (효과적)", content: "이 이메일을 다음과 같이 개선해주세요:\n1. 제목을 더 매력적으로 만들기\n2. 문단을 최대 2-3문장으로 줄이기\n3. 끝에 명확한 행동 유도 추가하기" }}
+/>
+
+### 모호함을 피하세요
+
+단어는 여러 의미를 가질 수 있습니다. 정확한 언어를 선택하세요.
+
+<Compare 
+  before={{ label: "모호함", content: "짧은 요약 좀 해줘.\n(얼마나 짧게? 1문장? 1문단? 1페이지?)" }}
+  after={{ label: "정확함", content: "정확히 3개의 글머리 기호로 요약해주세요. 각각 20단어 이내로 작성해주세요." }}
+/>
+
+### 당연한 것도 명시하세요
+
+여러분에게 당연한 것이 모델에게는 당연하지 않습니다. 가정을 명확히 밝히세요.
+
+```
+자기소개서 작성을 도와주세요.
+
+중요한 맥락:
+- Google의 소프트웨어 엔지니어 직책에 지원합니다
+- Python과 분산 시스템에서 5년의 경험이 있습니다
+- 리더십 경험이 필요한 역할입니다 (4명 팀을 이끌었습니다)
+- 오픈소스 기여를 강조하고 싶습니다
+```
+
+## 원칙 2: 구체성이 품질을 결정합니다
+
+모호한 입력은 모호한 출력을 만듭니다. 구체적인 입력은 구체적이고 유용한 출력을 만듭니다.
+
+### 구체성 단계
+
+<SpecificitySpectrum levels={[
+  { level: "레벨 1", text: "기후 변화에 대해 써줘" },
+  { level: "레벨 2", text: "기후 변화 영향에 대한 글을 써줘" },
+  { level: "레벨 3", text: "기후 변화가 산호초에 미치는 영향에 대해 500단어 글을 써줘" },
+  { level: "레벨 4", text: "해수 온도 상승이 산호 백화현상을 일으키는 방법을 설명하는 500단어 글을 써줘. 고등학생 대상으로, 그레이트 배리어 리프의 구체적인 사례 2가지를 포함하고, 흥미롭지만 과학적으로 정확한 어조로 작성해줘" }
+]} />
+
+각 레벨은 구체성을 더하고 출력 품질을 극적으로 향상시킵니다.
+
+### 다음 요소들을 명시하세요
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">대상</span>
+    <span className="text-muted-foreground">누가 읽거나 사용할 것인가?</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">길이</span>
+    <span className="text-muted-foreground">얼마나 길거나 짧아야 하는가?</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">어조</span>
+    <span className="text-muted-foreground">격식? 캐주얼? 기술적?</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">형식</span>
+    <span className="text-muted-foreground">산문? 목록? 표? 코드?</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">범위</span>
+    <span className="text-muted-foreground">무엇을 포함하거나 제외할 것인가?</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-24">목적</span>
+    <span className="text-muted-foreground">이것이 무엇을 달성해야 하는가?</span>
+  </div>
+</div>
+
+## 원칙 3: 맥락이 가장 중요합니다
+
+모델은 기억이 없고, 여러분의 파일에 접근할 수 없으며, 여러분의 상황을 알지 못합니다. 관련된 모든 것이 프롬프트에 포함되어야 합니다.
+
+### 충분한 맥락을 제공하세요
+
+<Compare 
+  before={{ label: "맥락 부족", content: "내 함수가 왜 작동 안 해?" }}
+  after={{ label: "충분한 맥락", content: "특정 키 값으로 딕셔너리 목록을 필터링하는 Python 함수가 있습니다. 3개 항목을 반환해야 하는데 빈 리스트를 반환합니다.\n\n함수:\ndef filter_items(items, key, value):\n    return [item for item in items if item[key] = value]\n\n호출: filter_items(items, 'status', 'active')\n예상: 2개 항목, 결과: 빈 리스트" }}
+/>
+
+### 맥락 체크리스트
+
+<Callout type="tip" title="제출하기 전에">
+스스로에게 물어보세요: 모르는 똑똑한 사람이 이 요청을 이해할 수 있을까? 그렇지 않다면 더 많은 맥락을 추가하세요.
+</Callout>
+
+<Checklist 
+  title="맥락 체크리스트"
+  items={[
+    { text: "모델이 내가 무엇을 작업하고 있는지 알고 있는가?" },
+    { text: "내 목표를 알고 있는가?" },
+    { text: "필요한 모든 정보를 가지고 있는가?" },
+    { text: "제약 조건을 이해하고 있는가?" },
+    { text: "모르는 똑똑한 사람이 이 요청을 이해할 수 있을까?" }
+  ]}
+/>
+
+## 원칙 4: 단순히 묻지 말고 안내하세요
+
+단순히 답을 요청하지 마세요—원하는 답을 향해 모델을 안내하세요.
+
+### 지시적 프레이밍을 사용하세요
+
+<Compare 
+  before={{ label: "단순히 묻기", content: "마이크로서비스의 장단점이 뭐야?" }}
+  after={{ label: "안내하기", content: "마이크로서비스 아키텍처의 장점 5개와 단점 5개를 나열해주세요.\n\n각 항목에 대해:\n- 한 문장으로 명확하게 기술\n- 간단한 설명 제공 (2-3문장)\n- 구체적인 예시 제시\n\n다음 관점을 고려하세요: 소규모 스타트업, 대기업, 모놀리스에서 전환하는 팀." }}
+/>
+
+### 추론 구조를 제공하세요
+
+복잡한 작업의 경우, 추론 과정을 안내하세요:
+
+<TryIt 
+  title="추론 구조 예시"
+  description="이 프롬프트는 AI가 체계적인 의사결정 과정을 거치도록 안내합니다."
+  prompt={`이커머스 프로젝트에서 PostgreSQL과 MongoDB 중 선택해야 합니다.
+
+체계적으로 생각해주세요:
+1. 먼저, 이커머스 데이터베이스의 일반적인 요구사항을 나열하세요
+2. 그런 다음, 각 요구사항에 대해 각 데이터베이스를 평가하세요
+3. 내 사용 사례에 특화된 트레이드오프를 고려하세요
+4. 명확한 근거와 함께 추천해주세요`}
+/>
+
+## 원칙 5: 반복하고 개선하세요
+
+프롬프트 엔지니어링은 반복적인 과정입니다. 첫 번째 프롬프트가 최선인 경우는 거의 없습니다.
+
+### 반복 주기
+
+```
+1. 초기 프롬프트 작성
+2. 출력 검토
+3. 부족한 점이나 문제 파악
+4. 프롬프트 개선
+5. 만족할 때까지 반복
+```
+
+### 일반적인 개선 사항
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">너무 장황함</span>
+    <span className="text-muted-foreground">"간결하게" 또는 길이 제한 추가</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">너무 모호함</span>
+    <span className="text-muted-foreground">구체적인 예시나 제약 조건 추가</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">잘못된 형식</span>
+    <span className="text-muted-foreground">정확한 출력 구조 지정</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">누락된 측면</span>
+    <span className="text-muted-foreground">"반드시 포함해주세요..." 추가</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">잘못된 어조</span>
+    <span className="text-muted-foreground">대상과 스타일 지정</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">부정확함</span>
+    <span className="text-muted-foreground">인용 또는 단계별 추론 요청</span>
+  </div>
+</div>
+
+### 프롬프트 일지를 유지하세요
+
+효과적인 것을 문서화하세요:
+```
+작업: 코드 리뷰
+버전 1: "이 코드 검토해줘" → 너무 일반적
+버전 2: 구체적인 리뷰 기준 추가 → 더 나음
+버전 3: 좋은 리뷰 예시 추가 → 훌륭함
+최종: [성공한 프롬프트를 템플릿으로 저장]
+```
+
+## 원칙 6: 모델의 강점을 활용하세요
+
+모델이 훈련된 방식에 맞춰 작업하세요, 거스르지 마세요.
+
+### 모델은 도움이 되고 싶어합니다
+
+도움이 되는 어시스턴트가 자연스럽게 할 수 있는 것으로 요청을 구성하세요:
+
+<Compare 
+  before={{ label: "흐름을 거스름", content: "이건 못하는 거 알지만, 시도해봐..." }}
+  after={{ label: "흐름에 맞춤", content: "이해를 도와주세요...\nX 작업 중인데 도움이 필요해요...\n차근차근 설명해주시겠어요..." }}
+/>
+
+### 모델은 패턴에 뛰어납니다
+
+일관된 출력이 필요하면, 패턴을 보여주세요:
+
+<TryIt 
+  title="패턴 예시"
+  description="이 프롬프트는 AI에게 책 추천에서 원하는 정확한 형식을 보여줍니다."
+  prompt={`SF 소설 3권을 추천해주세요. 각 추천을 다음 형식으로 작성해주세요:
+
+📚 **[제목]** by [저자]
+*[장르] | [출판 연도]*
+[2문장 설명]
+이 책을 좋아할 이유: [1문장 훅]
+
+---`}
+/>
+
+### 모델은 역할극을 할 수 있습니다
+
+페르소나를 사용하여 다양한 응답 "모드"에 접근하세요:
+
+```
+악마의 옹호자로서 내 제안에 반대 논거를 제시해줘...
+지지하는 멘토로서 개선을 도와줘...
+회의적인 투자자로서 이 사업 계획에 질문해줘...
+```
+
+## 원칙 7: 출력 구조를 제어하세요
+
+구조화된 출력이 자유 형식 텍스트보다 더 유용합니다.
+
+### 특정 형식을 요청하세요
+
+```
+분석 결과를 다음과 같이 반환해주세요:
+
+요약: [1문장]
+
+핵심 발견사항:
+• [발견사항 1]
+• [발견사항 2]
+• [발견사항 3]
+
+권장사항: [1-2문장]
+
+신뢰도: [낮음/중간/높음] 이유: [이유]
+```
+
+### 구분자를 사용하세요
+
+프롬프트의 섹션을 명확히 구분하세요:
+
+```
+### 맥락 ###
+[여기에 맥락 입력]
+
+### 작업 ###
+[여기에 작업 입력]
+
+### 형식 ###
+[원하는 형식 입력]
+```
+
+### 기계가 읽을 수 있는 출력을 요청하세요
+
+프로그래밍 용도의 경우:
+
+```
+유효한 JSON만 반환하세요, 설명 없이:
+{
+  "decision": "approve" | "reject" | "review",
+  "confidence": 0.0-1.0,
+  "reasons": ["문자열 배열"]
+}
+```
+
+## 원칙 8: 검증하고 확인하세요
+
+특히 중요한 작업에서는 모델 출력을 맹목적으로 신뢰하지 마세요.
+
+### 추론 과정을 요청하세요
+
+```
+이 문제를 풀고 단계별로 과정을 보여주세요.
+풀이 후, [확인 방법]으로 답을 검증하세요.
+```
+
+### 여러 관점을 요청하세요
+
+```
+이 문제를 해결하는 세 가지 다른 접근법을 알려주세요.
+각각에 대해 트레이드오프를 설명해주세요.
+```
+
+### 자체 점검을 포함하세요
+
+```
+코드 생성 후, 다음을 검토해주세요:
+- 구문 오류
+- 에지 케이스
+- 보안 취약점
+발견된 문제를 나열해주세요.
+```
+
+## 요약: 원칙 한눈에 보기
+
+<PrinciplesSummary />
+
+<Quiz 
+  question="프롬프트에 모든 관련 배경 정보를 포함해야 한다고 제안하는 원칙은 무엇인가요?"
+  options={[
+    "명확함이 기교보다 중요합니다",
+    "구체성이 품질을 결정합니다",
+    "맥락이 가장 중요합니다",
+    "반복하고 개선하세요"
+  ]}
+  correctIndex={2}
+  explanation="'맥락이 가장 중요합니다'는 AI 모델이 세션 간 기억이 없고 여러분의 마음을 읽을 수 없다는 것을 강조합니다. 관련 배경, 제약 조건, 목표를 포함하면 모델이 여러분의 필요를 이해하는 데 도움이 됩니다."
+/>
+
+## 연습: 빈칸 채우기
+
+이 프롬프트 템플릿을 완성하여 핵심 원칙에 대한 이해를 테스트하세요:
+
+<FillInTheBlank
+  title="원칙 적용하기"
+  description="빈칸을 채워 잘 구조화된 프롬프트를 만들어보세요 — 원하는 것을 자유롭게 작성하세요!"
+  useAI={true}
+  openEnded={true}
+  template={`당신은 {{expertise}} 전문 지식을 가진 {{role}}입니다.
+
+맥락: 저는 {{context}} 작업 중입니다.
+
+작업: {{task}}
+
+제약 조건:
+- 응답을 {{length}} 단어 이내로 유지하세요
+- {{focus}}에만 집중하세요
+
+형식: {{format}}으로 답변을 반환하세요.`}
+  blanks={[
+    { id: "role", correctAnswers: [], hint: "AI가 어떤 전문적 역할을 맡아야 하나요?", context: "직함이나 전문적 역할" },
+    { id: "expertise", correctAnswers: [], hint: "어떤 특정 도메인 지식이 필요한가요?", context: "역할에 맞는 기술이나 도메인" },
+    { id: "context", correctAnswers: [], hint: "프로젝트나 상황이 무엇인가요?", context: "이 전문성을 가진 사람이 작업할 프로젝트" },
+    { id: "task", correctAnswers: [], hint: "AI가 어떤 구체적인 행동을 취해야 하나요?", context: "역할과 맥락에 적합한 행동" },
+    { id: "length", correctAnswers: [], hint: "응답이 얼마나 길어야 하나요?", context: "숫자 (단어 수)" },
+    { id: "focus", correctAnswers: [], hint: "어떤 측면을 우선시해야 하나요?", context: "작업과 관련된 품질이나 측면" },
+    { id: "format", correctAnswers: [], hint: "출력은 어떻게 구조화되어야 하나요?", context: "출력 형식 유형" }
+  ]}
+  explanation="잘 구조화된 프롬프트는 다음을 포함합니다: 명확한 역할 (원칙 1), 충분한 맥락 (원칙 3), 구체적인 작업 (원칙 2), 제약 조건 (원칙 4), 출력 형식 (원칙 5). AI는 여러분의 선택이 내부적으로 일관성이 있는지 확인합니다."
+/>
+
+<InteractiveChecklist
+  title="원칙 체크리스트"
+  items={[
+    { id: "clarity", label: "명확함이 기교보다 중요합니다", description: "프롬프트가 명시적이고 모호하지 않은가요?" },
+    { id: "specificity", label: "구체성이 품질을 결정합니다", description: "대상, 길이, 어조, 형식을 포함했나요?" },
+    { id: "context", label: "맥락이 가장 중요합니다", description: "프롬프트에 필요한 모든 배경 정보가 포함되어 있나요?" },
+    { id: "examples", label: "예시가 설명보다 낫습니다", description: "원하는 것을 설명하기보다 보여주었나요?" },
+    { id: "constraints", label: "제약이 출력에 집중을 줍니다", description: "범위와 형식에 대한 명확한 경계가 있나요?" },
+    { id: "iteration", label: "반복하고 개선하세요", description: "결과에 따라 개선할 준비가 되어 있나요?" },
+    { id: "persona", label: "페르소나가 관점을 형성합니다", description: "AI가 어떤 역할을 해야 하는지 알고 있나요?" },
+    { id: "verify", label: "검증하고 확인하세요", description: "정확성을 위한 점검을 포함했나요?" }
+  ]}
+/>
+
+이 원칙들은 앞으로 다룰 모든 내용의 기초가 됩니다. 파트 II에서는 프롬프트 효과를 극적으로 향상시키는 특정 기법에 이 원칙들을 적용합니다.

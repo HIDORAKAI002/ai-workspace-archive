@@ -1,0 +1,5 @@
+packages:
+  - 'oss'
+  - 'ee'
+  - 'tests'
+  - 'packages/*'

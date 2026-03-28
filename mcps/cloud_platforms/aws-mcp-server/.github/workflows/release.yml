@@ -1,0 +1,129 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - v[0-9]+.[0-9]+.[0-9]+
+    paths-ignore:
+      - tests/**
+      - '*.md'
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: '!contains(github.event.head_commit.message, ''[ci skip]'') && !contains(github.event.head_commit.message, ''[skip ci]'')'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Lint and test
+        run: |
+          uv run make lint
+          uv run make test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: true
+      - name: Generate version information
+        id: version
+        run: |
+          VERSION=$(uv run python -m setuptools_scm)
+
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION_NO_V=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+            VERSION=${VERSION_NO_V}
+            MAJOR=$(echo "${VERSION_NO_V}" | cut -d. -f1)
+            MINOR=$(echo "${VERSION_NO_V}" | cut -d. -f2)
+
+            {
+              echo "is_tag=true"
+              echo "major=${MAJOR}"
+              echo "major_minor=${MAJOR}.${MINOR}"
+              echo "major_minor_patch=${VERSION_NO_V}"
+              echo "version=${VERSION_NO_V}"
+            } >> "$GITHUB_OUTPUT"
+          else
+            DOCKER_VERSION=$(echo "${VERSION}" | tr '+' '-')
+            {
+              echo "is_tag=false"
+              echo "version=${DOCKER_VERSION}"
+            } >> "$GITHUB_OUTPUT"
+          fi
+          echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+      - name: Build Python package
+        run: uv build
+      - name: Verify wheel
+        run: |
+          uv run --isolated --no-project --with dist/*.whl -- python -c "import aws_mcp_server; print(f'Version: {aws_mcp_server.__version__}')"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.major_minor_patch }},enable=${{ steps.version.outputs.is_tag == 'true' }}
+            type=raw,value=${{ steps.version.outputs.major_minor }},enable=${{ steps.version.outputs.is_tag == 'true' }}
+            type=raw,value=${{ steps.version.outputs.major }},enable=${{ steps.version.outputs.is_tag == 'true' }}
+            type=raw,value=latest,enable=${{ steps.version.outputs.is_tag == 'true' }}
+            type=sha,format=short
+            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push multi-architecture Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./deploy/docker/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_DATE=${{ steps.version.outputs.build_date }}
+            VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Upload wheel artifact
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/
+  publish-pypi:
+    if: github.ref_type == 'tag'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Publish to PyPI
+        run: uv publish dist/*

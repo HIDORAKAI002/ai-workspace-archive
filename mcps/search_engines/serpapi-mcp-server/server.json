@@ -1,0 +1,16 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.serpapi/serpapi-mcp",
+  "version": "1.0.1",
+  "description": "Official SerpApi MCP server for Google, Bing, and other search engines.",
+  "repository": {
+    "url": "https://github.com/serpapi/serpapi-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "sse",
+      "url": "https://mcp.serpapi.com/mcp"
+    }
+  ]
+}

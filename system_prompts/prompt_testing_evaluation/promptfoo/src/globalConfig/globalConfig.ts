@@ -1,0 +1,61 @@
+/**
+ * Functions for manipulating the global configuration file, which lives at
+ * ~/.promptfoo/promptfoo.yaml by default.
+ */
+import * as fs from 'fs';
+import * as path from 'path';
+
+import yaml from 'js-yaml';
+import { getConfigDirectoryPath } from '../util/config/manage';
+
+import type { GlobalConfig } from '../configTypes';
+
+export function writeGlobalConfig(config: GlobalConfig): void {
+  fs.writeFileSync(
+    path.join(getConfigDirectoryPath(true), 'promptfoo.yaml') /* createIfNotExists */,
+    yaml.dump(config),
+  );
+}
+
+export function readGlobalConfig(): GlobalConfig {
+  const configDir = getConfigDirectoryPath();
+  const configFilePath = path.join(configDir, 'promptfoo.yaml');
+  let globalConfig: GlobalConfig = { id: crypto.randomUUID() };
+  if (fs.existsSync(configFilePath)) {
+    globalConfig = (yaml.load(fs.readFileSync(configFilePath, 'utf-8')) as GlobalConfig) || {};
+    if (!globalConfig?.id) {
+      globalConfig = { ...globalConfig, id: crypto.randomUUID() };
+      writeGlobalConfig(globalConfig);
+    }
+  } else {
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    fs.writeFileSync(configFilePath, yaml.dump(globalConfig));
+  }
+
+  return globalConfig;
+}
+
+/**
+ * Merges the top-level keys into existing config.
+ * @param partialConfig New keys to merge into the existing config.
+ */
+export function writeGlobalConfigPartial(partialConfig: Partial<GlobalConfig>): void {
+  const currentConfig = readGlobalConfig();
+  // Create a shallow copy of the current config
+  const updatedConfig: GlobalConfig = { ...currentConfig };
+
+  // Use Object.entries for better type safety
+  Object.entries(partialConfig).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      // Type assertion: we know key is valid from partialConfig, and value matches the key's type
+      (updatedConfig as Record<string, unknown>)[key] = value;
+    } else {
+      // Remove the property if value is falsy
+      delete (updatedConfig as Record<string, unknown>)[key];
+    }
+  });
+
+  writeGlobalConfig(updatedConfig);
+}

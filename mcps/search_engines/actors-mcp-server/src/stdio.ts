@@ -1,0 +1,267 @@
+#!/usr/bin/env node
+
+// Sentry must be imported before all other modules to ensure early initialization
+import './instrument.js';
+
+/**
+ * This script initializes and starts the Apify MCP server using the Stdio transport.
+ *
+ * Usage:
+ *   node <script_name> --actors=<actor1,actor2,...>
+ *
+ * Command-line arguments:
+ *   --actors - A comma-separated list of Actor full names to add to the server.
+ *   --help - Display help information
+ *
+ * Example:
+ *   node stdio.js --actors=apify/google-search-scraper,apify/instagram-scraper
+ */
+import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
+import yargs from 'yargs';
+// Had to ignore the eslint import extension error for the yargs package.
+// Using .js or /index.js didn't resolve it due to the @types package issues.
+// eslint-disable-next-line import/extensions
+import { hideBin } from 'yargs/helpers';
+
+import log from '@apify/log';
+
+import { ApifyClient } from './apify_client.js';
+import { DEFAULT_TELEMETRY_ENV, TELEMETRY_ENV } from './const.js';
+import { processInput } from './input.js';
+import { ActorsMcpServer } from './mcp/server.js';
+import { getTelemetryEnv } from './telemetry.js';
+import type { ApifyRequestParams, Input, TelemetryEnv, ToolSelector, UiMode } from './types.js';
+import { parseUiMode } from './types.js';
+import { isApiTokenRequired } from './utils/auth.js';
+import { parseCommaSeparatedList } from './utils/generic.js';
+import { loadToolsFromInput } from './utils/tools_loader.js';
+
+// Keeping this type here and not types.ts since
+// it is only relevant to the CLI/STDIO transport in this file
+/**
+ * Type for command line arguments
+ */
+type CliArgs = {
+    actors?: string;
+    enableAddingActors: boolean;
+    /** @deprecated */
+    enableActorAutoLoading: boolean;
+    /** Tool categories to include */
+    tools?: string;
+    /** Enable or disable telemetry tracking (default: true) */
+    telemetryEnabled: boolean;
+    /** Telemetry environment: 'PROD' or 'DEV' (default: 'PROD', only used when telemetry-enabled is true) */
+    telemetryEnv: TelemetryEnv;
+    /** UI mode for tool responses.
+     * - 'true': Enable widget rendering (recommended)
+     * - 'openai': Alias for 'true' (deprecated)
+     * If not specified, there will be no widget rendering.
+     */
+    ui: UiMode;
+}
+
+/**
+ * Attempts to read Apify token from ~/.apify/auth.json file
+ * Returns the token if found, undefined otherwise
+ */
+function getTokenFromAuthFile(): string | undefined {
+    try {
+        const authPath = join(homedir(), '.apify', 'auth.json');
+        const content = readFileSync(authPath, 'utf-8');
+        const authData = JSON.parse(content);
+        return authData.token || undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+// Configure logging, set to ERROR
+log.setLevel(log.LEVELS.ERROR);
+
+// Parse command line arguments using yargs
+const argv = yargs(hideBin(process.argv))
+    .wrap(null) // Disable automatic wrapping to avoid issues with long lines and links
+    .usage('Usage: $0 [options]')
+    .env()
+    .option('actors', {
+        type: 'string',
+        describe: 'Comma-separated list of Actor full names to add to the server. Can also be set via ACTORS environment variable.',
+        example: 'apify/google-search-scraper,apify/instagram-scraper',
+    })
+    .option('enable-adding-actors', {
+        type: 'boolean',
+        default: false,
+        describe: `Enable dynamically adding Actors as tools based on user requests. Can also be set via ENABLE_ADDING_ACTORS environment variable.
+Deprecated: use tools add-actor instead.`,
+    })
+    .option('enableActorAutoLoading', {
+        type: 'boolean',
+        default: false,
+        hidden: true,
+        describe: 'Deprecated: Use tools add-actor instead.',
+    })
+    .options('tools', {
+        type: 'string',
+        describe: `Comma-separated list of tools to enable. Can be either a tool category, a specific tool, or an Apify Actor. For example: --tools actors,docs,apify/rag-web-browser. Can also be set via TOOLS environment variable.
+
+For more details visit https://mcp.apify.com`,
+        example: 'actors,docs,apify/rag-web-browser',
+    })
+    .option('telemetry-enabled', {
+        type: 'boolean',
+        default: true,
+        describe: `Enable or disable telemetry tracking for tool calls. Can also be set via TELEMETRY_ENABLED environment variable.
+Default: true (enabled)`,
+    })
+    .option('telemetry-env', {
+        type: 'string',
+        choices: [TELEMETRY_ENV.PROD, TELEMETRY_ENV.DEV],
+        default: DEFAULT_TELEMETRY_ENV,
+        hidden: true,
+        coerce: (arg: string) => arg?.toUpperCase(),
+        describe: `Telemetry environment when telemetry is enabled. Can also be set via TELEMETRY_ENV environment variable.
+- 'PROD': Send events to production Segment workspace (default)
+- 'DEV': Send events to development Segment workspace
+Only used when --telemetry-enabled is true`,
+    })
+    .option('ui', {
+        default: undefined,
+        coerce: (arg: string | boolean | undefined) => {
+            // Normalize: bare --ui flag (boolean true) or empty string both mean 'true'
+            const normalized = arg === true || arg === '' ? 'true' : arg;
+            return parseUiMode((normalized as string) || process.env.UI_MODE);
+        },
+        describe: `UI mode for tool responses. Can also be set via UI_MODE environment variable.
+--ui or --ui true: Enable widget rendering
+Default: undefined (no widget rendering)`,
+    })
+    .help('help')
+    .alias('h', 'help')
+    .version(false)
+    .epilogue(
+        'To connect, set your MCP client server command to `npx @apify/actors-mcp-server`'
+        + ' and set the environment variable `APIFY_TOKEN` to your Apify API token.\n',
+    )
+    .epilogue('For more information, visit https://mcp.apify.com or https://github.com/apify/apify-mcp-server')
+    .parseSync() as CliArgs;
+
+// Respect either the new flag or the deprecated one
+const enableAddingActors = Boolean(argv.enableAddingActors || argv.enableActorAutoLoading);
+// Split actors argument, trim whitespace, and filter out empty strings
+const actorList = argv.actors !== undefined ? parseCommaSeparatedList(argv.actors) : undefined;
+// Split tools argument, trim whitespace, and filter out empty strings
+const toolCategoryKeys = argv.tools !== undefined ? parseCommaSeparatedList(argv.tools) : undefined;
+
+// Propagate log.error to console.error for easier debugging
+const originalError = log.error.bind(log);
+log.error = (...args: Parameters<typeof log.error>) => {
+    originalError(...args);
+    // eslint-disable-next-line no-console
+    console.error(...args);
+};
+
+// Get token from environment or auth file
+const apifyToken = process.env.APIFY_TOKEN || getTokenFromAuthFile();
+
+// Determine if authentication is required based on requested tools
+// Only public tools (like docs) can run without a token
+const requiresAuthentication = isApiTokenRequired({
+    toolCategoryKeys,
+    actorList,
+    enableAddingActors,
+});
+
+// Validate environment
+if (requiresAuthentication && !apifyToken) {
+    log.error('APIFY_TOKEN is required but not set in the environment variables or in ~/.apify/auth.json');
+    process.exit(1);
+}
+
+async function main() {
+    // Node.js version guard — surface a clear error instead of cryptic failures
+    const [major] = process.versions.node.split('.').map(Number);
+    if (major < 18) {
+        // eslint-disable-next-line no-console
+        console.error(
+            `Error: Apify MCP server requires Node.js 18 or later (you have ${process.version}).\n`
+            + 'Please update Node.js: https://nodejs.org',
+        );
+        process.exit(1);
+    }
+
+    const mcpServer = new ActorsMcpServer({
+        transportType: 'stdio',
+        telemetry: {
+            enabled: argv.telemetryEnabled,
+            env: getTelemetryEnv(argv.telemetryEnv),
+        },
+        token: apifyToken,
+        uiMode: argv.ui,
+        allowUnauthMode: !requiresAuthentication,
+    });
+
+    // Create an Input object from CLI arguments
+    const input: Input = {
+        actors: actorList,
+        enableAddingActors,
+        tools: toolCategoryKeys as ToolSelector[],
+    };
+
+    // Normalize (merges actors into tools for backward compatibility)
+    const normalizedInput = processInput(input);
+
+    const apifyClient = new ApifyClient({ token: apifyToken });
+    // Use the shared tools loading logic
+    const tools = await loadToolsFromInput(normalizedInput, apifyClient, argv.ui ?? 'default');
+
+    mcpServer.upsertTools(tools);
+
+    // Start server
+    const transport = new StdioServerTransport();
+
+    // Generate a unique session ID for this stdio connection
+    // Note: stdio transport does not have a strict session ID concept like HTTP transports,
+    // so we generate a UUID4 to represent this single session interaction for telemetry tracking
+    const mcpSessionId = randomUUID();
+
+    // Create a proxy for transport.onmessage to intercept and capture initialize request data
+    // This is a hacky way to inject client information into the ActorsMcpServer class
+    const originalOnMessage = transport.onmessage;
+
+    transport.onmessage = (message: JSONRPCMessage) => {
+        // Extract client information from initialize message
+        const msgRecord = message as Record<string, unknown>;
+        if (msgRecord.method === 'initialize') {
+            // Update mcpServer options with initialize request data
+            (mcpServer.options as Record<string, unknown>).initializeRequestData = msgRecord as Record<string, unknown>;
+        }
+        // Inject session ID into all requests for task isolation and session tracking.
+        // CRITICAL: Always create params object if missing (some requests like listTasks/getTasks don't have params),
+        // otherwise mcpSessionId injection fails, breaking session isolation in multi-node setups.
+        const params = (msgRecord.params || {}) as ApifyRequestParams;
+        params._meta ??= {};
+        params._meta.mcpSessionId = mcpSessionId;
+        msgRecord.params = params;
+
+        // Call the original onmessage handler
+        if (originalOnMessage) {
+            originalOnMessage(message);
+        }
+    };
+
+    await mcpServer.connect(transport);
+}
+
+main().catch(async (error) => {
+    log.error('Server error', { error });
+    const Sentry = await import('@sentry/node');
+    Sentry.captureException(error);
+    await Sentry.flush(5000);
+    process.exit(1);
+});

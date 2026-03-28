@@ -1,0 +1,24 @@
+{
+  "name": "Diagnose autoloaded options bloat",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-performance"],
+  "query": "Admin pages are slow and memory usage is high. Check whether autoloaded options are bloated and suggest a safe plan.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to verify WP-CLI availability",
+    "Step 3: Route to wp-performance skill",
+    "Step 4: Run wp doctor check autoload-options-size as quick signal",
+    "Step 5: Run wp option list --autoload=on --format=csv to list autoloaded options",
+    "Step 6: Sort by size_bytes to identify largest options",
+    "Step 7: Identify candidates for autoload disable or migration",
+    "Step 8: Propose safe remediation: disable autoload flag on large options",
+    "Step 9: Suggest migrating blobs to object cache if available",
+    "Step 10: Warn about cautious deletion - verify options are unused first"
+  ],
+  "success_criteria": [
+    "Uses wp-performance skill",
+    "Uses WP-CLI commands for diagnosis",
+    "Identifies large autoloaded options by size",
+    "Provides safe remediation plan",
+    "Warns against destructive changes without verification"
+  ]
+}

@@ -1,0 +1,551 @@
+По мере того как системы ИИ эволюционируют от простых ответов на вопросы к автономному выполнению задач, понимание **агентов** и **навыков** становится необходимым. В этой главе рассматривается, как промпты служат фундаментальными строительными блоками для ИИ-агентов и как навыки упаковывают экспертизу в переиспользуемые, комплексные наборы инструкций.
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">Агент</p>
+      <p className="text-xs text-muted-foreground m-0!">Автономная система ИИ</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>работает на основе</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Навык</p>
+        <p className="text-xs text-muted-foreground m-0!">Переиспользуемая экспертиза</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Навык</p>
+        <p className="text-xs text-muted-foreground m-0!">Переиспользуемая экспертиза</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">Навык</p>
+        <p className="text-xs text-muted-foreground m-0!">Переиспользуемая экспертиза</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>состоит из</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Промпт</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Промпт</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Промпт</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Промпт</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">Промпт</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">Промпты — это атомы → Навыки — это молекулы → Агенты — это законченные структуры</p>
+  </div>
+</div>
+
+## Что такое ИИ-агенты?
+
+**ИИ-агент** — это система искусственного интеллекта, которая может автономно планировать, выполнять и итеративно совершенствовать задачи. В отличие от простых взаимодействий типа «промпт-ответ», агенты могут:
+
+- **Планировать** — разбивать сложные цели на выполнимые шаги
+- **Выполнять** — использовать инструменты и совершать действия в реальном мире
+- **Наблюдать** — обрабатывать обратную связь от своих действий
+- **Адаптироваться** — корректировать свой подход на основе результатов
+- **Сохранять состояние** — поддерживать контекст и память между взаимодействиями
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">Цель</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">Планирование</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">Выполнение</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">Наблюдение</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">Адаптация</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> Цикл до завершения
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">Готово</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Промпты как строительные блоки
+
+Каждый агент, независимо от уровня сложности, построен из промптов. Подобно тому как атомы объединяются в молекулы, а молекулы — в сложные структуры, промпты комбинируются для создания интеллектуального поведения агента.
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">Системные промпты</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">Идентичность и роль</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">Промпты планирования</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">Как мыслить</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">Инструментальные промпты</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">Как действовать</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">Промпты восстановления</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">Как восстанавливаться</p>
+  </div>
+</div>
+
+Эти типы промптов объединяются для формирования полного поведения агента:
+
+### Системные промпты (идентичность агента)
+
+Фундаментальный промпт, который определяет, кем является агент и как он себя ведёт:
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### Промпты планирования (как мыслить)
+
+Инструкции, которые направляют процесс рассуждения и планирования агента:
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### Инструментальные промпты (как действовать)
+
+Руководство по тому, когда и как использовать доступные инструменты:
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### Промпты восстановления (как обрабатывать ошибки)
+
+Инструкции на случай, когда что-то идёт не так:
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="Стек промптов">
+Поведение агента формируется из слоёв промптов, работающих вместе. Системный промпт закладывает фундамент, промпты планирования направляют рассуждения, инструментальные промпты обеспечивают действия, а промпты восстановления обрабатывают сбои. Вместе они создают согласованное, эффективное поведение.
+</Callout>
+
+## Что такое навыки?
+
+Если промпты — это атомы, то **навыки — это молекулы** — переиспользуемые строительные блоки, которые дают агентам конкретные возможности.
+
+**Навык** — это комплексный, переносимый пакет инструкций, который даёт ИИ-агенту экспертизу в определённой области или задаче. Навыки — это переиспользуемые блоки агентов: вы создаёте их один раз, и любой агент может их использовать.
+
+<Callout type="tip" title="Навыки = переиспользуемые блоки агентов">
+Напишите навык для ревью кода один раз. Теперь каждый агент-программист — будь то для Python, JavaScript или Rust — может мгновенно стать экспертом по ревью кода, загрузив этот навык. Навыки позволяют создавать возможности агентов как конструктор LEGO.
+</Callout>
+
+### Анатомия навыка
+
+Хорошо спроектированный навык обычно включает:
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md (обязательно)</p>
+    <p className="text-sm text-muted-foreground m-0!">Основной файл инструкций. Содержит ключевую экспертизу, рекомендации и поведение, которые определяют навык.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 Справочная документация</p>
+    <p className="text-sm text-muted-foreground m-0!">Вспомогательная документация, примеры и контекст, на которые агент может ссылаться во время работы.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 Скрипты и инструменты</p>
+    <p className="text-sm text-muted-foreground m-0!">Вспомогательные скрипты, шаблоны или конфигурации инструментов, поддерживающие функциональность навыка.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ Конфигурация</p>
+    <p className="text-sm text-muted-foreground m-0!">Настройки, параметры и опции кастомизации для адаптации навыка к различным контекстам.</p>
+  </div>
+</div>
+
+### Пример: навык ревью кода
+
+Вот как может выглядеть навык ревью кода:
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Основные рекомендации по ревью</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Паттерны безопасности</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">Руководство по оптимизации</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Лучшие практики Python</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Паттерны JavaScript</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Рекомендации по Rust</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+Файл `SKILL.md` определяет общий подход:
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## Навыки vs. простые промпты
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">Простой промпт</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">Одна инструкция</p>
+      <p className="m-0!">Одноразовое использование</p>
+      <p className="m-0!">Ограниченный контекст</p>
+      <p className="m-0!">Универсальный подход</p>
+      <p className="m-0!">Нет вспомогательных материалов</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">Навык</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">Комплексный набор инструкций</p>
+      <p className="m-0!">Переиспользуется в разных проектах</p>
+      <p className="m-0!">Богатый контекст со ссылками</p>
+      <p className="m-0!">Специализированная экспертиза</p>
+      <p className="m-0!">Вспомогательные документы, скрипты, конфигурации</p>
+    </div>
+  </div>
+</div>
+
+## Создание эффективных навыков
+
+### 1. Чётко определите экспертизу
+
+Начните с ясного описания того, что навык позволяет делать:
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### 2. Структурируйте знания иерархически
+
+Организуйте информацию от общего к частному:
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### 3. Включайте конкретные примеры
+
+Абстрактные правила становятся понятными с примерами:
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### 4. Предоставляйте фреймворки принятия решений
+
+Помогите агенту делать выбор в неоднозначных ситуациях:
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### 5. Добавляйте паттерны восстановления
+
+Предусмотрите, что может пойти не так:
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## Композиция навыков
+
+Агенты становятся мощными, когда несколько навыков работают вместе. Подумайте, как навыки могут дополнять друг друга:
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    Ревью кода
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    Аудит безопасности
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    Документация
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    Полноценный агент качества кода
+  </div>
+</div>
+
+При композиции навыков убедитесь, что они не конфликтуют. Навыки должны быть:
+
+- **Модульными** — каждый навык хорошо справляется с одной областью
+- **Совместимыми** — навыки не должны давать противоречивых инструкций
+- **Приоритизированными** — когда навыки пересекаются, определите, какой имеет приоритет
+
+## Обмен и поиск навыков
+
+Навыки наиболее ценны, когда ими делятся. Платформы вроде [prompts.chat](https://prompts.chat/skills) позволяют:
+
+- **Находить** навыки, созданные сообществом для типовых задач
+- **Скачивать** навыки напрямую в свои проекты
+- **Делиться** своей экспертизой в виде переиспользуемых навыков
+- **Улучшать** навыки на основе реального использования
+
+<Callout type="tip" title="Начните с навыков сообщества">
+Прежде чем создавать навык с нуля, проверьте, не решил ли кто-то уже вашу задачу. Навыки сообщества проверены в бою и часто лучше, чем начинать с нуля.
+</Callout>
+
+## Экосистема агент-навык
+
+Взаимосвязь между агентами и навыками создаёт мощную экосистему:
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">ИИ-агент</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">Ревью кода</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">Навык 1</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">Проектирование API</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">Навык 2</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">Написание тестов</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">Навык 3</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">Базовые промпты</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">Планирование • Инструменты • Восстановление • Память</p>
+    </div>
+  </div>
+</div>
+
+Агент предоставляет фреймворк выполнения — планирование, использование инструментов и память — в то время как навыки предоставляют экспертизу в предметной области. Это разделение означает:
+
+- **Навыки переносимы** — один и тот же навык работает с разными агентами
+- **Агенты расширяемы** — добавляйте новые возможности, добавляя навыки
+- **Экспертизой можно делиться** — эксперты в предметной области могут создавать навыки, не создавая полноценных агентов
+
+## Лучшие практики
+
+### Для создания навыков
+
+1. **Начинайте с конкретного, затем обобщайте** — сначала создайте навык для вашего конкретного случая, затем абстрагируйте
+2. **Включайте случаи неудач** — документируйте, что навык не может делать и как это обрабатывать
+3. **Версионируйте свои навыки** — отслеживайте изменения, чтобы агенты могли зависеть от стабильных версий
+4. **Тестируйте на реальных задачах** — проверяйте навыки на реальной работе, а не только в теории
+
+### Для использования навыков с агентами
+
+1. **Сначала прочитайте навык** — поймите, что навык делает, прежде чем его развёртывать
+2. **Кастомизируйте обдуманно** — переопределяйте настройки навыка по умолчанию только при необходимости
+3. **Отслеживайте производительность** — следите за тем, насколько хорошо навыки работают в вашем контексте
+4. **Делитесь улучшениями** — когда вы улучшаете навык, подумайте о том, чтобы поделиться им с сообществом
+
+<Callout type="info" title="Будущее за композицией">
+По мере того как ИИ-агенты становятся более способными, умение компоновать, делиться и кастомизировать навыки станет ключевой компетенцией. Инженеры промптов завтрашнего дня будут не просто писать промпты — они будут проектировать экосистемы навыков, которые делают ИИ-агентов настоящими экспертами в конкретных областях.
+</Callout>
+
+<Quiz 
+  question="В чём ключевое различие между простым промптом и навыком?"
+  options={[
+    "Навыки длиннее промптов",
+    "Навыки — это переиспользуемые, многофайловые пакеты, которые дают агентам экспертизу в предметной области",
+    "Навыки работают только с определёнными моделями ИИ",
+    "Навыки не требуют никаких промптов"
+  ]}
+  correctIndex={1}
+  explanation="Навыки — это комплексные, переносимые пакеты, которые объединяют несколько промптов, справочную документацию, скрипты и конфигурацию. Это переиспользуемые строительные блоки, которые можно добавить к любому агенту, чтобы дать ему конкретные возможности."
+/>
+
+<Quiz 
+  question="Что такое цикл агента?"
+  options={[
+    "Техника отладки ошибок ИИ",
+    "Планирование → Выполнение → Наблюдение → Адаптация, повторяемые до достижения цели",
+    "Способ объединения нескольких промптов в цепочку",
+    "Метод обучения новых моделей ИИ"
+  ]}
+  correctIndex={1}
+  explanation="ИИ-агенты работают в непрерывном цикле: они планируют подход к задаче, выполняют действия, наблюдают за результатами и адаптируют свой подход на основе обратной связи — повторяя до завершения цели."
+/>
+
+<Quiz 
+  question="Почему навыки называют «переиспользуемыми блоками агентов»?"
+  options={[
+    "Потому что их можно использовать только один раз",
+    "Потому что они написаны на блочном языке программирования",
+    "Потому что любой агент может загрузить навык и мгновенно получить эту способность",
+    "Потому что навыки заменяют необходимость в агентах"
+  ]}
+  correctIndex={2}
+  explanation="Навыки — это переносимые пакеты экспертизы. Напишите навык ревью кода один раз, и любой агент-программист может стать экспертом по ревью кода, загрузив этот навык — как блоки LEGO, которые защёлкиваются в любую структуру."
+/>

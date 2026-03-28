@@ -1,0 +1,333 @@
+import chalk from 'chalk';
+import { formatDuration } from '../../util/formatDuration';
+
+import type { TokenUsage } from '../../types/index';
+import type { TokenUsageTracker } from '../../util/tokenUsage';
+
+/**
+ * Parameters for generating an evaluation summary report.
+ *
+ * Contains all the data needed to generate a formatted CLI summary including
+ * completion status, token usage, test results, and guidance messages.
+ */
+export interface EvalSummaryParams {
+  /** Unique identifier for the evaluation */
+  evalId: string;
+  /** Whether this is a red team evaluation */
+  isRedteam: boolean;
+  /** Whether results should be written to database */
+  writeToDatabase: boolean;
+  /** URL for sharing the evaluation results (if created) */
+  shareableUrl: string | null;
+  /** Whether the user requested sharing */
+  wantsToShare: boolean;
+  /** Whether sharing was explicitly disabled via --no-share flag */
+  hasExplicitDisable: boolean;
+  /** Whether cloud features are enabled */
+  cloudEnabled: boolean;
+  /** Whether sharing is actively in progress (for async background sharing) */
+  activelySharing?: boolean;
+  /** Token usage statistics for the evaluation */
+  tokenUsage: TokenUsage;
+  /** Number of successful test cases */
+  successes: number;
+  /** Number of failed test cases */
+  failures: number;
+  /** Number of test cases with errors */
+  errors: number;
+  /** Duration of the evaluation in seconds */
+  duration: number;
+  /** Maximum concurrent API calls during evaluation */
+  maxConcurrency: number;
+  /** Token usage tracker for provider-level breakdown */
+  tracker: TokenUsageTracker;
+  /** HTTP status code if the scan was aborted due to a non-transient target error (401, 403, 404, 501) */
+  targetErrorStatus?: number;
+}
+
+/**
+ * Generate formatted evaluation summary output for CLI display.
+ *
+ * Creates a structured summary report with:
+ * - Completion message with eval ID or shareable URL
+ * - Guidance on viewing/sharing results (when applicable)
+ * - Token usage breakdown (eval, grading, and per-provider)
+ * - Test results and pass rate
+ * - Performance metrics (duration, concurrency)
+ *
+ * The output is formatted with ANSI colors via chalk for terminal display.
+ *
+ * @param params - Configuration and data for generating the summary
+ * @returns Array of formatted strings ready to be logged to console
+ *
+ * @example
+ * ```typescript
+ * const lines = generateEvalSummary({
+ *   evalId: 'eval-123',
+ *   isRedteam: false,
+ *   writeToDatabase: true,
+ *   shareableUrl: null,
+ *   wantsToShare: false,
+ *   hasExplicitDisable: false,
+ *   cloudEnabled: false,
+ *   tokenUsage: { total: 1000, prompt: 400, completion: 600 },
+ *   successes: 10,
+ *   failures: 0,
+ *   errors: 0,
+ *   duration: 5000,
+ *   maxConcurrency: 4,
+ *   tracker: TokenUsageTracker.getInstance(),
+ * });
+ *
+ * lines.forEach(line => logger.info(line));
+ * ```
+ */
+export function generateEvalSummary(params: EvalSummaryParams): string[] {
+  const {
+    evalId,
+    isRedteam,
+    writeToDatabase,
+    shareableUrl,
+    wantsToShare,
+    hasExplicitDisable,
+    cloudEnabled,
+    activelySharing = false,
+    tokenUsage,
+    successes,
+    failures,
+    errors,
+    duration,
+    maxConcurrency,
+    tracker,
+    targetErrorStatus,
+  } = params;
+
+  const lines: string[] = [];
+  const completionType = isRedteam ? 'Red team' : 'Eval';
+  const wasAborted = targetErrorStatus != null;
+
+  // Completion message - show aborted status if applicable
+  let completionMessage: string;
+  if (wasAborted) {
+    completionMessage = `${chalk.red('✗')} ${completionType} aborted`;
+    if (writeToDatabase) {
+      completionMessage += ` (ID: ${chalk.cyan(evalId)})`;
+    }
+  } else if (writeToDatabase && shareableUrl) {
+    completionMessage = `${chalk.green('✓')} ${completionType} complete: ${shareableUrl}`;
+  } else if (writeToDatabase && activelySharing) {
+    completionMessage = `${chalk.green('✓')} ${completionType} complete`;
+  } else if (writeToDatabase) {
+    completionMessage = `${chalk.green('✓')} ${completionType} complete (ID: ${chalk.cyan(evalId)})`;
+  } else {
+    completionMessage = `${chalk.green('✓')} ${completionType} complete`;
+  }
+
+  lines.push(completionMessage);
+
+  // Show abort reason prominently if scan was aborted due to target error
+  if (wasAborted && targetErrorStatus != null) {
+    lines.push('');
+    lines.push(
+      chalk.red.bold('Scan stopped: Target is unavailable and will not recover on retry.'),
+    );
+    lines.push(chalk.red(`  Target returned HTTP ${targetErrorStatus}`));
+    lines.push('');
+    lines.push(chalk.yellow('Possible causes:'));
+    lines.push(chalk.yellow('  • Invalid API key or authentication (401/403)'));
+    lines.push(chalk.yellow('  • Target endpoint does not exist (404)'));
+    lines.push(chalk.yellow('  • Server does not support the request (501)'));
+    lines.push('');
+    lines.push(chalk.cyan('To fix: Check your target configuration and credentials.'));
+  }
+
+  // Guidance section (only when writing to DB, no shareable URL, not wanting to share, and not actively sharing)
+  // When wantsToShare is true, guidance is handled by notCloudEnabledShareInstructions() in eval.ts
+  // When activelySharing is true, share URL will be shown after summary via ora spinner
+  if (writeToDatabase && !shareableUrl && !wantsToShare && !activelySharing) {
+    lines.push('');
+    lines.push(`» View results: ${chalk.green.bold('promptfoo view')}`);
+
+    if (!hasExplicitDisable) {
+      if (cloudEnabled) {
+        lines.push(`» Create shareable URL: ${chalk.green.bold('promptfoo share')}`);
+      } else {
+        lines.push(`» Share with your team: ${chalk.green.bold('https://promptfoo.app')}`);
+      }
+    }
+
+    lines.push(`» Feedback: ${chalk.green.bold('https://promptfoo.dev/feedback')}`);
+  }
+
+  lines.push('');
+
+  // Token usage section
+  const hasEvalTokens =
+    (tokenUsage.total || 0) > 0 || (tokenUsage.prompt || 0) + (tokenUsage.completion || 0) > 0;
+  const hasGradingTokens = tokenUsage.assertions && (tokenUsage.assertions.total || 0) > 0;
+
+  if (hasEvalTokens || hasGradingTokens) {
+    const combinedTotal = (tokenUsage.prompt || 0) + (tokenUsage.completion || 0);
+    const evalTokens = {
+      prompt: tokenUsage.prompt || 0,
+      completion: tokenUsage.completion || 0,
+      total: tokenUsage.total || combinedTotal,
+      cached: tokenUsage.cached || 0,
+      completionDetails: tokenUsage.completionDetails || {
+        reasoning: 0,
+        acceptedPrediction: 0,
+        rejectedPrediction: 0,
+      },
+    };
+
+    const grandTotal = evalTokens.total + (tokenUsage.assertions?.total || 0);
+    lines.push(`${chalk.bold('Total Tokens:')} ${chalk.white.bold(grandTotal.toLocaleString())}`);
+
+    // Show probe count for redteam
+    if (isRedteam && tokenUsage.numRequests) {
+      lines.push(
+        `  ${chalk.gray('Probes:')} ${chalk.white(tokenUsage.numRequests.toLocaleString())}`,
+      );
+    }
+
+    // Build eval breakdown - only show if there are eval tokens
+    if (evalTokens.total > 0) {
+      const evalParts = [];
+      if (evalTokens.prompt > 0) {
+        evalParts.push(`${evalTokens.prompt.toLocaleString()} prompt`);
+      }
+      if (evalTokens.completion > 0) {
+        evalParts.push(`${evalTokens.completion.toLocaleString()} completion`);
+      }
+      if (evalTokens.cached > 0) {
+        // If 100% cached, just say "cached" instead of repeating the number
+        if (evalTokens.cached === evalTokens.total && evalParts.length === 0) {
+          evalParts.push('cached');
+        } else {
+          evalParts.push(`${evalTokens.cached.toLocaleString()} cached`);
+        }
+      }
+      if (evalTokens.completionDetails?.reasoning && evalTokens.completionDetails.reasoning > 0) {
+        evalParts.push(`${evalTokens.completionDetails.reasoning.toLocaleString()} reasoning`);
+      }
+      lines.push(
+        `  ${chalk.gray('Eval:')} ${chalk.white(evalTokens.total.toLocaleString())} (${evalParts.join(', ')})`,
+      );
+    }
+
+    // Grading breakdown (if present)
+    if (tokenUsage.assertions && tokenUsage.assertions.total && tokenUsage.assertions.total > 0) {
+      const gradingParts = [];
+      if (tokenUsage.assertions.prompt && tokenUsage.assertions.prompt > 0) {
+        gradingParts.push(`${tokenUsage.assertions.prompt.toLocaleString()} prompt`);
+      }
+      if (tokenUsage.assertions.completion && tokenUsage.assertions.completion > 0) {
+        gradingParts.push(`${tokenUsage.assertions.completion.toLocaleString()} completion`);
+      }
+      if (tokenUsage.assertions.cached && tokenUsage.assertions.cached > 0) {
+        // Simplify 100% cached
+        if (
+          tokenUsage.assertions.cached === tokenUsage.assertions.total &&
+          gradingParts.length === 0
+        ) {
+          gradingParts.push('cached');
+        } else {
+          gradingParts.push(`${tokenUsage.assertions.cached.toLocaleString()} cached`);
+        }
+      }
+      if (
+        tokenUsage.assertions.completionDetails?.reasoning &&
+        tokenUsage.assertions.completionDetails.reasoning > 0
+      ) {
+        gradingParts.push(
+          `${tokenUsage.assertions.completionDetails.reasoning.toLocaleString()} reasoning`,
+        );
+      }
+      lines.push(
+        `  ${chalk.gray('Grading:')} ${chalk.white(tokenUsage.assertions.total.toLocaleString())} (${gradingParts.join(', ')})`,
+      );
+    }
+
+    // Provider breakdown (if multiple providers)
+    const providerIds = tracker.getProviderIds();
+    if (providerIds.length > 1) {
+      lines.push('');
+      lines.push(chalk.bold('Providers:'));
+
+      // Sort providers by total token usage (descending), filtering out any with undefined usage
+      const sortedProviders = providerIds
+        .map((id) => ({ id, usage: tracker.getProviderUsage(id) }))
+        .filter((p): p is { id: string; usage: NonNullable<typeof p.usage> } => p.usage != null)
+        .sort((a, b) => (b.usage.total || 0) - (a.usage.total || 0));
+
+      for (const { id, usage } of sortedProviders) {
+        if ((usage.total || 0) > 0 || (usage.prompt || 0) + (usage.completion || 0) > 0) {
+          const displayTotal = usage.total || (usage.prompt || 0) + (usage.completion || 0);
+          // Extract just the provider ID part (remove class name in parentheses)
+          const displayId = id.includes(' (') ? id.substring(0, id.indexOf(' (')) : id;
+
+          // Build breakdown details - only show non-zero values, simplify 100% cached
+          const details = [];
+          if (usage.prompt && usage.prompt > 0) {
+            details.push(`${usage.prompt.toLocaleString()} prompt`);
+          }
+          if (usage.completion && usage.completion > 0) {
+            details.push(`${usage.completion.toLocaleString()} completion`);
+          }
+          if (usage.cached && usage.cached > 0) {
+            // Simplify 100% cached
+            if (usage.cached === displayTotal && details.length === 0) {
+              details.push('cached');
+            } else {
+              details.push(`${usage.cached.toLocaleString()} cached`);
+            }
+          }
+          if (usage.completionDetails?.reasoning && usage.completionDetails.reasoning > 0) {
+            details.push(`${usage.completionDetails.reasoning.toLocaleString()} reasoning`);
+          }
+
+          // Always show request count - 0 requests means 100% cached, which is valuable info
+          const requestInfo = `${usage.numRequests || 0} requests`;
+          const separator = details.length > 0 ? '; ' : '';
+          const breakdown = ` (${requestInfo}${separator}${details.join(', ')})`;
+          lines.push(
+            `  ${chalk.gray(displayId + ':')} ${chalk.white(displayTotal.toLocaleString())}${breakdown}`,
+          );
+        }
+      }
+    }
+  }
+
+  // Add spacing between provider breakdown and results
+  lines.push('');
+
+  // Results section
+  const totalTests = successes + failures + errors;
+  const formatResultPercentage = (count: number) => {
+    const percentage = totalTests === 0 ? 0 : (count / totalTests) * 100;
+    return percentage === 0 || percentage === 100
+      ? `${percentage.toFixed(0)}%`
+      : `${percentage.toFixed(2)}%`;
+  };
+  const formatResultLine = (
+    count: number,
+    label: string,
+    icon: string | undefined,
+    iconColor: (text: string) => string,
+  ) => {
+    const iconPart = icon ? `${iconColor(icon)} ` : '';
+    return `  ${iconPart}${chalk.white.bold(count.toLocaleString())} ${chalk.white(label)} ${chalk.gray(`(${formatResultPercentage(count)})`)}`;
+  };
+
+  const errorLabel = errors === 1 ? 'error' : 'errors';
+  lines.push(chalk.bold('Results:'));
+  lines.push(formatResultLine(successes, 'passed', successes > 0 ? '✓' : undefined, chalk.green));
+  lines.push(formatResultLine(failures, 'failed', failures > 0 ? '✗' : undefined, chalk.red));
+  lines.push(formatResultLine(errors, errorLabel, errors > 0 ? '✗' : undefined, chalk.red));
+
+  const durationDisplay = formatDuration(duration);
+  lines.push(chalk.gray(`Duration: ${durationDisplay} (concurrency: ${maxConcurrency})`));
+  lines.push('');
+
+  return lines;
+}

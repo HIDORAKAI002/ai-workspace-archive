@@ -1,0 +1,551 @@
+AIシステムが単純な質問応答から自律的なタスク実行へと進化する中で、**エージェント**と**スキル**を理解することは不可欠になっています。この章では、プロンプトがAIエージェントの基本的な構成要素としてどのように機能するか、そしてスキルが専門知識を再利用可能で包括的な指示セットとしてどのようにパッケージ化するかを探ります。
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">エージェント</p>
+      <p className="text-xs text-muted-foreground m-0!">自律型AIシステム</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>を支えるのは</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">スキル</p>
+        <p className="text-xs text-muted-foreground m-0!">再利用可能な専門知識</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">スキル</p>
+        <p className="text-xs text-muted-foreground m-0!">再利用可能な専門知識</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">スキル</p>
+        <p className="text-xs text-muted-foreground m-0!">再利用可能な専門知識</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>の構成要素は</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">プロンプト</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">プロンプト</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">プロンプト</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">プロンプト</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">プロンプト</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">プロンプトは原子 → スキルは分子 → エージェントは完全な構造体</p>
+  </div>
+</div>
+
+## AIエージェントとは？
+
+**AIエージェント**とは、自律的にタスクを計画し、実行し、反復できるAIシステムです。単純なプロンプト応答のやり取りとは異なり、エージェントは以下のことができます：
+
+- **計画** - 複雑な目標を実行可能なステップに分解する
+- **実行** - ツールを使用して現実世界でアクションを起こす
+- **観察** - アクションからのフィードバックを処理する
+- **適応** - 結果に基づいてアプローチを調整する
+- **持続** - インタラクション間でコンテキストと記憶を維持する
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">目標</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">計画</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">実行</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">観察</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">適応</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> 完了するまでループ
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">完了</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## 構成要素としてのプロンプト
+
+どれほど高度なエージェントも、プロンプトから構築されています。原子が結合して分子を形成し、分子が結合して複雑な構造を形成するように、プロンプトが組み合わさってインテリジェントなエージェントの動作を生み出します。
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">システムプロンプト</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">アイデンティティと役割</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">計画プロンプト</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">考え方</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">ツールプロンプト</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">行動の仕方</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">リカバリープロンプト</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">回復の仕方</p>
+  </div>
+</div>
+
+これらのプロンプトタイプが重なり合って、完全なエージェントの動作を形成します：
+
+### システムプロンプト（エージェントのアイデンティティ）
+
+エージェントが誰であり、どのように振る舞うかを確立する基盤となるプロンプトです：
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### 計画プロンプト（考え方）
+
+エージェントの推論と計画プロセスをガイドする指示です：
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### ツール使用プロンプト（行動の仕方）
+
+利用可能なツールをいつ、どのように使用するかについてのガイダンスです：
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### リカバリープロンプト（失敗への対処法）
+
+うまくいかないときのための指示です：
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="プロンプトスタック">
+エージェントの動作は、複数のプロンプトの層が連携することで生まれます。システムプロンプトが基盤を設定し、計画プロンプトが推論をガイドし、ツールプロンプトがアクションを可能にし、リカバリープロンプトが失敗を処理します。これらが一緒になって、一貫性のある有能な動作を生み出します。
+</Callout>
+
+## スキルとは？
+
+プロンプトが原子だとすれば、**スキルは分子**です—エージェントに特定の能力を与える再利用可能な構成要素です。
+
+**スキル**とは、AIエージェントに特定のドメインやタスクの専門知識を与える、包括的で移植可能な指示パッケージです。スキルはエージェントの再利用可能なブロックです：一度構築すれば、どのエージェントでも使用できます。
+
+<Callout type="tip" title="スキル = 再利用可能なエージェントブロック">
+コードレビュー用のスキルを一度書いておけば、Python、JavaScript、Rustなど、どのコーディングエージェントでも、そのスキルを読み込むだけで即座にエキスパートコードレビュアーになれます。スキルを使えば、LEGOブロックのようにエージェントの能力を構築できます。
+</Callout>
+
+### スキルの構造
+
+よく設計されたスキルには通常、以下が含まれます：
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md（必須）</p>
+    <p className="text-sm text-muted-foreground m-0!">メインの指示ファイルです。スキルを定義するコアの専門知識、ガイドライン、動作が含まれています。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 リファレンスドキュメント</p>
+    <p className="text-sm text-muted-foreground m-0!">エージェントが作業中に参照できるサポートドキュメント、例、コンテキストです。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 スクリプトとツール</p>
+    <p className="text-sm text-muted-foreground m-0!">スキルの機能をサポートするヘルパースクリプト、テンプレート、またはツール設定です。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ 設定</p>
+    <p className="text-sm text-muted-foreground m-0!">異なるコンテキストにスキルを適応させるための設定、パラメータ、カスタマイズオプションです。</p>
+  </div>
+</div>
+
+### 例：コードレビュースキル
+
+コードレビュースキルがどのようなものか見てみましょう：
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">コアレビューガイドライン</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">セキュリティパターン</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">最適化ガイド</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Pythonベストプラクティス</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">JavaScriptパターン</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Rustガイドライン</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+`SKILL.md`ファイルは全体的なアプローチを定義します：
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## スキル vs シンプルなプロンプト
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">シンプルなプロンプト</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">単一の指示</p>
+      <p className="m-0!">一回限りの使用</p>
+      <p className="m-0!">限られたコンテキスト</p>
+      <p className="m-0!">汎用的なアプローチ</p>
+      <p className="m-0!">サポート資料なし</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">スキル</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">包括的な指示セット</p>
+      <p className="m-0!">プロジェクト間で再利用可能</p>
+      <p className="m-0!">参照資料を含む豊富なコンテキスト</p>
+      <p className="m-0!">ドメイン固有の専門知識</p>
+      <p className="m-0!">サポートドキュメント、スクリプト、設定</p>
+    </div>
+  </div>
+</div>
+
+## 効果的なスキルの構築
+
+### 1. 専門知識を明確に定義する
+
+スキルが何を可能にするかの明確な説明から始めます：
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### 2. 知識を階層的に構造化する
+
+情報を一般的なものから具体的なものへと整理します：
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### 3. 具体的な例を含める
+
+抽象的なルールは例があると明確になります：
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### 4. 意思決定フレームワークを提供する
+
+曖昧な状況でエージェントが選択できるように助けます：
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### 5. リカバリーパターンを追加する
+
+何が問題になりうるかを予測します：
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## スキルの組み合わせ
+
+複数のスキルが連携することで、エージェントは強力になります。スキルがどのように補完し合えるか考えてみましょう：
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    コードレビュー
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    セキュリティ監査
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    ドキュメント作成
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    完全なコード品質エージェント
+  </div>
+</div>
+
+スキルを組み合わせる際は、競合しないようにしてください。スキルは以下であるべきです：
+
+- **モジュール化** - 各スキルが1つのドメインをうまく処理する
+- **互換性** - スキル同士が矛盾する指示を出さない
+- **優先順位付け** - スキルが重複する場合、どちらが優先されるかを定義する
+
+## スキルの共有と発見
+
+スキルは共有されることで最も価値を発揮します。[prompts.chat](https://prompts.chat/skills)のようなプラットフォームでは、以下のことができます：
+
+- **発見** - 一般的なタスク用にコミュニティが作成したスキルを見つける
+- **ダウンロード** - プロジェクトに直接スキルをダウンロードする
+- **共有** - 自分の専門知識を再利用可能なスキルとして共有する
+- **反復** - 実際の使用に基づいてスキルを改善する
+
+<Callout type="tip" title="コミュニティスキルから始めよう">
+スキルをゼロから構築する前に、誰かがすでにあなたの問題を解決していないか確認してください。コミュニティスキルは実戦でテストされており、ゼロから始めるよりも良いことが多いです。
+</Callout>
+
+## エージェント-スキルエコシステム
+
+エージェントとスキルの関係は、強力なエコシステムを生み出します：
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">AIエージェント</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">コードレビュー</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">スキル1</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">API設計</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">スキル2</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">テスト作成</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">スキル3</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">コアプロンプト</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">計画 • ツール • リカバリー • メモリ</p>
+    </div>
+  </div>
+</div>
+
+エージェントは実行フレームワーク—計画、ツール使用、メモリ—を提供し、スキルはドメインの専門知識を提供します。この分離により：
+
+- **スキルは移植可能** - 同じスキルが異なるエージェントで動作する
+- **エージェントは拡張可能** - スキルを追加することで新しい能力を追加できる
+- **専門知識は共有可能** - ドメインエキスパートは完全なエージェントを構築せずにスキルを提供できる
+
+## ベストプラクティス
+
+### スキル構築のために
+
+1. **具体的に始めて、その後一般化する** - まず自分の正確なユースケース用にスキルを構築し、その後抽象化する
+2. **失敗ケースを含める** - スキルができないことと、それにどう対処するかを文書化する
+3. **スキルをバージョン管理する** - エージェントが安定したバージョンに依存できるように変更を追跡する
+4. **実際のタスクでテストする** - 理論だけでなく、実際の作業に対してスキルを検証する
+
+### エージェントでスキルを使用するために
+
+1. **まずスキルを読む** - デプロイする前にスキルが何をするか理解する
+2. **慎重にカスタマイズする** - 必要な場合にのみスキルのデフォルトを上書きする
+3. **パフォーマンスを監視する** - 自分のコンテキストでスキルがどれだけうまく機能するか追跡する
+4. **改善を貢献する** - スキルを改善したら、還元することを検討する
+
+<Callout type="info" title="未来は組み合わせ可能">
+AIエージェントがより高機能になるにつれて、スキルを組み合わせ、共有し、カスタマイズする能力はコアコンピテンシーになります。明日のプロンプトエンジニアは単にプロンプトを書くだけでなく、AIエージェントを特定のドメインの真のエキスパートにするスキルエコシステムを設計することになるでしょう。
+</Callout>
+
+<Quiz 
+  question="シンプルなプロンプトとスキルの主な違いは何ですか？"
+  options={[
+    "スキルはプロンプトより長い",
+    "スキルはエージェントにドメインの専門知識を与える、再利用可能なマルチファイルパッケージである",
+    "スキルは特定のAIモデルでのみ動作する",
+    "スキルはプロンプトを必要としない"
+  ]}
+  correctIndex={1}
+  explanation="スキルは、複数のプロンプト、参照ドキュメント、スクリプト、設定を組み合わせた包括的で移植可能なパッケージです。どのエージェントにも追加して特定の能力を与えることができる再利用可能な構成要素です。"
+/>
+
+<Quiz 
+  question="エージェントループとは何ですか？"
+  options={[
+    "AIエラーのデバッグ技術",
+    "計画 → 実行 → 観察 → 適応を、目標達成まで繰り返すこと",
+    "複数のプロンプトをチェーンする方法",
+    "新しいAIモデルをトレーニングする方法"
+  ]}
+  correctIndex={1}
+  explanation="AIエージェントは継続的なループで動作します：タスクへのアプローチを計画し、アクションを実行し、結果を観察し、フィードバックに基づいてアプローチを適応させます—目標が完了するまで繰り返します。"
+/>
+
+<Quiz 
+  question="スキルが「エージェントの再利用可能なブロック」と呼ばれる理由は何ですか？"
+  options={[
+    "一度しか使用できないから",
+    "ブロックプログラミング言語で書かれているから",
+    "どのエージェントもスキルを読み込んで即座にその能力を得られるから",
+    "スキルがエージェントの必要性を置き換えるから"
+  ]}
+  correctIndex={2}
+  explanation="スキルは移植可能な専門知識パッケージです。コードレビュースキルを一度書いておけば、どのコーディングエージェントでもそのスキルを読み込むだけでエキスパートコードレビュアーになれます—どんな構造にもスナップできるLEGOブロックのようなものです。"
+/>

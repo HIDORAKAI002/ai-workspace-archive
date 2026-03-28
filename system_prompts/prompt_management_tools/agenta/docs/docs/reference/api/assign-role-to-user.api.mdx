@@ -1,0 +1,83 @@
+---
+id: assign-role-to-user
+title: "Assign Role To User"
+description: "Assigns a role to a user in a workspace."
+sidebar_label: "Assign Role To User"
+hide_title: true
+hide_table_of_contents: true
+api: eJztVk1z2zYQ/SuYPTkzqOR6euKpauJMNGnHHlluD7LGsyZXIhISYADQtsrhf+8sQIqU1KjJOfXFIrCfbx8e0EBGLrWq8spoSGDmnNpqJ1BYU5DwRqCoHVmhtEDxYuxnV2FKkwf9oGd265IHLYQQFe4Kg5m4uHdkF6agN4lY5rRfT432qLTSW+FzEsZuUau/kZMKlcmYgkpUhRSosyF5KGcSk+yzP6pMXDhvuyTzd8JsQtxxfexh6UtNzouLRfzRObxH52e38/22efpEqQ89LcjXVvdtPRlTJGJpaxIqZgiFvaATrk5Tcm5TF8WuK5MyKd5j4UgYn5N9US7itEDlqA/5Ybm8vX5NKQCeiHkMG/rPDDmhjRc5PpOoyJbKOUbIG/7aGFsKnysnMGXnyZmAlgTbaUHWGtvV16Pfg9snnoAEU5EN45hnkEC0f2TDR28e2QgkVGixJE/WQbJqQGNJkMB4KiBBMYsq9DlIYHyVpQwSb2uS4NKcSoSkAb+r2Nd5q/QWJHjlC174qw8m5hm07TrGIOd/M9mOHY9DMrFIe97CqipUGpqYfnLM5maUsbLcolfk+CtQ7Vwh18GglcAYhOh6d7MJfR+6tHK/ouuiAK65D8IHgWOM6c4oncl7Mz4ZAQPZ20aWHsC66ho5TTGqoj+S0LYczZKrjHYRh6vLS/53qAF3e2qLRWcM3450zPLL1dVp4D+xUFls7Zp5+R1Rj+aXke8GqDyV7tSgMOnB7jeMT2lPW7LQrgfM0Vrcjcbzu4kF8lRLtz03yT/IOdyG+UeTM2QLh3TJuy2foKoOgPTb87DQSkj96yjMng+93VvG8tX/J2cYm1h+ZzciyzCiOKGvQ/EujuDfkvUmLE0nASM/SvK5YampjPNBW3wOCUz3auKmzVhZ2ikfRAcSHNnnXoJqW7ATVioMMn7m3lcumU6pnqSFqbMJbkl7nKCKhmuOkdZW+V0IMrudf6TdB8KMLCSr9djgjvkXGXVotp8CVuojMS6dHM5qnxvbncReD/PoxY0zsxeDpl2/YllFhek0aaBHlJ7h+0RGBhKD0hsz5sws9Cxmt3OQwHjFE3g5+XlyCfL40h8bh6s6DQTsWwrbII/w3cMKcl+7Jyx/HTa4YR5wiXocL9wugjVJLI24j7fLQUnNIAz/P0l+0CdJd8BY0qZVgSqIbqBg08nFanh8sDIkR0+RqBhrCTlrTLKCpnlCR/e2aFte/lKTZQlYS3hGq/CJT86qgUw5/p1BsmHozlAzDJFl9Y34WsG9TGjWiGcsav4CCZ9pd/x4ChdP3utQ05m8jdl+CtfDEOLktmQBjB6zlKE/a7seKfDtzd0SJDx1L6zSZOxj8YUhxJdYrgndByEMaw0UqLc1X3AJxJj89w/dPj4D
+sidebar_class_name: "post api-method"
+info_path: reference/api/agenta-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Assign Role To User"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/workspaces/{workspace_id}/roles"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Assigns a role to a user in a workspace.
+
+Args:
+    payload (UserRole): The payload containing the organization id, user email, and role to assign.
+    workspace_id (str): The ID of the workspace.
+    request (Request): The FastAPI request object.
+
+Returns:
+    bool: True if the role was successfully assigned, False otherwise.
+
+Raises:
+    HTTPException: If the user does not have permission to perform this action.
+    HTTPException: If there is an error assigning the role to the user.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_id","in":"path","required":true,"schema":{"type":"string","title":"Workspace Id"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"required":true,"content":{"application/json":{"schema":{"properties":{"email":{"type":"string","title":"Email"},"role":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Role"},"organization_id":{"type":"string","title":"Organization Id"}},"type":"object","required":["email","organization_id"],"title":"UserRole"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"},"input":{"title":"Input"},"ctx":{"type":"object","title":"Context"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

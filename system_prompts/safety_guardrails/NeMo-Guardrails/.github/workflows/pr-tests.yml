@@ -1,0 +1,34 @@
+name: PR Tests
+
+on:
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - ".github/**"
+
+jobs:
+  pr-tests-matrix:
+    strategy:
+      matrix:
+        os: [Ubuntu]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        include:
+          - os: Ubuntu
+            image: ubuntu-latest
+          - python-version: "3.11"
+            with-coverage: true
+      fail-fast: false
+    uses: ./.github/workflows/_test.yml
+    secrets: inherit
+    with:
+      os: ${{ matrix.os }}
+      image: ${{ matrix.image }}
+      python-version: ${{ matrix.python-version }}
+      with-coverage: ${{ matrix.with-coverage || false }}
+  pr-tests-summary:
+    name: PR Tests Summary
+    needs: pr-tests-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm all PR tests passed
+        run: echo "All PR Tests completed successfully"

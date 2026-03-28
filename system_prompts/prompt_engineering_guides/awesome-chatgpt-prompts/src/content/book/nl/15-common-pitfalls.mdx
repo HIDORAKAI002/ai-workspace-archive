@@ -1,0 +1,373 @@
+Zelfs ervaren prompt engineers vallen in voorspelbare valkuilen. Het goede nieuws? Zodra je deze patronen herkent, zijn ze gemakkelijk te vermijden. Dit hoofdstuk behandelt de meest voorkomende valkuilen, legt uit waarom ze gebeuren, en geeft je concrete strategieën om ze te omzeilen.
+
+<Callout type="warning" title="Waarom Valkuilen Ertoe Doen">
+Een enkele valkuil kan een krachtige AI veranderen in een frustrerend hulpmiddel. Het begrijpen van deze patronen is vaak het verschil tussen "AI werkt niet voor mij" en "AI heeft mijn workflow getransformeerd."
+</Callout>
+
+## De Vaagheidsval
+
+**Het Patroon**: Je weet wat je wilt, dus je neemt aan dat de AI het ook wel zal uitzoeken. Maar vage prompts leveren vage resultaten op.
+
+<Compare 
+  before={{ label: "Vage prompt", content: "Schrijf iets over marketing." }}
+  after={{ label: "Specifieke prompt", content: "Schrijf een LinkedIn-post van 300 woorden over het belang van merkconsistentie voor B2B SaaS-bedrijven, gericht op marketingmanagers. Gebruik een professionele maar toegankelijke toon. Voeg één concreet voorbeeld toe." }}
+/>
+
+**Waarom het gebeurt**: We slaan van nature details over wanneer we denken dat ze "vanzelfsprekend" zijn. Maar wat voor jou vanzelfsprekend is, is niet vanzelfsprekend voor een model dat geen context heeft over jouw situatie, doelgroep of doelen.
+
+<TryIt 
+  title="Specificiteitsverbeteraar"
+  description="Neem een vage prompt en maak deze specifiek. Merk op hoe het toevoegen van details de kwaliteit van resultaten transformeert."
+  prompt={`Ik heb een vage prompt die verbetering nodig heeft.
+
+Originele vage prompt: "\${vaguePrompt}"
+
+Maak deze prompt specifiek door toe te voegen:
+1. **Doelgroep**: Wie zal dit lezen/gebruiken?
+2. **Formaat**: Welke structuur moet het hebben?
+3. **Lengte**: Hoe lang moet het zijn?
+4. **Toon**: Welke stem of stijl?
+5. **Context**: Wat is de situatie of het doel?
+6. **Beperkingen**: Zijn er must-haves of must-avoids?
+
+Herschrijf de prompt met al deze details erin.`}
+/>
+
+## De Overladingsval
+
+**Het Patroon**: Je probeert alles in één prompt te krijgen—uitgebreid, grappig, professioneel, beginnersvriendelijk, gevorderd, SEO-geoptimaliseerd én kort. Het resultaat? De AI mist de helft van je vereisten of produceert een verwarde brei.
+
+<Compare 
+  before={{ label: "Overladen prompt", content: "Schrijf een blogpost over AI die SEO-geoptimaliseerd is en codevoorbeelden bevat en grappig maar professioneel is en gericht is op beginners maar ook gevorderde tips heeft en 500 woorden moet zijn maar uitgebreid en ons product noemt en een call to action heeft..." }}
+  after={{ label: "Gefocuste prompt", content: "Schrijf een blogpost van 500 woorden die AI introduceert aan beginners.\n\nVereisten:\n1. Leg één kernconcept duidelijk uit\n2. Voeg één eenvoudig codevoorbeeld toe\n3. Eindig met een call to action\n\nToon: Professioneel maar toegankelijk" }}
+/>
+
+**Waarom het gebeurt**: Angst voor meerdere interacties, of de wens om "alles eruit te gooien" in één keer. Maar cognitieve overbelasting beïnvloedt AI net zoals het mensen beïnvloedt—te veel concurrerende vereisten leidt tot gemiste punten.
+
+<InfoGrid items={[
+  { label: "Beperk Vereisten", description: "Houd het bij 3-5 kernvereisten per prompt", example: "Focus op: doelgroep, formaat, lengte, één kernbeperking", exampleType: "text", color: "green" },
+  { label: "Gebruik Genummerde Lijsten", description: "Structuur maakt prioriteiten duidelijk", example: "1. Moet X hebben, 2. Zou Y moeten hebben, 3. Leuk om te hebben Z", exampleType: "text", color: "green" },
+  { label: "Keten Prompts", description: "Verdeel complexe taken in stappen", example: "Eerst: overzicht. Dan: sectie 1 schrijven. Dan: sectie 2 schrijven.", exampleType: "text", color: "green" },
+  { label: "Prioriteer Meedogenloos", description: "Wat is essentieel vs. nice-to-have?", example: "Als ik maar ÉÉN ding goed kon krijgen, wat zou het zijn?", color: "green" }
+]} />
+
+<Callout type="tip" title="Leer Prompt Chaining">
+Wanneer een enkele prompt overladen raakt, is [prompt chaining](/book/11-prompt-chaining) vaak de oplossing. Verdeel complexe taken in een reeks gefocuste prompts, waarbij elke stap voortbouwt op de vorige.
+</Callout>
+
+## De Aannameval
+
+**Het Patroon**: Je verwijst naar iets "van eerder" of neemt aan dat de AI je project, je bedrijf of je eerdere gesprekken kent. Dat doet het niet.
+
+<Compare 
+  before={{ label: "Neemt context aan", content: "Update de functie die ik je eerder liet zien om foutafhandeling toe te voegen." }}
+  after={{ label: "Geeft context", content: "Update deze functie om foutafhandeling toe te voegen:\n\n```python\ndef calculate_total(items):\n    return sum(item.price for item in items)\n```\n\nVoeg try/except toe voor lege lijsten en ongeldige items." }}
+/>
+
+**Waarom het gebeurt**: AI-gesprekken voelen als praten met een collega. Maar in tegenstelling tot collega's hebben de meeste AI-modellen geen persistent geheugen tussen sessies—elk gesprek begint opnieuw.
+
+<TryIt 
+  title="Contextcompleetheidscontrole"
+  description="Gebruik dit om te verifiëren dat je prompt alle noodzakelijke context bevat voordat je deze verstuurt."
+  prompt={`Bekijk deze prompt op ontbrekende context:
+
+"\${promptToCheck}"
+
+Controleer op:
+1. **Verwezen maar niet opgenomen**: Vermeldt het "de code," "het document," "eerder," of "hierboven" zonder de daadwerkelijke inhoud op te nemen?
+
+2. **Aangenomen kennis**: Neemt het kennis aan over een specifiek project, bedrijf of situatie?
+
+3. **Impliciete vereisten**: Zijn er onuitgesproken verwachtingen over formaat, lengte of stijl?
+
+4. **Ontbrekende achtergrond**: Zou een slimme vreemdeling begrijpen wat er gevraagd wordt?
+
+Som op wat er ontbreekt en stel voor hoe je het kunt toevoegen.`}
+/>
+
+## De Sturende Vraag Val
+
+**Het Patroon**: Je formuleert je vraag op een manier die je aanname inbedt, waardoor je bevestiging krijgt in plaats van inzicht.
+
+<Compare 
+  before={{ label: "Sturende vraag", content: "Waarom is Python de beste programmeertaal voor data science?" }}
+  after={{ label: "Neutrale vraag", content: "Vergelijk Python, R en Julia voor data science werk. Wat zijn de sterke en zwakke punten van elk? Wanneer zou je de ene boven de andere kiezen?" }}
+/>
+
+**Waarom het gebeurt**: We zoeken vaak bevestiging, niet informatie. Onze formulering duwt onbewust naar het antwoord dat we verwachten of willen.
+
+<TryIt 
+  title="Vooroordeel Detector"
+  description="Controleer je prompts op verborgen vooroordelen en sturend taalgebruik."
+  prompt={`Analyseer deze prompt op vooroordelen en sturend taalgebruik:
+
+"\${promptToAnalyze}"
+
+Controleer op:
+1. **Ingebedde aannames**: Neemt de vraag aan dat iets waar is?
+2. **Sturende formulering**: Neemt "Waarom is X goed?" aan dat X goed is?
+3. **Ontbrekende alternatieven**: Worden andere mogelijkheden genegeerd?
+4. **Bevestiging zoeken**: Vraagt het om validatie in plaats van analyse?
+
+Herschrijf de prompt om neutraal en open te zijn.`}
+/>
+
+## De Vertrouw Alles Val
+
+**Het Patroon**: AI-antwoorden klinken zelfverzekerd en gezaghebbend, dus je accepteert ze zonder verificatie. Maar zelfvertrouwen is niet gelijk aan nauwkeurigheid.
+
+<InfoGrid items={[
+  { label: "Ongecontroleerde Inhoud", description: "AI-gegenereerde tekst publiceren zonder feitencontrole", example: "Blogposts met verzonnen statistieken of nepquotes", exampleType: "text", color: "red" },
+  { label: "Ongeteste Code", description: "AI-code in productie gebruiken zonder te testen", example: "Beveiligingskwetsbaarheden, randgeval-fouten, subtiele bugs", exampleType: "text", color: "red" },
+  { label: "Blinde Beslissingen", description: "Belangrijke keuzes maken uitsluitend gebaseerd op AI-analyse", example: "Bedrijfsstrategie gebaseerd op gehallucineerde marktdata", exampleType: "text", color: "red" }
+]} />
+
+**Waarom het gebeurt**: AI klinkt zelfverzekerd zelfs wanneer het volledig fout is. We zijn ook vatbaar voor "automatiseringsbias"—de neiging om computeroutputs meer te vertrouwen dan we zouden moeten.
+
+<TryIt 
+  title="Verificatie Prompt"
+  description="Gebruik dit om de AI zijn eigen onzekerheden en potentiële fouten te laten markeren."
+  prompt={`Ik heb informatie nodig over: \${topic}
+
+BELANGRIJK: Voeg na je antwoord een sectie toe genaamd "Verificatienotities" die bevat:
+
+1. **Betrouwbaarheidsniveau**: Hoe zeker ben je over deze informatie? (Hoog/Gemiddeld/Laag)
+
+2. **Mogelijke Fouten**: Welke delen van dit antwoord zijn het meest waarschijnlijk fout of verouderd?
+
+3. **Wat te Verifiëren**: Welke specifieke beweringen moet de gebruiker onafhankelijk controleren?
+
+4. **Bronnen om te Controleren**: Waar kan de gebruiker deze informatie verifiëren?
+
+Wees eerlijk over beperkingen. Het is beter om onzekerheid te markeren dan zelfverzekerd te klinken over iets dat fout is.`}
+/>
+
+## De Eenmalige Poging Val
+
+**Het Patroon**: Je stuurt één prompt, krijgt een matig resultaat, en concludeert dat AI "niet werkt" voor jouw gebruik. Maar geweldige resultaten vereisen bijna altijd iteratie.
+
+<Compare 
+  before={{ label: "Eenmalige denkwijze", content: "Matige output → \"AI kan dit niet\" → Opgeven" }}
+  after={{ label: "Iteratieve denkwijze", content: "Matige output → Analyseren wat er fout is → Prompt verfijnen → Betere output → Opnieuw verfijnen → Uitstekende output" }}
+/>
+
+**Waarom het gebeurt**: We verwachten dat AI onze gedachten leest bij de eerste poging. We verwachten niet te itereren met Google-zoekopdrachten, maar verwachten op de een of andere manier perfectie van AI.
+
+<TryIt 
+  title="Iteratie Helper"
+  description="Wanneer je eerste resultaat niet klopt, gebruik dit om het systematisch te verbeteren."
+  prompt={`Mijn originele prompt was:
+"\${originalPrompt}"
+
+De output die ik kreeg was:
+"\${outputReceived}"
+
+Wat er mis mee is:
+"\${whatIsWrong}"
+
+Help me itereren:
+
+1. **Diagnose**: Waarom produceerde de originele prompt dit resultaat?
+
+2. **Ontbrekende Elementen**: Waar was ik niet expliciet over wat ik had moeten zijn?
+
+3. **Herziene Prompt**: Herschrijf mijn prompt om deze problemen aan te pakken.
+
+4. **Waar Op te Letten**: Wat moet ik controleren in de nieuwe output?`}
+/>
+
+## De Formaat Verwaarlozing Val
+
+**Het Patroon**: Je focust op wat je wilt dat de AI zegt, maar vergeet te specificeren hoe het geformatteerd moet worden. Dan krijg je proza wanneer je JSON nodig had, of een muur van tekst wanneer je opsommingstekens nodig had.
+
+<Compare 
+  before={{ label: "Geen formaat gespecificeerd", content: "Extraheer de belangrijkste gegevens uit deze tekst." }}
+  after={{ label: "Formaat gespecificeerd", content: "Extraheer de belangrijkste gegevens uit deze tekst als JSON:\n\n{\n  \"name\": string,\n  \"date\": \"YYYY-MM-DD\",\n  \"amount\": number,\n  \"category\": string\n}\n\nRetourneer ALLEEN de JSON, geen uitleg." }}
+/>
+
+**Waarom het gebeurt**: We focussen op inhoud boven structuur. Maar als je de output programmatisch moet parsen, of ergens specifiek moet plakken, is formaat net zo belangrijk als inhoud.
+
+<TryIt 
+  title="Formaatspecificatie Bouwer"
+  description="Genereer duidelijke formaatspecificaties voor elk type output dat je nodig hebt."
+  prompt={`Ik heb AI-output nodig in een specifiek formaat.
+
+**Wat ik vraag**: \${taskDescription}
+**Hoe ik de output ga gebruiken**: \${intendedUse}
+**Voorkeursformaat**: \${formatType} (JSON, Markdown, CSV, opsommingstekens, etc.)
+
+Genereer een formaatspecificatie die ik aan mijn prompt kan toevoegen, inclusief:
+
+1. **Exacte structuur** met veldnamen en types
+2. **Voorbeeldoutput** die het formaat toont
+3. **Beperkingen** (bijv. "Retourneer ALLEEN de JSON, geen uitleg")
+4. **Randgevallen** (wat te outputten als gegevens ontbreken)`}
+/>
+
+## De Context Window Val
+
+**Het Patroon**: Je plakt een enorm document en verwacht uitgebreide analyse. Maar modellen hebben limieten—ze kunnen afkappen, focus verliezen, of belangrijke details missen in lange inputs.
+
+<InfoGrid items={[
+  { label: "Ken Je Limieten", description: "Verschillende modellen hebben verschillende context windows", example: "GPT-4: 128K tokens, Claude: 200K tokens, Gemini: 1M tokens", exampleType: "text", color: "blue" },
+  { label: "Verdeel Grote Inputs", description: "Breek documenten op in beheersbare secties", example: "Analyseer hoofdstukken apart, synthetiseer dan", exampleType: "text", color: "blue" },
+  { label: "Zet Belangrijke Info Vooraan", description: "Plaats kritieke context vroeg in de prompt", example: "Kernvereisten eerst, achtergronddetails later", exampleType: "text", color: "blue" },
+  { label: "Snoei het Overbodige", description: "Verwijder onnodige context", example: "Heb je echt het hele document nodig, of alleen relevante secties?", exampleType: "text", color: "blue" }
+]} />
+
+<TryIt 
+  title="Document Opdelingsstrategie"
+  description="Krijg een strategie voor het verwerken van documenten die contextlimieten overschrijden."
+  prompt={`Ik heb een groot document om te analyseren:
+
+**Documenttype**: \${documentType}
+**Geschatte lengte**: \${documentLength}
+**Wat ik moet extraheren/analyseren**: \${analysisGoal}
+**Model dat ik gebruik**: \${modelName}
+
+Maak een opdelingsstrategie:
+
+1. **Hoe te verdelen**: Logische breekpunten voor dit documenttype
+2. **Wat in elk deel op te nemen**: Context nodig voor zelfstandige analyse
+3. **Hoe te synthetiseren**: Resultaten van meerdere delen combineren
+4. **Waar op te letten**: Informatie die meerdere delen kan overspannen`}
+/>
+
+## De Vermenselijkingsval
+
+**Het Patroon**: Je behandelt AI als een menselijke collega—je verwacht dat het "geniet" van taken, je onthoudt, of om uitkomsten geeft. Dat doet het niet.
+
+<Compare 
+  before={{ label: "Vermenselijkt", content: "Ik weet zeker dat je van dit creatieve project zult genieten! Ik weet dat je graag mensen helpt, en dit is echt belangrijk voor mij persoonlijk." }}
+  after={{ label: "Duidelijk en direct", content: "Schrijf een creatief kort verhaal met deze specificaties:\n- Genre: Sciencefiction\n- Lengte: 500 woorden\n- Toon: Hoopvol\n- Moet bevatten: Een verrassende wending" }}
+/>
+
+**Waarom het gebeurt**: AI-antwoorden zijn zo menselijk dat we van nature in sociale patronen vervallen. Maar emotionele oproepen laten de AI niet harder proberen—duidelijke instructies doen dat wel.
+
+<Callout type="info" title="Wat Daadwerkelijk Helpt">
+In plaats van emotionele oproepen, focus op: duidelijke vereisten, goede voorbeelden, specifieke beperkingen en expliciete succescriteria. Deze verbeteren outputs. "Probeer alsjeblieft echt hard" doet dat niet.
+</Callout>
+
+## De Beveiligingsverwaarlozing Val
+
+**Het Patroon**: In de haast om dingen werkend te krijgen, neem je gevoelige informatie op in prompts—API-sleutels, wachtwoorden, persoonlijke gegevens of eigendomsinformatie.
+
+<InfoGrid items={[
+  { label: "Geheimen in Prompts", description: "API-sleutels, wachtwoorden, tokens geplakt in prompts", example: "\"Gebruik deze API-sleutel: sk-abc123...\"", color: "red" },
+  { label: "Persoonlijke Gegevens", description: "PII opnemen die naar servers van derden wordt gestuurd", example: "Klantnamen, e-mails, adressen in prompts", exampleType: "text", color: "red" },
+  { label: "Ongesanitiseerde Gebruikersinput", description: "Gebruikersinput direct doorgeven aan prompts", example: "Prompt injection kwetsbaarheden", exampleType: "text", color: "red" },
+  { label: "Eigendomsinformatie", description: "Bedrijfsgeheimen of vertrouwelijke gegevens", example: "Interne strategieën, niet-uitgebrachte productdetails", exampleType: "text", color: "red" }
+]} />
+
+**Waarom het gebeurt**: Focus op functionaliteit boven beveiliging. Maar onthoud: prompts gaan vaak naar externe servers, kunnen worden gelogd en kunnen worden gebruikt voor training.
+
+<TryIt 
+  title="Beveiligingscontrole"
+  description="Controleer je prompt op beveiligingsproblemen voordat je deze verstuurt."
+  prompt={`Bekijk deze prompt op beveiligingsproblemen:
+
+"\${promptToReview}"
+
+Controleer op:
+
+1. **Blootgestelde Geheimen**: API-sleutels, wachtwoorden, tokens, inloggegevens
+2. **Persoonlijke Gegevens**: Namen, e-mails, adressen, telefoonnummers, BSN's
+3. **Eigendomsinfo**: Bedrijfsgeheimen, interne strategieën, vertrouwelijke gegevens
+4. **Injectierisico's**: Gebruikersinput die de prompt zou kunnen manipuleren
+
+Voor elk gevonden probleem:
+- Leg het risico uit
+- Stel voor hoe de informatie te redigeren of beschermen
+- Beveel veiligere alternatieven aan`}
+/>
+
+## De Hallucinatie-Onwetendheid Val
+
+**Het Patroon**: Je vraagt om citaten, statistieken of specifieke feiten, en neemt aan dat ze echt zijn omdat de AI ze vol vertrouwen vermeldde. Maar AI verzint regelmatig plausibel klinkende informatie.
+
+<Compare 
+  before={{ label: "Blind vertrouwen", content: "Geef me 5 statistieken over thuiswerken productiviteit met bronnen." }}
+  after={{ label: "Beperkingen erkennen", content: "Wat weten we over thuiswerken productiviteit? Voor alle statistieken die je noemt, geef aan of het gevestigde bevindingen zijn of meer onzeker. Ik zal specifieke cijfers onafhankelijk verifiëren." }}
+/>
+
+**Waarom het gebeurt**: AI genereert tekst die gezaghebbend klinkt. Het "weet" niet wanneer het dingen verzint—het voorspelt waarschijnlijke tekst, niet het ophalen van geverifieerde feiten.
+
+<TryIt 
+  title="Hallucinatie-Bestendige Query"
+  description="Structureer je prompt om hallucinatierisico te minimaliseren en onzekerheden te markeren."
+  prompt={`Ik heb informatie nodig over: \${topic}
+
+Volg alsjeblieft deze richtlijnen om fouten te minimaliseren:
+
+1. **Houd je aan gevestigde feiten**. Vermijd obscure beweringen die moeilijk te verifiëren zijn.
+
+2. **Markeer onzekerheid**. Als je ergens niet zeker over bent, zeg "Ik geloof..." of "Dit heeft mogelijk verificatie nodig..."
+
+3. **Geen verzonnen bronnen**. Citeer geen specifieke papers, boeken of URL's tenzij je zeker weet dat ze bestaan. Beschrijf in plaats daarvan waar dit type informatie te vinden is.
+
+4. **Erken kennislimieten**. Als mijn vraag gaat over gebeurtenissen na je trainingsdata, zeg dat dan.
+
+5. **Scheid feit van gevolgtrekking**. Maak duidelijk onderscheid tussen "X is waar" en "Gebaseerd op Y is X waarschijnlijk waar."
+
+Nu, met deze richtlijnen in gedachten: \${actualQuestion}`}
+/>
+
+## Pre-Verzend Checklist
+
+Voordat je een belangrijke prompt verstuurt, loop deze snelle checklist door:
+
+<Checklist 
+  title="Prompt Kwaliteitscontrole"
+  items={[
+    { text: "Is het specifiek genoeg? (Niet vaag)" },
+    { text: "Is het gefocust? (Niet overladen met vereisten)" },
+    { text: "Bevat het alle noodzakelijke context?" },
+    { text: "Is de vraag neutraal? (Niet sturend)" },
+    { text: "Heb ik het outputformaat gespecificeerd?" },
+    { text: "Valt de input binnen contextlimieten?" },
+    { text: "Zijn er beveiligingsproblemen?" },
+    { text: "Ben ik voorbereid om de output te verifiëren?" },
+    { text: "Ben ik voorbereid om te itereren indien nodig?" }
+  ]}
+/>
+
+<Quiz 
+  question="Wat is de gevaarlijkste valkuil bij het gebruik van AI voor belangrijke beslissingen?"
+  options={[
+    "Vage prompts gebruiken",
+    "AI-outputs vertrouwen zonder verificatie",
+    "Outputformaat niet specificeren",
+    "Prompts overladen met vereisten"
+  ]}
+  correctIndex={1}
+  explanation="Hoewel alle valkuilen problemen veroorzaken, is het vertrouwen van AI-outputs zonder verificatie het gevaarlijkst omdat het kan leiden tot het publiceren van valse informatie, het deployen van buggy code, of het nemen van beslissingen op basis van gehallucineerde data. AI klinkt zelfverzekerd zelfs wanneer het volledig fout is, waardoor verificatie essentieel is voor elk belangrijk gebruik."
+/>
+
+## Analyseer Je Prompts
+
+Gebruik AI om directe feedback te krijgen over je promptkwaliteit. Plak elke prompt en krijg een gedetailleerde analyse:
+
+<PromptAnalyzer 
+  title="Prompt Kwaliteitsanalyzer"
+  description="Krijg AI-aangedreven feedback over duidelijkheid, specificiteit en suggesties voor verbetering"
+  defaultPrompt="Help me met mijn code"
+/>
+
+## Debug Deze Prompt
+
+Kun je zien wat er mis is met deze prompt?
+
+<PromptDebugger
+  title="Vind de Valkuil"
+  badPrompt="Schrijf een blogpost over technologie die SEO-geoptimaliseerd is met keywords en ook grappig maar professioneel en codevoorbeelden bevat en gericht is op beginners maar gevorderde tips heeft en ons product TechCo noemt en social proof heeft en een call to action en 500 woorden is maar uitgebreid."
+  badOutput="Hier is een concept blogpost over technologie...
+
+[Generieke, onfocuste inhoud die alles probeert te doen maar niets goed doet. Toon wisselt onhandig tussen casual en technisch. Mist de helft van de vereisten.]"
+  options={[
+    { id: "vague", label: "De prompt is te vaag", isCorrect: false, explanation: "Eigenlijk heeft de prompt veel specifieke vereisten. Het probleem is het tegenovergestelde—te veel vereisten, niet te weinig." },
+    { id: "overload", label: "De prompt is overladen met te veel concurrerende vereisten", isCorrect: true, explanation: "Correct! Deze prompt vraagt om SEO + grappig + professioneel + code + beginners + gevorderd + productvermelding + social proof + CTA + lengtebeperking. Dat zijn 10+ concurrerende vereisten! De AI kan ze niet allemaal bevredigen, dus doet het een matig werk op alles. Oplossing: verdeel dit in meerdere gefocuste prompts." },
+    { id: "format", label: "Het outputformaat is niet gespecificeerd", isCorrect: false, explanation: "Hoewel een specifieker formaat zou helpen, is het hoofdprobleem vereistenoverbelasting. Je kunt je niet uit te veel vragen formatteren." },
+    { id: "context", label: "Er is niet genoeg context", isCorrect: false, explanation: "De prompt heeft eigenlijk veel context—misschien te veel! Het probleem is dat het probeert te veel doelen tegelijk te bevredigen." }
+  ]}
+  hint="Tel hoeveel verschillende vereisten er in deze ene prompt zijn gepropt."
+/>

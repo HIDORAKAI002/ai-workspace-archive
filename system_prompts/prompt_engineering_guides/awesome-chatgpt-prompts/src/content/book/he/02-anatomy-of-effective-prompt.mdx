@@ -1,0 +1,343 @@
+כל פרומפט מצוין חולק מרכיבים מבניים משותפים. הבנת הרכיבים הללו מאפשרת לכם לבנות פרומפטים בצורה שיטתית במקום בדרך של ניסוי וטעייה.
+
+<Callout type="tip" title="אבני הבניין">
+חשבו על הרכיבים האלה כמו קוביות לגו. אתם לא צריכים את כולם לכל פרומפט, אבל לדעת מה זמין עוזר לכם לבנות בדיוק את מה שאתם צריכים.
+</Callout>
+
+## הרכיבים המרכזיים
+
+פרומפט אפקטיבי כולל בדרך כלל חלק מהמרכיבים הבאים או את כולם:
+
+<PromptBreakdown parts={[
+  { label: "תפקיד", text: "אתה מהנדס תוכנה בכיר" },
+  { label: "הקשר", text: "העובד על אפליקציית React." },
+  { label: "משימה", text: "סקור את הקוד הזה לאיתור באגים" },
+  { label: "מגבלות", text: "והתמקד רק בבעיות אבטחה." },
+  { label: "פורמט", text: "החזר ממצאים כרשימה ממוספרת." },
+  { label: "דוגמה", text: "כמו: 1. סיכון SQL injection בשורה 42" }
+]} />
+
+בואו נבחן כל רכיב בפירוט.
+
+## 1. תפקיד / פרסונה
+
+הגדרת תפקיד ממקדת את תגובות המודל דרך הפריזמה של מומחיות או נקודת מבט ספציפית.
+
+<Compare 
+  before={{ label: "ללא תפקיד", content: "הסבר מחשוב קוונטי." }}
+  after={{ label: "עם תפקיד", content: "אתה פרופסור לפיזיקה המתמחה בהנגשת נושאים מורכבים למתחילים. הסבר מחשוב קוונטי." }}
+/>
+
+התפקיד מכין את המודל ל:
+- שימוש באוצר מילים מתאים
+- יישום מומחיות רלוונטית
+- שמירה על נקודת מבט עקבית
+- התחשבות נכונה בקהל היעד
+
+### דפוסי תפקיד אפקטיביים
+
+```
+"אתה [מקצוע] עם [X שנות] ניסיון ב[התמחות]"
+"פעל כ[תפקיד] שהוא [מאפיין]"
+"אתה מומחה ל[תחום] שעוזר ל[סוג קהל]"
+```
+
+## 2. הקשר / רקע
+
+הקשר מספק את המידע שהמודל צריך כדי להבין את המצב שלכם. זכרו: המודל לא יודע דבר עליכם, על הפרויקט שלכם, או על המטרות שלכם אלא אם תספרו לו.
+
+<Compare 
+  before={{ label: "הקשר חלש", content: "תקן את הבאג הזה בקוד שלי." }}
+  after={{ label: "הקשר חזק", content: "אני בונה REST API ב-Node.js באמצעות Express.js. ה-API מטפל באימות משתמשים עם JWT tokens. כאשר משתמש מנסה לגשת לנתיב מוגן, הוא מקבל שגיאת 403 גם עם token תקין. הנה הקוד הרלוונטי: [code]" }}
+/>
+
+### מה לכלול בהקשר
+
+- **פרטי הפרויקט** — מחסנית טכנולוגית, ארכיטקטורה, מגבלות
+- **מצב נוכחי** — מה ניסיתם, מה עובד, מה לא
+- **מטרות** — מה אתם בסופו של דבר מנסים להשיג
+- **מגבלות** — הגבלות זמן, דרישות טכניות, מדריכי סגנון
+
+## 3. משימה / הוראה
+
+המשימה היא הלב של הפרומפט שלכם—מה שאתם רוצים שהמודל יעשה. היו ספציפיים וחד-משמעיים.
+
+### ספקטרום הספציפיות
+
+<SpecificitySpectrum levels={[
+  { level: "מעורפל", text: "עזור לי עם החיבור הזה" },
+  { level: "יותר טוב", text: "ערוך את החיבור הזה" },
+  { level: "טוב", text: "ערוך את החיבור הזה לדקדוק ובהירות" },
+  { level: "הכי טוב", text: "ערוך את החיבור הזה לדקדוק ובהירות, תוך שמירה על הטון המקורי אך צמצום יתירות ב-20%" }
+]} />
+
+### פעלי פעולה שעובדים היטב
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">יצירה</span>
+    <span className="text-muted-foreground">Write, Create, Generate, Compose, Design</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">ניתוח</span>
+    <span className="text-muted-foreground">Analyze, Evaluate, Compare, Assess, Review</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">המרה</span>
+    <span className="text-muted-foreground">Convert, Translate, Reformat, Summarize, Expand</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">הסבר</span>
+    <span className="text-muted-foreground">Explain, Describe, Clarify, Define, Illustrate</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-32">פתרון בעיות</span>
+    <span className="text-muted-foreground">Solve, Debug, Fix, Optimize, Improve</span>
+  </div>
+</div>
+
+## 4. מגבלות / כללים
+
+מגבלות מתחמות את הפלט של המודל. הן מונעות בעיות נפוצות ומבטיחות רלוונטיות.
+
+### סוגי מגבלות
+
+**מגבלות אורך:**
+```
+"שמור על התגובה שלך מתחת ל-200 מילים"
+"ספק בדיוק 5 הצעות"
+"כתוב 3-4 פסקאות"
+```
+
+**מגבלות תוכן:**
+```
+"אל תכלול דוגמאות קוד"
+"התמקד רק בהיבטים הטכניים"
+"הימנע משפה שיווקית"
+```
+
+**מגבלות סגנון:**
+```
+"השתמש בטון פורמלי ואקדמי"
+"כתוב כאילו אתה מדבר לילד בן 10"
+"היה ישיר והימנע משפה מהססת"
+```
+
+**מגבלות היקף:**
+```
+"שקול רק אפשרויות זמינות ב-Python 3.10+"
+"הגבל הצעות לכלים חינמיים"
+"התמקד בפתרונות שלא דורשים תלויות נוספות"
+```
+
+## 5. פורמט פלט
+
+ציון פורמט הפלט מבטיח שתקבלו תגובות במבנה שימושי.
+
+### פורמטים נפוצים
+
+**רשימות:**
+```
+"החזר כרשימה עם תבליטים"
+"ספק רשימה ממוספרת של שלבים"
+```
+
+**נתונים מובנים:**
+```
+"החזר כ-JSON עם מפתחות: title, description, priority"
+"עצב כטבלת markdown עם עמודות: Feature, Pros, Cons"
+```
+
+**מבנים ספציפיים:**
+```
+"מבנה את התגובה שלך כ:
+ ## סיכום
+ ## נקודות מפתח
+ ## המלצות"
+```
+
+### דוגמת פלט JSON
+
+```
+נתח את ביקורת הלקוח הזו והחזר JSON:
+{
+  "sentiment": "positive" | "negative" | "neutral",
+  "topics": ["array of main topics"],
+  "rating_prediction": 1-5,
+  "key_phrases": ["notable phrases"]
+}
+
+ביקורת: "המוצר הגיע מהר ועובד מצוין, אבל 
+ההוראות היו מבלבלות."
+```
+
+## 6. דוגמאות (Few-Shot Learning)
+
+דוגמאות הן הדרך החזקה ביותר להראות למודל בדיוק מה אתם רוצים.
+
+### דוגמת One-Shot
+
+```
+המר את המשפטים האלה לזמן עבר.
+
+דוגמה:
+קלט: "She walks to the store"
+פלט: "She walked to the store"
+
+כעת המר:
+קלט: "They run every morning"
+```
+
+### דוגמת Few-Shot
+
+```
+סווג את פניות התמיכה האלה לפי דחיפות.
+
+דוגמאות:
+"החשבון שלי נפרץ" → קריטי
+"איך אני משנה את הסיסמה?" → נמוך
+"התשלום נכשל אבל חייבו אותי" → גבוה
+
+סווג: "האפליקציה קורסת כשאני פותח הגדרות"
+```
+
+## שילוב הכל יחד
+
+הנה פרומפט מלא המשתמש בכל הרכיבים:
+
+<TryIt 
+  title="דוגמת פרומפט מלא"
+  description="פרומפט זה מדגים את כל ששת הרכיבים עובדים יחד. נסו אותו כדי לראות איך פרומפטים מובנים מייצרים תוצאות מקצועיות."
+  prompt={`# Role
+You are a senior technical writer with 10 years of experience creating developer documentation.
+
+# Context
+I'm documenting a REST API for a payment processing service. The audience is developers integrating our API into their applications. They have intermediate programming knowledge but may be new to payment processing concepts.
+
+# Task
+Write documentation for the following API endpoint that creates a new payment intent.
+
+# Constraints
+- Use clear, concise language
+- Include common error scenarios
+- Do not include implementation details about our backend
+- Assume readers understand HTTP and JSON basics
+
+# Output Format
+Structure the documentation as:
+1. Endpoint Overview (2-3 sentences)
+2. Request (method, URL, headers, body with example)
+3. Response (success and error examples)
+4. Code Example (in JavaScript/Node.js)
+
+# Endpoint Details
+POST /v1/payments/intents
+Body: { "amount": 1000, "currency": "usd", "description": "Order #1234" }`}
+/>
+
+## הפרומפט האפקטיבי המינימלי
+
+לא כל פרומפט צריך את כל הרכיבים. למשימות פשוטות, הוראה ברורה עשויה להספיק:
+
+```
+תרגם "Hello, how are you?" לספרדית.
+```
+
+השתמשו ברכיבים נוספים כאשר:
+- המשימה מורכבת או מעורפלת
+- אתם צריכים עיצוב ספציפי
+- התוצאות לא תואמות לציפיות
+- עקביות בין שאילתות מרובות חשובה
+
+## דפוסי פרומפט נפוצים
+
+המסגרות הללו נותנות לכם רשימת בדיקה פשוטה לעקוב אחריה בעת כתיבת פרומפטים. לחצו על כל שלב כדי לראות דוגמה.
+
+<CRISPEFramework />
+
+<RTFFramework />
+
+## סיכום
+
+פרומפטים אפקטיביים נבנים, לא מתגלים. על ידי הבנה ויישום של הרכיבים המבניים הללו, תוכלו:
+
+- לקבל תוצאות טובות יותר בניסיון הראשון
+- לנפות באגים בפרומפטים שלא עובדים
+- ליצור תבניות פרומפט לשימוש חוזר
+- לתקשר את הכוונות שלכם בבהירות
+
+<Quiz 
+  question="לאיזה רכיב יש את ההשפעה הגדולה ביותר על איכות התגובה?"
+  options={[
+    "תמיד התפקיד/הפרסונה",
+    "תמיד פורמט הפלט",
+    "זה תלוי במשימה",
+    "אורך הפרומפט"
+  ]}
+  correctIndex={2}
+  explanation="משימות שונות נהנות מרכיבים שונים. תרגום פשוט צריך מבנה מינימלי, בעוד שניתוח מורכב נהנה מפירוט תפקיד, הקשר ומפרטי פורמט."
+/>
+
+<TryIt 
+  prompt={`You are a senior product manager with 10 years of experience in SaaS products.
+
+Context: I'm building a task management app for remote teams. We're a small startup with limited engineering resources.
+
+Task: Suggest 3 features we should prioritize for our MVP.
+
+Constraints:
+- Features must be implementable by a team of 2 developers in 4 weeks
+- Focus on what differentiates us from Trello and Asana
+
+Format: For each feature, provide:
+1. Feature name
+2. One-sentence description  
+3. Why it matters for remote teams`}
+  description="פרומפט זה משתמש בכל ששת הרכיבים. נסו אותו וראו איך הגישה המובנית מייצרת תוצאות ממוקדות ומעשיות."
+/>
+
+## בנו פרומפט משלכם
+
+עכשיו תורכם! השתמשו בבונה הפרומפטים האינטראקטיבי הזה כדי לבנות פרומפט משלכם באמצעות הרכיבים שלמדתם:
+
+<PromptBuilder 
+  title="בונה פרומפטים אינטראקטיבי"
+  description="מלאו כל סעיף כדי לבנות פרומפט מלא ומובנה היטב"
+/>
+
+<PromptChallenge
+  title="אתגר הפרק: בנו פרומפט לסקירת קוד"
+  task="כתבו פרומפט שמבקש מ-AI לסקור קוד עבור פגיעויות אבטחה. הפרומפט שלכם צריך להיות ספציפי מספיק כדי לקבל משוב מעשי."
+  criteria={[
+    "כולל תפקיד או רמת מומחיות ברורה",
+    "מציין איזה סוג סקירת קוד (מיקוד באבטחה)",
+    "מגדיר את פורמט הפלט הצפוי",
+    "קובע מגבלות או היקף מתאימים"
+  ]}
+  hints={[
+    "חשבו איזו מומחיות צריכה להיות לסוקר קוד",
+    "היו ספציפיים לגבי אילו בעיות אבטחה לחפש",
+    "שקלו לבקש פורמט תגובה מובנה"
+  ]}
+  exampleSolution={`You are a senior security engineer with expertise in web application security and OWASP Top 10 vulnerabilities.
+
+Task: Review the following code for security vulnerabilities.
+
+Focus on:
+- SQL injection risks
+- XSS vulnerabilities  
+- Authentication/authorization issues
+- Input validation gaps
+
+Output format:
+For each issue found:
+1. Line number(s)
+2. Vulnerability type
+3. Risk level (High/Medium/Low)
+4. Recommended fix
+
+[CODE TO REVIEW]`}
+  difficulty="intermediate"
+/>
+
+בפרק הבא, נחקור את העקרונות המרכזיים המנחים החלטות בניית פרומפטים.

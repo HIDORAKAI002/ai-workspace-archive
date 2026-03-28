@@ -1,0 +1,61 @@
+# .github/workflows/test.yml
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install -e .
+        
+    - name: Verify installation
+      run: |
+        # Show Python path
+        python -c "import sys; print('\n'.join(sys.path))"
+        # Try importing the module
+        python -c "import mysql_mcp_server; print('Module found at:', mysql_mcp_server.__file__)"
+        # List installed packages
+        pip list | grep mysql
+        # Show the content of site-packages
+        ls -R $(python -c "import site; print(site.getsitepackages()[0])")
+
+    - name: Run tests
+      env:
+        MYSQL_HOST: 127.0.0.1
+        MYSQL_USER: root
+        MYSQL_PASSWORD: testpassword
+        MYSQL_DATABASE: test_db
+      run: |
+        python -m pytest -v

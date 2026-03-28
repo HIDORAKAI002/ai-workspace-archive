@@ -1,0 +1,47 @@
+{
+  "passThreshold": 0.7,
+  "server": {
+    "transport": "stdio",
+    "command": "node",
+    "args": ["./cli.js"],
+    "env": {
+      "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}",
+      "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID}",
+      "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+    }
+  },
+  "timeout": 60000,
+  "llmJudge": false,
+  "workflows": [
+    {
+      "name": "smoke-test-navigation",
+      "description": "Quick test to verify basic navigation works",
+      "steps": [
+        {
+          "user": "Open a browser and go to example.org",
+          "expectedState": "success"
+        },
+        {
+          "user": "Close the browser",
+          "expectedState": "success"
+        }
+      ],
+      "expectTools": ["start", "navigate", "end"]
+    },
+    {
+      "name": "smoke-test-extraction",
+      "description": "Quick test to verify data extraction works",
+      "steps": [
+        {
+          "user": "Navigate to example.org and extract the page title",
+          "expectedState": "Example Domain"
+        },
+        {
+          "user": "Close the session",
+          "expectedState": "success"
+        }
+      ],
+      "expectTools": ["start", "navigate", "extract", "end"]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+# Version Control
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Docker
+.dockerignore
+deploy/
+docker-compose*.yml
+Dockerfile*
+
+# Documentation
+docs/
+
+# Markdown files except README.md
+*.md
+!README.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.installed.cfg
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+
+# Virtual Environments
+.env
+.venv/
+env/
+ENV/
+venv/
+
+# Testing and Coverage
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+tests/
+
+# Development and IDE
+.idea/
+.vscode/
+.ruff_cache/
+.mypy_cache/
+.aider*
+*.swp
+*.swo
+
+# OS Generated
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log

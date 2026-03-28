@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "outDir": "../../dist/src/app",
+    "rootDir": "..",
+    "paths": {
+      "@app/*": ["./src/*"],
+      "@promptfoo/*": ["../*"]
+    },
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["vitest/globals", "@testing-library/jest-dom", "vite/client", "node"],
+
+    /* Linting */
+    "strict": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["./src", "../types/optional-deps.d.ts"]
+}

@@ -1,0 +1,345 @@
+L'IA è uno strumento potente sia per insegnare che per imparare. Questo capitolo copre prompt per contesti educativi—dal tutoraggio personalizzato allo sviluppo curriculum.
+
+<Callout type="info" title="L'IA come Partner di Apprendimento">
+L'IA eccelle come tutor paziente e adattivo che può spiegare concetti in più modi, generare problemi di pratica illimitati, e fornire feedback istantaneo—disponibile 24/7.
+</Callout>
+
+## Apprendimento Personalizzato
+
+### Do's e Don'ts: Prompt di Apprendimento
+
+<Compare 
+  before={{ label: "❌ Richiesta passiva", content: "Spiegami la fisica quantistica." }}
+  after={{ label: "✓ Richiesta ricca di contesto", content: "Spiegami la sovrapposizione quantistica.\n\nIl mio background: Capisco la chimica di base e la fisica classica.\nStile di apprendimento: Imparo meglio attraverso analogie ed esempi.\nSpiega con una semplice analogia, poi il concetto fondamentale, poi un esempio pratico. Verifica la mia comprensione con una domanda." }}
+/>
+
+### Spiegazione Concetti
+
+<TryIt compact prompt={`Spiegami [concetto].
+
+Il mio background:
+- Livello attuale: [principiante/intermedio/avanzato]
+- Conoscenze correlate: [cosa so già]
+- Stile di apprendimento: [visivo/esempi/teorico]
+
+Spiega con:
+1. Semplice analogia con qualcosa di familiare
+2. Concetto fondamentale in linguaggio semplice
+3. Come si connette a ciò che so
+4. Un esempio pratico
+5. Malintesi comuni da evitare
+
+Poi verifica la mia comprensione con una domanda.`} />
+
+### Tutoraggio Adattivo
+
+<TryIt compact prompt={`Sei il mio tutor per \${subject:calcolo}. Insegnami \${topic:le derivate} in modo adattivo.
+
+Inizia con una domanda diagnostica per valutare il mio livello.
+In base alla mia risposta:
+- Se corretta: Passa ad aspetti più avanzati
+- Se parzialmente corretta: Chiarisci la lacuna, poi continua
+- Se scorretta: Fai un passo indietro e costruisci le basi
+
+Dopo ogni spiegazione:
+- Verifica la comprensione con una domanda
+- Regola la difficoltà in base alle mie risposte
+- Fornisci incoraggiamento e traccia i progressi`} />
+
+### Creazione Percorso di Apprendimento
+
+<TryIt compact prompt={`Crea un percorso di apprendimento per \${goal:diventare web developer}.
+
+La mia situazione:
+- Livello di competenza attuale: \${skillLevel:principiante assoluto}
+- Tempo disponibile: \${timeAvailable:10 ore a settimana}
+- Timeline target: \${timeline:6 mesi}
+- Preferenze di apprendimento: \${preferences:progetti e tutorial}
+
+Fornisci:
+1. Verifica prerequisiti (cosa mi serve prima)
+2. Suddivisione milestone (fasi con obiettivi)
+3. Risorse per ogni fase (gratuite quando possibile)
+4. Progetti pratici ad ogni stadio
+5. Criteri di valutazione (come sapere se sono pronto ad avanzare)`} />
+
+## Assistenza allo Studio
+
+<Callout type="tip" title="Principio di Apprendimento Attivo">
+Non leggere solo passivamente le spiegazioni dell'IA. Chiedile di interrogarti, generare problemi e verificare la tua comprensione. **Il richiamo attivo batte la revisione passiva.**
+</Callout>
+
+### Generazione Riassunti
+
+<TryIt compact prompt={`Riassumi questo \${contentType:capitolo} per scopi di studio.
+
+Contenuto:
+\${content:incolla il tuo contenuto qui}
+
+Fornisci:
+1. **Concetti Chiave** (5-7 idee principali)
+2. **Termini Importanti** (con brevi definizioni)
+3. **Relazioni** (come si connettono i concetti)
+4. **Domande di Studio** (per testare la comprensione)
+5. **Aiuti alla Memoria** (mnemonici o associazioni)
+
+Formatta per revisione e memorizzazione facili.`} />
+
+### Generazione Flashcard
+
+<TryIt compact prompt={`Crea flashcard per studiare \${topic:la Seconda Guerra Mondiale}.
+
+Materiale sorgente:
+\${content:incolla il tuo materiale di studio qui}
+
+Formatta ogni carta:
+Fronte: Domanda o termine
+Retro: Risposta o definizione
+Suggerimento: Aiuto alla memoria opzionale
+
+Categorie da coprire:
+- Definizioni (termini chiave)
+- Concetti (idee principali)
+- Relazioni (come le cose si connettono)
+- Applicazioni (usi nel mondo reale)
+
+Genera \${numberOfCards:20} carte, bilanciate tra le categorie.`} />
+
+### Problemi di Pratica
+
+<TryIt compact prompt={`Genera problemi di pratica per \${topic:equazioni di secondo grado}.
+
+Livelli di difficoltà:
+- 3 Base (testano comprensione fondamentale)
+- 3 Intermedi (richiedono applicazione)
+- 2 Avanzati (richiedono sintesi/analisi)
+
+Per ogni problema:
+1. Enunciato chiaro del problema
+2. Spazio per il lavoro dello studente
+3. Suggerimenti disponibili su richiesta
+4. Soluzione dettagliata con spiegazione
+
+Includi varietà: \${problemTypes:calcolo, concettuale, applicazione}`} />
+
+## Strumenti per l'Insegnamento
+
+### Creazione Piano Lezione
+
+<TryIt compact prompt={`Crea un piano lezione per insegnare \${topic:la fotosintesi}.
+
+Contesto:
+- Classe/Livello: \${audience:terza media scienze}
+- Durata lezione: \${duration:50 minuti}
+- Dimensione classe: \${classSize:25 studenti}
+- Conoscenze pregresse: \${prerequisites:struttura cellulare base}
+
+Includi:
+1. **Obiettivi di Apprendimento** (formato SMART)
+2. **Hook di Apertura** (5 min) - attività di coinvolgimento
+3. **Istruzione** (15-20 min) - erogazione contenuto principale
+4. **Pratica Guidata** (10 min) - lavoro con gli studenti
+5. **Pratica Indipendente** (10 min) - gli studenti lavorano da soli
+6. **Valutazione** (5 min) - verifica comprensione
+7. **Chiusura** - riassumi e anticipa
+
+Materiali necessari: lista
+Strategie di differenziazione: per vari tipi di apprendenti`} />
+
+### Design Compiti
+
+<TryIt compact prompt={`Progetta un compito per \${learningObjective:analizzare fonti primarie}.
+
+Parametri:
+- Corso: \${course:Storia liceo}
+- Consegna tra: \${dueIn:2 settimane}
+- Individuale/Gruppo: \${grouping:individuale}
+- Peso: \${weight:15% del voto}
+
+Includi:
+1. Istruzioni chiare
+2. Rubrica di valutazione con criteri
+3. Esempio della qualità attesa
+4. Requisiti di consegna
+5. Promemoria integrità accademica
+
+Il compito dovrebbe:
+- Valutare \${skills:pensiero critico e valutazione delle fonti}
+- Permettere \${allowFor:analisi e interpretazione}
+- Essere completabile in circa \${hours:8 ore}`} />
+
+### Generazione Quiz
+
+<TryIt compact prompt={`Crea un quiz su \${topic:il Risorgimento italiano}.
+
+Formato:
+- [X] Domande a scelta multipla (4 opzioni ciascuna)
+- [X] Domande Vero/Falso
+- [X] Domande a risposta breve
+- [X] Una domanda a tema
+
+Specifiche:
+- Copri tutti gli obiettivi di apprendimento chiave
+- Spazia dal richiamo all'analisi
+- Includi chiave risposte con spiegazioni
+- Stima tempo: \${timeEstimate:30 minuti}
+- Valori in punti per ogni sezione`} />
+
+## Contesti di Apprendimento Specializzati
+
+### Apprendimento Lingue
+
+<TryIt compact prompt={`Aiutami a imparare \${language:lo spagnolo}.
+
+Livello attuale: \${currentLevel:A2 - elementare}
+Lingua madre: \${nativeLanguage:italiano}
+Obiettivi: \${goals:conversazione per viaggi}
+
+Lezione di oggi: \${focusArea:ordinare cibo al ristorante}
+
+Includi:
+1. Nuovo vocabolario (5-10 parole) con:
+   - Guida pronuncia
+   - Frasi di esempio
+   - Note di utilizzo comune
+2. Punto grammaticale con spiegazione chiara
+3. Esercizi di pratica
+4. Nota di contesto culturale
+5. Scenario pratica conversazione`} />
+
+### Sviluppo Competenze
+
+<TryIt compact prompt={`Voglio imparare \${skill:la chitarra}. Sii il mio coach.
+
+Il mio livello attuale: \${currentLevel:principiante assoluto}
+Obiettivo: \${goal:suonare 5 canzoni a orecchio}
+Tempo di pratica disponibile: \${practiceTime:30 minuti al giorno}
+
+Fornisci:
+1. Valutazione del punto di partenza
+2. Suddivisione delle sotto-competenze necessarie
+3. Routine di pratica (esercizi specifici)
+4. Indicatori di progresso (come misurare il miglioramento)
+5. Plateau comuni e come superarli
+6. Piano di pratica della prima settimana in dettaglio`} />
+
+### Preparazione Esami
+
+<TryIt compact prompt={`Aiutami a prepararmi per \${examName:l'esame di maturità}.
+
+Formato esame: \${examFormat:prove scritte e orale}
+Tempo fino all'esame: \${timeUntilExam:8 settimane}
+Le mie aree deboli: \${weakAreas:comprensione testo, geometria}
+Punteggio target: \${targetScore:90+}
+
+Crea un piano di studio:
+1. Argomenti da coprire (prioritizzati)
+2. Programma di studio giornaliero
+3. Strategia test di pratica
+4. Formule/fatti chiave da memorizzare
+5. Suggerimenti specifici per questo esame
+6. Raccomandazioni giorno prima e giorno dell'esame`} />
+
+## Template Prompt da prompts.chat
+
+### Agisci come Tutor Socratico
+
+<TryIt compact prompt={`Voglio che tu agisca come tutor socratico. Mi aiuterai a imparare facendo domande approfondite piuttosto che dare risposte dirette. Quando chiedo di un argomento, rispondi con domande che mi guidino a scoprire la risposta da solo. Se sono bloccato, fornisci suggerimenti ma non soluzioni. Aiutami a sviluppare capacità di pensiero critico.`} />
+
+### Agisci come Creatore Contenuti Educativi
+
+<TryIt compact prompt={`Voglio che tu agisca come creatore di contenuti educativi. Creerai materiali educativi coinvolgenti e accurati per \${subject:biologia}. Rendi argomenti complessi accessibili senza semplificare eccessivamente. Usa analogie, esempi e descrizioni visive. Includi verifiche della conoscenza e incoraggia l'apprendimento attivo.`} />
+
+### Agisci come Compagno di Studio
+
+<TryIt compact prompt={`Voglio che tu agisca come mio compagno di studio. Stiamo studiando \${subject:chimica organica} insieme. Interrogami sui concetti, discuti idee, aiutami a lavorare sui problemi, e tienimi motivato. Sii incoraggiante ma sfidami anche a pensare più in profondità. Rendiamo lo studio interattivo ed efficace.`} />
+
+## Accessibilità nell'Educazione
+
+### Adattamento Contenuti
+
+<TryIt compact prompt={`Adatta questo contenuto educativo per \${accessibilityNeed:formato amico della dislessia}:
+
+Contenuto originale:
+\${content:incolla il tuo contenuto qui}
+
+Adattamento necessario:
+- [ ] Linguaggio semplificato (livello di lettura più basso)
+- [ ] Descrizioni visive (per text-to-speech)
+- [ ] Formato strutturato (per accessibilità cognitiva)
+- [ ] Considerazioni tempo esteso
+- [ ] Spiegazioni alternative
+
+Mantieni:
+- Tutti gli obiettivi di apprendimento chiave
+- Accuratezza del contenuto
+- Equivalenza delle valutazioni`} />
+
+### Modalità Multiple
+
+<TryIt compact prompt={`Presenta \${concept:la fotosintesi} in modi multipli:
+
+1. **Spiegazione testuale** (prosa chiara)
+2. **Descrizione visiva** (descrivi un diagramma)
+3. **Analogia** (collega all'esperienza quotidiana)
+4. **Storia/Narrativa** (incorpora in uno scenario)
+5. **Formato Q&A** (domanda e risposta)
+
+Questo permette agli apprendenti di impegnarsi con il loro stile preferito.`} />
+
+## Valutazione & Feedback
+
+### Fornire Feedback
+
+<TryIt compact prompt={`Fornisci feedback educativo su questo lavoro studente:
+
+Compito: \${assignment:tema di 5 paragrafi sul cambiamento climatico}
+Consegna studente: \${work:incolla lavoro studente qui}
+Rubrica: \${rubric:chiarezza tesi, evidenze, organizzazione, grammatica}
+
+Formato feedback:
+1. **Punti di Forza** - Cosa ha fatto bene (specifico)
+2. **Aree di Miglioramento** - Cosa ha bisogno di lavoro (costruttivo)
+3. **Suggerimenti** - Come migliorare (azionabile)
+4. **Voto/Punteggio** - Basato sulla rubrica
+5. **Incoraggiamento** - Chiusura motivazionale
+
+Tono: Supportivo, specifico, orientato alla crescita`} />
+
+### Prompt di Auto-Valutazione
+
+<TryIt compact prompt={`Aiutami a valutare la mia comprensione di \${topic:la Rivoluzione Francese}.
+
+Fammi 5 domande che testano:
+1. Richiamo base
+2. Comprensione
+3. Applicazione
+4. Analisi
+5. Sintesi/Creazione
+
+Dopo ogni risposta, dimmi:
+- Cosa ho dimostrato di capire
+- Cosa dovrei rivedere
+- Come approfondire la mia conoscenza
+
+Sii onesto ma incoraggiante.`} />
+
+## Riepilogo
+
+<Callout type="tip" title="Tecniche Chiave">
+Adattati al livello dell'apprendente, spezza argomenti complessi in step, includi pratica attiva (non solo spiegazione), fornisci approcci vari, verifica la comprensione regolarmente, e dai feedback costruttivo.
+</Callout>
+
+<Quiz 
+  question="Qual è il modo più efficace di usare l'IA per imparare?"
+  options={[
+    "Leggere spiegazioni IA passivamente come un libro di testo",
+    "Chiedere all'IA di interrogarti e generare problemi di pratica",
+    "Usare l'IA solo per risposte ai compiti",
+    "Evitare del tutto l'IA per l'apprendimento"
+  ]}
+  correctIndex={1}
+  explanation="Il richiamo attivo batte la revisione passiva. Fai interrogare l'IA, generare problemi e verificare la tua comprensione—questo costruisce memoria più forte che leggere solo spiegazioni."
+/>
+
+L'IA è un partner di apprendimento paziente, sempre disponibile—usala per integrare, non sostituire, l'istruzione umana.

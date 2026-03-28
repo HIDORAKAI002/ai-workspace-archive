@@ -1,0 +1,85 @@
+---
+id: unassign-role-from-user
+title: "Unassign Role From User"
+description: "Delete a role assignment from a user in a workspace."
+sidebar_label: "Unassign Role From User"
+hide_title: true
+hide_table_of_contents: true
+api: eJztVk1vGzcQ/SvEXJoAC8k1etpThVpBhKSI4cjtwRaM8e5Iy2SX3JBcx+qC/z0Ycr8k1Ubb1LecpCVn3sy8GT6yhZxsZmTtpFaQwgWV5EigMLokgdbKnapIObE1uhIoGktGSCVQfNXms60xo9mtulULs7PprRJCjBt3MhevrDOvU7EuSKwuhN4KV9CBK3tQhbKcmsaFzjqEdFoYqvQDhaWQHGfUAWizQyX/Qi7iyahTo84v4EyMw/cYKtTcp9C70JeGrBOvruKfzvMNWre4XA3b+v4TZS5Qc0WuMapn517rMhVr05CQ27GYCdNf0QrbZBlZu23Kci/y0JM8gqG01GO9Xa8vl48ZhealYhXwDAlpBSpBxujQqxCkz8uMnOaarFDaiQIfSNRkKmmt1IoZqMlstYnVYzah7B/GbOocnVS7IdpPNhRqZ5CArsmENqxySKFRsfg73r9jzu/YARKo0WBFjoyF9KYFhRVBCtP5ggQkj22NroAEuEppKIfUmYYSsFlBFULagtvX7GudkWoHCTjpSl74swcTqxy8T4YoYQR7+C8Nmf1/wl8GmCnw0ax+f4gPE8DjKpjS749wxSjeb9jX1lpZsmx+fnbGP4cC8nGYXHHVGUMCmVaOlGNzrOtSZiHb+SfLPu2YgvfeJ/DL+fkp8B9YyjwWueQp+xeoUBseOSdj3jk5bkragnRU2VODUmcHu6j2H7ZhBA8ZYqK7Fakc7ciA3/ikX0NjcD+h8b2OCYJPoLK75xj/nazFHcEA9syEhSO35l3Pna6bQEi/vQoLPoHMPU5goj5NYH5jLh8dT8+JzTgxN4GbmH5ntxkxxhbFDj1NxUVswd8F601YaE4A43xU5ArN0hGVMSiFKyCF+aANdt5OdcLPg/hAApbMQy8ojSnZCWsZWhk/C+dqm87n1MyyUjf5DHekHM5QRsMNY2SNkW4fQBaXq3e0f0uYk4H0ZjM1+MgTGGfq0GzoA9byHTEz3YFdNK7QpjvN/cktopcP/d3qaXsXITmxuFxBAlxYPCxns59nZ5AcHaEDYz48mIVZ6WOHbUiOiBjqh6RTxRQcYfXruMGZ1dq6CtUE77oTdsH6Id7wZXodhf0grXY8xz+eHz+eHy///OiOHsvdvC5RBkEOM992QnIzPjJYM9KjJ0fUkk0ChbaOrdv2Hi1dm9J7Xo43LYtDLi3el6ycWywtPTP5oaEssq/FUyl+pv3kYfKAZcM2QbpeIM7pO+WlI3aPlTHMhj+M5Dj/P5u9AKv9NGafy0HHw6Ve9ArfdiaLjMdw4nzyBuEChrvqYvl+uV6C998Ats2bHw==
+sidebar_class_name: "delete api-method"
+info_path: reference/api/agenta-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Unassign Role From User"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/workspaces/{workspace_id}/roles"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete a role assignment from a user in a workspace.
+
+Args:
+    workspace_id (str): The ID of the workspace.
+    email (str): The email of the user to remove the role from.
+    organization_id (str): The ID of the organization.
+    role (str): The role to remove from the user.
+    request (Request): The FastAPI request object.
+
+Returns:
+    bool: True if the role assignment was successfully deleted.
+
+Raises:
+    HTTPException: If there is an error in the request or the user does not have permission to perform the action.
+    HTTPException: If there is an error in updating the user's roles.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_id","in":"path","required":true,"schema":{"type":"string","title":"Workspace Id"}},{"name":"email","in":"query","required":true,"schema":{"type":"string","title":"Email"}},{"name":"organization_id","in":"query","required":true,"schema":{"type":"string","title":"Organization Id"}},{"name":"role","in":"query","required":true,"schema":{"type":"string","title":"Role"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"},"input":{"title":"Input"},"ctx":{"type":"object","title":"Context"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

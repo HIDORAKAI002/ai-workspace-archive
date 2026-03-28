@@ -1,0 +1,9 @@
+{
+  "label": "Playwright Web Features",
+  "position": 4,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Supported features in Playwright Web browser automation."
+  }
+}

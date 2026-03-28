@@ -1,0 +1,13 @@
+name: claude-vault
+description: Archive conversations before compact and on session end
+only:
+  - claude
+hooks:
+  PreCompact:
+    - hooks:
+        - type: command
+          command: "claude-vault import >/dev/null 2>&1"
+  SessionEnd:
+    - hooks:
+        - type: command
+          command: "claude-vault import >/dev/null 2>&1 &"

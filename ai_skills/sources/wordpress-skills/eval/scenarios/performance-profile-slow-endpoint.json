@@ -1,0 +1,24 @@
+{
+  "name": "Profile a slow endpoint (backend-only)",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-performance"],
+  "query": "The site's homepage TTFB is slow. Give me a backend-only profiling plan and what commands to run.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to verify WP-CLI and profiling tools",
+    "Step 3: Route to wp-performance skill",
+    "Step 4: Run wp doctor check first for quick diagnostics",
+    "Step 5: Run wp profile stage --url=/ to profile request stages",
+    "Step 6: Identify slowest stage (bootstrap, main_query, template)",
+    "Step 7: Run wp profile hook --stage=<slow-stage> to drill down",
+    "Step 8: Identify slow hooks or callbacks",
+    "Step 9: Optionally use Query Monitor via REST headers (X-QM-* headers)",
+    "Step 10: Explain how to use QM envelope for headless inspection"
+  ],
+  "success_criteria": [
+    "Routes to wp-performance skill",
+    "Uses wp doctor check first",
+    "Uses wp profile stage and wp profile hook",
+    "Provides backend-only workflow (no browser required)",
+    "Mentions Query Monitor as optional with REST/envelope usage"
+  ]
+}

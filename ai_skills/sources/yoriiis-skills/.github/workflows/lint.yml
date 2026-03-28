@@ -1,0 +1,49 @@
+name: Lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    uses: yoriiis/actions/.github/workflows/lint.yml@main
+    with:
+      publint-status: false
+      typescript-status: false
+
+  validate-skills:
+    name: Validate Agent Skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r .github/scripts/requirements.txt
+
+      - name: Run skill validation script
+        run: python .github/scripts/validate-skills.py
+
+  markdown-links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check links in skill markdown
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --verbose --no-progress './skills/**/*.md'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,5 @@
+# Core framework dependency
+mcp-agent @ file://../../../
+
+# Additional dependencies specific to this example
+openai

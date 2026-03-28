@@ -1,0 +1,91 @@
+{
+  "name": "@jonverrier/prompt-repository",
+  "version": "0.3.19",
+  "description": "Managing Prompts and standardised Unit Evals ",
+  "main": "dist/src/entry.js",
+  "types": "dist/src/entry.d.ts",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist/src/**/*",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonverrier/PromptRepository.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "author": "Jon Verrier",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node entry.ts",
+    "build": "tsc -b",
+    "prepublishOnly": "npm run build",
+    "dev": "npm run build && npm run watch",
+    "make_prompt_ids": "ts-node scripts/MakePromptIds.ts",
+    "watch": "tsc -b -w",
+    "clean": "rimraf dist",
+    "test": "mocha --require ts-node/register --extensions ts,js test/**/*.test.ts --exit",
+    "test:ci": "mocha --require ts-node/register --extensions ts,js test/promptrepository.test.ts test/prompts.test.ts test/makepromptids.test.ts --exit",
+    "test:integration": "mocha --require ts-node/register --extensions ts,js test/chat.test.ts test/embed.test.ts test/function.test.ts test/prompts.eval.test.ts test/chatwithattachment.integration.test.ts --exit",
+    "test:mini": "mocha --require ts-node/register --extensions ts,js test/function.test.ts test/multiple-tool-calling.test.ts --exit",
+    "link-local": "bash scripts/link-local.sh",
+    "unlink-local": "bash scripts/unlink-local.sh",
+    "link-status": "bash scripts/link-status.sh",
+    "verify-main": "bash scripts/verify-main.sh",
+    "pre-commit-check": "bash scripts/pre-commit-check.sh",
+    "pre-push-check": "bash scripts/pre-push-check.sh",
+    "cover": "nyc --reporter=html --reporter=text --reporter=lcov --extension .ts --exclude \"**/*.test.ts\" --exclude \"test/**\" npm run test",
+    "cover:json": "nyc --reporter=json --report-dir=.nyc_output --extension .ts --exclude \"**/*.test.ts\" --exclude \"test/**\" npm run test"
+  },
+  "dependencies": {
+    "@jonverrier/assistant-common": "^0.3.1"
+  },
+  "peerDependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "openai": "^6.8.1"
+  },
+  "devDependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.0.10",
+    "expect": "^29.7.0",
+    "mocha": "^11.7.1",
+    "nyc": "^17.1.0",
+    "openai": "^6.8.1",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "5.9.3"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "**/*.test.ts",
+      "test/**",
+      "dist/**",
+      "coverage/**",
+      "node_modules/**"
+    ],
+    "reporter": [
+      "html",
+      "text",
+      "lcov"
+    ],
+    "all": true,
+    "check-coverage": false
+  }
+}

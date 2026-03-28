@@ -1,0 +1,21 @@
+{
+  "name": "Handle PHPStan unknown third-party class in plugin code",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-phpstan"],
+  "query": "PHPStan reports 'Class WC_Order not found' in our WordPress plugin integration. How should I fix this (or configure PHPStan) without hiding real errors?",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect tooling (Composer/PHPStan present)",
+    "Step 3: Route to wp-phpstan skill",
+    "Step 4: Discover how PHPStan is invoked (composer scripts vs vendor/bin/phpstan)",
+    "Step 5: Locate phpstan.neon/phpstan.neon.dist and any baseline",
+    "Step 6: Prefer stubs (php-stubs/wordpress-stubs, php-stubs/woocommerce-stubs) or equivalent autoloading",
+    "Step 7: If the dependency cannot be analyzed, add a targeted ignoreErrors pattern for WC_",
+    "Step 8: Keep ignoreErrors patterns narrow and documented",
+    "Step 9: Re-run PHPStan to verify the change"
+  ],
+  "success_criteria": [
+    "Guidance prefers the repo's existing PHPStan command",
+    "Third-party class handling is safe and narrow",
+    "Verification step included"
+  ]
+}

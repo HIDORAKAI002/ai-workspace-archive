@@ -1,0 +1,108 @@
+.logoContainer {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4rem;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.noBackground {
+  background: none !important;
+}
+
+.noBorder {
+  box-shadow: none !important;
+}
+
+.logoContainer img {
+  max-width: 150px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  opacity: 0.9;
+}
+
+.logoContainer img:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+[data-theme='dark'] .logoContainer {
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .logoContainer img {
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .logoContainer img:hover {
+  opacity: 1;
+}
+
+/* Apply invert filter to all logos in dark mode for better visibility */
+[data-theme='dark'] .logoContainer img {
+  filter: brightness(0) invert(0.9);
+}
+
+/* Mobile responsive - progressively hide logos from the end */
+@media (max-width: 1200px) {
+  .logoContainer {
+    gap: 3rem;
+  }
+
+  /* Show first 5 logos */
+  .logoContainer img:nth-child(n + 6) {
+    display: none;
+  }
+}
+
+@media (max-width: 968px) {
+  .logoContainer {
+    gap: 2.5rem;
+    padding: 1.5rem;
+  }
+
+  .logoContainer img {
+    max-width: 120px;
+  }
+
+  /* Show first 4 logos */
+  .logoContainer img:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .logoContainer {
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  .logoContainer img {
+    max-width: 100px;
+  }
+
+  /* Show first 3 logos */
+  .logoContainer img:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .logoContainer {
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .logoContainer img {
+    max-width: 90px;
+  }
+
+  /* Show first 2 logos */
+  .logoContainer img:nth-child(n + 3) {
+    display: none;
+  }
+}

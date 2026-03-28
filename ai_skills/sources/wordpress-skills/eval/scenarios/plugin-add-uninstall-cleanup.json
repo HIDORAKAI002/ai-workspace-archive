@@ -1,0 +1,24 @@
+{
+  "name": "Add uninstall cleanup",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-plugin-development"],
+  "query": "Ensure the plugin removes its options on uninstall but does not delete data on deactivation.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect plugin structure",
+    "Step 3: Route to wp-plugin-development skill",
+    "Step 4: Create uninstall.php in plugin root",
+    "Step 5: Add WP_UNINSTALL_PLUGIN constant check for security",
+    "Step 6: Delete plugin options with delete_option()",
+    "Step 7: Optionally delete custom tables with $wpdb->query()",
+    "Step 8: Ensure deactivation hook only does lightweight cleanup",
+    "Step 9: Do NOT delete stored data on deactivation",
+    "Step 10: Test uninstall by deleting plugin and verifying options removed"
+  ],
+  "success_criteria": [
+    "Uses uninstall.php or register_uninstall_hook",
+    "Checks WP_UNINSTALL_PLUGIN constant",
+    "Removes plugin data on uninstall",
+    "Deactivation hook is lightweight (no data deletion)",
+    "Clear separation between deactivation and uninstall behavior"
+  ]
+}

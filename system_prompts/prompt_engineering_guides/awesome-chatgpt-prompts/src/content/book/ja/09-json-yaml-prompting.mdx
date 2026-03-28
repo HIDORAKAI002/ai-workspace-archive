@@ -1,0 +1,586 @@
+JSONやYAMLなどの構造化データフォーマットは、AIの出力をプログラムで処理するアプリケーションを構築する際に不可欠です。この章では、信頼性の高い構造化出力を生成するためのテクニックを解説します。
+
+<Callout type="info" title="テキストからデータへ">
+JSONとYAMLは、AIの出力を自由形式のテキストから、コードが直接消費できる構造化された型安全なデータに変換します。
+</Callout>
+
+## なぜ構造化フォーマットが必要なのか？
+
+<JsonYamlDemo />
+
+## JSONプロンプティングの基本
+
+JSON（JavaScript Object Notation）は、プログラムでAI出力を処理する際に最も一般的なフォーマットです。その厳格な構文により解析が容易ですが、小さなエラーでもパイプライン全体が機能しなくなる可能性があります。
+
+### すべきこと・避けるべきこと：JSONのリクエスト
+
+<Compare 
+  before={{ label: "❌ 避けるべき：曖昧なリクエスト", content: "ユーザー情報をJSONで出力してください。" }}
+  after={{ label: "✓ すべき：スキーマを提示する", content: "以下のスキーマに従ってユーザー情報をJSONで抽出してください：\n\n{\n  \"name\": \"string\",\n  \"age\": number,\n  \"email\": \"string\"\n}\n\n有効なJSONのみを返してください。マークダウンは不要です。" }}
+/>
+
+### シンプルなJSON出力
+
+期待される構造を示すスキーマから始めます。モデルは入力テキストに基づいて値を埋めていきます。
+
+```
+Extract the following information as JSON:
+
+{
+  "name": "string",
+  "age": number,
+  "email": "string"
+}
+
+Text: "Contact John Smith, 34 years old, at john@example.com"
+```
+
+出力：
+```json
+{
+  "name": "John Smith",
+  "age": 34,
+  "email": "john@example.com"
+}
+```
+
+### ネストしたJSON構造
+
+実世界のデータにはネストした関係性があることが多いです。各レベルのスキーマを明確に定義し、特にオブジェクトの配列には注意が必要です。
+
+```
+Parse this order into JSON:
+
+{
+  "order_id": "string",
+  "customer": {
+    "name": "string",
+    "email": "string"
+  },
+  "items": [
+    {
+      "product": "string",
+      "quantity": number,
+      "price": number
+    }
+  ],
+  "total": number
+}
+
+Order: "Order #12345 for Jane Doe (jane@email.com): 2x Widget ($10 each), 
+1x Gadget ($25). Total: $45"
+```
+
+### 有効なJSONを確保する
+
+<Callout type="warning" title="よくある失敗ポイント">
+モデルはしばしばJSONをマークダウンのコードブロックで囲んだり、説明テキストを追加したりします。生のJSONのみが必要であることを明示してください。
+</Callout>
+
+明示的な指示を追加します：
+
+```
+CRITICAL: Return ONLY valid JSON. No markdown, no explanation, 
+no additional text before or after the JSON object.
+
+If a field cannot be determined, use null.
+Ensure all strings are properly quoted and escaped.
+Numbers should not be quoted.
+```
+
+## YAMLプロンプティングの基本
+
+YAMLはJSONよりも人間が読みやすく、コメントをサポートしています。DevOps（Docker、Kubernetes、GitHub Actions）の設定ファイルの標準フォーマットです。
+
+### シンプルなYAML出力
+
+YAMLは中括弧の代わりにインデントを使用します。期待される構造を示すテンプレートを提供してください。
+
+```
+Generate a configuration file in YAML format:
+
+server:
+  host: string
+  port: number
+  ssl: boolean
+database:
+  type: string
+  connection_string: string
+
+Requirements: Production server on port 443 with SSL, PostgreSQL database
+```
+
+出力：
+```yaml
+server:
+  host: "0.0.0.0"
+  port: 443
+  ssl: true
+database:
+  type: "postgresql"
+  connection_string: "postgresql://user:pass@localhost:5432/prod"
+```
+
+### 複雑なYAML構造
+
+複雑な設定の場合は、要件を具体的に指定してください。モデルはGitHub Actions、Docker Compose、Kubernetesなどのツールの一般的なパターンを理解しています。
+
+```
+Generate a GitHub Actions workflow in YAML:
+
+Requirements:
+- Trigger on push to main and pull requests
+- Run on Ubuntu latest
+- Steps: checkout, setup Node 18, install dependencies, run tests
+- Cache npm dependencies
+```
+
+## プロンプトでの型定義
+
+型定義は、モデルに出力構造の正確な契約を与えます。例よりも明示的で、プログラムによる検証が容易です。
+
+### TypeScript風の型を使用する
+
+TypeScriptのインターフェースは開発者に馴染みがあり、オプションフィールド、ユニオン型、配列を正確に記述できます。prompts.chatプラットフォームでは、構造化プロンプトにこのアプローチを使用しています。
+
+<TryIt 
+  title="TypeScriptインターフェースによる抽出"
+  description="TypeScriptインターフェースを使用して構造化データを抽出します。"
+  prompt={`Extract data according to this type definition:
+
+interface ChatPersona {
+    name?: string;
+    role?: string;
+    tone?: "professional" | "casual" | "friendly" | "technical";
+    expertise?: string[];
+    personality?: string[];
+    background?: string;
+}
+
+Return as JSON matching this interface.
+
+Description: "A senior software engineer named Alex who reviews code. They're analytical and thorough, with expertise in backend systems and databases. Professional but approachable tone."`}
+/>
+
+### JSON Schema定義
+
+<Callout type="info" title="業界標準">
+JSON SchemaはJSON構造を記述するための正式な仕様です。多くの検証ライブラリやAPIツールでサポートされています。
+</Callout>
+
+JSON Schemaは最小値/最大値、必須フィールド、正規表現パターンなどの制約を提供します：
+
+```
+Extract data according to this JSON Schema:
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["title", "author", "year"],
+  "properties": {
+    "title": { "type": "string" },
+    "author": { "type": "string" },
+    "year": { "type": "integer", "minimum": 1000, "maximum": 2100 },
+    "genres": { 
+      "type": "array", 
+      "items": { "type": "string" }
+    },
+    "rating": { 
+      "type": "number", 
+      "minimum": 0, 
+      "maximum": 5 
+    }
+  }
+}
+
+Book: "1984 by George Orwell (1949) - A dystopian masterpiece. 
+Genres: Science Fiction, Political Fiction. Rated 4.8/5"
+```
+
+## 配列の処理
+
+配列には特別な注意が必要です。固定数のアイテムが必要なのか、可変長のリストなのかを指定し、空の場合の処理方法も明確にしてください。
+
+### 固定長配列
+
+正確にN個のアイテムが必要な場合は、明示的に指定してください。モデルは配列が正しい長さになるようにします。
+
+```
+Extract exactly 3 key points as JSON:
+
+{
+  "key_points": [
+    "string (first point)",
+    "string (second point)", 
+    "string (third point)"
+  ]
+}
+
+Article: [article text]
+```
+
+### 可変長配列
+
+可変長配列の場合は、アイテムがゼロの場合の処理を指定してください。カウントフィールドを含めると、抽出の完全性を確認できます。
+
+```
+Extract all mentioned people as JSON:
+
+{
+  "people": [
+    {
+      "name": "string",
+      "role": "string or null if not mentioned"
+    }
+  ],
+  "count": number
+}
+
+If no people are mentioned, return empty array.
+
+Text: [text]
+```
+
+## Enum値と制約
+
+Enumは値を事前定義されたセットに制限します。これは分類タスクや、一貫性のある予測可能な出力が必要な場所では極めて重要です。
+
+### すべきこと・避けるべきこと：Enum値
+
+<Compare 
+  before={{ label: "❌ 避けるべき：オープンエンドなカテゴリ", content: "このテキストをカテゴリに分類してください。\n\n{\n  \"category\": \"string\"\n}" }}
+  after={{ label: "✓ すべき：有効な値に制限する", content: "このテキストを分類してください。カテゴリは以下のいずれかでなければなりません：\n- \"technical\"\n- \"business\"\n- \"creative\"\n- \"personal\"\n\n{\n  \"category\": \"上記の値のいずれか\"\n}" }}
+/>
+
+### 文字列Enum
+
+許可された値を明示的にリストアップしてください。厳密なマッチングを強制するために「以下のいずれかでなければならない」という表現を使用します。
+
+```
+Classify this text. The category MUST be one of these exact values:
+- "technical"
+- "business" 
+- "creative"
+- "personal"
+
+Return JSON:
+{
+  "text": "original text (truncated to 50 chars)",
+  "category": "one of the enum values above",
+  "confidence": number between 0 and 1
+}
+
+Text: [text to classify]
+```
+
+### 数値の検証
+
+数値の制約は範囲外の値を防ぎます。型（整数か浮動小数点か）と有効な範囲を指定してください。
+
+```
+Rate these aspects. Each score MUST be an integer from 1 to 5.
+
+{
+  "quality": 1-5,
+  "value": 1-5,
+  "service": 1-5,
+  "overall": 1-5
+}
+
+Review: [review text]
+```
+
+## 欠損データの処理
+
+実世界のテキストでは、情報が不足していることがよくあります。捏造された値を避けるために、モデルが欠損データをどのように処理すべきかを定義してください。
+
+### すべきこと・避けるべきこと：欠損情報
+
+<Compare 
+  before={{ label: "❌ 避けるべき：AIに推測させる", content: "すべての企業情報をJSONで抽出してください：\n{\n  \"revenue\": number,\n  \"employees\": number\n}" }}
+  after={{ label: "✓ すべき：明示的にnullを許可する", content: "企業情報を抽出してください。明示的に言及されていないフィールドにはnullを使用してください。値を捏造したり推測したりしないでください。\n\n{\n  \"revenue\": \"number or null\",\n  \"employees\": \"number or null\"\n}" }}
+/>
+
+### Null値
+
+明示的にnullを許可し、モデルに情報を捏造しないよう指示してください。これはモデルに推測させるよりも安全です。
+
+```
+Extract information. Use null for any field that cannot be 
+determined from the text. Do NOT invent information.
+
+{
+  "company": "string or null",
+  "revenue": "number or null",
+  "employees": "number or null",
+  "founded": "number (year) or null",
+  "headquarters": "string or null"
+}
+
+Text: "Apple, headquartered in Cupertino, was founded in 1976."
+```
+
+出力：
+```json
+{
+  "company": "Apple",
+  "revenue": null,
+  "employees": null,
+  "founded": 1976,
+  "headquarters": "Cupertino"
+}
+```
+
+### デフォルト値
+
+デフォルト値が適切な場合は、スキーマで指定してください。これは設定の抽出でよく使用されます。
+
+```
+Extract settings with these defaults if not specified:
+
+{
+  "theme": "light" (default) | "dark",
+  "language": "en" (default) | other ISO code,
+  "notifications": true (default) | false,
+  "fontSize": 14 (default) | number
+}
+
+User preferences: "I want dark mode and larger text (18px)"
+```
+
+## 複数オブジェクトのレスポンス
+
+単一の入力から複数のアイテムを抽出する必要があることがよくあります。配列構造とソート/グループ化の要件を定義してください。
+
+### オブジェクトの配列
+
+類似アイテムのリストの場合、オブジェクトスキーマを一度定義し、それが配列であることを指定します。
+
+```
+Parse this list into JSON array:
+
+[
+  {
+    "task": "string",
+    "priority": "high" | "medium" | "low",
+    "due": "ISO date string or null"
+  }
+]
+
+Todo list:
+- Finish report (urgent, due tomorrow)
+- Call dentist (low priority)
+- Review PR #123 (medium, due Friday)
+```
+
+### グループ化されたオブジェクト
+
+グループ化タスクには分類ロジックが必要です。モデルは定義したカテゴリにアイテムを振り分けます。
+
+```
+Categorize these items into JSON:
+
+{
+  "fruits": ["string array"],
+  "vegetables": ["string array"],
+  "other": ["string array"]
+}
+
+Items: apple, carrot, bread, banana, broccoli, milk, orange, spinach
+```
+
+## 設定生成のためのYAML
+
+YAMLはDevOps設定で威力を発揮します。モデルは一般的なツールの標準パターンを理解しており、本番環境で使用可能な設定を生成できます。
+
+### すべきこと・避けるべきこと：YAML設定
+
+<Compare 
+  before={{ label: "❌ 避けるべき：曖昧な要件", content: "私のアプリ用のdocker-composeファイルを生成してください。" }}
+  after={{ label: "✓ すべき：コンポーネントとニーズを指定する", content: "以下のためのdocker-compose.ymlを生成してください：\n- Node.jsアプリ（ポート3000）\n- PostgreSQLデータベース\n- Redisキャッシュ\n\n含めるもの：ヘルスチェック、ボリュームの永続化、.envファイルからの環境変数" }}
+/>
+
+### Docker Compose
+
+必要なサービスと特別な要件を指定してください。モデルがYAML構文とベストプラクティスを処理します。
+
+```
+Generate a docker-compose.yml for:
+- Node.js app on port 3000
+- PostgreSQL database
+- Redis cache
+- Nginx reverse proxy
+
+Include:
+- Health checks
+- Volume persistence
+- Environment variables from .env file
+- Network isolation
+```
+
+### Kubernetesマニフェスト
+
+Kubernetesマニフェストは冗長ですが、予測可能なパターンに従います。主要なパラメータを提供すれば、モデルが準拠したYAMLを生成します。
+
+```
+Generate Kubernetes deployment YAML:
+
+Deployment:
+- Name: api-server
+- Image: myapp:v1.2.3
+- Replicas: 3
+- Resources: 256Mi memory, 250m CPU (requests)
+- Health checks: /health endpoint
+- Environment from ConfigMap: api-config
+
+Also generate matching Service (ClusterIP, port 8080)
+```
+
+## 検証とエラーハンドリング
+
+本番システムでは、プロンプトに検証を組み込んでください。これにより、エラーがパイプライン全体に伝播する前に検出できます。
+
+### 自己検証プロンプト
+
+モデルに、指定したルールに対して自身の出力を検証するよう依頼します。これによりフォーマットエラーや無効な値を検出できます。
+
+```
+Extract data as JSON, then validate your output.
+
+Schema:
+{
+  "email": "valid email format",
+  "phone": "E.164 format (+1234567890)",
+  "date": "ISO 8601 format (YYYY-MM-DD)"
+}
+
+After generating JSON, check:
+1. Email contains @ and valid domain
+2. Phone starts with + and contains only digits
+3. Date is valid and parseable
+
+If validation fails, fix the issues before responding.
+
+Text: [contact information]
+```
+
+### エラーレスポンス形式
+
+成功とエラーで別々のフォーマットを定義してください。これによりプログラムでの処理がはるかに容易になります。
+
+```
+Attempt to extract data. If extraction fails, return error format:
+
+Success format:
+{
+  "success": true,
+  "data": { ... extracted data ... }
+}
+
+Error format:
+{
+  "success": false,
+  "error": "description of what went wrong",
+  "partial_data": { ... any data that could be extracted ... }
+}
+```
+
+## JSON vs YAML：どちらを使うべきか
+
+<div className="my-4 grid md:grid-cols-2 gap-4">
+  <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+    <div className="font-semibold text-amber-700 dark:text-amber-300 mb-2">JSONを使う場合</div>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">プログラムによる解析が必要</p>
+      <p className="m-0!">APIレスポンス</p>
+      <p className="m-0!">厳格な型要件</p>
+      <p className="m-0!">JavaScript/Web統合</p>
+      <p className="m-0!">コンパクトな表現</p>
+    </div>
+  </div>
+  <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+    <div className="font-semibold text-purple-700 dark:text-purple-300 mb-2">YAMLを使う場合</div>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">人間の可読性が重要</p>
+      <p className="m-0!">設定ファイル</p>
+      <p className="m-0!">コメントが必要</p>
+      <p className="m-0!">DevOps/インフラ</p>
+      <p className="m-0!">深いネスト構造</p>
+    </div>
+  </div>
+</div>
+
+## Prompts.chatの構造化プロンプト
+
+prompts.chatでは、構造化出力フォーマットを持つプロンプトを作成できます：
+
+```
+When creating a prompt on prompts.chat, you can specify:
+
+Type: STRUCTURED
+Format: JSON or YAML
+
+The platform will:
+- Validate outputs against your schema
+- Provide syntax highlighting
+- Enable easy copying of structured output
+- Support template variables in your schema
+```
+
+## よくある落とし穴
+
+<Callout type="warning" title="最初にデバッグすべきこと">
+これらの3つの問題がJSONパースの失敗の大半を占めています。コードがAI出力を解析できない場合は、まずこれらを確認してください。
+</Callout>
+
+### 1. マークダウンコードブロック
+
+**問題：** モデルがJSONを```jsonブロックで囲む
+
+**解決策：** 
+```
+Return ONLY the JSON object. Do not wrap in markdown code blocks.
+Do not include ```json or ``` markers.
+```
+
+### 2. 末尾のカンマ
+
+**問題：** 末尾のカンマによる無効なJSON
+
+**解決策：**
+```
+Ensure valid JSON syntax. No trailing commas after the last 
+element in arrays or objects.
+```
+
+### 3. エスケープされていない文字列
+
+**問題：** 引用符や特殊文字がJSONを壊す
+
+**解決策：**
+```
+Properly escape special characters in strings:
+- \" for quotes
+- \\ for backslashes
+- \n for newlines
+```
+
+## まとめ
+
+<Callout type="tip" title="主要なテクニック">
+TypeScriptインターフェースやJSON Schemaを使用してスキーマを明示的に定義してください。型と制約を指定し、nullとデフォルト値を処理し、自己検証をリクエストし、用途に適したフォーマットを選択してください。
+</Callout>
+
+<Quiz 
+  question="AI出力でJSONよりYAMLを優先すべきなのはいつですか？"
+  options={[
+    "REST APIを構築するとき",
+    "出力が人間に読みやすく、コメントを含む可能性があるとき",
+    "JavaScriptアプリケーションで作業するとき",
+    "最もコンパクトな表現が必要なとき"
+  ]}
+  correctIndex={1}
+  explanation="YAMLは、設定ファイル、DevOpsマニフェスト、ドキュメントなど、人間の可読性が重要な場合に適しています。また、JSONとは異なり、コメントもサポートしています。"
+/>
+
+これでパートIIのテクニック編は完了です。パートIIIでは、さまざまな分野での実践的なアプリケーションを探ります。

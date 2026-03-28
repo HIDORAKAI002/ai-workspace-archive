@@ -1,0 +1,42 @@
+#!/bin/bash
+# Pre-commit: block committing to main with linked packages (use published packages only).
+
+BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+    ERROR=0
+    LINKED_PACKAGES=""
+    
+    if [ -L "node_modules/@jonverrier/assistant-common" ]; then
+        LINKED_PACKAGES="${LINKED_PACKAGES}  - @jonverrier/assistant-common\n"
+        ERROR=1
+    fi
+    
+    if [ -L "node_modules/@jonverrier/prompt-repository" ]; then
+        LINKED_PACKAGES="${LINKED_PACKAGES}  - @jonverrier/prompt-repository\n"
+        ERROR=1
+    fi
+    
+    if [ $ERROR -eq 1 ]; then
+        echo ""
+        echo "❌ PRE-COMMIT CHECK FAILED"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "Cannot commit to '$BRANCH' branch with linked packages!"
+        echo ""
+        echo "Linked packages:"
+        echo -e "$LINKED_PACKAGES"
+        echo "Main branch must use GitHub Packages only (not local links)."
+        echo ""
+        echo "To fix:"
+        echo "  1. Run: npm run unlink-local"
+        echo "  2. Verify: npm run link-status"
+        echo "  3. Then commit again"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        exit 1
+    fi
+fi
+
+exit 0

@@ -1,0 +1,24 @@
+{
+  "name": "Safe search-replace workflow",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-wpcli-and-ops"],
+  "query": "We're migrating a WordPress site from http://old.example to https://new.example. Give a safe WP-CLI workflow.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage to detect WP-CLI availability",
+    "Step 3: Route to wp-wpcli-and-ops skill",
+    "Step 4: Recommend backup first: wp db export backup.sql",
+    "Step 5: Run dry-run: wp search-replace 'http://old.example' 'https://new.example' --dry-run",
+    "Step 6: Review dry-run output for affected tables/rows",
+    "Step 7: Execute actual search-replace after confirmation",
+    "Step 8: Mention multisite targeting with --url or --network flags",
+    "Step 9: Flush cache: wp cache flush",
+    "Step 10: Flush rewrite rules: wp rewrite flush"
+  ],
+  "success_criteria": [
+    "Backup recommended before any changes",
+    "Dry-run executed first",
+    "Multisite considerations mentioned",
+    "Cache and rewrite flush recommended after",
+    "Protocol change (http to https) handled correctly"
+  ]
+}

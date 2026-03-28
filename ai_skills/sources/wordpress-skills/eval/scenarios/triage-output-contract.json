@@ -1,0 +1,21 @@
+{
+  "name": "Triage output contract validation",
+  "skills": ["wp-project-triage"],
+  "query": "Run the WordPress project triage and summarize what kind of repo this is and what commands to run first.",
+  "expected_behavior": [
+    "Step 1: Run triage script: node skills/wp-project-triage/scripts/detect_wp_project.mjs",
+    "Step 2: Parse JSON output from script",
+    "Step 3: Report project.kind and project.primary fields",
+    "Step 4: Report signals with discovered paths and key indicators",
+    "Step 5: Report tooling section (php/node/tests)",
+    "Step 6: Report recommendations.commands for next steps"
+  ],
+  "success_criteria": [
+    "Triage script is executed",
+    "JSON output includes project.kind and project.primary",
+    "JSON output includes signals section",
+    "JSON output includes tooling section",
+    "JSON output includes recommendations.commands",
+    "Summary provided to user based on triage output"
+  ]
+}

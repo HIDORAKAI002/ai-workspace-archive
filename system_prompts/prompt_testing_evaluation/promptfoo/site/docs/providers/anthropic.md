@@ -1,0 +1,653 @@
+---
+sidebar_position: 2
+description: "Deploy Anthropic's Claude models including Opus, Sonnet, and Haiku for advanced reasoning and conversational AI applications"
+---
+
+# Anthropic
+
+This provider supports the [Anthropic Claude](https://www.anthropic.com/claude) series of models.
+
+> **Note:** Anthropic models can also be accessed through [Azure AI Foundry](/docs/providers/azure/#using-claude-models), [AWS Bedrock](/docs/providers/aws-bedrock/), and [Google Vertex](/docs/providers/vertex/).
+
+:::tip Agentic Evals
+For agentic evaluations with file access, tool use, and MCP servers, see the [Claude Agent SDK provider](/docs/providers/claude-agent-sdk/).
+:::
+
+## Setup
+
+To use Anthropic, you need to set the `ANTHROPIC_API_KEY` environment variable or specify the `apiKey` in the provider configuration.
+
+Create Anthropic API keys [here](https://console.anthropic.com/settings/keys).
+
+Example of setting the environment variable:
+
+```sh
+export ANTHROPIC_API_KEY=your_api_key_here
+```
+
+## Models
+
+The `anthropic` provider supports the following models via the messages API:
+
+| Model ID                                                                   | Description                      |
+| -------------------------------------------------------------------------- | -------------------------------- |
+| `anthropic:messages:claude-sonnet-4-6`                                     | Latest Claude 4.6 Sonnet model   |
+| `anthropic:messages:claude-opus-4-6`                                       | Latest Claude 4.6 Opus model     |
+| `anthropic:messages:claude-opus-4-5-20251101` (claude-opus-4-5-latest)     | Claude 4.5 Opus model            |
+| `anthropic:messages:claude-opus-4-1-20250805` (claude-opus-4-1-latest)     | Claude 4.1 Opus model            |
+| `anthropic:messages:claude-opus-4-20250514` (claude-opus-4-latest)         | Latest Claude 4 Opus model       |
+| `anthropic:messages:claude-sonnet-4-5-20250929` (claude-sonnet-4-5-latest) | Latest Claude 4.5 Sonnet model   |
+| `anthropic:messages:claude-sonnet-4-20250514` (claude-sonnet-4-latest)     | Latest Claude 4 Sonnet model     |
+| `anthropic:messages:claude-haiku-4-5-20251001` (claude-haiku-4-5-latest)   | Latest Claude 4.5 Haiku model    |
+| `anthropic:messages:claude-3-7-sonnet-20250219` (claude-3-7-sonnet-latest) | Latest Claude 3.7 Sonnet model   |
+| `anthropic:messages:claude-3-5-sonnet-20241022` (claude-3-5-sonnet-latest) | Latest Claude 3.5 Sonnet model   |
+| `anthropic:messages:claude-3-5-sonnet-20240620`                            | Previous Claude 3.5 Sonnet model |
+| `anthropic:messages:claude-3-5-haiku-20241022` (claude-3-5-haiku-latest)   | Latest Claude 3.5 Haiku model    |
+| `anthropic:messages:claude-3-opus-20240229` (claude-3-opus-latest)         | Claude 3 Opus model              |
+| `anthropic:messages:claude-3-haiku-20240307`                               | Claude 3 Haiku model             |
+
+### Cross-Platform Model Availability
+
+Claude models are available across multiple platforms. Here's how the model names map across different providers:
+
+| Model             | Anthropic API                                         | Azure AI Foundry ([docs](/docs/providers/azure/#using-claude-models)) | AWS Bedrock ([docs](/docs/providers/aws-bedrock)) | GCP Vertex AI ([docs](/docs/providers/vertex)) |
+| ----------------- | ----------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| Claude 4.6 Sonnet | claude-sonnet-4-6                                     | claude-sonnet-4-6                                                     | anthropic.claude-sonnet-4-6                       | claude-sonnet-4-6                              |
+| Claude 4.6 Opus   | claude-opus-4-6                                       | claude-opus-4-6-20260205                                              | anthropic.claude-opus-4-6-v1                      | claude-opus-4-6                                |
+| Claude 4.5 Opus   | claude-opus-4-5-20251101 (claude-opus-4-5-latest)     | claude-opus-4-5-20251101                                              | anthropic.claude-opus-4-5-20251101-v1:0           | claude-opus-4-5@20251101                       |
+| Claude 4.5 Sonnet | claude-sonnet-4-5-20250929 (claude-sonnet-4-5-latest) | claude-sonnet-4-5-20250929                                            | anthropic.claude-sonnet-4-5-20250929-v1:0         | claude-sonnet-4-5@20250929                     |
+| Claude 4.5 Haiku  | claude-haiku-4-5-20251001 (claude-haiku-4-5-latest)   | claude-haiku-4-5-20251001                                             | anthropic.claude-haiku-4-5-20251001-v1:0          | claude-haiku-4-5@20251001                      |
+| Claude 4.1 Opus   | claude-opus-4-1-20250805                              | claude-opus-4-1-20250805                                              | anthropic.claude-opus-4-1-20250805-v1:0           | claude-opus-4-1@20250805                       |
+| Claude 4 Opus     | claude-opus-4-20250514 (claude-opus-4-latest)         | claude-opus-4-20250514                                                | anthropic.claude-opus-4-20250514-v1:0             | claude-opus-4@20250514                         |
+| Claude 4 Sonnet   | claude-sonnet-4-20250514 (claude-sonnet-4-latest)     | claude-sonnet-4-20250514                                              | anthropic.claude-sonnet-4-20250514-v1:0           | claude-sonnet-4@20250514                       |
+| Claude 3.7 Sonnet | claude-3-7-sonnet-20250219 (claude-3-7-sonnet-latest) | claude-3-7-sonnet-20250219                                            | anthropic.claude-3-7-sonnet-20250219-v1:0         | claude-3-7-sonnet@20250219                     |
+| Claude 3.5 Sonnet | claude-3-5-sonnet-20241022 (claude-3-5-sonnet-latest) | claude-3-5-sonnet-20241022                                            | anthropic.claude-3-5-sonnet-20241022-v2:0         | claude-3-5-sonnet-v2@20241022                  |
+| Claude 3.5 Haiku  | claude-3-5-haiku-20241022 (claude-3-5-haiku-latest)   | claude-3-5-haiku-20241022                                             | anthropic.claude-3-5-haiku-20241022-v1:0          | claude-3-5-haiku@20241022                      |
+| Claude 3 Opus     | claude-3-opus-20240229 (claude-3-opus-latest)         | claude-3-opus-20240229                                                | anthropic.claude-3-opus-20240229-v1:0             | claude-3-opus@20240229                         |
+| Claude 3 Haiku    | claude-3-haiku-20240307                               | claude-3-haiku-20240307                                               | anthropic.claude-3-haiku-20240307-v1:0            | claude-3-haiku@20240307                        |
+
+### Supported Parameters
+
+| Config Property | Environment Variable  | Description                                                                         |
+| --------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| apiKey          | ANTHROPIC_API_KEY     | Your API key from Anthropic                                                         |
+| apiBaseUrl      | ANTHROPIC_BASE_URL    | The base URL for requests to the Anthropic API                                      |
+| temperature     | ANTHROPIC_TEMPERATURE | Controls the randomness of the output (default: 0)                                  |
+| max_tokens      | ANTHROPIC_MAX_TOKENS  | The maximum length of the generated text (default: 1024)                            |
+| top_p           | -                     | Controls nucleus sampling, affecting the randomness of the output                   |
+| top_k           | -                     | Only sample from the top K options for each subsequent token                        |
+| tools           | -                     | An array of tool or function definitions for the model to call                      |
+| tool_choice     | -                     | An object specifying the tool to call                                               |
+| effort          | -                     | Output effort level: `low`, `medium`, `high`, or `max`                              |
+| output_format   | -                     | JSON schema configuration for structured outputs                                    |
+| thinking        | -                     | Configuration for Claude's extended thinking (`enabled`, `adaptive`, or `disabled`) |
+| showThinking    | -                     | Whether to include thinking content in the output (default: true)                   |
+| headers         | -                     | Additional headers to be sent with the API request                                  |
+| extra_body      | -                     | Additional parameters to be included in the API request body                        |
+
+### Prompt Template
+
+To allow for compatibility with the OpenAI prompt template, the following format is supported:
+
+```json title="prompt.json"
+[
+  {
+    "role": "system",
+    "content": "{{ system_message }}"
+  },
+  {
+    "role": "user",
+    "content": "{{ question }}"
+  }
+]
+```
+
+If the role `system` is specified, it will be automatically added to the API request.
+All `user` or `assistant` roles will be automatically converted into the right format for the API request.
+Currently, only type `text` is supported.
+
+The `system_message` and `question` are example variables that can be set with the `var` directive.
+
+### Options
+
+The Anthropic provider supports several options to customize the behavior of the model. These include:
+
+- `temperature`: Controls the randomness of the output.
+- `max_tokens`: The maximum length of the generated text.
+- `top_p`: Controls nucleus sampling, affecting the randomness of the output.
+- `top_k`: Only sample from the top K options for each subsequent token.
+- `tools`: An array of tool or function definitions for the model to call.
+- `tool_choice`: An object specifying the tool to call.
+- `extra_body`: Additional parameters to pass directly to the Anthropic API request body.
+
+Example configuration with options and prompts:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      temperature: 0.0
+      max_tokens: 512
+      extra_body:
+        custom_param: 'test_value'
+prompts:
+  - file://prompt.json
+```
+
+### Tool Calling
+
+The Anthropic provider supports tool calling (function calling). Here's an example configuration for defining tools.
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      tools:
+        - name: get_weather
+          description: Get the current weather in a given location
+          input_schema:
+            type: object
+            properties:
+              location:
+                type: string
+                description: The city and state, e.g., San Francisco, CA
+              unit:
+                type: string
+                enum:
+                  - celsius
+                  - fahrenheit
+            required:
+              - location
+```
+
+#### Web Search and Web Fetch Tools
+
+Anthropic provides specialized tools for web search and web fetching capabilities:
+
+##### Web Fetch Tool
+
+The web fetch tool allows Claude to retrieve full content from web pages and PDF documents. This is useful when you want Claude to access and analyze specific web content.
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      tools:
+        - type: web_fetch_20250910
+          name: web_fetch
+          max_uses: 5
+          allowed_domains:
+            - docs.example.com
+            - help.example.com
+          citations:
+            enabled: true
+          max_content_tokens: 50000
+```
+
+**Web Fetch Tool Configuration Options:**
+
+| Parameter            | Type     | Description                                                                                  |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `type`               | string   | Must be `web_fetch_20250910`                                                                 |
+| `name`               | string   | Must be `web_fetch`                                                                          |
+| `max_uses`           | number   | Maximum number of web fetches per request (optional)                                         |
+| `allowed_domains`    | string[] | List of domains to allow fetching from (optional, mutually exclusive with `blocked_domains`) |
+| `blocked_domains`    | string[] | List of domains to block fetching from (optional, mutually exclusive with `allowed_domains`) |
+| `citations`          | object   | Enable citations with `{ enabled: true }` (optional)                                         |
+| `max_content_tokens` | number   | Maximum tokens for web content (optional)                                                    |
+
+##### Web Search Tool
+
+The web search tool allows Claude to search the internet for information:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      tools:
+        - type: web_search_20250305
+          name: web_search
+          max_uses: 3
+```
+
+**Web Search Tool Configuration Options:**
+
+| Parameter  | Type   | Description                                       |
+| ---------- | ------ | ------------------------------------------------- |
+| `type`     | string | Must be `web_search_20250305`                     |
+| `name`     | string | Must be `web_search`                              |
+| `max_uses` | number | Maximum number of searches per request (optional) |
+
+##### Combined Web Search and Web Fetch
+
+You can use both tools together for comprehensive web information gathering:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      tools:
+        - type: web_search_20250305
+          name: web_search
+          max_uses: 3
+        - type: web_fetch_20250910
+          name: web_fetch
+          max_uses: 5
+          citations:
+            enabled: true
+```
+
+This configuration allows the model to first search for relevant information, then fetch full content from the most promising results.
+
+**Important Security Notes:**
+
+- The web fetch tool requires trusted environments due to potential data exfiltration risks
+- The model cannot dynamically construct URLs - only URLs provided by users or from search results can be fetched
+- Use domain filtering to restrict access to specific sites:
+  - Use `allowed_domains` to whitelist trusted domains (recommended)
+  - Use `blocked_domains` to blacklist specific domains
+  - **Note:** Only one of `allowed_domains` or `blocked_domains` can be specified, not both
+
+See the [Anthropic Tool Use Guide](https://docs.anthropic.com/en/docs/tool-use) for more information on how to define tools and the tool use example [here](https://github.com/promptfoo/promptfoo/tree/main/examples/eval-tool-use).
+
+### Images / Vision
+
+You can include images in the prompts in Claude 3 models.
+
+See the [Claude vision example](https://github.com/promptfoo/promptfoo/tree/main/examples/claude-vision).
+
+One important note: The Claude API only supports base64 representations of images.
+This is different from how OpenAI's vision works, as it supports grabbing images from a URL. As a result, if you are trying to compare Claude 3 and OpenAI vision capabilities, you will need to have separate prompts for each.
+
+See the [OpenAI vision example](https://github.com/promptfoo/promptfoo/tree/main/examples/openai-vision) to understand the differences.
+
+### Prompt Caching
+
+Claude supports prompt caching to optimize API usage and reduce costs for repetitive tasks. This feature caches portions of your prompts to avoid reprocessing identical content in subsequent requests.
+
+Supported on all Claude 3, 3.5, and 4 models. Basic example:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+prompts:
+  - file://prompts.yaml
+```
+
+```yaml title="prompts.yaml"
+- role: system
+  content:
+    - type: text
+      text: 'System message'
+      cache_control:
+        type: ephemeral
+    - type: text
+      text: '{{context}}'
+      cache_control:
+        type: ephemeral
+- role: user
+  content: '{{question}}'
+```
+
+Common use cases for caching:
+
+- System messages and instructions
+- Tool/function definitions
+- Large context documents
+- Frequently used images
+
+See [Anthropic's Prompt Caching Guide](https://docs.anthropic.com/claude/docs/prompt-caching) for more details on requirements, pricing, and best practices.
+
+### Citations
+
+Claude can provide detailed citations when answering questions about documents. Basic example:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+prompts:
+  - file://prompts.yaml
+```
+
+```yaml title="prompts.yaml"
+- role: user
+  content:
+    - type: document
+      source:
+        type: text
+        media_type: text/plain
+        data: 'Your document text here'
+      citations:
+        enabled: true
+    - type: text
+      text: 'Your question here'
+```
+
+See [Anthropic's Citations Guide](https://docs.anthropic.com/en/docs/build-with-claude/citations) for more details.
+
+### Extended Thinking
+
+Claude supports an extended thinking capability that allows you to see the model's internal reasoning process before it provides the final answer. This can be configured using the `thinking` parameter:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  # Adaptive thinking (recommended for Claude Opus 4.6)
+  - id: anthropic:messages:claude-opus-4-6
+    config:
+      max_tokens: 20000
+      thinking:
+        type: 'adaptive'
+
+  # Enabled thinking with explicit budget
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      max_tokens: 20000
+      thinking:
+        type: 'enabled'
+        budget_tokens: 16000 # Must be ≥1024 and less than max_tokens
+```
+
+The thinking configuration has three possible values:
+
+1. Adaptive thinking (recommended for Claude Opus 4.6):
+
+```yaml
+thinking:
+  type: 'adaptive'
+```
+
+In adaptive mode, Claude decides when and how much to think based on the complexity of the request. This is the recommended mode for `claude-opus-4-6`.
+
+2. Enabled thinking:
+
+```yaml
+thinking:
+  type: 'enabled'
+  budget_tokens: number # Must be ≥1024 and less than max_tokens
+```
+
+3. Disabled thinking:
+
+```yaml
+thinking:
+  type: 'disabled'
+```
+
+When thinking is enabled or adaptive:
+
+- Responses will include `thinking` content blocks showing Claude's reasoning process
+- Requires a minimum budget of 1,024 tokens
+- The budget_tokens value must be less than the max_tokens parameter
+- The tokens used for thinking count towards your max_tokens limit
+- A specialized 28 or 29 token system prompt is automatically included
+- Previous turn thinking blocks are ignored and not counted as input tokens
+- Thinking is not compatible with temperature, top_p, or top_k modifications
+
+Example response with thinking enabled:
+
+```json
+{
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "Let me analyze this step by step...",
+      "signature": "WaUjzkypQ2mUEVM36O2TxuC06KN8xyfbJwyem2dw3URve/op91XWHOEBLLqIOMfFG/UvLEczmEsUjavL...."
+    },
+    {
+      "type": "text",
+      "text": "Based on my analysis, here is the answer..."
+    }
+  ]
+}
+```
+
+#### Controlling Thinking Output
+
+By default, thinking content is included in the response output. You can control this behavior using the `showThinking` parameter:
+
+```yaml title="promptfooconfig.yaml"
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      thinking:
+        type: 'enabled'
+        budget_tokens: 16000
+      showThinking: false # Exclude thinking content from the output
+```
+
+When `showThinking` is set to `false`, the thinking content will be excluded from the output, and only the final response will be returned. This is useful when you want to use thinking for better reasoning but don't want to expose the thinking process to end users.
+
+#### Redacted Thinking
+
+Sometimes Claude's internal reasoning may be flagged by safety systems. When this occurs, the thinking block will be encrypted and returned as a `redacted_thinking` block:
+
+```json
+{
+  "content": [
+    {
+      "type": "redacted_thinking",
+      "data": "EmwKAhgBEgy3va3pzix/LafPsn4aDFIT2Xlxh0L5L8rLVyIwxtE3rAFBa8cr3qpP..."
+    },
+    {
+      "type": "text",
+      "text": "Based on my analysis..."
+    }
+  ]
+}
+```
+
+Redacted thinking blocks are automatically decrypted when passed back to the API, allowing Claude to maintain context without compromising safety guardrails.
+
+#### Extended Output with Thinking
+
+Claude 4 models provide enhanced output capabilities and extended thinking support:
+
+```yaml
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      max_tokens: 64000 # Claude 4 Sonnet supports up to 64K output tokens
+      thinking:
+        type: 'enabled'
+        budget_tokens: 32000
+```
+
+Note: The `output-128k-2025-02-19` beta feature is specific to Claude 3.7 Sonnet and is not needed for Claude 4 models, which have improved output capabilities built-in.
+
+When using extended output:
+
+- Streaming is required when max_tokens is greater than 21,333
+- For thinking budgets above 32K, batch processing is recommended
+- The model may not use the entire allocated thinking budget
+
+See [Anthropic's Extended Thinking Guide](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for more details on requirements and best practices.
+
+### Effort Level
+
+The `effort` parameter controls the output quality/speed tradeoff. Higher effort levels may produce more thorough responses but take longer:
+
+```yaml
+providers:
+  - id: anthropic:messages:claude-opus-4-6
+    config:
+      effort: low # Options: low, medium, high, max
+```
+
+This can be combined with other features like structured outputs:
+
+```yaml
+providers:
+  - id: anthropic:messages:claude-opus-4-6
+    config:
+      effort: high
+      output_format:
+        type: json_schema
+        schema:
+          type: object
+          properties:
+            analysis:
+              type: string
+          required:
+            - analysis
+          additionalProperties: false
+```
+
+### Structured Outputs
+
+Structured outputs constrain Claude's responses to a JSON schema. Available for Claude Sonnet 4.5 and Claude Opus 4.1.
+
+#### JSON Outputs
+
+Add `output_format` to get structured responses:
+
+```yaml
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      output_format:
+        type: json_schema
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+          required:
+            - name
+            - email
+          additionalProperties: false
+```
+
+You can also load the entire `output_format` from an external file:
+
+```yaml
+config:
+  output_format: file://./schemas/analysis-format.json
+```
+
+Nested file references are supported for the schema:
+
+```json title="analysis-format.json"
+{
+  "type": "json_schema",
+  "schema": "file://./schemas/analysis-schema.json"
+}
+```
+
+Variable rendering is supported in file paths:
+
+```yaml
+config:
+  output_format: file://./schemas/{{ schema_name }}.json
+```
+
+#### Strict Tool Use
+
+Add `strict: true` to tool definitions for schema-validated parameters:
+
+```yaml
+providers:
+  - id: anthropic:messages:claude-sonnet-4-5-20250929
+    config:
+      tools:
+        - name: get_weather
+          strict: true
+          input_schema:
+            type: object
+            properties:
+              location:
+                type: string
+            required:
+              - location
+            additionalProperties: false
+```
+
+#### Limitations
+
+**Supported:** object, array, string, integer, number, boolean, null, `enum`, `required`, `additionalProperties: false`
+
+**Not supported:** recursive schemas, `minimum`/`maximum`, `minLength`/`maxLength`
+
+**Incompatible with:** citations, message prefilling
+
+See [Anthropic's guide](https://docs.anthropic.com/en/docs/build-with-claude/structured-outputs) and the [structured outputs example](https://github.com/promptfoo/promptfoo/tree/main/examples/anthropic/structured-outputs).
+
+## Model-Graded Tests
+
+[Model-graded assertions](/docs/configuration/expected-outputs/model-graded/) such as `factuality` or `llm-rubric` will automatically use Anthropic as the grading provider if `ANTHROPIC_API_KEY` is set and `OPENAI_API_KEY` is not set.
+
+If both API keys are present, OpenAI will be used by default. You can explicitly override the grading provider in your configuration.
+
+Because of how model-graded evals are implemented, **the model must support chat-formatted prompts** (except for embedding or classification models).
+
+You can override the grading provider in several ways:
+
+1. For all test cases using `defaultTest`:
+
+```yaml title="promptfooconfig.yaml"
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-4-5-20250929
+```
+
+2. For individual assertions:
+
+```yaml
+assert:
+  - type: llm-rubric
+    value: Do not mention that you are an AI or chat assistant
+    provider:
+      id: anthropic:messages:claude-sonnet-4-5-20250929
+      config:
+        temperature: 0.0
+```
+
+3. For specific tests:
+
+```yaml
+tests:
+  - vars:
+      question: What is the capital of France?
+    options:
+      provider:
+        id: anthropic:messages:claude-sonnet-4-5-20250929
+    assert:
+      - type: llm-rubric
+        value: Answer should mention Paris
+```
+
+### Additional Capabilities
+
+- **Caching**: Promptfoo caches previous LLM requests by default.
+- **Token Usage Tracking**: Provides detailed information on the number of tokens used in each request, aiding in usage monitoring and optimization.
+- **Cost Calculation**: Calculates the cost of each request based on the number of tokens generated and the specific model used.
+
+## See Also
+
+### Examples
+
+We provide several example implementations demonstrating Claude's capabilities:
+
+#### Core Features
+
+- [Tool Use Example](https://github.com/promptfoo/promptfoo/tree/main/examples/eval-tool-use) - Shows how to use Claude's tool calling capabilities
+- [Structured Outputs Example](https://github.com/promptfoo/promptfoo/tree/main/examples/anthropic/structured-outputs) - Demonstrates JSON outputs and strict tool use for guaranteed schema compliance
+- [Vision Example](https://github.com/promptfoo/promptfoo/tree/main/examples/claude-vision) - Demonstrates using Claude's vision capabilities
+
+#### Model Comparisons & Evaluations
+
+- [Claude vs GPT](https://github.com/promptfoo/promptfoo/tree/main/examples/compare-claude-vs-gpt) - Compares Claude with GPT-4 on various tasks
+- [Claude vs GPT Image Analysis](https://github.com/promptfoo/promptfoo/tree/main/examples/compare-claude-vs-gpt-image) - Compares Claude's and GPT's image analysis capabilities
+
+#### Cloud Platform Integrations
+
+- [Azure AI Foundry](https://github.com/promptfoo/promptfoo/tree/main/examples/azure/claude) - Using Claude through Azure AI Foundry
+- [AWS Bedrock](https://github.com/promptfoo/promptfoo/tree/main/examples/amazon-bedrock) - Using Claude through AWS Bedrock
+- [Google Vertex AI](https://github.com/promptfoo/promptfoo/tree/main/examples/google-vertex) - Using Claude through Google Vertex AI
+
+#### Agentic Evaluations
+
+- [Claude Agent SDK](/docs/providers/claude-agent-sdk/) - For agentic evals with file access, tool use, and MCP servers
+
+For more examples and general usage patterns, visit our [examples directory](https://github.com/promptfoo/promptfoo/tree/main/examples) on GitHub.

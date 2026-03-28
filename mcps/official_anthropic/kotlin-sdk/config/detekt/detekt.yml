@@ -1,0 +1,24 @@
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+complexity:
+  LargeClass:
+    excludes: &testFolders
+      - '**/test/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+  LongMethod:
+    excludes: *testFolders
+
+coroutines:
+  InjectDispatcher:
+    excludes: *testFolders
+
+empty-blocks:
+  EmptyFunctionBlock:
+    excludes: *testFolders
+

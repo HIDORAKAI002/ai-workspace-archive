@@ -1,0 +1,30 @@
+# Python (build) related files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# IDE related files
+.claude/
+.cursor/
+.idea/
+.vscode/
+
+# Virtual environments
+.venv
+venv
+
+# Environment variables
+.env
+
+# Test related files
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+integtest-results.xml
+test-results.xml
+.tox/

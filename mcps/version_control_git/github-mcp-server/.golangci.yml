@@ -1,0 +1,49 @@
+version: "2"
+run:
+  concurrency: 4
+  tests: true
+linters:
+  enable:
+    - bodyclose
+    - gocritic
+    - gosec
+    - makezero
+    - misspell
+    - modernize
+    - nakedret
+    - revive
+    - errcheck
+    - staticcheck
+    - govet
+    - ineffassign
+    - intrange
+    - unused
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - internal/githubv4mock
+    rules:
+      - linters:
+          - revive
+        text: "var-naming: avoid package names that conflict with Go standard library package names"
+  settings:
+    staticcheck:
+      checks:
+        - "all"
+        - -QF1008
+        - -ST1000
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

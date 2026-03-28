@@ -1,0 +1,101 @@
+{
+  "name": "prompts.chat",
+  "version": "0.1.1",
+  "description": "Developer toolkit for AI prompts - build, validate, parse, and connect to prompts.chat",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "prompts-chat": "./bin/cli.js",
+    "prompts.chat": "./bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./variables": {
+      "types": "./dist/variables/index.d.ts",
+      "import": "./dist/variables/index.mjs",
+      "require": "./dist/variables/index.js"
+    },
+    "./similarity": {
+      "types": "./dist/similarity/index.d.ts",
+      "import": "./dist/similarity/index.mjs",
+      "require": "./dist/similarity/index.js"
+    },
+    "./quality": {
+      "types": "./dist/quality/index.d.ts",
+      "import": "./dist/quality/index.mjs",
+      "require": "./dist/quality/index.js"
+    },
+    "./builder": {
+      "types": "./dist/builder/index.d.ts",
+      "import": "./dist/builder/index.mjs",
+      "require": "./dist/builder/index.js"
+    },
+    "./parser": {
+      "types": "./dist/parser/index.d.ts",
+      "import": "./dist/parser/index.mjs",
+      "require": "./dist/parser/index.js"
+    }
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "prompts",
+    "chatgpt",
+    "ai",
+    "llm",
+    "openai",
+    "anthropic",
+    "claude",
+    "prompt-engineering",
+    "prompt-templates",
+    "prompt-builder",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/f/prompts.chat"
+  },
+  "homepage": "https://prompts.chat",
+  "author": "Fatih Kadir Akın <fatihkadirakin@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "docs": "npx ts-node scripts/generate-docs.ts",
+    "docs:generate": "npx tsx scripts/generate-docs.ts"
+  },
+  "dependencies": {
+    "ink": "^5.1.0",
+    "ink-text-input": "^6.0.0",
+    "ink-spinner": "^5.0.0",
+    "ink-select-input": "^6.0.0",
+    "react": "^18.3.1",
+    "clipboardy": "^4.0.0",
+    "meow": "^13.2.0",
+    "open": "^10.1.0",
+    "terminal-image": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5",
+    "vitest": "^4.0.16"
+  }
+}

@@ -1,0 +1,357 @@
+Os prompts que você escreve moldam como a IA se comporta. Um prompt bem elaborado pode educar, assistir e empoderar. Um descuidado pode enganar, discriminar ou causar dano. Como engenheiros de prompt, não somos apenas usuários—somos designers de comportamento de IA, e isso vem com responsabilidade real.
+
+Este capítulo não é sobre regras impostas de cima. É sobre entender o impacto das nossas escolhas e construir hábitos que levam ao uso de IA do qual podemos nos orgulhar.
+
+<Callout type="warning" title="Por Que Isso Importa">
+IA amplifica o que recebe. Um prompt enviesado produz saídas enviesadas em escala. Um prompt enganoso permite engano em escala. As implicações éticas da engenharia de prompts crescem com cada nova capacidade que estes sistemas ganham.
+</Callout>
+
+## Fundamentos Éticos
+
+Toda decisão em engenharia de prompts se conecta a alguns princípios centrais:
+
+<InfoGrid items={[
+  { label: "Honestidade", description: "Não use IA para enganar pessoas ou criar conteúdo enganoso", example: "Sem reviews falsos, impersonação ou 'evidência' fabricada", exampleType: "text", color: "blue" },
+  { label: "Justiça", description: "Trabalhe ativamente para evitar perpetuar vieses e estereótipos", example: "Teste prompts em diferentes demografias, solicite perspectivas diversas", exampleType: "text", color: "purple" },
+  { label: "Transparência", description: "Seja claro sobre envolvimento de IA quando importa", example: "Divulgue assistência de IA em trabalho publicado, contextos profissionais", exampleType: "text", color: "green" },
+  { label: "Privacidade", description: "Proteja informação pessoal em prompts e saídas", example: "Anonimize dados, evite incluir PII, entenda políticas de dados", exampleType: "text", color: "amber" },
+  { label: "Segurança", description: "Projete prompts que previnem saídas prejudiciais", example: "Construa guardrails, teste casos limite, trate recusas graciosamente", exampleType: "text", color: "red" },
+  { label: "Responsabilidade", description: "Assuma responsabilidade pelo que seus prompts produzem", example: "Revise saídas, corrija problemas, mantenha supervisão humana", exampleType: "text", color: "cyan" }
+]} />
+
+### O Papel do Engenheiro de Prompt
+
+Você tem mais influência do que pode perceber:
+
+- **O que IA produz**: Seus prompts determinam o conteúdo, tom e qualidade das saídas
+- **Como IA interage**: Seus prompts de sistema moldam personalidade, limites e experiência do usuário
+- **Que salvaguardas existem**: Suas escolhas de design determinam o que a IA fará e não fará
+- **Como erros são tratados**: Seu tratamento de erros determina se falhas são graciosas ou prejudiciais
+
+## Evitando Saídas Prejudiciais
+
+A obrigação ética mais fundamental é prevenir que seus prompts causem dano.
+
+### Categorias de Conteúdo Prejudicial
+
+<InfoGrid items={[
+  { label: "Violência e Dano", description: "Instruções que podem levar a dano físico", example: "Criação de armas, auto-mutilação, violência contra outros", exampleType: "text", color: "red" },
+  { label: "Atividades Ilegais", description: "Conteúdo que facilita quebrar leis", example: "Esquemas de fraude, instruções de hacking, síntese de drogas", exampleType: "text", color: "red" },
+  { label: "Assédio e Ódio", description: "Conteúdo direcionado a indivíduos ou grupos", example: "Conteúdo discriminatório, doxxing, assédio direcionado", exampleType: "text", color: "red" },
+  { label: "Desinformação", description: "Conteúdo deliberadamente falso ou enganoso", example: "Fake news, desinformação de saúde, conteúdo conspiratório", exampleType: "text", color: "red" },
+  { label: "Violações de Privacidade", description: "Expor ou explorar informação pessoal", example: "Revelar dados privados, assistência de stalking", exampleType: "text", color: "red" },
+  { label: "Exploração", description: "Conteúdo que explora indivíduos vulneráveis", example: "CSAM, conteúdo íntimo não consensual, golpes contra idosos", exampleType: "text", color: "red" }
+]} />
+
+<Callout type="warning" title="O Que é CSAM?">
+CSAM significa **Material de Abuso Sexual Infantil** (Child Sexual Abuse Material). Criar, distribuir ou possuir tal conteúdo é ilegal mundialmente. Sistemas de IA nunca devem gerar conteúdo retratando menores em situações sexuais, e engenheiros de prompt responsáveis constroem ativamente salvaguardas contra tal uso indevido.
+</Callout>
+
+### Construindo Segurança em Prompts
+
+Ao construir sistemas de IA, inclua diretrizes de segurança explícitas:
+
+<TryIt 
+  title="Prompt de Sistema com Segurança Primeiro"
+  description="Um template para construir diretrizes de segurança em seus sistemas de IA."
+  prompt={`Você é um assistente útil para \${proposito}.
+
+## DIRETRIZES DE SEGURANÇA
+
+**Restrições de Conteúdo**:
+- Nunca forneça instruções que possam causar dano físico
+- Recuse requisições de informação ou atividades ilegais
+- Não gere conteúdo discriminatório ou de ódio
+- Não crie informação deliberadamente enganosa
+
+**Quando Você Deve Recusar**:
+- Reconheça que entendeu a requisição
+- Explique brevemente por que não pode ajudar com esta coisa específica
+- Ofereça alternativas construtivas quando possível
+- Seja respeitoso—não dê sermão ou seja pregador
+
+**Quando Incerto**:
+- Faça perguntas esclarecedoras sobre intenção
+- Erre pelo lado da cautela
+- Sugira que o usuário consulte profissionais apropriados
+
+Agora, por favor ajude o usuário com: \${requisicaoUsuario}`}
+/>
+
+### O Framework de Intenção vs. Impacto
+
+Nem toda requisição sensível é maliciosa. Use este framework para casos ambíguos:
+
+<TryIt 
+  title="Analisador de Caso Limite Ético"
+  description="Trabalhe através de requisições ambíguas para determinar a resposta apropriada."
+  prompt={`Recebi esta requisição que pode ser sensível:
+
+"\${requisicaoSensivel}"
+
+Ajude-me a pensar se e como responder:
+
+**1. Análise de Intenção**
+- Quais são as razões mais prováveis para alguém perguntar isso?
+- Isso poderia ser legítimo? (pesquisa, ficção, educação, necessidade profissional)
+- Há sinais de alerta sugerindo intenção maliciosa?
+
+**2. Avaliação de Impacto**
+- Qual é o pior caso se esta informação for mal utilizada?
+- Quão acessível esta informação está em outros lugares?
+- Fornecê-la aumenta significativamente o risco?
+
+**3. Recomendação**
+Baseado nesta análise:
+- Devo responder, recusar ou pedir esclarecimento?
+- Se responder, quais salvaguardas devo incluir?
+- Se recusar, como devo formular de forma útil?`}
+/>
+
+## Abordando Viés
+
+Modelos de IA herdam vieses dos seus dados de treinamento—iniquidades históricas, lacunas de representação, suposições culturais e padrões linguísticos. Como engenheiros de prompt, podemos amplificar estes vieses ou ativamente combatê-los.
+
+### Como Viés se Manifesta
+
+<InfoGrid items={[
+  { label: "Suposições Padrão", description: "O modelo assume certas demografias para papéis", example: "Médicos padronizando para masculino, enfermeiros para feminino", exampleType: "text", color: "amber" },
+  { label: "Estereotipagem", description: "Reforçando estereótipos culturais em descrições", example: "Associando certas etnias com traços específicos", exampleType: "text", color: "amber" },
+  { label: "Lacunas de Representação", description: "Alguns grupos são sub-representados ou mal representados", example: "Informação precisa limitada sobre culturas minoritárias", exampleType: "text", color: "amber" },
+  { label: "Visões Ocidento-Cêntricas", description: "Perspectivas enviesadas para cultura e valores ocidentais", example: "Assumindo que normas ocidentais são universais", exampleType: "text", color: "amber" }
+]} />
+
+### Testando para Viés
+
+<TryIt 
+  title="Teste de Detecção de Viés"
+  description="Use para testar seus prompts por potenciais problemas de viés."
+  prompt={`Quero testar este prompt por viés:
+
+"\${promptParaTestar}"
+
+Execute estas verificações de viés:
+
+**1. Teste de Variação Demográfica**
+Execute o prompt com diferentes descritores demográficos (gênero, etnia, idade, etc.) e note quaisquer diferenças em:
+- Tom ou nível de respeito
+- Competência ou capacidades assumidas
+- Associações estereotípicas
+
+**2. Verificação de Suposição Padrão**
+Quando demografias não são especificadas:
+- O que o modelo assume?
+- Estas suposições são problemáticas?
+
+**3. Análise de Representação**
+- Diferentes grupos são representados justamente?
+- Algum grupo está faltando ou marginalizado?
+
+**4. Recomendações**
+Baseado nas descobertas, sugira modificações de prompt para reduzir viés.`}
+/>
+
+### Mitigando Viés na Prática
+
+<Compare 
+  before={{ label: "Prompt propenso a viés", content: "Descreva um CEO típico." }}
+  after={{ label: "Prompt ciente de viés", content: "Descreva um CEO. Varie demografias entre exemplos, e evite padronizar para qualquer gênero, etnia ou idade particular." }}
+/>
+
+## Transparência e Divulgação
+
+Quando você deve dizer às pessoas que IA estava envolvida? A resposta depende do contexto—mas a tendência é para mais divulgação, não menos.
+
+### Quando Divulgação Importa
+
+<InfoGrid items={[
+  { label: "Conteúdo Publicado", description: "Artigos, posts ou conteúdo compartilhado publicamente", example: "Posts de blog, mídia social, materiais de marketing", exampleType: "text", color: "blue" },
+  { label: "Decisões Consequentes", description: "Quando saídas de IA afetam vidas de pessoas", example: "Recomendações de contratação, info médica, orientação legal", exampleType: "text", color: "blue" },
+  { label: "Contextos de Confiança", description: "Onde autenticidade é esperada ou valorizada", example: "Correspondência pessoal, depoimentos, reviews", exampleType: "text", color: "blue" },
+  { label: "Ambientes Profissionais", description: "Ambientes de trabalho ou acadêmicos", example: "Relatórios, pesquisa, entregas para clientes", exampleType: "text", color: "blue" }
+]} />
+
+### Como Divulgar Apropriadamente
+
+<Compare 
+  before={{ label: "Envolvimento de IA oculto", content: "Aqui está minha análise das tendências de mercado..." }}
+  after={{ label: "Divulgação transparente", content: "Usei ferramentas de IA para ajudar a analisar os dados e redigir este relatório. Todas conclusões foram verificadas e editadas por mim." }}
+/>
+
+Frases comuns de divulgação que funcionam bem:
+- "Escrito com assistência de IA"
+- "Primeiro rascunho gerado por IA, editado por humano"
+- "Análise realizada usando ferramentas de IA"
+- "Criado com IA, revisado e aprovado por [nome]"
+
+## Considerações de Privacidade
+
+Todo prompt que você envia contém dados. Entender para onde esses dados vão—e o que não deveria estar neles—é essencial.
+
+### O Que Nunca Pertence a Prompts
+
+<InfoGrid items={[
+  { label: "Identificadores Pessoais", description: "Nomes, endereços, telefones, CPFs", example: "Use [CLIENTE] em vez de 'João Silva'", color: "red" },
+  { label: "Dados Financeiros", description: "Números de conta, cartões de crédito, detalhes de renda", example: "Descreva o padrão, não os números reais", exampleType: "text", color: "red" },
+  { label: "Informação de Saúde", description: "Registros médicos, diagnósticos, prescrições", example: "Pergunte sobre condições geralmente, não pacientes específicos", exampleType: "text", color: "red" },
+  { label: "Credenciais", description: "Senhas, chaves de API, tokens, segredos", example: "Nunca cole credenciais—use placeholders", exampleType: "text", color: "red" },
+  { label: "Comunicações Privadas", description: "Emails pessoais, mensagens, docs confidenciais", example: "Resuma a situação sem citar texto privado", exampleType: "text", color: "red" }
+]} />
+
+### Padrão de Tratamento Seguro de Dados
+
+<Compare 
+  before={{ label: "Inseguro: Contém PII", content: "Resuma esta reclamação de João Silva na Rua Principal 123, Cidade sobre pedido #12345: 'Fiz o pedido em 15 de março e ainda não recebi...'" }}
+  after={{ label: "Seguro: Anonimizado", content: "Resuma este padrão de reclamação de cliente: Um cliente fez pedido há 3 semanas, não recebeu, e contatou suporte duas vezes sem resolução." }}
+/>
+
+<Callout type="info" title="O Que é PII?">
+**PII** significa **Informação Pessoalmente Identificável** (Personally Identifiable Information)—qualquer dado que pode identificar um indivíduo específico. Isso inclui nomes, endereços, telefones, emails, CPFs, números de conta financeira, e até combinações de dados (como cargo + empresa + cidade) que poderiam identificar alguém. Ao fazer prompts para IA, sempre anonimize ou remova PII para proteger privacidade.
+</Callout>
+
+<TryIt 
+  title="Limpador de PII"
+  description="Use para identificar e remover informação sensível antes de incluir texto em prompts."
+  prompt={`Revise este texto por informação sensível que deve ser removida antes de usá-lo em um prompt de IA:
+
+"\${textoParaRevisar}"
+
+Identifique:
+1. **Identificadores Pessoais**: Nomes, endereços, telefones, emails, CPFs
+2. **Dados Financeiros**: Números de conta, valores que poderiam identificar alguém
+3. **Informação de Saúde**: Detalhes médicos, condições, prescrições
+4. **Credenciais**: Quaisquer senhas, chaves ou tokens
+5. **Detalhes Privados**: Informação que alguém razoavelmente esperaria ser confidencial
+
+Para cada item encontrado, sugira como anonimizar ou generalizar enquanto preserva a informação necessária para a tarefa.`}
+/>
+
+## Autenticidade e Engano
+
+Há uma diferença entre usar IA como ferramenta e usar IA para enganar.
+
+### A Linha de Legitimidade
+
+<InfoGrid items={[
+  { label: "Usos Legítimos", description: "IA como ferramenta para aprimorar seu trabalho", example: "Rascunhos, brainstorming, edição, aprendizado", exampleType: "text", color: "green" },
+  { label: "Áreas Cinzentas", description: "Dependente de contexto, requer julgamento", example: "Ghostwriting, templates, respostas automatizadas", exampleType: "text", color: "amber" },
+  { label: "Usos Enganosos", description: "Representar trabalho de IA como original humano", example: "Reviews falsos, fraude acadêmica, impersonação", exampleType: "text", color: "red" }
+]} />
+
+Perguntas-chave a fazer:
+- O destinatário esperaria que isso fosse trabalho humano original?
+- Estou ganhando vantagem injusta através de engano?
+- Divulgação mudaria como o trabalho é recebido?
+
+### Responsabilidade com Mídia Sintética
+
+Criar representações realistas de pessoas reais—sejam imagens, áudio ou vídeo—carrega obrigações especiais:
+
+- **Nunca** crie representações realistas sem consentimento
+- **Sempre** rotule mídia sintética claramente
+- **Considere** potencial de uso indevido antes de criar
+- **Recuse** criar imagens íntimas não consensuais
+
+## Implantação Responsável
+
+Ao construir recursos de IA para outros usarem, suas obrigações éticas multiplicam.
+
+### Checklist Pré-Implantação
+
+<Checklist 
+  title="Prontidão para Implantação"
+  items={[
+    { text: "Testado para saídas prejudiciais em entradas diversas" },
+    { text: "Testado para viés com demografias variadas" },
+    { text: "Mecanismos de divulgação/consentimento do usuário implementados" },
+    { text: "Supervisão humana para decisões de alto risco" },
+    { text: "Sistema de feedback e denúncia disponível" },
+    { text: "Plano de resposta a incidentes documentado" },
+    { text: "Políticas de uso claras comunicadas" },
+    { text: "Monitoramento e alertas configurados" }
+  ]}
+/>
+
+### Princípios de Supervisão Humana
+
+<InfoGrid items={[
+  { label: "Revisão de Alto Risco", description: "Humanos revisam decisões que afetam significativamente pessoas", example: "Recomendações de contratação, médicas, legais, financeiras", exampleType: "text", color: "blue" },
+  { label: "Correção de Erros", description: "Mecanismos existem para capturar e corrigir erros de IA", example: "Feedback de usuário, amostragem de qualidade, processo de apelação", exampleType: "text", color: "blue" },
+  { label: "Aprendizado Contínuo", description: "Insights de problemas melhoram o sistema", example: "Post-mortems, atualizações de prompt, melhorias de treinamento", exampleType: "text", color: "blue" },
+  { label: "Capacidade de Override", description: "Humanos podem intervir quando IA falha", example: "Filas de revisão manual, caminhos de escalação", exampleType: "text", color: "blue" }
+]} />
+
+## Diretrizes de Contexto Especial
+
+Alguns domínios requerem cuidado extra devido ao seu potencial de dano ou à vulnerabilidade dos envolvidos.
+
+### Saúde
+
+<TryIt 
+  title="Disclaimer de Contexto Médico"
+  description="Template para sistemas de IA que podem receber queries relacionadas à saúde."
+  prompt={`Você é um assistente de IA. Quando usuários perguntam sobre tópicos de saúde ou médicos:
+
+**Sempre**:
+- Recomende consultar um profissional de saúde qualificado para decisões médicas pessoais
+- Forneça informação educacional geral, não conselho médico personalizado
+- Inclua disclaimers que você não pode diagnosticar condições
+- Sugira serviços de emergência (192/SAMU) para situações urgentes
+
+**Nunca**:
+- Forneça diagnósticos específicos
+- Recomende medicamentos ou dosagens específicas
+- Desencorage alguém de buscar cuidado profissional
+- Faça alegações sobre tratamentos sem notar incerteza
+
+Pergunta do usuário: \${perguntaSaude}
+
+Responda de forma útil seguindo estas diretrizes.`}
+/>
+
+### Legal e Financeiro
+
+Estes domínios têm implicações regulatórias e requerem disclaimers apropriados:
+
+<InfoGrid items={[
+  { label: "Queries Legais", description: "Forneça informação geral, não conselho legal", example: "\"Esta é informação geral. Para sua situação específica, consulte um advogado licenciado.\"", color: "purple" },
+  { label: "Queries Financeiras", description: "Eduque sem fornecer conselho financeiro pessoal", example: "\"Isto é educacional. Considere consultar um consultor financeiro para sua situação.\"", color: "purple" },
+  { label: "Consciência de Jurisdição", description: "Leis variam por localização", example: "\"Leis diferem por estado/país. Verifique requisitos para sua jurisdição.\"", color: "purple" }
+]} />
+
+### Crianças e Educação
+
+<InfoGrid items={[
+  { label: "Conteúdo Apropriado para Idade", description: "Garanta que saídas são adequadas para a faixa etária", example: "Filtre conteúdo maduro, use linguagem apropriada", exampleType: "text", color: "cyan" },
+  { label: "Integridade Acadêmica", description: "Apoie aprendizado, não substitua", example: "Explique conceitos em vez de escrever redações para estudantes", exampleType: "text", color: "cyan" },
+  { label: "Segurança Primeiro", description: "Proteção extra para usuários vulneráveis", example: "Filtros de conteúdo mais rigorosos, sem coleta de dados pessoais", exampleType: "text", color: "cyan" }
+]} />
+
+## Auto-Avaliação
+
+Antes de implantar qualquer prompt ou sistema de IA, passe por estas perguntas:
+
+<Checklist 
+  title="Auto-Verificação Ética"
+  items={[
+    { text: "Isso poderia ser usado para prejudicar alguém?" },
+    { text: "Isso respeita a privacidade do usuário?" },
+    { text: "Isso poderia perpetuar vieses prejudiciais?" },
+    { text: "O envolvimento de IA está apropriadamente divulgado?" },
+    { text: "Há supervisão humana adequada?" },
+    { text: "Qual é o pior que poderia acontecer?" },
+    { text: "Eu ficaria confortável se este uso fosse público?" }
+  ]}
+/>
+
+<Quiz 
+  question="Um usuário pergunta ao seu sistema de IA como 'se livrar de alguém que está incomodando'. Qual é a estratégia de resposta mais apropriada?"
+  options={[
+    "Recusar imediatamente—isso pode ser uma requisição de instruções de dano",
+    "Fornecer conselho de resolução de conflitos já que essa é a intenção mais provável",
+    "Fazer perguntas esclarecedoras para entender intenção antes de decidir como responder",
+    "Explicar que você não pode ajudar com nada relacionado a prejudicar pessoas"
+  ]}
+  correctIndex={2}
+  explanation="Requisições ambíguas merecem esclarecimento, não suposições. 'Se livrar de alguém' pode significar terminar uma amizade, resolver um conflito de trabalho, ou algo prejudicial. Fazer perguntas esclarecedoras permite responder apropriadamente à intenção real enquanto permanece cauteloso sobre fornecer informação prejudicial."
+/>

@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "testCases": [
+    {
+      "id": "search-google-maps",
+      "category": "search",
+      "query": "Is there any Google Maps scraping tool on Apify?",
+      "reference": "The agent must search for actors related to Google Maps and return at least 3 results with their names and descriptions."
+    },
+    {
+      "id": "search-add-call-python-actor",
+      "tools": ["add-actor", "actors"],
+      "category": "call",
+      "query": "Find example Python Actor and add it to the MCP server and then call it with random sample input and present the results",
+      "reference": "The agent must find apify/python-example Actor or any similar and add it to the MCP server using the add-actor tool. Then, it must call the added Actor with sample input and return the output."
+    },
+    {
+      "id": "instagram-posts",
+      "category": "call",
+      "query": "Show me 1 latest post from the natgeo instagram profile",
+      "reference": "The agent must search Instagram for recent post from the natgeo profile and present it to the user."
+    },
+    {
+      "id": "call-actor-mcp-weather",
+      "category": "mcp",
+      "query": "Find a weather mcp Actor and use it through the call-actor tool to show me the current weather in Prague",
+      "reference": "The agent must find a weather-related Actor on the MCP server and use the call-actor tool to get and return the current weather in Prague and present the results."
+    },
+    {
+      "id": "search-instagram-scrapers",
+      "category": "search",
+      "query": "What is the best instagram scraper on Apify?",
+      "reference": "The agent must use search-actors to find Instagram scrapers, return at least 3 relevant results and present the best one."
+    },
+    {
+      "id": "search-tiktok-scrapers",
+      "category": "search",
+      "query": "What is the best tiktok scraper on Apify?",
+      "reference": "The agent must use search-actors to find tiktok scrapers, return at least 3 relevant results and present the best one."
+    },
+    {
+      "id": "search-generic-scrapers",
+      "category": "search",
+      "query": "What is the best scraper tool to extract website content?",
+      "reference": "The agent must use search-actors to find generic website content scrapers, return at least 3 relevant results and present the best one."
+    },
+    {
+      "id": "call-google-maps-restaurants",
+      "category": "call",
+      "query": "Find the top 3 restaurants in Prague using Google Maps",
+      "reference": "The agent must find Google Maps scraper, call it with 'restaurants Prague' query, and return list of restaurant names with ratings and addresses."
+    },
+    {
+      "id": "call-tiktok-scraper",
+      "category": "call",
+      "query": "Show me 1 latest post from natgeo tik tok using Apify",
+      "reference": "The agent must find tik tok scraper, call it for natgeo profile, return the latest post and present it to the user."
+    },
+    {
+      "id": "fetch-details-mcp-tools-list",
+      "category": "mcp",
+      "query": "Show me what tools are available in the apify/actors-mcp-server MCP server",
+      "reference": "The agent must use fetch-actor-details with output=['mcp-tools'] to list available tools. The response should present the list of tools with their names and descriptions."
+    },
+    {
+      "id": "fetch-details-mcp-tools-then-call",
+      "category": "mcp",
+      "query": "List tools from apify/actors-mcp-server and then call the fetch-apify-docs tool from the Actor MCP server apify/actors-mcp-server to get docs from https://docs.apify.com",
+      "reference": "The agent must first use fetch-actor-details with output=['mcp-tools'] to discover tools, then use call-actor with actor='apify/actors-mcp-server:fetch-apify-docs' and proper input to call the specific tool."
+    },
+    {
+      "id": "fetch-details-non-mcp-actor-graceful",
+      "category": "fetch",
+      "query": "Show me MCP tools for apify/instagram-scraper",
+      "reference": "The agent must use fetch-actor-details with output=['mcp-tools'] for a regular (non-MCP) Actor. The response should gracefully indicate that this Actor is not an MCP server, not throw an error."
+    },
+    {
+      "id": "workflow-search-fetch-schema-call",
+      "category": "call",
+      "query": "Find a TikTok scraper, check what input it needs, and run it to get 5 videos from user @example",
+      "reference": "The agent must: 1) use search-actors to find TikTok scraper, 2) use fetch-actor-details with output=['input-schema'] to get required input, 3) use call-actor with proper input. This tests the complete new workflow pattern."
+    },
+    {
+      "id": "workflow-mcp-discover-and-execute",
+      "category": "mcp",
+      "query": "Find what an MCP weather Actor can do and use it to get weather for London",
+      "reference": "The agent must: 1) search for weather MCP Actor, 2) use fetch-actor-details with output=['mcp-tools'] to list tools, 3) use call-actor with actor:tool format to execute. Tests full MCP server discovery and execution workflow."
+    }
+  ]
+}

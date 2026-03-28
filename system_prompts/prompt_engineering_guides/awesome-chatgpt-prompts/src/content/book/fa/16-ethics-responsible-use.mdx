@@ -1,0 +1,357 @@
+پرامپت‌هایی که می‌نویسید نحوه رفتار هوش مصنوعی را شکل می‌دهند. یک پرامپت خوب می‌تواند آموزش دهد، کمک کند و توانمند سازد. یک پرامپت بی‌دقت می‌تواند فریب دهد، تبعیض ایجاد کند یا آسیب برساند. به عنوان مهندسان پرامپت، ما فقط کاربر نیستیم—ما طراحان رفتار هوش مصنوعی هستیم و این مسئولیت واقعی به همراه دارد.
+
+این فصل درباره قوانین تحمیلی از بالا نیست. بلکه درباره درک تأثیر انتخاب‌هایمان و ایجاد عادت‌هایی است که به استفاده از هوش مصنوعی منجر می‌شود که می‌توانیم به آن افتخار کنیم.
+
+<Callout type="warning" title="چرا این مهم است">
+هوش مصنوعی هر چیزی را که به آن داده شود تقویت می‌کند. یک پرامپت مغرضانه خروجی‌های مغرضانه در مقیاس بزرگ تولید می‌کند. یک پرامپت فریبکارانه امکان فریب در مقیاس بزرگ را فراهم می‌کند. پیامدهای اخلاقی مهندسی پرامپت با هر قابلیت جدیدی که این سیستم‌ها به دست می‌آورند رشد می‌کند.
+</Callout>
+
+## مبانی اخلاقی
+
+هر تصمیم در مهندسی پرامپت به چند اصل اساسی مرتبط است:
+
+<InfoGrid items={[
+  { label: "صداقت", description: "از هوش مصنوعی برای فریب دادن مردم یا ایجاد محتوای گمراه‌کننده استفاده نکنید", example: "بدون نظرات جعلی، جعل هویت، یا 'مدارک' ساختگی", exampleType: "text", color: "blue" },
+  { label: "انصاف", description: "فعالانه برای جلوگیری از تداوم تعصبات و کلیشه‌ها تلاش کنید", example: "پرامپت‌ها را در جمعیت‌های مختلف آزمایش کنید، دیدگاه‌های متنوع بخواهید", exampleType: "text", color: "purple" },
+  { label: "شفافیت", description: "در مورد دخالت هوش مصنوعی زمانی که اهمیت دارد صریح باشید", example: "کمک هوش مصنوعی را در آثار منتشر شده و زمینه‌های حرفه‌ای افشا کنید", exampleType: "text", color: "green" },
+  { label: "حریم خصوصی", description: "از اطلاعات شخصی در پرامپت‌ها و خروجی‌ها محافظت کنید", example: "داده‌ها را ناشناس کنید، از درج اطلاعات شناسایی شخصی خودداری کنید، سیاست‌های داده را درک کنید", exampleType: "text", color: "amber" },
+  { label: "ایمنی", description: "پرامپت‌هایی طراحی کنید که از خروجی‌های مضر جلوگیری کنند", example: "حفاظ‌ها بسازید، موارد لبه‌ای را آزمایش کنید، رد کردن‌ها را با ظرافت مدیریت کنید", exampleType: "text", color: "red" },
+  { label: "پاسخگویی", description: "مسئولیت آنچه پرامپت‌هایتان تولید می‌کنند را بپذیرید", example: "خروجی‌ها را بررسی کنید، مشکلات را برطرف کنید، نظارت انسانی را حفظ کنید", exampleType: "text", color: "cyan" }
+]} />
+
+### نقش مهندس پرامپت
+
+شما بیشتر از آنچه تصور می‌کنید تأثیرگذار هستید:
+
+- **آنچه هوش مصنوعی تولید می‌کند**: پرامپت‌های شما محتوا، لحن و کیفیت خروجی‌ها را تعیین می‌کنند
+- **نحوه تعامل هوش مصنوعی**: پرامپت‌های سیستم شما شخصیت، محدودیت‌ها و تجربه کاربری را شکل می‌دهند
+- **چه حفاظ‌هایی وجود دارد**: انتخاب‌های طراحی شما تعیین می‌کنند هوش مصنوعی چه کاری انجام می‌دهد و چه کاری انجام نمی‌دهد
+- **نحوه مدیریت اشتباهات**: مدیریت خطای شما تعیین می‌کند که آیا شکست‌ها ملایم هستند یا مضر
+
+## اجتناب از خروجی‌های مضر
+
+اساسی‌ترین تعهد اخلاقی جلوگیری از ایجاد آسیب توسط پرامپت‌های شما است.
+
+### دسته‌بندی‌های محتوای مضر
+
+<InfoGrid items={[
+  { label: "خشونت و آسیب", description: "دستورالعمل‌هایی که می‌توانند به آسیب فیزیکی منجر شوند", example: "ساخت سلاح، آسیب به خود، خشونت علیه دیگران", exampleType: "text", color: "red" },
+  { label: "فعالیت‌های غیرقانونی", description: "محتوایی که نقض قانون را تسهیل می‌کند", example: "طرح‌های کلاهبرداری، دستورالعمل‌های هک، سنتز مواد مخدر", exampleType: "text", color: "red" },
+  { label: "آزار و نفرت", description: "محتوایی که افراد یا گروه‌ها را هدف قرار می‌دهد", example: "محتوای تبعیض‌آمیز، افشای اطلاعات شخصی، آزار هدفمند", exampleType: "text", color: "red" },
+  { label: "اطلاعات نادرست", description: "محتوای عمداً نادرست یا گمراه‌کننده", example: "اخبار جعلی، اطلاعات نادرست بهداشتی، محتوای توطئه‌ای", exampleType: "text", color: "red" },
+  { label: "نقض حریم خصوصی", description: "افشا یا سوءاستفاده از اطلاعات شخصی", example: "فاش کردن داده‌های خصوصی، کمک به تعقیب", exampleType: "text", color: "red" },
+  { label: "بهره‌کشی", description: "محتوایی که از افراد آسیب‌پذیر سوءاستفاده می‌کند", example: "CSAM، تصاویر صمیمی غیر رضایتی، کلاهبرداری از سالمندان", exampleType: "text", color: "red" }
+]} />
+
+<Callout type="warning" title="CSAM چیست؟">
+CSAM مخفف **Child Sexual Abuse Material** (مواد سوءاستفاده جنسی از کودکان) است. ایجاد، توزیع یا نگهداری چنین محتوایی در سراسر جهان غیرقانونی است. سیستم‌های هوش مصنوعی هرگز نباید محتوایی تولید کنند که کودکان را در موقعیت‌های جنسی نشان دهد، و مهندسان پرامپت مسئول فعالانه حفاظ‌هایی در برابر چنین سوءاستفاده‌ای می‌سازند.
+</Callout>
+
+### ایجاد ایمنی در پرامپت‌ها
+
+هنگام ساخت سیستم‌های هوش مصنوعی، دستورالعمل‌های ایمنی صریح را شامل کنید:
+
+<TryIt 
+  title="پرامپت سیستم با اولویت ایمنی"
+  description="الگویی برای ایجاد دستورالعمل‌های ایمنی در سیستم‌های هوش مصنوعی شما."
+  prompt={`You are a helpful assistant for \${purpose}.
+
+## SAFETY GUIDELINES
+
+**Content Restrictions**:
+- Never provide instructions that could cause physical harm
+- Decline requests for illegal information or activities
+- Don't generate discriminatory or hateful content
+- Don't create deliberately misleading information
+
+**When You Must Decline**:
+- Acknowledge you understood the request
+- Briefly explain why you can't help with this specific thing
+- Offer constructive alternatives when possible
+- Be respectful—don't lecture or be preachy
+
+**When Uncertain**:
+- Ask clarifying questions about intent
+- Err on the side of caution
+- Suggest the user consult appropriate professionals
+
+Now, please help the user with: \${userRequest}`}
+/>
+
+### چارچوب قصد در برابر تأثیر
+
+هر درخواست حساسی بدخواهانه نیست. از این چارچوب برای موارد مبهم استفاده کنید:
+
+<TryIt 
+  title="تحلیلگر موارد اخلاقی مرزی"
+  description="درخواست‌های مبهم را بررسی کنید تا پاسخ مناسب را تعیین کنید."
+  prompt={`I received this request that might be sensitive:
+
+"\${sensitiveRequest}"
+
+Help me think through whether and how to respond:
+
+**1. Intent Analysis**
+- What are the most likely reasons someone would ask this?
+- Could this be legitimate? (research, fiction, education, professional need)
+- Are there red flags suggesting malicious intent?
+
+**2. Impact Assessment**
+- What's the worst case if this information is misused?
+- How accessible is this information elsewhere?
+- Does providing it meaningfully increase risk?
+
+**3. Recommendation**
+Based on this analysis:
+- Should I respond, decline, or ask for clarification?
+- If responding, what safeguards should I include?
+- If declining, how should I phrase it helpfully?`}
+/>
+
+## پرداختن به تعصب
+
+مدل‌های هوش مصنوعی تعصبات را از داده‌های آموزشی خود به ارث می‌برند—نابرابری‌های تاریخی، شکاف‌های نمایندگی، فرضیات فرهنگی و الگوهای زبانی. به عنوان مهندسان پرامپت، می‌توانیم این تعصبات را تقویت کنیم یا فعالانه با آنها مقابله کنیم.
+
+### نحوه بروز تعصب
+
+<InfoGrid items={[
+  { label: "فرضیات پیش‌فرض", description: "مدل جمعیت‌شناسی خاصی را برای نقش‌ها فرض می‌کند", example: "پیش‌فرض قرار دادن پزشکان به عنوان مرد، پرستاران به عنوان زن", exampleType: "text", color: "amber" },
+  { label: "کلیشه‌سازی", description: "تقویت کلیشه‌های فرهنگی در توصیفات", example: "مرتبط کردن قومیت‌های خاص با ویژگی‌های معین", exampleType: "text", color: "amber" },
+  { label: "شکاف‌های نمایندگی", description: "برخی گروه‌ها کم‌نمایندگی یا بد نشان داده شده‌اند", example: "اطلاعات دقیق محدود درباره فرهنگ‌های اقلیت", exampleType: "text", color: "amber" },
+  { label: "دیدگاه‌های غرب‌محور", description: "دیدگاه‌هایی که به سمت فرهنگ و ارزش‌های غربی متمایل هستند", example: "فرض اینکه هنجارهای غربی جهانی هستند", exampleType: "text", color: "amber" }
+]} />
+
+### آزمایش برای تعصب
+
+<TryIt 
+  title="آزمون تشخیص تعصب"
+  description="از این برای آزمایش پرامپت‌های خود برای مشکلات احتمالی تعصب استفاده کنید."
+  prompt={`I want to test this prompt for bias:
+
+"\${promptToTest}"
+
+Run these bias checks:
+
+**1. Demographic Variation Test**
+Run the prompt with different demographic descriptors (gender, ethnicity, age, etc.) and note any differences in:
+- Tone or respect level
+- Assumed competence or capabilities
+- Stereotypical associations
+
+**2. Default Assumption Check**
+When demographics aren't specified:
+- What does the model assume?
+- Are these assumptions problematic?
+
+**3. Representation Analysis**
+- Are different groups represented fairly?
+- Are any groups missing or marginalized?
+
+**4. Recommendations**
+Based on findings, suggest prompt modifications to reduce bias.`}
+/>
+
+### کاهش تعصب در عمل
+
+<Compare 
+  before={{ label: "پرامپت مستعد تعصب", content: "Describe a typical CEO." }}
+  after={{ label: "پرامپت آگاه از تعصب", content: "Describe a CEO. Vary demographics across examples, and avoid defaulting to any particular gender, ethnicity, or age." }}
+/>
+
+## شفافیت و افشا
+
+چه زمانی باید به مردم بگویید هوش مصنوعی دخیل بوده است؟ پاسخ به زمینه بستگی دارد—اما روند به سمت افشای بیشتر است، نه کمتر.
+
+### چه زمانی افشا اهمیت دارد
+
+<InfoGrid items={[
+  { label: "محتوای منتشر شده", description: "مقالات، پست‌ها، یا محتوای به اشتراک گذاشته شده عمومی", example: "پست‌های وبلاگ، شبکه‌های اجتماعی، مواد بازاریابی", exampleType: "text", color: "blue" },
+  { label: "تصمیمات مهم", description: "زمانی که خروجی‌های هوش مصنوعی بر زندگی مردم تأثیر می‌گذارد", example: "توصیه‌های استخدام، اطلاعات پزشکی، راهنمایی حقوقی", exampleType: "text", color: "blue" },
+  { label: "زمینه‌های اعتماد", description: "جایی که اصالت مورد انتظار یا ارزشمند است", example: "مکاتبات شخصی، گواهی‌نامه‌ها، نظرات", exampleType: "text", color: "blue" },
+  { label: "محیط‌های حرفه‌ای", description: "محیط‌های کاری یا دانشگاهی", example: "گزارش‌ها، تحقیقات، تحویل‌دادنی‌های مشتری", exampleType: "text", color: "blue" }
+]} />
+
+### نحوه افشای مناسب
+
+<Compare 
+  before={{ label: "دخالت پنهان هوش مصنوعی", content: "Here's my analysis of the market trends..." }}
+  after={{ label: "افشای شفاف", content: "I used AI tools to help analyze the data and draft this report. All conclusions have been verified and edited by me." }}
+/>
+
+عبارات افشای رایج که خوب کار می‌کنند:
+- "نوشته شده با کمک هوش مصنوعی"
+- "پیش‌نویس اولیه توسط هوش مصنوعی، ویرایش شده توسط انسان"
+- "تحلیل انجام شده با استفاده از ابزارهای هوش مصنوعی"
+- "ایجاد شده با هوش مصنوعی، بررسی و تأیید شده توسط [نام]"
+
+## ملاحظات حریم خصوصی
+
+هر پرامپتی که ارسال می‌کنید حاوی داده است. درک اینکه این داده کجا می‌رود—و چه چیزی نباید در آن باشد—ضروری است.
+
+### چه چیزی هرگز نباید در پرامپت‌ها باشد
+
+<InfoGrid items={[
+  { label: "شناسه‌های شخصی", description: "نام‌ها، آدرس‌ها، شماره تلفن‌ها، شماره‌های تأمین اجتماعی", example: "به جای 'جان اسمیت' از [مشتری] استفاده کنید", color: "red" },
+  { label: "داده‌های مالی", description: "شماره حساب‌ها، کارت‌های اعتباری، جزئیات درآمد", example: "الگو را توصیف کنید، نه اعداد واقعی", exampleType: "text", color: "red" },
+  { label: "اطلاعات بهداشتی", description: "پرونده‌های پزشکی، تشخیص‌ها، نسخه‌ها", example: "به طور کلی درباره شرایط بپرسید، نه بیماران خاص", exampleType: "text", color: "red" },
+  { label: "اعتبارنامه‌ها", description: "رمزهای عبور، کلیدهای API، توکن‌ها، رازها", example: "هرگز اعتبارنامه‌ها را نچسبانید—از جایگزین‌ها استفاده کنید", exampleType: "text", color: "red" },
+  { label: "ارتباطات خصوصی", description: "ایمیل‌های شخصی، پیام‌ها، اسناد محرمانه", example: "وضعیت را بدون نقل قول متن خصوصی خلاصه کنید", exampleType: "text", color: "red" }
+]} />
+
+### الگوی مدیریت امن داده
+
+<Compare 
+  before={{ label: "ناامن: حاوی اطلاعات شناسایی شخصی", content: "Summarize this complaint from John Smith at 123 Main St, Anytown about order #12345: 'I ordered on March 15 and still haven't received...'" }}
+  after={{ label: "امن: ناشناس شده", content: "Summarize this customer complaint pattern: A customer ordered 3 weeks ago, hasn't received their order, and has contacted support twice without resolution." }}
+/>
+
+<Callout type="info" title="PII چیست؟">
+**PII** مخفف **Personally Identifiable Information** (اطلاعات شناسایی شخصی) است—هر داده‌ای که می‌تواند یک فرد خاص را شناسایی کند. این شامل نام‌ها، آدرس‌ها، شماره تلفن‌ها، آدرس‌های ایمیل، شماره‌های تأمین اجتماعی، شماره حساب‌های مالی، و حتی ترکیباتی از داده‌ها (مانند عنوان شغلی + شرکت + شهر) است که می‌تواند کسی را شناسایی کند. هنگام پرامپت دادن به هوش مصنوعی، همیشه اطلاعات شناسایی شخصی را ناشناس کنید یا حذف کنید تا از حریم خصوصی محافظت کنید.
+</Callout>
+
+<TryIt 
+  title="پاک‌کننده اطلاعات شناسایی شخصی"
+  description="از این برای شناسایی و حذف اطلاعات حساس قبل از گنجاندن متن در پرامپت‌ها استفاده کنید."
+  prompt={`Review this text for sensitive information that should be removed before using it in an AI prompt:
+
+"\${textToReview}"
+
+Identify:
+1. **Personal Identifiers**: Names, addresses, phone numbers, emails, SSNs
+2. **Financial Data**: Account numbers, amounts that could identify someone
+3. **Health Information**: Medical details, conditions, prescriptions
+4. **Credentials**: Any passwords, keys, or tokens
+5. **Private Details**: Information someone would reasonably expect to be confidential
+
+For each item found, suggest how to anonymize or generalize it while preserving the information needed for the task.`}
+/>
+
+## اصالت و فریب
+
+بین استفاده از هوش مصنوعی به عنوان ابزار و استفاده از هوش مصنوعی برای فریب تفاوت وجود دارد.
+
+### خط مشروعیت
+
+<InfoGrid items={[
+  { label: "استفاده‌های مشروع", description: "هوش مصنوعی به عنوان ابزاری برای بهبود کار شما", example: "پیش‌نویس، طوفان فکری، ویرایش، یادگیری", exampleType: "text", color: "green" },
+  { label: "مناطق خاکستری", description: "وابسته به زمینه، نیاز به قضاوت دارد", example: "نویسندگی سایه، قالب‌ها، پاسخ‌های خودکار", exampleType: "text", color: "amber" },
+  { label: "استفاده‌های فریبکارانه", description: "معرفی کار هوش مصنوعی به عنوان اصلی انسانی", example: "نظرات جعلی، تقلب دانشگاهی، جعل هویت", exampleType: "text", color: "red" }
+]} />
+
+سوالات کلیدی که باید بپرسید:
+- آیا گیرنده انتظار دارد این کار اصلی انسان باشد؟
+- آیا من از طریق فریب مزیت ناعادلانه‌ای به دست می‌آورم؟
+- آیا افشا نحوه دریافت کار را تغییر می‌دهد؟
+
+### مسئولیت رسانه‌های مصنوعی
+
+ایجاد تصاویر واقع‌گرایانه از افراد واقعی—چه تصاویر، صدا یا ویدیو—تعهدات خاصی به همراه دارد:
+
+- **هرگز** تصاویر واقع‌گرایانه بدون رضایت ایجاد نکنید
+- **همیشه** رسانه‌های مصنوعی را به وضوح برچسب‌گذاری کنید
+- **در نظر بگیرید** پتانسیل سوءاستفاده قبل از ایجاد
+- **خودداری کنید** از ایجاد تصاویر صمیمی غیر رضایتی
+
+## استقرار مسئولانه
+
+هنگام ساخت ویژگی‌های هوش مصنوعی برای استفاده دیگران، تعهدات اخلاقی شما چند برابر می‌شود.
+
+### چک‌لیست پیش از استقرار
+
+<Checklist 
+  title="آمادگی استقرار"
+  items={[
+    { text: "آزمایش شده برای خروجی‌های مضر در ورودی‌های متنوع" },
+    { text: "آزمایش شده برای تعصب با جمعیت‌شناسی متنوع" },
+    { text: "مکانیزم‌های افشا/رضایت کاربر در جای خود" },
+    { text: "نظارت انسانی برای تصمیمات با ریسک بالا" },
+    { text: "سیستم بازخورد و گزارش‌دهی موجود" },
+    { text: "طرح پاسخ به حوادث مستند شده" },
+    { text: "سیاست‌های استفاده واضح ابلاغ شده" },
+    { text: "نظارت و هشدار پیکربندی شده" }
+  ]}
+/>
+
+### اصول نظارت انسانی
+
+<InfoGrid items={[
+  { label: "بررسی با ریسک بالا", description: "انسان‌ها تصمیماتی را بررسی می‌کنند که به طور قابل توجهی بر مردم تأثیر می‌گذارد", example: "توصیه‌های استخدام، پزشکی، حقوقی، مالی", exampleType: "text", color: "blue" },
+  { label: "اصلاح خطا", description: "مکانیزم‌هایی برای گرفتن و رفع اشتباهات هوش مصنوعی وجود دارد", example: "بازخورد کاربر، نمونه‌گیری کیفیت، فرآیند تجدید نظر", exampleType: "text", color: "blue" },
+  { label: "یادگیری مستمر", description: "بینش‌های حاصل از مشکلات سیستم را بهبود می‌بخشد", example: "تحلیل پس از رویداد، به‌روزرسانی پرامپت، بهبود آموزش", exampleType: "text", color: "blue" },
+  { label: "قابلیت لغو", description: "انسان‌ها می‌توانند زمانی که هوش مصنوعی شکست می‌خورد مداخله کنند", example: "صف‌های بررسی دستی، مسیرهای تشدید", exampleType: "text", color: "blue" }
+]} />
+
+## دستورالعمل‌های زمینه خاص
+
+برخی حوزه‌ها به دلیل پتانسیل آسیب یا آسیب‌پذیری افراد درگیر نیاز به مراقبت بیشتری دارند.
+
+### بهداشت و درمان
+
+<TryIt 
+  title="سلب مسئولیت زمینه پزشکی"
+  description="الگویی برای سیستم‌های هوش مصنوعی که ممکن است سوالات مرتبط با سلامت دریافت کنند."
+  prompt={`You are an AI assistant. When users ask about health or medical topics:
+
+**Always**:
+- Recommend consulting a qualified healthcare provider for personal medical decisions
+- Provide general educational information, not personalized medical advice
+- Include disclaimers that you cannot diagnose conditions
+- Suggest emergency services (911) for urgent situations
+
+**Never**:
+- Provide specific diagnoses
+- Recommend specific medications or dosages
+- Discourage someone from seeking professional care
+- Make claims about treatments without noting uncertainty
+
+User question: \${healthQuestion}
+
+Respond helpfully while following these guidelines.`}
+/>
+
+### حقوقی و مالی
+
+این حوزه‌ها پیامدهای نظارتی دارند و نیاز به سلب مسئولیت مناسب دارند:
+
+<InfoGrid items={[
+  { label: "سوالات حقوقی", description: "اطلاعات کلی ارائه دهید، نه مشاوره حقوقی", example: "\"این اطلاعات کلی است. برای وضعیت خاص خود، با یک وکیل مجاز مشورت کنید.\"", color: "purple" },
+  { label: "سوالات مالی", description: "آموزش دهید بدون ارائه مشاوره مالی شخصی", example: "\"این آموزشی است. برای وضعیت خود با یک مشاور مالی مشورت کنید.\"", color: "purple" },
+  { label: "آگاهی از حوزه قضایی", description: "قوانین بر اساس مکان متفاوت است", example: "\"قوانین بر اساس ایالت/کشور متفاوت است. الزامات حوزه قضایی خود را تأیید کنید.\"", color: "purple" }
+]} />
+
+### کودکان و آموزش
+
+<InfoGrid items={[
+  { label: "محتوای مناسب سن", description: "اطمینان حاصل کنید که خروجی‌ها برای گروه سنی مناسب هستند", example: "فیلتر کردن محتوای بزرگسالان، استفاده از زبان مناسب", exampleType: "text", color: "cyan" },
+  { label: "صداقت دانشگاهی", description: "از یادگیری حمایت کنید، جایگزین آن نشوید", example: "مفاهیم را توضیح دهید به جای نوشتن مقاله برای دانش‌آموزان", exampleType: "text", color: "cyan" },
+  { label: "ایمنی در اولویت", description: "حفاظت اضافی برای کاربران آسیب‌پذیر", example: "فیلترهای محتوای سخت‌گیرانه‌تر، بدون جمع‌آوری داده شخصی", exampleType: "text", color: "cyan" }
+]} />
+
+## خودارزیابی
+
+قبل از استقرار هر پرامپت یا سیستم هوش مصنوعی، این سوالات را بررسی کنید:
+
+<Checklist 
+  title="بررسی خود اخلاقی"
+  items={[
+    { text: "آیا این می‌تواند برای آسیب رساندن به کسی استفاده شود؟" },
+    { text: "آیا این به حریم خصوصی کاربر احترام می‌گذارد؟" },
+    { text: "آیا این می‌تواند تعصبات مضر را تداوم بخشد؟" },
+    { text: "آیا دخالت هوش مصنوعی به طور مناسب افشا شده است؟" },
+    { text: "آیا نظارت انسانی کافی وجود دارد؟" },
+    { text: "بدترین چیزی که می‌تواند اتفاق بیفتد چیست؟" },
+    { text: "آیا راحت هستم اگر این استفاده عمومی شود؟" }
+  ]}
+/>
+
+<Quiz 
+  question="یک کاربر از سیستم هوش مصنوعی شما می‌پرسد چگونه 'از شر کسی که مزاحمش است خلاص شود.' مناسب‌ترین استراتژی پاسخ چیست؟"
+  options={[
+    "فوراً رد کنید—این می‌تواند درخواست دستورالعمل آسیب باشد",
+    "مشاوره حل تعارض ارائه دهید زیرا این محتمل‌ترین قصد است",
+    "سوالات روشن‌کننده بپرسید تا قصد را قبل از تصمیم‌گیری درباره نحوه پاسخ درک کنید",
+    "توضیح دهید که نمی‌توانید در هیچ چیز مرتبط با آسیب رساندن به مردم کمک کنید"
+  ]}
+  correctIndex={2}
+  explanation="درخواست‌های مبهم شایسته روشن‌سازی هستند، نه فرضیات. 'از شر کسی خلاص شدن' می‌تواند به معنای پایان دادن به یک دوستی، حل تعارض محل کار، یا چیزی مضر باشد. پرسیدن سوالات روشن‌کننده به شما امکان می‌دهد به قصد واقعی به طور مناسب پاسخ دهید در حالی که در مورد ارائه اطلاعات مضر محتاط می‌مانید."
+/>

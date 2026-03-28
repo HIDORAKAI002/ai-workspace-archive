@@ -1,0 +1,274 @@
+import React from 'react';
+
+import Head from '@docusaurus/Head';
+import Link from '@docusaurus/Link';
+import { useColorMode } from '@docusaurus/theme-common';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+import Layout from '@theme/Layout';
+import { SITE_CONSTANTS } from '../constants';
+
+const AboutPageContent = () => {
+  const { colorMode } = useColorMode();
+
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: colorMode === 'dark' ? 'dark' : 'light',
+        },
+      }),
+    [colorMode],
+  );
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="lg">
+        <Box py={8}>
+          <Typography variant="h2" component="h2" align="center" gutterBottom fontWeight="bold">
+            Securing the Future of AI
+          </Typography>
+          <Typography variant="h5" component="h2" align="center" color="text.secondary" paragraph>
+            Promptfoo helps developers and enterprises build secure, reliable AI applications.
+          </Typography>
+        </Box>
+
+        <Box mb={8}>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="h4" component="h3" gutterBottom fontWeight="medium">
+                About Us
+              </Typography>
+              <Typography variant="body1" paragraph>
+                We are security and engineering practitioners who have scaled generative AI products
+                to hundreds of millions of users. We're building the tools that we wished we had
+                when we were on the front lines.
+              </Typography>
+              <Typography variant="body1" paragraph>
+                Based in San Mateo, California, Promptfoo joined OpenAI on March 16, 2026. Promptfoo
+                remains open source, and we continue to build tools for secure, reliable AI
+                applications.
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                <img
+                  src="/img/logo-panda.svg"
+                  alt="Promptfoo Logo"
+                  style={{ maxWidth: '100%', maxHeight: '150px', height: 'auto' }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Divider sx={{ my: 8 }} />
+
+        <Box mb={8}>
+          <Typography variant="h4" component="h3" align="center" mb={8} fontWeight="medium">
+            Our founders
+          </Typography>
+          <Grid container spacing={4} justifyContent="center">
+            {[
+              {
+                name: 'Ian Webster',
+                title: 'CEO & Co-founder',
+                image: '/img/team/ian.jpeg',
+                bio: 'Ian previously led LLM engineering and developer platform teams at Discord, scaling AI products to 200M users while maintaining rigorous safety, security, and policy standards.',
+                linkedin: 'http://linkedin.com/in/ianww',
+              },
+              {
+                name: "Michael D'Angelo",
+                title: 'CTO & Co-founder',
+                image: '/img/team/michael.jpeg',
+                bio: 'Michael brings extensive experience in AI and engineering leadership. As the former VP of Engineering and Head of AI at Smile Identity, he has a track record of scaling ML solutions to serve over 100 million people across hundreds of enterprises.',
+                linkedin: 'https://www.linkedin.com/in/michaelldangelo/',
+              },
+            ].map((leader) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={leader.name}>
+                <Box textAlign="center">
+                  <Avatar
+                    alt={leader.name}
+                    src={leader.image}
+                    sx={{ width: 150, height: 150, margin: '0 auto 1rem' }}
+                  />
+                  <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+                    <Typography variant="h6" component="h4" fontWeight="medium">
+                      {leader.name}
+                    </Typography>
+                    {leader.linkedin && (
+                      <IconButton
+                        component="a"
+                        href={leader.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="small"
+                        aria-label={`${leader.name}'s LinkedIn profile`}
+                        sx={{ padding: 0 }}
+                      >
+                        <LinkedInIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
+                  <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                    {leader.title}
+                  </Typography>
+                  <Typography variant="body2" dangerouslySetInnerHTML={{ __html: leader.bio }} />
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Divider sx={{ my: 8 }} />
+
+        <Box mb={8}>
+          <Typography variant="h4" component="h3" align="center" fontWeight="medium" mb={4}>
+            Early Supporters
+          </Typography>
+          <Typography variant="body1" align="center" paragraph mb={8}>
+            We're grateful to the investors and operators who backed Promptfoo early and helped us
+            build open-source, application-focused AI security.
+          </Typography>
+          <Grid container spacing={4} justifyContent="center">
+            {[
+              {
+                name: 'Ganesh Bell',
+                image: '/img/team/ganesh.jpeg',
+                description: 'Managing Director, Insight Partners',
+              },
+              {
+                name: 'Zane Lackey',
+                image: '/img/team/zane.jpeg',
+                description: 'General Partner, Andreessen Horowitz\nFounder, Signal Sciences',
+              },
+              {
+                name: 'Joel de la Garza',
+                image: '/img/team/joel.jpeg',
+                description: 'Investment Partner, Andreessen Horowitz\nCISO, Box',
+              },
+              {
+                name: 'Tobi Lutke',
+                image: '/img/team/tobi.jpeg',
+                description: 'CEO, Shopify',
+              },
+              {
+                name: 'Stanislav Vishnevskiy',
+                image: '/img/team/stan.jpeg',
+                description: 'CTO, Discord',
+              },
+              {
+                name: 'Frederic Kerrest',
+                image: '/img/team/frederic.jpeg',
+                description: 'Vice-Chairman & Co-Founder, Okta',
+              },
+              {
+                name: 'Adam Ely',
+                image: '/img/team/adam.jpeg',
+                description: 'EVP, Head of Digital Products, Fidelity\nCISO, Fidelity',
+              },
+            ].map((investor) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={investor.name}>
+                <Box textAlign="center">
+                  <Avatar
+                    alt={investor.name}
+                    src={investor.image}
+                    sx={{ width: 120, height: 120, margin: '0 auto 1rem' }}
+                  />
+                  <Typography variant="h6" component="h4" gutterBottom fontWeight="medium">
+                    {investor.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {investor.description}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Divider sx={{ my: 8 }} />
+
+        <Box mb={8}>
+          <Typography variant="h4" component="h3" align="center" gutterBottom fontWeight="medium">
+            An Incredible Open Source Community
+          </Typography>
+          <Typography variant="body1" paragraph align="center">
+            Promptfoo is proud to be supported by a vibrant community of over{' '}
+            {SITE_CONSTANTS.CONTRIBUTOR_COUNT} open source contributors.
+          </Typography>
+          <Box display="flex" justifyContent="center" mt={4}>
+            <a href="https://github.com/promptfoo/promptfoo/graphs/contributors">
+              <img
+                src="https://contrib.rocks/image?repo=promptfoo/promptfoo"
+                alt="Promptfoo Contributors"
+              />
+            </a>
+          </Box>
+        </Box>
+
+        <Box textAlign="center" mb={8}>
+          <Typography variant="h4" component="h3" gutterBottom fontWeight="medium">
+            Ready to Secure Your AI Applications?
+          </Typography>
+          <Typography variant="body1" paragraph>
+            Join leading enterprises who trust Promptfoo to fortify their AI applications.
+          </Typography>
+          <Link className="button button--primary button--lg" to="/contact/">
+            Get in Touch
+          </Link>
+        </Box>
+      </Container>
+    </ThemeProvider>
+  );
+};
+
+const AboutPage = () => {
+  const { siteConfig } = useDocusaurusContext();
+  const siteUrl = siteConfig.url;
+
+  return (
+    <Layout
+      title="About Promptfoo | AI Security Experts"
+      description="Learn about Promptfoo's mission to secure AI applications and our team of industry veterans."
+    >
+      <Head>
+        <meta property="og:title" content="About Promptfoo - Securing the Future of AI" />
+        <meta
+          property="og:description"
+          content="Learn about Promptfoo's mission to secure AI applications and our team of industry veterans."
+        />
+        <meta property="og:image" content={`${siteUrl}/img/og/about-og.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${siteUrl}/about`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About Promptfoo - Securing the Future of AI" />
+        <meta
+          name="twitter:description"
+          content="Learn about Promptfoo's mission to secure AI applications and our team of industry veterans."
+        />
+        <meta name="twitter:image" content={`${siteUrl}/img/og/about-og.png`} />
+        <link rel="canonical" href={`${siteUrl}/about`} />
+      </Head>
+      <AboutPageContent />
+    </Layout>
+  );
+};
+
+export default AboutPage;

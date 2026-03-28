@@ -1,0 +1,12 @@
+.aider*
+.env
+aidocs/
+.mcp.json
+*.log
+mcphost
+.idea
+test/
+build/
+dist/
+contribute/output/
+CONTEXT.md

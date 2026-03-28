@@ -1,0 +1,328 @@
+يُعد التوجيه القائم على الأدوار من أقوى التقنيات وأكثرها استخداماً في هندسة التوجيهات. من خلال تعيين دور أو شخصية محددة للذكاء الاصطناعي، يمكنك التأثير بشكل كبير على جودة الاستجابات وأسلوبها ومدى ملاءمتها.
+
+<Callout type="tip" title="قوة الشخصيات">
+فكّر في الأدوار كمرشحات لمعرفة الذكاء الاصطناعي الواسعة. الدور المناسب يركّز الاستجابات كما تركّز العدسة الضوء.
+</Callout>
+
+## لماذا تنجح الأدوار
+
+عندما تُعيّن دوراً، فأنت في الأساس تخبر النموذج: "فلتر معرفتك الواسعة من خلال هذه العدسة المحددة." يقوم النموذج بتعديل:
+
+- **المفردات**: استخدام مصطلحات مناسبة للدور
+- **المنظور**: النظر في المشكلات من وجهة النظر تلك
+- **عمق الخبرة**: تقديم مستويات تفصيل مناسبة للدور
+- **أسلوب التواصل**: مطابقة الطريقة التي سيتواصل بها ذلك الدور
+
+### التفسير التقني
+
+تعمل نماذج اللغة الكبيرة (LLMs) عن طريق التنبؤ بالرمز التالي الأكثر احتمالاً بناءً على السياق المُعطى. عندما تحدد دوراً، فأنت تغيّر بشكل جوهري معنى "الأكثر احتمالاً".
+
+**تنشيط المعرفة ذات الصلة**: يُهيّئ الدور مناطق معينة من الارتباطات المُتعلّمة في النموذج. قول "أنت طبيب" يُنشّط المصطلحات الطبية وأنماط التفكير التشخيصي وأساليب التواصل السريري من بيانات التدريب.
+
+**التكييف الإحصائي**: تعلمت نماذج اللغة الكبيرة من ملايين الوثائق التي كتبها خبراء حقيقيون. عندما تُعيّن دوراً، يُكيّف النموذج توزيعاته الاحتمالية لتتوافق مع الأنماط التي رآها من ذلك النوع من الكُتّاب.
+
+**تقليل الغموض**: بدون دور، يُحسب النموذج متوسطاً عبر جميع المستجيبين المحتملين. مع دور محدد، يضيّق النطاق إلى مجموعة فرعية معينة، مما يجعل الاستجابات أكثر تركيزاً واتساقاً.
+
+**ترسيخ السياق**: يُنشئ الدور مرساة سياقية مستمرة طوال المحادثة. تتأثر كل استجابة لاحقة بهذا التأطير الأولي.
+
+فكّر في الأمر بهذه الطريقة: إذا سألت "ماذا يجب أن أفعل بشأن هذه الكحة؟" يمكن للنموذج أن يستجيب كطبيب أو صديق أو صيدلي أو والد قلق. كل منهم سيعطي نصيحة مختلفة. بتحديد الدور مسبقاً، أنت تخبر النموذج أي "صوت" يستخدم من بيانات التدريب الخاصة به.
+
+<Callout type="info" title="لماذا هذا مهم">
+النموذج لا يتظاهر أو يؤدي دوراً بالمعنى المسرحي. إنه يُحيّز إحصائياً مخرجاته نحو أنماط تعلمها من خبراء ومحترفين ومتخصصين حقيقيين أثناء التدريب. دور "الطبيب" يُنشّط مسارات المعرفة الطبية؛ ودور "الشاعر" يُنشّط الأنماط الأدبية.
+</Callout>
+
+## أنماط الأدوار الأساسية
+
+تعمل هذه الأنماط التأسيسية عبر معظم حالات الاستخدام. ابدأ بهذه القوالب وخصصها لاحتياجاتك.
+
+### نمط الخبير
+
+النمط الأكثر تنوعاً. حدد مجال الخبرة وسنوات الخبرة للحصول على استجابات موثوقة ومتعمقة. يعمل جيداً للأسئلة التقنية والتحليل والنصائح المهنية.
+
+<TryIt compact prompt={`You are an expert \${field} with \${years:10} years of experience in \${specialty}.
+
+\${task}`} />
+
+### نمط المحترف
+
+أسّس الدور في سياق واقعي بتحديد المسمى الوظيفي ونوع المؤسسة. هذا يضيف معرفة مؤسسية ومعايير مهنية للاستجابة.
+
+<TryIt compact prompt={`You are a \${profession} working at \${organization}.
+
+\${task}`} />
+
+### نمط المعلم
+
+مثالي للتعلم والشروحات. تحديد مستوى الجمهور يضمن أن الاستجابة تتوافق مع خلفية المتعلم، من المبتدئين إلى الممارسين المتقدمين.
+
+<TryIt compact prompt={`You are a \${subject} teacher who specializes in explaining complex concepts to \${audience}.
+
+\${task}`} />
+
+## بناء الأدوار المتقدمة
+
+### الأدوار المركّبة
+
+اجمع بين هويات متعددة للحصول على استجابات تمزج وجهات نظر مختلفة. هذا المزيج بين طبيب الأطفال والوالد ينتج نصائح سليمة طبياً ومُختبرة عملياً.
+
+<TryIt compact prompt={`You are a pediatrician who is also a parent of three children. You understand both the medical and practical aspects of childhood health issues. You communicate with empathy and without medical jargon.
+
+\${question}`} />
+
+### الأدوار الظرفية
+
+ضع الدور في سيناريو محدد لتشكيل المحتوى والنبرة معاً. هنا، سياق مراجعة الكود يجعل الذكاء الاصطناعي بنّاءً وتعليمياً بدلاً من أن يكون انتقادياً فقط.
+
+<TryIt compact prompt={`You are a senior developer conducting a code review for a junior team member. You want to be helpful and educational, not critical. You explain not just what to fix, but why.
+
+Code to review:
+\${code}`} />
+
+### أدوار وجهات النظر
+
+احصل على ملاحظات من وجهة نظر صاحب مصلحة محدد. منظور رأس المال المغامر يُقيّم الجدوى وقابلية التوسع بشكل مختلف عما يفعله العميل أو المهندس.
+
+<TryIt compact prompt={`You are a venture capitalist evaluating startup pitches. You've seen thousands of pitches and can quickly identify strengths, weaknesses, and red flags. Be direct but constructive.
+
+Pitch: \${pitch}`} />
+
+## فئات الأدوار وأمثلة عليها
+
+تستفيد المجالات المختلفة من أنواع مختلفة من الأدوار. إليك أمثلة مُثبتة منظمة حسب الفئة يمكنك تكييفها لمهامك.
+
+### الأدوار التقنية
+
+**مهندس البرمجيات**: الأفضل لقرارات تصميم الأنظمة واختيارات التقنية والمفاضلات المعمارية. التركيز على قابلية الصيانة يوجّه الاستجابات نحو حلول عملية طويلة المدى.
+
+<TryIt compact prompt={`You are a software architect specializing in scalable distributed systems. You prioritize maintainability, performance, and team productivity in your recommendations.
+
+\${question}`} />
+
+**متخصص الأمان**: عقلية المهاجم هي المفتاح هنا. هذا الدور ينتج تحليلاً يركز على التهديدات ويحدد نقاط الضعف التي قد يفوتها منظور دفاعي فقط.
+
+<TryIt compact prompt={`You are a cybersecurity specialist who conducts penetration testing. You think like an attacker to identify vulnerabilities.
+
+Analyze: \${target}`} />
+
+**مهندس DevOps**: مثالي لأسئلة النشر والأتمتة والبنية التحتية. التركيز على الموثوقية يضمن توصيات جاهزة للإنتاج.
+
+<TryIt compact prompt={`You are a DevOps engineer focused on CI/CD pipelines and infrastructure as code. You value automation and reliability.
+
+\${question}`} />
+
+### الأدوار الإبداعية
+
+**كاتب الإعلانات**: المؤهل "الحائز على جوائز" والتركيز على التحويل ينتجان نصوصاً مقنعة وجذابة بدلاً من نص تسويقي عام.
+
+<TryIt compact prompt={`You are an award-winning copywriter known for creating compelling headlines and persuasive content that drives conversions.
+
+Write copy for: \${product}`} />
+
+**كاتب السيناريو**: يُنشّط المعرفة بالبنية الدرامية والإيقاع وأعراف الحوار. رائع لأي كتابة سردية تحتاج إلى توتر وصوت شخصية.
+
+<TryIt compact prompt={`You are a screenwriter who has written for popular TV dramas. You understand story structure, dialogue, and character development.
+
+Write: \${scene}`} />
+
+**كاتب تجربة المستخدم**: دور متخصص لنصوص الواجهة. التركيز على الإيجاز وتوجيه المستخدم ينتج نصوصاً موجزة موجّهة للعمل.
+
+<TryIt compact prompt={`You are a UX writer specializing in microcopy. You make interfaces feel human and guide users with minimal text.
+
+Write microcopy for: \${element}`} />
+
+### الأدوار التحليلية
+
+**محلل الأعمال**: يسد الفجوة بين أصحاب المصلحة التقنيين وغير التقنيين. مفيد لجمع المتطلبات وكتابة المواصفات وتحديد الثغرات في خطط المشاريع.
+
+<TryIt compact prompt={`You are a business analyst who translates between technical teams and stakeholders. You clarify requirements and identify edge cases.
+
+Analyze: \${requirement}`} />
+
+**عالم الأبحاث**: التركيز على الأدلة والاعتراف بعدم اليقين ينتج استجابات متوازنة وموثقة جيداً تميّز بين الحقائق والتخمينات.
+
+<TryIt compact prompt={`You are a research scientist who values empirical evidence and acknowledges uncertainty. You distinguish between established facts and hypotheses.
+
+Research question: \${question}`} />
+
+**المحلل المالي**: يجمع بين التحليل الكمي وتقييم المخاطر. التركيز المزدوج على العوائد والمخاطر ينتج وجهات نظر استثمارية أكثر توازناً.
+
+<TryIt compact prompt={`You are a financial analyst who evaluates investments using fundamental and technical analysis. You consider risk alongside potential returns.
+
+Evaluate: \${investment}`} />
+
+### الأدوار التعليمية
+
+**المعلم السقراطي**: بدلاً من إعطاء الإجابات، هذا الدور يطرح أسئلة موجهة. ممتاز للتعلم الأعمق ومساعدة الطلاب على تطوير مهارات التفكير النقدي.
+
+<TryIt compact prompt={`You are a tutor using the Socratic method. Instead of giving answers directly, you guide students to discover answers through thoughtful questions.
+
+Topic: \${topic}`} />
+
+**مصمم التعليم**: يُهيكل التعلم لأقصى قدر من الاحتفاظ. استخدم هذا الدور عندما تحتاج إلى تقسيم المواضيع المعقدة إلى أجزاء قابلة للتعليم مع تقدم واضح.
+
+<TryIt compact prompt={`You are an instructional designer who creates engaging learning experiences. You break complex topics into digestible modules with clear learning objectives.
+
+Create curriculum for: \${topic}`} />
+
+## تقنية تكديس الأدوار
+
+للمهام المعقدة، اجمع جوانب أدوار متعددة في هوية واحدة متعددة الطبقات. هذه التقنية تُكدّس الخبرة والوعي بالجمهور وإرشادات الأسلوب لإنشاء استجابات متخصصة للغاية.
+
+هذا المثال يطبّق ثلاث طبقات: خبرة المجال (توثيق API)، والجمهور (المطورون المبتدئون)، ودليل الأسلوب (أعراف Google). كل طبقة تُقيّد المخرجات أكثر.
+
+<TryIt compact prompt={`You are a technical writer with expertise in API documentation. You write for developers who are new to REST APIs. Follow the Google developer documentation style guide: use second person ("you"), active voice, present tense, and keep sentences under 26 words.
+
+Document: \${apiEndpoint}`} />
+
+## الأدوار للمهام المختلفة
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">مراجعة الكود</span>
+    <span className="text-muted-foreground">مطور أول + مرشد</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">ملاحظات الكتابة</span>
+    <span className="text-muted-foreground">محرر + عضو من الجمهور المستهدف</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">استراتيجية الأعمال</span>
+    <span className="text-muted-foreground">مستشار + خبير صناعة</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">تعلم موضوع جديد</span>
+    <span className="text-muted-foreground">معلم صبور + ممارس</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">الكتابة الإبداعية</span>
+    <span className="text-muted-foreground">مؤلف في نوع أدبي محدد</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">الشرح التقني</span>
+    <span className="text-muted-foreground">خبير + متواصل</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">حل المشكلات</span>
+    <span className="text-muted-foreground">متخصص في المجال + شامل</span>
+  </div>
+</div>
+
+## أنماط يجب تجنبها
+
+### الأدوار العامة جداً
+
+<Compare 
+  before={{ label: "ضعيف", content: "أنت مساعد مفيد." }}
+  after={{ label: "أفضل", content: "أنت مساعد مفيد متخصص في تطوير Python، خاصة تطبيقات الويب مع Flask و Django." }}
+/>
+
+### الأدوار المتعارضة
+
+<Compare 
+  before={{ label: "إشكالي", content: "أنت كاتب إبداعي يتبع دائماً قوالب صارمة." }}
+  after={{ label: "أفضل", content: "أنت كاتب إبداعي يعمل ضمن هياكل قصصية راسخة مع إضافة عناصر أصلية." }}
+/>
+
+### الخبرة غير الواقعية
+
+<Compare 
+  before={{ label: "إشكالي", content: "أنت خبير في كل شيء." }}
+  after={{ label: "أفضل", content: "أنت محترف على شكل حرف T: خبرة عميقة في تعلم الآلة مع معرفة واسعة بممارسات هندسة البرمجيات." }}
+/>
+
+## أمثلة توجيهات واقعية
+
+### التوثيق التقني
+
+<TryIt 
+  title="دور الكاتب التقني"
+  description="جرّب هذا التوجيه للتوثيق التقني مع نقطة نهاية API الخاصة بك."
+  prompt={`You are a senior technical writer at a developer tools company. You have 10 years of experience writing API documentation, SDK guides, and developer tutorials.
+
+Your documentation style:
+- Clear, scannable structure with headers and code examples
+- Explains the "why" alongside the "how"
+- Anticipates common questions and edge cases
+- Uses consistent terminology defined in a glossary
+- Includes working code examples that users can copy-paste
+
+Document this API endpoint: GET /api/users/:id - Returns user profile data`}
+/>
+
+### الكتابة الإبداعية
+
+<TryIt 
+  title="دور الروائي"
+  description="هذا الدور يجمع بين خبرة النوع الأدبي وسمات أسلوبية محددة."
+  prompt={`You are a novelist who writes in the style of literary fiction with elements of magical realism. Your prose is known for:
+- Lyrical but accessible language
+- Deep psychological character portraits
+- Subtle magical elements woven into everyday settings
+- Themes of memory, identity, and transformation
+
+Write the opening scene of a story about a librarian who discovers that books in her library are slowly changing their endings.`}
+/>
+
+### التواصل التجاري
+
+<TryIt 
+  title="دور مدرب التنفيذيين"
+  description="هذا الدور يساعد في التواصلات التجارية الحساسة."
+  prompt={`You are an executive communications coach who has worked with Fortune 500 CEOs. You help leaders communicate complex ideas simply and build trust with their teams.
+
+Review this message for a team meeting about budget cuts. Suggest improvements that:
+- Acknowledge the difficulty while maintaining confidence
+- Are transparent without creating panic  
+- Show empathy while being professional
+- Include clear next steps
+
+Draft message: "Due to budget constraints, we need to reduce project scope. Some initiatives will be paused."`}
+/>
+
+## دمج الأدوار مع تقنيات أخرى
+
+تعمل الأدوار بشكل أفضل عند دمجها مع تقنيات التوجيه الأخرى:
+
+### الدور + القليل من الأمثلة
+
+اجمع بين دور ومثال لإظهار كيف يجب أن يستجيب الدور بالضبط. المثال يُعلّم النبرة والتنسيق بينما يوفر الدور السياق والخبرة.
+
+<TryIt compact prompt={`You are a customer support specialist trained to de-escalate angry customers.
+
+Example response to angry customer:
+Customer: "This is ridiculous! I've been waiting 2 weeks!"
+You: "I completely understand your frustration, and I apologize for the delay. Let me look into this right now and find out exactly where your order is. Can I have your order number?"
+
+Now respond to:
+Customer: "\${customerMessage}"`} />
+
+### الدور + سلسلة التفكير
+
+دور المحقق يشجع بشكل طبيعي على التفكير خطوة بخطوة. دمج الأدوار مع سلسلة التفكير ينتج حلاً للمشكلات أكثر شفافية وقابلية للتحقق.
+
+<TryIt compact prompt={`You are a detective solving a logic puzzle. Think through each clue methodically, stating your reasoning at each step.
+
+Clues:
+\${clues}
+
+Solve step by step, explaining your deductions.`} />
+
+## الملخص
+
+<Callout type="info" title="النقاط الرئيسية">
+التوجيه القائم على الأدوار قوي لأنه يركّز المعرفة الواسعة للنموذج، ويضع توقعات للنبرة والأسلوب، ويوفر سياقاً ضمنياً، ويجعل المخرجات أكثر اتساقاً.
+</Callout>
+
+<Quiz 
+  question="ما الذي يجعل التوجيه القائم على الأدوار أكثر فعالية؟"
+  options={[
+    "استخدام ألقاب أدوار عامة مثل 'خبير'",
+    "إضافة تفاصيل محددة عن الخبرة والتجربة ووجهة النظر",
+    "إبقاء وصف الدور قصيراً قدر الإمكان",
+    "مطالبة الذكاء الاصطناعي بتبديل الأدوار بشكل متكرر"
+  ]}
+  correctIndex={1}
+  explanation="كلما كان الدور أكثر تفصيلاً وواقعية، كانت النتائج أفضل. التحديد يساعد النموذج على فهم المعرفة والنبرة ووجهة النظر التي يجب تطبيقها بالضبط."
+/>
+
+المفتاح هو **التحديد**: كلما كان الدور أكثر تفصيلاً وواقعية، كانت النتائج أفضل. في الفصل التالي، سنستكشف كيفية الحصول على مخرجات متسقة ومنظمة من توجيهاتك.

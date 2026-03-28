@@ -1,0 +1,33 @@
+name: Publish Package to npm
+
+on:
+  release:
+    types: [created]
+#  push:
+#    branches: [ main ]  # Added for testing - you can remove this later
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - name: Check package version
+        if: github.event_name == 'release'  # Only check version on releases
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          GITHUB_REF_VERSION=${GITHUB_REF#refs/tags/v}
+          if [ "$PKG_VERSION" != "$GITHUB_REF_VERSION" ]; then
+            echo "Package version ($PKG_VERSION) does not match tag version ($GITHUB_REF_VERSION)"
+            exit 1
+          fi
+      - name: Publish to npm
+        if: github.event_name == 'release'  # Only publish on releases
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

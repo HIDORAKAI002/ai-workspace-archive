@@ -1,0 +1,177 @@
+import { resultMap } from "../../packages/common/result";
+import { dbQueryClickhouse } from "../../lib/shared/db/dbExecute";
+import { FilterNode } from "@helicone-package/filters/filterDefs";
+import {
+  buildFilterWithAuthClickHouse,
+  clickhouseParam,
+} from "@helicone-package/filters/filters";
+import { Result } from "../../packages/common/result";
+import {
+  isValidTimeFilter,
+  isValidTimeIncrement,
+  isValidTimeZoneDifference,
+} from "./timeHelpers";
+import moment from "moment";
+import { RequestClickhouseFilterNode } from "../../controllers/public/requestController";
+
+export type TimeIncrement = "min" | "hour" | "day" | "week" | "month" | "year";
+
+export interface DataOverTimeRequest {
+  timeFilter: {
+    start: string;
+    end: string;
+  };
+  userFilter: RequestClickhouseFilterNode;
+  dbIncrement: TimeIncrement;
+  timeZoneDifference: number;
+}
+
+function convertDbIncrement(dbIncrement: TimeIncrement): string {
+  // Use lowercase to align with ClickHouse date_trunc argument values
+  return dbIncrement === "min" ? "minute" : dbIncrement;
+}
+
+function buildFill(
+  startDate: Date,
+  endDate: Date,
+  dbIncrement: TimeIncrement,
+  timeZoneDifference: number,
+  argsAcc: any[]
+): {
+  fill: string;
+  argsAcc: any[];
+} {
+  const i = argsAcc.length;
+  const startDateVal = buildDateTrunc(
+    dbIncrement,
+    timeZoneDifference,
+    clickhouseParam(i, startDate)
+  );
+  const endDateVal = buildDateTrunc(
+    dbIncrement,
+    timeZoneDifference,
+    clickhouseParam(i + 1, endDate)
+  );
+
+  const fill = `WITH FILL FROM ${startDateVal} to ${endDateVal} + INTERVAL 1 ${convertDbIncrement(
+    dbIncrement
+  )} STEP INTERVAL 1 ${convertDbIncrement(dbIncrement)}`;
+  return { fill, argsAcc: [...argsAcc, startDate, endDate] };
+}
+
+function buildDateTrunc(
+  dbIncrement: TimeIncrement,
+  timeZoneDifference: number,
+  column: string
+): string {
+  const minutes = Math.abs(timeZoneDifference);
+  const operator = timeZoneDifference >= 0 ? "-" : "+";
+  return `toDateTime64(DATE_TRUNC('${convertDbIncrement(dbIncrement)}', ${column} ${operator} INTERVAL ${minutes} minute, 'UTC'), 0, 'UTC')`;
+}
+
+export async function getXOverTime<T>(
+  {
+    timeFilter,
+    userFilter,
+    dbIncrement,
+    timeZoneDifference,
+  }: DataOverTimeRequest,
+  {
+    orgId,
+    countColumns,
+    groupByColumns = [],
+  }: {
+    orgId: string;
+    countColumns: string[];
+    groupByColumns?: string[];
+  },
+  argsAccInit: any[] = []
+): Promise<
+  Result<
+    (T & {
+      created_at_trunc: string;
+    })[],
+    string
+  >
+> {
+  const startDate = new Date(timeFilter.start);
+  const endDate = new Date(timeFilter.end);
+  const timeFilterNode: FilterNode = {
+    left: {
+      request_response_rmt: {
+        request_created_at: {
+          gte: startDate,
+        },
+      },
+    },
+    right: {
+      request_response_rmt: {
+        request_created_at: {
+          lte: endDate,
+        },
+      },
+    },
+    operator: "and",
+  };
+  const filter: FilterNode = {
+    left: timeFilterNode,
+    right: userFilter,
+    operator: "and",
+  };
+
+  if (!isValidTimeFilter(timeFilter)) {
+    return { data: null, error: "Invalid time filter" };
+  }
+  if (!isValidTimeIncrement(dbIncrement)) {
+    return { data: null, error: "Invalid time increment" };
+  }
+  if (!isValidTimeZoneDifference(timeZoneDifference)) {
+    return { data: null, error: "Invalid time zone difference" };
+  }
+  const { filter: builtFilter, argsAcc: builtFilterArgsAcc } =
+    await buildFilterWithAuthClickHouse({
+      org_id: orgId,
+      filter,
+      argsAcc: argsAccInit,
+    });
+  const { fill, argsAcc } = buildFill(
+    startDate,
+    endDate,
+    dbIncrement,
+    timeZoneDifference,
+    builtFilterArgsAcc
+  );
+  const dateTrunc = buildDateTrunc(
+    dbIncrement,
+    timeZoneDifference,
+    "request_created_at"
+  );
+  const query = `
+  -- getXOverTime
+SELECT
+  ${dateTrunc} as created_at_trunc,
+  ${groupByColumns.concat(countColumns).join(", ")}
+FROM request_response_rmt
+WHERE (
+  ${builtFilter}
+)
+GROUP BY ${groupByColumns.concat([dateTrunc]).join(", ")}
+ORDER BY ${dateTrunc} ASC ${fill}
+`;
+
+  type ResultType = T & {
+    created_at_trunc: Date;
+  };
+  return resultMap(await dbQueryClickhouse<ResultType>(query, argsAcc), (d) =>
+    d.map((r) => ({
+      ...r,
+      created_at_trunc: new Date(
+        moment
+          .utc(r.created_at_trunc, "YYYY-MM-DD HH:mm:ss")
+          .toDate()
+          .getTime() +
+          timeZoneDifference * 60 * 1000
+      ).toISOString(),
+    }))
+  );
+}

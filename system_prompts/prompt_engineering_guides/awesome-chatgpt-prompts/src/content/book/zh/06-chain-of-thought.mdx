@@ -1,0 +1,363 @@
+Chain of Thought (CoT) 提示是一种能够显著提升 AI 在复杂推理任务上表现的技术，其核心是要求模型逐步展示其推理过程。
+
+<Callout type="info" title="展示你的推理过程">
+就像数学老师要求学生展示解题步骤一样，CoT 提示要求 AI 将其推理过程可视化呈现。
+</Callout>
+
+## CoT 解决的问题
+
+当被要求直接给出答案时，AI 模型在多步推理方面可能会遇到困难。
+
+<Compare 
+  before={{ label: "直接回答（常常出错）", content: "Question: A store sells apples for $2 each. If you buy 5 or more, you get 20% off. How much do 7 apples cost?\n\nAnswer: $14 ❌" }}
+  after={{ label: "Chain of Thought（正确）", content: "Question: A store sells apples for $2 each. If you buy 5 or more, you get 20% off. How much do 7 apples cost?\n\nLet's work through this step by step:\n1. Regular price per apple: $2\n2. Number of apples: 7\n3. Since 7 ≥ 5, the discount applies\n4. Regular total: 7 × $2 = $14\n5. Discount: 20% of $14 = $2.80\n6. Final price: $14 - $2.80 = $11.20\n\nAnswer: $11.20 ✓" }}
+/>
+
+## 基础 CoT 提示
+
+### 简单触发短语
+
+在你的提示中添加以下短语之一：
+
+<div className="my-4 grid gap-2">
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Let's think step by step."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Think through this carefully."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Work through this problem methodically."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Show your reasoning at each step."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Explain your thought process."</div>
+</div>
+
+### 明确的步骤请求
+
+<TryIt 
+  title="尝试 Chain of Thought"
+  description="要求 AI 逐步解决问题。"
+  prompt={`Solve this problem:
+
+A car rental costs $40 per day plus $0.25 per mile. If someone rents a car for 3 days and drives 200 miles, what is the total cost?
+
+Before giving your final answer:
+1. Identify what information is given
+2. Determine what we need to find
+3. Plan your approach
+4. Execute each step, showing work
+5. Verify your answer`}
+/>
+
+## Zero-Shot vs Few-Shot CoT
+
+Chain of Thought 提示有两种主要方法，它们在简单性和可控性之间各有取舍。
+
+### Zero-Shot CoT
+
+最简单的方法——只需添加一个触发短语，让模型自己决定如何推理。无需示例。这种方法对许多问题出人意料地有效，尽管你对推理格式的控制较少。
+
+<TryIt 
+  compact
+  title="Zero-Shot CoT"
+  prompt={`If John has 3 apples and gives half to Mary, then buys 4 more, how many does he have?
+
+Let's think step by step.`}
+/>
+
+**输出示例：**
+```
+Let's think step by step.
+- John starts with 3 apples
+- Half of 3 is 1.5, but we can't split apples
+- If we round down: John gives 1 apple, keeps 2
+- After buying 4 more: 2 + 4 = 6 apples
+
+Answer: 6 apples
+```
+
+### Few-Shot CoT
+
+为了获得更一致的结果，通过提供完整的示例向模型展示你希望它如何推理。这让你能够控制推理风格、格式和详细程度。模型会模仿你展示的模式。
+
+<TryIt 
+  compact
+  title="Few-Shot CoT"
+  prompt={`Example 1:
+Q: A baker has 24 cupcakes. She puts them equally into 4 boxes. Then she eats 2 cupcakes from one box. How many cupcakes total remain?
+
+A: Let's work through this:
+- Total cupcakes: 24
+- Cupcakes per box: 24 ÷ 4 = 6
+- After eating 2 from one box: 6 - 2 = 4 cupcakes in that box
+- Total remaining: (3 boxes × 6) + 4 = 18 + 4 = 22 cupcakes
+
+Example 2:
+Q: A train travels at 60 mph for 2 hours, then 40 mph for 3 hours. What is its average speed?
+
+A: Let's work through this:
+- Distance at 60 mph: 60 × 2 = 120 miles
+- Distance at 40 mph: 40 × 3 = 120 miles
+- Total distance: 120 + 120 = 240 miles
+- Total time: 2 + 3 = 5 hours
+- Average speed: 240 ÷ 5 = 48 mph
+
+Now solve:
+Q: A store sells notebooks for $3 each. If you buy 10 or more, you get 25% off. How much do 12 notebooks cost?`}
+/>
+
+**输出示例：**
+```
+A: Let's work through this:
+- Regular price: $3, Quantity: 12
+- Since 12 ≥ 10, the 25% discount applies
+- Regular total: 12 × $3 = $36
+- Discount: 25% of $36 = $9
+- Final price: $36 - $9 = $27
+```
+
+## 结构化 CoT 格式
+
+为了获得一致、可复现的推理结果，请使用带有命名步骤的结构化格式。这些框架确保模型不会跳过重要阶段，并使输出更容易解析和验证。
+
+### BREAK 格式
+
+一个易于记忆的缩写词，指导模型完成从理解到验证的完整问题解决流程。
+
+<BREAKFramework />
+
+### 推理模板
+
+一种更正式的结构，将输入、目标和执行分离。非常适合需要清晰记录解决过程的技术问题。
+
+<TryIt 
+  compact
+  title="推理模板"
+  prompt={`Use this template to solve the problem:
+
+GIVEN: [List known information]
+GOAL: [What we need to find]
+APPROACH: [Strategy we'll use]
+STEPS:
+  1. [First step with reasoning]
+  2. [Second step with reasoning]
+  ...
+VERIFICATION: [Check the answer]
+ANSWER: [Final answer]
+
+Problem: A car uses 8 liters of fuel per 100 km. If the tank holds 45 liters and fuel costs $1.50 per liter, how much does it cost to drive 300 km?`}
+/>
+
+**输出示例：**
+```
+GIVEN: 8L/100km, tank 45L, $1.50/L, drive 300km
+GOAL: Calculate fuel cost
+APPROACH: Fuel needed × cost per liter
+STEPS:
+1. Fuel = (300 ÷ 100) × 8 = 24 liters
+2. Cost = 24 × $1.50 = $36
+VERIFICATION: 24L < 45L tank ✓
+ANSWER: $36
+```
+
+## 不同问题类型的 CoT
+
+不同类型的问题适合使用不同的 CoT 方法。以下是针对常见场景优化的模式。
+
+### 数学推理
+
+数学问题从 CoT 中受益最大，因为每一步都建立在前一步的基础上。错误会累积，因此展示过程有助于及早发现错误。模型应该清楚地标注每个计算步骤。
+
+<TryIt 
+  compact
+  title="数学与 CoT"
+  prompt={`A company's revenue was $1.2M in Q1. It grew 15% in Q2, declined 10% in Q3, and grew 25% in Q4. What was the total annual revenue?
+
+Think through each quarter, showing your calculations clearly.`}
+/>
+
+**输出示例：**
+```
+Q1: $1,200,000 (given)
+Q2: $1,200,000 × 1.15 = $1,380,000
+Q3: $1,380,000 × 0.90 = $1,242,000
+Q4: $1,242,000 × 1.25 = $1,552,500
+
+Total: $5,374,500
+```
+
+### 逻辑推理
+
+逻辑谜题需要系统性的排除和假设检验。CoT 帮助模型追踪约束条件、测试可能性，并验证所有条件是否都得到满足。关键是有条理地探索而非猜测。
+
+<TryIt 
+  compact
+  title="逻辑谜题"
+  prompt={`Three friends—Alice, Bob, and Carol—each have different pets (cat, dog, fish) and different jobs (teacher, engineer, doctor).
+
+Clues:
+1. Alice doesn't have a cat
+2. The engineer has a dog
+3. Bob is a teacher
+4. Carol doesn't have a fish
+
+Who has which pet and job? Reason through this systematically, testing hypotheses and verifying against all clues.`}
+/>
+
+**输出示例：**
+```
+From clue 3: Bob = teacher
+→ Alice and Carol are engineer/doctor
+
+If Carol = engineer:
+- Carol has dog (clue 2)
+- Alice = doctor, has fish (clue 1)
+- Bob has cat
+
+Verify: All 4 clues satisfied ✓
+Answer: Alice (doctor, fish), Bob (teacher, cat), Carol (engineer, dog)
+```
+
+### 代码调试
+
+调试从 CoT 中受益，因为它迫使模型追踪执行过程而不是猜测 bug。通过用具体值逐步执行代码，实际行为变得可见，与预期行为的差异也会暴露出来。
+
+<TryIt 
+  compact
+  title="使用 CoT 调试"
+  prompt={`This function should return the sum of even numbers in a list, but it's returning wrong values. Debug step by step by tracing through with the input [2, 3, 4, 6]:
+
+def sum_evens(numbers):
+    total = 0
+    for n in numbers:
+        if n % 2 == 0:
+            total += 1
+    return total
+
+Trace each step, find the bug, and provide the fix.`}
+/>
+
+**输出示例：**
+```
+Trace [2, 3, 4, 6]:
+n=2: total += 1 → 1 (wait, adding 1 not n!)
+n=3: skip (odd)
+n=4: total = 2
+n=6: total = 3
+
+BUG: "total += 1" should be "total += n"
+Expected: 12, Got: 3
+Fix: Change to "total += n"
+```
+
+## CoT 的自我一致性
+
+对于关键问题，不要依赖单一的推理路径。生成多个独立的解决方案并比较结果。如果不同的方法得出相同的答案，可信度就很高。结果不一致则表明需要仔细审查。
+
+<TryIt 
+  compact
+  title="自我一致性"
+  prompt={`Solve this problem 3 different ways, then give your final answer based on which solution appears most correct:
+
+Problem: A farmer has chickens and cows. Together they have 30 heads and 74 legs. How many chickens and how many cows does the farmer have?
+
+Approach 1: Algebra
+Approach 2: Guess and check
+Approach 3: Logical reasoning
+
+Then compare and give your final answer.`}
+/>
+
+**输出示例：**
+```
+Approach 1 (Algebra): c + w = 30, 2c + 4w = 74 → c=23, w=7
+Approach 2 (Guess): Try 23/7 → 46 + 28 = 74 ✓
+Approach 3 (Logic): 30 chickens = 60 legs, need 14 more → 7 cows
+
+All agree: 23 chickens, 7 cows
+```
+
+## CoT 用于决策制定
+
+决策涉及在多个维度上权衡利弊。CoT 确保所有相关因素都被系统地考虑，而不是草率下结论。这种结构化方法也为将来的参考记录了推理过程。
+
+<TryIt 
+  compact
+  title="决策分析"
+  prompt={`Should we adopt microservices architecture for our application?
+
+Context:
+- Monolithic application with 50,000 lines of code
+- Team of 5 developers
+- 100 daily active users
+- Planning for 10x growth in 2 years
+
+Think through this systematically:
+1. List the current state
+2. Identify factors to consider (team size, scale, velocity, future growth)
+3. Weigh each factor as for/against
+4. Give a recommendation with reasoning`}
+/>
+
+**输出示例：**
+```
+FACTORS:
+- Team size (5): Too small for microservices ❌
+- Scale (100 DAU): No scaling need ❌  
+- Velocity: Monolith = faster iteration ❌
+- Future growth: Uncertain timeline ⚠️
+
+WEIGHING: 3 strong against, 1 weak for
+
+RECOMMENDATION: Stay monolith, use clear module 
+boundaries to ease future transition.
+```
+
+## 何时使用 CoT
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconCheck className="h-4 w-4" /> 适合使用 CoT</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">**数学问题** — 减少计算错误</p>
+      <p className="m-0!">**逻辑谜题** — 防止跳过步骤</p>
+      <p className="m-0!">**复杂分析** — 组织思维</p>
+      <p className="m-0!">**代码调试** — 追踪执行过程</p>
+      <p className="m-0!">**决策制定** — 权衡利弊</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+    <p className="text-sm font-semibold text-red-700 dark:text-red-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconX className="h-4 w-4" /> 不适合使用 CoT</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">**简单问答** — 不必要的开销</p>
+      <p className="m-0!">**创意写作** — 可能限制创造力</p>
+      <p className="m-0!">**事实查询** — 无需推理</p>
+      <p className="m-0!">**翻译** — 直接任务</p>
+      <p className="m-0!">**摘要** — 通常很直接</p>
+    </div>
+  </div>
+</div>
+
+## CoT 的局限性
+
+虽然 CoT 很强大，但它并非万能药。了解其局限性有助于你正确地应用它。
+
+1. **增加 token 使用量** — 更多输出意味着更高成本
+2. **并非总是必要** — 简单任务不会从中受益
+3. **可能过于冗长** — 可能需要要求简洁
+4. **推理可能有缺陷** — CoT 不保证正确性
+
+## 总结
+
+<Callout type="tip" title="核心要点">
+CoT 通过将隐含步骤显式化，显著提升复杂推理能力。适用于数学、逻辑、分析和调试。权衡：以更多 token 换取更高准确性。
+</Callout>
+
+<Quiz 
+  question="什么情况下不应该使用 Chain of Thought 提示？"
+  options={[
+    "需要多步骤的数学问题",
+    "简单的事实性问题，如'法国的首都是什么？'",
+    "具有复杂逻辑的代码调试",
+    "分析商业决策"
+  ]}
+  correctIndex={1}
+  explanation="Chain of Thought 对于简单问答来说是不必要的开销。它最适合用于复杂推理任务，如数学、逻辑谜题、代码调试和分析，在这些场景中展示推理过程可以提高准确性。"
+/>
+
+在下一章中，我们将探索 Few-Shot Learning——通过示例来教导模型。

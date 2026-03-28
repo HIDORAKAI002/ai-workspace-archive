@@ -1,0 +1,551 @@
+ככל שמערכות AI מתפתחות ממענה פשוט על שאלות לביצוע משימות אוטונומי, הבנת **סוכנים** ו**מיומנויות** הופכת חיונית. פרק זה חוקר כיצד פרומפטים משמשים כאבני הבניין הבסיסיות לסוכני AI, וכיצד מיומנויות אורזות מומחיות לתוך ערכות הוראות מקיפות וניתנות לשימוש חוזר.
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">סוכן</p>
+      <p className="text-xs text-muted-foreground m-0!">מערכת AI אוטונומית</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>מונע על ידי</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">מיומנות</p>
+        <p className="text-xs text-muted-foreground m-0!">מומחיות לשימוש חוזר</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">מיומנות</p>
+        <p className="text-xs text-muted-foreground m-0!">מומחיות לשימוש חוזר</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">מיומנות</p>
+        <p className="text-xs text-muted-foreground m-0!">מומחיות לשימוש חוזר</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>מורכב מ</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">פרומפט</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">פרומפט</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">פרומפט</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">פרומפט</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">פרומפט</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">פרומפטים הם אטומים → מיומנויות הן מולקולות → סוכנים הם מבנים שלמים</p>
+  </div>
+</div>
+
+## מהם סוכני AI?
+
+**סוכן AI** הוא מערכת AI שיכולה לתכנן, לבצע ולחזור על משימות באופן אוטונומי. בניגוד לאינטראקציות פשוטות של פרומפט-תגובה, סוכנים יכולים:
+
+- **לתכנן** - לפרק מטרות מורכבות לצעדים בני ביצוע
+- **לבצע** - להשתמש בכלים ולבצע פעולות בעולם האמיתי
+- **לצפות** - לעבד משוב מהפעולות שלהם
+- **להסתגל** - להתאים את הגישה שלהם בהתבסס על תוצאות
+- **להתמיד** - לשמור על הקשר וזיכרון לאורך אינטראקציות
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">מטרה</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">תכנון</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">ביצוע</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">צפייה</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">הסתגלות</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> לולאה עד להשלמה
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">סיום</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## פרומפטים כאבני בניין
+
+כל סוכן, ללא קשר לרמת התחכום שלו, בנוי מפרומפטים. בדיוק כמו שאטומים מתחברים ליצירת מולקולות, ומולקולות מתחברות ליצירת מבנים מורכבים, פרומפטים מתחברים ליצירת התנהגות סוכן חכמה.
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">פרומפטים מערכתיים</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">זהות ותפקיד</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">פרומפטים לתכנון</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">איך לחשוב</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">פרומפטים לכלים</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">איך לפעול</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">פרומפטים להתאוששות</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">איך להתאושש</p>
+  </div>
+</div>
+
+סוגי פרומפטים אלה נערמים יחד ליצירת התנהגות סוכן מלאה:
+
+### פרומפטים מערכתיים (זהות הסוכן)
+
+הפרומפט היסודי שמגדיר מי הסוכן וכיצד הוא מתנהג:
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### פרומפטים לתכנון (איך לחשוב)
+
+הוראות שמנחות את תהליך החשיבה והתכנון של הסוכן:
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### פרומפטים לשימוש בכלים (איך לפעול)
+
+הנחיה מתי ואיך להשתמש בכלים הזמינים:
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### פרומפטים להתאוששות (איך להתמודד עם כישלון)
+
+הוראות למקרים שבהם דברים משתבשים:
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="ערימת הפרומפטים">
+התנהגות הסוכן נובעת משכבות של פרומפטים שעובדים יחד. הפרומפט המערכתי קובע את הבסיס, פרומפטים לתכנון מנחים את החשיבה, פרומפטים לכלים מאפשרים פעולה, ופרומפטים להתאוששות מטפלים בכשלונות. יחד, הם יוצרים התנהגות קוהרנטית ומסוגלת.
+</Callout>
+
+## מהן מיומנויות?
+
+אם פרומפטים הם האטומים, **מיומנויות הן המולקולות**—אבני בניין לשימוש חוזר שנותנות לסוכנים יכולות ספציפיות.
+
+**מיומנות** היא חבילה מקיפה וניידת של הוראות שנותנת לסוכן AI מומחיות בתחום או משימה מסוימים. מיומנויות הן הבלוקים הניתנים לשימוש חוזר של סוכנים: בונים אותן פעם אחת, וכל סוכן יכול להשתמש בהן.
+
+<Callout type="tip" title="מיומנויות = בלוקים לשימוש חוזר של סוכנים">
+כתוב מיומנות לסקירת קוד פעם אחת. עכשיו כל סוכן קידוד—בין אם הוא ל-Python, JavaScript או Rust—יכול להפוך מיד למומחה בסקירת קוד על ידי טעינת המיומנות הזו. מיומנויות מאפשרות לבנות יכולות סוכן כמו בלוקי LEGO.
+</Callout>
+
+### האנטומיה של מיומנות
+
+מיומנות מעוצבת היטב כוללת בדרך כלל:
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md (חובה)</p>
+    <p className="text-sm text-muted-foreground m-0!">קובץ ההוראות הראשי. מכיל את המומחיות המרכזית, ההנחיות וההתנהגויות שמגדירות את המיומנות.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 מסמכי עזר</p>
+    <p className="text-sm text-muted-foreground m-0!">תיעוד תומך, דוגמאות והקשר שהסוכן יכול להתייחס אליהם בזמן העבודה.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 סקריפטים וכלים</p>
+    <p className="text-sm text-muted-foreground m-0!">סקריפטים עזר, תבניות או הגדרות כלים שתומכים בפונקציונליות של המיומנות.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ הגדרות</p>
+    <p className="text-sm text-muted-foreground m-0!">הגדרות, פרמטרים ואפשרויות התאמה אישית להתאמת המיומנות להקשרים שונים.</p>
+  </div>
+</div>
+
+### דוגמה: מיומנות סקירת קוד
+
+כך עשויה להיראות מיומנות לסקירת קוד:
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">הנחיות סקירה מרכזיות</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">דפוסי אבטחה</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">מדריך אופטימיזציה</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">שיטות עבודה מומלצות ל-Python</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">דפוסי JavaScript</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">הנחיות Rust</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+קובץ ה-`SKILL.md` מגדיר את הגישה הכוללת:
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## מיומנויות לעומת פרומפטים פשוטים
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">פרומפט פשוט</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">הוראה בודדת</p>
+      <p className="m-0!">שימוש חד-פעמי</p>
+      <p className="m-0!">הקשר מוגבל</p>
+      <p className="m-0!">גישה גנרית</p>
+      <p className="m-0!">ללא חומרים תומכים</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">מיומנות</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">ערכת הוראות מקיפה</p>
+      <p className="m-0!">ניתנת לשימוש חוזר בין פרויקטים</p>
+      <p className="m-0!">הקשר עשיר עם הפניות</p>
+      <p className="m-0!">מומחיות ספציפית לתחום</p>
+      <p className="m-0!">מסמכים, סקריפטים והגדרות תומכים</p>
+    </div>
+  </div>
+</div>
+
+## בניית מיומנויות יעילות
+
+### 1. הגדר את המומחיות בבירור
+
+התחל עם תיאור ברור של מה המיומנות מאפשרת:
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### 2. מבנה ידע בצורה היררכית
+
+ארגן מידע מהכללי לספציפי:
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### 3. כלול דוגמאות קונקרטיות
+
+כללים מופשטים הופכים ברורים עם דוגמאות:
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### 4. ספק מסגרות לקבלת החלטות
+
+עזור לסוכן לבצע בחירות במצבים עמומים:
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### 5. הוסף דפוסי התאוששות
+
+צפה מראש מה יכול להשתבש:
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## הרכבת מיומנויות
+
+סוכנים הופכים לחזקים כאשר מיומנויות מרובות עובדות יחד. שקול כיצד מיומנויות יכולות להשלים זו את זו:
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    סקירת קוד
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    ביקורת אבטחה
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    תיעוד
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    סוכן איכות קוד מלא
+  </div>
+</div>
+
+בעת הרכבת מיומנויות, ודא שהן לא מתנגשות. מיומנויות צריכות להיות:
+
+- **מודולריות** - כל מיומנות מטפלת היטב בתחום אחד
+- **תואמות** - מיומנויות לא צריכות לתת הוראות סותרות
+- **מתועדפות** - כאשר מיומנויות חופפות, הגדר איזו מקבלת עדיפות
+
+## שיתוף וגילוי מיומנויות
+
+מיומנויות הן בעלות ערך רב ביותר כאשר משתפים אותן. פלטפורמות כמו [prompts.chat](https://prompts.chat/skills) מאפשרות לך:
+
+- **לגלות** מיומנויות שנוצרו על ידי הקהילה למשימות נפוצות
+- **להוריד** מיומנויות ישירות לפרויקטים שלך
+- **לשתף** את המומחיות שלך כמיומנויות לשימוש חוזר
+- **לשפר** מיומנויות בהתבסס על שימוש בעולם האמיתי
+
+<Callout type="tip" title="התחל עם מיומנויות קהילתיות">
+לפני שבונים מיומנות מאפס, בדוק אם מישהו כבר פתר את הבעיה שלך. מיומנויות קהילתיות נבדקו בקרב ולרוב טובות יותר מאשר להתחיל מאפס.
+</Callout>
+
+## המערכת האקולוגית של סוכן-מיומנות
+
+הקשר בין סוכנים למיומנויות יוצר מערכת אקולוגית עוצמתית:
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">סוכן AI</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">סקירת קוד</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">מיומנות 1</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">עיצוב API</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">מיומנות 2</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">כתיבת בדיקות</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">מיומנות 3</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">פרומפטים מרכזיים</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">תכנון • כלים • התאוששות • זיכרון</p>
+    </div>
+  </div>
+</div>
+
+הסוכן מספק את מסגרת הביצוע—תכנון, שימוש בכלים וזיכרון—בעוד שמיומנויות מספקות מומחיות בתחום. הפרדה זו משמעותה:
+
+- **מיומנויות הן ניידות** - אותה מיומנות עובדת עם סוכנים שונים
+- **סוכנים הם ניתנים להרחבה** - הוסף יכולות חדשות על ידי הוספת מיומנויות
+- **מומחיות ניתנת לשיתוף** - מומחי תחום יכולים לתרום מיומנויות מבלי לבנות סוכנים שלמים
+
+## שיטות עבודה מומלצות
+
+### לבניית מיומנויות
+
+1. **התחל ספציפי, ואז הכלל** - בנה מיומנות למקרה השימוש המדויק שלך תחילה, ואז הפשט
+2. **כלול מקרי כישלון** - תעד מה המיומנות לא יכולה לעשות ואיך להתמודד עם זה
+3. **נהל גרסאות של המיומנויות שלך** - עקוב אחר שינויים כדי שסוכנים יוכלו להסתמך על גרסאות יציבות
+4. **בדוק עם משימות אמיתיות** - אמת מיומנויות מול עבודה בפועל, לא רק תיאוריה
+
+### לשימוש במיומנויות עם סוכנים
+
+1. **קרא את המיומנות תחילה** - הבן מה מיומנות עושה לפני שפורסים אותה
+2. **התאם אישית בתבונה** - דרוס ברירות מחדל של מיומנות רק כאשר הכרחי
+3. **עקוב אחר ביצועים** - עקוב אחר כמה טוב מיומנויות מתפקדות בהקשר שלך
+4. **תרום שיפורים** - כאשר אתה משפר מיומנות, שקול לשתף בחזרה
+
+<Callout type="info" title="העתיד הוא קומפוזביל">
+ככל שסוכני AI הופכים ליותר מסוגלים, היכולת להרכיב, לשתף ולהתאים אישית מיומנויות תהפוך ליכולת מפתח. מהנדסי הפרומפטים של מחר לא רק יכתבו פרומפטים—הם יתכננו מערכות אקולוגיות של מיומנויות שהופכות סוכני AI למומחים אמיתיים בתחומים ספציפיים.
+</Callout>
+
+<Quiz 
+  question="מהו ההבדל המרכזי בין פרומפט פשוט למיומנות?"
+  options={[
+    "מיומנויות ארוכות יותר מפרומפטים",
+    "מיומנויות הן חבילות מרובות קבצים לשימוש חוזר שנותנות לסוכנים מומחיות בתחום",
+    "מיומנויות עובדות רק עם מודלי AI ספציפיים",
+    "מיומנויות לא דורשות פרומפטים כלל"
+  ]}
+  correctIndex={1}
+  explanation="מיומנויות הן חבילות מקיפות וניידות שמשלבות מספר פרומפטים, מסמכי עזר, סקריפטים והגדרות. הן אבני בניין לשימוש חוזר שניתן להוסיף לכל סוכן כדי לתת לו יכולות ספציפיות."
+/>
+
+<Quiz 
+  question="מהי לולאת הסוכן?"
+  options={[
+    "טכניקת ניפוי שגיאות לשגיאות AI",
+    "תכנון → ביצוע → צפייה → הסתגלות, חוזר עד להשגת המטרה",
+    "דרך לשרשר מספר פרומפטים יחד",
+    "שיטה לאימון מודלי AI חדשים"
+  ]}
+  correctIndex={1}
+  explanation="סוכני AI עובדים בלולאה מתמשכת: הם מתכננים כיצד לגשת למשימה, מבצעים פעולות, צופים בתוצאות ומסתגלים לגישה שלהם בהתבסס על משוב—חוזרים עד להשלמת המטרה."
+/>
+
+<Quiz 
+  question="מדוע מיומנויות מתוארות כ'בלוקים לשימוש חוזר של סוכנים'?"
+  options={[
+    "כי ניתן להשתמש בהן רק פעם אחת",
+    "כי הן כתובות בשפת תכנות מבוססת בלוקים",
+    "כי כל סוכן יכול לטעון מיומנות כדי לקבל את היכולת הזו מיידית",
+    "כי מיומנויות מחליפות את הצורך בסוכנים"
+  ]}
+  correctIndex={2}
+  explanation="מיומנויות הן חבילות מומחיות ניידות. כתוב מיומנות לסקירת קוד פעם אחת, וכל סוכן קידוד יכול להפוך למומחה בסקירת קוד על ידי טעינת המיומנות הזו—כמו בלוקי LEGO שמתחברים לכל מבנה."
+/>

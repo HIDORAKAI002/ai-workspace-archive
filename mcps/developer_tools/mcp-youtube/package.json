@@ -1,0 +1,24 @@
+{
+  "name": "@anaisbetts/mcp-youtube",
+  "version": "0.6.0",
+  "bin": {
+    "mcp-youtube": "lib/index.mjs"
+  },
+  "description": "YouTube downloader for MCP",
+  "main": "dist/index.js",
+  "scripts": {
+    "prepublish": "git clean -xdf dist && bun build --target node src/index.ts --outdir dist",
+    "test": "bun test"
+  },
+  "author": "Ani Betts <anais@anaisbetts.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "rimraf": "^6.0.1",
+    "spawn-rx": "^4.0.0"
+  },
+  "devDependencies": {
+    "shx": "^0.3.4",
+    "bun-types": "latest"
+  }
+}

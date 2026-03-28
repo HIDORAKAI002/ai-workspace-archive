@@ -1,0 +1,32 @@
+#!/bin/sh
+# Enforce AGENTS.md: no AI attribution. Strip any trailers, add single Signed-off-by from git config.
+
+msgfile="$1"
+[ -f "$msgfile" ] || exit 0
+
+# Body = everything except trailing block of blank lines and known trailers (Co-authored-by, Signed-off-by)
+body=$(awk '
+  { lines[NR]=$0 }
+  END {
+    last = 0
+    for (i = NR; i >= 1; i--) {
+      if (lines[i] ~ /^[ \t]*$/) continue
+      if (lines[i] ~ /^Co-authored-by: / || lines[i] ~ /^Signed-off-by: /) { last = i - 1; continue }
+      last = i
+      break
+    }
+    for (i = 1; i <= last; i++) print lines[i]
+  }
+' "$msgfile")
+
+fullname=$(git config user.name)
+forename="${fullname%% *}"
+surname="${fullname#* }"
+if [ -n "$surname" ]; then
+  initial="${surname%${surname#?}}"
+  signedname="${forename} ${initial}."
+else
+  signedname="$forename"
+fi
+printf '%s\n\nSigned-off-by: %s\n' "$body" "$signedname" > "$msgfile"
+exit 0

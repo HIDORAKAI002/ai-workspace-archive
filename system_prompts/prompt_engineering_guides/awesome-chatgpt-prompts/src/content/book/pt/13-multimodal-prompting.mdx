@@ -1,0 +1,665 @@
+Por grande parte da história, computadores trabalhavam com um tipo de dado por vez: texto em um programa, imagens em outro, áudio em outro lugar. Mas humanos não experienciam o mundo assim. Nós vemos, ouvimos, lemos e falamos simultaneamente, combinando todas estas entradas para entender nosso ambiente.
+
+**IA Multimodal** muda tudo. Estes modelos podem processar múltiplos tipos de informação juntos—analisando uma imagem enquanto leem sua pergunta sobre ela, ou gerando imagens das suas descrições de texto. Este capítulo ensina como se comunicar efetivamente com estes sistemas poderosos.
+
+<Callout type="info" title="O Que Significa Multimodal?">
+"Multi" significa muitos, e "modal" se refere a modos ou tipos de dados. Um modelo multimodal pode trabalhar com múltiplas modalidades: texto, imagens, áudio, vídeo ou até código. Em vez de ferramentas separadas para cada tipo, um modelo entende todos juntos.
+</Callout>
+
+## Por Que Multimodal Importa
+
+IA tradicional requeria que você descrevesse tudo em palavras. Quer perguntar sobre uma imagem? Você teria que descrevê-la primeiro. Quer analisar um documento? Você precisaria transcrevê-lo manualmente. Modelos multimodais eliminam estas barreiras.
+
+<InfoGrid items={[
+  { label: "Ver e Entender", description: "Envie uma imagem e faça perguntas sobre ela diretamente—sem descrição necessária", example: "\"O que há de errado com este diagrama de circuito?\"", color: "blue" },
+  { label: "Criar de Palavras", description: "Descreva o que você quer e gere imagens, áudio ou vídeo", example: "\"Um pôr do sol sobre montanhas em estilo aquarela\"", color: "purple" },
+  { label: "Combinar Tudo", description: "Misture texto, imagens e outras mídias em uma única conversa", example: "\"Compare estes dois designs e me diga qual é melhor para mobile\"", color: "green" },
+  { label: "Analisar Documentos", description: "Extraia informação de fotos de documentos, recibos ou screenshots", example: "\"Extraia todos os itens de linha desta foto de nota fiscal\"", color: "amber" }
+]} />
+
+## Por Que Prompting Importa Ainda Mais para Multimodal
+
+Com modelos só de texto, a IA recebe exatamente o que você digita. Mas com modelos multimodais, a IA deve interpretar informação visual ou de áudio—e interpretação requer orientação.
+
+<Compare 
+  before={{ label: "Prompt multimodal vago", content: "O que você vê nesta imagem?\n\n[imagem de um dashboard complexo]" }}
+  after={{ label: "Prompt multimodal guiado", content: "Esta é uma captura de tela do nosso dashboard de analytics. Foque em:\n1. O gráfico de taxa de conversão no canto superior direito\n2. Quaisquer indicadores de erro ou avisos\n3. Se os dados parecem normais ou anômalos\n\n[imagem de um dashboard complexo]" }}
+/>
+
+**Sem orientação**, o modelo pode descrever cores, layout ou detalhes irrelevantes. **Com orientação**, ele foca no que realmente importa para você.
+
+<Callout type="warning" title="A Lacuna de Interpretação">
+Quando você olha para uma imagem, você sabe instantaneamente o que é importante baseado no seu contexto e objetivos. A IA não tem este contexto a menos que você forneça. Uma foto de uma rachadura em uma parede poderia ser: uma preocupação de engenharia estrutural, uma textura artística, ou fundo irrelevante. Seu prompt determina como a IA interpreta.
+</Callout>
+
+## O Panorama Multimodal
+
+Diferentes modelos têm diferentes capacidades. Aqui está o que está disponível em 2025:
+
+### Modelos de Entendimento (Entrada → Análise)
+
+Estes modelos aceitam vários tipos de mídia e produzem análise de texto ou respostas.
+
+<InfoGrid items={[
+  { label: "GPT-4o / GPT-5", description: "Texto + Imagens + Áudio → Texto. Carro-chefe da OpenAI com contexto de 128K, fortes habilidades criativas e de raciocínio, taxas reduzidas de alucinação.", color: "green" },
+  { label: "Claude 4 Sonnet/Opus", description: "Texto + Imagens → Texto. Modelo focado em segurança da Anthropic com raciocínio avançado, excelente para coding e tarefas complexas multi-etapas.", color: "purple" },
+  { label: "Gemini 2.5", description: "Texto + Imagens + Áudio + Vídeo → Texto. Modelo do Google com contexto de 1M tokens, auto-verificação de fatos, processamento rápido para coding e pesquisa.", color: "blue" },
+  { label: "LLaMA 4 Scout", description: "Texto + Imagens + Vídeo → Texto. Modelo open-source da Meta com contexto massivo de 10M tokens para documentos longos e codebases.", color: "cyan" },
+  { label: "Grok 4", description: "Texto + Imagens → Texto. Modelo da xAI com acesso a dados em tempo real e integração com redes sociais para respostas atualizadas.", color: "red" }
+]} />
+
+### Modelos de Geração (Texto → Mídia)
+
+Estes modelos criam imagens, áudio ou vídeo de descrições de texto.
+
+<InfoGrid items={[
+  { label: "DALL-E 3", description: "Texto → Imagens. Gerador de imagens da OpenAI com alta precisão para descrições de prompt.", color: "amber" },
+  { label: "Midjourney", description: "Texto + Imagens → Imagens. Conhecido por qualidade artística, controle de estilo e saídas estéticas.", color: "pink" },
+  { label: "Sora", description: "Texto → Vídeo. Modelo de geração de vídeo da OpenAI para criar clipes de descrições.", color: "red" },
+  { label: "Whisper", description: "Áudio → Texto. Speech-to-text da OpenAI com alta precisão em vários idiomas.", color: "cyan" }
+]} />
+
+<Callout type="info" title="Evolução Rápida">
+O panorama multimodal muda rapidamente. Novos modelos são lançados frequentemente, e modelos existentes ganham capacidades através de atualizações. Sempre verifique a documentação mais recente para recursos e limitações atuais.
+</Callout>
+
+## Prompts de Entendimento de Imagem
+
+O caso de uso multimodal mais comum é pedir à IA para analisar imagens. A chave é fornecer contexto sobre o que você precisa.
+
+### Análise Básica de Imagem
+
+Comece com uma estrutura de requisição clara. Diga ao modelo em quais aspectos focar.
+
+<TryIt 
+  title="Análise Estruturada de Imagem"
+  description="Este prompt fornece um framework claro para análise de imagem. O modelo sabe exatamente qual informação você precisa."
+  prompt={`Analise esta imagem e descreva:
+
+1. **Assunto Principal**: Qual é o foco primário desta imagem?
+2. **Cenário**: Onde isto parece ser? (interior/exterior, tipo de local)
+3. **Atmosfera**: Que tom emocional ou atmosfera transmite?
+4. **Conteúdo de Texto**: Algum texto, placas ou rótulos visíveis?
+5. **Detalhes Notáveis**: O que alguém poderia perder à primeira vista?
+6. **Qualidade Técnica**: Como está a iluminação, foco e composição?
+
+[Cole ou descreva a imagem que quer analisar]
+
+Descrição ou URL da imagem: \${descricaoImagem}`}
+/>
+
+### Saída Estruturada para Imagens
+
+Quando você precisa processar análise de imagem programaticamente, solicite saída JSON.
+
+<TryIt 
+  title="Análise de Imagem em JSON"
+  description="Obtenha dados estruturados de análise de imagem que são fáceis de parsear e usar em aplicações."
+  prompt={`Analise esta imagem e retorne um objeto JSON com a seguinte estrutura:
+
+{
+  "resumo": "Descrição de uma frase",
+  "objetos": ["Lista de objetos principais visíveis"],
+  "pessoas": {
+    "quantidade": "número ou 'nenhuma'",
+    "atividades": ["O que estão fazendo, se houver"]
+  },
+  "texto_detectado": ["Qualquer texto visível na imagem"],
+  "cores": {
+    "dominantes": ["Top 3 cores"],
+    "atmosfera": "Quente/Fria/Neutra"
+  },
+  "cenario": {
+    "tipo": "interior/exterior/desconhecido",
+    "descricao": "Descrição mais específica do local"
+  },
+  "tecnico": {
+    "qualidade": "alta/media/baixa",
+    "iluminacao": "Descrição da iluminação",
+    "composicao": "Descrição do enquadramento/composição"
+  },
+  "confianca": "alta/media/baixa"
+}
+
+Imagem para analisar: \${descricaoImagem}`}
+/>
+
+### Análise Comparativa
+
+Comparar múltiplas imagens requer rotulagem clara e critérios específicos de comparação.
+
+<TryIt 
+  title="Comparação de Imagens"
+  description="Compare duas ou mais imagens com critérios específicos que importam para sua decisão."
+  prompt={`Compare estas imagens para \${proposito}:
+
+**Imagem A**: \${imagemA}
+**Imagem B**: \${imagemB}
+
+Analise cada imagem nestes critérios:
+1. \${criterio1} (importância: alta)
+2. \${criterio2} (importância: média)  
+3. \${criterio3} (importância: baixa)
+
+Forneça:
+- Comparação lado a lado para cada critério
+- Pontos fortes e fracos de cada
+- Recomendação clara com raciocínio
+- Quaisquer preocupações ou ressalvas`}
+/>
+
+## Análise de Documentos e Screenshots
+
+Uma das aplicações mais práticas de IA multimodal é analisar documentos, screenshots e elementos de UI. Isso economiza horas de transcrição manual e revisão.
+
+### Extração de Documentos
+
+Documentos escaneados, fotos de recibos e PDFs como imagens podem todos ser processados. A chave é dizer ao modelo que tipo de documento é e qual informação você precisa.
+
+<TryIt 
+  title="Extrator de Dados de Documentos"
+  description="Extraia dados estruturados de fotos de documentos, recibos, notas fiscais ou formulários."
+  prompt={`Esta é uma foto/scan de um \${tipoDocumento}.
+
+Extraia toda informação em formato JSON estruturado:
+
+{
+  "tipo_documento": "tipo detectado",
+  "data": "se presente",
+  "campos_chave": {
+    "nome_campo": "valor"
+  },
+  "itens_linha": [
+    {"descricao": "", "valor": ""}
+  ],
+  "totais": {
+    "subtotal": "",
+    "imposto": "",
+    "total": ""
+  },
+  "notas_manuscritas": ["qualquer texto escrito à mão"],
+  "secoes_unclear": ["áreas difíceis de ler"],
+  "confianca": "alta/media/baixa"
+}
+
+IMPORTANTE: Se algum texto estiver unclear, note em "secoes_unclear" em vez de adivinhar. Marque confiança como "baixa" se porções significativas foram difíceis de ler.
+
+Descrição do documento: \${descricaoDocumento}`}
+/>
+
+### Análise de Screenshots e UI
+
+Screenshots são minas de ouro para debugging, revisão de UX e documentação. Guie a IA para focar no que importa.
+
+<TryIt 
+  title="Analisador de Screenshot UI/UX"
+  description="Obtenha análise detalhada de screenshots para debugging, revisão de UX ou documentação."
+  prompt={`Este é um screenshot de \${nomeAplicacao}.
+
+Analise esta interface:
+
+**Identificação**
+- Qual tela/página/estado é esta?
+- O que o usuário provavelmente está tentando realizar aqui?
+
+**Elementos de UI**
+- Elementos interativos-chave (botões, formulários, menus)
+- Estado atual (algo selecionado, preenchido ou expandido?)
+- Alguma mensagem de erro, aviso ou notificação?
+
+**Avaliação de UX**
+- O layout é claro e intuitivo?
+- Algum elemento confuso ou rótulo unclear?
+- Preocupações de acessibilidade (contraste, tamanho de texto, etc.)?
+
+**Problemas Detectados**
+- Bugs visuais ou desalinhamentos?
+- Texto truncado ou problemas de overflow?
+- Estilo inconsistente?
+
+Descrição do screenshot: \${descricaoScreenshot}`}
+/>
+
+### Análise de Mensagens de Erro
+
+Quando você encontra um erro, um screenshot frequentemente contém mais contexto do que copiar apenas o texto do erro.
+
+<TryIt 
+  title="Diagnóstico de Erro por Screenshot"
+  description="Obtenha explicações em linguagem simples e correções para mensagens de erro em screenshots."
+  prompt={`Estou vendo este erro em \${contexto}.
+
+[Descreva ou cole a mensagem de erro/screenshot]
+Detalhes do erro: \${detalhesErro}
+
+Por favor forneça:
+
+1. **Explicação em Linguagem Simples**: O que este erro realmente significa?
+
+2. **Causas Prováveis** (ranqueadas por probabilidade):
+   - Mais provável: 
+   - Também possível:
+   - Menos comum:
+
+3. **Correção Passo a Passo**:
+   - Primeiro, tente...
+   - Se isso não funcionar...
+   - Como último recurso...
+
+4. **Prevenção**: Como evitar este erro no futuro
+
+5. **Sinais de Alerta**: Quando este erro pode indicar um problema mais sério`}
+/>
+
+## Prompts de Geração de Imagem
+
+Gerar imagens de descrições de texto é uma forma de arte. Quanto mais específico e estruturado seu prompt, mais próximo o resultado corresponderá à sua visão.
+
+### A Anatomia de um Prompt de Imagem
+
+Prompts eficazes de geração de imagem têm vários componentes:
+
+<InfoGrid items={[
+  { label: "Assunto", description: "Qual é o foco principal da imagem?", example: "Um golden retriever brincando em folhas de outono", color: "blue" },
+  { label: "Estilo", description: "Qual estilo artístico ou meio?", example: "Pintura aquarela, arte digital, fotorrealista", color: "purple" },
+  { label: "Composição", description: "Como a cena é organizada?", example: "Retrato close-up, paisagem ampla, vista aérea", color: "green" },
+  { label: "Iluminação", description: "Qual é a fonte de luz e qualidade?", example: "Luz suave da manhã, sombras dramáticas, brilho neon", color: "amber" },
+  { label: "Atmosfera", description: "Que sentimento deve evocar?", example: "Pacífico, energético, misterioso, nostálgico", color: "pink" },
+  { label: "Detalhes", description: "Elementos específicos a incluir ou evitar", example: "Incluir: flores. Evitar: texto, marcas d'água", color: "cyan" }
+]} />
+
+### Geração Básica de Imagem
+
+<TryIt 
+  title="Prompt de Imagem Estruturado"
+  description="Use este template para criar prompts de geração de imagem detalhados e específicos."
+  prompt={`Crie uma imagem com estas especificações:
+
+**Assunto**: \${assunto}
+
+**Estilo**: \${estilo}
+**Meio**: \${meio} (ex., pintura a óleo, arte digital, fotografia)
+
+**Composição**:
+- Enquadramento: \${enquadramento} (close-up, plano médio, grande angular)
+- Perspectiva: \${perspectiva} (nível dos olhos, ângulo baixo, aéreo)
+- Foco: \${areaFoco}
+
+**Iluminação**:
+- Fonte: \${fonteLuz}
+- Qualidade: \${qualidadeLuz} (suave, dura, difusa)
+- Hora do dia: \${horaDia}
+
+**Paleta de Cores**: \${cores}
+
+**Atmosfera/Mood**: \${atmosfera}
+
+**Deve Incluir**: \${elementosIncluir}
+**Deve Evitar**: \${elementosEvitar}
+
+**Técnico**: proporção \${proporcao}, alta qualidade`}
+/>
+
+### Construção de Cena
+
+Para cenas complexas, descreva camadas do primeiro plano ao fundo.
+
+<TryIt 
+  title="Descrição de Cena em Camadas"
+  description="Construa cenas complexas descrevendo o que aparece em cada camada de profundidade."
+  prompt={`Gere uma cena detalhada:
+
+**Cenário**: \${cenario}
+
+**Primeiro Plano** (mais próximo do observador):
+\${primeiroPlano}
+
+**Plano Médio** (área de ação principal):
+\${planoMedio}
+
+**Fundo** (elementos distantes):
+\${fundo}
+
+**Detalhes Atmosféricos**:
+- Clima/Ar: \${clima}
+- Iluminação: \${iluminacao}
+- Hora: \${horaDia}
+
+**Estilo**: \${estiloArtistico}
+**Atmosfera**: \${atmosfera}
+**Paleta de Cores**: \${cores}
+
+Detalhes adicionais a incluir: \${detalhesAdicionais}`}
+/>
+
+## Prompting de Áudio
+
+Processamento de áudio abre transcrição, análise e entendimento de conteúdo falado. A chave é fornecer contexto sobre o que o áudio contém.
+
+### Transcrição Aprimorada
+
+Transcrição básica é apenas o começo. Com bons prompts, você pode obter identificação de falantes, timestamps e precisão específica de domínio.
+
+<TryIt 
+  title="Transcrição Inteligente"
+  description="Obtenha transcrições precisas com rótulos de falantes, timestamps e tratamento de seções unclear."
+  prompt={`Transcreva esta gravação de áudio.
+
+**Contexto**: \${tipoGravacao} (reunião, entrevista, podcast, palestra, etc.)
+**Falantes Esperados**: \${quantidadeFalantes} (\${papeisFalantes})
+**Domínio**: \${dominio} (termos técnicos esperados: \${termosTecinicos})
+
+**Formato de Saída**:
+[00:00] **Falante 1 (Nome/Papel)**: Texto transcrito aqui.
+[00:15] **Falante 2 (Nome/Papel)**: Resposta deles aqui.
+
+**Instruções**:
+- Inclua timestamps em pausas naturais (a cada 30-60 segundos ou nas mudanças de falante)
+- Marque seções unclear como [inaudível] ou [unclear: melhor palpite?]
+- Note sons não-fala em colchetes: [risos], [telefone tocando], [pausa longa]
+- Preserve palavras de preenchimento apenas se forem significativas (ãh, éh podem ser removidos)
+- Sinalize itens de ação ou decisões com símbolo →
+
+Descrição do áudio: \${descricaoAudio}`}
+/>
+
+### Análise de Conteúdo de Áudio
+
+Além de transcrição, IA pode analisar conteúdo, tom e momentos-chave em áudio.
+
+<TryIt 
+  title="Analisador de Conteúdo de Áudio"
+  description="Obtenha análise abrangente de conteúdo de áudio incluindo resumo, momentos-chave e sentimento."
+  prompt={`Analise esta gravação de áudio:
+
+Descrição do áudio: \${descricaoAudio}
+
+Forneça:
+
+**1. Resumo Executivo** (2-3 frases)
+Sobre o que é esta gravação? Qual é a principal conclusão?
+
+**2. Falantes**
+- Quantos falantes distintos?
+- Características (se discerníveis): tom, estilo de fala, nível de expertise
+
+**3. Breakdown de Conteúdo**
+- Principais tópicos discutidos (com timestamps aproximados)
+- Pontos-chave feitos
+- Perguntas levantadas
+
+**4. Análise Emocional**
+- Tom geral (formal, casual, tenso, amigável)
+- Momentos emocionais notáveis
+- Nível de energia ao longo
+
+**5. Itens Acionáveis**
+- Decisões tomadas
+- Itens de ação mencionados
+- Follow-ups necessários
+
+**6. Citações Notáveis**
+Extraia 2-3 citações significativas com timestamps
+
+**7. Qualidade do Áudio**
+- Clareza geral
+- Quaisquer problemas (ruído de fundo, interrupções, problemas técnicos)`}
+/>
+
+## Prompting de Vídeo
+
+Vídeo combina análise visual e de áudio ao longo do tempo. O desafio é guiar a IA para focar nos aspectos relevantes ao longo de toda a duração.
+
+### Entendimento de Vídeo
+
+<TryIt 
+  title="Análise Abrangente de Vídeo"
+  description="Obtenha um breakdown estruturado de conteúdo de vídeo incluindo timeline, elementos visuais e momentos-chave."
+  prompt={`Analise este vídeo: \${descricaoVideo}
+
+Forneça uma análise abrangente:
+
+**1. Visão Geral** (2-3 frases)
+Sobre o que é este vídeo? Qual é a mensagem ou propósito principal?
+
+**2. Timeline de Momentos-Chave**
+| Timestamp | Evento | Significância |
+|-----------|--------|---------------|
+| 0:00 | ... | ... |
+
+**3. Análise Visual**
+- Cenário/Local: Onde isso acontece?
+- Pessoas: Quem aparece? O que estão fazendo?
+- Objetos: Itens ou props-chave destacados
+- Estilo visual: Qualidade, edição, gráficos usados
+
+**4. Análise de Áudio**
+- Fala: Pontos principais feitos (se há diálogo)
+- Música: Tipo, atmosfera, como é usada
+- Efeitos sonoros: Elementos de áudio notáveis
+
+**5. Qualidade de Produção**
+- Qualidade de vídeo e edição
+- Ritmo e estrutura
+- Eficácia para seu propósito
+
+**6. Público-Alvo**
+Para quem este vídeo foi feito? Serve bem a eles?
+
+**7. Principais Conclusões**
+O que um espectador deve lembrar deste vídeo?`}
+/>
+
+### Extração de Conteúdo de Vídeo
+
+Para extração de informação específica de vídeos, seja preciso sobre o que você precisa.
+
+<TryIt 
+  title="Extrator de Dados de Vídeo"
+  description="Extraia informação específica de vídeos com timestamps e saída estruturada."
+  prompt={`Extraia informação específica deste vídeo:
+
+Tipo de vídeo: \${tipoVideo}
+Descrição do vídeo: \${descricaoVideo}
+
+**Informação para Extrair**:
+1. \${itemExtrair1}
+2. \${itemExtrair2}
+3. \${itemExtrair3}
+
+**Formato de Saída**:
+{
+  "resumo_video": "Descrição breve",
+  "duracao": "duração estimada",
+  "dados_extraidos": [
+    {
+      "timestamp": "MM:SS",
+      "item": "O que foi encontrado",
+      "detalhes": "Contexto adicional",
+      "confianca": "alta/media/baixa"
+    }
+  ],
+  "itens_nao_encontrados": ["Liste qualquer coisa requisitada mas não presente"],
+  "observacoes_adicionais": "Qualquer coisa relevante não explicitamente requisitada"
+}`}
+/>
+
+## Combinações Multimodais
+
+O verdadeiro poder da IA multimodal emerge quando você combina diferentes tipos de entrada. Estas combinações permitem análise que seria impossível com qualquer modalidade única.
+
+### Verificação Imagem + Texto
+
+Verifique se imagens e suas descrições correspondem—essencial para e-commerce, moderação de conteúdo e garantia de qualidade.
+
+<TryIt 
+  title="Verificador de Alinhamento Imagem-Texto"
+  description="Verifique que imagens representam precisamente suas descrições de texto e vice-versa."
+  prompt={`Analise esta imagem e seu texto acompanhante para alinhamento:
+
+**Imagem**: \${descricaoImagem}
+**Descrição de Texto**: "\${descricaoTexto}"
+
+Avalie:
+
+**1. Correspondência de Precisão**
+- A imagem mostra o que o texto descreve?
+- Nota: [1-10] com explicação
+
+**2. Alegações do Texto vs. Realidade Visual**
+| Alegação no Texto | Visível na Imagem? | Notas |
+|-------------------|-------------------|-------|
+| ... | Sim/Não/Parcial | ... |
+
+**3. Elementos Visuais Não Mencionados**
+O que é visível na imagem mas não descrito no texto?
+
+**4. Alegações do Texto Não Visíveis**
+O que é descrito no texto mas não pode ser verificado da imagem?
+
+**5. Recomendações**
+- Para o texto: [melhorias para corresponder à imagem]
+- Para a imagem: [melhorias para corresponder ao texto]
+
+**6. Avaliação Geral**
+Este par imagem-texto é confiável para \${proposito}?`}
+/>
+
+### Screenshot + Code Debugging
+
+Uma das combinações mais poderosas para desenvolvedores: ver o bug visual junto com o código.
+
+<TryIt 
+  title="Debugger de Bug Visual"
+  description="Debugue problemas de UI analisando tanto a saída visual quanto o código-fonte juntos."
+  prompt={`Tenho um bug de UI. Aqui está o que vejo e meu código:
+
+**Descrição do Screenshot**: \${descricaoScreenshot}
+**O Que Está Errado**: \${descricaoBug}
+**Comportamento Esperado**: \${comportamentoEsperado}
+
+**Código Relevante**:
+\`\`\`\${linguagem}
+\${codigo}
+\`\`\`
+
+Por favor me ajude:
+
+**1. Análise de Causa Raiz**
+- O que no código está causando este problema visual?
+- Qual(is) linha(s) específica(s) são responsáveis?
+
+**2. Explicação**
+- Por que este código produz este resultado visual?
+- Qual é o mecanismo subjacente?
+
+**3. A Correção**
+\`\`\`\${linguagem}
+// Código corrigido aqui
+\`\`\`
+
+**4. Prevenção**
+- Como evitar este tipo de bug no futuro
+- Quaisquer problemas relacionados a verificar`}
+/>
+
+### Tomada de Decisão Multi-Imagem
+
+Ao escolher entre opções, comparação estruturada ajuda a tomar melhores decisões.
+
+<TryIt 
+  title="Comparador de Opções Visuais"
+  description="Compare múltiplas imagens sistematicamente contra seus critérios para tomar decisões informadas."
+  prompt={`Estou escolhendo entre estas opções para \${proposito}:
+
+**Opção A**: \${opcaoA}
+**Opção B**: \${opcaoB}
+**Opção C**: \${opcaoC}
+
+**Meus Critérios** (em ordem de importância):
+1. \${criterio1} (peso: alto)
+2. \${criterio2} (peso: médio)
+3. \${criterio3} (peso: baixo)
+
+Forneça:
+
+**Matriz de Comparação**
+| Critério | Opção A | Opção B | Opção C |
+|----------|---------|---------|---------|
+| \${criterio1} | Nota + notas | ... | ... |
+| \${criterio2} | ... | ... | ... |
+| \${criterio3} | ... | ... | ... |
+
+**Notas Ponderadas**
+- Opção A: X/10
+- Opção B: X/10
+- Opção C: X/10
+
+**Recomendação**
+Baseado nas suas prioridades declaradas, recomendo [Opção] porque...
+
+**Ressalvas**
+- Se [condição], considere [alternativa] em vez
+- Cuidado com [problema potencial]`}
+/>
+
+## Melhores Práticas para Prompts Multimodais
+
+Obter ótimos resultados de IA multimodal requer entender tanto suas capacidades quanto limitações.
+
+### O Que Torna Prompts Multimodais Eficazes
+
+<InfoGrid items={[
+  { label: "Forneça Contexto", description: "Diga ao modelo o que a mídia é e por que você está analisando", example: "\"Esta é uma foto de produto para nosso site de e-commerce...\"", color: "green" },
+  { label: "Seja Específico", description: "Pergunte sobre elementos particulares em vez de impressões gerais", example: "\"Foque na tabela de preços no canto superior direito\"", color: "green" },
+  { label: "Referencie Localizações", description: "Aponte para áreas específicas usando linguagem espacial", example: "\"No quadrante inferior esquerdo...\"", color: "green" },
+  { label: "Declare Seu Objetivo", description: "Explique para que você usará a análise", example: "\"Preciso decidir se esta imagem funciona para nosso app mobile\"", color: "green" }
+]} />
+
+### Armadilhas Comuns a Evitar
+
+<InfoGrid items={[
+  { label: "Assumir Visão Perfeita", description: "Modelos podem perder detalhes pequenos, especialmente em imagens de baixa resolução", example: "Não pergunte sobre texto de 8pt em screenshot comprimido", color: "red" },
+  { label: "Esperar OCR Perfeito", description: "Escrita à mão, fontes incomuns e layouts complexos podem causar erros", example: "Verifique texto extraído de recibos e formulários", color: "red" },
+  { label: "Ignorar Políticas de Conteúdo", description: "Modelos têm restrições em certos tipos de conteúdo", example: "Não identificará indivíduos específicos ou analisará conteúdo inadequado", color: "red" },
+  { label: "Pular Verificação", description: "Sempre verifique informação crítica extraída de mídia", example: "Confira duas vezes números, datas e nomes de extração de documentos", color: "red" }
+]} />
+
+### Lidando com Limitações Graciosamente
+
+<TryIt 
+  title="Análise de Imagem Ciente de Incerteza"
+  description="Este prompt lida explicitamente com casos onde o modelo não consegue ver claramente ou está incerto."
+  prompt={`Analise esta imagem: \${descricaoImagem}
+
+**Instruções para Lidar com Incerteza**:
+
+SE VOCÊ NÃO CONSEGUE VER ALGO CLARAMENTE:
+- Não adivinhe ou invente detalhes
+- Diga: "Posso ver [o que é visível] mas não consigo distinguir claramente [elemento unclear]"
+- Sugira qual informação adicional ajudaria
+
+SE CONTEÚDO PARECE RESTRITO:
+- Explique o que você pode e não pode analisar
+- Foque em aspectos permitidos da análise
+
+SE PERGUNTADO SOBRE PESSOAS:
+- Descreva ações, posições e características gerais
+- Não tente identificar indivíduos específicos
+- Foque em: número de pessoas, atividades, expressões, vestimenta
+
+**Sua Análise**:
+[Prossiga com análise, aplicando estas diretrizes]`}
+/>
+
+<Quiz 
+  question="Por que prompting importa MAIS para modelos multimodais do que para modelos só de texto?"
+  options={[
+    "Modelos multimodais são menos inteligentes e precisam de mais ajuda",
+    "Imagens e áudio são inerentemente ambíguos—a IA precisa de contexto para saber quais aspectos importam",
+    "Modelos multimodais só podem processar um tipo de entrada por vez",
+    "Prompts de texto não funcionam com modelos multimodais"
+  ]}
+  correctIndex={1}
+  explanation="Quando você olha para uma imagem, você sabe instantaneamente o que é importante baseado nos seus objetivos. A IA não tem este contexto—uma foto de uma rachadura na parede poderia ser uma preocupação de engenharia, uma textura artística, ou fundo irrelevante. Seu prompt determina como a IA interpreta e foca na mídia que você fornece."
+/>

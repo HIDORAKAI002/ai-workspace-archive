@@ -1,0 +1,34 @@
+#!/bin/bash
+# ClaudeAdmin launcher — CFBundleExecutable for the .app bundle
+# Starts the backend server and opens the browser.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="$SCRIPT_DIR/claude-admin-backend"
+PORT=9022
+URL="http://localhost:$PORT"
+
+cleanup() {
+    if [ -n "${SERVER_PID:-}" ]; then
+        kill "$SERVER_PID" 2>/dev/null || true
+        wait "$SERVER_PID" 2>/dev/null || true
+    fi
+}
+trap cleanup SIGTERM SIGINT EXIT
+
+"$BINARY" &
+SERVER_PID=$!
+
+# Wait for the server to become ready
+for i in $(seq 1 30); do
+    if curl -sf "$URL/api/health" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 0.3
+done
+
+open "$URL"
+
+# Keep alive until the server exits or we get killed
+wait "$SERVER_PID"

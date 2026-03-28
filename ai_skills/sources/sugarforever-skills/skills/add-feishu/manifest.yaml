@@ -1,0 +1,17 @@
+skill: feishu
+version: 1.0.0
+description: "Feishu (飞书/Lark) integration via WebSocket long connection"
+core_version: 0.1.0
+adds:
+  - src/channels/feishu.ts
+modifies:
+  - src/index.ts
+structured:
+  npm_dependencies:
+    "@larksuiteoapi/node-sdk": "^1"
+  env_additions:
+    - FEISHU_APP_ID
+    - FEISHU_APP_SECRET
+conflicts: []
+depends: []
+test: "npm run build"

@@ -1,0 +1,49 @@
+{
+  "name": "@supabase/mcp-server-postgrest",
+  "version": "0.1.0",
+  "description": "MCP server for PostgREST",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup --clean",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "pnpm typecheck",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest"
+  },
+  "files": ["dist/**/*"],
+  "bin": {
+    "mcp-server-postgrest": "./dist/stdio.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "dependencies": {
+    "@supabase/mcp-utils": "workspace:^",
+    "@supabase/sql-to-rest": "^0.1.8"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "catalog:",
+    "@supabase/auth-js": "^2.67.3",
+    "@total-typescript/tsconfig": "^1.0.4",
+    "@types/node": "^22.8.6",
+    "prettier": "^3.3.3",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9",
+    "zod": "catalog:"
+  }
+}

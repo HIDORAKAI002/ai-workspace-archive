@@ -1,0 +1,136 @@
+name: Tusk Test Runner - Vitest unit tests (src/app)
+
+# Required for Tusk
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+    inputs:
+      runId:
+        description: 'Tusk Run ID'
+        required: true
+      tuskUrl:
+        description: 'Tusk server URL'
+        required: true
+      commitSha:
+        description: 'Commit SHA to checkout'
+        required: true
+      runnerIndexes:
+        description: 'Runner indexes'
+        required: false
+        default: '["1"]'
+
+jobs:
+  test-action:
+    name: Tusk Test Runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    strategy:
+      matrix:
+        runnerIndex: ${{ fromJson(github.event.inputs.runnerIndexes) }}
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.commitSha }} # Required for Tusk to access files for the commit being tested
+
+      - name: Use Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      # Node 24 ships with npm 11.6.2 which has a lockfile compatibility bug (npm/cli#8669)
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm install @vitest/coverage-v8
+
+      - name: Start runner
+        id: test-action
+        uses: Use-Tusk/test-runner@v1
+        # See https://github.com/Use-Tusk/test-runner for full details and examples.
+        with:
+          # Required to use parallelization
+          runnerIndex: ${{ matrix.runnerIndex }}
+
+          # Required for the test runner, do not remove this input
+          runId: ${{ github.event.inputs.runId }}
+
+          # Required for the test runner, do not remove this input
+          tuskUrl: ${{ github.event.inputs.tuskUrl }}
+
+          # Required for the test runner, do not remove this input
+          commitSha: ${{ github.event.inputs.commitSha }}
+
+          # Your Tusk auth token. It is recommended to add it to your repo's secrets.
+          # Please adapt the secret name accordingly if you have named it differently.
+          authToken: ${{ secrets.TUSK_AUTH_TOKEN }}
+
+          # Vitest for the React app tests
+          testFramework: 'vitest'
+
+          # Test file regex to match Vitest test files in src/app
+          testFileRegex: '^src/app/.*\.(test|spec)\.(js|jsx|ts|tsx)$'
+
+          # This will be the working directory for all commands
+          appDir: 'src/app'
+
+          # Format with Biome (JS/TS/JSON) and Prettier (CSS/MD/YAML), then lint and type-check
+          lintScript: |
+            set -e
+
+            FILE_PATH="{{file}}"
+
+            # Validate no shell metacharacters in file path
+            if [[ "$FILE_PATH" =~ [\;\|\&\$\`\<\>\(\)] ]]; then
+              echo "Error: Invalid characters in file path: $FILE_PATH"
+              exit 1
+            fi
+
+            EXT="${FILE_PATH##*.}"
+            FULL_PATH="src/app/$FILE_PATH"
+
+            cd ../..
+
+            # Format based on file extension (use -- to prevent flag injection)
+            case "$EXT" in
+              js|jsx|mjs|cjs|ts|tsx|json)
+                npx @biomejs/biome format --write -- "$FULL_PATH"
+                npx @biomejs/biome lint --write -- "$FULL_PATH"
+                ;;
+              css|scss|html|md|mdc|mdx|yaml|yml)
+                npx prettier --write -- "$FULL_PATH"
+                ;;
+              *)
+                echo "Skipping unsupported file type: $FILE_PATH"
+                ;;
+            esac
+
+            cd src/app
+
+            # Use incremental build to reduce latency for subsequent build checks
+            # However, this means that we need to run with concurrency of 1 (on Tusk)
+            npx tsc --build --noEmit --incremental
+
+          # The script to run Vitest tests for individual files
+          testScript: 'npx vitest run {{file}} --reporter=default'
+
+          coverageScript: |
+            npx vitest run {{testFilePaths}} \
+              --coverage \
+              --coverage.reportsDirectory=coverage \
+              --coverage.reporter=json-summary \
+              --coverage.reporter=json \
+              --coverage.reportOnFailure \
+              --coverage.include="**/*.{ts,tsx}" \
+              --coverage.exclude="**/*.{test,spec}.{ts,tsx}"
+
+          # Max concurrency is set to 1 because we need to run tsc with incremental build
+          maxConcurrency: 1

@@ -1,0 +1,100 @@
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+TOOLS_SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+if str(TOOLS_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_SCRIPTS_DIR))
+
+import sync_microsoft_skills as sms
+
+
+class SyncMicrosoftSkillsSecurityTests(unittest.TestCase):
+    def test_sanitize_flat_name_rejects_path_traversal(self):
+        sanitized = sms.sanitize_flat_name("../../.ssh", "fallback-name")
+        self.assertEqual(sanitized, "fallback-name")
+
+    def test_find_skills_ignores_symlinks_outside_clone(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            skills_dir = root / "skills"
+            skills_dir.mkdir()
+
+            safe_skill = root / ".github" / "skills" / "safe-skill"
+            safe_skill.mkdir(parents=True)
+            (safe_skill / "SKILL.md").write_text("---\nname: safe-skill\n---\n", encoding="utf-8")
+            (skills_dir / "safe-skill").symlink_to(safe_skill, target_is_directory=True)
+
+            outside = Path(tempfile.mkdtemp())
+            try:
+                (outside / "SKILL.md").write_text("---\nname: leaked\n---\n", encoding="utf-8")
+                (skills_dir / "escape").symlink_to(outside, target_is_directory=True)
+
+                entries = sms.find_skills_in_directory(root)
+                relative_paths = {str(entry["relative_path"]) for entry in entries}
+
+                self.assertEqual(relative_paths, {"safe-skill"})
+            finally:
+                for child in outside.iterdir():
+                    child.unlink()
+                outside.rmdir()
+
+    def test_find_github_skills_ignores_symlinked_directories(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            github_skills = root / ".github" / "skills"
+            github_skills.mkdir(parents=True)
+
+            safe_skill = github_skills / "safe-skill"
+            safe_skill.mkdir()
+            (safe_skill / "SKILL.md").write_text("---\nname: safe-skill\n---\n", encoding="utf-8")
+
+            outside = Path(tempfile.mkdtemp())
+            try:
+                escaped = outside / "escaped-skill"
+                escaped.mkdir()
+                (escaped / "SKILL.md").write_text("---\nname: escaped\n---\n", encoding="utf-8")
+                (github_skills / "escape").symlink_to(escaped, target_is_directory=True)
+
+                entries = sms.find_github_skills(root, set())
+                relative_paths = {str(entry["relative_path"]) for entry in entries}
+
+                self.assertEqual(relative_paths, {".github/skills/safe-skill"})
+            finally:
+                for child in escaped.iterdir():
+                    child.unlink()
+                escaped.rmdir()
+                outside.rmdir()
+
+    def test_find_github_skills_ignores_symlinked_skill_markdown(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            github_skills = root / ".github" / "skills"
+            github_skills.mkdir(parents=True)
+
+            safe_skill = github_skills / "safe-skill"
+            safe_skill.mkdir()
+            (safe_skill / "SKILL.md").write_text("---\nname: safe-skill\n---\n", encoding="utf-8")
+
+            linked_skill = github_skills / "linked-skill"
+            linked_skill.mkdir()
+
+            outside = Path(tempfile.mkdtemp())
+            try:
+                target = outside / "SKILL.md"
+                target.write_text("---\nname: escaped\n---\n", encoding="utf-8")
+                (linked_skill / "SKILL.md").symlink_to(target)
+
+                entries = sms.find_github_skills(root, set())
+                relative_paths = {str(entry["relative_path"]) for entry in entries}
+
+                self.assertEqual(relative_paths, {".github/skills/safe-skill"})
+            finally:
+                target.unlink()
+                outside.rmdir()
+
+
+if __name__ == "__main__":
+    unittest.main()

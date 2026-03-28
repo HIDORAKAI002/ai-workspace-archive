@@ -1,0 +1,26 @@
+title: Awesome Prompt Engineering
+description: The ultimate guide to prompt engineering, context engineering, and AI agents.
+remote_theme: just-the-docs/just-the-docs
+
+# Theme Settings
+color_scheme: dark
+search_enabled: true
+aux_links:
+  "GitHub Repository": https://github.com/natnew/Awesome-Prompt-Engineering
+
+# Build settings
+markdown: GFM
+plugins:
+  - jekyll-remote-theme
+  - jemoji
+  - jekyll-include-cache
+
+# Exclude unnecessary files from the build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/
+  - .github/
+  - tests/
+  - projects/core/01_rag_evaluation_pipeline/tests/

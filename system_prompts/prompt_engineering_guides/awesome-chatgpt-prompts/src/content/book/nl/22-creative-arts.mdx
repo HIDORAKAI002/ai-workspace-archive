@@ -1,0 +1,326 @@
+AI is een krachtige creatieve partner. Dit hoofdstuk behandelt prompttechnieken voor visuele kunst, muziek, gamedesign en andere creatieve domeinen.
+
+<Callout type="info" title="AI als Creatieve Partner">
+AI vergroot je creatieve mogelijkheden—gebruik het om variaties te verkennen, blokkades te overwinnen en opties te genereren. De creatieve visie en definitieve beslissingen blijven van jou.
+</Callout>
+
+## Visuele Kunst & Design
+
+### Do's en Don'ts: Afbeeldingsprompts
+
+<Compare 
+  before={{ label: "❌ Vage prompt", content: "Een tovenaar in een bibliotheek" }}
+  after={{ label: "✓ Rijke beschrijving", content: "Een wijze, oudere tovenaar die een oud boek leest, zittend in een torenbibliotheek bij zonsondergang, fantasy-kunststijl, warm gouden licht, contemplatieve sfeer, zeer gedetailleerd, 4K, door Greg Rutkowski" }}
+/>
+
+### Afbeeldingsprompts Opstellen
+
+Bij het werken met beeldgeneratiemodellen (DALL-E, Midjourney, Stable Diffusion):
+
+<TryIt compact prompt={`Maak een afbeeldingsprompt voor [concept].
+
+Structuur:
+[Onderwerp] + [Actie/Pose] + [Setting/Achtergrond] + [Stijl] + 
+[Belichting] + [Sfeer] + [Technische specificaties]
+
+Voorbeeld:
+"Een wijze, oudere tovenaar die een oud boek leest, zittend in een 
+torenbibliotheek bij zonsondergang, fantasy-kunststijl, warm gouden licht, 
+contemplatieve sfeer, zeer gedetailleerd, 4K"`} />
+
+### Kunstdirectie
+
+<TryIt compact prompt={`Beschrijf kunstwerk voor \${project:fantasy boekomslag}.
+
+Inclusief:
+1. **Compositie** - rangschikking van elementen
+2. **Kleurenpalet** - specifieke kleuren en hun relaties
+3. **Stijlreferentie** - vergelijkbare kunstenaars/werken/stromingen
+4. **Focuspunt** - waar het oog naartoe getrokken moet worden
+5. **Sfeer/Atmosfeer** - emotionele kwaliteit
+6. **Technische aanpak** - medium, techniek
+
+Doel: \${purpose:illustratie voor boekomslag}`} />
+
+### Designkritiek
+
+<TryIt compact prompt={`Bekritiseer dit ontwerp vanuit een professioneel perspectief.
+
+Ontwerp: \${design:een landingspagina met hero-sectie, feature-grid en testimonials}
+Context: \${context:SaaS-product voor projectmanagement}
+
+Evalueer:
+1. **Visuele hiërarchie** - Is het belang duidelijk?
+2. **Balans** - Is het visueel stabiel?
+3. **Contrast** - Springen elementen voldoende eruit?
+4. **Uitlijning** - Is het georganiseerd?
+5. **Herhaling** - Is er consistentie?
+6. **Nabijheid** - Zijn gerelateerde items gegroepeerd?
+
+Lever:
+- Specifieke sterke punten
+- Verbeterpunten
+- Uitvoerbare suggesties`} />
+
+## Creatief Schrijven
+
+<Callout type="tip" title="Creatieve Beperkingen Principe">
+**Beperkingen voeden creativiteit.** Een prompt zoals "schrijf iets" produceert generieke resultaten. Specifieke beperkingen zoals genre, toon en structuur dwingen onverwachte, interessante oplossingen af.
+</Callout>
+
+### Wereldbouw
+
+<TryIt compact prompt={`Help me een wereld te bouwen voor \${project:een fantasy roman}.
+
+Genre: \${genre:dark fantasy}
+Scope: \${scope:een koninkrijk}
+
+Ontwikkel:
+1. **Geografie** - fysieke omgeving
+2. **Geschiedenis** - belangrijke gebeurtenissen die deze wereld vormden
+3. **Cultuur** - gewoonten, waarden, dagelijks leven
+4. **Machtsstructuren** - wie heerst, hoe
+5. **Economie** - hoe mensen overleven
+6. **Conflict** - bronnen van spanning
+7. **Uniek element** - wat maakt deze wereld bijzonder
+
+Begin met brede lijnen, verdiep dan één aspect grondig.`} />
+
+### Plotontwikkeling
+
+<TryIt compact prompt={`Help me een plot te ontwikkelen voor \${storyConcept:een mislukte overval}.
+
+Genre: \${genre:thriller}
+Toon: \${tone:duister met momenten van zwarte humor}
+Lengte: \${length:roman}
+
+Gebruik \${structure:drieakter}-structuur:
+
+1. **Setup** - wereld, personage, normaal leven
+2. **Aanzet** - wat de normaliteit verstoort
+3. **Stijgende actie** - escalerende uitdagingen
+4. **Middelpunt** - grote verschuiving of onthulling
+5. **Crisis** - donkerste moment
+6. **Climax** - confrontatie
+7. **Afronding** - nieuwe normaal
+
+Stel voor elk moment specifieke scènes voor.`} />
+
+### Dialoog Schrijven
+
+<TryIt compact prompt={`Schrijf dialoog tussen \${characters:twee broers en zussen} over \${topic:hun vervreemde vader die terugkeert}.
+
+Personage A: \${characterA:oudere zus, beschermend, pragmatisch, wil verder gaan}
+Personage B: \${characterB:jongere broer, hoopvol, emotioneel, wil opnieuw contact maken}
+Relatie: \${relationship:hecht maar met verschillende copingstrategieën}
+Ondertoon: \${subtext:onuitgesproken wrok over wie meer last droeg}
+
+Richtlijnen:
+- Elk personage heeft een duidelijke stem
+- Dialoog onthult karakter, niet alleen informatie
+- Voeg beats toe (acties/reacties)
+- Bouw spanning op of ontwikkel de relatie
+- Toon, vertel niet de emoties`} />
+
+## Muziek & Audio
+
+### Songstructuur
+
+<TryIt compact prompt={`Help me een lied te structureren.
+
+Genre: \${genre:indie folk}
+Sfeer: \${mood:bitterszoete nostalgie}
+Tempo: \${tempo:matig, ongeveer 90 BPM}
+Thema/Boodschap: \${theme:terugkijken op een geboorteplaats waar je bent uitgegroeid}
+
+Lever:
+1. **Structuur** - couplet/refrein/bridge-arrangement
+2. **Couplet 1** - tekstueel concept, 4-8 regels
+3. **Refrein** - hook-concept, 4 regels
+4. **Couplet 2** - ontwikkeling, 4-8 regels
+5. **Bridge** - contrast/verschuiving, 4 regels
+6. **Akkoordenschema suggestie**
+7. **Melodische richting notities`} />
+
+### Geluidsontwerp Beschrijving
+
+<TryIt compact prompt={`Beschrijf een geluidsontwerp voor \${scene:een personage dat een verlaten ruimtestation betreedt}.
+
+Context: \${context:protagonist ontdekt dat het station al decennia leeg is}
+Te oproepen emotie: \${emotion:griezelige verwondering gemengd met angst}
+Medium: \${medium:videogame}
+
+Laag voor laag:
+1. **Basis** - ambient/achtergrond
+2. **Middenplan** - omgevingsgeluiden
+3. **Voorgrond** - focale geluiden
+4. **Accenten** - punctuatiegeluiden
+5. **Muziek** - score-suggesties
+
+Beschrijf geluiden in evocatieve termen, niet alleen namen.`} />
+
+## Gamedesign
+
+### Gamemechaniek Ontwerp
+
+<TryIt compact prompt={`Ontwerp een gamemechaniek voor \${gameType:een puzzel-platformer}.
+
+Kernloop: \${coreLoop:manipuleer zwaartekracht om ruimtelijke puzzels op te lossen}
+Spelersmotivatie: \${motivation:meesterschap en ontdekking}
+Vereiste vaardigheid: \${skill:ruimtelijk inzicht en timing}
+
+Beschrijf:
+1. **De mechaniek** - hoe het werkt
+2. **Spelerinput** - wat ze controleren
+3. **Feedback** - hoe ze het resultaat weten
+4. **Progressie** - hoe het evolueert/verdiept
+5. **Balans overwegingen**
+6. **Randgevallen** - ongebruikelijke scenario's`} />
+
+### Levelontwerp
+
+<TryIt compact prompt={`Ontwerp een level voor \${gameType:een stealth-actiespel}.
+
+Setting: \${setting:bedrijfshoofdkantoor 's nachts}
+Doelstellingen: \${objectives:infiltreer de serverruimte en onttrek data}
+Moeilijkheid: \${difficulty:mid-game, speler heeft basisvaardigheden}
+
+Inclusief:
+1. **Lay-out overzicht** - ruimtelijke beschrijving
+2. **Pacing-grafiek** - spanning over tijd
+3. **Uitdagingen** - obstakels en hoe ze te overwinnen
+4. **Beloningen** - wat de speler krijgt
+5. **Geheimen** - optionele ontdekkingen
+6. **Leermomenten** - introductie van vaardigheden
+7. **Omgevingsverhalen** - verhaal door ontwerp`} />
+
+### Personage/Vijand Ontwerp
+
+<TryIt compact prompt={`Ontwerp een \${entityType:eindbaas} voor \${game:een dark fantasy action RPG}.
+
+Rol: \${role:mid-game baas}
+Context: \${context:bewaakt een gecorrumpeerde bostempel}
+
+Definieer:
+1. **Visueel concept** - uiterlijk beschrijving
+2. **Vaardigheden** - wat ze kunnen doen
+3. **Gedragspatronen** - hoe ze handelen
+4. **Zwakheden** - kwetsbaarheden
+5. **Persoonlijkheid** - indien relevant
+6. **Lore/Achtergrondverhaal** - wereldintegratie
+7. **Spelerstrategie** - hoe te interageren/verslaan`} />
+
+## Brainstormen & Ideevorming
+
+### Creatief Brainstormen
+
+<TryIt compact prompt={`Brainstorm ideeën voor \${project:een mobiele game over mindfulness}.
+
+Beperkingen:
+- \${constraint1:moet speelbaar zijn in sessies van 2 minuten}
+- \${constraint2:geen geweld of competitie}
+- \${constraint3:natuurthema's}
+
+Genereer:
+1. **10 conventionele ideeën** - solide, verwacht
+2. **5 ongebruikelijke ideeën** - onverwachte invalshoeken
+3. **3 wilde ideeën** - grenzen verleggend
+4. **1 combinatie** - voeg de beste elementen samen
+
+Voor elk, één zin beschrijving + waarom het werkt.
+Censureer jezelf niet—kwantiteit boven kwaliteit eerst.`} />
+
+### Creatieve Beperkingen
+
+<TryIt compact prompt={`Geef me creatieve beperkingen voor \${projectType:het schrijven van een kort verhaal}.
+
+Ik wil beperkingen die:
+- Onverwachte keuzes afdwingen
+- Voor de hand liggende oplossingen elimineren
+- Productieve begrenzingen creëren
+
+Formaat:
+1. Beperking - Waarom het creativiteit helpt
+2. ...
+
+Toon dan één voorbeeld van hoe het toepassen van deze beperkingen 
+een generiek concept transformeert in iets interessants.`} />
+
+### Stijlverkenning
+
+<TryIt compact prompt={`Verken verschillende stijlen voor \${concept:een koffiebar logo}.
+
+Toon hoe dit concept zich zou manifesteren in:
+1. **Minimalistisch** - teruggebracht tot de essentie
+2. **Maximalistisch** - overvloedig en gedetailleerd
+3. **Retro 1950s** - periode-specifiek
+4. **Futuristisch** - vooruitkijkend
+5. **Volks/Traditioneel** - culturele wortels
+6. **Abstract** - niet-representatief
+7. **Surrealistisch** - droomachtige logica
+
+Beschrijf voor elk de belangrijkste kenmerken en geef een voorbeeld.`} />
+
+## Promptsjablonen van prompts.chat
+
+### Gedraag je als een Creatief Directeur
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als een creatief directeur. Ik zal creatieve projecten beschrijven en jij zult creatieve visies ontwikkelen, esthetische beslissingen begeleiden en conceptuele samenhang waarborgen. Put uit kunstgeschiedenis, designprincipes en culturele trends. Help me gedurfde creatieve keuzes te maken met duidelijke onderbouwing.`} />
+
+### Gedraag je als een Wereldbouwer
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als een wereldbouwer. Help me rijke, consistente fictieve werelden te creëren met gedetailleerde geschiedenissen, culturen en systemen. Stel diepgaande vragen om de wereld te verdiepen. Wijs op inconsistenties en stel oplossingen voor. Laat de wereld bewoond en geloofwaardig aanvoelen.`} />
+
+### Gedraag je als een Dungeon Master
+
+<TryIt compact prompt={`Ik wil dat je je gedraagt als een Dungeon Master voor een tabletop RPG. Creëer boeiende scenario's, beschrijf levendige settings, speel NPC's met duidelijke persoonlijkheden en reageer dynamisch op spelerskeuzes. Balanceer uitdaging met plezier en houd het verhaal meeslepend.`} />
+
+## Tips voor Creatieve Samenwerking
+
+### Voortbouwen op Ideeën
+
+<TryIt compact prompt={`Ik heb dit creatieve idee: \${idea:een mysterieroman die zich afspeelt op een ruimtestation waar de AI de detective is}
+
+Help me het te ontwikkelen door:
+1. Wat goed werkt
+2. Vragen om te verkennen
+3. Onverwachte richtingen
+4. Potentiële uitdagingen
+5. Eerste drie ontwikkelingsstappen
+
+Vervang mijn visie niet—verbeter deze.`} />
+
+### Creatieve Feedback
+
+<TryIt compact prompt={`Geef me feedback op dit creatieve werk:
+
+\${work:plak hier je creatieve werk}
+
+Als een \${perspective:mede-creator}:
+1. Wat het sterkst resoneert
+2. Wat onderontwikkeld aanvoelt
+3. Wat verwarrend of onduidelijk is
+4. Eén gedurfde suggestie
+5. Wat zou dit onvergetelijk maken
+
+Wees eerlijk maar opbouwend.`} />
+
+## Samenvatting
+
+<Callout type="tip" title="Belangrijke Technieken">
+Bied voldoende structuur om te begeleiden zonder te beperken, omarm specificiteit (vaag = generiek), voeg referenties en inspiratiebronnen toe, vraag om variaties en alternatieven, en behoud je creatieve visie terwijl je mogelijkheden verkent.
+</Callout>
+
+<Quiz 
+  question="Waarom produceren specifieke beperkingen vaak betere creatieve resultaten dan open prompts?"
+  options={[
+    "AI kan alleen strikte instructies volgen",
+    "Beperkingen dwingen onverwachte oplossingen af en elimineren voor de hand liggende keuzes",
+    "Open prompts zijn te moeilijk voor AI",
+    "Beperkingen maken de output korter"
+  ]}
+  correctIndex={1}
+  explanation="Paradoxaal genoeg wakkeren beperkingen creativiteit aan. Wanneer voor de hand liggende oplossingen worden geëlimineerd, word je gedwongen onverwachte richtingen te verkennen. 'Schrijf een verhaal' produceert clichés; 'Schrijf een mysterie dat zich afspeelt in een onderzeeër, achteruit verteld, in minder dan 500 woorden' produceert iets unieks."
+/>
+
+AI is een partner, geen vervanging voor creatieve visie. Gebruik het om te verkennen, opties te genereren en blokkades te overwinnen—maar de creatieve beslissingen blijven van jou.

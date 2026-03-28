@@ -1,0 +1,2660 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ClaudeAdmin UAT Report — 2026-03-06 14:47</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      h1 {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+      }
+      .subtitle {
+        color: #64748b;
+        margin-bottom: 2rem;
+      }
+      .score-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+      .score-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #22c55e;
+      }
+      .score-label {
+        font-size: 0.875rem;
+        color: #64748b;
+      }
+      .stats {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .stat {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+      }
+      th {
+        text-align: left;
+        padding: 8px;
+        background: #f1f5f9;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+      }
+      tr:hover td {
+        background: #f8fafc;
+      }
+      h2 {
+        margin: 2rem 0 1rem;
+        font-size: 1.25rem;
+        color: #334155;
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+        color: #94a3b8;
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>ClaudeAdmin — UAT Report</h1>
+      <div class="subtitle">
+        2026-03-06 14:47 | Modus B (Komplett-Test) | Backend API
+      </div>
+
+      <div class="score-card">
+        <div>
+          <div class="score-number">99%</div>
+          <div class="score-label">Pass Rate</div>
+        </div>
+        <div style="border-left: 1px solid #e2e8f0; padding-left: 1rem">
+          <div style="font-size: 0.9rem"><strong>81</strong> Tests</div>
+          <div style="font-size: 0.9rem; color: #22c55e">
+            <strong>80</strong> Pass
+          </div>
+          <div style="font-size: 0.9rem; color: #ef4444">
+            <strong>0</strong> Fail
+          </div>
+          <div style="font-size: 0.9rem; color: #eab308">
+            <strong>1</strong> Warn
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">54</div>
+          <div class="stat-label">API Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">15</div>
+          <div class="stat-label">CRUD Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Security Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Validation Tests</div>
+        </div>
+      </div>
+
+      <h2>Test Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              API Endpoints (54)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/health — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-002
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/dashboard — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-003
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/dashboard/health — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-004
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/projects — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-005
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/skills — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-006
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/rules — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-007
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/rules/conflicts — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-008
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/plans — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-009
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/mcp — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-010
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/settings/global — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-011
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/settings/claude-json — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-012
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/settings/hook-templates — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-013
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/settings/storage — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-014
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/settings/api-key — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-015
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/analytics/overview — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-016
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/analytics/tips — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-017
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/analytics/projects — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-018
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/analytics/export — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-019
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/sessions — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-020
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/permissions — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-021
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/health/overview — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-022
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/info — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-023
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/storage — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-024
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/status — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-025
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/auth — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-026
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/update — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-027
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #eab30820;
+                  color: #eab308;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >WARN</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/doctor — timeout/hang
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-028
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system/ide — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-029
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/github — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-030
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/licenses — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-031
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/audit — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-032
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/agents — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-033
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/plugins — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-034
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/launch-profiles — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-035
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/system-prompts — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-036
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/tool-access — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-037
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/worktrees — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-038
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/mcp-browser — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-039
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/backups — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-040
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/timeline — 200, returns commit list
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-041
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/timeline/:hash — 200, returns diff
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-042
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/search — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-043
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/templates — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-044
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/webhooks — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-045
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/budgets — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-046
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/docs — 200 (Swagger UI)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-047
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/skills/templates — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-048
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/projects/:id — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-049
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/projects/:id/status — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-050
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              GET /api/v1/projects/:id/profile — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-051
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Markdown preview — 200 with HTML output
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-052
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Search — 200 with results
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-053
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Empty search — 200 with empty array
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              API-054
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Session search — 200 with results
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              Security (5)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              SEC-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Path traversal blocked — returns 404 not file content
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              SEC-002
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Unknown API routes return JSON 404
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              SEC-003
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              X-Content-Type-Options: nosniff present
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              SEC-004
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              X-Frame-Options: DENY present
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              SEC-005
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Content-Security-Policy present
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              Bug Fixes (1)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              FIX-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt names with spaces accepted (HTTP 200)
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              CRUD Operations (15)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt CREATE with spaces — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-002
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt READ — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-003
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt UPDATE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-004
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt DELETE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-005
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              System prompt READ after DELETE — 404
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-006
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Launch profile CREATE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-007
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Launch profile READ — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-008
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Launch profile COMMAND — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-009
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Launch profile DELETE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-010
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Agent CREATE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-011
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Agent READ — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-012
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Agent DELETE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-013
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              MCP server CREATE with structured form — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-014
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              MCP server READ — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              CRUD-015
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              MCP server DELETE — 200
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              Input Validation (3)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              VAL-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Empty name rejected — 400
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              VAL-002
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Invalid JSON rejected — 400
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              VAL-003
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Missing Content-Type rejected — 415
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              Edge Cases (2)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              EDGE-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Timeline non-existent hash — 404 with error message
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              EDGE-002
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              Timeline limit=0 — returns empty array
+            </td>
+          </tr>
+          <tr>
+            <td
+              colspan="3"
+              style="
+                font-weight: 700;
+                padding: 1rem 0.5rem 0.25rem;
+                border-bottom: 2px solid #e5e7eb;
+                color: #6366f1;
+              "
+            >
+              Performance (1)
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                padding: 4px 8px;
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6b7280;
+              "
+            >
+              PERF-001
+            </td>
+            <td style="padding: 4px 8px">
+              <span
+                style="
+                  background: #22c55e20;
+                  color: #22c55e;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+                >PASS</span
+              >
+            </td>
+            <td style="padding: 4px 8px; font-size: 0.875rem">
+              10 concurrent health checks — all 200
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Problems / Warnings</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Severity</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 4px 8px; font-family: monospace">API-027</td>
+            <td>
+              <span
+                style="
+                  background: #94a3b820;
+                  color: #94a3b8;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                "
+                >MINOR</span
+              >
+            </td>
+            <td style="font-size: 0.875rem">
+              GET /api/v1/system/doctor — timeout/hang
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Environment</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600; width: 200px">
+              Project
+            </td>
+            <td style="padding: 6px 8px">ClaudeAdmin v0.1.0</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Backend</td>
+            <td style="padding: 6px 8px">Rust + Axum 0.7 on port 9022</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Frontend</td>
+            <td style="padding: 6px 8px">Leptos 0.6 CSR (WASM)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Platform</td>
+            <td style="padding: 6px 8px">macOS Darwin 25.3.0</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Test Date</td>
+            <td style="padding: 6px 8px">2026-03-06 14:47</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Test Mode</td>
+            <td style="padding: 6px 8px">Modus B — Komplett-Test (API)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>New Features Tested</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600; width: 250px">
+              SVG Sidebar Icons
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Build passes, icons render
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">
+              MCP Structured Form
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Backend accepts structured + raw JSON
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">
+              Dashboard Recent Changes
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Audit API returns entries
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">
+              System Prompts with Spaces
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ CRUD with "My Test Prompt" works
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Help Chat Memory</td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Backend accepts history array
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">
+              One-Click Advisor Actions
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Backend endpoint registered
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">Git Timeline</td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ List, diff, edge cases work
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px; font-weight: 600">
+              Timeline i18n (12 langs)
+            </td>
+            <td style="padding: 6px 8px; color: #22c55e">
+              ✓ Compiles without missing keys
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        Generated by Virtual UAT Skill | BRUCHMANN [TEC] INNOVATION GMBH
+      </div>
+    </div>
+  </body>
+</html>

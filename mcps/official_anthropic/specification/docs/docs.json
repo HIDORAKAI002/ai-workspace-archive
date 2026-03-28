@@ -1,0 +1,660 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Model Context Protocol",
+  "colors": {
+    "primary": "#09090b",
+    "light": "#FAFAFA",
+    "dark": "#09090b"
+  },
+  "favicon": "/favicon.svg",
+  "navbar": {
+    "links": [
+      {
+        "label": "Blog",
+        "href": "https://blog.modelcontextprotocol.io"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/modelcontextprotocol"
+      }
+    ]
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "pages": [
+          {
+            "group": "Get started",
+            "pages": [
+              "docs/getting-started/intro"
+            ]
+          },
+          {
+            "group": "About MCP",
+            "pages": [
+              "docs/learn/architecture",
+              "docs/learn/server-concepts",
+              "docs/learn/client-concepts",
+              "specification/versioning"
+            ]
+          },
+          {
+            "group": "Develop with MCP",
+            "pages": [
+              "docs/develop/connect-local-servers",
+              "docs/develop/connect-remote-servers",
+              "docs/develop/build-with-agent-skills",
+              "docs/develop/build-server",
+              "docs/develop/build-client",
+              "docs/sdk",
+              {
+                "group": "Security",
+                "pages": [
+                  "docs/tutorials/security/authorization",
+                  "docs/tutorials/security/security_best_practices"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Developer tools",
+            "pages": [
+              "docs/tools/inspector",
+              "docs/tools/debugging"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
+          },
+          {
+            "group": "Authorization Extensions",
+            "pages": [
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Specification",
+        "versions": [
+          {
+            "version": "Version 2025-11-25 (latest)",
+            "pages": [
+              "specification/2025-11-25/index",
+              "specification/2025-11-25/changelog",
+              "specification/2025-11-25/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2025-11-25/basic/index",
+                  "specification/2025-11-25/basic/lifecycle",
+                  "specification/2025-11-25/basic/transports",
+                  "specification/2025-11-25/basic/authorization",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-11-25/basic/utilities/cancellation",
+                      "specification/2025-11-25/basic/utilities/ping",
+                      "specification/2025-11-25/basic/utilities/progress",
+                      "specification/2025-11-25/basic/utilities/tasks"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2025-11-25/client/roots",
+                  "specification/2025-11-25/client/sampling",
+                  "specification/2025-11-25/client/elicitation"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2025-11-25/server/index",
+                  "specification/2025-11-25/server/prompts",
+                  "specification/2025-11-25/server/resources",
+                  "specification/2025-11-25/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-11-25/server/utilities/completion",
+                      "specification/2025-11-25/server/utilities/logging",
+                      "specification/2025-11-25/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              },
+              "specification/2025-11-25/schema"
+            ]
+          },
+          {
+            "version": "Version 2025-06-18",
+            "pages": [
+              "specification/2025-06-18/index",
+              "specification/2025-06-18/changelog",
+              "specification/2025-06-18/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2025-06-18/basic/index",
+                  "specification/2025-06-18/basic/lifecycle",
+                  "specification/2025-06-18/basic/transports",
+                  "specification/2025-06-18/basic/authorization",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-06-18/basic/utilities/cancellation",
+                      "specification/2025-06-18/basic/utilities/ping",
+                      "specification/2025-06-18/basic/utilities/progress"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2025-06-18/client/roots",
+                  "specification/2025-06-18/client/sampling",
+                  "specification/2025-06-18/client/elicitation"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2025-06-18/server/index",
+                  "specification/2025-06-18/server/prompts",
+                  "specification/2025-06-18/server/resources",
+                  "specification/2025-06-18/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-06-18/server/utilities/completion",
+                      "specification/2025-06-18/server/utilities/logging",
+                      "specification/2025-06-18/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              },
+              "specification/2025-06-18/schema"
+            ]
+          },
+          {
+            "version": "Version 2025-03-26",
+            "pages": [
+              "specification/2025-03-26/index",
+              "specification/2025-03-26/changelog",
+              "specification/2025-03-26/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2025-03-26/basic/index",
+                  "specification/2025-03-26/basic/lifecycle",
+                  "specification/2025-03-26/basic/transports",
+                  "specification/2025-03-26/basic/authorization",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-03-26/basic/utilities/cancellation",
+                      "specification/2025-03-26/basic/utilities/ping",
+                      "specification/2025-03-26/basic/utilities/progress"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2025-03-26/client/roots",
+                  "specification/2025-03-26/client/sampling"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2025-03-26/server/index",
+                  "specification/2025-03-26/server/prompts",
+                  "specification/2025-03-26/server/resources",
+                  "specification/2025-03-26/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-03-26/server/utilities/completion",
+                      "specification/2025-03-26/server/utilities/logging",
+                      "specification/2025-03-26/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "Version 2024-11-05",
+            "pages": [
+              "specification/2024-11-05/index",
+              "specification/2024-11-05/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2024-11-05/basic/index",
+                  "specification/2024-11-05/basic/lifecycle",
+                  "specification/2024-11-05/basic/messages",
+                  "specification/2024-11-05/basic/transports",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2024-11-05/basic/utilities/cancellation",
+                      "specification/2024-11-05/basic/utilities/ping",
+                      "specification/2024-11-05/basic/utilities/progress"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2024-11-05/client/roots",
+                  "specification/2024-11-05/client/sampling"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2024-11-05/server/index",
+                  "specification/2024-11-05/server/prompts",
+                  "specification/2024-11-05/server/resources",
+                  "specification/2024-11-05/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2024-11-05/server/utilities/completion",
+                      "specification/2024-11-05/server/utilities/logging",
+                      "specification/2024-11-05/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "Draft",
+            "pages": [
+              "specification/draft/index",
+              "specification/draft/changelog",
+              "specification/draft/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/draft/basic/index",
+                  "specification/draft/basic/lifecycle",
+                  "specification/draft/basic/transports",
+                  "specification/draft/basic/authorization",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/draft/basic/utilities/cancellation",
+                      "specification/draft/basic/utilities/ping",
+                      "specification/draft/basic/utilities/progress",
+                      "specification/draft/basic/utilities/tasks"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/draft/client/roots",
+                  "specification/draft/client/sampling",
+                  "specification/draft/client/elicitation"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/draft/server/index",
+                  "specification/draft/server/prompts",
+                  "specification/draft/server/resources",
+                  "specification/draft/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/draft/server/utilities/completion",
+                      "specification/draft/server/utilities/logging",
+                      "specification/draft/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              },
+              "specification/draft/schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Registry",
+        "pages": [
+          "registry/about",
+          "registry/quickstart",
+          "registry/faq",
+          {
+            "group": "Publishing",
+            "pages": [
+              "registry/package-types",
+              "registry/remote-servers",
+              "registry/authentication",
+              "registry/versioning",
+              "registry/github-actions",
+              "registry/moderation-policy"
+            ]
+          },
+          {
+            "group": "Consuming",
+            "pages": [
+              "registry/registry-aggregators"
+            ]
+          },
+          "registry/terms-of-service"
+        ]
+      },
+      {
+        "tab": "SEPs",
+        "pages": [
+          "seps/index",
+          {
+            "group": "Final",
+            "pages": [
+              "seps/414-request-meta",
+              "seps/932-model-context-protocol-governance",
+              "seps/973-expose-additional-metadata-for-implementations-res",
+              "seps/985-align-oauth-20-protected-resource-metadata-with-rf",
+              "seps/986-specify-format-for-tool-names",
+              "seps/990-enable-enterprise-idp-policy-controls-during-mcp-o",
+              "seps/991-enable-url-based-client-registration-using-oauth-c",
+              "seps/994-shared-communication-practicesguidelines",
+              "seps/1024-mcp-client-security-requirements-for-local-server-",
+              "seps/1034--support-default-values-for-all-primitive-types-in",
+              "seps/1036-url-mode-elicitation-for-secure-out-of-band-intera",
+              "seps/1046-support-oauth-client-credentials-flow-in-authoriza",
+              "seps/1302-formalize-working-groups-and-interest-groups-in-mc",
+              "seps/1303-input-validation-errors-as-tool-execution-errors",
+              "seps/1319-decouple-request-payload-from-rpc-methods-definiti",
+              "seps/1330-elicitation-enum-schema-improvements-and-standards",
+              "seps/1577--sampling-with-tools",
+              "seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
+              "seps/1686-tasks",
+              "seps/1699-support-sse-polling-via-server-side-disconnect",
+              "seps/1730-sdks-tiering-system",
+              "seps/1850-pr-based-sep-workflow",
+              "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
+              "seps/2085-governance-succession-and-amendment",
+              "seps/2133-extensions",
+              "seps/2148-contributor-ladder",
+              "seps/2149-working-group-charter-template"
+            ]
+          },
+          {
+            "group": "Accepted",
+            "pages": [
+              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Community",
+        "pages": [
+          {
+            "group": "Get Involved",
+            "pages": [
+              "community/contributing",
+              "community/communication",
+              "community/working-interest-groups",
+              "community/charter-template"
+            ]
+          },
+          {
+            "group": "Propose Changes",
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
+            ]
+          },
+          {
+            "group": "Governance",
+            "pages": [
+              "community/governance",
+              "community/contributor-ladder",
+              "community/sdk-tiers",
+              "community/antitrust"
+            ]
+          },
+          {
+            "group": "Working Group Charters",
+            "pages": [
+              "community/server-card/charter",
+              "community/triggers-events/charter"
+            ]
+          },
+          {
+            "group": "Roadmap",
+            "pages": [
+              "development/roadmap"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "seo": {
+    "metatags": {
+      "og:image": "https://raw.githubusercontent.com/modelcontextprotocol/docs/2eb6171ddbfeefde349dc3b8d5e2b87414c26250/images/og-image.png"
+    },
+    "indexing": "navigable"
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/modelcontextprotocol"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/specification/latest",
+      "destination": "/specification/2025-11-25",
+      "permanent": false
+    },
+    {
+      "source": "/specification/latest/:slug*",
+      "destination": "/specification/2025-11-25/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/tutorials/building-a-client",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-a-client-node",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-mcp-with-llms",
+      "destination": "/docs/develop/build-with-agent-skills"
+    },
+    {
+      "source": "/faqs",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/tutorials/use-local-mcp-server",
+      "destination": "/docs/develop/connect-local-servers"
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/docs/develop/build-server"
+    },
+    {
+      "source": "/docs/concepts/architecture",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/concepts/elicitation",
+      "destination": "/specification/2025-06-18/client/elicitation"
+    },
+    {
+      "source": "/docs/concepts/prompts",
+      "destination": "/specification/2025-06-18/server/prompts"
+    },
+    {
+      "source": "/docs/concepts/resources",
+      "destination": "/specification/2025-06-18/server/resources"
+    },
+    {
+      "source": "/docs/concepts/roots",
+      "destination": "/specification/2025-06-18/client/roots"
+    },
+    {
+      "source": "/docs/concepts/sampling",
+      "destination": "/specification/2025-06-18/client/sampling"
+    },
+    {
+      "source": "/docs/concepts/tools",
+      "destination": "/specification/2025-06-18/server/tools"
+    },
+    {
+      "source": "/docs/concepts/transports",
+      "destination": "/specification/2025-06-18/basic/transports"
+    },
+    {
+      "source": "/legacy/tools/debugging",
+      "destination": "/docs/tools/debugging"
+    },
+    {
+      "source": "/legacy/concepts/architecture",
+      "destination": "/specification/latest/architecture"
+    },
+    {
+      "source": "/legacy/concepts/elicitation",
+      "destination": "/specification/latest/client/elicitation"
+    },
+    {
+      "source": "/legacy/concepts/prompts",
+      "destination": "/specification/latest/server/prompts"
+    },
+    {
+      "source": "/legacy/concepts/resources",
+      "destination": "/specification/latest/server/resources"
+    },
+    {
+      "source": "/legacy/concepts/roots",
+      "destination": "/specification/latest/client/roots"
+    },
+    {
+      "source": "/legacy/concepts/sampling",
+      "destination": "/specification/latest/client/sampling"
+    },
+    {
+      "source": "/legacy/concepts/tools",
+      "destination": "/specification/latest/server/tools"
+    },
+    {
+      "source": "/legacy/concepts/transports",
+      "destination": "/specification/latest/basic/transports"
+    },
+    {
+      "source": "/legacy/tools/inspector",
+      "destination": "/docs/tools/inspector"
+    },
+    {
+      "source": "/introduction",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/concepts",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/tutorials/use-remote-mcp-server",
+      "destination": "/docs/develop/connect-remote-servers"
+    },
+    {
+      "source": "/quickstart/user",
+      "destination": "/docs/develop/connect-local-servers"
+    },
+    {
+      "source": "/quickstart/server",
+      "destination": "/docs/develop/build-server"
+    },
+    {
+      "source": "/quickstart/client",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/development/contributing",
+      "destination": "/community/contributing"
+    },
+    {
+      "source": "/specification/draft/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-11-25/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-06-18/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/extensions",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/overview",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/apps",
+      "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/community/seps",
+      "destination": "/seps"
+    },
+    {
+      "source": "/community/seps/:slug*",
+      "destination": "/seps/:slug*"
+    }
+  ],
+  "contextual": {
+    "options": [
+      "copy",
+      "view"
+    ]
+  }
+}

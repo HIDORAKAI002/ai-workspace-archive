@@ -1,0 +1,323 @@
+AI kan onderzoeksworkflows versnellen, van literatuuronderzoek tot data-analyse. Dit hoofdstuk behandelt prompttechnieken voor academisch en professioneel onderzoek.
+
+<Callout type="info" title="AI in Onderzoek">
+AI kan helpen bij synthese, analyse en schrijven—maar kan kritisch denken, ethisch oordeel of domeinexpertise niet vervangen. Controleer altijd beweringen en citeer originele bronnen.
+</Callout>
+
+## Literatuur- & Informatieonderzoek
+
+### Do's en Don'ts: Onderzoeksprompts
+
+<Compare 
+  before={{ label: "❌ Vage aanvraag", content: "Vat dit artikel voor me samen." }}
+  after={{ label: "✓ Gestructureerde aanvraag", content: "Vat dit artikel samen voor mijn literatuuronderzoek over machine learning in de gezondheidszorg.\n\nLever:\n1. Hoofdthese (1-2 zinnen)\n2. Methodologie\n3. Belangrijkste bevindingen (opsommingen)\n4. Beperkingen\n5. Relevantie voor mijn onderzoek\n\nLeesniveau: Masterstudent" }}
+/>
+
+### Artikelsamenvattingen
+
+<TryIt compact prompt={`Vat dit academische artikel samen:
+
+[abstract of volledige tekst van artikel]
+
+Lever:
+1. **Hoofdthese** - Centraal argument (1-2 zinnen)
+2. **Methodologie** - Hoe ze het hebben aangepakt
+3. **Belangrijkste bevindingen** - Meest belangrijke resultaten (opsommingen)
+4. **Bijdragen** - Wat is nieuw/significant
+5. **Beperkingen** - Erkende of zichtbare zwaktes
+6. **Relevantie voor [mijn onderzoeksonderwerp]** - Hoe het verbindt
+
+Leesniveau: \${readingLevel:graduate}`} />
+
+### Literatuursynthese
+
+<TryIt compact prompt={`Synthetiseer deze artikelen over \${topic:de effectiviteit van thuiswerken}:
+
+Artikel 1: \${paper1:Smith 2021 - vond dat productiviteit met 15% steeg}
+Artikel 2: \${paper2:Jones 2022 - noteerde uitdagingen bij samenwerking}
+Artikel 3: \${paper3:Chen 2023 - hybride model toonde beste resultaten}
+
+Analyseer:
+1. **Gemeenschappelijke thema's** - Waar zijn ze het over eens?
+2. **Tegenstellingen** - Waar zijn ze het oneens?
+3. **Lacunes** - Wat wordt niet behandeld?
+4. **Evolutie** - Hoe is het denken geëvolueerd?
+5. **Synthese** - Geïntegreerd begrip
+
+Formatteer als: Literatuuronderzoek-paragraaf geschikt voor \${outputType:thesis}`} />
+
+### Ontwikkeling van Onderzoeksvragen
+
+<TryIt compact prompt={`Help me onderzoeksvragen te ontwikkelen voor \${topic:AI-adoptie in de gezondheidszorg}.
+
+Context:
+- Vakgebied: \${field:health informatics}
+- Huidige kennis: \${currentKnowledge:AI-tools bestaan maar adoptie verloopt traag}
+- Geïdentificeerde lacune: \${gap:beperkt begrip van weerstandsfactoren bij artsen}
+- Mijn interesse: \${interest:organisatorisch verandermanagement}
+
+Genereer:
+1. **Primaire onderzoeksvraag** - Hoofdvraag om te beantwoorden
+2. **Deelvragen** - Ondersteunende vragen (3-4)
+3. **Hypotheses** - Toetsbare voorspellingen (indien van toepassing)
+
+Criteria: Vragen moeten:
+- Beantwoordbaar zijn met beschikbare methoden
+- Significant zijn voor het vakgebied
+- Passend afgebakend zijn`} />
+
+## Data-analyse
+
+<Callout type="warning" title="AI Kan Je Werkelijke Data Niet Analyseren">
+AI kan methodologie begeleiden en helpen bij het interpreteren van resultaten, maar kan je werkelijke datasets niet benaderen of verwerken. Plak nooit gevoelige onderzoeksdata in prompts. Gebruik AI voor **begeleiding**, niet voor berekeningen.
+</Callout>
+
+### Begeleiding bij Statistische Analyse
+
+<TryIt compact prompt={`Help me deze data te analyseren:
+
+Databeschrijving:
+- Variabelen: \${variables:leeftijd (continu), behandelgroep (categorisch: A/B/C), uitkomstscore (continu)}
+- Steekproefgrootte: \${sampleSize:n=150 (50 per groep)}
+- Onderzoeksvraag: \${researchQuestion:Beïnvloedt behandeltype de uitkomstscores?}
+- Datakenmerken: \${characteristics:normaal verdeeld, geen ontbrekende waarden}
+
+Adviseer over:
+1. **Geschikte toetsen** - Welke statistische toetsen te gebruiken
+2. **Te controleren aannames** - Voorwaarden
+3. **Hoe resultaten te interpreteren** - Wat verschillende uitkomsten betekenen
+4. **Effectgrootte** - Praktische significantie
+5. **Rapportage** - Hoe bevindingen te presenteren
+
+Opmerking: Begeleid mijn analyse, verzin geen resultaten.`} />
+
+### Kwalitatieve Analyse
+
+<TryIt compact prompt={`Help me deze kwalitatieve antwoorden te analyseren:
+
+Antwoorden:
+\${responses:plak hier interviewfragmenten of enquêteantwoorden}
+
+Gebruikmakend van \${method:thematische analyse}:
+
+1. **Initiële codes** - Identificeer terugkerende concepten
+2. **Categorieën** - Groepeer gerelateerde codes
+3. **Thema's** - Overkoepelende patronen
+4. **Relaties** - Hoe thema's verbinden
+5. **Representatieve citaten** - Bewijs voor elk thema
+
+Behoud: Stem en context van deelnemers`} />
+
+### Data-interpretatie
+
+<TryIt compact prompt={`Help me deze bevindingen te interpreteren:
+
+Resultaten:
+\${results:plak hier statistische output of datasamenvatting}
+
+Context:
+- Onderzoeksvraag: \${researchQuestion:Voorspelt X Y?}
+- Hypothese: \${hypothesis:X voorspelt Y positief}
+- Verwachte resultaten: \${expectedResults:significante positieve correlatie}
+
+Lever:
+1. **Interpretatie in eenvoudige taal** - Wat betekent dit?
+2. **Statistische significantie** - Wat de p-waarden ons vertellen
+3. **Praktische significantie** - Betekenis in de echte wereld
+4. **Vergelijking met literatuur** - Hoe past dit?
+5. **Alternatieve verklaringen** - Andere interpretaties
+6. **Beperkingen van de interpretatie**`} />
+
+## Gestructureerde Analysekaders
+
+### PESTLE-analyse
+
+<TryIt compact prompt={`Voer een PESTLE-analyse uit voor \${subject:de elektrische voertuigindustrie in Europa}.
+
+**Politieke** factoren:
+- Overheidsbeleid, regelgeving, politieke stabiliteit
+
+**Economische** factoren:
+- Economische groei, inflatie, wisselkoersen, werkloosheid
+
+**Sociale** factoren:
+- Demografie, culturele trends, veranderingen in levensstijl
+
+**Technologische** factoren:
+- Innovatie, R&D, automatisering, technologische veranderingen
+
+**Juridische** factoren:
+- Wetgeving, toezichthoudende instanties, arbeidsrecht
+
+**Ecologische** factoren:
+- Klimaat, duurzaamheid, milieuregulering
+
+Voor elk: Huidige situatie + trends + implicaties`} />
+
+### Oorzaakanalyse
+
+<TryIt compact prompt={`Voer een oorzaakanalyse uit voor \${problem:klantenverloop steeg 20% afgelopen kwartaal}.
+
+Probleemstelling:
+\${problemStatement:Maandelijks verlooppercentage steeg van 3% naar 3,6% tussen Q3 en Q4}
+
+Met de 5 Waarom's:
+1. Waarom? Eerste niveau oorzaak
+   2. Waarom? Diepere oorzaak
+      3. Waarom? Nog dieper
+         4. Waarom? Nadert de kern
+            5. Waarom? Kernoorzaak
+
+Alternatief: Visgraatdiagram-categorieën
+- Mensen
+- Proces
+- Apparatuur
+- Materialen
+- Omgeving
+- Management
+
+Lever: Kernoorzaak/oorzaken + aanbevolen acties`} />
+
+### Gap-analyse
+
+<TryIt compact prompt={`Voer een gap-analyse uit voor \${subject:onze klantenservice-operaties}.
+
+**Huidige Situatie:**
+- \${currentState:Gemiddelde responstijd 24 uur, CSAT 3,2/5}
+
+**Gewenste Situatie:**
+- \${desiredState:Responstijd onder 4 uur, CSAT 4,5/5}
+
+**Gap-identificatie:**
+| Gebied | Huidig | Gewenst | Gap | Prioriteit |
+|--------|--------|---------|-----|------------|
+| ... | ... | ... | ... | H/M/L |
+
+**Actieplan:**
+Voor elke hoge-prioriteit gap:
+- Specifieke acties
+- Benodigde middelen
+- Tijdlijn
+- Succesmetrieken`} />
+
+## Ondersteuning bij Academisch Schrijven
+
+### Argumentstructuur
+
+<TryIt compact prompt={`Help me een argument te structureren voor \${topic:waarom thuiswerken permanent beleid zou moeten worden}.
+
+Hoofdstelling: \${thesis:Organisaties zouden permanent remote/hybride beleid moeten invoeren voor kenniswerkers}
+
+Vereist:
+1. **Premissen** - Ondersteunende stellingen die naar de conclusie leiden
+2. **Bewijs** - Data/bronnen voor elke premisse
+3. **Tegenargumenten** - Tegengestelde standpunten
+4. **Weerleggingen** - Antwoorden op tegenargumenten
+5. **Logische opbouw** - Hoe alles samenhangt
+
+Controleer op:
+- Logische drogredenen
+- Ononderbouwde beweringen
+- Gaten in de redenering`} />
+
+### Methodensectie
+
+<TryIt compact prompt={`Help me een methodensectie te schrijven voor:
+
+Studietype: \${studyType:enquête}
+Deelnemers: \${participants:200 bachelorstudenten, convenience sampling}
+Materialen: \${materials:online vragenlijst met Likert-schalen}
+Procedure: \${procedure:deelnemers vulden 20-minuten enquête online in}
+Analyse: \${analysis:beschrijvende statistieken en regressieanalyse}
+
+Standaarden: Volg \${standards:APA 7e editie} richtlijnen
+Inclusief: Voldoende detail voor replicatie
+Toon: Lijdende vorm, verleden tijd`} />
+
+### Discussiesectie
+
+<TryIt compact prompt={`Help me een discussiesectie te schrijven.
+
+Belangrijkste bevindingen:
+\${findings:1. Significante positieve correlatie (r=0,45) tussen X en Y\n2. Geen significant verschil tussen groepen op secundaire maat}
+
+Structuur:
+1. **Samenvatting** - Korte herformulering van hoofdbevindingen
+2. **Interpretatie** - Wat de bevindingen betekenen
+3. **Context** - Hoe bevindingen zich verhouden tot bestaande literatuur
+4. **Implicaties** - Theoretische en praktische betekenis
+5. **Beperkingen** - Zwaktes van de studie
+6. **Toekomstige richtingen** - Welk onderzoek zou moeten volgen
+7. **Conclusie** - Kernboodschap
+
+Vermijd: Bevindingen overdrijven of nieuwe resultaten introduceren`} />
+
+## Kritische Analyse
+
+### Bronevaluatie
+
+<TryIt compact prompt={`Evalueer deze bron voor academisch gebruik:
+
+Bron: \${source:plak hier citatie of link}
+Inhoudsoverzicht: \${summary:korte beschrijving van wat de bron beweert}
+
+Beoordeel met CRAAP-criteria:
+- **Actualiteit**: Wanneer gepubliceerd? Bijgewerkt? Actueel genoeg?
+- **Relevantie**: Gerelateerd aan mijn onderwerp? Passend niveau?
+- **Autoriteit**: Auteurskwalificaties? Reputatie uitgever?
+- **Nauwkeurigheid**: Onderbouwd met bewijs? Peer-reviewed?
+- **Doel**: Waarom geschreven? Is er sprake van vooringenomenheid?
+
+Oordeel: Zeer geloofwaardig / Met voorzichtigheid gebruiken / Vermijden
+Hoe te gebruiken: Aanbevelingen voor integratie`} />
+
+### Argumentanalyse
+
+<TryIt compact prompt={`Analyseer het argument in deze tekst:
+
+\${text:plak de tekst die je wilt analyseren}
+
+Identificeer:
+1. **Hoofdstelling** - Wat wordt beweerd
+2. **Ondersteunend bewijs** - Wat onderbouwt het
+3. **Aannames** - Onuitgesproken premissen
+4. **Logische structuur** - Hoe de conclusie volgt
+5. **Sterke punten** - Wat overtuigend is
+6. **Zwakke punten** - Logische gaten of drogredenen
+7. **Alternatieve interpretaties**
+
+Lever: Eerlijke, evenwichtige beoordeling`} />
+
+## Prompt Sjablonen van prompts.chat
+
+### Fungeer als Onderzoeksassistent
+
+<TryIt compact prompt={`Ik wil dat je fungeert als onderzoeksassistent. Help me onderwerpen te verkennen, informatie te vinden, bronnen te synthetiseren en argumenten te ontwikkelen. Stel verhelderende vragen, stel relevante onderzoeksgebieden voor en help me kritisch na te denken over bewijs. Wees grondig maar erken de grenzen van je kennis.`} />
+
+### Fungeer als Data-analist
+
+<TryIt compact prompt={`Ik wil dat je fungeert als data-analist. Ik zal datasets en onderzoeksvragen beschrijven, en jij zult analysebenaderingen voorstellen, helpen bij het interpreteren van resultaten en potentiële problemen identificeren. Focus op gedegen methodologie en duidelijke communicatie van bevindingen.`} />
+
+### Fungeer als Peer Reviewer
+
+<TryIt compact prompt={`Ik wil dat je fungeert als academisch peer reviewer. Ik zal manuscripten of secties delen, en jij zult constructieve feedback geven over methodologie, argumentatie, schrijfstijl en bijdrage aan het vakgebied. Wees rigoureus maar ondersteunend, en benoem zowel sterke punten als verbeterpunten.`} />
+
+## Samenvatting
+
+<Callout type="tip" title="Belangrijke Technieken">
+Vermeld duidelijk de onderzoekscontext en doelen, specificeer het te gebruiken analytisch kader, vraag om erkenning van beperkingen, vraag om evidence-based redenering en behoud academische nauwkeurigheid en eerlijkheid.
+</Callout>
+
+<Quiz 
+  question="Wat is het belangrijkste om te onthouden bij het gebruik van AI voor onderzoek?"
+  options={[
+    "AI kan de behoefte aan primaire bronnen vervangen",
+    "AI-analyse is altijd accuraat en actueel",
+    "Verifieer AI-beweringen altijd onafhankelijk en citeer originele bronnen",
+    "AI kan je werkelijke datasets benaderen en analyseren"
+  ]}
+  correctIndex={2}
+  explanation="AI kan helpen bij synthese en structuur, maar kan citaties hallucineren, verouderde informatie hebben en kan je werkelijke data niet benaderen. Verifieer beweringen altijd aan de hand van primaire bronnen en behoud academische integriteit."
+/>
+
+Onthoud: AI kan onderzoek ondersteunen maar kan kritisch denken, ethisch oordeel of domeinexpertise niet vervangen. Verifieer beweringen altijd onafhankelijk.

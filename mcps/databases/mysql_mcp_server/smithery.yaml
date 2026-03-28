@@ -1,0 +1,46 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - mysqlUser
+      - mysqlPassword
+      - mysqlDatabase
+    properties:
+      mysqlHost:
+        type: string
+        description: "The hostname of the MySQL server. Use localhost for local connections or a specific address for remote databases. For Docker, host.docker.internal allows accessing the host machine."
+        default: "host.docker.internal"
+      mysqlPort:
+        type: number
+        description: "The port of the MySQL server (default: 3306)."
+        default: 3306
+      mysqlUser:
+        type: string
+        description: "The username for MySQL authentication."
+      mysqlPassword:
+        type: string
+        description: "The password for MySQL authentication."
+      mysqlDatabase:
+        type: string
+        description: "The database to connect to."
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({ 
+      command: 'docker', 
+      args: [
+        'run',
+        '-i',
+        '--rm',
+        '-e', `MYSQL_HOST=${config.mysqlHost}`,
+        '-e', `MYSQL_PORT=${config.mysqlPort}`,
+        '-e', `MYSQL_USER=${config.mysqlUser}`,
+        '-e', `MYSQL_PASSWORD=${config.mysqlPassword}`,
+        '-e', `MYSQL_DATABASE=${config.mysqlDatabase}`,
+        'smithery/mysql-mcp-server:latest'
+      ]
+    })

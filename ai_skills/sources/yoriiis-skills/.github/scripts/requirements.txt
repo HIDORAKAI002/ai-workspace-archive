@@ -1,0 +1,2 @@
+# Dependencies for validate-skills.py
+PyYAML>=6.0

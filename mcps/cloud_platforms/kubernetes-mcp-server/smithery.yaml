@@ -1,0 +1,13 @@
+# Smithery.ai configuration https://smithery.ai/docs/config#smitheryyaml
+startCommand:
+  type: stdio
+  configSchema:
+    {}
+  commandFunction:
+    |-
+    (config) => ({
+      "command": "npx",
+      "args": [
+        "-y", "kubernetes-mcp-server@latest"
+      ]
+    })

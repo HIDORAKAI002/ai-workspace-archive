@@ -1,0 +1,363 @@
+Chain of Thought (CoT) یک تکنیک پرامپت‌نویسی است که عملکرد هوش مصنوعی را در وظایف استدلال پیچیده به طور چشمگیری بهبود می‌بخشد، با درخواست از مدل برای نمایش گام‌به‌گام کار خود.
+
+<Callout type="info" title="کارت را نشان بده">
+درست مثل معلم ریاضی که از دانش‌آموزان می‌خواهد کارشان را نشان دهند، پرامپت‌نویسی CoT از هوش مصنوعی می‌خواهد که استدلال خود را قابل مشاهده کند.
+</Callout>
+
+## مشکلی که CoT حل می‌کند
+
+مدل‌های هوش مصنوعی می‌توانند در استدلال چندمرحله‌ای دچار مشکل شوند وقتی از آن‌ها خواسته می‌شود مستقیماً به پاسخ برسند.
+
+<Compare 
+  before={{ label: "پاسخ مستقیم (اغلب اشتباه)", content: "Question: A store sells apples for $2 each. If you buy 5 or more, you get 20% off. How much do 7 apples cost?\n\nAnswer: $14 ❌" }}
+  after={{ label: "Chain of Thought (صحیح)", content: "Question: A store sells apples for $2 each. If you buy 5 or more, you get 20% off. How much do 7 apples cost?\n\nLet's work through this step by step:\n1. Regular price per apple: $2\n2. Number of apples: 7\n3. Since 7 ≥ 5, the discount applies\n4. Regular total: 7 × $2 = $14\n5. Discount: 20% of $14 = $2.80\n6. Final price: $14 - $2.80 = $11.20\n\nAnswer: $11.20 ✓" }}
+/>
+
+## پرامپت‌های پایه CoT
+
+### عبارات محرک ساده
+
+یکی از این عبارات را به پرامپت‌های خود اضافه کنید:
+
+<div className="my-4 grid gap-2">
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Let's think step by step."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Think through this carefully."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Work through this problem methodically."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Show your reasoning at each step."</div>
+  <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm">"Explain your thought process."</div>
+</div>
+
+### درخواست صریح مراحل
+
+<TryIt 
+  title="Chain of Thought را امتحان کنید"
+  description="از هوش مصنوعی بخواهید یک مسئله را گام‌به‌گام حل کند."
+  prompt={`Solve this problem:
+
+A car rental costs $40 per day plus $0.25 per mile. If someone rents a car for 3 days and drives 200 miles, what is the total cost?
+
+Before giving your final answer:
+1. Identify what information is given
+2. Determine what we need to find
+3. Plan your approach
+4. Execute each step, showing work
+5. Verify your answer`}
+/>
+
+## Zero-Shot در مقابل Few-Shot CoT
+
+دو رویکرد اصلی برای پرامپت‌نویسی Chain of Thought وجود دارد، که هر کدام مصالحه‌های متفاوتی بین سادگی و کنترل دارند.
+
+### Zero-Shot CoT
+
+ساده‌ترین رویکرد—فقط یک عبارت محرک اضافه کنید و بگذارید مدل خودش نحوه استدلال را کشف کند. نیازی به مثال نیست. این روش برای بسیاری از مسائل به طور شگفت‌انگیزی خوب کار می‌کند، هرچند کنترل کمتری روی فرمت استدلال دارید.
+
+<TryIt 
+  compact
+  title="Zero-Shot CoT"
+  prompt={`If John has 3 apples and gives half to Mary, then buys 4 more, how many does he have?
+
+Let's think step by step.`}
+/>
+
+**خروجی نمونه:**
+```
+Let's think step by step.
+- John starts with 3 apples
+- Half of 3 is 1.5, but we can't split apples
+- If we round down: John gives 1 apple, keeps 2
+- After buying 4 more: 2 + 4 = 6 apples
+
+Answer: 6 apples
+```
+
+### Few-Shot CoT
+
+برای نتایج یکنواخت‌تر، دقیقاً به مدل نشان دهید که چگونه می‌خواهید استدلال کند با ارائه مثال‌های حل‌شده. این به شما کنترل روی سبک استدلال، فرمت و سطح جزئیات می‌دهد. مدل الگوی نمایش داده شده شما را تقلید خواهد کرد.
+
+<TryIt 
+  compact
+  title="Few-Shot CoT"
+  prompt={`Example 1:
+Q: A baker has 24 cupcakes. She puts them equally into 4 boxes. Then she eats 2 cupcakes from one box. How many cupcakes total remain?
+
+A: Let's work through this:
+- Total cupcakes: 24
+- Cupcakes per box: 24 ÷ 4 = 6
+- After eating 2 from one box: 6 - 2 = 4 cupcakes in that box
+- Total remaining: (3 boxes × 6) + 4 = 18 + 4 = 22 cupcakes
+
+Example 2:
+Q: A train travels at 60 mph for 2 hours, then 40 mph for 3 hours. What is its average speed?
+
+A: Let's work through this:
+- Distance at 60 mph: 60 × 2 = 120 miles
+- Distance at 40 mph: 40 × 3 = 120 miles
+- Total distance: 120 + 120 = 240 miles
+- Total time: 2 + 3 = 5 hours
+- Average speed: 240 ÷ 5 = 48 mph
+
+Now solve:
+Q: A store sells notebooks for $3 each. If you buy 10 or more, you get 25% off. How much do 12 notebooks cost?`}
+/>
+
+**خروجی نمونه:**
+```
+A: Let's work through this:
+- Regular price: $3, Quantity: 12
+- Since 12 ≥ 10, the 25% discount applies
+- Regular total: 12 × $3 = $36
+- Discount: 25% of $36 = $9
+- Final price: $36 - $9 = $27
+```
+
+## فرمت‌های ساختاریافته CoT
+
+برای استدلال یکنواخت و قابل تکرار، از فرمت‌های ساختاریافته با مراحل نام‌گذاری شده استفاده کنید. این چارچوب‌ها تضمین می‌کنند که مدل مراحل مهم را نادیده نگیرد و خروجی‌ها را برای تجزیه و تحلیل و تأیید آسان‌تر می‌کنند.
+
+### فرمت BREAK
+
+یک مخفف به‌یادماندنی که مدل را از طریق یک چرخه کامل حل مسئله، از درک تا تأیید، راهنمایی می‌کند.
+
+<BREAKFramework />
+
+### قالب استدلال
+
+یک ساختار رسمی‌تر که ورودی‌ها، اهداف و اجرا را جدا می‌کند. عالی برای مسائل فنی که نیاز به مستندسازی واضح فرآیند حل دارید.
+
+<TryIt 
+  compact
+  title="قالب استدلال"
+  prompt={`Use this template to solve the problem:
+
+GIVEN: [List known information]
+GOAL: [What we need to find]
+APPROACH: [Strategy we'll use]
+STEPS:
+  1. [First step with reasoning]
+  2. [Second step with reasoning]
+  ...
+VERIFICATION: [Check the answer]
+ANSWER: [Final answer]
+
+Problem: A car uses 8 liters of fuel per 100 km. If the tank holds 45 liters and fuel costs $1.50 per liter, how much does it cost to drive 300 km?`}
+/>
+
+**خروجی نمونه:**
+```
+GIVEN: 8L/100km, tank 45L, $1.50/L, drive 300km
+GOAL: Calculate fuel cost
+APPROACH: Fuel needed × cost per liter
+STEPS:
+1. Fuel = (300 ÷ 100) × 8 = 24 liters
+2. Cost = 24 × $1.50 = $36
+VERIFICATION: 24L < 45L tank ✓
+ANSWER: $36
+```
+
+## CoT برای انواع مختلف مسائل
+
+انواع مختلف مسائل از رویکردهای متفاوت CoT بهره می‌برند. در اینجا الگوهایی بهینه‌شده برای سناریوهای رایج آورده شده است.
+
+### استدلال ریاضی
+
+مسائل ریاضی بیشترین بهره را از CoT می‌برند زیرا هر مرحله بر مرحله قبلی بنا می‌شود. خطاها انباشته می‌شوند، بنابراین نشان دادن کار به شناسایی زودهنگام اشتباهات کمک می‌کند. مدل باید هر محاسبه را به وضوح برچسب‌گذاری کند.
+
+<TryIt 
+  compact
+  title="ریاضی با CoT"
+  prompt={`A company's revenue was $1.2M in Q1. It grew 15% in Q2, declined 10% in Q3, and grew 25% in Q4. What was the total annual revenue?
+
+Think through each quarter, showing your calculations clearly.`}
+/>
+
+**خروجی نمونه:**
+```
+Q1: $1,200,000 (given)
+Q2: $1,200,000 × 1.15 = $1,380,000
+Q3: $1,380,000 × 0.90 = $1,242,000
+Q4: $1,242,000 × 1.25 = $1,552,500
+
+Total: $5,374,500
+```
+
+### استدلال منطقی
+
+پازل‌های منطقی نیاز به حذف سیستماتیک و آزمون فرضیه دارند. CoT به مدل کمک می‌کند محدودیت‌ها را پیگیری کند، احتمالات را آزمایش کند و تأیید کند که همه شرایط برآورده شده‌اند. کلید، کاوش روش‌مند است نه حدس زدن.
+
+<TryIt 
+  compact
+  title="پازل منطقی"
+  prompt={`Three friends—Alice, Bob, and Carol—each have different pets (cat, dog, fish) and different jobs (teacher, engineer, doctor).
+
+Clues:
+1. Alice doesn't have a cat
+2. The engineer has a dog
+3. Bob is a teacher
+4. Carol doesn't have a fish
+
+Who has which pet and job? Reason through this systematically, testing hypotheses and verifying against all clues.`}
+/>
+
+**خروجی نمونه:**
+```
+From clue 3: Bob = teacher
+→ Alice and Carol are engineer/doctor
+
+If Carol = engineer:
+- Carol has dog (clue 2)
+- Alice = doctor, has fish (clue 1)
+- Bob has cat
+
+Verify: All 4 clues satisfied ✓
+Answer: Alice (doctor, fish), Bob (teacher, cat), Carol (engineer, dog)
+```
+
+### اشکال‌زدایی کد
+
+اشکال‌زدایی از CoT بهره می‌برد زیرا مدل را مجبور می‌کند اجرا را دنبال کند به جای حدس زدن باگ‌ها. با دنبال کردن کد با مقادیر مشخص، رفتار واقعی قابل مشاهده می‌شود و اختلافات با رفتار مورد انتظار آشکار می‌شوند.
+
+<TryIt 
+  compact
+  title="اشکال‌زدایی با CoT"
+  prompt={`This function should return the sum of even numbers in a list, but it's returning wrong values. Debug step by step by tracing through with the input [2, 3, 4, 6]:
+
+def sum_evens(numbers):
+    total = 0
+    for n in numbers:
+        if n % 2 == 0:
+            total += 1
+    return total
+
+Trace each step, find the bug, and provide the fix.`}
+/>
+
+**خروجی نمونه:**
+```
+Trace [2, 3, 4, 6]:
+n=2: total += 1 → 1 (wait, adding 1 not n!)
+n=3: skip (odd)
+n=4: total = 2
+n=6: total = 3
+
+BUG: "total += 1" should be "total += n"
+Expected: 12, Got: 3
+Fix: Change to "total += n"
+```
+
+## Self-Consistency با CoT
+
+برای مسائل حیاتی، به یک مسیر استدلال تکیه نکنید. چندین راه‌حل مستقل تولید کنید و نتایج را مقایسه کنید. اگر رویکردهای مختلف به یک پاسخ برسند، اطمینان بالاست. اختلاف نشان‌دهنده نیاز به بررسی دقیق است.
+
+<TryIt 
+  compact
+  title="Self-Consistency"
+  prompt={`Solve this problem 3 different ways, then give your final answer based on which solution appears most correct:
+
+Problem: A farmer has chickens and cows. Together they have 30 heads and 74 legs. How many chickens and how many cows does the farmer have?
+
+Approach 1: Algebra
+Approach 2: Guess and check
+Approach 3: Logical reasoning
+
+Then compare and give your final answer.`}
+/>
+
+**خروجی نمونه:**
+```
+Approach 1 (Algebra): c + w = 30, 2c + 4w = 74 → c=23, w=7
+Approach 2 (Guess): Try 23/7 → 46 + 28 = 74 ✓
+Approach 3 (Logic): 30 chickens = 60 legs, need 14 more → 7 cows
+
+All agree: 23 chickens, 7 cows
+```
+
+## CoT برای تصمیم‌گیری
+
+تصمیم‌گیری شامل سنجش مصالحه‌ها در ابعاد مختلف است. CoT تضمین می‌کند که همه عوامل مربوطه به طور سیستماتیک در نظر گرفته شوند به جای رسیدن سریع به نتیجه. این رویکرد ساختاریافته همچنین استدلال را برای مراجعات آینده مستند می‌کند.
+
+<TryIt 
+  compact
+  title="تحلیل تصمیم"
+  prompt={`Should we adopt microservices architecture for our application?
+
+Context:
+- Monolithic application with 50,000 lines of code
+- Team of 5 developers
+- 100 daily active users
+- Planning for 10x growth in 2 years
+
+Think through this systematically:
+1. List the current state
+2. Identify factors to consider (team size, scale, velocity, future growth)
+3. Weigh each factor as for/against
+4. Give a recommendation with reasoning`}
+/>
+
+**خروجی نمونه:**
+```
+FACTORS:
+- Team size (5): Too small for microservices ❌
+- Scale (100 DAU): No scaling need ❌  
+- Velocity: Monolith = faster iteration ❌
+- Future growth: Uncertain timeline ⚠️
+
+WEIGHING: 3 strong against, 1 weak for
+
+RECOMMENDATION: Stay monolith, use clear module 
+boundaries to ease future transition.
+```
+
+## چه زمانی از CoT استفاده کنیم
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconCheck className="h-4 w-4" /> از CoT استفاده کنید برای</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">**مسائل ریاضی** — کاهش خطاهای محاسباتی</p>
+      <p className="m-0!">**پازل‌های منطقی** — جلوگیری از نادیده گرفتن مراحل</p>
+      <p className="m-0!">**تحلیل پیچیده** — سازماندهی تفکر</p>
+      <p className="m-0!">**اشکال‌زدایی کد** — ردیابی اجرا</p>
+      <p className="m-0!">**تصمیم‌گیری** — سنجش مصالحه‌ها</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+    <p className="text-sm font-semibold text-red-700 dark:text-red-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconX className="h-4 w-4" /> از CoT صرف‌نظر کنید برای</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">**پرسش و پاسخ ساده** — سربار غیرضروری</p>
+      <p className="m-0!">**نوشتن خلاقانه** — می‌تواند خلاقیت را محدود کند</p>
+      <p className="m-0!">**جستجوی اطلاعات** — نیازی به استدلال نیست</p>
+      <p className="m-0!">**ترجمه** — وظیفه مستقیم</p>
+      <p className="m-0!">**خلاصه‌سازی** — معمولاً ساده است</p>
+    </div>
+  </div>
+</div>
+
+## محدودیت‌های CoT
+
+در حالی که Chain of Thought قدرتمند است، راه‌حل جادویی نیست. درک محدودیت‌های آن به شما کمک می‌کند آن را به طور مناسب به کار ببرید.
+
+1. **افزایش مصرف توکن** — خروجی بیشتر یعنی هزینه بالاتر
+2. **همیشه لازم نیست** — وظایف ساده بهره‌ای نمی‌برند
+3. **می‌تواند پرحرف باشد** — ممکن است نیاز به درخواست اختصار داشته باشید
+4. **استدلال می‌تواند اشتباه باشد** — CoT صحت را تضمین نمی‌کند
+
+## خلاصه
+
+<Callout type="tip" title="نکات کلیدی">
+CoT استدلال پیچیده را با آشکار کردن مراحل ضمنی به طور چشمگیری بهبود می‌بخشد. برای ریاضی، منطق، تحلیل و اشکال‌زدایی استفاده کنید. مصالحه: دقت بهتر در ازای توکن بیشتر.
+</Callout>
+
+<Quiz 
+  question="چه زمانی نباید از پرامپت‌نویسی Chain of Thought استفاده کنید؟"
+  options={[
+    "مسائل ریاضی که نیاز به چندین مرحله دارند",
+    "سوالات ساده مانند «پایتخت فرانسه چیست؟»",
+    "اشکال‌زدایی کد با منطق پیچیده",
+    "تحلیل یک تصمیم تجاری"
+  ]}
+  correctIndex={1}
+  explanation="Chain of Thought برای پرسش و پاسخ ساده سربار غیرضروری اضافه می‌کند. بهتر است برای وظایف استدلال پیچیده مانند ریاضی، پازل‌های منطقی، اشکال‌زدایی کد و تحلیل که نشان دادن کار دقت را بهبود می‌بخشد، ذخیره شود."
+/>
+
+در فصل بعدی، یادگیری Few-Shot را بررسی خواهیم کرد—آموزش مدل از طریق مثال‌ها.

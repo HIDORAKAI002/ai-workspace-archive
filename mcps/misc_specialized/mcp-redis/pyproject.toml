@@ -1,0 +1,134 @@
+[project]
+name = "redis-mcp-server"
+version = "0.5.0"
+description = "Redis MCP Server - Model Context Protocol server for Redis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    {name = "Redis", email = "oss@redis.com"}
+]
+keywords = ["redis", "mcp", "model-context-protocol", "ai", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "mcp[cli]>=1.26.0",
+    "redis>=6.0.0",
+    "python-dotenv>=1.0.1",
+    "numpy>=2.2.4",
+    "click>=8.0.0",
+    "aiohttp>=3.13.0",
+    "redis-entraid>=1.0.0",
+]
+
+[project.scripts]
+redis-mcp-server = "src.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/redis/mcp-redis"
+Repository = "https://github.com/redis/mcp-redis"
+Issues = "https://github.com/redis/mcp-redis/issues"
+
+[build-system]
+requires = ["uv_build>=0.8.3,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "src"
+module-root = "."
+
+# Security configuration for bandit
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]
+skips = ["B101"]  # Skip assert_used and shell_injection_process_args if needed
+
+[tool.bandit.assert_used]
+skips = ["*_test.py", "*/test_*.py"]
+
+
+
+[dependency-groups]
+dev = [
+    "bandit[toml]>=1.8.6",
+    "black>=25.1.0",
+    "coverage>=7.10.1",
+    "mypy>=1.17.0",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.12.5",
+    "safety>=3.6.0",
+    "twine>=4.0",
+]
+
+test = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.12.0",
+    "coverage>=7.10.1",
+]
+
+# Testing configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--cov=src",
+    "--cov-report=html",
+    "--cov-report=term",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+markers = [
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow running",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+

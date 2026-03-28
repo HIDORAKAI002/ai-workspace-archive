@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=8.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aws-mcp"
+dynamic = ["version"]
+description = "AWS Model Context Protocol Server"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+authors = [{ name = "Alexei Ledenev" }]
+dependencies = [
+    "fastmcp>=2.13.0",
+    "mcp>=1.22.0",
+    "boto3>=1.41.0",
+    "pyyaml>=6.0.0"
+]
+
+[project.scripts]
+aws-mcp = "aws_mcp_server.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-cov>=7.0.0",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.14.0",
+    "moto>=5.1.0",
+    "setuptools_scm>=9.0.0",
+]
+# Production dependencies, optimized for Docker
+prod = [
+    "fastmcp>=2.13.0",
+    "mcp>=1.22.0",
+    "boto3>=1.41.0",
+    "pyyaml>=6.0.0",
+]
+
+[tool.setuptools]
+packages = ["aws_mcp_server"]
+package-dir = { "" = "src" }
+
+[tool.ruff]
+line-length = 160
+target-version = "py313"
+exclude = ["src/aws_mcp_server/_version.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["aws_mcp_server"]
+
+# Using VSCode + Pylance static typing instead of mypy
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+markers = [
+    "integration: marks tests that require AWS CLI and AWS credentials",
+    "asyncio: mark test as requiring asyncio",
+]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::RuntimeWarning:unittest.mock:",
+    "ignore::RuntimeWarning:weakref:",
+    "ignore:coroutine.*was never awaited:RuntimeWarning",
+]
+
+[tool.coverage.run]
+source = ["src/aws_mcp_server"]
+omit = [
+    "*/tests/*",
+    "*/setup.py",
+    "*/conftest.py",
+    "src/aws_mcp_server/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0-dev0"
+local_scheme = "no-local-version"
+
+[dependency-groups]
+dev = [
+    "pytest-timeout>=2.4.0",
+    "pytest-asyncio>=1.3.0",
+]

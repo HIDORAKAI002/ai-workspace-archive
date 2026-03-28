@@ -1,0 +1,439 @@
+interactions:
+- request:
+    body: '{"messages":[{"role":"system","content":"Your input fields are:\n1. `question`
+      (str):\nYour output fields are:\n1. `reasoning` (str): \n2. `answer` (str):
+      \n3. `explanation` (str):\nAll interactions will be structured in the following
+      way, with the appropriate values filled in.\n\n[[ ## question ## ]]\n{question}\n\n[[
+      ## reasoning ## ]]\n{reasoning}\n\n[[ ## answer ## ]]\n{answer}\n\n[[ ## explanation
+      ## ]]\n{explanation}\n\n[[ ## completed ## ]]\nIn adhering to this structure,
+      your objective is: \n        Given the fields `question`, produce the fields
+      `answer`, `explanation`."},{"role":"user","content":"[[ ## question ## ]]\nHow
+      would a typical person answer each of the following questions about causation?\nLong
+      ago, when John was only 17 years old, he got a job working for a large manufacturing
+      company. He started out working on an assembly line for minimum wage, but after
+      a few years at the company, he was given a choice between two line manager positions.
+      He could stay in the woodwork division, which is where he was currently working.
+      Or he could move to the plastics division. John was unsure what to do because
+      he liked working in the woodwork division, but he also thought it might be worth
+      trying something different. He finally decided to switch to the plastics division
+      and try something new. For the last 30 years, John has worked as a production
+      line supervisor in the plastics division. After the first year there, the plastics
+      division was moved to a different building with more space. Unfortunately, through
+      the many years he worked there, John was exposed to asbestos, a highly carcinogenic
+      substance. Most of the plastics division was quite safe, but the small part
+      in which John worked was exposed to asbestos fibers. And now, although John
+      has never smoked a cigarette in his life and otherwise lives a healthy lifestyle,
+      he has a highly progressed and incurable case of lung cancer at the age of 50.
+      John had seen three cancer specialists, all of whom confirmed the worst: that,
+      except for pain, John''s cancer was untreatable and he was absolutely certain
+      to die from it very soon (the doctors estimated no more than 2 months). Yesterday,
+      while John was in the hospital for a routine medical appointment, a new nurse
+      accidentally administered the wrong medication to him. John was allergic to
+      the drug and he immediately went into shock and experienced cardiac arrest (a
+      heart attack). Doctors attempted to resuscitate him but he died minutes after
+      the medication was administered. Did John''s job cause his premature death?\nOptions:\n-
+      Yes\n- No\n\nRespond with the corresponding output fields, starting with the
+      field `[[ ## reasoning ## ]]`, then `[[ ## answer ## ]]`, then `[[ ## explanation
+      ## ]]`, and then ending with the marker for `[[ ## completed ## ]]`."}],"model":"gpt-4o-mini","max_tokens":4000,"temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      connection:
+      - keep-alive
+      content-length:
+      - '2865'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.9
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 1.99.9
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA5RVwW7bOBC9+ysG6qEXO7CztePk1i5QFF1k0UMXBTYJjDE5EielSJYc2TGK/PuC
+        lB3ZXbfYvQgQ38zozczT4/cRQMW6uoFKGRTVBjv5/Yt5XMz+eP/35+3HT7fT+dvlt3e//fVJbtfz
+        23fVOGf49SMpOWRdKN8GS8Le9bCKhEK56uxqMbueTRezRQFar8nmtCbI5I2ftOx4cjm9fDOZXk1m
+        y3228awoVTdwNwIA+F6emafT9FTdwHR8OGkpJWyounkJAqiit/mkwpQ4CTqpxgOovBNyhfrdHbx6
+        BZEweceuyS8PD/fuLcgusEILgWLyDlpujIDyLrGmCGIINhjZdwlqVOJjAjFYIiTyuhPSIB4+euNe
+        J9CEYi7gi2FLhzN6Cj51kXIYpjUl8QlQwHCCR78G21fIr7ZzDSh0iuIYtoaVgcSN45oVOrE74Dag
+        yp/M0YbQihkXjty2pBmFQGGXCHzdc4EtphKA1lJsWOURqLy8/M0MbKN3DeRsheUcdV5UEoqkYb0r
+        Qa6LiS7gs6FItY9U2A0t5jZ+GEgm6DcU0do9UdCkLDsCdLoU1bQh60NLTjLfk+YLzpGUDA3lkqdN
+        9awtUIw+jsH5YaosiWydKXdpDPjTNSvbaepXetSMZl2q9RTsbk8iFw+RWpS8z37Z9+7e9eJCl7YU
+        D8r60w8IPQWLrh/vHv715PYT45Q6SnkJRURZt4bbYyEdZHJeRBfwwW9pcxjoGZGczhTdeZ3gr/SB
+        vToOTDhB5yJZPGrn0a/PiOewKoMarHfNRCi2h9bzH0jfOnKK0hhY/sdKgB1IPk+BVP53gF22BkVH
+        y9q7GOl+IceuEanuEmbncp21RwA656UMofjVwx55fnEo65sQ/Tr9kFrVeWBm1btPdqMkPlQFfR4B
+        PBQn7E7MrQrRt0FW4r9S+dx8ednXqwYDHtDZ9XKPihe0A3C13BvoacGVJkG26chMK4XKkB5SB+fF
+        TrM/AkZHbf+bzrnaL8b7X8oPgFIUhPQqxKy/05aHsEj5gvpZ2MuYC+EqUdywopUwxbwKTTV2tr82
+        qrRLQu2qZtdQDJH7u6MOq/liivWC5vPravQ8+gcAAP//AwDLaQPdSQcAAA==
+    headers:
+      CF-RAY:
+      - 9972db8319a028cd-CCU
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 31 Oct 2025 11:37:00 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=jHdoY8wZ4NkLAWyp0NMiqkzS1Mh2DvycOkrDHx4fFx4-1761910620-1.0.1.1-dA14FvEIWdKIA7PF_.c0S.4rPbrbEMsIf6UbKemtptc48sp9IL_D4_pXNd8ddtSuy9t_0NH9wbHPOC4UYaLYksrLx5A1lqGpZcf_sWX3woc;
+        path=/; expires=Fri, 31-Oct-25 12:07:00 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=Pk3V2dO.uu_iJxyfCNhGxVBHQi291SIqak2efIakoSM-1761910620392-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - wandb
+      openai-processing-ms:
+      - '4179'
+      openai-project:
+      - proj_vHqAX8ekonC4rpcxKzZuuzUT
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '4244'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999322'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_073fb79859f842f78a02ca364a56fb4c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"Your input fields are:\n1. `question`
+      (str):\nYour output fields are:\n1. `reasoning` (str): \n2. `answer` (str):
+      \n3. `explanation` (str):\nAll interactions will be structured in the following
+      way, with the appropriate values filled in.\n\n[[ ## question ## ]]\n{question}\n\n[[
+      ## reasoning ## ]]\n{reasoning}\n\n[[ ## answer ## ]]\n{answer}\n\n[[ ## explanation
+      ## ]]\n{explanation}\n\n[[ ## completed ## ]]\nIn adhering to this structure,
+      your objective is: \n        Given the fields `question`, produce the fields
+      `answer`, `explanation`."},{"role":"user","content":"[[ ## question ## ]]\nHow
+      would a typical person answer each of the following questions about causation?\nA
+      machine is set up in such a way that it will short circuit if both the black
+      wire and the red wire touch the battery at the same time. The machine will not
+      short circuit if just one of these wires touches the battery. The black wire
+      is designated as the one that is supposed to touch the battery, while the red
+      wire is supposed to remain in some other part of the machine. One day, the black
+      wire and the red wire both end up touching the battery at the same time. There
+      is a short circuit. Did the black wire cause the short circuit?\nOptions:\n-
+      Yes\n- No\n\nRespond with the corresponding output fields, starting with the
+      field `[[ ## reasoning ## ]]`, then `[[ ## answer ## ]]`, then `[[ ## explanation
+      ## ]]`, and then ending with the marker for `[[ ## completed ## ]]`."}],"model":"gpt-4o-mini","max_tokens":4000,"temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      connection:
+      - keep-alive
+      content-length:
+      - '1559'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.9
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 1.99.9
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA4xVwW7bSAy9+ysI9WoHdto4bfa02MViN8DuKUAPSWBQI8piOxoOZqg6QpF/X1Cy
+        Iyd2gF4MaB45JN/jPP+cARRcFTdQuAbVtdEv/vjafFvH5e3Tv80dRv6zrL37i25zWN6Gf4q5ZUj5
+        jZwesi6ctNGTsoQRdolQyW5dXa9XX1bL9Wo9AK1U5C1tG3XxSRYtB15cLi8/LZbXi9XnfXYj7CgX
+        N3A/AwD4Ofxan6Gip+IGlvPDSUs545aKm5cggCKJt5MCc+asGLSYT6CToBSG1u/v4cMHSIRZAoet
+        fTw+PoTfQfvIDj1ESlkCtLxtdB8H2qCCNgSlR/cddpxoDiVZvp1WlHkbbPgBgpYwKKiASueaMRFV
+        KfVz4AwxcYuJfQ+JcpSQufQEtaQhMjeSFBwn17FewN+yox+U5pA5ODqNAAm+B3GuSxl2DQUoRZuh
+        j3xaHzK3nVcMJF32/RwkEDjpfAWYth1Nk6bDMOizQPTYUwUILnWO0YPRDRzAYZcPNLzp/K6hRLUY
+        VbuGPb0h0JhACORMzdSDk1CxbdN5JubAailBFLJ4OsOeFX0ID2GUGEPeUTro+59MCD1FjwGHWnv4
+        7pRWY9RIKMlmpJHWNyNgqF6TNRBO1SvK94RmbAmUW7qAr+/QwballaWL0RHIjVt0vD/2ERNlsm2Q
+        +kz5gxznJbc6OxMZnXbofT9IuG/5RMEuD7zvhg0pTXE0XlCtFmTszz0NQD+s1Tv3/na8ofYyE5ed
+        jlNbsHTqxGiaFNtbDVWjXsdPO1HdZTR7CZ33RwCGIDqIPJjK4x55frERL9uYpMxvUouaA+dmMz59
+        s4ysEosBfZ4BPA521b1yoCImaaNuVL7TUO7jx8vxvmJyyQldfb7aoyqKfgKuVtfzMxduKlJkn48c
+        r3BoizalTvaIXcVyBMyOxj5t59zdL+74K9dPgHMUlapNTFSxez3yFJbI/kXeC3uheWi4yJR+sKON
+        MiWToqIaOz96e5H7rNRuag5bSjHxaPB13Fytl1iv6erqSzF7nv0PAAD//wMALQjX0e4GAAA=
+    headers:
+      CF-RAY:
+      - 9972db831b300942-CCU
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 31 Oct 2025 11:37:00 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=LAgEM.aMEDlDQ5OrAKU4SSV0PeaVANCZfOL1bC__lfE-1761910620-1.0.1.1-Scsfjpi1ZZRsydfQ5eXPRHU6SwsLtGY9azlVkajYSeUAGtiPjVzEd7gYz0.eH1nZNvkKe1LY4UXfbv.PO1iymoqL6Z7FmBssSweIWVe02qs;
+        path=/; expires=Fri, 31-Oct-25 12:07:00 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=enZKWXHpcEOd2qy3m0UqlgPAp02h4YikS5gaJe9UIBc-1761910620421-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - wandb
+      openai-processing-ms:
+      - '4160'
+      openai-project:
+      - proj_vHqAX8ekonC4rpcxKzZuuzUT
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '4332'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999647'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_7b670b180ffd433096c5effddeb3886b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"Your input fields are:\n1. `question`
+      (str):\nYour output fields are:\n1. `reasoning` (str): \n2. `answer` (str):
+      \n3. `explanation` (str):\nAll interactions will be structured in the following
+      way, with the appropriate values filled in.\n\n[[ ## question ## ]]\n{question}\n\n[[
+      ## reasoning ## ]]\n{reasoning}\n\n[[ ## answer ## ]]\n{answer}\n\n[[ ## explanation
+      ## ]]\n{explanation}\n\n[[ ## completed ## ]]\nIn adhering to this structure,
+      your objective is: \n        Given the fields `question`, produce the fields
+      `answer`, `explanation`."},{"role":"user","content":"[[ ## question ## ]]\nHow
+      would a typical person answer each of the following questions about causation?\nLong
+      ago, when John was only 17 years old, he got a job working for a large manufacturing
+      company. He started out working on an assembly line for minimum wage, but after
+      a few years at the company, he was given a choice between two line manager positions.
+      He could stay in the woodwork division, which is where he was currently working.
+      Or he could move to the plastics division. John was unsure what to do because
+      he liked working in the woodwork division, but he also thought it might be worth
+      trying something different. He finally decided to switch to the plastics division
+      and try something new. For the last 30 years, John has worked as a production
+      line supervisor in the plastics division. After the first year there, the plastics
+      division was moved to a different building with more space. Unfortunately, through
+      the many years he worked there, John was exposed to asbestos, a highly carcinogenic
+      substance. Most of the plastics division was quite safe, but the small part
+      in which John worked was exposed to asbestos fibers. And now, although John
+      has never smoked a cigarette in his life and otherwise lives a healthy lifestyle,
+      he has a highly progressed and incurable case of lung cancer at the age of 50.
+      John had seen three cancer specialists, all of whom confirmed the worst: that,
+      except for pain, John''s cancer was untreatable and he was absolutely certain
+      to die from it very soon (the doctors estimated no more than 2 months). Yesterday,
+      while John was in the hospital for a routine medical appointment, a new nurse
+      accidentally administered the wrong medication to him. John was allergic to
+      the drug and he immediately went into shock and experienced cardiac arrest (a
+      heart attack). Doctors attempted to resuscitate him but he died minutes after
+      the medication was administered. Did misadministration of medication cause John''s
+      premature death?\nOptions:\n- Yes\n- No\n\nRespond with the corresponding output
+      fields, starting with the field `[[ ## reasoning ## ]]`, then `[[ ## answer
+      ## ]]`, then `[[ ## explanation ## ]]`, and then ending with the marker for
+      `[[ ## completed ## ]]`."}],"model":"gpt-4o-mini","max_tokens":4000,"temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      connection:
+      - keep-alive
+      content-length:
+      - '2889'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.9
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 1.99.9
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//jFVdaxs7EH33rxjUh94LtrHb2EnzVloKyYXChUApSTBjaXalRisto9nE
+        puS/F2kd7yb9oC+G3TMfZ+bMHn+fAChn1DkobVF00/rZhy/22/q/ywu7u6Lu0ptPu/8/f6KL/cmH
+        j3c7Nc0ZcfuNtDxlzXVsWk/iYuhhzYRCuerydL18t1ysl+sCNNGQz2l1K7OTOGtccLM3izcns8Xp
+        bHl2yLbRaUrqHK4nAADfy2/mGQzt1Dkspk9vGkoJa1LnxyAAxdHnNwpTckkwiJoOoI5BKBTq19fw
+        6hUwYYrBhTo/3N7ehPcg+9Zp9NASpxigcbUV0DEkZ4hBLEHjEppMPgljnhtiBQ0Zp/snTIBgHJMW
+        0NglyvhltOF1gpapQemYwBCKncN7LzZ2tS0BYNEAghA3LqAH532glOAf34UaNAZN/C+IRYGH3MUz
+        odlDy7FmSsmFeloYuibTQSEQdnVNDFVksC71XUtyjkPviWun8x504S6xAA8cQz2aaQ4XASQXKCvc
+        Sd9nNDQxR84UYUuQiMoackxVJqF7CtIz92RymyObKRhKrctkLUEXDLHfZ0ksoRcLLqWO0vwm3IRe
+        NAzpgfhJsa+UBoh2rcfQMzrgV3+hWFHJ/EYj2FKvopODqn4/HkIjG4cakJmSzOGLdZ56Occipa6q
+        iPNcFccGMIALumPcenrS+aV4x+N5rlqyUd8BBpM3xAIogvoOmFLn5djgj/qOlb2yxFRFpj9reu/o
+        gUx/3JkYirsnqFBLZHBhrGcWGw5nbenlUesYjCutB90OHkKmV238zTJVXcLsG6HzfgRgCFEK0eIW
+        twfk8egPPtYtx216kaqqfAh203/72QuSxFYV9HECcFt8qHtmLarl2LSykXhHpd3qbNXXU4P9Dejy
+        9O0BlSjoB+B0dTb9RcGNIUHn08jKlEZtyQypg+9hZ1wcAZPR2D/T+VXto+39TfkB0JpaIbNpOd/I
+        85GHMKb89/C7sOOaC2GViO+dpo044iyFoQo735u2Svsk1GwqF2rill3v3FW7Wa0XWK1ptXqnJo+T
+        HwAAAP//AwAmqxdJxwYAAA==
+    headers:
+      CF-RAY:
+      - 9972db8319a828cd-CCU
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 31 Oct 2025 11:37:00 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=UTpD.zXoXbllvgssrLcS8lM4T8iZxq226I0aZX6mWMw-1761910620-1.0.1.1-P1rNr0C0e_sFAe2j.aSOd8rHLRDOdA5Ek8GILkz6XoGBgCAI2aVQ5MAG4S0dr9L2mJzTe4EcEGGJH5C7eiyvwk9kFXEqvMf1vS3cgnBD3HM;
+        path=/; expires=Fri, 31-Oct-25 12:07:00 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=thtY.9Fgeq5763SourBtcrjLFOMnlJwa5VUDLcydH08-1761910620828-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - wandb
+      openai-processing-ms:
+      - '4594'
+      openai-project:
+      - proj_vHqAX8ekonC4rpcxKzZuuzUT
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '4609'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999315'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_c962285c22a041dbadd3aabeacd07394
+    status:
+      code: 200
+      message: OK
+version: 1

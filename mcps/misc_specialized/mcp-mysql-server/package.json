@@ -1,0 +1,45 @@
+{
+  "name": "@f4ww4z/mcp-mysql-server",
+  "version": "0.1.0",
+  "description": "A Model Context Protocol server for MySQL database operations",
+  "type": "module",
+  "bin": {
+    "mcp-mysql": "./build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mysql",
+    "database",
+    "claude",
+    "anthropic"
+  ],
+  "author": "f4ww4z",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "dotenv": "^16.4.7",
+    "mcp-evals": "^1.0.18",
+    "mysql2": "^3.11.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/f4ww4z/mcp-mysql-server"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

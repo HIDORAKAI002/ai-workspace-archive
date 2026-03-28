@@ -1,0 +1,6 @@
+packages
+server/build
+CODE_OF_CONDUCT.md
+SECURITY.md
+mcp.json
+.claude/settings.local.json

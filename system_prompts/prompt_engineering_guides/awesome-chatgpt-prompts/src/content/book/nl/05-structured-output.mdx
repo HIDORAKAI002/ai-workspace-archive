@@ -1,0 +1,411 @@
+Consistente, goed geformatteerde output verkrijgen is essentieel voor productietoepassingen en efficiënte workflows. Dit hoofdstuk behandelt technieken om precies te bepalen hoe AI-modellen hun antwoorden formatteren.
+
+<Callout type="info" title="Van Proza naar Data">
+Gestructureerde output transformeert AI-antwoorden van vrije tekst naar bruikbare, parseerbare data.
+</Callout>
+
+## Waarom Structuur Belangrijk Is
+
+<StructuredOutputDemo />
+
+## Basis Formatteringstechnieken
+
+### Lijsten
+
+Lijsten zijn perfect voor stapsgewijze instructies, gerangschikte items of verzamelingen van gerelateerde punten. Ze zijn gemakkelijk te scannen en te parsen. Gebruik **genummerde lijsten** wanneer volgorde belangrijk is (stappen, ranglijsten) en **opsommingstekens** voor ongeordende verzamelingen.
+
+<TryIt 
+  compact
+  title="Lijstformattering"
+  prompt={`Geef 5 tips voor betere slaap.
+
+Formaat: Genummerde lijst met een korte uitleg bij elke tip.
+Elke tip moet vetgedrukt zijn, gevolgd door een streepje en uitleg.`}
+/>
+
+<Callout type="tip" title="Best Practices voor Lijsten">
+Specificeer het exacte aantal items dat je wilt, of er uitleg bij moet staan, en of items vetgedrukt moeten zijn of een specifieke structuur moeten hebben.
+</Callout>
+
+### Tabellen
+
+Tabellen zijn uitstekend voor het vergelijken van meerdere items op dezelfde dimensies. Ze zijn ideaal voor functievergelijkingen, datasamenvattingen en alle informatie met consistente attributen. Definieer je kolomkoppen altijd expliciet.
+
+<TryIt 
+  compact
+  title="Tabelformattering"
+  prompt={`Vergelijk de top 4 Python web frameworks.
+
+Formatteer als een markdown tabel met kolommen:
+| Framework | Beste Voor | Leercurve | Prestaties |`}
+/>
+
+<Callout type="tip" title="Best Practices voor Tabellen">
+Specificeer kolomnamen, verwachte datatypes (tekst, getallen, beoordelingen) en hoeveel rijen je nodig hebt. Voor complexe vergelijkingen, beperk tot 4-6 kolommen voor leesbaarheid.
+</Callout>
+
+### Koppen en Secties
+
+Koppen creëren een duidelijke documentstructuur, waardoor lange antwoorden scanbaar en georganiseerd worden. Gebruik ze voor rapporten, analyses of elk meerdelig antwoord. Hiërarchische koppen (##, ###) tonen relaties tussen secties.
+
+```
+Analyseer dit bedrijfsvoorstel.
+
+Structureer je antwoord met deze secties:
+## Managementsamenvatting
+## Sterke Punten
+## Zwakke Punten
+## Aanbevelingen
+## Risicobeoordeling
+```
+
+<Callout type="tip" title="Best Practices voor Secties">
+Geef je secties op in de volgorde waarin je ze wilt. Voor consistentie, specificeer wat elke sectie moet bevatten (bijv. "Managementsamenvatting: alleen 2-3 zinnen").
+</Callout>
+
+### Nadruk met Hoofdletteraanwijzingen
+
+Woorden in hoofdletters fungeren als sterke signalen naar het model, die kritieke beperkingen of vereisten benadrukken. Gebruik ze spaarzaam voor maximaal effect—overmatig gebruik vermindert hun effectiviteit.
+
+**Veelvoorkomende Hoofdletteraanwijzingen:**
+
+<InfoGrid items={[
+  { label: "NEVER", description: "Absoluut verbod: \"NEVER include personal opinions\"", color: "red" },
+  { label: "ALWAYS", description: "Verplichte vereiste: \"ALWAYS cite sources\"", color: "green" },
+  { label: "IMPORTANT", description: "Kritieke instructie: \"IMPORTANT: Keep responses under 100 words\"", color: "amber" },
+  { label: "DO NOT", description: "Sterk verbod: \"DO NOT make up statistics\"", color: "red" },
+  { label: "MUST", description: "Vereiste actie: \"Output MUST be valid JSON\"", color: "blue" },
+  { label: "ONLY", description: "Beperking: \"Return ONLY the code, no explanations\"", color: "purple" },
+]} />
+
+```
+Vat dit artikel samen.
+
+IMPORTANT: Houd de samenvatting onder 100 woorden.
+NEVER voeg informatie toe die niet in het origineel staat.
+ALWAYS behoud de originele toon en perspectief.
+DO NOT voeg je eigen meningen of analyses toe.
+```
+
+<Callout type="warning" title="Gebruik Spaarzaam">
+Als alles in hoofdletters staat of als kritiek wordt gemarkeerd, valt niets op. Reserveer deze aanwijzingen voor echt belangrijke beperkingen.
+</Callout>
+
+## JSON Output
+
+JSON (JavaScript Object Notation) is het populairste formaat voor gestructureerde AI-output. Het is machineleesbaar, breed ondersteund door programmeertalen en perfect voor API's, databases en automatiseringsworkflows. De sleutel tot betrouwbare JSON is het verstrekken van een duidelijk schema.
+
+### Basis JSON-verzoek
+
+Begin met een sjabloon dat de exacte structuur toont die je wilt. Voeg veldnamen, datatypes en voorbeeldwaarden toe. Dit fungeert als een contract dat het model zal volgen.
+
+<TryIt 
+  title="JSON Extractie"
+  description="Extraheer gestructureerde data uit ongestructureerde tekst."
+  prompt={`Extraheer informatie uit deze tekst en retourneer als JSON:
+
+{
+    "company_name": "string",
+    "founding_year": number,
+    "headquarters": "string",
+    "employees": number,
+    "industry": "string"
+}
+
+Tekst: "Apple Inc., opgericht in 1976, heeft zijn hoofdkantoor in Cupertino, Californië. De technologiegigant heeft wereldwijd ongeveer 164.000 werknemers."`}
+/>
+
+### Complexe JSON-structuren
+
+Voor geneste data, gebruik hiërarchische JSON met objecten binnen objecten, arrays van objecten en gemengde types. Definieer elk niveau duidelijk en gebruik TypeScript-stijl annotaties (`"positive" | "negative"`) om waarden te beperken.
+
+```
+Analyseer deze productrecensie en retourneer JSON:
+
+{
+  "review_id": "string (genereer uniek)",
+  "sentiment": {
+    "overall": "positive" | "negative" | "mixed" | "neutral",
+    "score": 0.0-1.0
+  },
+  "aspects": [
+    {
+      "aspect": "string (bijv. 'price', 'quality')",
+      "sentiment": "positive" | "negative" | "neutral",
+      "mentions": ["exacte citaten uit recensie"]
+    }
+  ],
+  "purchase_intent": {
+    "would_recommend": boolean,
+    "confidence": 0.0-1.0
+  },
+  "key_phrases": ["string array van opvallende zinnen"]
+}
+
+Retourneer ONLY geldige JSON, geen extra tekst.
+
+Recensie: "[recensietekst]"
+```
+
+### Geldige JSON Garanderen
+
+Modellen voegen soms verklarende tekst of markdown-opmaak rond JSON toe. Voorkom dit met expliciete instructies over het outputformaat. Je kunt ruwe JSON of JSON binnen codeblokken vragen—kies op basis van je parsingbehoeften.
+
+Voeg expliciete instructies toe:
+
+```
+IMPORTANT:
+- Retourneer ONLY het JSON-object, geen markdown codeblokken
+- Zorg dat alle strings correct ge-escaped zijn
+- Gebruik null voor ontbrekende waarden, niet undefined
+- Valideer dat de output parseerbare JSON is
+```
+
+Of vraag om codeblokken door het model te vragen zijn output te wrappen:
+
+````
+Retourneer het resultaat als een JSON codeblok:
+```json
+{ ... }
+```
+````
+
+## YAML Output
+
+YAML is beter leesbaar voor mensen dan JSON, met inspringingen in plaats van haakjes. Het is de standaard voor configuratiebestanden (Docker, Kubernetes, GitHub Actions) en werkt goed wanneer de output door mensen gelezen wordt of in DevOps-contexten gebruikt wordt. YAML is gevoelig voor inspringingen, dus wees specifiek over formatteringsvereisten.
+
+<TryIt 
+  compact
+  title="YAML Generatie"
+  prompt={`Genereer een GitHub Actions workflow voor een Node.js project.
+
+Retourneer als geldige YAML:
+- Inclusief: install, lint, test, build fases
+- Gebruik Node.js 18
+- Cache npm dependencies
+- Voer uit bij push naar main en pull requests`}
+/>
+
+## XML Output
+
+XML is nog steeds vereist voor veel enterprise-systemen, SOAP API's en legacy-integraties. Het is uitgebreider dan JSON maar biedt functies zoals attributen, namespaces en CDATA-secties voor complexe data. Specificeer elementnamen, neststructuur en waar attributen versus child-elementen te gebruiken.
+
+```
+Converteer deze data naar XML-formaat:
+
+Vereisten:
+- Root element: <catalog>
+- Elk item in <book> element
+- Voeg attributen toe waar gepast
+- Gebruik CDATA voor beschrijvingstekst
+
+Data: [boekdata]
+```
+
+## Aangepaste Formaten
+
+Soms passen standaardformaten niet bij je behoeften. Je kunt elk aangepast formaat definiëren door een duidelijk sjabloon te verstrekken. Aangepaste formaten werken goed voor rapporten, logs of domeinspecifieke outputs die door mensen gelezen worden.
+
+### Gestructureerd Analyseformaat
+
+Gebruik scheidingstekens (===, ---, [SECTIE]) om scanbare documenten te maken met duidelijke grenzen tussen secties. Dit formaat is geweldig voor code reviews, audits en analyses.
+
+```
+Analyseer deze code met dit exacte formaat:
+
+=== CODE ANALYSE ===
+
+[SAMENVATTING]
+Eén paragraaf overzicht
+
+[PROBLEMEN]
+• CRITICAL: [probleem] — [bestand:regel]
+• WARNING: [probleem] — [bestand:regel]  
+• INFO: [probleem] — [bestand:regel]
+
+[METRIEKEN]
+Complexiteit: [Laag/Gemiddeld/Hoog]
+Onderhoudbaarheid: [score]/10
+Testdekking: [geschat %]
+
+[AANBEVELINGEN]
+1. [Prioriteit 1 aanbeveling]
+2. [Prioriteit 2 aanbeveling]
+
+=== EINDE ANALYSE ===
+```
+
+### Invulformaat
+
+Sjablonen met lege plekken (___) leiden het model om specifieke velden in te vullen terwijl de exacte formattering behouden blijft. Deze aanpak is uitstekend voor formulieren, briefs en gestandaardiseerde documenten waar consistentie belangrijk is.
+
+```
+Vul dit sjabloon in voor het gegeven product:
+
+PRODUCT BRIEF
+─────────────
+Naam: _______________
+Slogan: _______________
+Doelgebruiker: _______________
+Opgelost Probleem: _______________
+Belangrijkste Functies:
+  1. _______________
+  2. _______________
+  3. _______________
+Onderscheidende Factor: _______________
+
+Product: [productbeschrijving]
+```
+
+## Getypeerde Antwoorden
+
+Getypeerde antwoorden definiëren categorieën of entiteittypes die het model moet herkennen en labelen. Deze techniek is essentieel voor Named Entity Recognition (NER), classificatietaken en elke extractie waarbij je informatie consistent moet categoriseren. Definieer je types duidelijk met voorbeelden.
+
+<TryIt 
+  compact
+  title="Entiteit Extractie"
+  prompt={`Extraheer entiteiten uit deze tekst.
+
+Entiteittypes:
+- PERSON: Volledige namen van personen
+- ORG: Organisatie-/bedrijfsnamen
+- LOCATION: Steden, landen, adressen
+- DATE: Datums in ISO-formaat (JJJJ-MM-DD)
+- MONEY: Geldbedragen met valuta
+
+Formatteer elk als: [TYPE]: [waarde]
+
+Tekst: "Tim Cook kondigde aan dat Apple $1 miljard zal investeren in een nieuwe faciliteit in Austin tegen december 2024."`}
+/>
+
+## Meerdelige Gestructureerde Antwoorden
+
+Wanneer je uitgebreide output nodig hebt die meerdere aspecten dekt, definieer dan afzonderlijke delen met duidelijke grenzen. Specificeer precies wat in elk deel thuishoort—formaat, lengte en inhoudstype. Dit voorkomt dat het model secties door elkaar haalt of delen weglaat.
+
+```
+Onderzoek dit onderwerp en lever:
+
+### DEEL 1: MANAGEMENTSAMENVATTING
+[2-3 zinnen overzicht]
+
+### DEEL 2: BELANGRIJKSTE BEVINDINGEN
+[Precies 5 opsommingspunten]
+
+### DEEL 3: DATATABEL
+| Metriek | Waarde | Bron |
+|---------|--------|------|
+[Minimaal 5 rijen opnemen]
+
+### DEEL 4: AANBEVELINGEN
+[Genummerde lijst van 3 actiegerichte aanbevelingen]
+
+### DEEL 5: VERDER LEZEN
+[3 voorgestelde bronnen met korte beschrijvingen]
+```
+
+## Voorwaardelijke Formattering
+
+Voorwaardelijke formattering laat je verschillende outputformaten definiëren op basis van de kenmerken van de input. Dit is krachtig voor classificatie-, triage- en routeringsystemen waar het antwoordformaat moet variëren op basis van wat het model detecteert. Gebruik duidelijke als/dan-logica met expliciete outputsjablonen voor elk geval.
+
+<TryIt 
+  compact
+  title="Ticketclassificatie"
+  prompt={`Classificeer dit supportticket.
+
+Als URGENT (systeem down, beveiligingsprobleem, dataverlies):
+  Retourneer: 🔴 URGENT | [Categorie] | [Voorgestelde Actie]
+
+Als HIGH (treft meerdere gebruikers, omzetimpact):
+  Retourneer: 🟠 HIGH | [Categorie] | [Voorgestelde Actie]
+
+Als MEDIUM (enkele gebruiker getroffen, workaround bestaat):
+  Retourneer: 🟡 MEDIUM | [Categorie] | [Voorgestelde Actie]
+
+Als LOW (vragen, functie-aanvragen):
+  Retourneer: 🟢 LOW | [Categorie] | [Voorgestelde Actie]
+
+Ticket: "Ik kan niet inloggen op mijn account. Ik heb twee keer geprobeerd mijn wachtwoord te resetten maar krijg nog steeds een foutmelding. Dit blokkeert mijn hele team om toegang te krijgen tot het dashboard."`}
+/>
+
+## Arrays en Lijsten in JSON
+
+Het extraheren van meerdere items naar arrays vereist zorgvuldige schemadefinitie. Specificeer de arraystructuur, wat elk item moet bevatten en hoe randgevallen te behandelen (lege arrays, enkele items). Een telveld toevoegen helpt om volledigheid te verifiëren.
+
+```
+Extraheer alle actie-items uit dit vergaderverslag.
+
+Retourneer als JSON array:
+{
+  "action_items": [
+    {
+      "task": "string die de taak beschrijft",
+      "assignee": "persoonsnaam of 'Niet Toegewezen'",
+      "deadline": "datum indien genoemd, anders null",
+      "priority": "high" | "medium" | "low",
+      "context": "relevant citaat uit verslag"
+    }
+  ],
+  "total_count": number
+}
+
+Verslag: "[vergaderverslag]"
+```
+
+## Validatie-instructies
+
+Zelfvalidatie vraagt het model om zijn eigen output te controleren voordat het antwoordt. Dit vangt veelvoorkomende problemen op zoals ontbrekende secties, placeholder-tekst of overtredingen van beperkingen. Het model zal intern itereren om problemen op te lossen, wat de outputkwaliteit verbetert zonder extra API-aanroepen.
+
+```
+Genereer het rapport, controleer dan:
+
+VALIDATIE CHECKLIST:
+□ Alle vereiste secties aanwezig
+□ Geen placeholder-tekst overgebleven
+□ Alle statistieken bevatten bronnen
+□ Woordaantal binnen 500-700 woorden
+□ Conclusie sluit aan bij introductie
+
+Als een controle faalt, repareer voordat je antwoordt.
+```
+
+## Omgaan met Optionele Velden
+
+Echte data heeft vaak ontbrekende waarden. Instrueer het model expliciet over hoe optionele velden te behandelen—`null` gebruiken is netter dan lege strings en gemakkelijker programmatisch te verwerken. Voorkom ook "hallucinatie" van ontbrekende data door te benadrukken dat het model nooit informatie mag verzinnen.
+
+```
+Extraheer contactinformatie. Gebruik null voor ontbrekende velden.
+
+{
+  "name": "string (verplicht)",
+  "email": "string of null",
+  "phone": "string of null", 
+  "company": "string of null",
+  "role": "string of null",
+  "linkedin": "URL string of null"
+}
+
+IMPORTANT: 
+- Verzin nooit informatie die niet in de bron staat
+- Gebruik null, niet lege strings, voor ontbrekende data
+- Telefoonnummers in E.164-formaat indien mogelijk
+```
+
+## Samenvatting
+
+<Callout type="tip" title="Belangrijkste Technieken">
+Wees expliciet over formaat, gebruik voorbeelden, specificeer types, behandel randgevallen met null-waarden en vraag het model om zijn eigen output te valideren.
+</Callout>
+
+<Quiz 
+  question="Wat is het belangrijkste voordeel van gestructureerde output ten opzichte van ongestructureerde tekst?"
+  options={[
+    "Het gebruikt minder tokens",
+    "Het is gemakkelijker voor de AI om te genereren",
+    "Het kan programmatisch geparsed en gevalideerd worden",
+    "Het produceert altijd correcte informatie"
+  ]}
+  correctIndex={2}
+  explanation="Gestructureerde outputs zoals JSON kunnen door code geparsed worden, vergeleken worden tussen queries, geïntegreerd worden in workflows en gevalideerd worden op volledigheid—dingen die moeilijk of onmogelijk zijn met vrije tekst."
+/>
+
+Gestructureerde outputs zijn essentieel voor het bouwen van betrouwbare AI-aangedreven applicaties. In het volgende hoofdstuk verkennen we chain-of-thought prompting voor complexe redeneertaken.

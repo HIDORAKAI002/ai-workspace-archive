@@ -1,0 +1,15 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    require:
+      - braveapikey
+    properties:
+      braveapikey:
+        type: string
+        description: The API key for Brave Search.
+  commandFunction:
+    |-
+      (config) => ({ command: 'node', args: ['dist/index.js'], env: { BRAVE_API_KEY: config.braveapikey } })
+  exampleConfig:
+    braveapikey: YOUR_API_KEY_HERE

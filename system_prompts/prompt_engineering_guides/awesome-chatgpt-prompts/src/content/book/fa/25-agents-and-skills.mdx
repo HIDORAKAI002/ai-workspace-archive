@@ -1,0 +1,551 @@
+با تکامل سیستم‌های هوش مصنوعی از پرسش و پاسخ ساده به اجرای خودمختار وظایف، درک **عامل‌ها** و **مهارت‌ها** ضروری می‌شود. این فصل بررسی می‌کند که چگونه پرامپت‌ها به عنوان بلوک‌های سازنده اساسی برای عامل‌های هوش مصنوعی عمل می‌کنند، و چگونه مهارت‌ها تخصص را در مجموعه‌های دستورالعمل قابل استفاده مجدد و جامع بسته‌بندی می‌کنند.
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">عامل</p>
+      <p className="text-xs text-muted-foreground m-0!">سیستم هوش مصنوعی خودمختار</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>توان‌یافته توسط</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">مهارت</p>
+        <p className="text-xs text-muted-foreground m-0!">تخصص قابل استفاده مجدد</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">مهارت</p>
+        <p className="text-xs text-muted-foreground m-0!">تخصص قابل استفاده مجدد</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">مهارت</p>
+        <p className="text-xs text-muted-foreground m-0!">تخصص قابل استفاده مجدد</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>تشکیل‌شده از</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">پرامپت</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">پرامپت</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">پرامپت</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">پرامپت</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">پرامپت</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">پرامپت‌ها اتم‌ها هستند ← مهارت‌ها مولکول‌ها هستند ← عامل‌ها ساختارهای کامل هستند</p>
+  </div>
+</div>
+
+## عامل‌های هوش مصنوعی چیستند؟
+
+**عامل هوش مصنوعی** سیستمی است که می‌تواند به طور خودمختار وظایف را برنامه‌ریزی، اجرا و تکرار کند. برخلاف تعاملات ساده پرامپت-پاسخ، عامل‌ها می‌توانند:
+
+- **برنامه‌ریزی** - تجزیه اهداف پیچیده به گام‌های قابل اجرا
+- **اجرا** - استفاده از ابزارها و انجام اقدامات در دنیای واقعی
+- **مشاهده** - پردازش بازخورد از اقدامات خود
+- **تطبیق** - تنظیم رویکرد خود بر اساس نتایج
+- **پایداری** - حفظ زمینه و حافظه در طول تعاملات
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">هدف</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">برنامه‌ریزی</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">اجرا</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">مشاهده</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">تطبیق</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> تکرار تا تکمیل
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">انجام شد</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## پرامپت‌ها به عنوان بلوک‌های سازنده
+
+هر عامل، هرچقدر هم پیچیده باشد، از پرامپت‌ها ساخته شده است. همان‌طور که اتم‌ها ترکیب می‌شوند تا مولکول‌ها را بسازند، و مولکول‌ها ترکیب می‌شوند تا ساختارهای پیچیده را تشکیل دهند، پرامپت‌ها نیز ترکیب می‌شوند تا رفتار هوشمند عامل را ایجاد کنند.
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">پرامپت‌های سیستمی</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">هویت و نقش</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">پرامپت‌های برنامه‌ریزی</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">چگونه فکر کردن</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">پرامپت‌های ابزار</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">چگونه عمل کردن</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">پرامپت‌های بازیابی</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">چگونه بازیابی کردن</p>
+  </div>
+</div>
+
+این انواع پرامپت‌ها روی هم قرار می‌گیرند تا رفتار کامل عامل را تشکیل دهند:
+
+### پرامپت‌های سیستمی (هویت عامل)
+
+پرامپت پایه‌ای که مشخص می‌کند عامل کیست و چگونه رفتار می‌کند:
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### پرامپت‌های برنامه‌ریزی (چگونه فکر کردن)
+
+دستورالعمل‌هایی که فرآیند استدلال و برنامه‌ریزی عامل را هدایت می‌کنند:
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### پرامپت‌های استفاده از ابزار (چگونه عمل کردن)
+
+راهنمایی درباره زمان و نحوه استفاده از ابزارهای موجود:
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### پرامپت‌های بازیابی (چگونه مدیریت خطا)
+
+دستورالعمل‌ها برای زمانی که کارها اشتباه پیش می‌روند:
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="پشته پرامپت">
+رفتار یک عامل از لایه‌های پرامپت که با هم کار می‌کنند ظاهر می‌شود. پرامپت سیستمی پایه را تنظیم می‌کند، پرامپت‌های برنامه‌ریزی استدلال را هدایت می‌کنند، پرامپت‌های ابزار امکان عمل را فراهم می‌کنند، و پرامپت‌های بازیابی خطاها را مدیریت می‌کنند. در مجموع، آن‌ها رفتار منسجم و توانمند ایجاد می‌کنند.
+</Callout>
+
+## مهارت‌ها چیستند؟
+
+اگر پرامپت‌ها اتم‌ها هستند، **مهارت‌ها مولکول‌ها هستند** - بلوک‌های سازنده قابل استفاده مجدد که قابلیت‌های خاصی به عامل‌ها می‌دهند.
+
+**مهارت** یک بسته جامع و قابل حمل از دستورالعمل‌ها است که به عامل هوش مصنوعی تخصص در یک حوزه یا وظیفه خاص می‌دهد. مهارت‌ها بلوک‌های قابل استفاده مجدد عامل‌ها هستند: یک بار آن‌ها را می‌سازید، و هر عاملی می‌تواند از آن‌ها استفاده کند.
+
+<Callout type="tip" title="مهارت‌ها = بلوک‌های قابل استفاده مجدد عامل">
+یک مهارت برای بررسی کد یک بار بنویسید. حالا هر عامل برنامه‌نویسی - چه برای Python، JavaScript یا Rust - می‌تواند فوراً با بارگذاری آن مهارت به یک متخصص بررسی کد تبدیل شود. مهارت‌ها به شما امکان می‌دهند قابلیت‌های عامل را مانند بلوک‌های LEGO بسازید.
+</Callout>
+
+### آناتومی یک مهارت
+
+یک مهارت طراحی‌شده خوب معمولاً شامل موارد زیر است:
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md (الزامی)</p>
+    <p className="text-sm text-muted-foreground m-0!">فایل دستورالعمل اصلی. شامل تخصص اصلی، راهنماها و رفتارهایی است که مهارت را تعریف می‌کنند.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 مستندات مرجع</p>
+    <p className="text-sm text-muted-foreground m-0!">مستندات پشتیبان، مثال‌ها و زمینه‌ای که عامل می‌تواند هنگام کار به آن مراجعه کند.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 اسکریپت‌ها و ابزارها</p>
+    <p className="text-sm text-muted-foreground m-0!">اسکریپت‌های کمکی، قالب‌ها یا تنظیمات ابزار که از عملکرد مهارت پشتیبانی می‌کنند.</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ پیکربندی</p>
+    <p className="text-sm text-muted-foreground m-0!">تنظیمات، پارامترها و گزینه‌های سفارشی‌سازی برای تطبیق مهارت با زمینه‌های مختلف.</p>
+  </div>
+</div>
+
+### مثال: مهارت بررسی کد
+
+در اینجا نمونه‌ای از یک مهارت بررسی کد آورده شده است:
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">راهنماهای اصلی بررسی</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">الگوهای امنیتی</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">راهنمای بهینه‌سازی</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">بهترین روش‌های Python</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">الگوهای JavaScript</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">راهنماهای Rust</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+فایل `SKILL.md` رویکرد کلی را تعریف می‌کند:
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## مهارت‌ها در مقابل پرامپت‌های ساده
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">پرامپت ساده</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">دستورالعمل منفرد</p>
+      <p className="m-0!">استفاده یکباره</p>
+      <p className="m-0!">زمینه محدود</p>
+      <p className="m-0!">رویکرد عمومی</p>
+      <p className="m-0!">بدون مواد پشتیبان</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">مهارت</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">مجموعه دستورالعمل جامع</p>
+      <p className="m-0!">قابل استفاده مجدد در پروژه‌ها</p>
+      <p className="m-0!">زمینه غنی با مراجع</p>
+      <p className="m-0!">تخصص خاص حوزه</p>
+      <p className="m-0!">مستندات، اسکریپت‌ها، پیکربندی‌های پشتیبان</p>
+    </div>
+  </div>
+</div>
+
+## ساخت مهارت‌های مؤثر
+
+### ۱. تخصص را به وضوح تعریف کنید
+
+با یک توصیف واضح از آنچه مهارت امکان‌پذیر می‌کند شروع کنید:
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### ۲. دانش را به صورت سلسله‌مراتبی ساختاربندی کنید
+
+اطلاعات را از عمومی به خاص سازماندهی کنید:
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### ۳. مثال‌های مشخص بگنجانید
+
+قوانین انتزاعی با مثال‌ها واضح می‌شوند:
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### ۴. چارچوب‌های تصمیم‌گیری ارائه دهید
+
+به عامل کمک کنید در موقعیت‌های مبهم تصمیم بگیرد:
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### ۵. الگوهای بازیابی اضافه کنید
+
+پیش‌بینی کنید چه چیزی ممکن است اشتباه پیش برود:
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## ترکیب مهارت‌ها
+
+عامل‌ها زمانی قدرتمند می‌شوند که چندین مهارت با هم کار کنند. در نظر بگیرید چگونه مهارت‌ها می‌توانند مکمل یکدیگر باشند:
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    بررسی کد
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    ممیزی امنیتی
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    مستندسازی
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    عامل کامل کیفیت کد
+  </div>
+</div>
+
+هنگام ترکیب مهارت‌ها، اطمینان حاصل کنید که با هم تداخل ندارند. مهارت‌ها باید:
+
+- **ماژولار** باشند - هر مهارت یک حوزه را به خوبی مدیریت کند
+- **سازگار** باشند - مهارت‌ها نباید دستورالعمل‌های متناقض بدهند
+- **اولویت‌بندی‌شده** باشند - وقتی مهارت‌ها همپوشانی دارند، تعریف کنید کدام اولویت دارد
+
+## اشتراک‌گذاری و کشف مهارت‌ها
+
+مهارت‌ها زمانی ارزشمندترین هستند که به اشتراک گذاشته شوند. پلتفرم‌هایی مانند [prompts.chat](https://prompts.chat/skills) به شما امکان می‌دهند:
+
+- **کشف** مهارت‌های ایجادشده توسط جامعه برای وظایف رایج
+- **دانلود** مهارت‌ها مستقیماً به پروژه‌های خود
+- **اشتراک‌گذاری** تخصص خود به عنوان مهارت‌های قابل استفاده مجدد
+- **تکرار** روی مهارت‌ها بر اساس استفاده در دنیای واقعی
+
+<Callout type="tip" title="با مهارت‌های جامعه شروع کنید">
+قبل از ساختن یک مهارت از صفر، بررسی کنید آیا کسی قبلاً مشکل شما را حل کرده است. مهارت‌های جامعه در عمل آزمایش شده‌اند و اغلب بهتر از شروع از صفر هستند.
+</Callout>
+
+## اکوسیستم عامل-مهارت
+
+رابطه بین عامل‌ها و مهارت‌ها یک اکوسیستم قدرتمند ایجاد می‌کند:
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">عامل هوش مصنوعی</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">بررسی کد</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">مهارت ۱</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">طراحی API</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">مهارت ۲</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">نوشتن تست</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">مهارت ۳</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">پرامپت‌های اصلی</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">برنامه‌ریزی • ابزارها • بازیابی • حافظه</p>
+    </div>
+  </div>
+</div>
+
+عامل چارچوب اجرا را فراهم می‌کند - برنامه‌ریزی، استفاده از ابزار و حافظه - در حالی که مهارت‌ها تخصص حوزه‌ای را ارائه می‌دهند. این جداسازی به این معنی است که:
+
+- **مهارت‌ها قابل حمل هستند** - همان مهارت با عامل‌های مختلف کار می‌کند
+- **عامل‌ها قابل گسترش هستند** - با اضافه کردن مهارت‌ها قابلیت‌های جدید اضافه کنید
+- **تخصص قابل اشتراک‌گذاری است** - متخصصان حوزه می‌توانند مهارت‌ها را بدون ساختن عامل‌های کامل ارائه دهند
+
+## بهترین روش‌ها
+
+### برای ساختن مهارت‌ها
+
+۱. **خاص شروع کنید، سپس تعمیم دهید** - ابتدا یک مهارت برای مورد استفاده دقیق خود بسازید، سپس انتزاع کنید
+۲. **موارد شکست را بگنجانید** - مستند کنید مهارت چه چیزی نمی‌تواند انجام دهد و چگونه مدیریت شود
+۳. **مهارت‌های خود را نسخه‌بندی کنید** - تغییرات را پیگیری کنید تا عامل‌ها بتوانند به نسخه‌های پایدار وابسته باشند
+۴. **با وظایف واقعی تست کنید** - مهارت‌ها را در برابر کار واقعی اعتبارسنجی کنید، نه فقط تئوری
+
+### برای استفاده از مهارت‌ها با عامل‌ها
+
+۱. **ابتدا مهارت را بخوانید** - قبل از استقرار، درک کنید یک مهارت چه می‌کند
+۲. **با دقت سفارشی‌سازی کنید** - پیش‌فرض‌های مهارت را فقط در صورت لزوم بازنویسی کنید
+۳. **عملکرد را نظارت کنید** - پیگیری کنید مهارت‌ها در زمینه شما چقدر خوب عمل می‌کنند
+۴. **بهبودها را مشارکت دهید** - وقتی یک مهارت را بهبود می‌دهید، در نظر بگیرید آن را به اشتراک بگذارید
+
+<Callout type="info" title="آینده ترکیب‌پذیر است">
+با توانمندتر شدن عامل‌های هوش مصنوعی، توانایی ترکیب، اشتراک‌گذاری و سفارشی‌سازی مهارت‌ها به یک شایستگی اصلی تبدیل خواهد شد. مهندسان پرامپت فردا فقط پرامپت نخواهند نوشت - آن‌ها اکوسیستم‌های مهارت را طراحی خواهند کرد که عامل‌های هوش مصنوعی را واقعاً در حوزه‌های خاص متخصص می‌سازد.
+</Callout>
+
+<Quiz 
+  question="تفاوت اصلی بین یک پرامپت ساده و یک مهارت چیست؟"
+  options={[
+    "مهارت‌ها طولانی‌تر از پرامپت‌ها هستند",
+    "مهارت‌ها بسته‌های چندفایلی قابل استفاده مجدد هستند که تخصص حوزه‌ای به عامل‌ها می‌دهند",
+    "مهارت‌ها فقط با مدل‌های هوش مصنوعی خاص کار می‌کنند",
+    "مهارت‌ها نیازی به هیچ پرامپتی ندارند"
+  ]}
+  correctIndex={1}
+  explanation="مهارت‌ها بسته‌های جامع و قابل حمل هستند که چندین پرامپت، مستندات مرجع، اسکریپت‌ها و پیکربندی را ترکیب می‌کنند. آن‌ها بلوک‌های سازنده قابل استفاده مجدد هستند که می‌توانند به هر عاملی اضافه شوند تا قابلیت‌های خاصی به آن بدهند."
+/>
+
+<Quiz 
+  question="حلقه عامل چیست؟"
+  options={[
+    "یک تکنیک اشکال‌زدایی برای خطاهای هوش مصنوعی",
+    "برنامه‌ریزی ← اجرا ← مشاهده ← تطبیق، تکرار تا رسیدن به هدف",
+    "روشی برای زنجیره کردن چندین پرامپت با هم",
+    "روشی برای آموزش مدل‌های هوش مصنوعی جدید"
+  ]}
+  correctIndex={1}
+  explanation="عامل‌های هوش مصنوعی در یک حلقه پیوسته کار می‌کنند: آن‌ها برنامه‌ریزی می‌کنند چگونه به یک وظیفه نزدیک شوند، اقدامات را اجرا می‌کنند، نتایج را مشاهده می‌کنند، و رویکرد خود را بر اساس بازخورد تطبیق می‌دهند - تکرار تا تکمیل هدف."
+/>
+
+<Quiz 
+  question="چرا مهارت‌ها به عنوان 'بلوک‌های قابل استفاده مجدد عامل‌ها' توصیف می‌شوند؟"
+  options={[
+    "زیرا فقط یک بار می‌توان از آن‌ها استفاده کرد",
+    "زیرا به زبان برنامه‌نویسی بلوکی نوشته شده‌اند",
+    "زیرا هر عاملی می‌تواند یک مهارت را بارگذاری کند تا فوراً آن قابلیت را به دست آورد",
+    "زیرا مهارت‌ها جایگزین نیاز به عامل‌ها می‌شوند"
+  ]}
+  correctIndex={2}
+  explanation="مهارت‌ها بسته‌های تخصصی قابل حمل هستند. یک مهارت بررسی کد یک بار بنویسید، و هر عامل برنامه‌نویسی می‌تواند با بارگذاری آن مهارت به یک متخصص بررسی کد تبدیل شود - مانند بلوک‌های LEGO که به هر ساختاری متصل می‌شوند."
+/>

@@ -1,0 +1,172 @@
+name: Conformance Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: temurin
+  NODE_VERSION: '22'
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Cancel only when the run is NOT on `main` branch
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main'  }}
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    name: Conformance Server Tests
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build
+        run: ./gradlew :conformance-test:installDist
+
+      - name: Start server
+        run: |
+          MCP_PORT=3001 conformance-test/build/install/conformance-test/bin/conformance-test &
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:3001/mcp; then
+              echo "Server is ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run conformance tests
+        uses: modelcontextprotocol/conformance@v0.1.15
+        with:
+          mode: server
+          url: http://localhost:3001/mcp
+          suite: active
+          node-version: ${{ env.NODE_VERSION }}
+          expected-failures: ./conformance-test/conformance-baseline.yml
+
+  client:
+    runs-on: ubuntu-latest
+    name: "Conformance Client Tests: ${{ matrix.scenario }}"
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - initialize
+          - tools_call
+          - elicitation-sep1034-client-defaults
+          - sse-retry
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build
+        run: ./gradlew :conformance-test:installDist
+
+      - name: Run conformance tests
+        uses: modelcontextprotocol/conformance@v0.1.15
+        with:
+          mode: client
+          command: conformance-test/build/install/conformance-test/bin/conformance-client
+          scenario: ${{ matrix.scenario }}
+          node-version: ${{ env.NODE_VERSION }}
+          expected-failures: ./conformance-test/conformance-baseline.yml
+
+  auth:
+    runs-on: ubuntu-latest
+    name: Conformance Auth Tests
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build
+        run: ./gradlew :conformance-test:installDist
+
+      - name: Run conformance tests
+        uses: modelcontextprotocol/conformance@v0.1.15
+        with:
+          mode: client
+          command: conformance-test/build/install/conformance-test/bin/conformance-client
+          suite: auth
+          node-version: ${{ env.NODE_VERSION }}
+          expected-failures: ./conformance-test/conformance-baseline.yml
+
+  auth-scenarios:
+    runs-on: ubuntu-latest
+    name: "Conformance Auth Scenario: ${{ matrix.scenario }}"
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - auth/client-credentials-jwt
+          - auth/client-credentials-basic
+          - auth/cross-app-access-complete-flow
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build
+        run: ./gradlew :conformance-test:installDist
+
+      - name: Run conformance tests
+        uses: modelcontextprotocol/conformance@v0.1.15
+        with:
+          mode: client
+          command: conformance-test/build/install/conformance-test/bin/conformance-client
+          scenario: ${{ matrix.scenario }}
+          node-version: ${{ env.NODE_VERSION }}
+          expected-failures: ./conformance-test/conformance-baseline.yml

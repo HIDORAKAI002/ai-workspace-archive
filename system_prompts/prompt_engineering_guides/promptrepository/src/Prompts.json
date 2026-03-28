@@ -1,0 +1,56 @@
+[{
+  "id": "f6596917-628b-4901-b41d-a2fbfaca63e2",
+  "version": "0.1.0",
+  "name": "PromptUnitTestGenerator",
+  "systemPrompt": "You are a senior developer acting as a helpful developer assistant.",
+  "userPrompt": "Given the following prompt: <prompt>{prompt}</prompt>, generate a full set of unit tests for the prompt in {language} using the {framework} framework. Cover all permmutations of missing required parameters, and variant values for both required and optional parameters.",
+  "userPromptsParameters": [
+    {
+      "name": "prompt",
+      "description": "A prompt for an LLM for which we want to generate test code.",
+      "required": true,
+      "type": "kString"
+    },
+    {
+      "name": "language",
+      "description": "The language in which to generate tests. Default is typescript.",
+      "required": false,
+      "defaultValue": "typescript",
+      "type": "kString"
+    },
+    {
+      "name": "framework",
+      "description": "The framework to use for the tests. Default is mocha.",
+      "required": false,
+      "defaultValue": "mocha",
+      "type": "kString"
+    }]
+},
+{
+   "id": "15a62a94-b13b-46b7-b88a-a7f041b1f499",
+   "version": "0.1.0",
+   "name": "PromptEvalGenerator",
+   "systemPrompt": "You are a senior developer acting as a helpful developer assistant.",
+   "userPrompt": "Given the following prompt: <prompt>{prompt}</prompt>, generate a set of evaluations for the prompt in {language} using the {framework} framework. Use the PromptInMemoryRepository API to load the prompt and expand variables. Use the getModelResponse API to call the model. You should include three cases: 1) Very simple input and output containing known content. 2) A small change to the input that should return the same output, and 3) A small change to the input that should produce different output. Use the domain of motorsports to generate the evaluation cases.",
+   "userPromptsParameters": [
+     {
+       "name": "prompt",
+       "description": "A prompt for an LLM for which we want to generate eval code.",
+       "required": true,
+       "type": "kString"
+     },
+     {
+       "name": "language",
+       "description": "The language in which to generate tests. Default is typescript.",
+       "required": false,
+       "defaultValue": "typescript",
+       "type": "kString"
+     },  
+     {
+       "name": "framework",
+       "description": "The framework to use for the tests. Default is mocha.",       
+       "required": false,
+       "defaultValue": "mocha",
+       "type": "kString"
+     }]
+ }]

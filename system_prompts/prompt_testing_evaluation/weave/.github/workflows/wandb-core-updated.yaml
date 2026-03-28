@@ -1,0 +1,28 @@
+name: Rebuild frontend after wandb/core update
+
+on:
+  repository_dispatch:
+    types:
+      - core-updated
+  workflow_dispatch:
+
+jobs:
+  update-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout weave
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 1
+      - name: Checkout wandb/core
+        uses: actions/checkout@v6
+        with:
+          path: .wandb_core
+          submodules: false
+          fetch-depth: 1
+          repository: wandb/core
+          ref: refs/heads/master
+          token: ${{ secrets.WANDB_CORE_PAT }}
+      - name: Placeholder
+        run: git status

@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+*.sw[op]
+*.log
+.DS_Store
+.aider*
+.env*
+dist
+scratch
+*.sqlite
+
+venv

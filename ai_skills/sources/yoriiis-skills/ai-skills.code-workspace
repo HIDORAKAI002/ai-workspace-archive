@@ -1,0 +1,43 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"editor.defaultFormatter": "biomejs.biome",
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true,
+		"editor.rulers": [100],
+		"editor.wordWrap": "off",
+		"files.trimTrailingWhitespace": true,
+		"files.eol": "\n",
+		"prettier.configPath": "./prettier.config.cjs",
+		"prettier.prettierPath": "./node_modules/prettier/index.cjs",
+		"search.exclude": {
+			"**/node_modules": true
+		},
+		"[javascript][typescript][json][jsonc][yaml][yml]": {
+			"editor.formatOnSave": true
+		},
+		"[javascript][typescript][json][jsonc]": {
+			"editor.codeActionsOnSave": {
+				"quickfix.biome": "explicit",
+				"source.organizeImports.biome": "explicit"
+			}
+		},
+		"[markdown][html]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnSave": true,
+			"editor.wordWrap": "off"
+		},
+		"files.associations": {
+			"*.md": "markdown",
+			"*.yml": "yaml",
+			"*.yaml": "yaml"
+		}
+	},
+	"extensions": {
+		"recommendations": ["biomejs.biome", "esbenp.prettier-vscode"]
+	}
+}

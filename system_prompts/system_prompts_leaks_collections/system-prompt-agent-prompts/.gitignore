@@ -1,0 +1,113 @@
+# System Prompts Collection - Git Ignore File
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-*
+
+# Python Files (if any utilities are added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Node.js (if any web tools are added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Personal Notes and Drafts
+drafts/
+personal-notes/
+todo-private.md
+*.draft
+
+# Sensitive Information
+secrets/
+private/
+.env
+.env.local
+.env.*.local
+
+# Large Files (GitHub has size limits)
+*.large
+large-files/
+
+# Backup Files
+*.bak
+*.backup
+*~
+
+# Generated Documentation
+docs/_build/
+site/
+
+# Test Files
+test-outputs/
+test-results/
+
+# Work in Progress
+wip/
+work-in-progress/

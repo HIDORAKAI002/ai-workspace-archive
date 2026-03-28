@@ -1,0 +1,79 @@
+name: Feature request
+description: Suggest a new skill or an improvement for ai-skills
+labels: 'feature'
+body:
+  - type: dropdown
+    id: reference
+    validations:
+      required: true
+    attributes:
+      label: Related reference
+      description: Which reference file (skills/*/references/*.md) or project area is this about?
+      options:
+        - accessibility
+        - architecture
+        - assets
+        - ci-cd
+        - code-quality
+        - css
+        - html
+        - js-ts
+        - security
+        - templates
+        - testing
+        - Project (repo / tooling)
+        - New skill
+        - Other
+  - type: input
+    id: reference-other
+    attributes:
+      label: If "Other", specify
+      description: Only if you selected "Other" above.
+      placeholder: e.g. my-custom-skill
+  - type: dropdown
+    id: about-skill-output
+    validations:
+      required: true
+    attributes:
+      label: Is this about the skill's own output?
+      description: Does the request concern the skill's behavior or the feedback it should produce?
+      options:
+        - Yes — change or improve the skill's output/behavior
+        - No — tooling, docs, new skill, etc.
+  - type: textarea
+    attributes:
+      label: Problem this feature solves (optional)
+      description: If the feature addresses a specific need, describe it.
+      placeholder: Ex. I'm always frustrated when...
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Describe the proposed feature
+      description: Be as specific as possible (new skill, change to existing skill, tooling, docs...).
+  - type: textarea
+    attributes:
+      label: Alternatives considered
+      description: Other solutions or approaches you've considered.
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Editor
+      description: Which editor do you use?
+      placeholder: e.g. Cursor 0.42, Codex, VS Code
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Model
+      description: Which AI model do you use?
+      placeholder: e.g. Claude Opus 4.5, GPT-4o
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Context, usage examples, or links to related open PRs.
+  - type: textarea
+    attributes:
+      label: Related issues
+      description: Any open or closed issues related to this feature request? Link them here.

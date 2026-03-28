@@ -1,0 +1,21 @@
+{
+  "name": "Route a theme.json task",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-block-themes"],
+  "query": "You are in a WordPress repo. I need to add a new typography preset in theme.json and ensure it shows up in the editor.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind and tooling",
+    "Step 2: Run triage script to detect theme.json presence",
+    "Step 3: Identify repo as block theme (wp-block-theme) or site repo with theme.json",
+    "Step 4: Route to wp-block-themes skill",
+    "Step 5: Recommend editing settings.typography.fontSizes in theme.json",
+    "Step 6: Recommend repo's existing build/lint/test commands if present",
+    "Step 7: Verify preset appears in editor's typography settings"
+  ],
+  "success_criteria": [
+    "Router is used first to classify repo",
+    "Triage detects block theme or theme.json presence",
+    "Routes to wp-block-themes skill",
+    "Typography preset added to correct theme.json section",
+    "Uses existing repo tooling for verification"
+  ]
+}

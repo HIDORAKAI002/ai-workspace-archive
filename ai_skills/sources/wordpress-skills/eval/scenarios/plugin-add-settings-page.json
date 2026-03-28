@@ -1,0 +1,25 @@
+{
+  "name": "Add a settings page with Settings API",
+  "skills": ["wordpress-router", "wp-project-triage", "wp-plugin-development"],
+  "query": "Add a new plugin setting (checkbox + text field) with a settings page, and make sure it's secure and saves correctly.",
+  "expected_behavior": [
+    "Step 1: Run wordpress-router to classify repo kind",
+    "Step 2: Run wp-project-triage script to detect plugin structure",
+    "Step 3: Route to wp-plugin-development based on plugin header presence",
+    "Step 4: Use Settings API: register_setting() with sanitize_callback",
+    "Step 5: Create settings page with add_options_page() or add_submenu_page()",
+    "Step 6: Add settings sections with add_settings_section()",
+    "Step 7: Add settings fields with add_settings_field()",
+    "Step 8: Implement proper nonce verification in form",
+    "Step 9: Add capability check (manage_options or custom)",
+    "Step 10: Escape all output with esc_html(), esc_attr(), etc."
+  ],
+  "success_criteria": [
+    "Uses Settings API (register_setting, add_settings_field)",
+    "Includes sanitize_callback for input validation",
+    "Nonce is present and verified",
+    "Capability check is enforced",
+    "Output is properly escaped",
+    "Settings save and load correctly"
+  ]
+}

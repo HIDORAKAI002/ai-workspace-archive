@@ -1,0 +1,551 @@
+随着 AI 系统从简单的问答发展到自主任务执行，理解**智能体（Agent）**和**技能（Skill）**变得至关重要。本章探讨提示词如何作为 AI 智能体的基础构建块，以及技能如何将专业知识打包成可复用的综合指令集。
+
+<div className="my-8 p-6 bg-muted/20 rounded-xl border">
+  <div className="flex flex-col items-center gap-6">
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700">
+        <IconSettings className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+      </div>
+      <p className="font-semibold mt-2 m-0!">智能体</p>
+      <p className="text-xs text-muted-foreground m-0!">自主 AI 系统</p>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>由以下驱动</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">技能</p>
+        <p className="text-xs text-muted-foreground m-0!">可复用的专业知识</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">技能</p>
+        <p className="text-xs text-muted-foreground m-0!">可复用的专业知识</p>
+      </div>
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/50 border-2 border-purple-300 dark:border-purple-700">
+          <IconStar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <p className="font-medium text-sm mt-2 m-0!">技能</p>
+        <p className="text-xs text-muted-foreground m-0!">可复用的专业知识</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <span>由以下组成</span>
+      <span>↓</span>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2">
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">提示词</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">提示词</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">提示词</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">提示词</span>
+      </div>
+      <div className="px-3 py-2 rounded bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+        <IconClipboard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+        <span className="text-xs font-medium">提示词</span>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center m-0! mt-2">提示词是原子 → 技能是分子 → 智能体是完整结构</p>
+  </div>
+</div>
+
+## 什么是 AI 智能体？
+
+**AI 智能体**是一个能够自主规划、执行和迭代任务的 AI 系统。与简单的提示-响应交互不同，智能体可以：
+
+- **规划** - 将复杂目标分解为可执行的步骤
+- **执行** - 使用工具并在现实世界中采取行动
+- **观察** - 处理其行动的反馈
+- **适应** - 根据结果调整其方法
+- **持久化** - 在交互之间维护上下文和记忆
+
+<div className="my-6 flex items-center justify-center p-6 bg-muted/30 rounded-lg">
+  <div className="relative">
+    <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-blue-700 dark:text-blue-300 m-0!">目标</p>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border border-dashed rounded-lg">
+          <div className="px-3 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded text-center text-sm">
+            <p className="font-medium text-purple-700 dark:text-purple-300 m-0!">规划</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded text-center text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-300 m-0!">执行</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded text-center text-sm">
+            <p className="font-medium text-teal-700 dark:text-teal-300 m-0!">观察</p>
+          </div>
+          <div className="text-muted-foreground">→</div>
+          <div className="px-3 py-2 bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded text-center text-sm">
+            <p className="font-medium text-rose-700 dark:text-rose-300 m-0!">适应</p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <span>↺</span> 循环直到完成
+        </div>
+      </div>
+      <div className="text-muted-foreground">→</div>
+      <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm">
+        <p className="font-medium text-green-700 dark:text-green-300 m-0!">完成</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## 提示词作为构建块
+
+每个智能体，无论多么复杂，都是由提示词构建的。正如原子结合形成分子，分子结合形成复杂结构，提示词结合起来创造智能的智能体行为。
+
+<div className="my-6 grid md:grid-cols-4 gap-3 text-center text-sm">
+  <div className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+    <p className="font-semibold text-blue-700 dark:text-blue-300 m-0!">系统提示词</p>
+    <p className="text-xs text-blue-600 dark:text-blue-400 m-0! mt-1">身份与角色</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+    <p className="font-semibold text-purple-700 dark:text-purple-300 m-0!">规划提示词</p>
+    <p className="text-xs text-purple-600 dark:text-purple-400 m-0! mt-1">如何思考</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+    <p className="font-semibold text-amber-700 dark:text-amber-300 m-0!">工具提示词</p>
+    <p className="text-xs text-amber-600 dark:text-amber-400 m-0! mt-1">如何行动</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900">
+    <p className="font-semibold text-rose-700 dark:text-rose-300 m-0!">恢复提示词</p>
+    <p className="text-xs text-rose-600 dark:text-rose-400 m-0! mt-1">如何恢复</p>
+  </div>
+</div>
+
+这些提示词类型叠加在一起形成完整的智能体行为：
+
+### 系统提示词（智能体的身份）
+
+建立智能体是谁以及如何行为的基础提示词：
+
+```markdown
+You are a code review assistant. Your role is to:
+- Analyze code for bugs, security issues, and performance problems
+- Suggest improvements following best practices
+- Explain your reasoning clearly
+- Be constructive and educational in feedback
+
+You have access to tools for reading files, searching code, and running tests.
+```
+
+### 规划提示词（如何思考）
+
+指导智能体推理和规划过程的指令：
+
+```markdown
+Before taking action, always:
+1. Understand the complete request
+2. Break it into smaller, verifiable steps
+3. Identify which tools you'll need
+4. Consider edge cases and potential issues
+5. Execute step by step, validating as you go
+```
+
+### 工具使用提示词（如何行动）
+
+关于何时以及如何使用可用工具的指导：
+
+```markdown
+When you need to understand a codebase:
+- Use grep_search for finding specific patterns
+- Use read_file to examine file contents
+- Use list_dir to explore directory structure
+- Always verify your understanding before making changes
+```
+
+### 恢复提示词（如何处理失败）
+
+当事情出错时的指令：
+
+```markdown
+If an action fails:
+1. Analyze the error message carefully
+2. Consider alternative approaches
+3. Ask for clarification if the task is ambiguous
+4. Never repeat the same failed action without changes
+```
+
+<Callout type="info" title="提示词栈">
+智能体的行为源于多层提示词的协同工作。系统提示词奠定基础，规划提示词指导推理，工具提示词启用行动，恢复提示词处理失败。它们共同创造出连贯、有能力的行为。
+</Callout>
+
+## 什么是技能？
+
+如果提示词是原子，**技能就是分子**——赋予智能体特定能力的可复用构建块。
+
+**技能**是一个全面的、可移植的指令包，为 AI 智能体提供特定领域或任务的专业知识。技能是智能体的可复用模块：你只需构建一次，任何智能体都可以使用它们。
+
+<Callout type="tip" title="技能 = 可复用的智能体模块">
+只需编写一次代码审查技能。现在每个编程智能体——无论是用于 Python、JavaScript 还是 Rust——都可以通过加载该技能立即成为专业的代码审查员。技能让你像搭积木一样构建智能体能力。
+</Callout>
+
+### 技能的结构
+
+一个设计良好的技能通常包括：
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📄 SKILL.md（必需）</p>
+    <p className="text-sm text-muted-foreground m-0!">主指令文件。包含定义技能的核心专业知识、指南和行为。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">📚 参考文档</p>
+    <p className="text-sm text-muted-foreground m-0!">智能体在工作时可以参考的支持文档、示例和上下文。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">🔧 脚本与工具</p>
+    <p className="text-sm text-muted-foreground m-0!">支持技能功能的辅助脚本、模板或工具配置。</p>
+  </div>
+  <div className="border rounded-lg p-4 bg-muted/30">
+    <p className="font-semibold text-sm m-0! mb-2">⚙️ 配置</p>
+    <p className="text-sm text-muted-foreground m-0!">用于将技能适配到不同上下文的设置、参数和自定义选项。</p>
+  </div>
+</div>
+
+### 示例：代码审查技能
+
+以下是代码审查技能可能的样子：
+
+<div className="my-6 border rounded-lg overflow-hidden bg-muted/20">
+  <div className="px-3 py-2 bg-muted/50 border-b flex items-center gap-2">
+    <span className="text-sm">📁</span>
+    <span className="text-sm font-medium">code-review-skill/</span>
+  </div>
+  <div className="p-3 space-y-1 text-sm font-mono">
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span className="font-medium">SKILL.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">核心审查指南</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>security-checklist.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">安全模式</span>
+    </div>
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+      <span>📄</span>
+      <span>performance-tips.md</span>
+      <span className="text-muted-foreground text-xs ml-auto">优化指南</span>
+    </div>
+    <div className="mt-2 border-t pt-2">
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span>📁</span>
+        <span className="font-medium">language-specific/</span>
+      </div>
+      <div className="ml-6 space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>python.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Python 最佳实践</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>javascript.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">JavaScript 模式</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50">
+          <span>📄</span>
+          <span>rust.md</span>
+          <span className="text-muted-foreground text-xs ml-auto">Rust 指南</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+`SKILL.md` 文件定义整体方法：
+
+```markdown
+---
+name: code-review
+description: Comprehensive code review with security, performance, and style analysis
+---
+
+# Code Review Skill
+
+You are an expert code reviewer. When reviewing code:
+
+## Process
+1. **Understand Context** - What does this code do? What problem does it solve?
+2. **Check Correctness** - Does it work? Are there logic errors?
+3. **Security Scan** - Reference security-checklist.md for common vulnerabilities
+4. **Performance Review** - Check performance-tips.md for optimization opportunities
+5. **Style & Maintainability** - Is the code readable and maintainable?
+
+## Output Format
+Provide feedback in categories:
+- 🔴 **Critical** - Must fix before merge
+- 🟡 **Suggested** - Recommended improvements
+- 🟢 **Nice to have** - Optional enhancements
+
+Always explain *why* something is an issue, not just *what* is wrong.
+```
+
+## 技能与简单提示词的区别
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-muted/30">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">简单提示词</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">单一指令</p>
+      <p className="m-0!">一次性使用</p>
+      <p className="m-0!">有限上下文</p>
+      <p className="m-0!">通用方法</p>
+      <p className="m-0!">无支持材料</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-primary/5 border-primary/20">
+    <p className="text-sm font-semibold px-4 pt-3 m-0!">技能</p>
+    <div className="text-sm p-4 pt-2 space-y-2">
+      <p className="m-0!">全面的指令集</p>
+      <p className="m-0!">跨项目可复用</p>
+      <p className="m-0!">带参考资料的丰富上下文</p>
+      <p className="m-0!">特定领域的专业知识</p>
+      <p className="m-0!">支持文档、脚本、配置</p>
+    </div>
+  </div>
+</div>
+
+## 构建有效的技能
+
+### 1. 清晰定义专业知识
+
+从清晰描述技能能实现什么开始：
+
+```markdown
+---
+name: api-design
+description: Design RESTful APIs following industry best practices, 
+  including versioning, error handling, and documentation standards
+---
+```
+
+### 2. 层次化组织知识
+
+从通用到具体组织信息：
+
+```markdown
+# API Design Skill
+
+## Core Principles
+- Resources should be nouns, not verbs
+- Use HTTP methods semantically
+- Version your APIs from day one
+
+## Detailed Guidelines
+[More specific rules...]
+
+## Reference Materials
+- See `rest-conventions.md` for naming conventions
+- See `error-codes.md` for standard error responses
+```
+
+### 3. 包含具体示例
+
+抽象规则通过示例变得清晰：
+
+```markdown
+## Endpoint Naming
+
+✅ Good:
+- GET /users/{id}
+- POST /orders
+- DELETE /products/{id}/reviews/{reviewId}
+
+❌ Avoid:
+- GET /getUser
+- POST /createNewOrder
+- DELETE /removeProductReview
+```
+
+### 4. 提供决策框架
+
+帮助智能体在模糊情况下做出选择：
+
+```markdown
+## When to Use Pagination
+
+Use pagination when:
+- Collection could exceed 100 items
+- Response size impacts performance
+- Client may not need all items
+
+Use full response when:
+- Collection is always small (<20 items)
+- Client typically needs everything
+- Real-time consistency is critical
+```
+
+### 5. 添加恢复模式
+
+预见可能出错的情况：
+
+```markdown
+## Common Issues
+
+**Problem**: Client needs fields not in standard response
+**Solution**: Implement field selection: GET /users?fields=id,name,email
+
+**Problem**: Breaking changes needed
+**Solution**: Create new version, deprecate old with timeline
+```
+
+## 组合技能
+
+当多个技能协同工作时，智能体变得更加强大。考虑技能如何相互补充：
+
+<div className="my-6 flex flex-wrap items-center justify-center gap-4 p-6 bg-muted/30 rounded-lg">
+  <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300">
+    代码审查
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300">
+    安全审计
+  </div>
+  <div className="text-xl">+</div>
+  <div className="px-4 py-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-sm font-medium text-green-700 dark:text-green-300">
+    文档编写
+  </div>
+  <div className="text-xl">=</div>
+  <div className="px-4 py-2 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium text-amber-700 dark:text-amber-300">
+    完整的代码质量智能体
+  </div>
+</div>
+
+组合技能时，确保它们不会冲突。技能应该是：
+
+- **模块化** - 每个技能很好地处理一个领域
+- **兼容** - 技能不应给出矛盾的指令
+- **有优先级** - 当技能重叠时，定义哪个优先
+
+## 分享和发现技能
+
+技能在分享时最有价值。像 [prompts.chat](https://prompts.chat/skills) 这样的平台允许你：
+
+- **发现**社区为常见任务创建的技能
+- **下载**技能直接到你的项目
+- **分享**你自己的专业知识作为可复用技能
+- **迭代**基于实际使用改进技能
+
+<Callout type="tip" title="从社区技能开始">
+在从零开始构建技能之前，检查是否有人已经解决了你的问题。社区技能经过实战检验，通常比从零开始更好。
+</Callout>
+
+## 智能体-技能生态系统
+
+智能体和技能之间的关系创造了一个强大的生态系统：
+
+<div className="my-6 p-6 bg-muted/30 rounded-lg border">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">AI 智能体</span>
+  </div>
+  <div className="flex flex-wrap justify-center gap-3 mb-4">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="font-medium text-blue-700 dark:text-blue-300 text-sm m-0!">代码审查</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">技能 1</p>
+    </div>
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="font-medium text-purple-700 dark:text-purple-300 text-sm m-0!">API 设计</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">技能 2</p>
+    </div>
+    <div className="px-4 py-3 bg-teal-100 dark:bg-teal-900/50 border border-teal-200 dark:border-teal-800 rounded-lg text-center">
+      <p className="font-medium text-teal-700 dark:text-teal-300 text-sm m-0!">测试编写</p>
+      <p className="text-xs text-teal-600 dark:text-teal-400 m-0!">技能 3</p>
+    </div>
+  </div>
+  <div className="flex justify-center mb-3">
+    <div className="text-muted-foreground">↓</div>
+  </div>
+  <div className="flex justify-center">
+    <div className="px-6 py-4 bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+      <p className="font-semibold text-amber-700 dark:text-amber-300 text-sm m-0!">核心提示词</p>
+      <p className="text-xs text-amber-600 dark:text-amber-400 m-0!">规划 • 工具 • 恢复 • 记忆</p>
+    </div>
+  </div>
+</div>
+
+智能体提供执行框架——规划、工具使用和记忆——而技能提供领域专业知识。这种分离意味着：
+
+- **技能是可移植的** - 同一个技能可以与不同的智能体一起工作
+- **智能体是可扩展的** - 通过添加技能来添加新功能
+- **专业知识是可分享的** - 领域专家可以贡献技能而无需构建完整的智能体
+
+## 最佳实践
+
+### 构建技能
+
+1. **从具体开始，然后泛化** - 首先为你的确切用例构建技能，然后抽象
+2. **包含失败案例** - 记录技能无法做什么以及如何处理
+3. **为技能添加版本** - 跟踪更改，以便智能体可以依赖稳定版本
+4. **用真实任务测试** - 根据实际工作验证技能，而不仅仅是理论
+
+### 与智能体一起使用技能
+
+1. **先阅读技能** - 在部署之前了解技能的功能
+2. **谨慎自定义** - 仅在必要时覆盖技能默认值
+3. **监控性能** - 跟踪技能在你的上下文中的表现
+4. **贡献改进** - 当你改进技能时，考虑回馈社区
+
+<Callout type="info" title="未来是可组合的">
+随着 AI 智能体变得更加强大，组合、分享和自定义技能的能力将成为核心竞争力。未来的提示工程师不仅仅编写提示词——他们将架构使 AI 智能体在特定领域真正专业的技能生态系统。
+</Callout>
+
+<Quiz 
+  question="简单提示词和技能之间的关键区别是什么？"
+  options={[
+    "技能比提示词更长",
+    "技能是可复用的多文件包，为智能体提供领域专业知识",
+    "技能只能与特定的 AI 模型一起工作",
+    "技能不需要任何提示词"
+  ]}
+  correctIndex={1}
+  explanation="技能是全面的、可移植的包，结合了多个提示词、参考文档、脚本和配置。它们是可复用的构建块，可以添加到任何智能体以赋予其特定功能。"
+/>
+
+<Quiz 
+  question="什么是智能体循环？"
+  options={[
+    "一种调试 AI 错误的技术",
+    "规划 → 执行 → 观察 → 适应，重复直到目标达成",
+    "一种将多个提示词链接在一起的方法",
+    "一种训练新 AI 模型的方法"
+  ]}
+  correctIndex={1}
+  explanation="AI 智能体在一个持续的循环中工作：它们规划如何处理任务，执行操作，观察结果，并根据反馈调整方法——重复直到目标完成。"
+/>
+
+<Quiz 
+  question="为什么技能被描述为'智能体的可复用模块'？"
+  options={[
+    "因为它们只能使用一次",
+    "因为它们是用块编程语言编写的",
+    "因为任何智能体都可以加载技能来立即获得该能力",
+    "因为技能取代了对智能体的需求"
+  ]}
+  correctIndex={2}
+  explanation="技能是可移植的专业知识包。只需编写一次代码审查技能，任何编程智能体都可以通过加载该技能成为专业的代码审查员——就像可以拼接到任何结构的乐高积木。"
+/>

@@ -1,0 +1,328 @@
+Rol-gebaseerd prompten is een van de krachtigste en meest gebruikte technieken in prompt engineering. Door een specifieke rol of persona aan de AI toe te wijzen, kun je de kwaliteit, stijl en relevantie van antwoorden aanzienlijk beïnvloeden.
+
+<Callout type="tip" title="De Kracht van Persona's">
+Zie rollen als filters voor de enorme kennis van AI. De juiste rol focust antwoorden zoals een lens licht focust.
+</Callout>
+
+## Waarom Rollen Werken
+
+Wanneer je een rol toewijst, vertel je het model in wezen: "Filter je enorme kennis door deze specifieke lens." Het model past het volgende aan:
+
+- **Woordenschat**: Gebruik van terminologie die past bij de rol
+- **Perspectief**: Problemen bekijken vanuit dat gezichtspunt
+- **Expertisediepte**: Rol-passende detailniveaus bieden
+- **Communicatiestijl**: Afstemmen op hoe die rol zou communiceren
+
+### De Technische Uitleg
+
+LLM's werken door het meest waarschijnlijke volgende token te voorspellen op basis van de gegeven context. Wanneer je een rol specificeert, verander je fundamenteel wat "waarschijnlijk" betekent.
+
+**Relevante Kennis Activeren**: De rol primeert specifieke gebieden van de aangeleerde associaties van het model. Zeggen "Je bent een dokter" activeert medische terminologie, diagnostische redeneerpatronen en klinische communicatiestijlen uit de trainingsdata.
+
+**Statistische Conditionering**: LLM's leerden van miljoenen documenten geschreven door echte experts. Wanneer je een rol toewijst, conditioneert het model zijn kansdistributies om te matchen met patronen die het zag van dat type auteur.
+
+**Ambiguïteit Verminderen**: Zonder een rol middelt het model over alle mogelijke respondenten. Met een rol beperkt het zich tot een specifieke subset, waardoor antwoorden meer gefocust en consistent worden.
+
+**Context Verankering**: De rol creëert een persistent contextanker gedurende het hele gesprek. Elk volgend antwoord wordt beïnvloed door deze initiële framing.
+
+Zie het zo: als je vraagt "Wat moet ik doen aan deze hoest?" zou het model kunnen antwoorden als een dokter, een vriend, een apotheker of een bezorgde ouder. Elk zou ander advies geven. Door de rol vooraf te specificeren, vertel je het model welke "stem" het moet gebruiken uit zijn trainingsdata.
+
+<Callout type="info" title="Waarom Dit Belangrijk Is">
+Het model doet niet alsof of speelt geen rol in theatrale zin. Het beïnvloedt statistisch zijn outputs richting patronen die het leerde van echte experts, professionals en specialisten tijdens training. Een "dokter" rol activeert medische kennispaden; een "dichter" rol activeert literaire patronen.
+</Callout>
+
+## Basis Rolpatronen
+
+Deze fundamentele patronen werken voor de meeste use cases. Begin met deze templates en pas ze aan voor jouw behoeften.
+
+### Het Expert Patroon
+
+Het meest veelzijdige patroon. Specificeer het expertisegebied en jaren ervaring om gezaghebbende, diepgaande antwoorden te krijgen. Werkt goed voor technische vragen, analyses en professioneel advies.
+
+<TryIt compact prompt={`Je bent een expert \${field} met \${years:10} jaar ervaring in \${specialty}.
+
+\${task}`} />
+
+### Het Professional Patroon
+
+Veranker de rol in een real-world context door een functietitel en organisatietype te specificeren. Dit voegt institutionele kennis en professionele normen toe aan het antwoord.
+
+<TryIt compact prompt={`Je bent een \${profession} werkzaam bij \${organization}.
+
+\${task}`} />
+
+### Het Docent Patroon
+
+Perfect voor leren en uitleg. Het specificeren van het publiekniveau zorgt ervoor dat het antwoord past bij de achtergrond van de leerling, van beginners tot gevorderde beoefenaars.
+
+<TryIt compact prompt={`Je bent een \${subject} docent die gespecialiseerd is in het uitleggen van complexe concepten aan \${audience}.
+
+\${task}`} />
+
+## Geavanceerde Rolconstructies
+
+### Samengestelde Rollen
+
+Combineer meerdere identiteiten om antwoorden te krijgen die verschillende perspectieven mengen. Deze kinderarts-ouder combinatie produceert advies dat zowel medisch verantwoord als praktisch getest is.
+
+<TryIt compact prompt={`Je bent een kinderarts die ook ouder is van drie kinderen. Je begrijpt zowel de medische als praktische aspecten van gezondheidsproblemen bij kinderen. Je communiceert met empathie en zonder medisch jargon.
+
+\${question}`} />
+
+### Situationele Rollen
+
+Plaats de rol in een specifiek scenario om zowel inhoud als toon te vormen. Hier maakt de code review context de AI constructief en educatief in plaats van alleen kritisch.
+
+<TryIt compact prompt={`Je bent een senior developer die een code review doet voor een junior teamlid. Je wilt behulpzaam en educatief zijn, niet kritisch. Je legt niet alleen uit wat er gefixed moet worden, maar ook waarom.
+
+Te reviewen code:
+\${code}`} />
+
+### Perspectief Rollen
+
+Krijg feedback vanuit het standpunt van een specifieke stakeholder. Een VC-perspectief evalueert levensvatbaarheid en schaalbaarheid anders dan een klant of engineer zou doen.
+
+<TryIt compact prompt={`Je bent een venture capitalist die startup pitches evalueert. Je hebt duizenden pitches gezien en kunt snel sterke punten, zwakke punten en rode vlaggen identificeren. Wees direct maar constructief.
+
+Pitch: \${pitch}`} />
+
+## Rolcategorieën en Voorbeelden
+
+Verschillende domeinen profiteren van verschillende soorten rollen. Hier zijn bewezen voorbeelden georganiseerd per categorie die je kunt aanpassen voor jouw taken.
+
+### Technische Rollen
+
+**Software Architect**: Het beste voor systeemontwerp beslissingen, technologiekeuzes en architecturale afwegingen. De focus op onderhoudbaarheid stuurt antwoorden richting praktische, langetermijnoplossingen.
+
+<TryIt compact prompt={`Je bent een software architect gespecialiseerd in schaalbare gedistribueerde systemen. Je prioriteert onderhoudbaarheid, performance en teamproductiviteit in je aanbevelingen.
+
+\${question}`} />
+
+**Security Specialist**: De aanvallersmentaliteit is hier essentieel. Deze rol produceert dreigingsgerichte analyse die kwetsbaarheden identificeert die een puur defensief perspectief zou missen.
+
+<TryIt compact prompt={`Je bent een cybersecurity specialist die penetratietesten uitvoert. Je denkt als een aanvaller om kwetsbaarheden te identificeren.
+
+Analyseer: \${target}`} />
+
+**DevOps Engineer**: Ideaal voor deployment-, automatiserings- en infrastructuurvragen. De nadruk op betrouwbaarheid zorgt voor productie-klare aanbevelingen.
+
+<TryIt compact prompt={`Je bent een DevOps engineer gefocust op CI/CD pipelines en infrastructure as code. Je waardeert automatisering en betrouwbaarheid.
+
+\${question}`} />
+
+### Creatieve Rollen
+
+**Copywriter**: De "prijswinnende" kwalificatie en conversiefocus produceren pakkende, overtuigende copy in plaats van generieke marketingtekst.
+
+<TryIt compact prompt={`Je bent een prijswinnende copywriter bekend om het creëren van aansprekende koppen en overtuigende content die conversies stimuleert.
+
+Schrijf copy voor: \${product}`} />
+
+**Screenwriter**: Activeert kennis van dramatische structuur, pacing en dialoogconventies. Geweldig voor elk narratief schrijven dat spanning en karakterstem nodig heeft.
+
+<TryIt compact prompt={`Je bent een screenwriter die heeft geschreven voor populaire tv-drama's. Je begrijpt verhaalstructuur, dialoog en karakterontwikkeling.
+
+Schrijf: \${scene}`} />
+
+**UX Writer**: Een gespecialiseerde rol voor interfacetekst. De focus op beknoptheid en gebruikersbegeleiding produceert bondige, actiegerichte copy.
+
+<TryIt compact prompt={`Je bent een UX writer gespecialiseerd in microcopy. Je maakt interfaces menselijk en begeleidt gebruikers met minimale tekst.
+
+Schrijf microcopy voor: \${element}`} />
+
+### Analytische Rollen
+
+**Business Analyst**: Overbrugt de kloof tussen technische en niet-technische stakeholders. Nuttig voor het verzamelen van requirements, specificaties schrijven en het identificeren van hiaten in projectplannen.
+
+<TryIt compact prompt={`Je bent een business analyst die vertaalt tussen technische teams en stakeholders. Je verduidelijkt requirements en identificeert edge cases.
+
+Analyseer: \${requirement}`} />
+
+**Research Scientist**: De nadruk op bewijs en het erkennen van onzekerheid produceert evenwichtige, goed onderbouwde antwoorden die feiten van speculatie onderscheiden.
+
+<TryIt compact prompt={`Je bent een research scientist die empirisch bewijs waardeert en onzekerheid erkent. Je onderscheidt tussen vastgestelde feiten en hypotheses.
+
+Onderzoeksvraag: \${question}`} />
+
+**Financial Analyst**: Combineert kwantitatieve analyse met risicobeoordeling. De dubbele focus op rendement en risico produceert meer evenwichtige investeringsperspectieven.
+
+<TryIt compact prompt={`Je bent een financial analyst die investeringen evalueert met fundamentele en technische analyse. Je beschouwt risico naast potentieel rendement.
+
+Evalueer: \${investment}`} />
+
+### Educatieve Rollen
+
+**Socratische Tutor**: In plaats van antwoorden te geven, stelt deze rol sturende vragen. Uitstekend voor dieper leren en om studenten te helpen kritisch denkvermogen te ontwikkelen.
+
+<TryIt compact prompt={`Je bent een tutor die de Socratische methode gebruikt. In plaats van antwoorden direct te geven, begeleid je studenten om antwoorden te ontdekken door doordachte vragen.
+
+Onderwerp: \${topic}`} />
+
+**Instructional Designer**: Structureert leren voor maximale retentie. Gebruik deze rol wanneer je complexe onderwerpen moet opdelen in leerzame blokken met duidelijke progressie.
+
+<TryIt compact prompt={`Je bent een instructional designer die boeiende leerervaringen creëert. Je breekt complexe onderwerpen op in verteerbare modules met duidelijke leerdoelen.
+
+Maak curriculum voor: \${topic}`} />
+
+## De Role Stack Techniek
+
+Voor complexe taken, combineer meerdere rolaspecten in één gelaagde identiteit. Deze techniek stapelt expertise, publiekbewustzijn en stijlrichtlijnen om zeer gespecialiseerde antwoorden te creëren.
+
+Dit voorbeeld combineert drie elementen: domeinexpertise (API documentatie), publiek (junior developers) en stijlgids (Google's conventies). Elke laag beperkt de output verder.
+
+<TryIt compact prompt={`Je bent een technical writer met expertise in API documentatie. Je schrijft voor developers die nieuw zijn met REST APIs. Volg de Google developer documentation stijlgids: gebruik tweede persoon ("je"), actieve stem, tegenwoordige tijd en houd zinnen onder de 26 woorden.
+
+Documenteer: \${apiEndpoint}`} />
+
+## Rollen voor Verschillende Taken
+
+<div className="my-4 grid gap-2">
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Code review</span>
+    <span className="text-muted-foreground">Senior developer + mentor</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Schrijffeedback</span>
+    <span className="text-muted-foreground">Redacteur + doelgroeplid</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Bedrijfsstrategie</span>
+    <span className="text-muted-foreground">Consultant + branche-expert</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Nieuw onderwerp leren</span>
+    <span className="text-muted-foreground">Geduldige docent + praktijkbeoefenaar</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Creatief schrijven</span>
+    <span className="text-muted-foreground">Specifieke genre-auteur</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Technische uitleg</span>
+    <span className="text-muted-foreground">Expert + communicator</span>
+  </div>
+  <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+    <span className="font-semibold min-w-40">Probleemoplossing</span>
+    <span className="text-muted-foreground">Domeinspecialist + generalist</span>
+  </div>
+</div>
+
+## Anti-Patronen om te Vermijden
+
+### Te Generieke Rollen
+
+<Compare 
+  before={{ label: "Zwak", content: "Je bent een behulpzame assistent." }}
+  after={{ label: "Beter", content: "Je bent een behulpzame assistent gespecialiseerd in Python-ontwikkeling, met name webapplicaties met Flask en Django." }}
+/>
+
+### Conflicterende Rollen
+
+<Compare 
+  before={{ label: "Problematisch", content: "Je bent een creatieve schrijver die altijd strikte templates volgt." }}
+  after={{ label: "Beter", content: "Je bent een creatieve schrijver die werkt binnen gevestigde verhaalstructuren terwijl je originele elementen toevoegt." }}
+/>
+
+### Onrealistische Expertise
+
+<Compare 
+  before={{ label: "Problematisch", content: "Je bent een expert in alles." }}
+  after={{ label: "Beter", content: "Je bent een T-shaped professional: diepe expertise in machine learning met brede kennis van software engineering praktijken." }}
+/>
+
+## Real-World Prompt Voorbeelden
+
+### Technische Documentatie
+
+<TryIt 
+  title="Technical Writer Rol"
+  description="Probeer deze technische documentatie prompt met je eigen API endpoint."
+  prompt={`Je bent een senior technical writer bij een developer tools bedrijf. Je hebt 10 jaar ervaring met het schrijven van API documentatie, SDK handleidingen en developer tutorials.
+
+Jouw documentatiestijl:
+- Duidelijke, scanbare structuur met headers en codevoorbeelden
+- Legt het "waarom" uit naast het "hoe"
+- Anticipeert op veelgestelde vragen en edge cases
+- Gebruikt consistente terminologie gedefinieerd in een glossarium
+- Bevat werkende codevoorbeelden die gebruikers kunnen kopiëren en plakken
+
+Documenteer dit API endpoint: GET /api/users/:id - Retourneert gebruikersprofieldata`}
+/>
+
+### Creatief Schrijven
+
+<TryIt 
+  title="Romanschrijver Rol"
+  description="Deze rol combineert genre-expertise met specifieke stilistische kenmerken."
+  prompt={`Je bent een romanschrijver die schrijft in de stijl van literaire fictie met elementen van magisch realisme. Je proza staat bekend om:
+- Lyrische maar toegankelijke taal
+- Diepe psychologische karakterportretten
+- Subtiele magische elementen verweven in alledaagse settings
+- Thema's van herinnering, identiteit en transformatie
+
+Schrijf de openingsscène van een verhaal over een bibliothecaresse die ontdekt dat boeken in haar bibliotheek langzaam hun eindes veranderen.`}
+/>
+
+### Zakelijke Communicatie
+
+<TryIt 
+  title="Executive Coach Rol"
+  description="Deze rol helpt bij gevoelige zakelijke communicatie."
+  prompt={`Je bent een executive communications coach die heeft gewerkt met Fortune 500 CEO's. Je helpt leiders complexe ideeën eenvoudig te communiceren en vertrouwen op te bouwen met hun teams.
+
+Beoordeel dit bericht voor een teamvergadering over bezuinigingen. Stel verbeteringen voor die:
+- De moeilijkheid erkennen terwijl je vertrouwen behoudt
+- Transparant zijn zonder paniek te creëren
+- Empathie tonen terwijl je professioneel blijft
+- Duidelijke volgende stappen bevatten
+
+Conceptbericht: "Door budgetbeperkingen moeten we de projectomvang reduceren. Sommige initiatieven worden gepauzeerd."`}
+/>
+
+## Rollen Combineren met Andere Technieken
+
+Rollen werken nog beter wanneer ze gecombineerd worden met andere prompting technieken:
+
+### Rol + Few-Shot
+
+Combineer een rol met een voorbeeld om precies te laten zien hoe de rol moet reageren. Het voorbeeld leert toon en format terwijl de rol context en expertise biedt.
+
+<TryIt compact prompt={`Je bent een klantenservice specialist getraind om boze klanten te kalmeren.
+
+Voorbeeldreactie op boze klant:
+Klant: "Dit is belachelijk! Ik wacht al 2 weken!"
+Jij: "Ik begrijp je frustratie volledig en ik bied mijn excuses aan voor de vertraging. Laat me dit nu direct onderzoeken en uitzoeken waar je bestelling precies is. Mag ik je bestelnummer hebben?"
+
+Reageer nu op:
+Klant: "\${customerMessage}"`} />
+
+### Rol + Chain of Thought
+
+De detective rol moedigt van nature stapsgewijs redeneren aan. Het combineren van rollen met chain-of-thought produceert transparantere, verifieerbare probleemoplossing.
+
+<TryIt compact prompt={`Je bent een detective die een logische puzzel oplost. Denk elke aanwijzing methodisch door, waarbij je je redenering bij elke stap vermeldt.
+
+Aanwijzingen:
+\${clues}
+
+Los stap voor stap op, waarbij je je conclusies uitlegt.`} />
+
+## Samenvatting
+
+<Callout type="info" title="Belangrijkste Punten">
+Rol-gebaseerd prompten is krachtig omdat het de enorme kennis van het model focust, verwachtingen stelt voor toon en stijl, impliciete context biedt en outputs consistenter maakt.
+</Callout>
+
+<Quiz 
+  question="Wat maakt een rol-gebaseerde prompt effectiever?"
+  options={[
+    "Het gebruik van generieke roltitels zoals 'expert'",
+    "Het toevoegen van specifieke expertise, ervaring en perspectiefdetails",
+    "De rolbeschrijving zo kort mogelijk houden",
+    "De AI vragen om regelmatig van rol te wisselen"
+  ]}
+  correctIndex={1}
+  explanation="Hoe gedetailleerder en realistischer de rol, hoe beter de resultaten. Specificiteit helpt het model precies te begrijpen welke kennis, toon en perspectief toe te passen."
+/>
+
+De sleutel is **specificiteit**: hoe gedetailleerder en realistischer de rol, hoe beter de resultaten. In het volgende hoofdstuk verkennen we hoe je consistente, gestructureerde outputs uit je prompts kunt krijgen.

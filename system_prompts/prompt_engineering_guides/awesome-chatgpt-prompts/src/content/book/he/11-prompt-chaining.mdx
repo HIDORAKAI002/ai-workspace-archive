@@ -1,0 +1,379 @@
+שרשור פרומפטים מפרק משימות מורכבות לרצפים של פרומפטים פשוטים יותר, כאשר הפלט של כל שלב מוזן לשלב הבא. טכניקה זו משפרת באופן דרמטי את האמינות ומאפשרת תהליכי עבודה מתוחכמים שהיו בלתי אפשריים עם פרומפט יחיד.
+
+<Callout type="tip" title="חשבו על קווי ייצור">
+בדיוק כמו שקו ייצור במפעל מפרק את התהליך לתחנות מתמחות, שרשור פרומפטים מפרק משימות AI לשלבים מתמחים. כל שלב עושה דבר אחד היטב, והפלט המשולב טוב בהרבה מניסיון לעשות הכל בבת אחת.
+</Callout>
+
+## למה לשרשר פרומפטים?
+
+פרומפטים בודדים מתקשים עם משימות מורכבות מכיוון שהם מנסים לעשות יותר מדי בבת אחת. ה-AI צריך בו-זמנית להבין, לנתח, לתכנן וליצור, מה שמוביל לשגיאות וחוסר עקביות.
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+    <p className="text-sm font-semibold text-red-700 dark:text-red-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconX className="h-4 w-4" /> פרומפט בודד מתקשה</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">חשיבה רב-שלבית מתבלבלת</p>
+      <p className="m-0!">"מצבי" חשיבה שונים מתנגשים</p>
+      <p className="m-0!">פלטים מורכבים חסרי עקביות</p>
+      <p className="m-0!">אין הזדמנות לבקרת איכות</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 px-4 pt-3 flex items-center gap-2 m-0!"><IconCheck className="h-4 w-4" /> שרשור פותר זאת</p>
+    <div className="text-sm p-4 pt-2 space-y-1">
+      <p className="m-0!">כל שלב מתמקד במשימה אחת</p>
+      <p className="m-0!">פרומפטים מתמחים לכל מצב</p>
+      <p className="m-0!">אימות בין שלבים</p>
+      <p className="m-0!">דיבוג ושיפור שלבים בודדים</p>
+    </div>
+  </div>
+</div>
+
+## תבנית שרשור בסיסית
+
+השרשרת הפשוטה ביותר מעבירה פלט מפרומפט אחד ישירות לבא אחריו. לכל שלב יש מטרה ברורה וממוקדת.
+
+<div className="my-6 flex items-center justify-center gap-3 p-6 bg-muted/30 rounded-lg overflow-x-auto">
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-blue-700 dark:text-blue-300 m-0!">פרומפט 1</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 m-0!">(חילוץ)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">קלט</p>
+  </div>
+  <div className="text-blue-400 dark:text-blue-500">→</div>
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-purple-700 dark:text-purple-300 m-0!">פרומפט 2</p>
+      <p className="text-xs text-purple-600 dark:text-purple-400 m-0!">(ניתוח)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">ביניים</p>
+  </div>
+  <div className="text-purple-400 dark:text-purple-500">→</div>
+  <div className="flex flex-col items-center">
+    <div className="px-4 py-3 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-lg text-center">
+      <p className="text-sm font-medium text-green-700 dark:text-green-300 m-0!">פרומפט 3</p>
+      <p className="text-xs text-green-600 dark:text-green-400 m-0!">(יצירה)</p>
+    </div>
+    <p className="text-xs text-muted-foreground mt-1 m-0!">פלט</p>
+  </div>
+</div>
+
+<Callout type="info" title="תבנית ETG">
+תבנית השרשרת הנפוצה ביותר היא **חילוץ → המרה → יצירה**. קודם מחלצים נתונים גולמיים, אחר כך מעצבים אותם מחדש למטרתכם, ואז יוצרים את הפלט הסופי. תבנית זו עובדת כמעט לכל משימת תוכן.
+</Callout>
+
+## סוגי שרשראות
+
+משימות שונות דורשות ארכיטקטורות שרשרת שונות. בחרו את התבנית שמתאימה לתהליך העבודה שלכם.
+
+<ChainFlowDemo />
+
+### שרשרת רציפה
+
+התבנית הישירה ביותר: כל שלב תלוי בקודמו. חשבו על זה כמו מרוץ שליחים שבו כל רץ מעביר את השרביט לבא אחריו.
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "שלב 1: חילוץ", prompt: "חלץ את כל התאריכים, השמות והמספרים מ: [text]", output: '{ dates: ["2024-01-15", "2024-02-20"], names: ["John Smith", "Acme Corp"], numbers: [15000, 42] }' },
+    { step: "שלב 2: ניתוח", prompt: "בהינתן הנתונים המחולצים הללו: [step1_output], זהה קשרים ודפוסים.", output: '{ patterns: ["פגישות חודשיות מתוכננות"], relationships: ["John Smith עובד ב-Acme Corp"] }' },
+    { step: "שלב 3: יצירה", prompt: "באמצעות דפוסים אלה: [step2_output], כתוב דוח סיכום המדגיש את הממצאים המשמעותיים ביותר.", output: "דוח סיכום: ניתוח המסמך מגלה קשר עסקי בין John Smith ו-Acme Corp, עם פגישות חודשיות מתוכננות..." }
+  ]}
+/>
+
+### שרשרת מקבילית
+
+כאשר אתם צריכים מספר נקודות מבט על אותו קלט, הריצו פרומפטים במקביל ומזגו תוצאות. זה מהיר יותר משרשראות רציפות ומספק ניתוח עשיר יותר.
+
+<ChainExample 
+  type="parallel"
+  steps={[
+    { step: "קלט", prompt: "טקסט ביקורת מוצר", output: '"אני אוהב את האוזניות האלה! הסוללה מחזיקה לנצח והתצוגה על הנרתיק כל כך נוחה. מושלם לנסיעות היומיות שלי."' },
+    { step: "ענף A: סנטימנט", prompt: "נתח סנטימנט: [text]", output: '{ sentiment: "חיובי", score: 0.85 }' },
+    { step: "ענף B: תכונות", prompt: "חלץ תכונות שהוזכרו: [text]", output: '{ features: ["סוללה", "תצוגה"] }' },
+    { step: "ענף C: פרסונה", prompt: "זהה פרסונת משתמש: [text]", output: '{ persona: "נוסע" }' },
+    { step: "מיזוג", prompt: "שלב ניתוחים לדוח מאוחד", output: "דוח מאוחד: ביקורת חיובית מנוסע המדגיש סוללה ותצוגה." }
+  ]}
+/>
+
+### שרשרת מותנית
+
+נתבו קלטים דרך נתיבים שונים בהתבסס על סיווג. זה כמו עץ החלטות שבו ה-AI קודם מסווג את הקלט, ואז מטפל בכל קטגוריה בצורה שונה.
+
+<ChainExample 
+  type="conditional"
+  steps={[
+    { step: "סיווג קלט", prompt: "סווג הודעת לקוח זו כ: תלונה, שאלה, משוב, או אחר.\n\nהודעה: [text]", output: '{ classification: "תלונה", confidence: 0.92 }' },
+    { step: "נתיב: שאלה (דילוג)", prompt: "זהה איזה מידע נדרש", output: "דילוג - קלט סווג כתלונה" },
+    { step: "נתיב: תלונה", prompt: "זהה את הבעיה והחומרה: [text]", output: '{ issue: "עיכוב במשלוח", severity: "בינוני" }' },
+    { step: "יצירת תגובה", prompt: "צור תגובה אמפתית עם פתרון: [analysis]", output: "לקוח יקר, אנו מתנצלים בכנות על העיכוב. ההזמנה שלך הוחשה..." }
+  ]}
+/>
+
+### שרשרת איטרטיבית
+
+המשיכו לשפר פלט עד שהוא עומד בסטנדרטים של איכות. ה-AI יוצר, מעריך ומשפר בלולאה עד לשביעות רצון או הגעה למקסימום איטרציות.
+
+<Callout type="warning" title="הגדירו מגבלות איטרציה">
+תמיד הגדירו מספר מקסימלי של איטרציות (בדרך כלל 3-5) כדי למנוע לולאות אינסופיות ולשלוט בעלויות. חוק התשואה הפוחתת חל: רוב השיפור קורה ב-2-3 האיטרציות הראשונות.
+</Callout>
+
+<ChainExample 
+  type="iterative"
+  steps={[
+    { step: "יצירת טיוטה", prompt: "כתוב תיאור מוצר עבור: [אוזניות אלחוטיות]", output: "אוזניות אלחוטיות אלה מציעות איכות צליל טובה והתאמה נוחה לשימוש יומיומי." },
+    { step: "הערכה (ציון: 5)", prompt: "דרג תיאור זה 1-10 על: בהירות, שכנוע, דיוק.\n\nתיאור: [current_draft]", output: '{ score: 5, improvements: ["הוסף תכונות ספציפיות", "כלול יתרונות רגשיים", "ציין חיי סוללה", "הוסף קריאה לפעולה"] }' },
+    { step: "שיפור טיוטה", prompt: "שפר תיאור זה על סמך משוב זה:\n\nנוכחי: [current_draft]\nמשוב: [improvements]", output: "חוו צליל צלול כבדולח עם האוזניות האלחוטיות הפרימיום שלנו. כולל חיי סוללה של 30 שעות, ביטול רעשים אקטיבי ועיצוב ארגונומי שנשאר נוח כל היום. מושלם לחובבי מוזיקה ואנשי מקצוע כאחד. הזמינו עכשיו ושנו את חווית ההאזנה שלכם." },
+    { step: "הערכה (ציון: 8)", prompt: "דרג תיאור זה 1-10 על: בהירות, שכנוע, דיוק.\n\nתיאור: [improved_draft]", output: '{ score: 8, improvements: ["מינורי: אפשר להוסיף מידע על אחריות"] }\n\n✓ ציון >= 8: יציאה מהלולאה' }
+  ]}
+/>
+
+## תבניות שרשרת נפוצות
+
+תבניות מוכחות אלה פותרות בעיות נפוצות. השתמשו בהן כנקודות התחלה והתאימו לצרכים שלכם.
+
+### חילוץ → המרה → יצירה
+
+סוס העבודה של עיבוד תוכן. משכו נתונים החוצה, עצבו אותם מחדש, ואז צרו משהו חדש.
+
+<div className="mb-4 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1 m-0!">הכי מתאים ל</p>
+  <p className="text-sm text-blue-600 dark:text-blue-400 m-0!">סיכום מסמכים, יצירת דוחות, שימוש חוזר בתוכן, המרת נתונים לנרטיב</p>
+</div>
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "חילוץ", prompt: "מהמסמך הזה, חלץ:\n- נושא מרכזי\n- טיעונים עיקריים (רשימה)\n- ראיות תומכות (רשימה)\n- מסקנות\nהחזר כ-JSON.", output: '{ "topic": "השפעות שינויי אקלים", "arguments": ["עליית טמפרטורות", "עליית מפלס הים"], "evidence": ["נתוני NASA", "דוחות IPCC"], "conclusions": ["נדרשת פעולה דחופה"] }' },
+    { step: "המרה", prompt: "ארגן מחדש מידע זה עבור [מנהלים עסקיים]:\n[extracted_data]\nהתמקד ב: השלכות כלכליות\nהסר: ז'רגון טכני", output: '{ "summary": "סיכוני אקלים לעסקים", "key_points": ["שיבוש שרשרת אספקה", "עלויות ביטוח עולות"], "action_items": ["הערכת פגיעויות", "תכנון התאמות"] }' },
+    { step: "יצירה", prompt: "באמצעות מידע מבני זה, כתוב [תקציר למנהלים]:\n[transformed_data]\nטון: מקצועי\nאורך: 200 מילים", output: "תקציר למנהלים: שינויי אקלים מציגים סיכונים תפעוליים משמעותיים לעסק שלנו. חששות מרכזיים כוללים שיבושים בשרשרת האספקה מאירועי מזג אוויר קיצוניים ועליית פרמיות ביטוח. אנו ממליצים על הערכה מיידית של פגיעויות מתקנים ופיתוח אסטרטגיות התאמה..." }
+  ]}
+/>
+
+### ניתוח → תכנון → ביצוע
+
+מושלם לרפקטורינג של קוד, תכנון פרויקטים, או כל משימה שבה צריך להבין לפני שפועלים.
+
+<div className="mb-4 p-3 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1 m-0!">הכי מתאים ל</p>
+  <p className="text-sm text-purple-600 dark:text-purple-400 m-0!">רפקטורינג קוד, תכנון פרויקטים, פתרון בעיות, קבלת החלטות אסטרטגיות, פתרון בעיות מורכבות</p>
+</div>
+
+<ChainExample 
+  type="sequential"
+  steps={[
+    { step: "ניתוח", prompt: "נתח את מבנה בסיס הקוד הזה וזהה:\n- תבנית ארכיטקטורה\n- רכיבים עיקריים\n- תלויות\n- בעיות פוטנציאליות\n[code]", output: '{ "pattern": "MVC", "components": ["UserController", "AuthService", "Database"], "dependencies": ["express", "mongoose"], "issues": ["אין אימות קלט", "סודות מקודדים קשיח"] }' },
+    { step: "תכנון", prompt: "בהתבסס על ניתוח זה, צור תוכנית רפקטורינג:\n[analysis_output]\nמטרה: שיפור אבטחה\nאילוצים: ללא שינויים שוברים", output: '{ "steps": ["1. הוסף middleware לאימות קלט", "2. העבר סודות למשתני סביבה", "3. הוסף הגבלת קצב"], "priority": "גבוהה", "estimated_time": "4 שעות" }' },
+    { step: "ביצוע", prompt: "יישם שלב 1 מתוכנית זו:\n[plan_output]\nהצג את הקוד המשופר עם הסברים.", output: "// נוסף middleware לאימות\nconst validateInput = (req, res, next) => {\n  const { email, password } = req.body;\n  if (!email || !isValidEmail(email)) {\n    return res.status(400).json({ error: 'Invalid email' });\n  }\n  next();\n};" }
+  ]}
+/>
+
+### יצירה → ביקורת → שיפור
+
+לולאת השיפור העצמי. יוצרים תוכן, גורמים ל-AI להעריך אותו באופן ביקורתי, ואז משפרים על סמך המשוב. זה מחקה את האופן שבו כותבים ועורכים מקצועיים עובדים יחד.
+
+<div className="mb-4 p-3 rounded-lg bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1 m-0!">הכי מתאים ל</p>
+  <p className="text-sm text-green-600 dark:text-green-400 m-0!">קופי שיווקי, כתיבה יצירתית, טיוטות אימייל, מצגות, כל תוכן שמרוויח משכתוב</p>
+</div>
+
+<ChainExample 
+  type="iterative"
+  steps={[
+    { step: "יצירה", prompt: "כתוב אימייל שיווקי עבור [אפליקציית כושר] המיועד ל[אנשי מקצוע עסוקים].", output: "נושא: התאמן מהר!\n\nהיי! האפליקציה שלנו עוזרת לך להתאמן. הורד אותה היום והתחל את מסע הכושר שלך. תודה!" },
+    { step: "ביקורת", prompt: "כמומחה שיווק, בקר אימייל זה:\n[generated_email]\nהעריך: שורת נושא, פתיח, הצעת ערך, קריאה לפעולה, טון\nדרג כל אחד 1-10.", output: '{ "subject_line": 4, "hook": 3, "value_proposition": 2, "cta": 5, "tone": 4, "feedback": "גנרי מדי, אין יתרונות ספציפיים, דחיפות חלשה" }' },
+    { step: "שיפור", prompt: "כתוב מחדש את האימייל תוך התייחסות למשוב זה:\nמקורי: [generated_email]\nביקורת: [critique_output]\nהתמקד באלמנטים עם הציון הנמוך ביותר.", output: "נושא: אימוני 15 דקות להפסקת הצהריים שלך\n\nלוח זמנים צפוף? אנחנו מבינים. האפליקציה שלנו מספקת אימונים מבוססי מדע שתוכננו עבור אנשי מקצוע שאין להם זמן לבזבז. הצטרפו ל-50,000+ מנהלים בכירים ששינו את הבריאות שלהם ב-15 דקות ביום בלבד. התחילו את תקופת הניסיון החינמית עכשיו - העצמי העתידי שלכם יודה לכם." },
+    { step: "ציון סופי", prompt: "העריכו מחדש את האימייל המשופר.", output: '{ "subject_line": 8, "hook": 8, "value_proposition": 9, "cta": 8, "tone": 9, "improvement": "+23 נקודות סה״כ" }' }
+  ]}
+/>
+
+## יישום שרשראות
+
+אתם יכולים ליישם שרשראות ידנית לניסויים, או באופן תכנותי למערכות ייצור. התחילו בפשטות והוסיפו מורכבות לפי הצורך.
+
+### שרשור ידני
+
+גישת ההעתק-הדבק מושלמת לפרוטוטייפינג וניסויים. הריצו כל פרומפט ידנית, בדקו את הפלט, והדביקו אותו לפרומפט הבא.
+
+<CodeEditor 
+  language="python"
+  filename="manual_chain.py"
+  code={`# Pseudocode for manual chaining
+step1_output = call_ai("Extract entities from: " + input_text)
+step2_output = call_ai("Analyze relationships: " + step1_output)
+final_output = call_ai("Generate report: " + step2_output)`}
+/>
+
+### שרשור תכנותי
+
+עבור מערכות ייצור, הפכו את השרשרת לאוטומטית עם קוד. זה מאפשר טיפול בשגיאות, לוגים ואינטגרציה עם האפליקציה שלכם.
+
+<CodeEditor 
+  language="python"
+  filename="chain.py"
+  code={`def analysis_chain(document):
+    # Step 1: Summarize
+    summary = call_ai(f"""
+        Summarize the key points of this document in 5 bullets:
+        {document}
+    """)
+    
+    # Step 2: Extract entities
+    entities = call_ai(f"""
+        Extract named entities (people, organizations, locations) 
+        from this summary. Return as JSON.
+        {summary}
+    """)
+    
+    # Step 3: Generate insights
+    insights = call_ai(f"""
+        Based on this summary and entities, generate 3 actionable 
+        insights for a business analyst.
+        Summary: {summary}
+        Entities: {entities}
+    """)
+    
+    return {
+        "summary": summary,
+        "entities": json.loads(entities),
+        "insights": insights
+    }`}
+/>
+
+### שימוש בתבניות שרשרת
+
+הגדירו שרשראות כקבצי קונפיגורציה לשימוש חוזר ושינוי קל. זה מפריד בין הלוגיקה של הפרומפטים לקוד האפליקציה.
+
+<CodeEditor 
+  language="yaml"
+  filename="chain_template.yaml"
+  code={`name: "Document Analysis Chain"
+steps:
+  - name: "extract"
+    prompt: |
+      Extract key information from this document:
+      {input}
+      Return JSON with: topics, entities, dates, numbers
+    
+  - name: "analyze"
+    prompt: |
+      Analyze this extracted data for patterns:
+      {extract.output}
+      Identify: trends, anomalies, relationships
+    
+  - name: "report"
+    prompt: |
+      Generate an executive summary based on:
+      Data: {extract.output}
+      Analysis: {analyze.output}
+      Format: 3 paragraphs, business tone`}
+/>
+
+## טיפול בשגיאות בשרשראות
+
+שרשראות יכולות להיכשל בכל שלב. בנו אימות, ניסיונות חוזרים וחלופות כדי להפוך את השרשראות שלכם לחסינות.
+
+<ChainErrorDemo />
+
+<Callout type="warning" title="זבל נכנס, זבל יוצא">
+אם שלב אחד מייצר פלט גרוע, כל שלב שאחריו יושפע. תמיד אמתו תוצאות ביניים קריטיות לפני שמעבירים אותן הלאה.
+</Callout>
+
+### אימות בין שלבים
+
+הוסיפו שלב אימות אחרי כל שלב שמייצר נתונים מובנים. זה תופס שגיאות מוקדם לפני שהן מתגלגלות.
+
+<ValidationDemo />
+
+### שרשראות גיבוי
+
+כאשר הגישה העיקרית שלכם נכשלת, יש לכם גיבוי פשוט יותר מוכן. מחליפים יכולת באמינות.
+
+<FallbackDemo />
+
+## אופטימיזציה של שרשראות
+
+ברגע שהשרשרת שלכם עובדת, בצעו אופטימיזציה למהירות, עלות ואמינות. אלה לעתים קרובות מתחלפים זה בזה.
+
+<div className="my-6 grid md:grid-cols-3 gap-4">
+  <div className="border rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 p-4">
+    <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2 m-0!">הפחתת זמן תגובה</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">הקבילו שלבים עצמאיים</p>
+      <p className="m-0!">שמרו תוצאות ביניים במטמון</p>
+      <p className="m-0!">השתמשו במודלים קטנים לשלבים פשוטים</p>
+      <p className="m-0!">אגדו פעולות דומות</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900 p-4">
+    <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 m-0!">הפחתת עלות</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">השתמשו במודלים זולים יותר לסיווג</p>
+      <p className="m-0!">הגבילו איטרציות בלולאות</p>
+      <p className="m-0!">קצרו כשאפשר</p>
+      <p className="m-0!">שמרו שאילתות חוזרות במטמון</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900 p-4">
+    <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-2 m-0!">שיפור אמינות</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">הוסיפו אימות בין שלבים</p>
+      <p className="m-0!">כללו לוגיקת ניסיון חוזר</p>
+      <p className="m-0!">תעדו תוצאות ביניים</p>
+      <p className="m-0!">יישמו נתיבי גיבוי</p>
+    </div>
+  </div>
+</div>
+
+## דוגמה לשרשרת מהעולם האמיתי
+
+בואו נעבור על שרשרת ייצור מלאה. צינור תוכן זה הופך רעיון גולמי לחבילת מאמר מלוטשת.
+
+### שרשרת צינור תוכן
+
+<ContentPipelineDemo />
+
+## סיכום
+
+שרשור פרומפטים משנה את מה ש-AI יכול להשיג על ידי פירוק משימות בלתי אפשריות לשלבים ברי השגה.
+
+<div className="my-6 grid md:grid-cols-2 gap-4">
+  <div className="border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 p-4">
+    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2 m-0!">שרשור מאפשר</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">תהליכי עבודה מורכבים רב-שלביים</p>
+      <p className="m-0!">איכות גבוהה יותר דרך התמחות</p>
+      <p className="m-0!">טיפול טוב יותר בשגיאות ואימות</p>
+      <p className="m-0!">רכיבי פרומפט מודולריים לשימוש חוזר</p>
+    </div>
+  </div>
+  <div className="border rounded-lg bg-cyan-50/50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-900 p-4">
+    <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-400 mb-2 m-0!">עקרונות מפתח</p>
+    <div className="text-sm space-y-1">
+      <p className="m-0!">פרקו משימות מורכבות לשלבים פשוטים</p>
+      <p className="m-0!">תכננו ממשקים ברורים בין שלבים</p>
+      <p className="m-0!">אמתו פלטי ביניים</p>
+      <p className="m-0!">בנו טיפול בשגיאות וחלופות</p>
+      <p className="m-0!">בצעו אופטימיזציה לאילוצים שלכם</p>
+    </div>
+  </div>
+</div>
+
+<Callout type="tip" title="התחילו בפשטות">
+התחילו עם שרשרת רציפה של 2-3 שלבים. גרמו לה לעבוד באופן אמין לפני שמוסיפים מורכבות. רוב המשימות לא צריכות ארכיטקטורות שרשרת מורכבות.
+</Callout>
+
+<Quiz 
+  question="מהו היתרון העיקרי של שרשור פרומפטים על פני פרומפט מורכב יחיד?"
+  options={[
+    "זה משתמש בפחות טוקנים בסך הכל",
+    "זה מהיר יותר לביצוע",
+    "כל שלב יכול להתמחות, מה שמשפר איכות ומאפשר טיפול בשגיאות",
+    "זה דורש פחות תכנון"
+  ]}
+  correctIndex={2}
+  explanation="שרשור פרומפטים מפרק משימות מורכבות לשלבים מתמחים. כל שלב יכול להתמקד בדבר אחד היטב, תוצאות ביניים יכולות להיות מאומתות, שגיאות יכולות להיתפס ולקבל ניסיון חוזר, והאיכות הכוללת משתפרת דרך התמחות."
+/>
+
+בפרק הבא, נחקור פרומפטים מולטימודליים: עבודה עם תמונות, אודיו ותוכן לא-טקסטואלי אחר.
