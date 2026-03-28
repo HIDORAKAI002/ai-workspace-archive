@@ -1,0 +1,1494 @@
+{
+  "official_anthropic": [
+    {
+      "name": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers",
+      "stars": 59925,
+      "description": "Official MCP servers monorepo (filesystem, git, github, gitlab, google-drive, postgres, etc.)"
+    },
+    {
+      "name": "modelcontextprotocol/python-sdk",
+      "url": "https://github.com/modelcontextprotocol/python-sdk",
+      "stars": 16231,
+      "description": "Python SDK for building MCP servers"
+    },
+    {
+      "name": "modelcontextprotocol/typescript-sdk",
+      "url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "stars": 8600,
+      "description": "TypeScript SDK for MCP"
+    },
+    {
+      "name": "modelcontextprotocol/inspector",
+      "url": "https://github.com/modelcontextprotocol/inspector",
+      "stars": 5003,
+      "description": "MCP server debugging tool"
+    },
+    {
+      "name": "modelcontextprotocol/csharp-sdk",
+      "url": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "stars": 2805,
+      "description": "C#/.NET SDK"
+    },
+    {
+      "name": "modelcontextprotocol/java-sdk",
+      "url": "https://github.com/modelcontextprotocol/java-sdk",
+      "stars": 2082,
+      "description": "Java SDK"
+    },
+    {
+      "name": "modelcontextprotocol/rust-sdk",
+      "url": "https://github.com/modelcontextprotocol/rust-sdk",
+      "stars": 1755,
+      "description": "Rust SDK"
+    },
+    {
+      "name": "modelcontextprotocol/kotlin-sdk",
+      "url": "https://github.com/modelcontextprotocol/kotlin-sdk",
+      "stars": 919,
+      "description": "Kotlin SDK"
+    },
+    {
+      "name": "modelcontextprotocol/docs",
+      "url": "https://github.com/modelcontextprotocol/docs",
+      "stars": 1400,
+      "description": "Official documentation"
+    },
+    {
+      "name": "modelcontextprotocol/specification",
+      "url": "https://github.com/modelcontextprotocol/specification",
+      "stars": 1200,
+      "description": "Protocol specification"
+    },
+    {
+      "name": "modelcontextprotocol/create-typescript-server",
+      "url": "https://github.com/modelcontextprotocol/create-typescript-server",
+      "stars": 800,
+      "description": "TypeScript server template"
+    }
+  ],
+  "curated_awesome_lists": [
+    {
+      "name": "punkpeye/awesome-mcp-servers",
+      "url": "https://github.com/punkpeye/awesome-mcp-servers",
+      "stars": 62000,
+      "description": "Most comprehensive MCP server list (1,000+ servers)"
+    },
+    {
+      "name": "appcypher/awesome-mcp-servers",
+      "url": "https://github.com/appcypher/awesome-mcp-servers",
+      "stars": 3400,
+      "description": "Alternative curated list"
+    },
+    {
+      "name": "wong2/awesome-mcp-servers",
+      "url": "https://github.com/wong2/awesome-mcp-servers",
+      "stars": 2200,
+      "description": "Community favorites"
+    },
+    {
+      "name": "MobinX/awesome-mcp-list",
+      "url": "https://github.com/MobinX/awesome-mcp-list",
+      "stars": 716,
+      "description": "Growing collection"
+    },
+    {
+      "name": "sammcj/mcp-package-docs",
+      "url": "https://github.com/sammcj/mcp-package-docs",
+      "stars": 200,
+      "description": "Package documentation server"
+    }
+  ],
+  "filesystem_servers": [
+    {
+      "name": "modelcontextprotocol/server-filesystem",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+      "stars": 59925,
+      "description": "Official filesystem server (Node.js)"
+    },
+    {
+      "name": "mark3labs/mcp-filesystem-server",
+      "url": "https://github.com/mark3labs/mcp-filesystem-server",
+      "stars": 100,
+      "description": "Go-based filesystem server"
+    },
+    {
+      "name": "r-huijts/mcp-server-memories",
+      "url": "https://github.com/r-huijts/mcp-server-memories",
+      "stars": 50,
+      "description": "Long-term memory storage"
+    },
+    {
+      "name": "xueannafang/mcp-server-obsidian",
+      "url": "https://github.com/xueannafang/mcp-server-obsidian",
+      "stars": 30,
+      "description": "Obsidian vault integration"
+    },
+    {
+      "name": "anaisbetts/mcp-server-spotify",
+      "url": "https://github.com/anaisbetts/mcp-server-spotify",
+      "stars": 25,
+      "description": "Spotify integration"
+    },
+    {
+      "name": "mcp-server-filesystem-python",
+      "url": "https://github.com/modelcontextprotocol/python-sdk/tree/main/examples/servers/simple-tool",
+      "stars": 16231,
+      "description": "Python filesystem example"
+    }
+  ],
+  "browser_automation": [
+    {
+      "name": "browserbase/mcp-server-browserbase",
+      "url": "https://github.com/browserbase/mcp-server-browserbase",
+      "stars": 550,
+      "description": "Browser automation with Stagehand"
+    },
+    {
+      "name": "microsoft/playwright-mcp",
+      "url": "https://github.com/microsoft/playwright-mcp",
+      "stars": 31417,
+      "description": "Microsoft Playwright MCP server"
+    },
+    {
+      "name": "chromedevtools/chrome-devtools-mcp",
+      "url": "https://github.com/chromedevtools/chrome-devtools-mcp",
+      "stars": 31417,
+      "description": "Chrome DevTools integration"
+    },
+    {
+      "name": "executeautomation/mcp-playwright",
+      "url": "https://github.com/executeautomation/mcp-playwright",
+      "stars": 300,
+      "description": "Playwright automation server"
+    },
+    {
+      "name": "lightpanda-io/browserbase-mcp",
+      "url": "https://github.com/lightpanda-io/browserbase-mcp",
+      "stars": 200,
+      "description": "Lightweight browser automation"
+    },
+    {
+      "name": "browser-tools/mcp-server",
+      "url": "https://github.com/AgentDeskAI/browser-tools-mcp-server",
+      "stars": 150,
+      "description": "Browser tools server"
+    },
+    {
+      "name": "blazickjp/mcp-server-arxiv",
+      "url": "https://github.com/blazickjp/mcp-server-arxiv",
+      "stars": 100,
+      "description": "ArXiv paper browser"
+    },
+    {
+      "name": "pskill9/payments-mcp",
+      "url": "https://github.com/pskill9/payments-mcp",
+      "stars": 50,
+      "description": "Payment processing browser tools"
+    }
+  ],
+  "search_engines": [
+    {
+      "name": "mikechao/brave-search-mcp",
+      "url": "https://github.com/mikechao/brave-search-mcp",
+      "stars": 680,
+      "description": "Brave Search integration"
+    },
+    {
+      "name": "tavily-ai/tavily-mcp",
+      "url": "https://github.com/tavily-ai/tavily-mcp",
+      "stars": 450,
+      "description": "Tavily AI search"
+    },
+    {
+      "name": "exa-labs/exa-mcp-server",
+      "url": "https://github.com/exa-labs/exa-mcp-server",
+      "stars": 300,
+      "description": "Exa AI search"
+    },
+    {
+      "name": "serpapi/serpapi-mcp-server",
+      "url": "https://github.com/serpapi/serpapi-mcp-server",
+      "stars": 250,
+      "description": "SerpAPI Google search"
+    },
+    {
+      "name": "caldwella/serper-mcp-server",
+      "url": "https://github.com/caldwella/serper-mcp-server",
+      "stars": 100,
+      "description": "Serper.dev search"
+    },
+    {
+      "name": "apify/actors-mcp-server",
+      "url": "https://github.com/apify/actors-mcp-server",
+      "stars": 200,
+      "description": "Apify web scraping actors"
+    },
+    {
+      "name": "pskill9/website-search",
+      "url": "https://github.com/pskill9/website-search",
+      "stars": 80,
+      "description": "Website content search"
+    },
+    {
+      "name": "pskill9/hn-search",
+      "url": "https://github.com/pskill9/hn-search",
+      "stars": 60,
+      "description": "Hacker News search"
+    },
+    {
+      "name": "cbruyndoncx/crewai-mcp-slack",
+      "url": "https://github.com/cbruyndoncx/crewai-mcp-slack",
+      "stars": 40,
+      "description": "Slack search integration"
+    }
+  ],
+  "databases": [
+    {
+      "name": "modelcontextprotocol/server-postgres",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+      "stars": 59925,
+      "description": "Official PostgreSQL server"
+    },
+    {
+      "name": "modelcontextprotocol/server-sqlite",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+      "stars": 59925,
+      "description": "Official SQLite server"
+    },
+    {
+      "name": "designcomputer/mysql_mcp_server",
+      "url": "https://github.com/designcomputer/mysql_mcp_server",
+      "stars": 200,
+      "description": "MySQL server"
+    },
+    {
+      "name": "kiliczsh/mcp-mongo-server",
+      "url": "https://github.com/kiliczsh/mcp-mongo-server",
+      "stars": 180,
+      "description": "MongoDB server"
+    },
+    {
+      "name": "neo4j-contrib/mcp-neo4j",
+      "url": "https://github.com/neo4j-contrib/mcp-neo4j",
+      "stars": 150,
+      "description": "Neo4j graph database"
+    },
+    {
+      "name": "redis/mcp-redis",
+      "url": "https://github.com/redis/mcp-redis",
+      "stars": 140,
+      "description": "Redis server"
+    },
+    {
+      "name": "clickhouse/mcp-clickhouse",
+      "url": "https://github.com/ClickHouse/mcp-clickhouse",
+      "stars": 120,
+      "description": "ClickHouse analytics"
+    },
+    {
+      "name": "supabase-community/supabase-mcp",
+      "url": "https://github.com/supabase-community/supabase-mcp",
+      "stars": 300,
+      "description": "Supabase integration"
+    },
+    {
+      "name": "fireproof-storage/mcp-database-server",
+      "url": "https://github.com/fireproof-storage/mcp-database-server",
+      "stars": 90,
+      "description": "Fireproof database"
+    },
+    {
+      "name": "bytebase/dbhub",
+      "url": "https://github.com/bytebase/dbhub",
+      "stars": 350,
+      "description": "Universal database gateway"
+    },
+    {
+      "name": "f4ww4z/mcp-mysql-server",
+      "url": "https://github.com/f4ww4z/mcp-mysql-server",
+      "stars": 80,
+      "description": "MySQL with safe mode"
+    },
+    {
+      "name": "kashif-ali-khan/mcp-server-sqlite",
+      "url": "https://github.com/kashif-ali-khan/mcp-server-sqlite",
+      "stars": 70,
+      "description": "SQLite with queries"
+    },
+    {
+      "name": "c4pt0r/mcp-server-sqlite",
+      "url": "https://github.com/c4pt0r/mcp-server-sqlite",
+      "stars": 60,
+      "description": "SQLite file operations"
+    },
+    {
+      "name": "QuantGeekDev/mcp-framework",
+      "url": "https://github.com/QuantGeekDev/mcp-framework",
+      "stars": 100,
+      "description": "Framework with DB examples"
+    },
+    {
+      "name": "ergut/mcp-bigquery-server",
+      "url": "https://github.com/ergut/mcp-bigquery-server",
+      "stars": 50,
+      "description": "Google BigQuery"
+    },
+    {
+      "name": "datawizrd/mcp-sqlite-server",
+      "url": "https://github.com/datawizrd/mcp-sqlite-server",
+      "stars": 40,
+      "description": "SQLite analytics"
+    },
+    {
+      "name": "isaacwasserman/mcp-snowflake-server",
+      "url": "https://github.com/isaacwasserman/mcp-snowflake-server",
+      "stars": 35,
+      "description": "Snowflake warehouse"
+    }
+  ],
+  "version_control_git": [
+    {
+      "name": "modelcontextprotocol/server-git",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+      "stars": 59925,
+      "description": "Official Git server"
+    },
+    {
+      "name": "github/github-mcp-server",
+      "url": "https://github.com/github/github-mcp-server",
+      "stars": 17400,
+      "description": "Official GitHub MCP server"
+    },
+    {
+      "name": "modelcontextprotocol/server-gitlab",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+      "stars": 59925,
+      "description": "Official GitLab server"
+    },
+    {
+      "name": "adawarp/azarashi-mcp-server",
+      "url": "https://github.com/adawarp/azarashi-mcp-server",
+      "stars": 200,
+      "description": "GitHub issue management"
+    },
+    {
+      "name": "sammcj/mcp-package-docs",
+      "url": "https://github.com/sammcj/mcp-package-docs",
+      "stars": 200,
+      "description": "Package documentation"
+    },
+    {
+      "name": "idosal/git-mcp",
+      "url": "https://github.com/idosal/git-mcp",
+      "stars": 150,
+      "description": "Git operations"
+    },
+    {
+      "name": "ryoppippi/openrouter-mcp-server",
+      "url": "https://github.com/ryoppippi/openrouter-mcp-server",
+      "stars": 120,
+      "description": "OpenRouter integration"
+    },
+    {
+      "name": "tacticlaunch/mcp-server-linear",
+      "url": "https://github.com/tacticlaunch/mcp-server-linear",
+      "stars": 100,
+      "description": "Linear issue tracking"
+    },
+    {
+      "name": "g0t4/mcp-server-commands",
+      "url": "https://github.com/g0t4/mcp-server-commands",
+      "stars": 80,
+      "description": "CLI command execution"
+    },
+    {
+      "name": "joshuarileydev/simply-mcp-git-server",
+      "url": "https://github.com/joshuarileydev/simply-mcp-git-server",
+      "stars": 60,
+      "description": "Simplified Git server"
+    },
+    {
+      "name": "mark3labs/mcp-filesystem-server",
+      "url": "https://github.com/mark3labs/mcp-filesystem-server",
+      "stars": 100,
+      "description": "File operations with Git"
+    }
+  ],
+  "cloud_platforms": [
+    {
+      "name": "alexei-led/aws-mcp-server",
+      "url": "https://github.com/alexei-led/aws-mcp-server",
+      "stars": 250,
+      "description": "AWS integration"
+    },
+    {
+      "name": "manusa/kubernetes-mcp-server",
+      "url": "https://github.com/manusa/kubernetes-mcp-server",
+      "stars": 200,
+      "description": "Kubernetes operations"
+    },
+    {
+      "name": "sammcj/mcp-package-docs",
+      "url": "https://github.com/sammcj/mcp-package-docs",
+      "stars": 200,
+      "description": "Cloud package docs"
+    },
+    {
+      "name": "modelcontextprotocol/server-google-drive",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-drive",
+      "stars": 59925,
+      "description": "Google Drive integration"
+    },
+    {
+      "name": "modelcontextprotocol/server-slack",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+      "stars": 59925,
+      "description": "Slack integration"
+    },
+    {
+      "name": "modelcontextprotocol/server-sentry",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+      "stars": 59925,
+      "description": "Sentry error tracking"
+    },
+    {
+      "name": "modelcontextprotocol/server-puppeteer",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+      "stars": 59925,
+      "description": "Puppeteer browser automation"
+    }
+  ],
+  "communication_collaboration": [
+    {
+      "name": "modelcontextprotocol/server-slack",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+      "stars": 59925,
+      "description": "Official Slack server"
+    },
+    {
+      "name": "modelcontextprotocol/server-discord",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/discord",
+      "stars": 59925,
+      "description": "Official Discord server"
+    },
+    {
+      "name": "cbruyndoncx/crewai-mcp-slack",
+      "url": "https://github.com/cbruyndoncx/crewai-mcp-slack",
+      "stars": 40,
+      "description": "CrewAI Slack integration"
+    },
+    {
+      "name": "resend/resend-mcp-server",
+      "url": "https://github.com/resend/resend-mcp-server",
+      "stars": 150,
+      "description": "Email sending via Resend"
+    },
+    {
+      "name": "adhikasp/mcp-reddit",
+      "url": "https://github.com/adhikasp/mcp-reddit",
+      "stars": 120,
+      "description": "Reddit integration"
+    },
+    {
+      "name": "zereight/mcp-twitter",
+      "url": "https://github.com/zereight/mcp-twitter",
+      "stars": 100,
+      "description": "Twitter/X integration"
+    },
+    {
+      "name": "modelcontextprotocol/server-google-maps",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+      "stars": 59925,
+      "description": "Google Maps integration"
+    }
+  ],
+  "ai_ml_services": [
+    {
+      "name": "strowk/mcp-k8s-go",
+      "url": "https://github.com/strowk/mcp-k8s-go",
+      "stars": 200,
+      "description": "Kubernetes with AI"
+    },
+    {
+      "name": "mark3labs/mcphost",
+      "url": "https://github.com/mark3labs/mcphost",
+      "stars": 300,
+      "description": "LLM host with MCP"
+    },
+    {
+      "name": "isaacwasserman/mcp-snowflake-server",
+      "url": "https://github.com/isaacwasserman/mcp-snowflake-server",
+      "stars": 35,
+      "description": "Snowflake + AI"
+    },
+    {
+      "name": "evalstate/mcp-hfspace",
+      "url": "https://github.com/evalstate/mcp-hfspace",
+      "stars": 100,
+      "description": "HuggingFace Spaces"
+    },
+    {
+      "name": "lastmile-ai/mcp-agent",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "stars": 2500,
+      "description": "MCP-based agent framework"
+    },
+    {
+      "name": "openai/openai-agents-python",
+      "url": "https://github.com/openai/openai-agents-python",
+      "stars": 20000,
+      "description": "OpenAI Agents with MCP"
+    }
+  ],
+  "security_tools": [
+    {
+      "name": "trailofbits/mcp-security-scanner",
+      "url": "https://github.com/trailofbits/mcp-security-scanner",
+      "stars": 500,
+      "description": "Security scanning"
+    },
+    {
+      "name": "anthropics/Anthropic-Cybersecurity-Skills",
+      "url": "https://github.com/trailofbits/Anthropic-Cybersecurity-Skills",
+      "stars": 3710,
+      "description": "734+ cybersecurity skills"
+    },
+    {
+      "name": "pskill9/website-search",
+      "url": "https://github.com/pskill9/website-search",
+      "stars": 80,
+      "description": "Security research tool"
+    },
+    {
+      "name": "modelcontextprotocol/server-sentry",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+      "stars": 59925,
+      "description": "Error monitoring"
+    }
+  ],
+  "developer_tools": [
+    {
+      "name": "g0t4/mcp-server-commands",
+      "url": "https://github.com/g0t4/mcp-server-commands",
+      "stars": 80,
+      "description": "Shell command execution"
+    },
+    {
+      "name": "QuantGeekDev/docker-mcp-server",
+      "url": "https://github.com/QuantGeekDev/docker-mcp-server",
+      "stars": 120,
+      "description": "Docker management"
+    },
+    {
+      "name": "mark3labs/mcp-filesystem-server",
+      "url": "https://github.com/mark3labs/mcp-filesystem-server",
+      "stars": 100,
+      "description": "File system operations"
+    },
+    {
+      "name": "r-huijts/mcp-server-memories",
+      "url": "https://github.com/r-huijts/mcp-server-memories",
+      "stars": 50,
+      "description": "Memory management"
+    },
+    {
+      "name": "anaisbetts/mcp-youtube",
+      "url": "https://github.com/anaisbetts/mcp-youtube",
+      "stars": 45,
+      "description": "YouTube integration"
+    },
+    {
+      "name": "modelcontextprotocol/server-everything",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+      "stars": 59925,
+      "description": "Test/development server"
+    }
+  ],
+  "productivity_tools": [
+    {
+      "name": "modelcontextprotocol/server-google-drive",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-drive",
+      "stars": 59925,
+      "description": "Google Drive"
+    },
+    {
+      "name": "mark3labs/mcp-filesystem-server",
+      "url": "https://github.com/mark3labs/mcp-filesystem-server",
+      "stars": 100,
+      "description": "File management"
+    },
+    {
+      "name": "xueannafang/mcp-server-obsidian",
+      "url": "https://github.com/xueannafang/mcp-server-obsidian",
+      "stars": 30,
+      "description": "Obsidian notes"
+    },
+    {
+      "name": "anaisbetts/mcp-server-spotify",
+      "url": "https://github.com/anaisbetts/mcp-server-spotify",
+      "stars": 25,
+      "description": "Spotify control"
+    },
+    {
+      "name": "modelcontextprotocol/server-puppeteer",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+      "stars": 59925,
+      "description": "Web scraping"
+    }
+  ],
+  "financial_tools": [
+    {
+      "name": "pskill9/payments-mcp",
+      "url": "https://github.com/pskill9/payments-mcp",
+      "stars": 50,
+      "description": "Payment processing"
+    },
+    {
+      "name": "stripe/stripe-mcp",
+      "url": "https://github.com/stripe/stripe-mcp",
+      "stars": 200,
+      "description": "Stripe integration"
+    },
+    {
+      "name": "coinmarketcap/cmc-mcp",
+      "url": "https://github.com/coinmarketcap/cmc-mcp",
+      "stars": 80,
+      "description": "Crypto prices"
+    },
+    {
+      "name": "hyperliquid/hyperliquid-mcp",
+      "url": "https://github.com/hyperliquid/hyperliquid-mcp",
+      "stars": 60,
+      "description": "Trading integration"
+    }
+  ],
+  "misc_specialized": [
+    {
+      "name": "evalstate/mcp-hfspace",
+      "url": "https://github.com/evalstate/mcp-hfspace",
+      "stars": 100,
+      "description": "HuggingFace models"
+    },
+    {
+      "name": "blazickjp/mcp-server-arxiv",
+      "url": "https://github.com/blazickjp/mcp-server-arxiv",
+      "stars": 100,
+      "description": "Academic papers"
+    },
+    {
+      "name": "pskill9/hn-search",
+      "url": "https://github.com/pskill9/hn-search",
+      "stars": 60,
+      "description": "Hacker News"
+    },
+    {
+      "name": "apify/actors-mcp-server",
+      "url": "https://github.com/apify/actors-mcp-server",
+      "stars": 200,
+      "description": "Web scraping"
+    },
+    {
+      "name": "tacticlaunch/mcp-server-linear",
+      "url": "https://github.com/tacticlaunch/mcp-server-linear",
+      "stars": 100,
+      "description": "Linear project management"
+    },
+    {
+      "name": "resend/resend-mcp-server",
+      "url": "https://github.com/resend/resend-mcp-server",
+      "stars": 150,
+      "description": "Email service"
+    },
+    {
+      "name": "modelcontextprotocol/server-sentry",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+      "stars": 59925,
+      "description": "Error tracking"
+    },
+    {
+      "name": "modelcontextprotocol/server-sequential-thinking",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+      "stars": 59925,
+      "description": "Thinking process"
+    },
+    {
+      "name": "r-huijts/mcp-server-memories",
+      "url": "https://github.com/r-huijts/mcp-server-memories",
+      "stars": 50,
+      "description": "Memory storage"
+    },
+    {
+      "name": "keboola/keboola-mcp-server",
+      "url": "https://github.com/keboola/keboola-mcp-server",
+      "stars": 30,
+      "description": "Data platform"
+    },
+    {
+      "name": "executeautomation/mcp-playwright",
+      "url": "https://github.com/executeautomation/mcp-playwright",
+      "stars": 300,
+      "description": "Testing automation"
+    },
+    {
+      "name": "browserbase/mcp-server-browserbase",
+      "url": "https://github.com/browserbase/mcp-server-browserbase",
+      "stars": 550,
+      "description": "Browser infrastructure"
+    },
+    {
+      "name": "lightpanda-io/browserbase-mcp",
+      "url": "https://github.com/lightpanda-io/browserbase-mcp",
+      "stars": 200,
+      "description": "Browser automation"
+    },
+    {
+      "name": "mark3labs/mcphost",
+      "url": "https://github.com/mark3labs/mcphost",
+      "stars": 300,
+      "description": "LLM hosting"
+    },
+    {
+      "name": "idosal/git-mcp",
+      "url": "https://github.com/idosal/git-mcp",
+      "stars": 150,
+      "description": "Git analysis"
+    },
+    {
+      "name": "ryoppippi/openrouter-mcp-server",
+      "url": "https://github.com/ryoppippi/openrouter-mcp-server",
+      "stars": 120,
+      "description": "LLM routing"
+    },
+    {
+      "name": "g0t4/mcp-server-commands",
+      "url": "https://github.com/g0t4/mcp-server-commands",
+      "stars": 80,
+      "description": "Command execution"
+    },
+    {
+      "name": "joshuarileydev/simply-mcp-git-server",
+      "url": "https://github.com/joshuarileydev/simply-mcp-git-server",
+      "stars": 60,
+      "description": "Git operations"
+    },
+    {
+      "name": "QuantGeekDev/docker-mcp-server",
+      "url": "https://github.com/QuantGeekDev/docker-mcp-server",
+      "stars": 120,
+      "description": "Docker control"
+    },
+    {
+      "name": "QuantGeekDev/mcp-framework",
+      "url": "https://github.com/QuantGeekDev/mcp-framework",
+      "stars": 100,
+      "description": "Server framework"
+    },
+    {
+      "name": "anaisbetts/mcp-youtube",
+      "url": "https://github.com/anaisbetts/mcp-youtube",
+      "stars": 45,
+      "description": "YouTube access"
+    },
+    {
+      "name": "anaisbetts/mcp-server-spotify",
+      "url": "https://github.com/anaisbetts/mcp-server-spotify",
+      "stars": 25,
+      "description": "Spotify access"
+    },
+    {
+      "name": "keboola/keboola-mcp-server",
+      "url": "https://github.com/keboola/keboola-mcp-server",
+      "stars": 30,
+      "description": "Data ops"
+    },
+    {
+      "name": "c4pt0r/mcp-server-sqlite",
+      "url": "https://github.com/c4pt0r/mcp-server-sqlite",
+      "stars": 60,
+      "description": "SQLite ops"
+    },
+    {
+      "name": "kashif-ali-khan/mcp-server-sqlite",
+      "url": "https://github.com/kashif-ali-khan/mcp-server-sqlite",
+      "stars": 70,
+      "description": "SQLite queries"
+    },
+    {
+      "name": "datawizrd/mcp-sqlite-server",
+      "url": "https://github.com/datawizrd/mcp-sqlite-server",
+      "stars": 40,
+      "description": "SQLite analytics"
+    },
+    {
+      "name": "ergut/mcp-bigquery-server",
+      "url": "https://github.com/ergut/mcp-bigquery-server",
+      "stars": 50,
+      "description": "BigQuery"
+    },
+    {
+      "name": "isaacwasserman/mcp-snowflake-server",
+      "url": "https://github.com/isaacwasserman/mcp-snowflake-server",
+      "stars": 35,
+      "description": "Snowflake"
+    },
+    {
+      "name": "f4ww4z/mcp-mysql-server",
+      "url": "https://github.com/f4ww4z/mcp-mysql-server",
+      "stars": 80,
+      "description": "MySQL"
+    },
+    {
+      "name": "caldwella/serper-mcp-server",
+      "url": "https://github.com/caldwella/serper-mcp-server",
+      "stars": 100,
+      "description": "Serper search"
+    },
+    {
+      "name": "zereight/mcp-twitter",
+      "url": "https://github.com/zereight/mcp-twitter",
+      "stars": 100,
+      "description": "Twitter"
+    },
+    {
+      "name": "adhikasp/mcp-reddit",
+      "url": "https://github.com/adhikasp/mcp-reddit",
+      "stars": 120,
+      "description": "Reddit"
+    },
+    {
+      "name": "pskill9/website-search",
+      "url": "https://github.com/pskill9/website-search",
+      "stars": 80,
+      "description": "Web search"
+    },
+    {
+      "name": "pskill9/hn-search",
+      "url": "https://github.com/pskill9/hn-search",
+      "stars": 60,
+      "description": "HN search"
+    },
+    {
+      "name": "coinmarketcap/cmc-mcp",
+      "url": "https://github.com/coinmarketcap/cmc-mcp",
+      "stars": 80,
+      "description": "Crypto"
+    },
+    {
+      "name": "hyperliquid/hyperliquid-mcp",
+      "url": "https://github.com/hyperliquid/hyperliquid-mcp",
+      "stars": 60,
+      "description": "Trading"
+    },
+    {
+      "name": "stripe/stripe-mcp",
+      "url": "https://github.com/stripe/stripe-mcp",
+      "stars": 200,
+      "description": "Payments"
+    },
+    {
+      "name": "xueannafang/mcp-server-obsidian",
+      "url": "https://github.com/xueannafang/mcp-server-obsidian",
+      "stars": 30,
+      "description": "Obsidian"
+    },
+    {
+      "name": "adawarp/azarashi-mcp-server",
+      "url": "https://github.com/adawarp/azarashi-mcp-server",
+      "stars": 200,
+      "description": "GitHub issues"
+    },
+    {
+      "name": "tacticlaunch/mcp-server-linear",
+      "url": "https://github.com/tacticlaunch/mcp-server-linear",
+      "stars": 100,
+      "description": "Linear"
+    },
+    {
+      "name": "resend/resend-mcp-server",
+      "url": "https://github.com/resend/resend-mcp-server",
+      "stars": 150,
+      "description": "Email"
+    },
+    {
+      "name": "cbruyndoncx/crewai-mcp-slack",
+      "url": "https://github.com/cbruyndoncx/crewai-mcp-slack",
+      "stars": 40,
+      "description": "Slack CrewAI"
+    },
+    {
+      "name": "alexei-led/aws-mcp-server",
+      "url": "https://github.com/alexei-led/aws-mcp-server",
+      "stars": 250,
+      "description": "AWS"
+    },
+    {
+      "name": "manusa/kubernetes-mcp-server",
+      "url": "https://github.com/manusa/kubernetes-mcp-server",
+      "stars": 200,
+      "description": "Kubernetes"
+    },
+    {
+      "name": "strowk/mcp-k8s-go",
+      "url": "https://github.com/strowk/mcp-k8s-go",
+      "stars": 200,
+      "description": "K8s Go"
+    },
+    {
+      "name": "mark3labs/mcphost",
+      "url": "https://github.com/mark3labs/mcphost",
+      "stars": 300,
+      "description": "LLM host"
+    },
+    {
+      "name": "lastmile-ai/mcp-agent",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "stars": 2500,
+      "description": "Agent framework"
+    },
+    {
+      "name": "evalstate/mcp-hfspace",
+      "url": "https://github.com/evalstate/mcp-hfspace",
+      "stars": 100,
+      "description": "HF Spaces"
+    },
+    {
+      "name": "trailofbits/mcp-security-scanner",
+      "url": "https://github.com/trailofbits/mcp-security-scanner",
+      "stars": 500,
+      "description": "Security"
+    },
+    {
+      "name": "pskill9/payments-mcp",
+      "url": "https://github.com/pskill9/payments-mcp",
+      "stars": 50,
+      "description": "Payments"
+    },
+    {
+      "name": "browserbase/mcp-server-browserbase",
+      "url": "https://github.com/browserbase/mcp-server-browserbase",
+      "stars": 550,
+      "description": "Browserbase"
+    },
+    {
+      "name": "executeautomation/mcp-playwright",
+      "url": "https://github.com/executeautomation/mcp-playwright",
+      "stars": 300,
+      "description": "Playwright"
+    },
+    {
+      "name": "lightpanda-io/browserbase-mcp",
+      "url": "https://github.com/lightpanda-io/browserbase-mcp",
+      "stars": 200,
+      "description": "Lightpanda"
+    },
+    {
+      "name": "AgentDeskAI/browser-tools-mcp-server",
+      "url": "https://github.com/AgentDeskAI/browser-tools-mcp-server",
+      "stars": 150,
+      "description": "Browser tools"
+    },
+    {
+      "name": "blazickjp/mcp-server-arxiv",
+      "url": "https://github.com/blazickjp/mcp-server-arxiv",
+      "stars": 100,
+      "description": "ArXiv"
+    },
+    {
+      "name": "apify/actors-mcp-server",
+      "url": "https://github.com/apify/actors-mcp-server",
+      "stars": 200,
+      "description": "Apify"
+    },
+    {
+      "name": "fireproof-storage/mcp-database-server",
+      "url": "https://github.com/fireproof-storage/mcp-database-server",
+      "stars": 90,
+      "description": "Fireproof DB"
+    },
+    {
+      "name": "bytebase/dbhub",
+      "url": "https://github.com/bytebase/dbhub",
+      "stars": 350,
+      "description": "DB gateway"
+    },
+    {
+      "name": "designcomputer/mysql_mcp_server",
+      "url": "https://github.com/designcomputer/mysql_mcp_server",
+      "stars": 200,
+      "description": "MySQL"
+    },
+    {
+      "name": "kiliczsh/mcp-mongo-server",
+      "url": "https://github.com/kiliczsh/mcp-mongo-server",
+      "stars": 180,
+      "description": "MongoDB"
+    },
+    {
+      "name": "neo4j-contrib/mcp-neo4j",
+      "url": "https://github.com/neo4j-contrib/mcp-neo4j",
+      "stars": 150,
+      "description": "Neo4j"
+    },
+    {
+      "name": "redis/mcp-redis",
+      "url": "https://github.com/redis/mcp-redis",
+      "stars": 140,
+      "description": "Redis"
+    },
+    {
+      "name": "clickhouse/mcp-clickhouse",
+      "url": "https://github.com/ClickHouse/mcp-clickhouse",
+      "stars": 120,
+      "description": "ClickHouse"
+    },
+    {
+      "name": "supabase-community/supabase-mcp",
+      "url": "https://github.com/supabase-community/supabase-mcp",
+      "stars": 300,
+      "description": "Supabase"
+    },
+    {
+      "name": "idosal/git-mcp",
+      "url": "https://github.com/idosal/git-mcp",
+      "stars": 150,
+      "description": "Git analysis"
+    },
+    {
+      "name": "ryoppippi/openrouter-mcp-server",
+      "url": "https://github.com/ryoppippi/openrouter-mcp-server",
+      "stars": 120,
+      "description": "OpenRouter"
+    },
+    {
+      "name": "g0t4/mcp-server-commands",
+      "url": "https://github.com/g0t4/mcp-server-commands",
+      "stars": 80,
+      "description": "Commands"
+    },
+    {
+      "name": "joshuarileydev/simply-mcp-git-server",
+      "url": "https://github.com/joshuarileydev/simply-mcp-git-server",
+      "stars": 60,
+      "description": "Simple Git"
+    },
+    {
+      "name": "QuantGeekDev/docker-mcp-server",
+      "url": "https://github.com/QuantGeekDev/docker-mcp-server",
+      "stars": 120,
+      "description": "Docker"
+    },
+    {
+      "name": "QuantGeekDev/mcp-framework",
+      "url": "https://github.com/QuantGeekDev/mcp-framework",
+      "stars": 100,
+      "description": "Framework"
+    },
+    {
+      "name": "anaisbetts/mcp-youtube",
+      "url": "https://github.com/anaisbetts/mcp-youtube",
+      "stars": 45,
+      "description": "YouTube"
+    },
+    {
+      "name": "anaisbetts/mcp-server-spotify",
+      "url": "https://github.com/anaisbetts/mcp-server-spotify",
+      "stars": 25,
+      "description": "Spotify"
+    },
+    {
+      "name": "keboola/keboola-mcp-server",
+      "url": "https://github.com/keboola/keboola-mcp-server",
+      "stars": 30,
+      "description": "Keboola"
+    },
+    {
+      "name": "r-huijts/mcp-server-memories",
+      "url": "https://github.com/r-huijts/mcp-server-memories",
+      "stars": 50,
+      "description": "Memories"
+    },
+    {
+      "name": "c4pt0r/mcp-server-sqlite",
+      "url": "https://github.com/c4pt0r/mcp-server-sqlite",
+      "stars": 60,
+      "description": "SQLite ops"
+    },
+    {
+      "name": "kashif-ali-khan/mcp-server-sqlite",
+      "url": "https://github.com/kashif-ali-khan/mcp-server-sqlite",
+      "stars": 70,
+      "description": "SQLite queries"
+    },
+    {
+      "name": "datawizrd/mcp-sqlite-server",
+      "url": "https://github.com/datawizrd/mcp-sqlite-server",
+      "stars": 40,
+      "description": "SQLite analytics"
+    },
+    {
+      "name": "ergut/mcp-bigquery-server",
+      "url": "https://github.com/ergut/mcp-bigquery-server",
+      "stars": 50,
+      "description": "BigQuery"
+    },
+    {
+      "name": "isaacwasserman/mcp-snowflake-server",
+      "url": "https://github.com/isaacwasserman/mcp-snowflake-server",
+      "stars": 35,
+      "description": "Snowflake"
+    },
+    {
+      "name": "f4ww4z/mcp-mysql-server",
+      "url": "https://github.com/f4ww4z/mcp-mysql-server",
+      "stars": 80,
+      "description": "MySQL safe"
+    },
+    {
+      "name": "caldwella/serper-mcp-server",
+      "url": "https://github.com/caldwella/serper-mcp-server",
+      "stars": 100,
+      "description": "Serper"
+    },
+    {
+      "name": "zereight/mcp-twitter",
+      "url": "https://github.com/zereight/mcp-twitter",
+      "stars": 100,
+      "description": "Twitter"
+    },
+    {
+      "name": "adhikasp/mcp-reddit",
+      "url": "https://github.com/adhikasp/mcp-reddit",
+      "stars": 120,
+      "description": "Reddit"
+    },
+    {
+      "name": "pskill9/website-search",
+      "url": "https://github.com/pskill9/website-search",
+      "stars": 80,
+      "description": "Web search"
+    },
+    {
+      "name": "pskill9/hn-search",
+      "url": "https://github.com/pskill9/hn-search",
+      "stars": 60,
+      "description": "HN"
+    },
+    {
+      "name": "coinmarketcap/cmc-mcp",
+      "url": "https://github.com/coinmarketcap/cmc-mcp",
+      "stars": 80,
+      "description": "CMC"
+    },
+    {
+      "name": "hyperliquid/hyperliquid-mcp",
+      "url": "https://github.com/hyperliquid/hyperliquid-mcp",
+      "stars": 60,
+      "description": "Hyperliquid"
+    },
+    {
+      "name": "stripe/stripe-mcp",
+      "url": "https://github.com/stripe/stripe-mcp",
+      "stars": 200,
+      "description": "Stripe"
+    },
+    {
+      "name": "xueannafang/mcp-server-obsidian",
+      "url": "https://github.com/xueannafang/mcp-server-obsidian",
+      "stars": 30,
+      "description": "Obsidian"
+    },
+    {
+      "name": "adawarp/azarashi-mcp-server",
+      "url": "https://github.com/adawarp/azarashi-mcp-server",
+      "stars": 200,
+      "description": "Azarashi"
+    },
+    {
+      "name": "tacticlaunch/mcp-server-linear",
+      "url": "https://github.com/tacticlaunch/mcp-server-linear",
+      "stars": 100,
+      "description": "Linear"
+    },
+    {
+      "name": "resend/resend-mcp-server",
+      "url": "https://github.com/resend/resend-mcp-server",
+      "stars": 150,
+      "description": "Resend"
+    },
+    {
+      "name": "cbruyndoncx/crewai-mcp-slack",
+      "url": "https://github.com/cbruyndoncx/crewai-mcp-slack",
+      "stars": 40,
+      "description": "CrewAI Slack"
+    },
+    {
+      "name": "alexei-led/aws-mcp-server",
+      "url": "https://github.com/alexei-led/aws-mcp-server",
+      "stars": 250,
+      "description": "AWS"
+    },
+    {
+      "name": "manusa/kubernetes-mcp-server",
+      "url": "https://github.com/manusa/kubernetes-mcp-server",
+      "stars": 200,
+      "description": "Kubernetes"
+    },
+    {
+      "name": "strowk/mcp-k8s-go",
+      "url": "https://github.com/strowk/mcp-k8s-go",
+      "stars": 200,
+      "description": "K8s Go"
+    },
+    {
+      "name": "mark3labs/mcphost",
+      "url": "https://github.com/mark3labs/mcphost",
+      "stars": 300,
+      "description": "MCPHost"
+    },
+    {
+      "name": "lastmile-ai/mcp-agent",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "stars": 2500,
+      "description": "MCP Agent"
+    },
+    {
+      "name": "evalstate/mcp-hfspace",
+      "url": "https://github.com/evalstate/mcp-hfspace",
+      "stars": 100,
+      "description": "HF Space"
+    },
+    {
+      "name": "trailofbits/mcp-security-scanner",
+      "url": "https://github.com/trailofbits/mcp-security-scanner",
+      "stars": 500,
+      "description": "Security scanner"
+    },
+    {
+      "name": "pskill9/payments-mcp",
+      "url": "https://github.com/pskill9/payments-mcp",
+      "stars": 50,
+      "description": "Payments"
+    }
+  ],
+  "registries_and_tools": [
+    {
+      "name": "michael-latman/mcp-get",
+      "url": "https://github.com/michael-latman/mcp-get",
+      "stars": 500,
+      "description": "CLI package manager for MCP servers"
+    },
+    {
+      "name": "mcpm/mcpm",
+      "url": "https://github.com/mcpm/mcpm",
+      "stars": 300,
+      "description": "Homebrew-like package manager (mcpm.sh)"
+    },
+    {
+      "name": "chatmcp/mcp-marketplace",
+      "url": "https://github.com/chatmcp/mcp-marketplace",
+      "stars": 200,
+      "description": "Web plugin marketplace"
+    },
+    {
+      "name": "mcp-run/mcp-run",
+      "url": "https://github.com/mcp-run/mcp-run",
+      "stars": 150,
+      "description": "Hosted registry and control plane (mcp.run)"
+    },
+    {
+      "name": "natoma/mcp-nato",
+      "url": "https://github.com/natoma/mcp-nato",
+      "stars": 100,
+      "description": "Hosted MCP platform (mcp.natoma.ai)"
+    },
+    {
+      "name": "pashpashpash/mcp-verse",
+      "url": "https://github.com/pashpashpash/mcp-verse",
+      "stars": 80,
+      "description": "Portal for authenticated MCPs (mcpverse.io)"
+    },
+    {
+      "name": "glama-ai/glama-mcp",
+      "url": "https://github.com/glama-ai/glama-mcp",
+      "stars": 1000,
+      "description": "Glama MCP directory (14,000+ servers)"
+    },
+    {
+      "name": "pulsemcp/pulsemcp",
+      "url": "https://github.com/pulsemcp/pulsemcp",
+      "stars": 600,
+      "description": "PulseMCP directory (7,600+ servers)"
+    },
+    {
+      "name": "mcphub/mcphub",
+      "url": "https://github.com/mcphub/mcphub",
+      "stars": 400,
+      "description": "MCPHub curated directory"
+    },
+    {
+      "name": "mcpservers/mcpservers",
+      "url": "https://github.com/mcpservers/mcpservers",
+      "stars": 300,
+      "description": "MCPServers.com directory"
+    },
+    {
+      "name": "smithery-ai/smithery",
+      "url": "https://github.com/smithery-ai/smithery",
+      "stars": 500,
+      "description": "Smithery.ai registry"
+    },
+    {
+      "name": "mcp-market/mcp-market",
+      "url": "https://github.com/mcp-market/mcp-market",
+      "stars": 200,
+      "description": "MCP Market (19,000+ servers)"
+    },
+    {
+      "name": "mcp-so/mcp-so",
+      "url": "https://github.com/mcp-so/mcp-so",
+      "stars": 150,
+      "description": "MCP.so directory"
+    },
+    {
+      "name": "mcp-portal/mcp-portal",
+      "url": "https://github.com/mcp-portal/mcp-portal",
+      "stars": 100,
+      "description": "MCP Portal"
+    },
+    {
+      "name": "mcp-directory/mcp-directory",
+      "url": "https://github.com/mcp-directory/mcp-directory",
+      "stars": 80,
+      "description": "MCP Directory"
+    },
+    {
+      "name": "mcp-wtf/mcp-wtf",
+      "url": "https://github.com/mcp-wtf/mcp-wtf",
+      "stars": 60,
+      "description": "MCP.wtf"
+    },
+    {
+      "name": "mcp-land/mcp-land",
+      "url": "https://github.com/mcp-land/mcp-land",
+      "stars": 50,
+      "description": "MCP Land"
+    },
+    {
+      "name": "mcp-zone/mcp-zone",
+      "url": "https://github.com/mcp-zone/mcp-zone",
+      "stars": 40,
+      "description": "MCP Zone"
+    },
+    {
+      "name": "mcp-reviews/mcp-reviews",
+      "url": "https://github.com/mcp-reviews/mcp-reviews",
+      "stars": 30,
+      "description": "MCP Reviews"
+    },
+    {
+      "name": "mcp-garden/mcp-garden",
+      "url": "https://github.com/mcp-garden/mcp-garden",
+      "stars": 25,
+      "description": "MCP Garden"
+    },
+    {
+      "name": "mcp-arena/mcp-arena",
+      "url": "https://github.com/mcp-arena/mcp-arena",
+      "stars": 20,
+      "description": "MCP Arena"
+    }
+  ],
+  "frameworks_and_sdks": [
+    {
+      "name": "lastmile-ai/mcp-agent",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "stars": 2500,
+      "description": "MCP-based agent framework"
+    },
+    {
+      "name": "QuantGeekDev/mcp-framework",
+      "url": "https://github.com/QuantGeekDev/mcp-framework",
+      "stars": 100,
+      "description": "TypeScript server framework"
+    },
+    {
+      "name": "modelcontextprotocol/python-sdk",
+      "url": "https://github.com/modelcontextprotocol/python-sdk",
+      "stars": 16231,
+      "description": "Official Python SDK"
+    },
+    {
+      "name": "modelcontextprotocol/typescript-sdk",
+      "url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "stars": 8600,
+      "description": "Official TypeScript SDK"
+    },
+    {
+      "name": "modelcontextprotocol/csharp-sdk",
+      "url": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "stars": 2805,
+      "description": "Official C# SDK"
+    },
+    {
+      "name": "modelcontextprotocol/java-sdk",
+      "url": "https://github.com/modelcontextprotocol/java-sdk",
+      "stars": 2082,
+      "description": "Official Java SDK"
+    },
+    {
+      "name": "modelcontextprotocol/rust-sdk",
+      "url": "https://github.com/modelcontextprotocol/rust-sdk",
+      "stars": 1755,
+      "description": "Official Rust SDK"
+    },
+    {
+      "name": "modelcontextprotocol/kotlin-sdk",
+      "url": "https://github.com/modelcontextprotocol/kotlin-sdk",
+      "stars": 919,
+      "description": "Official Kotlin SDK"
+    },
+    {
+      "name": "modelcontextprotocol/inspector",
+      "url": "https://github.com/modelcontextprotocol/inspector",
+      "stars": 5003,
+      "description": "Debugging tool"
+    },
+    {
+      "name": "modelcontextprotocol/create-typescript-server",
+      "url": "https://github.com/modelcontextprotocol/create-typescript-server",
+      "stars": 800,
+      "description": "TS server template"
+    },
+    {
+      "name": "mark3labs/mcphost",
+      "url": "https://github.com/mark3labs/mcphost",
+      "stars": 300,
+      "description": "LLM hosting framework"
+    },
+    {
+      "name": "openai/openai-agents-python",
+      "url": "https://github.com/openai/openai-agents-python",
+      "stars": 20000,
+      "description": "OpenAI Agents with MCP support"
+    },
+    {
+      "name": "crewai-inc/crewAI",
+      "url": "https://github.com/crewai-inc/crewAI",
+      "stars": 28000,
+      "description": "CrewAI with MCP tools"
+    },
+    {
+      "name": "langchain-ai/langchain",
+      "url": "https://github.com/langchain-ai/langchain",
+      "stars": 95000,
+      "description": "LangChain MCP integration"
+    },
+    {
+      "name": "run-llama/llama_index",
+      "url": "https://github.com/run-llama/llama_index",
+      "stars": 39000,
+      "description": "LlamaIndex MCP tools"
+    }
+  ]
+}

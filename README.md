@@ -1,68 +1,41 @@
-# 🧠 Centralized AI Skills Repository
+# 🧠 Open Source AI Assistant Archive
 
-Welcome to the **Centralized AI Skills Repository**. This project aggregates and standardizes high-quality AI prompts and agent skills from top open-source repositories into a single, cohesive, and easy-to-explore library.
+Welcome to the **Massive AI Assistant Archive**. This repository is split into two primary massive local libraries to power up any AI agent, coding assistant, or local model.
 
-This repository is designed to give you daily, professional-grade tools to enhance your AI agents, coding assistants, and workflows.
-
-## 🗂️ Folder Structure
-
-We organize thousands of skills into an intuitive structure so you can easily track and utilize them:
+## 🗂️ Archive Structure
 
 ```text
 ai_skills/
-├── 📁 skills/                 # Aggregated, recursively classified skills
-│   ├── 🛠️ development/        # frontend/, backend/, devops/, mobile/, database/, ai-ml/
-│   ├── ⚡ productivity/       # writing/, planning/, analysis/, finance/, communication/
-│   ├── 🎨 creative/           # design/, marketing/, multimedia/
-│   └── 📦 other/              # General purpose and uncategorized skills
-├── 📁 scripts/                # Automation for syncing and aggregation
-├── 📁 sources/                # The raw cloned repositories (Links in sources/README.md)
-├── 📁 templates/              # Standardized skill formats
-└── 📄 README.md               # You are here!
+├── 📁 ai_skills/            # 11,000+ Agent Skills & Prompts
+│   ├── skills/              # The deep-categorized markdown prompts
+│   ├── scripts/             # The aggregation script to parse prompts
+│   ├── sources/             # The raw 23+ source repositories
+│   └── templates/           # The prompt templates
+│
+├── 📁 mcps/                 # 243+ Model Context Protocol (MCP) Servers
+│   ├── Official Anthropic/  # Core MCP repositories
+│   ├── Browser Automation/  # Servers controlling Playwright, Stagehand, etc.
+│   ├── Databases/           # Postgres, SQLite, Redis SQL interfaces
+│   ├── Developer Tools/     # Filesystem, Docker, Command-line access
+│   └── (... and 10+ other categories)
+│
+├── 📄 all_mcp_servers.json  # The raw metadata map of the MCP library
+└── 📄 setup_mcps.py         # The master extraction and cloning script
 ```
 
-## ✨ Featured Capabilities
+## 1. AI Skills & Prompts Library (`/ai_skills`)
+A massive library of over **11,200** expertly formatted Markdown files. These are instructions, system prompts, workflows, and rulesets originally sourced from 23 different Github repositories. They are deeply categorized into domains like `development/frontend`, `productivity/planning`, `creative/design`, etc.
 
-- **Deep Organization**: Skills are sorted by domain (Development, Productivity, Creative).
-- **Daily Commits**: Using our automation scripts, we pull the latest skills from 20+ sources regularly.
-- **Consistent Formatting**: Every skill has been reformatted to match our `new_skill_template.md` which includes standardized frontmatter (`name`, `source_repo`, `category`) and a clean markdown layout.
-- **Wide Coverage**: Aggregated from major industry leaders (Anthropic, OpenAI) and top community libraries.
+*To see how this section works, navigate into `/ai_skills/README.md`.*
 
-## 🚀 Getting Started
+## 2. MCP Servers Library (`/mcps`)
+Model Context Protocol servers are fully functional plugins that grant AI assistants tools (accessting the browser, making database queries, reading your terminal, etc).
 
-If you are an AI assistant or a user looking for a specific skill:
+We have executed a **shallow clone** on over **240+** top community and official MCP repositories. They are locally archived in `/mcps/` under their respective utility category. 
+- You can navigate to any MCP, run `npm install` or `uv sync` depending on the stack, and boot it up!
+- Ultra-massive frameworks like *Langchain* and *CrewAI* are present as linking `.md` files to conserve workspace bandwidth and space.
 
-1. **Browse Categories**: Open the `skills/` folder and navigate to the category that fits your current task.
-2. **Read the Skill**: Each file provides clear instructions on how the agent should behave and execute its tasks.
-3. **Copy & Use**: Feed the prompt or context to your AI assistant.
-
-### Adding New Skills manually
-
-If you have a customized skill you want to add:
-1. Copy the template from `templates/new_skill_template.md`.
-2. Fill out the YAML frontmatter.
-3. Add your prompt logic.
-4. Save it into the appropriate `skills/` subdirectory.
-
-## ⚙️ Automation Scripts
-
-This repository is built for continuous updates.
-
-### 1. `clone_repos.ps1`
-Run this script to initialize or update the source repositories in the `/sources` directory.
-```powershell
-./scripts/clone_repos.ps1
-```
-
-### 2. `aggregate.py`
-Run this Python script to parse all `.md` files in the source repositories, format them automatically, and sort them into the `skills/` subdirectories.
-```bash
-python scripts/aggregate.py
-```
-
-## 📚 Acknowledgments
-
-This library is made possible by the incredible open-source AI community. It aggregates content from multiple foundational organizations and prolific creators. A huge thank you to all the original authors!
-
----
-*Built for the community. Kept updated daily.*
+## ⚙️ Maintenance & Syncing
+Both sides of this project come with their own dedicated automation pipelines.
+- To update the Prompts library: run `./ai_skills/scripts/sync.ps1`
+- To re-fetch the MCP clones: run `python setup_mcps.py`
