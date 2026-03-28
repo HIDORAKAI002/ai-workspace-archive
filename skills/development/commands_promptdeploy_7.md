@@ -1,0 +1,12 @@
+---
+name: "commands"
+source_repo: "promptdeploy"
+category: "development"
+---
+
+# commands
+
+> Source: promptdeploy
+
+Read $ARGUMENTS and rewrite this file into a more properly formatted English document. Don't change any of the meaning, just give it better structure and form: paragraphs, grammatical corrections, punctuation, capitalization where needed, etc.
+
