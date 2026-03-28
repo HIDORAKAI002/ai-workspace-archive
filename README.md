@@ -1,13 +1,13 @@
 # 🧠 AI Workspace Archive
 
 > **The most comprehensive self-hostable AI toolbox on GitHub.**
-> One repository. Four massive libraries. Everything you need to build, run, and supercharge AI agents — available offline, right on your machine.
+> One repository. Five massive libraries. Everything you need to build, run, and supercharge AI agents — available offline, right on your machine.
 
 ---
 
 ## 📦 What's Inside
 
-This archive is split into **4 distinct, self-contained pillars**. Each one is a standalone library that can be used independently or combined with the others.
+This archive is split into **5 distinct, self-contained pillars**. Each one is a standalone library that can be used independently or combined with the others.
 
 ```text
 ai-workspace-archive/
@@ -20,9 +20,6 @@ ai-workspace-archive/
 │   │   │   ├── devops/         # Docker, CI/CD, cloud infra
 │   │   │   └── security/       # Pen testing, code reviews
 │   │   ├── productivity/       # Planning, research, summaries
-│   │   │   ├── writing/        # Emails, reports, documentation
-│   │   │   ├── analysis/       # Data analysis, research synthesis
-│   │   │   └── planning/       # Tasks, project management
 │   │   ├── creative/           # Design, marketing, creative writing
 │   │   └── other/              # Finance, education, science
 │   ├── sources/                # 23 upstream skill repositories (raw)
@@ -38,23 +35,26 @@ ai-workspace-archive/
 │   ├── Search Engines/         # Brave Search, Exa, SerpAPI
 │   ├── Communication/          # Slack, Discord, email, calendar
 │   ├── Productivity/           # Notion, Linear, Jira, GitHub Issues
-│   ├── AI & ML Services/       # HuggingFace Spaces, Together AI
-│   └── Monitoring/             # Observability and infra tooling
+│   └── AI & ML Services/       # HuggingFace Spaces, Together AI
 │
 ├── 📁 ide_rules/               # 2,200+ AI Editor Context Rules
 │   ├── cursor/                 # .cursorrules + .mdc files for Cursor AI
-│   │   ├── react.cursorrules
-│   │   ├── nextjs-tailwind.mdc
-│   │   ├── python-fastapi.cursorrules
-│   │   └── ... (2,200+ files for every major framework)
+│   │   └── ... (2,200+ files for every major framework & language)
 │   └── cline/                  # Rule presets for the Cline VSCode agent
 │
-└── 📁 system_prompts/          # 30+ Cloned Prompt Frameworks & Collections
-    ├── system_prompts_leaks_collections/   # Leaked prompts from AI tools
-    ├── prompt_engineering_guides/          # Tutorials + paper-backed techniques
-    ├── prompt_management_tools/            # Langfuse, Helicone, Agenta
-    ├── prompt_testing_evaluation/          # Promptfoo, TruLens, W&B Weave
-    └── safety_guardrails/                 # NeMo-Guardrails, Guardrails-AI, Rebuff
+├── 📁 system_prompts/          # 30+ Cloned Prompt Frameworks & Collections
+│   ├── system_prompts_leaks_collections/   # Leaked prompts from AI tools
+│   ├── prompt_engineering_guides/          # Tutorials + paper-backed techniques
+│   ├── prompt_management_tools/            # Langfuse, Helicone, Agenta
+│   ├── prompt_testing_evaluation/          # Promptfoo, TruLens, W&B Weave
+│   └── safety_guardrails/                 # NeMo-Guardrails, Guardrails-AI, Rebuff
+│
+└── 📁 api_providers/           # 12 AI API Providers — Full Reference Guide
+    ├── _COMPARISON.md          # Side-by-side pricing & winner breakdown
+    ├── major_cloud_providers/  # OpenAI, Anthropic, Gemini, DeepSeek, Grok, Mistral, Cohere, Groq
+    ├── unified_api_platforms/  # OpenRouter (300+ models, one endpoint)
+    ├── cloud_provider_ai_services/ # Azure OpenAI, AWS Bedrock
+    └── open_source_models/     # Meta Llama (self-hostable, free weights)
 ```
 
 ---
@@ -63,13 +63,13 @@ ai-workspace-archive/
 
 **11,000+ structured, ready-to-use AI skill files.**
 
-These are not raw prompts. Every single file is a fully-standardized, YAML-frontmatted instruction set sourced from **23 of the most respected AI skill repositories on GitHub**, including Anthropic's official skill library, OpenAI skills, HuggingFace tools, and multiple community curations.
+Every file is a fully-standardized, YAML-frontmatted instruction set sourced from **23 of the most respected AI skill repos on GitHub** — including Anthropic's official skill library, OpenAI skills, HuggingFace tools, and multiple community curations.
 
 ### What you get:
-- 🔧 **Development skills** — Generate clean React components, debug FastAPI routes, write Terraform configs, review security vulnerabilities.
-- 📋 **Productivity skills** — Summarize research papers, draft project specs, create meeting agendas, write executive reports.
-- 🎨 **Creative skills** — Write marketing copy, generate brand guidelines, produce UI design briefs, compose technical documentation.
-- 🔬 **Domain-specific** — Finance modeling, academic writing, scientific explanations, legal drafting.
+- 🔧 **Development** — Generate clean React components, debug FastAPI routes, write Terraform configs, review security vulnerabilities
+- 📋 **Productivity** — Summarize research papers, draft project specs, create meeting agendas, write executive reports
+- 🎨 **Creative** — Write marketing copy, generate brand guidelines, produce UI design briefs, compose technical documentation
+- 🔬 **Domain-specific** — Finance modeling, academic writing, scientific explanations, legal drafting
 
 ### How to use:
 1. Navigate to the relevant category (e.g., `skills/development/frontend/`)
@@ -85,16 +85,16 @@ These are not raw prompts. Every single file is a fully-standardized, YAML-front
 MCP servers are the "plugins" that give AI assistants real superpowers — the ability to browse the web, query your database, read your filesystem, send Slack messages, and much more. Every repo here is a working, installable server that connects directly to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client.
 
 ### What you get:
-- 🌐 **Browser Automation** — Run Playwright, control Chrome DevTools, use Browserbase for cloud browsers
-- 🗄️ **Database Access** — Direct SQL query tools for PostgreSQL, SQLite, BigQuery, Snowflake, MongoDB
-- ☁️ **Cloud Platforms** — AWS, Google Cloud, Azure MCP connectors that let you manage infra via natural language
+- 🌐 **Browser Automation** — Playwright, Chrome DevTools, Browserbase cloud browsers
+- 🗄️ **Database Access** — PostgreSQL, SQLite, BigQuery, Snowflake, MongoDB
+- ☁️ **Cloud Platforms** — AWS, Google Cloud, Azure connectors via natural language
 - 🔍 **Web Search** — Brave Search, Exa, Perplexity-style search APIs
-- 💬 **Communication** — Slack, email, Google Calendar, Discord integrations
-- 🛠️ **Dev Tools** — Filesystem reader/writer, Git operations, Docker control, terminal access
+- 💬 **Communication** — Slack, email, Google Calendar, Discord
+- 🛠️ **Dev Tools** — Filesystem reader/writer, Git operations, Docker control, terminal
 
 ### How to use:
 1. Navigate to the specific server (e.g., `mcps/Databases/postgres-mcp-server/`)
-2. Follow the `README.md` inside the repo for installation (usually `npm install` or `uv sync`)
+2. Follow the `README.md` inside for installation (usually `npm install` or `uv sync`)
 3. Add the server config to your `claude_desktop_config.json` or equivalent
 
 ---
@@ -103,15 +103,7 @@ MCP servers are the "plugins" that give AI assistants real superpowers — the a
 
 **2,200+ editor-specific AI instruction files for Cursor, Windsurf, and Cline.**
 
-When you open a project in Cursor or Windsurf, the AI needs to understand your tech stack, coding style, and architecture preferences. These `.cursorrules` and `.mdc` files are pre-written, hyper-specific instruction sets that instantly prime the AI for the exact framework you're working with.
-
-### What you get:
-- **React + TypeScript** rules that enforce proper component patterns, hooks usage, and testing conventions
-- **Next.js + Tailwind** rules for App Router, RSC, and utility-first styling
-- **Python FastAPI** rules that keep the AI writing Pydantic models, async endpoints, and proper error handling
-- **Solidity / Web3** rules for smart contract development
-- **Go, Rust, Java, Swift** — all major languages covered
-- **300+ framework-specific** configurations in total
+`.cursorrules` and `.mdc` files that instantly prime your AI editor for any tech stack — React, Next.js, FastAPI, Go, Rust, Solidity, and 300+ more frameworks.
 
 ### How to use:
 1. Find your stack in `/ide_rules/cursor/` (e.g., `nextjs-tailwind.mdc`)
@@ -122,30 +114,54 @@ When you open a project in Cursor or Windsurf, the AI needs to understand your t
 
 ## 📝 Pillar 4 — System Prompts & Frameworks (`/system_prompts`)
 
-**30+ cloned repositories of leaked system prompts, engineering guides, and evaluation tooling.**
-
-This pillar gives you the behind-the-scenes instructions that power the world's most popular AI tools — plus the infrastructure to test, evaluate, and protect your own prompts.
+**30+ cloned repos of leaked system prompts, engineering guides, and evaluation tooling.**
 
 ### What you get:
+- 🔓 **Leaked System Prompts** — The actual instructions running inside Claude Code, Cursor, Windsurf, Devin, v0, Perplexity, Notion AI, and 30+ other tools (30,000+ lines)
+- 📖 **Prompt Engineering Guides** — 22 hands-on tutorials + the original `awesome-chatgpt-prompts` (115K ⭐)
+- 🧪 **Evaluation Frameworks** — Promptfoo, TruLens, W&B Weave for testing and scoring prompts
+- 🛡️ **Safety & Guardrails** — NeMo-Guardrails, Guardrails-AI, Rebuff for prompt injection protection
 
-**🔓 Leaked System Prompts** (`/system_prompts_leaks_collections/`)
-- The actual system prompts running inside **Claude Code, Cursor, Windsurf, Devin, v0, Perplexity, Notion AI, and 30+ other tools**
-- Over 30,000 lines of real-world system prompt engineering you can study and adapt
+---
 
-**📖 Prompt Engineering Guides** (`/prompt_engineering_guides/`)
-- 22 hands-on tutorials covering Chain-of-Thought, Tree-of-Thought, few-shot, and meta-prompting
-- The original `awesome-chatgpt-prompts` (115,000+ ⭐) with 157 expert role prompts
-- Curated battle-tested templates for Claude, ChatGPT, and Gemini
+## 💡 Pillar 5 — AI API Providers Reference (`/api_providers`)
 
-**🧪 Evaluation Frameworks** (`/prompt_testing_evaluation/`)
-- **Promptfoo** — battle-test your prompts against adversarial inputs and regressions
-- **TruLens** — feedback scoring for LLM pipelines using real metrics
-- **W&B Weave** — trace-based debugging from Weights & Biases
+**The complete reference guide for 12 major AI API providers — pricing, models, SDK installs, and code snippets.**
 
-**🛡️ Safety & Guardrails** (`/safety_guardrails/`)
-- **NVIDIA NeMo-Guardrails** — define rails for topic avoidance and jailbreak resistance
-- **Guardrails-AI** — schema validation for model outputs
-- **Rebuff** — real-time prompt injection detection
+No more switching between 12 different docs sites. Every provider is documented in a single, clean markdown file with everything you need to start making API calls in minutes.
+
+### Providers covered:
+| Provider | Best For | Free Tier |
+|---|---|---|
+| **OpenAI** | GPT-4.1, o3, GPT-5 | $5-18 initial credit |
+| **Anthropic (Claude)** | Claude Opus 4.6, Sonnet 4.6 | None (pay-as-you-go) |
+| **Google Gemini** | Multimodal, Google Search grounding | 1,500 req/day free |
+| **DeepSeek** | Ultra-low cost, no rate limits | 5M free tokens |
+| **xAI (Grok)** | 2M token context, real-time X data | $25 free credits |
+| **Mistral AI** | EU/GDPR compliance, open weights | Yes (with limits) |
+| **Cohere** | Best embeddings (Embed 4), Rerank | 1,000 calls/month |
+| **Groq** | Fastest inference (1,000+ tok/sec) | Yes (with limits) |
+| **OpenRouter** | 300+ models, single API endpoint | 50 req/day free |
+| **Azure OpenAI** | Enterprise SLA, HIPAA, VPC | $200 Azure credit |
+| **AWS Bedrock** | Multi-provider, serverless, IAM | AWS Free Tier |
+| **Meta (Llama)** | Free open weights, self-hosting | FREE forever |
+
+### What each file includes:
+- API endpoint URL and authentication method
+- Full pricing table per model (input/output/cached tokens)
+- SDK install commands for Python and Node.js
+- Key features and rate limits
+- What each model is best suited for
+
+### 🏆 Category winners (from `_COMPARISON.md`):
+- **Cheapest:** DeepSeek V4 at $0.30/M input tokens
+- **Best Free Tier:** DeepSeek (5M tokens) and Google Gemini (1,500 req/day)
+- **Largest Context:** xAI Grok (2M tokens)
+- **Fastest:** Groq (400-1,000+ tokens/sec on LPU hardware)
+- **Best Reasoning:** Claude Opus 4.6
+- **Best for EU/GDPR:** Mistral AI
+- **Best Embeddings:** Cohere Embed 4
+- **Best Self-Hosted:** Meta Llama (free weights)
 
 ---
 
@@ -169,10 +185,10 @@ npm install
 # Add to your claude_desktop_config.json and restart Claude Desktop
 ```
 
-### Browse the Skills Library
+### Look up an API provider
 ```
-Open: ai_skills_library/skills/development/frontend/
-Pick any .md file and paste it as a system prompt into your AI tool of choice.
+Open: api_providers/_COMPARISON.md    ← side-by-side winner breakdown
+Open: api_providers/major_cloud_providers/OpenAI.md   ← full pricing + SDK
 ```
 
 ---
@@ -185,13 +201,14 @@ Pick any .md file and paste it as a system prompt into your AI tool of choice.
 | 🔌 MCP Servers | Fully cloned, installable server repos | 92 repositories |
 | 🖥️ IDE Rules | `.cursorrules` + `.mdc` for every major stack | 2,200+ files |
 | 📝 System Prompts | Leaked prompts, guides, eval & safety tools | 30+ repositories |
+| 💡 API Providers | Full reference guide for 12 providers (50+ models) | 13 markdown files |
 | **Total** | **Everything an AI developer needs** | **13,000+ files** |
 
 ---
 
 ## ⚠️ Disclaimer
 
-All content is sourced from public GitHub repositories and official documentation. Leaked system prompts are shared for educational and research purposes only. Each MCP server retains its original license as specified in its own `LICENSE` file.
+All content is sourced from public GitHub repositories and official documentation. Leaked system prompts are shared for educational and research purposes only. Each MCP server retains its original license as specified in its own `LICENSE` file. Pricing data reflects publicly listed rates as of the last update date and may change.
 
 ---
 
