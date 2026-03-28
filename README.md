@@ -10,13 +10,13 @@ We organize thousands of skills into an intuitive structure so you can easily tr
 
 ```text
 ai_skills/
-├── 📁 skills/                 # Aggregated and formatted skills
-│   ├── 🛠️ development/        # Coding, architecture, deployment, debugging
-│   ├── ⚡ productivity/       # Planning, research, summarization, analysis
-│   ├── 🎨 creative/           # Writing, design, UI/UX, brainstorming
+├── 📁 skills/                 # Aggregated, recursively classified skills
+│   ├── 🛠️ development/        # frontend/, backend/, devops/, mobile/, database/, ai-ml/
+│   ├── ⚡ productivity/       # writing/, planning/, analysis/, finance/, communication/
+│   ├── 🎨 creative/           # design/, marketing/, multimedia/
 │   └── 📦 other/              # General purpose and uncategorized skills
 ├── 📁 scripts/                # Automation for syncing and aggregation
-├── 📁 sources/                # The raw cloned repositories
+├── 📁 sources/                # The raw cloned repositories (Links in sources/README.md)
 ├── 📁 templates/              # Standardized skill formats
 └── 📄 README.md               # You are here!
 ```
