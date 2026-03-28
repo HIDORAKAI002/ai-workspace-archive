@@ -6,7 +6,7 @@ Welcome to the **Massive AI Assistant Archive**. This repository is split into t
 
 ```text
 ai_skills/
-├── 📁 ai_skills/            # 11,000+ Agent Skills & Prompts
+├── 📁 ai_skills_library/    # 11,000+ Agent Skills & Prompts
 │   ├── skills/              # The deep-categorized markdown prompts
 │   ├── scripts/             # The aggregation script to parse prompts
 │   ├── sources/             # The raw 23+ source repositories
@@ -15,12 +15,15 @@ ai_skills/
 ├── 📁 mcps/                 # 243+ Model Context Protocol (MCP) Servers
 │   ├── Official Anthropic/  # Core MCP repositories
 │   ├── Browser Automation/  # Servers controlling Playwright, Stagehand, etc.
-│   ├── Databases/           # Postgres, SQLite, Redis SQL interfaces
-│   ├── Developer Tools/     # Filesystem, Docker, Command-line access
 │   └── (... and 10+ other categories)
 │
+├── 📁 ide_rules/            # 2,200+ IDE Context Rules (Cursor, Cline)
+│   ├── cursor/              # Extracted rules configurations (.cursorrules, .mdc)
+│   └── cline/               # Agent presets
+│
 ├── 📄 all_mcp_servers.json  # The raw metadata map of the MCP library
-└── 📄 setup_mcps.py         # The master extraction and cloning script
+├── 📄 setup_mcps.py         # The master extraction and cloning script
+└── 📄 setup_ide_rules.py    # The automated extraction agent for IDE rules
 ```
 
 ## 1. AI Skills & Prompts Library (`/ai_skills`)

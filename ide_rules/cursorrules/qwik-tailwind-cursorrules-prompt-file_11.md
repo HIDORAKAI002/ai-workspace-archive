@@ -1,0 +1,16 @@
+---
+name: "qwik-tailwind-cursorrules-prompt-file Cursorrules"
+category: "ide_rules/cursor"
+---
+
+# IDE Rules for qwik-tailwind-cursorrules-prompt-file
+
+*Drop the text below into your `.cursorrules`, `.clinerules`, or `.windsurfrules` file at the root of your project:*
+
+```text
+---
+description: Encourages leveraging Vite plugins for optimized Qwik builds to improve performance and efficiency.
+globs: vite.config.ts
+---
+- Leverage Vite plugins for optimized builds
+```

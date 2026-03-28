@@ -1,0 +1,22 @@
+---
+name: "pandas-scikit-learn-guide-cursorrules-prompt-file Cursorrules"
+category: "ide_rules/cursor"
+---
+
+# IDE Rules for pandas-scikit-learn-guide-cursorrules-prompt-file
+
+*Drop the text below into your `.cursorrules`, `.clinerules`, or `.windsurfrules` file at the root of your project:*
+
+```text
+---
+description: Guidelines for structuring and documenting Jupyter notebooks for reproducibility and clarity.
+globs: **/*.ipynb
+---
+- Structure notebooks with clear sections using markdown cells.
+- Use meaningful cell execution order to ensure reproducibility.
+- Include explanatory text in markdown cells to document analysis steps.
+- Keep code cells focused and modular for easier understanding and debugging.
+- Use magic commands like %matplotlib inline for inline plotting.
+- Document data sources, assumptions, and methodologies clearly.
+- Use version control (e.g., git) for tracking changes in notebooks and scripts.
+```

@@ -1,0 +1,17 @@
+---
+name: "go-servemux-rest-api-cursorrules-prompt-file Cursorrules"
+category: "ide_rules/cursor"
+---
+
+# IDE Rules for go-servemux-rest-api-cursorrules-prompt-file
+
+*Drop the text below into your `.cursorrules`, `.clinerules`, or `.windsurfrules` file at the root of your project:*
+
+```text
+---
+description: This rule focuses on the initial planning stage for Go API development, emphasizing detailed step-by-step thinking and pseudocode.
+globs: /*/**/*_api.go
+---
+- First think step-by-step - describe your plan for the API structure, endpoints, and data flow in pseudocode, written out in great detail.
+- Confirm the plan, then write code!
+```
