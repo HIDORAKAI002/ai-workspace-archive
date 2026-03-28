@@ -1,0 +1,13 @@
+name: 📝 Task
+description: Create a task for the team to work on
+title: "[Task]: "
+labels: [Task]
+body:
+- type: textarea
+  attributes:
+    label: SubTasks 
+    placeholder: |
+      - [ ] Sub Task 1
+      - [ ] Sub Task 2
+  validations:
+    required: true

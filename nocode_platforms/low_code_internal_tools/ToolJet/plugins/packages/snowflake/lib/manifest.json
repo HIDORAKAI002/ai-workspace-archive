@@ -1,0 +1,171 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ToolJet/ToolJet/develop/plugins/schemas/manifest.schema.json",
+  "title": "Snowflake datasource",
+  "description": "A schema defining Snowflake datasource",
+  "type": "database",
+  "source": {
+    "name": "Snowflake",
+    "kind": "snowflake",
+    "exposedVariables": {
+      "isLoading": false,
+      "data": {},
+      "rawData": {}
+    },
+    "options": {
+      "username": {
+        "type": "string"
+      },
+      "account": {
+        "type": "string"
+      },
+      "password": {
+        "type": "string",
+        "encrypted": true
+      },
+      "database": {
+        "type": "string"
+      },
+      "schema": {
+        "type": "string"
+      },
+      "warehouse": {
+        "type": "string"
+      },
+      "role": {
+        "type": "string"
+      },
+      "client_id": {
+        "type": "string"
+      },
+      "client_secret": {
+        "type": "string",
+        "encrypted": true
+      },
+      "auth_url": {
+        "type": "string"
+      },
+      "access_token_url": {
+        "type": "string"
+      },
+      "custom_auth_params": {
+        "type": "object"
+      },
+      "custom_query_params": {
+        "type": "object"
+      }
+    }
+  },
+  "defaults": {
+    "username": {
+      "value": ""
+    },
+    "account": {
+      "value": ""
+    },
+    "password": {
+      "value": ""
+    },
+    "database": {
+      "value": ""
+    },
+    "schema": {
+      "value": ""
+    },
+    "warehouse": {
+      "value": ""
+    },
+    "role": {
+      "value": ""
+    },
+    "auth_type": {
+      "value": "basic"
+    },
+    "oauth_type": {
+      "value": "custom_app"
+    },
+    "grant_type": {
+      "value": "authorization_code"
+    }
+  },
+  "properties": {
+    "account": {
+      "label": "Account",
+      "key": "account",
+      "type": "text",
+      "description": "Enter account"
+    },
+    "database": {
+      "label": "Database",
+      "key": "database",
+      "type": "text",
+      "description": "Enter database"
+    },
+    "schema": {
+      "label": "Schema",
+      "key": "schema",
+      "type": "text",
+      "description": "Enter schema"
+    },
+    "warehouse": {
+      "label": "Warehouse",
+      "key": "warehouse",
+      "type": "text",
+      "description": "Enter warehouse"
+    },
+    "role": {
+      "label": "Role",
+      "key": "role",
+      "type": "text",
+      "description": "Enter role"
+    },
+    "oauth": {
+      "key": "oauth",
+      "type": "react-component-oauth",
+      "description": "A component for snowflake",
+      "oauth_configs": {
+        "allowed_auth_types": [
+          "oauth2",
+          "basic"
+        ],
+        "allowed_grant_types": [
+          "authorization_code"
+        ],
+        "allowed_field_groups": {
+          "authorization_code": [
+            "client_id",
+            "client_secret",
+            "auth_url",
+            "access_token_url",
+            "access_token_custom_headers"
+          ],
+          "basic": [
+            "username",
+            "password"
+          ]
+        },
+        "allowed_scope_field": true,
+        "oauthTypes": {
+          "required": true,
+          "default_value": "custom_app",
+          "editions": {
+            "ce": [
+              "custom_app"
+            ],
+            "ee": [
+              "custom_app"
+            ],
+            "cloud": [
+              "custom_app",
+              "tooljet_app"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "account",
+    "username",
+    "password"
+  ]
+}

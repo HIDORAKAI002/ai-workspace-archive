@@ -1,0 +1,257 @@
+# To make it easier to self-host, we have a preset docker compose config that also
+# has a container with a Postgres instance running.
+# You can tweak around this file to match your instances
+
+# PROFILES EXPLANATION:
+#
+# We use Docker Compose profiles to manage different deployment scenarios and avoid port conflicts.
+#
+# These are all the available profiles:
+# - default: All-in-one service + database + auto-migration (recommended for most users)
+# - default-no-db: All-in-one service without database (for users with external DB)
+# - backend: The backend service only
+# - app: The main Hoppscotch application and the webapp server
+# - admin: The self-host admin dashboard only
+# - database: Just the PostgreSQL database
+# - just-backend: All services except webapp for local development
+# - deprecated: All deprecated services (not recommended)
+
+# USAGE:
+#
+# To run the default setup: docker compose --profile default up
+# To run without database: docker compose --profile default-no-db up
+# To run specific components: docker compose --profile backend up
+# To run all except webapp: docker compose --profile just-backend up
+# To run deprecated services: docker compose --profile deprecated up
+
+# NOTE: The default and default-no-db profiles should not be mixed with individual service
+# profiles as they would conflict on ports.
+
+services:
+  # This service runs the backend app in the port 3170
+  hoppscotch-backend:
+    profiles: ["backend", "just-backend", "app", "admin"]
+    container_name: hoppscotch-backend
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: backend
+    env_file:
+      - ./.env
+    restart: always
+    environment:
+      # Edit the below line to match your PostgresDB URL if you have an outside DB (make sure to update the .env file as well)
+      - DATABASE_URL=postgresql://postgres:testpass@hoppscotch-db:5432/hoppscotch?connect_timeout=300
+      - PORT=8080
+    volumes:
+      # Uncomment the line below when modifying code. Only applicable when using the "dev" target.
+      # - ./packages/hoppscotch-backend/:/usr/src/app
+      - /usr/src/app/node_modules/
+    depends_on:
+      hoppscotch-db:
+        condition: service_healthy
+    ports:
+      - "3180:80"
+      - "3170:3170"
+
+  # The main hoppscotch app with integrated webapp server. This will be hosted at port 3000
+  # The webapp server will be accessible at port 3200
+  # NOTE: To do TLS or play around with how the app is hosted, you can look into the Caddyfile for
+  #       the SH admin dashboard server at packages/hoppscotch-selfhost-web/Caddyfile
+  hoppscotch-app:
+    profiles: ["app"]
+    container_name: hoppscotch-app
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: app
+    env_file:
+      - ./.env
+    depends_on:
+      - hoppscotch-backend
+    ports:
+      - "3080:80"
+      - "3000:3000"
+      - "3200:3200"
+
+  # The Self Host dashboard for managing the app. This will be hosted at port 3100
+  # NOTE: To do TLS or play around with how the app is hosted, you can look into the Caddyfile for
+  #       the SH admin dashboard server at packages/hoppscotch-sh-admin/Caddyfile
+  hoppscotch-sh-admin:
+    profiles: ["admin"]
+    container_name: hoppscotch-sh-admin
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: sh_admin
+    env_file:
+      - ./.env
+    depends_on:
+      - hoppscotch-backend
+    ports:
+      - "3280:80"
+      - "3100:3100"
+
+  # The service that spins up all services at once in one container
+  hoppscotch-aio:
+    profiles: ["default"]
+    container_name: hoppscotch-aio
+    restart: unless-stopped
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: aio
+    env_file:
+      - ./.env
+    depends_on:
+      hoppscotch-db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+      - "3100:3100"
+      - "3170:3170"
+      - "3200:3200"
+      - "3080:80"
+
+  # Profile with no database dependency (purely developmental)
+  hoppscotch-aio-no-db:
+    profiles: ["default-no-db"]
+    container_name: hoppscotch-aio
+    restart: unless-stopped
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: aio
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+      - "3100:3100"
+      - "3170:3170"
+      - "3200:3200"
+      - "3080:80"
+
+  # The preset DB service, you can delete/comment the below lines if
+  # you are using an external postgres instance
+  # This will be exposed at port 5432
+  hoppscotch-db:
+    profiles:
+      [
+        "default",
+        "database",
+        "just-backend",
+        "backend",
+        "app",
+        "admin",
+        "deprecated",
+      ]
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    user: postgres
+    environment:
+      # The default user defined by the docker image
+      POSTGRES_USER: postgres
+      # NOTE: Please UPDATE THIS PASSWORD!
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: hoppscotch
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Auto-migration service - handles database migrations automatically
+  hoppscotch-migrate:
+    profiles: ["default", "just-backend", "backend", "app", "admin"]
+    build:
+      dockerfile: prod.Dockerfile
+      context: .
+      target: backend
+    env_file:
+      - ./.env
+    depends_on:
+      hoppscotch-db:
+        condition: service_healthy
+    command: sh -c "pnpm exec prisma migrate deploy"
+
+  # All the services listed below are deprecated
+  # These services are kept for backward compatibility but should not be used for new deployments
+  hoppscotch-old-backend:
+    profiles: ["deprecated"]
+    container_name: hoppscotch-old-backend
+    build:
+      dockerfile: packages/hoppscotch-backend/Dockerfile
+      context: .
+      target: prod
+    env_file:
+      - ./.env
+    restart: always
+    environment:
+      # Edit the below line to match your PostgresDB URL if you have an outside DB (make sure to update the .env file as well)
+      - DATABASE_URL=postgresql://postgres:testpass@hoppscotch-db:5432/hoppscotch?connect_timeout=300
+      - PORT=3000
+    volumes:
+      # Uncomment the line below when modifying code. Only applicable when using the "dev" target.
+      # - ./packages/hoppscotch-backend/:/usr/src/app
+      - /usr/src/app/node_modules/
+    depends_on:
+      hoppscotch-db:
+        condition: service_healthy
+    ports:
+      - "3170:3000"
+
+  hoppscotch-old-app:
+    profiles: ["deprecated"]
+    container_name: hoppscotch-old-app
+    build:
+      dockerfile: packages/hoppscotch-selfhost-web/Dockerfile
+      context: .
+    env_file:
+      - ./.env
+    depends_on:
+      - hoppscotch-old-backend
+    ports:
+      - "3000:8080"
+
+  hoppscotch-old-sh-admin:
+    profiles: ["deprecated"]
+    container_name: hoppscotch-old-sh-admin
+    build:
+      dockerfile: packages/hoppscotch-sh-admin/Dockerfile
+      context: .
+    env_file:
+      - ./.env
+    depends_on:
+      - hoppscotch-old-backend
+    ports:
+      - "3100:8080"
+
+# DEPLOYMENT SCENARIOS:
+# 1. Default deployment (recommended):
+#    docker compose --profile default up
+#    This will start: AIO + database + auto-migration
+#
+# 2. Default deployment without database:
+#    docker compose --profile default-no-db up
+#    This will start: AIO only (use when you have an external database)
+#
+# 3. Individual service deployment:
+#    docker compose --profile backend up  # Just the backend
+#    docker compose --profile app up      # Just the app and webapp server
+#    docker compose --profile admin up    # Just the admin dashboard
+#    docker compose --profile database up # Just the database
+#
+# 4. Development deployment:
+#    docker compose --profile just-backend up  # All services except webapp
+#
+# 5. Deprecated services:
+#    docker compose --profile deprecated up
+#    This will start all deprecated services (not recommended for new deployments)
+#
+# Remember: The default and default-no-db profiles should not be mixed with individual service
+# profiles as they would conflict on ports.

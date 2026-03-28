@@ -1,0 +1,22 @@
+{
+  "editor": [
+    {
+      "controlType": "SECTION_V2",
+      "identifier": "SELECTOR",
+      "children": [
+        {
+          "controlType": "SINGLE_COLUMN_ZONE",
+          "identifier": "SELECTOR-Z1",
+          "children": [
+            {
+              "label": "",
+              "configProperty": "actionConfiguration.body",
+              "controlType": "QUERY_DYNAMIC_TEXT",
+              "evaluationSubstitutionType": "TEMPLATE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

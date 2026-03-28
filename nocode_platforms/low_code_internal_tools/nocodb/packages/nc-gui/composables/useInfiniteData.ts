@@ -1,0 +1,2604 @@
+import type { ComputedRef, Ref } from 'vue'
+import {
+  type Api,
+  type ColumnType,
+  type CommentPayload,
+  type DataPayload,
+  EventType,
+  type FilterType,
+  type LinkToAnotherRecordType,
+  NcApiVersion,
+  type PaginatedType,
+  type RelationTypes,
+  type TableType,
+  UITypes,
+  type ViewType,
+  extractFilterFromXwhere,
+  isAIPromptCol,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+} from 'nocodb-sdk'
+import type { CanvasGroup } from '../lib/types'
+import type { Row } from '#imports'
+import { validateRowFilters } from '~/utils/dataUtils'
+import { NavigateDir } from '~/lib/enums'
+import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
+
+const formatData = (
+  list: Record<string, any>[],
+  pageInfo?: PaginatedType,
+  params?: {
+    limit?: number
+    offset?: number
+  },
+  path: Array<number> = [],
+  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
+  evaluateButtonVisibilityCallback?: (row: Record<string, any>) => Record<string, boolean> | undefined,
+) => {
+  // If pageInfo exists, use it for calculation
+  if (pageInfo?.page && pageInfo?.pageSize) {
+    return list.map((row, index) => {
+      const rowIndex = (pageInfo.page! - 1) * pageInfo.pageSize! + index
+      const buttonDisabled = evaluateButtonVisibilityCallback?.(row)
+      return {
+        row: { ...row },
+        oldRow: { ...row },
+        rowMeta: {
+          rowIndex,
+          isLastRow: rowIndex === pageInfo.totalRows! - 1,
+          path,
+          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+          ...(buttonDisabled ? { buttonDisabled } : {}),
+        },
+      }
+    })
+  }
+
+  // If no pageInfo, fall back to params
+  const offset = params?.offset ?? 0
+  return list.map((row, index) => {
+    const buttonDisabled = evaluateButtonVisibilityCallback?.(row)
+    return {
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {
+        rowIndex: offset + index,
+        path,
+        ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+        ...(buttonDisabled ? { buttonDisabled } : {}),
+      },
+    }
+  })
+}
+
+export function useInfiniteData(args: {
+  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
+  viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
+  callbacks: {
+    syncVisibleData?: () => void
+    getCount?: (path: Array<number>) => void
+    getWhereFilter?: (path: Array<number>, ignoreWhereFilter?: boolean) => Promise<string>
+    getWhereFilterArr?: (path: Array<number>) => Promise<FilterType[]>
+    reloadAggregate?: (params: {
+      fields?: Array<{ title: string; aggregation?: string | undefined }>
+      path: Array<number>
+    }) => void
+    findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
+  }
+  where?: ComputedRef<string | undefined>
+  disableSmartsheet?: boolean
+  isPublic?: Ref<boolean>
+  groupByColumns?: ComputedRef<{ column: ColumnType; sort: string; order?: number }[]>
+}) {
+  const NOCO = 'noco'
+  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
+
+  const { $api, $ncSocket } = useNuxtApp()
+
+  const { t } = useI18n()
+
+  const router = useRouter()
+
+  const { isUIAllowed } = useRoles()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+  const tablesStore = useTablesStore()
+
+  const baseStore = useBase()
+
+  const { base } = storeToRefs(baseStore)
+
+  const { getBaseType } = baseStore
+
+  const { getMeta, metas, getMetaByKey } = useMetas()
+
+  const { user } = useGlobal()
+
+  const { fetchSharedViewData, fetchCount, fetchBulkListData } = useSharedView()
+
+  const {
+    nestedFilters,
+    allFilters,
+    sorts,
+    isExternalSource,
+    isAlreadyShownUpgradeModal,
+    validFiltersFromUrlParams,
+    totalRowsWithSearchQuery,
+    totalRowsWithoutSearchQuery,
+    fetchTotalRowsWithSearchQuery,
+    whereQueryFromUrl,
+    eventBus,
+  } = disableSmartsheet
+    ? {
+        nestedFilters: ref([]),
+        allFilters: ref([]),
+        sorts: ref([]),
+        isExternalSource: computed(() => false),
+        isAlreadyShownUpgradeModal: ref(false),
+        totalRowsWithSearchQuery: ref(0),
+        totalRowsWithoutSearchQuery: ref(0),
+        fetchTotalRowsWithSearchQuery: computed(() => false),
+        whereQueryFromUrl: computed(() => ''),
+        eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
+      }
+    : useSmartsheetStoreOrThrow()
+
+  const { isGroupBy } = disableSmartsheet ? { isGroupBy: computed(() => false) } : useViewGroupByOrThrow()
+
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+  const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
+    ? {
+        getEvaluatedRowMetaRowColorInfo: (_row: any) => ({}),
+      }
+    : useViewRowColorRender()
+
+  /** Identifies button columns with visibility filters and evaluates them per-row during data fetch */
+  const buttonFilterColumns = computed(() => {
+    if (!meta.value?.columns) return []
+    return meta.value.columns.filter((col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length)
+  })
+
+  const evaluateButtonVisibility = (row: Record<string, any>): Record<string, boolean> | undefined => {
+    if (!buttonFilterColumns.value.length) return undefined
+
+    const columns = meta.value?.columns as ColumnType[]
+    if (!columns) return undefined
+
+    const client = getBaseType(meta.value?.source_id)
+    const result: Record<string, boolean> = {}
+
+    for (const col of buttonFilterColumns.value) {
+      const filters = (col.colOptions as any)?.filters as FilterType[]
+      if (!filters?.length) continue
+
+      const isValid = validateRowFilters(filters, row, columns, client, metas.value, meta.value?.base_id, {
+        currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
+      })
+
+      if (!isValid) {
+        result[col.id!] = true
+      }
+    }
+
+    return Object.keys(result).length ? result : undefined
+  }
+
+  const selectedAllRecords = ref(false)
+
+  /**
+   * will be used to skip the pk records while bulk deleting all records
+   * key: rowIndex, value: pk
+   */
+  const selectedAllRecordsSkipPks = ref<Record<string, string>>({})
+
+  const totalRows = ref(0)
+
+  const actualTotalRows = ref(0)
+
+  const cachedRows = ref<Map<number, Row>>(new Map())
+
+  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+
+  const groupDataCache = shallowRef(
+    new Map<
+      string,
+      {
+        cachedRows: Ref<Map<number, Row>>
+        chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+        totalRows: Ref<number>
+        actualTotalRows: Ref<number>
+        selectedRows: ComputedRef<Array<Row>>
+        isRowSortRequiredRows: ComputedRef<Array<Row>>
+      }
+    >(),
+  )
+
+  const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
+
+  const columnsByAlias = computed(() => {
+    if (!meta.value?.columns?.length) return {}
+    return meta.value?.columns.reduce((acc, column) => {
+      acc[column.title!] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
+  })
+  const columnsById = computed(() => {
+    if (!meta.value?.columns?.length) return {}
+    return meta.value?.columns.reduce((acc, column) => {
+      acc[column.id!] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
+  })
+
+  const computedWhereFilter = computed(() => {
+    const { filters: filter } = extractFilterFromXwhere(
+      { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      where?.value ?? '',
+      columnsByAlias.value,
+    )
+
+    if (!filter?.length) return []
+
+    return filter?.map((f) => {
+      return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
+    })
+  })
+
+  const selectedRows = computed<Row[]>(() => {
+    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
+  })
+
+  const isRowSortRequiredRows = computed(() => {
+    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
+  })
+
+  const getDataCache = (path: Array<number> = []) => {
+    if (path.length === 0) {
+      return {
+        cachedRows,
+        chunkStates,
+        totalRows,
+        actualTotalRows,
+        isRowSortRequiredRows,
+        selectedRows,
+      }
+    }
+
+    const key = path.join('-')
+    const cachedData = groupDataCache.value.get(key)
+
+    if (cachedData) {
+      return cachedData
+    }
+
+    const currCount = callbacks?.getCount?.(path)
+
+    const newCache = {
+      cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
+      chunkStates: ref<Array<'loading' | 'loaded' | undefined>>([]),
+      totalRows: computed({
+        get: () => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            return group.count
+          }
+          return 0
+        },
+        set: (value) => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            group.count = value
+          }
+        },
+      }),
+      actualTotalRows: ref(0),
+      selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
+      isRowSortRequiredRows: computed<Array<Row>>(() =>
+        Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
+      ),
+    }
+
+    if (currCount === null) {
+      syncCount(path)
+    }
+    groupDataCache.value.set(key, newCache)
+    return newCache
+  }
+
+  const MAX_CACHE_SIZE = 200
+
+  const CHUNK_SIZE = 50
+
+  const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
+
+  const _fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+    const dataCache = getDataCache(path)
+
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    dataCache.chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
+      if (!newItems) {
+        dataCache.chunkStates.value[chunkId] = undefined
+        return
+      }
+
+      newItems.forEach((item) => {
+        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      dataCache.chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      dataCache.chunkStates.value[chunkId] = undefined
+    }
+  }
+
+  let pendingChunkRequests: Array<{
+    chunkId: number
+    path: Array<number>
+    forceFetch: boolean
+    resolve: (value: any) => void
+    reject: (error: any) => void
+  }> = []
+  let batchTimer: NodeJS.Timeout | null = null
+  const BATCH_SIZE = 50
+  const BATCH_TIMEOUT = 200
+
+  async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }>) {
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
+    if (allFormattedRows.length === 0) return
+
+    const allIds: string[] = []
+    const rowIdToRowMap = new Map<string, Row>()
+
+    for (const { rows } of allFormattedRows) {
+      for (const row of rows) {
+        const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+        if (id) {
+          allIds.push(id)
+          rowIdToRowMap.set(id, row)
+        }
+      }
+    }
+
+    if (allIds.length === 0) return
+
+    try {
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
+        fk_model_id: meta.value!.id as string,
+        ids: allIds,
+      })
+
+      aggCommentCount?.forEach((commentData: Record<string, any>) => {
+        const row = rowIdToRowMap.get(commentData.row_id)
+        if (row) {
+          row.rowMeta.commentCount = +commentData.count || 0
+        }
+      })
+
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    } catch (e) {
+      console.error('Failed to load bulk aggregate comment count:', e)
+    }
+  }
+
+  async function fetchChunkIndividually(chunkId: number, path: Array<number>) {
+    const dataCache = getDataCache(path)
+    dataCache.chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
+      if (!newItems) {
+        dataCache.chunkStates.value[chunkId] = undefined
+        return
+      }
+
+      newItems.forEach((item) => {
+        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      dataCache.chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      dataCache.chunkStates.value[chunkId] = undefined
+      throw error
+    }
+  }
+
+  async function processBatch() {
+    if (pendingChunkRequests.length === 0) return
+
+    if (batchTimer) {
+      clearTimeout(batchTimer)
+      batchTimer = null
+    }
+
+    const batch = [...pendingChunkRequests]
+    pendingChunkRequests = []
+
+    try {
+      const bulkRequests = []
+
+      for (let i = 0; i < batch.length; i++) {
+        const req = batch[i]
+        const where = await callbacks?.getWhereFilter?.(req.path)
+        const filterArrJson = (await callbacks?.getWhereFilterArr?.(req.path)) ?? []
+        bulkRequests.push({
+          where,
+          offset: req.chunkId * CHUNK_SIZE,
+          limit: CHUNK_SIZE,
+          alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
+          include_row_color: 'true',
+          include_button_filter_columns: 'true',
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+          ...(isUIAllowed('filterSync')
+            ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
+            : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
+        })
+      }
+
+      const bulkResponse = !isPublic?.value
+        ? await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            meta.value.base_id!,
+            {
+              operation: 'bulkDataList',
+              tableId: meta.value.id!,
+              viewId: viewMeta.value?.id,
+              baseId: meta.value.base_id!,
+            },
+            bulkRequests,
+          )
+        : await fetchBulkListData({}, bulkRequests)
+
+      const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
+      const processedChunks: Array<{ request: any; rows: Array<Row>; dataCache: any }> = []
+
+      for (const request of batch) {
+        try {
+          const alias = `chunk_${request.chunkId}_${request.path.join('_')}`
+          const chunkData = bulkResponse[alias]
+          const dataCache = getDataCache(request.path)
+
+          if (chunkData && chunkData.list) {
+            const rows = formatData(
+              chunkData.list,
+              chunkData.pageInfo,
+              undefined,
+              request.path,
+              getEvaluatedRowMetaRowColorInfo,
+              evaluateButtonVisibility,
+            )
+            rows.forEach((item: any) => {
+              dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+            })
+            dataCache.chunkStates.value[request.chunkId] = 'loaded'
+
+            allFormattedRows.push({ rows, path: request.path })
+            processedChunks.push({ request, rows, dataCache })
+          } else {
+            dataCache.chunkStates.value[request.chunkId] = undefined
+          }
+
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error processing chunk ${request.chunkId}:`, error)
+          const dataCache = getDataCache(request.path)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+
+      // Fire-and-forget — comment counts are cosmetic and shouldn't block row rendering.
+      // loadBulkAggCommentsCount mutates through the reactive cache and emits TRIGGER_RE_RENDER.
+      loadBulkAggCommentsCount(allFormattedRows).catch(() => {})
+
+      for (const { request, rows, dataCache } of processedChunks) {
+        try {
+          rows.forEach((item: any) => {
+            dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+          })
+
+          dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error caching chunk ${request.chunkId}:`, error)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+    } catch (error) {
+      console.error('Bulk chunk request failed, falling back to individual requests:', error)
+
+      const promises = batch.map((request) =>
+        fetchChunkIndividually(request.chunkId, request.path)
+          .then(() => request.resolve(undefined))
+          .catch((err) => request.reject(err)),
+      )
+
+      await Promise.allSettled(promises)
+    }
+  }
+
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+    const dataCache = getDataCache(path)
+
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
+
+    if (existingRequest && !forceFetch) {
+      return new Promise<void>((resolve, reject) => {
+        const originalResolve = existingRequest.resolve
+        const originalReject = existingRequest.reject
+
+        existingRequest.resolve = (value) => {
+          originalResolve(value)
+          resolve(value)
+        }
+
+        existingRequest.reject = (error) => {
+          originalReject(error)
+          reject(error)
+        }
+      })
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      pendingChunkRequests.push({
+        chunkId,
+        path,
+        forceFetch,
+        resolve,
+        reject,
+      })
+
+      dataCache.chunkStates.value[chunkId] = 'loading'
+
+      if (pendingChunkRequests.length >= BATCH_SIZE) {
+        processBatch()
+      } else {
+        if (!batchTimer) {
+          batchTimer = setTimeout(() => {
+            processBatch()
+          }, BATCH_TIMEOUT)
+        }
+      }
+    })
+  }
+
+  const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {
+    const dataCache = getDataCache(path)
+    if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
+      dataCache.cachedRows.value.clear()
+      dataCache.chunkStates.value = []
+      return
+    }
+
+    if (dataCache.cachedRows.value.size <= MAX_CACHE_SIZE) return
+
+    const safeStartIndex = Math.max(0, visibleStartIndex)
+    const safeEndIndex = Math.min(dataCache.totalRows.value - 1, visibleEndIndex)
+    const safeStartChunk = getChunkIndex(safeStartIndex)
+    const safeEndChunk = getChunkIndex(safeEndIndex)
+
+    const importantChunks = new Set<number>()
+    let maxChunk = 0
+    for (const index of dataCache.cachedRows.value.keys()) {
+      const chunkIndex = getChunkIndex(index)
+      maxChunk = Math.max(maxChunk, chunkIndex)
+      const row = dataCache.cachedRows.value.get(index)
+      if (row && (row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)) {
+        importantChunks.add(chunkIndex)
+      }
+    }
+
+    const newCachedRows = new Map<number, Row>()
+    for (let chunk = 0; chunk <= maxChunk; chunk++) {
+      const isVisibleChunk = chunk >= safeStartChunk && chunk <= safeEndChunk
+      if (isVisibleChunk || importantChunks.has(chunk)) {
+        const chunkStart = chunk * CHUNK_SIZE
+        const chunkEnd = chunkStart + CHUNK_SIZE
+        for (let i = chunkStart; i < chunkEnd; i++) {
+          const row = dataCache.cachedRows.value.get(i)
+          if (row) newCachedRows.set(i, row)
+        }
+      }
+    }
+
+    dataCache.cachedRows.value = newCachedRows
+    dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkIndex) =>
+      (chunkIndex >= safeStartChunk && chunkIndex <= safeEndChunk) || importantChunks.has(chunkIndex) ? state : undefined,
+    )
+  }
+
+  async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
+
+    const ids = formattedData
+      .filter(({ rowMeta: { new: isNew } }) => !isNew)
+      .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+      .filter(Boolean)
+
+    if (!ids.length) return
+
+    const dataCache = getDataCache(path)
+
+    try {
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
+        fk_model_id: meta.value!.id as string,
+        ids,
+      })
+
+      formattedData.forEach((row) => {
+        const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
+          (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
+        )
+        if (!cachedRow) return
+
+        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+        cachedRow.rowMeta.commentCount = +count
+      })
+
+      // Trigger re-render canvas to update the comment count
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    } catch (e) {
+      console.error('Failed to load aggregate comment count:', e)
+    }
+  }
+
+  let upgradeModalTimer: any
+
+  async function loadData(
+    params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
+      limit?: number
+      offset?: number
+      where?: string
+    } = {},
+    _shouldShowLoading?: boolean,
+    path: Array<number> = [],
+  ): Promise<Row[]> {
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
+
+    const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
+
+    if (!disableSmartsheet && !path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+        isAlreadyShownUpgradeModal.value = true
+
+        if (upgradeModalTimer) {
+          clearTimeout(upgradeModalTimer)
+        }
+
+        upgradeModalTimer = setTimeout(() => {
+          showUpgradeToSeeMoreRecordsModal({
+            isExternalSource: isExternalSource.value,
+          })
+          clearTimeout(upgradeModalTimer)
+        }, 1000)
+      }
+
+      if (params.offset >= EXTERNAL_SOURCE_TOTAL_ROWS) {
+        return []
+      }
+    }
+
+    try {
+      const response = !isPublic?.value
+        ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : {
+                  filterArrJson: stringifyFilterOrSortArr([
+                    ...(nestedFilters.value || []).filter((f) => !f.id),
+                    ...jsonWhereFilterArr,
+                  ]),
+                }),
+            includeSortAndFilterColumns: true,
+            where: whereFilter,
+            include_row_color: true,
+            include_button_filter_columns: true,
+          } as any)
+        : await fetchSharedViewData(
+            {
+              sortsArr: sorts.value,
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+              where: whereFilter,
+              offset: params.offset,
+              limit: params.limit,
+            },
+            {
+              isInfiniteScroll: true,
+            },
+          )
+
+      const data = formatData(
+        response.list,
+        response.pageInfo,
+        params,
+        path,
+        getEvaluatedRowMetaRowColorInfo,
+        evaluateButtonVisibility,
+      )
+
+      if (!disableSmartsheet) {
+        loadAggCommentsCount(data, path)
+      }
+
+      return data
+    } catch (error: any) {
+      if (error?.response?.data.error === 'ERR_INVALID_OFFSET_VALUE') {
+        return []
+      }
+      if (error?.response?.data?.error === 'FORMULA_ERROR') {
+        await tablesStore.reloadTableMeta(meta.value!.id! as string, meta.value?.base_id)
+        return loadData(params)
+      }
+
+      console.error(error)
+      message.error(await extractSdkResponseErrorMsg(error))
+      return []
+    }
+  }
+
+  const updateRecordOrder = async (
+    draggedIndex: number,
+    targetIndex: number | null,
+    undo = false,
+    isFailed = false,
+    path = [],
+  ) => {
+    const dataCache = getDataCache(path)
+
+    const originalRecord = dataCache.cachedRows.value.get(draggedIndex)
+    if (!originalRecord) return
+
+    const recordPk = extractPkFromRow(originalRecord.row, meta.value?.columns as ColumnType[])
+    const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+    const beforeDraggedRecord = dataCache.cachedRows.value.get(draggedIndex + 1)
+    const beforeDraggedPk = beforeDraggedRecord
+      ? extractPkFromRow(beforeDraggedRecord.row, meta.value?.columns as ColumnType[])
+      : null
+
+    let targetRecord: Row | null = null
+    let targetRecordPk: string | null = null
+    let finalTargetIndex: number | null
+
+    if (targetIndex === null) {
+      finalTargetIndex = dataCache.cachedRows.value.size - 1
+    } else {
+      finalTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex
+      targetRecord = dataCache.cachedRows.value.get(targetIndex) ?? null
+      if (!targetRecord) return
+      targetRecordPk = extractPkFromRow(targetRecord.row, meta.value?.columns as ColumnType[]) || null
+    }
+
+    if (finalTargetIndex < draggedIndex) {
+      for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
+        const row = newCachedRows.get(i)
+        if (row) {
+          const newIndex = i + 1
+          row.rowMeta.rowIndex = newIndex
+          newCachedRows.set(newIndex, row)
+        }
+      }
+    } else {
+      for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
+        const row = newCachedRows.get(i)
+        if (row) {
+          const newIndex = i - 1
+          row.rowMeta.rowIndex = newIndex
+          newCachedRows.set(newIndex, row)
+        }
+      }
+    }
+    originalRecord.rowMeta.rowIndex = finalTargetIndex
+    newCachedRows.set(finalTargetIndex, originalRecord)
+
+    const indices = new Set<number>()
+
+    for (const [_, row] of newCachedRows) {
+      if (indices.has(row.rowMeta.rowIndex)) {
+        console.error('Duplicate index detected:', _, row.rowMeta.rowIndex)
+        break
+      }
+      indices.add(row.rowMeta.rowIndex)
+    }
+
+    const targetChunkIndex = getChunkIndex(finalTargetIndex)
+    const sourceChunkIndex = getChunkIndex(draggedIndex)
+    // TODO: Fix if issue aries with missing records. Chances are low
+    // @DarkPhoenix2704
+    /* for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+      chunkStates.value[i] = undefined
+    }
+
+    for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+      chunkStates.value[i] = undefined
+    }
+*/
+    if (!isFailed) {
+      $api.dbDataTableRow
+        .move(meta.value!.id!, recordPk, {
+          before: targetIndex === null ? null : targetRecordPk,
+        })
+        .then(() => {
+          callbacks?.syncVisibleData?.()
+        })
+        .catch((e) => {
+          callbacks?.syncVisibleData?.()
+          message.error(`Failed to update record order: ${e}`)
+        })
+    }
+
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
+            await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
+              before: beforePk,
+            })
+
+            /* for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
+              chunkStates.value[i] = undefined
+            } */
+
+            await callbacks?.syncVisibleData?.()
+          },
+          args: [beforeDraggedPk, recordPk, targetChunkIndex, sourceChunkIndex],
+        },
+        redo: {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
+            await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
+              before: beforePk,
+            })
+            /*
+
+            for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
+              chunkStates.value[i] = undefined
+            }
+*/
+
+            await callbacks?.syncVisibleData?.()
+          },
+          args: [targetIndex === null ? null : targetRecordPk, recordPk, targetChunkIndex, sourceChunkIndex],
+        },
+        scope: defineViewScope({ view: viewMeta.value }),
+      })
+    }
+
+    dataCache.cachedRows.value = newCachedRows
+  }
+
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const expandedRowIndex = await getExpandedRowIndexWithWait(path)
+    if (expandedRowIndex === -1) return
+
+    const dataCache = getDataCache(path)
+
+    const siblingIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    if (siblingIndex < 0 || siblingIndex >= dataCache.totalRows.value) {
+      return message.info(t('msg.info.noMoreRecords'))
+    }
+
+    let row = dataCache.cachedRows.value.get(siblingIndex)
+
+    if (!row) {
+      await getRows(siblingIndex, CHUNK_SIZE, path)
+      row = dataCache.cachedRows.value.get(siblingIndex)
+    }
+
+    if (!row) return
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (rowId) {
+      await router.push({
+        query: {
+          ...routeQuery.value,
+          rowId,
+        },
+      })
+    }
+  }
+
+  const fetchMissingChunks = async (startIndex: number, endIndex: number, path: Array<number> = []) => {
+    const firstChunkId = Math.floor(startIndex / CHUNK_SIZE)
+    const lastChunkId = Math.floor(endIndex / CHUNK_SIZE)
+
+    const dataCache = getDataCache(path)
+
+    const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
+      (chunkId) => !dataCache.chunkStates.value[chunkId],
+    )
+    await Promise.all(chunksToFetch.map(fetchChunk, path))
+  }
+
+  // Remove invalid and moved(group change) rows from the cache
+  function clearInvalidRows(
+    path: Array<number> = [],
+    callbackFns?: {
+      onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
+    },
+  ) {
+    const dataCache = getDataCache(path)
+    const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
+
+    const invalidIndexes = sortedEntries
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged || row.rowMeta.isRlsHidden)
+      .map(([index]) => index)
+
+    if (invalidIndexes.length === 0) return
+
+    for (const index of invalidIndexes) {
+      const row = dataCache.cachedRows.value.get(index)
+
+      if (row.rowMeta?.isGroupChanged) {
+        const groupByColumn = groupByColumns.value[row.rowMeta.changedGroupIndex]
+        const property = groupByColumn?.column?.title
+        // invoke group by callback
+        callbackFns?.onGroupRowChange?.({
+          row,
+          property,
+          groupByColumn,
+          level: row.rowMeta.changedGroupIndex,
+          path: row.rowMeta.path,
+        })
+      }
+
+      dataCache.cachedRows.value.delete(index)
+    }
+
+    const newCachedRows = new Map<number, Row>()
+
+    for (const [oldIndex, row] of sortedEntries) {
+      if (!invalidIndexes.includes(oldIndex)) {
+        const newIndex = oldIndex - invalidIndexes.filter((i) => i < oldIndex).length
+        row.rowMeta.rowIndex = newIndex
+        newCachedRows.set(newIndex, row)
+      }
+    }
+
+    dataCache.chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
+
+    const indices = new Set<number>()
+    for (const [_, row] of newCachedRows) {
+      if (indices.has(row.rowMeta.rowIndex)) {
+        console.error('Op: clearInvalidRows:  Duplicate index detected:', row.rowMeta.rowIndex)
+        break
+      }
+      indices.add(row.rowMeta.rowIndex)
+    }
+
+    dataCache.cachedRows.value = newCachedRows
+
+    dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
+    dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - invalidIndexes.length)
+    callbacks?.syncVisibleData?.()
+    callbacks?.reloadAggregate?.({ path })
+  }
+
+  const willSortOrderChange = ({
+    row,
+    newData,
+    path,
+  }: {
+    row: Row
+    newData: Record<string, any>
+    path: Array<number>
+  }): boolean => {
+    if (!sorts.value.length) return false
+
+    const currentIndex = row.rowMeta.rowIndex!
+    if (currentIndex === undefined) return true
+
+    const dataCache = getDataCache(path)
+
+    const indices = Array.from(dataCache.cachedRows.value.keys()).sort((a, b) => a - b)
+    const currentPos = indices.indexOf(currentIndex)
+    const prevRow = currentPos > 0 ? dataCache.cachedRows.value.get(indices[currentPos - 1]) : null
+    const nextRow = currentPos < indices.length - 1 ? dataCache.cachedRows.value.get(indices[currentPos + 1]) : null
+
+    const updatedRow = {
+      ...row,
+      row: {
+        ...row.row,
+        ...newData,
+      },
+    }
+
+    if (prevRow) {
+      let shouldBeBefore = false
+      let isDifferent = false
+
+      for (const sort of sorts.value) {
+        const column = columnsById.value[sort.fk_column_id!]
+        if (!column?.title) continue
+
+        const direction = sort.direction || 'asc'
+        const comparison = sortByUIType({
+          uidt: column.uidt as UITypes,
+          a: updatedRow.row[column.title],
+          b: prevRow.row[column.title],
+          options: { direction },
+        })
+
+        if (comparison !== 0) {
+          isDifferent = true
+          shouldBeBefore = comparison < 0
+          break
+        }
+      }
+
+      if (isDifferent && shouldBeBefore) return true
+    }
+
+    if (nextRow) {
+      let shouldBeAfter = false
+      let isDifferent = false
+
+      for (const sort of sorts.value) {
+        const column = columnsById.value[sort.fk_column_id!]
+        if (!column?.title) continue
+
+        const direction = sort.direction || 'asc'
+        const comparison = sortByUIType({
+          uidt: column.uidt as UITypes,
+          a: updatedRow.row[column.title],
+          b: nextRow.row[column.title],
+          options: { direction },
+        })
+
+        if (comparison !== 0) {
+          isDifferent = true
+          shouldBeAfter = comparison > 0
+          break
+        }
+      }
+
+      if (isDifferent && shouldBeAfter) return true
+    }
+
+    return false
+  }
+
+  const getContinuousRanges = (cachedRows: Map<number, Row>) => {
+    const indexes = Array.from(cachedRows.keys()).sort((a, b) => a - b)
+    const ranges: { start: number; end: number }[] = []
+
+    let rangeStart = indexes[0]
+    let prev = indexes[0]
+
+    for (let i = 1; i <= indexes.length; i++) {
+      const current = indexes[i]
+      if (current !== prev + 1) {
+        ranges.push({ start: rangeStart, end: prev })
+        rangeStart = current
+      }
+      prev = current
+    }
+
+    return ranges
+  }
+
+  const applySorting = (rows: Row | Row[], path: Array<number> = []) => {
+    // If there aren't any active sorting criteria, stop
+    if (!sorts.value.length) return
+
+    const dataCache = getDataCache(path)
+
+    // Sorts the sort columns by the order property
+    const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+    const inputRows = Array.isArray(rows) ? rows : [rows]
+
+    // TBC: sometimes the map of records can have skipped index, like 0,1,2,5,7,8
+    // this will group consecutive indexes
+    const ranges = getContinuousRanges(dataCache.cachedRows.value)
+
+    inputRows.forEach((inputRow) => {
+      const originalIndex = inputRow.rowMeta.rowIndex!
+
+      // from the range, find where the records belongs to in batch
+      const sourceRange = ranges.find((r) => originalIndex >= r.start && originalIndex <= r.end)
+      if (!sourceRange) return
+
+      // get records belong in the group range
+      const rangeEntries = Array.from(dataCache.cachedRows.value.entries())
+        .filter(([index]) => index >= sourceRange.start && index <= sourceRange.end)
+        .map(([index, row]) => ({
+          currentIndex: index,
+          row,
+          pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
+        }))
+
+      // sort the record inside group
+      const sortedRangeEntries = rangeEntries.sort((a, b) => {
+        for (const sort of orderedSorts) {
+          const column = columnsById.value[sort.fk_column_id!]?.title
+          if (!column) continue
+
+          const direction = sort.direction || 'asc'
+          const comparison = sortByUIType({
+            uidt: columnsById.value[sort.fk_column_id!].uidt as UITypes,
+            a: a.row.row[column],
+            b: b.row.row[column],
+            options: { direction },
+          })
+
+          if (comparison !== 0) return comparison
+        }
+        return a.currentIndex - b.currentIndex
+      })
+
+      // find affected row's new position
+      const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns ?? []))
+
+      if (!entry) return
+
+      const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
+
+      // Creates a copy of the current cached rows to modify
+      const newCachedRows = new Map(dataCache.cachedRows.value)
+
+      // Check if the row needs to be moved
+      if (targetIndex !== originalIndex) {
+        if (targetIndex < originalIndex) {
+          // Shift Rows (Move Up): Shifts rows down to make space.
+          for (let i = originalIndex - 1; i >= targetIndex; i--) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              row.rowMeta.rowIndex = i + 1
+              row.rowMeta.isRowOrderUpdated = false
+              newCachedRows.set(i + 1, row)
+            }
+          }
+        } else {
+          //  Shift Rows (Move Down): Shifts rows up to make space.
+          for (let i = originalIndex + 1; i <= targetIndex; i++) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              row.rowMeta.rowIndex = i - 1
+              row.rowMeta.isRowOrderUpdated = false
+              newCachedRows.set(i - 1, row)
+            }
+          }
+        }
+
+        // Sets the input row at its new sorted position.
+        inputRow.rowMeta.rowIndex = targetIndex
+        inputRow.rowMeta.isRowOrderUpdated = false
+        newCachedRows.set(targetIndex, inputRow)
+
+        const targetChunkIndex = getChunkIndex(targetIndex)
+
+        // Invalidates chunk states if row moved to edge of range.
+        if (targetIndex <= sourceRange.start || targetIndex >= sourceRange.end) {
+          if (targetIndex <= sourceRange.start) {
+            for (let i = 0; i <= targetChunkIndex; i++) {
+              dataCache.chunkStates.value[i] = undefined
+            }
+          } else if (targetIndex >= sourceRange.end) {
+            for (let i = targetChunkIndex; i <= getChunkIndex(dataCache.totalRows.value - 1); i++) {
+              dataCache.chunkStates.value[i] = undefined
+            }
+          }
+        }
+      } else {
+        // Sets isRowOrderUpdated to false if position didn't change.
+        inputRow.rowMeta.isRowOrderUpdated = false
+      }
+
+      // Verifies that no duplicate row indices exist after shifting.
+      const indices = new Set<number>()
+      for (const [_, row] of newCachedRows) {
+        if (indices.has(row.rowMeta.rowIndex)) {
+          console.error('Op: applySorting:  Duplicate index detected:', row.rowMeta.rowIndex)
+          break
+        }
+        indices.add(row.rowMeta.rowIndex)
+      }
+
+      // Replaces the old cache with the updated one.
+      dataCache.cachedRows.value = newCachedRows
+    })
+
+    // Notifies UI to update based on sorted data.
+    callbacks?.syncVisibleData?.()
+  }
+
+  function addEmptyRow(newRowIndex?: number, metaValue = meta.value, rowOverwrite = {}, path: Array<number> = []) {
+    const dataCache = getDataCache(path)
+
+    if (ncIsUndefined(newRowIndex) || ncIsNull(newRowIndex)) {
+      newRowIndex = dataCache.totalRows.value
+    }
+
+    if (dataCache.cachedRows.value.has(newRowIndex)) {
+      const entriesToShift = Array.from(dataCache.cachedRows.value.entries())
+        .filter(([index]) => index >= newRowIndex)
+        .sort((a, b) => b[0] - a[0])
+
+      for (const [index, rowData] of entriesToShift) {
+        const shiftedRowData = {
+          ...rowData,
+          rowMeta: {
+            ...rowData.rowMeta,
+            rowIndex: index + 1,
+          },
+        }
+        dataCache.cachedRows.value.set(index + 1, shiftedRowData)
+      }
+    }
+
+    const rowFilters = getPlaceholderNewRow(
+      [...allFilters.value, ...validFiltersFromUrlParams.value],
+      metaValue?.columns as ColumnType[],
+      {
+        currentUser: user.value ?? undefined,
+      },
+    )
+    const newRow = {
+      row: { ...rowDefaultData(metaValue?.columns), ...rowFilters, ...rowOverwrite },
+      oldRow: {},
+      rowMeta: { new: true, rowIndex: newRowIndex, path },
+    }
+    dataCache.cachedRows.value.set(newRowIndex, newRow)
+
+    dataCache.totalRows.value++
+    callbacks?.syncVisibleData?.()
+
+    return newRow
+  }
+
+  const linkRecord = async (
+    rowId: string,
+    relatedRowId: string,
+    column: ColumnType,
+    type: RelationTypes,
+    { metaValue = meta.value }: { metaValue?: TableType } = {},
+    options?: { suppressError?: boolean },
+  ): Promise<void> => {
+    try {
+      await $api.dbTableRow.nestedAdd(
+        NOCO,
+        metaValue?.base_id ?? (base.value.id as string),
+        metaValue?.id as string,
+        encodeURIComponent(rowId),
+        type,
+        column.title as string,
+        encodeURIComponent(relatedRowId),
+      )
+    } catch (e: any) {
+      if (!options?.suppressError) {
+        const errorMessage = await extractSdkResponseErrorMsg(e)
+        message.error(`Failed to link record: ${errorMessage}`)
+      }
+      throw e
+    }
+    callbacks?.syncVisibleData?.()
+  }
+
+  const recoverLTARRefs = async (
+    row: Record<string, any>,
+    { metaValue = meta.value }: { metaValue?: TableType } = {},
+    options?: { suppressError?: boolean },
+  ) => {
+    const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
+
+    if (!id) return
+
+    for (const column of metaValue?.columns ?? []) {
+      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+
+      const colOptions = column.colOptions as LinkToAnotherRecordType
+
+      const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
+      const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
+
+      if (isHm(column) || isMm(column)) {
+        const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
+
+        for (const relatedRow of relatedRows) {
+          const relatedId = extractPkFromRow(relatedRow, relatedTableMeta?.columns as ColumnType[])
+          if (relatedId) {
+            await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta }, options)
+          }
+        }
+      } else if (isBt(column) && row[column.title!]) {
+        const relatedId = extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[])
+
+        if (relatedId) {
+          await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta }, options)
+        }
+      }
+    }
+    callbacks?.syncVisibleData?.()
+  }
+
+  async function deleteRow(rowIndex: number, undo = false, path: Array<number> = []) {
+    const dataCache = getDataCache(path)
+    try {
+      const row = dataCache.cachedRows.value.get(rowIndex)
+      if (!row) return
+
+      if (!row.rowMeta.new) {
+        const id = meta?.value?.columns
+          ?.filter((c) => c.pk)
+          .map((c) => row.row[c.title!])
+          .join('___')
+
+        const fullRecord = await $api.dbTableRow.read(
+          NOCO,
+          meta.value?.base_id ?? (base?.value.id as string),
+          meta.value?.id as string,
+          encodeURIComponent(id as string),
+          {
+            getHiddenColumn: true,
+          },
+        )
+
+        const deleted = await deleteRowById(id as string, undefined, path)
+        if (!deleted) {
+          return
+        }
+
+        row.row = fullRecord
+
+        if (!undo) {
+          addUndo({
+            undo: {
+              fn: async (row: Row, ltarState: Record<string, any>, path: Array<number>) => {
+                const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+
+                row.row = { ...pkData, ...row.row }
+
+                await insertRow(row, ltarState, {}, true, undefined, undefined, path)
+                // refreshing the view
+                dataCache.cachedRows.value.clear()
+                dataCache.chunkStates.value = []
+
+                try {
+                  await recoverLTARRefs(row.row, undefined, { suppressError: true })
+                } catch (ex) {
+                  // expected and silenced
+                  // the relation should already exists on above operation (insertRow)
+                  // this is left to keep things unchanged
+                }
+              },
+              args: [clone(row), {}, clone(path)],
+            },
+            redo: {
+              fn: async (rowIndex: number, path) => {
+                await deleteRow(rowIndex, false, path)
+              },
+              args: [rowIndex, clone(path)],
+            },
+            scope: defineViewScope({ view: viewMeta.value }),
+          })
+        }
+      }
+
+      dataCache.cachedRows.value.delete(rowIndex)
+
+      const rows = Array.from(dataCache.cachedRows.value.entries())
+      const rowsToShift = rows.filter(([index]) => index > rowIndex)
+      rowsToShift.sort((a, b) => a[0] - b[0])
+
+      for (const [index, row] of rowsToShift) {
+        const newIndex = index - 1
+        row.rowMeta.rowIndex = newIndex
+        dataCache.cachedRows.value.delete(index)
+        dataCache.cachedRows.value.set(newIndex, row)
+      }
+
+      if (rowsToShift.length) {
+        dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+      }
+
+      dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+      dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+      await syncCount(path, true, false)
+      callbacks?.syncVisibleData?.()
+    } catch (e: any) {
+      console.error(e)
+
+      message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+    }
+  }
+
+  async function insertRow(
+    currentRow: Row,
+    ltarState: Record<string, any> = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
+    undo = false,
+    ignoreShifting = false,
+    beforeRowID?: string,
+    path: Array<number> = [],
+  ): Promise<Record<string, any> | undefined> {
+    if (!currentRow.rowMeta) {
+      throw new Error('Row metadata is missing')
+    }
+
+    const dataCache = getDataCache(path)
+
+    currentRow.rowMeta.saving = true
+
+    try {
+      const { missingRequiredColumns, insertObj } = await populateInsertObject({
+        meta: metaValue!,
+        ltarState,
+        getMeta,
+        row: currentRow.row,
+        undo,
+      })
+
+      if (missingRequiredColumns.size) {
+        return insertObj
+      }
+
+      const insertedData = await $api.dbViewRow.create(
+        NOCO,
+        metaValue?.base_id ?? (base?.value.id as string),
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
+        { ...insertObj, ...(ltarState || {}) },
+        { before: beforeRowID, undo },
+      )
+
+      currentRow.rowMeta.new = false
+
+      Object.assign(currentRow.row, {
+        ...(currentRow.row ?? {}),
+        ...rowPkData(insertedData, metaValue?.columns as ColumnType[]),
+      })
+
+      const insertIndex = currentRow.rowMeta.rowIndex!
+
+      /*   if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
+        const rows = Array.from(cachedRows.value.entries())
+        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
+
+        for (const [index, row] of rowsToShift) {
+          row.rowMeta.rowIndex = index + 1
+          cachedRows.value.set(index + 1, row)
+        }
+      }
+*/
+      if (!undo) {
+        Object.assign(currentRow.oldRow, insertedData)
+
+        const id = extractPkFromRow(insertedData, metaValue!.columns as ColumnType[])
+        const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
+
+        addUndo({
+          undo: {
+            fn: async (
+              id: string,
+              tempLocalCache: Map<number, Row>,
+              tempTotalRows: number,
+              tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+              path: Array<number>,
+              tempActualTotalRows: number,
+            ) => {
+              dataCache.cachedRows.value = new Map(tempLocalCache)
+              dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
+              dataCache.chunkStates.value = tempChunkStates
+
+              await deleteRowById(id, undefined, path)
+              dataCache.cachedRows.value.delete(insertIndex)
+
+              for (const [index, row] of dataCache.cachedRows.value) {
+                if (index > insertIndex) {
+                  row.rowMeta.rowIndex = index - 1
+                  dataCache.cachedRows.value.set(index - 1, row)
+                }
+              }
+              dataCache.totalRows.value = dataCache.totalRows.value! - 1
+              dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+              callbacks?.syncVisibleData?.()
+            },
+            args: [
+              id,
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(dataCache.chunkStates.value),
+              clone(path),
+              clone(dataCache.actualTotalRows.value),
+            ],
+          },
+          redo: {
+            fn: async (
+              row: Row,
+              ltarState: Record<string, any>,
+              tempLocalCache: Map<number, Row>,
+              tempTotalRows: number,
+              tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+              rowID: string,
+              path: Array<number>,
+              tempActualTotalRows: number,
+            ) => {
+              dataCache.cachedRows.value = new Map(tempLocalCache)
+              dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
+              dataCache.chunkStates.value = tempChunkStates
+
+              row.row = { ...pkData, ...row.row }
+              const newData = await insertRow(row, ltarState, undefined, true, true, rowID)
+
+              const needsResorting = willSortOrderChange({
+                row,
+                newData,
+                path,
+              })
+
+              if (needsResorting) {
+                const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+                if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
+              }
+              callbacks?.syncVisibleData?.()
+            },
+            args: [
+              clone(currentRow),
+              clone(ltarState),
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(dataCache.chunkStates.value),
+              clone(beforeRowID),
+              clone(path),
+              clone(dataCache.actualTotalRows.value),
+            ],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+      }
+
+      if (dataCache.cachedRows.value.has(insertIndex) && !ignoreShifting) {
+        const rows = Array.from(dataCache.cachedRows.value.entries())
+        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
+
+        for (const [index, row] of rowsToShift) {
+          row.rowMeta.rowIndex = index + 1
+          dataCache.cachedRows.value.set(index + 1, row)
+        }
+      }
+
+      dataCache.cachedRows.value.set(insertIndex, {
+        row: { ...insertedData, ...currentRow.row },
+        oldRow: { ...insertedData },
+        rowMeta: {
+          ...currentRow.rowMeta,
+          rowIndex: insertIndex,
+          new: false,
+          saving: false,
+          isRlsHidden: !!insertedData?.__nc_rls_hidden,
+          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
+          buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
+        },
+      })
+
+      if (!ignoreShifting) {
+        dataCache.totalRows.value++
+      }
+      callbacks?.reloadAggregate?.({ path })
+      callbacks?.syncVisibleData?.()
+
+      return insertedData
+    } catch (error: any) {
+      const errorMessage = await extractSdkResponseErrorMsg(error)
+      message.error(`Failed to insert row: ${errorMessage}`)
+      throw error
+    } finally {
+      currentRow.rowMeta.saving = false
+    }
+  }
+
+  async function updateRowProperty(
+    toUpdate: Row,
+    property: string,
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
+    undo = false,
+    path: Array<number> = [],
+  ): Promise<Record<string, any> | undefined> {
+    if (!toUpdate.rowMeta) {
+      throw new Error('Row metadata is missing')
+    }
+
+    const dataCache = getDataCache(path)
+
+    toUpdate.rowMeta.saving = true
+
+    try {
+      const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
+
+      const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
+        NOCO,
+        metaValue?.base_id ?? (base?.value.id as string),
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
+        encodeURIComponent(id),
+        {
+          [property]: toUpdate.row[property] ?? null,
+        },
+      )
+
+      if (!undo) {
+        addUndo({
+          undo: {
+            fn: async (
+              toUpdate: Row,
+              property: string,
+              previousCache: Map<number, Row>,
+              tempTotalRows: number,
+              path: Array<number>,
+              tempActualTotalRows: number,
+            ) => {
+              dataCache.cachedRows.value = new Map(previousCache)
+              dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
+
+              try {
+                await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  undefined,
+                  true,
+                  path,
+                )
+              } catch (e: any) {
+                // ignore
+              }
+            },
+            args: [
+              clone(toUpdate),
+              property,
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(path),
+              clone(dataCache.actualTotalRows.value),
+            ],
+          },
+          redo: {
+            fn: async (toUpdate: Row, property: string, path) => {
+              try {
+                await updateRowProperty(toUpdate, property, undefined, true, path)
+              } catch (e: any) {
+                // ignore
+              }
+            },
+            args: [clone(toUpdate), property, clone(path)],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+      }
+
+      // Update specific columns based on their types.
+      // Only sync back types that can be changed server-side as a side effect
+      // (computed fields, triggers, on-update defaults).
+      // Free-text input types are excluded to avoid overwriting local state
+      // while the user may still be typing in another cell.
+      const columnsToUpdate = new Set([
+        UITypes.Formula,
+        UITypes.QrCode,
+        UITypes.Barcode,
+        UITypes.Rollup,
+        UITypes.Checkbox,
+        UITypes.User,
+        UITypes.LastModifiedTime,
+        UITypes.LastModifiedBy,
+        UITypes.Lookup,
+        UITypes.Button,
+        UITypes.Attachment,
+      ])
+
+      // When date dependency is configured, the server may recompute date/duration/number
+      // fields as a side effect — sync those back too.
+      if (metaValue?.date_dependency?.is_active) {
+        columnsToUpdate.add(UITypes.DateTime)
+        columnsToUpdate.add(UITypes.Date)
+        columnsToUpdate.add(UITypes.Duration)
+        columnsToUpdate.add(UITypes.Number)
+      }
+
+      Object.assign(
+        toUpdate.row,
+        metaValue?.columns?.reduce<Record<string, any>>((acc, col: ColumnType) => {
+          if (
+            col.title &&
+            col.title in updatedRowData &&
+            (columnsToUpdate.has(col.uidt as UITypes) ||
+              isAIPromptCol(col) ||
+              col.au ||
+              (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
+          ) {
+            acc[col.title] = updatedRowData[col.title]
+          }
+          return acc
+        }, {}),
+      )
+
+      Object.assign(toUpdate.oldRow, updatedRowData)
+      Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
+      toUpdate.rowMeta.buttonDisabled = evaluateButtonVisibility(toUpdate.row)
+
+      // Mark row as hidden if it moved out of user's RLS scope after update
+      if (updatedRowData?.__nc_rls_hidden) {
+        toUpdate.rowMeta.isRlsHidden = true
+      }
+
+      // Update the row in cachedRows
+      if (toUpdate.rowMeta.rowIndex !== undefined) {
+        dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
+      }
+      callbacks?.reloadAggregate?.({ fields: [{ title: property }], path })
+
+      callbacks?.syncVisibleData?.()
+
+      if (undo) {
+        applySorting(toUpdate, path)
+      }
+
+      return updatedRowData
+    } catch (e: any) {
+      // Check if it's a unique constraint violation
+      if (isUniqueConstraintViolationError(e)) {
+        // Clear the cell value for unique constraint violations and set to previous value
+        toUpdate.row[property] = toUpdate.oldRow[property] ?? null
+        // Use message directly from response (already includes field name)
+        const errorData = e.response?.data
+        const errorMessage =
+          errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
+        message.error(errorMessage)
+        return undefined
+      }
+
+      toUpdate.row[property] = toUpdate.oldRow[property]
+      const errorMessage = await extractSdkResponseErrorMsg(e)
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)
+      throw e
+    } finally {
+      toUpdate.rowMeta.saving = false
+    }
+  }
+
+  async function updateOrSaveRow(
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    beforeRowID?: string,
+    path: Array<number> = [],
+  ): Promise<void> {
+    if (!row.rowMeta) {
+      throw new Error('Row metadata is missing')
+    }
+
+    // Row is hidden by RLS policy — skip save to avoid repeated API calls on a row the user can no longer access
+    if (row.rowMeta.isRlsHidden) return
+
+    const dataCache = getDataCache(path)
+
+    row.rowMeta.changed = false
+    let cachedRow
+
+    await new Promise((resolve) => {
+      const checkStatus = () => {
+        cachedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+        // Wait until either the row is not saving OR the row is not new
+        const isComplete = !cachedRow?.rowMeta?.saving || !cachedRow?.rowMeta?.new
+
+        if (isComplete) {
+          resolve(true)
+        } else {
+          setTimeout(checkStatus, 100)
+        }
+      }
+
+      // Start checking
+      checkStatus()
+    })
+
+    let data
+
+    const fieldsToOverwrite = meta.value?.columns?.filter(
+      (c) =>
+        isSystemColumn(c) ||
+        isCreatedOrLastModifiedByCol(c) ||
+        isCreatedOrLastModifiedTimeCol(c) ||
+        [
+          UITypes.Formula,
+          UITypes.QrCode,
+          UITypes.Barcode,
+          UITypes.Rollup,
+          UITypes.Checkbox,
+          UITypes.User,
+          UITypes.Lookup,
+          UITypes.Button,
+          UITypes.Attachment,
+        ].includes(c.uidt),
+    )
+
+    if (row.rowMeta.new) {
+      data = await insertRow(row, ltarState, args, false, true, beforeRowID, path)
+    } else if (property) {
+      if (cachedRow) {
+        fieldsToOverwrite?.reduce((acc, col) => {
+          if (!ncIsUndefined(cachedRow.row[col.title!])) acc[col.title!] = cachedRow.row[col.title!]
+          return acc
+        }, row.row)
+      }
+      try {
+        data = await updateRowProperty(row, property, args, false, path)
+      } catch (e: any) {
+        // ignore
+      }
+    }
+
+    const isValidationFailed = !validateRowFilters(
+      [...allFilters.value, ...computedWhereFilter.value],
+      data,
+      meta.value?.columns as ColumnType[],
+      getBaseType(viewMeta.value?.view?.source_id),
+      metas.value,
+      meta.value?.base_id,
+      {
+        currentUser: user.value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    )
+    const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
+
+    // check if the column is part of group by and value changed
+    if (row.rowMeta?.path?.length && groupByColumns?.value) {
+      const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
+      const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
+
+      row.rowMeta.isGroupChanged = !validateRowFilters(
+        [...(groupByFilter ?? [])],
+        data,
+        meta.value?.columns as ColumnType[],
+        getBaseType(viewMeta.value?.view?.source_id),
+        metas.value,
+        meta.value?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+      row.rowMeta.changedGroupIndex = index
+    }
+    const changedFields = property ? [property] : Object.keys(row.row)
+
+    changedFields.push(
+      ...(meta.value
+        ?.columns!.filter((c) =>
+          [
+            UITypes.LastModifiedBy,
+            UITypes.LastModifiedTime,
+            UITypes.Formula,
+            UITypes.Lookup,
+            UITypes.Rollup,
+            UITypes.LinkToAnotherRecord,
+          ].includes(c.uidt as UITypes),
+        )
+        .map((c) => c.title!) || []),
+    )
+
+    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
+      const needsResorting = willSortOrderChange({
+        row,
+        newData: data,
+        sorts: sorts.value,
+        path,
+      })
+
+      if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
+    }
+    callbacks?.syncVisibleData?.()
+  }
+
+  async function bulkUpdateView(
+    data: Record<string, any>[],
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
+    path: Array<number> = [],
+  ): Promise<void> {
+    if (!viewMetaValue) {
+      throw new Error('View meta value is missing')
+    }
+
+    await $api.dbTableRow.bulkUpdateAll(NOCO, metaValue?.base_id as string, metaValue?.id as string, data, {
+      viewId: viewMetaValue.id,
+    })
+
+    callbacks?.reloadAggregate?.({ path })
+    callbacks?.syncVisibleData?.()
+  }
+
+  async function deleteRowById(
+    id: string,
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
+    path: Array<number> = [],
+  ): Promise<boolean> {
+    if (!id) {
+      throw new Error("Delete not allowed for table which doesn't have primary Key")
+    }
+
+    try {
+      const res: any = await $api.dbViewRow.delete(
+        'noco',
+        metaValue?.base_id ?? (base.value.id as string),
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
+        encodeURIComponent(id),
+      )
+
+      callbacks?.reloadAggregate?.({ path })
+
+      if (res.message) {
+        const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(
+          '\n',
+        )}.\nClear the data first & try again`
+        message.info(`Record delete failed: ${errorMessage}`)
+        return false
+      }
+
+      return true
+    } catch (error: any) {
+      const errorMessage = await extractSdkResponseErrorMsg(error)
+      message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
+      return false
+    }
+  }
+
+  const removeRowIfNew = (row: Row, path: Array<number> = []): boolean => {
+    path = row?.rowMeta?.path ?? []
+    const dataCache = getDataCache(path)
+    const index = Array.from(dataCache.cachedRows.value.entries()).find(
+      ([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex,
+    )?.[0]
+    if (index !== undefined && row.rowMeta.new) {
+      dataCache.cachedRows.value.delete(index)
+      dataCache.totalRows.value--
+      return true
+    }
+    callbacks?.syncVisibleData?.()
+    return false
+  }
+
+  async function syncCount(path: Array<number> = [], throwError = false, showToastMessage = true): Promise<void> {
+    if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+
+    const dataCache = getDataCache(path)
+
+    const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
+
+    try {
+      const { count } = isPublic?.value
+        ? await fetchCount({
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+            where: whereFilter,
+          })
+        : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
+            where: whereFilter,
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+          })
+
+      if (fetchTotalRowsWithSearchQuery.value) {
+        const { count: _count } = isPublic?.value
+          ? await fetchCount({
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+              where: whereQueryFromUrl.value as string,
+            })
+          : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
+              where: whereQueryFromUrl.value as string,
+              ...(isUIAllowed('filterSync')
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
+                  }
+                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+            })
+        if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+          totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
+        } else {
+          totalRowsWithoutSearchQuery.value = _count as number
+        }
+      }
+
+      if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+        dataCache.totalRows.value = Math.min(200, count as number)
+      } else {
+        dataCache.totalRows.value = count as number
+      }
+
+      dataCache.actualTotalRows.value = count as number
+
+      totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
+
+      callbacks?.syncVisibleData?.()
+    } catch (error: any) {
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(error)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw error
+      }
+    }
+  }
+
+  function getExpandedRowIndex(path: Array<number>): number {
+    const rowId = routeQuery.value.rowId
+    if (!rowId) return -1
+    const dataCache = getDataCache(path)
+
+    for (const [_index, row] of dataCache.cachedRows.value.entries()) {
+      if (extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === rowId) {
+        return row.rowMeta.rowIndex!
+      }
+    }
+    return -1
+  }
+
+  // function which waits for the data to be loaded and then returns the expanded row index
+  async function getExpandedRowIndexWithWait(path: Array<number>): Promise<number> {
+    const rowId = routeQuery.value.rowId
+    if (!rowId) return -1
+
+    const dataCache = getDataCache(path)
+
+    await until(() => dataCache.chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
+      timeout: 5000,
+    })
+
+    return getExpandedRowIndex(path)
+  }
+
+  const isLastRow = computed(() => {
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
+    const dataCache = getDataCache(path)
+
+    const expandedRowIndex = getExpandedRowIndex(path)
+    if (expandedRowIndex === -1) return false
+
+    return expandedRowIndex === dataCache.totalRows.value - 1
+  })
+
+  const isFirstRow = computed(() => {
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
+    const expandedRowIndex = getExpandedRowIndex(path)
+    if (expandedRowIndex === -1) return false
+
+    return expandedRowIndex === 0
+  })
+
+  async function getRows(startIndex: number, endIndex: number, path: Array<number> = []): Promise<Array<Row>> {
+    const startChunkId = getChunkIndex(startIndex)
+    const endChunkId = getChunkIndex(endIndex)
+
+    const chunksToFetch = new Set<number>()
+    for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+      chunksToFetch.add(chunkId)
+    }
+
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId, path)))
+
+    const dataCache = getDataCache(path)
+
+    const rows = []
+    for (let rowId = startIndex; rowId <= endIndex; rowId++) {
+      if (dataCache.cachedRows.value.has(rowId)) {
+        rows.push(dataCache.cachedRows.value.get(rowId))
+      }
+    }
+
+    callbacks?.syncVisibleData?.()
+
+    return rows
+  }
+
+  /**
+   * This is used to update the rowMeta color info when the row colour info is updated
+   */
+  const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+    if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+      return
+    }
+
+    const updateRowColorInfo = (row: Row) => {
+      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
+    }
+
+    // If it is group by, we need to update the rowMeta color info for each row in the group
+    if (isGroupBy.value) {
+      groupDataCache.value.forEach((group) => {
+        group.cachedRows.value.forEach(updateRowColorInfo)
+      })
+    } else {
+      // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
+      const { cachedRows } = getDataCache()
+      cachedRows.value.forEach(updateRowColorInfo)
+    }
+  }
+
+  eventBus.on(smartsheetEventHandler)
+
+  onBeforeUnmount(() => {
+    eventBus.off(smartsheetEventHandler)
+    clearTimeout(upgradeModalTimer)
+  })
+
+  const activeDataListener = ref<string | null>(null)
+  const activeCommentListener = ref<string | null>(null)
+
+  const handleDataEvent = (data: DataPayload) => {
+    const { id, action, payload, before } = data
+
+    if (action === 'add') {
+      // Add the new row to the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+
+        const isValidationFailed = !validateRowFilters(
+          [...allFilters.value, ...computedWhereFilter.value],
+          payload,
+          meta.value?.columns as ColumnType[],
+          getBaseType(viewMeta.value?.view?.source_id),
+          metas.value,
+          meta.value?.base_id,
+          {
+            currentUser: user.value,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+        )
+
+        // find index to insert the new row
+        if (before) {
+          for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${before}`) {
+              // Insert before the found row
+              const newRowIndex = rowIndex
+              // Use descending order so that we first open the position then place the new record
+              const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+                .filter(([index]) => index >= newRowIndex)
+                .sort((a, b) => b[0] - a[0])
+
+              for (const [index, rowData] of rowsToShift) {
+                rowData.rowMeta.rowIndex = index + 1
+                dataCache.cachedRows.value.delete(index)
+                dataCache.cachedRows.value.set(index + 1, rowData)
+              }
+
+              if (!isValidationFailed) {
+                dataCache.cachedRows.value.set(newRowIndex, {
+                  row: payload,
+                  oldRow: {},
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+                })
+
+                dataCache.totalRows.value++
+                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+                callbacks?.syncVisibleData?.()
+              }
+              return
+            }
+          }
+        }
+
+        if (!isValidationFailed) {
+          // If no order is found, append to the end
+          const newRowIndex = dataCache.totalRows.value
+          dataCache.cachedRows.value.set(newRowIndex, {
+            row: payload,
+            oldRow: {},
+            rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+          })
+          dataCache.totalRows.value++
+          dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+          callbacks?.syncVisibleData?.()
+        }
+      } catch (e) {
+        console.error('Failed to add cached row on socket event', e)
+      }
+    } else if (action === 'update') {
+      // Update the row in the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+        let updated = false
+        for (const cachedRow of dataCache.cachedRows.value.values()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            Object.assign(cachedRow.row, payload)
+            Object.assign(cachedRow.oldRow, payload)
+
+            const isValidationFailed = !validateRowFilters(
+              [...allFilters.value, ...computedWhereFilter.value],
+              payload,
+              meta.value?.columns as ColumnType[],
+              getBaseType(viewMeta.value?.view?.source_id),
+              metas.value,
+              meta.value?.base_id,
+              {
+                currentUser: user.value,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              },
+            )
+
+            cachedRow.rowMeta.isValidationFailed = isValidationFailed
+            cachedRow.rowMeta.changed = false
+            Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+            updated = true
+            break
+          }
+        }
+        if (updated) {
+          callbacks?.syncVisibleData?.()
+        } else {
+          handleDataEvent({
+            ...data,
+            action: 'add',
+          })
+        }
+      } catch (e) {
+        console.error('Failed to update cached row on socket event', e)
+      }
+    } else if (action === 'delete') {
+      // Delete the row from the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+        for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            dataCache.cachedRows.value.delete(rowIndex)
+
+            const rows = Array.from(dataCache.cachedRows.value.entries())
+            const rowsToShift = rows.filter(([index]) => index > rowIndex)
+            rowsToShift.sort((a, b) => a[0] - b[0])
+
+            for (const [index, row] of rowsToShift) {
+              const newIndex = index - 1
+              row.rowMeta.rowIndex = newIndex
+              dataCache.cachedRows.value.delete(index)
+              dataCache.cachedRows.value.set(newIndex, row)
+            }
+
+            if (rowsToShift.length) {
+              dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+            }
+
+            dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+            dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+          }
+        }
+        callbacks?.syncVisibleData?.()
+      } catch (e) {
+        console.error('Failed to delete cached row on socket event', e)
+      }
+    } else if (action === 'reorder') {
+      // Reorder/move the row in the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+
+        // Find the row to be moved by its primary key
+        let rowToMove: Row | null = null
+        let currentIndex: number | null = null
+
+        for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            rowToMove = cachedRow
+            currentIndex = index
+            break
+          }
+        }
+
+        if (!rowToMove || currentIndex === null) {
+          console.warn('Row to move not found in cache:', id)
+
+          if (before) {
+            // Find the 'before' row in cache
+            let beforeIndex: number | null = null
+            for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+              const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+              if (pk && `${pk}` === `${before}`) {
+                beforeIndex = index
+                break
+              }
+            }
+
+            if (beforeIndex !== null) {
+              // The new row position is before an existing cached row
+              // We need to shift all rows from beforeIndex onwards down by 1
+              const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+              // Get all rows that need to be shifted (from beforeIndex onwards)
+              const rowsToShift = Array.from((dataCache.cachedRows.value as Map<number, Row>).entries())
+                .filter(([index]) => index >= beforeIndex!)
+                .sort((a, b) => b[0] - a[0])
+
+              // Shift each row down by 1
+              for (const [index, row] of rowsToShift) {
+                const newIndex = index + 1
+                row.rowMeta.rowIndex = newIndex
+                newCachedRows.delete(index)
+                newCachedRows.set(newIndex, row)
+              }
+
+              // Invalidate affected chunks
+              if (rowsToShift.length > 0) {
+                const minAffectedChunk = getChunkIndex(beforeIndex!)
+                const maxAffectedChunk = getChunkIndex(rowsToShift[rowsToShift.length - 1][0] + 1)
+                for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+                  dataCache.chunkStates.value[i] = undefined
+                }
+              }
+
+              // Apply the changes
+              dataCache.cachedRows.value = newCachedRows
+
+              callbacks?.syncVisibleData?.()
+            } else {
+              // The 'before' row is not in cache, skip
+              console.log('Before row not in cache, skipping reorder operation')
+            }
+          } else {
+            // No 'before' specified means move to end
+            // No changes needed to cache since it's moving to the end
+            console.log('Row moved to end, no cache changes needed')
+            callbacks?.syncVisibleData?.()
+          }
+
+          return
+        }
+
+        // Row found in cache - proceed with reordering
+
+        // Find the target position based on the 'before' parameter
+        let targetIndex: number
+
+        if (before) {
+          // Find the row that should come after the moved row
+          let beforeIndex: number | null = null
+          for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${before}`) {
+              beforeIndex = index
+              break
+            }
+          }
+
+          if (beforeIndex !== null) {
+            targetIndex = beforeIndex
+          } else {
+            // If 'before' row not found in cache, move to end
+            targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+          }
+        } else {
+          // If no 'before' specified, move to the end
+          targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+        }
+
+        // If the row is already at the target position, no need to move
+        if (currentIndex === targetIndex) {
+          return
+        }
+
+        // Create a new cached rows map with the updated positions
+        const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+        // Remove the row from its current position
+        newCachedRows.delete(currentIndex)
+
+        // Determine the final target index (similar to updateRecordOrder logic)
+        const finalTargetIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
+
+        // Shift rows to make space for the moved row
+        if (finalTargetIndex < currentIndex) {
+          // Moving up: shift rows down
+          for (let i = currentIndex - 1; i >= finalTargetIndex; i--) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              const newIndex = i + 1
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.delete(i)
+              newCachedRows.set(newIndex, row)
+            }
+          }
+        } else {
+          // Moving down: shift rows up
+          for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              const newIndex = i - 1
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.delete(i)
+              newCachedRows.set(newIndex, row)
+            }
+          }
+        }
+
+        // Place the moved row at its new position
+        rowToMove.rowMeta.rowIndex = finalTargetIndex
+        newCachedRows.set(finalTargetIndex, rowToMove)
+
+        // Update any changed data in the moved row (if payload contains updates)
+        if (payload && typeof payload === 'object') {
+          Object.assign(rowToMove.row, payload)
+          Object.assign(rowToMove.oldRow, payload)
+          Object.assign(rowToMove.rowMeta, getEvaluatedRowMetaRowColorInfo(rowToMove.row))
+        }
+        rowToMove.rowMeta.changed = false
+
+        // Invalidate affected chunks
+        const targetChunkIndex = getChunkIndex(finalTargetIndex)
+        const sourceChunkIndex = getChunkIndex(currentIndex)
+        for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+          dataCache.chunkStates.value[i] = undefined
+        }
+
+        // Apply the changes
+        dataCache.cachedRows.value = newCachedRows
+
+        callbacks?.syncVisibleData?.()
+      } catch (e) {
+        console.error('Failed to reorder cached row on socket event', e)
+      }
+    }
+  }
+
+  watch(
+    meta,
+    (newMeta, oldMeta) => {
+      if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+        if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+        if (activeDataListener.value) {
+          $ncSocket.offMessage(activeDataListener.value)
+        }
+
+        if (activeCommentListener.value) {
+          $ncSocket.offMessage(activeCommentListener.value)
+        }
+
+        activeDataListener.value = $ncSocket.onMessage(
+          `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+          handleDataEvent,
+        )
+
+        activeCommentListener.value = $ncSocket.onMessage(
+          `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+          (data: CommentPayload) => {
+            const { action, id } = data
+
+            const dataCache = getDataCache()
+
+            let row = null
+
+            for (const [_, cachedRow] of dataCache.cachedRows.value.entries()) {
+              const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+              if (pk && `${pk}` === `${id}`) {
+                row = cachedRow
+                break
+              }
+            }
+
+            if (row) {
+              if (action === 'add') {
+                if (row) {
+                  row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
+                }
+              } else if (action === 'update') {
+                // Handle updated comment
+              } else if (action === 'delete') {
+                if (row) {
+                  row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
+                }
+              }
+
+              callbacks?.syncVisibleData?.()
+            }
+          },
+        )
+      }
+    },
+    { immediate: true },
+  )
+
+  // Reset the selectedAllRecordsSkipPks when the selectedAllRecords is false
+  watch(
+    selectedAllRecords,
+    (newValue) => {
+      if (newValue || ncIsEmptyObject(selectedAllRecordsSkipPks.value)) return
+
+      selectedAllRecordsSkipPks.value = {}
+    },
+    { immediate: true },
+  )
+
+  return {
+    getDataCache,
+    insertRow,
+    updateRowProperty,
+    addEmptyRow,
+    deleteRow,
+    deleteRowById,
+    getChunkIndex,
+    fetchMissingChunks,
+    fetchChunk,
+    updateOrSaveRow,
+    bulkUpdateView,
+    removeRowIfNew,
+    cachedRows,
+    recoverLTARRefs,
+    totalRows,
+    actualTotalRows,
+    clearCache,
+    syncCount,
+    selectedRows,
+    chunkStates,
+    isRowSortRequiredRows,
+    clearInvalidRows,
+    applySorting,
+    CHUNK_SIZE,
+    loadData,
+    isLastRow,
+    isFirstRow,
+    getExpandedRowIndex,
+    loadAggCommentsCount,
+    navigateToSiblingRow,
+    updateRecordOrder,
+    selectedAllRecords,
+    selectedAllRecordsSkipPks,
+    getRows,
+    groupDataCache,
+  }
+}

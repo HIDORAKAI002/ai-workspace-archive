@@ -1,0 +1,49 @@
+{
+	"name": "@directus/update-check",
+	"version": "13.0.5",
+	"description": "Check if an update for Directus is available",
+	"homepage": "https://directus.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/update-check"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "MIT",
+	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "pnpm run '/^bundle|typecheck$/'",
+		"bundle": "tsdown src/index.ts --dts",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"axios": "catalog:",
+		"axios-cache-interceptor": "catalog:",
+		"boxen": "catalog:",
+		"chalk": "catalog:",
+		"find-cache-directory": "catalog:",
+		"semver": "catalog:"
+	},
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@npm/types": "catalog:",
+		"@types/node": "catalog:",
+		"@types/semver": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"strip-ansi": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

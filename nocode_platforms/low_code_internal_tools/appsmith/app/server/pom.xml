@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.11</version>
+        <relativePath/>
+        <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.appsmith</groupId>
+    <artifactId>integrated</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Integrated Appsmith</name>
+
+    <modules>
+        <module>reactive-caching</module>
+        <module>appsmith-interfaces</module>
+        <module>appsmith-plugins</module>
+        <module>appsmith-server</module>
+        <module>appsmith-git</module>
+    </modules>
+
+    <properties>
+        <deploy.disabled>true</deploy.disabled>
+        <jackson-bom.version>2.17.0</jackson-bom.version>
+        <jackson.version>2.17.0</jackson.version>
+        <java.version>25</java.version>
+        <javadoc.disabled>true</javadoc.disabled>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <mockito.version>4.4.0</mockito.version>
+        <mockwebserver.version>5.0.0-alpha.2</mockwebserver.version>
+        <okhttp3.version>4.12.0</okhttp3.version>
+        <org.pf4j.version>3.10.0</org.pf4j.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.groupId>com.appsmith</project.groupId>
+        <project.version>1.0-SNAPSHOT</project.version>
+        <reactor-test.version>3.5.1</reactor-test.version>
+        <!-- By default skip the dockerization step. Only activate if necessary -->
+        <skipDockerBuild>true</skipDockerBuild>
+        <skipITs>${skipTests}</skipITs>
+        <skipTests>false</skipTests>
+        <skipUTs>${skipTests}</skipUTs>
+        <!-- We're forcing this version temporarily to fix CVE-2022-1471-->
+        <snakeyaml.version>2.0</snakeyaml.version>
+        <source.disabled>true</source.disabled>
+        <spotless.version>3.0.0</spotless.version>
+        <testcontainers.version>1.20.1</testcontainers.version>
+    </properties>
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.0.0</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>add-test-source</id>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <sources>
+                                <source>src/test/java</source>
+                                <!-- Default test directory -->
+                                <source>src/test/it</source>
+                                <!-- Additional test directory -->
+                                <source>src/test/utils</source>
+                                <!-- Another additional directory -->
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.5</version>
+                <configuration>
+                    <printSummary>true</printSummary>
+                    <!-- Allow JUnit to access the test classes -->
+                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.time=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+                    <testSourceDirectory>src/test/java</testSourceDirectory>
+                    <skipTests>${skipUTs}</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.5</version>
+                <configuration>
+                    <printSummary>true</printSummary>
+                    <!-- Allow JUnit to access the test classes -->
+                    <argLine>-ea
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.time=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+                    <systemPropertyVariables>
+                        <pf4j.pluginsDir>../dist/plugins</pf4j.pluginsDir>
+                        <!-- Specify plugin directory -->
+                    </systemPropertyVariables>
+                    <testSourceDirectory>src/test/it</testSourceDirectory>
+                    <skipITs>${skipITs}</skipITs>
+                    <!-- Property for skipping integration tests -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>junit:junit</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <formats>
+                        <!-- you can define as many formats as you want, each is independent -->
+                        <format>
+                            <!-- define the files to apply to -->
+                            <includes>
+                                <include>*.md</include>
+                                <include>.gitignore</include>
+                                <include>**/*.sql</include>
+                            </includes>
+                            <!-- define the steps to apply to those files -->
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                            <indent>
+                                <tabs>true</tabs>
+                                <spacesPerTab>2</spacesPerTab>
+                            </indent>
+                        </format>
+                    </formats>
+                    <!-- define a language-specific format -->
+                    <java>
+                        <!-- Cleanthat will refactor your code, but it may break your style: apply it before your formatter -->
+                        <cleanthat/>
+                        <!-- apply a specific flavor of google-java-format and reflow long strings -->
+                        <!-- Pinned to 2.74.0+ for Java 25 syntax support (unnamed variables, etc.) -->
+                        <palantirJavaFormat>
+                            <version>2.74.0</version>
+                        </palantirJavaFormat>
+                        <importOrder>
+                            <order>,javax|java,\#</order>
+                        </importOrder>
+                        <removeUnusedImports/>
+                        <formatAnnotations/>
+                    </java>
+                    <json>
+                        <excludes>
+                            <exclude>**/target/**/*.json</exclude>
+                        </excludes>
+                        <includes>
+                            <include>**/*.json</include>
+                        </includes>
+                        <prettier>
+                            <config>
+                                <tabWidth>2</tabWidth>
+                            </config>
+                        </prettier>
+                    </json>
+                    <pom>
+                        <includes>
+                            <include>pom.xml</include>
+                        </includes>
+                        <sortPom>
+                            <encoding>UTF-8</encoding>
+                            <keepBlankLines>true</keepBlankLines>
+                            <nrOfIndentSpace>4</nrOfIndentSpace>
+                            <indentBlankLines>false</indentBlankLines>
+                            <indentSchemaLocation>true</indentSchemaLocation>
+                            <expandEmptyElements>false</expandEmptyElements>
+                            <sortProperties>true</sortProperties>
+                        </sortPom>
+                    </pom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
+
+</project>

@@ -1,0 +1,64 @@
+<script setup lang="ts">
+import { FlowRaw } from '@directus/types';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import { useClipboard } from '@/composables/use-clipboard';
+import { translate } from '@/utils/translate-object-values';
+
+defineProps<{
+	panel: Record<string, any>;
+	currentOperation: any;
+	flow: FlowRaw;
+}>();
+
+const { isCopySupported, copyToClipboard } = useClipboard();
+</script>
+
+<template>
+	<div v-tooltip="panel.key" class="name">
+		{{ panel.id === '$trigger' ? $t(`triggers.${panel.type}.name`) : panel.name }}
+	</div>
+	<dl class="options-overview">
+		<div
+			v-for="{ label, text, copyable } of translate(currentOperation?.overview(panel.options ?? {}, { flow }))"
+			:key="label"
+		>
+			<dt>{{ label }}</dt>
+			<dd>{{ text }}</dd>
+			<VIcon
+				v-if="isCopySupported && copyable"
+				v-tooltip="text"
+				name="content_copy"
+				small
+				clickable
+				class="clipboard-icon"
+				@click="copyToClipboard(text)"
+			/>
+		</div>
+	</dl>
+</template>
+
+<style lang="scss" scoped>
+.options-overview {
+	> div {
+		flex-wrap: wrap;
+		align-items: center;
+		margin-block-end: 0.3125rem;
+	}
+
+	dt {
+		flex-basis: 100%;
+		margin-block-end: -0.125rem;
+	}
+
+	dd {
+		font-family: var(--theme--fonts--monospace--font-family);
+		flex-basis: 0;
+	}
+
+	.clipboard-icon {
+		--v-icon-color: var(--theme--foreground-subdued);
+		--v-icon-color-hover: var(--theme--foreground);
+		margin-inline-start: 0.25rem;
+	}
+}
+</style>

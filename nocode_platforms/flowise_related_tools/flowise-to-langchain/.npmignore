@@ -1,0 +1,89 @@
+# Source files
+src/
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# Config files
+tsconfig.json
+tsconfig.build.json
+jest.config.*
+.eslintrc.*
+.prettierrc.*
+
+# Development files
+*.log
+*.md
+!README.md
+.env
+.env.*
+*.js
+!bin/*.js
+!dist/**/*.js
+analyze-*.js
+build-*.js
+build-*.mjs
+debug-*.js
+test-*.js
+run-*.js
+run-*.mjs
+manual-*.js
+fix-*.js
+npm-*.js
+execute-*.js
+execute-*.sh
+final-*.js
+comprehensive-*.mjs
+force-*.js
+
+# Build artifacts
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# CI
+.github/
+.travis.yml
+.circleci/
+
+# Test output directories
+test-output*/
+output/
+rag-test/
+batch-output/
+logs/
+
+# Documentation and reports
+docs/
+*.md
+!README.md
+
+# Examples (include minimal examples only)
+examples/**/*.json
+!examples/basic/simple-prompt-llm.flowise.json
+!examples/complex/rag-document-qa.flowise.json
+
+# Scripts
+scripts/
+
+# Misc
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*

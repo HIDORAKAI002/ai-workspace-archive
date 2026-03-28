@@ -1,0 +1,31 @@
+{
+  "name": "@hoppscotch/codemirror-lang-graphql",
+  "version": "0.2.0",
+  "description": "GraphQL language support for CodeMirror",
+  "author": "Hoppscotch (support@hoppscotch.io)",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "rollup -c && tsc --emitDeclarationOnly --declaration"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "dependencies": {
+    "@codemirror/language": "6.11.3",
+    "@lezer/highlight": "1.2.1",
+    "@lezer/lr": "1.4.2"
+  },
+  "devDependencies": {
+    "@lezer/generator": "1.8.0",
+    "@rollup/plugin-typescript": "12.1.4",
+    "mocha": "11.7.5",
+    "rollup": "4.55.3",
+    "typescript": "5.9.3"
+  }
+}

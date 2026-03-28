@@ -1,0 +1,15 @@
+# Use for running an Appsmith, during development.
+
+version: "3"
+
+services:
+  appsmith:
+    image: index.docker.io/appsmith/appsmith-ce:release
+    container_name: appsmith
+    ports:
+      - "8080:80"
+    environment:
+      APPSMITH_ENCRYPTION_PASSWORD: abcd
+      APPSMITH_ENCRYPTION_SALT: abcd
+    volumes:
+      - ./stacks:/appsmith-stacks

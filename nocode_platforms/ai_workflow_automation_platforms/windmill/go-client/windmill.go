@@ -1,0 +1,202 @@
+package windmill
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"math"
+	"math/rand"
+	"net/http"
+	"os"
+	"github.com/google/uuid"
+	api "github.com/windmill-labs/windmill-go-client/api"
+)
+
+type ClientWithWorkspace struct {
+	Client    *api.ClientWithResponses
+	Workspace string
+}
+
+func GetClient() (ClientWithWorkspace, error) {
+	base_url := os.Getenv("BASE_INTERNAL_URL") + "/api"
+	workspace := os.Getenv("WM_WORKSPACE")
+	token := os.Getenv("WM_TOKEN")
+
+	client, _ := api.NewClientWithResponses(base_url, func(c *api.Client) error {
+		c.RequestEditors = append(c.RequestEditors, func(ctx context.Context, req *http.Request) error {
+			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+			return nil
+		})
+		return nil
+	})
+	return ClientWithWorkspace{
+		Client:    client,
+		Workspace: workspace,
+	}, nil
+}
+func newBool(b bool) *bool {
+	return &b
+}
+
+func GetVariable(path string) (string, error) {
+	client, err := GetClient()
+	if err != nil {
+		return "", err
+	}
+	res, err := client.Client.GetVariableValueWithResponse(context.Background(), client.Workspace, path, &api.GetVariableValueParams{})
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode()/100 != 2 {
+		return "", errors.New(string(res.Body))
+	}
+	return *res.JSON200, nil
+}
+
+func GetResource(path string) (interface{}, error) {
+	client, err := GetClient()
+	if err != nil {
+		return nil, err
+	}
+	params := api.GetResourceValueInterpolatedParams{}
+	res, err := client.Client.GetResourceValueInterpolatedWithResponse(context.Background(), client.Workspace, path, &params)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode()/100 != 2 {
+		return nil, errors.New(string(res.Body))
+	}
+	return *res.JSON200, nil
+}
+
+func SetResource(path string, value interface{}, resourceTypeOpt ...string) error {
+	client, err := GetClient()
+	if err != nil {
+		return err
+	}
+	params := api.GetResourceValueInterpolatedParams{}
+	getRes, getErr := client.Client.GetResourceValueInterpolatedWithResponse(context.Background(), client.Workspace, path, &params)
+	if getErr != nil {
+		return getErr
+	}
+	if getRes.StatusCode() == 404 {
+		resourceType := "any"
+		if len(resourceTypeOpt) > 0 {
+			resourceType = resourceTypeOpt[0]
+		}
+		res, err := client.Client.CreateResourceWithResponse(context.Background(), client.Workspace, &api.CreateResourceParams{
+			UpdateIfExists: newBool(true),
+		}, api.CreateResource{Value: &value, Path: path, ResourceType: resourceType})
+		if err != nil {
+			return err
+		}
+		if res.StatusCode()/100 != 2 {
+			return errors.New(string(res.Body))
+		}
+	} else {
+		res, err := client.Client.UpdateResourceValueWithResponse(context.Background(), client.Workspace, path, api.UpdateResourceValueJSONRequestBody{
+			Value: &value,
+		})
+		if err != nil {
+			return err
+		}
+		if res.StatusCode()/100 != 2 {
+			return errors.New(string(res.Body))
+		}
+	}
+	return nil
+}
+
+func SetVariable(path string, value string) error {
+	client, err := GetClient()
+	if err != nil {
+		return err
+	}
+	f := false
+	res, err := client.Client.UpdateVariableWithResponse(context.Background(), client.Workspace, path, &api.UpdateVariableParams{AlreadyEncrypted: &f}, api.EditVariable{Value: &value})
+	if err != nil {
+		f = true
+	}
+	if res.StatusCode()/100 != 2 {
+		f = true
+	}
+	if f {
+		res, err := client.Client.CreateVariableWithResponse(context.Background(), client.Workspace, &api.CreateVariableParams{},
+			api.CreateVariableJSONRequestBody{
+				Path:  path,
+				Value: value,
+			})
+
+		if err != nil {
+			return err
+		}
+		if res.StatusCode()/100 != 2 {
+			return errors.New(string(res.Body))
+		}
+	}
+	return nil
+}
+
+func GetStatePath() string {
+	value := os.Getenv("WM_STATE_PATH_NEW")
+	if len(value) == 0 {
+		return os.Getenv("WM_STATE_PATH")
+	}
+	return value
+}
+
+func getStatePathFromOpt(pathOpt ...string) string {
+	if len(pathOpt) > 0 {
+		path := pathOpt[0]
+		if len(path) > 0 {
+			return path
+		}
+	}
+	return GetStatePath()
+}
+
+func GetState(pathOpt ...string) (interface{}, error) {
+	return GetResource(getStatePathFromOpt(pathOpt...))
+}
+
+func SetState(state interface{}, pathOpt ...string) error {
+	err := SetResource(getStatePathFromOpt(pathOpt...), state)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type ResumeUrls struct {
+	ApprovalPage string `json:"approvalPage"`
+	Cancel       string `json:"cancel"`
+	Resume       string `json:"resume"`
+}
+
+func GetResumeUrls(approver string) (ResumeUrls, error) {
+	var urls ResumeUrls
+	client, err := GetClient()
+	if err != nil {
+		return urls, err
+	}
+	jobId, err := uuid.Parse(os.Getenv("WM_JOB_ID"))
+	if err != nil {
+		return urls, err
+	}
+	params := api.GetResumeUrlsParams{Approver: &approver}
+	nonce := rand.Intn(int(math.MaxUint32))
+	res, err := client.Client.GetResumeUrlsWithResponse(context.Background(),
+		client.Workspace,
+		jobId,
+		nonce,
+		&params,
+	)
+	if err != nil {
+		return urls, err
+	}
+	if res.StatusCode()/100 != 2 {
+		return urls, errors.New(string(res.Body))
+	}
+	urls = *res.JSON200
+	return urls, nil
+}

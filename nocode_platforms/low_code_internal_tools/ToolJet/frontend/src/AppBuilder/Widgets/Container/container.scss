@@ -1,0 +1,22 @@
+.wj-container-header {
+    position: relative;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0px;
+      right: 0px;
+      height: 1px;
+      background-color: var(--cc-container-header-divider-color, var(--cc-default-border));
+    }
+  }
+
+.dynamic-height-target {
+  .canvas-component {
+    .widget-type-container {
+      .sub-canvas {
+        overflow-y: hidden !important;
+      }
+    }
+  }
+}

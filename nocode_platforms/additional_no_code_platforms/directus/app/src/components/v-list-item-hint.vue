@@ -1,0 +1,68 @@
+<script setup lang="ts">
+interface Props {
+	center?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+	center: false,
+});
+</script>
+
+<template>
+	<div class="v-list-item-hint" :class="{ center }">
+		<slot />
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.v-list-item-hint {
+	$this: &;
+
+	display: inline-flex;
+	align-self: center;
+	margin: 0.4375rem 0;
+	color: var(--theme--foreground-subdued);
+
+	&:not(:only-child) {
+		&:first-child {
+			margin-inline-end: 0.6875rem;
+		}
+
+		&:last-child {
+			margin-inline-start: 0.6875rem;
+		}
+	}
+
+	@at-root {
+		.v-list,
+		.v-list-item {
+			#{$this} {
+				margin-block: 0.25rem;
+
+				&:not(:only-child) {
+					&:first-child {
+						margin-inline-end: 0.875rem;
+					}
+
+					&:last-child {
+						margin-inline-start: 0.875rem;
+					}
+				}
+			}
+
+			&.nav {
+				&.three-line,
+				&.two-line {
+					#{$this} {
+						align-self: flex-start;
+
+						&.center {
+							align-self: center;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+</style>

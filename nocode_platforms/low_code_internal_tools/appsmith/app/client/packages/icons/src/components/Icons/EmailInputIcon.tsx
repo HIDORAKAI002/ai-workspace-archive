@@ -1,0 +1,4 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const EmailInputIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width={15} height={15} fill="none" {...props}><path fill="#4C5664" fillOpacity={0.5} d="M12 6.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H14v7h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1h.5V7h-.5a.5.5 0 0 1-.5-.5" /><path fill="#4C5664" d="M2.5 2A2.5 2.5 0 0 0 0 4.5v6A2.5 2.5 0 0 0 2.5 13h7a.5.5 0 0 0 0-1h-7A1.5 1.5 0 0 1 1 10.5v-6A1.5 1.5 0 0 1 2.5 3h12a.5.5 0 0 0 0-1z" /><path fill="#4C5664" fillRule="evenodd" d="M5.5 4a3.5 3.5 0 1 0 0 7h2a.5.5 0 0 0 0-1h-2a2.5 2.5 0 0 1 0-5h.333C7.03 5 8 5.97 8 7.167c0 .46-.373.833-.833.833H7v-.5A1.5 1.5 0 1 0 5.5 9h1.667C8.179 9 9 8.18 9 7.167A3.167 3.167 0 0 0 5.833 4zM6 7.5V8h-.5a.5.5 0 1 1 .5-.5" clipRule="evenodd" /></svg>;
+export { EmailInputIcon };

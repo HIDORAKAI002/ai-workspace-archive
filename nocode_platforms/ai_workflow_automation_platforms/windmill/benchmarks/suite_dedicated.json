@@ -1,0 +1,11 @@
+[
+  {
+    "kind": "dedicated",
+    "jobs": 50000,
+    "noSave": true
+  },
+  {
+    "kind": "dedicated",
+    "jobs": 90000
+  }
+]

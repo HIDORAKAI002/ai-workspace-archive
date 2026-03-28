@@ -1,0 +1,1858 @@
+import {
+  ArrowUturnLeftIcon,
+  BoltSlashIcon,
+  BookOpenIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  InformationCircleIcon,
+  LockOpenIcon,
+  MagnifyingGlassIcon,
+  MagnifyingGlassMinusIcon,
+  MagnifyingGlassPlusIcon,
+  StopCircleIcon,
+} from "@heroicons/react/20/solid";
+
+import { useLoaderData, useRevalidator } from "@remix-run/react";
+import { type LoaderFunctionArgs, type SerializeFrom, json } from "@remix-run/server-runtime";
+import { type Virtualizer } from "@tanstack/react-virtual";
+import {
+  formatDurationMilliseconds,
+  millisecondsToNanoseconds,
+  nanosecondsToMilliseconds,
+  tryCatch,
+} from "@trigger.dev/core/v3";
+import type { RuntimeEnvironmentType } from "@trigger.dev/database";
+import { motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { redirect } from "remix-typedjson";
+import { ChevronExtraSmallDown } from "~/assets/icons/ChevronExtraSmallDown";
+import { ChevronExtraSmallUp } from "~/assets/icons/ChevronExtraSmallUp";
+import { MoveToTopIcon } from "~/assets/icons/MoveToTopIcon";
+import { MoveUpIcon } from "~/assets/icons/MoveUpIcon";
+import tileBgPath from "~/assets/images/error-banner-tile@2x.png";
+import { DevDisconnectedBanner, useCrossEngineIsConnected } from "~/components/DevPresence";
+import { WarmStartIconWithTooltip } from "~/components/WarmStarts";
+import { AdminDebugTooltip } from "~/components/admin/debugTooltip";
+import { PageBody } from "~/components/layout/AppLayout";
+import { Badge } from "~/components/primitives/Badge";
+import { Button, LinkButton } from "~/components/primitives/Buttons";
+import { CopyableText } from "~/components/primitives/CopyableText";
+import { DateTimeShort } from "~/components/primitives/DateTime";
+import { Dialog, DialogTrigger } from "~/components/primitives/Dialog";
+import { Header3 } from "~/components/primitives/Headers";
+import { InfoPanel } from "~/components/primitives/InfoPanel";
+import { Input } from "~/components/primitives/Input";
+import { NavBar, PageAccessories, PageTitle } from "~/components/primitives/PageHeader";
+import { Paragraph } from "~/components/primitives/Paragraph";
+import { Popover, PopoverArrowTrigger, PopoverContent } from "~/components/primitives/Popover";
+import * as Property from "~/components/primitives/PropertyTable";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+  type ResizableSnapshot,
+} from "~/components/primitives/Resizable";
+import { ShortcutKey, variants } from "~/components/primitives/ShortcutKey";
+import { Slider } from "~/components/primitives/Slider";
+import { Switch } from "~/components/primitives/Switch";
+import * as Timeline from "~/components/primitives/Timeline";
+import { SimpleTooltip } from "~/components/primitives/Tooltip";
+import {
+  TreeView,
+  type UseTreeStateOutput,
+  useTree,
+} from "~/components/primitives/TreeView/TreeView";
+import { type NodesState } from "~/components/primitives/TreeView/reducer";
+import { CancelRunDialog } from "~/components/runs/v3/CancelRunDialog";
+import { ReplayRunDialog } from "~/components/runs/v3/ReplayRunDialog";
+import { getRunFiltersFromSearchParams } from "~/components/runs/v3/RunFilters";
+import { RunIcon } from "~/components/runs/v3/RunIcon";
+import {
+  SpanTitle,
+  eventBackgroundClassName,
+  eventBorderClassName,
+} from "~/components/runs/v3/SpanTitle";
+import { TaskRunStatusIcon, runStatusClassNameColor } from "~/components/runs/v3/TaskRunStatus";
+import { $replica } from "~/db.server";
+import { useDebounce } from "~/hooks/useDebounce";
+import { useEnvironment } from "~/hooks/useEnvironment";
+import { useEventSource } from "~/hooks/useEventSource";
+import { useInitialDimensions } from "~/hooks/useInitialDimensions";
+import { useOrganization } from "~/hooks/useOrganizations";
+import { useProject } from "~/hooks/useProject";
+import { useReplaceSearchParams } from "~/hooks/useReplaceSearchParams";
+import { useSearchParams } from "~/hooks/useSearchParam";
+import { type Shortcut, useShortcutKeys } from "~/hooks/useShortcutKeys";
+import { useHasAdminAccess } from "~/hooks/useUser";
+import { findProjectBySlug } from "~/models/project.server";
+import { findEnvironmentBySlug } from "~/models/runtimeEnvironment.server";
+import { NextRunListPresenter } from "~/presenters/v3/NextRunListPresenter.server";
+import { RunEnvironmentMismatchError, RunPresenter } from "~/presenters/v3/RunPresenter.server";
+import { clickhouseClient } from "~/services/clickhouseInstance.server";
+import { getImpersonationId } from "~/services/impersonation.server";
+import { logger } from "~/services/logger.server";
+import { getResizableSnapshot } from "~/services/resizablePanel.server";
+import { requireUserId } from "~/services/session.server";
+import { cn } from "~/utils/cn";
+import { lerp } from "~/utils/lerp";
+import {
+  docsPath,
+  v3BillingPath,
+  v3RunParamsSchema,
+  v3RunPath,
+  v3RunRedirectPath,
+  v3RunSpanPath,
+  v3RunStreamingPath,
+  v3RunsPath,
+} from "~/utils/pathBuilder";
+import type { SpanOverride } from "~/v3/eventRepository/eventRepository.types";
+import { useCurrentPlan } from "../_app.orgs.$organizationSlug/route";
+import { SpanView } from "../resources.orgs.$organizationSlug.projects.$projectParam.env.$envParam.runs.$runParam.spans.$spanParam/route";
+
+const resizableSettings = {
+  parent: {
+    autosaveId: "panel-run-parent",
+    handleId: "parent-handle",
+    main: {
+      id: "run",
+      min: "100px" as const,
+    },
+    inspector: {
+      id: "inspector",
+      default: "500px" as const,
+      min: "50px" as const,
+    },
+  },
+  tree: {
+    autosaveId: "panel-run-tree",
+    handleId: "tree-handle",
+    tree: {
+      id: "tree",
+      default: "50%" as const,
+      min: "50px" as const,
+    },
+    timeline: {
+      id: "timeline",
+      default: "50%" as const,
+      min: "50px" as const,
+    },
+  },
+};
+
+type TraceEvent = NonNullable<SerializeFrom<typeof loader>["trace"]>["events"][0];
+
+type RunsListNavigation = {
+  runs: Array<{ friendlyId: string; spanId: string }>;
+  pagination: { next?: string; previous?: string };
+  prevPageLastRun?: { friendlyId: string; spanId: string; cursor: string };
+  nextPageFirstRun?: { friendlyId: string; spanId: string; cursor: string };
+};
+
+async function getRunsListFromTableState({
+  tableStateParam,
+  organizationSlug,
+  projectParam,
+  envParam,
+  runParam,
+  userId,
+}: {
+  tableStateParam: string | null;
+  organizationSlug: string;
+  projectParam: string;
+  envParam: string;
+  runParam: string;
+  userId: string;
+}): Promise<RunsListNavigation | null> {
+  if (!tableStateParam) {
+    return null;
+  }
+
+  try {
+    const tableStateSearchParams = new URLSearchParams(decodeURIComponent(tableStateParam));
+    const filters = getRunFiltersFromSearchParams(tableStateSearchParams);
+
+    const project = await findProjectBySlug(organizationSlug, projectParam, userId);
+    const environment = await findEnvironmentBySlug(project?.id ?? "", envParam, userId);
+
+    if (!project || !environment) {
+      return null;
+    }
+
+    const runsListPresenter = new NextRunListPresenter($replica, clickhouseClient);
+    const currentPageResult = await runsListPresenter.call(project.organizationId, environment.id, {
+      userId,
+      projectId: project.id,
+      ...filters,
+      pageSize: 25, // Load enough runs to provide navigation context
+    });
+
+    const runsList: RunsListNavigation = {
+      runs: currentPageResult.runs,
+      pagination: currentPageResult.pagination,
+    };
+
+    const currentRunIndex = currentPageResult.runs.findIndex((r) => r.friendlyId === runParam);
+
+    if (currentRunIndex === 0 && currentPageResult.pagination.previous) {
+      const prevPageResult = await runsListPresenter.call(project.organizationId, environment.id, {
+        userId,
+        projectId: project.id,
+        ...filters,
+        cursor: currentPageResult.pagination.previous,
+        direction: "backward",
+        pageSize: 1, // We only need the last run from the previous page
+      });
+
+      if (prevPageResult.runs.length > 0) {
+        runsList.prevPageLastRun = {
+          friendlyId: prevPageResult.runs[0].friendlyId,
+          spanId: prevPageResult.runs[0].spanId,
+          cursor: currentPageResult.pagination.previous,
+        };
+      }
+    }
+
+    if (
+      currentRunIndex === currentPageResult.runs.length - 1 &&
+      currentPageResult.pagination.next
+    ) {
+      const nextPageResult = await runsListPresenter.call(project.organizationId, environment.id, {
+        userId,
+        projectId: project.id,
+        ...filters,
+        cursor: currentPageResult.pagination.next,
+        direction: "forward",
+        pageSize: 1, // We only need the first run from the next page
+      });
+
+      if (nextPageResult.runs.length > 0) {
+        runsList.nextPageFirstRun = {
+          friendlyId: nextPageResult.runs[0].friendlyId,
+          spanId: nextPageResult.runs[0].spanId,
+          cursor: currentPageResult.pagination.next,
+        };
+      }
+    }
+
+    return runsList;
+  } catch (error) {
+    logger.error("Error loading runs list from tableState:", { error });
+    return null;
+  }
+}
+
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  const userId = await requireUserId(request);
+  const impersonationId = await getImpersonationId(request);
+  const { projectParam, organizationSlug, envParam, runParam } = v3RunParamsSchema.parse(params);
+
+  const url = new URL(request.url);
+  const showDebug = url.searchParams.get("showDebug") === "true";
+
+  const presenter = new RunPresenter();
+  const [error, result] = await tryCatch(
+    presenter.call({
+      userId,
+      showDeletedLogs: !!impersonationId,
+      projectSlug: projectParam,
+      runFriendlyId: runParam,
+      environmentSlug: envParam,
+      showDebug,
+    })
+  );
+
+  if (error) {
+    if (error instanceof RunEnvironmentMismatchError) {
+      throw redirect(
+        v3RunRedirectPath(
+          { slug: organizationSlug },
+          { slug: projectParam },
+          { friendlyId: runParam }
+        )
+      );
+    }
+
+    throw error;
+  }
+
+  //resizable settings
+  const parent = await getResizableSnapshot(request, resizableSettings.parent.autosaveId);
+  const tree = await getResizableSnapshot(request, resizableSettings.tree.autosaveId);
+
+  const runsList = await getRunsListFromTableState({
+    tableStateParam: url.searchParams.get("tableState"),
+    organizationSlug,
+    projectParam,
+    envParam,
+    runParam,
+    userId,
+  });
+
+  return json({
+    run: result.run,
+    trace: result.trace,
+    maximumLiveReloadingSetting: result.maximumLiveReloadingSetting,
+    resizable: {
+      parent,
+      tree,
+    },
+    runsList,
+  });
+};
+
+type LoaderData = SerializeFrom<typeof loader>;
+
+export default function Page() {
+  const { run, trace, maximumLiveReloadingSetting, runsList, resizable } =
+    useLoaderData<typeof loader>();
+  const organization = useOrganization();
+  const project = useProject();
+  const environment = useEnvironment();
+  const isConnected = useCrossEngineIsConnected({
+    logCount: trace?.events.length ?? 0,
+    isCompleted: run.completedAt !== null,
+  });
+  const { value } = useSearchParams();
+  const tableState = decodeURIComponent(value("tableState") ?? "");
+  const tableStateSearchParams = new URLSearchParams(tableState);
+  const filters = getRunFiltersFromSearchParams(tableStateSearchParams);
+  const tabParam = value("tab") ?? undefined;
+  const spanParam = value("span") ?? undefined;
+
+  const [previousRunPath, nextRunPath] = useAdjacentRunPaths({
+    organization,
+    project,
+    environment,
+    tableState,
+    run,
+    runsList,
+    tabParam,
+    useSpan: !!spanParam,
+  });
+
+  return (
+    <>
+      <NavBar>
+        <PageTitle
+          backButton={{
+            to: v3RunsPath(organization, project, environment, filters),
+            text: "Runs",
+          }}
+          title={
+            <div className="flex items-center gap-x-0">
+              <CopyableText
+                value={run.friendlyId}
+                variant="text-below"
+                className="-ml-[0.4375rem] h-6 px-1.5 font-mono text-xs hover:text-text-bright"
+              />
+              {tableState && (
+                <div className="flex">
+                  <PreviousRunButton to={previousRunPath} />
+                  <NextRunButton to={nextRunPath} />
+                </div>
+              )}
+            </div>
+          }
+        />
+        {environment.type === "DEVELOPMENT" && <DevDisconnectedBanner isConnected={isConnected} />}
+        <PageAccessories>
+          <AdminDebugTooltip>
+            <Property.Table>
+              <Property.Item>
+                <Property.Label>ID</Property.Label>
+                <Property.Value>{run.id}</Property.Value>
+              </Property.Item>
+              <Property.Item>
+                <Property.Label>Trace ID</Property.Label>
+                <Property.Value>{run.traceId}</Property.Value>
+              </Property.Item>
+              <Property.Item>
+                <Property.Label>Env ID</Property.Label>
+                <Property.Value>{run.environment.id}</Property.Value>
+              </Property.Item>
+              <Property.Item>
+                <Property.Label>Org ID</Property.Label>
+                <Property.Value>{run.environment.organizationId}</Property.Value>
+              </Property.Item>
+            </Property.Table>
+          </AdminDebugTooltip>
+          <LinkButton variant={"docs/small"} LeadingIcon={BookOpenIcon} to={docsPath("/runs")}>
+            Run docs
+          </LinkButton>
+          <Dialog key={`replay-${run.friendlyId}`}>
+            <DialogTrigger asChild>
+              <Button
+                variant="secondary/small"
+                LeadingIcon={ArrowUturnLeftIcon}
+                shortcut={{ key: "R" }}
+                className="pr-2"
+              >
+                Replay run
+              </Button>
+            </DialogTrigger>
+            <ReplayRunDialog
+              runFriendlyId={run.friendlyId}
+              failedRedirect={v3RunSpanPath(
+                organization,
+                project,
+                environment,
+                { friendlyId: run.friendlyId },
+                { spanId: run.spanId }
+              )}
+            />
+          </Dialog>
+          {run.isFinished ? null : (
+            <Dialog key={`cancel-${run.friendlyId}`}>
+              <DialogTrigger asChild>
+                <Button variant="danger/small" LeadingIcon={StopCircleIcon} shortcut={{ key: "C" }}>
+                  Cancel run…
+                </Button>
+              </DialogTrigger>
+              <CancelRunDialog
+                runFriendlyId={run.friendlyId}
+                redirectPath={v3RunSpanPath(
+                  organization,
+                  project,
+                  environment,
+                  { friendlyId: run.friendlyId },
+                  { spanId: run.spanId }
+                )}
+              />
+            </Dialog>
+          )}
+        </PageAccessories>
+      </NavBar>
+      <PageBody scrollable={false}>
+        {trace ? (
+          <TraceView
+            run={run}
+            trace={trace}
+            maximumLiveReloadingSetting={maximumLiveReloadingSetting}
+            resizable={resizable}
+          />
+        ) : (
+          <NoLogsView run={run} resizable={resizable} />
+        )}
+      </PageBody>
+    </>
+  );
+}
+
+function shouldLiveReload({
+  events,
+  maximumLiveReloadingSetting,
+  run,
+}: {
+  events: TraceEvent[];
+  maximumLiveReloadingSetting: number;
+  run: { completedAt: string | null };
+}): boolean {
+  // We don't live reload if there are a ton of spans/logs
+  if (events.length > maximumLiveReloadingSetting) return false;
+
+  // If the run was completed a while ago, we don't need to live reload anymore
+  if (run.completedAt && new Date(run.completedAt).getTime() < Date.now() - 30_000) return false;
+
+  return true;
+}
+
+function TraceView({
+  run,
+  trace,
+  maximumLiveReloadingSetting,
+  resizable,
+}: Pick<LoaderData, "run" | "trace" | "maximumLiveReloadingSetting" | "resizable">) {
+  const organization = useOrganization();
+  const project = useProject();
+  const environment = useEnvironment();
+  const { searchParams, replaceSearchParam } = useReplaceSearchParams();
+  const selectedSpanId = searchParams.get("span") ?? undefined;
+
+  if (!trace) {
+    return <></>;
+  }
+
+  const { events, duration, rootSpanStatus, rootStartedAt, queuedDuration, overridesBySpanId } =
+    trace;
+
+  const changeToSpan = useDebounce((selectedSpan: string) => {
+    replaceSearchParam("span", selectedSpan, { replace: true });
+  }, 250);
+
+  const isLiveReloading = shouldLiveReload({ events, maximumLiveReloadingSetting, run });
+
+  const revalidator = useRevalidator();
+  const streamedEvents = useEventSource(
+    v3RunStreamingPath(organization, project, environment, run),
+    {
+      event: "message",
+      disabled: !isLiveReloading,
+    }
+  );
+  useEffect(() => {
+    if (streamedEvents !== null) {
+      revalidator.revalidate();
+    }
+    // WARNING Don't put the revalidator in the useEffect deps array or bad things will happen
+  }, [streamedEvents]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const spanOverrides = selectedSpanId ? overridesBySpanId?.[selectedSpanId] : undefined;
+
+  // Get the linked run ID for cached spans (map built during RunPresenter walk)
+  const { linkedRunIdBySpanId } = trace;
+  const selectedSpanLinkedRunId = selectedSpanId
+    ? linkedRunIdBySpanId?.[selectedSpanId]
+    : undefined;
+
+  return (
+    <div className={cn("grid h-full max-h-full grid-cols-1 overflow-hidden")}>
+      <ResizablePanelGroup
+        autosaveId={resizableSettings.parent.autosaveId}
+        snapshot={resizable.parent as ResizableSnapshot}
+        className="h-full max-h-full"
+      >
+        <ResizablePanel
+          id={resizableSettings.parent.main.id}
+          min={resizableSettings.parent.main.min}
+        >
+          <TasksTreeView
+            selectedId={selectedSpanId}
+            key={events[0]?.id ?? "-"}
+            events={events}
+            onSelectedIdChanged={(selectedSpan) => {
+              //instantly close the panel if no span is selected
+              if (!selectedSpan) {
+                replaceSearchParam("span");
+                return;
+              }
+
+              changeToSpan(selectedSpan);
+            }}
+            totalDuration={duration}
+            rootSpanStatus={rootSpanStatus}
+            rootStartedAt={rootStartedAt ? new Date(rootStartedAt) : undefined}
+            queuedDuration={queuedDuration}
+            environmentType={run.environment.type}
+            shouldLiveReload={isLiveReloading}
+            maximumLiveReloadingSetting={maximumLiveReloadingSetting}
+            rootRun={run.rootTaskRun}
+            parentRun={run.parentTaskRun}
+            isCompleted={run.completedAt !== null}
+            treeSnapshot={resizable.tree as ResizableSnapshot}
+          />
+        </ResizablePanel>
+        <ResizableHandle id={resizableSettings.parent.handleId} />
+        {selectedSpanId && (
+          <ResizablePanel
+            id={resizableSettings.parent.inspector.id}
+            default={resizableSettings.parent.inspector.default}
+            min={resizableSettings.parent.inspector.min}
+            isStaticAtRest
+          >
+            {" "}
+            <SpanView
+              runParam={run.friendlyId}
+              spanId={selectedSpanId}
+              spanOverrides={spanOverrides as SpanOverride | undefined}
+              closePanel={() => replaceSearchParam("span")}
+              linkedRunId={selectedSpanLinkedRunId}
+            />
+          </ResizablePanel>
+        )}
+      </ResizablePanelGroup>
+    </div>
+  );
+}
+
+function NoLogsView({ run, resizable }: Pick<LoaderData, "run" | "resizable">) {
+  const plan = useCurrentPlan();
+  const organization = useOrganization();
+
+  const logRetention = plan?.v3Subscription?.plan?.limits.logRetentionDays.number ?? 30;
+
+  const completedAt = run.completedAt ? new Date(run.completedAt) : undefined;
+  const now = new Date();
+
+  const daysSinceCompleted = completedAt
+    ? Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24))
+    : undefined;
+
+  const isWithinLogRetention =
+    daysSinceCompleted !== undefined && daysSinceCompleted <= logRetention;
+
+  return (
+    <div className={cn("grid h-full max-h-full grid-cols-1 overflow-hidden")}>
+      <ResizablePanelGroup
+        autosaveId={resizableSettings.parent.autosaveId}
+        snapshot={resizable.parent as ResizableSnapshot}
+        className="h-full max-h-full"
+      >
+        <ResizablePanel
+          id={resizableSettings.parent.main.id}
+          min={resizableSettings.parent.main.min}
+        >
+          <div className="grid h-full place-items-center">
+            {daysSinceCompleted === undefined ? (
+              <InfoPanel variant="info" icon={InformationCircleIcon} title="We delete old logs">
+                <Paragraph variant="small">
+                  We tidy up older logs to keep things running smoothly.
+                </Paragraph>
+              </InfoPanel>
+            ) : isWithinLogRetention ? (
+              <InfoPanel
+                variant="info"
+                icon={InformationCircleIcon}
+                title="These logs have been deleted"
+              >
+                <Paragraph variant="small">
+                  Your log retention is {logRetention} days but these logs had already been deleted.
+                  From now on only logs from runs that completed {logRetention} days ago will be
+                  deleted.
+                </Paragraph>
+              </InfoPanel>
+            ) : daysSinceCompleted <= 30 ? (
+              <InfoPanel
+                variant="upgrade"
+                icon={LockOpenIcon}
+                iconClassName="text-indigo-500"
+                title="Unlock longer log retention"
+                accessory={
+                  <LinkButton to={v3BillingPath(organization)} variant="secondary/small">
+                    Upgrade
+                  </LinkButton>
+                }
+              >
+                <Paragraph variant="small">
+                  The logs for this run have been deleted because the run completed{" "}
+                  {daysSinceCompleted} days ago.
+                </Paragraph>
+                <Paragraph variant="small">Upgrade your plan to keep logs for longer.</Paragraph>
+              </InfoPanel>
+            ) : (
+              <InfoPanel
+                variant="info"
+                icon={InformationCircleIcon}
+                title="These logs are more than 30 days old"
+              >
+                <Paragraph variant="small">
+                  We tidy up older logs to keep things running smoothly.
+                </Paragraph>
+              </InfoPanel>
+            )}
+          </div>
+        </ResizablePanel>
+        <ResizableHandle id={resizableSettings.parent.handleId} />
+        <ResizablePanel
+          id={resizableSettings.parent.inspector.id}
+          default={resizableSettings.parent.inspector.default}
+          min={resizableSettings.parent.inspector.min}
+          isStaticAtRest
+        >
+          <SpanView runParam={run.friendlyId} spanId={run.spanId} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  );
+}
+
+type TasksTreeViewProps = {
+  events: TraceEvent[];
+  selectedId?: string;
+  onSelectedIdChanged: (selectedId: string | undefined) => void;
+  totalDuration: number;
+  rootSpanStatus: "executing" | "completed" | "failed";
+  rootStartedAt: Date | undefined;
+  queuedDuration: number | undefined;
+  environmentType: RuntimeEnvironmentType;
+  shouldLiveReload: boolean;
+  maximumLiveReloadingSetting: number;
+  rootRun: {
+    friendlyId: string;
+    spanId: string;
+  } | null;
+  parentRun: {
+    friendlyId: string;
+    spanId: string;
+  } | null;
+  isCompleted: boolean;
+  treeSnapshot?: ResizableSnapshot;
+};
+
+function TasksTreeView({
+  events,
+  selectedId,
+  onSelectedIdChanged,
+  totalDuration,
+  rootSpanStatus,
+  rootStartedAt,
+  queuedDuration,
+  environmentType,
+  shouldLiveReload,
+  maximumLiveReloadingSetting,
+  rootRun,
+  parentRun,
+  isCompleted,
+  treeSnapshot,
+}: TasksTreeViewProps) {
+  const isAdmin = useHasAdminAccess();
+  const [filterText, setFilterText] = useState("");
+  const [errorsOnly, setErrorsOnly] = useState(false);
+  const [showDurations, setShowDurations] = useState(true);
+  const [showQueueTime, setShowQueueTime] = useState(false);
+  const [scale, setScale] = useState(0);
+  const parentRef = useRef<HTMLDivElement>(null);
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const timelineScrollRef = useRef<HTMLDivElement>(null);
+  const { value, replace } = useSearchParams();
+
+  const searchValue = value("showDebug");
+  const showDebug = searchValue !== undefined ? searchValue === "true" : false;
+
+  const displayEvents = events;
+  const queuedTime = showQueueTime ? undefined : queuedDuration;
+
+  const {
+    nodes,
+    getTreeProps,
+    getNodeProps,
+    toggleNodeSelection,
+    toggleExpandNode,
+    expandAllBelowDepth,
+    toggleExpandLevel,
+    collapseAllBelowDepth,
+    selectNode,
+    scrollToNode,
+    virtualizer,
+  } = useTree({
+    tree: displayEvents,
+    selectedId,
+    // collapsedIds,
+    onSelectedIdChanged,
+    estimatedRowHeight: () => 32,
+    parentRef,
+    filter: {
+      value: { text: filterText, errorsOnly },
+      fn: (value, node) => {
+        const nodePassesErrorTest = (value.errorsOnly && node.data.isError) || !value.errorsOnly;
+        if (!nodePassesErrorTest) return false;
+
+        if (value.text === "") return true;
+        if (node.data.message.toLowerCase().includes(value.text.toLowerCase())) {
+          return true;
+        }
+        return false;
+      },
+    },
+  });
+
+  return (
+    <div className="grid h-full grid-rows-[2.5rem_1fr_3.25rem] overflow-hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-grid-dimmed px-2">
+        <SearchField onChange={setFilterText} />
+        {isAdmin && (
+          <Switch
+            variant="small"
+            label="Debug"
+            shortcut={{ modifiers: ["shift"], key: "D" }}
+            checked={showDebug}
+            onCheckedChange={(checked) => {
+              replace({
+                showDebug: checked ? "true" : "false",
+              });
+            }}
+          />
+        )}
+        <Switch
+          variant="small"
+          label="Queue time"
+          checked={showQueueTime}
+          onCheckedChange={(e) => setShowQueueTime(e.valueOf())}
+          shortcut={{ key: "Q" }}
+        />
+        <Switch
+          variant="small"
+          label="Errors only"
+          checked={errorsOnly}
+          onCheckedChange={(e) => setErrorsOnly(e.valueOf())}
+        />
+      </div>
+      <ResizablePanelGroup autosaveId={resizableSettings.tree.autosaveId} snapshot={treeSnapshot}>
+        {/* Tree list */}
+        <ResizablePanel
+          id={resizableSettings.tree.tree.id}
+          default={resizableSettings.tree.tree.default}
+          min={resizableSettings.tree.tree.min}
+        >
+          <div className="grid h-full grid-rows-[2rem_1fr] overflow-hidden">
+            <div className="flex items-center justify-between pl-1 pr-2">
+              {rootRun || parentRun ? (
+                <ShowParentOrRootLinks
+                  relationships={{
+                    root: rootRun
+                      ? {
+                          friendlyId: rootRun.friendlyId,
+                          spanId: rootRun.spanId,
+                          isParent: parentRun ? rootRun.friendlyId === parentRun.friendlyId : true,
+                        }
+                      : undefined,
+                    parent:
+                      parentRun && rootRun?.friendlyId !== parentRun.friendlyId
+                        ? {
+                            friendlyId: parentRun.friendlyId,
+                            spanId: "",
+                          }
+                        : undefined,
+                  }}
+                />
+              ) : (
+                <Paragraph variant="extra-small" className="flex-1 pl-3 text-charcoal-500">
+                  This is the root task
+                </Paragraph>
+              )}
+              <LiveReloadingStatus
+                rootSpanCompleted={rootSpanStatus !== "executing"}
+                isLiveReloading={shouldLiveReload}
+                settingValue={maximumLiveReloadingSetting}
+              />
+            </div>
+            <TreeView
+              parentRef={parentRef}
+              scrollRef={treeScrollRef}
+              virtualizer={virtualizer}
+              autoFocus
+              tree={events}
+              nodes={nodes}
+              getNodeProps={getNodeProps}
+              getTreeProps={getTreeProps}
+              parentClassName="pl-3"
+              renderNode={({ node, state, index }) => (
+                <>
+                  <div
+                    className={cn(
+                      "flex h-8 cursor-pointer items-center overflow-hidden rounded-l-sm pr-2",
+                      state.selected
+                        ? "bg-grid-dimmed hover:bg-grid-bright"
+                        : "bg-transparent hover:bg-grid-dimmed"
+                    )}
+                    onClick={() => {
+                      selectNode(node.id);
+                    }}
+                  >
+                    <div className="flex h-8 items-center">
+                      {Array.from({ length: node.level }).map((_, index) => (
+                        <TaskLine
+                          key={index}
+                          isError={node.data.isError}
+                          isSelected={state.selected}
+                        />
+                      ))}
+                      <div
+                        className={cn(
+                          "flex h-8 w-4 items-center",
+                          node.hasChildren && "hover:bg-charcoal-600"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (e.altKey) {
+                            if (state.expanded) {
+                              collapseAllBelowDepth(node.level);
+                            } else {
+                              expandAllBelowDepth(node.level);
+                            }
+                          } else {
+                            toggleExpandNode(node.id);
+                          }
+                          scrollToNode(node.id);
+                        }}
+                      >
+                        {node.hasChildren ? (
+                          state.expanded ? (
+                            <ChevronDownIcon className="h-4 w-4 text-charcoal-400" />
+                          ) : (
+                            <ChevronRightIcon className="h-4 w-4 text-charcoal-400" />
+                          )
+                        ) : (
+                          <div className="h-8 w-4" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex w-full items-center justify-between gap-2 pl-1">
+                      <div className="flex items-center gap-1.5 overflow-x-hidden">
+                        <RunIcon
+                          name={node.data.style?.icon}
+                          spanName={node.data.message}
+                          className="size-5 min-h-5 min-w-5"
+                        />
+                        <NodeText node={node} />
+                        {node.data.isRoot && !rootRun && <Badge variant="extra-small">Root</Badge>}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <NodeStatusIcon node={node} />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              onScroll={(scrollTop) => {
+                //sync the scroll to the tree
+                if (timelineScrollRef.current) {
+                  timelineScrollRef.current.scrollTop = scrollTop;
+                }
+              }}
+            />
+          </div>
+        </ResizablePanel>
+        <ResizableHandle id={resizableSettings.tree.handleId} />
+        {/* Timeline */}
+        <ResizablePanel
+          id={resizableSettings.tree.timeline.id}
+          default={resizableSettings.tree.timeline.default}
+          min={resizableSettings.tree.timeline.min}
+        >
+          <TimelineView
+            totalDuration={totalDuration}
+            scale={scale}
+            events={events}
+            rootSpanStatus={rootSpanStatus}
+            rootStartedAt={rootStartedAt}
+            queuedDuration={queuedTime}
+            parentRef={parentRef}
+            timelineScrollRef={timelineScrollRef}
+            nodes={nodes}
+            getNodeProps={getNodeProps}
+            getTreeProps={getTreeProps}
+            showDurations={showDurations}
+            treeScrollRef={treeScrollRef}
+            virtualizer={virtualizer}
+            toggleNodeSelection={toggleNodeSelection}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      <div className="flex items-center justify-between gap-2 border-t border-grid-dimmed px-4">
+        <div className="grow @container">
+          <div className="hidden items-center gap-4 @[48rem]:flex">
+            <KeyboardShortcuts
+              expandAllBelowDepth={expandAllBelowDepth}
+              collapseAllBelowDepth={collapseAllBelowDepth}
+              toggleExpandLevel={toggleExpandLevel}
+              setShowDurations={setShowDurations}
+            />
+          </div>
+          <div className="@[48rem]:hidden">
+            <Popover>
+              <PopoverArrowTrigger>Shortcuts</PopoverArrowTrigger>
+              <PopoverContent
+                className="min-w-[20rem] overflow-y-auto p-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-charcoal-600"
+                align="start"
+              >
+                <Header3 spacing>Keyboard shortcuts</Header3>
+                <div className="flex flex-col gap-2">
+                  <KeyboardShortcuts
+                    expandAllBelowDepth={expandAllBelowDepth}
+                    collapseAllBelowDepth={collapseAllBelowDepth}
+                    toggleExpandLevel={toggleExpandLevel}
+                    setShowDurations={setShowDurations}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <Slider
+            variant={"tertiary"}
+            className="w-20"
+            LeadingIcon={MagnifyingGlassMinusIcon}
+            TrailingIcon={MagnifyingGlassPlusIcon}
+            value={[scale]}
+            onValueChange={(value) => setScale(value[0])}
+            min={0}
+            max={1}
+            step={0.05}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TimelineViewProps = Pick<
+  TasksTreeViewProps,
+  "totalDuration" | "rootSpanStatus" | "events" | "rootStartedAt" | "queuedDuration"
+> & {
+  scale: number;
+  parentRef: React.RefObject<HTMLDivElement>;
+  timelineScrollRef: React.RefObject<HTMLDivElement>;
+  virtualizer: Virtualizer<HTMLElement, Element>;
+  nodes: NodesState;
+  getNodeProps: UseTreeStateOutput["getNodeProps"];
+  getTreeProps: UseTreeStateOutput["getTreeProps"];
+  toggleNodeSelection: UseTreeStateOutput["toggleNodeSelection"];
+  showDurations: boolean;
+  treeScrollRef: React.RefObject<HTMLDivElement>;
+};
+
+const tickCount = 5;
+
+function TimelineView({
+  totalDuration,
+  scale,
+  rootSpanStatus,
+  rootStartedAt,
+  timelineScrollRef,
+  virtualizer,
+  events,
+  nodes,
+  getNodeProps,
+  getTreeProps,
+  toggleNodeSelection,
+  showDurations,
+  treeScrollRef,
+  queuedDuration,
+}: TimelineViewProps) {
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const initialTimelineDimensions = useInitialDimensions(timelineContainerRef);
+  const minTimelineWidth = initialTimelineDimensions?.width ?? 300;
+  const maxTimelineWidth = minTimelineWidth * 10;
+  const disableSpansAnimations = rootSpanStatus !== "executing";
+
+  //we want to live-update the duration if the root span is still executing
+  const [duration, setDuration] = useState(queueAdjustedNs(totalDuration, queuedDuration));
+  useEffect(() => {
+    if (rootSpanStatus !== "executing" || !rootStartedAt) {
+      setDuration(queueAdjustedNs(totalDuration, queuedDuration));
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setDuration(
+        queueAdjustedNs(
+          millisecondsToNanoseconds(Date.now() - rootStartedAt.getTime()),
+          queuedDuration
+        )
+      );
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [totalDuration, rootSpanStatus, queuedDuration, rootStartedAt]);
+
+  return (
+    <div
+      className="h-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-charcoal-600"
+      ref={timelineContainerRef}
+    >
+      <Timeline.Root
+        durationMs={nanosecondsToMilliseconds(duration * 1.05)}
+        scale={scale}
+        className="h-full overflow-hidden"
+        minWidth={minTimelineWidth}
+        maxWidth={maxTimelineWidth}
+      >
+        {/* Follows the cursor */}
+        <CurrentTimeIndicator
+          totalDuration={duration}
+          rootStartedAt={rootStartedAt}
+          queuedDurationNs={queuedDuration}
+        />
+
+        <Timeline.Row className="grid h-full grid-rows-[2rem_1fr]">
+          {/* The duration labels */}
+          <Timeline.Row>
+            <Timeline.Row className="h-6">
+              <Timeline.EquallyDistribute count={tickCount}>
+                {(ms: number, index: number) => {
+                  if (index === tickCount - 1) return null;
+                  return (
+                    <Timeline.Point
+                      ms={ms}
+                      className={"relative bottom-[2px] text-xxs text-text-dimmed"}
+                    >
+                      {(ms) => (
+                        <div
+                          className={cn(
+                            "whitespace-nowrap",
+                            index === 0
+                              ? "ml-1"
+                              : index === tickCount - 1
+                              ? "-ml-1 -translate-x-full"
+                              : "-translate-x-1/2"
+                          )}
+                        >
+                          {formatDurationMilliseconds(ms, {
+                            style: "short",
+                            maxDecimalPoints: ms < 1000 ? 0 : 1,
+                          })}
+                        </div>
+                      )}
+                    </Timeline.Point>
+                  );
+                }}
+              </Timeline.EquallyDistribute>
+              {rootSpanStatus !== "executing" && (
+                <Timeline.Point
+                  ms={nanosecondsToMilliseconds(duration)}
+                  className={cn(
+                    "relative bottom-[2px] text-xxs",
+                    rootSpanStatus === "completed" ? "text-success" : "text-error"
+                  )}
+                >
+                  {(ms) => (
+                    <div className={cn("-translate-x-1/2 whitespace-nowrap")}>
+                      {formatDurationMilliseconds(ms, {
+                        style: "short",
+                        maxDecimalPoints: ms < 1000 ? 0 : 1,
+                      })}
+                    </div>
+                  )}
+                </Timeline.Point>
+              )}
+            </Timeline.Row>
+            <Timeline.Row className="h-2">
+              <Timeline.EquallyDistribute count={tickCount}>
+                {(ms: number, index: number) => {
+                  if (index === 0 || index === tickCount - 1) return null;
+                  return (
+                    <Timeline.Point ms={ms} className={"h-full border-r border-grid-dimmed"} />
+                  );
+                }}
+              </Timeline.EquallyDistribute>
+              <Timeline.Point
+                ms={nanosecondsToMilliseconds(duration)}
+                className={cn(
+                  "h-full border-r",
+                  rootSpanStatus === "completed" ? "border-success/30" : "border-error/30"
+                )}
+              />
+            </Timeline.Row>
+          </Timeline.Row>
+          {/* Main timeline body */}
+          <Timeline.Row className="overflow-hidden">
+            {/* The vertical tick lines */}
+            <Timeline.EquallyDistribute count={tickCount}>
+              {(ms: number, index: number) => {
+                if (index === 0) return null;
+                return <Timeline.Point ms={ms} className={"h-full border-r border-grid-dimmed"} />;
+              }}
+            </Timeline.EquallyDistribute>
+            {/* The completed line  */}
+            {rootSpanStatus !== "executing" && (
+              <Timeline.Point
+                ms={nanosecondsToMilliseconds(duration)}
+                className={cn(
+                  "h-full border-r",
+                  rootSpanStatus === "completed" ? "border-success/30" : "border-error/30"
+                )}
+              />
+            )}
+            <TreeView
+              scrollRef={timelineScrollRef}
+              virtualizer={virtualizer}
+              tree={events}
+              nodes={nodes}
+              getNodeProps={getNodeProps}
+              getTreeProps={getTreeProps}
+              parentClassName="h-full scrollbar-hide"
+              renderNode={({ node, state, index, virtualizer, virtualItem }) => {
+                const isTopSpan = node.id === events[0]?.id;
+
+                return (
+                  <Timeline.Row
+                    key={index}
+                    className={cn(
+                      "group flex h-8 items-center",
+                      state.selected
+                        ? "bg-grid-dimmed hover:bg-grid-bright"
+                        : "bg-transparent hover:bg-grid-dimmed"
+                    )}
+                    // onMouseOver={() => console.log(`hover ${index}`)}
+                    onClick={(e) => {
+                      toggleNodeSelection(node.id);
+                    }}
+                  >
+                    {node.data.level === "TRACE" ? (
+                      <>
+                        {/* Add a span for the line, Make the vertical line the first one with 1px wide, and full height */}
+                        {node.data.timelineEvents.map((event, eventIndex) =>
+                          eventIndex === 0 ? (
+                            <Timeline.Point
+                              key={eventIndex}
+                              ms={nanosecondsToMilliseconds(
+                                queueAdjustedNs(event.offset, queuedDuration)
+                              )}
+                            >
+                              {(ms) => (
+                                <motion.div
+                                  className={cn(
+                                    "-ml-[0.5px] h-[0.5625rem] w-px rounded-none",
+                                    eventBackgroundClassName(node.data)
+                                  )}
+                                  layoutId={
+                                    disableSpansAnimations ? undefined : `${node.id}-${event.name}`
+                                  }
+                                  animate={disableSpansAnimations ? false : undefined}
+                                />
+                              )}
+                            </Timeline.Point>
+                          ) : (
+                            <Timeline.Point
+                              key={eventIndex}
+                              ms={nanosecondsToMilliseconds(
+                                queueAdjustedNs(event.offset, queuedDuration)
+                              )}
+                              className="z-10"
+                            >
+                              {(ms) => (
+                                <motion.div
+                                  className={cn(
+                                    "-ml-[0.1562rem] size-[0.3125rem] rounded-full border bg-background-bright",
+                                    eventBorderClassName(node.data)
+                                  )}
+                                  layoutId={
+                                    disableSpansAnimations ? undefined : `${node.id}-${event.name}`
+                                  }
+                                  animate={disableSpansAnimations ? false : undefined}
+                                />
+                              )}
+                            </Timeline.Point>
+                          )
+                        )}
+                        {node.data.timelineEvents &&
+                        node.data.timelineEvents[0] &&
+                        node.data.timelineEvents[0].offset < node.data.offset ? (
+                          <Timeline.Span
+                            startMs={nanosecondsToMilliseconds(
+                              queueAdjustedNs(node.data.timelineEvents[0].offset, queuedDuration)
+                            )}
+                            durationMs={nanosecondsToMilliseconds(
+                              node.data.offset - node.data.timelineEvents[0].offset
+                            )}
+                          >
+                            <motion.div
+                              className={cn("h-px w-full", eventBackgroundClassName(node.data))}
+                              layoutId={disableSpansAnimations ? undefined : `mark-${node.id}`}
+                              animate={disableSpansAnimations ? false : undefined}
+                            />
+                          </Timeline.Span>
+                        ) : null}
+                        <SpanWithDuration
+                          showDuration={state.selected ? true : showDurations}
+                          startMs={nanosecondsToMilliseconds(
+                            Math.max(queueAdjustedNs(node.data.offset, queuedDuration), 0)
+                          )}
+                          durationMs={
+                            node.data.duration
+                              ? //completed
+                                nanosecondsToMilliseconds(Math.min(node.data.duration, duration))
+                              : //in progress
+                                nanosecondsToMilliseconds(
+                                  Math.min(
+                                    duration + (queuedDuration ?? 0) - node.data.offset,
+                                    duration
+                                  )
+                                )
+                          }
+                          node={node}
+                          fadeLeft={isTopSpan && queuedDuration !== undefined}
+                          disableAnimations={disableSpansAnimations}
+                        />
+                      </>
+                    ) : (
+                      <Timeline.Point
+                        ms={nanosecondsToMilliseconds(
+                          queueAdjustedNs(node.data.offset, queuedDuration)
+                        )}
+                      >
+                        {(ms) => (
+                          <motion.div
+                            className={cn(
+                              "-ml-0.5 size-3 rounded-full border-2 border-background-bright",
+                              eventBackgroundClassName(node.data)
+                            )}
+                            layoutId={disableSpansAnimations ? undefined : node.id}
+                            animate={disableSpansAnimations ? false : undefined}
+                          />
+                        )}
+                      </Timeline.Point>
+                    )}
+                  </Timeline.Row>
+                );
+              }}
+              onScroll={(scrollTop) => {
+                //sync the scroll to the tree
+                if (treeScrollRef.current) {
+                  treeScrollRef.current.scrollTop = scrollTop;
+                }
+              }}
+            />
+          </Timeline.Row>
+        </Timeline.Row>
+      </Timeline.Root>
+    </div>
+  );
+}
+
+function queueAdjustedNs(timeNs: number, queuedDurationNs: number | undefined) {
+  if (queuedDurationNs) {
+    return timeNs - queuedDurationNs;
+  }
+
+  return timeNs;
+}
+
+function NodeText({ node }: { node: TraceEvent }) {
+  const className = "truncate";
+  return (
+    <Paragraph variant="small" className={cn(className)}>
+      <SpanTitle {...node.data} size="small" />
+    </Paragraph>
+  );
+}
+
+function NodeStatusIcon({ node }: { node: TraceEvent }) {
+  if (node.data.level !== "TRACE") return null;
+  if (!node.data.style.variant) return null;
+
+  if (node.data.style.variant === "warm") {
+    return <WarmStartIconWithTooltip isWarmStart={true} className="size-4" />;
+  } else if (node.data.style.variant === "cold") {
+    return <WarmStartIconWithTooltip isWarmStart={false} className="size-4" />;
+  }
+
+  if (node.data.isCancelled) {
+    return (
+      <>
+        <Paragraph variant="extra-small" className={runStatusClassNameColor("CANCELED")}>
+          Canceled
+        </Paragraph>
+        <TaskRunStatusIcon status="CANCELED" className={cn("size-4")} />
+      </>
+    );
+  }
+
+  if (node.data.isError) {
+    return <TaskRunStatusIcon status="COMPLETED_WITH_ERRORS" className={cn("size-4")} />;
+  }
+
+  if (node.data.isPartial) {
+    return <TaskRunStatusIcon status={"EXECUTING"} className={cn("size-4")} />;
+  }
+
+  return <TaskRunStatusIcon status="COMPLETED_SUCCESSFULLY" className={cn("size-4")} />;
+}
+
+function TaskLine({ isError, isSelected }: { isError: boolean; isSelected: boolean }) {
+  return <div className={cn("h-8 w-2 border-r border-grid-bright")} />;
+}
+
+function ShowParentOrRootLinks({
+  relationships,
+}: {
+  relationships: {
+    root?: {
+      friendlyId: string;
+      spanId: string;
+      isParent?: boolean;
+    };
+    parent?: {
+      friendlyId: string;
+      spanId: string;
+    };
+  };
+}) {
+  const organization = useOrganization();
+  const project = useProject();
+  const environment = useEnvironment();
+
+  // Case 1: Root is also the parent
+  if (relationships.root?.isParent === true) {
+    return (
+      <LinkButton
+        variant="minimal/small"
+        to={v3RunSpanPath(
+          organization,
+          project,
+          environment,
+          { friendlyId: relationships.root.friendlyId },
+          { spanId: relationships.root.spanId }
+        )}
+        LeadingIcon={MoveToTopIcon}
+        leadingIconClassName="gap-x-2"
+        shortcut={{ key: "p" }}
+        hideShortcutKey
+        tooltip={
+          <div className="-mr-1 flex items-center gap-1">
+            <Paragraph variant="extra-small">Jump to root and parent run</Paragraph>
+            <ShortcutKey shortcut={{ key: "p" }} variant="small" />
+          </div>
+        }
+        className="text-xs"
+      >
+        Root/parent
+      </LinkButton>
+    );
+  }
+
+  // Case 2: Root and Parent are different runs
+  return (
+    <div className="flex items-center">
+      {relationships.root && (
+        <LinkButton
+          variant="minimal/small"
+          to={v3RunSpanPath(
+            organization,
+            project,
+            environment,
+            { friendlyId: relationships.root.friendlyId },
+            { spanId: relationships.root.spanId }
+          )}
+          LeadingIcon={MoveToTopIcon}
+          leadingIconClassName="gap-x-2"
+          shortcut={{ key: "t" }}
+          hideShortcutKey
+          tooltip={
+            <div className="-mr-1 flex items-center gap-1">
+              <Paragraph variant="extra-small">Jump to root run</Paragraph>
+              <ShortcutKey shortcut={{ key: "t" }} variant="small" />
+            </div>
+          }
+          className="text-xs"
+        >
+          Root
+        </LinkButton>
+      )}
+      {relationships.parent && (
+        <LinkButton
+          variant="minimal/small"
+          to={v3RunSpanPath(
+            organization,
+            project,
+            environment,
+            { friendlyId: relationships.parent.friendlyId },
+            { spanId: relationships.parent.spanId }
+          )}
+          LeadingIcon={MoveUpIcon}
+          leadingIconClassName="gap-x-2"
+          shortcut={{ key: "p" }}
+          hideShortcutKey
+          tooltip={
+            <div className="-mr-1 flex items-center gap-1">
+              <Paragraph variant="extra-small">Jump to parent run</Paragraph>
+              <ShortcutKey shortcut={{ key: "p" }} variant="small" />
+            </div>
+          }
+          className="text-xs"
+        >
+          Parent
+        </LinkButton>
+      )}
+    </div>
+  );
+}
+
+function LiveReloadingStatus({
+  rootSpanCompleted,
+  isLiveReloading,
+  settingValue,
+}: {
+  rootSpanCompleted: boolean;
+  isLiveReloading: boolean;
+  settingValue: number;
+}) {
+  if (rootSpanCompleted) return null;
+
+  return (
+    <>
+      {isLiveReloading ? (
+        <div className="flex items-center gap-1">
+          <PulsingDot />
+          <Paragraph variant="extra-small" className="whitespace-nowrap text-blue-500">
+            Live reloading
+          </Paragraph>
+        </div>
+      ) : (
+        <SimpleTooltip
+          content={`Live reloading is disabled because you've exceeded ${settingValue} logs.`}
+          button={
+            <div className="flex items-center gap-1">
+              <BoltSlashIcon className="size-3.5 text-text-dimmed" />
+              <Paragraph variant="extra-small" className="whitespace-nowrap text-text-dimmed">
+                Live reloading disabled
+              </Paragraph>
+            </div>
+          }
+        ></SimpleTooltip>
+      )}
+    </>
+  );
+}
+
+function PulsingDot() {
+  return (
+    <span className="relative flex size-2">
+      <span
+        className={`absolute h-full w-full animate-ping rounded-full border border-blue-500 opacity-100 duration-1000`}
+      />
+      <span className={`size-2 rounded-full bg-blue-500`} />
+    </span>
+  );
+}
+
+function SpanWithDuration({
+  showDuration,
+  node,
+  fadeLeft,
+  disableAnimations,
+  ...props
+}: Timeline.SpanProps & {
+  node: TraceEvent;
+  showDuration: boolean;
+  fadeLeft: boolean;
+  disableAnimations?: boolean;
+}) {
+  return (
+    <Timeline.Span {...props}>
+      <motion.div
+        className={cn(
+          "relative flex h-4 w-full min-w-0.5 items-center",
+          eventBackgroundClassName(node.data),
+          fadeLeft ? "rounded-r-sm bg-gradient-to-r from-black/50 to-transparent" : "rounded-sm"
+        )}
+        style={{ backgroundSize: "20px 100%", backgroundRepeat: "no-repeat" }}
+        layoutId={disableAnimations ? undefined : node.id}
+        animate={disableAnimations ? false : undefined}
+      >
+        {node.data.isPartial && (
+          <div
+            className="absolute left-0 top-0 h-full w-full animate-tile-scroll rounded-sm opacity-30"
+            style={{ backgroundImage: `url(${tileBgPath})`, backgroundSize: "8px 8px" }}
+          />
+        )}
+        <motion.div
+          className={cn(
+            "sticky left-0 z-10 transition-opacity group-hover:opacity-100",
+            !showDuration && "opacity-0"
+          )}
+          animate={disableAnimations ? false : undefined}
+        >
+          <motion.div
+            className="whitespace-nowrap rounded-sm px-1 py-0.5 text-xxs text-text-bright text-shadow-custom"
+            layout={disableAnimations ? undefined : "position"}
+            animate={disableAnimations ? false : undefined}
+          >
+            {formatDurationMilliseconds(props.durationMs, {
+              style: "short",
+              maxDecimalPoints: props.durationMs < 1000 ? 0 : 1,
+            })}
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </Timeline.Span>
+  );
+}
+
+const edgeBoundary = 0.17;
+
+function CurrentTimeIndicator({
+  totalDuration,
+  rootStartedAt,
+  queuedDurationNs,
+}: {
+  totalDuration: number;
+  rootStartedAt: Date | undefined;
+  queuedDurationNs: number | undefined;
+}) {
+  return (
+    <Timeline.FollowCursor>
+      {(ms) => {
+        const ratio = ms / nanosecondsToMilliseconds(totalDuration);
+        let offset = 0.5;
+        if (ratio < edgeBoundary) {
+          offset = lerp(0, 0.5, ratio / edgeBoundary);
+        } else if (ratio > 1 - edgeBoundary) {
+          offset = lerp(0.5, 1, (ratio - (1 - edgeBoundary)) / edgeBoundary);
+        }
+
+        const currentTime = rootStartedAt
+          ? new Date(
+              rootStartedAt.getTime() + ms + nanosecondsToMilliseconds(queuedDurationNs ?? 0)
+            )
+          : undefined;
+        const currentTimeComponent = currentTime ? <DateTimeShort date={currentTime} /> : <></>;
+
+        return (
+          <div className="relative z-50 flex h-full flex-col">
+            <div className="relative flex h-6 items-end">
+              <div
+                className="absolute w-fit whitespace-nowrap rounded-sm border border-charcoal-600 bg-charcoal-750 px-1 py-0.5 text-xxs tabular-nums text-text-bright"
+                style={{
+                  left: `${offset * 100}%`,
+                  transform: `translateX(-${offset * 100}%)`,
+                }}
+              >
+                {currentTimeComponent ? (
+                  <span>
+                    {formatDurationMilliseconds(ms, {
+                      style: "short",
+                      maxDecimalPoints: ms < 1000 ? 0 : 1,
+                    })}
+                    <span className="mx-1 text-text-dimmed">–</span>
+                    {currentTimeComponent}
+                  </span>
+                ) : (
+                  <>
+                    {formatDurationMilliseconds(ms, {
+                      style: "short",
+                      maxDecimalPoints: ms < 1000 ? 0 : 1,
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="w-px grow border-r border-charcoal-600" />
+          </div>
+        );
+      }}
+    </Timeline.FollowCursor>
+  );
+}
+
+function KeyboardShortcuts({
+  expandAllBelowDepth,
+  collapseAllBelowDepth,
+  toggleExpandLevel,
+}: {
+  expandAllBelowDepth: (depth: number) => void;
+  collapseAllBelowDepth: (depth: number) => void;
+  toggleExpandLevel: (depth: number) => void;
+  setShowDurations?: (show: (show: boolean) => boolean) => void;
+}) {
+  return (
+    <>
+      <ArrowKeyShortcuts />
+      <AdjacentRunsShortcuts />
+      <ShortcutWithAction
+        shortcut={{ key: "e" }}
+        action={() => expandAllBelowDepth(0)}
+        title="Expand all"
+      />
+      <ShortcutWithAction
+        shortcut={{ key: "w" }}
+        action={() => collapseAllBelowDepth(1)}
+        title="Collapse all"
+      />
+      <NumberShortcuts toggleLevel={(number) => toggleExpandLevel(number)} />
+      <ShortcutWithAction shortcut={{ key: "Q" }} title="Queue time" action={() => {}} />
+    </>
+  );
+}
+
+function AdjacentRunsShortcuts() {
+  return (
+    <div className="flex items-center gap-0.5">
+      <ShortcutKey shortcut={{ key: "[" }} variant="medium" className="ml-0 mr-0 px-1" />
+      <ShortcutKey shortcut={{ key: "]" }} variant="medium" className="ml-0 mr-0 px-1" />
+      <Paragraph variant="extra-small" className="ml-1.5 whitespace-nowrap">
+        Next/previous run
+      </Paragraph>
+    </div>
+  );
+}
+
+function ArrowKeyShortcuts() {
+  return (
+    <div className="flex items-center gap-0.5">
+      <ShortcutKey shortcut={{ key: "arrowup" }} variant="medium" className="ml-0 mr-0" />
+      <ShortcutKey shortcut={{ key: "arrowdown" }} variant="medium" className="ml-0 mr-0" />
+      <ShortcutKey shortcut={{ key: "arrowleft" }} variant="medium" className="ml-0 mr-0" />
+      <ShortcutKey shortcut={{ key: "arrowright" }} variant="medium" className="ml-0 mr-0" />
+      <Paragraph variant="extra-small" className="ml-1.5 whitespace-nowrap">
+        Navigate
+      </Paragraph>
+    </div>
+  );
+}
+
+function ShortcutWithAction({
+  shortcut,
+  title,
+  action,
+}: {
+  shortcut: Shortcut;
+  title: string;
+  action: () => void;
+}) {
+  useShortcutKeys({
+    shortcut,
+    action,
+  });
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <ShortcutKey shortcut={shortcut} variant="medium" className="ml-0 mr-0" />
+      <Paragraph variant="extra-small" className="ml-1.5 whitespace-nowrap">
+        {title}
+      </Paragraph>
+    </div>
+  );
+}
+
+function NumberShortcuts({ toggleLevel }: { toggleLevel: (depth: number) => void }) {
+  useHotkeys(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], (event, hotkeysEvent) => {
+    toggleLevel(Number(event.key));
+  });
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <span className={cn(variants.medium, "ml-0 mr-0")}>0</span>
+      <span className="text-[0.65rem] text-text-dimmed">–</span>
+      <span className={cn(variants.medium, "ml-0 mr-0")}>9</span>
+      <Paragraph variant="extra-small" className="ml-1.5 whitespace-nowrap">
+        Toggle level
+      </Paragraph>
+    </div>
+  );
+}
+
+function SearchField({ onChange }: { onChange: (value: string) => void }) {
+  const [value, setValue] = useState("");
+
+  const updateFilterText = useDebounce((text: string) => {
+    onChange(text);
+  }, 250);
+
+  const updateValue = useCallback((value: string) => {
+    setValue(value);
+    updateFilterText(value);
+  }, []);
+
+  return (
+    <Input
+      placeholder="Search log"
+      variant="tertiary"
+      icon={MagnifyingGlassIcon}
+      fullWidth={true}
+      value={value}
+      onChange={(e) => updateValue(e.target.value)}
+    />
+  );
+}
+
+function useAdjacentRunPaths({
+  organization,
+  project,
+  environment,
+  tableState,
+  run,
+  runsList,
+  tabParam,
+  useSpan,
+}: {
+  organization: { slug: string };
+  project: { slug: string };
+  environment: { slug: string };
+  tableState: string;
+  run: { friendlyId: string; spanId: string };
+  runsList: RunsListNavigation | null;
+  tabParam?: string;
+  useSpan?: boolean;
+}): [string | null, string | null] {
+  if (!runsList || runsList.runs.length === 0) {
+    return [null, null];
+  }
+
+  const currentIndex = runsList.runs.findIndex((r) => r.friendlyId === run.friendlyId);
+
+  if (currentIndex === -1) {
+    return [null, null];
+  }
+
+  // Determine previous run: use prevPageLastRun if at first position, otherwise use previous run in list
+  let previousRun: { friendlyId: string; spanId: string } | null = null;
+  const previousRunTableState = new URLSearchParams(tableState);
+  if (currentIndex > 0) {
+    previousRun = runsList.runs[currentIndex - 1];
+  } else if (runsList.prevPageLastRun) {
+    previousRun = runsList.prevPageLastRun;
+    // Update tableState with the new cursor for the previous page
+    previousRunTableState.set("cursor", runsList.prevPageLastRun.cursor);
+    previousRunTableState.set("direction", "backward");
+  }
+
+  // Determine next run: use nextPageFirstRun if at last position, otherwise use next run in list
+  let nextRun: { friendlyId: string; spanId: string } | null = null;
+  const nextRunTableState = new URLSearchParams(tableState);
+  if (currentIndex < runsList.runs.length - 1) {
+    nextRun = runsList.runs[currentIndex + 1];
+  } else if (runsList.nextPageFirstRun) {
+    nextRun = runsList.nextPageFirstRun;
+    // Update tableState with the new cursor for the next page
+    nextRunTableState.set("cursor", runsList.nextPageFirstRun.cursor);
+    nextRunTableState.set("direction", "forward");
+  }
+
+  const previousURLSearchParams = new URLSearchParams();
+  previousURLSearchParams.set("tableState", previousRunTableState.toString());
+  if (previousRun && useSpan) {
+    previousURLSearchParams.set("span", previousRun.spanId);
+  }
+  if (tabParam && useSpan) {
+    previousURLSearchParams.set("tab", tabParam);
+  }
+  const previousRunPath = previousRun
+    ? v3RunPath(organization, project, environment, previousRun, previousURLSearchParams)
+    : null;
+
+  const nextURLSearchParams = new URLSearchParams();
+  nextURLSearchParams.set("tableState", nextRunTableState.toString());
+  if (nextRun && useSpan) {
+    nextURLSearchParams.set("span", nextRun.spanId);
+  }
+  if (tabParam && useSpan) {
+    nextURLSearchParams.set("tab", tabParam);
+  }
+  const nextRunPath = nextRun
+    ? v3RunPath(organization, project, environment, nextRun, nextURLSearchParams)
+    : null;
+
+  return [previousRunPath, nextRunPath];
+}
+
+function PreviousRunButton({ to }: { to: string | null }) {
+  return (
+    <div className={cn("peer/prev order-1", !to && "pointer-events-none")}>
+      <LinkButton
+        to={to ? to : "#"}
+        variant={"minimal/small"}
+        LeadingIcon={ChevronExtraSmallUp}
+        leadingIconClassName="size-3 group-hover/button:text-text-bright transition-colors"
+        className={cn("flex size-6 max-w-6 items-center", !to && "cursor-not-allowed opacity-50")}
+        onClick={(e) => !to && e.preventDefault()}
+        shortcut={{ key: "j" }}
+        tooltip="Previous Run"
+        disabled={!to}
+        replace
+      />
+    </div>
+  );
+}
+
+function NextRunButton({ to }: { to: string | null }) {
+  return (
+    <div className={cn("peer/next order-3", !to && "pointer-events-none")}>
+      <LinkButton
+        to={to ? to : "#"}
+        variant={"minimal/small"}
+        LeadingIcon={ChevronExtraSmallDown}
+        leadingIconClassName="size-3 group-hover/button:text-text-bright transition-colors"
+        className={cn("flex size-6 max-w-6 items-center", !to && "cursor-not-allowed opacity-50")}
+        onClick={(e) => !to && e.preventDefault()}
+        shortcut={{ key: "k" }}
+        tooltip="Next Run"
+        disabled={!to}
+        replace
+      />
+    </div>
+  );
+}

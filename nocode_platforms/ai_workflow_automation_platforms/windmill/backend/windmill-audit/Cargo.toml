@@ -1,0 +1,23 @@
+[package]
+name = "windmill-audit"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[lib]
+name = "windmill_audit"
+path = "./src/lib.rs"
+
+[features]
+enterprise = ["windmill-common/enterprise"]
+private = []
+
+[dependencies]
+serde.workspace = true
+sql-builder.workspace = true
+sqlx.workspace = true
+chrono.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+windmill-common = { workspace = true, default-features = false }
+lazy_static.workspace = true

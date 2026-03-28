@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"lib": ["es2021", "DOM"],
+		"target": "esnext",
+		"outDir": "build",
+		"noUnusedLocals": true,
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"noImplicitAny": false,
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowJs": true,
+		"checkJs": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"useUnknownInCatchVariables": false,
+		"strict": true,
+		"types": ["vite/client"]
+	},
+	"include": ["src/**/*.js", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.svelte"],
+	"exclude": ["src/lib/monaco_workers/*.js"],
+	"extends": "./.svelte-kit/tsconfig.json"
+}

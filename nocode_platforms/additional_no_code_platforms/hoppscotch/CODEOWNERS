@@ -1,0 +1,21 @@
+# CODEOWNERS is prioritized from bottom to top
+
+# Packages
+/packages/codemirror-lang-graphql/                      @AndrewBastin
+/packages/hoppscotch-cli/                               @jamesgeorge007
+/packages/hoppscotch-data/                              @AndrewBastin
+/packages/hoppscotch-js-sandbox/                        @jamesgeorge007
+/packages/hoppscotch-selfhost-web/                      @jamesgeorge007
+/packages/hoppscotch-selfhost-desktop/                  @AndrewBastin
+/packages/hoppscotch-sh-admin/                          @JoelJacobStephen
+/packages/hoppscotch-backend/                           @balub
+
+# READMEs and other documentation files
+*.md                                                    @liyasthomas
+
+# Self Host deployment related files
+*.Dockerfile                                            @balub
+docker-compose.yml                                      @balub
+docker-compose.deploy.yml                               @balub
+*.Caddyfile                                             @balub
+.dockerignore                                           @balub

@@ -1,0 +1,48 @@
+.DS_Store
+*.iml
+.env
+
+stacks
+/deploy/docker/fs/opt/appsmith/info.json
+
+# Server artifacts
+/deploy/docker/fs/opt/appsmith/server
+
+# to ignore the node_modeules folder
+node_modules
+# to ignore the package-lock.json file
+package-lock.json
+
+# test coverage
+coverage-summary.json
+app/client/cypress/locators/Widgets.json
+deploy/ansible/appsmith_playbook/inventory
+
+# performance tests
+app/client/perf/traces/*
+.history
+
+# helm dependencies
+deploy/helm/charts
+
+# yalc files
+## This is for integrating design-system changes during development
+app/client/.yalc/
+app/client/yalc.lock
+
+# editor related
+.vscode/*
+.idea
+.fleet/*
+app/client/.fleet/*
+.lens
+
+# Observability related local storage
+utils/observability/tempo-data/*
+
+# Ignore the mongo data backup directory for Mongo to PG migrations
+mongo-data**
+
+# ignore the task file as it will be different for different project implementations.
+TASKS.md
+mongodb*

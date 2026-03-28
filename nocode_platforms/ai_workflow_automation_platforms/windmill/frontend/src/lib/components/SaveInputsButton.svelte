@@ -1,0 +1,70 @@
+<script lang="ts">
+	import { displayDate } from '$lib/utils.js'
+	import { InputService, type CreateInput, type RunnableType } from '$lib/gen/index.js'
+	import { workspaceStore } from '$lib/stores.js'
+	import { Button } from '$lib/components/common'
+	import { Save } from 'lucide-svelte'
+	import { sendUserToast } from '$lib/utils.js'
+	import { createEventDispatcher } from 'svelte'
+	import Tooltip from '$lib/components/Tooltip.svelte'
+
+	const dispatch = createEventDispatcher()
+
+	interface Props {
+		runnableId: string | undefined;
+		runnableType: RunnableType | undefined;
+		args: object;
+		disabled?: boolean;
+		small?: boolean | undefined;
+		showTooltip?: boolean | undefined;
+	}
+
+	let {
+		runnableId,
+		runnableType,
+		args,
+		disabled = false,
+		small = undefined,
+		showTooltip = undefined
+	}: Props = $props();
+
+	let savingInputs = $state(false)
+
+	async function saveInput(args: object) {
+		savingInputs = true
+
+		const requestBody: CreateInput = {
+			name: 'Saved ' + displayDate(new Date()),
+			args: args as any
+		}
+
+		try {
+			await InputService.createInput({
+				workspace: $workspaceStore!,
+				runnableId,
+				runnableType,
+				requestBody
+			})
+		} catch (err) {
+			console.error(err)
+			sendUserToast(`Failed to save Input: ${err}`, true)
+		}
+
+		savingInputs = false
+		dispatch('update')
+	}
+</script>
+
+<Button
+	on:click={() => saveInput(args)}
+	{disabled}
+	loading={savingInputs}
+	startIcon={{ icon: Save }}
+	variant={small ? 'subtle' : 'default'}
+	unifiedSize="sm"
+>
+	<span>{small ? 'Save inputs' : 'Save current input'}</span>
+	{#if showTooltip}
+		<Tooltip>Shared inputs are available to anyone with access to the script</Tooltip>
+	{/if}
+</Button>

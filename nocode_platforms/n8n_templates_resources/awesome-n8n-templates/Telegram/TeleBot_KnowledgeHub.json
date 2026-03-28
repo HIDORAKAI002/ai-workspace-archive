@@ -1,0 +1,414 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Message Trigger1').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2576,
+        -384
+      ],
+      "id": "2ac4d2dd-945d-4462-bb22-d2df7c5a05fa",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to retrieve any information required.",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        },
+        "topK": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -2432,
+        -352
+      ],
+      "id": "759cc820-fb4e-4dfc-8c67-a7db3a47df18",
+      "name": "Retrieve documents"
+    },
+    {
+      "parameters": {
+        "chunkSize": 3000,
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "a3ca8f55-b216-435d-a723-7d7e5da647b4",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        -3488,
+        -208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -3440,
+        -560
+      ],
+      "id": "7c32d920-7831-45a2-aef3-b51489aae91a",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "315e4265-2020-4e83-b747-ee667cf4bdaf",
+      "name": "Default Data Loader1",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        -3472,
+        -352
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2832,
+        -576
+      ],
+      "id": "01da1111-472a-4278-9076-b5e54e9cc2c8",
+      "name": "Get a chat1",
+      "webhookId": "e0769871-efe3-49da-81a5-2f88a6fdd33f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ia5MGLNKo8qvlZKA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload your data to test RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload your file(s)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .csv"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -3696,
+        -560
+      ],
+      "id": "ccae11fa-63fd-416e-ab91-d1721d388b4d",
+      "name": "Upload your file here",
+      "webhookId": "82848bc4-5ea2-4e5a-8bb6-3c09b94a8c5d"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Message Trigger1').item.json.message.text }}",
+        "options": {
+          "systemMessage": "=You are an helplful AI Assistant Provide answers to user query based only on knowledgebase.Do Not provide any edectra knowledge apart from knowledgebase",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2672,
+        -576
+      ],
+      "id": "a8ed394d-cf4f-4aa5-bdbe-1f893dc34782",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2672,
+        -384
+      ],
+      "id": "a3ddcc9d-1528-4b2a-8a5d-2257f764da47",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "VigIwXyv0R77rvez",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        -3648,
+        -336
+      ],
+      "id": "314aecad-e499-48e0-8e36-0282a2c22895",
+      "name": "Embeddings HuggingFace Inference",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "UlEObrcgshQgIGsE",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Message Trigger1').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2352,
+        -576
+      ],
+      "id": "5aa1edba-e5d5-4383-8150-60b56cb7f2e4",
+      "name": "Reply in Telegram1",
+      "webhookId": "b96b7a41-9806-455f-b72e-00aa638eda71",
+      "credentials": {
+        "telegramApi": {
+          "id": "ia5MGLNKo8qvlZKA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "id": "9d4e56d0-e7fd-4f5e-bba6-cdc207accfa7",
+      "name": "Telegram Message Trigger1",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2992,
+        -576
+      ],
+      "webhookId": "55acc711-c248-4ac9-b6cd-e295c2d33f4b",
+      "credentials": {
+        "telegramApi": {
+          "id": "ia5MGLNKo8qvlZKA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        -2432,
+        -176
+      ],
+      "id": "d006eda4-cbd6-439f-9878-fd065ce2b7bf",
+      "name": "Embeddings HuggingFace Inference1",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "UlEObrcgshQgIGsE",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 656,
+        "width": 912
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4032,
+        -672
+      ],
+      "typeVersion": 1,
+      "id": "e8facbae-ec41-492a-b3e0-c267fb6b941c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 656,
+        "width": 912
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3008,
+        -672
+      ],
+      "typeVersion": 1,
+      "id": "987e71c5-a8f5-4a22-894e-5dec4a4c3722",
+      "name": "Sticky Note1"
+    }
+  ],
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve documents": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a chat1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Reply in Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Message Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get a chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Retrieve documents",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateId": "voice_assistant_agent_with_telegram",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4223d451d431f37003ec5182bb9d912b844ad3ae10017bc814f4557fca8b9a12"
+  }
+}

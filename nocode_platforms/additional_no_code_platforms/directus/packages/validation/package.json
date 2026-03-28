@@ -1,0 +1,42 @@
+{
+	"name": "@directus/validation",
+	"version": "2.0.20",
+	"type": "module",
+	"sideEffects": false,
+	"scripts": {
+		"build": "tsdown src/index.ts --dts",
+		"dev": "tsdown src/index.ts --dts --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"description": "Utils to help with validation",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/validation"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "MIT",
+	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@directus/types": "workspace:*",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@directus/errors": "workspace:*",
+		"@directus/utils": "workspace:*",
+		"joi": "catalog:"
+	}
+}

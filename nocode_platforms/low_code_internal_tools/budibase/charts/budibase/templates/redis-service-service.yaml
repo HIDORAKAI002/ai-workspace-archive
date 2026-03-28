@@ -1,0 +1,17 @@
+{{- if .Values.services.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: redis-service
+  name: redis-service
+spec:
+  ports:
+  - name: {{ .Values.services.redis.port | quote }}
+    port: {{ .Values.services.redis.port }}
+    targetPort: {{ .Values.services.redis.port }}
+  selector:
+    io.kompose.service: redis-service
+status:
+  loadBalancer: {}
+{{- end }}

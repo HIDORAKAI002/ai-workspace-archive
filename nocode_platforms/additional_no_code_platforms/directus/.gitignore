@@ -1,0 +1,61 @@
+# User preferences
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Builds / Caches
+dist/
+coverage/
+.histoire/
+*.tsbuildinfo
+**/.vitepress/cache/
+**/.vitepress/.temp/
+.eslintcache
+.stylelintcache
+
+# Dotenv configs
+.env
+.env.*
+
+# Logs
+npm-debug.log
+debug
+.clinic
+
+# IDEs / Editors
+.devcontainer/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.code-workspace
+.history/
+*.sublime-settings
+.*.swp
+
+# Environments / Workspaces
+.gitpod.yml
+.netlify
+
+# Temporary files
+TODO
+
+# Directus
+*.db
+/schema.yaml
+/schema.json
+/api/uploads/
+/api/extensions/
+/tests/blackbox/uploads/
+/tests/blackbox/server-log-*
+/tests/blackbox/sequencer-data.json
+/packages/extensions-sdk/temp-extension-*/
+
+# AI
+.claude/*
+!.claude/CLAUDE.md
+!.claude/settings.json
+!.claude/hooks/
+!.claude/skills/
+.devtools/

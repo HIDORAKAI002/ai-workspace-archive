@@ -1,0 +1,248 @@
+{
+  "nodes": [
+    {
+      "id": "calculator_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "calculator_0",
+        "label": "Calculator",
+        "version": 3,
+        "name": "calculator",
+        "type": "Calculator",
+        "baseClasses": ["Calculator", "Tool", "StructuredTool"],
+        "category": "Tools",
+        "description": "Perform calculations on response",
+        "inputParams": [],
+        "inputAnchors": [],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "calculator_0-output-calculator-Calculator|Tool|StructuredTool",
+            "name": "calculator",
+            "label": "Calculator",
+            "description": "Perform calculations on response",
+            "type": "Calculator | Tool | StructuredTool"
+          }
+        ]
+      }
+    },
+    {
+      "id": "serpAPI_0",
+      "position": { "x": 100, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "serpAPI_0",
+        "label": "Serp API",
+        "version": 2,
+        "name": "serpAPI",
+        "type": "SerpAPI",
+        "baseClasses": ["SerpAPI", "Tool", "StructuredTool"],
+        "category": "Tools",
+        "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["serpApi"]
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "serpAPI_0-output-serpAPI-SerpAPI|Tool|StructuredTool",
+            "name": "serpAPI",
+            "label": "Serp API",
+            "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
+            "type": "SerpAPI | Tool | StructuredTool"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_2",
+      "position": { "x": 400, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_2",
+        "label": "ChatOpenAI",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          },
+          {
+            "label": "Streaming",
+            "name": "streaming",
+            "type": "boolean",
+            "default": true,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-4",
+          "temperature": 0.1,
+          "streaming": false
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_2-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agentExecutor_0",
+      "position": { "x": 700, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "agentExecutor_0",
+        "label": "Agent Executor",
+        "version": 3,
+        "name": "agentExecutor",
+        "type": "AgentExecutor",
+        "baseClasses": ["AgentExecutor", "BaseChain"],
+        "category": "Agents",
+        "description": "Agent that can use tools to accomplish tasks",
+        "inputParams": [
+          {
+            "label": "Agent Type",
+            "name": "agentType",
+            "type": "options",
+            "options": [
+              { "label": "Zero Shot React", "name": "zero-shot-react-description" },
+              { "label": "React Docstore", "name": "react-docstore" },
+              { "label": "Conversational React", "name": "conversational-react-description" }
+            ],
+            "default": "zero-shot-react-description"
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "default": 3,
+            "optional": true
+          },
+          {
+            "label": "Verbose",
+            "name": "verbose",
+            "type": "boolean",
+            "default": false,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "agentExecutor_0-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for the agent",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "agentExecutor_0-input-tools-Tool",
+            "name": "tools",
+            "label": "Tools",
+            "description": "Tools for the agent to use",
+            "type": "Tool",
+            "list": true
+          },
+          {
+            "id": "agentExecutor_0-input-memory-BaseMemory",
+            "name": "memory",
+            "label": "Memory",
+            "description": "Memory to use for the agent",
+            "type": "BaseMemory",
+            "optional": true
+          }
+        ],
+        "inputs": {
+          "agentType": "zero-shot-react-description",
+          "maxIterations": 5,
+          "verbose": true
+        },
+        "outputAnchors": [
+          {
+            "id": "agentExecutor_0-output-agentExecutor-AgentExecutor|BaseChain",
+            "name": "agentExecutor",
+            "label": "Agent Executor",
+            "description": "Agent that can use tools to accomplish tasks",
+            "type": "AgentExecutor | BaseChain"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "calculator_0",
+      "sourceHandle": "calculator_0-output-calculator-Calculator|Tool|StructuredTool",
+      "target": "agentExecutor_0",
+      "targetHandle": "agentExecutor_0-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "calculator_0-agentExecutor_0"
+    },
+    {
+      "source": "serpAPI_0",
+      "sourceHandle": "serpAPI_0-output-serpAPI-SerpAPI|Tool|StructuredTool",
+      "target": "agentExecutor_0",
+      "targetHandle": "agentExecutor_0-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "serpAPI_0-agentExecutor_0"
+    },
+    {
+      "source": "chatOpenAI_2",
+      "sourceHandle": "chatOpenAI_2-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "agentExecutor_0",
+      "targetHandle": "agentExecutor_0-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_2-agentExecutor_0"
+    }
+  ],
+  "chatflow": {
+    "id": "agent-with-tools",
+    "name": "Agent with Calculator and Search",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Complex Examples",
+    "description": "An intelligent agent that can perform calculations and web searches to answer complex questions"
+  }
+}

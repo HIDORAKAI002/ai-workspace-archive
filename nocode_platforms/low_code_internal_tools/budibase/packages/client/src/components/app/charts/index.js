@@ -1,0 +1,8 @@
+export const bar = () => import("./BarChart.svelte")
+export const line = () => import("./LineChart.svelte")
+export const pie = () => import("./PieChart.svelte")
+export const donut = () => import("./DonutChart.svelte")
+export const area = () => import("./AreaChart.svelte")
+export const candlestick = () => import("./CandleStickChart.svelte")
+export const histogram = () => import("./HistogramChart.svelte")
+export const gauge = () => import("./GaugeChart.svelte")

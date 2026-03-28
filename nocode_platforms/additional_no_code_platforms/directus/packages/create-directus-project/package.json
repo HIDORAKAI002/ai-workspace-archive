@@ -1,0 +1,46 @@
+{
+	"name": "create-directus-project",
+	"version": "12.0.3",
+	"description": "A small installer util that will create a directory, add boilerplate folders, and install Directus through npm",
+	"keywords": [
+		"directus",
+		"installer"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/create-directus-project"
+	},
+	"license": "MIT",
+	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
+	"type": "module",
+	"exports": {
+		".": "./lib/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "lib/index.js",
+	"bin": {
+		"cdp": "./lib/index.js",
+		"create-directus-project": "./lib/index.js"
+	},
+	"scripts": {
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"chalk": "catalog:",
+		"commander": "catalog:",
+		"execa": "catalog:",
+		"fs-extra": "catalog:",
+		"log-symbols": "catalog:",
+		"ora": "catalog:",
+		"update-check": "catalog:"
+	},
+	"devDependencies": {
+		"@vitest/coverage-v8": "catalog:",
+		"vitest": "catalog:"
+	},
+	"engines": {
+		"node": ">=22"
+	}
+}

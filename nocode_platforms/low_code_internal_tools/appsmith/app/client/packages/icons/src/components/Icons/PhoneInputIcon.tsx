@@ -1,0 +1,4 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const PhoneInputIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width={15} height={15} fill="none" {...props}><path fill="#4C5664" fillOpacity={0.5} d="M12 6.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H14v7h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1h.5V7h-.5a.5.5 0 0 1-.5-.5" /><path fill="#4C5664" d="M2.5 2A2.5 2.5 0 0 0 0 4.5v6A2.5 2.5 0 0 0 2.5 13h7a.5.5 0 0 0 0-1h-7A1.5 1.5 0 0 1 1 10.5v-6A1.5 1.5 0 0 1 2.5 3h12a.5.5 0 0 0 0-1z" /><path fill="#4C5664" d="M9 5.5a.5.5 0 0 0-.854-.354l-1 1a.5.5 0 1 0 .708.708L8 6.707V9h-.5a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1H9zM3.5 7a.5.5 0 0 0 0 1H4v.5a.5.5 0 0 0 1 0V8h.5a.5.5 0 0 0 0-1H5v-.5a.5.5 0 0 0-1 0V7z" /></svg>;
+export { PhoneInputIcon };

@@ -1,0 +1,48 @@
+import {
+  compare,
+  decrypt,
+  encrypt,
+  getSecret,
+  SecretOption,
+} from "../encryption"
+import env, { withEnv } from "../../environment"
+
+describe("encryption", () => {
+  it("should throw an error if API encryption key is not set", () => {
+    const jwt = getSecret(SecretOption.API)
+    expect(jwt).toBe(env.JWT_SECRET?.export().toString())
+  })
+
+  it("should throw an error if encryption key is not set", () => {
+    expect(() => getSecret(SecretOption.ENCRYPTION)).toThrow(
+      'Secret "ENCRYPTION_KEY" has not been set in environment.'
+    )
+  })
+
+  it("should encrypt and decrypt a string using API encryption key", () => {
+    withEnv({ API_ENCRYPTION_KEY: "api_secret" }, () => {
+      const plaintext = "budibase"
+      const apiEncrypted = encrypt(plaintext, SecretOption.API)
+      const decrypted = decrypt(apiEncrypted, SecretOption.API)
+      expect(decrypted).toEqual(plaintext)
+    })
+  })
+
+  it("should encrypt and decrypt a string using encryption key", () => {
+    withEnv({ ENCRYPTION_KEY: "normal_secret" }, () => {
+      const plaintext = "budibase"
+      const encryptionEncrypted = encrypt(plaintext, SecretOption.ENCRYPTION)
+      const decrypted = decrypt(encryptionEncrypted, SecretOption.ENCRYPTION)
+      expect(decrypted).toEqual(plaintext)
+    })
+  })
+
+  it("should compare plaintext against encrypted values", () => {
+    withEnv({ API_ENCRYPTION_KEY: "api_secret" }, () => {
+      const plaintext = "budibase"
+      const encrypted = encrypt(plaintext, SecretOption.API)
+      expect(compare(plaintext, encrypted, SecretOption.API)).toBe(true)
+      expect(compare("not-budibase", encrypted, SecretOption.API)).toBe(false)
+    })
+  })
+})

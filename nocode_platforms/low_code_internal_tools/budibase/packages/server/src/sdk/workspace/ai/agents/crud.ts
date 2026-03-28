@@ -1,0 +1,350 @@
+import { context, docIds, encryption, HTTPError } from "@budibase/backend-core"
+import { DocumentType } from "@budibase/types"
+import type {
+  Agent,
+  CreateAgentRequest,
+  UpdateAgentRequest,
+} from "@budibase/types"
+import { helpers } from "@budibase/shared-core"
+
+const SECRET_MASK = "********"
+const SECRET_ENCODING_PREFIX = "bbai_enc::"
+const NAME_REQUIRED_ERROR = "Agent name is required."
+
+const guardName = async (name: string, id?: string) => {
+  if (!name.trim()) {
+    throw new HTTPError(NAME_REQUIRED_ERROR, 400)
+  }
+
+  const agents = await fetch()
+  const normalizedName = helpers.normalizeForComparison(name)
+  const duplicate = agents.find(
+    agent =>
+      helpers.normalizeForComparison(agent.name) === normalizedName &&
+      agent._id !== id
+  )
+
+  if (duplicate) {
+    throw new HTTPError(`Agent with name '${name}' already exists.`, 400)
+  }
+}
+
+const encodeSecret = (value?: string): string | undefined => {
+  if (!value || value.startsWith(SECRET_ENCODING_PREFIX)) {
+    return value
+  }
+  return `${SECRET_ENCODING_PREFIX}${encryption.encrypt(value)}`
+}
+
+const decodeSecret = (value?: string): string | undefined => {
+  if (!value || !value.startsWith(SECRET_ENCODING_PREFIX)) {
+    return value
+  }
+  return encryption.decrypt(value.slice(SECRET_ENCODING_PREFIX.length))
+}
+
+const encodeDiscordIntegrationSecrets = (
+  discordIntegration?: Agent["discordIntegration"]
+) => {
+  if (!discordIntegration) {
+    return discordIntegration
+  }
+
+  return {
+    ...discordIntegration,
+    publicKey: encodeSecret(discordIntegration.publicKey),
+    botToken: encodeSecret(discordIntegration.botToken),
+  }
+}
+
+const decodeDiscordIntegrationSecrets = (
+  discordIntegration?: Agent["discordIntegration"]
+) => {
+  if (!discordIntegration) {
+    return discordIntegration
+  }
+
+  return {
+    ...discordIntegration,
+    publicKey: decodeSecret(discordIntegration.publicKey),
+    botToken: decodeSecret(discordIntegration.botToken),
+  }
+}
+
+const encodeSlackIntegrationSecrets = (
+  slackIntegration?: Agent["slackIntegration"]
+) => {
+  if (!slackIntegration) {
+    return slackIntegration
+  }
+
+  return {
+    ...slackIntegration,
+    botToken: encodeSecret(slackIntegration.botToken),
+    signingSecret: encodeSecret(slackIntegration.signingSecret),
+  }
+}
+
+const decodeSlackIntegrationSecrets = (
+  slackIntegration?: Agent["slackIntegration"]
+) => {
+  if (!slackIntegration) {
+    return slackIntegration
+  }
+
+  return {
+    ...slackIntegration,
+    botToken: decodeSecret(slackIntegration.botToken),
+    signingSecret: decodeSecret(slackIntegration.signingSecret),
+  }
+}
+
+const withAgentDefaults = (agent: Agent): Agent => ({
+  ...agent,
+  live: agent.live ?? false,
+  enabledTools: agent.enabledTools || [],
+  knowledgeBases: agent.knowledgeBases || [],
+  discordIntegration: decodeDiscordIntegrationSecrets(agent.discordIntegration),
+  slackIntegration: decodeSlackIntegrationSecrets(agent.slackIntegration),
+})
+
+const mergeDiscordIntegration = ({
+  existing,
+  incoming,
+}: {
+  existing?: Agent["discordIntegration"]
+  incoming?: Agent["discordIntegration"]
+}) => {
+  if (incoming === undefined) {
+    return existing
+  }
+  if (!incoming) {
+    return incoming
+  }
+
+  const merged = {
+    ...(existing || {}),
+    ...incoming,
+  }
+
+  if (incoming.publicKey === SECRET_MASK && existing?.publicKey) {
+    merged.publicKey = existing.publicKey
+  }
+
+  if (incoming.botToken === SECRET_MASK && existing?.botToken) {
+    merged.botToken = existing.botToken
+  }
+
+  return merged
+}
+
+const mergeMSTeamsIntegration = ({
+  existing,
+  incoming,
+}: {
+  existing?: Agent["MSTeamsIntegration"]
+  incoming?: Agent["MSTeamsIntegration"]
+}) => {
+  if (incoming === undefined) {
+    return existing
+  }
+  if (!incoming) {
+    return incoming
+  }
+
+  const merged = {
+    ...(existing || {}),
+    ...incoming,
+  }
+
+  if (incoming.appPassword === SECRET_MASK && existing?.appPassword) {
+    merged.appPassword = existing.appPassword
+  }
+
+  return merged
+}
+
+const mergeSlackIntegration = ({
+  existing,
+  incoming,
+}: {
+  existing?: Agent["slackIntegration"]
+  incoming?: Agent["slackIntegration"]
+}) => {
+  if (incoming === undefined) {
+    return existing
+  }
+  if (!incoming) {
+    return incoming
+  }
+
+  const merged = {
+    ...(existing || {}),
+    ...incoming,
+  }
+
+  if (incoming.botToken === SECRET_MASK && existing?.botToken) {
+    merged.botToken = existing.botToken
+  }
+
+  if (incoming.signingSecret === SECRET_MASK && existing?.signingSecret) {
+    merged.signingSecret = existing.signingSecret
+  }
+
+  return merged
+}
+
+export async function fetch(): Promise<Agent[]> {
+  const db = context.getWorkspaceDB()
+  const result = await db.allDocs<Agent>(
+    docIds.getDocParams(DocumentType.AGENT, undefined, {
+      include_docs: true,
+    })
+  )
+
+  return result.rows
+    .map(row => row.doc)
+    .filter((doc): doc is Agent => !!doc)
+    .map(withAgentDefaults)
+}
+
+export async function getOrThrow(agentId: string | undefined): Promise<Agent> {
+  if (!agentId) {
+    throw new HTTPError("agentId is required", 400)
+  }
+
+  const db = context.getWorkspaceDB()
+
+  const agent = await db.tryGet<Agent>(agentId)
+  if (!agent) {
+    throw new HTTPError("Agent not found", 404)
+  }
+
+  return withAgentDefaults(agent)
+}
+
+export async function create(request: CreateAgentRequest): Promise<Agent> {
+  const db = context.getWorkspaceDB()
+  const now = new Date().toISOString()
+
+  await guardName(request.name)
+
+  const agent: Agent = {
+    _id: docIds.generateAgentID(),
+    name: request.name,
+    description: request.description,
+    aiconfig: request.aiconfig || "", // this might be set later, it will be validated on publish/usage
+    promptInstructions: request.promptInstructions,
+    live: request.live ?? false,
+    publishedAt: request.live ? now : undefined,
+    icon: request.icon,
+    iconColor: request.iconColor,
+    goal: request.goal,
+    createdAt: now,
+    createdBy: request.createdBy,
+    enabledTools: request.enabledTools || [],
+    knowledgeBases: request.knowledgeBases || [],
+    discordIntegration: request.discordIntegration,
+    MSTeamsIntegration: request.MSTeamsIntegration,
+    slackIntegration: request.slackIntegration,
+  }
+
+  const { rev } = await db.put({
+    ...agent,
+    discordIntegration: encodeDiscordIntegrationSecrets(
+      agent.discordIntegration
+    ),
+    slackIntegration: encodeSlackIntegrationSecrets(agent.slackIntegration),
+  })
+  agent._rev = rev
+  return withAgentDefaults(agent)
+}
+
+export async function duplicate(
+  source: Agent,
+  createdBy: string
+): Promise<Agent> {
+  const allAgents = await fetch()
+  const name = helpers.duplicateName(
+    source.name,
+    allAgents.map(agent => agent.name)
+  )
+
+  return await create({
+    name,
+    description: source.description,
+    aiconfig: source.aiconfig,
+    promptInstructions: source.promptInstructions,
+    goal: source.goal,
+    icon: source.icon,
+    iconColor: source.iconColor,
+    live: source.live,
+    _deleted: false,
+    createdBy,
+    enabledTools: source.enabledTools || [],
+    knowledgeBases: source.knowledgeBases || [],
+  })
+}
+
+export async function update(agent: UpdateAgentRequest): Promise<Agent> {
+  const { _id, _rev } = agent
+  if (!_id || !_rev) {
+    throw new HTTPError("_id and _rev are required", 400)
+  }
+
+  const db = context.getWorkspaceDB()
+  const existingRaw = await db.tryGet<Agent>(_id)
+  const existing = existingRaw ? withAgentDefaults(existingRaw) : undefined
+  const normalizedName = helpers.normalizeForComparison(agent.name)
+  const normalizedExistingName = helpers.normalizeForComparison(
+    existing?.name || ""
+  )
+
+  if (existing && normalizedName !== normalizedExistingName) {
+    await guardName(agent.name, _id)
+  }
+
+  const now = new Date().toISOString()
+  const updated: Agent = {
+    ...existing,
+    ...agent,
+    updatedAt: now,
+    enabledTools: agent.enabledTools ?? existing?.enabledTools ?? [],
+    knowledgeBases: agent.knowledgeBases ?? existing?.knowledgeBases ?? [],
+    discordIntegration: mergeDiscordIntegration({
+      existing: existing?.discordIntegration,
+      incoming: agent.discordIntegration,
+    }),
+    MSTeamsIntegration: mergeMSTeamsIntegration({
+      existing: existing?.MSTeamsIntegration,
+      incoming: agent.MSTeamsIntegration,
+    }),
+    slackIntegration: mergeSlackIntegration({
+      existing: existing?.slackIntegration,
+      incoming: agent.slackIntegration,
+    }),
+  }
+
+  const hasBeenPublished =
+    !!existing?.publishedAt || existing?.live === true || updated.live === true
+  updated.publishedAt = hasBeenPublished
+    ? existing?.publishedAt || now
+    : undefined
+
+  const { rev } = await db.put({
+    ...updated,
+    discordIntegration: encodeDiscordIntegrationSecrets(
+      updated.discordIntegration
+    ),
+    slackIntegration: encodeSlackIntegrationSecrets(updated.slackIntegration),
+  })
+  updated._rev = rev
+  return withAgentDefaults(updated)
+}
+
+export async function remove(agentId: string) {
+  const db = context.getWorkspaceDB()
+  const agent = await getOrThrow(agentId)
+
+  await db.remove(agent)
+}

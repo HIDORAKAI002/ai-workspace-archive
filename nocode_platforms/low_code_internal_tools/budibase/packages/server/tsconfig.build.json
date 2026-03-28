@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "allowArbitraryExtensions": true,
+    "isolatedModules": false
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/tests",
+    "src/api/routes/tests/utilities",
+    "src/api/routes/public/tests/utils.ts",
+    "src/automations/tests/utilities",
+    "**/*.spec.ts",
+    "**/*.spec.js"
+  ]
+}

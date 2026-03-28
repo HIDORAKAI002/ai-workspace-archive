@@ -1,0 +1,56 @@
+{
+  "form": [
+    {
+      "sectionName": "Email Configuration",
+      "id": 1,
+      "children": [
+        {
+          "sectionName": null,
+          "children": [
+            {
+              "label": "Host address",
+              "configProperty": "datasourceConfiguration.endpoints[*].host",
+              "controlType": "KEYVALUE_ARRAY",
+              "validationMessage": "Please enter a valid host",
+              "validationRegex": "^((?![/:]).)*$",
+              "placeholderText": "myapp.abcde.smtp.net"
+            },
+            {
+              "label": "Port",
+              "configProperty": "datasourceConfiguration.endpoints[*].port",
+              "dataType": "NUMBER",
+              "initialValue": ["25"],
+              "controlType": "KEYVALUE_ARRAY",
+              "placeholderText": "25"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sectionName": "Authentication",
+      "id": 2,
+      "children": [
+        {
+          "sectionName": null,
+          "children": [
+            {
+              "label": "Username",
+              "configProperty": "datasourceConfiguration.authentication.username",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "Username"
+            },
+            {
+              "label": "Password",
+              "configProperty": "datasourceConfiguration.authentication.password",
+              "dataType": "PASSWORD",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "Password",
+              "encrypted": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

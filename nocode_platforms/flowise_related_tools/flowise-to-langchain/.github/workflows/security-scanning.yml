@@ -1,0 +1,397 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scans weekly on Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - dependency
+        - code
+        - container
+
+env:
+  NODE_VERSION: '20'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  # Dependency vulnerability scanning
+  dependency-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == ''
+    
+    strategy:
+      matrix:
+        workspace: ['.', 'frontend', 'testing-ui']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Run npm audit
+        working-directory: ${{ matrix.workspace }}
+        run: |
+          echo "## NPM Audit Results for ${{ matrix.workspace }}" >> $GITHUB_STEP_SUMMARY
+          npm audit --audit-level=moderate --output=json > audit-results.json || true
+          
+          if [ -s audit-results.json ]; then
+            echo "### Vulnerabilities Found:" >> $GITHUB_STEP_SUMMARY
+            cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "- **\(.key)**: \(.value.severity) - \(.value.title)"' >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "✅ No vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+        
+      - name: Audit with Snyk
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium --file=${{ matrix.workspace }}/package.json
+        continue-on-error: true
+        
+      - name: Upload Snyk report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+        continue-on-error: true
+
+  # Static code analysis
+  code-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == ''
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript'
+          
+      - name: ESLint security analysis
+        run: |
+          npm install --no-save eslint-plugin-security
+          npx eslint --ext .ts,.js src/ frontend/src/ testing-ui/src/ \
+            --config '{"extends": ["plugin:security/recommended"], "rules": {"security/detect-object-injection": "error"}}' \
+            --format json -o eslint-security-results.json || true
+        continue-on-error: true
+        
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-security-results
+          path: eslint-security-results.json
+
+  # Container scanning
+  container-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == ''
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image
+        run: |
+          # Create a Dockerfile for scanning if it doesn't exist
+          if [ ! -f Dockerfile ]; then
+            cat > Dockerfile << 'EOF'
+          FROM node:20-alpine
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm ci --only=production && npm cache clean --force
+          COPY . .
+          EXPOSE 3000
+          CMD ["npm", "start"]
+          EOF
+          fi
+          
+          docker build -t flowise-converter:latest .
+          
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'flowise-converter:latest'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          
+      - name: Upload Trivy container scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-container-results.sarif'
+          
+      - name: Scan with Anchore Grype
+        uses: anchore/scan-action@v3
+        with:
+          image: 'flowise-converter:latest'
+          fail-build: false
+          output-format: 'sarif'
+          
+      - name: Upload Anchore scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'results.sarif'
+
+  # OWASP ZAP security testing
+  dynamic-security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'schedule' || github.event.inputs.scan_type == 'full'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Build and start application
+        run: |
+          npm run build
+          npm run dev &
+          cd testing-ui && npm run dev &
+          
+          # Wait for applications to start
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+        
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+          
+      - name: Run OWASP ZAP full scan
+        uses: zaproxy/action-full-scan@v0.8.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+        continue-on-error: true
+
+  # Secret scanning
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == ''
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+          
+      - name: Scan with detect-secrets
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files --exclude-files package-lock.json > secrets-baseline.json
+          detect-secrets audit secrets-baseline.json --diff || true
+        continue-on-error: true
+
+  # License compliance
+  license-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'schedule' || github.event.inputs.scan_type == 'full'
+    
+    strategy:
+      matrix:
+        workspace: ['.', 'frontend', 'testing-ui']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+          
+      - name: Install license-checker
+        run: npm install -g license-checker
+        
+      - name: Check licenses
+        working-directory: ${{ matrix.workspace }}
+        run: |
+          echo "## License Report for ${{ matrix.workspace }}" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for problematic licenses
+          license-checker --onlyAllow "MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;Unlicense;CC0-1.0" --excludePrivatePackages || {
+            echo "⚠️ **Potentially problematic licenses found!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            license-checker --csv --excludePrivatePackages > licenses.csv
+            echo "\`\`\`csv" >> $GITHUB_STEP_SUMMARY
+            head -20 licenses.csv >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          }
+        continue-on-error: true
+
+  # Compliance and governance
+  compliance-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'schedule' || github.event.inputs.scan_type == 'full'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check security policy
+        run: |
+          echo "## Security Compliance Check" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for security policy
+          if [ -f "SECURITY.md" ]; then
+            echo "✅ Security policy exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Security policy missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for contributing guidelines
+          if [ -f "CONTRIBUTING.md" ]; then
+            echo "✅ Contributing guidelines exist" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Contributing guidelines missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for code of conduct
+          if [ -f "CODE_OF_CONDUCT.md" ]; then
+            echo "✅ Code of conduct exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Code of conduct missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for license
+          if [ -f "LICENSE" ] || [ -f "LICENSE.md" ] || [ -f "LICENSE.txt" ]; then
+            echo "✅ License file exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ License file missing" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Security report generation
+  security-report:
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-analysis, container-scan, secret-scan, license-scan, compliance-check]
+    if: always() && (github.event_name == 'schedule' || github.event.inputs.scan_type == 'full')
+    
+    steps:
+      - name: Generate security report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              'Dependency Scan': '${{ needs.dependency-scan.result }}',
+              'Code Analysis': '${{ needs.code-analysis.result }}',
+              'Container Scan': '${{ needs.container-scan.result }}',
+              'Secret Scan': '${{ needs.secret-scan.result }}',
+              'License Scan': '${{ needs.license-scan.result }}',
+              'Compliance Check': '${{ needs.compliance-check.result }}'
+            };
+            
+            let summary = '# 🔒 Security Scan Report\n\n';
+            summary += `**Scan Date**: ${new Date().toISOString()}\n`;
+            summary += `**Trigger**: ${context.eventName}\n`;
+            summary += `**Repository**: ${context.repo.owner}/${context.repo.repo}\n\n`;
+            summary += '## Scan Results\n\n';
+            
+            for (const [scan, result] of Object.entries(results)) {
+              const icon = result === 'success' ? '✅' : result === 'failure' ? '❌' : result === 'skipped' ? '⏭️' : '⏸️';
+              summary += `${icon} **${scan}**: ${result}\n`;
+            }
+            
+            summary += '\n## Security Recommendations\n\n';
+            summary += '- Review all failed security scans\n';
+            summary += '- Update dependencies with known vulnerabilities\n';
+            summary += '- Address any secrets found in the codebase\n';
+            summary += '- Ensure compliance with security policies\n';
+            summary += '- Consider implementing additional security measures\n\n';
+            summary += '## Next Steps\n\n';
+            summary += '- Review detailed scan results in the Actions tab\n';
+            summary += '- Create issues for any security findings\n';
+            summary += '- Update security documentation as needed\n';
+            
+            console.log(summary);
+            
+            // Create issue for failed scans
+            const failedScans = Object.entries(results).filter(([, result]) => result === 'failure');
+            if (failedScans.length > 0) {
+              const issueBody = `${summary}\n\n## Failed Scans\n\n${failedScans.map(([scan]) => `- ${scan}`).join('\n')}`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Security Scan Failures - ${new Date().toISOString().split('T')[0]}`,
+                body: issueBody,
+                labels: ['security', 'automated', 'priority-high']
+              });
+            }

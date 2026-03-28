@@ -1,0 +1,242 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# *db files
+*.db
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+coverage.json
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat-schedule.db
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.env-local
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+pyrightconfig.json
+!api/pyrightconfig.json
+
+# Pyre type checker
+.pyre/
+.idea/'
+
+.DS_Store
+
+# Intellij IDEA Files
+.idea/*
+!.idea/vcs.xml
+!.idea/icon.png
+.ideaDataSources/
+*.iml
+api/.idea
+
+api/.env
+api/storage/*
+
+docker-legacy/volumes/app/storage/*
+docker-legacy/volumes/db/data/*
+docker-legacy/volumes/redis/data/*
+docker-legacy/volumes/weaviate/*
+docker-legacy/volumes/qdrant/*
+docker-legacy/volumes/etcd/*
+docker-legacy/volumes/minio/*
+docker-legacy/volumes/milvus/*
+docker-legacy/volumes/chroma/*
+docker-legacy/volumes/opensearch/data/*
+docker-legacy/volumes/pgvectors/data/*
+docker-legacy/volumes/pgvector/data/*
+
+docker/volumes/app/storage/*
+docker/volumes/certbot/*
+docker/volumes/db/data/*
+docker/volumes/redis/data/*
+docker/volumes/weaviate/*
+docker/volumes/qdrant/*
+docker/tidb/volumes/*
+docker/volumes/etcd/*
+docker/volumes/minio/*
+docker/volumes/milvus/*
+docker/volumes/chroma/*
+docker/volumes/opensearch/data/*
+docker/volumes/myscale/data/*
+docker/volumes/myscale/log/*
+docker/volumes/unstructured/*
+docker/volumes/pgvector/data/*
+docker/volumes/pgvecto_rs/data/*
+docker/volumes/couchbase/*
+docker/volumes/oceanbase/*
+docker/volumes/plugin_daemon/*
+docker/volumes/matrixone/*
+docker/volumes/mysql/*
+docker/volumes/seekdb/*
+!docker/volumes/oceanbase/init.d
+docker/volumes/iris/*
+
+docker/nginx/conf.d/default.conf
+docker/nginx/ssl/*
+!docker/nginx/ssl/.gitkeep
+docker/middleware.env
+docker/docker-compose.override.yaml
+docker/env-backup/*
+
+sdks/python-client/build
+sdks/python-client/dist
+sdks/python-client/dify_client.egg-info
+
+.vscode/*
+!.vscode/launch.json.template
+!.vscode/README.md
+api/.vscode
+# vscode Code History Extension
+.history
+
+.idea/
+
+# pnpm
+/.pnpm-store
+
+# plugin migrate
+plugins.jsonl
+
+# mise
+mise.toml
+
+
+# AI Assistant
+.roo/
+/.claude/worktrees/
+api/.env.backup
+/clickzetta
+
+# Benchmark
+scripts/stress-test/setup/config/
+scripts/stress-test/reports/
+
+# mcp
+.playwright-mcp/
+.serena/
+
+# settings
+*.local.json
+*.local.md
+
+# Code Agent Folder
+.qoder/*

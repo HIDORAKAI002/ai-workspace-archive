@@ -1,0 +1,82 @@
+import * as dotenv from "dotenv";
+import path from "path";
+import { test } from "../../fixtures";
+import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+import { initialGPTsetup } from "../../utils/initialGPTsetup";
+import { withEventDeliveryModes } from "../../utils/withEventDeliveryModes";
+
+withEventDeliveryModes(
+  "Basic Prompting (Hello, World)",
+  { tag: ["@release", "@starter-projects"] },
+  async ({ page }) => {
+    test.skip(
+      !process?.env?.OPENAI_API_KEY,
+      "OPENAI_API_KEY required to run this test",
+    );
+
+    if (!process.env.CI) {
+      dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+    }
+
+    await awaitBootstrapTest(page);
+
+    await page.getByTestId("side_nav_options_all-templates").click();
+    await page.getByRole("heading", { name: "Basic Prompting" }).click();
+
+    await initialGPTsetup(page);
+
+    await page.getByTestId("button_run_chat output").click();
+    await page.waitForSelector("text=built successfully", { timeout: 30000 });
+
+    await page.getByRole("button", { name: "Playground", exact: true }).click();
+    await page
+      .getByText("No input message provided.", { exact: true })
+      .last()
+      .isVisible();
+
+    //create a new session - default session can not be deleted
+    await page.getByTestId("new-chat").click();
+    await page.getByTitle("New Session 0").isVisible();
+
+    await page.waitForSelector('[data-testid="input-chat-playground"]', {
+      timeout: 100000,
+    });
+
+    await page
+      .getByTestId("input-chat-playground")
+      .last()
+      .fill("Say hello as a pirate");
+
+    await page.waitForSelector('[data-testid="button-send"]', {
+      timeout: 100000,
+    });
+
+    await page.getByTestId("button-send").last().click();
+
+    await page.waitForSelector("text=matey", {
+      timeout: 100000,
+    });
+
+    await page.getByText("matey").last().isVisible();
+
+    await page.getByText("timestamp", { exact: true }).last().isVisible();
+    await page.getByText("text", { exact: true }).last().isVisible();
+    await page.getByText("sender", { exact: true }).last().isVisible();
+    await page.getByText("sender_name", { exact: true }).last().isVisible();
+    await page.getByText("session_id", { exact: true }).last().isVisible();
+    await page.getByText("files", { exact: true }).last().isVisible();
+
+    await page.getByRole("gridcell").last().isVisible();
+    // Use sidebar session more menu (chat-header-more-menu is hidden in fullscreen)
+    await page
+      .locator('[data-testid^="session-"][data-testid$="-more-menu"]')
+      .last()
+      .click();
+    await page.getByTestId("delete-session-option").click();
+    await page.waitForSelector('[data-testid="input-chat-playground"]', {
+      timeout: 100000,
+    });
+
+    await page.getByTestId("input-chat-playground").last().isVisible();
+  },
+);

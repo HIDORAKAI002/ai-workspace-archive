@@ -1,0 +1,553 @@
+<script lang="ts" setup>
+import type { ColumnType, GridType } from 'nocodb-sdk'
+import InfiniteTable from './InfiniteTable.vue'
+import Table from './Table.vue'
+import CanvasTable from './canvas/index.vue'
+import GroupBy from './GroupBy.vue'
+
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+const router = useRouter()
+
+const route = router.currentRoute
+
+const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { t } = useI18n()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+const bulkUpdateDlg = ref(false)
+
+const routeQuery = computed(() => route.value.query as Record<string, string>)
+
+const expandedFormRef = ref()
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
+
+const reloadVisibleDataHook = createEventHook()
+
+provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
+
+const tableRef = ref<typeof InfiniteTable>()
+
+useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
+
+const {
+  loadData,
+  selectedRows: _selectedRows,
+  updateOrSaveRow,
+  addEmptyRow: _addEmptyRow,
+  deleteRow,
+  deleteSelectedRows,
+  cachedRows,
+  clearCache,
+  removeRowIfNew,
+  navigateToSiblingRow,
+  deleteRangeOfRows,
+  bulkUpdateRows,
+  bulkUpsertRows,
+  syncCount,
+  totalRows,
+  actualTotalRows,
+  syncVisibleData,
+  optimisedQuery,
+  isLastRow,
+  isFirstRow,
+  chunkStates,
+  updateRecordOrder,
+  clearInvalidRows,
+  isRowSortRequiredRows,
+  applySorting,
+  isBulkOperationInProgress,
+  selectedAllRecords,
+  selectedAllRecordsSkipPks,
+  bulkDeleteAll,
+  getRows,
+  getDataCache,
+  cachedGroups,
+  groupByColumns,
+  groupSyncCount,
+  fetchMissingGroupChunks,
+  toggleExpand,
+  totalGroups,
+  clearGroupCache,
+  toggleExpandAll,
+  groupDataCache,
+} = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
+
+const rowHeight = computed(() => {
+  const gridView = view.value?.view as GridType
+  if (gridView?.row_height !== undefined) {
+    switch (gridView?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
+
+provide(IsFormInj, ref(false))
+
+provide(IsGalleryInj, ref(false))
+
+provide(IsGridInj, ref(true))
+
+provide(IsCalendarInj, ref(false))
+
+provide(RowHeightInj, rowHeight)
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+const skipRowRemovalOnCancel = ref(false)
+
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+  expandedFormRowState.value = state
+  if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
+
+    const routeParams = {
+      query: {
+        ...routeQuery.value,
+        rowId,
+        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+        // Remove expand from query to avoid triggering the expanded form on closing the dialog
+        expand: undefined,
+      },
+    }
+    // if expand is true, replace the route to avoid adding a new history entry
+    if (routeQuery.value.expand) {
+      router.replace(routeParams)
+    } else {
+      router.push(routeParams)
+    }
+  } else {
+    expandedFormRow.value = row
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
+}
+
+const exposeOpenColumnCreate = (data: any) => {
+  tableRef.value?.openColumnCreate(data)
+}
+
+defineExpose({
+  loadData,
+  openColumnCreate: exposeOpenColumnCreate,
+})
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!routeQuery.value.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...routeQuery.value,
+          path: undefined,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+const addRowExpandOnClose = (row: Row) => {
+  if (!skipRowRemovalOnCancel.value) {
+    eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
+  }
+}
+
+const toggleOptimisedQuery = () => {
+  if (optimisedQuery.value) {
+    optimisedQuery.value = false
+    message.info(t('msg.optimizedQueryDisabled'))
+  } else {
+    optimisedQuery.value = true
+    message.info(t('msg.optimizedQueryEnabled'))
+  }
+}
+
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
+
+const viewWidth = ref(0)
+
+const smartsheetEvents = (event: SmartsheetStoreEvents) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+}
+
+eventBus.on(smartsheetEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEvents)
+})
+
+const goToNextRow = () => {
+  navigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const goToPreviousRow = () => {
+  navigateToSiblingRow(NavigateDir.PREV)
+}
+
+const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
+
+const isCanvasGroupByTableEnabled = computed(
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
+
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  aggCommentCount: pAggCommentCount,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+  isFirstRow: pisFirstRow,
+  islastRow: pisLastRow,
+  getExpandedRowIndex: pGetExpandedRowIndex,
+  navigateToSiblingRow: pNavigateToSiblingRow,
+} = useViewData(meta, view, xWhere)
+
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+  loadDisallowedLookups,
+} = useViewGroupByOrThrow()
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return 'var(--color-gray-50)'
+    case 2:
+      return 'var(--color-gray-100)'
+    case 3:
+      return 'var(--color-gray-200)'
+    default:
+      return 'var(--color-gray-50)'
+  }
+})
+
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  if (isInfiniteScrollingEnabled.value) {
+    const currentRowIndex = Array.from(cachedRows.value.values()).find(
+      (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+    )?.rowMeta.rowIndex
+
+    if (currentRowIndex === undefined) return
+
+    const currentRow = cachedRows.value.get(currentRowIndex)
+    if (!currentRow) return
+
+    currentRow.rowMeta.commentCount = count
+
+    syncVisibleData?.()
+  } else {
+    const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
+    const currentRowIndex = pData.value.findIndex(
+      (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+    )
+
+    if (currentRowIndex === -1) return
+
+    if (aggCommentCountIndex === -1) {
+      pAggCommentCount.value.push({
+        row_id: routeQuery.value.rowId,
+        count,
+      })
+
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+
+      return
+    }
+
+    if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
+    pAggCommentCount.value[aggCommentCountIndex].count = count
+    pData.value[currentRowIndex].rowMeta.commentCount = count
+  }
+}
+
+const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+  if (
+    (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+  ) {
+    return true
+  }
+
+  callback?.()
+}
+
+const pGoToNextRow = () => {
+  const currentIndex = pGetExpandedRowIndex()
+
+  if (
+    !pPaginationData.value.isLastPage &&
+    currentIndex === (pPaginationData.value.pageSize ?? 25) - 1 &&
+    validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
+
+  pNavigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const pGoToPreviousRow = () => {
+  pNavigateToSiblingRow(NavigateDir.PREV)
+}
+
+const groupPath = ref([])
+
+const selectedRows = computed(() => {
+  const dataCache = getDataCache(groupPath.value)
+  return dataCache?.selectedRows.value
+})
+
+const bulkUpdateTrigger = (path: Array<number>) => {
+  groupPath.value = path
+  bulkUpdateDlg.value = true
+}
+
+watch([() => view.value?.id, () => meta.value?.columns], async () => {
+  await loadDisallowedLookups()
+})
+</script>
+
+<template>
+  <div
+    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+    data-testid="nc-grid-wrapper"
+    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
+  >
+    <Table
+      v-if="!isGroupBy && !isInfiniteScrollingEnabled"
+      ref="tableRef"
+      v-model:selected-all-records="pSelectedAllRecords"
+      :data="pData"
+      :pagination-data="pPaginationData"
+      :load-data="pLoadData"
+      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
+      :call-add-empty-row="pAddEmptyRow"
+      :delete-row="pDeleteRow"
+      :update-or-save-row="pUpdateOrSaveRow"
+      :delete-selected-rows="pDeleteSelectedRows"
+      :delete-range-of-rows="pDeleteRangeOfRows"
+      :bulk-update-rows="pBulkUpdateRows"
+      :expand-form="expandForm"
+      :remove-row-if-new="pRemoveRowIfNew"
+      :row-height-enum="rowHeight"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <CanvasTable
+      v-else-if="
+        isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
+      "
+      ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+      :load-data="loadData"
+      :call-add-empty-row="_addEmptyRow"
+      :delete-row="deleteRow"
+      :update-or-save-row="updateOrSaveRow"
+      :delete-selected-rows="deleteSelectedRows"
+      :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
+      :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :update-record-order="updateRecordOrder"
+      :bulk-delete-all="bulkDeleteAll"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
+      :sync-count="syncCount"
+      :get-rows="getRows"
+      :chunk-states="chunkStates"
+      :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :total-groups="totalGroups"
+      :get-data-cache="getDataCache"
+      :cached-groups="cachedGroups"
+      :group-by-columns="groupByColumns"
+      :group-data-cache="groupDataCache"
+      :clear-group-cache="clearGroupCache"
+      :toggle-expand="toggleExpand"
+      :group-sync-count="groupSyncCount"
+      :fetch-missing-group-chunks="fetchMissingGroupChunks"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      :toggle-expand-all="toggleExpandAll"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateTrigger"
+    />
+
+    <InfiniteTable
+      v-else-if="!isGroupBy"
+      ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+      :load-data="loadData"
+      :call-add-empty-row="_addEmptyRow"
+      :delete-row="deleteRow"
+      :update-or-save-row="updateOrSaveRow"
+      :delete-selected-rows="deleteSelectedRows"
+      :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
+      :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :get-rows="getRows"
+      :update-record-order="updateRecordOrder"
+      :bulk-delete-all="bulkDeleteAll"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
+      :sync-count="syncCount"
+      :chunk-states="chunkStates"
+      :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <GroupBy
+      v-else
+      :group="rootGroup"
+      :load-groups="loadGroups"
+      :load-group-data="loadGroupData"
+      :call-add-empty-row="pAddEmptyRow"
+      :expand-form="expandForm"
+      :load-group-page="loadGroupPage"
+      :group-wrapper-change-page="groupWrapperChangePage"
+      :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
+      :max-depth="groupBy.length"
+      :redistribute-rows="redistributeRows"
+      :view-width="viewWidth"
+    />
+
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :load-row="!isPublic"
+        :row="expandedFormRow"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+        @update:model-value="addRowExpandOnClose(expandedFormRow)"
+      />
+    </Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg && meta?.id"
+      ref="expandedFormRef"
+      v-model="expandedFormOnRowIdDlg"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :load-row="!isPublic"
+      :state="expandedFormRowState"
+      :row-id="routeQuery.rowId"
+      :view="view"
+      show-next-prev-icons
+      :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
+      :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
+      :expand-form="expandForm"
+      @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
+      @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
+    />
+    <Suspense>
+      <LazyDlgBulkUpdate
+        v-if="bulkUpdateDlg"
+        v-model="bulkUpdateDlg"
+        :meta="meta"
+        :view="view"
+        :path="groupPath"
+        :bulk-update-rows="bulkUpdateRows"
+        :rows="selectedRows"
+      />
+    </Suspense>
+  </div>
+</template>
+
+<style lang="scss">
+.nc-grid-pagination-wrapper .ant-dropdown-button {
+  > .ant-btn {
+    @apply !p-0 !rounded-l-lg hover:border-nc-gray-300;
+  }
+
+  > .ant-dropdown-trigger {
+    @apply !rounded-r-lg;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  @apply !rounded-lg;
+}
+</style>

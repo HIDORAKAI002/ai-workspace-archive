@@ -1,0 +1,552 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: Σχετικά
+first_name: Όνομα
+last_name: Επώνυμο
+identifier: Ταυτοποιητής
+avatar: Άβαταρ
+application: Εφαρμογή
+default_provider: Προεπιλογή
+method: Μέθοδος
+published: Δημοσιευμένο
+draft: Πρόχειρο
+archived: Αρχειοθετήθηκε
+extensions: Επεκτάσεις
+modules: Ενότητες
+module_bar: Γραμμή Ενθεμάτων
+logs: Αρχεία καταγραφής (Logs)
+unknown: Άγνωστο
+reset_width: Επαναφορά πλάτους
+tile_size: Μέγεθος πλακιδίων
+edit_field: Επεξεργασία Πεδίου
+conditions: Προϋποθέσεις
+location: Τοποθεσία
+collection_names_are_case_sensitive: Τα ονόματα των συλλογών εφαρμόζουν διάκριση πεζών - κεφαλαίων γραμμάτων
+condition_rules: Κανόνες Κατάστασης
+input: Εισαγωγή
+maps: Χάρτες
+switch_user: Εναλλαγή Χρήστη
+item_creation: Δημιουργία Στοιχείου
+item_revision: Αναθεώρηση Αντικειμένου
+enter_a_name: Πληκτρολογήστε ένα όνομα...
+duplicate_field: Αντίγραφο Πεδίου
+half_width: Μισό Πλάτος
+full_width: Πλήρες Πλάτος
+group: Ομάδα
+popular: Δημοφιλές
+recent: Πρόσφατο
+export_items: Εξαγωγή στοιχείων
+and: Και
+or: Ή
+init: Έναρξη
+dataset_too_large_currently_showing_n_items: Τα δεδομένα είναι πολλά. Αυτή τη στιγμή εμφανίζονται τα πρώτα {n} στοιχεία.
+modifier: Μετατροπέας
+extension_interface: Διεπαφή
+extension_display: Προβολή
+extension_layout: Διάταξη
+extension_module: Ενότητα
+extension_panel: Πίνακας Διαχείρισης
+extension_theme: Θέμα
+extension_hook: Άγκιστρο
+extension_endpoint: Endpoint
+extension_operation: Λειτουργία
+extension_bundle: Δέσμη
+extension_interfaces: Διεπαφές
+extension_displays: Προβολές
+extension_layouts: Διατάξεις
+extension_modules: Ενότητες
+extension_panels: Πίνακες Διαχείρισης
+extension_themes: Θέματα
+extension_hooks: Hooks
+extension_endpoints: Endpoints
+extension_operations: Λειτουργίες
+extension_bundles: Πακέτα
+extension_reload_required: Απαιτείται Επαναφόρτωση Σελίδας
+extension_reload_required_copy: Απαιτείται επαναφόρτωση σελίδας για να δείτε τις αλλαγές μετά την ενεργοποίηση ή απενεργοποίηση των επεκτάσεων εφαρμογών.
+extension_reload_now: Επαναφόρτωση τώρα
+published_relative: Δημοσιεύτηκε
+homepage: Αρχική σελίδα
+github: GitHub
+beta: Beta (Δοκιμαστική)
+n_downloads: '{n} Λήψεις'
+downloads: Λήψεις
+compatibility_not_guaranteed: Μη εγγυημένη συμβατότητα
+compatibility_not_guaranteed_copy: Ο συγγραφέας έχει υποδείξει τη συμβατότητα αυτής της επέκτασης να είναι η{hostVersion}, η οποία δεν ταιριάζει με την τρέχουσα έκδοση σας ({currentVersion})
+enable: Ενεργοποίηση
+disable: Απενεργοποίηση
+custom: Προσαρμοσμένο
+hook: Άγκιστρο
+fill_width: Πλήρες Πλάτος
+field_name_translations: Μεταφράσεις Ονόματος Πεδίου
+enter_password_to_enable_tfa: Εισάγετε τον κωδικό πρόσβασής σας για να ενεργοποιήσετε τον διπλό έλεγχο ταυτότητας
+add_field: Προσθήκη Πεδίου
+role_name: Όνομα Ρόλου
+branch: Κλάδος
+leaf: Φύλλο
+indeterminate: Ενδιάμεσο
+edit_collection: Επεξεργασία συλλογής
+exclusive: Αποκλειστικά
+children: Παιδιά
+db_only_click_to_configure: 'Βάση δεδομένων μόνο: Κάντε κλικ για ρύθμιση'
+show_active_items: Εμφάνιση Αρχειοθετημένων Αντικειμένων
+show_archived_items: Εμφάνιση Αρχειοθετημένων Αντικειμένων
+show_all_items: Εμφάνιση όλων των αντικειμένων
+edited: Η Τιμή Επεξεργάστηκε
+required: Υποχρεωτικό
+required_for_app_access: Απαιτείται για την πρόσβαση στην εφαρμογή
+requires_value: Απαιτεί τιμή
+create_preset: Δημιουργία προεπιλογής
+create_panel: Δημιουργήστε Πάνελ
+create_role: Δημιουργία ρόλου
+create_user: Δημιουργία Χρήστη
+message: Μήνυμα
+delete_panel: Διαγραφή Πίνακα
+create_custom_translation: Δημιουργία Προσαρμοσμένης Μετάφρασης
+edit_custom_translation: Επεξεργασία Προσαρμοσμένης Μετάφρασης
+no_custom_translations: Καμία Προσαρμοσμένη Μετάφραση
+no_custom_translations_copy: Δεν υπάρχουν ακόμα προσαρμοσμένες μεταφράσεις.
+invite_users: Πρόσκληση Χρηστών
+invite: Πρόσκληση
+email_already_invited: To email "{email}" έχει ήδη προσκληθεί
+subject: Θέμα
+inbox: Εισερχόμενα
+emails: Emails
+connection_excellent: Εξαιρετική Σύνδεση
+connection_good: Καλή Σύνδεση
+connection_fair: Μέτρια Σύνδεση
+connection_poor: Καλή Σύνδεση
+primary: Κυρίως
+rename_folder: Μετονομασία Φακέλου
+delete_folder: Διαγραφή Φακέλου
+prefix: Πρόθεμα
+suffix: Επίθεμα
+keep: Διατήρηση
+version: Έκδοση
+version_key: Κλειδί Έκδοσης
+version_name: Όνομα έκδοσης
+main_version: Αρχή
+switch_version: Εναλλαγή Έκδοσης
+create_version: Δημιουργία Έκδοσης
+rename_version: Μετονομασία Έκδοσης
+compare_version: Σύγκριση Έκδοσης
+save_version: Αποθήκευση Έκδοσης
+promote_version: Προώθηση Έκδοσης
+reset_bookmark: Επαναφορά Σελιδοδείκτη
+update_bookmark: Ενημέρωση Σελιδοδείκτη
+delete_bookmark: Διαγραφή σελιδοδείκτη
+logoutReason:
+  SIGN_OUT: Αποσύνδεση
+  SESSION_EXPIRED: Η συνεδρία έληξε
+public_label: Κοινόχρηστο
+public_description: Ελέγχει ποια δεδομένα API είναι διαθέσιμα χωρίς ταυτοποίηση.
+not_allowed: Δεν Επιτρέπεται
+archive: Αρχειοθέτηση
+archive_confirm: Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτό το στοιχείο;
+archive_confirm_count: >-
+  Δεν υπάρχουν αντικείμενα που έχουν επιλεγεί | Είστε σίγουροι ότι θέλετε να αρχειοθετήσετε αυτό το στοιχείο; | Είστε σίγουροι ότι θέλετε να αρχειοθετήσετε αυτά τα {count} στοιχεία;
+reset_system_permissions_to: 'Επαναφορά δικαιωμάτων συστήματος σε:'
+recommended_defaults: Προτεινόμενες Προεπιλογές
+unarchive: Επαναφορά
+validationError:
+  eq: Η τιμή πρέπει να είναι {valid}
+  neq: Η τιμή δεν μπορεί να είναι {invalid}
+  in: Η τιμή πρέπει να είναι μία από τις {valid}
+  nin: Η τιμή δεν μπορεί να είναι μία από τις {invalid}
+  contains: Η τιμή πρέπει να περιέχει {substring}
+  ncontains: Η τιμή δεν μπορεί να περιέχει {substring}
+  gt: Η τιμή πρέπει να είναι μεγαλύτερη από {valid}
+  gte: Η τιμή πρέπει να είναι μεγαλύτερη ή ίση με {valid}
+  lt: Η τιμή πρέπει να είναι μικρότερη από {valid}
+  empty: Η τιμή πρέπει να είναι άδεια
+  null: Η τιμή πρέπει να είναι μηδενική
+  nnull: Η τιμή δεν μπορεί να είναι μηδενική
+  required: Η τιμή είναι απαραίτητη
+  unique: Η τιμή πρέπει να είναι μοναδική
+  regex: Η τιμή δεν έχει τη σωστή μορφή
+  nistarts_with: Η τιμή δεν μπορεί να ξεκινάει με {substring}
+all_access: Όλη Η Πρόσβαση
+no_access: Καμία Πρόσβαση
+use_custom: Χρήση προσαρμοσμένου
+nullable: Κενό
+allow_null_value: Επέτρεψε κενές τιμές
+allow_multiple: Επιτρέπονται πολλαπλές
+allow_multiple_to_be_open: Επιτρέπονται πολλαπλά για άνοιγμα
+field_standard: Τυπικό
+field_presentation: Παρουσίαση & Συνώνυμα
+field_file: Μονό Αρχείο
+field_m2a: Σχέση M2A
+field_translations: Μεταφράσεις
+field_group: Ομάδα πεδίων
+item_permissions: Δικαιώματα Στοιχείου
+field_permissions: Δικαιώματα Πεδίου
+field_validation: Επικύρωση Πεδίου
+field_presets: Προεπιλογές πεδίου
+permissions_for_role: 'Στοιχεία ο ρόλος {role} μπορεί {action}.'
+fields_for_role: 'Πεδία ο ρόλος {role} μπορεί {action}.'
+presentation_and_aliases: Παρουσίαση & Συνώνυμα
+revision_post_create: Εδώ εμφανίζεται με τι έμοιαζε αυτό το στοιχείο όταν δημιουργήθηκε.
+top: Πάνω
+bottom: Κάτω
+hide_field: Απόκρυψη Πεδίου
+hide_field_on_detail: Απόκρυψη πεδίου στις λεπτομέρειες
+show_field_on_detail: Εμφάνιση πεδίου στις λεπτομέρειες
+delete_field: Διαγραφή Πεδίου
+language: Γλώσσα
+language_placeholder: Επιλέξτε μια γλώσσα...
+global: Καθολικός
+camera: Κάμερα
+min: Ελάχιστο
+max: Μέγιστο
+create_field: Δημιουργία πεδίου
+hidden_on_detail: Κρυφό στις λεπτομέρειες
+text: Κείμενο
+auto_refresh: Αυτόματη ανανέωση
+refresh_interval: Περίοδος ανανέωσης
+auto_generate: Αυτόματη δημιουργία
+this_will_auto_setup_fields_relations: Αυτό θα ρυθμίσει αυτόματα όλα τα απαιτούμενα πεδία και σχέσεις.
+click_here: Κλικ εδώ
+to_manually_setup_translations: να ρυθμίσετε χειροκίνητα τις μεταφράσεις.
+click_to_manage_translated_fields: >-
+  Δεν υπάρχουν ακόμα μεταφρασμένα πεδία. Κάντε κλικ εδώ για να τα δημιουργήσετε. | Υπάρχει ένα μεταφρασμένο πεδίο. Κάντε κλικ εδώ για να το διαχειριστείτε. | Υπάρχουν {count} μεταφρασμένα πεδία. Κάντε κλικ εδώ για να τα διαχειριστείτε.
+fields_group: Ομάδα Πεδίων
+no_collections_found: Δε βρέθηκαν συλλογές.
+search_collection: Αναζήτηση στη Συλλογή...
+add_note: Προσθέστε μια χρήσιμη σημείωση για τους χρήστες...
+default_value: Προεπιλεγμένη τιμή
+next: Επόμενο
+note: Σημείωση
+length: Μήκος
+unique: Μοναδικό
+notifications: Ειδοποιήσεις
+title: Τίτλος
+subtitle: Υπότιτλος
+download_page_as_csv: 'Λήψη σελίδας ως CSV'
+leave_comment: Άφηστε ένα σχόλιο...
+translations_preview_collections: Συλλογές
+import_data_input_placeholder: CSV ή JSON...
+import_data_button: Έναρξη εισαγωγής
+import_data_indeterminate: Εισαγωγή Δεδομένων...
+import_data_success: Τα δεδομένα εισήχθησαν επιτυχώς από το {filename}
+label_import: Εισαγωγή
+import_export: Εισαγωγή / Εξαγωγή
+submit: Υποβολή
+months:
+  january: Ιανουάριος
+  february: Φεβρουάριος
+  march: Μάρτιος
+  april: Απρίλιος
+  may: Μάιος
+  june: Ιούνιος
+  july: Ιούλιος
+  august: Αύγουστος
+  september: Σεπτέμβριος
+  october: Οκτώβριος
+  november: Νοέμβριος
+  december: Δεκέμβριος
+import_label: Εισαγωγή
+owner: Ιδιοκτήτης
+download: Λήψη
+name: Όνομα
+creating_new_collection: Δημιουργία νέας Συλλογής
+created_by: Δημιουργήθηκε από
+created_on: Δημιουργήθηκε στις
+save_and_stay: Αποθήκευση και Παραμονή
+creating_items: Δημιουργία Στοιχείων
+comments: Σχόλια
+information: Πληροφορίες
+activity_log: Αρχείο Δραστηριοτήτων
+create_collection: Δημιουργία Συλλογής
+users: Χρήστες
+activity: Δραστηριότητα
+action: Ενέργεια
+ip_address: Διεύθυνση IP
+user_agent: Πράκτορας χρήστη
+field_width: Πλάτος πεδίου
+user_directory: Ευρετήριο χρηστών
+duration: Διάρκεια
+status: Κατάσταση
+remove: Διαγραφή
+errors:
+  NOT_NULL_VIOLATION: Η τιμή δεν μπορεί να είναι μηδενική
+create_bookmark: Δημιουργία Σελιδοδείκτη
+bookmarks: Σελιδοδείκτες
+presets: Προεπιλογές
+unexpected_error: Μη Αναμενόμενο Σφάλμα
+back: Πίσω
+delete_collection_are_you_sure: >-
+  Είστε βέβαιοι ότι θέλετε να διαγράψετε τη συλλογή "{collection}"? Αυτό θα διαγράψει τη συλλογή και όλα τα στοιχεία σε αυτήν. Αυτή η ενέργεια είναι μόνιμη.
+operators:
+  lt: Λιγότερο από
+  gt: Μεγαλύτερο από
+  gte: Μεγαλύτερο από ή ίσο με
+  contains: Περιέχει
+  empty: Είναι κενό
+layout_options: Επιλογές Διάταξης
+value_unique: Η τιμή πρέπει να είναι μοναδική
+create_folder: Δημιουργία φακέλου
+role: Ρόλος
+create: Δημιουργία
+read: Ανάγνωση
+update: Ενημέρωση
+delete: Διαγραφή
+flows: Ροές
+flow_name: Όνομα
+insights: Στατιστικά
+deployment:
+  provider:
+    settings:
+      delete_confirm: Αυτή η ενέργεια είναι μόνιμη και δεν μπορεί να αναιρεθεί. Είστε σίγουροι ότι θα θέλατε να προχωρήσετε;
+    run:
+      cancel_confirm: Αυτή η ενέργεια είναι μόνιμη και δεν μπορεί να αναιρεθεί. Είστε σίγουροι ότι θα θέλατε να προχωρήσετε;
+width: Πλάτος
+height: Ύψος
+wysiwyg_options:
+  remove: Διαγραφή
+  table: Πίνακας
+choices: Επιλογές
+deselect: Αποεπιλέξτε
+creating_in: 'Δημιουργία Στοιχείου: {collection}'
+creating_unit: 'Δημιουργία στοιχείου {unit}'
+editing_unit: 'Επεξεργασία στοιχείου {unit}'
+editing_in_batch: 'Μαζική Επεξεργασία {count} Στοιχείων'
+settings_data_model: Μοντέλο Δεδομένων
+settings_project: Ρυθμίσεις
+settings_flows: Ροές
+settings_presets: Σελιδοδείκτες
+layout: Διάταξη
+discard_changes: Ακύρωση αλλαγών
+add_new: Προσθήκη νέου
+all: Όλα
+batch_delete_confirm: >-
+  Δεν έχουν επιλεγεί στοιχεία. | Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το στοιχείο; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. | Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτά τα {count} στοιχεία; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
+cancel: Ακύρωση
+collection: Συλλογή
+collections: Συλλογές
+content: Περιεχόμενο
+directus_collection:
+  directus_translations: Προσαρμοσμένες μεταφράσεις
+fields:
+  directus_activity:
+    item: Στοιχείο Πρωτεύον Κλειδί
+    action: Ενέργεια
+    collection: Συλλογή
+    timestamp: Ενέργεια στις
+    user: Ενέργεια από
+    comment: Σχόλιο
+    user_agent: Πράκτορας χρήστη
+    ip: Διεύθυνση IP
+  directus_collections:
+    collection: Συλλογή
+    icon: Εικονίδιο
+    note: Σημείωση
+    hidden: Κρυφό
+  directus_files:
+    title: Τίτλος
+    description: Περιγραφή
+    tags: Ετικέτες
+    location: Τοποθεσία
+    metadata: Μεταδεδομένα
+    filesize: Μέγεθος αρχείου
+    created_on: Δημιουργήθηκε στις
+    created_by: Δημιουργήθηκε από
+    embed: Ενσωμάτωση
+    uploaded_by: Μεταφορτώθηκε από
+    width: Πλάτος
+    uploaded_on: Μεταφορτώθηκε στις
+    height: Ύψος
+    duration: Διάρκεια
+  directus_users:
+    first_name: Όνομα
+    last_name: Επώνυμο
+    email: Ηλεκτρονικό ταχυδρομείο
+    password: Κωδικός
+    avatar: Άβαταρ
+    location: Τοποθεσία
+    title: Τίτλος
+    description: Περιγραφή
+    tags: Ετικέτες
+    language: Γλώσσα
+    tfa_secret: Έλεγχος ταυτότητας δυο παραγόντων
+    status: Κατάσταση
+    role: Ρόλος
+  directus_settings:
+    project_name: Όνομα Έργου
+    module_bar: Γραμμή Ενθεμάτων
+  directus_shares:
+    name: Όνομα
+    role: Ρόλος
+    password: Κωδικός
+  directus_fields:
+    note: Σημείωση
+    hidden: Κρυφό
+    translation: Μεταφράσεις Ονόματος Πεδίου
+  directus_roles:
+    name: Όνομα Ρόλου
+    description: Περιγραφή
+  directus_policies:
+    description: Περιγραφή
+field_options:
+  directus_activity:
+    create: Δημιουργία
+    update: Ενημέρωση
+    delete: Διαγραφή
+  directus_collections:
+    language: Γλώσσα
+    translation: Μετάφραση
+    archive_divider: Αρχειοθέτηση
+  directus_roles:
+    fields:
+      icon_name: Εικονίδιο
+      name_name: Όνομα
+    collections_name: Συλλογές
+comment: Σχόλιο
+ai:
+  unknown: Άγνωστο
+  content: Περιεχόμενο
+  settings: Ρυθμίσεις
+  ask_user_submit: Υποβολή
+  ask_user_next: Επόμενο
+ai_tools:
+  files: Αρχεία
+  flows: Ροές
+  operations: Λειτουργίες
+  collections: Συλλογές
+continue_label: Συνέχεια
+continue_as: >-
+  Ο χρήστης {name} είναι επί του παρόντος πιστοποιημένος. Αν αναγνωρίζετε αυτόν τον λογαριασμό, πατήστε συνέχεια.
+delete_label: Διαγραφή
+delete_are_you_sure: >-
+  Αυτή η ενέργεια είναι μόνιμη και δεν μπορεί να αναιρεθεί. Είστε σίγουροι ότι θα θέλατε να προχωρήσετε;
+delete_field_are_you_sure: >-
+  Είσαι σίγουρος ότι θέλεις να διαγράψεις το πεδίο "{field}"; Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.
+description: Περιγραφή
+done: Ολοκληρώθηκε
+duplicate: Αντίγραφο
+email: Ηλεκτρονικό ταχυδρομείο
+embed: Ενσωμάτωση
+field: Πεδίο | Πεδία
+file: Αρχείο
+file_library: Βιβλιοθήκη αρχείων
+forgot_password: Ξέχασα τον κωδικό πρόσβασης
+hidden: Κρυφό
+icon: Εικονίδιο
+info: Πληροφορίες
+latency: Καθυστέρηση
+not_authenticated: Μη Πιστοποιημένος
+authenticated: Πιστοποιημένος
+options: Επιλογές
+otp: Κωδικός μιάς χρήσης
+password: Κωδικός
+permissions: Δικαιώματα
+relationship: Σχέση
+reset: Επαναφορά
+reset_password: Επαναφορά Κωδικού
+save: Αποθήκευση
+search: Αναζήτηση
+settings: Ρυθμίσεις
+register: Εγγραφή
+dont_have_an_account: Δεν έχετε λογαριασμό;
+already_have_an_account: Έχετε ήδη λογαριασμό;
+sign_up_now: Εγγραφείτε τώρα
+sign_in: Είσοδος
+sign_out: Αποσύνδεση
+translation: Μετάφραση
+value: Τιμή
+table: Πίνακας
+interfaces:
+  filter:
+    all: Όλα
+  presentation-links:
+    primary: Κυρίως
+  system-collection:
+    collection: Συλλογή
+  system-collections:
+    collections: Συλλογές
+  file:
+    file: Αρχείο
+  files:
+    files: Αρχεία
+  select-icon:
+    icon: Εικονίδιο
+  tags:
+    tags: Ετικέτες
+  input-block-editor:
+    tools_options:
+      embed: Ενσωμάτωση
+      table: Πίνακας
+displays:
+  collection:
+    collection: Συλλογή
+  datetime:
+    suffix: Επίθεμα
+  file:
+    file: Αρχείο
+  formatted-value:
+    prefix: Πρόθεμα
+    suffix: Επίθεμα
+    icon: Εικονίδιο
+    text: Κείμενο
+  icon:
+    icon: Εικονίδιο
+  user:
+    avatar: Άβαταρ
+    name: Όνομα
+    both: Και τα δύο
+layouts:
+  cards:
+    cards: Κάρτες
+    image_source: Πηγή εικόνας
+    title: Τίτλος
+    subtitle: Υπότιτλος
+  tabular:
+    tabular: Πίνακας
+    comfortable: Άνετος
+    compact: Συμπαγής
+    cozy: Κανονικό
+  map:
+    cluster_options: Επιλογές ομαδοποίησης
+both: Και τα δύο
+triggers:
+  webhook:
+    method: Μέθοδος
+operations:
+  json-web-token:
+    options: Επιλογές
+  log:
+    message: Μήνυμα
+  notification:
+    message: Μήνυμα
+    subject: Θέμα
+  request:
+    method: Μέθοδος
+  trigger:
+    flows: Ροές
+    flow: Ροή
+    data: Δεδομένα
+    iteration_mode: Κατάσταση διαπέρασης
+    iteration_mode_note: Κατάσταση διαπέρασης πινάκων.
+    serial: Σειριακά
+    parallel: Παράλληλα
+    batch: Δέσμη
+    batch_size: Μέγεθος δέσμης
+standard: Τυπικό
+compact: Συμπαγής

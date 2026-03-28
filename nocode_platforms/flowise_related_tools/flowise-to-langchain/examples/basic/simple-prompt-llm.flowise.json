@@ -1,0 +1,196 @@
+{
+  "nodes": [
+    {
+      "id": "promptTemplate_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "promptTemplate_0",
+        "label": "Prompt Template",
+        "version": 3,
+        "name": "promptTemplate",
+        "type": "PromptTemplate",
+        "baseClasses": ["PromptTemplate", "BasePromptTemplate"],
+        "category": "Prompts",
+        "description": "Schema to represent a simple prompt for an LLM",
+        "inputParams": [
+          {
+            "label": "Template",
+            "name": "template",
+            "type": "string",
+            "rows": 4,
+            "placeholder": "What is a good name for a company that makes {product}?"
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "additionalParams": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "template": "What is a good name for a company that makes {product}?",
+          "promptValues": "{\"product\":\"colorful socks\"}"
+        },
+        "outputAnchors": [
+          {
+            "id": "promptTemplate_0-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+            "name": "promptTemplate",
+            "label": "PromptTemplate",
+            "description": "Schema to represent a simple prompt for an LLM",
+            "type": "PromptTemplate | BasePromptTemplate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_0",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_0",
+        "label": "ChatOpenAI",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          },
+          {
+            "label": "Max Tokens",
+            "name": "maxTokens",
+            "type": "number",
+            "step": 1,
+            "optional": true,
+            "additionalParams": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-3.5-turbo",
+          "temperature": 0.7,
+          "maxTokens": 100
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "llmChain_0",
+      "position": { "x": 700, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "llmChain_0",
+        "label": "LLM Chain",
+        "version": 3,
+        "name": "llmChain",
+        "type": "LLMChain",
+        "baseClasses": ["LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Chain to run queries against LLMs",
+        "inputParams": [
+          {
+            "label": "Chain Name",
+            "name": "chainName",
+            "type": "string",
+            "placeholder": "Name your chain",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "llmChain_0-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for this chain",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "llmChain_0-input-prompt-BasePromptTemplate",
+            "name": "prompt",
+            "label": "Prompt",
+            "description": "Prompt template for this chain",
+            "type": "BasePromptTemplate"
+          }
+        ],
+        "inputs": {
+          "chainName": "Simple Q&A Chain"
+        },
+        "outputAnchors": [
+          {
+            "id": "llmChain_0-output-llmChain-LLMChain|BaseChain",
+            "name": "llmChain",
+            "label": "LLM Chain",
+            "description": "Chain to run queries against LLMs",
+            "type": "LLMChain | BaseChain"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "promptTemplate_0",
+      "sourceHandle": "promptTemplate_0-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+      "target": "llmChain_0",
+      "targetHandle": "llmChain_0-input-prompt-BasePromptTemplate",
+      "type": "buttonedge",
+      "id": "promptTemplate_0-llmChain_0"
+    },
+    {
+      "source": "chatOpenAI_0",
+      "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "llmChain_0",
+      "targetHandle": "llmChain_0-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_0-llmChain_0"
+    }
+  ],
+  "chatflow": {
+    "id": "simple-prompt-llm",
+    "name": "Simple Prompt → LLM Flow",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Basic Examples",
+    "description": "A simple linear flow that connects a prompt template to an LLM via a chain"
+  }
+}

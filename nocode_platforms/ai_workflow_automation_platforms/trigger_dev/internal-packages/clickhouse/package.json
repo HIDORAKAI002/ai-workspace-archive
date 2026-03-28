@@ -1,0 +1,40 @@
+{
+  "name": "@internal/clickhouse",
+  "private": true,
+  "version": "0.0.2",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "type": "module",
+  "dependencies": {
+    "@clickhouse/client": "^1.12.1",
+    "@internal/tracing": "workspace:*",
+    "@internal/tsql": "workspace:*",
+    "@trigger.dev/core": "workspace:*",
+    "zod": "3.25.76",
+    "zod-error": "1.5.0"
+  },
+  "devDependencies": {
+    "@internal/testcontainers": "workspace:*",
+    "rimraf": "6.0.1"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "dev": "tsc --watch  -p tsconfig.build.json",
+    "db:migrate": "docker compose -p triggerdotdev-docker -f ../../docker/docker-compose.yml up clickhouse_migrator --build",
+    "db:migrate:down": "GOOSE_COMMAND=down pnpm run db:migrate",
+    "test": "vitest --sequence.concurrent=false --no-file-parallelism",
+    "test:coverage": "vitest --sequence.concurrent=false --no-file-parallelism --coverage.enabled"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@triggerdotdev/source": "./src/index.ts",
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
+    }
+  }
+}

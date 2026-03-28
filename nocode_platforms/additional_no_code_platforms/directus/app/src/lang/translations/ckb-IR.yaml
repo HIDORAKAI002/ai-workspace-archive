@@ -1,0 +1,2474 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: دەربارە
+first_name: ناوی یەکەم
+last_name: ناوی باوک
+identifier: ناسەرەوە
+avatar: وێنۆچکە
+application: ئەپڵیکەیشن
+default_provider: بنەڕەت
+method: ڕێگە
+published: بڵاوکراوە
+draft: ڕەشنوس
+archived: ئەرشیفکراو
+marketplace: کۆگا
+extensions: زیادکراوەکان
+modules: یەکەکان
+module_bar: شریتی یەکەکان
+logs: تۆمارەکان
+unknown: نەناسراو
+reset_width: ڕێکخستنەوەی پانی
+tile_size: قەبارەی خشت
+edit_field: دەستکاری خانە
+conditions: مەرجەکان
+location: شوێن
+collection_names_are_case_sensitive: گەورە و بچووکی پیتەکانی ناوی کۆمەڵەکان حسابە
+condition_rules: یاسای ئەگەرەکان
+input: تێچون
+maps: نەخشەکان
+switch_user: گۆڕینی بەکارهێنەر
+item_creation: دروستکردنی مادە
+item_revision: گەڕاندنەوەی مادە
+enter_a_name: ناوێک تۆماربکە...
+duplicate_field: لەبەرگرتنەوەی خانە
+half_width: نیوەی پانی
+full_width: پانی تەواو
+group: دەستە
+popular: بڵاوترین
+recent: دواین
+export_items: هەناردەکردنی مادەکان
+and: و
+or: یان
+init: سەرەتا
+dataset_too_large_currently_showing_n_items: داتاسێت زۆر گەورەیە. یەکەم {n} مادە نیشاندەدەین لە ئێستادا.
+modifier: گۆڕەر
+extension_interface: ڕووکار
+extension_display: پیشاندان
+extension_layout: خشتە
+extension_module: یەکە
+extension_panel: پانێڵ
+extension_theme: ڕووکار
+extension_hook: قولاپ
+extension_endpoint: ئێندپۆینت
+extension_operation: کردار
+extension_bundle: کۆمەڵە
+extension_interfaces: ڕووکار
+extension_displays: پیشاندانەکان
+extension_layouts: نەخشەسازییەکان
+extension_modules: یەکەکان
+extension_panels: پانێڵەکان
+extension_themes: ڕووکارەکان
+extension_hooks: قولاپەکان
+extension_endpoints: ئێندپۆینتەکان
+extension_operations: کردارەکان
+extension_bundles: گورزەکان
+extension_missing: وون
+extension_reload_required: پێویستە لاپەڕە دووبارە باربکرێتەوە
+extension_reload_required_copy: دووبارە بارکردنی لاپەڕە پێویستە بۆ بینینی گۆڕانکارییەکان دوای چالاککردن یان ناچالاککردنی زیادکراوەکانی ئەپ.
+extension_reload_now: دووبارە بارکردنەوە
+published_relative: بڵاوکراوەتەوە {relativeTime}
+compatible_with_your_project: لەگەڵ پرۆژەکەتدا دەگونجێت
+compatible_with_your_project_copy: نووسەر ئاماژەی بە گونجانی ئەم زیادکراوە کردووە کە {hostVersion} بێت، کە لەگەڵ وەشانی پڕۆژەکەتدا دەگونجێت ({currentVersion})
+last_updated_relative: دوایین نوێکردنەوە {relativeTime}
+n_files: '{n} فایل'
+verified: پشتڕاستکراوەتەوە
+homepage: پەڕەی سەرەکی
+repository: ڕیپۆستۆری
+reload_page: بارکردنەوەی لاپەڕە
+reload_required: پێویستە دووبارە باربکرێتەوە
+report_an_issue: ڕاپۆرتکردنی کێشەیەک
+website: ماڵپەڕ
+github: گیت هاب
+beta: بێتا
+n_downloads: '{n} داگرتن'
+downloads: داگرتنەکان
+compatibility_not_guaranteed: گەرەنتی گونجان نییە
+compatibility_not_guaranteed_copy: نووسەر ئاماژەی بە گونجانی ئەم زیادکراوە کردووە کە {hostVersion} بێت، کە لەگەڵ وەشانی پڕۆژەکەتدا ناگونجێت ({currentVersion})
+enable: کاراکردن
+disable: ناکاراکردن
+custom: تایبەتمەند
+hook: قولاپ
+fill_width: پڕکردنی پانی
+field_name_translations: وەرگێڕانەکانی ناوی خانە
+enter_password_to_enable_tfa: تێپەڕەوشەت بنوسە بۆ کاراکردنی سەلمێنەری دوو-هۆکار
+add_field: زیادکردنی خانە
+role_name: ناوی پلە
+policy_name: ناوی سیاسەت
+branch: لق
+leaf: گەڵا
+indeterminate: دیاری نەکراو
+edit_collection: دەستکاری کۆمەڵە
+exclusive: تایبەت
+children: وەچەکان
+db_only_click_to_configure: 'تەنها بنکەدراو: کرتە بکە بۆ سازاندن'
+show_active_items: نیشاندانی مادە چالاکەکان
+show_archived_items: نیشاندانی مادە ئەرشیفکراوەکان
+show_all_items: نیشاندانی هەموو مادەکان
+edited: بەها دەستکاریکراوە
+required: داواکراوە
+required_for_app_access: داواکراوە بۆ دەستگەیشتن بە ئەپ
+requires_value: پێویستی بە بەهایە
+create_preset: دروستکردنی پێشسێت
+create_panel: دروستکردنی پانێڵ
+create_role: دروستکردنی پلە
+create_policy: دروستکردنی سیاسەت
+create_user: دروستکردنی بەکارهێنەر
+message: پەیام
+delete_panel: سڕینەوەی پانێڵ
+create_custom_translation: دروستکردنی وەرگێڕانی تایبەت
+edit_custom_translation: دەستکاری وەرگێڕانی تایبەت
+no_custom_translations: هیچ وەرگێڕانێکی تایبەتمەند نییە
+no_custom_translations_copy: هێشتا هیچ وەرگێڕانێکی تایبەت بەخۆت نییە.
+invite_users: بانگهێشتکردنی بەکارهێنەرەکان
+invite: بانگهێشت
+email_already_invited: ئیمەیڵی "{email}" پێشتر بانگهێشتکراوە
+subject: بابەت
+inbox: هاتوەکان
+emails: ئیمەیڵەکان
+connection_excellent: پەیوەندی نایاب
+connection_good: پەیوەندی باش
+connection_fair: پەیوەندی خراپ
+connection_poor: پەیوەندی زۆر خراپ
+primary: سەرەکی
+rename_folder: ناولێنانەوەی بوخچە
+delete_folder: سڕینەوەی بوخچە
+prefix: پێشگر
+suffix: پاشگر
+keep: پاراستن
+version: وەشان
+version_key: کلیلی وەشان
+version_name: ناوی وەشان
+main_version: سەرەکی
+switch_version: گۆڕینی وەشان
+switch_version_copy: ئایا دڵنیایت لە گۆڕینی بۆ وەشانی "{version}"؟ گۆڕانکارییە هەڵنەگیراوەکان لە دەست دەچن.
+create_version: دروستکردنی وەشان
+rename_version: ناوی وەشان بگۆڕە
+compare_version: بەراوردکردنی وەشان
+save_version: پاشەکەوتکردنی وەشان
+promote_version: پەرەپێدانی وەشان
+delete_version: سڕینەوەی وەشان
+delete_version_copy: >-
+  ئایا دڵنیای دەتەوێت وەشانی "{version}" بسڕیتەوە؟ ئەم کردارە گەڕانەوەی نییە.
+reset_bookmark: ڕێکخستنەوەی نیشانکەر
+update_bookmark: نوێکردنەوەی نیشانکەر
+delete_bookmark: سڕینەوەی نیشانکەر
+delete_bookmark_copy: >-
+  ئایا دڵنیای کە دەتەوێت نیشانکەری "{bookmark}" بسڕیتەوە؟ ئەم کارە گەڕانەوەی نییە.
+delete_personal_bookmark: سڕینەوەی نیشانکەری کەسی
+delete_role_bookmark: سڕینەوەی نیشانکەری پلە
+delete_global_bookmark: سڕینەوەی نیشانکەری گشتی
+logoutReason:
+  SIGN_OUT: دەرچوون
+  SESSION_EXPIRED: دەورە بەسەرچوو
+public_label: گشتی
+public_description: کۆنتڕۆڵکردنی ئەوەی کام داتایەی API بەردەستە بەبێ ڕەسەنایەتی.
+public_role_info: >-
+  پلەی گشتی کۆنتڕۆڵی ئەوە دەکات کە چ داتایەکی API بەردەستە بۆ بەکارهێنەرە پشتڕاست نەکراوەکان یان ئەوانەی هیچ پلەیەکیان نییە. داواکاریەکانی پلەی گشتی ناتوانن دەستگەیشتنی پێگە یان بەڕێوبەریان هەبێت. ئەگەر دەستگەیشتنی پێگە یان بەڕێوبەر بۆ سیاسەتێک دانرا کە پلەی گشتی هەیبێت، ئەوا پشتگوێدەخرێن.
+admin_description: ڕۆڵی بەڕێوبەری سەرەتایی لەگەڵ دەسەڵاتی API و پێگەی بێ سنوور.
+admin_policy_description: سیاسەتی بەڕێوبەرایەتی سەرەتایی لەگەڵ دەستگەیشتنی بێ سنوری پێگە/API.
+no_description: هیچ وەسفێک نییە...
+reached_maximum_number_of_extensions: گەیشتویت بە زۆرترین ژمارەی زیادکراوەکان بۆ ئەم پڕۆژەیە ({n}). پەیوەندی بکە بە بەڕێوبەری سیستەمەکەت بۆ زانیاری زیاتر.
+not_allowed: ڕێگەپێنەدراوە
+archive: ئەرشیڤ
+archive_confirm: ئایا دڵنیای دەتەوێت ئەم مادەیە ئەرشیف بکەیت؟
+archive_confirm_count: >-
+  هیچ مادەیەک دیاری نەکراوە | ئایا دڵنیای دەتەوێت ئەم مادەیە ئەرشیڤ بکەیت؟ | ئایا دڵنیای دەتەوێت ئەم {count} مادەیە ئەرشیڤ بکەیت؟
+reset_system_permissions_to: 'رێکخستنەوەی ڕێپێدانەکانی سیستەم بۆ:'
+reset_system_permissions_copy: ئەم چالاکیە هەموو دەسەڵاتە تایبەتیەکان دەسڕێتەوە کە لەوانەیە لەسەر کۆمەڵەکانی سیستەم جێبەجێتکردون. ئایا دڵنیای؟
+the_following_are_minimum_permissions: ئەم دەسەڵاتە کەمانەی خوارەوە بە شێوەیەکی خۆکار جێبەجێ دەکرێن کاتێک "دەستگەیشتنی پێگە" چالاک دەکرێت. دەتوانیت دەسەڵاتی زیاتر ببەخشیت ئەگەر پێویست بکات، بەڵام ناتوانیت دەسەڵاتەکان کەمتر بکەیتەوە لەم ئاستە.
+app_access_minimum: کەمترینی دەستگەیشتن بە پێگە
+recommended_defaults: بنەڕەتیە پێشنیارکراوەکان
+unarchive: ئەرشیفنەکردن
+unarchive_confirm: ئایا دڵنیای دەتەوێت ئەم مادەیە ئەرشیف نەکەیت؟
+nested_files_folders_will_be_moved: پەڕگە و دۆسیە بەناویەکداچوەکان یەک ئاست دەبرێنە سەرەوە.
+validation_errors_notice: 'ئەم خانانە بەهای نادروستیان هەیە:'
+validationError:
+  eq: بەها پێویستە {valid}
+  neq: بەها نابێت {invalid}
+  in: بەها پێویستە یەکێک بێت لە {valid}
+  nin: بەها نابێت یەکێک بێت لە {invalid}
+  contains: بەها پێویستە {substring} لەخۆ بگرێت
+  ncontains: بەها نابێت {substring} لەخۆ بگرێت
+  gt: بەها پێویستە گەورەتر بێت لە {valid}
+  gte: بەها پێویستە گەورەتر یان یەکسان بێت لەگەڵ {valid}
+  lt: بەها پێویستە کەمتربێت لە {valid}
+  lte: بەها پێویستە کەمتر یان یەکسان بێت لەگەڵ {valid}
+  empty: بەها پێویستە بەتاڵ بێت
+  nempty: بەها نابێت بەتاڵ بێت
+  null: بەها پێویستە پوچ بێت
+  nnull: بەها نابێت پوچ بێت
+  required: بەها داواکراوە
+  unique: بەها پێویستە بێ هاوتا بێت
+  email: بەها دەبێت ناونیشانی ئیمەیڵێکی دروست بێت
+  regex: بەها داڕشتنێکی دروستی نییە
+  starts_with: بەها دەبێت دەستپێبکات بە {substring}
+  istarts_with: بەها دەبێت دەستپێبکات بە {substring}
+  nstarts_with: بەها نابێت دەستپێبکات بە {substring}
+  nistarts_with: بەها نابێت دەستپێبکات بە {substring}
+  ends_with: بەها دەبێت کۆتایی بێت بە {substring}
+  iends_with: بەها دەبێت کۆتایی بێت بە {substring}
+  nends_with: بەها نابێت کۆتایی بێت بە {substring}
+  niends_with: بەها نابێت کۆتایی بێت بە {substring}
+all_access: دەسەڵاتی هەمووی
+no_access: بێ دەسەڵات
+use_custom: بەکارهێنانی تایبەت
+nullable: پوچ بوون
+allow_null_value: ڕێگەدان بە بەهای پوچ
+allow_multiple: ڕێگەدان بە چەندانە
+allow_multiple_to_be_open: ڕێگەدان بە کردنەوەی چەندانە
+enter_value_to_replace_nulls: تکایە بەهایەکی نوێ بنوسە بۆ جێگرتنەوەی پوچەکانی ئێستا لەم خانەیەدا.
+field_standard: ستاندەر
+field_presentation: پێشکەشکردن و ناوی خواستراو
+field_file: تاک پەڕگە
+field_files: چەند پەڕگە
+field_m2o: پەیوەندی زۆر بۆ یەک M2O
+field_m2a: پەیوەندی زۆر بۆ هەرچی M2A
+field_o2m: پەیوەندی یەک بۆ زۆر O2M
+field_m2m: پەیوەندی زۆر بۆ زۆر M2M
+field_translations: وەرگێڕانەکان
+field_group: دەستەی خانە
+item_permissions: دەسەڵاتەکانی مادە
+field_permissions: دەسەڵاتەکانی خانە
+field_validation: سەلماندنی خانە
+field_presets: پێشسێتەکانی خانە
+permissions_for_role: 'مادەکانی پلەی {role} دەتوانن {action}.'
+permissions_for_policy: 'مادەکانی سیاسەتی {policy} دەتوانن {action}.'
+fields_for_role: 'خانەکانی پلەی {role} دەتوانن {action}.'
+fields_for_policy: 'خانەکانی سیاسەتی {policy} دەتوانن {action}.'
+validation_for_role: 'یاساکانی {action} ـی خانە پێویستە پابەند بن بە پلەی {role}.'
+validation_for_policy: 'یاساکانی {action}ـی خانە پێویستە پابەند بن بە سیاسەتی {policy}.'
+presets_for_role: 'بەها بنەڕەتیەکانی خانە بۆ پلەی {role}.'
+presets_for_policy: 'بەها بنەڕەتیەکانی خانە بۆ سیاسەتی {policy}.'
+presets_field_warning: 'پێشسێتە پەیوەندیدارەکان بۆ خانەی "{field}" پێویستە بە داڕشتنی "وردەکاری" ڕێکبخرێت.'
+presentation_and_aliases: پێشکەشکردن و ناوی خواستراو
+revision_post_create: ئەمە شێوەی دەرکەوتنی مادەیەکە کاتێک دروستدەکرێت.
+revision_post_update: ئەمە شێوەی دەرکەوتنی مادەیەکە دوای ئەوەی نوێدەکرێتەوە.
+changes_made: لە خوارەوە کۆمەڵێک گۆڕانکاری دیارن کە لەم گەڕاندنەوەیەدا دەکرێن.
+no_relational_data: لەبیرتبێت کە داتا بەیەکەوە بەستراوەکان بەشێک نین لێرە.
+junction_field_location: شوێنی یەکگرتنی خانەکان
+top: سەروو
+bottom: خواروو
+hide_field: شاردنەوەی خانە
+hide_field_on_detail: شاردنەوەی خانە لە وردەکاریدا
+show_field_on_detail: نیشاندانی خانە لە وردەکاریدا
+delete_field: سڕینەوەی خانە
+fields_and_layout: خانە و نەخشەکان
+field_create_success: 'خانەی دروستکراو: "{field}"'
+field_update_success: 'خانەی نوێکراوە: "{field}"'
+duplicate_where_to: دەتەوێت ئەم خانەیە بۆ کوێ لەبەربگریتەوە؟
+language: زمان
+language_placeholder: زمانێک دیاریبکە...
+aggregate_function: فەرمانی کۆکردنەوە
+aggregate_precision: فەرمانی وردبینی
+group_aggregation: کۆمەڵەی کۆکردنەوە
+group_precision: کۆمەڵەی وردبینی
+global: گشتی
+admins_have_all_permissions: بەڕێوبەران سەرجەم دەسەڵاتەکانیان هەیە
+camera: کامێرا
+show_zero: نیشاندانی سفر
+create_in_advanced_field_creation_mode: دروستکردنی خانە لە دۆخی پێشکەوتوو
+continue_in_advanced_field_creation_mode: بەردەوام بوون لە دۆخی دروستکردنی پێشکەوتوی خانە
+validation: سەلماندن
+sum: کۆ
+sum_distinct: کۆی بەها جیاوازەکان
+avg: تێکڕا
+avg_distinct: تێکڕای بەهای جیاواز
+count: ژمارە
+count_distinct: ژمارەی بەهای جیاواز
+min: لانیکەم
+max: ئەوپەڕی
+exposure: بەرکەوتن
+shutter: دەروازە
+iso: ISO
+focal_length: درێژی تیشکۆیی
+schema_setup_key: ناوی ستونی بنکەدراو و کلیلی API ـی ئەم خانەیە
+create_field: دروستکردنی خانە
+creating_new_field: 'خانەی نوێی ({collection})'
+field_in_collection: '{field} ({collection})'
+reset_page_preferences: بنەڕەتیکردنەوەی بژاردەکانی پەڕە
+hidden_field: خانەی شاراوە
+hidden_on_detail: شاراوە لە وردەکاریدا
+key: کلیل
+alias: ناوی خواستراو
+bigInteger: ژمارەی تەواوی گەورە
+boolean: دوڕا
+date: ڕێکەوت
+date_range: مەودای ڕێکەوت
+translation_key_placeholder: Enter a key...
+datetime: کات و ڕێکەوت
+dateTime: کات و ڕێکەوت
+precision: وردی
+decimal: دەیی
+float: ژمارەی کەرت
+integer: ژمارەی تەواو
+json: JSON
+xml: XML
+yaml: YAML
+string: ڕیزبەند
+text: نوسین
+time: کات
+timestamp: مۆری کات
+uuid: UUID
+hash: هاش
+geometry:
+  All: جیۆمەتری (هەموو)
+  Point: خاڵ
+  LineString: هێڵی نوسین
+  Polygon: فرەگۆشە
+  MultiPoint: فرە خاڵ
+  MultiLineString: فرە هێڵی نوسین
+  MultiPolygon: فرە فرەگۆشە
+theme_auto: خۆکار (بەپێی سیستەم)
+theme_light: دۆخی ڕوناک
+theme_dark: دۆخی تاریک
+theme_directus_default: بنەڕەتی دایرێکتەس
+theme_directus_minimal: دایرێکتەسی سادە
+theme_directus_colormatch: گونجاندنی ڕەنگی دایرێکتەس
+not_available_for_type: بەردەست نییە بۆ ئەم جۆرە
+create_translations: دروستکردنی وەرگێڕان
+auto_refresh: نوێبونەوەی خۆکاری
+refresh_interval: نوێبونەوەی ماوەیی
+no_refresh: نوێنەبوونەوە
+refresh_interval_seconds: دەستبەجێ نوێ بکەرەوە | هەر چرکەیەک | هەر {seconds} چرکەیەک
+refresh_interval_minutes: هەر خولەکێک | هەر {minutes} خولەکێک
+auto_generate: خۆکارانە دروستبوون
+this_will_auto_setup_fields_relations: ئەمە بە شێویەکی خۆکارانە هەموو خانە و پەیوەندیە داواکراوەکان دادەمەزرێنێت.
+click_here: کرتە بکە
+to_manually_setup_translations: بۆ ڕێکخستنی دەستی وەرگێڕانەکان.
+manage: Manage
+click_to_manage_translated_fields: >-
+  تا ئێستا هیچ خانەیەکی وەرگێڕدراو نییە. بۆ دروستکردنیان کلیک لێرە بکە. | یەک خانە هەیە کە وەرگێڕدراوە. بۆ بەڕێوەبردنی کلیک لێرە بکە. | {count} خانەی وەرگێڕدراو هەیە. بۆ بەڕێوەبردنیان کلیک لێرە بکە.
+fields_group: دەستەی خانەکان
+no_collections_found: هیچ کۆمەڵەیەک نەدۆزرایەوە.
+new_data_alert: 'ئەمانەی خوارەوە لەناو مۆدێلی داتاکانتدا دروست دەکرێن:'
+search_collection: گەڕانی کۆمەڵەکان...
+search_role: Search Role...
+search_policy: Search Policy...
+search_field: خانەی گەڕان...
+new_field: 'خانەی نوێ'
+new_collection: 'کۆمەڵەی نوێ'
+add_m2o_to_collection: 'پەیوەندی زۆر بۆ یەک M2O زیاد بکە بۆ "{collection}"'
+add_o2m_to_collection: 'پەیوەندی یەک بۆ زۆر O2M زیاد بکە بۆ "{collection}"'
+add_m2m_to_collection: 'پەیوەندی زۆر بۆ زۆر M2M زیاد بکە بۆ "{collection}"'
+choose_a_type: جۆر هەڵبژێرە...
+determined_by_relationship: بەپێی پەیوەندی دیاری دەکرێت
+add_note: تێبینیەکی بەسود زیاد بکە بۆ بەکارهێنەرەکان...
+add_link: بەستەر دابنێ
+custom_link: بەستەری تایبەت
+default_value: بەهای بنەڕەتی
+standard_field: خانەی ستاندارد
+single_file: تاک پەڕگە
+multiple_files: چەند پەڕگە
+m2o_relationship: پەیوەندی زۆر بۆ یەک
+o2m_relationship: پەیوەندی یەک بۆ زۆر
+m2m_relationship: پەیوەندی زۆر بۆ زۆر
+m2a_relationship: پەیوەندی زۆر بۆ هەرشتێک
+invalid_item: مادەی نادروست
+require_confirmation: پێویستی بە پشتڕاستکردنەوە هەیە
+dialog: دیالۆگ
+modal: مۆدێل
+confirmation_dialog: دیالۆگی پشتڕاستکردنەوە
+confirmation_description: وەسفی پشتڕاستکردنەوە
+confirmation_input_fields: خانەکانی تێچوونی پشتڕاستکردنەوە
+next: دواتر
+field_name: ناوی خانە
+translations: وەرگێڕانەکان
+no_translations: هیچ وەرگێڕانێک نییە
+left_to_right: چەپ بۆ ڕاست
+right_to_left: ڕاست بۆ چەپ
+note: تێبینی
+enter_a_value: بەهایەک دابنێ...
+enter_a_placeholder: شوێنگرێک دابنێ...
+length: درێژی
+soft_length: سنووری نەرم
+precision_scale: پێوەر و وردی
+readonly: تەنها خوێندنەوە
+unique: بێهاوتا
+index: Index
+updated_on: نوێکراوە لە
+updated_by: نوێکراوەتەوە لەلایەن
+primary_key: کلیلی سەرەکی
+foreign_key: کلیلی دەرەکی
+field_key: کلیلی خانە
+finish_setup: تەواوکردنی دامەزراندن
+dismiss: پشتگوێخستن
+toggle_raw_editor: ڕەوشگۆڕینی دەستکاریکەری خام
+raw_editor_placeholder: "{'{'}{'{'}$trigger.payload.example{'}'}{'}'}"
+raw_value: بەهای خام
+copy_raw_value: لەبەرگرتنەوەی بەهای خام
+copy_raw_value_success: لەبەرگیرایەوە
+copy_raw_value_fail: لەبەرگرتنەوە شکستی هێنا
+paste_raw_value: بەهای خام دابنێوە
+paste_raw_value_success: دانرایەوە
+paste_raw_value_fail: دانانەوە شکستی هێنا
+view_raw_value: بینینی بەهای خام
+edit_raw_value: دەستکاریکردنی بەهای خام
+enter_raw_value: بەهای خام دابنێ...
+clear_value: لابردنی بەها
+clear_changes: لابردنی گۆڕانکارییەکان
+clear_items: سڕینەوەی مادەکان
+reset_to_default: بنەڕەتی کردنەوە
+undo_changes: پاشەکشەکردنی گۆڕانکارییەکان
+notifications: ئاگادارکردنەوەکان
+archive_all: ئەرشیفکردنی هەموو
+show_all_activity: نیشاندانی هەموو کردارەکان
+page_not_found: پەڕە نەدۆزرایەوە
+page_not_found_body: ئەو پەڕەیەی کە بۆی دەگەڕێیت پێناچێت بونی هەبێت.
+confirm_revert: پشتڕاستکردنەوەی گەڕانەوە
+confirm_revert_body: ئەمە مادەکە دەگەڕێنێتەوە بۆ دۆخی دیاریکراو.
+display: پیشاندان
+settings_update_success: ڕێکخستنەکان نوێکراونەتەوە
+title: ناونیشان
+subtitle: ژێرنوس
+revision_delta_created: دروستکرا
+revision_delta_created_externally: لە دەرەوە دروست کرا
+revision_delta_updated: 'یەک خانە نوێکرایەوە | {count} خانە نوێکرانەوە'
+revision_delta_deleted: سڕایەوە
+revision_delta_reverted: گەڕێندرایەوە
+revision_delta_update_message: ئەم خانەیە نوێ کراوەتەوە بەڵام بەهاکەی بە هۆکاری ئەمنی دەشاردرێتەوە.
+revision_delta_other: پێداچونەوە
+revision_delta_by: '{date} بەپێی {user}'
+presentation_text_values_cannot_be_reimported: 'دەقی پێشکەشکردن بەکاردەهێنێت، بەهاکان ناتوانرێت دووبارە هاوردە بکرێتەوە.'
+download_page_as_csv: 'داگرتنی پەڕە وەک CSV'
+download_page_as_csv_unsupported: ئەم شێوازە پشتگیری لە دابەزاندنی لاپەڕەی ئێستا ناکات.
+private_user: بەکارهێنەری تایبەت
+creation_preview: پێشبینی دروستکردن
+revision_preview: پێشبینی پێداچونەوە
+updates_made: نوێکردنەوەکان ئەنجامدراون
+leave_comment: لێدوانێک جێبهێڵە...
+post_comment_success: لێدوان بڵاوکرایەوە
+post_comment_updated: لێدوان نوێکرایەوە
+item_create_success: مادە دروستکرا | مادەکان دروستکران
+item_update_success: مادە نوێکرایەوە | مادەکان نوێکرانەوە
+item_delete_success: مادە سڕایەوە | مادەکان سڕانەوە
+this_collection: ئەم کۆمەڵەیە
+related_collection: کۆمەڵەی پەیوەندیدار
+related_collections: کۆمەڵە پەیوەندیدارەکان
+translations_collection: کۆمەڵەی وەرگێران
+languages_collection: کۆمەڵەی زمانەکان
+translations_preview_collections: کۆمەڵەکان
+translations_preview_fields: خانەکان
+import_data_input_placeholder: CSV یان JSON...
+import_data_button: دەستکردن بە هاوردەکردن
+import_data_indeterminate: هاوردەکردنی داتا...
+import_data_success: داتا بە سەرکەوتوویی هاوردەکرا لە {filename} ـەوە
+import_data_error: داتاکانی ئەم پەڕگەیە لەگەڵ کۆمەڵەکە تێک ناکەنەوە.
+label_import: هاوردن
+label_export: هەناردە
+import_export: هاوردن / هەناردە
+format: داڕشتن
+last_page: کۆتا پەڕ
+last_access: دواین دەستگەیشتن
+fill_template: بە بەهای قاڵب پڕی بکەوە
+a_unique_table_name: ناوێکی بێهاوتای خشتە...
+a_unique_column_name: ناوی بێهاوتای ستون...
+enable_custom_values: چالاککردنی بەها خوازراوەکان
+submit: پێشکەشکردن
+move_to_folder: گواستنەوە بۆ بوخچە
+move: گواستنەوە
+system: سیستەم
+add_field_related: زیادکردنی خانە بۆ کۆمەڵەی پەیوەندی دار
+interface_label: ڕوکار
+display_label: پیشاندان
+today: ئەمڕۆ
+yesterday: دوێنێ
+delete_comment: سڕینەوەی لێدوان
+delete_share: سڕینەوەی هاوبەشی
+functions:
+  year: ساڵ
+  month: مانگ
+  week: هەفتە
+  day: ڕۆژ
+  weekday: ڕۆژەکانی هەفتە
+  hour: کاتژمێر
+  minute: خولەک
+  second: چرکە
+  count: ژمارە
+date-fns_date: PPP
+date-fns_time: 'h:mm:ss a'
+date-fns_time_no_seconds: 'h:mm a'
+date-fns_time_24hour: 'HH:mm:ss'
+date-fns_time_no_seconds_24hour: 'HH:mm'
+date-fns_date_short: 'MMM d, u'
+date-fns_time_short: 'h:mma'
+date-fns_time_short_seconds: 'h:mm:ssa'
+date-fns_date_short_no_year: MMM d
+minutes: خولەک
+hours: کاتژمێر
+month: مانگ
+year: ساڵ
+select_all: دیاریکردنی هەموو
+permissionsLevel:
+  all: دەستگەیشتنی تەواوی {action}
+  partial: دەستگەیشتنی بەشێکی {action}
+  custom: دەستگەیشتنی بەشێکی {action}
+  none: دەستنگەیشتنی {action}
+months:
+  january: کانونی دووەم
+  february: شوبات
+  march: ئادار
+  april: نیسان
+  may: ئایار
+  june: حوزەیران
+  july: تەمووز
+  august: ئاب
+  september: ئەیلول
+  october: تشرینی یەکەم
+  november: تشرینی دووەم
+  december: کانونی یەکەم
+drag_mode: دۆخی ڕاکێشان
+move_tool: ئامرازی جوڵاندن
+crop_tool: ئامرازی بڕین
+focal_point_tool: ئامرازی خاڵی فۆکەس
+cancel_crop: هەڵوەشاندنەوەی بڕین
+cancel_selection: هەڵوەشاندنەوەی دیاریکراو
+original: ڕەسەن
+url: بەستەر
+import_label: هاوردن
+file_details: وردەکاری پەڕگە
+dimensions: دوریەکان
+size: قەبارە
+created: دروستکرا
+uploaded: بارکراوە
+modified: گۆڕدراو
+owner: خاوەن
+edited_by: دەستکاریکراوە لەلایەن
+folder: بوخچە
+folders: فۆڵدەرەکان
+zoom: نزیکخستنەوە
+download: داگرتن
+open: کردنەوە
+open_in_new_window: کردنەوە لە پەنجەرەی نوێدا
+open_folder: کردنەوەی بوخچەی "{folder}"
+foreground_color: ڕەنگی پێشەوە
+background_color: ڕەنگی پێشەوە
+upload_from_device: بارکردنی پەڕگەیەک لە ئامێرەوە
+choose_from_library: دیاری کردنی پەڕگە لە پێشانگاوە
+import_from_url: هاوردنی پەڕگە لە ڕێگای بەستەرەوە
+replace_from_device: جێگرتنەوەی پەڕگە لە ئامێرەوە
+replace_from_library: جێگرتنەوەی پەڕگە لە پێشانگاوە
+replace_from_url: جێگرتنەوەی پەڕگە لە ڕێگای بەستەرەوە
+no_image_selected: هیچ وێنەیەک دیاری نەکراوە
+no_file_selected: هیچ پەڕگەیەک دیاری نەکراوە
+download_file: داگرتنی پەڕگە
+open_file_in_tab: کردنەوەی پەڕگە لە پەنجەرەی نوێدا
+start_export: دەستپێکردنی هەناردەکردن
+not_available_for_local_downloads: بەردەست نییە بۆ داگرتنە نێوخۆیەکان
+exporting_all_items_in_collection: هەناردەکردنی سەرجەم {total} مادەکان لە کۆمەڵەی {collection}.
+exporting_limited_items_in_collection: '{count} ئایتم لە کۆی {total} ئایتم لە {collection} هەناردە دەکرێن.'
+exporting_no_items_to_export: هیچ شتێک نییە بۆ هەناردەکردن. ڕێکخستنی هەناردەکردن و/یان زیادکردنی شتەکان بۆ کۆمەڵەکە.
+exporting_download_hint: کاتێک فایلی {format} ەکە دروست بوو، دادەبەزێنرێت بۆ ئامێرەکەت.
+exporting_library_hint: کاتێک فایلی {format} ەکە دروست بوو، لە کتێبخانەی فایل هەڵدەگیرێت.
+exporting_library_hint_forced: ئەم هەناردەکردنە پێویستە بە کۆمەڵ پرۆسە بکرێت. پاش تەواوبوون، فایلی {format} لە کتێبخانەی فایل هەڵدەگیرێت.
+collection_key: کلیلی کۆمەڵە
+name: ناو
+primary_key_field: خانەی کلیلە وشە
+type: جۆر
+creating_new_collection: دروستکردنی کۆمەڵەی نوێ
+created_by: دروستکراوە لەلایەن
+created_on: دروستکراوە لە
+creating_collection_info: ناوی کۆمەڵە بنێ و کلیلە وشەیەکی نوێی بێهاوتا دابمەزرێنە بۆ خانە...
+creating_collection_system: هەر یەکێک لەو خانە بژاردانە کارابکە و ناویان بنێوە.
+auto_increment_integer: ژمارەی تەواوی خۆکارە زیادبوو
+auto_increment_big_integer: ژمارەی تەواوی گەورەی خۆکارە زیادبوو
+generated_uuid: دروستکەری UUID
+manual_string: دەقی دەستی دانراو
+save_and_create_new: پاشەکەوتکردن و دروستکردنی نوێ
+save_and_stay: پاشەکەوتکردن و مانەوە
+save_and_quit: پاشەکەوتکردن و وازهێنان
+save_and_return_to_main: پاشەکەوت بکە و بگەڕێوە بۆ سەرەکی
+save_as_copy: پاشەکەوتکردن وەک لەبەرگرتنەوە
+add_existing: زیادکردنی بەردەست
+creating_items: دروستکردنی مادەکان
+enable_create_button: کاراکردنی دوگمەی دروستکردن
+selecting_items: دیاریکردنی مادەکان
+enable_select_button: کاراکردنی دوگمەی دیاریکردن
+allow_duplicates: ڕێگەدان بە دووبارەبوونەوە
+comments: لێدوانەکان
+no_comments: هێشتا هیچ لێدوانێک نییە
+expand: فراوانکردن
+expand_all: فروانکردنی هەموو
+expand_none: فراوان نەکردن
+collapse: بچووکردنەوە
+collapse_all: بچووکردنەوەی هەموو
+select_item: مادە دیاری بکە
+no_items: هیچ مادەیەک نییە
+search_items: گەڕانی مادەکان...
+search_extensions: گەڕانی زیادکراوەکان...
+disabled: ناکاراکراو
+information: زانیاری
+report_bug: ڕاپۆرتکردنی هەڵە
+request_feature: داواکردنی تایبەتمەندی
+request_body: ناوەڕۆکی داواکاری
+interface_not_found: 'ڕوکاری "{interface}" نەدۆزرایەوە.'
+operation_not_found: 'کرداری "{operation}" نەدۆزرایەوە.'
+reset_interface: بنەڕەتیکردنەوەی ڕوکار
+display_not_found: 'پیشاندەری "{display}" نەدۆزرایەوە.'
+reset_display: بنەڕەتیکردنەوەی پیشاندەر
+list-m2a: بنیاتنەر (زۆر بۆ هەرشتێک M2A)
+item_count: 'هیچ مادەیەک نییە | یەک مادە | {count} مادە'
+filtered_item_count: 'هیچ شتێکی فلتەرکراو نییە | یەک بابەتی فلتەرکراو | {count} بابەتی فلتەرکراو'
+no_items_copy: هێشتا هیچ مادەیەک نییە لەم کۆمەڵەیەدا.
+file_count: 'هیچ پەڕگەیەک نییە | یەک پەڕگە | {count} پەڕگە'
+no_files_copy: هیچ پەڕگەیەک نییە لێرە.
+user_count: 'هیچ بەکارهێنەرێک نییە | یەک بەکارهێنەر | {count} بەکارهێنەر'
+no_users_copy: هێشتا هیچ بەکارهێنەرێک نییە لەم پلەیەدا.
+no_notifications: هیچ ئاگادارکردنەوەیەک نییە
+no_notifications_copy: هەمووتان گیراون!
+activity_log: تۆماری کردار
+all_items: هەموو مادەکان
+any: هەر
+csv: CSV
+no_collections: هیچ کۆمەڵەیەک نییە
+create_collection: دروستکردنی کۆمەڵە
+no_collections_copy_admin: هیچ کۆمەڵەیەکت نییە هێشتا. کرتە لەو دوگمەیەی خوارەوە بکە بۆ دەستپێکردن.
+no_collections_copy: هیچ کۆمەڵەیەکت نییە هێشتا. تکایە پەیوەندی بکە بە بەڕێوبەری سیستەم.
+relationship_not_setup: پەیوەندی بە شێوەیەکی دروست ڕێکنەخراوە
+no_singleton_relations: پەیوەندیەکان لەگەڵ سینگڵتۆنەکان پشتگیری نەکراون
+display_template_not_setup: بژاردەی نیشاندانی قاڵب هەڵەڕێکخراوە
+collection_field_not_setup: بژاردەی خانەی کۆمەڵە هەڵەڕێکخراوە
+select_a_collection: کۆمەڵەیەک هەڵبژێرە
+select_a_field: خانەیەک هەڵبژێرە
+active: چالاک
+move_to: گواستنەوە بۆ...
+copy: لەبەرگرتنەوە
+copy_to: لەبەرگرتنەوە بۆ...
+no_other_dashboards_copy: هیچ داشبۆردێکی ترت نییە هێشتا.
+inactive: ناچالاک
+users: بەکارهێنەرەکان
+roles: پلەکان
+activity: چالاکی
+activity_item: چالاکی مادە
+action: کردەوە
+ip_address: ناونیشانی IP
+user_agent: نوێنەری بەکارهێنەر
+origin: ڕەسەن
+decimals: دەییەکان
+value_decimals: بەها دەییەکان
+min_value: کەمترین بەها
+max_value: زۆرترین بەها
+automatic: خۆکار
+field_width: پانی خانە
+add_filter: دانانی پاڵاوتن
+upper_limit: کۆتا سنور...
+lower_limit: کەمترین سنور...
+user_directory: پێڕستی بەکارهێنەر
+documentation: بەڵگەنامەسازی
+sidebar: شریتی لا
+duration: ماوە
+charset: کۆمەڵەهێما
+second: چرکە
+file_moved: پەڕگە گواسترایەوە
+collection_created: کۆمەڵە دروستکرا
+modified_on: دەستکاریکرا لە
+card_size: قەبارەی کارت
+sort_field: خانەی ڕیزکردن
+add_sort_field: دانانی خانەی ڕیزکردن
+sort: ڕیزکردن
+status: دۆخەکان
+remove: لابردن
+toggle_manual_sorting: ڕەوشگۆڕین بۆ ڕیزکردنی دەستی
+bookmark_doesnt_exist: نیشانکردن بوونی نییە
+bookmark_doesnt_exist_copy: ئەو نیشانکردنەی کە دەتەوێت بیکەیتەوە ناتوانرێت بدۆزرێتەوە.
+bookmark_doesnt_exist_cta: گەڕانەوە بۆ کۆمەڵە
+select_an_item: مادەیەک دیاری بکە...
+edit: دەستکاری
+edit_item: دەستکاری مادە
+enabled: چالاککراوە
+partially_enabled: بەشێکی چالاککراوە
+enable_all: چالاککردنی هەموو
+disable_all: ناچالاککردنی هەموو
+enabled_dev_tooltip: زیادکراوەکانی پێگە هەمیشە لە دۆخی گەشەپێدەردا چالاکن
+disable_tfa: لەکارخستنی 2FA
+admin_disable_tfa_text: ئایا دڵنیای کە دەتەوێت 2FA بۆ ئەم بەکارهێنەرە لەکار بخەیت؟
+tfa_setup: دامەزراندنی 2FA
+tfa_scan_code: کۆدەکە سکان بکە لە ڕێگەی بەرنامەیەکی پشتڕاستکەرەوە (authenticator app) بۆ کۆتایی پێهێنان بە ڕێکخستنی 2FA
+enter_otp_to_disable_tfa: OTP ـیەکە دابنێ بۆ ڕاگرتنی 2FA
+create_account: دروستکردنی هەژمار
+account_created_successfully: هەژمار دروستکرا بە سەرکەوتوویی
+auto_fill: پڕکردنەوەی خۆکاری
+corresponding_field: خانەی هاوچەشن
+errors:
+  COLLECTION_NOT_FOUND: "کۆمەڵە بونی نییە"
+  CONTAINS_NULL_VALUES: خانە بەهای هیچی تێدایە
+  CONTENT_TOO_LARGE: مادە/پەڕگەی پێشکەشکراو زۆر گەورەیە
+  FIELD_NOT_FOUND: خانە نەدۆزرایەوە
+  FORBIDDEN: قەدەغە
+  GRAPHQL_VALIDATION: سەلماندنی گراف کیو ئێڵ
+  ILLEGAL_ASSET_TRANSFORMATION: سەرچاوەی وێنە زۆر گەورەیە بۆ پیشاندان
+  INTERNAL_SERVER_ERROR: هەڵەی پێشبینی نەکراو
+  INVALID_CONFIG: ڕێکخستنی نادروست
+  INVALID_CREDENTIALS: ناوی بەکارهێنەر و تێپەڕەوشەی هەڵە
+  INVALID_FOREIGN_KEY: کلیلی دەرەکی نادروست
+  INVALID_IP: IP Address ڕێگەپێدراو نییە
+  INVALID_OTP: یەکجارە تێپەڕەوشەی هەڵە
+  INVALID_PAYLOAD: سودباری نادروست
+  INVALID_PROVIDER: بەکارهێنەر سەر بەدابینکەرێکی جیاوازی پشتڕاستکەرەوەیە
+  INVALID_QUERY: پرسی نادروست
+  INVALID_TOKEN: تۆکنی نادروست
+  INVALID_USER: هەڵەڕویدا لە پشتڕاستکردنەوەی بەکارهێنەر
+  ITEM_LIMIT_REACHED: ماددە گەیشتە سنور
+  ITEM_NOT_FOUND: ماددە نەدۆزرایەوە
+  LIMIT_EXCEEDED: 'سنور بەزێندراوە'
+  METHOD_NOT_ALLOWED: شێوازەكە ڕێگا پێنەدراوە
+  NOT_NULL_VIOLATION: بەها نابێت پوچ بێت
+  RANGE_NOT_SATISFIABLE: مەودای نادروست
+  RECORD_NOT_UNIQUE: بەهای لەبەرگیراوە دۆزرایەوە
+  REQUESTS_EXCEEDED: داواکاریەکان گەیشتە سنور
+  ROUTE_NOT_FOUND: نەدۆزرایەوە
+  SERVICE_UNAVAILABLE: خزمەتگوزاری بەردەست نییە
+  TOKEN_EXPIRED: تۆکن بەسەرچوو
+  UNEXPECTED_RESPONSE: وەڵامێکی چاوەڕواننەکراو
+  UNKNOWN: هەڵەی پێشبینی نەکراو
+  UNPROCESSABLE_CONTENT: ناوەڕۆکی ناشیاوی پرۆسەکردن
+  UNSUPPORTED_MEDIA_TYPE: جۆری میدیای پشتگیری نەکراو
+  USER_SUSPENDED: بەکارهێنەر ڕاگیراوە
+  VALUE_OUT_OF_RANGE: بەها لە دەرەوەی سنوری دیاریکراوە
+  VALUE_TOO_LONG: بەها زۆر گەورەیە
+security: پارێزراوی
+bookmark_name: ناوی نیشانکردن...
+create_bookmark: نیشانکردن دروستبکە
+edit_bookmark: دەستکاری نیشانکردن
+edit_personal_bookmark: دەستکاری نیشانکەری کەسی
+edit_role_bookmark: دەستکاری نیشانکەری پلە
+edit_global_bookmark: دەستکاری نیشانکەری گشتی
+cannot_edit_role_bookmarks: ناتوانرێت دەستکاری نیشانکەری پلە بکرێت
+cannot_edit_global_bookmarks: ناتوانرێت دەستکاری نیشانکەری گشتی بکرێت
+bookmarks: نیشانکراوەکان
+presets: پێشسێتەکان
+unexpected_error: هەڵەی پێشبینی نەکراو
+unexpected_error_copy: هەڵەیەکی چاوەڕواننەکراو ڕوویدا. تکایە دووبارە هەوڵبدەوە.
+copy_details: لەبەرگرتنەوەی وردەکاریەکان
+no_app_access: نەبوونی دەسەڵاتی پێگە
+no_app_access_copy: ئەم بەکارهێنەرە ڕێگەپێنەدراوە بۆ بەکارهێنانی پێگەی بەڕێوبەر.
+password_reset_successful: تێپەڕەوشە نوێکرایەوە بە سەرکەوتوویی
+back: گەڕانەوە
+filter: پاڵاوتن
+edit_image: دەستکاری وێنە
+editing_image: دەستکاریکردنی وێنە
+square: چوارگۆشە
+free: ئازاد
+flip_horizontal: هەڵگێڕانەوەی ئاسۆیی
+flip_vertical: هەڵگێڕانەوەی ستونی
+aspect_ratio: ڕێژەی ڕووکار
+rotate: سوڕاندنەوە
+all_users: هەموو بەکارهێنەرەکان
+delete_collection: سڕینەوەی کۆمەڵە
+update_collection_success: کۆمەڵەی نوێکراوە
+delete_collection_success: کۆمەڵەی سڕاوە
+make_collection_visible: کۆمەڵە دیاربخە
+make_collection_hidden: کۆمەڵە بشارەوە
+make_folder_visible: بوخچە دیاربخە
+make_folder_hidden: بوخچە بشارەوە
+goto_collection_content: بینینی ناوەڕۆک
+count_of_total_items: '{count} of {total} Items'
+start_end_of_count_items: '{start}-{end} of {count} Items'
+start_end_of_count_filtered_items: '{start}-{end} of {count} Filtered Items'
+delete_collection_are_you_sure: >-
+  ئایا دڵنیای دەتەوێت ئەم کۆمەڵەیە "{collection}" بسڕیتەوە؟ ئەمە وا دەکات کە کۆمەڵەکە و هەموو مادەکانی ناوی بسڕینەوە. ئەم کارە هەمیشەییە.
+delete_folder_are_you_sure: ئایا دڵنیای دەتەوێت بوخچەی "{folder}" بسڕیتەوە؟ بوخچە بە ناویەکداچوەکان و کۆمەڵەکان دەگوازرێنەوە بۆ ئاستی یەکەم.
+delete_collection_peer_dependencies: ئەم خانانەش دەسڕێنەوە، چونکە پەیوەندیان هەیە بە کۆمەڵەی ئێستاوە.
+collections_shown: کۆمەڵە نیشاندراوەکان
+visible_collections: کۆمەڵە دەرخراوەکان
+hidden_collections: کۆمەڵە شاراوەکان
+show_hidden_collections: نیشاندانی کۆمەڵە شاراوەکان
+hide_hidden_collections: شاردنەوەی کۆمەڵە شاراوەکان
+show_header: نیشاندانی سەرپەڕە
+unmanaged_collections: کۆمەڵە ناڕێکخراوەکان
+system_collections: کۆمەڵەکانی سیستەم
+placeholder: شوێنگرەوە
+icon_left: ئایکۆنی چەپ
+icon_right: ئایکۆنی ڕاست
+count_other_revisions: '{count} پێدواچونەوەی تر'
+font: فۆنت
+sans_serif: Sans Serif
+serif: Serif
+monospace: Monospace
+divider: دابەشکەر
+color: ڕەنگ
+circle: بازنە
+empty_item: مادەی بەتاڵ
+log_in_with: 'بچۆژورەوە بە {provider}'
+conditional_styles: شێوازەکانی ئەگەرەکان
+advanced_settings: ڕێکخستنە پێشکەوتووەکان
+advanced_filter: پاڵاوتنە پێشکەوتوەکان
+delete_advanced_filter: سڕینەوەی پاڵاوتن
+change_advanced_filter_operator: گۆڕینی کارپێکەر
+advanced: پێشکەوتوو
+operators:
+  eq: یەکسانە
+  neq: یەکسان نییە
+  lt: کەمترە لە
+  gt: گەورتر لە
+  lte: کەمتر لە یان یەکسانە بە
+  gte: گەورەتر لە یان یەکسانە بە
+  in: یەکێکە لە
+  nin: یەکێک نییە لە
+  null: هیچە
+  nnull: هیچ نییە
+  contains: لەخۆدەگرێت
+  ncontains: لەخۆی ناگرێت
+  icontains: لەخۆدەگرێت (بێ هەست)
+  starts_with: دەستپێ دەکات بە
+  nstarts_with: دەستپێ ناکات بە
+  istarts_with: دەستپێ دەکات بە (بێهەست)
+  nistarts_with: دەستپێ ناکات بە (بێهەست)
+  ends_with: کۆتایی پێ دێت بە
+  nends_with: کۆتایی نایات بە
+  iends_with: کۆتایی پێ دێت بە (بێهەست)
+  niends_with: کۆتایی نایات بە (بێهەست)
+  between: دەکەوێتە نێوان
+  nbetween: ناکەوێتە نێوان
+  empty: بەتاڵە
+  nempty: بەتاڵ نییە
+  all: ئەم کلیلانە لەخۆ دەگرێت
+  has: بەشێک لەم کلیلانە لەخۆ دەگرێت
+  intersects: یەکتردەبڕن
+  nintersects: یەکترنابڕن
+  intersects_bbox: یەکتربرین لە سندوقی سنور
+  nintersects_bbox: یەکترنەبڕین لە سندوقی سنور
+  regex: یەکسان دەبێت لەگەڵ RegExp
+custom_validation_message: نامەی خوازراوی سەلماندن
+loading: بارکردن...
+extension_readme_missing: ئەم زیادکراوە فایلی README ـی نییە
+drop_to_upload: فڕێی بدە بۆ بارکردن
+item: ماددە
+items: ماددەکان
+upload_file: پەڕگە باربکە
+upload_file_indeterminate: بارکردنی پەڕگە...
+upload_file_success: پەڕگە بارکرا
+upload_files_indeterminate: 'بارکردنی پەڕگەکان {done}/{total}'
+upload_files_success: '{count} پەڕگە بارکران'
+upload_pending: بارکردنی هەڵواسراو
+drag_file_here: پەڕگەیەک ڕابکێشە و فڕێی بدە لێرە
+click_to_browse: کرتە بکە بۆ گەڕان
+interface_options: بژاردەکانی ڕوکار
+display_options: بژاردەکانی نیشاندان
+layout_options: بژاردەکانی نەخشە
+rows: ڕیزەکان
+columns: ستونەکان
+collection_setup: دامەزراندنی کۆمەڵە
+optional_system_fields: خانە هەڵبژاردەییەکان
+value_unique: بەها پێویستە بێ هاوتا بێت
+value_index: خانە ڕیزکراوە
+all_activity: سەرجەم کردارەکان
+create_item: دروستکردنی مادە
+display_template: پیشاندانی قاڵب
+language_display_template: پیشاندانی قاڵبی زمان
+translations_display_template: پیشاندانی قاڵبی وەرگێڕانەکان
+n_items_selected: 'هیچ مادەیەک دیاری نەکراوە | یەک مادە دیاریکراوە | {n} مادە دیاریکراوە'
+per_page: بۆ هەر پەڕەیەک
+all_files: سەرجەم پەڕگەکان
+my_files: پەڕگەکانم
+recent_files: دواین پەڕگەکان
+create_folder: دروستکردنی بوخچە
+edit_folder: دەستکاری بوخچە
+folder_name: ناوی بوخچە...
+folder_key: کلیلی بوخچە...
+add_file: پەڕگە زیادبکە
+replace_file: پەڕگە بگۆڕە
+no_results: هیچ ئەنجامێک نەبوو
+no_results_copy: پاڵاوتنەکانی گەڕان بسڕەوە یان ڕێکیان بخە بۆ بینینی ئەنجامەکان.
+no_visible_fields: فۆرمی بەتاڵ
+no_visible_fields_copy: ئەم فۆڕمە هیچ خانەیەکی دیار نییە.
+clear_filters: لابردنی پاڵاوتنەکان
+saves_automatically: پاشەکەوتکردنی خۆکارانە
+role: پلە
+edit_role: دەستکاری پلە
+rule: یاسا
+user: بەکارهێنەر
+no_presets: پێشسێت نییە
+no_presets_copy: هێشتا هیچ پێشسێتێک یان نیشانەیەک پاشەکەوت نەکراوە.
+no_presets_cta: زیادکردنی پێشسێت
+presets_only: پێشسێتەکان بەتەنها
+create: دروستکردن
+on_create: لە کاتی دروستکردندا
+on_update: لەکاتی نوێکردنەوەدا
+read: خوێندنەوە
+update: نوێکردنەوە
+delete: سڕینەوە
+select_fields: دیاریکردنی خانەکان
+format_text: داڕشتنی نوسین
+format_value: داڕشتنی بەها
+abbreviate_value: بەهای کورتکراوە
+operator: کارپێکەر
+bold: تۆخ
+toggle: ڕەوشگۆڕ
+icon_on: ئایکۆنی چالاک
+icon_off: ئایکۆنی ناچالاک
+label: پێناس
+flows: لێشاوەکان
+flow: لێشاو
+select_a_flow: لێشاوێک دیاری بکە
+run_flow_on_current_collection: جێبەجێکردنی لێشاو لەسەر کۆمەڵەی ئێستا
+run_flow_on_current: جێبەجێکردنی لێشاو لەسەر مادەی ئێستا
+run_flow_on_selected: سەرەتا یەک یان چەند مادەیەک دیاری بکە | جێبەجێکردنی لێشاو لەسەر ١ مادەی دیاریکراو | جێبەجێکردنی لێشاو لەسەر {n} مادەی دیاریکراو
+run_flow: جێبەجێکردنی لێشاو
+trigger_flow_success: لێشاوی "{flow}" بە سەرکەوتووی جێبەجێکرا
+field_name_placeholder: ناوی خانە بنوسە...
+field_key_placeholder: کلیلی خانە بنوسە...
+trigger: وروژاندن
+trigger_options: بژاردەکانی وروژان
+view_trigger: بینینی وروژان
+create_trigger: دروستکردنی وروژان
+trigger_setup: دامەزراندنی وروژان
+change_trigger: گۆڕینی وروژان
+flow_delete_confirm: ئایا دڵنیای لە سڕینەوەی لێشاوی "{flow}"؟ ئەم کردارە گەڕانەوەی نییە.
+set_flow_active: لێشاو دابنێ بۆ چالاک بوون
+set_flow_inactive: لێشاو دابنێ بۆ ناچالاک بوون
+edit_flow: دەستکاری لێشاو
+delete_flow: سڕینەوەی لێشاو
+no_other_flows_copy: هیچ لێشاوێکی ترت نییە.
+no_flows: لێشاو نییە
+no_flows_copy: هێشتا هیچ لێشاوێکت نییە.
+create_flow: دروستکردنی لێشاو
+creating_new_flow: دروستکردنی لێشاوی نوێ
+updating_flow: نوێکردنەوەی لێشاو
+flow_setup: دامەزراندنی لێشاو
+flow_name: ناو
+flow_tracking: بەدواداچونی تۆمار و کردارەکان
+flow_tracking_all: بەدواداچوونی کردار و تۆمارەکان
+flow_tracking_activity: تەنها بەدواداچوونی کردار
+flow_tracking_null: بەدواداچونی هیچ کردارێک مەکە
+start_flow: لێشاو دەستپێبکە
+stop_flow: لێشاو ڕابگرە
+create_operation: دروستکردنی کردار
+edit_operation: دەستکاری کردار
+code: کۆد
+operation_options: بژاردەکانی کردار
+operation_name: ناوی کردار...
+operation_key: پێناسە بۆ سەرچاوە...
+operation_key_unique_error: کلیلە کرداریەکان پێویستە بێهاوتابن لە لێشاودا
+operation_handle_resolve: 'چارەسەر: کرتە بکە بۆ زیادکردن یان ڕاکێشان بۆ ڕێڕەو'
+operation_handle_reject: 'ڕەتکردنەوە: کرتە بکە بۆ زیادکردن یان ڕاکێشان بۆ ڕێڕەو'
+visual_editor: دەستکاریکەری بینراو
+toggle_navigation: گۆڕینی ڕەوشی هاتوچۆ
+toggle_editable_elements: گۆڕینی ڕەوشی توخمە دەستکاریکراوەکان
+no_url: هیچ بەستەرێک نەدراوە
+no_url_copy: تکایە بەستەرێک زیاد بکە لە ڕێکخستنەکاندا
+invalid_url: URL نادروست
+insights: تێڕوانینەکان
+deployment:
+  provider:
+    settings:
+      delete_confirm: ئەم کردارە هەمیشەییە و گەڕاندنەوەی نییە. ئایا دڵنیای دەتەوێت جێبەجێ ببێت؟
+    run:
+      cancel_confirm: ئەم کردارە هەمیشەییە و گەڕاندنەوەی نییە. ئایا دڵنیای دەتەوێت جێبەجێ ببێت؟
+      log_all: هەموو ئاستەکانی تۆمار
+  target_value:
+    preview: بینین
+dashboard: داشبۆرد
+panel: پانێڵ
+panel_options: بژاردەکانی پانێڵ
+panel_header: سەرپەڕەی پانێڵ
+panel_name_placeholder: ناوی ئەم پانێڵە...
+panel_note_placeholder: بژاردە وردەکاریەکان بۆ ئەم پانێڵە...
+panel_delete_confirm: ئایا دڵنیای لە سڕینەوەی ئەم پانێڵە؟ ئەم کردارە گەڕانەوەی نییە.
+list_panel_allow_edit: ڕێگە بە دەستکاریکردنی ناو هێڵ بدە
+dashboard_delete_confirm: ئایا دڵنیای لە سڕینەوەی ئەم داشبۆردە؟ ئەم کردارە گەڕانەوەی نییە.
+edit_dashboard: دەستکاری داشبۆرد
+delete_dashboard: سڕینەوەی داشبۆرد
+visible: بینراو
+prefix_placeholder: نوسینی پێش بەها...
+suffix_placeholder: نوسینی دوای بەها...
+decimals_placeholder: ژمارەی شوێنە دەییەکان...
+no_dashboards: هیچ داشبۆردێک نییە
+no_dashboards_copy: هێشتا هیچ داشبۆردێکت نییە.
+create_dashboard: داشبۆرد دروستبکە
+dashboard_name: ناوی داشبۆرد
+no_data: داتا نییە
+no_data_in_flow: هیچ داتایەک بەرهەم نەهاتوە یان دەسەڵاتت نەبووە لەم لێشاوەدا
+accountability: بەرپرسیاری
+payload: سودبار
+details: وردەکاریەکان
+resume_streaming_logs: بەردەوامبوونی ڕۆیشتنی تۆمارەکان
+pause_streaming_logs: وەستاندنی ڕۆیشتنی تۆمارەکان
+logs_session_resumed: دانیشتنی تۆمارەکان بەردەوام بوو...
+logs_session_paused: دانیشتنی تۆمارەکان وەستێنرا...
+logs_stream_disconnected: ڕۆیشتنی تۆمارەکان پچڕا...
+log_detail_filter_paths: 'پاڵاوتنی ڕێڕەوەکان (بۆ نمونە: req.method, res.statusCode)'
+logs_beginning: ئەمە سەرەتای دانیشتنی تۆمارەکانتە...
+logs_waiting: 'چاوەڕوانی تۆماری زیاتر...'
+logs_unread_count: '{count} نەخوێنراوە'
+clear_logs: سڕینەوەی تۆمارەکان
+search_logs: گەڕان لە تۆمارەکان...
+all_instances: هەموو نموونەکان
+instance_count: 'هیچ نموونەیەک نییە | یەک نموونە | {count} نموونە'
+all_log_levels: هەموو ئاستەکانی تۆمار
+log_level_count: 'هیچ ئاستێکی تۆمار نییە | یەک ئاستی تۆمار | {count} ئاستی تۆمار'
+soft_wrap_lines: پێچانەوەی نەرمی دێڕەکان
+full_screen: پڕ ڕوونما
+full_text_search: گەڕانی تەواوی دەق
+edit_panels: دەستکاری پانێڵەکان
+center_align: لاگرتنی ناوەڕاست
+left_align: لاگرتنی چەپ
+right_align: لاگرتنی ڕاست
+fit_to_screen: شیاو بە ڕونما
+image_url: بەستەری وێنە
+alt_text: دەقی جێگرەوە
+media: میدیا
+quality: کوالیتی
+width: پانی
+height: بەرزی
+transformation_preset_key: کلیلی پێشسێتی گۆڕانکاری
+source: سەرچاوە
+url_placeholder: بەستەرێک دابنێ...
+display_text: پیشاندانی دەق
+display_text_placeholder: دەقێکی پیشاندراو دابنێ...
+interface_group_text_and_numbers: نوسین و ژمارەکان
+interface_group_selection: دیاریکردن
+interface_group_relational: پەیوەندیدار
+interface_group_presentation: پێشکەشکردن
+interface_group_groups: دەستەکان
+interface_group_other: هیتر
+tooltip: ئاماژە
+tooltip_placeholder: ئاماژەیەک دابنێ...
+unlimited: بێ سنوور
+open_link_in: کردنەوەی بەستەر لە
+new_tab: پەنجەرەی نوێ
+save_image: وێنە پاشەکەوت بکە
+save_media: میدیا پاشەکەوت بکە
+wysiwyg_options:
+  aligncenter: لاگرتنی ناوەڕاست
+  alignjustify: لاگرتنی هاوستون
+  alignleft: لاگرتنی چەپ
+  alignnone: لاگرتنی هیچ لایەک
+  alignright: لاگرتنی ڕاست
+  forecolor: ڕەنگی پێشەوە
+  backcolor: ڕەنگی پێشەوە
+  bold: تۆخ
+  italic: لار
+  underline: ژێرهێڵ
+  strikethrough: هێڵ پێداهاتوو
+  subscript: ژێرنووس
+  superscript: سەرنووس
+  codeblock: کۆد
+  blockquote: قاڵبی وتە
+  bullist: لیستی خاڵ
+  numlist: لیستی ژمارە
+  hr: یاسای ئاسۆیی
+  link: زیادکردن/دەستکاری بەستەر
+  unlink: لابردنی بەستەر
+  media: زیادکردن/دەستکاری میدیا
+  image: زیادکردن/دەستکاری میدیا
+  copy: لەبەرگرتنەوە
+  cut: بڕین
+  paste: دانانەوە
+  heading: سەردێڕ
+  h1: سەردێڕ ١
+  h2: سەردێڕ ٢
+  h3: سەردێڕ ٣
+  h4: سەردێڕ ٤
+  h5: سەردێڕ ٥
+  h6: سەردێڕ ٦
+  fontselect: دیاریکردنی فۆنت
+  fontsizeselect: دیاریکردنی قەبارەی نوسین
+  indent: چونەوەناو
+  outdent: چونەدەرەوە
+  undo: گەڕانەوە
+  redo: چونەوەپێش
+  remove: لابردن
+  removeformat: لابردنی داڕشتن
+  selectall: دیاریکردنی هەموو
+  table: خشتە
+  visualaid: بینینی توخمە نەبینراوەکان
+  source_code: دەتسکاری سەرچاوەی کۆد
+  fullscreen: پڕ ڕوونما
+  directionality: ئاڕاستەیی
+  lazy_loading: باربوونی هێواش
+  lazy_loading_label: چالاککردنی باربوونی هێواش
+dropdown: لیستی داخراو
+choices: هەڵبژاردنەکان
+choices_option_configured_incorrectly: هەڵبژاردەکان بە نادروستی ڕێکخراون
+deselect: هەڵنەبژاردن
+deselect_all: هەڵنەبژاردنی هەموو
+theme: ڕووکار
+select_a_theme: ڕووکارێک دیاری بکە
+default_sync_with_project: بنەڕەتی (هاوکاتکردن لەگەڵ پڕۆژە)
+appearance_auto: خۆکار (هاوکاتکردن لەگەڵ سیستەم)
+appearance_light: ڕووناک
+appearance_dark: تاریک
+other: هیتر...
+adding_user: زیادکردنی بەکارهێنەر
+unknown_user: بەکارهێنەری نەناسراو
+creating_in: 'دروستکردنی مادە لە {collection}'
+editing_in: 'دەستکاری مادە لە {collection}'
+viewing_in: 'بینینی مادە لە {collection}'
+creating_unit: 'دروستکردنی {unit}'
+editing_unit: 'دەستکاری {unit}'
+editing_in_batch: 'وەجبە دەستکاری {count} مادە'
+no_options_available: هیچ بژاردەیەک بەردەست نییە
+settings_data_model: مۆدێلی داتا
+settings_roles: پلەکانی بەکارهێنەر
+settings_permissions: سیاسەتەکانی دەستگەیشتن
+settings_project: ڕێکخستنەکان
+settings_appearance: ڕووکار
+settings_flows: لێشاوەکان
+settings_system_logs: تۆمارەکانی سیستەم
+settings_presets: نیشانکراوەکان
+settings_translations: وەرگێڕانەکان
+one_or_more_options_are_missing: یەک یان چەند بژاردەیەک دیارنین
+configure_field_key_to_continue: ڕێکخستنی کلیلی خانە بۆ بەردەوامبوون
+scope: بوار
+actions: کردارەکان
+select: دیاریکردن...
+layout: خشتە
+tree_view: بینینی داری
+changes_are_permanent: گۆڕانکاریەکان هەمیشەیین
+preset_name_placeholder: وەک بنەڕەت خزمەتدەکات لەکاتی بەتاڵ بوون...
+preset_search_placeholder: پرسی گەڕان...
+editing_preset: دەستکاری پێشسێت
+layout_preview: بینینی خشتە
+layout_setup: دامەزراندنی خشتە
+data: داتا
+theme-overrides: سەپاندنی ڕووکار
+unsaved_changes: گۆڕانکاری پاشەکەوتنەکراو
+unsaved_changes_copy: ئایا دڵنیای دەتەوێت ئەم پەڕەیە بەجێ بهێڵیت؟
+discard_changes: گۆڕانکاریەکان لەبیربکە
+discard_all_changes: سەرجەم گۆڕانکاریەکان لەبیربکە
+discard_changes_copy: ئایا دڵنیای هەموو گۆڕانکاریەکان پشتگوێ بخەیت کە کردووتن؟
+show_x_axis: نیشاندانی تەوەری X
+show_y_axis: نیشاندانی تەوەری Y
+keep_editing: بەردەوامبوون
+activity_feed: لیستی چالاکی
+add_new: زیادکردنی نوێ
+create_new: دروستکردنی نوێ
+all: هەموو
+none: هیچ کام
+no_layout_collection_selected_yet: هێشتا هیچ نەخشەیەک/کۆمەڵەیەک دیاری نەکراوە
+batch_delete_confirm: >-
+  هیچ ماددەیەک دیاری نەکراوە | ئایا دڵنیای دەتەوێت ئەم ماددەیە بسڕیتەوە؟ ئەم کارە گەڕانەوەی نییە. | ئایا دڵنیای لەوەی کە {count} ماددە بسڕیتەوە؟ ئەم کارە گەڕانەوەی نییە.
+cancel: پاشگەزبوونەوە
+no_upscale: ئاستی وێنەکان بەرزمەکەوە
+no_extensions: هیچ زیادکراوەیەک نییە
+no_extensions_copy: هیچ زیادکراوەیەک دانەمەزراوە تاوەکو ئێستا
+install_extension: دامەزراندنی زیادکراوە
+uninstall_locked: ناتوانرێت ئەو زیادکراوانە بسڕێنەوە کە لە کۆگاوە دانەمەزراون
+uninstall: سڕینەوە
+installed: دامەزراوە
+reinstall: دووبارە دامەزراندن
+open_in_marketplace: کردنەوە لە کۆگا
+source_registry: کۆگا
+source_local: ناوخۆیی
+source_module: یەکەی نۆد
+collection: کۆمەڵە
+collections: کۆمەڵەکان
+content: ناوەڕۆک
+singleton: تاکی
+singleton_label: وەک تاکە شت مامەڵەی لەگەڵ بکە
+system_fields_locked: خانەکانی سیستەم قوفلکراون و ناتوانرێت دەستکاری بکرێن
+directus_collection:
+  directus_access: دەسەڵاتی سیاسەتەکان
+  directus_activity: تۆماری بەرپرسیاری بۆ هەموو ڕوداوەکان
+  directus_collections: ڕێکخستن و مێتادەیتای زیادەی کۆمەڵە
+  directus_comments: لێدوانەکان بۆ مادەکان
+  directus_dashboards: داشبۆردەکان لە یەکەی تێڕوانینەکان
+  directus_fields: ڕێکخستن و مێتادەیتای زیادەی خانە
+  directus_files: مێتادەیتا بۆ هەموو پەڕگە بەڕێوەبراوەکان
+  directus_folders: دابینکردنی بەڕێوەبردنی خەیاڵی بۆ پەڕگەکان
+  directus_migrations: کام وەشانی بنکەدراو بەکاردەهێنیت
+  directus_notifications: ئاگادارکەرەوەکان نێردران بۆ بەکارهێنەران
+  directus_operations: کردارەکان کە لە لێشاوەکاندا جێبەجێدەبن
+  directus_panels: پانێڵی تاکەکەسی لە نێو داشبۆردی تێڕوانینەکان
+  directus_permissions: دەسەڵاتی دەستگەیشتن بۆ هەر سیاسەتێک
+  directus_policies: سیاسەتەکانی کۆنترۆڵی دەستگەیشتن
+  directus_presets: پێشسێت بۆ بنەڕەتی کۆمەڵە و نیشانکردنەکان
+  directus_relations: ڕێکخستنی پەیوەندی و مێتادەیتا
+  directus_revisions: خێراوێنەی داتا بۆ هەموو چالاکیەکان
+  directus_roles: دەستەی دەسەڵاتەکان بۆ بەکارهێنەرەکانی سیستەم
+  directus_sessions: زانیاری دەورەی بەکارهێنەر
+  directus_settings: بژاردەکانی ڕێکخستنی پڕۆژە
+  directus_shares: بەدواداچوونی ماددە هاوبەشیپێکراوە دەرەکیەکان
+  directus_users: بەکارهێنەرەکانی سیستەم بۆ سەکۆکە
+  directus_translations: وەرگێڕانە تایبەتەکان
+  directus_versions: وەشانەکانی ناوەڕۆک بۆ مادەکان
+  directus_extensions: ڕێکخستنی زیادکراوەکان
+fields:
+  directus_activity:
+    item: ماددەی کلیلی سەرەکی
+    action: کردەوە
+    collection: کۆمەڵە
+    timestamp: کردەوە لە
+    user: کردەوە لەلایەن
+    comment: لێدوان
+    user_agent: نوێنەری بەکارهێنەر
+    origin: ڕەسەن
+    ip: ناونیشانی IP
+    revisions: پێداچونەوەکان
+  directus_collections:
+    collection: کۆمەڵە
+    icon: ئایکۆن
+    note: تێبینی
+    color: ڕەنگ
+    display_template: پیشاندانی قاڵب
+    hidden: شاراوە
+    singleton: تاکی
+    translations: وەرگێڕانەکانی ناوی کۆمەڵە
+    archive_app_filter: ئەرشیفکردنی پاڵاوتنی پێگە
+    archive_value: بەهای ئەرشیڤ
+    unarchive_value: بەهای ئەرشیڤ نەکردن
+    sort_field: خانەی ڕیزکردن
+    accountability: بەدواداچونی گەڕاندنەوەی و کردارەکان
+    versioning: وەشانکردن
+    archive_field: خانەی ئەرشیڤ
+    item_duplication_fields: خانەی لەبەرگرتنەوەی ماددە
+  directus_files:
+    $thumbnail: وێنەی بچوککراو
+    title: ناونیشان
+    description: وەسف
+    tags: نیشانەکان
+    location: شوێن
+    storage: بیرگە
+    filename_disk: ناوی پەڕگە (پەپکە)
+    filename_download: ناوی پەڕگە (داگرتن)
+    metadata: مێتاداتا
+    type: جۆری لاساییکەرەوە
+    filesize: قەبارەی پەڕگە
+    modified_by: دەستکاریکرا لەلایەن
+    modified_on: دەستکاریکرا لە
+    created_on: دروستکراوە لە
+    created_by: دروستکراوە لەلایەن
+    embed: جێگیرکردن
+    uploaded_by: بارکراوە لەلایەن
+    folder: بوخچە
+    width: پانی
+    uploaded_on: بارکراوە لە
+    height: بەرزی
+    charset: کۆمەڵەهێما
+    duration: ماوە
+    focal_point_x: نوختەی جەختکردنەوەی-ئێکس
+    focal_point_y: نوختەی جەختکردنەوەی-وای
+  directus_users:
+    first_name: ناوی یەکەم
+    last_name: ناوی باوک
+    email: ئیمەیڵ
+    password: تێپەڕەوشە
+    avatar: وێنۆچکە
+    location: شوێن
+    title: ناونیشان
+    description: وەسف
+    tags: نیشانەکان
+    user_preferences: هەڵبژاردنەکانی بەکارهێنەر
+    language: زمان
+    tfa_secret: سەلمێنەری دووهۆکار
+    admin_options: بژاردەکانی بەڕێوبەر
+    status: دۆخەکان
+    status_draft: ڕەشنوس
+    status_invited: بانگهێشتکراوە
+    status_unverified: پشتڕاست نەکراوە
+    status_active: چالاک
+    status_suspended: ڕاگیراوە
+    status_archived: ئەرشیفکراوە
+    role: پلە
+    token: تۆکن
+    provider: دابینکەر
+    external_identifier: ناسەرەوەی دەرەکی
+    last_page: کۆتا پەڕ
+    last_access: دواین دەستگەیشتن
+    email_notifications: ئاگادارکەرەوەی ئیمەیڵ
+    appearance: ڕووکار
+    theme_light: ڕووکاری ڕووناک
+    theme_dark: ڕووکاری تاریک
+    theme_light_overrides: خوازراوکردنی ڕووکاری ڕووناک
+    theme_dark_overrides: خوازراوکردنی ڕووکاری تاریک
+  directus_settings:
+    jpg: JPEG
+    png: PNG
+    webP: WebP
+    tiff: Tiff
+    avif: AVIF
+    reporting: ڕاپۆرتکردن
+    mapping: نەخشەکێشان
+    basemaps: نەخشەی بنەڕەتی
+    basemaps_raster: Raster
+    basemaps_tile: کاشی ڕاستەر TileJSON
+    basemaps_style: شێوازی Mapbox
+    mapbox_key: تۆکنی دەستگەیشتن بە Mapbox
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    attribution: گرێدان
+    attribution_placeholder: '© بەشداربوانی OpenStreetMap'
+    transforms_note: ناوی شێوازی شارپ و ئارگیومێنتەکانی. ببینە https://sharp.pixelplumbing.com/api-constructor بۆ زانیاری زیاتر.
+    additional_transforms: گۆڕانکاریە زیادەکان
+    project_name: ناوی پڕۆژە
+    project_descriptor: وەسفی پڕۆژە
+    project_url: بەستەری پڕۆژە
+    project_color: ڕەنگی پڕۆژە
+    project_logo: لۆگۆی پڕۆژە
+    default_language: زمانی بنەڕەتی
+    branding: براندینگ
+    public_foreground: ڕووبنەمای گشتی
+    public_background: پاشبنەمای گشتی
+    public_note: تێبینی گشتی
+    theming: ڕێکخستنە بنەڕەتیەکانی ڕووکار
+    default_appearance: ڕووکاری بنەڕەتی
+    default_theme_light: ڕووکاری ڕووناکی بنەڕەتی
+    default_theme_dark: ڕووکاری تاریکی بنەڕەتی
+    auth_password_policy: سیاسەتی تێپەڕەوشە و ڕەسەنایەتی
+    auth_login_attempts: هەوڵەکانی چوونەژوورەوەی ڕەسەنایەتی
+    files_and_thumbnails: پەڕگەکان و بیرگە
+    storage_default_folder: بوخچەی بنەڕەتی
+    storage_asset_presets: پێشسێتی گۆڕانکاری
+    storage_asset_transform: گۆرانکاریە ڕێگەپێدراوەکان
+    overrides: سەپاندنەکانی پێگە
+    custom_css: CSSی خواستراو
+    module_bar: شریتی یەکەکان
+    transformations_all: ڕێگە بە هەموو گۆڕانکاریەکان بدە
+    transformations_none: پەکخستنی گۆڕانکاریەکان
+    transformations_presets: سنوردارکردنی گۆڕانکاریەکان بۆ پێشکەشکردن لە خوارەوە
+    image_editor: دەستکاریکەری وێنە
+    custom_aspect_ratios: ڕێژەی ڕوبەری خواستراو
+    theme_light_overrides: خوازراوکردنی ڕووکاری ڕووناک
+    theme_dark_overrides: خوازراوکردنی ڕووکاری تاریک
+    public_registration: تۆمارکردنی بەکارهێنەر
+    public_registration_note: ڕێگە بە بەکارهێنەران دەدات تۆماربکرێن لە ڕێگای [ڕێڕەوی تۆمارکردن](/admin/register).
+    public_registration_role: پلەی بەکارهێنەر
+    public_registration_role_note: ئەم پلەیە دەدرێت بەو بەکارهێنەرانەی کە بەم شێوازە تۆمار دەکرێن. کاریگەری نابێت لەسەر ئەو بەکارهێنەرانەی کە پێشتر تۆمارکراون.
+    public_registration_email_filter: پاڵاوتنی ناونیشانی ئیمەیڵ
+    public_registration_email_filter_note: تەنها ئەو ناونیشانی ئیمەیڵانەی کە لەگەڵ ئەم پاڵاوتنەدا دەگونجێن دەتوانن تۆماربکرێن.
+    public_registration_verify_email: پشتڕاستکردنەوەی ئیمەیڵ
+    public_registration_verify_email_note: ئیمەیڵێک دەنێردرێت بۆ بەکارهێنەری تۆمارکراو داوایان لێدەکات کرتە لە بەستەری پشتڕاستکردنەوە بکەن پێش ئەوەی بتوانن بچنە ژوورەوە.
+    visual_editor_urls: بەستەرەکانی دەستکاریکەری بینراو
+    ai_header_name: سەرپەڕە
+  directus_shares:
+    name: ناو
+    role: پلە
+    password: تێپەڕەوشە
+    date_start: دەستپێکی ڕێکەوت
+    date_end: کۆتایی ڕێکەوت
+    max_uses: ئەوپەڕی بەکارهێنان
+    times_used: جاری بەکارهێنراو
+  directus_fields:
+    collection: ناوی کۆمەڵە
+    icon: ئایکۆنی کۆمەڵە
+    note: تێبینی
+    hidden: شاراوە
+    singleton: تاکی
+    translation: وەرگێڕانەکانی ناوی خانە
+    display_template: قاڵب
+  directus_roles:
+    name: ناوی پلە
+    icon: ئایکۆنی پلە
+    description: وەسف
+    users: بەکارهێنەران لە پلەی
+    parent: پلەی سەرەکی
+    children: پلە لقەکان
+  directus_policies:
+    name: ناوی سیاسەت
+    description: وەسف
+    app_access: دەستگەیشتن بە پێگە
+    admin_access: دەستگەیشتنی بەڕێوبەر
+    ip_access: دەستگەیشتنی IP
+    enforce_tfa: داواکردنی دووهۆکاری
+field_options:
+  directus_settings:
+    project_name_placeholder: پڕۆژەکەم...
+    project_color_note: چونەژوورەوە و لۆگی پاشبنەما
+    project_logo_note: سپی 40×40 SVG/PNG
+    project_favicon_note: 32×32 ئایکۆن
+    public_note_placeholder: نامەیەکی کورت و گشتی کە پشتگیری داڕشتنی Markdown بکات...
+    security_divider_title: پارێزراوی
+    auth_password_policy:
+      none_text: هیچ کام ـ پێشنیار نەکراوە
+      weak_text: لاواز ـ لانیکەم 8 پیت و ژمارە
+      strong_text: بەهێز ـ پیتی گەورە / بچوک / ژمارەکان / هێمای تایبەت
+    storage_asset_presets:
+      fit_label: گونجان
+      upscaling: بەرزکردنەوە
+      fit:
+        contain_text: لەخۆگرتن (پاراستنی ڕێژەی ڕووبەر)
+        cover_text: بەرگ (قەبارەی ورد ناچار دەکات)
+        fit_text: جێکردنەوە لە ناوەوە
+        outside_text: جێکردنەوە لە دەرەوە
+    additional_transforms: گۆڕانکاریە زیادەکان
+    transforms_note: ناوی شێوازی شارپ و ئارگیومێنتەکانی. ببینە https://sharp.pixelplumbing.com/api-constructor بۆ زانیاری زیاتر.
+    mapbox_key: تۆکنی دەستگەیشتن بە Mapbox
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    basemaps: نەخشەی بنەڕەتی
+    basemaps_name_placeholder: ناوی نەخشەی بنەڕەتی دابنێ...
+    basemaps_raster: ڕاستەر
+    basemaps_tile: ڕاستەری TileJSON
+    basemaps_style: شێوازی Mapbox
+    files_divider_title: پەڕگەکان و وێنە بچوککراوەکان
+    overrides_divider_title: سەپاندنەکانی پێگە
+  directus_activity:
+    login: چوونەژوورەوە
+    create: دروستکردن
+    update: نوێکردنەوە
+    delete: سڕینەوە
+  directus_collections:
+    track_activity_revisions: بەدواداچوونی کردار و گەڕاندنەوەکان
+    only_track_activity: تەنها بەدواداچوونی کردار
+    do_not_track_anything: بەدواداچونی هیچ کردارێک مەکە
+    collection_setup: دامەزراندنی کۆمەڵە
+    note_placeholder: وەسفێک بۆ ئەم کۆمەڵەیە...
+    hidden_label: شاردنەوەی لە پێگەدا
+    singleton: وەک تاکە شت مامەڵەی لەگەڵ بکە
+    language: زمان
+    translation: وەرگێڕان
+    translation_placeholder: وەرگێڕانێک بنوسە...
+    collection_name: ناوی کۆمەڵە
+    singular_unit: یەکەی تاکی
+    plural_unit: یەکەی کۆ
+    archive_divider: ئەرشیڤ
+    archive_field_placeholder: خانەیەک هەڵبژێرە...
+    archive_app_filter: کاراکردنی پاڵاوتنی ئەرشیفی پێگە
+    archive_value: دانانی بەها لەکاتی ئەرشیف کردن...
+    unarchive_value: دانانی بەها لەکاتی ئەرشیف نەکردن...
+    sort_divider: ڕیزکردن
+    sort_field: خانەیەک هەڵبژێرە...
+    accountability_divider: بەرپرسیاری
+    duplication_divider: دووبارەکردنەوە
+    preview_divider: بینین
+    content_versioning_divider: وەشانکردنی ناوەڕۆک
+    enable_versioning: چالاککردنی وەشانکردن
+  directus_files:
+    title: ناونیشانێکی بێ هاوتا...
+    description: وەسفێکی بژاردەیی...
+    location: شوێنێکی بژاردەیی...
+    storage_divider: ناونانی پەڕگە
+    focal_point_divider: Focal Point
+    filename_disk: ناو لەسەر پەپکەی بیرگە...
+    filename_download: ناو لەکاتی داگرتن...
+  directus_policies:
+    name: ناوێکی بێهاوتا بۆ ئەم سیاسەتە...
+    description: وەسفێک بۆ ئەم سیاسەتە...
+    ip_access: ناونیشانە ڕێگەپێدراوەکانی IP، مەوداکانی IP و بلۆکەکانی CIDR زیادبکە. بە بەتاڵی جێی بهێڵە بۆ ڕێگەدان بە هەموویان...
+    enforce_tfa: سەپاندنی سەلمێنەری دوو-هۆکار
+    assigned_to: دانراوە بۆ
+  directus_roles:
+    name: ناوێکی بێ هاوتا بۆ ئەم پلەیە...
+    description: وەسفێک بۆ ئەم پلەیە...
+    fields:
+      icon_name: ئایکۆن
+      name_name: ناو
+      name_placeholder: ناونیشانێک دابنێ...
+      link_name: بەستەر
+      link_placeholder: بەستەری ڕێژەیی یان ڕەها...
+    parent_note: ئەو پلە سەرەکیە ئارەزوومەندانەیە کە ئەم پلەیە دەسەڵاتەکانی لێوە وەردەگرێت
+    children_note: ئەو پلە وەچانەی کە دەسەڵاتەکانی ئەم پلەیە وەردەگرن
+    collections_name: کۆمەڵەکان
+    collections_addLabel: زیادکردنی کۆمەڵە...
+  directus_users:
+    preferences_divider: هەڵبژاردنەکانی بەکارهێنەر
+    dropdown_auto: خۆکار (بەپێی سیستەم)
+    dropdown_light: دۆخی ڕوناک
+    dropdown_dark: دۆخی تاریک
+    admin_divider: بژاردەکانی بەڕێوبەر
+    status_dropdown_draft: ڕەشنوس
+    status_dropdown_invited: بانگهێشتکراوە
+    status_dropdown_active: چالاک
+    status_dropdown_suspended: ڕاگیراوە
+    status_dropdown_archived: ئەرشیفکراوە
+    token: تۆکنێکی پارێزراوی دەستگەیشتن دابنێ...
+no_fields_in_collection: 'هێشتا هیچ خانەیەک نییە لە "{collection}"'
+no_value: هیچ بەهایەک نییە
+do_nothing: هیچ مەکە
+generate_and_save_uuid: UUID دروستبکە و پاشەکەوتی بکە
+save_current_user_id: ID بەکارهێنەری ئێستا پاشەکەوت بکە
+save_current_user_role: پلەی بەکارهێنەری ئێستا پاشەکەوت بکە
+save_current_datetime: ڕێکەوت و کاتی ئێستا پاشەکەوت بکە
+always_open: هەمیشە کراوە
+start_open: کرانەوەی دەستپێک
+start_collapsed: دەستپێکی داخراو
+block: قاڵب
+inline: ناوهێڵ
+comment: لێدوان
+live_preview:
+  enable: چالاککردنی پێشبینین
+  disable: ناچالاککردنی پێشبینین
+  change_size: گۆڕینی قەبارەی پیشاندان
+  refresh: نوێکردنەوەی پێشبینین
+  new_window: کردنەوە لە پەنجەرەی نوێدا
+  close_window: کردنەوە لە دیمەنی دابەشکراودا
+  toggle_3d: گۆڕینی ڕەوشی سێ دووری
+  display_options: بژاردەکانی نیشاندان
+shares: هاوبەشیکردنەکان
+unlimited_usage: بەکارهێنانی بێسنور
+uses_left: هیچ بەکارهێنانی نەماوە | یەک بەکارهێنان ماوە | {n} بەکارهێنان ماوە
+no_shares: هیچ هاوبەشیکردنێک نییە بۆ نیشاندان
+new_share: هاوبەشی نوێ
+ai:
+  input: تێچون
+  unknown: نەناسراو
+  items: ماددەکان
+  content: ناوەڕۆک
+  settings: ڕێکخستنەکان
+  tool_approval:
+    disabled: ناکاراکراو
+  ask_user_submit: پێشکەشکردن
+  ask_user_next: دواتر
+ai_tools:
+  items: ماددەکان
+  files: پەڕگەکان
+  folders: فۆڵدەرەکان
+  flows: لێشاوەکان
+  trigger-flow: وروژاندنی لێشاو
+  operations: کردارەکان
+  schema: سکیما
+  collections: کۆمەڵەکان
+  fields: خانەکان
+mcp_prompts_collection_schema:
+  messages_role_user: بەکارهێنەر
+expired: بەسەرچوو
+upcoming: داهاتوو
+share: هاوبەشیکردن
+share_item: هاوبەشیکردنی ماددە
+shared_with_you: ماددەیەک هاوبەشی پێکراوە لەگەڵ تۆدا
+shared_enter_passcode: کۆدی تێپەڕبوون لێبدە بۆ بەردەوام بوون...
+shared_leave_blank_for_passwordless_access: بۆ چونەژورەوەی بێ تێپەڕەوشە بەتاڵی جێبهێڵە
+shared_leave_blank_for_unlimited: بە بەتاڵی جێی بهێڵە بۆ بێسنووری
+shared_times_remaining: ئەم بەستەرە تەنها دەتوانرێت {n} جار بەکاربهێنرێت
+shared_last_remaining: ئەم بەستەرە تەنها دەتوانرێت یەک جار بەکاربهێنرێت
+shared_uses_left: بۆ دانانی پارێزراوی، ئەم پەڕە هاوبەشە وا ڕێکخراوە کە ژمارەیەکی دیاری کراو بینینی هەبێت. لە ئێستادا {n} بینینیتر ماوە، لە دوای ئەوە پەڕەکە چیتر بەردەست نابێت.
+share_access_page: دەستگەیشتن بە پەڕەی هاوبەشکراو
+share_access_not_found: ئەم پەڕە هاوبەشکراوە یان بوونی نییە، یان پێشتر گەیشتوە بە سنوری دیاریکراوەی ڕێگەپێدانەکانی بەکارهێنان.
+share_access_not_found_desc: تکایە پەیوەندی بکە بە بەکارهێنەرێکی ڕەسەنی ئەم پڕۆژەیە بۆ داواکاری دەستگەیشتن.
+share_access_not_found_title: پەڕەی هاوبەشی نەناسراو
+share_copy_link: لەبەرگرتنەوەی بەستەر
+share_copy_link_success: بەستەر لەبەرگیرایەوە
+share_copy_link_error: ناتوانرێت بەستەر لەبەر بگیرێتەوە
+share_send_link: ناردنی بەستەر
+relational_triggers: وروژاندنە پەیوەندیدارەکان
+referential_action_field_label_m2o: لە کاتی سڕینەوەی {collection}...
+referential_action_field_label_o2m: لە کاتی هەڵنەبژاردنی {collection}...
+referential_action_no_action: ڕێگری لە سڕینەوە
+referential_action_cascade: سڕینەوەی ماددەی {collection} (یەک لە دوای یەک)
+referential_action_set_null: پوچکردنی خانەی {field}
+referential_action_set_default: دانانی {field} بۆ بەهای بنەڕەتی
+choose_action: کردار هەڵبژێرە
+continue_label: بەردەوام بوون
+continue_as: >-
+  {name} لە ئێستادا پشتڕاستکراوەتەوە. ئەگەر ئەم هەژمارە دەناسیتەوە، بەردەوام بوون لێبدە.
+editing_role: 'پلەی {role}'
+editing_policy: 'سیاسەتی {policy}'
+no_permissions: هیچ دەسەڵاتێک نییە
+permission_add_collection: زیادکردنی کۆمەڵە
+default_label: بنەڕەت
+delete_label: سڕینەوە
+delete_are_you_sure: >-
+  ئەم کردارە هەمیشەییە و گەڕاندنەوەی نییە. ئایا دڵنیای دەتەوێت جێبەجێ ببێت؟
+delete_field_are_you_sure: >-
+  ئایا دڵنیای لە سڕینەوەی خانەی"{field}"؟ ئەم کردارە گەڕانەوەی نییە.
+description: وەسف
+done: تەواو
+duplicate: دووبارەکردنەوە
+limit: سنور
+email: ئیمەیڵ
+embed: جێگیرکردن
+fallback_icon: ئایکۆنی بنەڕەتی
+field: خانە | خانەکان
+file: پەڕگە
+file_library: پێشانگای پەڕگە
+forgot_password: تێپەڕەوشەت لەبیرکردوە
+hidden: شاراوە
+hidden_in_group: شاراوە لە {group}
+icon: ئایکۆن
+info: زانیاری
+normal: ئاسایی
+success: سەرکەوتووبوو
+warning: ئاگاداربە
+danger: ترسناکە
+colors:
+  purple: مۆر
+  blue: شین
+  green: سەوز
+  yellow: زەرد
+  orange: پرتەقاڵی
+  red: سور
+  black: ڕەش
+  gray: ڕەساسی
+  white: سپی
+junction_collection: کۆمەڵەی یەکگرتن
+latency: خاوی
+login: چوونەژورەوە
+my_activity: چالاکیەکانم
+not_authenticated: پشتڕاستنەکراوە
+authenticated: پشتڕاستکراوە
+options: بژاردەکان
+otp: تێپەڕەوشەی یەک جار
+password: تێپەڕەوشە
+confirm_password: دووپاتکردنەوەی تێپەڕەوشە
+permissions: دەسەڵاتەکان
+relationship: پەیوەندی
+reset: ڕێکخستنەوە
+reset_password: ڕێکخستنەوەی تێپەڕەوشە
+revisions: پێداچونەوەکان
+no_revisions: هیچ پێداچوونەوەیەک نییە
+no_logs: هیچ تۆمارێک نییە
+revert: گەڕاندنەوە
+save: پاشەکەوتکردن
+schema: سکیما
+search: گەڕان
+select_existing: دیاریکردنی بەردەست
+select_field_type: دیاریکردنی جۆرێکی خانە
+select_interface: ڕوکارێک دیاری بکە
+select_display: پیشاندەرێک دیاری بکە
+settings: ڕێکخستنەکان
+register: تۆمارکردن
+registration_successful_headline: سەرکەوتووبوو!
+registration_successful_note: ئێستا دەتوانیت بچیتە پەڕەی چوونەژوورەوە.
+registration_successful_check_email_note: |
+  تکایە ئاگاداربە کە پێش چوونەژوورەوە، پێویستە ناونیشانی ئیمەیڵەکەت پشتڕاست بکەیتەوە بە کرتەکردن لەو بەستەرەی بۆت نێردراوە.
+dont_have_an_account: هەژمارت نییە؟
+already_have_an_account: پێشتر هەژمارت هەیە؟
+sign_up_now: ئێستا تۆماربە
+sign_in: چوونەژوورەوە
+sign_out: چوونەدەرەوە
+sign_out_confirm: ئایا دڵنیایت دەتەوێت بچیتە دەرەوە؟
+something_went_wrong: هەڵەیەک ڕوویدا.
+sort_direction: ئاڕاستەی ڕیزکردن
+export_location: شوێنی هەناردە
+export_started: هەناردە دەستی پیکرد
+export_started_copy: هەناردەکەت دەستیپێکرد. ئاگاداردەکرێیتەوە کاتێک ئامادەبوو بۆ داگرتن.
+sort_asc: ڕیزکردن بەرەوسەر
+sort_desc: ڕیزکردن بەرەوخوار
+disable_sort: ڕێگری لە ڕیزکردن
+template: قاڵب
+require_value_to_be_set: بەها پێویستە بۆ دانان لەکاتی دروستکردن
+translation: وەرگێڕان
+translation_placeholder: وەرگێڕانێک بنوسە...
+value: بەها
+view_project: بینینی پڕۆژە
+report_error: ڕاپۆرتی هەڵە
+table: خشتە
+list: لیست
+search_filter: گەڕان و پاڵاوتن
+enable_search_filter: گەڕان و پاڵاوتن چالاک بکە
+item_link: بەستەری مادە
+show_link_to_item: نیشاندانی بەستەر بۆ مادەکە
+navigate_to_item: ڕۆیشتن بۆ مادە
+undo_removed_item: پاشگەزبونەوەی مادەی لابراو
+remove_item: لابردنی مادە
+delete_item: سڕینەوەی مادە
+pause: وەستاندن
+resume: بەردەوامبوون
+interfaces:
+  list-m2a:
+    prefix_note: بە شێوەیەکی بنەڕەتی ناوی کۆمەڵە پەیوەندیدارەکان بەکاردێنێت.
+    sorting_disabled: ڕیزکردن ناچالاککرا چونکە ژمارەی مادەکان لە توانای یەک پەڕە زیاترە.
+  filter:
+    name: پاڵاوتن
+    description: ڕێکخستنی ئۆبجێکتی پاڵاوتن.
+    add_filter: دانانی پاڵاوتن
+    add_group: دەستی و/یان
+    add_value: زیادکردنی بەها
+    logic_type_and: و
+    logic_type_or: یان
+    all: هەموو
+    any: هەر
+    and: و
+    of_the_following: لەمانەی خوارەوە
+    no_rules: هیچ یاسایەکی ڕێکخراو نییە
+    change_value: کرتە بکە بۆ گۆڕینی بەها
+    placeholder: یاساکان ڕابکێشە ئێرە
+    add_key_placeholder: کلیلێک زیاد بکە و ئینتەر لێبدە...
+  fields:
+    name: خانەکان
+  group-accordion:
+    name: ئەکۆردیۆن
+    description: پیشاندانی خانەکان یان دەستەکان وەک بەشەکانی ئەکۆردیۆن
+    start: دەستپێکردن
+    all_closed: هەموویان داخراون
+    first_opened: یەکەم کراوەیە
+    all_opened: هەموویان کراوەن
+    accordion_mode: دۆخی ئەکۆردیۆن
+    max_one_section_open: ئەوپەڕی یەک بەشی کراوە
+  presentation-links:
+    presentation-links: دوگمەکان
+    style: شێواز
+    primary: سەرەکی
+    link: بەستەرەکان
+    button: دوگمەکان
+    error: ئەم کردارە ناتوانرێت جێبەجێ بکرێت
+  select-multiple-checkbox:
+    checkboxes: هەڵبژاردە خانەکان
+    description: هەڵبژێرە لەنێوان چەندین بژاردەدا لەڕێگەی هەڵبژاردەخانەکان
+    allow_other: ڕێگەپێدان بە زیاتر
+    show_more: 'نیشاندانی {count} یتر'
+    items_shown: ماددەکان نیشاندراون
+  select-multiple-checkbox-tree:
+    name: هەڵبژاردەخانەکان (درەخت)
+    description: هەڵبژێرە لەنێوان چەندین بژاردەدا لەڕێگەی هەڵبژاردەخانە بەیەکداچوەکان
+    value_combining: تێکەڵکردنی بەها
+    value_combining_note: ڕێکخستنی ئەو بەهایەی کە دەبێت پاشەکەوت بکرێت کاتێک دیاریکەری بەیەکداچوو دروست دەبێت.
+    show_all: هەمووی نیشانبدە
+    show_selected: دیاریکراوەکان نیشانبدە
+  input-code:
+    code: کۆد
+    description: پارچە کۆدەکان بنووسە یان هاوبەشی بکە
+    line_number: هێڵی ژمارە
+    line_wrapping: پێچانی هێڵ
+    placeholder: کۆدەکە لێرە دابنێ...
+  system-collection:
+    collection: کۆمەڵە
+    description: دیاریبکە لە نێوان کۆمەڵە بەردەستەکان
+    include_system_collections: لە خۆگرتنی کۆمەڵەکانی سیستەم
+  system-collections:
+    collections: کۆمەڵەکان
+    description: دیاریبکە لە نێوان کۆمەڵە بەردەستەکان
+    include_system_collections: لە خۆگرتنی کۆمەڵەکانی سیستەم
+  select-color:
+    color: ڕەنگ
+    description: بەهای ڕەنگێک دابنێ یان دیاری بکە
+    placeholder: ڕەنگێک هەڵبژێرە...
+    preset_colors: پێشکۆمەڵی ڕەنگەکان
+    opacity: ڕوونی
+    preset_colors_add_label: ڕەنگێکی نوێ زیاد بکە...
+    name_placeholder: ناوی ڕەنگ بنوسە...
+  datetime:
+    datetime: کات و ڕێکەوت
+    description: کات و ڕێکەوتەکان دابنێ
+    include_seconds: چرکەش لەخۆبگرێت
+    set_to_now: ئێستا دابنێ
+    use_24: داڕشتنی 24 کاتژمێری دابنێ
+    placeholder: کات و ڕێکەوت هەڵبژێرە...
+  system-fields:
+    select_a_collection: کۆمەڵەیەک هەڵبژێرە
+    no_fields: هیچ خانەیەک نییە
+  system-display-template:
+    display-template: پیشاندانی قاڵب
+    description: تێکەڵکردنی دەقی جێگیر و بەهاکانی خانەی گۆڕاو
+    collection_field: خانەی کۆمەڵە
+    collection_field_not_setup: بژاردەی خانەی کۆمەڵە هەڵەڕێکخراوە
+    select_a_collection: کۆمەڵەیەک هەڵبژێرە
+  presentation-divider:
+    divider: دابەشکەر
+    description: ناولێنان و دابەش کردنی خانەکان بۆ سەر بەشەکان
+    title_placeholder: ناونیشان بنوسە، یان بە بەتاڵی جێی بهێڵە بۆ تەنها نیشاندانی هێڵێک...
+    inline_title: ناونیشانی ناوهێڵ
+    inline_title_label: نیشاندانی ناونیشان لە ناو هێڵدا
+    margin_top: پەراوێزی سەرەوە
+    margin_top_label: زیادکردنی پەراوێزی سەرەوە
+  select-dropdown:
+    description: دیاریکردنی بەها لە لیستی داخراودا
+    choices_placeholder: زیادکردنی هەڵبژاردەیەکی نوێ
+    allow_other: ڕێگەپێدان بە زیاتر
+    allow_other_label: ڕێگەدان بە بەهای زیاتر
+    allow_none: ڕێگە بە هیچیان بدە
+    allow_none_label: ڕێگە بە هیچ هەڵبژاردنێک بدە
+    choices_name_placeholder: ناوێک تۆماربکە...
+    choices_value_placeholder: بەهایەک دابنێ...
+    preview_threshold: ئاستی پێشبینین
+  select-multiple-dropdown:
+    select-multiple-dropdown: لیستی داخراو (چەندانە)
+    description: چەندین بەها دیاری بکە لە لیستی داخراودا
+  file:
+    file: پەڕگە
+    description: پەڕگەیەک دیاری بکە یان باربکە
+  files:
+    files: پەڕگەکان
+    description: چەند پەڕگەیەک دیاری بکە یان باربکە
+  input-hash:
+    hash: هاش
+    description: بەهایەک دابنێ بۆ هاشکردن
+    masked: دامامککراو
+    masked_label: بەها ڕاستەقینەکان بشارەوە
+  select-icon:
+    icon: ئایکۆن
+    description: ئایکۆنێک هەڵبژێرە لە لیستی داخراودا
+    search_for_icon: گەڕان بۆ ئایکۆن...
+  file-image:
+    image: وێنە
+    description: وێنەیەک دیاری بکە یان باربکە
+    crop: بیبڕە بۆ گونجان
+    crop_label: وێنە ببڕە بەپێی پێویست
+    letterbox: چوارگۆشەی وێنە
+    letterbox_label: زیادکردنی پەراوێز بۆ پێشبینینی وێنە
+  system-interface:
+    interface: ڕوکار
+    description: ڕوکارێکی بەردەست دیاریبکە
+    placeholder: ڕوکارێک دیاری بکە...
+  system-interface-options:
+    interface-options: بژاردەکانی ڕوکار
+    description: مۆداڵێک بۆ دیاریکردنی بژاردەکانی ڕوکارێک
+  system-display:
+    display: پیشاندان
+    description: پیشاندەرێکی بەردەست دیاریبکە
+    placeholder: پیشاندەرێک دیاریبکە...
+  system-display-options:
+    display-options: بژاردەکانی پیشاندان
+    description: مۆداڵێک بۆ دیاریکردنی بژاردەکانی پیشاندەر
+  list-m2m:
+    many-to-many: زۆر بۆ زۆر
+    description: چەند ماددەی پەیوەندیداری یەکگرتوو دیاری بکە
+    columns_configure_notice: دەتوانیت دوای دروستکردنی ئەم خانەیە ستوونەکان ڕێکبخەیت.
+    display_template_configure_notice: دەتوانیت قاڵبی پیشاندان ڕێکبخەیت دوای دروستکردنی ئەم خانەیە.
+  select-dropdown-m2o:
+    many-to-one: زۆر بۆ یەک
+    description: تاکە ماددەیەکی پەیوەندیدار دیاریبکە
+    display_template: پیشاندانی قاڵب
+  collection-item-dropdown:
+    collection-item-dropdown: لیستی داخراوی مادەی کۆمەڵە
+    description: دیاریکردنی مادەیەک لە کۆمەڵە بە داڕشتنی JSON
+  input-rich-text-md:
+    markdown: مارکداون
+    description: دایبنێ و Markdown ببینە
+    edit: دەستکاری
+    preview: بینین
+    editorFont: دەستکاریکەری فۆنت
+    previewFont: بینینی فۆنت
+    default_view: بینینی بنەڕەتی
+    default_view_editor: دەستکاریکەر
+    default_view_preview: بینین
+    customSyntax: خشتە تایبەتەکان
+    customSyntax_label: جۆرەکانی ڕستەسازی تایبەت زیاد بکە
+    customSyntax_add: ڕستەسازی تایبەت زیادبکە
+    box: بلۆک / ناوهێڵ
+    imageToken: تۆکنی دەستگەیشتنی جێگیر
+    imageToken_label: تۆکنی دەستڕاگەیشتن بە جێگیری لەگەڵ بەستەری یاریدەدەریەکان هاوپێچ دەکرێت
+  map:
+    map: نەخشە
+    description: شوێنێک هەڵبژێرە لەسەر نەخشە
+    zoom: نزیکخستنەوە
+    geometry_type: جۆری ئەندازەیی
+    geometry_format: داڕشتنی ئەندازەیی
+    default_view: بینینی بنەڕەتی
+    invalid_options: بژاردە نادروستەکان
+    invalid_format: داڕشتنی نادروست ({format})
+    unexpected_geometry: '{expected} پێشبینیکراوە، {got} وەرگیراوە.'
+    fit_bounds: گونجاندنی بینین لەگەڵ داتاکان
+    native: ڕەسەن
+    geojson: GeoJSON
+    lnglat: درێژایی، پانی
+    wkt: WKT
+    wkb: WKB
+    click_to_select: کرتە لێرە بکە بۆ دیاریکردنی {geometry}
+  presentation-notice:
+    notice: تێبینی
+    description: پیشاندانی تێبینیەکی بچووک
+    text: ناوەڕۆکی تێبینی لێرە دابنێ...
+    no_text: هیچ دەقێک ڕێکنەخراوە...
+  list-o2m:
+    one-to-many: یەک بۆ زۆر
+    description: چەند ماددەی پەیوەندیدار دیاری بکە
+    no_collection: کۆمەڵەکە نادۆزرێتەوە
+  system-folder:
+    folder: بوخچەی ڕەگ
+    description: بوخچەیەک دیاریبکە
+    field_hint: بوخچەی بنەڕەتی بۆ ئەو پەڕگانەی کە بارکراون بەبێ دیاریکردنی بوخچە. کاریگەری نابێت لەسەر پەڕگە بەردەستەکان.
+    root_name: ڕیشەی پێشانگای پەڕگە
+    system_default: بنەڕەتیەکانی سیستەم
+  select-radio:
+    radio-buttons: دوگمە ڕادیۆییەکان
+    description: یەکێک دیاری بکە لە چەند هەڵبژاردەیەک
+  list:
+    repeater: دوبارەکەرەوە
+    description: چەندین نوسراو لەهەمان پێکهاتە دروست بکە
+    edit_fields: دەستکاری خانەکان
+    add_label: 'پێناسی "دروستکردنی نوێ"'
+    sort: ڕیزکردن
+    sort_placeholder: دەستی
+    field_note_placeholder: تێبینی خانە تۆماربکە...
+    incompatible_data: داتاکانی ئێستا لەگەڵ ڕووکاری دووبارەکەرەوەدا ناگونجێت و لە کاتی زیادکردنی ماددەکان بۆ دووبارەکەرەوەکە دەسڕدرێنەوە
+    interface_group: بژاردەکانی ڕوکار
+    display_group: بژاردەکانی نیشاندان
+  slider:
+    slider: سڵایدەر
+    description: ژمارەیەک دیاریبکە بەبەکارهێنانی سڵایدەر
+    always_show_value: هەمیشە بەها نیشان بدە
+  tags:
+    tags: نیشانەکان
+    description: نیشانەیەک دیاریبکە یان زیاد بکە
+    whitespace: بۆشایی سپی
+    hyphen: جێگۆڕکێ بکە لەگەڵ نێوانەهێڵ
+    underscore: جێگۆڕکێ بکە لەگەڵ ژێرهێڵ
+    remove: لابردنی بۆشایی سپی
+    capitalization: پیت گەورەکردن
+    uppercase: گۆڕین بۆ پیت گەورەکردن
+    lowercase: گۆڕین بۆ پیت بچووکردنەوە
+    auto_formatter: بەکارهێنانی داڕشتنی خودکاری ناونیشان
+    alphabetize: ڕیزکردن بەپێی ئەلفوبێ
+    alphabetize_label: سەپاندنی ڕیزکردن بەپێی ئەلفوبێ
+    add_tags: نیشانەیەک زیادبکە و ئینتەر لێبدە...
+  input:
+    input: تێچون
+    description: دانانی بەها بەشێوەی دەستی
+    trim: بڕین
+    trim_label: بڕینی سەرەتا و کۆتا
+    mask: دامامککراو
+    mask_label: بەها ڕاستەقینەکە بشارەوە
+    clear: بەهای لابردراو
+    clear_label: پاشەکەوتکردن وەک دەقی بەتاڵ
+    minimum_value: کەمترین بەها
+    maximum_value: گەورەترین بەها
+    step_interval: مەودای هەنگاو
+    slug: سڵەگیفای
+    slug_label: بەهای بەستەرە دانراوەکان پارێزراو بکە
+  input-multiline:
+    textarea: ناوچەی نوسین
+    description: دانانی نوسینی چەند دێڕی
+  input-translated-string:
+    input-translated-string: دەقە وەرگێڕدراوەکان
+    description: دەقی وەرگێڕان دیاریبکە یان زیادی بکە
+    search_placeholder: گەڕان...
+    new_custom_translation: وەرگێڕانی تایبەتی نوێ
+  boolean:
+    toggle: ڕەوشگۆڕ
+    description: گۆڕین لە نێوان هەڵبون و خامۆش بووندا
+    color_on: ڕەنگی کارکردن
+    color_off: ڕەنگی خامۆشبوون
+    label_placeholder: پێناسێک دابنێ...
+    label_default: چالاککراوە
+  translations:
+    display_template: پیشاندانی قاڵب
+    no_collection: هیچ کۆمەڵەیەک
+    toggle_split_view: ڕەوشگۆڕینی جیاکەرەوەی بینین
+    enable: کاراکردن
+    default_split_view_state: دۆخی بنەڕەتی بینینی دابەشکراو
+    user_language: بەکارهێنانی زمانی بەکارهێنەری ئێستا
+    default_language: زمانی بنەڕەتی
+    language_field: خانەی نیشاندەری زمان
+    language_direction_field: خانەی ئاڕاستەی زمان
+  list-o2m-tree-view:
+    description: دیمەنی داری بۆ ماددە دووبارەکراوە بەیەکداچوەکانی یەک بۆ-زۆر
+    recursive_only: ڕووکاری دیمەنی داری تەنها کار بۆ پەیوەندییە دووبارەکان دەکات.
+  user:
+    user: بەکارهێنەر
+    description: بەکارهێنەرێکی هەنووکەیی پێگە دیاری بکە
+    select_mode: دۆخ دیاری بکە
+    modes:
+      auto: خودکار
+      dropdown: لیستی داخراو
+      modal: مۆدێل
+  input-rich-text-html:
+    wysiwyg: دەستکاریکەری بینراو
+    description: دەستکاریکەرێکی دەوڵەمەندی دەقە بە نوسینی ناوەڕۆکی HTML
+    toolbar: شریتی ئامرازەکان
+    custom_formats: داڕشتنە تایبەتەکان
+    custom_formats_note: لیستی داڕشتنەکانی ناوەڕۆکی TinyMCE. سەردانی بەڵگەنامەکانی TinyMCE بکە دەربارەی [داڕشتنی ناوەڕۆک](https://www.tiny.cloud/docs/tinymce/latest/content-formatting/) بۆ زانیاری زیاتر.
+    options_override: هەڵبژاردەکانی سەرپێچی
+    options_override_note: کلیلەکانی داڕشتنی بەکارهێنەری TinyMCE و بەهاکانیان. سەردانی بەڵگەنامەکانی TinyMCE بکە دەربارەی [داڕشتنی بەکارهێنەر](https://www.tiny.cloud/docs/tinymce/latest/user-formatting-options/) بۆ زانیاری زیاتر.
+    folder_note: بوخچە بۆ بارکردنی پەڕگەکان. کاریگەری نابێت لەسەر پەڕگە هەنووکەیەکان.
+    imageToken: تۆکنی دەستگەیشتنی جێگیر
+    imageToken_label: تۆکنی دەستڕاگەیشتن بە جێگیری لەگەڵ بەستەری یاریدەدەریەکان هاوپێچ دەکرێت
+  input-block-editor:
+    input-block-editor: دەستکاریکەری بلۆک
+    description: دەستکاریکەری شێوە بلۆک بۆ چیرۆکە میدیا دەوڵەمەندەکان، داتای خاوێن دەردەدات بە JSON بە بەکارهێنانی Editor.js
+    tools: شریتی ئامرازەکان
+    tools_options:
+      header: سەرپەڕە
+      nestedlist: لیست
+      embed: جێگیرکردن
+      paragraph: پەرەگراف
+      code: کۆد
+      image: وێنە
+      attaches: پاشکۆکان
+      table: خشتە
+      quote: وتە
+      underline: ژێرهێڵ
+      inlinecode: کۆدی ناوهێڵ
+      delimiter: دابەشکەر
+      checklist: لیستی هەڵبژاردن
+      toggle: بلۆکی ڕەوشگۆڕ
+      alignment: لاگرتن
+      raw: HTMLی خام
+  input-autocomplete-api:
+    input-autocomplete-api: تێچوونی تەواوکردنی خودکار (API)
+    description: جۆری گەڕان بۆ بەها دەرەکیەکانی API.
+    results_path: ڕێڕەوی ئەنجامەکان
+    value_path: ڕێڕەوی بەها
+    text_path: ڕێڕەوی نوسین
+    trigger: وروژاندن
+    rate: تێکڕا
+  group-raw:
+    name: دەستەی خام
+    description: نمایشی خانەکە بکە وەک خۆی
+  group-detail:
+    name: دەستەی وردەکاری
+    description: خانەکان وەک بەشێکی داڕمانێندراو نیشانبدە
+    show_header: نیشاندانی ناونیشانی دەستە
+    header_icon: ئایکۆنی ناونیشان
+    header_color: ڕەنگی ناونیشان
+    start_open: کرانەوەی دەستپێک
+    start_closed: دەستپێکی داخراو
+  system-token:
+    system-token: تۆکن
+    description: بەڕێوەبردنی تۆکنی دەستگەیشتنی جێگیر
+    placeholder: کرتە لە "تۆکن دروستبکە" بکە بۆ دروستکردنی تۆکنی دەستگەیشتنی جێگیری نوێ
+    value_securely_saved: بەها بە پارێزراوی پاشەکەوتکرا
+    generate: تۆکن دروست بکە
+    regenerate: تۆکن دروست بکەوە
+    generate_success_copy: دڵنیابە لە پاشەکەوتکردن و لەبەرگرتنەوەی تۆکنەکەی سەرەوە. لەبەر هۆکاری پاراستن، ناتوانیت دووبارە تۆکنەکە ببینی دوای پاشەکەوت کردن و گواستنەوەی ئەم پەڕەیە.
+    remove_token: لابردنی تۆکن
+  system-raw-editor:
+    system-raw-editor: دەستکاریکەری خام
+    description: ڕێگە بدە بە دانانی بەهای خام یان قاڵبی Mustache
+  input-password:
+    input-password: تێپەڕەوشە داخڵبکە
+    description: خانەی تێپەڕەوشە لەگەڵ دوگمەی شاردنەوەی بەها
+  header:
+    header: سەرپەڕە
+    links: بەستەرەکان
+displays:
+  translations:
+    translations: وەرگێڕانەکان
+    description: پێشبینینی وەرگێڕانەکان
+    enable: کاراکردن
+    user_language: بەکارهێنانی زمانی بەکارهێنەری هەنووکەیی
+    default_language: زمانی بنەڕەتی
+    language_field: خانەی نیشاندەری زمان
+  boolean:
+    boolean: دوڕا
+    description: نیشاندانی دۆخی کارکردن و کوژانەوە
+    label_on: پێناسی کارکردن
+    label_on_placeholder: پێناسێک بۆ کارکردن دابنێ...
+    label_off: پێناسی کوژانەوە
+    label_off_placeholder: پێناسێک بۆ کوژانەوە دابنێ...
+    icon_on: ئایکۆنی چالاک
+    icon_off: ئایکۆنی ناچالاک
+    color_on: ڕەنگی کارکردن
+    color_off: ڕەنگی خامۆشبوون
+  collection:
+    collection: کۆمەڵە
+    description: پیشاندانی کۆمەڵەیەک
+    icon_label: ئایکۆنی کۆمەڵەکە نیشانبدە
+  color:
+    color: ڕەنگ
+    description: پیشاندانی خاڵێکی ڕەنگکراو
+    default_color: ڕەنگی بنەڕەتی
+  datetime:
+    datetime: کات و ڕێکەوت
+    description: پیشاندانی بەهاکانی پەیوەندیدار بە کاتەوە
+    format: داڕشتن
+    format_note: >-
+      داڕشتنە تایبەتەکە __[Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)__ قبوڵ دەکات
+    long: درێژ
+    short: کورت
+    relative: ڕێژەیی
+    relative_label: 'کاتی ڕێژەیی نیشان بدە، بۆ نمونە: 5 خولەک لەمەوبەر'
+    suffix: پاشگر
+    suffix_label: نیشاندەری ڕێژەیی نیشان بدە
+    suffix_note: وشەکانی 'لە' یان 'پێشتر' بەکاردەهێنێت
+    strict: سەخت
+    strict_label: یەکە سەختەکان بەکاربهێنە
+    strict_note: وشەکانی 'خەریکە'و 'لەسەر' و 'کەمتر لە' لادەبات
+    round: خڕ
+    round_note: هەڵبژاردنی فرمانی خڕکردنەوە بۆ بەکارهێنان
+    down: خوارەوە
+    nearest: نزیکترین
+    up: سەرەوە
+  file:
+    file: پەڕگە
+    description: نیشاندانی پەڕەگەکان
+  filesize:
+    filesize: قەبارەی پەڕگە
+    description: پێشاندانی قەبارەی پەڕگە
+  formatted-value:
+    formatted-value: بەهای داڕێژراو
+    description: پیشاندانی وەشانی داڕێژراوی نوسینەکە
+    format: داڕشتن
+    format_label: داڕشتنی خودکار
+    font: فۆنت
+    font_sans_serif: سانس سێریف
+    font_serif: سێریف
+    font_monospace: مۆنۆسپەیس
+    bold: تۆخ
+    bold_label: شێوازی تۆخ بەکاربهێنە
+    italic: لار
+    italic_label: شێوازی لار بەکاربهێنە
+    prefix: پێشگر
+    prefix_label: دەقی پێشپێدانکراو
+    suffix: پاشگر
+    suffix_label: دەقی پاشکۆکراو
+    color: ڕەنگ
+    background: پاشبنەما
+    icon: ئایکۆن
+    border: سنور
+    border_label: سنور نیشانبدە
+    mask: دامامککراو
+    mask_label: بەها ڕاستەقینەکە بشارەوە
+    text: نوسین
+    text_placeholder: بەهای ئارەزوومەندانەی سەرپێچی...
+  formatted-json-value:
+    formatted-json-value: بەهای JSONی داڕێژراو
+    description: پیشاندانی وەشانی داڕێژراوی تەن
+  hash:
+    hash: هاش
+    description: پیشاندانی وەشانێکی شاردنەوەی بەها
+  icon:
+    icon: ئایکۆن
+    description: نیشاندانی ئایکۆنێک
+    filled: پڕکراوە
+    filled_label: جۆری پڕکراو بەکاربهێنە
+  image:
+    image: وێنە
+    description: پیشاندانی پێشبینینی وێنەیەکی بچووک
+    circle: بازنە
+    circle_label: نیشاندان وەک بازنە
+  labels:
+    labels: پێناسەکان
+    description: یان پێناسێک یان لیستێک لە پێناس پیشانبدە
+    default_foreground: پێشبنەمای بنەڕەتی
+    default_background: پاشبنەمای بنەڕەتی
+    format_label: داڕشتن بۆ هەر پێناسێک بکە
+    show_as_dot: نیشاندان وەک خاڵ
+    choices_value_placeholder: بەهایەک دابنێ...
+    choices_text_placeholder: نوسین دابنێ...
+  mime-type:
+    mime-type: جۆری MIME
+    description: جۆری MIME ـی پەڕگە نیشانبدە
+    extension_only: تەنها پاشگر
+    extension_only_label: تەنها پاشکۆی پەڕگە نیشانبدە
+  rating:
+    rating: هەڵسەنگاندن
+    description: ژمارەیەک وەک ئەستێرەکان وێنا بکە نزیک بە بەرزترین بەها
+    simple: سادە
+    simple_label: ئەستێرەکان بە داڕشتنێکی سادە نیشان بدە
+  raw:
+    raw: بەهای خام
+  related-values:
+    related-values: بەهای پەیوەندیدار
+    description: پیشاندانی بەها ڕێژەییەکان
+    display_template_configure_notice: دەتوانیت قاڵبی پیشاندان ڕێکبخەیت دوای دروستکردنی ئەم خانەیە.
+  user:
+    user: بەکارهێنەر
+    description: پیشاندانی بەکارهێنەرێکی پێگە
+    avatar: وێنۆچکە
+    name: ناو
+    both: هەموویان
+    circle_label: بەکارهێنەر بە بازنەیی نیشان بدە
+layouts:
+  cards:
+    cards: کارتەکان
+    image_source: سەرچاوەی وێنە
+    image_fit: گونجانی وێنە
+    crop: بڕین
+    contain: لەخۆگرتن
+    title: ناونیشان
+    subtitle: ژێرنوس
+  tabular:
+    tabular: خشتە
+    spacing: بۆشایی پێدان
+    comfortable: زۆر ئاسودە
+    compact: پەستێوراو
+    cozy: ئاسودە
+  calendar:
+    calendar: ڕۆژمێر
+    start_date_field: خانەی دەستپێکی ڕێکەوت
+    end_date_field: خانەی کۆتایی ڕێکەوت
+    optional: ئارەزوومەندانە
+    first_day: یەکەم ڕۆژی هەفتە
+  map:
+    map: نەخشە
+    basemap: نەخشەی بنەڕەتی
+    layers: چینەکان
+    cluster_options: پۆلێنکردنی بژاردەکان
+    cluster: پۆلێنکردنی نزیکیی داتا
+    cluster_radius: نیوەتیرەی پۆل
+    cluster_minpoints: بچوکترین قەبارەی پۆل
+    cluster_maxzoom: زۆرترین نزیککردنەوە بۆ پۆل
+    field: خانەی جیۆفەزایی
+    invalid_geometry: ئەندازەی نادروست
+    find_location: شوێن بدۆزەوە...
+    default_template: بەکارهێنانی بنەڕەتی کۆمەڵە...
+    no_compatible_fields: هیچ خانەیەکی گونجاو نییە
+  kanban:
+    name: کانبان
+    group_field: دەستەکردن بەپێی
+    group_field_placeholder: خانە بۆ دەستەکردن پێی...
+    group_title: ناونیشانی دەستە
+    group_title_placeholder: خانەی بۆ ناونیشانی دەستەکان...
+    title: ناونیشانی کارت
+    title_placeholder: خانەی ئارەزوومەندانەی ناونیشان...
+    text: دەقی کارت
+    text_placeholder: خانەی ئارەزوومەندانەی دەق...
+    date: ڕێکەوتی کارت
+    date_placeholder: خانەی ئارەزوومەندانەی ڕێکەوت...
+    tags: نیشانەکانی کارت
+    tags_placeholder: خانەی ئارەزوومەندانەی نیشانەکان...
+    user: بەکارهێنەری کارت
+    user_placeholder: خانەی ئارەزوومەندانەی بەکارهێنەر...
+    image: وێنەی کارت
+    image_placeholder: خانەی ئارەزوومەندانەی وێنە...
+    image_fit: گونجانی وێنەی کارت
+    crop: بڕین
+    advanced: پێشکەوتوو
+    edit_group: دەستکاری دەستە
+    delete_group: سڕینەوەی دەستە
+    add_group: زیادکردنی دەستە
+    add_group_placeholder: ناونیشانی دەستەی نوێ بنوسە...
+    show_ungrouped: نیشاندانی دەستە نەکراوەکان
+    show: نیشاندان
+    no_group: بێ دەستە
+horizontal: ئاسۆیی
+vertical: ستوونی
+axis: تەوەر
+x_axis: تەوەری-ئێکس
+y_axis: تەوەری-وای
+y_axis_function: کرداری تەوەری-وای
+show_x_only: تەنها تەوەری-ئێکس نیشان بدە
+show_y_only: تەنها تەوەری-وای نیشان بدە
+show_data_label: نیشاندانی پێناسی داتا
+both: هەموویان
+show_axis_labels: نیشاندانی پێناسی تەوەرەکان
+function: کردار
+half_circle: نیو بازنە
+full_circle: بازنەی تەواو
+stroke_width: پانی هێڵکاری
+rounded_stroke: هێڵکاری خڕ
+thin: باریک
+medium: مامناوەند
+broad: پان
+show_labels: نیشاندانی پێناسەکان
+show_legend: نیشاندانی ڕێبەر
+right: ڕاست
+left: چەپ
+start: دەستپێکردن
+donut: دۆنەت
+continuous: بەردەوام
+gap: بۆشایی
+panels:
+  metric:
+    name: مەتری
+    description: نیشاندانی تاکە بەهایەک بەپێی پرسێک
+    field: خانە
+  metric_list:
+    name: لیستی مەتری
+    description: هەژمارکردن و وێناکردنی بەهاکانی کۆکراوە لە کۆمەڵەیەک
+  time_series:
+    name: زنجیرەی کات
+    description: هێڵکاری هێڵێک بکە بەپێی بەهاکان بەپێی تێپەڕبونی کات
+    date_field: خانەی ڕێکەوت
+    value_field: خانەی بەها
+    fill_type: جۆری گونجاندن
+    curve_type: جۆری کەوانە
+    missing_data: داتای ونبوو
+  label:
+    name: پێناس
+    description: هەندێ نوسین نیشان بدە
+  list:
+    name: لیست
+    description: پاڵاوتن و لیستکردنی خانەکان لە کۆمەڵەیەک
+  barchart:
+    name: هێڵکاری ستونی
+    description: هێڵکاری ستونی یان هێڵی بۆ بەراوردکردنی دەستە بەهاکان
+    horizontal: ئاسۆیی
+    select_collection: دەبێت کۆمەڵەیەک دیاری بکەیت.
+  linechart:
+    name: هێڵکاری هێڵی
+    description: هێڵکاری هێڵی بۆ بەراوردکردنی گۆڕانکاری خانەیەک
+    disabled_grouping: ناکارایە کاتێک دەستەکردن دیاری دەکرێت
+    disabled_no_grouping: ناکارایە کاتێک هیچ دەستەکردنێک دیاری نەکراوە
+    show_marker: نیشاندانی نیشانەی ئاماژەکردن
+    curve_type: جۆری کەوانە
+    smooth: نەرم
+    straight: ڕاست
+    step_line: هێڵی هەنگاو
+    show_legend: نیشاندانی ڕێبەر
+  meter:
+    name: پێوانەکەر
+    description: پێوانەکەر بۆ بەدواداچوونی بەهاکان
+  piechart:
+    name: هێڵکاری پای یان دۆنەت
+    description: هێڵکاری بازنەیی بۆ نیشاندانی ڕێژەی دەستەکان لە ستونێکدا
+  variable:
+    name: گۆڕاوی گشتی
+    description: دانانی بەهایەکی گشتی بۆ بەکارهێنان لە پاڵاوتنی پانێڵەکانی تردا
+    variable_key: کلیلی گۆڕاو
+  relational-variable:
+    name: گۆڕاوی پەیوەندیداری گشتی
+    description: دانانی بەهایەکی پەیوەندیداری گشتی بۆ بەکارهێنان لە پاڵاوتنی پانێڵەکانی تردا
+    variable_key: کلیلی گۆڕاو
+    multiple: چەندانە
+    multiple-label: دیاریکردنی چەند مادە
+triggers:
+  common:
+    response_body: وەڵامی ناوەڕۆک
+    response_body_all: هەموو داتاکان
+    response_body_last: داتای دوا کردار
+  event:
+    name: وروژێنەری ڕوداو
+    description: وروژان لەسەر ڕوداوەکانی سەکۆ یان داتا
+    action: 'کردار (بێ-بلۆک)'
+    filter: 'پاڵاوتن (بلۆککراو)'
+  webhook:
+    name: وێبهووک
+    error_on_reject: هەڵە لەکاتی ڕەتکردنەوە
+    description: وروژان لەسەر داواکاری HTTPی هاتوو
+    method: ڕێگە
+    async: ناهاوکات
+  operation:
+    name: لێشاوی تر
+    description: وروژێنراوە لەلایەن لێشاوێکی ترەوە، بۆ زنجیرەکردن
+    preview: وروژێنراوە لەلایەن کردارێک لە لێشاوێکی جیاوازدا
+  schedule:
+    name: خشتە (CRON)
+    description: وروژان لە خاڵە ئاساییەکانی کاتدا
+    cron: ماوە
+  manual:
+    name: دەستی
+    description: وروژان لەسەر جێبەجێکردنی دەستی لەناو کۆمەڵە دیاریکراوەکان
+    collection_and_item: پەڕەکانی کۆمەڵە و مادە
+    collection_only: تەنها پەڕەی کۆمەڵە
+    item_only: تەنها پەڕەی مادە
+    collection_page: پەڕەی کۆمەڵە
+    require_selection: پێویستی بە دیاریکردن هەیە
+a_flow_uuid: لێشاوێک دیاری بکە بۆ وروژاندن...
+any_string_or_json: هەر دەقێک یان JSONێک...
+item_payload_placeholder: ئەمە ئەو JSONەیە کە بەکاردێت بۆ نوێکردنەوەی بەهاکانی خانەی مادەکە...
+operations:
+  condition:
+    name: مەرج
+  exec:
+    name: جێبەجێکردنی سکریپت
+    description: جێبەجێکردنی کۆدی دڵخواز بۆ گۆڕینی سودبارەکە
+    modules: 'ئەم **یەکە نۆدانە** دەتوانرێت بەکاربهێنرێن:'
+  item-create:
+    name: دروستکردنی داتا
+    description: دروستکردنی مادەکان لە بنکەدراودا
+    payload: سودبار
+    emit_events: دەرکردنی ڕووداوەکان
+  item-delete:
+    name: سڕینەوەی داتا
+    description: سڕینەوەی مادەکان لە بنکەدراودا
+    emit_events: دەرکردنی ڕووداوەکان
+    key: ناسێنەرەکان
+    query: پرس
+  item-read:
+    name: خوێندنەوەی داتا
+    description: خوێندنەوەی مادەکان لە بنکەدراودا
+    key: ناسێنەرەکان
+    query: پرس
+    emit_events: دەرکردنی ڕووداوەکان
+  item-update:
+    name: نوێکردنەوەی داتا
+    description: نوێکردنەوەی مادەکان لە بنکەدراودا
+    emit_events: دەرکردنی ڕووداوەکان
+    key: ناسێنەرەکان
+    payload: سودبار
+    query: پرس
+  json-web-token:
+    name: تۆکنی وێبی JSON (JWT)
+    description: واژۆکردن و پشتڕاستکردنەوەی تۆکنەکانی وێبی JSON
+    operation: کردار
+    secret: نهێنی
+    secret_placeholder: نهێنیەک دابنێ...
+    payload: سودبار
+    token: تۆکن
+    token_placeholder: eyJhbGciOi......
+    options: بژاردەکان
+    options_placeholder: 'سەردانی https://www.npmjs.com/package/jsonwebtoken#usage بکە بۆ بژاردە بەردەستەکان'
+    sign: واژۆکردنی تۆکن
+    verify: پشتڕاستکردنەوەی تۆکن
+    decode: هەڵهێنانی تۆکن
+  log:
+    name: تۆمارکردن بۆ کۆنسۆڵ
+    description: دەرخستنی شتێک بۆ کۆنسۆڵ
+    message: پەیام
+    message_placeholder: پەیامێک بنوسە بۆ نیشاندان لە کۆنسۆڵ...
+  mail:
+    name: ناردنی ئیمەیڵ
+    description: ناردنی ئیمەیڵ بۆ یەک کەس یان زیاتر
+    to: بۆ
+    to_placeholder: ناونیشانی ئیمەیڵ زیادبکە و ئینتەر لێبدە...
+    body: ناوەڕۆک
+    template: قاڵب
+    data: داتا
+    cc: لەبەر
+    cc_placeholder: ناونیشانی ئیمەیڵی لەبەر زیادبکە و ئینتەر لێبدە...
+    bcc: لەبەری شاراوە
+    bcc_placeholder: ناونیشانی ئیمەیڵی لەبەری شاراوە زیادبکە و ئینتەر لێبدە...
+    reply_to: وەڵامدانەوە بۆ
+    reply_to_placeholder: ناونیشانی وەڵامدانەوە زیادبکە و ئینتەر لێبدە...
+  notification:
+    name: ناردنی ئاگادارکردنەوە
+    description: ناردنی ئاگادارکردنەوەی ناو-پێگە بۆ یەک یان چەند بەکارهێنەرێک
+    recipient: بەکارهێنەر
+    recipient_placeholder: UUIDێک دابنێ...
+    recipient_note: UUIDی بەکارهێنەر زیادبکە و ئینتەر لێبدە...
+    item_note: کلیلی مادە یان بەستەری ڕێژەیی
+    message: پەیام
+    subject: بابەت
+  request:
+    name: وێبهووک / داواکردنی بەستەر
+    description: 'داواکاریەک بنێرە بۆ بەستەرێک'
+    url: بەستەر
+    url_placeholder: https://example.com/example
+    method: ڕێگە
+    data: داتا
+    headers: سەرپەڕەکان
+    header: سەرپەڕە
+    header_placeholder: ڕێگەپێدان...
+    value_placeholder: Bearer eyJhbGciOi...
+  sleep:
+    name: خەوتن
+    description: چاوەڕوانکردن بۆ ژمارەیەک میلی چرکە
+    milliseconds: میلی چرکە
+  transform:
+    name: گۆڕینی سودبار
+    description: گۆڕینی سودباری JSONی لێشاو
+  trigger:
+    name: وروژاندنی لێشاو
+    flows: لێشاوەکان
+    flow: لێشاو
+    data: داتا
+    iteration_mode: دۆخی دووبارەبوونەوە
+    iteration_mode_note: دۆخ بۆ دووبارەبوونەوە بەسەر ئەڕەیەکاندا
+    serial: زنجیرەیی
+    parallel: هاوتەریب
+    batch: وەجبە
+    batch_size: قەبارەی وەجبە
+    cache: کاش
+unit: یەکە
+standard: ستاندارد
+scientific: زانستی
+engineering: ئەندازیاری
+compact: پەستێوراو
+currency: دراو
+notation: نیشانەکردن
+style: شێواز
+fonts:
+  thin: ناسک
+  extra_light: زۆر سوک
+  light: سوک
+  normal: ئاسایی
+  medium: مامناوەند
+  semi_bold: نیمچە تۆخ
+  bold: تۆخ
+  extra_bold: زۆر تۆخ
+  black: ڕەش
+  italic: لار
+  oblique: لار
+  small: بچوک
+  large: گەورە
+  auto: خودکار
+text_wrap: پێچانەوەی دەق
+center: ناوەڕاست
+justify: هاوستون
+text_align: لاگرتنی دەق
+font_weight: قورسایی فۆنت
+font_style: شێوازی فۆنت
+font_size: قەبارەی فۆنت
+minimum_fraction_digits: کەمترین ژمارەی دەیی
+maximum_fraction_digits: زۆرترین ژمارەی دەیی
+show_percentage: نیشاندانی ڕێژە
+aggregation: کۆکردنەوە
+series_grouping: دەستەبەندی زنجیرە
+date_precision: وردی ڕێکەوت
+export_dashboard: هەناردەکردنی داشبۆرد
+duplicate_dashboard: لەبەرگرتنەوەی داشبۆرد
+search_dashboard: گەڕان لە داشبۆرد...
+search_flow: گەڕان لە لێشاو...
+percent: ڕێژە
+show_password: نیشاندانی تێپەڕەوشە
+hide_password: شاردنەوەی تێپەڕەوشە
+set_to_now: ئێستا دابنێ

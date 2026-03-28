@@ -1,0 +1,481 @@
+jest.mock("@budibase/backend-core", () => {
+  const core = jest.requireActual("@budibase/backend-core")
+  return {
+    ...core,
+    objectStore: {
+      ...core.objectStore,
+      upload: jest.fn(),
+      uploadDirectory: jest.fn().mockImplementation(() => {
+        return [{ name: "test.js" }]
+      }),
+      deleteFolder: jest.fn().mockImplementation(),
+    },
+  }
+})
+
+jest.mock("../../controllers/plugin/github", () => {
+  const actual = jest.requireActual("../../controllers/plugin/github")
+  return {
+    ...actual,
+    githubUpload: jest.fn(actual.githubUpload),
+  }
+})
+
+import fs from "fs"
+import os from "os"
+import path from "path"
+import { events, objectStore, tenancy } from "@budibase/backend-core"
+import { Plugin, PluginSource, PluginType } from "@budibase/types"
+import nock from "nock"
+import * as setup from "./utilities"
+import * as github from "../../controllers/plugin/github"
+import { budibaseTempDir } from "../../../utilities/budibaseDir"
+
+const mockUploadDirectory = objectStore.uploadDirectory as jest.Mock
+const mockDeleteFolder = objectStore.deleteFolder as jest.Mock
+const getTempDirsWithPrefix = (prefix: string) =>
+  fs
+    .readdirSync(budibaseTempDir())
+    .filter(dir => dir.startsWith(prefix))
+    .sort()
+
+describe("/plugins", () => {
+  let request = setup.getRequest()
+  let config = setup.getConfig()
+
+  afterAll(setup.afterAll)
+
+  beforeAll(async () => {
+    await config.init()
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    nock.cleanAll()
+  })
+
+  const createPlugin = async (
+    pluginType: "default" | "encoded" = "default",
+    status?: number,
+    uploadFilename?: string
+  ) => {
+    const fixtureFilename =
+      pluginType === "encoded"
+        ? "_.-encoded-plugin-1.0.0.tar.gz"
+        : "comment-box-1.0.2.tar.gz"
+
+    return request
+      .post(`/api/plugin/upload`)
+      .attach("file", `src/api/routes/tests/data/${fixtureFilename}`, {
+        filename: uploadFilename || undefined,
+      })
+      .set(config.defaultHeaders())
+      .expect("Content-Type", /json/)
+      .expect(status ? status : 200)
+  }
+
+  const getPlugins = async (status?: number) => {
+    return request
+      .get(`/api/plugin`)
+      .set(config.defaultHeaders())
+      .expect("Content-Type", /json/)
+      .expect(status ? status : 200)
+  }
+
+  describe("upload", () => {
+    it("should be able to upload a plugin", async () => {
+      let res = await createPlugin()
+      expect(res.body).toBeDefined()
+      expect(res.body.plugins).toBeDefined()
+      expect(res.body.plugins[0]._id).toEqual("plg_comment-box")
+      expect(events.plugin.imported).toHaveBeenCalledTimes(1)
+    })
+
+    it("should not be able to create a plugin if there is an error", async () => {
+      mockUploadDirectory.mockImplementationOnce(() => {
+        throw new Error()
+      })
+      let res = await createPlugin(undefined, 400)
+      expect(res.body.message).toEqual("Failed to import plugin: Error")
+      expect(events.plugin.imported).toHaveBeenCalledTimes(0)
+    })
+
+    it("should ignore traversal sequences in uploaded filenames", async () => {
+      const res = await createPlugin(
+        "default",
+        undefined,
+        "../../../etc/cron.d/plugin.tar.gz"
+      )
+
+      expect(res.body.plugins[0]._id).toEqual("plg_comment-box")
+      expect(events.plugin.imported).toHaveBeenCalledTimes(1)
+    })
+
+    it("should clean up temp directories when upload extraction fails", async () => {
+      const invalidTarballPath = path.join(
+        os.tmpdir(),
+        `invalid-plugin-${Date.now()}.tar.gz`
+      )
+      const uploadId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+      const uploadFilename = `broken-plugin-${uploadId}.tar.gz`
+      const tempDirPrefix = `${uploadFilename.replace(".tar.gz", "")}-`
+      fs.writeFileSync(invalidTarballPath, "not a tarball")
+
+      try {
+        await request
+          .post("/api/plugin/upload")
+          .attach("file", invalidTarballPath, {
+            filename: uploadFilename,
+          })
+          .set(config.defaultHeaders())
+          .expect("Content-Type", /json/)
+          .expect(400)
+
+        expect(getTempDirsWithPrefix(tempDirPrefix)).toEqual([])
+      } finally {
+        fs.unlinkSync(invalidTarballPath)
+      }
+    })
+  })
+
+  describe("fetch", () => {
+    it("should be able to fetch plugins", async () => {
+      await createPlugin()
+      const res = await getPlugins()
+      expect(res.body).toBeDefined()
+      expect(res.body[0]._id).toEqual("plg_comment-box")
+    })
+  })
+
+  describe("destroy", () => {
+    it("should be able to delete a plugin", async () => {
+      await createPlugin()
+      const res = await request
+        .delete(`/api/plugin/plg_comment-box`)
+        .set(config.defaultHeaders())
+        .expect("Content-Type", /json/)
+        .expect(200)
+      expect(res.body).toBeDefined()
+      expect(res.body.message).toEqual("Plugin plg_comment-box deleted.")
+
+      const plugins = await getPlugins()
+      expect(plugins.body).toBeDefined()
+      expect(plugins.body.length).toEqual(0)
+      expect(events.plugin.deleted).toHaveBeenCalledTimes(1)
+    })
+
+    it("should handle URL encoded plugin IDs with special characters", async () => {
+      await createPlugin("encoded")
+      const encodedPluginId = encodeURIComponent("plg__.-encoded-plugin")
+
+      const res = await request
+        .delete(`/api/plugin/${encodedPluginId}`)
+        .set(config.defaultHeaders())
+        .expect("Content-Type", /json/)
+        .expect(200)
+
+      expect(res.body.message).toEqual("Plugin plg__.-encoded-plugin deleted.")
+    })
+
+    it("should handle an error deleting a plugin", async () => {
+      mockDeleteFolder.mockImplementationOnce(() => {
+        throw new Error()
+      })
+
+      await createPlugin()
+      const res = await request
+        .delete(`/api/plugin/plg_comment-box`)
+        .set(config.defaultHeaders())
+        .expect("Content-Type", /json/)
+        .expect(400)
+
+      expect(res.body.message).toEqual("Failed to delete plugin: Error")
+      expect(events.plugin.deleted).toHaveBeenCalledTimes(0)
+      const plugins = await getPlugins()
+      expect(plugins.body).toBeDefined()
+      expect(plugins.body.length).toEqual(1)
+    })
+  })
+
+  describe("github", () => {
+    beforeEach(async () => {
+      nock("https://api.github.com")
+        .get("/repos/my-repo/budibase-comment-box")
+        .reply(200, {
+          name: "budibase-comment-box",
+          releases_url:
+            "https://api.github.com/repos/my-repo/budibase-comment-box{/id}",
+        })
+        .get("/repos/my-repo/budibase-comment-box/latest")
+        .reply(200, {
+          assets: [
+            {
+              content_type: "application/gzip",
+              browser_download_url:
+                "https://github.com/my-repo/budibase-comment-box/releases/download/v1.0.2/comment-box-1.0.2.tar.gz",
+            },
+          ],
+        })
+
+      nock("https://github.com")
+        .get(
+          "/my-repo/budibase-comment-box/releases/download/v1.0.2/comment-box-1.0.2.tar.gz"
+        )
+        .replyWithFile(
+          200,
+          "src/api/routes/tests/data/comment-box-1.0.2.tar.gz"
+        )
+    })
+
+    it("should be able to create a plugin from github", async () => {
+      const { plugin } = await config.api.plugin.create({
+        source: PluginSource.GITHUB,
+        url: "https://github.com/my-repo/budibase-comment-box.git",
+        githubToken: "token",
+      })
+      expect(plugin._id).toEqual("plg_comment-box")
+    })
+
+    it("should fail if the url is not from github", async () => {
+      await config.api.plugin.create(
+        {
+          source: PluginSource.GITHUB,
+          url: "https://notgithub.com/my-repo/budibase-comment-box",
+          githubToken: "token",
+        },
+        {
+          status: 400,
+          body: {
+            message:
+              "Failed to import plugin: The plugin origin must be from Github",
+          },
+        }
+      )
+    })
+  })
+  describe("npm", () => {
+    it("should be able to create a plugin from npm", async () => {
+      nock("https://registry.npmjs.org")
+        .get("/budibase-component")
+        .reply(200, {
+          name: "budibase-component",
+          "dist-tags": {
+            latest: "1.0.0",
+          },
+          versions: {
+            "1.0.0": {
+              dist: {
+                tarball:
+                  "https://registry.npmjs.org/budibase-component/-/budibase-component-1.0.1.tgz",
+              },
+            },
+          },
+        })
+        .get("/budibase-component/-/budibase-component-1.0.1.tgz")
+        .replyWithFile(
+          200,
+          "src/api/routes/tests/data/budibase-component-1.0.1.tgz"
+        )
+
+      const { plugin } = await config.api.plugin.create({
+        source: PluginSource.NPM,
+        url: "https://www.npmjs.com/package/budibase-component",
+      })
+      expect(plugin._id).toEqual("plg_budibase-component")
+      expect(events.plugin.imported).toHaveBeenCalled()
+    })
+
+    it("should clean up temp directories after a successful npm import", async () => {
+      const packageName = `budibase-component-cleanup-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 10)}`
+      const tempDirPrefix = `${packageName}-`
+
+      nock("https://registry.npmjs.org")
+        .get(`/${packageName}`)
+        .reply(200, {
+          name: packageName,
+          "dist-tags": {
+            latest: "1.0.0",
+          },
+          versions: {
+            "1.0.0": {
+              dist: {
+                tarball: `https://registry.npmjs.org/${packageName}/-/${packageName}-1.0.1.tgz`,
+              },
+            },
+          },
+        })
+        .get(`/${packageName}/-/${packageName}-1.0.1.tgz`)
+        .replyWithFile(
+          200,
+          "src/api/routes/tests/data/budibase-component-1.0.1.tgz"
+        )
+
+      await config.api.plugin.create({
+        source: PluginSource.NPM,
+        url: `https://www.npmjs.com/package/${packageName}`,
+      })
+
+      expect(getTempDirsWithPrefix(tempDirPrefix)).toEqual([])
+    })
+  })
+
+  describe("url", () => {
+    it("should be able to create a plugin from a URL", async () => {
+      nock("https://www.someurl.com")
+        .get("/comment-box/comment-box-1.0.2.tar.gz")
+        .replyWithFile(
+          200,
+          "src/api/routes/tests/data/comment-box-1.0.2.tar.gz"
+        )
+
+      const { plugin } = await config.api.plugin.create({
+        source: PluginSource.URL,
+        url: "https://www.someurl.com/comment-box/comment-box-1.0.2.tar.gz",
+      })
+      expect(plugin._id).toEqual("plg_comment-box")
+      expect(events.plugin.imported).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe("updates", () => {
+    const repo = "budibase/auto-update-test"
+    const pluginName = "auto-update-test"
+    const pluginId = `plg_${pluginName}`
+    const githubUploadMock = github.githubUpload as jest.Mock
+
+    beforeEach(async () => {
+      githubUploadMock.mockImplementation(async () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-update-"))
+        return {
+          metadata: {
+            package: {
+              name: pluginName,
+              version: "1.1.0",
+              description: "Updated plugin",
+            },
+            schema: {
+              type: PluginType.COMPONENT,
+              metadata: { svelteMajor: 5 },
+              hash: "hash-1-1-0",
+            },
+          },
+          directory: dir,
+          cleanupDirectory: dir,
+        }
+      })
+
+      await config.doInTenant(async () => {
+        const db = tenancy.getGlobalDB()
+        await db.put({
+          _id: pluginId,
+          description: "A test plugin",
+          name: pluginName,
+          version: "1.0.0",
+          source: PluginSource.GITHUB,
+          package: {
+            name: pluginName,
+            version: "1.0.0",
+            description: "Test plugin",
+          },
+          hash: "hash-1-0-0",
+          schema: {
+            type: PluginType.COMPONENT,
+          },
+          origin: {
+            source: "github",
+            url: `https://github.com/${repo}`,
+            repo,
+          },
+        })
+      })
+    })
+
+    afterEach(async () => {
+      githubUploadMock.mockReset()
+      await config.doInTenant(async () => {
+        const db = tenancy.getGlobalDB()
+        try {
+          const existing = await db.get(pluginId)
+          await db.remove(existing)
+        } catch (_) {
+          // ignore
+        }
+      })
+    })
+
+    it("should list available updates", async () => {
+      nock("https://api.github.com")
+        .get(`/repos/${repo}/releases/latest`)
+        .reply(
+          200,
+          {
+            tag_name: "v1.1.0",
+            html_url: `https://github.com/${repo}/releases/tag/v1.1.0`,
+            published_at: "2024-01-01T00:00:00Z",
+            body: "Changelog",
+            assets: [
+              {
+                content_type: "application/gzip",
+                browser_download_url: `https://github.com/${repo}/releases/download/v1.1.0/${pluginName}-1.1.0.tar.gz`,
+              },
+            ],
+          },
+          { ETag: '"etag-1"' }
+        )
+
+      const res = await request
+        .get(`/api/plugin/updates`)
+        .set(config.defaultHeaders())
+        .expect("Content-Type", /json/)
+        .expect(200)
+
+      expect(res.body.updates).toBeDefined()
+      expect(res.body.updates.length).toEqual(1)
+      expect(res.body.updates[0].pluginId).toEqual(pluginId)
+      expect(res.body.updates[0].latestVersion).toEqual("1.1.0")
+      expect(githubUploadMock).toHaveBeenCalled()
+    })
+
+    it("should apply updates", async () => {
+      nock("https://api.github.com")
+        .get(`/repos/${repo}/releases/latest`)
+        .reply(
+          200,
+          {
+            tag_name: "v1.1.0",
+            html_url: `https://github.com/${repo}/releases/tag/v1.1.0`,
+            published_at: "2024-01-01T00:00:00Z",
+            body: "Changelog",
+            assets: [
+              {
+                content_type: "application/gzip",
+                browser_download_url: `https://github.com/${repo}/releases/download/v1.1.0/${pluginName}-1.1.0.tar.gz`,
+              },
+            ],
+          },
+          { ETag: '"etag-apply"' }
+        )
+
+      const res = await request
+        .post(`/api/plugin/updates`)
+        .set(config.defaultHeaders())
+        .send({ pluginIds: [pluginId] })
+        .expect("Content-Type", /json/)
+        .expect(200)
+
+      expect(res.body.updated.length).toEqual(1)
+      expect(res.body.updated[0].updatedVersion).toEqual("1.1.0")
+      expect(res.body.failed.length).toEqual(0)
+      expect(githubUploadMock).toHaveBeenCalled()
+
+      await config.doInTenant(async () => {
+        const db = tenancy.getGlobalDB()
+        const updatedPlugin = await db.tryGet<Plugin>(pluginId)
+        expect(updatedPlugin?.version).toEqual("1.1.0")
+        expect(updatedPlugin?.origin?.latestKnownVersion).toEqual("1.1.0")
+      })
+    })
+  })
+})

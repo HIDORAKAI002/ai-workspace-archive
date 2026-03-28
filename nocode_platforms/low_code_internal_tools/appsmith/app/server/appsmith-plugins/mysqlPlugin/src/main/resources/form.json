@@ -1,0 +1,233 @@
+{
+  "form": [
+    {
+      "sectionName": "Connection",
+      "id": 1,
+      "children": [
+        {
+          "label": "Connection method",
+          "configProperty": "datasourceConfiguration.properties[1].key",
+          "initialValue": "Connection method",
+          "hidden": true,
+          "controlType": "INPUT_TEXT"
+        },
+        {
+          "label": "Connection method",
+          "configProperty": "datasourceConfiguration.properties[1].value",
+          "controlType": "SEGMENTED_CONTROL",
+          "initialValue": "STANDARD",
+          "options": [
+            {
+              "label": "Standard",
+              "value": "STANDARD"
+            },
+            {
+              "label": "SSH tunnel",
+              "value": "SSH"
+            }
+          ]
+        },
+        {
+          "label": "Connection mode",
+          "configProperty": "datasourceConfiguration.connection.mode",
+          "controlType": "SEGMENTED_CONTROL",
+          "initialValue": "READ_WRITE",
+          "hidden": true,
+          "options": [
+            {
+              "label": "Read / Write",
+              "value": "READ_WRITE"
+            },
+            {
+              "label": "Read only",
+              "value": "READ_ONLY"
+            }
+          ]
+        },
+        {
+          "sectionName": null,
+          "children": [
+            {
+              "sectionName": null,
+              "children": [
+                {
+                  "label": "MySQL host address",
+                  "configProperty": "datasourceConfiguration.endpoints[*].host",
+                  "controlType": "KEYVALUE_ARRAY",
+                  "validationMessage": "Please enter a valid host",
+                  "validationRegex": "^((?![/:]).)*$",
+                  "placeholderText": "myapp.abcde.mysql.net"
+                },
+                {
+                  "label": "MySQL port",
+                  "configProperty": "datasourceConfiguration.endpoints[*].port",
+                  "dataType": "NUMBER",
+                  "initialValue": ["3306"],
+                  "controlType": "KEYVALUE_ARRAY",
+                  "placeholderText": "3306"
+                }
+              ]
+            },
+            {
+              "sectionName": null,
+              "children": [
+                {
+                  "label": "SSH host address",
+                  "configProperty": "datasourceConfiguration.sshProxy.endpoints[*].host",
+                  "controlType": "KEYVALUE_ARRAY",
+                  "validationMessage": "Please enter a valid host",
+                  "validationRegex": "^((?![/:]).)*$",
+                  "placeholderText": "myapp.abcde.sshHost.net"
+                },
+                {
+                  "label": "SSH port",
+                  "configProperty": "datasourceConfiguration.sshProxy.endpoints[*].port",
+                  "dataType": "NUMBER",
+                  "controlType": "KEYVALUE_ARRAY",
+                  "placeholderText": "22"
+                }
+              ],
+              "hidden": {
+                "path": "datasourceConfiguration.properties[1].value",
+                "comparison": "NOT_EQUALS",
+                "value": "SSH"
+              }
+            }
+          ]
+        },
+        {
+          "label": "Database name",
+          "configProperty": "datasourceConfiguration.authentication.databaseName",
+          "controlType": "INPUT_TEXT",
+          "placeholderText": "Database name",
+          "initialValue": "admin"
+        }
+      ]
+    },
+    {
+      "sectionName": "Authentication",
+      "id": 2,
+      "children": [
+        {
+          "sectionName": null,
+          "children": [
+            {
+              "label": "MySQL username",
+              "configProperty": "datasourceConfiguration.authentication.username",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "Username"
+            },
+            {
+              "label": "MySQL password",
+              "configProperty": "datasourceConfiguration.authentication.password",
+              "dataType": "PASSWORD",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "Password",
+              "encrypted": true
+            },
+            {
+              "label": "SSH username",
+              "configProperty": "datasourceConfiguration.sshProxy.username",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "Username",
+              "hidden": {
+                "path": "datasourceConfiguration.properties[1].value",
+                "comparison": "NOT_EQUALS",
+                "value": "SSH"
+              }
+            },
+            {
+              "label": "SSH key",
+              "configProperty": "datasourceConfiguration.sshProxy.privateKey.keyFile",
+              "controlType": "FILE_PICKER",
+              "encrypted": true,
+              "hidden": {
+                "path": "datasourceConfiguration.properties[1].value",
+                "comparison": "NOT_EQUALS",
+                "value": "SSH"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "sectionName": "SSL (optional)",
+      "children": [
+        {
+          "label": "SSL mode",
+          "configProperty": "datasourceConfiguration.connection.ssl.authType",
+          "controlType": "DROP_DOWN",
+          "initialValue": "DEFAULT",
+          "options": [
+            {
+              "label": "Default",
+              "value": "DEFAULT"
+            },
+            {
+              "label": "Required",
+              "value": "REQUIRED"
+            },
+            {
+              "label": "Disabled",
+              "value": "DISABLED"
+            }
+          ]
+        },
+        {
+          "sectionName": null,
+          "hidden": true,
+          "children": [
+            {
+              "label": "Key File",
+              "configProperty": "datasourceConfiguration.connection.ssl.keyFile",
+              "controlType": "FILE_PICKER"
+            },
+            {
+              "label": "Certificate",
+              "configProperty": "datasourceConfiguration.connection.ssl.certificateFile",
+              "controlType": "FILE_PICKER"
+            }
+          ]
+        },
+        {
+          "sectionName": null,
+          "hidden": true,
+          "children": [
+            {
+              "label": "CA Certificate",
+              "configProperty": "datasourceConfiguration.connection.ssl.caCertificateFile",
+              "controlType": "FILE_PICKER"
+            },
+            {
+              "label": "PEM Certificate",
+              "configProperty": "datasourceConfiguration.connection.ssl.pemCertificate.file",
+              "controlType": "FILE_PICKER"
+            },
+            {
+              "label": "PEM Passphrase",
+              "configProperty": "datasourceConfiguration.connection.ssl.pemCertificate.password",
+              "dataType": "PASSWORD",
+              "controlType": "INPUT_TEXT",
+              "placeholderText": "PEM Passphrase"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "sectionName": "MySQL Specific Parameters",
+      "children": [
+        {
+          "label": "Server Timezone Override",
+          "configProperty": "datasourceConfiguration.properties[0]",
+          "fixedKey": "serverTimezone",
+          "controlType": "FIXED_KEY_INPUT",
+          "placeholderText": "UTC or any valid timezone"
+        }
+      ]
+    }
+  ]
+}

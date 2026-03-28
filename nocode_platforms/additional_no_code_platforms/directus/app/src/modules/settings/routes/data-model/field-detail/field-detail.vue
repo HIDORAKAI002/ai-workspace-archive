@@ -1,0 +1,153 @@
+<script setup lang="ts">
+import formatTitle from '@directus/format-title';
+import { LocalType } from '@directus/types';
+import { storeToRefs } from 'pinia';
+import { computed, ref, toRefs, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import FieldDetailAdvancedActions from './field-detail-advanced/field-detail-advanced-actions.vue';
+import FieldDetailAdvancedTabs from './field-detail-advanced/field-detail-advanced-tabs.vue';
+import FieldDetailAdvanced from './field-detail-advanced/field-detail-advanced.vue';
+import FieldDetailSimple from './field-detail-simple/field-detail-simple.vue';
+import { useFieldDetailStore } from './store/';
+import VDrawer from '@/components/v-drawer.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInput from '@/components/v-input.vue';
+import { useDialogRoute } from '@/composables/use-dialog-route';
+import { useCollectionsStore } from '@/stores/collections';
+import { useFieldsStore } from '@/stores/fields';
+import { unexpectedError } from '@/utils/unexpected-error';
+
+const props = withDefaults(
+	defineProps<{
+		collection: string;
+		field: string;
+		type?: LocalType | null;
+	}>(),
+	{
+		type: null,
+	},
+);
+
+const { collection, field, type } = toRefs(props);
+
+const search = ref<string | null>(null);
+
+const isOpen = useDialogRoute();
+
+const fieldDetail = useFieldDetailStore();
+
+const { editing } = storeToRefs(fieldDetail);
+
+watch(
+	field,
+	() => {
+		fieldDetail.startEditing(collection.value, field.value, type.value ?? undefined);
+	},
+	{ immediate: true },
+);
+
+const collectionsStore = useCollectionsStore();
+const fieldsStore = useFieldsStore();
+const router = useRouter();
+const { t } = useI18n();
+
+const collectionInfo = computed(() => {
+	return collectionsStore.getCollection(collection.value);
+});
+
+const simple = ref(props.type === null);
+
+const title = computed(() => {
+	const existingField = fieldsStore.getField(props.collection, props.field);
+	const fieldName = formatTitle(existingField?.field || fieldDetail.field.field || '');
+
+	if (props.field === '+' && fieldName === '') {
+		return t('creating_new_field', { collection: collectionInfo.value?.collection });
+	} else {
+		return t('field_in_collection', { field: fieldName, collection: collectionInfo.value?.collection });
+	}
+});
+
+const currentTab = ref(['schema']);
+
+const showAdvanced = computed(() => {
+	return editing.value !== '+' || !simple.value;
+});
+
+async function cancel() {
+	await router.push(`/settings/data-model/${props.collection}`);
+	fieldDetail.$reset();
+}
+
+async function save() {
+	try {
+		await fieldDetail.save();
+	} catch (error) {
+		unexpectedError(error);
+		return;
+	}
+
+	router.push(`/settings/data-model/${props.collection}`);
+	fieldDetail.$reset();
+}
+</script>
+
+<template>
+	<VDrawer :model-value="isOpen" :title="title" persistent @cancel="cancel" @apply="save" @update:model-value="cancel">
+		<FieldDetailSimple
+			v-if="!showAdvanced"
+			:collection="collectionInfo"
+			:search="search"
+			@save="save"
+			@toggle-advanced="simple = false"
+		/>
+
+		<template v-if="showAdvanced" #sidebar>
+			<FieldDetailAdvancedTabs v-model:current-tab="currentTab" />
+		</template>
+
+		<template v-if="showAdvanced" #actions>
+			<FieldDetailAdvancedActions @save="save" />
+		</template>
+		<template v-else #actions>
+			<VInput
+				v-model="search"
+				class="search"
+				small
+				autofocus
+				type="search"
+				:placeholder="$t('search_field')"
+				:full-width="false"
+			>
+				<template #prepend>
+					<VIcon name="search" outline />
+				</template>
+				<template #append>
+					<VIcon v-if="search" clickable class="clear" name="close" @click.stop="search = null" />
+				</template>
+			</VInput>
+		</template>
+
+		<FieldDetailAdvanced v-if="showAdvanced" :collection="collectionInfo" :current-tab="currentTab[0]" @save="save" />
+	</VDrawer>
+</template>
+
+<style lang="scss" scoped>
+@use '@/styles/mixins';
+
+:deep(.required-mark) {
+	--v-icon-color: var(--theme--primary);
+}
+
+.v-input.search {
+	--v-input-border-radius: calc(2.5rem / 2);
+	inline-size: 11.25rem;
+	margin-inline-start: auto;
+
+	@include mixins.breakpoint-up('sm') {
+		inline-size: 16.875rem;
+		margin-block-start: 0;
+	}
+}
+</style>

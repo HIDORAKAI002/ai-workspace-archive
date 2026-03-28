@@ -1,0 +1,128 @@
+<script setup lang="ts">
+import type { ExtensionOptionsContext } from '@directus/extensions';
+import { isVueComponent } from '@directus/utils';
+import { computed, inject, ref } from 'vue';
+import VForm from '@/components/v-form/v-form.vue';
+import VNotice from '@/components/v-notice.vue';
+import { useExtension } from '@/composables/use-extension';
+
+const props = defineProps<{
+	value: Record<string, unknown> | null;
+	displayField?: string;
+	display?: string;
+	collection?: string;
+	disabled?: boolean;
+	context?: () => ExtensionOptionsContext;
+}>();
+
+const emit = defineEmits<{
+	input: [value: Record<string, unknown> | null];
+}>();
+
+const options = computed({
+	get() {
+		return props.value;
+	},
+	set(newVal: any) {
+		emit('input', newVal);
+	},
+});
+
+const values = inject('values', ref<Record<string, any>>({}));
+
+const selectedDisplayId = computed(() => props.display ?? values.value[props.displayField!] ?? null);
+const selectedDisplay = useExtension('display', selectedDisplayId);
+
+const usesCustomComponent = computed(() => {
+	if (!selectedDisplay.value) return false;
+
+	return isVueComponent(selectedDisplay.value.options);
+});
+
+const optionsFields = computed(() => {
+	if (!selectedDisplay.value?.options || usesCustomComponent.value) return [];
+
+	let optionsObjectOrArray;
+
+	if (typeof selectedDisplay.value.options === 'function') {
+		optionsObjectOrArray = selectedDisplay.value.options(
+			props.context?.() ?? {
+				field: {
+					type: 'unknown',
+				},
+				editing: '+',
+				collection: props.collection,
+				relations: {
+					o2m: undefined,
+					m2o: undefined,
+					m2a: undefined,
+				},
+				collections: {
+					related: undefined,
+					junction: undefined,
+				},
+				fields: {
+					corresponding: undefined,
+					junctionCurrent: undefined,
+					junctionRelated: undefined,
+					sort: undefined,
+				},
+				items: {},
+				localType: 'standard',
+				autoGenerateJunctionRelation: false,
+				saving: false,
+			},
+		);
+	} else {
+		optionsObjectOrArray = selectedDisplay.value.options;
+	}
+
+	if (Array.isArray(optionsObjectOrArray)) return optionsObjectOrArray;
+
+	return [...optionsObjectOrArray.standard, ...optionsObjectOrArray.advanced];
+});
+</script>
+
+<template>
+	<VNotice v-if="!selectedDisplay">
+		{{ $t('select_display') }}
+	</VNotice>
+
+	<VNotice v-else-if="usesCustomComponent === false && optionsFields.length === 0">
+		{{ $t('no_options_available') }}
+	</VNotice>
+
+	<div v-else class="inset">
+		<VForm
+			v-if="usesCustomComponent === false"
+			v-model="options"
+			class="extension-options"
+			:fields="optionsFields"
+			:disabled="disabled"
+			primary-key="+"
+		/>
+
+		<component
+			:is="`display-options-${selectedDisplay.id}`"
+			v-else
+			:value="value"
+			:collection="collection"
+			@input="$emit('input', $event)"
+		/>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.inset {
+	--theme--form--column-gap: 1.375rem;
+	--theme--form--row-gap: 1.375rem;
+
+	padding: 0.6875rem;
+	border: var(--theme--border-width) solid var(--theme--form--field--input--border-color);
+	border-radius: var(--theme--border-radius);
+
+	:deep(.type-label) {
+		font-size: 0.8125rem;
+	}
+}
+</style>

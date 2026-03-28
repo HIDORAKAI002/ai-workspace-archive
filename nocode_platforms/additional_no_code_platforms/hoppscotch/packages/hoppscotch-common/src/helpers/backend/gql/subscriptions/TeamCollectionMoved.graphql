@@ -1,0 +1,10 @@
+subscription TeamCollectionMoved($teamID: ID!) {
+  teamCollectionMoved(teamID: $teamID) {
+    id
+    title
+    parent {
+      id
+    }
+    data
+  }
+}

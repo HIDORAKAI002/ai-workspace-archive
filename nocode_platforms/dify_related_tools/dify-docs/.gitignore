@@ -1,0 +1,8 @@
+._DS_Store
+.DS_Store
+.venv
+__pycache__/
+CLAUDE.md
+AGENTS.md
+.claude/CLAUDE.local.md
+.claude/settings.local.json

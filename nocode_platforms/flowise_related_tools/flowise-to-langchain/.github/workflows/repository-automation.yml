@@ -1,0 +1,526 @@
+name: Repository Automation
+
+on:
+  issues:
+    types: [opened, labeled, assigned]
+  pull_request:
+    types: [opened, synchronize, closed, labeled]
+  push:
+    branches: [main, develop]
+  schedule:
+    # Run maintenance tasks daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  # Automatic issue triage and labeling
+  issue-triage:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Auto-label issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueBody = issue.body.toLowerCase();
+            const issueTitle = issue.title.toLowerCase();
+            
+            let labels = [];
+            
+            // Bug detection
+            if (issueTitle.includes('bug') || issueTitle.includes('error') || issueTitle.includes('broken') ||
+                issueBody.includes('error') || issueBody.includes('exception') || issueBody.includes('fails')) {
+              labels.push('bug');
+              labels.push('needs-investigation');
+            }
+            
+            // Feature request detection
+            if (issueTitle.includes('feature') || issueTitle.includes('enhancement') || issueTitle.includes('add') ||
+                issueBody.includes('feature request') || issueBody.includes('enhancement')) {
+              labels.push('enhancement');
+              labels.push('needs-discussion');
+            }
+            
+            // Component-specific labels
+            if (issueBody.includes('frontend') || issueBody.includes('ui') || issueBody.includes('interface')) {
+              labels.push('frontend');
+            }
+            if (issueBody.includes('backend') || issueBody.includes('api') || issueBody.includes('server')) {
+              labels.push('backend');
+            }
+            if (issueBody.includes('test') || issueBody.includes('testing')) {
+              labels.push('testing');
+            }
+            if (issueBody.includes('documentation') || issueBody.includes('docs')) {
+              labels.push('documentation');
+            }
+            if (issueBody.includes('performance') || issueBody.includes('slow') || issueBody.includes('optimization')) {
+              labels.push('performance');
+            }
+            if (issueBody.includes('security') || issueBody.includes('vulnerability')) {
+              labels.push('security');
+              labels.push('priority-high');
+            }
+            
+            // Priority detection
+            if (issueTitle.includes('critical') || issueTitle.includes('urgent') || issueBody.includes('critical')) {
+              labels.push('priority-critical');
+            } else if (issueTitle.includes('important') || issueBody.includes('important')) {
+              labels.push('priority-high');
+            }
+            
+            // Add default labels
+            if (labels.length === 0) {
+              labels.push('needs-triage');
+            }
+            
+            // Apply labels
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }
+            
+            // Add comment for bugs
+            if (labels.includes('bug')) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Thank you for reporting this bug! 🐛
+
+This issue has been automatically labeled and is now in our triage queue. Please ensure you've provided:
+
+- [ ] Steps to reproduce the bug
+- [ ] Expected vs actual behavior
+- [ ] Environment details (Node.js version, OS, etc.)
+- [ ] Any relevant error messages or logs
+
+A team member will review this shortly.`
+              });
+            }
+
+  # Automatic PR management
+  pr-automation:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Auto-label PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const prTitle = pr.title.toLowerCase();
+            const prBody = pr.body ? pr.body.toLowerCase() : '';
+            const changedFiles = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            
+            let labels = [];
+            
+            // Type-based labels
+            if (prTitle.includes('feat:') || prTitle.includes('feature')) {
+              labels.push('enhancement');
+            }
+            if (prTitle.includes('fix:') || prTitle.includes('bug')) {
+              labels.push('bug');
+            }
+            if (prTitle.includes('docs:') || prTitle.includes('documentation')) {
+              labels.push('documentation');
+            }
+            if (prTitle.includes('test:') || prTitle.includes('testing')) {
+              labels.push('testing');
+            }
+            if (prTitle.includes('refactor:') || prTitle.includes('refactoring')) {
+              labels.push('refactoring');
+            }
+            if (prTitle.includes('perf:') || prTitle.includes('performance')) {
+              labels.push('performance');
+            }
+            if (prTitle.includes('security:') || prTitle.includes('security')) {
+              labels.push('security');
+            }
+            
+            // File-based labels
+            const files = changedFiles.data.map(f => f.filename);
+            if (files.some(f => f.startsWith('frontend/') || f.startsWith('testing-ui/'))) {
+              labels.push('frontend');
+            }
+            if (files.some(f => f.startsWith('src/') && !f.startsWith('frontend/'))) {
+              labels.push('backend');
+            }
+            if (files.some(f => f.includes('test') || f.includes('spec'))) {
+              labels.push('testing');
+            }
+            if (files.some(f => f.includes('.github/workflows'))) {
+              labels.push('ci-cd');
+            }
+            if (files.some(f => f.includes('.md') || f.startsWith('docs/'))) {
+              labels.push('documentation');
+            }
+            
+            // Size labels
+            const totalChanges = changedFiles.data.reduce((sum, file) => sum + file.additions + file.deletions, 0);
+            if (totalChanges < 50) {
+              labels.push('size-small');
+            } else if (totalChanges < 200) {
+              labels.push('size-medium');
+            } else {
+              labels.push('size-large');
+            }
+            
+            // Apply labels
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }
+        
+      - name: PR size check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const changedFiles = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            
+            const totalChanges = changedFiles.data.reduce((sum, file) => sum + file.additions + file.deletions, 0);
+            const fileCount = changedFiles.data.length;
+            
+            if (totalChanges > 500 || fileCount > 20) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `⚠️ **Large PR Warning**
+
+This PR contains ${totalChanges} lines changed across ${fileCount} files. Consider breaking it down into smaller, more focused PRs for easier review:
+
+- Smaller PRs are easier to review and test
+- They reduce the risk of introducing bugs
+- They can be merged faster
+- They provide better git history
+
+**Tips for splitting large PRs:**
+- Separate refactoring from feature changes
+- Split new features into logical components
+- Isolate test changes from implementation changes
+- Move documentation updates to separate PRs`
+              });
+            }
+
+  # Auto-assign reviewers
+  assign-reviewers:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    
+    steps:
+      - name: Assign reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            
+            // Define team members and their expertise
+            const reviewers = {
+              'frontend': ['frontend-expert-1', 'frontend-expert-2'],
+              'backend': ['backend-expert-1', 'backend-expert-2'],
+              'testing': ['qa-expert-1', 'qa-expert-2'],
+              'security': ['security-expert-1'],
+              'performance': ['perf-expert-1']
+            };
+            
+            // Get PR labels
+            const labels = pr.labels.map(label => label.name);
+            
+            let assignedReviewers = [];
+            
+            // Assign based on labels
+            for (const [area, experts] of Object.entries(reviewers)) {
+              if (labels.includes(area)) {
+                // Randomly select one expert from the area, excluding the author
+                const availableExperts = experts.filter(expert => expert !== author);
+                if (availableExperts.length > 0) {
+                  const selectedExpert = availableExperts[Math.floor(Math.random() * availableExperts.length)];
+                  assignedReviewers.push(selectedExpert);
+                }
+              }
+            }
+            
+            // Always assign at least one general reviewer if no specific experts were assigned
+            if (assignedReviewers.length === 0) {
+              const allReviewers = Object.values(reviewers).flat().filter(reviewer => reviewer !== author);
+              if (allReviewers.length > 0) {
+                assignedReviewers.push(allReviewers[Math.floor(Math.random() * allReviewers.length)]);
+              }
+            }
+            
+            // Assign reviewers (if they exist in the repository)
+            if (assignedReviewers.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  reviewers: assignedReviewers.slice(0, 2) // Limit to 2 reviewers
+                });
+              } catch (error) {
+                console.log('Could not assign reviewers:', error.message);
+              }
+            }
+
+  # Stale issue and PR management
+  stale-management:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            It will be closed if no further activity occurs within 7 days.
+            
+            If this issue is still relevant, please:
+            - Add a comment explaining why it should remain open
+            - Update the issue with current information
+            - Add appropriate labels if they're missing
+            
+            Thank you for your contributions!
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs within 7 days.
+            
+            If this PR is still relevant, please:
+            - Rebase on the latest main branch
+            - Address any merge conflicts
+            - Respond to any pending review comments
+            - Add a comment explaining the current status
+            
+            Thank you for your contributions!
+          close-issue-message: |
+            This issue was automatically closed because it has been stale for 7 days with no activity.
+            
+            If you believe this issue is still relevant, please reopen it with updated information.
+          close-pr-message: |
+            This pull request was automatically closed because it has been stale for 7 days with no activity.
+            
+            If you want to continue working on this PR, please reopen it and address any feedback.
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,enhancement'
+          exempt-pr-labels: 'pinned,security,work-in-progress'
+
+  # Release automation
+  release-automation:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Check for version changes
+        id: version-check
+        run: |
+          if git diff HEAD~1 HEAD --quiet package.json | grep -q '"version"'; then
+            echo "version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create release
+        if: steps.version-check.outputs.version-changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const version = packageJson.version;
+            
+            // Get commits since last release
+            const commits = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha
+            });
+            
+            // Create release
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${version}`,
+              name: `Release v${version}`,
+              body: `## What's Changed\n\nThis release includes the latest updates and improvements.\n\n**Full Changelog**: https://github.com/${context.repo.owner}/${context.repo.repo}/compare/v${version}...v${version}`,
+              draft: false,
+              prerelease: version.includes('beta') || version.includes('alpha') || version.includes('rc')
+            });
+            
+            console.log(`Created release: ${release.data.html_url}`);
+
+  # Dependency updates
+  dependency-updates:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Check for outdated dependencies
+        run: |
+          npm outdated || true
+          
+      - name: Create dependency update issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            
+            try {
+              const outdated = execSync('npm outdated --json', { encoding: 'utf8' });
+              const outdatedDeps = JSON.parse(outdated);
+              
+              if (Object.keys(outdatedDeps).length === 0) {
+                console.log('All dependencies are up to date');
+                return;
+              }
+              
+              let body = `## Outdated Dependencies Report\n\n`;
+              body += `The following dependencies have updates available:\n\n`;
+              body += `| Package | Current | Wanted | Latest | Type |\n`;
+              body += `|---------|---------|--------|--------|---------|\n`;
+              
+              for (const [pkg, info] of Object.entries(outdatedDeps)) {
+                body += `| ${pkg} | ${info.current} | ${info.wanted} | ${info.latest} | ${info.type || 'dependency'} |\n`;
+              }
+              
+              body += `\n## Recommendations\n\n`;
+              body += `- Review the changelog for each package before updating\n`;
+              body += `- Test thoroughly after updating major versions\n`;
+              body += `- Consider updating in smaller batches for easier debugging\n`;
+              body += `\nThis issue was automatically generated on ${new Date().toISOString()}.`;
+              
+              // Check if there's already an open dependency update issue
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'dependencies,automated'
+              });
+              
+              if (existingIssues.data.length === 0) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `Dependency Updates Available - ${new Date().toISOString().split('T')[0]}`,
+                  body: body,
+                  labels: ['dependencies', 'automated', 'maintenance']
+                });
+              }
+            } catch (error) {
+              console.log('No outdated dependencies or error checking:', error.message);
+            }
+
+  # Repository health check
+  health-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Repository health check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let healthReport = `# Repository Health Report\n\n`;
+            healthReport += `Generated on: ${new Date().toISOString()}\n\n`;
+            
+            // Check essential files
+            const essentialFiles = [
+              'README.md',
+              'package.json',
+              'tsconfig.json',
+              'jest.config.mjs',
+              '.github/workflows',
+              'src/',
+              'test/'
+            ];
+            
+            healthReport += `## Essential Files Check\n\n`;
+            for (const file of essentialFiles) {
+              const exists = fs.existsSync(file);
+              healthReport += `- [${exists ? 'x' : ' '}] ${file}\n`;
+            }
+            
+            // Check package.json scripts
+            if (fs.existsSync('package.json')) {
+              const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+              const requiredScripts = ['build', 'test', 'lint', 'dev'];
+              
+              healthReport += `\n## Required Scripts Check\n\n`;
+              for (const script of requiredScripts) {
+                const exists = packageJson.scripts && packageJson.scripts[script];
+                healthReport += `- [${exists ? 'x' : ' '}] ${script}\n`;
+              }
+            }
+            
+            // Get repository statistics
+            const stats = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            
+            healthReport += `\n## Repository Statistics\n\n`;
+            healthReport += `- Stars: ${stats.data.stargazers_count}\n`;
+            healthReport += `- Forks: ${stats.data.forks_count}\n`;
+            healthReport += `- Open Issues: ${stats.data.open_issues_count}\n`;
+            healthReport += `- Language: ${stats.data.language}\n`;
+            healthReport += `- Size: ${stats.data.size} KB\n`;
+            
+            console.log(healthReport);

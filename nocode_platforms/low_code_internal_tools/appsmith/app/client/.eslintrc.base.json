@@ -1,0 +1,144 @@
+// This file is a base for all package-specific ESLint configurations
+{
+  "$schema": "http://json.schemastore.org/eslintrc",
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": [
+    "jest.config.js",
+    "jest.setup.ts",
+    "rollup.config.js",
+    ".eslintrc.js"
+  ],
+  "plugins": [
+    "react",
+    "eslint-plugin-react-compiler",
+    "@typescript-eslint",
+    "prettier",
+    "sort-destructure-keys",
+    "cypress",
+    "testing-library",
+    "jest",
+    "@appsmith",
+    "react-perf"
+  ],
+  "extends": [
+    "plugin:react/recommended", // Uses the recommended rules from @eslint-plugin-react
+    "plugin:@typescript-eslint/recommended",
+    "plugin:cypress/recommended",
+    "plugin:testing-library/react",
+    "plugin:react-hooks/recommended",
+    "plugin:@appsmith/recommended",
+    "plugin:react-perf/recommended",
+    // Note: Please keep this as the last config to make sure that this (and by extension our .prettierrc file) overrides all configuration above it
+    // https://www.npmjs.com/package/eslint-plugin-prettier#recommended-configuration
+    "plugin:prettier/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020, // Allows for the parsing of modern ECMAScript features
+    "sourceType": "module", // Allows for the use of imports
+    "ecmaFeatures": {
+      "jsx": true // Allows for the parsing of JSX
+    },
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "react-compiler/react-compiler": "warn",
+    "padding-line-between-statements": [
+      "error",
+      { "blankLine": "always", "prev": "*", "next": "return" },
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": ["if", "for", "while"]
+      },
+      {
+        "blankLine": "always",
+        "prev": ["if", "for", "while"],
+        "next": "*"
+      },
+      { "blankLine": "always", "prev": ["const", "let"], "next": "*" },
+      {
+        "blankLine": "any",
+        "prev": ["const", "let"],
+        "next": ["const", "let"]
+      },
+      { "blankLine": "always", "prev": "*", "next": "function" },
+      { "blankLine": "always", "prev": "function", "next": "*" }
+    ],
+    "testing-library/consistent-data-testid": [
+      "warn",
+      {
+        "testIdPattern": "^t--[a-zA-Z0-9_.-]*$",
+        "testIdAttribute": ["data-testid"]
+      }
+    ],
+    "@typescript-eslint/consistent-type-definitions": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/promise-function-async": "error",
+    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "jest/no-focused-tests": "error",
+    "jest/no-disabled-tests": "error",
+    // enforce `import type` for all type-only imports so the bundler knows to erase them
+    "@typescript-eslint/consistent-type-imports": "error",
+    "react/jsx-boolean-value": "error",
+    "react/self-closing-comp": "error",
+    "react/jsx-sort-props": "error",
+    "react/jsx-fragments": "error",
+    "react/jsx-no-useless-fragment": "error",
+    "sort-destructure-keys/sort-destructure-keys": [
+      "error",
+      { "caseSensitive": false }
+    ],
+    "no-console": "error",
+    "no-debugger": "error",
+    "react-perf/jsx-no-new-array-as-prop": "warn",
+    "react-perf/jsx-no-new-function-as-prop": "warn",
+    "react-perf/jsx-no-jsx-as-prop": "warn",
+    "react-perf/jsx-no-new-object-as-prop": [
+      "warn",
+      {
+        // we are disabling this rule here for native component since it won't make much difference in performance
+        // we want to target react components more since there is possibility they can be pure components and new istance props should be avoided for them
+        "nativeAllowList": "all"
+      }
+    ],
+    "@typescript-eslint/no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@blueprintjs/core/lib/esnext/*"],
+            "message": "Reason: @blueprintjs/core has both lib/esnext and lib/esm directories which export the same components. To avoid duplicating components in the bundle, please import only from the lib/esm directory."
+          },
+          {
+            "group": ["*.svg"],
+            "importNames": ["ReactComponent"],
+            "message": "Reason: Please don’t import SVG icons statically. (They won’t always be needed, but they *will* always be present in the bundle and will increase the bundle size.) Instead, please either import them as SVG paths (e.g. import starIconUrl from './star.svg'), or use the importSvg wrapper from @appsmith/ads-old (e.g. const StarIcon = importSvg(() => import('./star.svg')))."
+          },
+          {
+            "group": ["remixicon-react/*"],
+            "message": "Reason: Please don’t import Remix icons statically. (They won’t always be needed, but they *will* always be present in the bundle and will increase the bundle size.) Instead, please use the importRemixIcon wrapper from @appsmith/ads-old (e.g. const StarIcon = importRemixIcon(() => import('remixicon-react/Star')))."
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "babel-module": {}
+    },
+    "react": {
+      "pragma": "React",
+      // Tells eslint-plugin-react to automatically detect the version of React to use
+      "version": "detect"
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "cypress/globals": true,
+    "worker": true
+  }
+}

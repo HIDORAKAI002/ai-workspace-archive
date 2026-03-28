@@ -1,0 +1,102 @@
+import openai from "openai"
+import { EnrichedBinding } from "../../ui"
+import { ModelMessage } from "ai"
+
+export type UserContent = string | openai.ChatCompletionContentPart[]
+
+export interface SystemMessage {
+  role: "system"
+  content: string
+}
+
+export interface UserMessage {
+  role: "user"
+  content: UserContent
+}
+
+export interface AssistantMessage {
+  role: "assistant"
+  content: string | null
+  tool_calls?: openai.ChatCompletionMessageToolCall[]
+}
+
+export interface ToolMessage {
+  role: "tool"
+  tool_call_id: string
+  content: string
+}
+
+export type Message =
+  | SystemMessage
+  | UserMessage
+  | AssistantMessage
+  | ToolMessage
+
+export type ResponseFormat = "text" | "json" | openai.ResponseFormatJSONSchema
+
+export interface ChatCompletionRequestV2 {
+  messages: ModelMessage[]
+  model: string
+  stream?: boolean
+  metadata?: Record<string, string>
+}
+
+export interface ChatCompletionRequest {
+  messages: Message[]
+  format?: ResponseFormat
+}
+
+export interface ChatCompletionResponse {
+  messages: Message[]
+  tokensUsed: number
+}
+
+export interface AIQuotaUsageResponse {
+  monthlyCredits: number
+}
+
+export interface GenerateJsRequest {
+  prompt: string
+  bindings?: EnrichedBinding[]
+}
+
+export interface GenerateJsResponse {
+  code: string
+}
+
+export interface GenerateCronRequest {
+  prompt: string
+}
+
+export interface GenerateCronResponse {
+  message?: string
+}
+
+export interface GenerateTablesRequest {
+  prompt: string
+}
+
+export interface GenerateTablesResponse {
+  createdTables: { id: string; name: string }[]
+}
+
+export interface GenerateAgentInstructionsRequest {
+  prompt: string
+  agentName?: string
+  goal?: string
+  toolReferences: string[]
+}
+
+export interface GenerateAgentInstructionsResponse {
+  instructions: string
+}
+
+export interface UploadFileRequest {
+  data: string
+  filename: string
+  contentType: string
+}
+
+export interface UploadFileResponse {
+  file: string
+}

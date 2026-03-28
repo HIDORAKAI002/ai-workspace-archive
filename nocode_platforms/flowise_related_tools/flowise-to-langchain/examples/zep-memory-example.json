@@ -1,0 +1,104 @@
+{
+  "name": "Zep Memory Example",
+  "description": "Example flow demonstrating ZepMemory for long-term conversation storage",
+  "nodes": [
+    {
+      "id": "openai-1",
+      "type": "chatOpenAI",
+      "label": "ChatOpenAI",
+      "category": "llm",
+      "position": { "x": 100, "y": 100 },
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "output-1",
+          "label": "LLM Output",
+          "type": "llm",
+          "dataType": "ChatOpenAI"
+        }
+      ],
+      "parameters": [
+        { "name": "modelName", "value": "gpt-3.5-turbo", "type": "string" },
+        { "name": "temperature", "value": 0.7, "type": "number" },
+        { "name": "openAIApiKey", "value": "sk-...", "type": "credential" }
+      ]
+    },
+    {
+      "id": "zep-memory-1",
+      "type": "zepMemory",
+      "label": "Zep Memory",
+      "category": "memory",
+      "position": { "x": 100, "y": 300 },
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "output-memory",
+          "label": "Memory Output",
+          "type": "memory",
+          "dataType": "ZepMemory"
+        }
+      ],
+      "parameters": [
+        { "name": "baseURL", "value": "http://localhost:8000", "type": "string" },
+        { "name": "apiKey", "value": "YOUR_ZEP_API_KEY", "type": "string" },
+        { "name": "sessionId", "value": "user-123-session", "type": "string" },
+        { "name": "memoryKey", "value": "chat_history", "type": "string" },
+        { "name": "inputKey", "value": "question", "type": "string" },
+        { "name": "outputKey", "value": "text", "type": "string" },
+        { "name": "returnMessages", "value": true, "type": "boolean" }
+      ]
+    },
+    {
+      "id": "conversation-chain-1",
+      "type": "conversationChain",
+      "label": "Conversation Chain",
+      "category": "chain",
+      "position": { "x": 400, "y": 200 },
+      "inputs": [
+        {
+          "id": "input-llm",
+          "label": "LLM",
+          "type": "llm",
+          "dataType": "BaseLanguageModel"
+        },
+        {
+          "id": "input-memory",
+          "label": "Memory",
+          "type": "memory",
+          "dataType": "BaseMemory"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "output-chain",
+          "label": "Chain Output",
+          "type": "chain",
+          "dataType": "ConversationChain"
+        }
+      ],
+      "parameters": []
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "openai-1",
+      "target": "conversation-chain-1",
+      "sourceHandle": "output-1",
+      "targetHandle": "input-llm"
+    },
+    {
+      "id": "edge-2",
+      "source": "zep-memory-1",
+      "target": "conversation-chain-1",
+      "sourceHandle": "output-memory",
+      "targetHandle": "input-memory"
+    }
+  ],
+  "metadata": {
+    "name": "Zep Memory Example",
+    "description": "Demonstrates using ZepMemory for persistent conversation storage with automatic summarization",
+    "version": "1.0.0",
+    "notes": "Requires a running Zep server instance. Install with: docker run -p 8000:8000 ghcr.io/getzep/zep:latest"
+  }
+}

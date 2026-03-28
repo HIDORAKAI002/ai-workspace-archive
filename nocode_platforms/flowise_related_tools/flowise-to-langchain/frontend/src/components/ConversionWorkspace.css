@@ -1,0 +1,288 @@
+/* ConversionWorkspace.css */
+.conversion-workspace {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.workspace-title h2 {
+  margin: 0 0 0.25rem 0;
+  color: #333;
+}
+
+.workspace-title p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.workspace-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.convert-button,
+.test-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.convert-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.convert-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.convert-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.test-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.test-button:hover {
+  background-color: #1e7e34;
+}
+
+.workspace-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.workspace-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.result-indicator {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.result-indicator.success {
+  color: #28a745;
+}
+
+.result-indicator.error {
+  color: #dc3545;
+}
+
+.workspace-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.workspace-sidebar {
+  width: 250px;
+  background: #f8f9fa;
+  border-right: 1px solid #eee;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.workspace-sidebar h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.flow-summary,
+.node-types,
+.conversion-options-summary {
+  margin-bottom: 2rem;
+}
+
+.summary-stats {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 500;
+  color: #333;
+}
+
+.node-type-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.node-type-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.node-type-name {
+  color: #333;
+  text-transform: capitalize;
+}
+
+.node-type-count {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.options-summary {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.option-label {
+  color: #666;
+}
+
+.option-value {
+  font-weight: 500;
+  color: #333;
+  text-transform: capitalize;
+}
+
+.workspace-content-area {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.conversion-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.conversion-progress {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  min-width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.progress-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progress-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}

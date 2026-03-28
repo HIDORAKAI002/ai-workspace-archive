@@ -1,0 +1,2457 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: O nás
+first_name: Křestní jméno
+last_name: Příjmení
+identifier: Identifikátor
+avatar: Avatar
+application: Aplikace
+default_provider: Výchozí
+method: Metoda
+published: Zveřejněno
+draft: Návrh
+archived: Archivováno
+marketplace: Tržiště
+extensions: Rozšíření
+skip_link_nav: Přeskočit na navigaci
+skip_link_module_nav: Přeskočit na navigaci modulu
+skip_link_main: Přeskočit na hlavní obsah
+skip_link_sidebar: Přeskočit na postranní panel
+modules: Moduly
+module_bar: Panel modulů
+logs: Logy
+unknown: Neznámý
+reset_width: Obnovit šířku
+tile_size: Velikost dlaždice
+edit_field: Upravit pole
+conditions: Podmínky
+location: Poloha
+collection_names_are_case_sensitive: Názvy kolekcí jsou citlivé na malá a velká písmena
+condition_rules: Pravidla
+input: Vstup
+invalid_input: Neplatný vstup
+not_a_number: Není číslo
+maps: Mapy
+switch_user: Přepnout uživatele
+item_creation: Vytvoření položky
+item_revision: Revize položky
+enter_a_name: Zadejte název...
+duplicate_field: Duplikovat pole
+half_width: Poloviční šířka
+full_width: Plná šířka
+group: Skupina
+popular: Populární
+recent: Nedávné
+export_items: Exportovat položky
+and: A
+or: Nebo
+init: Init
+dataset_too_large_currently_showing_n_items: Datový soubor je příliš velký. V současné době se zobrazuje prvních {n} položek.
+modifier: Modifikátor
+extension_interface: Rozhraní
+extension_display: Zobrazení
+extension_layout: Rozvržení
+extension_module: Modul
+extension_panel: Panel
+extension_theme: Motiv
+extension_hook: Hook
+extension_endpoint: Koncový bod
+extension_operation: Operace
+extension_bundle: Balíček
+extension_interfaces: Rozhraní
+extension_displays: Zobrazení
+extension_layouts: Rozvržení
+extension_modules: Moduly
+extension_panels: Panely
+extension_themes: Motivy
+extension_hooks: Zavěšení
+extension_endpoints: Koncové body
+extension_operations: Operace
+extension_bundles: Balíčky
+extension_missing: Chybějící
+extension_reload_required: Vyžadováno obnovení stránky
+extension_reload_required_copy: Pro zobrazení změn po aktivaci nebo deaktivaci rozšíření je vyžadováno obnovení stránky aplikace.
+extension_reload_now: Znovu načíst
+published_relative: Publikováno {relativeTime}
+compatible_with_your_project: Kompatibilní s vaším projektem
+compatible_with_your_project_copy: Autor uvedl, že kompatibilita rozšíření {hostVersion} neodpovídá verzi vašeho projektu ({currentVersion})
+last_updated_relative: Naposledy aktualizováno {relativeTime}
+n_files: '{n} Souborů'
+verified: Ověřeno
+homepage: Domovská stránka
+repository: Repozitář
+reload_page: Obnovit stránku
+reload_required: Vyžadováno obnovení stránky
+report_an_issue: Náhlasit chybu
+website: Webová stránka
+github: GitHub
+beta: Beta
+n_downloads: '{n} Stahování'
+downloads: Stahování
+compatibility_not_guaranteed: Kompatibilita není zaručena
+compatibility_not_guaranteed_copy: Autor uvedl, že kompatibilita rozšíření {hostVersion} neodpovídá verzi vašeho projektu ({currentVersion})
+enable: Povolit
+disable: Deaktivovat
+custom: Vlastní
+hook: Hook
+fill_width: Celá šířka
+field_name_translations: Překlady názvu polí
+enter_password_to_enable_tfa: Zadejte své heslo pro zapnutí dvoufázového ověřování
+sso_tfa_setup_notice: Budete odhlášeni z vašeho účtu a musíte se přihlásit. Všechny neuložené změny budou zahozeny.
+add_field: Přidat pole
+role_name: Jméno role
+policy_name: Název oprávnění
+branch: Větev
+leaf: List
+indeterminate: Neurčitý
+edit_collection: Upravit kolekci
+exclusive: Exkluzivní
+children: Potomci
+db_only_click_to_configure: 'Pouze databáze: Klikněte pro nastavení'
+show_active_items: Zobrazit aktivní položky
+show_archived_items: Zobrazit archivované položky
+show_all_items: Zobrazit všechny položky
+edited: Hodnota upravena
+required: Povinné
+required_for_app_access: Vyžadováno pro přístup k aplikacím
+requires_value: Vyžaduje hodnotu
+create_preset: Vytvořit šablonu
+create_panel: Vytvořit panel
+create_role: Vytvořit roli
+create_policy: Vytvořit oprávnění
+create_user: Vytvořit uživatele
+message: Zpráva
+delete_panel: Odstranit panel
+create_custom_translation: Vytvořit Vlastní Překlad
+edit_custom_translation: Upravit Vlastní Překlad
+no_custom_translations: Žádné Vlastní Překlady
+no_custom_translations_copy: Zatím neexistují žádné vlastní překlady.
+invite_users: Pozvat uživatele
+invite: Pozvat
+email_already_invited: E-mail "{email}" již byl pozván
+subject: Předmět
+inbox: Doručené
+emails: E-mail
+connection_excellent: Vynikající připojení
+connection_good: Dobré připojení
+connection_fair: Zhoršené připojení
+connection_poor: Špatné připojení
+primary: Primární
+rename_folder: Přejmenovat složku
+delete_folder: Smazat složku
+prefix: Prefix
+suffix: Přípona
+keep: Ponechat
+version: Verze
+version_key: Klíč verze
+version_name: Název verze
+main_version: Hlavní
+switch_version: Přepnout verzi
+switch_version_copy: Opravdu chcete přepnout na verzi "{version}"? Neuložené změny budou ztraceny.
+create_version: Vytvořit verzi
+rename_version: Přejmenovat verzi
+compare_version: Porovnat verzi
+save_version: Uložit verzi
+promote_version: Povýšit verzi
+delete_version: Smazat verzi
+delete_version_copy: >-
+  Opravdu chcete smazat verzi "{version}"? Tuto akci nelze vrátit zpět.
+reset_bookmark: Obnovit záložku
+update_bookmark: Aktualizovat záložku
+delete_bookmark: Smazat záložku
+delete_bookmark_copy: >-
+  Jste si jisti, že chcete odstranit záložku "{bookmark}"? Tuto akci nelze vrátit zpět.
+delete_personal_bookmark: Smazat osobní záložku
+delete_role_bookmark: Smazat záložku role
+delete_global_bookmark: Smazat globální záložku
+logoutReason:
+  SIGN_OUT: Odhlášen
+  SESSION_EXPIRED: Relace vypršela
+public_label: Veřejný
+public_description: Určuje, která API data jsou dostupná bez ověřování.
+public_role_info: >-
+  Veřejná role kontroluje, jaká data jsou skrze API dostupná neautentizovaným uživatelům nebo uživatelům bez role. Požadavky s veřejnou rolí nemohou přístupovat k aplikaci nebo administraci. Pokud je aplikaci nebo administraci přidělen přístup k oprávněním přiřazeným veřejné roli, bude tento přístup ignorován.
+admin_description: Počáteční administrativní role s neomezeným přístupem k Aplikaci/API.
+admin_policy_description: Počáteční administrativní oprávnění s neomezeným přístupem k Aplikaci/API.
+no_description: Bez popisu...
+reached_maximum_number_of_extensions: Dosáhli jste maximálního počtu rozšíření pro tento projekt ({n}). Pro více informací kontaktujte správce systému.
+not_allowed: Nepovoleno
+archive: Archivovat
+archive_confirm: Skutečně chcete tuto položku archivovat?
+archive_confirm_count: >-
+  Nevybrány žádné položky | Jste si jisti, že chcete archivovat tuto položku? | Jste si jisti, že chcete archivovat tyto {count} položky?
+reset_system_permissions_to: 'Resetovat systémová oprávnění na:'
+reset_system_permissions_copy: Tato akce přepíše libovolná vlastní oprávnění, která jste možná použili na kolekce systému. Jste si jisti?
+the_following_are_minimum_permissions: Následující minimální oprávnění jsou automaticky aplikována když je "Přístup k aplikací" povolená. Můžete povolit další povolení potřeby, ale nemůžete snížit pod touto ůrovní.
+app_access_minimum: Minimální přístup k aplikaci
+recommended_defaults: Doporučené výchozí hodnoty
+unarchive: Vyjmout z archivu
+unarchive_confirm: Skutečně chcete tuto položku obnovit z archivu?
+nested_files_folders_will_be_moved: Vnořené soubory a složky budou přesunuty o úroveň výše.
+validation_errors_notice: 'Následující pole mají neplatné hodnoty:'
+validationError:
+  eq: Hodnota musí být {valid}
+  neq: Hodnota nemůže být {invalid}
+  in: Hodnota musí být jedna z {valid}
+  nin: Hodnota nemůže být jedna z {invalid}
+  contains: Hodnota musí obsahovat {substring}
+  ncontains: Hodnota nesmí obsahovat {substring}
+  gt: Hodnota musí být větší než {valid}
+  gte: Hodnota musí být větší nebo rovna {valid}
+  lt: Hodnota musí být menší než {valid}
+  lte: Hodnota musí být menší nebo rovna {valid}
+  empty: Hodnota musí být prázdná
+  nempty: Hodnota nesmí být prázdná
+  null: Hodnota musí být null
+  nnull: Hodnota nesmí být null
+  required: Hodnota je povinná
+  unique: Hodnota musí být unikátní
+  email: Hodnota musí být platná e-mailová adresa
+  regex: Hodnota nemá správný formát
+  starts_with: Hodnota musí začínat s {substring}
+  istarts_with: Hodnota musí začínat s {substring}
+  nstarts_with: Hodnota nemůže začínat s {substring}
+  nistarts_with: Hodnota nemůže začínat s {substring}
+  ends_with: Hodnota musí končit s {substring}
+  iends_with: Hodnota musí končit s {substring}
+  nends_with: Hodnota nemůže končit s {substring}
+  niends_with: Hodnota nemůže končit s {substring}
+all_access: Veškerý přístup
+no_access: Žádný přístup
+use_custom: Použít vlastní
+nullable: Nulovatelný
+allow_null_value: Povolit NULL hodnotu
+allow_multiple: Povolit více
+allow_multiple_to_be_open: Povolit více otevřených
+enter_value_to_replace_nulls: Zadejte novou hodnotu, která nahradí všechny NULL, které jsou aktuálně v tomto poli.
+field_standard: Standardní
+field_presentation: Prezentace a aliasy
+field_file: Jeden soubor
+field_files: Více souborů
+field_m2o: M2O vazba
+field_m2a: M2A vazba
+field_o2m: O2M vazba
+field_m2m: M2M vazba
+field_translations: Překlady
+field_group: Skupina polí
+item_permissions: Oprávnění položky
+field_permissions: Oprávnění pole
+field_validation: Validace pole
+field_presets: Předvolby polí
+permissions_for_role: 'Položky, které {role} role může {action}.'
+permissions_for_policy: 'Položky, které role {policy} může {action}.'
+fields_for_role: 'Pole, které {role} role může {action}.'
+fields_for_policy: 'Pole, které role {policy} může {action}.'
+validation_for_role: 'Pole {action} praví, že role {role} musí uposlechnout.'
+validation_for_policy: 'Pole {action} říká, že se role {policy} musí podřídit.'
+presets_for_role: 'Výchozí hodnota pole pro roli {role}.'
+presets_for_policy: 'Výchozí hodnota pole pro oprávnění {policy}.'
+presets_field_warning: 'Relativní předvolby pro pole "{field}" by měly být nastaveny pomocí "podrobné" syntaxe.'
+presentation_and_aliases: Prezentace a aliasy
+revision_post_create: Zde je jak položka vypadala po jejím vytvoření.
+revision_post_update: Zde je jak položka vypadala po její aktualizaci.
+changes_made: Níže jsou uvedeny konkrétní změny provedené v této revizi.
+no_relational_data: Mějte na paměti, že údaje o vztazích zde nejsou zahrnuty.
+junction_field_location: Umístění junction polí
+top: Nejlepší
+bottom: Dole
+hide_field: Skrýt pole
+hide_field_on_detail: Skrýt pole v detailu
+show_field_on_detail: Zobrazit pole v detailu
+delete_field: Smazat pole
+fields_and_layout: Pole a rozložení
+field_create_success: 'Vytvořeno pole: "{field}"'
+field_update_success: 'Aktualizováno pole: "{field}"'
+duplicate_where_to: Kam chcete zkopírovat toto pole?
+language: Jazyk
+language_placeholder: Vyberte jazyk...
+aggregate_function: Agregační funkce
+aggregate_precision: Přesnost agregace
+group_aggregation: Agregace skupiny
+group_precision: Přesnost skupiny
+global: Globální
+admins_have_all_permissions: Administrátoři mají všechna oprávnění
+camera: Fotoaparát
+show_zero: Zobrazit nulu
+create_in_advanced_field_creation_mode: Vytvořit pole v pokročilém režimu
+continue_in_advanced_field_creation_mode: Pokračovat v pokročilém režimu tvorby polí
+validation: Validace
+sum: Součet
+sum_distinct: Součet jedinečných
+avg: Průměr
+avg_distinct: Průměr jedinečných
+count: Počet
+count_distinct: Počet jedinečných
+min: Min
+max: Max
+exposure: Expozice
+shutter: Závěrka
+iso: ISO
+focal_length: Ohnisková vzdálenost
+schema_setup_key: Název databázového sloupce tohoto pole a API klíč
+create_field: Vytvořit pole
+creating_new_field: 'Nové pole ({collection})'
+field_in_collection: '{field} ({collection})'
+reset_page_preferences: Obnovit předvolby stránky
+hidden_field: Skryté pole
+hidden_on_detail: Skryté v detailu
+key: Klíč
+alias: Alias
+bigInteger: Velké celé číslo
+boolean: Logická hodnota
+date: Datum
+date_range: Časový rozsah
+translation_key_placeholder: Zadejte něco...
+datetime: Datum a čas
+dateTime: Datum a čas
+precision: Přesnost
+decimal: Desetinná
+float: Plovoucí
+integer: Celé číslo
+json: JSON
+xml: XML
+yaml: YAML
+string: Text
+text: Text
+time: Čas
+timestamp: Časové razítko
+uuid: UUID
+hash: Hash
+geometry:
+  All: Geometrie (vše)
+  Point: Bod
+  LineString: LineString
+  Polygon: Polygon
+  MultiPoint: Více bodů
+  MultiLineString: MultiLineString
+  MultiPolygon: Multipolygon
+theme_auto: Automaticky (dle systému)
+theme_light: Světlý režim
+theme_dark: Tmavý režim
+theme_directus_default: Výchozí téma
+theme_directus_minimal: Minimal
+theme_directus_colormatch: Podle barvy projektu
+not_available_for_type: Pro tento typ není k dispozici
+create_translations: Vytvořit překlady
+auto_refresh: Automatické obnovení
+refresh_interval: Interval obnovení
+no_refresh: Neobnovovat
+refresh_interval_seconds: Obnovit okamžitě | Každou sekundu | Každých {seconds} sekund
+refresh_interval_minutes: Každou minutu | Každých {minutes} minut
+auto_generate: Auto-generování
+this_will_auto_setup_fields_relations: Toto automaticky nastaví všechna povinná pole a vztahy.
+click_here: Klikněte zde
+to_manually_setup_translations: pro ruční nastavení překladů.
+manage: Spravovat
+click_to_manage_translated_fields: >-
+  Zatím nejsou žádná přeložená pole. Klikněte zde pro jejich vytvoření. | Je zde jedno přeložené pole. Klikněte zde pro jeho správu. | K dispozici je {count} přeložených polí. Klikněte zde pro jejich správu.
+fields_group: Skupina polí
+no_collections_found: Nebyly nalezeny žádné kolekce.
+new_data_alert: 'V rámci vašeho datového modelu bude vytvořeno toto:'
+search_collection: Vyhledat v kolekci...
+search_role: Hledat roli...
+search_policy: Hledat přístupová práva...
+search_field: Prohledat pole...
+new_field: 'Nové pole'
+new_collection: 'Nová kolekce'
+add_m2o_to_collection: 'Přidat M2O do "{collection}"'
+add_o2m_to_collection: 'Přidat O2M do "{collection}"'
+add_m2m_to_collection: 'Přidat M2M do "{collection}"'
+choose_a_type: Vyberte typ...
+determined_by_relationship: Určeno vztahem
+add_note: Přidat užitečnou poznámku pro uživatele...
+add_link: Přidat odkaz
+custom_link: Vlastní odkaz
+default_value: Výchozí hodnota
+standard_field: Standardní pole
+single_file: Jeden soubor
+multiple_files: Více souborů
+m2o_relationship: Vztah N:1
+o2m_relationship: Vztah 1:N
+m2m_relationship: Vztah N:N
+m2a_relationship: Vztah N:cokoliv
+invalid_item: Neplatná položka
+require_confirmation: Požadovat potvrzení
+dialog: Dialog
+modal: Modál
+confirmation_dialog: Potvrzovací dialog
+confirmation_description: Popis potvrzení
+confirmation_input_fields: Vstupní pole potvrzení
+next: Další
+field_name: Název pole
+translations: Překlady
+no_translations: Žádné překlady
+left_to_right: Zleva doprava
+right_to_left: Zprava doleva
+note: Poznámka
+enter_a_value: Zadejte hodnotu...
+enter_a_placeholder: Zadejte placeholder...
+length: Délka
+soft_length: Měkký limit
+precision_scale: Přesnost a měřítko
+readonly: Pouze pro čtení
+unique: Unikátní
+index: Index
+updated_on: Aktualizováno
+updated_by: Aktualizoval/a
+primary_key: Primární klíč
+foreign_key: Cizí klíč
+field_key: Klíč pole
+finish_setup: Dokončit nastavení
+dismiss: Odmítnout
+toggle_raw_editor: Zapnout/vypnout editor surových hodnot
+raw_editor_placeholder: "{'{'}{'{'}$trigger.payload.example{'}'}{'}'}"
+raw_value: Surová hodnota
+copy_raw_value: Kopírovat surovou hodnotu
+copy_raw_value_success: Zkopírováno
+copy_raw_value_fail: Kopírování selhalo
+paste_raw_value: Vložit surovou hodnotu
+paste_raw_value_success: Vloženo
+paste_raw_value_fail: Vložení se nezdařilo
+view_raw_value: Zobrazit surovou hodnotu
+edit_raw_value: Upravit surovou hodnotu
+enter_raw_value: Zadejte surovou hodnotu...
+clear_value: Vymazat hodnotu
+clear_changes: Vymazat změny
+clear_items: Odebrat položky
+reset_to_default: Obnovit výchozí
+undo_changes: Vrátit změny
+notifications: Notifikace
+archive_all: Archivovat vše
+show_all_activity: Zobrazit všechnu aktivitu
+page_not_found: Stránka nenalezena
+page_not_found_body: Hledaná stránka nebyla nalezena.
+confirm_revert: Potvrdit vrácení
+confirm_revert_body: Toto vrátí položku do vybraného stavu.
+display: Zobrazení
+settings_update_success: Nastavení aktualizováno
+title: Název
+subtitle: Podnadpis
+revision_delta_created: Vytvořena
+revision_delta_created_externally: Vytvořena externě
+revision_delta_updated: 'Aktualizováno 1 pole | Aktualizováno {count} polí'
+revision_delta_deleted: Odstraněna
+revision_delta_reverted: Vrácena
+revision_delta_update_message: Toto pole bylo aktualizováno, ale jeho hodnota je skryta z bezpečnostních důvodů.
+revision_delta_other: Revize
+revision_delta_by: '{date} od {user}'
+presentation_text_values_cannot_be_reimported: 'Používá text prezentace, hodnoty nelze znovu importovat.'
+download_page_as_csv: 'Stáhnout stránku jako CSV'
+download_page_as_csv_unsupported: Toto rozložení neumožňuje stahování aktuální stránky.
+private_user: Soukromý uživatel
+creation_preview: Náhled vytvoření
+revision_preview: Náhled revize
+updates_made: Vytvořené aktualizace
+leave_comment: Napsat komentář...
+post_comment_success: Komentář zveřejněn
+post_comment_updated: Komentář aktualizován
+item_create_success: Položka vytvořena | Položky vytvořeny
+item_update_success: Položka aktualizována | Položky aktualizovány
+item_delete_success: Položka smazána | Položky odstraněny
+this_collection: Tato kategorie
+related_collection: Související kategorie
+related_collections: Související kolekce
+translations_collection: Kolekce překladů
+languages_collection: Kolekce jazyků
+translations_preview_collections: Kategorie
+translations_preview_fields: Pole
+import_data_input_placeholder: CSV nebo JSON...
+import_data_button: Zahájit import
+import_data_indeterminate: Importuji data...
+import_data_success: Data byla úspěšně importována z {filename}
+import_data_error: Struktura dat tohoto souboru neodpovídá kolekci.
+label_import: Importovat
+label_export: Exportovat
+import_export: Import / Export
+format: Formát
+last_page: Poslední stránka
+last_access: Poslední přístup
+fill_template: Vyplnit šablonou
+a_unique_table_name: Jedinečný název tabulky...
+a_unique_column_name: Jedinečný název sloupce...
+enable_custom_values: Povolit vlastní hodnoty
+submit: Potvrdit
+move_to_folder: Přesunout do složky
+move: Přesunout
+system: Systém
+add_field_related: Přidat pole do související kolekce
+interface_label: Rozhraní
+display_label: Zobrazení
+today: Dnes
+yesterday: Včera
+delete_comment: Odstranit komentář
+delete_share: Odstranit sdílení
+functions:
+  year: Rok
+  month: Měsíc
+  week: Týden
+  day: Den
+  weekday: Den v týdnu
+  hour: Hodina
+  minute: Minuta
+  second: Sekunda
+  count: Počet
+date-fns_date: PPP
+date-fns_time: 'H:mm:ss'
+date-fns_time_no_seconds: 'H:mm'
+date-fns_time_24hour: 'HH:mm:ss'
+date-fns_time_no_seconds_24hour: 'HH:mm'
+date-fns_date_short: 'd. MMM, u'
+date-fns_time_short: 'H:mm'
+date-fns_date_short_no_year: d. MMM
+minutes: Minut
+hours: Hodin
+month: Měsíc
+year: Rok
+select_all: Vybrat vše
+permissionsLevel:
+  all: Plný přístup k {action}
+  partial: Částečný přístup k {action}
+  custom: Částečný přístup k {action}
+  none: Nemá přístup k {action}
+months:
+  january: Leden
+  february: Únor
+  march: Březen
+  april: Duben
+  may: Květen
+  june: Červen
+  july: Červenec
+  august: Srpen
+  september: Září
+  october: Říjen
+  november: Listopad
+  december: Prosinec
+drag_mode: Režim přetáhnutí
+move_tool: Přesunout
+crop_tool: Ořezat
+focal_point_tool: Nástroj pro ohnisko
+cancel_crop: Zrušit oříznutí
+cancel_selection: Zrušit výběr
+original: Originál
+url: URL
+import_label: Importovat
+file_details: Detaily souboru
+dimensions: Rozměry
+size: Velikost
+created: Vytvořena
+uploaded: Nahráno
+modified: Upraveno
+owner: Vlastník
+edited_by: Upravil/a
+folder: Složka
+folders: Složky
+zoom: Přiblížení
+download: Stáhnout
+open: Otevřít
+open_in_new_window: Otevřít v novém okně
+open_folder: Otevřít složku "{folder}"
+foreground_color: Barva popředí
+background_color: Barva pozadí
+upload_from_device: Nahrát soubor ze zařízení
+choose_from_library: Vybrat soubor z knihovny
+import_from_url: Importovat soubor z URL
+replace_from_device: Nahradit soubor ze zařízení
+replace_from_library: Nahradit soubor z knihovny
+replace_from_url: Nahradit soubor z URL
+no_image_selected: Není vybrán žádný obrázek
+no_file_selected: Nebyl vybrán žádný soubor
+download_file: Stáhnout soubor
+open_file_in_tab: Otevřít soubor v nové kartě
+start_export: Zahájit export
+not_available_for_local_downloads: Není k dispozici pro lokální stahování
+exporting_all_items_in_collection: Exportuji všech {total} položek z {collection}.
+exporting_limited_items_in_collection: '{count} z {total} položek v rámci {collection} bude exportováno.'
+exporting_no_items_to_export: Žádné položky k exportu. Upravte konfiguraci a/nebo přidejte položky do kolekce.
+exporting_download_hint: Po vytvoření souboru {format} bude soubor stažen do vašeho zařízení.
+exporting_library_hint: Po vytvoření souboru {format} bude soubor uložen do knihovny.
+exporting_library_hint_forced: Tento export bude zpracován v dávkách a po dokončení bude soubor {format} uložen do knihovny souborů.
+collection_key: Klíč kolekce
+name: Jméno
+primary_key_field: Pole primárního klíče
+type: Typ
+creating_new_collection: Vytváření nové kolekce
+created_by: Vytvořil/-a
+created_on: Vytvořeno
+creating_collection_info: Pojmenujte kolekci a nastavte její unikátní pole "klíč"...
+creating_collection_system: Povolit a přejmenovat některé z těchto volitelných polí.
+auto_increment_integer: Automaticky zvýšené celé číslo
+auto_increment_big_integer: Automaticky zvýšené velké celé číslo
+generated_uuid: Generované UUID
+manual_string: Ručně zadaný řetězec
+save_and_create_new: Uložit a vytvořit nový
+save_and_stay: Uložit a zůstat
+save_and_quit: Uložit a zavřít
+save_as_copy: Uložit jako kopii
+add_existing: Přidat existující
+creating_items: Vytváření položek
+enable_create_button: Povolit tlačítko Vytvořit
+selecting_items: Výběr položek
+enable_select_button: Povolit tlačítko Vybrat
+allow_duplicates: Povolit duplicity
+comments: Komentáře
+no_comments: Zatím bez komentářů
+expand: Rozbalit
+expand_all: Rozbalit vše
+expand_none: Nerozbalit nic
+collapse: Sbalit
+collapse_all: Sbalit vše
+select_item: Vybrat položku
+no_items: Žádné položky
+search_items: Prohledat položky...
+search_extensions: Hledat rozšíření...
+disabled: Zakázáno
+information: Informace
+report_bug: Nahlásit chybu
+request_feature: Požadavek na funkci
+request_body: Tělo požadavku
+interface_not_found: 'Rozhraní "{interface}" nenalezeno.'
+operation_not_found: 'Operace "{operation}" nenalezena.'
+reset_interface: Resetovat rozhraní
+display_not_found: 'Zobrazení "{display}" nenalezeno.'
+reset_display: Obnovit zobrazení
+list-m2a: Stavitel (M2A)
+item_count: 'Bez výsledků | Jeden výsledek | Výsledků: {count}'
+filtered_item_count: 'Žádné filtrované položky | 1 filtrovaná položka | {count} položek filtrováno'
+no_items_copy: V této kolekci zatím nejsou žádné položky.
+file_count: 'Žádné soubory | Jeden soubor | {count} souborů'
+no_files_copy: Nejsou zde žádné soubory.
+user_count: 'Žádní uživatelé | Jeden uživatel | {count} uživatelů'
+no_users_copy: V této roli zatím nejsou žádní uživatelé.
+no_notifications: Žádná oznámení
+no_notifications_copy: Jste v obraze!
+activity_log: Záznam aktivit
+all_items: Všechny položky
+any: Jakýkoliv
+csv: CSV
+no_collections: Žádné kolekce
+create_collection: Vytvořit kategorii
+no_collections_copy_admin: Zatím nemáte žádné kolekce. Začněte kliknutím na tlačítko níže.
+no_collections_copy: Zatím nemáte žádné kolekce. Obraťte se na správce systému.
+relationship_not_setup: Vztah nebyl správně nakonfigurován
+no_singleton_relations: Vztahy se singletony nejsou podporovány
+display_template_not_setup: Šablona zobrazení je špatně nakonfigurována
+collection_field_not_setup: Volba pole kolekce je špatně nastavena
+select_a_collection: Vyberte kolekci
+select_a_field: Vyberte pole
+active: Aktivní
+move_to: Přesunout do...
+copy: Kopírovat
+copy_to: Kopírovat do...
+no_other_dashboards_copy: Zatím nemáte žádné další nástěnky.
+inactive: Neaktivní
+users: Uživatelé
+roles: Role
+activity: Aktivita
+activity_item: Položka činnosti
+action: Akce
+ip_address: IP adresa
+user_agent: Uživatelský agent
+origin: Původ
+decimals: Desetinná místa
+value_decimals: Desetinná hodnota
+min_value: Minimální hodnota
+max_value: Maximální hodnota
+automatic: Automatická
+field_width: Šířka pole
+add_filter: Přidat filtr
+upper_limit: Horní limit...
+lower_limit: Nižší limit...
+user_directory: Uživatelé
+documentation: Dokumentace
+sidebar: Postranní lišta
+duration: Trvání
+charset: Znaková sada
+second: sekunda
+file_moved: Soubor přesunut
+collection_created: Kolekce vytvořena
+modified_on: Upraveno
+card_size: Velikost karty
+sort_field: Pole řazení
+add_sort_field: Přidat pole řazení
+sort: Seřadit
+status: Stav
+remove: Odebrat
+toggle_manual_sorting: Přepnout ruční řazení
+bookmark_doesnt_exist: Záložka neexistuje
+bookmark_doesnt_exist_copy: Záložka, kterou se snažíte otevřít, nebyla nalezena.
+bookmark_doesnt_exist_cta: Návrat do kolekce
+select_an_item: Vyberte položku...
+edit: Upravit
+edit_item: Upravit položku
+enabled: Povoleno
+partially_enabled: Částečně povoleno
+enable_all: Povolit vše
+disable_all: Zakázat vše
+enabled_dev_tooltip: Rozšíření jsou ve vývojářském režimu vždy povolena
+disable_tfa: Zakázat 2FA
+admin_disable_tfa_text: Jsou si jisti, že chcete zakázat dvojí ověření tohoto uživatele?
+tfa_setup: Nastavit dvojího ověření
+tfa_scan_code: Naskenujte kód ve vaší ověřovací aplikaci pro dokončení nastavení 2FA
+enter_otp_to_disable_tfa: Zadejte OTP pro vypnutí 2FA
+create_account: Vytvořit účet
+account_created_successfully: Účet byl úspěšně vytvořen
+auto_fill: Automatické vyplnění
+corresponding_field: Odpovídající pole
+errors:
+  COLLECTION_NOT_FOUND: "Kolekce neexistuje"
+  CONTAINS_NULL_VALUES: Pole obsahuje null hodnoty
+  CONTENT_TOO_LARGE: Odeslaná položka/soubor je příliš velká/ý
+  FIELD_NOT_FOUND: Pole nenalezeno
+  FORBIDDEN: Zakázáno
+  GRAPHQL_VALIDATION: Validace GraphQL
+  ILLEGAL_ASSET_TRANSFORMATION: Zdroj obrázku je příliš velký pro náhled
+  INTERNAL_SERVER_ERROR: Neočekávaná chyba
+  INVALID_CONFIG: Neplatná konfigurace
+  INVALID_CREDENTIALS: Nesprávné uživatelské jméno nebo heslo
+  INVALID_FOREIGN_KEY: Neplatný cizí klíč
+  INVALID_IP: IP adresa není povolena
+  INVALID_OTP: Nesprávné jednorázové heslo
+  INVALID_PAYLOAD: Neplatný payload
+  INVALID_PROVIDER: Uživatel patří k jinému poskytovateli ověření
+  INVALID_QUERY: Neplatný dotaz
+  INVALID_TOKEN: Neplatný token
+  INVALID_USER: Ověření uživatele se nezdařilo
+  ITEM_LIMIT_REACHED: Dosažen limit položek
+  ITEM_NOT_FOUND: Položka nebyla nalezena
+  LIMIT_EXCEEDED: 'Limit byl překonán'
+  METHOD_NOT_ALLOWED: Tato metoda není povolena
+  NOT_NULL_VIOLATION: Hodnota nesmí být null
+  RANGE_NOT_SATISFIABLE: Neplatný rozsah
+  RECORD_NOT_UNIQUE: Zjištěna duplicitní hodnota
+  REQUESTS_EXCEEDED: Limit požadavků byl dosažen
+  ROUTE_NOT_FOUND: Nenalezeno
+  SERVICE_UNAVAILABLE: Služba není dostupná
+  TOKEN_EXPIRED: Platnost tokenu vypršela
+  UNEXPECTED_RESPONSE: Neočekávaná odpověď
+  UNKNOWN: Neočekávaná chyba
+  UNPROCESSABLE_CONTENT: Nezpracovatelný obsah
+  UNSUPPORTED_MEDIA_TYPE: Nepodporovaný typ média
+  USER_SUSPENDED: Uživatel pozastaven
+  VALUE_OUT_OF_RANGE: Hodnota je mimo rozsah
+  VALUE_TOO_LONG: Hodnota je příliš dlouhá
+security: Zabezpečení
+bookmark_name: Název záložky...
+create_bookmark: Vytvořit záložku
+edit_bookmark: Upravit záložku
+edit_personal_bookmark: Upravit osobní záložku
+edit_role_bookmark: Upravit záložku role
+edit_global_bookmark: Upravit globální záložku
+cannot_edit_role_bookmarks: Záložky role nelze upravit
+cannot_edit_global_bookmarks: Globální záložky nelze upravit
+bookmarks: Záložky
+presets: Předvolby
+unexpected_error: Neočekávaná chyba
+unexpected_error_copy: Došlo k neočekávané chybě, zkuste to prosím znovu.
+copy_details: Kopírovat podrobnosti
+no_app_access: Žádný přístup k aplikaci
+no_app_access_copy: Tento uživatel nemá oprávnění používat aplikaci pro správu.
+password_reset_successful: Heslo bylo úspěšně obnoveno
+back: Zpět
+filter: Filtr
+edit_image: Upravit obrázek
+editing_image: Úprava obrázku
+square: Čtverec
+free: Volný
+flip_horizontal: Překlopit vodorovně
+flip_vertical: Překlopit svisle
+aspect_ratio: Poměr stran
+rotate: Otočit
+all_users: Všichni uživatelé
+delete_collection: Odstranit kolekci
+update_collection_success: Aktualizovaná kolekce
+delete_collection_success: Smazaná kolekce
+make_collection_visible: Zviditelnit kolekci
+make_collection_hidden: Skrýt kolekci
+make_folder_visible: Zviditelnit složku
+make_folder_hidden: Skrýt složku
+goto_collection_content: Zobrazit obsah
+count_of_total_items: '{count} z {total} položek'
+start_end_of_count_items: '{start}-{end} z {count} položek'
+start_end_of_count_filtered_items: '{start}-{end} z {count} filtrovaných položek'
+delete_collection_are_you_sure: >-
+  Jste si jisti, že chcete odstranit kolekci "{collection}"? Tato akce odstraní kolekci a všechny její položky. Tato akce je trvalá.
+delete_folder_are_you_sure: Jste si jisti, že chcete odstranit složku "{folder}"? Vnořené složky a kolekce budou přesunuty na nejvyšší úroveň.
+delete_collection_peer_dependencies: Následující pole budou také odstraněna, protože se vztahují k aktuální kolekci.
+collections_shown: Zobrazené kolekce
+visible_collections: Viditelné kolekce
+hidden_collections: Skryté kolekce
+show_hidden_collections: Zobrazit skryté kolekce
+hide_hidden_collections: Skrýt skryté kolekce
+show_header: Zobrazit záhlaví
+unmanaged_collections: Nenastavené kolekce
+system_collections: Systémové kolekce
+placeholder: Placeholder
+icon_left: Ikona vlevo
+icon_right: Ikona vpravo
+count_other_revisions: '{count} dalších revizí'
+font: Písmo
+sans_serif: Bezpatkové
+serif: Patkové
+monospace: Neproporcionální
+divider: Oddělovač
+color: Barva
+circle: Kruh
+empty_item: Prázdná položka
+log_in_with: 'Přihlásit se pomocí {provider}'
+conditional_styles: Podmíněné styly
+advanced_settings: Pokročilá nastavení
+advanced_filter: Rozšířený filtr
+delete_advanced_filter: Smazat filtr
+change_advanced_filter_operator: Změnit operátor
+advanced: Rozšířené
+operators:
+  eq: Rovná se
+  neq: Není rovno
+  lt: Méně než
+  gt: Větší než
+  lte: Méně nebo rovno než
+  gte: Větší nebo rovno než
+  in: Je jeden z
+  nin: Není jeden z
+  null: Je null
+  nnull: Není null
+  contains: Obsahuje
+  ncontains: Neobsahuje
+  icontains: Obsahuje (necitlivé)
+  starts_with: Začíná na
+  nstarts_with: Nezačíná na
+  istarts_with: Začíná na (necitlivý)
+  nistarts_with: Nezačíná na (necitlivý)
+  ends_with: Končí na
+  nends_with: Nekončí na
+  iends_with: Končí na (necitlivý)
+  niends_with: Nekončí na (necitlivý)
+  between: Je mezi
+  nbetween: Není mezi
+  empty: Je prázné
+  nempty: Není prázdná
+  all: Obsahuje tyto klíče
+  has: Obsahuje některé z těchto klíčů
+  intersects: Protíná
+  nintersects: Neprotíná
+  intersects_bbox: Protíná ohraničovací pole
+  nintersects_bbox: Neprotíná ohraničovací pole
+  regex: Shoduje se s RegExp
+custom_validation_message: Vlastní validační zpráva
+loading: Nahrávám...
+extension_readme_missing: Toto rozšíření nemá soubor README.
+drop_to_upload: Přetáhněte pro nahrání
+item: Položka
+items: Položky
+upload_file: Nahrát soubor
+upload_file_indeterminate: Nahrávám soubor...
+upload_file_success: Soubor nahrán
+upload_files_indeterminate: 'Nahrávám soubory {done}/{total}'
+upload_files_success: 'Nahráno {count} souborů'
+upload_pending: Čeká na nahrání
+drag_file_here: Přetáhněte sem soubor
+click_to_browse: Klikněte pro procházení
+interface_options: Možnosti rozhraní
+display_options: Volby zobrazení
+layout_options: Možnosti rozvržení
+rows: Řádky
+columns: Sloupce
+collection_setup: Nastavení kolekce
+optional_system_fields: Volitelná pole
+value_unique: Hodnota musí být unikátní
+value_index: Pole je indexováno
+all_activity: Všechna aktivita
+create_item: Vytvořit položku
+display_template: Šablona zobrazení
+language_display_template: Šablona zobrazení jazyka
+translations_display_template: Šablona pro zobrazení překladů
+n_items_selected: 'Nebyly vybrány žádné položky | 1 položka vybrána | {n} položek vybráno'
+per_page: Na stránku
+all_files: Všechny soubory
+my_files: Mé soubory
+recent_files: Nedávné soubory
+create_folder: Vytvořit složku
+edit_folder: Upravit složku
+folder_name: Název složky...
+folder_key: Klíč složky...
+add_file: Přidat soubor
+replace_file: Nahradit soubor
+no_results: Bez výsledků
+no_results_copy: Upravte nebo vymažte vyhledávací filtry pro zobrazení výsledků.
+no_visible_fields: Prázdný formulář
+no_visible_fields_copy: Tento formulář nemá žádná viditelná pole.
+clear_filters: Vymazat filtry
+saves_automatically: Ukládá se automaticky
+role: Role
+edit_role: Upravit roli
+rule: Pravidlo
+user: Uživatel
+no_presets: Žádné předvolby
+no_presets_copy: Zatím nebyly uloženy žádné předvolby ani záložky.
+no_presets_cta: Přidat předvolbu
+presets_only: Pouze předvolby
+create: Vytořit
+on_create: Při vytvoření
+on_update: Při úpravě
+read: Číst
+update: Úpravy
+delete: Odstranit
+select_fields: Vybrat pole
+format_text: Formátovat text
+format_value: Formátovat hodnotu
+abbreviate_value: Zkrátit hodnotu
+operator: Operátor
+bold: Tučné
+toggle: Přepínač
+icon_on: Ikona zapnuto
+icon_off: Ikona vypnuto
+label: Popisek
+flows: Toky
+flow: Tok
+select_a_flow: Vybrat tok
+run_flow_on_current_collection: Spustit tok nad aktuální kolekcí
+run_flow_on_current: Spustit tok nad aktuální položkou
+run_flow_on_selected: Nejprve vyberte jednu nebo více položek | Spustit tok na 1 vybrané položce | Spustit tok na {n} vybraných položkách
+run_flow: Spustit tok
+field_name_placeholder: Zadejte název pole...
+field_key_placeholder: Zadejte klíč pole...
+trigger: Spouštěč
+trigger_options: Možnosti spouštěče
+view_trigger: Zobrazit spouštěč
+create_trigger: Vytvořit spouštěč
+trigger_setup: Nastavení spouštěče
+change_trigger: Změnit spouštěč
+flow_delete_confirm: Opravdu chcete smazat tok "{flow}"? Tuto akci nelze vrátit zpět.
+set_flow_active: Nastavit tok jako aktivní
+set_flow_inactive: Nastavit tok jako neaktivní
+edit_flow: Upravit tok
+delete_flow: Smazat tok
+no_other_flows_copy: Zatím nemáte žádné další toky.
+no_flows: Žádné toky
+no_flows_copy: Zatím nemáte žádné toky.
+create_flow: Vytvořit tok
+creating_new_flow: Vytváření nového toku
+updating_flow: Aktualizace toku
+flow_setup: Nastavení toku
+flow_name: Jméno
+flow_tracking: Sledování aktivity logů
+flow_tracking_all: Sledovat aktivity logy
+flow_tracking_activity: Pouze sledovat aktivitu
+flow_tracking_null: Nesledovat nic
+start_flow: Začít tok
+stop_flow: Zastavit tok
+create_operation: Vytvořit operaci
+edit_operation: Upravit operaci
+code: Kód
+operation_options: Možnosti operace
+operation_name: Název operace...
+operation_key: Identifikátor pro odkaz...
+operation_key_unique_error: Klíče operace musí být v toku unikátní
+operation_handle_resolve: 'Vyřešit: Klepnutím přidat nebo táhnutím přesměrovat'
+operation_handle_reject: 'Odmítnout: Klepnutím přidat nebo táhnutím přesměrovat'
+insights: Přehledy
+deployment:
+  provider:
+    settings:
+      delete_confirm: Tato akce je trvalá a nelze ji vrátit zpět. Jste si jisti, že chcete pokračovat?
+    run:
+      cancel_confirm: Tato akce je trvalá a nelze ji vrátit zpět. Jste si jisti, že chcete pokračovat?
+      log_all: Všechny úrovně logů
+  target_value:
+    preview: Náhled
+dashboard: Nástěnka
+panel: Panel
+panel_options: Možnosti panelu
+panel_header: Záhlaví panelu
+panel_name_placeholder: Pojmenovat tento panel...
+panel_note_placeholder: Volitelné podrobnosti o tomto panelu...
+panel_delete_confirm: Opravdu chcete odstranit tento panel? Tuto akci nelze vrátit zpět.
+list_panel_allow_edit: Povolit přímé úpravy
+dashboard_delete_confirm: Jste si jisti, že chcete odstranit tuto nástěnku? Tuto akci nelze vrátit zpět.
+edit_dashboard: Upravit nástěnku
+delete_dashboard: Odstranit nástěnku
+visible: Viditelné
+prefix_placeholder: Text před hodnotou...
+suffix_placeholder: Text za hodnotou...
+decimals_placeholder: Počet desetinných míst...
+no_dashboards: Žádné nástěnky
+no_dashboards_copy: Zatím nemáte žádné nástěnky.
+create_dashboard: Vytvořit nástěnku
+dashboard_name: Název nástěnky
+no_data: Žádná data
+no_data_in_flow: V rámci tohoto toku nebyla vytvořena ani zpřístupněna žádná data
+accountability: Odpovědnost
+payload: Balík dat
+details: Podrobnosti
+resume_streaming_logs: Obnovit vysílání logů
+pause_streaming_logs: Pozastavit vysílání logů
+logs_session_resumed: Relace logů obnovena...
+logs_session_paused: Relace logů pozastavena...
+logs_stream_disconnected: Vysílání logů bylo odpojeno...
+log_detail_filter_paths: 'Filtruj cesty (např. req.method, res.statusCode)'
+logs_beginning: Toto je začátek vaší relace logů...
+logs_waiting: 'Čeká se na další logy...'
+logs_unread_count: '{count} nepřečtených'
+clear_logs: Vyprázdnit logy
+search_logs: Prohledávání logů...
+all_instances: Všechny instance
+instance_count: 'Žádná instance | Jedna instance | {count} instancí'
+all_log_levels: Všechny úrovně logů
+log_level_count: 'Žádná úroveň logu | Jedna úroveň logu | {count} Úrovně logů'
+soft_wrap_lines: Měkké zalamování řádky
+full_screen: Celá obrazovka
+full_text_search: Full-Text vyhledávání
+edit_panels: Upravit panely
+center_align: Zarovnání na střed
+left_align: Zarovnání doleva
+right_align: Zarovnání doprava
+fit_to_screen: Přizpůsobit obrazovce
+image_url: Adresa URL obrázku
+alt_text: Alternativní text
+media: Média
+quality: Kvalita
+width: Šířka
+height: Výška
+transformation_preset_key: Předvolby transformace
+source: Zdroj
+url_placeholder: Zadejte adresu url...
+display_text: Zobrazený text
+display_text_placeholder: Zadejte zobrazený text...
+interface_group_text_and_numbers: Text a čísla
+interface_group_selection: Výběr
+interface_group_relational: Relační
+interface_group_presentation: Prezentace
+interface_group_groups: Skupiny
+interface_group_other: Ostatní
+tooltip: Popisek
+tooltip_placeholder: Zadejte popisek...
+unlimited: Bez omezení
+open_link_in: Otevřít odkaz v
+new_tab: Nová karta
+save_image: Uložit obrázek
+save_media: Uložit média
+wysiwyg_options:
+  aligncenter: Zarovnat na střed
+  alignjustify: Zarovnat do bloku
+  alignleft: Zarovnat vlevo
+  alignnone: Bez zarovnání
+  alignright: Zarovnat vpravo
+  forecolor: Barva popředí
+  backcolor: Barva pozadí
+  bold: Tučné
+  italic: Kurzíva
+  underline: Podtržení
+  strikethrough: Přeškrtnutí
+  subscript: Dolní index
+  superscript: Horní index
+  codeblock: Kód
+  blockquote: Citát
+  bullist: Seznam s odrážkami
+  numlist: Číslovaný seznam
+  hr: Vodorovná čára
+  link: Přidat/upravit odkaz
+  unlink: Odstranit odkaz
+  media: Přidat/upravit média
+  image: Přidat/upravit obrázek
+  copy: Kopírovat
+  cut: Vyjmout
+  paste: Vložit
+  heading: Nadpis
+  h1: Nadpis 1
+  h2: Nadpis 2
+  h3: Nadpis 3
+  h4: Nadpis 4
+  h5: Nadpis 5
+  h6: Nadpis 6
+  fontselect: Výběr písma
+  fontsizeselect: Výběr velikosti písma
+  indent: Odsadit
+  outdent: Předsadit
+  undo: Zpět
+  redo: Vpřed
+  remove: Odebrat
+  removeformat: Odebrat formátování
+  selectall: Vybrat vše
+  table: Tabulka
+  visualaid: Zobrazit neviditelné prvky
+  source_code: Upravit zdrojový kód
+  fullscreen: Celá obrazovka
+  directionality: Směr
+  lazy_loading: Líné načítání obrázků
+  lazy_loading_label: Povolit líné načítání
+dropdown: Rozbalovací nabídka
+choices: Volby
+choices_option_configured_incorrectly: Volby nastaveny nesprávně
+deselect: Zrušit výběr
+deselect_all: Zrušit celý výběr
+theme: Motiv
+select_a_theme: Vyberte motiv
+default_sync_with_project: Výchozí (Sychronozovat s projektem)
+appearance_auto: Automaticky (synchronizovat se systémem)
+appearance_light: Světlý
+appearance_dark: Tmavý
+other: Ostatní...
+adding_user: Přidávání uživatele
+unknown_user: Neznámý uživatel
+creating_in: 'Vytváření položky v {collection}'
+editing_in: 'Úprava položky v {collection}'
+viewing_in: 'Zobrazení položky v {collection}'
+creating_unit: 'Vytváření {unit}'
+editing_unit: 'Úprava {unit}'
+editing_in_batch: 'Hromadná úprava {count} položek'
+no_options_available: Žádné možnosti nejsou k dispozici
+settings_data_model: Datový model
+settings_roles: Uživatelské role
+settings_permissions: Přístupová práva
+settings_project: Nastavení
+settings_appearance: Vzhled
+settings_flows: Toky
+settings_system_logs: Systémové protokoly
+settings_presets: Záložky
+settings_translations: Překlady
+one_or_more_options_are_missing: Chybí jedna nebo více možností
+configure_field_key_to_continue: Než budete pokračovat, nastavte klíč pole
+scope: Rozsah
+actions: Akce
+select: Vybrat...
+layout: Rozvržení
+tree_view: Stromové zobrazení
+changes_are_permanent: Změny jsou trvalé
+preset_name_placeholder: Slouží jako výchozí, když je prázdný...
+preset_search_placeholder: Hledat dotaz...
+editing_preset: Úprava předvolby
+layout_preview: Náhled rozvržení
+layout_setup: Nastavení rozvržení
+data: Údaje
+theme-overrides: Úpravy motivu
+unsaved_changes: Neuložené změny
+unsaved_changes_copy: Jste si jisti, že chcete opustit tuto stránku?
+discard_changes: Ano, odejít bez uložení
+discard_all_changes: Zahodit všechny změny
+discard_changes_copy: Opravdu chcete zahodit všechny provedené změny?
+show_x_axis: Zobrazit osu X
+show_y_axis: Zobrazit osu Y
+keep_editing: Ne, vrátit se k úpravám
+activity_feed: Kanál aktivit
+add_new: Přidat nový
+create_new: Vytvořit
+all: Vše
+none: Žádné
+no_layout_collection_selected_yet: Zatím nebylo vybráno žádné rozložení/kolekce
+batch_delete_confirm: >-
+  Nebyly vybrány žádné položky | Opravdu chcete smazat tuto položku? Operace je nevratná. | Jste si jist(a) smazáním těchto {count} položek? Operace je nevratná.
+cancel: Zrušit
+no_upscale: Nerozšiřovat obrázky
+no_extensions: Žádná rozšíření
+no_extensions_copy: Dosud nebyla nainstalována žádná rozšíření.
+install_extension: Instalovat rozšíření
+uninstall_locked: Nelze odinstalovat rozšíření, která nebyla nainstalována přes tržiště
+uninstall: Odinstalovat
+installed: Nainstalováno
+reinstall: Přeinstalovat
+open_in_marketplace: Otevřít v tržišti
+source_registry: Tržiště
+source_local: Místní
+source_module: Modul pro Node
+collection: Kategorie
+collections: Kategorie
+content: Obsah
+singleton: Objekt
+singleton_label: Považovat za jeden objekt
+system_fields_locked: Systémová pole jsou uzamčena a nelze je upravovat
+directus_collection:
+  directus_access: Přílohy přístupových oprávnění
+  directus_activity: Záznamy o odpovědnosti za všechny události
+  directus_collections: Dodatečná konfigurace kolekce a metadata
+  directus_dashboards: Nástěnky v modulu přehledů
+  directus_fields: Další konfigurace polí a metadata
+  directus_files: Metadata pro všechny spravované soubory
+  directus_folders: Poskytuje virtuální adresáře souborů
+  directus_migrations: Jakou verzi databáze používáte
+  directus_notifications: Oznámení zaslaná uživatelům
+  directus_operations: Operace, které probíhají v tocích
+  directus_panels: Jednotlivé panely uvnitř nástěnek
+  directus_permissions: Přístupová práva pro každou roli
+  directus_policies: Zásady kontroly přístupu
+  directus_presets: Předvolby pro výchozí nastavení kolekce a záložky
+  directus_relations: Konfigurace vztahů a metadata
+  directus_revisions: Snímky dat pro všechny aktivity
+  directus_roles: Skupiny oprávnění pro systémové uživatele
+  directus_sessions: Informace o uživatelské relaci
+  directus_settings: Možnosti konfigurace projektu
+  directus_shares: Sleduje externě sdílené položky
+  directus_users: Systémoví uživatelé pro platformu
+  directus_translations: Vlastní překlady
+  directus_versions: Verze obsahu pro položky
+  directus_extensions: Nastavení rozšíření
+fields:
+  directus_activity:
+    item: Primární klíč položky
+    action: Akce
+    collection: Kategorie
+    timestamp: Akce podle
+    user: Akce podle
+    comment: Komentář
+    user_agent: Uživatelský agent
+    origin: Původ
+    ip: IP adresa
+    revisions: Revize
+  directus_collections:
+    collection: Kategorie
+    icon: Ikona
+    note: Poznámka
+    color: Barva
+    display_template: Šablona zobrazení
+    hidden: Skryté
+    singleton: Objekt
+    translations: Překlady pojmenování kolekcí
+    archive_app_filter: Archivovat filtr aplikace
+    archive_value: Hodnota archivace
+    unarchive_value: Hodnota odarchivace
+    sort_field: Pole řazení
+    accountability: Sledování aktivit a revizí
+    versioning: Verze
+    archive_field: Pole pro archivaci
+    item_duplication_fields: Pole pro duplikaci
+  directus_files:
+    $thumbnail: Náhled
+    title: Název
+    description: Popis
+    tags: Štítky
+    location: Poloha
+    storage: Úložiště
+    filename_disk: Název souboru (Disk)
+    filename_download: Název souboru (Stahování)
+    metadata: Metadata
+    type: Mime typ
+    filesize: Velikost souboru
+    modified_by: Upravil/-a
+    modified_on: Upraveno
+    created_on: Vytvořeno
+    created_by: Vytvořil/-a
+    embed: Vložení
+    uploaded_by: Nahráno od
+    folder: Složka
+    width: Šířka
+    uploaded_on: Nahráno
+    height: Výška
+    charset: Znaková sada
+    duration: Trvání
+    focal_point_x: Souřadnice X
+    focal_point_y: Souřadnice Y
+  directus_users:
+    first_name: Křestní jméno
+    last_name: Příjmení
+    email: E-mail
+    password: Heslo
+    avatar: Avatar
+    location: Poloha
+    title: Název
+    description: Popis
+    tags: Štítky
+    user_preferences: Nastavení uživatele
+    language: Jazyk
+    tfa_secret: Dvoufázové ověření
+    admin_options: Možnosti správce
+    status: Stav
+    status_draft: Koncept
+    status_invited: Pozván/a
+    status_unverified: Neověřeno
+    status_active: Aktivní
+    status_suspended: Pozastaveno
+    status_archived: Archivováno
+    role: Role
+    token: Token
+    provider: Poskytovatel
+    external_identifier: Externí identifikátor
+    last_page: Poslední stránka
+    last_access: Poslední přístup
+    email_notifications: E-mailová upozornění
+    appearance: Vzhled
+    theme_light: Světlý motiv
+    theme_dark: Tmavý motiv
+    theme_light_overrides: Přizpůsobení světlého motivu
+    theme_dark_overrides: Přizpůsobení tmavého motivu
+  directus_settings:
+    jpg: JPEG
+    png: PNG
+    webP: WebP
+    tiff: Tiff
+    avif: AVIF
+    reporting: Hlášení
+    mapping: Mapování
+    basemaps: Základní mapy
+    basemaps_raster: Rastr
+    basemaps_tile: Rastr TileJSON
+    basemaps_style: Styl Mapboxu
+    mapbox_key: Přístupový token Mapboxu
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    attribution: Atribuce
+    attribution_placeholder: '© přispěvatelé OpenStreetMap'
+    transforms_note: Název metody Sharp a její argumenty. Viz https://sharp.pixelplumbing.com/api-constructor pro více informací.
+    additional_transforms: Další transformace
+    project_name: Název projektu
+    project_descriptor: Popis projektu
+    project_url: URL projektu
+    project_color: Barva projektu
+    project_logo: Logo projektu
+    default_language: Výchozí jazyk
+    branding: Přizpůsobení
+    public_foreground: Veřejné popředí
+    public_background: Veřejné pozadí
+    public_note: Veřejná poznámka
+    theming: Výchozí nastavení motivů
+    default_appearance: Výchozí vzhled
+    default_theme_light: Výchozí světlá šablona
+    default_theme_dark: Výchozí tmavá šablona
+    auth_password_policy: Zásady ověřování hesla
+    auth_login_attempts: Pokusy o přihlášení
+    files_and_thumbnails: Soubory a úložiště
+    storage_default_folder: Výchozí složka
+    storage_asset_presets: Předvolby transformace
+    storage_asset_transform: Povolené transformace
+    overrides: Přepisy aplikace
+    custom_css: Vlastní CSS
+    module_bar: Panel modulů
+    transformations_all: Povolit všechny transformace
+    transformations_none: Zakázat transformace
+    transformations_presets: Omezit transformace na přednastavení níže
+    image_editor: Editor obrázků
+    custom_aspect_ratios: Vlastní poměry stran
+    theme_light_overrides: Přizpůsobení světlého motivu
+    theme_dark_overrides: Přizpůsobení tmavého motivu
+    public_registration: Registrace uživatele
+    public_registration_note: Umožňuje uživatelům registrovat se prostřednictvím [registration route](/admin/register).
+    public_registration_role: Uživatelská role
+    public_registration_role_note: Tato role je přiřazena uživatelům, kteří se zaregistrují pomocí této metody. Neovlivní již registrované uživatele.
+    public_registration_email_filter: Filtr e-mailové adresy
+    public_registration_email_filter_note: Pouze e-mailové adresy odpovídající tomuto filtru se mohou zaregistrovat.
+    public_registration_verify_email: Ověřit e-mail
+    public_registration_verify_email_note: Zašle registrovanému uživateli e-mail a požádá ho, aby klikl na ověřovací odkaz, než se bude moci přihlásit.
+    ai_header_name: Hlavička
+  directus_shares:
+    name: Jméno
+    role: Role
+    password: Heslo
+    date_start: Datum zahájení
+    date_end: Datum ukončení
+    max_uses: Maximální počet použití
+    times_used: Počet použití
+  directus_fields:
+    collection: Název kolekce
+    icon: Ikona kolekce
+    note: Poznámka
+    hidden: Skryté
+    singleton: Objekt
+    translation: Překlady názvu polí
+    display_template: Šablona
+  directus_roles:
+    name: Jméno role
+    icon: Ikona role
+    description: Popis
+    users: Uživatelé v roli
+    parent: Nadřazená role
+    children: Podřízená role
+  directus_policies:
+    name: Název oprávnění
+    description: Popis
+    app_access: Přístup aplikace
+    admin_access: Přístup správce
+    ip_access: Přístup z IP adresy
+    enforce_tfa: Vyžadovat 2FA
+field_options:
+  directus_settings:
+    project_name_placeholder: Můj projekt...
+    project_color_note: Pozadí přihlášení a loga
+    project_logo_note: Bílé 40×40 SVG/PNG
+    project_favicon_note: 32×32 ICO
+    public_note_placeholder: Krátká, veřejná zpráva, která podporuje formátování markdown...
+    security_divider_title: Zabezpečení
+    auth_password_policy:
+      none_text: Žádná – Není doporučeno
+      weak_text: Slabé – minimálně 8 znaků
+      strong_text: Silné - velká / malá písmena / čísla / speciální
+    storage_asset_presets:
+      fit_label: Přizpůsobit
+      upscaling: Změna měřítka
+      fit:
+        contain_text: Obsáhnout (zachovat poměr stran)
+        cover_text: Překrýt (vnutí přesný rozměr)
+        fit_text: Přizpůsobit dovnitř
+        outside_text: Přizpůsobit vně
+    additional_transforms: Další transformace
+    transforms_note: Název metody Sharp a její argumenty. Viz https://sharp.pixelplumbing.com/api-constructor pro více informací.
+    mapbox_key: Přístupový token Mapboxu
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    basemaps: Základní mapy
+    basemaps_name_placeholder: Zadejte název základní mapy...
+    basemaps_raster: Rastr
+    basemaps_tile: Rastr TileJSON
+    basemaps_style: Styl Mapboxu
+    files_divider_title: Soubory a náhledy
+    overrides_divider_title: Přepisy aplikace
+  directus_activity:
+    login: Přihlášení
+    create: Vytořit
+    update: Úpravy
+    delete: Smazat
+  directus_collections:
+    track_activity_revisions: Sledovat aktivitu a revize
+    only_track_activity: Pouze sledovat aktivitu
+    do_not_track_anything: Nesledovat nic
+    collection_setup: Nastavení kolekce
+    note_placeholder: Popis této kolekce...
+    hidden_label: Skrýt v aplikaci
+    singleton: Považovat za jeden objekt
+    language: Jazyk
+    translation: Překlad
+    translation_placeholder: Zadejte překlad...
+    collection_name: Název kolekce
+    singular_unit: Jednotné číslo
+    plural_unit: Množné číslo
+    archive_divider: Archivovat
+    archive_field_placeholder: Vyberte pole...
+    archive_app_filter: Povolit filtr archivace
+    archive_value: Hodnota nastavena při archivaci...
+    unarchive_value: Hodnota nastavena při odarchivování...
+    sort_divider: Seřadit
+    sort_field: Vyberte pole...
+    accountability_divider: Odpovědnost
+    duplication_divider: Duplikace
+    preview_divider: Náhled
+    content_versioning_divider: Verze obsahu
+    enable_versioning: Povolit verzování
+  directus_files:
+    title: Jedinečný název...
+    description: Volitelný popis...
+    location: Volitelné umístění...
+    storage_divider: Pojmenování souborů
+    focal_point_divider: Ohnisko
+    filename_disk: Název na diskovém úložišti...
+    filename_download: Název při stahování...
+  directus_policies:
+    name: Jedinečný název tohoto oprávnění...
+    description: Popis tohoto oprávnění...
+    ip_access: Přidat povolené IP adresy, rozsah IP a CIDR bloky. Ponechte prázdné, pokud chcete povolit vše...
+    enforce_tfa: Vynutit dvoufázové ověření
+    assigned_to: Přiřazeno
+  directus_roles:
+    name: Jedinečný název této role...
+    description: Popis této role...
+    fields:
+      icon_name: Ikona
+      name_name: Jméno
+      name_placeholder: Zadejte název...
+      link_name: Odkaz
+      link_placeholder: Relativní nebo absolutní URL...
+    parent_note: Volitelná nadřazená role, od které tato role dědí oprávnění
+    children_note: Vnořené role, které dědí oprávnění této role
+    collections_name: Kategorie
+    collections_addLabel: Přidat kolekci...
+  directus_users:
+    preferences_divider: Nastavení uživatele
+    dropdown_auto: Automaticky (použít dle systému)
+    dropdown_light: Světlý režim
+    dropdown_dark: Tmavý režim
+    admin_divider: Možnosti správce
+    status_dropdown_draft: Koncept
+    status_dropdown_invited: Pozván/a
+    status_dropdown_active: Aktivní
+    status_dropdown_suspended: Pozastaveno
+    status_dropdown_archived: Archivováno
+    token: Zadejte bezpečný přístupový token...
+no_fields_in_collection: 'V "{collection}" zatím nejsou žádná pole'
+no_value: Žádná hodnota
+do_nothing: Nedělat nic
+generate_and_save_uuid: Vygenerovat a uložit UUID
+save_current_user_id: Uložit aktuální ID uživatele
+save_current_user_role: Uložit aktuální uživatelskou roli
+save_current_datetime: Uložit aktuální datum/čas
+always_open: Vždy otevřít
+start_open: Začít otevřený
+start_collapsed: Začít sbalený
+block: Blok
+inline: Řádek
+comment: Komentář
+live_preview:
+  enable: Povolit náhled
+  disable: Zakázat náhled
+  change_size: Změnit rozměry zobrazení
+  refresh: Obnovit náhled
+  new_window: Otevřít v novém okně
+  close_window: Otevřít ve rozděleném zobrazení
+  toggle_3d: Přepnout 3D
+  display_options: Volby zobrazení
+shares: Sdílení
+unlimited_usage: Neomezené použití
+uses_left: Nezbývá žádné použití | Zbývá 1 použití | Zbývá {n} použití
+no_shares: Nic sdíleného k zobrazení
+new_share: Nové sdílení
+ai:
+  input: Vstup
+  unknown: Neznámý
+  items: Položky
+  content: Obsah
+  settings: Nastavení
+  tool_approval:
+    disabled: Zakázáno
+  ask_user_submit: Potvrdit
+  ask_user_next: Další
+ai_tools:
+  items: Položky
+  files: Soubory
+  folders: Složky
+  flows: Toky
+  trigger-flow: Spouštěč toku
+  operations: Operace
+  schema: Schéma
+  collections: Kategorie
+  fields: Pole
+mcp_prompts_collection_schema:
+  messages_role_user: Uživatel
+expired: Vypršela platnost
+upcoming: Nadcházející
+share: Sdílet
+share_item: Sdílet položku
+shared_with_you: Byla s Vámi sdílena položka
+shared_enter_passcode: Pro pokračování zadejte své heslo...
+shared_leave_blank_for_passwordless_access: Pro přístup bez hesla ponechte prázdné
+shared_leave_blank_for_unlimited: Ponechte prázdné pro neomezené
+shared_times_remaining: Tento odkaz může být použit pouze {n} krát
+shared_last_remaining: Tento odkaz může být použit pouze jednou
+shared_uses_left: Pro zvýšení bezpečnosti byla tato sdílená stránka nakonfigurována s omezeným počtem zobrazení. V současné době zbývá {n} zobrazení, poté stránka již nebude přístupná.
+share_access_page: Přístup ke sdílené stránce
+share_access_not_found: Tato sdílená stránka buď neexistuje, nebo již překročila maximální počet povolených použití.
+share_access_not_found_desc: Chcete-li požádat o přístup, kontaktujte autorizovaného uživatele tohoto projektu.
+share_access_not_found_title: Neznámá stránka sdílení
+share_copy_link: Kopírovat odkaz
+share_copy_link_success: Odkaz zkopírován
+share_copy_link_error: Nelze zkopírovat odkaz
+share_send_link: Poslat odkaz
+relational_triggers: Vztahové spouštěče
+referential_action_field_label_m2o: Při smazání {collection}...
+referential_action_field_label_o2m: Při zrušení výběru {collection}...
+referential_action_no_action: Zabránit odstranění
+referential_action_cascade: Odstranit položku {collection} (kaskáda)
+referential_action_set_null: Vymazat pole {field}
+referential_action_set_default: Nastavit {field} na výchozí hodnotu
+choose_action: Zvolte akci
+continue_label: Pokračovat
+continue_as: >-
+  {name} je aktuálně ověřen. Pokud tento účet poznáváte, stiskněte pokračovat.
+editing_role: '{role} role'
+editing_policy: 'Přístupová práva k {policy}'
+no_permissions: Bez oprávnění
+permission_add_collection: Přidat kolekci
+default_label: Výchozí
+delete_label: Odstranit
+delete_are_you_sure: >-
+  Tato akce je trvalá a nelze ji vrátit zpět. Jste si jisti, že chcete pokračovat?
+delete_field_are_you_sure: >-
+  Opravdu chcete smazat pole "{field}"? Tuto akci nelze vrátit zpět.
+description: Popis
+done: Hotovo
+duplicate: Duplikovat
+limit: Limit
+email: E-mail
+embed: Vložení
+fallback_icon: Záložní ikona
+field: Pole | Pole
+file: Soubor
+file_library: Složka souborů
+forgot_password: Zapomenuté heslo
+hidden: Skryté
+hidden_in_group: Skrytý v {group}
+icon: Ikona
+info: Informace
+normal: Normální
+success: Úspěch
+warning: Varování
+danger: Nebezpečí
+colors:
+  purple: Fialová
+  blue: Modrá
+  green: Zelená
+  yellow: Žlutá
+  orange: Oranžová
+  red: Červená
+  black: Černá
+  gray: Šedá
+  white: Bílá
+junction_collection: Spojovací kategorie
+latency: Latence
+login: Přihlásit
+my_activity: Moje aktivita
+not_authenticated: Neověřená/-ý
+authenticated: Ověřeno
+options: Možnosti
+otp: Jednorázové heslo
+password: Heslo
+confirm_password: Potvrzení hesla
+permissions: Oprávnění
+relationship: Vztah
+reset: Resetovat
+reset_password: Obnovit heslo
+revisions: Revize
+no_revisions: Zatím žádné revize
+no_logs: Zatím žádné záznamy
+revert: Vrátit
+save: Uložit
+schema: Schéma
+search: Vyhledat
+select_existing: Vybrat z uložených
+select_field_type: Vyberte typ pole
+select_interface: Vyberte rozhraní
+select_display: Vyberte zobrazení
+settings: Nastavení
+register: Registrovat
+registration_successful_headline: Úspěch!
+registration_successful_note: Nyní můžete pokračovat na přihlašovací stránku.
+registration_successful_check_email_note: |
+  Vezměte prosím na vědomí, že před přihlášením, musíte ověřit svou e-mailovou adresu kliknutím na ověřovací odkaz, který vám byl zaslán.
+dont_have_an_account: Ještě nemáte účet?
+already_have_an_account: Už máte svůj účet?
+sign_up_now: Zaregistrujte se nyní
+sign_in: Přihlásit se
+sign_out: Odhlásit se
+sign_out_confirm: Chcete se odhlásit?
+something_went_wrong: Něco se pokazilo.
+sort_direction: Směr řazení
+export_location: Kam exportovat
+export_started: Export zahájen
+export_started_copy: Váš export byl zahájen. Až bude připraven ke stažení, budete upozorněni.
+sort_asc: Seřadit vzestupně
+sort_desc: Seřadit sestupně
+disable_sort: Zakázat třídění
+template: Šablona
+require_value_to_be_set: Požadovat hodnotu při vytvoření
+translation: Překlad
+translation_placeholder: Zadejte překlad...
+value: Hodnota
+view_project: Zobrazit projekt
+report_error: Nahlásit chybu
+table: Tabulka
+list: Seznam
+search_filter: Hledat a filtrovat
+enable_search_filter: Povolit vyhledávání a filtrování
+item_link: Odkaz na položku
+show_link_to_item: Zobrazit odkaz na položku
+navigate_to_item: Přejít na položku
+undo_removed_item: Vrátit zpět odstraněnou položku
+remove_item: Odstranit položku
+delete_item: Smazat položku
+pause: Pozastavit
+resume: Pokračovat
+interfaces:
+  list-m2a:
+    prefix_note: Ve výchozím nastavení používá jméno související kolekce.
+    sorting_disabled: Řazení je zakázáno, protože existuje více položek, než se vejde na jednu stránku.
+  filter:
+    name: Filtr
+    description: Konfigurace objektu filtru.
+    add_filter: Přidat filtr
+    add_group: A / nebo skupina
+    add_value: Přidat hodnotu
+    logic_type_and: A
+    logic_type_or: NEBO
+    all: Vše
+    any: Jakýkoliv
+    and: a
+    of_the_following: z následujících
+    no_rules: Žádná konfigurovaná pravidla
+    change_value: Kliknutím změníte hodnotu
+    placeholder: Sem přetáhněte pravidla
+    add_key_placeholder: Přidat klávesu a stiskněte Enter...
+  fields:
+    name: Pole
+  group-accordion:
+    name: Harmonika
+    description: Zobrazit pole nebo skupiny jako sekce harmoniky
+    start: Začátek
+    all_closed: Všechny uzavřené
+    first_opened: První otevřená
+    all_opened: Všechny otevřené
+    accordion_mode: Režim harmoniky
+    max_one_section_open: Max. 1 otevřená sekce
+  presentation-links:
+    presentation-links: Tlačítka
+    style: Styl
+    primary: Primární
+    link: Odkazy
+    button: Tlačítka
+    error: Akci nelze provést
+  select-multiple-checkbox:
+    checkboxes: Zaškrtávací pole
+    description: Vyberte si mezi více možnostmi prostřednictvím zaškrtávacích polí
+    allow_other: Povolit ostatní
+    show_more: 'Zobrazit dalších {count}'
+    items_shown: Zobrazené položky
+  select-multiple-checkbox-tree:
+    name: Zaškrtávací pole (Strom)
+    description: Vyberte si mezi více možnostmi pomocí vnořených zaškrtávacích polí
+    value_combining: Kombinace hodnot
+    value_combining_note: Určuje, jaká hodnota je uložena, když je proveden vnořený výběr.
+    show_all: Zobrazit vše
+    show_selected: Zobrazit vybrané
+  input-code:
+    code: Kód
+    description: Napsat nebo sdílet textové bloky kódu
+    line_number: Číslo řádku
+    line_wrapping: Zalamování řádků
+    placeholder: Sem zadejte kód...
+  system-collection:
+    collection: Kategorie
+    description: Vybrat mezi existujícími kolekcemi
+    include_system_collections: Zahrnout systémové kolekce
+  system-collections:
+    collections: Kategorie
+    description: Vybrat mezi existujícími kolekcemi
+    include_system_collections: Zahrnout systémové kolekce
+  select-color:
+    color: Barva
+    description: Zadejte nebo vyberte hodnotu barvy
+    placeholder: Vyberte barvu...
+    preset_colors: Přednastavené barvy
+    opacity: Neprůhlednost
+    preset_colors_add_label: Přidat novou barvu...
+    name_placeholder: Zadejte název barvy...
+  datetime:
+    datetime: Datum a čas
+    description: Zadejte data a časy
+    include_seconds: Zahrnout vteřiny
+    set_to_now: Nastavit na teď
+    use_24: Používat 24hodinový formát
+    placeholder: Vyberte datum a čas...
+  system-fields:
+    select_a_collection: Vyberte kolekci
+    no_fields: Žádná pole
+  system-display-template:
+    display-template: Šablona zobrazení
+    description: Směs statických hodnot textu a dynamického pole
+    collection_field: Pole kolekce
+    collection_field_not_setup: Volba pole kolekce je špatně nastavena
+    select_a_collection: Vyberte kolekci
+  presentation-divider:
+    divider: Rozdělovač
+    description: Označit a rozdělit pole na sekce
+    title_placeholder: Zadejte název, nebo ponechte prázdné pro zobrazení pouze čáry...
+    inline_title: Vložený název
+    inline_title_label: Zobrazit název uvnitř čáry
+    margin_top: Horní okraj
+    margin_top_label: Zvětšit horní okraj
+  select-dropdown:
+    description: Vyberte hodnotu z rozevíracího seznamu
+    choices_placeholder: Přidat novou volbu
+    allow_other: Povolit ostatní
+    allow_other_label: Povolit další hodnoty
+    allow_none: Povolit žádnou hodnotu
+    allow_none_label: Povolit žádný výběr
+    choices_name_placeholder: Zadejte název...
+    choices_value_placeholder: Zadejte hodnotu...
+    preview_threshold: Limit náhledu
+  select-multiple-dropdown:
+    select-multiple-dropdown: Rozbalovací nabídka (Více možností)
+    description: Vyberte více hodnot z rozevíracího seznamu
+  file:
+    file: Soubor
+    description: Vyberte nebo nahrajte soubor
+  files:
+    files: Soubory
+    description: Vyberte nebo nahrajte soubory
+  input-hash:
+    hash: Hash
+    description: Zadejte hodnotu, která má být hashována
+    masked: Maskovaná
+    masked_label: Skrýt skutečné hodnoty
+  select-icon:
+    icon: Ikona
+    description: Vyberte ikonu z rozevíracího seznamu
+    search_for_icon: Hledat ikonu...
+  file-image:
+    image: Obrázek
+    description: Vyberte nebo nahrajte obrázek
+    crop: Oříznout na přizpůsobení
+    crop_label: Oříznout obrázek podle potřeby
+  system-interface:
+    interface: Rozhraní
+    description: Vyberte existující rozhraní
+    placeholder: Vyberte rozhraní...
+  system-interface-options:
+    interface-options: Možnosti rozhraní
+    description: Modal pro výběr možností rozhraní
+  system-display:
+    display: Zobrazení
+    description: Vyberte existující zobrazení
+    placeholder: Vyberte zobrazení...
+  system-display-options:
+    display-options: Volby zobrazení
+    description: Modální okno pro výběr možností rozhraní
+  list-m2m:
+    many-to-many: M:N
+    description: Vyberte více souvisejících položek
+    columns_configure_notice: Sloupce můžete nastavit až po vytvoření tohoto pole.
+    display_template_configure_notice: Po vytvoření tohoto pole můžete nakonfigurovat šablonu zobrazení.
+  select-dropdown-m2o:
+    many-to-one: N:1
+    description: Vyberte jednu související položku
+    display_template: Šablona zobrazení
+  collection-item-dropdown:
+    collection-item-dropdown: Rozevírací seznam položek kolekce
+    description: Vyberte položku z kolekce ve formátu JSON
+  input-rich-text-md:
+    markdown: Markdown
+    description: Zadat a zobrazit náhled markdown
+    edit: Upravit
+    preview: Náhled
+    editorFont: Písmo editoru
+    previewFont: Písmo náhledu
+    default_view: Výchozí zobrazení
+    default_view_editor: Editor
+    default_view_preview: Náhled
+    customSyntax: Vlastní bloky
+    customSyntax_label: Přidat vlastní typy syntaxe
+    customSyntax_add: Přidat vlastní syntaxi
+    box: Blok / řádek
+    imageToken: Statický přístupový token
+    imageToken_label: Statický přístupový token je připojen k URL aktiv
+  map:
+    map: Mapa
+    description: Vyberte umístění na mapě
+    zoom: Přiblížení
+    geometry_type: Typ geometrie
+    geometry_format: Formát geometrie
+    default_view: Výchozí zobrazení
+    invalid_options: Neplatné možnosti
+    invalid_format: Neplatný formát ({format})
+    unexpected_geometry: Očekáván {expected}, obdržen {got}.
+    fit_bounds: Přizpůsobit zobrazení datům
+    native: Původní
+    geojson: GeoJSON
+    lnglat: Zeměpisná délka, zeměpisná šířka
+    wkt: WKT
+    wkb: WKB
+    click_to_select: Kliknutím vyberte {geometry}
+  presentation-notice:
+    notice: Upozornění
+    description: Zobrazit krátké upozornění
+    text: Zde zadejte obsah upozornění...
+    no_text: Není nastaven žádný text...
+  list-o2m:
+    one-to-many: 1:N
+    description: Vyberte více souvisejících položek
+    no_collection: Kolekce nebyla nalezena
+  system-folder:
+    folder: Kořenová složka
+    description: Vyberte složku
+    field_hint: Výchozí složka pro nahrané soubory, pokud není vybrána jiná. Neovlivní existující soubory.
+    root_name: Kořenový adresář knihovny souborů
+    system_default: Výchozí nastavení systému
+  select-radio:
+    radio-buttons: Přepínací tlačítka
+    description: Vyberte jednu z více možností
+  list:
+    repeater: Opakovač
+    description: Vytvořit více záznamů ve stejné struktuře
+    edit_fields: Upravit pole
+    add_label: 'Štítek "Vytvořit nový"'
+    sort: Seřadit
+    sort_placeholder: Manuálně
+    field_note_placeholder: Zadejte poznámku k poli...
+    incompatible_data: Aktuální data nejsou kompatibilní s rozhraním opakovače a budou přepsána při přidávání položek do opakovače
+    interface_group: Možnosti rozhraní
+    display_group: Volby zobrazení
+  slider:
+    slider: Posuvník
+    description: Vyberte číslo pomocí posuvníku
+    always_show_value: Vždy zobrazovat hodnotu
+  tags:
+    tags: Štítky
+    description: Vybrat nebo přidat štítky
+    whitespace: Mezery
+    hyphen: Nahradit pomlčkou
+    underscore: Nahradit podtržítkem
+    remove: Odstranit mezery
+    capitalization: Kapitalizace
+    uppercase: Převést velká písmena
+    lowercase: Převést malá písmena
+    auto_formatter: Použít automatický formát popisku
+    alphabetize: Abecedně
+    alphabetize_label: Vynutit abecední pořadí
+    add_tags: Přidat značku a stiskněte Enter...
+  input:
+    input: Vstup
+    description: Ruční zadat hodnotu
+    trim: Oříznout
+    trim_label: Oříznout začátek a konec
+    mask: Maskovaná
+    mask_label: Skrýt skutečnou hodnotu
+    clear: Vymazaná hodnota
+    clear_label: Uložit jako prázdný řetězec
+    minimum_value: Minimální hodnota
+    maximum_value: Maximální hodnota
+    step_interval: Interval kroků
+    slug: Slugify
+    slug_label: Udělat zadanou hodnotu bezpečnou pro URL
+  input-multiline:
+    textarea: Textové pole
+    description: Zadejte víceřádkový prostý text
+  input-translated-string:
+    input-translated-string: Překlady
+    description: Vyberte nebo přidejte překlad
+    search_placeholder: Hledat...
+    new_custom_translation: Nový vlastní překlad
+  boolean:
+    toggle: Přepínač
+    description: Přepínání mezi zapnutím a vypnutím
+    color_on: Barva zapnuto
+    color_off: Barva vypnuto
+    label_placeholder: Zadejte štítek...
+    label_default: Povoleno
+  translations:
+    display_template: Šablona zobrazení
+    no_collection: Žádná kolekce
+    toggle_split_view: Přepnout rozdělené zobrazení
+    enable: Povolit
+    default_split_view_state: Výchozí stav rozděleného zobrazení
+    user_language: Použít aktuální jazyk uživatele
+    default_language: Výchozí jazyk
+    language_field: Pole indikátoru jazyka
+    language_direction_field: Pole pro řízení jazyka
+  list-o2m-tree-view:
+    description: Zobrazení stromu pro vnořené rekurentní položky 1:N
+    recursive_only: Rozhraní stromového pohledu funguje pouze pro rekurentní vztahy.
+  user:
+    user: Uživatel
+    description: Vyberte existujícího uživatele directus
+    select_mode: Režim výběru
+    modes:
+      auto: Automatický
+      dropdown: Rozbalovací nabídka
+      modal: Modál
+  input-rich-text-html:
+    wysiwyg: WYSIWYG
+    description: Bohatý textový editor, který píše HTML obsah
+    toolbar: Nástrojová lišta
+    custom_formats: Vlastní formáty
+    custom_formats_note: Seznam formátů TinyMCE. Pro více informací navštivte dokumentaci [Formátů obsahu](https://www.tiny.cloud/docs/tinymce/latest/content-formatting/).
+    options_override: Přetížení nastavení
+    options_override_note: Seznam formátů TinyMCE. Pro více informací navštivte dokumentaci [Formátů obsahu](https://www.tiny.cloud/docs/tinymce/latest/user-formatting-options/).
+    folder_note: Složka pro nahrané soubory. Nemá vliv na existující soubory.
+    imageToken: Statický přístupový token
+    imageToken_label: Statický přístupový token je připojen k URL aktiva
+  input-block-editor:
+    input-block-editor: Editor bloků
+    description: Editor bloků bohatého meidálního obsahu s čistým JSON výstupem díky Editor.js
+    tools: Nástrojová lišta
+    tools_options:
+      header: Hlavička
+      nestedlist: Seznam
+      embed: Vložení
+      paragraph: Odstavec
+      code: Kód
+      image: Obrázek
+      attaches: Přílohy
+      table: Tabulka
+      quote: Citace
+      underline: Podtržení
+      inlinecode: Vložený kód
+      delimiter: Oddělovač
+      checklist: Seznam úkolů
+      toggle: Zapnout/vypnout blok
+      alignment: Zarovnání
+      raw: Čisté HTML
+  input-autocomplete-api:
+    input-autocomplete-api: Vstup s našeptávačem (API)
+    description: Vyhledávání typeahead pro externí hodnoty API.
+    results_path: Cesta k výsledkům
+    value_path: Cesta k hodnotě
+    text_path: Cesta textu
+    trigger: Spouštěč
+    rate: Četnost
+  group-raw:
+    name: Nezpracovaná skupina
+    description: Vykreslit pole tak jak je
+  group-detail:
+    name: Detail skupiny
+    description: Vykreslit pole jako sbalitelnou sekci
+    show_header: Zobrazit záhlaví skupiny
+    header_icon: Ikona záhlaví
+    header_color: Barva záhlaví
+    start_open: Začít otevřený
+    start_closed: Začít zavřený
+  system-token:
+    system-token: Token
+    description: Správa statického přístupového tokenu
+    placeholder: Klikněte na "Generovat token" pro vytvoření nového statického přístupového tokenu
+    value_securely_saved: Hodnota bezpečně uložena
+    generate: Generovat token
+    regenerate: Obnovit token
+    generate_success_copy: Ujistěte se, že si zálohujete a zkopírujete token uvedený výše. Z bezpečnostních důvodů nebudete moci znovu zobrazit token po uložení a opuštění této stránky.
+    remove_token: Odstranit token
+  system-raw-editor:
+    system-raw-editor: Editor surových hodnot
+    description: Povolit zadávání syrových hodnot nebo mustache šablon
+  input-password:
+    input-password: Zadejte heslo
+    description: Zadání hesla pomocí přepínače pro skrytí hodnoty
+  header:
+    header: Hlavička
+    links: Odkazy
+displays:
+  translations:
+    translations: Překlady
+    description: Náhled překladů
+    enable: Povolit
+    user_language: Použít aktuální jazyk uživatele
+    default_language: Výchozí jazyk
+    language_field: Indikátor jazyka
+  boolean:
+    boolean: Logická hodnota
+    description: Zobrazit stav zapnuto a vypnuto
+    label_on: Popisek zapnuto
+    label_on_placeholder: Zadejte popisek zapnutého stavu...
+    label_off: Popisek vypnuto
+    label_off_placeholder: Zadejte popisek vypnutého stavu...
+    icon_on: Ikona zapnuto
+    icon_off: Ikona vypnuto
+    color_on: Barva zapnuto
+    color_off: Barva vypnuto
+  collection:
+    collection: Kategorie
+    description: Zobrazit kolekci
+    icon_label: Zobrazit ikonu kolekce
+  color:
+    color: Barva
+    description: Zobrazit barevnou tečku
+    default_color: Výchozí barva
+  datetime:
+    datetime: Datum a čas
+    description: Zobrazit hodnoty související s časem
+    format: Formát
+    format_note: >-
+      Vlastní formát přijímá __[Symbol datového pole](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)__
+    long: Dlouhý
+    short: Krátký
+    relative: Relativní
+    relative_label: 'Zobrazit relativní čas, např.: před 5 minutami'
+    suffix: Přípona
+    suffix_label: Zobrazit indikátor vztahu
+    suffix_note: Používá slova jako 'v' a 'před'
+    strict: Striktní
+    strict_label: Použít striktní zápis
+    strict_note: Odstraní slova jako 'téměř', 'přes', 'méně než'
+    round: Zaokrouhlený
+    round_note: Vyberte funkci zaokrouhlování
+    down: Dolů
+    nearest: Nejbližší
+    up: Nahoru
+  file:
+    file: Soubor
+    description: Zobrazit soubory
+  filesize:
+    filesize: Velikost souboru
+    description: Zobrazit velikost souboru
+  formatted-value:
+    formatted-value: Formátovaná hodnota
+    description: Zobrazit formátovanou verzi textu
+    format: Formát
+    format_label: Automatický formát
+    font: Písmo
+    font_sans_serif: Bezpatkové
+    font_serif: Patkové
+    font_monospace: Neproporcionální
+    bold: Tučné
+    bold_label: Použít tučný styl
+    italic: Kurzíva
+    italic_label: Použít styl kurzívy
+    prefix: Prefix
+    prefix_label: Přidat před text
+    suffix: Přípona
+    suffix_label: Připojený text
+    color: Barva
+    background: Pozadí
+    icon: Ikona
+    border: Ohraničení
+    border_label: Zobrazit ohraničení
+    mask: Maskovaná
+    mask_label: Skrýt skutečnou hodnotu
+    text: Text
+    text_placeholder: Volitelné přetížení hodnoty...
+  formatted-json-value:
+    formatted-json-value: Formátovaná hodnota JSON
+    description: Zobrazit formátovanou verzi objektu
+  hash:
+    hash: Hash
+    description: Zobrazit upravenou verzi hodnoty
+  icon:
+    icon: Ikona
+    description: Zobrazit ikonu
+    filled: Vyplněné
+    filled_label: Použít vyplněnou variantu
+  image:
+    image: Obrázek
+    description: Zobrazit náhled malého obrázku
+    circle: Kruh
+    circle_label: Zobrazit jako kruh
+  labels:
+    labels: Popisky
+    description: Zobrazit buď jeden nebo seznam štítků
+    default_foreground: Výchozí popředí
+    default_background: Výchozí pozadí
+    format_label: Formátovat každý štítek
+    show_as_dot: Zobrazit jako tečku
+    choices_value_placeholder: Zadejte hodnotu...
+    choices_text_placeholder: Zadejte text...
+  mime-type:
+    mime-type: Typ MIME
+    description: Zobrazit MIME-typ souboru
+    extension_only: Pouze příponu
+    extension_only_label: Zobrazit pouze příponu souboru
+  rating:
+    rating: Hodnocení
+    description: Zobrazit číslo jako hvězdy vzhledem k maximální hodnotě
+    simple: Jednoduchý
+    simple_label: Zobrazit hvězdičky v jednoduchém formátu
+  raw:
+    raw: Nezpracovaná hodnota
+  related-values:
+    related-values: Relativní hodnoty
+    description: Zobrazit relativní hodnoty
+    display_template_configure_notice: Po vytvoření tohoto pole můžete nakonfigurovat šablonu zobrazení.
+  user:
+    user: Uživatel
+    description: Zobrazit uživatele directus
+    avatar: Avatar
+    name: Jméno
+    both: Vše
+    circle_label: Zobrazit uživatele v kruhu
+layouts:
+  cards:
+    cards: Karty
+    image_source: Zdroj obrázku
+    image_fit: Přizpůsobit obrázek
+    crop: Oříznout
+    contain: Obsáhnout
+    title: Název
+    subtitle: Podnadpis
+  tabular:
+    tabular: Tabulka
+    spacing: Odsazení
+    comfortable: Komfortní
+    compact: Kompaktní
+    cozy: Pohodlný
+  calendar:
+    calendar: Kalendář
+    start_date_field: Pole počátečního data
+    end_date_field: Pole koncového data
+    optional: Nepovinné
+    first_day: První den v týdnu
+  map:
+    map: Mapa
+    basemap: Základní mapa
+    layers: Vrstvy
+    cluster_options: Možnosti klastrování
+    cluster: Klastrovat blízká data
+    cluster_radius: Poloměr klastrování
+    cluster_minpoints: Minimální velikost klastru
+    cluster_maxzoom: Maximální přiblížení pro klastrování
+    field: Geoprostorové pole
+    invalid_geometry: Neplatná geometrie
+    find_location: Najít umístění...
+    default_template: Použití výchozího nastavení kolekce...
+    no_compatible_fields: Žádná kompatibilní pole
+  kanban:
+    name: Kanban
+    group_field: Seskupit podle
+    group_field_placeholder: Pole pro skupinu podle...
+    group_title: Název skupiny
+    group_title_placeholder: Pole pro názvy skupin...
+    title: Název karty
+    title_placeholder: Volitelné pole názvu...
+    text: Text karty
+    text_placeholder: Volitelné textové pole...
+    date: Datum karty
+    date_placeholder: Volitelné pole data...
+    tags: Štítky karty
+    tags_placeholder: Volitelné pole štítků...
+    user: Uživatel karty
+    user_placeholder: Volitelné uživatelské pole...
+    image: Obrázek karty
+    image_placeholder: Volitelné pole obrázku...
+    image_fit: Přizpůsobení obrázku karty
+    crop: Oříznout
+    advanced: Rozšířené
+    edit_group: Upravit skupinu
+    delete_group: Smazat skupinu
+    add_group: Přidat skupinu
+    add_group_placeholder: Zadejte nový název skupiny...
+    show_ungrouped: Zobrazit neseskupené
+    show: Ukázat
+    no_group: Žádná skupina
+horizontal: Horizontální
+vertical: Svisle
+axis: Osa
+x_axis: Osa X
+y_axis: Osa Y
+y_axis_function: Funkce osy Y
+show_x_only: Ukaž pouze osu X
+show_y_only: Ukaž pouze osu Y
+show_data_label: Zobrazit popisek dat
+both: Vše
+show_axis_labels: Zobrazit popisky os
+function: Funkce
+half_circle: Půlkruh
+full_circle: Plný kruh
+stroke_width: Šířka tahu
+rounded_stroke: Zaoblený tah
+thin: Úzký
+medium: Střední
+broad: Široká
+show_labels: Zobrazit popisky
+show_legend: Zobrazit legendu
+right: Vpravo
+left: Vlevo
+start: Začátek
+donut: Prstenec
+panels:
+  metric:
+    name: Metrika
+    description: Zobrazit jednu hodnotu založenou na dotazu
+    field: Pole
+  metric_list:
+    name: Metrický seznam
+    description: Vytvořit seznam a vizualizovat agregované metriky z kolekce
+  time_series:
+    name: Časová řada
+    description: Vykreslit čárový graf založený na hodnotách v průběhu času
+    date_field: Pole data
+    value_field: Pole hodnoty
+    fill_type: Typ výplně
+    curve_type: Typ křivky
+  label:
+    name: Popisek
+    description: Zobrazit text
+  list:
+    name: Seznam
+    description: Filtr a seznam polí z kolekce
+  barchart:
+    name: Pruhový graf
+    description: Pruhový nebo sloupcový graf pro porovnání skupin hodnot
+    horizontal: Horizontální
+    select_collection: Musíte vybrat kolekci.
+  linechart:
+    name: Čárový graf
+    description: Čárový graf pro porovnání změny pole
+    disabled_grouping: Zakázáno při výběru seskupení.
+    disabled_no_grouping: Zakázáno, pokud není vybrána žádná skupina.
+    show_marker: Zobrazit značku popisku
+    curve_type: Typ křivky
+    smooth: Hladká
+    straight: Rovná
+    step_line: Kroková čára
+    show_legend: Zobrazit legendu
+  meter:
+    name: Měřič
+    description: Měřič pro sledování hodnot
+  piechart:
+    name: Koláčový nebo prstencový graf
+    description: Kruhový graf zobrazující poměry skupin ve sloupci
+  variable:
+    name: Globální proměnná
+    description: Nastavit globáloní hodnotu pro použití ve filtrech jiných panelů
+    variable_key: Klíč proměnné
+  relational-variable:
+    name: Globální relační proměnná
+    description: Nastavit globální relační hodnotu pro použití ve filtrech jiných panelů
+    variable_key: Klíč proměnné
+    multiple: Vícenásobný
+    multiple-label: Vybrat více položek
+triggers:
+  common:
+    response_body: Tělo odpovědi
+    response_body_all: Všechna data
+    response_body_last: Data poslední operace
+  event:
+    name: Hook událost
+    description: Spuští události na platformě nebo mezi daty
+    action: 'Akce (neblokující)'
+    filter: 'Filtr (blokující)'
+  webhook:
+    name: Webhook
+    description: Spouští se při příchozím HTTP požadavku
+    method: Metoda
+    async: Asynchronní
+  operation:
+    name: Další tok
+    description: Spuštěno jiným tokem, pro řetězové zpracování
+    preview: Spuštěno operací v jiném toku
+  schedule:
+    name: Plán (CRON)
+    description: Spouštět v pravidelných intervalech
+    cron: Interval
+  manual:
+    name: Manuálně
+    description: Spuští se při ručním spuštění ve vybraných kolekcích
+    collection_and_item: Stránka kolekce a položek
+    collection_only: Pouze stránka kolekce
+    item_only: Pouze stránka položek
+    collection_page: Stránka kolekce
+    require_selection: Vyžaduje výběr
+a_flow_uuid: Vyberte tok pro spuštění...
+any_string_or_json: Jakýkoliv řetězec nebo JSON...
+item_payload_placeholder: Toto je JSON používaný k aktualizaci hodnot polí položky...
+operations:
+  condition:
+    name: Podmínka
+  exec:
+    name: Spustit skript
+    description: Spusťte libovolný kód pro změnu datového balíku
+    modules: 'Lze použít následující **Moduly pro Node**:'
+  item-create:
+    name: Vytvořit data
+    description: Vytvořit položky v databázi
+    payload: Balík dat
+    emit_events: Povolit události
+  item-delete:
+    name: Smazat data
+    description: Odstranit položky v databázi
+    emit_events: Povolit události
+    key: ID
+    query: Dotaz
+  item-read:
+    name: Načíst data
+    description: Načíst položky z databáze
+    key: ID
+    query: Dotaz
+    emit_events: Povolit události
+  item-update:
+    name: Aktualizovat data
+    description: Aktualizovat položky v databázi
+    emit_events: Povolit události
+    key: ID
+    payload: Balík dat
+    query: Dotaz
+  json-web-token:
+    name: JSON Web Token (JWT)
+    description: Podepsat a ověřtit JSON Web Tokeny
+    operation: Operace
+    secret: Tajný klíč
+    secret_placeholder: Zadejte tajný klíč...
+    payload: Balík dat
+    token: Token
+    token_placeholder: eyJhbGciOi......
+    options: Možnosti
+    options_placeholder: 'Pro dostupné možnosti navštivte https://www.npmjs.com/package/jsonwebtoken#usage'
+    sign: Podepsat token
+    verify: Ověřit Token
+    decode: Dekódovat token
+  log:
+    name: Protokolovat do konzole
+    description: Vypsat něco do konzole
+    message: Zpráva
+    message_placeholder: Zadejte zprávu, která se zobrazí v konzoli...
+  mail:
+    name: Odeslat e-mail
+    description: Poslat e-mail jednomu nebo více lidem
+    to: Komu
+    body: Tělo
+    template: Šablona
+    data: Údaje
+  notification:
+    name: Odeslat oznámení
+    description: Odeslat uživateli/ům notifikaci v aplikaci
+    recipient: Uživatel
+    recipient_placeholder: Zadejte UUID...
+    recipient_note: Přidat UUID uživatele a stiskněte klávesu enter...
+    item_note: Klíč položky nebo relativní URL
+    message: Zpráva
+    subject: Předmět
+  request:
+    name: Webhook / Request URL
+    description: 'Poslat žádost na adresu URL'
+    url: URL
+    url_placeholder: https://example.com/example
+    method: Metoda
+    data: Údaje
+    headers: Headers
+    header: Hlavička
+    header_placeholder: Autorizace...
+    value_placeholder: Nositel eyJhbGciOi...
+  sleep:
+    name: Uspat
+    description: Počkat zadaný počet milisekund
+    milliseconds: Milisekundy
+  transform:
+    name: Transformovat balík dat
+    description: Upravit JSON toku
+  trigger:
+    name: Spouštěč toku
+    flows: Toky
+    flow: Tok
+    data: Údaje
+    iteration_mode: Režim Iterace
+    iteration_mode_note: Režim iterace nad poli.
+    serial: Sériová
+    parallel: Paralelní
+    batch: Dávka
+    batch_size: Velikost dávky
+    cache: Mezipaměť
+unit: Jednotka
+standard: Standardní
+scientific: Vědecký
+engineering: Technický
+compact: Kompaktní
+currency: Měna
+notation: Poznámka
+style: Styl
+fonts:
+  thin: Úzký
+  extra_light: Extra tenké
+  light: Tenké
+  normal: Normální
+  medium: Střední
+  semi_bold: Polo tučné
+  bold: Tučné
+  extra_bold: Extra tučné
+  black: Černá
+  italic: Kurzíva
+  oblique: Šikmé
+  small: Malé
+  large: Velké
+  auto: Automatický
+text_wrap: Obtékání textu
+center: Střed
+justify: Blok
+text_align: Zarovnání textu
+font_weight: Síla písma
+font_style: Styl písma
+font_size: Velikost písma
+minimum_fraction_digits: Minimální počet desetinných míst
+maximum_fraction_digits: Maximální počet desetinných míst
+show_percentage: Zobrazit procenta
+aggregation: Agregace
+series_grouping: Seskupení série
+date_precision: Přesnost data
+export_dashboard: Exportovat nástěnku
+duplicate_dashboard: Duplikovat nástěnku
+search_dashboard: Prohledat nástěnku...
+search_flow: Prohledat tok...
+percent: '%'
+show_password: Zobrazit heslo
+hide_password: Skrýt heslo
+set_to_now: Nastavit na teď

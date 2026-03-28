@@ -1,0 +1,115 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import FolderListItem from './FolderListItem.vue';
+import VDivider from '@/components/v-divider.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInput from '@/components/v-input.vue';
+import VListItemContent from '@/components/v-list-item-content.vue';
+import VListItemIcon from '@/components/v-list-item-icon.vue';
+import VListItem from '@/components/v-list-item.vue';
+import VList from '@/components/v-list.vue';
+import VMenu from '@/components/v-menu.vue';
+import VSkeletonLoader from '@/components/v-skeleton-loader.vue';
+import { Folder, useFolders } from '@/composables/use-folders';
+
+const props = defineProps<{
+	value: string | null;
+	disabledFolders?: string[];
+	disabled?: boolean;
+	placeholder?: string;
+}>();
+
+const emit = defineEmits<{
+	input: [value: string | null];
+}>();
+
+const { t } = useI18n();
+
+const { nestedFolders, folders, loading } = useFolders();
+
+const folderPath = computed(() => {
+	if (!props.value || !folders.value) {
+		return t('interfaces.system-folder.root_name');
+	}
+
+	const folder = folders.value.find((folder) => folder.id === props.value);
+	return folder
+		? folderParentPath(folder as Folder, folders.value)
+				.map((folder) => folder.name)
+				.join(' / ')
+		: props.value;
+});
+
+function emitValue(id: string | null) {
+	return emit('input', id);
+}
+
+function folderParentPath(folder: Folder, folders: Folder[]) {
+	const folderMap = new Map(folders.map((folder) => [folder.id, folder]));
+
+	const folderParent = (target: Folder): Folder[] =>
+		(target.parent && folderMap.has(target.parent) ? folderParent(folderMap.get(target.parent) as Folder) : []).concat(
+			target,
+		);
+
+	return folderParent(folder);
+}
+</script>
+
+<template>
+	<VSkeletonLoader v-if="loading" />
+	<VMenu v-else class="v-select" attached :show-arrow="false" :disabled="disabled" close-on-content-click>
+		<template #activator="{ toggle, active }">
+			<VInput
+				readonly
+				:active="active"
+				:model-value="folderPath"
+				:placeholder="placeholder"
+				:disabled="disabled"
+				@click="toggle"
+			>
+				<template #prepend><VIcon :name="!value ? 'folder_special' : 'folder_open'" /></template>
+				<template #append><VIcon name="expand_more" :class="{ active }" /></template>
+			</VInput>
+		</template>
+		<VList>
+			<VListItem clickable :active="!value" @click="emitValue(null)">
+				<VListItemIcon>
+					<VIcon name="folder_special" />
+				</VListItemIcon>
+				<VListItemContent>{{ $t('interfaces.system-folder.root_name') }}</VListItemContent>
+			</VListItem>
+			<VDivider v-if="nestedFolders && nestedFolders.length > 0" />
+			<FolderListItem
+				v-for="folder in nestedFolders"
+				:key="folder.id!"
+				clickable
+				:folder="folder"
+				:current-folder="value"
+				:disabled="disabledFolders?.includes(folder.id!)"
+				:disabled-folders="disabledFolders"
+				@click="emitValue"
+			/>
+		</VList>
+	</VMenu>
+</template>
+
+<style lang="scss" scoped>
+.v-input {
+	cursor: pointer;
+
+	.v-icon {
+		transition: transform var(--medium) var(--transition-out);
+
+		&.active {
+			transform: scaleY(-1);
+			transition-timing-function: var(--transition-in);
+		}
+	}
+
+	:deep(input) {
+		cursor: pointer;
+	}
+}
+</style>

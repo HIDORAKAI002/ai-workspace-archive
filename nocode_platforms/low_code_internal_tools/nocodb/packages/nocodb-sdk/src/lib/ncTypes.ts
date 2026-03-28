@@ -1,0 +1,50 @@
+import type { Request } from 'express';
+import type { TableType, UserType } from '~/lib/Api';
+import { NcApiVersion } from './enums';
+
+export interface NcContext {
+  org_id?: string;
+  workspace_id: string;
+  base_id: string;
+  api_version?: NcApiVersion;
+  user?: UserType & {
+    base_roles?: Record<string, boolean>;
+    workspace_roles?: Record<string, boolean>;
+    provider?: string;
+  };
+  fk_model_id?: string;
+  socket_id?: string;
+  nc_site_url?: string;
+  timezone?: string;
+  suppressDependencyEvaluation?: boolean;
+  additionalContext?: Record<string, any>;
+  schema_locked?: boolean;
+  cache?: boolean;
+  cacheMap?: any;
+  permissions?: any;
+  is_api_token?: boolean;
+}
+
+export interface NcRequest extends Partial<Request> {
+  context: NcContext;
+  ncSocketId?: string;
+  ncWorkspaceId?: string;
+  ncBaseId?: string;
+  ncSourceId?: string;
+  ncParentAuditId?: string;
+  ncModel?: TableType;
+  user: UserType & {
+    base_roles?: Record<string, boolean>;
+    workspace_roles?: Record<string, boolean>;
+    provider?: string;
+    is_api_token?: boolean;
+    direct_teams?: { team_id: string; path: string }[];
+  };
+  ncSiteUrl: string;
+  dashboardUrl: string;
+  clientIp?: string;
+  query?: Record<string, any>;
+  skipAudit?: boolean;
+}
+
+export type NcRecord<T = any> = Record<string, T>;

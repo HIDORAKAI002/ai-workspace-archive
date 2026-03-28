@@ -1,0 +1,260 @@
+{
+  "nodes": [
+    {
+      "id": "bufferMemory_0",
+      "position": { "x": 100, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferMemory_0",
+        "label": "Buffer Memory",
+        "version": 1,
+        "name": "bufferMemory",
+        "type": "BufferMemory",
+        "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+        "category": "Memory",
+        "description": "Maintains a buffer of previous messages in memory",
+        "inputParams": [
+          {
+            "label": "Memory Key",
+            "name": "memoryKey",
+            "type": "string",
+            "default": "chat_history"
+          },
+          {
+            "label": "Input Key",
+            "name": "inputKey",
+            "type": "string",
+            "default": "input"
+          },
+          {
+            "label": "Output Key",
+            "name": "outputKey",
+            "type": "string",
+            "default": "text"
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "memoryKey": "chat_history",
+          "inputKey": "input",
+          "outputKey": "text"
+        },
+        "outputAnchors": [
+          {
+            "id": "bufferMemory_0-output-bufferMemory-BufferMemory|BaseChatMemory|BaseMemory",
+            "name": "bufferMemory",
+            "label": "Buffer Memory",
+            "description": "Maintains a buffer of previous messages in memory",
+            "type": "BufferMemory | BaseChatMemory | BaseMemory"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatPromptTemplate_0",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "chatPromptTemplate_0",
+        "label": "Chat Prompt Template",
+        "version": 1,
+        "name": "chatPromptTemplate",
+        "type": "ChatPromptTemplate",
+        "baseClasses": ["ChatPromptTemplate", "BaseChatPromptTemplate", "BasePromptTemplate"],
+        "category": "Prompts",
+        "description": "Schema to represent a chat prompt",
+        "inputParams": [
+          {
+            "label": "System Message",
+            "name": "systemMessagePrompt",
+            "type": "string",
+            "rows": 4,
+            "placeholder": "You are a helpful assistant."
+          },
+          {
+            "label": "Human Message",
+            "name": "humanMessagePrompt",
+            "type": "string",
+            "rows": 4,
+            "placeholder": "{input}"
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "additionalParams": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "systemMessagePrompt": "You are a helpful AI assistant that remembers our conversation history and can reference previous messages.",
+          "humanMessagePrompt": "{chat_history}\\n\\nHuman: {input}\\nAssistant:"
+        },
+        "outputAnchors": [
+          {
+            "id": "chatPromptTemplate_0-output-chatPromptTemplate-ChatPromptTemplate|BaseChatPromptTemplate|BasePromptTemplate",
+            "name": "chatPromptTemplate",
+            "label": "ChatPromptTemplate",
+            "description": "Schema to represent a chat prompt",
+            "type": "ChatPromptTemplate | BaseChatPromptTemplate | BasePromptTemplate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_1",
+      "position": { "x": 400, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_1",
+        "label": "ChatOpenAI",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-3.5-turbo",
+          "temperature": 0.7
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_1-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "conversationChain_0",
+      "position": { "x": 700, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "conversationChain_0",
+        "label": "Conversation Chain",
+        "version": 3,
+        "name": "conversationChain",
+        "type": "ConversationChain",
+        "baseClasses": ["ConversationChain", "LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Chain to have a conversation and load context from memory",
+        "inputParams": [
+          {
+            "label": "Chain Name",
+            "name": "chainName",
+            "type": "string",
+            "placeholder": "Name your chain",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "conversationChain_0-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for this chain",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "conversationChain_0-input-memory-BaseMemory",
+            "name": "memory",
+            "label": "Memory",
+            "description": "Memory to load context from",
+            "type": "BaseMemory"
+          },
+          {
+            "id": "conversationChain_0-input-prompt-BasePromptTemplate",
+            "name": "prompt",
+            "label": "Prompt",
+            "description": "Prompt template for this chain",
+            "type": "BasePromptTemplate",
+            "optional": true
+          }
+        ],
+        "inputs": {
+          "chainName": "Conversation with Memory"
+        },
+        "outputAnchors": [
+          {
+            "id": "conversationChain_0-output-conversationChain-ConversationChain|LLMChain|BaseChain",
+            "name": "conversationChain",
+            "label": "Conversation Chain",
+            "description": "Chain to have a conversation and load context from memory",
+            "type": "ConversationChain | LLMChain | BaseChain"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "bufferMemory_0",
+      "sourceHandle": "bufferMemory_0-output-bufferMemory-BufferMemory|BaseChatMemory|BaseMemory",
+      "target": "conversationChain_0",
+      "targetHandle": "conversationChain_0-input-memory-BaseMemory",
+      "type": "buttonedge",
+      "id": "bufferMemory_0-conversationChain_0"
+    },
+    {
+      "source": "chatPromptTemplate_0",
+      "sourceHandle": "chatPromptTemplate_0-output-chatPromptTemplate-ChatPromptTemplate|BaseChatPromptTemplate|BasePromptTemplate",
+      "target": "conversationChain_0",
+      "targetHandle": "conversationChain_0-input-prompt-BasePromptTemplate",
+      "type": "buttonedge",
+      "id": "chatPromptTemplate_0-conversationChain_0"
+    },
+    {
+      "source": "chatOpenAI_1",
+      "sourceHandle": "chatOpenAI_1-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "conversationChain_0",
+      "targetHandle": "conversationChain_0-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_1-conversationChain_0"
+    }
+  ],
+  "chatflow": {
+    "id": "conversation-memory",
+    "name": "Conversation with Memory",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Basic Examples",
+    "description": "A chat flow with memory to maintain conversation context"
+  }
+}

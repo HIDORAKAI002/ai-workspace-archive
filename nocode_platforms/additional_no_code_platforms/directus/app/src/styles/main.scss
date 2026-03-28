@@ -1,0 +1,23 @@
+@use 'base';
+@use 'colors';
+@use 'fonts';
+@use 'themes';
+@use 'variables';
+@use 'tooltip';
+@use 'type-styles';
+@use 'stacked-drawers';
+@use 'lib/mapbox';
+@use 'lib/codemirror';
+@use 'lib/cropperjs';
+@use 'lib/highlight';
+@use 'lib/fullcalendar';
+@use 'lib/frappe-charts';
+@use 'lib/emoji-picker';
+
+body.light {
+	@include themes.light;
+}
+
+body.dark {
+	@include themes.dark;
+}

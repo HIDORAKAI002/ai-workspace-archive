@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ToolJet/ToolJet/develop/plugins/schemas/manifest.schema.json",
+  "title": "Bigquery datasource",
+  "description": "A schema defining BigQuery datasource",
+  "type": "object",
+  "tj:version": "1.0.0",
+  "tj:source": {
+    "name": "BigQuery",
+    "kind": "bigquery",
+    "type": "database"
+  },
+  "properties": {
+    "private_key": {
+      "type": "string",
+      "title": "Private key",
+      "description": "Enter JSON private key for service account"
+    },
+    "scope": {
+      "type": "string",
+      "title": "Scope",
+      "description": ""
+    }
+  },
+  "tj:encrypted": [
+    "private_key"
+  ],
+  "required": [
+    "private_key"
+  ],
+  "tj:ui:properties": {
+    "private_key": {
+      "$ref": "#/properties/private_key",
+      "key": "private_key",
+      "label": "Private key",
+      "description": "Enter JSON private key for service account",
+      "widget": "password-v3-textarea",
+      "required": true
+    },
+    "scope": {
+      "$ref": "#/properties/scope",
+      "key": "scope",
+      "label": "Scope",
+      "description": "Enter required scopes",
+      "widget": "text-v3"
+    }
+  }
+}

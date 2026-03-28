@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": true,
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@budibase/*": [
+        "../*/src/index.ts",
+        "../*/src/index.js",
+        "../*",
+        "../../node_modules/@budibase/*"
+      ],
+      "@/*": ["./src/*"],
+      "*": ["./src/*"]
+    }
+  }
+}

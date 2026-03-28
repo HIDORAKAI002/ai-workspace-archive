@@ -1,0 +1,315 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ToolJet/ToolJet/develop/plugins/schemas/manifest.schema.json",
+  "title": "Mysql datasource",
+  "description": "A schema defining mysql datasource",
+  "type": "object",
+  "tj:version": "1.0.0",
+  "tj:source": {
+    "name": "MySQL",
+    "kind": "mysql",
+    "type": "database"
+  },
+  "properties": {
+    "connection_type": {
+      "type": "string",
+      "title": "Connection type",
+      "description": "Single select dropdown for connection type",
+      "enum": [
+        "hostname",
+        "socket_path"
+      ],
+      "default": "hostname"
+    },
+    "host": {
+      "type": "string",
+      "title": "Host",
+      "description": "Enter host",
+      "default": "localhost"
+    },
+    "port": {
+      "type": "number",
+      "title": "Port",
+      "description": "Enter port",
+      "default": 3306
+    },
+    "database": {
+      "type": "string",
+      "title": "Database name",
+      "description": "Name of the database"
+    },
+    "socket_path": {
+      "type": "string",
+      "title": "Socket path",
+      "description": "Enter the socket path"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username",
+      "description": "Enter username"
+    },
+    "password": {
+      "type": "string",
+      "title": "Password",
+      "description": "Enter password"
+    },
+    "ssl_enabled": {
+      "type": "boolean",
+      "title": "SSL",
+      "description": "Toggle for ssl_enabled",
+      "default": false
+    },
+    "ssl_certificate": {
+      "type": "string",
+      "title": "SSL certificate",
+      "description": "Single select dropdown for choosing certificates",
+      "enum": [
+        "ca_certificate",
+        "self_signed",
+        "none"
+      ],
+      "default": "none"
+    },
+    "ca_cert": {
+      "type": "string",
+      "title": "CA cert",
+      "description": "Enter ca certificate"
+    },
+    "client_key": {
+      "type": "string",
+      "title": "Client key",
+      "description": "Enter client key"
+    },
+    "client_cert": {
+      "type": "string",
+      "title": "Client cert",
+      "description": "Enter client certificate"
+    },
+    "root_cert": {
+      "type": "string",
+      "title": "Root cert",
+      "description": "Enter root certificate"
+    },
+    "allow_dynamic_connection_parameters": {
+      "type": "boolean",
+      "title": "Allow dynamic connection parameters",
+      "description": "Turning this on will allow dynamically setting host name and database from application",
+      "default": false
+    }
+  },
+  "tj:encrypted": [
+    "password",
+    "ca_cert",
+    "client_key",
+    "client_cert",
+    "root_cert"
+  ],
+  "required": [
+    "connection_type",
+    "username",
+    "password",
+    "database"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "connection_type": {
+            "const": "hostname"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "host",
+          "port"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "connection_type": {
+            "const": "socket_path"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "socket_path"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ssl_certificate": {
+            "const": "ca_certificate"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "ca_cert"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ssl_certificate": {
+            "const": "self_signed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "client_key",
+          "client_cert",
+          "root_cert"
+        ]
+      }
+    }
+  ],
+  "tj:ui:properties": {
+    "ssl_certificate": {
+      "$ref": "#/properties/ssl_certificate",
+      "key": "ssl_certificate",
+      "label": "SSL certificate",
+      "description": "Single select dropdown for choosing certificates",
+      "widget": "dropdown-component-flip",
+      "list": [
+        {
+          "value": "ca_certificate",
+          "name": "CA certificate"
+        },
+        {
+          "value": "self_signed",
+          "name": "Self-signed certificate"
+        },
+        {
+          "value": "none",
+          "name": "None"
+        }
+      ],
+      "commonFields": {
+        "connection_type": {
+          "$ref": "#/properties/connection_type",
+          "key": "connection_type",
+          "label": "Connection type",
+          "description": "Single select dropdown for connection type",
+          "widget": "dropdown-component-flip",
+          "list": [
+            {
+              "value": "hostname",
+              "name": "Hostname"
+            },
+            {
+              "value": "socket_path",
+              "name": "Socket"
+            }
+          ],
+          "commonFields": {
+            "username": {
+              "$ref": "#/properties/username",
+              "key": "username",
+              "label": "Username",
+              "description": "Enter username",
+              "widget": "text-v3",
+              "required": true
+            },
+            "password": {
+              "$ref": "#/properties/password",
+              "key": "password",
+              "label": "Password",
+              "description": "Enter password",
+              "widget": "password-v3",
+              "required": true
+            },
+            "database": {
+              "$ref": "#/properties/database",
+              "key": "database",
+              "label": "Database name",
+              "description": "Name of the database",
+              "widget": "text-v3",
+              "required": true
+            },
+            "allow_dynamic_connection_parameters": {
+              "$ref": "#/properties/allow_dynamic_connection_parameters",
+              "key": "allow_dynamic_connection_parameters",
+              "label": "Allow dynamic connection parameters",
+              "description": "Turning this on will allow dynamically setting host name and database from application",
+              "widget": "toggle"
+            }
+          }
+        },
+        "hostname": {
+          "host": {
+            "$ref": "#/properties/host",
+            "key": "host",
+            "label": "Host",
+            "description": "Enter host",
+            "widget": "text-v3",
+            "required": true
+          },
+          "port": {
+            "$ref": "#/properties/port",
+            "key": "port",
+            "label": "Port",
+            "description": "Enter port",
+            "widget": "text-v3",
+            "required": true
+          },
+          "ssl_enabled": {
+            "$ref": "#/properties/ssl_enabled",
+            "key": "ssl_enabled",
+            "label": "SSL",
+            "description": "Toggle for ssl_enabled",
+            "widget": "toggle"
+          }
+        },
+        "socket_path": {
+          "socket_path": {
+            "$ref": "#/properties/socket_path",
+            "key": "socket_path",
+            "label": "Socket path",
+            "description": "Enter the socket path",
+            "widget": "text-v3",
+            "required": true
+          }
+        }
+      }
+    },
+    "ca_certificate": {
+      "ca_cert": {
+        "$ref": "#/properties/ca_cert",
+        "key": "ca_cert",
+        "label": "CA cert",
+        "description": "Enter ca certificate",
+        "widget": "password-v3-textarea"
+      }
+    },
+    "self_signed": {
+      "client_key": {
+        "$ref": "#/properties/client_key",
+        "key": "client_key",
+        "label": "Client key",
+        "description": "Enter client key",
+        "widget": "password-v3-textarea"
+      },
+      "client_cert": {
+        "$ref": "#/properties/client_cert",
+        "key": "client_cert",
+        "label": "Client cert",
+        "description": "Enter client certificate",
+        "widget": "password-v3-textarea"
+      },
+      "root_cert": {
+        "$ref": "#/properties/root_cert",
+        "key": "root_cert",
+        "label": "Root cert",
+        "description": "Enter root certificate",
+        "widget": "password-v3-textarea"
+      }
+    }
+  }
+}

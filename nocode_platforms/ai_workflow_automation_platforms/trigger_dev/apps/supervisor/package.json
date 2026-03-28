@@ -1,0 +1,28 @@
+{
+  "name": "supervisor",
+  "private": true,
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx --require dotenv/config --watch src/index.ts || (echo '!! Remember to run: nvm use'; exit 1)",
+    "start": "node dist/index.js",
+    "test:run": "vitest --no-file-parallelism --run",
+    "test:watch": "vitest --no-file-parallelism",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ecr": "^3.839.0",
+    "@kubernetes/client-node": "^1.0.0",
+    "@trigger.dev/core": "workspace:*",
+    "dockerode": "^4.0.6",
+    "prom-client": "^15.1.0",
+    "socket.io": "4.7.4",
+    "std-env": "^3.8.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.3.33"
+  }
+}

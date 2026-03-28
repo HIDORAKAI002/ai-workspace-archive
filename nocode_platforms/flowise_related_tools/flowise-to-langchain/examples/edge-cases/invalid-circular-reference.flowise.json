@@ -1,0 +1,100 @@
+{
+  "nodes": [
+    {
+      "id": "node_a",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "node_a",
+        "label": "Node A",
+        "version": 1,
+        "name": "nodeA",
+        "type": "NodeA",
+        "baseClasses": ["NodeA", "BaseNode"],
+        "category": "Test",
+        "description": "Test node A",
+        "inputParams": [],
+        "inputAnchors": [
+          {
+            "id": "node_a-input",
+            "name": "input",
+            "label": "Input",
+            "type": "BaseNode"
+          }
+        ],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "node_a-output",
+            "name": "output",
+            "label": "Output",
+            "type": "BaseNode"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node_b",
+      "position": { "x": 300, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "node_b",
+        "label": "Node B",
+        "version": 1,
+        "name": "nodeB",
+        "type": "NodeB",
+        "baseClasses": ["NodeB", "BaseNode"],
+        "category": "Test",
+        "description": "Test node B",
+        "inputParams": [],
+        "inputAnchors": [
+          {
+            "id": "node_b-input",
+            "name": "input",
+            "label": "Input",
+            "type": "BaseNode"
+          }
+        ],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "node_b-output",
+            "name": "output",
+            "label": "Output",
+            "type": "BaseNode"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_a",
+      "sourceHandle": "node_a-output",
+      "target": "node_b",
+      "targetHandle": "node_b-input",
+      "type": "buttonedge",
+      "id": "node_a-node_b"
+    },
+    {
+      "source": "node_b",
+      "sourceHandle": "node_b-output",
+      "target": "node_a",
+      "targetHandle": "node_a-input",
+      "type": "buttonedge",
+      "id": "node_b-node_a"
+    }
+  ],
+  "chatflow": {
+    "id": "invalid-circular-reference",
+    "name": "Invalid: Circular Reference",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Edge Cases",
+    "description": "Invalid flow: circular dependencies between nodes (should detect cycle)"
+  }
+}

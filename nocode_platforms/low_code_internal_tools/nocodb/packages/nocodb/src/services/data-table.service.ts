@@ -1,0 +1,1096 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  isBtLikeV2Junction,
+  isLinksOrLTAR,
+  isMMOrMMLike,
+  ncIsNumber,
+  RelationTypes,
+  ViewTypes,
+} from 'nocodb-sdk';
+import { validatePayload } from 'src/helpers';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
+import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
+import { Column, Model, Source, View } from '~/models';
+import { nocoExecute, processConcurrently } from '~/utils';
+import { DatasService } from '~/services/datas.service';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { dataWrapper } from '~/helpers/dbHelpers';
+import { Profiler } from '~/helpers/profiler';
+
+@Injectable()
+export class DataTableService {
+  constructor(protected datasService: DatasService) {}
+  logger = new Logger(DataTableService.name);
+
+  async dataList(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      query: any;
+      viewId?: string;
+      ignorePagination?: boolean;
+      apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
+      user?: any;
+    },
+  ) {
+    const { modelId, viewId, baseId, user, ...rest } = param;
+    const { model, view } = await this.getModelAndView(context, {
+      modelId,
+      viewId,
+      baseId,
+      user,
+    });
+    return await this.datasService.dataList(context, {
+      ...rest,
+      model,
+      view,
+      apiVersion: param.apiVersion,
+      includeSortAndFilterColumns: param?.includeSortAndFilterColumns,
+    });
+  }
+
+  async dataRead(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      rowId: string;
+      viewId?: string;
+      query: any;
+      apiVersion?: NcApiVersion;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const row = await baseModel.readByPk(param.rowId, false, param.query, {
+      throwErrorIfInvalidParams: true,
+      apiVersion: param.apiVersion,
+    });
+
+    if (!row) {
+      NcError.get(context).recordNotFound(param.rowId);
+    }
+
+    return row;
+  }
+
+  async dataAggregate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    if (view && view.type !== ViewTypes.GRID) {
+      NcError.get(context).badRequest(
+        'Aggregation is only supported on grid views',
+      );
+    }
+
+    const listArgs: any = { ...param.query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    const data = await baseModel.aggregate(listArgs, view);
+
+    return data;
+  }
+
+  async dataInsert(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+      body: any;
+      cookie: any;
+      undo?: boolean;
+      apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+        skipHooks?: boolean;
+      };
+      user?: any;
+    },
+  ) {
+    validateV1V2DataPayloadLimit(context, param);
+
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    // if array then do bulk insert
+    const result = await baseModel.bulkInsert(
+      Array.isArray(param.body) ? param.body : [param.body],
+      {
+        cookie: param.cookie,
+        insertOneByOneAsFallback: true,
+        isSingleRecordInsertion: !Array.isArray(param.body),
+        typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        undo: param.undo,
+        apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        skip_hooks: param.internalFlags?.skipHooks,
+      },
+    );
+
+    return Array.isArray(param.body) ? result : result[0];
+  }
+
+  async dataMove(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      rowId: string;
+      cookie: any;
+      beforeRowId?: string;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    await baseModel.moveRecord({
+      cookie: param.cookie,
+      rowId: param.rowId,
+      beforeRowId: param.beforeRowId,
+    });
+
+    return true;
+  }
+
+  async dataUpdate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      // rowId: string;
+      body: any;
+      cookie: any;
+      apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+        skipHooks?: boolean;
+      };
+      user?: any;
+    },
+  ) {
+    validateV1V2DataPayloadLimit(context, param);
+
+    const profiler = Profiler.start(`data-table/dataUpdate`);
+    const { model, view } = await this.getModelAndView(context, param);
+    profiler.log('getModelAndView done');
+    await this.checkForDuplicateRow(context, { rows: param.body, model });
+    profiler.log('checkForDuplicateRow done');
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    await baseModel.bulkUpdate(
+      Array.isArray(param.body) ? param.body : [param.body],
+      {
+        cookie: param.cookie,
+        throwExceptionIfNotExist: true,
+        typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        isSingleRecordUpdation: !Array.isArray(param.body),
+        apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        skip_hooks: param.internalFlags?.skipHooks,
+      },
+    );
+    profiler.log('extractIdObj');
+    const result = this.extractIdObj(context, { body: param.body, model });
+    profiler.end();
+    return result;
+  }
+
+  async dataDelete(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      // rowId: string;
+      cookie: any;
+      body: any;
+      user?: any;
+    },
+  ) {
+    validateV1V2DataPayloadLimit(context, param);
+
+    const { model, view } = await this.getModelAndView(context, param);
+
+    await this.checkForDuplicateRow(context, { rows: param.body, model });
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    await baseModel.bulkDelete(
+      Array.isArray(param.body) ? param.body : [param.body],
+      {
+        cookie: param.cookie,
+        throwExceptionIfNotExist: true,
+        isSingleRecordDeletion: !Array.isArray(param.body),
+      },
+    );
+
+    return this.extractIdObj(context, { body: param.body, model });
+  }
+
+  async dataCount(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+      query: any;
+      apiVersion?: NcApiVersion;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const countArgs: any = { ...param.query };
+    try {
+      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
+    } catch (e) {}
+
+    const count: number = await baseModel.count(countArgs, false, true);
+
+    return { count };
+  }
+
+  async getModelAndView(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+      user?: any;
+    },
+  ) {
+    const model = await Model.get(context, param.modelId);
+    if (!model) {
+      NcError.get(context).tableNotFound(param.modelId);
+    }
+
+    if (param.baseId && model.base_id !== param.baseId) {
+      NcError.get(context).tableNotFound(param.modelId);
+    }
+
+    // Table visibility permission is checked in extract-ids middleware
+    // No need to check here to avoid circular dependency
+
+    let view: View;
+
+    if (param.viewId) {
+      view = await View.get(context, param.viewId);
+      if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
+        NcError.get(context).viewNotFound(param.viewId);
+      }
+    }
+
+    return { model, view };
+  }
+
+  private async extractIdObj(
+    context: NcContext,
+    {
+      model,
+      body,
+    }: {
+      body: Record<string, any> | Record<string, any>[];
+      model: Model;
+    },
+  ) {
+    const pkColumns = await model
+      .getColumns(context)
+      .then((cols) => cols.filter((col) => col.pk));
+
+    const result = (Array.isArray(body) ? body : [body]).map((row) => {
+      return pkColumns.reduce((acc, col) => {
+        acc[col.title] = row[col.title] ?? row[col.column_name] ?? row[col.id];
+        return acc;
+      }, {});
+    });
+
+    return Array.isArray(body) ? result : result[0];
+  }
+
+  private async checkForDuplicateRow(
+    context: NcContext,
+    {
+      rows,
+      model,
+    }: {
+      rows: any[] | any;
+      model: Model;
+    },
+  ) {
+    if (!rows || !Array.isArray(rows) || rows.length === 1) {
+      return;
+    }
+
+    await model.getColumns(context);
+
+    const keys = new Set();
+
+    for (const row of rows) {
+      let pk;
+      // TODO: refactor to extractPkValues of baseModelSqlV2
+
+      // if only one primary key then extract the value
+      if (model.primaryKeys.length === 1)
+        pk =
+          row[model.primaryKey.title] ??
+          row[model.primaryKey.column_name] ??
+          row[model.primaryKey.id];
+      // if composite primary key then join the values with ___
+      else
+        pk = model.primaryKeys
+          .map((pk) =>
+            (row[pk.title] ?? row[pk.column_name] ?? row[pk.id])
+              ?.toString?.()
+              ?.replaceAll('_', '\\_'),
+          )
+          .join('___');
+      // if duplicate then throw error
+      if (keys.has(pk)) {
+        NcError.get(context).unprocessableEntity(
+          'Duplicate record with id ' + pk,
+        );
+      }
+
+      if (pk === undefined || pk === null) {
+        NcError.get(context).unprocessableEntity('Primary key is required');
+      }
+      keys.add(pk);
+    }
+  }
+
+  async nestedDataList(
+    context: NcContext,
+    param: {
+      viewId: string;
+      modelId: string;
+      query: any;
+      rowId: string | string[] | number | number[];
+      columnId: string;
+      apiVersion?: NcApiVersion;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (!(await baseModel.exist(param.rowId))) {
+      NcError.get(context).recordNotFound(`${param.rowId}`);
+    }
+
+    const column = await this.getColumn(context, param);
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    const relatedModel = await colOptions.getRelatedTable(context);
+
+    const { ast, dependencyFields } = await getAst(context, {
+      model: relatedModel,
+      query: param.query,
+      extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+    });
+
+    const listArgs: any = dependencyFields;
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+    if (
+      ncIsNumber(Number(param.query.limit)) &&
+      Number(param.query.limit) > 0
+    ) {
+      listArgs.nestedLimit = param.query.limit;
+    }
+    let data: any[];
+    let count: number;
+
+    // V2 single-target relations (MO/OO) — junction table with LIMIT 1
+    if (isBtLikeV2Junction(column)) {
+      data = await baseModel.mmRead(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        listArgs as any,
+      );
+      data = await nocoExecute(ast, data, {}, listArgs);
+      return data;
+    }
+
+    // V2 multi-target (OM/MM) and V1 MM — array via junction table
+    if (isMMOrMMLike(column)) {
+      data = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        listArgs as any,
+      );
+      count = (await baseModel.mmListCount(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        param.query,
+      )) as number;
+    } else if (colOptions.type === RelationTypes.HAS_MANY) {
+      data = await baseModel.hmList(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        listArgs as any,
+      );
+      count = (await baseModel.hmListCount(
+        {
+          colId: column.id,
+          id: param.rowId,
+        },
+        param.query,
+      )) as number;
+    } else if (
+      colOptions.type !== RelationTypes.BELONGS_TO &&
+      !column.meta?.bt
+    ) {
+      data = await baseModel.ooRead(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        param.query as any,
+      );
+    } else {
+      data = await baseModel.btRead(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        param.query as any,
+      );
+    }
+
+    data = await nocoExecute(ast, data, {}, listArgs);
+
+    if (colOptions.type === RelationTypes.BELONGS_TO) return data;
+
+    return new PagedResponseImpl(data, {
+      count,
+      ...param.query,
+    });
+  }
+
+  async getColumn(
+    context: NcContext,
+    param: { modelId: string; columnId: string },
+  ) {
+    const column = await Column.get(context, { colId: param.columnId });
+
+    if (!column) NcError.get(context).fieldNotFound(param.columnId);
+
+    if (column.fk_model_id !== param.modelId)
+      NcError.get(context).badRequest('Column not belong to model');
+
+    if (!isLinksOrLTAR(column))
+      NcError.get(context).badRequest('Column is not LTAR');
+    return column;
+  }
+
+  async nestedLink(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      refRowIds:
+        | string
+        | string[]
+        | number
+        | number[]
+        | Record<string, any>
+        | Record<string, any>[];
+      rowId: string;
+      user?: any;
+    },
+  ) {
+    this.validateIds(context, param.refRowIds);
+
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.getColumn(context, param);
+
+    await baseModel.addLinks({
+      colId: column.id,
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+    return true;
+  }
+
+  async nestedUnlink(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      refRowIds: string | string[] | number | number[] | Record<string, any>;
+      rowId: string;
+      user?: any;
+    },
+  ) {
+    this.validateIds(context, param.refRowIds);
+
+    const { model, view } = await this.getModelAndView(context, param);
+    if (!model) NcError.get(context).tableNotFound(param.modelId);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.getColumn(context, param);
+
+    await baseModel.removeLinks({
+      colId: column.id,
+      childIds: Array.isArray(param.refRowIds)
+        ? param.refRowIds
+        : [param.refRowIds],
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true;
+  }
+
+  // todo: naming & optimizing
+  async nestedListCopyPasteOrDeleteAll(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      data: {
+        operation: 'copy' | 'paste' | 'deleteAll';
+        rowId: string;
+        columnId: string;
+        fk_related_model_id: string;
+      }[];
+      user?: any;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/nestedListCopyPasteOrDeleteAllReq',
+      param.data,
+    );
+
+    const operationMap = param.data.reduce(
+      (map, p) => {
+        map[p.operation] = p;
+        return map;
+      },
+      {} as Record<
+        'copy' | 'paste' | 'deleteAll',
+        {
+          operation: 'copy' | 'paste' | 'deleteAll';
+          rowId: string;
+          columnId: string;
+          fk_related_model_id: string;
+        }
+      >,
+    );
+
+    if (
+      !operationMap.deleteAll &&
+      operationMap.copy.fk_related_model_id !==
+        operationMap.paste.fk_related_model_id
+    ) {
+      NcError.get(context).badRequest(
+        'The operation is not supported on different fk_related_model_id',
+      );
+    }
+
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (
+      operationMap.deleteAll &&
+      !(await baseModel.exist(operationMap.deleteAll.rowId))
+    ) {
+      NcError.get(context).recordNotFound(operationMap.deleteAll.rowId);
+    } else if (operationMap.copy && operationMap.paste) {
+      const [existsCopyRow, existsPasteRow] = await Promise.all([
+        baseModel.exist(operationMap.copy.rowId),
+        baseModel.exist(operationMap.paste.rowId),
+      ]);
+
+      if (!existsCopyRow && !existsPasteRow) {
+        NcError.get(context).recordNotFound(
+          `'${operationMap.copy.rowId}' and '${operationMap.paste.rowId}'`,
+        );
+      } else if (!existsCopyRow) {
+        NcError.get(context).recordNotFound(operationMap.copy.rowId);
+      } else if (!existsPasteRow) {
+        NcError.get(context).recordNotFound(operationMap.paste.rowId);
+      }
+    }
+
+    const column = await this.getColumn(context, param);
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    const { refContext } = await colOptions.getParentChildContext(context);
+
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
+
+    if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
+
+    const { dependencyFields } = await getAst(refContext, {
+      model: relatedModel,
+      query: param.query,
+      extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+    });
+
+    const listArgs: any = dependencyFields;
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    if (operationMap.deleteAll) {
+      let deleteCellNestedList = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: operationMap.deleteAll.rowId,
+        },
+        listArgs as any,
+        true,
+      );
+
+      if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
+        await baseModel.removeLinks({
+          colId: column.id,
+          childIds: deleteCellNestedList.map((nestedList) =>
+            dataWrapper(nestedList).extractPksValue(relatedModel),
+          ),
+          rowId: operationMap.deleteAll.rowId,
+          cookie: param.cookie,
+        });
+
+        // extract only pk row data
+        deleteCellNestedList = deleteCellNestedList.map((nestedList) => {
+          return relatedModel.primaryKeys.reduce((acc, col) => {
+            acc[col.title || col.column_name] =
+              nestedList[col.title || col.column_name];
+            return acc;
+          }, {});
+        });
+      } else {
+        deleteCellNestedList = [];
+      }
+
+      return { link: [], unlink: deleteCellNestedList };
+    } else if (operationMap.copy && operationMap.paste) {
+      const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
+        baseModel.mmList(
+          {
+            colId: operationMap.copy.columnId,
+            parentId: operationMap.copy.rowId,
+          },
+          listArgs as any,
+          true,
+        ),
+        baseModel.mmList(
+          {
+            colId: column.id,
+            parentId: operationMap.paste.rowId,
+          },
+          listArgs as any,
+          true,
+        ),
+      ]);
+
+      const filteredRowsToLink = this.filterAndMapRows(
+        copiedCellNestedList,
+        pasteCellNestedList,
+        relatedModel,
+      );
+
+      const filteredRowsToUnlink = this.filterAndMapRows(
+        pasteCellNestedList,
+        copiedCellNestedList,
+        relatedModel,
+      );
+
+      if (filteredRowsToUnlink.length) {
+        await baseModel.removeLinks({
+          colId: column.id,
+          childIds: filteredRowsToUnlink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        });
+      }
+      if (filteredRowsToLink.length) {
+        await baseModel.addLinks({
+          colId: column.id,
+          childIds: filteredRowsToLink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        });
+      }
+
+      return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
+    }
+  }
+
+  validateIds(context: NcContext, rowIds: any[] | any) {
+    if (Array.isArray(rowIds)) {
+      const map = new Map<string, boolean>();
+      const set = new Set<string>();
+      for (const rowId of rowIds) {
+        if (rowId === undefined || rowId === null)
+          NcError.get(context).recordNotFound(rowId);
+        if (map.has(rowId)) {
+          set.add(rowId);
+        } else {
+          map.set(rowId, true);
+        }
+      }
+
+      if (set.size > 0) NcError.get(context).duplicateRecord([...set]);
+    } else if (rowIds === undefined || rowIds === null) {
+      NcError.get(context).recordNotFound(rowIds);
+    }
+  }
+
+  private filterAndMapRows(
+    sourceList: Record<string, any>[],
+    targetList: Record<string, any>[],
+    relatedModel: Model,
+  ): (string | number)[] {
+    return sourceList
+      .filter(
+        (sourceRow: Record<string, any>) =>
+          !targetList.some((targetRow: Record<string, any>) =>
+            relatedModel.primaryKeys.every(
+              (key) =>
+                sourceRow[key.title || key.column_name] ===
+                targetRow[key.title || key.column_name],
+            ),
+          ),
+      )
+      .map((item: Record<string, any>) =>
+        dataWrapper(item).extractPksValue(relatedModel, true),
+      );
+  }
+
+  async bulkDataList(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      body: any;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    let bulkFilterList = param.body;
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.get(context).badRequest('Invalid bulkFilterList');
+    }
+
+    const results = await processConcurrently(
+      bulkFilterList,
+      async (dF: any) => {
+        const data = await this.datasService.dataList(context, {
+          query: { ...dF },
+          model,
+          view,
+          includeRowColorColumns: dF.include_row_color === 'true',
+          includeButtonFilterColumns:
+            dF.include_button_filter_columns === 'true',
+        });
+        return { alias: dF.alias, data };
+      },
+      5,
+    );
+
+    return results.reduce((acc, { alias, data }) => {
+      acc[alias] = data;
+      return acc;
+    }, {});
+  }
+
+  async bulkGroupBy(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      body: any;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    let bulkFilterList = param.body;
+
+    const listArgs: any = { ...param.query };
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJSON);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.get(context).badRequest('Invalid bulkFilterList');
+    }
+
+    const [data, count] = await Promise.all([
+      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
+      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
+    ]);
+
+    bulkFilterList.forEach((dF: any) => {
+      // sqlite3 returns data as string. Hence needs to be converted to json object
+      let parsedData = data[dF.alias];
+
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+
+      let parsedCount = count[dF.alias];
+
+      if (typeof parsedCount === 'string') {
+        parsedCount = JSON.parse(parsedCount);
+      }
+
+      data[dF.alias] = new PagedResponseImpl(parsedData, {
+        ...dF,
+        count: parsedCount?.count,
+      });
+    });
+
+    return data;
+  }
+
+  async bulkAggregate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (view && view.type !== ViewTypes.GRID) {
+      NcError.badRequest('Aggregation is only supported on grid views');
+    }
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+  }
+
+  async getLinkedDataList(
+    context: NcContext,
+    params: {
+      req: NcRequest;
+      linkColumnId: string;
+    },
+  ): Promise<any> {
+    const { req, linkColumnId } = params;
+
+    const relationColumn = await Column.get(context, { colId: linkColumnId });
+
+    if (!relationColumn || !isLinksOrLTAR(relationColumn)) {
+      NcError.get(context).fieldNotFound(linkColumnId);
+    }
+
+    const { refContext } = (
+      relationColumn.colOptions as LinkToAnotherRecordColumn
+    ).getRelContext(context);
+
+    return this.dataList(refContext, {
+      query: {
+        ...req.query,
+        columnId: undefined,
+        linkColumnId,
+        linkBaseId: context.base_id,
+      },
+      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_related_model_id,
+      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_target_view_id,
+      includeSortAndFilterColumns:
+        req.query.includeSortAndFilterColumns === 'true',
+      user: req.user,
+    });
+  }
+}

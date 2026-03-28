@@ -1,0 +1,308 @@
+---
+first_name: Име
+last_name: Презиме
+identifier: Identifikator
+avatar: Аватар
+application: Апликација
+default_provider: Подразумевано
+method: Метод
+published: Објављено
+draft: Нацрт
+archived: Архивирано
+modules: Модули
+edit_field: Уреди поља
+conditions: Услови
+location: Локација
+maps: Мапе
+item_revision: Ревизија итема
+enter_a_name: Унесите име...
+duplicate_field: Дуплирај поље
+half_width: Пола ширине
+full_width: Пуна ширина
+group: Група
+or: Или
+extension_display: Pokazatelj
+extension_modules: Модули
+fill_width: Попуни ширину
+required: Захтјева се
+create_role: Креирајте улогу
+emails: Е-мејлови
+not_allowed: Није дозвољено
+archive: Архивирај
+unarchive: Деархивирај
+unarchive_confirm: Да ли сте сигурни да желите да деархивирате овај итем?
+language: Језик
+create_in_advanced_field_creation_mode: Kreirajte polje u naprednom režimu
+sum: Zbir
+sum_distinct: Različita suma
+avg: Prosečan
+avg_distinct: Prosečno izražen
+count: Zbir
+count_distinct: Različit iznos
+min: Minimalno
+max: Maksimalno
+exposure: Vidljivost
+shutter: Strelac
+iso: ISO
+focal_length: Жижна даљина
+schema_setup_key: Naziv stupca baze podataka ovog polja i API ključ
+create_field: Креирајте поље
+creating_new_field: 'Novo polje „kolekcija“'
+reset_page_preferences: Ресетуј подешавања апликације
+hidden_field: Сакривена поља
+hidden_on_detail: Sakriven u detaljima
+key: Ključ
+alias: Nadimak
+bigInteger: Veliki ceo broj
+boolean: Logički izraz
+date: Datum
+date_range: Vremenski rok
+datetime: Datum i vreme
+dateTime: Datum i vreme
+precision: Preciznost
+decimal: Decimalni
+float: Plutajući
+integer: Ceo broj
+json: JSON
+xml: XML
+yaml: YAML
+string: Pojmovi
+text: Текст
+time: Vreme
+timestamp: Vremenska oznaka
+uuid: UUID
+hash: Isečak
+not_available_for_type: Није доступно за овај тип
+auto_generate: Аутоматски генериши
+add_note: Додај помоћну напомену за кориснике...
+default_value: Подразумевана вредност
+updated_by: Ажурирање
+primary_key: Primarno rešenje
+foreign_key: Strano rešenje
+finish_setup: Завршите подешавање
+dismiss: Odbaci
+toggle_raw_editor: Uključite primarni editor
+raw_editor_placeholder: "Primer korisnog opterećenja{'}{'}"
+raw_value: Osnovna vrednost
+copy_raw_value: Kopiraj osnovnu vrednost
+copy_raw_value_success: Kopirano
+copy_raw_value_fail: Neuspelo kopiranje
+paste_raw_value: Nalepite osnovnu vrednost
+paste_raw_value_success: Nalepljeno
+paste_raw_value_fail: Nalepljivanje nije uspelo
+view_raw_value: Vidi osnovnu vrednost
+edit_raw_value: Izmenite osnovnu vrednost
+enter_raw_value: Unesite osnovnu vrednost...
+clear_value: Obrišite vrednost
+clear_changes: Obrišite izmene
+clear_items: Obrišite stavke
+reset_to_default: Vrati podrazumevano
+undo_changes: Opozovite izmene
+notifications: Obaveštenje
+show_all_activity: Prikažite sve aktivnosti
+page_not_found: Stranica nije pronađena
+page_not_found_body: Izgleda da stranica koju tražite ne postoji.
+confirm_revert: Potvrdite poništavanje
+confirm_revert_body: Ovo će vratiti stavku u izabrano stanje.
+display: Pokazatelj
+settings_update_success: Podešavanja su ažurirana
+title: Наслов
+subtitle: Поднаслов
+revision_delta_created: Napravljeno
+revision_delta_created_externally: Spoljna kreacija
+revision_delta_updated: 'Ažurirano 1 polje'
+revision_delta_deleted: Obrisano
+revision_delta_reverted: Vraćeno
+revision_delta_update_message: Ovo polje je ažurirano, ali je njegova vrednost skrivena iz bezbednosnih razloga.
+revision_delta_other: Izmena
+revision_delta_by: 'datum, korisnik'
+presentation_text_values_cannot_be_reimported: 'Koristi tekst prezentacije, vrednosti se ne mogu ponovo uvesti.'
+download_page_as_csv: 'Preuzmi stranicu kao CSV'
+private_user: Privatni korisnik
+creation_preview: Pregled izrade
+revision_preview: Pregled izmena
+updates_made: Napravljena ažuriranja
+leave_comment: Оставите коментар...
+post_comment_success: Postavljeni komentar
+post_comment_updated: Ažurirani komentar
+item_create_success: Kreirana stavka
+item_update_success: Postavka kreirana
+item_delete_success: Stavka je izbrisana
+this_collection: Ova zbirka
+display_label: Pokazatelj
+functions:
+  count: Zbir
+months:
+  january: Јануар
+  february: Фебруар
+  march: Март
+  april: Април
+  may: Мај
+  june: Јун
+  july: Јул
+  august: Август
+  september: Септембар
+  october: Октобар
+  november: Новембар
+  december: Децембар
+created: Napravljeno
+owner: Власник
+name: Име
+created_by: Креирао
+created_on: Креирано
+comments: Коментари
+create_collection: Креирајте колекцију
+users: Корисници
+activity: Активност
+action: Акција
+ip_address: ИП адреса
+user_agent: Кориснички агент
+duration: Трајање
+status: Стање
+bookmarks: Сачуване странице
+back: Назад
+operators:
+  contains: Садржи
+role: Рола
+create: Креирај
+flow_name: Име
+code: Код
+width: Ширина
+height: Висина
+wysiwyg_options:
+  codeblock: Код
+  table: Табела
+choices: Избори
+deselect: Поништи избор
+settings_presets: Сачуване странице
+discard_changes: Одбаци промене
+keep_editing: Наставите уређивање
+add_new: Додај нови
+all: Sve
+batch_delete_confirm: >-
+  Ниједна ставка није одабрана | Да ли си сигуран да желиш да обришеш ову ставку? Ова акција је неповратна. | Да ли си сигуран да желиш да обришеш ових {count} ставки? Ова акција је неповратна.
+cancel: Откажи
+collection: Колекција
+fields:
+  directus_activity:
+    item: Примарни кључ ставке
+    action: Акција
+    collection: Колекција
+    timestamp: Акција укључена
+    user: Акција од стране
+    comment: Коментар
+    user_agent: Кориснички агент
+    ip: ИП адреса
+  directus_collections:
+    collection: Колекција
+  directus_files:
+    title: Наслов
+    description: Опис
+    tags: Ознаке
+    location: Локација
+    metadata: Мета подаци
+    filesize: Veličina
+    created_on: Креирано
+    created_by: Креирао
+    embed: Угради
+    width: Ширина
+    height: Висина
+    duration: Трајање
+  directus_users:
+    first_name: Име
+    last_name: Презиме
+    email: Имејл
+    password: Лозинка
+    avatar: Аватар
+    location: Локација
+    title: Наслов
+    description: Опис
+    tags: Ознаке
+    language: Језик
+    tfa_secret: Дво-факторска аутентификација
+    status: Стање
+    role: Рола
+  directus_shares:
+    name: Име
+    role: Рола
+    password: Лозинка
+  directus_fields:
+    display_template: Шаблон
+  directus_roles:
+    description: Опис
+  directus_policies:
+    description: Опис
+field_options:
+  directus_activity:
+    create: Креирај
+  directus_collections:
+    language: Језик
+    archive_divider: Архивирај
+  directus_roles:
+    fields:
+      name_name: Име
+comment: Коментар
+ai_tools:
+  files: Фајлови
+description: Опис
+done: Завршено
+email: Имејл
+embed: Угради
+my_activity: Моја активност
+password: Лозинка
+template: Шаблон
+table: Табела
+interfaces:
+  filter:
+    all: Sve
+  input-code:
+    code: Код
+  system-collection:
+    collection: Колекција
+  files:
+    files: Фајлови
+  input-hash:
+    hash: Isečak
+  system-display:
+    display: Pokazatelj
+  tags:
+    tags: Ознаке
+  input-block-editor:
+    tools_options:
+      embed: Угради
+      code: Код
+      table: Табела
+displays:
+  boolean:
+    boolean: Logički izraz
+  collection:
+    collection: Колекција
+  formatted-value:
+    text: Текст
+  hash:
+    hash: Isečak
+  user:
+    avatar: Аватар
+    name: Име
+    both: Оба
+layouts:
+  cards:
+    cards: Картице
+    image_source: Извор слике
+    title: Наслов
+    subtitle: Поднаслов
+  tabular:
+    tabular: Табела
+    comfortable: Комфорно
+    compact: Компактни
+    cozy: Удобно
+both: Оба
+triggers:
+  webhook:
+    method: Метод
+operations:
+  mail:
+    template: Шаблон
+  request:
+    method: Метод
+compact: Компактни

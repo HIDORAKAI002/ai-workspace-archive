@@ -1,0 +1,385 @@
+{
+  "nodes": [
+    {
+      "id": "pdfFile_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "pdfFile_0",
+        "label": "PDF File",
+        "version": 1,
+        "name": "pdfFile",
+        "type": "PDFLoader",
+        "baseClasses": ["PDFLoader", "BaseDocumentLoader"],
+        "category": "Document Loaders",
+        "description": "Load data from PDF files",
+        "inputParams": [
+          {
+            "label": "PDF File",
+            "name": "pdfFile",
+            "type": "file",
+            "fileType": ".pdf"
+          },
+          {
+            "label": "Usage",
+            "name": "usage",
+            "type": "options",
+            "options": [
+              { "label": "One document per page", "name": "perPage" },
+              { "label": "One document per file", "name": "perFile" }
+            ],
+            "default": "perPage"
+          },
+          {
+            "label": "Use Legacy Build",
+            "name": "legacyBuild",
+            "type": "boolean",
+            "optional": true,
+            "additionalParams": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "usage": "perPage",
+          "legacyBuild": true
+        },
+        "outputAnchors": [
+          {
+            "id": "pdfFile_0-output-document-Document",
+            "name": "document",
+            "label": "Document",
+            "description": "Load data from PDF files",
+            "type": "Document"
+          }
+        ]
+      }
+    },
+    {
+      "id": "recursiveCharacterTextSplitter_0",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "recursiveCharacterTextSplitter_0",
+        "label": "Recursive Character Text Splitter",
+        "version": 2,
+        "name": "recursiveCharacterTextSplitter",
+        "type": "RecursiveCharacterTextSplitter",
+        "baseClasses": ["RecursiveCharacterTextSplitter", "TextSplitter"],
+        "category": "Text Splitters",
+        "description": "Split documents into chunks",
+        "inputParams": [
+          {
+            "label": "Chunk Size",
+            "name": "chunkSize",
+            "type": "number",
+            "default": 1000,
+            "optional": true
+          },
+          {
+            "label": "Chunk Overlap",
+            "name": "chunkOverlap",
+            "type": "number",
+            "default": 200,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "chunkSize": 1000,
+          "chunkOverlap": 200
+        },
+        "outputAnchors": [
+          {
+            "id": "recursiveCharacterTextSplitter_0-output-recursiveCharacterTextSplitter-RecursiveCharacterTextSplitter|TextSplitter",
+            "name": "recursiveCharacterTextSplitter",
+            "label": "Recursive Character Text Splitter",
+            "description": "Split documents into chunks",
+            "type": "RecursiveCharacterTextSplitter | TextSplitter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "openAIEmbeddings_0",
+      "position": { "x": 700, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "openAIEmbeddings_0",
+        "label": "OpenAI Embeddings",
+        "version": 3,
+        "name": "openAIEmbeddings",
+        "type": "OpenAIEmbeddings",
+        "baseClasses": ["OpenAIEmbeddings", "Embeddings"],
+        "category": "Embeddings",
+        "description": "OpenAI API to generate embeddings for a given text",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "text-embedding-ada-002", "name": "text-embedding-ada-002" },
+              { "label": "text-embedding-3-small", "name": "text-embedding-3-small" }
+            ],
+            "default": "text-embedding-ada-002",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "text-embedding-3-small"
+        },
+        "outputAnchors": [
+          {
+            "id": "openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings",
+            "name": "openAIEmbeddings",
+            "label": "OpenAI Embeddings",
+            "description": "OpenAI API to generate embeddings for a given text",
+            "type": "OpenAIEmbeddings | Embeddings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memoryVectorStore_0",
+      "position": { "x": 400, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "memoryVectorStore_0",
+        "label": "In-Memory Vector Store",
+        "version": 1,
+        "name": "memoryVectorStore",
+        "type": "MemoryVectorStore",
+        "baseClasses": ["MemoryVectorStore", "VectorStore", "BaseRetriever"],
+        "category": "Vector Stores",
+        "description": "In-memory vector store that saves embeddings in memory",
+        "inputParams": [
+          {
+            "label": "Top K",
+            "name": "topK",
+            "description": "Number of top results to fetch. Default to 4",
+            "placeholder": "4",
+            "type": "number",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "memoryVectorStore_0-input-document-Document",
+            "name": "document",
+            "label": "Document",
+            "description": "Document to be loaded into memory",
+            "type": "Document"
+          },
+          {
+            "id": "memoryVectorStore_0-input-embeddings-Embeddings",
+            "name": "embeddings",
+            "label": "Embeddings",
+            "description": "Embeddings to use for vector search",
+            "type": "Embeddings"
+          },
+          {
+            "id": "memoryVectorStore_0-input-textSplitter-TextSplitter",
+            "name": "textSplitter",
+            "label": "Text Splitter",
+            "description": "Text splitter to chunk documents",
+            "type": "TextSplitter",
+            "optional": true
+          }
+        ],
+        "inputs": {
+          "topK": 4
+        },
+        "outputAnchors": [
+          {
+            "id": "memoryVectorStore_0-output-retriever-MemoryVectorStore|VectorStore|BaseRetriever",
+            "name": "retriever",
+            "label": "Memory Vector Store Retriever",
+            "description": "In-memory vector store that saves embeddings in memory",
+            "type": "MemoryVectorStore | VectorStore | BaseRetriever"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_3",
+      "position": { "x": 700, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_3",
+        "label": "ChatOpenAI",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-4",
+          "temperature": 0.2
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_3-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "retrievalQAChain_0",
+      "position": { "x": 1000, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "retrievalQAChain_0",
+        "label": "Retrieval QA Chain",
+        "version": 3,
+        "name": "retrievalQAChain",
+        "type": "RetrievalQAChain",
+        "baseClasses": ["RetrievalQAChain", "BaseChain"],
+        "category": "Chains",
+        "description": "QA chain to answer questions from retrieved documents",
+        "inputParams": [
+          {
+            "label": "Chain Type",
+            "name": "chainType",
+            "type": "options",
+            "options": [
+              { "label": "Stuff", "name": "stuff" },
+              { "label": "Map Reduce", "name": "map_reduce" },
+              { "label": "Refine", "name": "refine" }
+            ],
+            "default": "stuff"
+          },
+          {
+            "label": "Return Source Documents",
+            "name": "returnSourceDocuments",
+            "type": "boolean",
+            "default": true,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "retrievalQAChain_0-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for QA",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "retrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
+            "name": "vectorStoreRetriever",
+            "label": "Vector Store Retriever",
+            "description": "Vector store retriever to retrieve documents",
+            "type": "BaseRetriever"
+          }
+        ],
+        "inputs": {
+          "chainType": "stuff",
+          "returnSourceDocuments": true
+        },
+        "outputAnchors": [
+          {
+            "id": "retrievalQAChain_0-output-retrievalQAChain-RetrievalQAChain|BaseChain",
+            "name": "retrievalQAChain",
+            "label": "Retrieval QA Chain",
+            "description": "QA chain to answer questions from retrieved documents",
+            "type": "RetrievalQAChain | BaseChain"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "pdfFile_0",
+      "sourceHandle": "pdfFile_0-output-document-Document",
+      "target": "memoryVectorStore_0",
+      "targetHandle": "memoryVectorStore_0-input-document-Document",
+      "type": "buttonedge",
+      "id": "pdfFile_0-memoryVectorStore_0"
+    },
+    {
+      "source": "recursiveCharacterTextSplitter_0",
+      "sourceHandle": "recursiveCharacterTextSplitter_0-output-recursiveCharacterTextSplitter-RecursiveCharacterTextSplitter|TextSplitter",
+      "target": "memoryVectorStore_0",
+      "targetHandle": "memoryVectorStore_0-input-textSplitter-TextSplitter",
+      "type": "buttonedge",
+      "id": "recursiveCharacterTextSplitter_0-memoryVectorStore_0"
+    },
+    {
+      "source": "openAIEmbeddings_0",
+      "sourceHandle": "openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings",
+      "target": "memoryVectorStore_0",
+      "targetHandle": "memoryVectorStore_0-input-embeddings-Embeddings",
+      "type": "buttonedge",
+      "id": "openAIEmbeddings_0-memoryVectorStore_0"
+    },
+    {
+      "source": "memoryVectorStore_0",
+      "sourceHandle": "memoryVectorStore_0-output-retriever-MemoryVectorStore|VectorStore|BaseRetriever",
+      "target": "retrievalQAChain_0",
+      "targetHandle": "retrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
+      "type": "buttonedge",
+      "id": "memoryVectorStore_0-retrievalQAChain_0"
+    },
+    {
+      "source": "chatOpenAI_3",
+      "sourceHandle": "chatOpenAI_3-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "retrievalQAChain_0",
+      "targetHandle": "retrievalQAChain_0-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_3-retrievalQAChain_0"
+    }
+  ],
+  "chatflow": {
+    "id": "rag-document-qa",
+    "name": "RAG Document Q&A",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Complex Examples",
+    "description": "Retrieval-Augmented Generation flow for answering questions about PDF documents"
+  }
+}

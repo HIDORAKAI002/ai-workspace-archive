@@ -1,0 +1,44 @@
+{
+	"name": "@directus/env",
+	"version": "5.7.0",
+	"description": "Utilities around using global env configuration",
+	"homepage": "https://directus.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/env"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "MIT",
+	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown src/index.ts --dts",
+		"dev": "tsdown src/index.ts --dts --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@types/lodash-es": "catalog:",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@directus/constants": "workspace:*",
+		"@directus/utils": "workspace:*",
+		"dotenv": "catalog:",
+		"lodash-es": "catalog:"
+	}
+}

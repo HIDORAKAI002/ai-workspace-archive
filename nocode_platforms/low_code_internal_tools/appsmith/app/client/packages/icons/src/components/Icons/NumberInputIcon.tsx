@@ -1,0 +1,4 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const NumberInputIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width={15} height={15} fill="none" {...props}><path fill="#4C5664" fillOpacity={0.5} d="M12 6.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H14v7h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1h.5V7h-.5a.5.5 0 0 1-.5-.5" /><path fill="#4C5664" d="M0 4.5A2.5 2.5 0 0 1 2.5 2h12a.5.5 0 0 1 0 1h-12A1.5 1.5 0 0 0 1 4.5v6A1.5 1.5 0 0 0 2.5 12h7a.5.5 0 0 1 0 1h-7A2.5 2.5 0 0 1 0 10.5z" /><path fill="#4C5664" d="M5 5.5a.5.5 0 0 0-.854-.354l-1 1a.5.5 0 1 0 .708.708L4 6.707V9h-.5a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1H5zM11 5.5a.5.5 0 0 0-.854-.354l-1 1a.5.5 0 1 0 .708.708L10 6.707V9h-.5a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1H11zM8 9.5a.5.5 0 0 0-1 0v.01a.5.5 0 0 0 1 0z" /></svg>;
+export { NumberInputIcon };

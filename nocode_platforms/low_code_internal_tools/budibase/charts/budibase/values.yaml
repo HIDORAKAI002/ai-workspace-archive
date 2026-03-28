@@ -1,0 +1,790 @@
+# -- Passed to all pods created by this chart. Should not ordinarily need to be changed.
+imagePullSecrets: []
+
+podDisruptionBudget:
+  # -- Whether to create a PodDisruptionBudget for the services.
+  enabled: false
+  # -- The minimum number of available pods for the services.
+  minAvailable: 1
+
+# -- Override the name of the deployment. Defaults to {{ .Chart.Name }}.
+nameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+service:
+  # -- Service type for the service that points to the main Budibase proxy pod.
+  type: ClusterIP
+  # -- Port to expose on the service.
+  port: 10000
+
+ingress:
+  # -- Whether to create an Ingress resource pointing to the Budibase proxy.
+  enabled: true
+  # -- What ingress class to use.
+  className: ""
+  # -- Standard hosts block for the Ingress resource. Defaults to pointing to the Budibase proxy.
+  hosts:
+    # @ignore
+    - host:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: proxy-service
+              port:
+                number: 10000
+
+awsAlbIngress:
+  # -- Whether to create an ALB Ingress resource pointing to the Budibase proxy. Requires the AWS ALB Ingress Controller.
+  enabled: false
+  # -- If you're wanting to use HTTPS, you'll need to create an ACM certificate and specify the ARN here.
+  certificateArn: ""
+  # -- Time in seconds ALB waits for in-flight requests during target deregistration.
+  # This allows graceful connection draining during pod rollouts.
+  deregistrationDelay: 30
+
+# -- Sets the tolerations for all pods created by this chart. Should not ordinarily need to be changed.
+# See <https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/> for more information
+# on tolerations.
+tolerations: []
+
+# -- Sets the affinity for all pods created by this chart. Should not ordinarily
+# need to be changed.  See
+# <https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/>
+# for more information on affinity.
+affinity: {}
+
+globals:
+  # -- The version of Budibase to deploy. Defaults to what's specified by {{ .Chart.AppVersion }}.
+  # Ends up being used as the image version tag for the apps, proxy, and worker images.
+  appVersion: ""
+  # -- Sets the environment variable BUDIBASE_ENVIRONMENT for the apps and worker pods. Should not
+  # ordinarily need to be changed.
+  budibaseEnv: PRODUCTION
+  # -- Sets what feature flags are enabled and for which tenants. Should not ordinarily need to be
+  # changed.
+  tenantFeatureFlags: ""
+  # -- Whether to enable analytics or not. You can read more about our analytics here:
+  # <https://docs.budibase.com/docs/analytics>.
+  enableAnalytics: "1"
+  # @ignore (only used if enableAnalytics is set to 1)
+  posthogToken: "phc_bIjZL7oh2GEUd2vqvTBH8WvrX0fWTFQMs6H5KQxiUxU"
+  # @ignore (should not normally need to be changed, we only set this to "0"
+  # when deploying to our Cloud environment)
+  selfHosted: "1"
+  # @ignore (doesn't work out of the box for self-hosted users, only meant for Budicloud)
+  multiTenancy: "0"
+  # @ignore (only currently used to determine whether to fetch licenses offline or not, should
+  # not normally need to be changed, and only applies to Enterprise customers)
+  offlineMode: "0"
+  # @ignore (only needs to be set in our cloud environment)
+  accountPortalUrl: ""
+  # @ignore (used for making internal API calls to the account portal when hosting in k8s)
+  internalAccountPortalUrl: ""
+  # @ignore (only needs to be set in our cloud environment)
+  accountPortalApiKey: ""
+  # -- Sets the domain attribute of the cookie that Budibase uses to store session information.
+  # See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#define_where_cookies_are_sent>
+  # for details on why you might want to set this.
+  cookieDomain: ""
+  # -- Set the `platformUrl` binding. You can also do this in Settings > Organisation if you are
+  # self-hosting.
+  platformUrl: ""
+  # -- Internal URL for the litellm gateway service.
+  litellmUrl: "http://litellm-service:4000"
+  # -- Whether or not to enable doing data migrations over the HTTP API. If this is set to "0",
+  # migrations are run on startup. You shouldn't ordinarily need to change this.
+  httpMigrations: "0"
+  # -- Google OAuth settings. These can also be set in the Budibase UI, see
+  # <https://docs.budibase.com/docs/sso-with-google> for details.
+  google:
+    # -- Client ID of your Google OAuth app.
+    clientId: ""
+    # -- Client secret of your Google OAuth app.
+    secret: ""
+  # -- The maximum number of iterations allows for an automation loop step. You can read more about
+  # looping here: <https://docs.budibase.com/docs/looping>.
+  automationMaxIterations: "200"
+
+  # -- Create an internal API key, JWT secret, object store access key and
+  # secret, and store them in a Kubernetes `Secret`.
+  createSecrets: true
+
+  # -- Used for encrypting API keys and environment variables when stored in the database.
+  # You don't need to set this if `createSecrets` is true.
+  apiEncryptionKey: ""
+  # -- API key used for internal Budibase API calls. You don't need to set this
+  # if `createSecrets` is true.
+  internalApiKey: ""
+  # -- Secret used for signing JWTs. You don't need to set this if `createSecrets` is true.
+  jwtSecret: ""
+
+  # -- A fallback value for `internalApiKey`. If you're rotating your encryption key, you can
+  # set this to the old value for the duration of the rotation.
+  internalApiKeyFallback: ""
+  # -- A fallback value for `jwtSecret`. If you're rotating your JWT secret, you can set this
+  # to the old value for the duration of the rotation.
+  jwtSecretFallback: ""
+
+  ## -- If using S3 the bucket name to be used for storing temporary files
+  tempBucketName: ""
+
+  smtp:
+    # -- Whether to enable SMTP or not.
+    enabled: false
+    # -- The hostname of your SMTP server.
+    host: ""
+    # -- The port of your SMTP server.
+    port: "587"
+    # -- The email address to use in the "From:" field of emails sent by Budibase.
+    from: ""
+    # -- The username to use when authenticating with your SMTP server.
+    user: ""
+    # -- The password to use when authenticating with your SMTP server.
+    password: ""
+
+  sqs:
+    # @ignore
+    url: ""
+    # @ignore
+    port: "4984"
+
+services:
+  # -- The DNS suffix to use for service discovery. You only need to change this
+  # if you've configured your cluster to use a different DNS suffix.
+  dns: cluster.local
+
+  proxy:
+    # @ignore (you shouldn't need to change this)
+    port: 10000
+    # -- The number of proxy replicas to run.
+    replicaCount: 1
+    # @ignore (you should never need to change this)
+    upstreams:
+      apps: "http://app-service.{{ .Release.Namespace }}.svc.{{ .Values.services.dns }}:{{ .Values.services.apps.port }}"
+      worker: "http://worker-service.{{ .Release.Namespace }}.svc.{{ .Values.services.dns }}:{{ .Values.services.worker.port }}"
+      minio: "http://minio-service.{{ .Release.Namespace }}.svc.{{ .Values.services.dns }}:{{ .Values.services.objectStore.port }}"
+      couchdb: "http://{{ .Release.Name }}-svc-couchdb:{{ .Values.services.couchdb.port }}"
+    # -- The time in seconds to wait before sending SIGKILL after SIGTERM.
+    # Must be greater than preStopDelaySeconds to allow graceful shutdown.
+    terminationGracePeriodSeconds: 60
+    # -- Seconds to sleep before SIGTERM to allow load balancer deregistration.
+    preStopDelaySeconds: 10
+    # -- The resources to use for proxy pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    # -- Startup probe configuration for proxy pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    startupProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 10000
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 40
+      # @ignore
+      periodSeconds: 3
+    # -- Readiness probe configuration for proxy pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    readinessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 10000
+        scheme: HTTP
+      # @ignore
+      periodSeconds: 5
+      # @ignore
+      failureThreshold: 3
+    # -- Liveness probe configuration for proxy pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    livenessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 10000
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 3
+      # @ignore
+      periodSeconds: 5
+    autoscaling:
+      # -- Whether to enable horizontal pod autoscaling for the proxy service.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      # -- Target CPU utilization percentage for the proxy service. Note that
+      # for autoscaling to work, you will need to have metrics-server
+      # configured, and resources set for the proxy pods.
+      targetCPUUtilizationPercentage: 80
+    # -- Additional containers to be added to the proxy pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main proxy container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the proxy pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+  apps:
+    # @ignore (you shouldn't need to change this)
+    port: 4002
+    # -- The number of apps replicas to run.
+    replicaCount: 1
+    # -- The log level for the apps service.
+    logLevel: info
+    # -- Whether or not to log HTTP requests to the apps service.
+    httpLogging: 1
+    # -- The resources to use for apps pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    # -- The amount of time to wait between requesting a shutdown and killing the
+    # container. This is used to give the apps service time to finish processing
+    # any requests before shutting down. You shouldn't need to change this.
+    terminationGracePeriodSeconds: 60
+    # -- Seconds to wait after pod is Ready before adding to endpoints.
+    # Ensures pods are stable before receiving traffic.
+    minReadySeconds: 10
+    # -- Seconds to sleep before SIGTERM to allow load balancer deregistration.
+    preStopDelaySeconds: 5
+    # -- Extra environment variables to set for apps pods. Takes a list of
+    # name=value pairs.
+    extraEnv: []
+    # -- Name of the K8s Secret in the same namespace which contains the extra environment variables.
+    # This can be used to avoid storing sensitive information in the values.yaml file.
+    extraEnvFromSecret: []
+    #  - name: MY_SECRET_KEY
+    #    secretName : my-secret
+    #    secretKey: my-secret-key
+
+    # -- Startup probe configuration for apps pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    startupProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 30
+      # @ignore
+      periodSeconds: 3
+    # -- Readiness probe configuration for apps pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    readinessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      periodSeconds: 3
+      # @ignore
+      failureThreshold: 1
+    # -- Liveness probe configuration for apps pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    livenessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 3
+      # @ignore
+      periodSeconds: 5
+    autoscaling:
+      # -- Whether to enable horizontal pod autoscaling for the apps service.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      # -- Target CPU utilization percentage for the apps service. Note that for
+      # autoscaling to work, you will need to have metrics-server configured,
+      # and resources set for the apps pods.
+      targetCPUUtilizationPercentage: 80
+    # -- Additional containers to be added to the apps pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main apps container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the apps pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+  automationWorkers:
+    # -- Whether or not to enable the automation worker service. If you disable this,
+    # automations will be processed by the apps service.
+    enabled: true
+    # @ignore (you shouldn't need to change this)
+    port: 4002
+    # -- The number of automation worker replicas to run.
+    replicaCount: 1
+    # -- The log level for the automation worker service.
+    logLevel: info
+    # -- The resources to use for automation worker pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    # -- The amount of time to wait between requesting a shutdown and killing
+    # the container. This is used to give the automation worker service time to
+    # finish processing any requests before shutting down. You shouldn't need to
+    # change this.
+    terminationGracePeriodSeconds: 60
+    # -- Extra environment variables to set for automation worker pods. Takes a list of
+    # name=value pairs.
+    extraEnv: []
+    # -- Name of the K8s Secret in the same namespace which contains the extra environment variables.
+    # This can be used to avoid storing sensitive information in the values.yaml file.
+    extraEnvFromSecret: []
+    #  - name: MY_SECRET_KEY
+    #    secretName : my-secret
+    #    secretKey: my-secret-key
+
+    # -- Startup probe configuration for automation worker pods. You shouldn't
+    # need to change this, but if you want to you can find more information
+    # here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    startupProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 30
+      # @ignore
+      periodSeconds: 3
+    # -- Readiness probe configuration for automation worker pods. You shouldn't
+    # need to change this, but if you want to you can find more information
+    # here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    readinessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      periodSeconds: 3
+      # @ignore
+      failureThreshold: 1
+    # -- Liveness probe configuration for automation worker pods. You shouldn't
+    # need to change this, but if you want to you can find more information
+    # here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    livenessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4002
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 3
+      # @ignore
+      periodSeconds: 30
+    autoscaling:
+      # -- Whether to enable horizontal pod autoscaling for the apps service.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      # -- Target CPU utilization percentage for the automation worker service.
+      # Note that for autoscaling to work, you will need to have metrics-server
+      # configured, and resources set for the automation worker pods.
+      targetCPUUtilizationPercentage: 80
+    # -- Additional containers to be added to the automationWorkers pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main automationWorkers container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the automationWorkers pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+  worker:
+    # @ignore (you shouldn't need to change this)
+    port: 4003
+    # -- The number of worker replicas to run.
+    replicaCount: 1
+    # -- The log level for the worker service.
+    logLevel: info
+    # -- Whether or not to log HTTP requests to the worker service.
+    httpLogging: 1
+    # -- The resources to use for worker pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    # -- The amount of time to wait between requesting a shutdown and killing
+    # the container. This is used to give the worker service time to finish
+    # processing any requests before shutting down. You shouldn't need to change
+    # this.
+    terminationGracePeriodSeconds: 60
+    # -- Seconds to wait after pod is Ready before adding to endpoints.
+    # Ensures pods are stable before receiving traffic.
+    minReadySeconds: 10
+    # -- Seconds to sleep before SIGTERM to allow load balancer deregistration.
+    preStopDelaySeconds: 10
+    # -- Extra environment variables to set for worker pods. Takes a list of
+    # name=value pairs.
+    extraEnv: []
+    # -- Name of the K8s Secret in the same namespace which contains the extra environment variables.
+    # This can be used to avoid storing sensitive information in the values.yaml file.
+    extraEnvFromSecret: []
+    #  - name: MY_SECRET_KEY
+    #    secretName : my-secret
+    #    secretKey: my-secret-key
+
+    # -- Startup probe configuration for worker pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    startupProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4003
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 40
+      # @ignore
+      periodSeconds: 3
+    # -- Readiness probe configuration for worker pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    readinessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4003
+        scheme: HTTP
+      # @ignore
+      periodSeconds: 5
+      # @ignore
+      failureThreshold: 3
+    # -- Liveness probe configuration for worker pods. You shouldn't need to
+    # change this, but if you want to you can find more information here:
+    # <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/>
+    # @default -- HTTP health checks.
+    livenessProbe:
+      # @ignore
+      httpGet:
+        path: /health
+        port: 4003
+        scheme: HTTP
+      # @ignore
+      failureThreshold: 3
+      # @ignore
+      periodSeconds: 5
+    autoscaling:
+      # -- Whether to enable horizontal pod autoscaling for the worker service.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      # -- Target CPU utilization percentage for the worker service. Note that
+      # for autoscaling to work, you will need to have metrics-server
+      # configured, and resources set for the worker pods.
+      targetCPUUtilizationPercentage: 80
+    # -- Additional containers to be added to the worker pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main worker container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the worker pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+  couchdb:
+    # -- Whether or not to spin up a CouchDB instance in your cluster. True by
+    # default, and the configuration for the CouchDB instance is under the
+    # `couchdb` key at the root of this file. You can see what options are
+    # available to you by looking at the official CouchDB Helm chart:
+    # <https://github.com/apache/couchdb-helm/tree/couchdb-4.3.0/couchdb>.
+    enabled: true
+    # url: "" # only change if pointing to existing couch server
+    # user: "" # only change if pointing to existing couch server
+    # password: "" # only change if pointing to existing couch server
+    port: 5984
+    backup:
+      # -- Whether or not to enable periodic CouchDB backups. This works by replicating
+      # to another CouchDB instance.
+      enabled: false
+      # -- Target couchDB instance to back up to, either a hostname or an IP address.
+      target: ""
+      # -- Backup interval in seconds
+      interval: ""
+      # -- The resources to use for CouchDB backup pods. See
+      # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+      # for more information on how to set these.
+      resources: {}
+
+  redis:
+    # -- The Redis image to use.
+    image: redis
+    # -- Whether or not to deploy a Redis pod into your cluster.
+    enabled: true
+    # -- Port to expose Redis on.
+    port: 6379
+    # @ignore (you should leave this as 1, we don't support clustering Redis)
+    replicaCount: 1
+    # -- If you choose to run Redis externally to this chart, you can specify the
+    # connection details here.
+    url: ""
+    # -- The password to use when connecting to Redis. It's recommended that you change
+    # this from the default if you're running Redis in-cluster.
+    password: "budibase"
+    # -- The username to use when connecting to Redis. Only required for Redis 6+ with ACL
+    # authentication enabled.
+    username: ""
+    # -- How much persistent storage to allocate to Redis.
+    storage: 100Mi
+    # -- If defined, storageClassName: <storageClass> If set to "-",
+    # storageClassName: "", which disables dynamic provisioning If undefined
+    # (the default) or set to null, no storageClassName spec is set, choosing
+    # the default provisioner.
+    storageClass: ""
+    # -- The resources to use for Redis pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    # -- Additional containers to be added to the redis pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main redis container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the redis pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+  litellm:
+    # -- Whether or not to deploy the litellm gateway.
+    enabled: false
+    # -- litellm image to use.
+    image: ghcr.io/berriai/litellm:main-v1.81.14-stable
+    # -- Port exposed by the litellm container.
+    port: 4000
+    # -- Number of litellm replicas.
+    replicaCount: 1
+    # -- Resources for litellm pods.
+    resources: {}
+    # -- Extra environment variables for the litellm container.
+    # Budibase uses LiteLLM virtual keys/models and requires database-backed proxy mode.
+    # If `general_settings.store_model_in_db: true` (default), set DATABASE_URL here.
+    extraEnv:
+      - name: LITELLM_REASONING_AUTO_SUMMARY
+        value: "true"
+      # - name: DATABASE_URL
+      #   value: postgresql://llmproxy:password@postgres-host:5432/litellm
+    # -- Additional volumeMounts on the litellm container.
+    extraVolumeMounts: []
+    # -- Additional volumes on the litellm pod.
+    extraVolumes: []
+    # -- The salt key to use for litellm.
+    saltKey: ""
+    # -- The master key to use for litellm.
+    masterKey: ""
+    # -- Optional username for LiteLLM Admin UI login.
+    # If not set, LiteLLM uses its built-in defaults.
+    uiUsername: ""
+    # -- Optional password for LiteLLM Admin UI login.
+    # If not set, LiteLLM uses its built-in defaults.
+    uiPassword: ""
+    # -- Inline configuration passed to litellm as config.yaml.
+    config: |
+      general_settings:
+        store_model_in_db: true
+        store_prompts_in_spend_logs: true
+      litellm_settings:
+        drop_params: true
+        num_retries: 3
+        retry_after: 5
+        retry_policy:
+          RateLimitErrorRetries: 4
+    tailscale:
+      # -- Whether to expose the litellm service to a Tailscale tailnet via annotation.
+      expose: false
+
+  objectStore:
+    # -- Set to false if using another object store, such as S3. You will need
+    # to set `services.objectStore.url` to point to your bucket if you do this.
+    minio: true
+    # -- Whether to enable the Minio web console or not. If you're exposing
+    # Minio to the Internet (via a custom Ingress record, for example), you
+    # should set this to false. If you're only exposing Minio to your cluster,
+    # you can leave this as true.
+    browser: true
+    # @ignore
+    port: 9000
+    # @ignore (you should leave this as 1, we don't support clustering Minio)
+    replicaCount: 1
+    # -- AWS_ACCESS_KEY if using S3
+    accessKey: ""
+    # -- AWS_SECRET_ACCESS_KEY if using S3
+    secretKey: ""
+    # -- AWS_REGION if using S3
+    region: ""
+    # -- URL to use for object storage. Only change this if you're using an
+    # external object store, such as S3. Remember to set `minio: false` if you
+    # do this.
+    url: "http://minio-service:9000"
+    # -- Set to true to skip TLS certificate verification for S3-compatible
+    # storage endpoints using self-signed certificates. Only applies when
+    # using HTTPS endpoints. Defaults to false.
+    ignoreSelfSigned: false
+    # -- How much storage to give Minio in its PersistentVolumeClaim.
+    storage: 2Gi
+    # -- If defined, storageClassName: <storageClass> If set to "-",
+    # storageClassName: "", which disables dynamic provisioning If undefined
+    # (the default) or set to null, no storageClassName spec is set, choosing
+    # the default provisioner.
+    storageClass: ""
+    # -- The resources to use for Minio pods. See
+    # <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/>
+    # for more information on how to set these.
+    resources: {}
+    cloudfront:
+      # -- Set the url of a distribution to enable cloudfront.
+      cdn: ""
+      # -- ID of public key stored in cloudfront.
+      publicKeyId: ""
+      # -- Base64 encoded private key for the above public key.
+      privateKey64: ""
+    # -- Additional containers to be added to the objectStore pod.
+    extraContainers: []
+    #  - name: my-sidecar
+    #    image: myimage:latest
+
+    # -- Additional volumeMounts to the main objectStore container.
+    extraVolumeMounts: []
+    #  - name: my-volume
+    #   mountPath: /path/to/mount
+
+    # -- Additional volumes to the objectStore pod.
+    extraVolumes: []
+    #  - name: my-volume
+    #    emptyDir: {}
+
+# Override values in couchDB subchart. We're only specifying the values we're changing.
+# If you want to see all of the available values, see:
+#   https://github.com/apache/couchdb-helm/tree/couchdb-4.3.0/couchdb
+# Warning: The upstream Helm chart does not set a persistent password for the admin user by default.
+#
+# To have a specific password persist, you can set the adminPassword value.
+# See: https://github.com/apache/couchdb-helm/blob/couchdb-4.3.0/couchdb/values.yaml#L41
+#
+# adminPassword: ""
+
+couchdb:
+  # -- The number of replicas to run in the CouchDB cluster. We set this to
+  # 1 by default to make things simpler, but you can set it to 3 if you need
+  # a high-availability CouchDB cluster.
+  clusterSize: 1
+
+  # -- We use a custom CouchDB image for running Budibase and we don't support
+  # using any other CouchDB image. You shouldn't change this, and if you do we
+  # can't guarantee that Budibase will work.
+  image:
+    # @ignore
+    repository: budibase/database
+    # @ignore
+    tag: "2.1.0"
+    # @ignore
+    pullPolicy: Always
+
+  # -- Environment variables to pass to the CouchDB container
+  extraEnvs:
+    - name: DATA_DIR
+      value: "/data"
+
+  # -- Persistent volume configuration for CouchDB data
+  persistentVolume:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    # -- The path where the persistent volume will be mounted.
+    # If you change this, make sure to also update the DATA_DIR environment variable above.
+    mountPath: /data
+
+  extraPorts:
+    # -- Extra ports to expose on the CouchDB service. We expose the SQS port
+    # by default, but you can add more ports here if you need to.
+    - name: sqs
+      containerPort: 4984
+
+  service:
+    extraPorts:
+      # -- Extra ports to expose on the CouchDB service. We expose the SQS port
+      # by default, but you can add more ports here if you need to.
+      - name: sqs
+        port: 4984
+        targetPort: 4984
+        protocol: TCP
+
+  # @ignore
+  # This should remain false. We ship Clouseau ourselves as part of the
+  # budibase/database image, and it's not possible to disable it because it's a
+  # core part of the Budibase experience.
+  enableSearch: false
+
+  couchdbConfig:
+    couchdb:
+      # -- Unique identifier for this CouchDB server instance. You shouldn't need
+      # to change this.
+      uuid: budibase-couchdb

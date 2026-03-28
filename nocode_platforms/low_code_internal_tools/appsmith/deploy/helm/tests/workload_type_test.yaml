@@ -1,0 +1,47 @@
+templates:
+  - deployment.yaml
+tests:
+  - name: workload type should be StatefulSet when not set
+    asserts:
+      - equal:
+          path: kind
+          value: StatefulSet
+  - name: workload type should be Deployment when set and replicas default to 1
+    set:
+      workload:
+        kind: Deployment
+    asserts:
+      - equal:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.replicas
+          value: 1
+  - name: replica count should be used when set
+    set:
+      workload:
+        kind: Deployment
+      replicas: 99
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 99
+  - name: workload type should be Deployment when autoscaling is enabled
+    set:
+      autoscaling:
+        enabled: true
+    asserts:
+      - equal:
+          path: kind
+          value: Deployment
+  - name: replica count should be 0 when set to 0
+    set:
+      workload:
+        kind: Deployment
+      autoscaling:
+        enabled: false
+      replicas: 0
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 0

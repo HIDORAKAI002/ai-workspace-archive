@@ -1,0 +1,28 @@
+<script setup lang="ts">
+import { useCollection } from '@directus/composables';
+import { toRefs } from 'vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import ValueNull from '@/views/private/components/value-null.vue';
+
+const props = withDefaults(
+	defineProps<{
+		value?: string | null;
+		icon?: boolean;
+	}>(),
+	{
+		value: null,
+		icon: false,
+	},
+);
+
+const collection = toRefs(props).value;
+const { info } = useCollection(collection);
+</script>
+
+<template>
+	<ValueNull v-if="value === null || !info" />
+	<div v-else>
+		<VIcon v-if="icon" :name="info.icon" left small />
+		{{ info.name }}
+	</div>
+</template>

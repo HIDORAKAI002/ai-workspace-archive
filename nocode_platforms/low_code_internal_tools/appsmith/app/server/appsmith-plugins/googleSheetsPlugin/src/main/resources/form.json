@@ -1,0 +1,82 @@
+{
+  "form": [
+    {
+      "sectionName": "General",
+      "children": [
+        {
+          "label": "Authentication type",
+          "configProperty": "datasourceConfiguration.authentication.authenticationType",
+          "controlType": "INPUT_TEXT",
+          "isRequired": false,
+          "hidden": true,
+          "initialValue": "oAuth2"
+        },
+        {
+          "label": "Grant type",
+          "configProperty": "datasourceConfiguration.authentication.grantType",
+          "controlType": "INPUT_TEXT",
+          "isRequired": false,
+          "hidden": true,
+          "initialValue": "authorization_code"
+        },
+        {
+          "label": "Account",
+          "configProperty": "datasourceConfiguration.properties[0].value",
+          "controlType": "INPUT_TEXT",
+          "isRequired": false,
+          "hidden": {
+            "comparison": "VIEW_MODE",
+            "value": false
+          },
+          "initialValue": "Authorize datasource to fetch account name"
+        },
+        {
+          "label": "Permissions | Scope",
+          "configProperty": "datasourceConfiguration.authentication.scopeString",
+          "controlType": "RADIO_BUTTON",
+          "options": [
+            {
+              "label": "Read / Write / Delete | Selected google sheets",
+              "value": "https://www.googleapis.com/auth/drive.file"
+            },
+            {
+              "label": "Read / Write / Delete | All google sheets",
+              "value": "https://www.googleapis.com/auth/spreadsheets,https://www.googleapis.com/auth/drive"
+            },
+            {
+              "label": "Read / Write | All google sheets",
+              "value": "https://www.googleapis.com/auth/spreadsheets,https://www.googleapis.com/auth/drive.readonly"
+            },
+            {
+              "label": "Read | All google sheets",
+              "value": "https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/drive.readonly"
+            }
+          ],
+          "initialValue": "https://www.googleapis.com/auth/drive.file",
+          "hidden": {
+            "flagValue": "release_gs_all_sheets_options_enabled",
+            "comparison": "FEATURE_FLAG",
+            "value": false
+          }
+        },
+        {
+          "label": "Permissions | Scope",
+          "configProperty": "datasourceConfiguration.authentication.scopeString",
+          "controlType": "RADIO_BUTTON",
+          "options": [
+            {
+              "label": "Read / Write / Delete | Selected google sheets",
+              "value": "https://www.googleapis.com/auth/drive.file"
+            }
+          ],
+          "initialValue": "https://www.googleapis.com/auth/drive.file",
+          "hidden": {
+            "flagValue": "release_gs_all_sheets_options_enabled",
+            "comparison": "FEATURE_FLAG",
+            "value": true
+          }
+        }
+      ]
+    }
+  ]
+}

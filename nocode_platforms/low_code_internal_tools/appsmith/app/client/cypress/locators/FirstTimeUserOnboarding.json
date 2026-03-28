@@ -1,0 +1,22 @@
+{
+  "introModal": "[data-testid='signposting-modal']",
+  "introModalCloseBtn": "[data-testid='signposting-modal-close-btn']",
+  "checklistStatus": "[data-testid='checklist-completion-info']",
+  "checklistDatasourceBtn": "[data-testid='checklist-datasource']",
+  "checklistActionBtn": "[data-testid='checklist-action']",
+  "checklistWidgetBtn": "[data-testid='checklist-widget']",
+  "checklistConnectionBtn": "[data-testid='checklist-connection']",
+  "checklistDeployBtn": "[data-testid='checklist-deploy']",
+  "datasourceMock": ".t--mock-datasource",
+  "widgetSidebar": ".t--widget-sidebar",
+  "snipingBanner": ".t--sniping-mode-banner",
+  "snipingTextWidget": ".t--snipeable-textwidget",
+  "widgetName": ".t--widget-name",
+  "datasourceBackBtn": ".t--back-button",
+  "dropTarget": ".t--drop-target",
+  "textWidgetName": ".t--widget-textwidget",
+  "welcomeTourBtn": ".t--start-building",
+  "editorWelcomeTourBtn": "[data-testid='editor-welcome-tour']",
+  "checklistCompletionBanner": "[data-testid='checklist-completion-banner']",
+  "selectWidgetBtn": ".t--select-in-canvas"
+}

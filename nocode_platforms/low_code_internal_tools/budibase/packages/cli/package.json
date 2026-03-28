@@ -1,0 +1,44 @@
+{
+  "name": "@budibase/cli",
+  "version": "0.0.0",
+  "description": "Budibase CLI, for developers, self hosting and migrations.",
+  "main": "dist/index.js",
+  "bin": {
+    "budi": "dist/index.js"
+  },
+  "author": "Budibase",
+  "license": "GPL-3.0",
+  "scripts": {
+    "tsc": "node ./scripts/build.js",
+    "build": "yarn tsc",
+    "check:types": "tsc -p tsconfig.json --noEmit --paths null",
+    "start": "ts-node ./src/index.ts"
+  },
+  "dependencies": {
+    "@budibase/backend-core": "*",
+    "@budibase/pouchdb-replication-stream": "1.2.11",
+    "@budibase/string-templates": "*",
+    "@budibase/types": "*",
+    "chalk": "4.1.0",
+    "cli-progress": "3.11.2",
+    "commander": "7.1.0",
+    "docker-compose": "1.2.0",
+    "dotenv": "16.0.1",
+    "download": "8.0.0",
+    "find-free-port": "^2.0.0",
+    "inquirer": "8.0.0",
+    "lookpath": "1.1.0",
+    "node-fetch": "2.6.7",
+    "open": "8.4.2",
+    "posthog-node": "4.0.1",
+    "pouchdb": "9.0.0",
+    "randomstring": "1.1.5",
+    "tar": "7.5.11",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "2.6.4",
+    "@types/pouchdb": "^6.4.0",
+    "ts-node": "10.8.1"
+  }
+}

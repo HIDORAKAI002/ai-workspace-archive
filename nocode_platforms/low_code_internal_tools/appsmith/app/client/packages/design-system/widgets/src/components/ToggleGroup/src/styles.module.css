@@ -1,0 +1,18 @@
+.toggleGroup {
+  display: flex;
+  width: 100%;
+  gap: var(--inner-spacing-4);
+}
+
+.toggleGroup[data-orientation="vertical"] {
+  flex-direction: column;
+  gap: var(--inner-spacing-2);
+}
+
+.toggleGroup[data-orientation="horizontal"] [data-label-position="end"] {
+  margin-inline-end: 0;
+}
+
+.toggleGroup[data-orientation="horizontal"] [data-label-position="start"] {
+  width: fit-content;
+}

@@ -1,0 +1,133 @@
+version: "3"
+
+volumes:
+  database-data:
+  redis-data:
+  clickhouse:
+
+networks:
+  app_network:
+    external: false
+
+services:
+  db:
+    container_name: db-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    restart: always
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    networks:
+      - app_network
+    ports:
+      - 5432:5432
+    command:
+      - -c
+      - listen_addresses=*
+      - -c
+      - wal_level=logical
+      - -c
+      - shared_preload_libraries=pg_partman_bgw
+
+  electric:
+    container_name: electric-dev
+    image: electricsql/electric:1.2.4@sha256:20da3d0b0e74926c5623392db67fd56698b9e374c4aeb6cb5cadeb8fea171c36
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
+    networks:
+      - app_network
+    ports:
+      - "3060:3000"
+    depends_on:
+      - db
+
+  clickhouse:
+    image: bitnamilegacy/clickhouse:latest
+    container_name: clickhouse-dev
+    environment:
+      CLICKHOUSE_ADMIN_USER: default
+      CLICKHOUSE_ADMIN_PASSWORD: password
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse:/bitnami/clickhouse
+    networks:
+      - app_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "clickhouse-client",
+          "--host",
+          "localhost",
+          "--port",
+          "9000",
+          "--user",
+          "default",
+          "--password",
+          "password",
+          "--query",
+          "SELECT 1",
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    container_name: redis-dev
+    image: redis:7
+    restart: always
+    volumes:
+      - redis-data:/data
+    networks:
+      - app_network
+    ports:
+      - 6379:6379
+
+  app:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - 3030:3030
+    depends_on:
+      - db
+      - electric
+      - clickhouse
+      - redis
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres?schema=public
+      DIRECT_URL: postgres://postgres:postgres@db:5432/postgres?schema=public
+      CLICKHOUSE_URL: http://default:password@clickhouse:8123
+      SESSION_SECRET: secret123
+      MAGIC_LINK_SECRET: secret123
+      ENCRYPTION_KEY: dummy-encryption-keeeey-32-bytes
+      REMIX_APP_PORT: 3030
+      PORT: 3030
+    networks:
+      - app_network
+
+  ch-ui:
+    image: ghcr.io/caioricciuti/ch-ui:latest
+    container_name: ch-ui-dev
+    restart: always
+    ports:
+      - "5521:5521"
+    environment:
+      VITE_CLICKHOUSE_URL: "http://clickhouse:8123"
+      VITE_CLICKHOUSE_USER: "default"
+      VITE_CLICKHOUSE_PASS: "password"
+    depends_on:
+      - clickhouse
+    networks:
+      - app_network

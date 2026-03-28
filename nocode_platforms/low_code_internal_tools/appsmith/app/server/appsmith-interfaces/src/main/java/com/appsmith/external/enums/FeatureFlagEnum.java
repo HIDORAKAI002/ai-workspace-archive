@@ -1,0 +1,51 @@
+package com.appsmith.external.enums;
+
+public enum FeatureFlagEnum {
+    // ------------------- These features are only for JUnit testing. DO NOT use these features in your code path.--- //
+    // ------------------- Couldn't find a better way to do this ---------------------------------------------------- //
+    TEST_FEATURE_1,
+    TEST_FEATURE_2,
+    TEST_FEATURE_3,
+    ORGANIZATION_TEST_FEATURE,
+    // ------------------- End of features for testing -------------------------------------------------------------- //
+
+    // ------------------- These are actual feature flags meant to be used across the product ----------------------- //
+    release_datasource_environments_enabled,
+    APP_NAVIGATION_LOGO_UPLOAD,
+    release_embed_hide_share_settings_enabled,
+    rollout_datasource_test_rate_limit_enabled,
+    release_gs_all_sheets_options_enabled,
+    configure_block_event_tracking_for_anonymous_users,
+    /**
+     * Feature flag to detect if the git reset optimization is enabled
+     */
+    release_git_reset_optimization_enabled,
+    /**
+     * Feature flag to detect if the RTS git reset is enabled
+     */
+    ab_rts_git_reset_enabled,
+    release_git_api_contracts_enabled,
+
+    // Deprecated CE flags over here
+    release_git_autocommit_feature_enabled,
+    release_git_autocommit_eligibility_enabled,
+    release_dynamodb_connection_time_to_live_enabled,
+    release_reactive_actions_enabled,
+    /**
+     * Enables static and human-readable URLs for applications and pages. When enabled, Appsmith apps use
+     * predictable, unique slugs for app and page routes instead of dynamic URLs,
+     * improving usability, cross-instance navigation, and compatibility with Git.
+     */
+    license_static_url_enabled,
+    /**
+     * Though this flag is not used, however this has been retained in order to protect
+     * organization migration failures during start-up due to missing flag.
+     */
+    release_static_url_enabled,
+    /**
+     * Feature flag to enable alphabetical ordering for workspaces and applications
+     */
+    release_alphabetical_ordering_enabled,
+
+    // Add EE flags below this line, to avoid conflicts.
+}

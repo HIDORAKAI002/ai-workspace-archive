@@ -1,0 +1,69 @@
+{
+  "nodes": [
+    {
+      "id": "promptTemplate_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "promptTemplate_0",
+        "label": "E2E Test Prompt",
+        "name": "promptTemplate",
+        "type": "PromptTemplate",
+        "category": "Prompts",
+        "inputs": {
+          "template": "Answer the following question: {question}",
+          "promptValues": "{\"question\":\"What is the capital of France?\"}"
+        }
+      }
+    },
+    {
+      "id": "chatOpenAI_0", 
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_0",
+        "label": "E2E Test LLM",
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "category": "Chat Models",
+        "inputs": {
+          "modelName": "gpt-3.5-turbo",
+          "temperature": 0.7,
+          "maxTokens": 100
+        }
+      }
+    },
+    {
+      "id": "llmChain_0",
+      "position": { "x": 700, "y": 100 },
+      "type": "customNode", 
+      "data": {
+        "id": "llmChain_0",
+        "label": "E2E Test Chain",
+        "name": "llmChain",
+        "type": "LLMChain",
+        "category": "Chains",
+        "inputs": {
+          "chainName": "E2E Test Chain"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "promptTemplate_0",
+      "target": "llmChain_0",
+      "id": "promptTemplate_0-llmChain_0"
+    },
+    {
+      "source": "chatOpenAI_0",
+      "target": "llmChain_0", 
+      "id": "chatOpenAI_0-llmChain_0"
+    }
+  ],
+  "chatflow": {
+    "id": "e2e-test-basic",
+    "name": "E2E Test Basic LLM Chain",
+    "description": "Simple test flow for E2E testing"
+  }
+}

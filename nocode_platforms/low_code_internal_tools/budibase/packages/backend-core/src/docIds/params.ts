@@ -1,0 +1,187 @@
+import { DatabaseQueryOpts } from "@budibase/types"
+import {
+  DocumentType,
+  InternalTable,
+  SEPARATOR,
+  UNICODE_MAX,
+  ViewName,
+} from "../constants"
+import { getProdWorkspaceID } from "./conversions"
+
+/**
+ * If creating DB allDocs/query params with only a single top level ID this can be used, this
+ * is usually the case as most of our docs are top level e.g. tables, automations, users and so on.
+ * More complex cases such as link docs and rows which have multiple levels of IDs that their
+ * ID consists of need their own functions to build the allDocs parameters.
+ * @param docType The type of document which input params are being built for, e.g. user,
+ * link, app, table and so on.
+ * @param docId The ID of the document minus its type - this is only needed if looking
+ * for a singular document.
+ * @param otherProps Add any other properties onto the request, e.g. include_docs.
+ * @returns Parameters which can then be used with an allDocs request.
+ */
+export function getDocParams(
+  docType: string,
+  docId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+): DatabaseQueryOpts {
+  if (docId == null) {
+    docId = ""
+  }
+  const startkey = `${docType}${SEPARATOR}${docId}`
+  const endkey = `${docType}${SEPARATOR}${docId}${UNICODE_MAX}`
+  return {
+    startkey,
+    endkey,
+    ...otherProps,
+  }
+}
+
+/**
+ * Gets the DB allDocs/query params for retrieving a row.
+ * @param tableId The table in which the rows have been stored.
+ * @param rowId The ID of the row which is being specifically queried for. This can be
+ * left null to get all the rows in the table.
+ * @param otherProps Any other properties to add to the request.
+ * @returns Parameters which can then be used with an allDocs request.
+ */
+export function getRowParams(
+  tableId?: string | null,
+  rowId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+): DatabaseQueryOpts {
+  if (tableId == null) {
+    return getDocParams(DocumentType.ROW, null, otherProps)
+  }
+
+  const endOfKey = rowId == null ? `${tableId}${SEPARATOR}` : rowId
+
+  return getDocParams(DocumentType.ROW, endOfKey, otherProps)
+}
+
+/**
+ * Retrieve the correct index for a view based on default design DB.
+ */
+export function getQueryIndex(viewName: ViewName) {
+  return `database/${viewName}`
+}
+
+/**
+ * Gets parameters for retrieving users.
+ */
+export function getGlobalUserParams(
+  globalId: any,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+): DatabaseQueryOpts {
+  if (!globalId) {
+    globalId = ""
+  }
+  const startkey = otherProps?.startkey
+  return {
+    ...otherProps,
+    // need to include this incase pagination
+    startkey: startkey
+      ? startkey
+      : `${DocumentType.USER}${SEPARATOR}${globalId}`,
+    endkey: `${DocumentType.USER}${SEPARATOR}${globalId}${UNICODE_MAX}`,
+  }
+}
+
+/**
+ * Gets parameters for retrieving users, this is a utility function for the getDocParams function.
+ */
+export function getUserMetadataParams(
+  userId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+): DatabaseQueryOpts {
+  return getRowParams(InternalTable.USER_METADATA, userId, otherProps)
+}
+
+export function getUsersByWorkspaceParams(
+  workspaceId: string,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+): DatabaseQueryOpts {
+  const prodWorkspaceId = getProdWorkspaceID(workspaceId)
+  return {
+    ...otherProps,
+    startkey: prodWorkspaceId,
+    endkey: `${prodWorkspaceId}${UNICODE_MAX}`,
+  }
+}
+
+/**
+ * Gets parameters for retrieving templates. Owner ID must be specified, either global or a workspace level.
+ */
+export function getTemplateParams(
+  ownerId: any,
+  templateId: any,
+  otherProps = {}
+) {
+  if (!templateId) {
+    templateId = ""
+  }
+  let final
+  if (templateId) {
+    final = templateId
+  } else {
+    final = `${DocumentType.TEMPLATE}${SEPARATOR}${ownerId}${SEPARATOR}`
+  }
+  return {
+    ...otherProps,
+    startkey: final,
+    endkey: `${final}${UNICODE_MAX}`,
+  }
+}
+
+/**
+ * Gets parameters for retrieving a role, this is a utility function for the getDocParams function.
+ */
+export function getRoleParams(roleId?: string | null, otherProps = {}) {
+  return getDocParams(DocumentType.ROLE, roleId, otherProps)
+}
+
+export function getStartEndKeyURL(baseKey: any, tenantId?: string) {
+  const tenancy = tenantId ? `${SEPARATOR}${tenantId}` : ""
+  return `startkey="${baseKey}${tenancy}"&endkey="${baseKey}${tenancy}${UNICODE_MAX}"`
+}
+
+/**
+ * Gets parameters for retrieving automations, this is a utility function for the getDocParams function.
+ */
+export const getPluginParams = (pluginId?: string | null, otherProps = {}) => {
+  return getDocParams(DocumentType.PLUGIN, pluginId, otherProps)
+}
+
+/**
+ * Gets parameters for retrieving OAuth2 configs, this is a utility function for the getDocParams function.
+ */
+export const getOAuth2ConfigParams = (
+  configId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+) => {
+  return getDocParams(DocumentType.OAUTH2_CONFIG, configId, otherProps)
+}
+
+/**
+ * Gets parameters for retrieving project apps, this is a utility function for the getDocParams function.
+ */
+export const getWorkspaceAppParams = (
+  workspaceAppId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+) => {
+  return getDocParams(DocumentType.WORKSPACE_APP, workspaceAppId, otherProps)
+}
+
+/**
+ * Gets parameters for retrieving workspace favourites, this is a utility function for the getDocParams function.
+ */
+export const getWorkspaceFavouriteParams = (
+  workspaceFavouriteId?: string | null,
+  otherProps: Partial<DatabaseQueryOpts> = {}
+) => {
+  return getDocParams(
+    DocumentType.WORKSPACE_FAVOURITE,
+    workspaceFavouriteId,
+    otherProps
+  )
+}

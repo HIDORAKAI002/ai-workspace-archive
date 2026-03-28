@@ -1,0 +1,16 @@
+[package]
+name = "windmill-api-client"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[lib]
+name = "windmill_api_client"
+path = "./src/lib.rs"
+
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json.workspace = true
+urlencoding = "2"

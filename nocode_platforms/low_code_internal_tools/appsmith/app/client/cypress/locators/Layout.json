@@ -1,0 +1,13 @@
+{
+  "tabWidget": ".t--draggable-tabswidget",
+  "tabInput": ".t--draggable-tabswidget span.t--widget-name",
+  "tabName": ".t--property-control-tabs  input",
+  "tabDefault": ".t--property-control-defaulttab .CodeMirror-code",
+  "tabButton": ".t--property-control-tabs  button",
+  "tabDelete": ".t--property-control-tabs .t--delete-column-btn",
+  "tabContainer": ".t--widget-tabswidget",
+  "tabEdit": "//input[@value ='tabName']//parent::div//parent::div//parent::div//parent::div//following-sibling::div//button[contains(@class,'t--edit-column-btn')]",
+  "tabVisibility": ".t--property-control-visible .ads-v2-switch",
+  "tabNumber": ".t--number-of-tabs",
+  "deleteTab": "//input[@value ='tabName']//parent::div//parent::div//parent::div//parent::div//following-sibling::div//button[contains(@class,'t--delete-column-btn')]"
+}

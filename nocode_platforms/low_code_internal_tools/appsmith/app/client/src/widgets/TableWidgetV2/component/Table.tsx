@@ -1,0 +1,362 @@
+import { Classes } from "@blueprintjs/core";
+import { Classes as PopOver2Classes } from "@blueprintjs/popover2";
+import { Colors } from "constants/Colors";
+import { CONNECT_BUTTON_TEXT, createMessage } from "ee/constants/messages";
+import fastdom from "fastdom";
+import { reduce } from "lodash";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import type { Row as ReactTableRowType } from "react-table";
+import {
+  useBlockLayout,
+  usePagination,
+  useResizeColumns,
+  useRowSelect,
+  useTable,
+} from "react-table";
+import { useSticky } from "react-table-sticky";
+import type SimpleBar from "simplebar-react";
+import "simplebar-react/dist/simplebar.min.css";
+import { createGlobalStyle } from "styled-components";
+import { ConnectDataOverlay } from "widgets/ConnectDataOverlay";
+import { ColumnTypes } from "../constants";
+import { TABLE_CONNECT_OVERLAY_TEXT } from "../constants/messages";
+import type { ReactTableColumnProps, StickyType } from "./Constants";
+import { CompactModeTypes, TABLE_SIZES } from "./Constants";
+import TableHeader from "./header";
+import StaticTable from "./StaticTable";
+import { TableProvider } from "./TableContext";
+import { TableWrapper } from "./TableStyledWrappers";
+import type { TableProps } from "./types";
+import VirtualTable from "./VirtualTable";
+
+const HEADER_MENU_PORTAL_CLASS = ".header-menu-portal";
+
+const PopoverStyles = createGlobalStyle<{
+  widgetId: string;
+  borderRadius: string;
+}>`
+  ${HEADER_MENU_PORTAL_CLASS}-${({ widgetId }) => widgetId} {
+    font-family: var(--wds-font-family) !important;
+
+    & .${PopOver2Classes.POPOVER2},
+    .${PopOver2Classes.POPOVER2_CONTENT},
+    .bp3-menu {
+      border-radius: ${({ borderRadius }) =>
+        borderRadius >= `1.5rem` ? `0.375rem` : borderRadius} !important;
+    }
+  }
+`;
+
+const defaultColumn = {
+  minWidth: 30,
+  width: 150,
+};
+
+export interface HeaderComponentProps {
+  enableDrag: () => void;
+  disableDrag: () => void;
+  multiRowSelection?: boolean;
+  handleAllRowSelectClick: (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) => void;
+  handleReorderColumn: (columnOrder: string[]) => void;
+  columnOrder?: string[];
+  accentColor: string;
+  borderRadius: string;
+  // TODO: Fix this the next time the file is edited
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  headerGroups: any;
+  canFreezeColumn?: boolean;
+  editMode: boolean;
+  handleColumnFreeze?: (columnName: string, sticky?: StickyType) => void;
+  isResizingColumn: React.MutableRefObject<boolean>;
+  isSortable?: boolean;
+  sortTableColumn: (columnIndex: number, asc: boolean) => void;
+  columns: ReactTableColumnProps[];
+  width: number;
+  subPage: ReactTableRowType<Record<string, unknown>>[];
+  // TODO: Fix this the next time the file is edited
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prepareRow: any;
+  headerWidth?: number;
+  rowSelectionState: 0 | 1 | 2 | null;
+  widgetId: string;
+}
+
+// TODO: Fix this the next time the file is edited
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const emptyArr: any = [];
+
+export function Table(props: TableProps) {
+  const isResizingColumn = React.useRef(false);
+  const handleResizeColumn = (columnWidths: Record<string, number>) => {
+    const columnWidthMap = {
+      ...props.columnWidthMap,
+      ...columnWidths,
+    };
+
+    for (const i in columnWidthMap) {
+      if (columnWidthMap[i] < 60) {
+        columnWidthMap[i] = 60;
+      } else if (columnWidthMap[i] === undefined) {
+        const columnCounts = props.columns.filter(
+          (column) => !column.isHidden,
+        ).length;
+
+        columnWidthMap[i] = props.width / columnCounts;
+      }
+    }
+
+    props.handleResizeColumn(columnWidthMap);
+  };
+  const {
+    columns,
+    data,
+    multiRowSelection,
+    showConnectDataOverlay,
+    toggleAllRowSelect,
+  } = props;
+
+  const pageCount = useMemo(
+    () =>
+      props.serverSidePaginationEnabled && props.totalRecordsCount
+        ? Math.ceil(props.totalRecordsCount / props.pageSize)
+        : Math.ceil(props.data.length / props.pageSize),
+    [
+      props.serverSidePaginationEnabled,
+      props.totalRecordsCount,
+      props.pageSize,
+      props.data.length,
+    ],
+  );
+
+  const currentPageIndex = useMemo(
+    () => (props.pageNo < pageCount ? props.pageNo : 0),
+    [props.pageNo, pageCount],
+  );
+
+  const {
+    getTableBodyProps,
+    getTableProps,
+    headerGroups,
+    page,
+    pageOptions,
+    prepareRow,
+    state,
+    totalColumnsWidth,
+  } = useTable(
+    {
+      //columns and data needs to be memoised as per useTable specs
+      columns,
+      data,
+      defaultColumn,
+      initialState: {
+        pageIndex: currentPageIndex,
+        pageSize: props.pageSize,
+      },
+      manualPagination: true,
+      pageCount,
+    },
+    useBlockLayout,
+    useResizeColumns,
+    usePagination,
+    useRowSelect,
+    useSticky,
+  );
+
+  //Set isResizingColumn as true when column is resizing using table state
+  if (state.columnResizing.isResizingColumn) {
+    isResizingColumn.current = true;
+  } else {
+    // We are updating column size since the drag is complete when we are changing value of isResizing from true to false
+    if (isResizingColumn.current) {
+      //clear timeout logic
+      //update isResizingColumn in next event loop so that dragEnd event does not trigger click event.
+      setTimeout(function () {
+        isResizingColumn.current = false;
+        handleResizeColumn(state.columnResizing.columnWidths);
+      }, 0);
+    }
+  }
+
+  let startIndex = currentPageIndex * props.pageSize;
+  let endIndex = startIndex + props.pageSize;
+
+  if (props.serverSidePaginationEnabled) {
+    startIndex = 0;
+    endIndex = props.data.length;
+  }
+
+  const subPage = useMemo(
+    () => page.slice(startIndex, endIndex),
+    [page, startIndex, endIndex],
+  );
+  const selectedRowIndices = props.selectedRowIndices || emptyArr;
+  const tableSizes = TABLE_SIZES[props.compactMode || CompactModeTypes.DEFAULT];
+  const tableWrapperRef = useRef<HTMLDivElement | null>(null);
+  const scrollBarRef = useRef<SimpleBar | null>(null);
+  const rowSelectionState = React.useMemo(() => {
+    // return : 0; no row selected | 1; all row selected | 2: some rows selected
+    if (!multiRowSelection) return null;
+
+    const selectedRowCount = reduce(
+      page,
+      (count, row) => {
+        return selectedRowIndices.includes(row.index) ? count + 1 : count;
+      },
+      0,
+    );
+    const result =
+      selectedRowCount === 0 ? 0 : selectedRowCount === page.length ? 1 : 2;
+
+    return result;
+  }, [multiRowSelection, page, selectedRowIndices]);
+
+  const handleAllRowSelectClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      // if all / some rows are selected we remove selection on click
+      // else select all rows
+      toggleAllRowSelect(!Boolean(rowSelectionState), page);
+      // loop over subPage rows and toggleRowSelected if required
+      e.stopPropagation();
+    },
+    [page, rowSelectionState, toggleAllRowSelect],
+  );
+  const isHeaderVisible = useMemo(
+    () =>
+      props.isVisibleSearch ||
+      props.isVisibleFilters ||
+      props.isVisibleDownload ||
+      props.isVisiblePagination ||
+      props.allowAddNewRow,
+    [
+      props.isVisibleSearch,
+      props.isVisibleFilters,
+      props.isVisibleDownload,
+      props.isVisiblePagination,
+      props.allowAddNewRow,
+    ],
+  );
+
+  /**
+   * What this really translates is to fixed height rows:
+   * shouldUseVirtual: false -> fixed height row, irrespective of content small or big
+   * shouldUseVirtual: true -> height adjusts acc to content
+   * Right now all HTML content is dynamic height in nature hence
+   * for server paginated tables it needs this extra handling.
+   */
+  //TODO: REMOVE THIS
+  const shouldUseVirtual = useMemo(
+    () =>
+      props.isInfiniteScrollEnabled ||
+      (props.serverSidePaginationEnabled &&
+        !props.columns.some(
+          (column) =>
+            !!column.columnProperties.allowCellWrapping ||
+            column.metaProperties?.type === ColumnTypes.HTML,
+        )),
+    [
+      props.isInfiniteScrollEnabled,
+      props.serverSidePaginationEnabled,
+      props.columns,
+    ],
+  );
+
+  useEffect(() => {
+    if (props.isAddRowInProgress) {
+      fastdom.mutate(() => {
+        if (scrollBarRef && scrollBarRef?.current) {
+          scrollBarRef.current.getScrollElement().scrollTop = 0;
+        }
+      });
+    }
+  }, [props.isAddRowInProgress]);
+
+  const shouldShowSkeleton = useMemo(() => {
+    // Case 1: Loading without infinite scroll
+    if (props.isLoading && !props.isInfiniteScrollEnabled) {
+      return true;
+    }
+
+    // Case 2: Loading with infinite scroll but no data in table yet
+    if (props.isLoading && props.isInfiniteScrollEnabled && !subPage.length) {
+      return true;
+    }
+
+    // Otherwise, don't show skeleton
+    return false;
+  }, [props.isLoading, props.isInfiniteScrollEnabled, subPage.length]);
+
+  const getTableWrapClassName = useMemo(() => {
+    if (shouldShowSkeleton) {
+      return Classes.SKELETON;
+    }
+
+    return shouldUseVirtual ? "tableWrap virtual" : "tableWrap";
+  }, [shouldShowSkeleton, shouldUseVirtual]);
+
+  return (
+    <TableProvider
+      currentPageIndex={currentPageIndex}
+      getTableBodyProps={getTableBodyProps}
+      handleAllRowSelectClick={handleAllRowSelectClick}
+      headerGroups={headerGroups}
+      isHeaderVisible={isHeaderVisible}
+      isResizingColumn={isResizingColumn}
+      pageCount={pageCount}
+      pageOptions={pageOptions}
+      prepareRow={prepareRow}
+      rowSelectionState={rowSelectionState}
+      subPage={subPage}
+      totalColumnsWidth={totalColumnsWidth}
+      {...props}
+    >
+      {showConnectDataOverlay && (
+        <ConnectDataOverlay
+          btnText={createMessage(CONNECT_BUTTON_TEXT)}
+          message={createMessage(TABLE_CONNECT_OVERLAY_TEXT)}
+          onConnectData={props.onConnectData}
+        />
+      )}
+      <TableWrapper
+        accentColor={props.accentColor}
+        backgroundColor={Colors.ATHENS_GRAY_DARKER}
+        borderColor={props.borderColor}
+        borderRadius={props.borderRadius}
+        borderWidth={props.borderWidth}
+        boxShadow={props.boxShadow}
+        evenRowColor={props.evenRowColor}
+        headerRowColor={props.headerRowColor}
+        headerTextColor={props.headerTextColor}
+        height={props.height}
+        id={`table${props.widgetId}`}
+        isAddRowInProgress={props.isAddRowInProgress}
+        isHeaderVisible={isHeaderVisible}
+        isResizingColumn={isResizingColumn.current}
+        multiRowSelection={props.multiRowSelection}
+        oddRowColor={props.oddRowColor}
+        tableSizes={tableSizes}
+        triggerRowSelection={props.triggerRowSelection}
+        variant={props.variant}
+        width={props.width}
+      >
+        <PopoverStyles
+          borderRadius={props.borderRadius}
+          widgetId={props.widgetId}
+        />
+        {isHeaderVisible && <TableHeader />}
+        <div className={getTableWrapClassName} ref={tableWrapperRef}>
+          <div {...getTableProps()} className="table column-freeze">
+            {shouldUseVirtual ? (
+              <VirtualTable ref={scrollBarRef} />
+            ) : (
+              <StaticTable />
+            )}
+          </div>
+        </div>
+      </TableWrapper>
+    </TableProvider>
+  );
+}
+
+export default Table;

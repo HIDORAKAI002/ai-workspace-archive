@@ -1,0 +1,1160 @@
+table: directus_settings
+
+fields:
+  - field: id
+    hidden: true
+
+  - field: project_name
+    interface: input
+    options:
+      iconRight: title
+      placeholder: $t:field_options.directus_settings.project_name_placeholder
+    width: half
+
+  - field: project_descriptor
+    interface: input
+    options:
+      iconRight: title
+      placeholder: $t:field_options.directus_settings.project_name_placeholder
+    width: half
+
+  - field: project_url
+    interface: input
+    options:
+      iconRight: link
+      placeholder: https://example.com
+    width: half
+
+  - field: default_language
+    interface: system-language
+    options:
+      iconRight: language
+      placeholder: en-US
+    width: half
+
+  - field: project_owner
+    interface: system-owner
+    width: half
+
+  - field: project_usage
+    hidden: true
+
+  - field: org_name
+    hidden: true
+
+  - field: product_updates
+    hidden: true
+    special:
+      - cast-boolean
+
+  - field: project_status
+    hidden: true
+
+  - field: modules_divider
+    interface: presentation-divider
+    options:
+      icon: menu_open
+      title: $t:modules
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: module_bar
+    interface: system-modules
+    special:
+      - cast-json
+
+  - field: visual_editor_divider
+    interface: presentation-divider
+    options:
+      icon: edit_square
+      title: $t:visual_editor
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: visual_editor_urls
+    interface: list
+    special:
+      - cast-json
+    options:
+      template: '{{url}}'
+      fields:
+        - field: url
+          name: $t:url
+          schema:
+            is_nullable: false
+          meta:
+            interface: system-display-template
+            required: true
+            options:
+              placeholder: https://example.com/?version={{$version}}
+              fields:
+                - field: $version
+                  name: $t:version
+                  collection: ''
+                  key: $version
+                  path: $version
+                  type: string
+
+  - field: security_divider
+    interface: presentation-divider
+    options:
+      icon: shield
+      title: $t:security
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: auth_password_policy
+    interface: select-dropdown
+    options:
+      choices:
+        - value: null
+          text: $t:field_options.directus_settings.auth_password_policy.none_text
+        - value: '/^.{8,}$/'
+          text: $t:field_options.directus_settings.auth_password_policy.weak_text
+        - value: "/(?=^.{8,}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{';'?>.<,])(?!.*\\s).*$/"
+          text: $t:field_options.directus_settings.auth_password_policy.strong_text
+      allowOther: true
+    width: half
+
+  - field: auth_login_attempts
+    interface: input
+    options:
+      iconRight: lock
+      placeholder: $t:unlimited
+    width: half
+
+  - field: public_registration_divider
+    interface: presentation-divider
+    options:
+      icon: person_add
+      title: $t:fields.directus_settings.public_registration
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: public_registration
+    interface: boolean
+    note: $t:fields.directus_settings.public_registration_note
+    width: half
+    options:
+      label: $t:enabled
+    special:
+      - cast-boolean
+
+  - field: public_registration_role
+    interface: select-dropdown-m2o
+    note: $t:fields.directus_settings.public_registration_role_note
+    options:
+      template: '{{ name }}'
+    special:
+      - m2o
+    width: half
+    display: related-values
+    display_options:
+      template: '{{ name }}'
+
+  - field: public_registration_verify_email
+    interface: boolean
+    note: $t:fields.directus_settings.public_registration_verify_email_note
+    width: half
+    options:
+      label: $t:enabled
+    special:
+      - cast-boolean
+
+  - field: public_registration_email_filter
+    interface: system-filter
+    note: $t:fields.directus_settings.public_registration_email_filter_note
+    options:
+      collectionName: directus_users
+      collectionField: email
+      fieldName: email
+    special:
+      - cast-json
+    width: half
+
+  - field: files_divider
+    interface: presentation-divider
+    options:
+      icon: folder
+      title: $t:fields.directus_settings.files_and_thumbnails
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: storage_asset_transform
+    interface: select-dropdown
+    options:
+      choices:
+        - value: all
+          text: $t:fields.directus_settings.transformations_all
+        - value: none
+          text: $t:fields.directus_settings.transformations_none
+        - value: presets
+          text: $t:fields.directus_settings.transformations_presets
+    width: half
+
+  - field: storage_default_folder
+    interface: system-folder
+    width: half
+    note: $t:interfaces.system-folder.field_hint
+
+  - field: storage_asset_presets
+    interface: list
+    options:
+      fields:
+        - field: key
+          name: $t:key
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            options:
+              slug: true
+              onlyOnCreate: false
+            width: full
+            required: true
+        - field: fit
+          name: $t:field_options.directus_settings.storage_asset_presets.fit_label
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: select-dropdown
+            options:
+              choices:
+                - value: contain
+                  text: $t:field_options.directus_settings.storage_asset_presets.fit.contain_text
+                - value: cover
+                  text: $t:field_options.directus_settings.storage_asset_presets.fit.cover_text
+                - value: inside
+                  text: $t:field_options.directus_settings.storage_asset_presets.fit.fit_text
+                - value: outside
+                  text: $t:field_options.directus_settings.storage_asset_presets.fit.outside_text
+            width: half
+        - field: width
+          name: $t:width
+          type: integer
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            width: half
+        - field: height
+          name: $t:height
+          type: integer
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            width: half
+        - field: quality
+          type: integer
+          name: $t:quality
+          schema:
+            default_value: 80
+            is_nullable: false
+          meta:
+            interface: slider
+            options:
+              max: 100
+              min: 0
+              step: 1
+            width: half
+        - field: withoutEnlargement
+          name: $t:field_options.directus_settings.storage_asset_presets.upscaling
+          type: boolean
+          schema:
+            default_value: false
+          meta:
+            interface: boolean
+            width: half
+            options:
+              label: $t:no_upscale
+        - field: format
+          name: $t:format
+          type: string
+          schema:
+            is_nullable: false
+            default_value: ''
+          meta:
+            interface: select-dropdown
+            options:
+              allowNone: true
+              choices:
+                - value: 'auto'
+                  text: 'Auto'
+                - value: jpeg
+                  text: JPEG
+                - value: png
+                  text: PNG
+                - value: webp
+                  text: WebP
+                - value: tiff
+                  text: Tiff
+                - value: avif
+                  text: AVIF
+            width: half
+        - field: transforms
+          name: $t:field_options.directus_settings.additional_transforms
+          type: json
+          schema:
+            is_nullable: false
+            default_value: []
+          meta:
+            note: $t:field_options.directus_settings.transforms_note
+
+            interface: json
+            options:
+              template: >
+                [
+                  ["blur", 45],
+                  ["grayscale"],
+                  ["extend", { "right": 500, "background": "rgb(255, 0, 0)" }]
+                ]
+              placeholder: >
+                [
+                  ["blur", 45],
+                  ["grayscale"],
+                  ["extend", { "right": 500, "background": "rgb(255, 0, 0)" }]
+                ]
+            width: full
+      template: '{{key}}'
+    special:
+      - cast-json
+    width: full
+
+  - field: reporting_divider
+    interface: presentation-divider
+    options:
+      icon: feedback
+      title: $t:fields.directus_settings.reporting
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: report_feature_url
+    interface: input
+    options:
+      iconRight: link
+      placeholder: https://example.com/feature
+    width: half
+
+  - field: report_bug_url
+    interface: input
+    options:
+      iconRight: link
+      placeholder: https://example.com/bug
+    width: half
+
+  - field: report_error_url
+    interface: system-display-template
+    options:
+      placeholder: https://example.com/error
+      fields:
+        - name: Error
+          field: error
+          key: error
+          path: error
+          children:
+            - name: Name
+              field: name
+              key: error.name
+              path: error.name
+            - name: Message
+              field: message
+              key: error.message
+              path: error.message
+        - name: Navigator
+          field: navigator
+          key: navigator
+          path: navigator
+          children:
+            - name: Language
+              field: language
+              key: navigator.language
+              path: navigator.language
+            - name: User Agent
+              field: userAgent
+              key: navigator.userAgent
+              path: navigator.userAgent
+        - name: Route
+          field: route
+          key: route
+          path: route
+          children:
+            - name: Full Path
+              field: fullPath
+              key: route.fullPath
+              path: route.fullPath
+            - name: Hash
+              field: hash
+              key: route.hash
+              path: route.hash
+            - name: Name
+              field: name
+              key: route.name
+              path: route.name
+            - name: Path
+              field: path
+              key: route.path
+              path: route.path
+            - name: Query
+              field: query
+              key: route.query
+              path: route.query
+        - name: User
+          field: user
+          key: user
+          path: user
+          children:
+            - name: ID
+              field: id
+              key: user.id
+              path: user.id
+            - name: First Name
+              field: first_name
+              key: user.first_name
+              path: user.first_name
+            - name: Last Name
+              field: last_name
+              key: user.last_name
+              path: user.last_name
+            - name: Status
+              field: status
+              key: user.status
+              path: user.status
+            - name: Title
+              field: title
+              key: user.title
+              path: user.title
+            - name: Description
+              field: description
+              key: user.description
+              path: user.description
+            - name: Location
+              field: location
+              key: user.location
+              path: user.location
+        - name: Role
+          field: role
+          key: role
+          path: role
+          children:
+            - name: ID
+              field: id
+              key: role.id
+              path: role.id
+            - name: Name
+              field: name
+              key: role.name
+              path: role.name
+    width: full
+
+  - field: collaborative_editing_divider
+    interface: presentation-divider
+    options:
+      icon: podcasts
+      title: $t:fields.directus_settings.collaborative_editing
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: collaborative_editing_enabled
+    interface: boolean
+    width: half
+    note: $t:fields.directus_settings.collaborative_editing_note
+    options:
+      label: $t:enabled
+    special:
+      - cast-boolean
+
+  - field: map_divider
+    interface: presentation-divider
+    options:
+      icon: map
+      title: $t:fields.directus_settings.mapping
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: mapbox_key
+    interface: input
+    options:
+      icon: key
+      title: $t:field_options.directus_settings.mapbox_key
+      placeholder: $t:field_options.directus_settings.mapbox_placeholder
+      iconLeft: vpn_key
+      font: monospace
+    width: full
+
+  - field: basemaps
+    interface: list
+    special:
+      - cast-json
+    options:
+      template: '{{name}}'
+      fields:
+        - field: name
+          name: $t:name
+          schema:
+            is_nullable: false
+          meta:
+            interface: text-input
+            required: true
+            options:
+              placeholder: $t:field_options.directus_settings.basemaps_name_placeholder
+        - field: type
+          name: $t:type
+          meta:
+            interface: select-dropdown
+            options:
+              choices:
+                - value: raster
+                  text: $t:field_options.directus_settings.basemaps_raster
+                - value: tile
+                  text: $t:field_options.directus_settings.basemaps_tile
+                - value: style
+                  text: $t:field_options.directus_settings.basemaps_style
+        - field: url
+          name: $t:url
+          schema:
+            is_nullable: false
+          meta:
+            interface: text-input
+            options:
+              placeholder: http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png
+        - field: tileSize
+          name: $t:tile_size
+          type: integer
+          schema:
+            is_nullable: true
+          meta:
+            interface: input
+            options:
+              placeholder: '512'
+            conditions:
+              - name: typeNeqRaster
+                rule:
+                  type:
+                    _neq: 'raster'
+                hidden: true
+        - field: attribution
+          name: $t:fields.directus_settings.attribution
+          type: string
+          schema:
+            is_nullable: true
+          meta:
+            interface: input
+            options:
+              placeholder: $t:fields.directus_settings.attribution_placeholder
+
+  - field: image_editor
+    interface: presentation-divider
+    options:
+      icon: image
+      title: $t:fields.directus_settings.image_editor
+    special:
+      - alias
+      - no-data
+    width: full
+
+  - field: custom_aspect_ratios
+    interface: list
+    special:
+      - cast-json
+    options:
+      template: '{{text}}'
+      fields:
+        - field: text
+          name: $t:text
+          type: string
+          meta:
+            interface: text-input
+            width: half
+            required: true
+            options:
+              placeholder: $t:text
+        - field: value
+          name: $t:value
+          type: float
+          meta:
+            interface: input
+            width: half
+            required: true
+            options:
+              placeholder: $t:value
+
+  - field: project_id
+    hidden: true
+
+  ### Appearance Settings ###
+  # The theming_group is rendered on the Appearance page in the app
+
+  - field: theming_group
+    interface: group-raw
+    special:
+      - alias
+      - no-data
+      - group
+
+  - field: branding_divider
+    interface: presentation-divider
+    options:
+      icon: palette
+      title: $t:fields.directus_settings.branding
+    special:
+      - alias
+      - no-data
+    width: full
+    group: theming_group
+
+  - field: project_color
+    interface: select-color
+    note: $t:field_options.directus_settings.project_color_note
+    width: half
+    group: theming_group
+
+  - field: project_logo
+    interface: file
+    note: $t:field_options.directus_settings.project_logo_note
+    width: half
+    group: theming_group
+
+  - field: public_foreground
+    interface: file
+    width: half
+    group: theming_group
+
+  - field: public_background
+    interface: file
+    width: half
+    group: theming_group
+
+  - field: public_favicon
+    interface: file
+    note: $t:field_options.directus_settings.project_favicon_note
+    width: half
+    group: theming_group
+
+  - field: public_note
+    interface: input
+    options:
+      placeholder: $t:field_options.directus_settings.public_note_placeholder
+      iconRight: info
+    width: half
+    group: theming_group
+
+  - field: theming_divider
+    interface: presentation-divider
+    options:
+      icon: palette
+      title: $t:fields.directus_settings.theming
+    special:
+      - alias
+      - no-data
+    width: full
+    group: theming_group
+
+  - field: default_appearance
+    interface: select-dropdown
+    width: half
+    options:
+      choices:
+        - value: auto
+          text: $t:appearance_auto
+        - value: light
+          text: $t:appearance_light
+        - value: dark
+          text: $t:appearance_dark
+    group: theming_group
+
+  - field: default_theme_light
+    width: full
+    interface: system-theme
+    options:
+      appearance: light
+    group: theming_group
+
+  - field: theme_light_overrides
+    width: full
+    interface: system-theme-overrides
+    options:
+      appearance: light
+    group: theming_group
+    special:
+      - cast-json
+
+  - field: default_theme_dark
+    width: full
+    interface: system-theme
+    options:
+      appearance: dark
+    group: theming_group
+
+  - field: theme_dark_overrides
+    width: full
+    interface: system-theme-overrides
+    options:
+      appearance: dark
+    group: theming_group
+    special:
+      - cast-json
+
+  - field: custom_css
+    interface: input-code
+    options:
+      language: css
+      lineNumber: true
+      template: |
+        #app, #main-content, body {
+          --v-button-background-color: #6644FF !important;
+          --v-button-background-color-hover: #5E41EC !important;
+        }
+    width: full
+    group: theming_group
+
+  ### AI Settings ###
+  # The AI group is rendered on a separate settings page in the app
+
+  - field: ai_group
+    interface: group-raw
+    special:
+      - alias
+      - no-data
+      - group
+
+  - field: ai_divider
+    interface: presentation-divider
+    options:
+      icon: chat
+      title: $t:ai_assistant
+    special:
+      - alias
+      - no-data
+    width: full
+    group: ai_group
+
+  - field: ai_notice
+    interface: presentation-notice
+    options:
+      icon: info
+      text: $t:fields.directus_settings.ai_notice
+    special:
+      - alias
+      - no-data
+    width: full
+    group: ai_group
+
+  - field: ai_openai_api_key
+    special:
+      - encrypt
+    interface: input-hash
+    options:
+      iconRight: lock
+      masked: true
+      autocomplete: 'off'
+    width: half
+    group: ai_group
+
+  - field: ai_openai_allowed_models
+    interface: select-multiple-dropdown
+    special:
+      - cast-json
+    options:
+      allowOther: true
+      choices:
+        - text: GPT-4o Mini
+          value: gpt-4o-mini
+        - text: GPT-4.1 Nano
+          value: gpt-4.1-nano
+        - text: GPT-4.1 Mini
+          value: gpt-4.1-mini
+        - text: GPT-4.1
+          value: gpt-4.1
+        - text: GPT-5 Nano
+          value: gpt-5-nano
+        - text: GPT-5 Mini
+          value: gpt-5-mini
+        - text: GPT-5
+          value: gpt-5
+        - text: GPT-5.2
+          value: gpt-5.2
+        - text: GPT-5.2 Chat
+          value: gpt-5.2-chat-latest
+        - text: GPT-5.2 Pro
+          value: gpt-5.2-pro
+        - text: GPT-5.4
+          value: gpt-5.4
+        - text: GPT-5.4 Pro
+          value: gpt-5.4-pro
+    width: half
+    group: ai_group
+
+  - field: ai_anthropic_api_key
+    special:
+      - encrypt
+    interface: input-hash
+    options:
+      iconRight: lock
+      masked: true
+      autocomplete: 'off'
+    width: half
+    group: ai_group
+
+  - field: ai_anthropic_allowed_models
+    interface: select-multiple-dropdown
+    special:
+      - cast-json
+    options:
+      allowOther: true
+      choices:
+        - text: Claude Haiku 4.5
+          value: claude-haiku-4-5
+        - text: Claude Sonnet 4.5
+          value: claude-sonnet-4-5
+        - text: Claude Opus 4.5
+          value: claude-opus-4-5
+        - text: Claude Sonnet 4.6
+          value: claude-sonnet-4-6
+        - text: Claude Opus 4.6
+          value: claude-opus-4-6
+    width: half
+    group: ai_group
+
+  - field: ai_google_api_key
+    special:
+      - encrypt
+    interface: input-hash
+    options:
+      iconRight: lock
+      masked: true
+      autocomplete: 'off'
+    width: half
+    group: ai_group
+
+  - field: ai_google_allowed_models
+    interface: select-multiple-dropdown
+    special:
+      - cast-json
+    options:
+      allowOther: true
+      choices:
+        - text: Gemini 3 Pro Preview
+          value: gemini-3-pro-preview
+        - text: Gemini 3 Flash Preview
+          value: gemini-3-flash-preview
+        - text: Gemini 2.5 Pro
+          value: gemini-2.5-pro
+        - text: Gemini 2.5 Flash
+          value: gemini-2.5-flash
+        - text: Gemini 3.1 Pro Preview
+          value: gemini-3.1-pro-preview
+        - text: Gemini 3.1 Flash Lite Preview
+          value: gemini-3.1-flash-lite-preview
+        - text: Gemini 2.5 Flash Lite
+          value: gemini-2.5-flash-lite
+    width: half
+    group: ai_group
+
+  - field: ai_system_prompt
+    interface: input-rich-text-md
+    group: ai_group
+    width: full
+    note: $t:fields.directus_settings.ai_system_prompt_note
+    options:
+      label: $t:fields.directus_settings.ai_system_prompt
+
+  - field: ai_openai_compatible_divider
+    interface: presentation-divider
+    options:
+      inlineTitle: true
+      color: 'var(--theme--foreground-subdued)'
+      title: $t:fields.directus_settings.ai_openai_compatible
+    special:
+      - alias
+      - no-data
+    width: full
+    group: ai_group
+
+  - field: ai_openai_compatible_name
+    interface: input
+    options:
+      placeholder: 'LM Studio, Ollama, etc.'
+    width: half
+    group: ai_group
+
+  - field: ai_openai_compatible_base_url
+    interface: input
+    options:
+      placeholder: 'http://localhost:1234/v1'
+    width: half
+    group: ai_group
+
+  - field: ai_openai_compatible_api_key
+    special:
+      - encrypt
+    interface: input-hash
+    options:
+      iconRight: lock
+      masked: true
+      autocomplete: 'off'
+    width: half
+    group: ai_group
+
+  - field: ai_openai_compatible_headers
+    interface: list
+    special:
+      - cast-json
+    options:
+      template: '{{header}}'
+      fields:
+        - field: header
+          name: $t:fields.directus_settings.ai_header_name
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            required: true
+            width: half
+            options:
+              placeholder: 'X-Custom-Header'
+        - field: value
+          name: $t:value
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            required: true
+            width: half
+            options:
+              placeholder: 'header-value'
+    width: half
+    group: ai_group
+
+  - field: ai_openai_compatible_models
+    interface: list
+    special:
+      - cast-json
+    options:
+      template: '{{name}}'
+      fields:
+        - field: id
+          name: $t:fields.directus_settings.ai_model_id
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            required: true
+            width: half
+            options:
+              placeholder: 'llama3.2'
+        - field: name
+          name: $t:name
+          type: string
+          schema:
+            is_nullable: false
+          meta:
+            interface: input
+            required: true
+            width: half
+            options:
+              placeholder: 'Llama 3.2'
+        - field: context
+          name: $t:fields.directus_settings.ai_context_limit
+          type: integer
+          schema:
+            is_nullable: true
+          meta:
+            interface: input
+            width: half
+            options:
+              placeholder: '128000'
+        - field: output
+          name: $t:fields.directus_settings.ai_output_limit
+          type: integer
+          schema:
+            is_nullable: true
+          meta:
+            interface: input
+            width: half
+            options:
+              placeholder: '16000'
+        - field: attachment
+          name: $t:fields.directus_settings.ai_supports_attachments
+          type: boolean
+          schema:
+            is_nullable: true
+            default_value: false
+          meta:
+            interface: boolean
+            width: half
+        - field: reasoning
+          name: $t:fields.directus_settings.ai_supports_reasoning
+          type: boolean
+          schema:
+            is_nullable: true
+            default_value: false
+          meta:
+            interface: boolean
+            width: half
+        - field: providerOptions
+          name: $t:fields.directus_settings.ai_provider_options
+          type: json
+          schema:
+            is_nullable: true
+          meta:
+            interface: input-code
+            width: full
+            options:
+              language: json
+              placeholder: '{ "customOption": "value" }'
+            note: $t:fields.directus_settings.ai_provider_options_note
+    width: full
+    group: ai_group
+
+  - field: mcp_group
+    interface: group-raw
+    special:
+      - alias
+      - no-data
+      - group
+
+  - field: mcp_divider
+    interface: presentation-divider
+    options:
+      icon: automation
+      title: $t:model_context_protocol
+    special:
+      - alias
+      - no-data
+    width: full
+    group: mcp_group
+
+  - field: mcp_notice
+    interface: presentation-notice
+    options:
+      icon: info
+      text: $t:fields.directus_settings.mcp_notice
+    special:
+      - alias
+      - no-data
+    width: full
+    group: mcp_group
+
+  - field: mcp_enabled
+    interface: boolean
+    group: mcp_group
+    special:
+      - cast-boolean
+    note: $t:fields.directus_settings.mcp_enabled_note
+    width: half
+    options:
+      label: $t:enabled
+
+  - field: mcp_allow_deletes
+    interface: boolean
+    group: mcp_group
+    special:
+      - cast-boolean
+    note: $t:fields.directus_settings.mcp_allow_deletes_note
+    width: half
+    options:
+      label: $t:fields.directus_settings.mcp_allow_deletes
+    conditions:
+      - name: mcp_enabled
+        rule:
+          mcp_enabled:
+            _neq: true
+        readonly: true
+
+  - field: mcp_prompts_collection
+    interface: system-collection
+    group: mcp_group
+    width: half
+    note: $t:fields.directus_settings.mcp_prompts_collection_note
+    options:
+      includeSingleton: false
+      allowNone: true
+    conditions:
+      - name: mcp_enabled
+        rule:
+          mcp_enabled:
+            _neq: true
+        readonly: true
+
+  - field: mcp_prompts_collection_validation
+    interface: system-mcp-prompts-collection-validation
+    group: mcp_group
+    width: half
+    special:
+      - alias
+      - no-data
+    conditions:
+      - name: mcp_enabled
+        rule:
+          mcp_enabled:
+            _neq: true
+        hidden: true
+
+  - field: mcp_system_prompt_divider
+    interface: presentation-divider
+    options:
+      inlineTitle: true
+      color: 'var(--theme--foreground-subdued)'
+      title: $t:fields.directus_settings.mcp_system_prompt_divider
+    special:
+      - alias
+      - no-data
+    width: full
+    group: mcp_group
+
+  - field: mcp_system_prompt_enabled
+    interface: boolean
+    group: mcp_group
+    special:
+      - cast-boolean
+    width: half-left
+    note: $t:fields.directus_settings.mcp_system_prompt_enabled_note
+    options:
+      label: $t:enabled
+    conditions:
+      - name: mcp_enabled
+        rule:
+          mcp_enabled:
+            _neq: true
+        readonly: true
+
+  - field: mcp_system_prompt
+    interface: input-rich-text-md
+    group: mcp_group
+    width: full
+    note: $t:fields.directus_settings.mcp_system_prompt_note
+    options:
+      label: $t:fields.directus_settings.mcp_system_prompt
+    conditions:
+      - name: mcp_enabled
+        rule:
+          mcp_enabled:
+            _neq: true
+        readonly: true
+      - name: mcp_system_prompt_enabled
+        rule:
+          mcp_system_prompt_enabled:
+            _neq: true
+        readonly: true

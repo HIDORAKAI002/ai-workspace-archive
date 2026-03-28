@@ -1,0 +1,77 @@
+[build.environment]
+  NODE_VERSION = "14"
+  NPM_FLAGS = "--prefix=/dev/null"
+
+[build]
+  base = "/"
+  publish = "packages/hoppscotch-web/dist"
+  command = "npx pnpm i --store=node_modules/.pnpm-store && npx pnpm run generate"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+
+[[redirects]]
+  from = "/discord"
+  to = "https://discord.gg/GAMWxmR"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/telegram"
+  to = "https://t.me/hoppscotch"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/beta"
+  to = "https://forms.gle/XPYDMp8m6JHNWcYp9"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/careers"
+  to = "https://company.hoppscotch.io/careers"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/newsletter"
+  to = "http://eepurl.com/hy0eWH"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/twitter"
+  to = "https://x.com/hoppscotch_io"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/github"
+  to = "https://github.com/hoppscotch/hoppscotch"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/announcements"
+  to = "https://company.hoppscotch.io/announcements"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

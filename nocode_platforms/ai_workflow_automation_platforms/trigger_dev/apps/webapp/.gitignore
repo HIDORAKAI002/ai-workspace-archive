@@ -1,0 +1,23 @@
+node_modules
+
+/.cache
+/build
+/public/build
+
+/cypress/screenshots
+/cypress/videos
+
+/app/styles/tailwind.css
+
+# Ensure the .env symlink is not removed by accident
+!.env
+
+# Storybook build outputs
+build-storybook.log
+.out
+.storybook-out
+storybook-static
+
+/prisma/seed.js
+/prisma/populate.js
+.memory-snapshots

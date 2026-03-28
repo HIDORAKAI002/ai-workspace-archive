@@ -1,0 +1,77 @@
+.hljs,
+.hljs-subst {
+	color: var(--theme--foreground);
+}
+
+.hljs-keyword,
+.hljs-attribute,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-name {
+	color: var(--theme--danger);
+}
+
+.hljs-built_in,
+.hljs-literal,
+.hljs-bullet,
+.hljs-code,
+.hljs-addition {
+	color: var(--theme--danger);
+}
+
+.hljs-regexp,
+.hljs-symbol,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+	color: var(--success-125);
+}
+
+.hljs-type,
+.hljs-string,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-quote,
+.hljs-template-tag,
+.hljs-deletion {
+	color: var(--theme--success);
+}
+
+.hljs-title,
+.hljs-section {
+	color: var(--purple);
+}
+
+.hljs-params {
+	color: var(--theme--warning);
+}
+
+.hljs-comment {
+	color: var(--theme--foreground-subdued);
+}
+
+.hljs-meta-keyword {
+	color: var(--theme--danger);
+}
+
+.hljs-meta {
+	color: #434f54;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	// font-weight: bold;
+}
+
+.hljs-function {
+	color: var(--purple);
+}
+
+.hljs-number {
+	color: var(--theme--success);
+}

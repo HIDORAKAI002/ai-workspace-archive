@@ -1,0 +1,7 @@
+*
+!/dist/
+!/scripts/integrations/oracle/
+!/package.json
+!/docker_run.sh
+!/builder/
+!/client/

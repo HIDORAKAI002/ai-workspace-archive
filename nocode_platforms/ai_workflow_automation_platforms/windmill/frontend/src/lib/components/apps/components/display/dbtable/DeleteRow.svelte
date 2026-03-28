@@ -1,0 +1,83 @@
+<script lang="ts">
+	import { createEventDispatcher, getContext, tick, untrack } from 'svelte'
+	import type { AppInput } from '../../../inputType'
+	import type { AppViewerContext } from '../../../types'
+	import type RunnableComponent from '../../helpers/RunnableComponent.svelte'
+	import RunnableWrapper from '../../helpers/RunnableWrapper.svelte'
+	import { initOutput } from '../../../editor/appUtils'
+	import { getPrimaryKeys, type ColumnDef } from './utils'
+	import { sendUserToast } from '$lib/toast'
+	import { getDeleteInput } from './queries/delete'
+	import type { DbInput } from '$lib/components/dbTypes'
+
+	interface Props {
+		id: string
+	}
+
+	let { id }: Props = $props()
+
+	const { worldStore } = getContext<AppViewerContext>('AppViewerContext')
+
+	let outputs = initOutput($worldStore, `${untrack(() => id)}_delete`, {
+		result: undefined,
+		loading: false,
+		jobId: undefined
+	})
+
+	let runnableComponent: RunnableComponent | undefined = $state()
+	let loading = $state(false)
+
+	let input: AppInput | undefined = $state(undefined)
+
+	const dispatch = createEventDispatcher()
+
+	export async function triggerDelete(
+		dbInput: DbInput,
+		table: string,
+		allColumns: ColumnDef[],
+		data: Record<string, any>
+	) {
+		let primaryColumns = getPrimaryKeys(allColumns)
+		let columns = allColumns?.filter((x) => primaryColumns.includes(x.field))
+
+		input = getDeleteInput(dbInput, table, columns)
+
+		await tick()
+
+		if (runnableComponent) {
+			let ndata = {}
+			columns.forEach((x) => {
+				ndata[x.field] = data[x.field]
+			})
+			await runnableComponent?.runComponent(
+				undefined,
+				undefined,
+				undefined,
+				{ ...ndata },
+				{
+					onDone: (_x) => {
+						sendUserToast('Row deleted', false)
+						dispatch('deleted')
+					},
+					onCancel: () => {
+						sendUserToast('Error deleting row', true)
+					},
+					onError: (e) => {
+						sendUserToast(`Error deleting row: ${e?.message ?? e}`, true)
+					}
+				}
+			)
+		}
+	}
+</script>
+
+<RunnableWrapper
+	noInitialize
+	bind:runnableComponent
+	bind:loading
+	componentInput={input}
+	autoRefresh={false}
+	render={false}
+	id={`${id}_delete`}
+	{outputs}
+/>

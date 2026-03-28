@@ -1,0 +1,12 @@
+dist/
+node_modules/
+coverage/
+*.js
+*.mjs
+*.d.ts
+bin/
+test-output*/
+logs/
+build-*.sh
+*.config.js
+jest.config.mjs

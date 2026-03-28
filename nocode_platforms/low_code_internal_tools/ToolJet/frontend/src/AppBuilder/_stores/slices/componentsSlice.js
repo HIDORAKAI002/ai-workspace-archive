@@ -1,0 +1,2457 @@
+import { appVersionService } from '@/_services';
+import { componentTypes } from '@/AppBuilder/WidgetManager';
+import {
+  resolveDynamicValues,
+  checkSubstringRegex,
+  hasArrayNotation,
+  parsePropertyPath,
+} from '@/AppBuilder/_stores/utils';
+import { extractAndReplaceReferencesFromString } from '@/AppBuilder/_stores/ast';
+import { deepClone } from '@/_helpers/utilities/utils.helpers';
+import { cloneDeep, merge, set as lodashSet, isEmpty } from 'lodash';
+import {
+  computeComponentName,
+  getAllChildComponents,
+  getParentWidgetFromId,
+} from '@/AppBuilder/AppCanvas/appCanvasUtils';
+import { pageConfig } from '@/AppBuilder/RightSideBar/PageSettingsTab/pageConfig';
+import { RIGHT_SIDE_BAR_TAB } from '@/AppBuilder/RightSideBar/rightSidebarConstants';
+import { DEFAULT_COMPONENT_STRUCTURE } from './resolvedSlice';
+import { savePageChanges } from './pageMenuSlice';
+import { toast } from 'react-hot-toast';
+import { RESTRICTED_WIDGETS_CONFIG } from '@/AppBuilder/WidgetManager/configs/restrictedWidgetsConfig';
+import moment from 'moment';
+import { getDateTimeFormat } from '@/_helpers/appUtils';
+import { findHighestLevelofSelection } from '@/AppBuilder/AppCanvas/Grid/gridUtils';
+import { INPUT_COMPONENTS_FOR_FORM } from '@/AppBuilder/RightSideBar/Inspector/Components/Form/constants';
+
+// TODO: page id to index mapping to be created and used across the state for current page access
+const initialState = {
+  modules: {
+    canvas: {
+      currentPageId: null,
+      currentPageIndex: 0,
+      pages: [],
+      componentNameIdMapping: {},
+      queryNameIdMapping: {},
+      queryIdNameMapping: {},
+      currentPageHandle: null,
+    },
+  },
+  containerChildrenMapping: {
+    canvas: [],
+  },
+  selectedComponents: [],
+  showWidgetDeleteConfirmation: false,
+  focusedParentId: null,
+  modalsOpenOnCanvas: [],
+  showComponentPermissionModal: false,
+};
+
+export const createComponentsSlice = (set, get) => ({
+  ...initialState,
+
+  initializeComponentsSlice: (moduleId) => {
+    set(
+      (state) => {
+        state.modules[moduleId] = { ...initialState.modules.canvas };
+        state.containerChildrenMapping[moduleId] = [];
+      },
+      false,
+      'initializeComponentsSlice'
+    );
+  },
+
+  setPages: (pages = [], moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.modules[moduleId].pages = Object.freeze(pages);
+      },
+      false,
+      'setPages'
+    );
+  },
+
+  setPageSettings: (pageSettings = {}, moduleId) => {
+    set(
+      (state) => {
+        state.pageSettings = pageSettings;
+      },
+      false,
+      'setPageSettings'
+    );
+  },
+
+  setCurrentPageId: (id, moduleId = 'canvas') =>
+    set(
+      (state) => {
+        const currentPageIndex = state.modules[moduleId].pages.findIndex((page) => page.id === id);
+        const currentPageComponents = state.modules[moduleId].pages[currentPageIndex]?.components || {};
+        state.modules[moduleId].currentPageIndex = currentPageIndex;
+        state.modules[moduleId].currentPageId = id;
+        state.containerChildrenMapping[moduleId] = [];
+        Object.entries(currentPageComponents).forEach(([componentId, component]) => {
+          const parentId = component.component.parent || moduleId;
+          if (!state.containerChildrenMapping[parentId]) {
+            state.containerChildrenMapping[parentId] = [];
+          }
+          if (!state.containerChildrenMapping[parentId].includes(componentId)) {
+            state.containerChildrenMapping[parentId].push(componentId);
+          }
+        });
+      },
+      false,
+      'setCurrentPageId'
+    ),
+  setCurrentPageHandle: (handle, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.modules[moduleId].currentPageHandle = handle;
+      },
+      false,
+      'setCurrentPageHandle'
+    );
+  },
+
+  updateComponentDependencyGraph: (moduleId, newComponent) => {
+    const { addNewComponentNameIdMapping, addToDependencyGraph, setResolvedComponent } = get();
+
+    addNewComponentNameIdMapping(newComponent.id, newComponent.name, moduleId);
+
+    // const dependencyGraph = { ...modules[moduleId].dependencyGraph };
+
+    const resolvedComponentValues = addToDependencyGraph(moduleId, newComponent.id, newComponent.component);
+    setResolvedComponent(newComponent.id, resolvedComponentValues, moduleId);
+
+    set(
+      (state) => {
+        state.modules[moduleId].dependencyGraph = { ...state.modules[moduleId].dependencyGraph };
+      },
+      false,
+      'updateComponentDependencyGraph'
+    );
+  },
+
+  addNewComponentNameIdMapping: (componentId, componentName, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.modules[moduleId].componentNameIdMapping[componentName] = componentId;
+      },
+      false,
+      'addNewComponentNameIdMapping'
+    );
+    get().checkAndSetTrueBuildSuggestionsFlag();
+  },
+
+  renameComponentNameIdMapping: (oldName, newName, moduleId = 'canvas') => {
+    set((state) => {
+      state.modules[moduleId].componentNameIdMapping[newName] = state.modules[moduleId].componentNameIdMapping[oldName];
+      delete state.modules[moduleId].componentNameIdMapping[oldName];
+    });
+    get().checkAndSetTrueBuildSuggestionsFlag();
+  },
+
+  deleteComponentNameIdMapping: (componentName, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        delete state.modules[moduleId].componentNameIdMapping[componentName];
+      },
+      false,
+      'deleteComponentNameIdMapping'
+    );
+    get().checkAndSetTrueBuildSuggestionsFlag();
+  },
+
+  setComponentNameIdMapping: (moduleId = 'canvas') => {
+    const components = get().getCurrentPageComponents(moduleId);
+    set(
+      (state) => {
+        Object.entries(components).forEach(([componentId, component]) => {
+          state.modules[moduleId].componentNameIdMapping[component.component.name] = componentId;
+        });
+      },
+      false,
+      'setComponentNameIdMapping'
+    );
+  },
+
+  setComponentName: (componentId, newName, moduleId = 'canvas') => {
+    const { renameComponentNameIdMapping, saveComponentChanges, getCurrentPageIndex } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    let oldName = '';
+    set(
+      (state) => {
+        oldName = state.modules[moduleId].pages[currentPageIndex].components[componentId].component.name;
+        state.modules[moduleId].pages[currentPageIndex].components[componentId].component.name = newName;
+
+        if (state.modules[moduleId].pages[currentPageIndex].components[componentId].name) {
+          state.modules[moduleId].pages[currentPageIndex].components[componentId].name = newName;
+        }
+      },
+      false,
+      'setComponentName'
+    );
+
+    const diff = {
+      [componentId]: { component: { name: newName } },
+    };
+
+    saveComponentChanges(diff, 'components', 'update', moduleId);
+    renameComponentNameIdMapping(oldName, newName, moduleId);
+  },
+
+  setQueryMapping: (moduleId = 'canvas') => {
+    const queries = get().dataQuery.getCurrentModuleQueries(moduleId);
+    set((state) => {
+      Object.values(queries).forEach(({ id, name }) => {
+        state.modules[moduleId].queryNameIdMapping = {
+          ...state.modules[moduleId].queryNameIdMapping,
+          [name]: id,
+        };
+        state.modules[moduleId].queryIdNameMapping[id] = name;
+      });
+    });
+  },
+
+  addNewQueryMapping: (queryId, queryName, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.modules[moduleId].queryNameIdMapping[queryName] = queryId;
+        state.modules[moduleId].queryIdNameMapping[queryId] = queryName;
+      },
+      false,
+      'addNewQueryMapping'
+    );
+  },
+  clearSelectedComponents: () => set({ selectedComponents: [] }, false, 'clearSelectedComponents'),
+
+  renameQueryMapping: (oldName, newName, queryId, moduleId = 'canvas') => {
+    set((state) => {
+      state.modules[moduleId].queryNameIdMapping[newName] = state.modules[moduleId].queryNameIdMapping[oldName];
+      delete state.modules[moduleId].queryNameIdMapping[oldName];
+      state.modules[moduleId].queryIdNameMapping[queryId] = newName;
+    });
+    get().checkAndSetTrueBuildSuggestionsFlag();
+  },
+
+  deleteQueryMapping: (queryName, queryId, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        delete state.modules[moduleId].queryNameIdMapping[queryName];
+        delete state.modules[moduleId].queryIdNameMapping[queryId];
+      },
+      false,
+      'deleteQueryMapping'
+    );
+    get().checkAndSetTrueBuildSuggestionsFlag();
+  },
+
+  generateDependencyGraphForRefs: (
+    allRefs,
+    key,
+    paramType,
+    property,
+    unResolvedValue,
+    isUpdate = false,
+    moduleId = 'canvas'
+  ) => {
+    const { addDependency, updateDependency } = get();
+    if (allRefs.length !== 0) {
+      allRefs.forEach(({ entityType, entityNameOrId, entityKey }, index) => {
+        const propertyValue = entityNameOrId
+          ? `${entityType}.${entityNameOrId}.${entityKey}`
+          : `${entityType}.${entityKey}`;
+        const propertyPath = paramType === undefined ? `others.${key}` : `components.${key}.${paramType}.${property}`;
+        if (isUpdate && index === 0) {
+          updateDependency(propertyValue, propertyPath, unResolvedValue, moduleId);
+        } else {
+          addDependency(propertyValue, propertyPath, unResolvedValue, moduleId);
+        }
+      });
+    }
+  },
+
+  updateResolvedValues: (
+    componentId,
+    paramType,
+    property,
+    value,
+    component,
+    componentResolvedValues = {},
+    updatePassedValue = true,
+    moduleId
+  ) => {
+    const {
+      getCustomResolvableReference,
+      checkIfParentIsListviewOrKanban,
+      getCustomResolvables,
+      setAllValueToComponent,
+    } = get();
+    let customResolvables = {};
+    const parentId = component?.parent;
+    const componentDetails = { componentId, paramType, property };
+    let index = checkIfParentIsListviewOrKanban(parentId, moduleId) ? 0 : null;
+    if (index !== null) {
+      customResolvables = getCustomResolvables(parentId, null);
+    }
+    if (typeof value === 'string' && value?.includes('{{') && value?.includes('}}')) {
+      let valueWithId, allRefs, valueWithBrackets;
+      if (value === '{{true}}' || value === '{{false}}') {
+        valueWithId = value;
+        valueWithBrackets = value;
+        allRefs = [];
+      } else {
+        const res = extractAndReplaceReferencesFromString(
+          value,
+          get().modules[moduleId].componentNameIdMapping,
+          get().modules[moduleId].queryNameIdMapping
+        );
+        valueWithId = res.valueWithId;
+        valueWithBrackets = res.valueWithBrackets;
+        allRefs = res.allRefs;
+      }
+      if (index !== null) {
+        const customResolvablePath = getCustomResolvableReference(value, parentId, moduleId);
+        if (customResolvablePath) {
+          allRefs.push(customResolvablePath);
+        }
+      }
+      if (updatePassedValue)
+        setAllValueToComponent(
+          componentDetails,
+          valueWithBrackets,
+          true,
+          index,
+          customResolvables,
+          componentResolvedValues,
+          moduleId
+        );
+
+      return { updatedValue: valueWithId, allRefs, unResolvedValue: valueWithBrackets, componentResolvedValues };
+    } else {
+      if (updatePassedValue)
+        setAllValueToComponent(
+          componentDetails,
+          value,
+          false,
+          index,
+          customResolvables,
+          componentResolvedValues,
+          moduleId
+        );
+    }
+    return { updatedValue: value, allRefs: [], unResolvedValue: value, componentResolvedValues };
+  },
+
+  setAllValueToComponent: (
+    componentDetails,
+    value,
+    shouldResolve = false,
+    index,
+    customResolvables,
+    componentResolvedValues = {},
+    moduleId
+  ) => {
+    const { getAllExposedValues, getComponentTypeFromId } = get();
+    const { componentId, paramType, property } = componentDetails;
+    const length = Object.keys(customResolvables).length;
+
+    const updateResolvedValueForNonNullIndex = (resolvedValue, idx) => {
+      if (!componentResolvedValues[componentId] || Object.keys(componentResolvedValues[componentId]).length === 0) {
+        componentResolvedValues[componentId] = [];
+      }
+
+      if (!componentResolvedValues[componentId][idx]) {
+        componentResolvedValues[componentId][idx] =
+          idx === 0 ? deepClone(DEFAULT_COMPONENT_STRUCTURE) : deepClone(componentResolvedValues[componentId][0]);
+      }
+
+      if (!componentResolvedValues[componentId][idx][paramType]) {
+        componentResolvedValues[componentId][idx][paramType] = {};
+      }
+
+      if (hasArrayNotation(property)) {
+        const keys = parsePropertyPath(property);
+        lodashSet(
+          componentResolvedValues,
+          [componentId, idx, paramType, ...keys],
+          getComponentTypeFromId(componentId) === 'Table' ? value : resolvedValue
+        );
+      } else {
+        componentResolvedValues[componentId][idx][paramType][property] = resolvedValue;
+      }
+    };
+
+    if (length === 0) {
+      const resolvedValue = shouldResolve
+        ? resolveDynamicValues(value, getAllExposedValues(moduleId), customResolvables, false, [])
+        : value;
+
+      if (index !== null) {
+        updateResolvedValueForNonNullIndex(resolvedValue, index);
+      } else {
+        if (!componentResolvedValues[componentId] || Object.keys(componentResolvedValues[componentId]).length === 0) {
+          componentResolvedValues[componentId] = deepClone(DEFAULT_COMPONENT_STRUCTURE);
+        }
+
+        if (!componentResolvedValues[componentId][paramType]) {
+          componentResolvedValues[componentId][paramType] = {};
+        }
+
+        if (hasArrayNotation(property)) {
+          const keys = parsePropertyPath(property);
+          lodashSet(
+            componentResolvedValues,
+            [componentId, paramType, ...keys],
+            getComponentTypeFromId(componentId) === 'Table' ? value : resolvedValue
+          );
+        } else {
+          componentResolvedValues[componentId][paramType][property] = resolvedValue;
+        }
+      }
+    } else {
+      // Loop all the index and set the resolved value
+      for (let i = 0; i < length; i++) {
+        const resolvedValue = shouldResolve
+          ? resolveDynamicValues(value, getAllExposedValues(moduleId), customResolvables[i], false, [])
+          : value;
+
+        updateResolvedValueForNonNullIndex(resolvedValue, i);
+      }
+    }
+  },
+
+  setValueToComponent: (
+    componentId,
+    paramType,
+    property,
+    parentId,
+    value,
+    unResolvedValue,
+    skipResolve = false,
+    moduleId
+  ) => {
+    const {
+      setResolvedComponentByProperty,
+      getAllExposedValues,
+      getCustomResolvables,
+      checkIfParentIsListviewOrKanban,
+    } = get();
+
+    let customResolvables = {},
+      shouldResolve = false;
+    let index = checkIfParentIsListviewOrKanban(parentId, moduleId) ? 0 : null;
+    if (index !== null) {
+      customResolvables = getCustomResolvables(parentId, null);
+    }
+
+    if (
+      typeof unResolvedValue === 'string' &&
+      unResolvedValue?.includes('{{') &&
+      unResolvedValue?.includes('}}') &&
+      !skipResolve
+    ) {
+      shouldResolve = true;
+    }
+
+    const length = Object.keys(customResolvables).length;
+    if (length === 0) {
+      const resolvedValue = shouldResolve
+        ? resolveDynamicValues(unResolvedValue, getAllExposedValues(moduleId), customResolvables, false, [])
+        : value;
+      setResolvedComponentByProperty(componentId, paramType, property, resolvedValue, index, moduleId);
+    } else {
+      // Loop all the index and set the resolved value
+      for (let i = 0; i < length; i++) {
+        const resolvedValue = shouldResolve
+          ? resolveDynamicValues(unResolvedValue, getAllExposedValues(moduleId), customResolvables[i], false, [])
+          : value;
+        setResolvedComponentByProperty(componentId, paramType, property, resolvedValue, i, moduleId);
+      }
+    }
+  },
+
+  validateWidget: ({ validationObject, widgetValue, customResolveObjects, componentType }) => {
+    const { getResolvedValue } = get();
+    let isValid = true;
+    let validationError = null;
+
+    const regex = validationObject?.regex?.value ?? validationObject?.regex;
+    const minLength = validationObject?.minLength?.value ?? validationObject?.minLength;
+    const maxLength = validationObject?.maxLength?.value ?? validationObject?.maxLength;
+    const minValue = validationObject?.minValue?.value ?? validationObject?.minValue;
+    const maxValue = validationObject?.maxValue?.value ?? validationObject?.maxValue;
+    const customRule = validationObject?.customRule?.value ?? validationObject?.customRule;
+    const mandatory = validationObject?.mandatory?.value ?? validationObject?.mandatory;
+    let validationRegex = getResolvedValue(regex, customResolveObjects) ?? '';
+    validationRegex = typeof validationRegex === 'string' ? validationRegex : '';
+
+    if (componentType === 'EmailInput' && widgetValue) {
+      const validationRegex = '^(?!.*\\.\\.)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$';
+      const emailRegex = new RegExp(validationRegex, 'g');
+      if (!emailRegex.test(widgetValue)) {
+        return {
+          isValid: false,
+          validationError: 'Input should be a valid email',
+        };
+      }
+    }
+
+    if (validationRegex && validationRegex.trim() !== '') {
+      const re = new RegExp(validationRegex, 'g');
+      if (!re.test(widgetValue)) {
+        return {
+          isValid: false,
+          validationError: 'The input should match pattern',
+        };
+      }
+    }
+
+    const resolvedMinLength = getResolvedValue(minLength, customResolveObjects) || 0;
+    if ((widgetValue || '').length < parseInt(resolvedMinLength)) {
+      return {
+        isValid: false,
+        validationError: `Minimum ${resolvedMinLength} characters is needed`,
+      };
+    }
+
+    const resolvedMaxLength = getResolvedValue(maxLength, customResolveObjects) || undefined;
+    if (resolvedMaxLength !== undefined) {
+      if ((widgetValue || '').length > parseInt(resolvedMaxLength)) {
+        return {
+          isValid: false,
+          validationError: `Maximum ${resolvedMaxLength} characters is allowed`,
+        };
+      }
+    }
+
+    const resolvedMinValue = getResolvedValue(minValue, customResolveObjects) || undefined;
+    if (resolvedMinValue !== undefined) {
+      if (widgetValue === undefined || widgetValue < parseFloat(resolvedMinValue)) {
+        return {
+          isValid: false,
+          validationError: `Minimum value is ${resolvedMinValue}`,
+        };
+      }
+    }
+
+    const resolvedMaxValue = getResolvedValue(maxValue, customResolveObjects) || undefined;
+    if (resolvedMaxValue !== undefined) {
+      if (widgetValue === undefined || widgetValue > parseFloat(resolvedMaxValue)) {
+        return {
+          isValid: false,
+          validationError: `Maximum value is ${resolvedMaxValue}`,
+        };
+      }
+    }
+
+    const resolvedCustomRule = getResolvedValue(customRule, customResolveObjects) || false;
+    if (typeof resolvedCustomRule === 'string' && resolvedCustomRule !== '') {
+      return { isValid: false, validationError: resolvedCustomRule };
+    }
+
+    const resolvedMandatory = getResolvedValue(mandatory, customResolveObjects) || false;
+
+    if (resolvedMandatory == true && !widgetValue && widgetValue !== 0) {
+      return {
+        isValid: false,
+        validationError: `Field cannot be empty`,
+      };
+    }
+    return {
+      isValid,
+      validationError,
+    };
+  },
+
+  validateDates: ({ validationObject, widgetValue, customResolveObjects }) => {
+    const { getResolvedValue } = get();
+    let isValid = true;
+    let validationError = null;
+    const validationDateFormat = validationObject?.dateFormat?.value || 'MM/DD/YYYY';
+    const validationTimeFormat = validationObject?.timeFormat?.value || 'HH:mm';
+    const customRule = validationObject?.customRule?.value;
+    const parsedDateFormat = validationObject?.parseDateFormat?.value;
+    const isTwentyFourHrFormatEnabled = validationObject?.isTwentyFourHrFormatEnabled?.value ?? false;
+    const isDateSelectionEnabled = validationObject?.isDateSelectionEnabled?.value ?? true;
+    const _widgetDateValue = moment(widgetValue, parsedDateFormat);
+    const _widgetTimeValue = moment(
+      widgetValue,
+      getDateTimeFormat(parsedDateFormat, true, isTwentyFourHrFormatEnabled, isDateSelectionEnabled)
+    ).format(validationTimeFormat);
+
+    const resolvedMinDate = getResolvedValue(validationObject?.minDate?.value, customResolveObjects) || undefined;
+    const resolvedMaxDate = getResolvedValue(validationObject?.maxDate?.value, customResolveObjects) || undefined;
+    const resolvedMinTime = getResolvedValue(validationObject?.minTime?.value, customResolveObjects) || undefined;
+    const resolvedMaxTime = getResolvedValue(validationObject?.maxTime?.value, customResolveObjects) || undefined;
+
+    // Minimum date validation
+    if (resolvedMinDate !== undefined && moment(resolvedMinDate).isValid()) {
+      if (!moment(resolvedMinDate, validationDateFormat).isBefore(moment(_widgetDateValue, validationDateFormat))) {
+        return {
+          isValid: false,
+          validationError: `Minimum date is ${resolvedMinDate}`,
+        };
+      }
+    }
+
+    // Maximum date validation
+    if (resolvedMaxDate !== undefined && moment(resolvedMaxDate).isValid()) {
+      if (!moment(resolvedMaxDate, validationDateFormat).isAfter(moment(_widgetDateValue, validationDateFormat))) {
+        return {
+          isValid: false,
+          validationError: `Maximum date is ${resolvedMaxDate}`,
+        };
+      }
+    }
+
+    // Minimum time validation
+    if (resolvedMinTime !== undefined && moment(resolvedMinTime, validationTimeFormat, true).isValid()) {
+      if (!moment(resolvedMinTime, validationTimeFormat).isBefore(moment(_widgetTimeValue, validationTimeFormat))) {
+        return {
+          isValid: false,
+          validationError: `Minimum time is ${resolvedMinTime}`,
+        };
+      }
+    }
+
+    // Maximum time validation
+    if (resolvedMaxTime !== undefined && moment(resolvedMaxTime, validationTimeFormat, true).isValid()) {
+      if (!moment(resolvedMaxTime, validationTimeFormat).isAfter(moment(_widgetTimeValue, validationTimeFormat))) {
+        return {
+          isValid: false,
+          validationError: `Maximum time is ${resolvedMaxTime}`,
+        };
+      }
+    }
+
+    //Custom rule validation
+    const resolvedCustomRule = getResolvedValue(customRule, customResolveObjects) || false;
+    if (typeof resolvedCustomRule === 'string' && resolvedCustomRule !== '') {
+      return { isValid: false, validationError: resolvedCustomRule };
+    }
+    return {
+      isValid,
+      validationError,
+    };
+  },
+
+  // This function checks whether the property value is an array or not and then resolves the value accordingly
+  // Cases like Table column, Dropdown options, etc.
+  checkValueAndResolve: (
+    componentId,
+    paramType,
+    property,
+    value,
+    component,
+    resolvedComponentValues,
+    updatePassedValue = true,
+    moduleId
+  ) => {
+    const { updateResolvedValues, generateDependencyGraphForRefs } = get();
+    const updatedPropertyValue = cloneDeep(value);
+    if (Array.isArray(value)) {
+      value.forEach((val, index) => {
+        //This code assumes that the array always consists of objects the else condition is to handle the case when the value is an array of strings/numbers
+        if (val && typeof val === 'object') {
+          Object.entries(val).forEach(([key, keyValue]) => {
+            const propertyWithArrayValue = `${property}[${index}].${key}`;
+            const keys = [key];
+            if (keyValue?.value) {
+              keys.push('value');
+            }
+            const { allRefs, unResolvedValue, updatedValue } = updateResolvedValues(
+              componentId,
+              paramType,
+              propertyWithArrayValue,
+              keyValue?.value ?? keyValue,
+              component,
+              resolvedComponentValues,
+              updatePassedValue,
+              moduleId
+            );
+            lodashSet(updatedPropertyValue, [index, ...keys], updatedValue);
+            if (allRefs.length) {
+              generateDependencyGraphForRefs(
+                allRefs,
+                componentId,
+                paramType,
+                propertyWithArrayValue,
+                unResolvedValue,
+                false,
+                moduleId
+              );
+            }
+          });
+        } else {
+          const propertyWithArrayValue = `${property}[${index}]`;
+          const { allRefs, unResolvedValue, updatedValue } = updateResolvedValues(
+            componentId,
+            paramType,
+            propertyWithArrayValue,
+            val,
+            component,
+            resolvedComponentValues,
+            updatePassedValue,
+            moduleId
+          );
+          updatedPropertyValue[index] = updatedValue;
+          if (allRefs.length) {
+            generateDependencyGraphForRefs(
+              allRefs,
+              componentId,
+              paramType,
+              propertyWithArrayValue,
+              unResolvedValue,
+              false,
+              moduleId
+            );
+          }
+        }
+      });
+      return { updatedValue: updatedPropertyValue };
+    } else {
+      const { allRefs, unResolvedValue, updatedValue } = updateResolvedValues(
+        componentId,
+        paramType,
+        property,
+        value,
+        component,
+        resolvedComponentValues,
+        updatePassedValue,
+        moduleId
+      );
+      if (allRefs.length) {
+        generateDependencyGraphForRefs(allRefs, componentId, paramType, property, unResolvedValue, false, moduleId);
+      }
+      return { allRefs, unResolvedValue, updatedValue };
+    }
+  },
+
+  updateDependencyGraphAndResolvedValues: (
+    moduleId,
+    componentId,
+    component,
+    componentType,
+    resolvedComponentValues = {},
+    paramType
+  ) => {
+    const { checkValueAndResolve, setAllValueToComponent } = get();
+    if (component.definition[paramType] === undefined) return;
+    Object.entries(component.definition[paramType]).forEach(([property, value]) => {
+      if (!value?.skipResolve) {
+        checkValueAndResolve(
+          componentId,
+          paramType,
+          property,
+          value?.value,
+          component,
+          resolvedComponentValues,
+          true,
+          moduleId
+        );
+      } else {
+        const componentDetails = { componentId, paramType, property };
+        setAllValueToComponent(componentDetails, value?.value, false, null, {}, resolvedComponentValues, moduleId);
+      }
+    });
+  },
+
+  addToDependencyGraph: (moduleId = 'canvas', componentId, component) => {
+    const { updateDependencyGraphAndResolvedValues, getResolvedComponent } = get();
+    //TODO: Replace with object of component types
+    let resolvedComponentValues = { [componentId]: deepClone(getResolvedComponent(componentId, null, moduleId) ?? {}) };
+    const componentType = componentTypes.find((comp) => component.component === comp.component);
+    ['properties', 'general', 'generalStyles', 'others', 'styles', 'validation'].forEach((key) => {
+      updateDependencyGraphAndResolvedValues(
+        moduleId,
+        componentId,
+        component,
+        componentType,
+        resolvedComponentValues,
+        key
+      );
+    });
+    return resolvedComponentValues[componentId];
+  },
+
+  initDependencyGraph: (moduleId) => {
+    console.log('here--- initDependencyGraph--- ');
+    const { getCurrentPageComponents, addToDependencyGraph, setResolvedComponents, resolveOthers } = get();
+    const components = getCurrentPageComponents(moduleId);
+
+    //TODO: Replace with object of component types
+    let resolvedComponentValues = {};
+
+    Object.entries(components).forEach(([componentId, component]) => {
+      resolvedComponentValues[componentId] = addToDependencyGraph(moduleId, componentId, component.component);
+    });
+    setResolvedComponents(resolvedComponentValues, moduleId);
+    resolveOthers(moduleId);
+  },
+
+  //It can be extended if any of the fx needs to be resolved dynamically outside components
+  getOtherFieldsToBeResolved: (moduleId) => {
+    return {
+      canvasBackgroundColor: get().globalSettings.backgroundFxQuery,
+      isPagesSidebarHidden: get().pageSettings?.definition?.properties?.disableMenu?.value,
+      pages: get().modules[moduleId].pages.reduce((accumulator, currentObject) => {
+        if (currentObject && currentObject.id) {
+          accumulator[currentObject.id] = { hidden: currentObject.hidden };
+        }
+        return accumulator;
+      }, {}),
+    };
+  },
+
+  // TODO: This function is used to resolve the page hidden value, needs to be refactored to use the same logic as resolveOthers
+  resolvePageHiddenValue: (moduleId, isUpdate = false, pageId, item) => {
+    const { getAllExposedValues, generateDependencyGraphForRefs } = get();
+    let resolvedValue = item;
+    if (typeof item === 'string' && item?.includes('{{') && item?.includes('}}')) {
+      const { allRefs, valueWithBrackets } = extractAndReplaceReferencesFromString(
+        item,
+        get().modules[moduleId].componentNameIdMapping,
+        get().modules[moduleId].queryNameIdMapping
+      );
+      resolvedValue = resolveDynamicValues(valueWithBrackets, getAllExposedValues(moduleId), {}, false, []);
+      generateDependencyGraphForRefs(
+        allRefs,
+        `pages.${pageId}.hidden`,
+        undefined,
+        undefined,
+        valueWithBrackets,
+        isUpdate,
+        moduleId
+      );
+    }
+    set(
+      (state) => {
+        state.resolvedStore.modules[moduleId].others.pages[pageId] = { hidden: resolvedValue };
+      },
+      false,
+      'resolvePageHiddenValue'
+    );
+  },
+
+  resolveOthers: (moduleId, isUpdate = false, otherObj) => {
+    const {
+      getOtherFieldsToBeResolved,
+      getAllExposedValues,
+      generateDependencyGraphForRefs,
+      setResolvedValueForOthers,
+    } = get();
+    const items = otherObj || getOtherFieldsToBeResolved(moduleId);
+    const resolvedValues = {};
+    Object.entries(items).forEach(([key, item]) => {
+      if (key === 'pages') {
+        Object.entries(item).forEach(([pageId, page]) => {
+          const { hidden = null } = page;
+          if (!resolvedValues[key]) {
+            resolvedValues[key] = {};
+          }
+
+          if (typeof hidden?.value === 'string' && hidden?.value?.includes('{{') && hidden?.value?.includes('}}')) {
+            const { allRefs, valueWithBrackets } = extractAndReplaceReferencesFromString(
+              hidden.value,
+              get().modules[moduleId].componentNameIdMapping,
+              get().modules[moduleId].queryNameIdMapping
+            );
+
+            const resolvedValue = resolveDynamicValues(valueWithBrackets, getAllExposedValues(moduleId), {}, false, []);
+            resolvedValues[key][pageId] = { hidden: resolvedValue };
+            generateDependencyGraphForRefs(
+              allRefs,
+              `pages.${pageId}.hidden`,
+              undefined,
+              undefined,
+              valueWithBrackets,
+              isUpdate,
+              moduleId
+            );
+          } else {
+            resolvedValues[key][pageId] = { hidden };
+          }
+        });
+      } else if (typeof item === 'string' && item?.includes('{{') && item?.includes('}}')) {
+        const { allRefs, valueWithBrackets } = extractAndReplaceReferencesFromString(
+          item,
+          get().modules[moduleId].componentNameIdMapping,
+          get().modules[moduleId].queryNameIdMapping
+        );
+        const resolvedValue = resolveDynamicValues(valueWithBrackets, getAllExposedValues(moduleId), {}, false, []);
+        resolvedValues[key] = resolvedValue;
+        generateDependencyGraphForRefs(allRefs, key, undefined, undefined, valueWithBrackets, isUpdate, moduleId);
+      } else {
+        resolvedValues[key] = item;
+      }
+    });
+    setResolvedValueForOthers(resolvedValues, moduleId);
+  },
+  canAddToParent: (parentId, currentWidget, moduleId = 'canvas') => {
+    const { getComponentTypeFromId } = get();
+    const transformedParentId = parentId?.length > 36 ? parentId.slice(0, 36) : parentId;
+    let parentType = getComponentTypeFromId(transformedParentId, moduleId);
+    const parentWidget = getParentWidgetFromId(parentType, parentId);
+    const restrictedWidgets = RESTRICTED_WIDGETS_CONFIG?.[parentWidget] || [];
+    const isParentChangeAllowed = !restrictedWidgets.includes(currentWidget);
+    if (!isParentChangeAllowed)
+      toast.error(`${currentWidget} is not compatible as a child component of ${parentWidget}`);
+    return isParentChangeAllowed;
+  },
+  addComponentToCurrentPage: (
+    componentDefinitions,
+    moduleId = 'canvas',
+    { skipUndoRedo = false, saveAfterAction = true, skipFormUpdate = false } = {}
+  ) => {
+    const {
+      saveComponentChanges,
+      withUndoRedo,
+      updateComponentDependencyGraph,
+      getCurrentPageComponents,
+      canAddToParent,
+      getComponentNameFromId,
+      deleteComponentNameIdMapping,
+      checkIfParentIsFormAndAddField,
+      buildComponentDefinition,
+      getCurrentPageId,
+    } = get();
+    const currentPageId = getCurrentPageId(moduleId);
+    // This is made into a promise to wait for the saveComponentChanges to complete so that the caller can await it
+    return new Promise((resolve) => {
+      if (
+        canAddToParent(
+          componentDefinitions[0].component.parent,
+          componentDefinitions[0].component.component,
+          moduleId
+        ) === false
+      ) {
+        return false;
+      }
+      const newComponents = buildComponentDefinition(componentDefinitions, moduleId);
+
+      const diff = newComponents.reduce((acc, newComponent) => {
+        acc[newComponent.id] = {
+          name: newComponent.name,
+          layouts: newComponent.layouts,
+          type: newComponent.component.component,
+          ...newComponent.component.definition,
+          parent: newComponent.component.parent,
+        };
+        return acc;
+      }, {});
+
+      newComponents.forEach((newComponent, index) => {
+        // Have added this condition to delete the oldName from the mapping if it exists due to cut pasting multiple times
+        const oldName = getComponentNameFromId(newComponent.id, moduleId);
+        if (oldName) {
+          deleteComponentNameIdMapping(oldName, moduleId);
+        }
+        updateComponentDependencyGraph(moduleId, newComponent);
+        const parentId = newComponent.component.parent || 'canvas';
+        // Check if parent is a Form and add the component to form fields if needed
+        !skipFormUpdate && checkIfParentIsFormAndAddField(newComponent.id, newComponent, parentId, moduleId);
+        set(
+          withUndoRedo((state) => {
+            if (!state.containerChildrenMapping[parentId]) {
+              state.containerChildrenMapping[parentId] = [];
+            }
+            if (!state.containerChildrenMapping[parentId].includes(newComponent.id)) {
+              state.containerChildrenMapping[parentId].push(newComponent.id);
+            }
+            const page = state.modules[moduleId].pages.find((page) => page.id === currentPageId);
+            page.components[newComponent.id] = newComponent;
+          }, skipUndoRedo),
+          false,
+          'addComponentToCurrentPage'
+        );
+      });
+
+      if (!skipFormUpdate) {
+        const selectedComponents = findHighestLevelofSelection(newComponents);
+        get().setSelectedComponents(selectedComponents.map((component) => component.id));
+      }
+
+      if (saveAfterAction) {
+        saveComponentChanges(diff, 'components', 'create', moduleId)
+          .then(() => {
+            resolve(); // Resolve the promise after all operations are complete
+          })
+          .catch((error) => {
+            toast.error('App could not be saved.');
+            console.error('Error saving component changes:', error);
+          });
+        get().multiplayer.broadcastUpdates(newComponents, 'components', 'create');
+      }
+      if (skipFormUpdate) resolve(diff);
+    });
+  },
+
+  deleteComponents: (
+    selected,
+    moduleId = 'canvas',
+    { skipUndoRedo = false, saveAfterAction = true, isCut = false, skipFormUpdate = false } = {}
+  ) => {
+    const {
+      saveComponentChanges,
+      getCurrentPageComponents,
+      withUndoRedo,
+      selectedComponents,
+      deleteComponentNameIdMapping,
+      removeNode,
+      checkIfParentIsFormAndDeleteField,
+      getCurrentPageId,
+      checkIfComponentIsModule,
+      clearModuleFromStore,
+      getShouldFreeze,
+      performBatchComponentOperations,
+      getComponentDefinition,
+      getCurrentPageIndex,
+    } = get();
+    const shouldFreeze = getShouldFreeze();
+    const currentPageId = getCurrentPageId(moduleId);
+    const appEvents = get().eventsSlice.getModuleEvents(moduleId);
+    const componentNames = [];
+    const componentIds = [];
+    const _selectedComponents = selected?.length ? selected : selectedComponents;
+    if (!_selectedComponents.length || shouldFreeze) return;
+
+    const toDeleteComponents = [];
+    const toDeleteEvents = [];
+    const allComponents = getCurrentPageComponents(moduleId);
+    const affectedFormIds = new Set(); // Track which Forms need their fields updated
+
+    const findAllChildComponents = (componentId) => {
+      if (!toDeleteComponents.includes(componentId)) {
+        toDeleteComponents.push(componentId);
+
+        // Find the children of this component
+        const children = getAllChildComponents(allComponents, componentId).map((child) => child.id);
+        if (children.length > 0) {
+          // Recursively find children of children
+          children.forEach((child) => {
+            findAllChildComponents(child);
+          });
+        }
+      }
+    };
+
+    _selectedComponents.forEach((componentId) => {
+      // Update form fields locally but skip the API call - we'll batch it
+      if (!skipFormUpdate) {
+        const formId = checkIfParentIsFormAndDeleteField(componentId, moduleId, false, {
+          skipSave: saveAfterAction,
+        });
+        if (formId) {
+          affectedFormIds.add(formId);
+        }
+      }
+      findAllChildComponents(componentId);
+    });
+
+    set(
+      withUndoRedo((state) => {
+        const page = state.modules?.[moduleId]?.pages.find((page) => page.id === currentPageId);
+        const resolvedComponents = state.resolvedStore.modules?.[moduleId]?.components;
+        const componentsExposedValues = state.resolvedStore.modules?.[moduleId]?.exposedValues.components;
+        toDeleteComponents.forEach((id) => {
+          // Remove from containerChildrenMapping
+          Object.keys(state.containerChildrenMapping).forEach((containerId) => {
+            state.containerChildrenMapping[containerId] = state.containerChildrenMapping[containerId].filter(
+              (componentId) => {
+                return componentId !== id;
+              }
+            );
+          });
+
+          if (checkIfComponentIsModule(id, moduleId)) {
+            clearModuleFromStore(id);
+          }
+
+          // Remove the container itself if it's a container
+          if (state.containerChildrenMapping[id]) {
+            delete state.containerChildrenMapping[id];
+          }
+          if (state.containerChildrenMapping?.[moduleId]?.includes(id)) {
+            state.containerChildrenMapping[moduleId] = state.containerChildrenMapping[moduleId].filter(
+              (wid) => wid !== id
+            );
+          }
+          componentNames.push(page.components[id]?.component?.name);
+          componentIds.push(id);
+          const eventsToRemove = appEvents.filter((event) => event.sourceId === id).map((event) => event.id);
+          toDeleteEvents.push(...eventsToRemove);
+          delete page.components[id]; // Remove the component from the page
+          delete resolvedComponents[id]; // Remove the component from the resolved store
+          delete componentsExposedValues[id]; // Remove the component from the exposed values
+          if (!skipFormUpdate) {
+            state.selectedComponents = []; // Empty the selected components
+            // Auto-switch to components tab when no components are selected after deletion
+            if (state.isRightSidebarOpen) {
+              state.activeRightSideBarTab = RIGHT_SIDE_BAR_TAB.COMPONENTS;
+            }
+          }
+          removeNode(`components.${id}`, moduleId);
+          state.showWidgetDeleteConfirmation = false; // Set it to false always
+        });
+
+        const filteredEvents = appEvents.filter((event) => !toDeleteEvents.includes(event.id));
+        state.eventsSlice.module[moduleId].events = filteredEvents;
+      }, skipUndoRedo),
+      false,
+      'deleteComponents'
+    );
+
+    // Handle save after state update
+    if (saveAfterAction) {
+      const showToast = () => {
+        if (!isCut) {
+          const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
+          const isMac = platform.toLowerCase().indexOf('mac') > -1;
+          const deleteMsg =
+            toDeleteComponents.length && toDeleteComponents.length > 1
+              ? `Selected components deleted! ${isMac ? '(⌘ + Z to undo)' : '(Ctrl + Z to undo)'}`
+              : `Component deleted! ${isMac ? '(⌘ + Z to undo)' : '(Ctrl + Z to undo)'}`;
+          toast(deleteMsg, {
+            icon: '🗑️',
+          });
+        }
+      };
+
+      // If Forms were affected, use batch operation to combine delete + form update
+      if (affectedFormIds.size > 0) {
+        // Build the form update diff
+        const currentPageIndex = getCurrentPageIndex(moduleId);
+        const formUpdateDiff = {};
+        affectedFormIds.forEach((formId) => {
+          const formComponent = get().modules[moduleId].pages[currentPageIndex].components[formId]?.component;
+          if (formComponent) {
+            const { events, exposedVariables, ...filteredDefinition } = formComponent.definition || {};
+            formUpdateDiff[formId] = {
+              component: {
+                ...formComponent,
+                definition: filteredDefinition,
+              },
+            };
+          }
+        });
+
+        performBatchComponentOperations(
+          {
+            updated: Object.keys(formUpdateDiff).length > 0 ? formUpdateDiff : undefined,
+            deleted: toDeleteComponents,
+          },
+          moduleId
+        )
+          .then(() => {
+            get().multiplayer.broadcastUpdates({ selectedComponents: _selectedComponents }, 'components', 'delete');
+            showToast();
+          })
+          .catch((error) => {
+            toast.error('App could not be saved.');
+            console.error('Error saving component changes:', error);
+          });
+      } else {
+        // No Forms affected, use regular delete endpoint
+        saveComponentChanges(toDeleteComponents, 'components', 'delete', moduleId)
+          .then(() => {
+            get().multiplayer.broadcastUpdates({ selectedComponents: _selectedComponents }, 'components', 'delete');
+            showToast();
+          })
+          .catch((error) => {
+            toast.error('App could not be saved.');
+            console.error('Error saving component changes:', error);
+          });
+      }
+    }
+
+    componentNames.forEach((componentName) => {
+      deleteComponentNameIdMapping(componentName, moduleId);
+    });
+  },
+
+  pasteComponents: async (components, moduleId = 'canvas') => {
+    const { addComponentToCurrentPage, saveComponentChanges, getCurrentPageId, eventsSlice } = get();
+    const currentPageId = getCurrentPageId(moduleId);
+
+    // Add the components to the current page without saving (we'll save with events in batch)
+    const diff = await addComponentToCurrentPage(components, moduleId, {
+      saveAfterAction: false,
+      skipFormUpdate: true,
+    });
+
+    // If no components were added, return early
+    if (!diff || Object.keys(diff).length === 0) {
+      return;
+    }
+
+    // Collect all events from all components for bulk creation
+    const allEvents = [];
+    for (const component of components) {
+      const events = component.events || [];
+      for (const event of events) {
+        // Only add events that have required fields
+        if (event?.event && event?.target && component.id != null && event?.index != null) {
+          allEvents.push({
+            event: {
+              ...event.event,
+            },
+            eventType: event.target,
+            attachedTo: component.id,
+            index: event.index,
+          });
+        }
+      }
+    }
+
+    // Create components and events together in a single batch request
+    const batchDiff = {
+      create: {
+        diff: diff,
+        pageId: currentPageId,
+      },
+      events: allEvents,
+    };
+
+    try {
+      const response = await saveComponentChanges(batchDiff, 'components/batch', 'update', moduleId);
+
+      // Add created events to the local store
+      if (response?.events && response.events.length > 0) {
+        response.events.forEach((event) => {
+          eventsSlice.addEvent(event, moduleId);
+        });
+      }
+
+      get().multiplayer.broadcastUpdates(components, 'components', 'create');
+    } catch (error) {
+      console.error('Error pasting components with events:', error);
+      toast.error('Failed to paste components');
+    }
+  },
+
+  snapToGrid: (canvasWidth, x, y) => {
+    const gridX = canvasWidth / 43;
+
+    const snappedX = Math.round(x / gridX) * gridX;
+    const snappedY = Math.round(y / 10) * 10;
+    return [snappedX, snappedY];
+  },
+
+  setComponentLayout: (
+    componentLayouts,
+    newParentId,
+    moduleId = 'canvas',
+    { skipUndoRedo = false, updateParent = false, saveAfterAction = true } = {}
+  ) => {
+    const {
+      saveComponentChanges,
+      withUndoRedo,
+      getComponentTypeFromId,
+      setResolvedComponent,
+      getComponentDefinition,
+      currentLayout,
+      checkValueAndResolve,
+      checkParentAndUpdateFormFields,
+      getCurrentPageIndex,
+      performBatchComponentOperations,
+      updateContainerAutoHeight,
+    } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    let hasParentChanged = false;
+    let oldParentId;
+    // When updateParent is true and saveAfterAction is true, skip the save in checkParentAndUpdateFormFields
+    // so we can batch the form field changes with the layout changes into a single API call
+    const formFieldsDiff = updateParent
+      ? checkParentAndUpdateFormFields(componentLayouts, newParentId, moduleId, { skipSave: saveAfterAction })
+      : null;
+    set(
+      withUndoRedo((state) => {
+        const page = state.modules[moduleId].pages[currentPageIndex];
+        if (page) {
+          // ============ Component layout update logic ============
+          Object.entries(componentLayouts).forEach(([componentId, layout]) => {
+            const component = page.components[componentId];
+            if (component) {
+              component.layouts[currentLayout] = {
+                ...component.layouts[currentLayout],
+                ...layout,
+              };
+            }
+            // ============ Component layout update logic ends ===========
+
+            // ============ Parent update logic ============
+            oldParentId = component.component.parent;
+            hasParentChanged = oldParentId !== newParentId;
+            if (hasParentChanged && updateParent) {
+              // Update the component's parent
+              component.component.parent = newParentId;
+              // Remove the component from the old parent's children list
+              if (oldParentId) {
+                state.containerChildrenMapping[oldParentId] = state.containerChildrenMapping[oldParentId].filter(
+                  (id) => id !== componentId
+                );
+              } else if (state.containerChildrenMapping[moduleId].includes(componentId)) {
+                state.containerChildrenMapping[moduleId] = state.containerChildrenMapping[moduleId].filter(
+                  (id) => id !== componentId
+                );
+              }
+
+              // Add the component to the new parent's children list
+              if (newParentId) {
+                if (!state.containerChildrenMapping[newParentId]) {
+                  state.containerChildrenMapping[newParentId] = [];
+                }
+                if (!state.containerChildrenMapping[newParentId].includes(componentId)) {
+                  state.containerChildrenMapping[newParentId].push(componentId);
+                }
+              } else {
+                if (!state.containerChildrenMapping[moduleId].includes(componentId)) {
+                  state.containerChildrenMapping[moduleId].push(componentId);
+                }
+              }
+            }
+
+            // ============ Parent update logic ends ============
+          });
+        }
+      }, skipUndoRedo),
+      false,
+      'setComponentLayout'
+    );
+
+    Object.keys(componentLayouts).forEach((componentId) => {
+      const newParentComponentType = getComponentTypeFromId(newParentId, moduleId);
+      const oldParentComponentType = getComponentTypeFromId(oldParentId, moduleId);
+      const { component } = getComponentDefinition(componentId, moduleId);
+
+      if (
+        newParentComponentType === 'Listview' ||
+        newParentComponentType === 'Kanban' ||
+        oldParentComponentType === 'Listview' ||
+        oldParentComponentType === 'Kanban'
+      ) {
+        // Add the component to the resolved store
+        let resolvedComponentValues = { [componentId]: {} };
+
+        // Update resolved values and dependency graph for each object in the component
+        const objectsToUpdate = ['properties', 'general', 'generalStyles', 'others', 'styles', 'validation'];
+
+        objectsToUpdate.forEach((paramType) => {
+          if (component.definition[paramType]) {
+            Object.entries(component.definition[paramType]).forEach(([property, value]) => {
+              checkValueAndResolve(
+                componentId,
+                paramType,
+                property,
+                value.value,
+                component,
+                resolvedComponentValues,
+                true,
+                moduleId
+              );
+            });
+          }
+        });
+        setResolvedComponent(componentId, resolvedComponentValues[componentId], moduleId);
+      }
+    });
+
+    const diff = Object.entries(componentLayouts).reduce((acc, [componentId, layout]) => {
+      acc[componentId] = {
+        ...(hasParentChanged && updateParent
+          ? {
+              component: {
+                parent: newParentId,
+              },
+            }
+          : {}),
+        layouts: {
+          [currentLayout]: {
+            ...layout,
+          },
+        },
+      };
+      return acc;
+    }, {});
+
+    if (saveAfterAction) {
+      // Check if we need to batch multiple operations together
+      if (updateParent) {
+        // Collect all component updates that need to be batched
+        let updatedDiff = formFieldsDiff || {};
+
+        // Update container auto-height for both old and new parents
+        // Get the diffs to include in the batch operation
+        const newParentHeightDiff = updateContainerAutoHeight(newParentId, moduleId, {
+          saveAfterAction: false,
+          returnDiff: true,
+        });
+        const oldParentHeightDiff = updateContainerAutoHeight(oldParentId, moduleId, {
+          saveAfterAction: false,
+          returnDiff: true,
+        });
+
+        if (newParentHeightDiff) {
+          updatedDiff = { ...updatedDiff, ...newParentHeightDiff };
+        }
+        if (oldParentHeightDiff) {
+          updatedDiff = { ...updatedDiff, ...oldParentHeightDiff };
+        }
+
+        // Use batch operations to combine layout changes and component updates in a single API call
+        // This creates only one history entry
+        performBatchComponentOperations(
+          {
+            updated: Object.keys(updatedDiff).length > 0 ? updatedDiff : undefined,
+            layout: diff,
+          },
+          moduleId
+        );
+      } else {
+        // Simple layout change (resize, move within same parent) - use the regular layout endpoint
+        saveComponentChanges(diff, 'components/layout', 'update', moduleId);
+        get().multiplayer.broadcastUpdates(diff, 'components/layout', 'update');
+      }
+    }
+  },
+
+  saveComponentPropertyChanges: (componentId, property, value, paramType, attr, moduleId = 'canvas') => {
+    const { getCurrentPageIndex, getCurrentMode, saveComponentChanges } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    const currentMode = getCurrentMode(moduleId);
+    const oldComponent = get().modules[moduleId].pages[currentPageIndex].components[componentId].component;
+    const { events, exposedVariables, ...filteredDefinition } = oldComponent.definition || {};
+
+    const diff = {
+      [componentId]: {
+        component: {
+          ...oldComponent,
+          definition: filteredDefinition,
+        },
+      },
+    };
+
+    if (currentMode !== 'view') saveComponentChanges(diff, 'components', 'update');
+
+    get().multiplayer.broadcastUpdates({ componentId, property, value, paramType, attr }, 'components', 'update');
+  },
+
+  setComponentProperty: (
+    componentId,
+    property,
+    value,
+    paramType,
+    attr = 'value',
+    skipResolve = false,
+    moduleId = 'canvas',
+    { skipUndoRedo = false, saveAfterAction = true } = {}
+  ) => {
+    const {
+      getCurrentPageIndex,
+      saveComponentChanges,
+      withUndoRedo,
+      updateResolvedValues,
+      generateDependencyGraphForRefs,
+      removeDependency,
+      getComponentDefinition,
+      setValueToComponent,
+      checkValueAndResolve,
+      getResolvedComponent,
+      setResolvedComponent,
+      saveComponentPropertyChanges,
+      checkIfParentIsListviewOrKanban,
+      getCurrentMode,
+      getCustomResolvables,
+      setResolvedComponentByProperty,
+    } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    const componentDef = getComponentDefinition(componentId, moduleId);
+    // Safety check: return early if component doesn't exist
+    if (!componentDef?.component) {
+      return;
+    }
+    const { component } = componentDef;
+    const oldValue = component.definition[paramType][property];
+    const parentId = component.parent;
+    if (Array.isArray(oldValue?.value)) {
+      const resolvedComponent = { [componentId]: deepClone(getResolvedComponent(componentId, null, moduleId) ?? {}) };
+      const index = checkIfParentIsListviewOrKanban(parentId, moduleId) ? 0 : null;
+      if (index === null) {
+        resolvedComponent[componentId][paramType][property] = [];
+      }
+      const { updatedValue } = checkValueAndResolve(
+        componentId,
+        paramType,
+        property,
+        value,
+        component,
+        resolvedComponent,
+        true,
+        moduleId
+      );
+
+      if (index !== null) {
+        const customResolvables = getCustomResolvables(parentId, null);
+        const length = Object.keys(customResolvables).length;
+        const limit = length === 0 ? 1 : length;
+        for (let i = 0; i < limit; i++) {
+          setResolvedComponentByProperty(
+            componentId,
+            paramType,
+            property,
+            resolvedComponent[componentId][i][paramType][property],
+            i,
+            moduleId
+          );
+        }
+      } else {
+        setResolvedComponent(componentId, resolvedComponent[componentId], moduleId);
+        // If the value is not changed, return
+        if (oldValue?.[attr] === updatedValue || oldValue === updatedValue) return;
+      }
+
+      set(
+        withUndoRedo((state) => {
+          const pageComponent = state.modules[moduleId].pages[currentPageIndex].components[componentId].component;
+          lodashSet(pageComponent, ['definition', paramType, property, attr], updatedValue);
+        }, skipUndoRedo),
+        false,
+        'setComponentProperty'
+      );
+
+      if (saveAfterAction) {
+        saveComponentPropertyChanges(componentId, property, updatedValue, paramType, attr, moduleId);
+      }
+      return;
+    }
+
+    // Update the value and get new dependencies
+    const { updatedValue, allRefs, unResolvedValue } =
+      attr === 'value' && !skipResolve
+        ? updateResolvedValues(componentId, paramType, property, value, component, null, false, moduleId)
+        : { updatedValue: value, allRefs: [], unResolvedValue: value };
+
+    // If the value is not changed, return
+    if (oldValue?.[attr] === updatedValue || oldValue === updatedValue) return;
+
+    set(
+      withUndoRedo((state) => {
+        const pageComponent = state.modules[moduleId].pages[currentPageIndex].components[componentId].component;
+        lodashSet(pageComponent, ['definition', paramType, property, attr], updatedValue);
+      }, skipUndoRedo),
+      false,
+      'setComponentProperty'
+    );
+
+    if (attr !== 'fxActive') {
+      setValueToComponent(
+        componentId,
+        paramType,
+        property,
+        component?.parent,
+        updatedValue,
+        unResolvedValue,
+        skipResolve,
+        moduleId
+      );
+    }
+
+    if (saveAfterAction) {
+      saveComponentPropertyChanges(componentId, property, updatedValue, paramType, attr, moduleId);
+    }
+
+    if (attr !== 'value' || skipResolve) return;
+    if (allRefs.length) {
+      generateDependencyGraphForRefs(allRefs, componentId, paramType, property, unResolvedValue, true, moduleId);
+    } else {
+      const propertyPath = `components.${componentId}.${paramType}.${property}`;
+      removeDependency(propertyPath, true, moduleId);
+    }
+  },
+
+  //TO_DO : Remove this function
+  setParentComponent: (
+    componentId,
+    newParentId,
+    moduleId = 'canvas',
+    { skipUndoRedo = false, saveAfterAction = true } = {}
+  ) => {
+    const {
+      currentPageIndex,
+      saveComponentChanges,
+      checkValueAndResolve,
+      getComponentDefinition,
+      getComponentTypeFromId,
+      setResolvedComponent,
+      withUndoRedo,
+    } = get();
+    let oldParentId;
+    set(
+      withUndoRedo((state) => {
+        const component = state.modules[moduleId].pages[currentPageIndex].components[componentId];
+        oldParentId = component.component.parent;
+        // Update the component's parent
+        component.component.parent = newParentId;
+
+        // Remove the component from the old parent's children list
+        if (oldParentId) {
+          state.containerChildrenMapping[oldParentId] = state.containerChildrenMapping[oldParentId].filter(
+            (id) => id !== componentId
+          );
+        } else if (state.containerChildrenMapping[moduleId].includes(componentId)) {
+          state.containerChildrenMapping[moduleId] = state.containerChildrenMapping[moduleId].filter(
+            (id) => id !== componentId
+          );
+        }
+
+        // Add the component to the new parent's children list
+        if (newParentId) {
+          if (!state.containerChildrenMapping[newParentId]) {
+            state.containerChildrenMapping[newParentId] = [];
+          }
+          if (!state.containerChildrenMapping[newParentId].includes(componentId)) {
+            state.containerChildrenMapping[newParentId].push(componentId);
+          }
+        } else {
+          if (!state.containerChildrenMapping[moduleId].includes(componentId)) {
+            state.containerChildrenMapping[moduleId].push(componentId);
+          }
+        }
+      }, skipUndoRedo),
+      false,
+      { type: 'setParentComponent', payload: { componentId, newParentId } }
+    );
+
+    const newParentComponentType = getComponentTypeFromId(newParentId, moduleId);
+    const oldParentComponentType = getComponentTypeFromId(oldParentId, moduleId);
+
+    if (
+      newParentComponentType === 'Listview' ||
+      newParentComponentType === 'Kanban' ||
+      oldParentComponentType === 'Listview' ||
+      oldParentComponentType === 'Kanban'
+    ) {
+      // Add the component to the resolved store
+      const { component } = getComponentDefinition(componentId, moduleId);
+      let resolvedComponentValues = { [componentId]: {} };
+
+      // Update resolved values and dependency graph for each object in the component
+      const objectsToUpdate = ['properties', 'general', 'generalStyles', 'others', 'styles', 'validation'];
+
+      objectsToUpdate.forEach((paramType) => {
+        if (component.definition[paramType]) {
+          Object.entries(component.definition[paramType]).forEach(([property, value]) => {
+            checkValueAndResolve(
+              componentId,
+              paramType,
+              property,
+              value.value,
+              component,
+              resolvedComponentValues,
+              true,
+              moduleId
+            );
+          });
+        }
+      });
+      setResolvedComponent(componentId, resolvedComponentValues[componentId], moduleId);
+    }
+
+    const diff = {
+      [componentId]: {
+        component: {
+          parent: newParentId,
+        },
+      },
+    };
+
+    if (saveAfterAction) {
+      saveComponentChanges(diff, 'components', 'update', moduleId);
+      get().multiplayer.broadcastUpdates({ componentId, newParentId }, 'components', 'parent');
+    }
+  },
+  setSelectedComponents: (components) => {
+    set(
+      (state) => {
+        state.selectedComponents = components;
+        if (components.length === 1) {
+          if (state.isRightSidebarOpen) {
+            state.activeRightSideBarTab = RIGHT_SIDE_BAR_TAB.CONFIGURATION;
+          }
+        }
+      },
+      false,
+      { type: 'setSelectedComponents', payload: { components } }
+    );
+  },
+  setSelectedComponentAsModal: (componentId, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.selectedComponents = componentId ? [componentId] : [];
+        if (state.isRightSidebarOpen) {
+          state.activeRightSideBarTab = componentId ? RIGHT_SIDE_BAR_TAB.CONFIGURATION : RIGHT_SIDE_BAR_TAB.COMPONENTS;
+        }
+      },
+      false,
+      { type: 'setSelectedComponentAsModal', payload: { componentId } }
+    );
+  },
+  setFocusedParentId: (parentId) => {
+    set((state) => {
+      state.focusedParentId = parentId;
+    }),
+      false,
+      { type: 'setFocusedParentId', payload: { parentId } };
+  },
+  saveComponentChanges: (diff, type, operation, moduleId = 'canvas') => {
+    set(
+      (state) => {
+        state.appStore.modules[moduleId].app.isSaving = true;
+      },
+      false,
+      'setAppSavingChanges'
+    );
+    const { getAppId, currentVersionId, getCurrentPageId } = get();
+    const appId = getAppId(moduleId);
+    const currentPageId = getCurrentPageId(moduleId);
+
+    return new Promise((resolve) => {
+      appVersionService
+        .autoSaveApp(
+          appId,
+          currentVersionId,
+          diff,
+          type,
+          currentPageId,
+          operation,
+          false, // isUserSwitchedVersion
+          false // isComponentCutProcess
+        )
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          toast.error('App could not be saved.');
+          console.error('Error saving component changes:', error);
+        })
+        .finally(() => {
+          set(
+            (state) => {
+              state.appStore.modules[moduleId].app.isSaving = false;
+            },
+            false,
+            'setAppSavingChanges'
+          );
+        });
+    });
+  },
+
+  turnOffAutoComputeLayout: async (moduleId = 'canvas') => {
+    const { appStore, getCurrentPageId, currentVersionId } = get();
+    const app = appStore.modules[moduleId].app;
+    const currentPageId = getCurrentPageId(moduleId);
+    set(
+      (state) => {
+        const currentPageIndex = state.modules[moduleId].pages.findIndex((page) => page.id === currentPageId);
+        state.modules[moduleId].pages[currentPageIndex].autoComputeLayout = false;
+      },
+      false,
+      'turnOffAutoComputeLayout'
+    );
+
+    await savePageChanges(app.appId, currentVersionId, currentPageId, { autoComputeLayout: false });
+  },
+  setWidgetDeleteConfirmation: (value) => {
+    set((state) => {
+      state.showWidgetDeleteConfirmation = value;
+    });
+  },
+
+  getCurrentPageId: (moduleId = 'canvas') => get().modules[moduleId].currentPageId,
+  getCurrentPageIndex: (moduleId = 'canvas') => get().modules[moduleId].currentPageIndex,
+
+  getComponentsFromAllPages: (moduleId = 'canvas') => {
+    const { modules } = get();
+    return Object.fromEntries(
+      modules[moduleId].pages.flatMap((page) =>
+        Object.entries(page.components).map(([id, { component }]) => [id, component.name])
+      )
+    );
+  },
+
+  getCurrentPageComponents: (moduleId = 'canvas') => {
+    const { modules, getCurrentPageId } = get();
+    const currentPageId = getCurrentPageId(moduleId);
+    const currentPageIndex = modules[moduleId].pages.findIndex((page) => page.id === currentPageId);
+    return modules[moduleId].pages[currentPageIndex]?.components || [];
+  },
+
+  getCurrentPageComponentIds: (moduleId = 'canvas') => {
+    const { pages, getCurrentPageId, modules } = get();
+    const currentPageId = getCurrentPageId(moduleId);
+    const currentPageIndex = modules[moduleId].pages.findIndex((page) => page.id === currentPageId);
+    return Object.keys(pages[currentPageIndex]?.components || {});
+  },
+
+  getCurrentPage: (moduleId = 'canvas') => {
+    const { modules, getCurrentPageId } = get();
+    const currentPageId = getCurrentPageId(moduleId);
+    const currentPage = modules[moduleId].pages.find((page) => page.id === currentPageId);
+    return currentPage;
+  },
+
+  // Get the component definition from the component id
+  getComponentDefinition: (componentId, moduleId = 'canvas') => {
+    const currentPage = get().modules[moduleId].pages.find((page) => page.id === get().getCurrentPageId(moduleId));
+    // if (componentId === 'd78554b8-2af0-4add-9d7d-0032bb4c90ce')
+    // console.trace('here--- getComponentDefinition--- ', componentId, moduleId, currentPage?.components[componentId]);
+    return currentPage?.components[componentId];
+  },
+
+  getComponentIdFromName: (componentName, moduleId = 'canvas') => {
+    const { modules } = get();
+    return modules?.[moduleId]?.componentNameIdMapping?.[componentName];
+  },
+  // Get the component name from the component id
+  getComponentNameFromId: (componentId, moduleId = 'canvas') => {
+    const { modules, getCurrentPageIndex } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    return modules[moduleId].pages[currentPageIndex]?.components[componentId]?.component.name;
+  },
+  getComponentTypeFromId: (componentId, moduleId = 'canvas') => {
+    const { modules, getCurrentPageIndex } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    return modules[moduleId].pages[currentPageIndex]?.components[componentId]?.component.component;
+  },
+  getComponentNameIdMapping: (moduleId = 'canvas') => {
+    const { modules } = get();
+    return modules[moduleId].componentNameIdMapping;
+  },
+  getComponentIdNameMapping: (moduleId = 'canvas') => {
+    const { getComponentNameIdMapping } = get();
+    return Object.fromEntries(Object.entries(getComponentNameIdMapping(moduleId)).map(([name, id]) => [id, name]));
+  },
+  getSelectedComponentsDefinition: (moduleId = 'canvas') => {
+    const { selectedComponents, getCurrentPageComponents } = get();
+    const allComponents = getCurrentPageComponents(moduleId);
+    const _selected = [];
+    for (let componentId of selectedComponents) {
+      const component = {
+        component: allComponents?.[componentId]?.component,
+        layouts: allComponents?.[componentId]?.layouts,
+        parent: allComponents?.[componentId]?.component?.parent,
+        id: componentId,
+      };
+      _selected.push(component);
+    }
+    return _selected;
+  },
+  getSelectedComponents: () => {
+    return get().selectedComponents;
+  },
+  getQueryNameIdMapping: (moduleId = 'canvas') => {
+    const { modules } = get();
+    return modules[moduleId].queryNameIdMapping;
+  },
+  getQueryIdNameMapping: (moduleId = 'canvas') => {
+    const { modules } = get();
+    return modules[moduleId].queryIdNameMapping;
+  },
+  getQueryIdFromName: (queryName, moduleId = 'canvas') => {
+    const { modules } = get();
+    return modules[moduleId].queryNameIdMapping[queryName];
+  },
+  getContainerChildrenMapping: (id) => {
+    const { containerChildrenMapping } = get();
+    return containerChildrenMapping[id] || [];
+  },
+  getChildComponents: (parentId, moduleId = 'canvas') => {
+    const { getCurrentPageComponents } = get();
+    const allComponents = getCurrentPageComponents(moduleId);
+    const childComponents = Object.entries(allComponents)
+      .filter(([_, component]) => component.component.parent === parentId)
+      .reduce((acc, [id, component]) => {
+        acc[id] = { component };
+        return acc;
+      }, {});
+    return childComponents;
+  },
+  updateDependencyValues: (path, moduleId = 'canvas') => {
+    const {
+      getAllExposedValues,
+      getDependencies,
+      getNodeData,
+      getEntityResolvedValueLength,
+      updateChildComponentResolvedValues,
+      getComponentTypeFromId,
+      getResolvedComponent,
+    } = get();
+    const dependecies = getDependencies(path, moduleId);
+    if (dependecies?.length) {
+      dependecies.forEach((dependency) => {
+        const itemsLength = getEntityResolvedValueLength(dependency, moduleId);
+        // If the component is depend on listView/Kanban then update all child components (0 to listItem length) with new value
+        if (itemsLength) {
+          updateChildComponentResolvedValues(dependency, path, itemsLength, moduleId);
+        } else {
+          const [entityType, entityId, type, ...keys] = dependency.split('.');
+          const key = keys.join('.');
+          const unResolvedValue = getNodeData(dependency, moduleId);
+          const resolvedValue = resolveDynamicValues(unResolvedValue, getAllExposedValues(moduleId), {}, false, []);
+
+          if (type === undefined) {
+            set(
+              (state) => {
+                // This will set the value for fx on canvas backgroundColor & page settings
+                state.resolvedStore.modules[moduleId][entityType][entityId] = resolvedValue;
+              },
+              false,
+              'updateDependencyValues'
+            );
+          } else {
+            const shouldValidate = entityType === 'components' && entityId;
+            const validatedValue = shouldValidate
+              ? get().debugger.validateProperty(entityId, type, key, resolvedValue, moduleId)
+              : resolvedValue;
+
+            // logic to handle the key like options[0].visible. It will resolve the visible directly and update the resolved store
+            if (hasArrayNotation(key)) {
+              const keys = parsePropertyPath(key);
+              // Triggering a re-render of the table component if any of the dependent component is updated
+              // This is done to calculate the callValues in the table component
+              // Need to find a better way to handle this
+              if (getComponentTypeFromId(entityId, moduleId) === 'Table') {
+                set(
+                  (state) => {
+                    lodashSet(
+                      state.resolvedStore.modules[moduleId][entityType][entityId],
+                      ['properties', 'shouldRender'],
+                      (getResolvedComponent(entityId, null, moduleId)?.['properties']?.['shouldRender'] ?? 0) + 1
+                    );
+                  },
+                  false,
+                  'updateDependencyValues'
+                );
+              } else {
+                set(
+                  (state) => {
+                    lodashSet(
+                      state.resolvedStore.modules[moduleId][entityType][entityId],
+                      [type, ...keys],
+                      getComponentTypeFromId(entityId, moduleId) === 'Table' ? unResolvedValue + ' ' : validatedValue
+                    );
+                  },
+                  false,
+                  'updateDependencyValues'
+                );
+              }
+            } else {
+              set(
+                (state) => {
+                  state.resolvedStore.modules[moduleId][entityType][entityId][type][key] = validatedValue;
+                },
+                false,
+                'updateDependencyValues'
+              );
+            }
+          }
+        }
+      });
+    }
+  },
+  computePageSettings: (currentPageSettings) => {
+    try {
+      const pageSettingMeta = cloneDeep(pageConfig);
+      const mergedSettings = merge({}, pageSettingMeta.definition, currentPageSettings);
+      return {
+        ...pageConfig,
+        definition: {
+          ...mergedSettings,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
+  },
+
+  getParentIdFromDependency: (dependency, moduleId = 'canvas') => {
+    const { getComponentDefinition } = get();
+    const componentId = dependency.split('.')[1];
+    const component = getComponentDefinition(componentId, moduleId);
+    return component?.component?.parent;
+  },
+
+  updateChildComponentResolvedValues: (dependency, path, length, moduleId = 'canvas') => {
+    const { getCustomResolvables, getNodeData, getAllExposedValues, getParentIdFromDependency } = get();
+    const [entityType, entityId, type, key] = dependency.split('.');
+    const parentId = getParentIdFromDependency(dependency, moduleId);
+    const unResolvedValue = getNodeData(dependency, moduleId);
+
+    // Loop through the customResolvables and update the resolved value
+    for (let i = 0; i < length; i++) {
+      const resolvedValue = resolveDynamicValues(
+        unResolvedValue,
+        getAllExposedValues(moduleId),
+        getCustomResolvables(parentId, i, moduleId), // passing the parent ID and index to get the custom resolvables of the child
+        false,
+        []
+      );
+      // If the index is not in the resolved store then add it with first index data
+      const shouldValidate = entityType === 'components' && entityId;
+      const validatedValue = shouldValidate
+        ? get().debugger.validateProperty(entityId, type, key, resolvedValue, moduleId)
+        : resolvedValue;
+
+      set(
+        (state) => {
+          if (!state.resolvedStore.modules[moduleId][entityType][entityId][i])
+            state.resolvedStore.modules[moduleId][entityType][entityId][i] = {
+              ...state.resolvedStore.modules[moduleId][entityType][entityId][0],
+              [type]: {
+                ...(state.resolvedStore.modules[moduleId][entityType][entityId]?.[0]?.[type] || {}),
+                [key]: validatedValue,
+              },
+            };
+          else state.resolvedStore.modules[moduleId][entityType][entityId][i][type][key] = validatedValue;
+        },
+        false,
+        'updateChildComponentResolvedValues'
+      );
+    }
+  },
+
+  getParentComponentType: (parentId, moduleId) => {
+    if (!parentId) return null;
+    const { modules, getCurrentPageIndex, getBaseParentId } = get();
+    const currentPageIndex = getCurrentPageIndex(moduleId);
+    // Remove the tab id or any other details from the parent id (ie, -modal, -calendar, -0 from parentId)
+    const parentUUID = getBaseParentId(parentId);
+    const component = modules[moduleId].pages[currentPageIndex].components[parentUUID];
+    if (!component) return null;
+
+    return component.component.component;
+  },
+
+  // Return the length of the resolved value of the component
+  getEntityResolvedValueLength: (dependency, moduleId = 'canvas') => {
+    const { resolvedStore } = get();
+    const [entityType, entityId, type, key] = dependency.split('.');
+    const data = resolvedStore.modules[moduleId]?.[entityType]?.[entityId];
+    if (typeof data === 'string') return undefined;
+    return data?.length;
+  },
+
+  // Check if the value contains any customResolvables like listItem or cardData and return the entityType, entityNameOrId, entityKey
+  getCustomResolvableReference: (value, parentId, moduleId) => {
+    const { getParentComponentType } = get();
+    const parentComponentType = getParentComponentType(parentId, moduleId);
+    if (
+      (parentComponentType === 'Listview' && value.includes('listItem') && checkSubstringRegex(value, 'listItem')) ||
+      value === '{{listItem}}'
+    ) {
+      return { entityType: 'components', entityNameOrId: parentId, entityKey: 'listItem' };
+    } else if (
+      parentComponentType === 'Kanban' &&
+      value.includes('cardData') &&
+      checkSubstringRegex(value, 'cardData')
+    ) {
+      return { entityType: 'components', entityNameOrId: parentId, entityKey: 'cardData' };
+    }
+    return null;
+  },
+
+  checkIfParentIsListviewOrKanban: (parentId, moduleId) => {
+    const { getParentComponentType } = get();
+    const parentComponentType = getParentComponentType(parentId, moduleId);
+    if (parentComponentType === 'Listview' || parentComponentType === 'Kanban') {
+      return true;
+    }
+    return false;
+  },
+
+  replaceIdsWithName: (input, moduleId = 'canvas') => {
+    const { getComponentsFromAllPages, getQueryIdNameMapping } = get();
+    const mappings = {
+      components: getComponentsFromAllPages(moduleId), // Getting components from all pages to avoid showing IDs on queries when the component is not on the current page
+      queries: getQueryIdNameMapping(moduleId),
+    };
+
+    const regex =
+      /(components|queries)(\??\.|\??\.?\[['"]?)([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(['"]?\])?(\??\.|\[['"]?)?([^\s:?[\]'"+\-&|}}]+)?/g;
+    return input.replace(regex, (match, category, prefix, id, suffix, optionalChaining, property) => {
+      if (mappings[category] && mappings[category][id]) {
+        let name;
+        if (category === 'components') {
+          name = mappings[category][id];
+        } else {
+          name = mappings[category][id];
+        }
+
+        // Reconstruct the string with the name instead of UUID
+        let result = `${category}`;
+
+        // Handle optional chaining at the beginning
+        if (prefix.includes('?.')) {
+          result += '?.';
+        } else if (prefix.includes('.')) {
+          result += '.';
+        }
+
+        // Handle bracket notation
+        if (prefix.includes('[')) {
+          result += `["${name}"]`;
+        } else {
+          result += name;
+        }
+
+        // Handle optional chaining after the name
+        if (optionalChaining) {
+          result += optionalChaining;
+        }
+
+        // Add the property if it exists
+        if (property) {
+          result += property;
+        }
+
+        return result;
+      }
+      return match; // Return the original match if no mapping is found
+    });
+  },
+  calculateMoveableBoxHeightWithId: (componentId, currentLayout, stylesDefinition, moduleId = 'canvas') => {
+    const componentDefinition = get().getComponentDefinition(componentId, moduleId);
+    const layoutData = componentDefinition?.layouts?.[currentLayout];
+    const componentType = componentDefinition?.component?.component;
+    const label = componentDefinition?.component?.definition?.properties?.label;
+    const getAllExposedValues = get().getAllExposedValues;
+    // Early return for non input components
+    if (!INPUT_COMPONENTS_FOR_FORM.includes(componentType)) {
+      return layoutData?.height;
+    }
+    const { alignment = { value: null }, width = { value: null }, auto = { value: null } } = stylesDefinition ?? {};
+    const resolvedLabel = label?.value?.length ?? 0;
+    const resolvedWidth = resolveDynamicValues(width?.value + '', getAllExposedValues(moduleId)) ?? 0;
+    const resolvedAuto = resolveDynamicValues(auto?.value + '', getAllExposedValues(moduleId)) ?? false;
+
+    const resolvedAlignment =
+      alignment.value === 'top' || alignment.value === 'side'
+        ? alignment.value
+        : resolveDynamicValues(alignment.value + '');
+    let newHeight = layoutData?.height;
+
+    if (alignment.value && resolvedAlignment === 'top') {
+      if ((resolvedLabel > 0 && resolvedWidth > 0) || (resolvedAuto && resolvedWidth === 0 && resolvedLabel > 0)) {
+        newHeight += 20;
+      }
+    }
+    return newHeight;
+  },
+  getIsAutoMobileLayout: (moduleId = 'canvas') => {
+    const { getCurrentPage } = get();
+    const currentPage = getCurrentPage(moduleId);
+    return currentPage?.autoComputeLayout;
+  },
+  setModalOpenOnCanvas: (modalId, isOpen) => {
+    const { modalsOpenOnCanvas } = get();
+    let newModalOpenOnCanvas = [];
+
+    if (isOpen) {
+      newModalOpenOnCanvas = [...modalsOpenOnCanvas, modalId];
+    } else {
+      newModalOpenOnCanvas = modalsOpenOnCanvas.filter((id) => id !== modalId);
+    }
+    set((state) => {
+      state.modalsOpenOnCanvas = newModalOpenOnCanvas;
+    });
+  },
+  checkIfComponentIsModule: (componentId, moduleId = 'canvas') =>
+    get().getComponentDefinition(componentId, moduleId)?.component?.component === 'ModuleViewer',
+  updateContainerAutoHeight: (
+    componentId,
+    moduleId = 'canvas',
+    { saveAfterAction = true, returnDiff = false } = {}
+  ) => {
+    if (
+      !componentId ||
+      componentId === 'canvas' ||
+      componentId.includes('-header') ||
+      componentId.includes('-footer')
+    ) {
+      return returnDiff ? null : undefined;
+    }
+    const { currentLayout, getCurrentPageComponents, setComponentProperty, getCurrentPageIndex } = get();
+    const allComponents = getCurrentPageComponents();
+
+    const childComponents = getAllChildComponents(allComponents, componentId);
+    const maxHeight = Object.values(childComponents).reduce((max, component) => {
+      // Added this logic to handle the top alignment for the component
+      const top = component?.component?.definition?.styles?.alignment?.value === 'top' ? 20 : 0;
+      const layout = component?.layouts?.[currentLayout];
+      if (!layout) {
+        return max;
+      }
+      const sum = layout.top + layout.height + top;
+      return Math.max(max, sum);
+    }, 0);
+
+    const componentDef = getCurrentPageComponents(moduleId)[componentId];
+    // If the component doesn't exist, return early (can happen during cross-container moves)
+    if (!componentDef?.component) {
+      return returnDiff ? null : undefined;
+    }
+    const currentCanvasHeight = componentDef?.component?.definition?.properties?.canvasHeight?.value;
+    if (currentCanvasHeight === maxHeight) {
+      return returnDiff ? null : undefined;
+    }
+
+    setComponentProperty(componentId, `canvasHeight`, maxHeight, 'properties', 'value', false, moduleId, {
+      saveAfterAction,
+    });
+
+    // Return the diff if requested (for batching with other operations)
+    if (returnDiff) {
+      const currentPageIndex = getCurrentPageIndex(moduleId);
+      const component = get().modules[moduleId].pages[currentPageIndex].components[componentId]?.component;
+      if (component) {
+        const { events, exposedVariables, ...filteredDefinition } = component.definition || {};
+        return {
+          [componentId]: {
+            component: {
+              ...component,
+              definition: filteredDefinition,
+            },
+          },
+        };
+      }
+    }
+  },
+
+  /**
+   * Generates a unique component name from the base name by appending a number if necessary.
+   * @param {string} baseName - The base name for the component
+   * @returns {string} Unique component name
+   */
+  generateUniqueComponentNameFromBaseName: (baseName, moduleId = 'canvas') => {
+    const { getComponentNameIdMapping } = get();
+    const componentNameIdMapping = getComponentNameIdMapping(moduleId);
+
+    let uniqueName = baseName;
+    let counter = 1;
+
+    while (Object.keys(componentNameIdMapping).includes(uniqueName)) {
+      uniqueName = `${baseName}${counter}`;
+      counter++;
+    }
+
+    return uniqueName;
+  },
+  buildComponentDefinition: (componentDefinitions, moduleId = 'canvas') => {
+    const { getCurrentPageComponents } = get();
+    return componentDefinitions.reduce((acc, componentDefinition) => {
+      const currentComponents = {
+        ...getCurrentPageComponents(moduleId),
+        ...Object.fromEntries(acc.map((component) => [component.id, component])),
+      };
+
+      // When component is dropped on canvas for the first time
+      // In default component definition, .name holds the correct computed name for eg. button1
+      // Whereas .component.name holds the default component name without any computation for eg. Button
+      // Also .name is undefined when we reload app and fetch components from the backend. Hence below mentioned OR condition
+      const initialComponentName = componentDefinition.name || componentDefinition.component.name;
+
+      // Check if there is any existing component with the same name
+      const isExistingName = Object.values(currentComponents).some(
+        (component) => component.component.name === initialComponentName
+      );
+
+      // If name is valid then use the same name but if not then fallback to old flow and compute component name
+      const componentName = !isExistingName
+        ? initialComponentName
+        : computeComponentName(componentDefinition.component.component, currentComponents);
+
+      const getComponentProperties = (componentDefinition) => {
+        const properties = componentDefinition.component.definition?.properties;
+        const componentType = componentDefinition.component.component;
+        if (componentType === 'CircularProgressBar') {
+          return {
+            ...properties,
+            text: {
+              value: `{{components.${componentDefinition.id}.value}}%`,
+            },
+          };
+        }
+        return properties;
+      };
+
+      const newComponent = {
+        id: componentDefinition.id,
+        name: componentName,
+        component: {
+          component: componentDefinition.component.component,
+          definition: {
+            general: componentDefinition.component.definition?.general,
+            generalStyles: componentDefinition.component.definition?.generalStyles,
+            others: componentDefinition.component.definition?.others,
+            properties: getComponentProperties(componentDefinition),
+            styles: componentDefinition.component.definition?.styles,
+            validation: componentDefinition.component.definition?.validation,
+          },
+          name: componentName,
+          displayName: componentDefinition.component.displayName,
+          parent: componentDefinition.component.parent,
+        },
+        layouts: componentDefinition.layouts,
+      };
+
+      return [...acc, newComponent];
+    }, []);
+  },
+  toggleComponentPermissionModal: (show) => {
+    set((state) => {
+      state.showComponentPermissionModal = show;
+    });
+  },
+  setComponentPermission: (componentId, data) => {
+    const { modules } = get();
+    const currentPageIndex = modules.canvas.currentPageIndex;
+    const component = modules.canvas.pages[currentPageIndex]?.components?.[componentId];
+
+    if (component) {
+      const updatedComponent = {
+        ...component,
+        permissions: data.length === 0 || data.length === undefined ? [] : [data[0]],
+      };
+
+      set((state) => {
+        state.modules.canvas.pages[currentPageIndex].components[componentId] = updatedComponent;
+      });
+    }
+  },
+  computeColorForPopoverMenu: (value, meta, componentId) => {
+    const { getResolvedComponent } = get();
+    const component = getResolvedComponent(componentId);
+    const buttonType = component?.properties?.buttonType;
+    if (buttonType == 'primary') return value;
+    else {
+      if (meta.displayName == 'Text') {
+        return value == '#FFFFFF' ? 'var(--cc-primary-text)' : value;
+      } else if (meta.displayName == 'Border') {
+        return value == 'var(--cc-primary-brand)' ? 'var(--cc-default-border)' : value;
+      } else if (meta.displayName == 'Icon color') {
+        return value == '#FFFFFF' ? 'var(--cc-default-icon)' : value;
+      }
+    }
+    return value;
+  },
+  performDeletionUpdationAndCreationOfComponentsInPages: (pagesInfo, moduleId = 'canvas') => {
+    const { deleteComponents, getCurrentPageId, setComponentPropertyByComponentIds, addComponentToCurrentPage } = get();
+
+    const currentPageId = getCurrentPageId(moduleId);
+
+    pagesInfo?.length &&
+      pagesInfo.forEach((page) => {
+        if (page.id === currentPageId) {
+          const componentIdsToDelete = page.components?.delete?.map((component) => component.id) ?? [];
+          const componentsToUpdate =
+            page.components?.update?.reduce((acc, comp) => {
+              acc[comp.id] = comp;
+              return acc;
+            }, {}) ?? {};
+          // Convert create operations format to match addComponentToCurrentPage expectations
+          const componentsToCreate = (page.components?.create ?? []).map((component) => ({
+            id: component.id,
+            name: component.component?.name,
+            component: component.component,
+            layouts: component.layouts,
+          }));
+
+          // Delete Components
+          componentIdsToDelete.length && deleteComponents(componentIdsToDelete, moduleId, { saveAfterAction: false });
+
+          // Update Components
+          !isEmpty(componentsToUpdate) &&
+            setComponentPropertyByComponentIds(componentsToUpdate, moduleId, { saveAfterAction: false });
+
+          // Create Components
+          componentsToCreate.length &&
+            addComponentToCurrentPage(componentsToCreate, moduleId, {
+              saveAfterAction: false,
+              skipFormUpdate: true,
+            });
+        } else {
+          const componentIdsToDelete = page.components?.delete?.map((component) => component.id) ?? [];
+          const componentsToUpdate = page.components?.update ?? [];
+          const componentsToCreate = page.components?.create ?? [];
+
+          set(
+            (state) => {
+              const componentsInState = state.modules[moduleId].pages.find((p) => p.id === page.id)?.components;
+
+              // Delete components
+              componentIdsToDelete.forEach((id) => {
+                delete componentsInState[id];
+              });
+
+              // Update components
+              componentsToUpdate.forEach((componentToUpdate) => {
+                componentsInState[componentToUpdate.id] = componentToUpdate;
+              });
+
+              // Create/Add components
+              componentsToCreate.forEach((component) => {
+                componentsInState[component.id] = {
+                  component: component.component,
+                  layouts: component.layouts,
+                  id: component.id,
+                  name: component.component?.name,
+                };
+              });
+            },
+            undefined,
+            'performDeletionUpdationAndCreationOfComponentsInPages'
+          );
+        }
+      });
+  },
+  getExposedPropertyForAdditionalActions: (componentId, subcontainerIndex, property, moduleId = 'canvas') => {
+    const { getExposedValueOfComponent, getComponentTypeFromId, getComponentDefinition } = get();
+    const component = getComponentDefinition(componentId, moduleId)?.component;
+    const componentName = component?.name;
+    const parentId = component?.parent;
+    const parentType = getComponentTypeFromId(parentId);
+    if (parentType === 'Listview') {
+      const parentComponent = getExposedValueOfComponent(parentId, moduleId);
+      const subcontainerParentComponent = parentComponent?.children?.[subcontainerIndex];
+      return subcontainerParentComponent?.[componentName]?.[property];
+    } else if (parentType === 'Form') {
+      const parentComponent = getExposedValueOfComponent(parentId, moduleId);
+      const subcontainerParentComponent = parentComponent?.children?.[componentName];
+      return subcontainerParentComponent?.[property];
+    } else {
+      const componentExposedProperty = getExposedValueOfComponent(componentId, moduleId)?.[property];
+      return componentExposedProperty;
+    }
+  },
+
+  getCurrentAdditionalActionValue: (
+    componentId,
+    subContainerIndex,
+    property,
+    fallbackProperty,
+    moduleId = 'canvas'
+  ) => {
+    const { getResolvedComponent, getExposedPropertyForAdditionalActions } = get();
+    const component = getResolvedComponent(componentId, subContainerIndex, moduleId);
+    const componentExposedProperty = getExposedPropertyForAdditionalActions(
+      componentId,
+      subContainerIndex,
+      property,
+      moduleId
+    );
+    if (componentExposedProperty !== undefined) return componentExposedProperty;
+    return component?.properties?.[fallbackProperty] || component?.styles?.[fallbackProperty];
+  },
+});

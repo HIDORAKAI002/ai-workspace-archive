@@ -1,0 +1,312 @@
+import { context, db, objectStore } from "@budibase/backend-core"
+import { FieldType, Row, Table, TableSourceType } from "@budibase/types"
+import * as uuid from "uuid"
+import {
+  DEFAULT_BB_DATASOURCE_ID,
+  ObjectStoreBuckets,
+} from "../../../constants"
+import { AttachmentCleanup } from "../attachments"
+
+const BUCKET = ObjectStoreBuckets.APPS
+const FILE_NAME = "file/thing.jpg"
+const DEV_WORKSPACEID = "abc_dev_123"
+const PROD_WORKSPACEID = "abc_123"
+
+jest.mock("@budibase/backend-core", () => {
+  const actual = jest.requireActual("@budibase/backend-core")
+  return {
+    ...actual,
+    context: {
+      ...actual.context,
+      getAppId: jest.fn(),
+    },
+    objectStore: {
+      deleteFiles: jest.fn(),
+      ObjectStoreBuckets: actual.objectStore.ObjectStoreBuckets,
+    },
+    db: {
+      ...actual.db,
+      isProdWorkspaceID: jest.fn(),
+      getProdWorkspaceID: jest.fn(),
+      dbExists: jest.fn(),
+      getDB: jest.fn(),
+    },
+  }
+})
+
+const mockedDeleteFiles = objectStore.deleteFiles as jest.MockedFunction<
+  typeof objectStore.deleteFiles
+>
+
+const mockedGetDB = db.getDB as jest.MockedFunction<typeof db.getDB>
+
+let prodTryGetMock: jest.Mock
+
+const rowGenerators: [
+  string,
+  (
+    | FieldType.ATTACHMENT_SINGLE
+    | FieldType.ATTACHMENTS
+    | FieldType.SIGNATURE_SINGLE
+  ),
+  string,
+  (fileKey?: string) => Row,
+][] = [
+  [
+    "row with a attachment list column",
+    FieldType.ATTACHMENTS,
+    "attach",
+    function rowWithAttachments(fileKey: string = FILE_NAME): Row {
+      return {
+        _id: uuid.v4(),
+        attach: [
+          {
+            size: 1,
+            extension: "jpg",
+            key: fileKey,
+          },
+        ],
+      }
+    },
+  ],
+  [
+    "row with a single attachment column",
+    FieldType.ATTACHMENT_SINGLE,
+    "attach",
+    function rowWithAttachments(fileKey: string = FILE_NAME): Row {
+      return {
+        _id: uuid.v4(),
+        attach: {
+          size: 1,
+          extension: "jpg",
+          key: fileKey,
+        },
+      }
+    },
+  ],
+  [
+    "row with a single signature column",
+    FieldType.SIGNATURE_SINGLE,
+    "signature",
+    function rowWithSignature(): Row {
+      return {
+        _id: uuid.v4(),
+        signature: {
+          size: 1,
+          extension: "png",
+          key: `${uuid.v4()}.png`,
+        },
+      }
+    },
+  ],
+]
+
+describe.each(rowGenerators)(
+  "attachment cleanup",
+  (_, attachmentFieldType, colKey, rowGenerator) => {
+    function tableGenerator(): Table {
+      return {
+        _id: "table",
+        name: "table",
+        sourceId: DEFAULT_BB_DATASOURCE_ID,
+        sourceType: TableSourceType.INTERNAL,
+        type: "table",
+        schema: {
+          attach: {
+            name: "attach",
+            type: attachmentFieldType,
+            constraints: {},
+          },
+          signature: {
+            name: "signature",
+            type: FieldType.SIGNATURE_SINGLE,
+            constraints: {},
+          },
+        },
+      }
+    }
+
+    const getRowKeys = (row: any, col: string) => {
+      return Array.isArray(row[col])
+        ? row[col].map((entry: any) => entry.key)
+        : [row[col]?.key]
+    }
+
+    beforeEach(() => {
+      jest.resetAllMocks()
+      prodTryGetMock = jest.fn().mockResolvedValue(undefined)
+
+      jest.spyOn(context, "getWorkspaceId").mockReturnValue(DEV_WORKSPACEID)
+      jest.spyOn(db, "isProdWorkspaceID").mockReturnValue(false)
+      jest.spyOn(db, "getProdWorkspaceID").mockReturnValue(PROD_WORKSPACEID)
+      jest.spyOn(db, "dbExists").mockResolvedValue(false)
+      mockedGetDB.mockReturnValue({
+        tryGet: prodTryGetMock,
+      } as any)
+      mockedDeleteFiles.mockClear()
+    })
+
+    it(`${attachmentFieldType} - should not remove files still referenced in a published app`, async () => {
+      const targetRow = rowGenerator()
+      const updatedRow = { _id: targetRow._id } as Row
+      jest.spyOn(db, "dbExists").mockResolvedValue(true)
+      prodTryGetMock.mockResolvedValue({
+        _id: targetRow._id,
+        [colKey]: targetRow[colKey],
+      })
+
+      await AttachmentCleanup.rowUpdate(tableGenerator(), {
+        row: updatedRow,
+        oldRow: targetRow,
+      })
+
+      expect(mockedDeleteFiles).not.toHaveBeenCalled()
+    })
+
+    it(`${attachmentFieldType} - should remove files unused by a published app`, async () => {
+      const targetRow = rowGenerator()
+      const updatedRow = { _id: targetRow._id } as Row
+      jest.spyOn(db, "dbExists").mockResolvedValue(true)
+      prodTryGetMock.mockResolvedValue({
+        _id: targetRow._id,
+        [colKey]: undefined,
+      })
+
+      await AttachmentCleanup.rowUpdate(tableGenerator(), {
+        row: updatedRow,
+        oldRow: targetRow,
+      })
+
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should be able to cleanup a table update`, async () => {
+      const originalTable = tableGenerator()
+      delete originalTable.schema[colKey]
+      const targetRow = rowGenerator()
+
+      await AttachmentCleanup.tableUpdate(originalTable, [targetRow], {
+        oldTable: tableGenerator(),
+      })
+
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should be able to cleanup a table deletion`, async () => {
+      const targetRow = rowGenerator()
+      await AttachmentCleanup.tableDelete(tableGenerator(), [targetRow])
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should handle table column renaming`, async () => {
+      const updatedTable = tableGenerator()
+      updatedTable.schema.col2 = updatedTable.schema[colKey]
+      delete updatedTable.schema.attach
+      await AttachmentCleanup.tableUpdate(updatedTable, [rowGenerator()], {
+        oldTable: tableGenerator(),
+        rename: { old: colKey, updated: "col2" },
+      })
+      expect(mockedDeleteFiles).not.toHaveBeenCalled()
+    })
+
+    it(`${attachmentFieldType} - shouldn't cleanup if no table changes`, async () => {
+      await AttachmentCleanup.tableUpdate(tableGenerator(), [rowGenerator()], {
+        oldTable: tableGenerator(),
+      })
+      expect(mockedDeleteFiles).not.toHaveBeenCalled()
+    })
+
+    it(`${attachmentFieldType} - should handle row updates`, async () => {
+      const targetRow = rowGenerator()
+      const updatedRow = { ...targetRow }
+      delete updatedRow[colKey]
+
+      await AttachmentCleanup.rowUpdate(tableGenerator(), {
+        row: updatedRow,
+        oldRow: targetRow,
+      })
+
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should handle row deletion`, async () => {
+      const targetRow = rowGenerator()
+      await AttachmentCleanup.rowDelete(tableGenerator(), [targetRow])
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should handle row deletion, prune signature`, async () => {
+      const targetRow = rowGenerator()
+      await AttachmentCleanup.rowDelete(tableGenerator(), [targetRow])
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(
+        BUCKET,
+        getRowKeys(targetRow, colKey)
+      )
+    })
+
+    it(`${attachmentFieldType} - should handle row deletion and not throw when attachments are undefined`, async () => {
+      await AttachmentCleanup.rowDelete(tableGenerator(), [
+        {
+          [colKey]: undefined,
+        },
+      ])
+    })
+
+    it(`${attachmentFieldType} - shouldn't cleanup attachments if row not updated`, async () => {
+      const targetRow = rowGenerator()
+      await AttachmentCleanup.rowUpdate(tableGenerator(), {
+        row: targetRow,
+        oldRow: targetRow,
+      })
+      expect(mockedDeleteFiles).not.toHaveBeenCalled()
+    })
+
+    it(`${attachmentFieldType} - should be able to cleanup a column and not throw when attachments are undefined`, async () => {
+      const originalTable = tableGenerator()
+      delete originalTable.schema[colKey]
+      const row1 = rowGenerator("file 1")
+      const row2 = rowGenerator("file 2")
+      await AttachmentCleanup.tableUpdate(
+        originalTable,
+        [row1, { [colKey]: undefined }, row2],
+        {
+          oldTable: tableGenerator(),
+        }
+      )
+      const expectedKeys = [row1, row2].reduce((acc: string[], row) => {
+        acc = [...acc, ...getRowKeys(row, colKey)]
+        return acc
+      }, [])
+      expect(mockedDeleteFiles).toHaveBeenCalledTimes(1)
+      expect(mockedDeleteFiles).toHaveBeenCalledWith(BUCKET, expectedKeys)
+    })
+
+    it(`${attachmentFieldType} - should be able to cleanup a column and not throw when ALL attachments are undefined`, async () => {
+      const originalTable = tableGenerator()
+      delete originalTable.schema[colKey]
+      await AttachmentCleanup.tableUpdate(
+        originalTable,
+        [{}, { attach: undefined }],
+        {
+          oldTable: tableGenerator(),
+        }
+      )
+      expect(mockedDeleteFiles).not.toHaveBeenCalled()
+    })
+  }
+)

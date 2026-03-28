@@ -1,0 +1,43 @@
+{
+  "editor": [
+    {
+      "controlType": "SECTION_V2",
+      "identifier": "SELECTOR",
+
+      "children": [
+        {
+          "controlType": "DOUBLE_COLUMN_ZONE",
+          "children": [
+            {
+              "label": "Command",
+              "description": "Choose the method you would like to use",
+              "configProperty": "actionConfiguration.formData.command.data",
+              "controlType": "DROP_DOWN",
+              "isRequired": true,
+              "initialValue": "LIST_FUNCTIONS",
+              "options": [
+                {
+                  "label": "List all functions",
+                  "value": "LIST_FUNCTIONS"
+                },
+                {
+                  "label": "List function versions",
+                  "value": "LIST_FUNCTION_VERSIONS"
+                },
+                {
+                  "label": "List function aliases",
+                  "value": "LIST_FUNCTION_ALIASES"
+                },
+                {
+                  "label": "Invoke a function",
+                  "value": "INVOKE_FUNCTION"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "files": ["list.json", "listVersions.json", "listAliases.json", "invoke.json"]
+}

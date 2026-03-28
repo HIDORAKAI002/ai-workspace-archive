@@ -1,0 +1,68 @@
+import { Row, Document, DBView } from "@budibase/types"
+
+// bypass the main application db config
+// use in memory pouchdb directly
+import { db as dbCore, utils } from "@budibase/backend-core"
+import viewBuilder from "../api/controllers/view/viewBuilder"
+
+const Pouch = dbCore.getPouch({ inMemory: true })
+
+export async function runView(
+  view: DBView,
+  calculation: string,
+  group: boolean,
+  data: Row[]
+) {
+  // use a different ID each time for the DB, make sure they
+  // are always unique for each query, don't want overlap
+  // which could cause 409s
+  const db = new Pouch(utils.newid())
+  try {
+    // write all the docs to the in memory Pouch (remove revs)
+    await db.bulkDocs(
+      data.map(row => ({
+        ...row,
+        _rev: undefined,
+      }))
+    )
+    if (!view.meta) {
+      throw new Error("Legacy view metadata is missing")
+    }
+
+    // Rebuild map/reduce from metadata to avoid executing untrusted map strings.
+    const groupByMulti =
+      view.meta.groupByMulti ?? view.meta.schema?.group?.type === "array"
+    const rebuiltView = viewBuilder(view.meta as any, groupByMulti)
+    let fn = (doc: Document, emit: any) => emit(doc._id)
+    // BUDI-7060 -> indirect eval call appears to cause issues in cloud
+    eval(
+      "fn = " +
+        rebuiltView?.map?.replace("function (doc)", "function (doc, emit)")
+    )
+    const queryFns: any = {
+      meta: rebuiltView.meta,
+      map: fn,
+    }
+    if (rebuiltView.reduce) {
+      queryFns.reduce = rebuiltView.reduce
+    }
+    const response: { rows: Row[] } = await db.query(queryFns, {
+      include_docs: !calculation,
+      group: !!group,
+    })
+    // need to fix the revs to be totally accurate
+    for (let row of response.rows) {
+      if (!row._rev || !row._id) {
+        continue
+      }
+      const found = data.find(possible => possible._id === row._id)
+      if (found) {
+        row._rev = found._rev
+      }
+    }
+    return response
+  } finally {
+    await db.destroy()
+    await dbCore.closePouchDB(db)
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "nodes": [
+    {
+      "id": "invalid_node_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "invalid_node_0",
+        "label": "Invalid Node",
+        "name": "invalidNodeType",
+        "type": "UnsupportedNodeType",
+        "category": "Unknown",
+        "inputs": {
+          "invalidProperty": "This should cause validation errors"
+        }
+      }
+    },
+    {
+      "id": "circular_node_1",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "circular_node_1",
+        "label": "Circular Node 1",
+        "name": "circularNode",
+        "type": "TestNode",
+        "category": "Test"
+      }
+    },
+    {
+      "id": "circular_node_2",
+      "position": { "x": 700, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "circular_node_2",
+        "label": "Circular Node 2", 
+        "name": "circularNode",
+        "type": "TestNode",
+        "category": "Test"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "circular_node_1",
+      "target": "circular_node_2",
+      "id": "circular_node_1-circular_node_2"
+    },
+    {
+      "source": "circular_node_2",
+      "target": "circular_node_1",
+      "id": "circular_node_2-circular_node_1"
+    }
+  ],
+  "chatflow": {
+    "id": "e2e-test-invalid",
+    "name": "E2E Test Invalid Workflow",
+    "description": "Invalid workflow to test error handling"
+  }
+}

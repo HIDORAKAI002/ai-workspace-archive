@@ -1,0 +1,150 @@
+/* NotificationProvider.css */
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: white;
+  border-left: 4px solid;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification-success {
+  border-left-color: #28a745;
+}
+
+.notification-error {
+  border-left-color: #dc3545;
+}
+
+.notification-warning {
+  border-left-color: #ffc107;
+}
+
+.notification-info {
+  border-left-color: #17a2b8;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.notification-success .notification-icon {
+  color: #28a745;
+}
+
+.notification-error .notification-icon {
+  color: #dc3545;
+}
+
+.notification-warning .notification-icon {
+  color: #ffc107;
+}
+
+.notification-info .notification-icon {
+  color: #17a2b8;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.notification-message {
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.notification-action {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.notification-action:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  color: #666;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.notification-close:hover {
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notification-container {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+  
+  .notification {
+    padding: 0.75rem;
+  }
+  
+  .notification-title {
+    font-size: 0.85rem;
+  }
+  
+  .notification-message {
+    font-size: 0.8rem;
+  }
+}

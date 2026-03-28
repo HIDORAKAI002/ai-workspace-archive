@@ -1,0 +1,51 @@
+{
+  "controlType": "SECTION_V2",
+  "identifier": "SEND",
+  "conditionals": {
+    "show": "{{actionConfiguration.formData.command === 'SEND'}}"
+  },
+  "children": [
+    {
+      "controlType": "DOUBLE_COLUMN_ZONE",
+      "identifier": "SEND-Z1",
+      "children": [
+        {
+          "label": "From email",
+          "configProperty": "actionConfiguration.formData.send.from",
+          "controlType": "QUERY_DYNAMIC_INPUT_TEXT",
+          "evaluationSubstitutionType": "TEMPLATE",
+          "placeholderText": "email@example.com",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "controlType": "DOUBLE_COLUMN_ZONE",
+      "identifier": "SEND-Z2",
+      "children": [
+        {
+          "label": "Set reply to email",
+          "configProperty": "actionConfiguration.formData.send.isReplyTo",
+          "controlType": "SWITCH",
+          "evaluationSubstitutionType": "TEMPLATE"
+        }
+      ]
+    },
+    {
+      "controlType": "DOUBLE_COLUMN_ZONE",
+      "identifier": "SEND-Z3",
+      "children": [
+        {
+          "label": "Reply to email",
+          "configProperty": "actionConfiguration.formData.send.replyTo",
+          "controlType": "QUERY_DYNAMIC_INPUT_TEXT",
+          "evaluationSubstitutionType": "TEMPLATE",
+          "placeholderText": "email@example.com",
+          "conditionals": {
+            "show": "{{actionConfiguration.formData.send.isReplyTo === true}}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "exclude": ["./cypress", "./cypress.config.ts"],
+  "include": ["remix.env.d.ts", "global.d.ts", "**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "types": ["vitest/globals", "node"],
+    "lib": ["DOM", "DOM.Iterable", "DOM.AsyncIterable", "ES2020"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "target": "ES2020",
+    "strict": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"],
+      "@/*": ["./*"]
+    },
+    "noEmit": true,
+    "customConditions": ["@triggerdotdev/source"]
+  }
+}

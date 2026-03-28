@@ -1,0 +1,86 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import VDivider from '@/components/v-divider.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInput from '@/components/v-input.vue';
+import VListGroup from '@/components/v-list-group.vue';
+import VListItemContent from '@/components/v-list-item-content.vue';
+import VListItem from '@/components/v-list-item.vue';
+import VList from '@/components/v-list.vue';
+import VMenu from '@/components/v-menu.vue';
+import VTextOverflow from '@/components/v-text-overflow.vue';
+import { useCollectionsStore } from '@/stores/collections';
+
+const props = defineProps<{
+	modelValue?: string;
+	disabled?: boolean;
+}>();
+
+defineEmits(['update:modelValue']);
+
+const collectionsStore = useCollectionsStore();
+
+const collectionExists = computed(() => {
+	return !!collectionsStore.getCollection(props.modelValue);
+});
+
+const availableCollections = collectionsStore.databaseCollections.filter((collection) => collection.meta);
+const systemCollections = collectionsStore.crudSafeSystemCollections;
+</script>
+
+<template>
+	<VInput
+		key="related-collection-select"
+		:model-value="modelValue"
+		:class="{ matches: collectionExists }"
+		db-safe
+		:nullable="false"
+		:disabled="disabled"
+		:placeholder="$t('collection') + '...'"
+		@update:model-value="$emit('update:modelValue', $event)"
+	>
+		<template v-if="!disabled" #append>
+			<VMenu show-arrow placement="bottom-end">
+				<template #activator="{ toggle }">
+					<VIcon v-tooltip="$t('select_existing')" name="list_alt" clickable :disabled="disabled" @click="toggle" />
+				</template>
+
+				<VList class="monospace">
+					<VListItem
+						v-for="availableCollection in availableCollections"
+						:key="availableCollection.collection"
+						:active="modelValue === availableCollection.collection"
+						:disabled="availableCollection.meta?.singleton"
+						clickable
+						@click="$emit('update:modelValue', availableCollection.collection)"
+					>
+						<VListItemContent>
+							{{ availableCollection.collection }}
+						</VListItemContent>
+					</VListItem>
+
+					<VDivider />
+
+					<VListGroup>
+						<template #activator>{{ $t('system') }}</template>
+						<VListItem
+							v-for="systemCollection in systemCollections"
+							:key="systemCollection.collection"
+							:active="modelValue === systemCollection.collection"
+							clickable
+							@click="$emit('update:modelValue', systemCollection.collection)"
+						>
+							<VListItemContent>
+								{{ systemCollection.collection }}
+							</VListItemContent>
+						</VListItem>
+					</VListGroup>
+				</VList>
+			</VMenu>
+		</template>
+
+		<template v-if="disabled" #input>
+			<VTextOverflow :text="modelValue" />
+		</template>
+	</VInput>
+</template>

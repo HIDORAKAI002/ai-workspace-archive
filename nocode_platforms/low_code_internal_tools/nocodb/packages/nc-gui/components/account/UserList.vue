@@ -1,0 +1,359 @@
+<script lang="ts" setup>
+import type { RequestParams, UserType } from 'nocodb-sdk'
+
+const { api, isLoading } = useApi()
+
+// for loading screen
+isLoading.value = true
+
+const { $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { dashboardUrl } = useDashboard()
+
+const { user: loggedInUser } = useGlobal()
+
+const { copy } = useCopy()
+
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
+
+const users = ref<UserType[]>([])
+
+const sortedUsers = computed(() => {
+  return handleGetSortedData(users.value, sorts.value) as UserType[]
+})
+
+const currentPage = ref(1)
+
+const currentLimit = ref(10)
+
+const showUserModal = ref(false)
+
+const userMadalKey = ref(0)
+
+const isOpen = ref(false)
+
+const searchText = ref<string>('')
+
+const pagination = reactive({
+  total: 0,
+  pageSize: 10,
+  position: ['bottomCenter'],
+})
+
+const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
+  try {
+    const response: any = await api.orgUsers.list({
+      query: {
+        limit,
+        offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
+        query: searchText.value,
+      },
+    } as RequestParams)
+
+    if (!response) return
+
+    pagination.total = response.pageInfo.totalRows ?? 0
+
+    pagination.pageSize = 10
+
+    users.value = response.list as UserType[]
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}, 500)
+
+onMounted(() => {
+  loadUsers()
+  loadSorts()
+})
+
+const deleteModalInfo = ref<UserType | null>(null)
+
+const deleteUser = async () => {
+  try {
+    await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    message.success(t('msg.success.userDeleted'))
+
+    await loadUsers()
+
+    if (!users.value.length && currentPage.value !== 1) {
+      currentPage.value--
+      loadUsers(currentPage.value)
+    }
+    $e('a:org-user:user-deleted')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    // closing the modal
+    isOpen.value = false
+    deleteModalInfo.value = null
+  }
+}
+
+const resendInvite = async (user: UserType) => {
+  try {
+    await api.orgUsers.resendInvite(user.id)
+
+    // Invite email sent successfully
+    message.success(t('msg.success.inviteEmailSent'))
+    await loadUsers()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  $e('a:org-user:resend-invite')
+}
+
+const copyInviteUrl = async (user: User) => {
+  if (!user.invite_token) return
+  try {
+    await copy(`${dashboardUrl.value}/signup/${user.invite_token}`)
+
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.inviteURLCopied'))
+  } catch (e: any) {
+    message.error(e.message)
+  }
+  $e('c:user:copy-url')
+}
+
+const copyPasswordResetUrl = async (user: UserType) => {
+  try {
+    const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
+
+    await copy(reset_password_url!)
+
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.passwordResetURLCopied'))
+    $e('c:user:copy-url')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const openInviteModal = () => {
+  showUserModal.value = true
+  userMadalKey.value++
+}
+
+const openDeleteModal = (user: UserType) => {
+  deleteModalInfo.value = user
+  isOpen.value = true
+}
+
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateUserSort({})
+      return
+    }
+
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateUserSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns = [
+  {
+    key: 'email',
+    title: t('objects.users'),
+    minWidth: 220,
+    dataIndex: 'email',
+    showOrderBy: true,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 110,
+    minWidth: 110,
+    justify: 'justify-end',
+  },
+] as NcTableColumnProps[]
+</script>
+
+<template>
+  <div class="flex flex-col" data-testid="nc-super-user-list">
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon icon="users" class="flex-none h-5 w-5" />
+      </template>
+      <template #title>
+        <span data-rec="true">
+          {{ $t('title.userManagement') }}
+        </span>
+      </template>
+    </NcPageHeader>
+    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+      <div class="h-full">
+        <div class="max-w-195 mx-auto h-full">
+          <div class="flex gap-4 items-center justify-between">
+            <a-input
+              v-model:value="searchText"
+              class="!max-w-90 !rounded-md"
+              :placeholder="$t('title.searchMembers')"
+              @change="loadUsers()"
+            >
+              <template #prefix>
+                <PhMagnifyingGlassBold class="!h-3.5 text-nc-content-gray-muted" />
+              </template>
+            </a-input>
+            <div class="flex gap-3 items-center justify-center">
+              <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers(currentPage, currentLimit)" />
+              <NcButton data-testid="nc-super-user-invite" size="small" type="primary" @click="openInviteModal">
+                <div class="flex items-center gap-1" data-rec="true">
+                  <component :is="iconMap.plus" />
+                  {{ $t('activity.inviteUser') }}
+                </div>
+              </NcButton>
+            </div>
+          </div>
+          <NcTable
+            v-model:order-by="orderBy"
+            :columns="columns"
+            :data="sortedUsers"
+            :is-data-loading="isLoading"
+            class="h-[calc(100%-58px)] max-w-250 mt-6"
+          >
+            <template #bodyCell="{ column, record: el }">
+              <div v-if="column.key === 'email'" class="w-full flex items-center gap-2">
+                <NcTooltip v-if="el.display_name" class="truncate max-w-full">
+                  <template #title>
+                    {{ el.email }}
+                  </template>
+                  {{ el.display_name }}
+                </NcTooltip>
+
+                <NcTooltip v-else class="truncate max-w-full" show-on-truncate-only>
+                  <template #title>
+                    {{ el.email }}
+                  </template>
+                  {{ el.email }}
+                </NcTooltip>
+
+                <NcBadge
+                  v-if="el.roles?.includes('super')"
+                  :border="false"
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  data-rec="true"
+                >
+                  {{ $t('objects.roleType.admin') }}
+                </NcBadge>
+              </div>
+              <div v-if="column.key === 'action'" class="flex items-center gap-2">
+                <NcDropdown :trigger="['click']" placement="bottomRight">
+                  <NcButton size="xsmall" type="ghost">
+                    <MdiDotsVertical
+                      class="text-nc-content-gray-subtle2 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-nc-content-inverted-secondary-disabled bg-nc-bg-gray-light)"
+                    />
+                  </NcButton>
+
+                  <template #overlay>
+                    <NcMenu variant="small">
+                      <NcMenuItemCopyId
+                        :id="el.id"
+                        :tooltip="$t('labels.clickToCopyUserID')"
+                        :label="
+                          $t('labels.userIdColon', {
+                            userId: el.id,
+                          })
+                        "
+                      />
+
+                      <template v-if="!el.roles?.includes('super')">
+                        <NcDivider />
+
+                        <!-- Resend invite Email -->
+                        <NcMenuItem @click="resendInvite(el)">
+                          <component :is="iconMap.email" class="flex text-nc-content-gray-subtle2" />
+                          <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
+                        </NcMenuItem>
+                        <NcMenuItem @click="copyInviteUrl(el)">
+                          <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
+                          <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+                        </NcMenuItem>
+                        <NcMenuItem @click="copyPasswordResetUrl(el)">
+                          <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
+                          <div>{{ $t('activity.copyPasswordResetURL') }}</div>
+                        </NcMenuItem>
+                        <template v-if="el.id !== loggedInUser?.id">
+                          <NcDivider v-if="!el.roles?.includes('super')" />
+                          <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
+                            <MaterialSymbolsDeleteOutlineRounded />
+                            {{ $t('general.remove') }} {{ $t('objects.user') }}
+                          </NcMenuItem>
+                        </template>
+                      </template>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
+              </div>
+            </template>
+            <template #extraRow>
+              <div
+                v-if="pagination.total === 1 && sortedUsers.length === 1"
+                class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center"
+              >
+                <div class="text-2xl text-nc-content-gray font-bold">
+                  {{ $t('placeholder.inviteYourTeam') }}
+                </div>
+                <div class="text-sm text-nc-content-gray-subtle">
+                  {{ $t('placeholder.inviteYourTeamLabel') }}
+                </div>
+                <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
+              </div>
+            </template>
+
+            <template #tableFooter>
+              <div v-if="pagination.total > 10" class="px-4 py-2 flex items-center justify-center">
+                <a-pagination
+                  v-model:current="currentPage"
+                  :total="pagination.total"
+                  show-less-items
+                  @change="loadUsers(currentPage, currentLimit)"
+                />
+              </div>
+            </template>
+          </NcTable>
+
+          <GeneralDeleteModal v-model:visible="isOpen" entity-name="User" :on-delete="() => deleteUser()">
+            <template #entity-preview>
+              <span>
+                <div
+                  class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+                >
+                  <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+                  <div
+                    class="text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                    :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                  >
+                    {{ deleteModalInfo?.email }}
+                  </div>
+                </div>
+              </span>
+            </template>
+          </GeneralDeleteModal>
+
+          <AccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.user:last-child {
+  @apply rounded-b-md;
+}
+</style>

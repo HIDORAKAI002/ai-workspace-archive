@@ -1,0 +1,139 @@
+{{- if not (or
+  .Values.externalS3.enabled
+  .Values.externalAzureBlobStorage.enabled
+  .Values.externalOSS.enabled
+  .Values.externalGCS.enabled
+  .Values.externalCOS.enabled
+  .Values.externalOBS.enabled
+  .Values.externalTOS.enabled
+  ) }}
+{{- $pvc := .Values.api.persistence.persistentVolumeClaim -}}
+{{- if (not $pvc.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s" (include "dify.fullname" . | trunc 58) }}
+{{- with .Values.api.persistence.annotations  }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "dify.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - {{ $pvc.accessModes | quote }}
+  {{- if $pvc.storageClass }}
+  {{- if eq "-" $pvc.storageClass }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ $pvc.storageClass }}
+  {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+{{- end }}
+{{- end }}
+
+
+{{- $pvc := .Values.proxy.log.persistence.persistentVolumeClaim -}}
+{{- if and .Values.proxy.log.persistence.enabled (not $pvc.existingClaim) }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-logs" (include "dify.nginx.fullname" . | trunc 58) }}
+{{- with .Values.proxy.log.persistence.annotations  }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "dify.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - {{ $pvc.accessModes | quote }}
+  {{- if $pvc.storageClass }}
+  {{- if eq "-" $pvc.storageClass }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ $pvc.storageClass }}
+  {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+{{- end }}
+
+
+{{- $pvc := .Values.ssrfProxy.log.persistence.persistentVolumeClaim -}}
+{{- if and .Values.ssrfProxy.log.persistence.enabled (not $pvc.existingClaim) }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-logs" (include "dify.ssrfProxy.fullname" . | trunc 58) }}
+{{- with .Values.ssrfProxy.log.persistence.annotations  }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "dify.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - {{ $pvc.accessModes | quote }}
+  {{- if $pvc.storageClass }}
+  {{- if eq "-" $pvc.storageClass }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ $pvc.storageClass }}
+  {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+{{- end }}
+
+
+{{- $pvc := .Values.pluginDaemon.persistence.persistentVolumeClaim -}}
+{{- if and .Values.pluginDaemon.enabled (not $pvc.existingClaim) }}
+{{- if not (or
+  (and .Values.externalS3.enabled .Values.externalS3.bucketName.pluginDaemon)
+  (and .Values.externalAzureBlobStorage.enabled)
+  (and .Values.externalOSS.enabled .Values.externalOSS.bucketName.pluginDaemon)
+  (and .Values.externalGCS.enabled .Values.externalGCS.bucketName.pluginDaemon)
+  (and .Values.externalCOS.enabled .Values.externalCOS.bucketName.pluginDaemon)
+  (and .Values.externalOBS.enabled .Values.externalOBS.bucketName.pluginDaemon)
+  (and .Values.externalTOS.enabled .Values.externalTOS.bucketName.pluginDaemon)
+)
+}}
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s" (include "dify.pluginDaemon.fullname" . | trunc 58) }}
+{{- with .Values.pluginDaemon.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "dify.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - {{ $pvc.accessModes | quote }}
+  {{- if $pvc.storageClass }}
+  {{- if eq "-" $pvc.storageClass }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ $pvc.storageClass }}
+  {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,17 @@
+[package]
+name = "windmill-parser-py"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[lib]
+name = "windmill_parser_py"
+path = "./src/lib.rs"
+
+[dependencies]
+windmill-parser.workspace = true
+rustpython-parser.workspace = true
+itertools.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+rustpython-ast = { version = "0.4.0", features = ["visitor"] }

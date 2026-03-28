@@ -1,0 +1,92 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    {
+      "name": "Debug Backend",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "preLaunchTask": "Install Backend",
+
+      "args": [
+        "--factory",
+        "langflow.main:create_app",
+        "--port",
+        "7860",
+        "--reload",
+        "--log-level",
+        "debug",
+        "--loop",
+        "asyncio",
+        "--reload-include",
+        "./src/backend/*",
+        "--reload-include",
+        "./src/lfx/*",
+        "--reload-exclude",
+        "*.db*"
+      ],
+      "jinja": true,
+      "justMyCode": false,
+      "env": {
+        "LANGFLOW_LOG_LEVEL": "debug",
+        "LANGFLOW_PROMETHEUS_PORT": "9090"
+      },
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Debug CLI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "langflow",
+      "args": [
+        "run",
+        "--frontend-path",
+        "${workspaceFolder}/src/backend/base/langflow/frontend",
+        "--env-file",
+        "${workspaceFolder}/.env"
+      ],
+      // "python": "/path/to/your/python_env/python", // Replace with the path to your Python executable
+      "jinja": true,
+      "justMyCode": false
+    },
+    {
+      "name": "Python: Remote Attach",
+      "type": "debugpy",
+      "request": "attach",
+      "justMyCode": true,
+      "connect": {
+        "port": 5678
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}",
+          "remoteRoot": "."
+        }
+      ]
+    },
+    {
+      "name": "Debug Frontend",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000/",
+      "webRoot": "${workspaceRoot}/src/frontend"
+    },
+    {
+      "name": "Python: Debug Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "purpose": ["debug-test"],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+    "name": "Python Debugger: Python File",
+    "type": "python",
+    "request": "launch",
+    "program": "${file}",
+    "console": "integratedTerminal"
+}
+  ]
+}

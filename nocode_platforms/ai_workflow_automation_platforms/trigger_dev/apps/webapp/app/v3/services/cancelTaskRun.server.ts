@@ -1,0 +1,72 @@
+import { RunEngineVersion, type TaskRun } from "@trigger.dev/database";
+import { engine } from "../runEngine.server";
+import { BaseService } from "./baseService.server";
+import { CancelTaskRunServiceV1 } from "./cancelTaskRunV1.server";
+
+export type CancelTaskRunServiceOptions = {
+  reason?: string;
+  cancelAttempts?: boolean;
+  cancelledAt?: Date;
+  bulkActionId?: string;
+  /** Skip PENDING_CANCEL and finalize immediately (use when the worker is known to be dead). */
+  finalizeRun?: boolean;
+};
+
+type CancelTaskRunServiceResult = {
+  id: string;
+  alreadyFinished: boolean;
+};
+
+export type CancelableTaskRun = Pick<
+  TaskRun,
+  "id" | "engine" | "status" | "friendlyId" | "taskEventStore" | "createdAt" | "completedAt"
+>;
+
+export class CancelTaskRunService extends BaseService {
+  public async call(
+    taskRun: CancelableTaskRun,
+    options?: CancelTaskRunServiceOptions
+  ): Promise<CancelTaskRunServiceResult | undefined> {
+    if (taskRun.engine === RunEngineVersion.V1) {
+      return await this.callV1(taskRun, options);
+    } else {
+      return await this.callV2(taskRun, options);
+    }
+  }
+
+  private async callV1(
+    taskRun: CancelableTaskRun,
+    options?: CancelTaskRunServiceOptions
+  ): Promise<CancelTaskRunServiceResult | undefined> {
+    const service = new CancelTaskRunServiceV1(this._prisma);
+    const result = await service.call(taskRun, options);
+
+    if (!result) {
+      return;
+    }
+
+    return {
+      id: result.id,
+      alreadyFinished: false,
+    };
+  }
+
+  private async callV2(
+    taskRun: CancelableTaskRun,
+    options?: CancelTaskRunServiceOptions
+  ): Promise<CancelTaskRunServiceResult | undefined> {
+    const result = await engine.cancelRun({
+      runId: taskRun.id,
+      completedAt: options?.cancelledAt,
+      reason: options?.reason,
+      finalizeRun: options?.finalizeRun,
+      bulkActionId: options?.bulkActionId,
+      tx: this._prisma,
+    });
+
+    return {
+      id: result.run.id,
+      alreadyFinished: result.alreadyFinished,
+    };
+  }
+}

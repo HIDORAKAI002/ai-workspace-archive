@@ -1,0 +1,282 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        node-version: [18, 20]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps ${{ matrix.browser }}
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          npm run start &
+          # Wait for servers to be ready
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+        
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+          CI: true
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-node${{ matrix.node-version }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+          
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.browser }}-node${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 7
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          npm run start &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+          
+      - name: Run visual regression tests
+        run: npm run test:visual
+        
+      - name: Upload visual test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-results
+          path: |
+            test-results/
+            test/e2e/visual/screenshots/
+          retention-days: 30
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          npm run start &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+          
+      - name: Run performance tests
+        run: npm run test:performance
+        
+      - name: Generate Lighthouse reports
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --config .lighthouserc.json
+        continue-on-error: true
+        
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            test-results/
+            .lighthouseci/
+          retention-days: 30
+
+  accessibility-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          npm run start &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+          
+      - name: Run accessibility tests
+        run: |
+          # Install axe-core for accessibility testing
+          npm install @axe-core/playwright
+          npx playwright test --grep "accessibility"
+          
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-results
+          path: test-results/accessibility/
+          retention-days: 30
+
+  report-results:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, visual-regression, performance-tests]
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Generate consolidated report
+        run: |
+          echo "# E2E Test Results" > test-summary.md
+          echo "" >> test-summary.md
+          echo "## Test Execution Summary" >> test-summary.md
+          echo "- E2E Tests: ${{ needs.e2e-tests.result }}" >> test-summary.md
+          echo "- Visual Regression: ${{ needs.visual-regression.result }}" >> test-summary.md
+          echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> test-summary.md
+          echo "" >> test-summary.md
+          echo "## Artifacts" >> test-summary.md
+          echo "- Test reports are available in the artifacts section" >> test-summary.md
+          echo "- Visual regression screenshots available for review" >> test-summary.md
+          echo "- Performance metrics and Lighthouse reports included" >> test-summary.md
+          
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('test-summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  nightly-full-suite:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit, 'Mobile Chrome', 'Mobile Safari']
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          npm run start &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+          
+      - name: Run full test suite
+        run: |
+          npx playwright test --project="${{ matrix.browser }}"
+          npm run test:visual
+          npm run test:performance
+          
+      - name: Upload nightly results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-results-${{ matrix.browser }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 90

@@ -1,0 +1,66 @@
+import { mocks } from "@budibase/backend-core/tests"
+import { Table, Webhook, WebhookActionType } from "@budibase/types"
+import TestConfiguration from "../../../tests/utilities/TestConfiguration"
+import { createAutomationBuilder } from "../utilities/AutomationTestBuilder"
+
+mocks.licenses.useSyncAutomations()
+
+describe("Webhook trigger test", () => {
+  const config = new TestConfiguration()
+  let table: Table
+  let webhook: Webhook
+
+  async function createWebhookAutomation() {
+    const { automation } = await createAutomationBuilder(config)
+      .onWebhook({ body: { parameter: "string" } })
+      .createRow({
+        row: { tableId: table._id!, name: "{{ trigger.parameter }}" },
+      })
+      .collect({ collection: `{{ trigger.parameter }}` })
+      .save()
+
+    webhook = await config.api.webhook.save({
+      name: "hook",
+      live: true,
+      action: {
+        type: WebhookActionType.AUTOMATION,
+        target: automation._id!,
+      },
+      bodySchema: {},
+    })
+    await config.api.webhook.buildSchema(
+      config.getDevWorkspaceId(),
+      webhook._id!,
+      {
+        parameter: "string",
+      }
+    )
+    await config.publish()
+    return { webhook, automation }
+  }
+
+  beforeAll(async () => {
+    await config.init()
+  })
+
+  beforeEach(async () => {
+    await config.api.automation.deleteAll()
+    table = await config.createTable()
+  })
+
+  afterAll(() => {
+    config.end()
+  })
+
+  it("should run the webhook automation - checking for parameters", async () => {
+    const { webhook } = await createWebhookAutomation()
+    const res = await config.withProdApp(() =>
+      config.api.webhook.trigger(config.getProdWorkspaceId(), webhook._id!, {
+        parameter: "testing",
+      })
+    )
+    expect(typeof res).toBe("object")
+    const collectedInfo = res as Record<string, any>
+    expect(collectedInfo.value).toEqual("testing")
+  })
+})

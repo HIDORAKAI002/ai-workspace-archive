@@ -1,0 +1,1050 @@
+<script lang="ts" setup>
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import {
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanTitles,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+  columnTypeName,
+  getFirstNonPersonalView,
+  isCreatedOrLastModifiedTimeCol,
+  isCrossBaseLink,
+  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
+import { SmartsheetStoreEvents } from '#imports'
+
+const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
+
+const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
+
+const virtual = toRef(props, 'virtual')
+
+const isOpen = useVModel(props, 'isOpen', emit)
+
+const { isMobileMode } = useGlobal()
+
+const column = toRef(props, 'column')
+provide(ColumnInj, column)
+
+const { eventBus, allFilters, isSqlView, sorts } = useSmartsheetStoreOrThrow()
+
+const viewStore = useViewsStore()
+
+const { views } = storeToRefs(viewStore)
+
+const reloadDataHook = inject(ReloadViewDataHookInj)
+
+const reloadRowTrigger = inject(ReloadRowDataHookInj, null)
+
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+const { $api, $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { getMeta } = useMetas()
+
+const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
+
+const showDeleteColumnModal = ref(false)
+
+const showConvertLinkV2Modal = ref(false)
+
+const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
+
+const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
+
+const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+
+const { showEEFeatures } = useEeConfig()
+
+const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
+
+const setAsDisplayValue = async () => {
+  isLoading.value = 'setDisplay'
+  try {
+    const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
+
+    isOpen.value = false
+
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnSetAsPrimary',
+        columnId: column?.value?.id as string,
+      },
+      {},
+    )
+
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    $e('a:column:set-primary')
+
+    addUndo({
+      redo: {
+        fn: async (id: string) => {
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnSetAsPrimary',
+              columnId: id,
+            },
+            {},
+          )
+
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [column?.value?.id as string],
+      },
+      undo: {
+        fn: async (id: string) => {
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnSetAsPrimary',
+              columnId: id,
+            },
+            {},
+          )
+
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [currentDisplayValue?.id],
+      },
+      scope: defineModelScope({ model: meta.value }),
+    })
+
+    // reload data since there might be some changes in the data if there is LTAR
+    // or a formula field which refers to a LTAR field
+    reloadDataHook?.trigger()
+
+    // same way reload the row data if trigger is available
+    reloadRowTrigger?.trigger()
+  } catch (e) {
+    message.error(t('msg.error.primaryColumnUpdateFailed'))
+  } finally {
+    isLoading.value = ''
+  }
+}
+
+const sortByColumn = async (direction: 'asc' | 'desc') => {
+  await insertSort({
+    column: column!.value,
+    direction,
+    reloadDataHook,
+  })
+}
+
+const isDuplicateDlgOpen = ref(false)
+const selectedColumnExtra = ref<any>()
+const duplicateDialogRef = ref<any>()
+
+const duplicateVirtualColumn = async () => {
+  let columnCreatePayload = {}
+
+  // generate duplicate column title
+  const duplicateColumnTitle = getUniqueColumnName(`${column!.value.title} copy`, meta!.value!.columns!)
+
+  columnCreatePayload = {
+    ...column!.value!,
+    ...(column!.value.colOptions ?? {}),
+    title: duplicateColumnTitle,
+    column_name: duplicateColumnTitle.replace(/\s/g, '_'),
+    id: undefined,
+    colOptions: undefined,
+    order: undefined,
+    system: false,
+    // Clear UUID-specific metadata to avoid conflicts during duplication
+    ...(column!.value.uidt === UITypes.UUID
+      ? {
+          internal_meta: undefined,
+          unique: undefined, // Let backend set this automatically for UUID
+        }
+      : {}),
+  }
+
+  try {
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+    }
+
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnAdd',
+        tableId: meta!.value!.id!,
+      },
+      {
+        ...columnCreatePayload,
+        pv: false,
+        view_id: view.value!.id as string,
+        column_order: {
+          order: newColumnOrder,
+          view_id: view.value!.id as string,
+        },
+      } as ColumnReqType,
+    )
+    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
+
+    // message.success(t('msg.success.columnDuplicated'))
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+  // closing dropdown
+  isOpen.value = false
+}
+
+const openDuplicateDlg = async () => {
+  if (!column?.value) return
+  if (
+    column.value.uidt &&
+    [
+      UITypes.Lookup,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+    ].includes(column.value.uidt as UITypes)
+  ) {
+    duplicateVirtualColumn()
+  } else {
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+    }
+
+    selectedColumnExtra.value = {
+      pv: false,
+      view_id: view.value!.id as string,
+      column_order: {
+        order: newColumnOrder,
+        view_id: view.value!.id as string,
+      },
+    }
+
+    if (column.value.uidt === UITypes.Formula || column.value.uidt === UITypes.Button) {
+      nextTick(() => {
+        duplicateDialogRef?.value?.duplicate()
+      })
+    } else {
+      isDuplicateDlgOpen.value = true
+    }
+
+    isOpen.value = false
+  }
+}
+
+// add column before or after current column
+const addColumn = async (before = false) => {
+  const gridViewColumnList = (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'viewColumnList',
+      viewId: view.value?.id as string,
+    })
+  ).list
+
+  const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+
+  let newColumnOrder
+  if (before) {
+    if (currentColumnIndex === 0) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order / 2
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
+    }
+  } else {
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+    }
+  }
+
+  emit('addColumn', {
+    column_order: {
+      order: newColumnOrder,
+      view_id: view.value?.id as string,
+    },
+  })
+}
+
+const isDefaultView = computed(() => {
+  return (
+    getFirstNonPersonalView(views.value, {
+      includeViewType: ViewTypes.GRID,
+    })?.id === view.value?.id
+  )
+})
+
+const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
+  //  Don't update meta if it is not default view
+  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !isDefaultView.value) return
+
+  meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+    if (c.id !== columnId) return c
+
+    c.meta = { ...parseProp(c.meta || {}), defaultViewColVisibility: show }
+    return c
+  })
+
+  if (meta.value?.columnsById?.[columnId]) {
+    meta.value.columnsById[columnId].meta = {
+      ...parseProp(meta.value.columnsById[columnId].meta),
+      defaultViewColVisibility: show,
+    }
+  }
+}
+
+// hide the field in view
+const hideOrShowField = async () => {
+  isLoading.value = 'hideOrShow'
+
+  const viewId = view.value?.id
+
+  const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
+
+  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id!]) {
+    hidingViewColumnsMap.value[column.value.id!] = true
+
+    fieldsMap.value[column.value.id!].show = false
+    updateDefaultViewColVisibility(column?.value.id, false)
+    isOpen.value = false
+  }
+
+  try {
+    const currentColumn =
+      currentViewColumn ||
+      (
+        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'viewColumnList',
+          viewId,
+        })
+      ).list.find((f) => f.fk_column_id === column!.value.id)
+
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'viewColumnUpdate',
+        viewId: view.value!.id!,
+        columnId: currentColumn!.id!,
+      },
+      { show: !currentColumn.show },
+    )
+
+    if (!hidingViewColumnsMap.value[column.value.id!]) {
+      if (isExpandedForm.value) {
+        await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+      } else {
+        updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+      }
+    }
+
+    // delete current columnId from hidingViewColumnsMap so that while loading view columns, we can use db stored value
+    delete hidingViewColumnsMap.value[column.value.id!]
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    if (!currentColumn.show) {
+      reloadDataHook?.trigger()
+    }
+
+    addUndo({
+      redo: {
+        fn: async function redo(id: string, fk_column_id: string, show: boolean) {
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show: !show },
+          )
+
+          if (isExpandedForm.value) {
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+          } else {
+            updateDefaultViewColVisibility(fk_column_id, !show)
+          }
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+          if (!show) {
+            reloadDataHook?.trigger()
+          }
+        },
+        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
+      },
+      undo: {
+        fn: async function undo(id: string, fk_column_id: string, show: boolean) {
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show },
+          )
+
+          if (isExpandedForm.value) {
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+          } else {
+            updateDefaultViewColVisibility(fk_column_id, show)
+          }
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+          reloadDataHook?.trigger()
+          if (show) {
+            reloadDataHook?.trigger()
+          }
+        },
+        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
+  } catch (e: any) {
+    console.log('error', e)
+    if (hidingViewColumnsMap.value[column.value.id!]) {
+      fieldsMap.value[column.value.id!].show = true
+      updateDefaultViewColVisibility(column?.value.id, true)
+
+      delete hidingViewColumnsMap.value[column.value.id!]
+
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      reloadDataHook?.trigger()
+    }
+
+    message.error(t('msg.error.columnVisibilityUpdateFailed'))
+  } finally {
+    isLoading.value = ''
+    delete hidingViewColumnsMap.value[column.value.id!]
+
+    if (isOpen.value) {
+      isOpen.value = false
+    }
+  }
+}
+
+const handleDelete = () => {
+  // closing the dropdown
+  // when modal opens
+  isOpen.value = false
+  showDeleteColumnModal.value = true
+}
+
+const onEditPress = (event?: MouseEvent, enableDescription = false) => {
+  isOpen.value = false
+  emit('edit', event, enableDescription, column.value)
+}
+
+const onInsertBefore = () => {
+  isOpen.value = false
+  addColumn(true)
+}
+const onInsertAfter = () => {
+  isOpen.value = false
+  addColumn()
+}
+
+const isDeleteAllowed = computed(() => {
+  return column?.value && !isSystemColumn(column.value) && (!meta.value?.synced || !column.value?.readonly)
+})
+const isDuplicateAllowed = computed(() => {
+  return (
+    column?.value &&
+    !column.value.system &&
+    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
+    !column.value.meta?.custom &&
+    column.value.uidt !== UITypes.ForeignKey &&
+    !isCrossBaseLink(column.value)
+  )
+})
+const isFilterSupported = computed(
+  () =>
+    !!(meta.value?.columns || []).find(
+      (f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(f.uidt),
+    ),
+)
+
+const isSortSupported = computed(
+  () => !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.Button].includes(f.uidt)),
+)
+
+const { getPlanLimit } = useWorkspace()
+
+const isFilterLimitExceeded = computed(
+  () =>
+    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >=
+    getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
+)
+
+const isGroupedByThisField = computed(() => {
+  // null = no override (use synced), [] = override with empty (no grouping)
+  if (localGroupBy.value !== null) {
+    return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
+  }
+  return !!gridViewCols.value[column?.value?.id]?.group_by
+})
+
+const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))
+
+const isGroupByLimitExceeded = computed(() => {
+  return !(
+    fieldsToGroupBy.value.length &&
+    fieldsToGroupBy.value.length > groupBy.value.length &&
+    groupBy.value.length < groupByLimit
+  )
+})
+
+const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
+  if (column?.value) {
+    eventBus.emit(event, {
+      column: column.value,
+    })
+  }
+  isOpen.value = false
+}
+
+const isColumnUpdateAllowed = computed(() => {
+  if (
+    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
+  ) {
+    return false
+  }
+
+  return true
+})
+
+const isColumnEditAllowed = computed(() => {
+  if (
+    (isMetaReadOnly.value &&
+      !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
+      !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
+  ) {
+    return false
+  }
+
+  return true
+})
+
+// check if the column is associated as foreign key in any of the link column
+const linksAssociated = computed(() => {
+  return meta.value?.columns?.filter(
+    (c) => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
+  )
+})
+
+const addLookupOrRollupMenu = ref(false)
+
+const addLookupOrRollupType = ref<UITypes.Lookup | UITypes.Rollup>(UITypes.Lookup)
+
+const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => {
+  isOpen.value = false
+  addLookupOrRollupMenu.value = true
+  addLookupOrRollupType.value = type
+}
+
+const changeTitleFieldMenu = ref(false)
+
+const changeTitleField = () => {
+  isOpen.value = false
+  changeTitleFieldMenu.value = true
+}
+
+const showFieldPermissionsModal = ref(false)
+
+const onFieldPermissions = () => {
+  isOpen.value = false
+
+  showFieldPermissionsModal.value = true
+}
+
+const onDeleteColumn = () => {
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  const isFilterRemoved = allFilters.value?.some((f) => f.fk_column_id === column.value.id)
+  const isSortRemoved = sorts.value?.some((f) => f.fk_column_id === column.value.id)
+
+  // check if column used in sort list, if used then reload sort list
+  if (isSortRemoved) eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+
+  // skipping filter reload here since we reload filters on columns count change with in useViewFilter
+  // if any of the above events are emitted, then reload the data
+  if (isFilterRemoved || isSortRemoved) eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+}
+</script>
+
+<template>
+  <NcMenu
+    variant="small"
+    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55 nc-max-h-screen nc-scrollbar-thin"
+    :class="{
+      'min-w-[256px]': isExpandedForm,
+    }"
+  >
+    <NcMenuItemCopyId
+      v-if="column"
+      :id="column.id!"
+      data-testid="nc-field-item-action-copy-id"
+      :tooltip="$t('msg.clickToCopyFieldId')"
+      :label="
+        $t('labels.idColon', {
+          id: column.id,
+        })
+      "
+    />
+
+    <NcDivider />
+    <GeneralSourceRestrictionTooltip
+      v-if="isUIAllowed('fieldAlter')"
+      message="Field properties cannot be edited."
+      :enabled="!isColumnEditAllowed"
+      :is-sql-view="isSqlView"
+    >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
+        </div>
+      </template>
+
+      <NcMenuItem
+        v-if="!isMobileMode"
+        :disabled="
+          column?.pk ||
+          (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column)) ||
+          !isColumnEditAllowed ||
+          linksAssociated?.length
+        "
+        :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
+        @click="onEditPress($event, false)"
+      >
+        <div class="nc-column-edit nc-header-menu-item">
+          <component :is="iconMap.ncEdit" class="opacity-80" />
+          <!-- Edit -->
+          {{ $t('general.edit') }} {{ $t('objects.field').toLowerCase() }}
+        </div>
+      </NcMenuItem>
+    </GeneralSourceRestrictionTooltip>
+    <NcMenuItem
+      v-if="
+        !isMobileMode &&
+        isLinksOrLTAR(column) &&
+        (column.uidt === UITypes.Links || column.colOptions?.version !== 2) &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView
+      "
+      data-testid="nc-column-convert-link-v2"
+      @click="
+        () => {
+          isOpen = false
+          showConvertLinkV2Modal = true
+        }
+      "
+    >
+      <div class="nc-column-convert-v2 nc-header-menu-item">
+        <GeneralIcon icon="ncArrowUpCircle" class="opacity-80" />
+        {{ $t('labels.convertToNewLink') }}
+      </div>
+    </NcMenuItem>
+    <template v-if="!isExpandedForm">
+      <GeneralSourceRestrictionTooltip
+        v-if="!column?.pk"
+        message="Field cannot be duplicated."
+        :enabled="!isDuplicateAllowed && isMetaReadOnly"
+        :is-sql-view="isSqlView"
+      >
+        <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+            <component :is="iconMap.duplicate" class="opacity-80" />
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+          </div>
+        </NcMenuItem>
+      </GeneralSourceRestrictionTooltip>
+      <GeneralSourceRestrictionTooltip
+        v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+        message="Field cannot be duplicated."
+        :enabled="!isDuplicateAllowed"
+      >
+        <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+            <component :is="iconMap.duplicate" class="opacity-80" />
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+          </div>
+        </NcMenuItem>
+      </GeneralSourceRestrictionTooltip>
+    </template>
+
+    <NcMenuItem
+      v-if="isUIAllowed('fieldAlter') && !!column?.pv"
+      title="Select a new field as display value"
+      @click="changeTitleField"
+    >
+      <div class="nc-column-change-display-value-field nc-header-menu-item">
+        <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
+        {{ $t('labels.changeDisplayValueField') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem
+      v-if="!isMobileMode && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      title="Add field description"
+      @click="onEditPress($event, true)"
+    >
+      <div class="nc-column-edit-description nc-header-menu-item">
+        <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
+        {{ $t('labels.editFieldDescription') }}
+      </div>
+    </NcMenuItem>
+
+    <NcTooltip
+      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey && showEEFeatures"
+      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
+      placement="right"
+      :arrow="false"
+    >
+      <template #title>
+        <template v-if="column?.readonly && meta?.synced">
+          {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
+        </template>
+        <template v-else>
+          {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        </template>
+      </template>
+
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+        <template #default="{ click }">
+          <NcMenuItem
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced) || isUUID(column)"
+            @click="
+              click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                onFieldPermissions()
+              })
+            "
+          >
+            <div class="nc-column-field-permissions nc-header-menu-item w-full">
+              <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+              <div class="flex-1">
+                {{ $t('title.editFieldPermissions') }}
+              </div>
+
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                :content="
+                  $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                    plan: PlanTitles.PLUS,
+                  })
+                "
+                :on-click-callback="
+                  () => {
+                    isOpen = false
+                  }
+                "
+                size="xs"
+              />
+            </div>
+          </NcMenuItem>
+        </template>
+      </PaymentUpgradeBadgeProvider>
+    </NcTooltip>
+
+    <NcMenuItem
+      v-if="!isMobileMode && canUseForLookupLinkField(column, meta?.source_id)"
+      :disabled="isSqlView"
+      @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
+    >
+      <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Lookup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
+        {{ t('general.addLookupField') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem
+      v-if="!isMobileMode && canUseForRollupLinkField(column)"
+      :disabled="isSqlView"
+      @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
+    >
+      <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Rollup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
+        {{ t('general.addRollupField') }}
+      </div>
+    </NcMenuItem>
+    <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
+    <NcMenuItem v-if="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
+      <div v-e="['a:field:hide']" class="nc-column-hide-or-show nc-header-menu-item">
+        <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
+        <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
+        <!-- Hide Field -->
+        {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
+      </div>
+    </NcMenuItem>
+    <NcTooltip
+      v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
+      :disabled="isSupportedDisplayValueColumn(column)"
+      placement="right"
+    >
+      <template #title>
+        {{ $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) }) }}
+      </template>
+
+      <NcMenuItem :disabled="isLocked || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
+        <div class="nc-column-set-primary nc-header-menu-item item">
+          <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+          <GeneralIcon v-else icon="star" class="opacity-80 !w-4.25 !h-4.25" />
+
+          <!--       todo : tooltip -->
+          <!-- Set as Display value -->
+          {{ $t('activity.setDisplay') }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
+
+    <template v-if="!isExpandedForm">
+      <NcDivider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" />
+
+      <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+        <NcTooltip :disabled="isSortSupported">
+          <template #title>
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
+          </template>
+          <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('asc')">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-header-menu-item">
+              <component :is="iconMap.sortDesc" class="opacity-80 transform !rotate-180 !w-4.25 !h-4.25" />
+
+              <!-- Sort Ascending -->
+              {{ $t('general.sortAsc') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+
+        <NcTooltip :disabled="isSortSupported">
+          <template #title>
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
+          </template>
+          <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
+              <!-- Sort Descending -->
+              <component :is="iconMap.sortDesc" class="opacity-80 !w-4.25 !h-4.25" />
+              {{ $t('general.sortDesc').trim() }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+      </template>
+
+      <NcDivider />
+
+      <NcTooltip v-if="!isMobileMode" :disabled="isFilterSupported && !isFilterLimitExceeded">
+        <template #title>
+          {{
+            !isFilterSupported
+              ? $t('tooltip.thisFieldTypeDoesNotSupportFiltering')
+              : isFilterLimitExceeded
+              ? $t('tooltip.filterByLimitExceeded')
+              : ''
+          }}
+        </template>
+        <NcMenuItem
+          :disabled="isLocked || !isFilterSupported || isFilterLimitExceeded"
+          @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
+        >
+          <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+            <component :is="iconMap.filter" class="opacity-80" />
+            <!-- Filter by this field -->
+            {{ $t('activity.filterByThisField') }}
+          </div>
+        </NcMenuItem>
+      </NcTooltip>
+
+      <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)">
+        <template #title
+          >{{
+            !isGroupBySupported
+              ? $t('tooltip.thisFieldTypeDoesNotSupportGrouping')
+              : isGroupByLimitExceeded
+              ? $t('tooltip.groupByLimitExceeded')
+              : ''
+          }}
+        </template>
+        <NcMenuItem
+          :disabled="
+            isLocked || (isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField)
+          "
+          @click="
+            filterOrGroupByThisField(
+              isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
+            )
+          "
+        >
+          <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
+            <component :is="iconMap.group" class="opacity-80" />
+            <!-- Group by this field -->
+            {{ isGroupedByThisField ? $t('activity.dontGroupByThisField') : $t('activity.groupByThisField') }}
+          </div>
+        </NcMenuItem>
+      </NcTooltip>
+      <template v-if="!isSqlView && !isMobileMode">
+        <NcDivider />
+        <NcMenuItem @click="onInsertAfter">
+          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
+            <component :is="iconMap.colInsertAfter" class="opacity-80 w-4 h-4" />
+            <!-- Insert After -->
+            {{ t('general.insertAfter') }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
+          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
+            <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
+            <!-- Insert Before -->
+            {{ t('general.insertBefore') }}
+          </div>
+        </NcMenuItem>
+      </template>
+    </template>
+    <NcDivider v-if="!column?.pv" />
+    <GeneralSourceRestrictionTooltip
+      v-if="!column?.pv && isUIAllowed('fieldDelete')"
+      message="Field cannot be deleted."
+      :enabled="!isColumnUpdateAllowed"
+      :is-sql-view="isSqlView"
+    >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
+        </div>
+      </template>
+      <NcMenuItem
+        :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
+        :title="linksAssociated ? 'Field is associated with a link column' : undefined"
+        danger
+        @click="handleDelete"
+      >
+        <div class="nc-column-delete nc-header-menu-item">
+          <component :is="iconMap.delete" class="opacity-80" />
+          <!-- Delete -->
+          {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
+        </div>
+      </NcMenuItem>
+    </GeneralSourceRestrictionTooltip>
+    <div class="non-menu-items">
+      <SmartsheetHeaderDeleteColumnModal key="dc" v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
+      <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" />
+      <DlgColumnDuplicate
+        v-if="column"
+        key="ddc"
+        ref="duplicateDialogRef"
+        v-model="isDuplicateDlgOpen"
+        :column="column"
+        :extra="selectedColumnExtra"
+      />
+      <LazySmartsheetHeaderAddLookupsOrRollups key="dcx" v-model:value="addLookupOrRollupMenu" :type="addLookupOrRollupType" />
+      <LazySmartsheetHeaderUpdateDisplayValue
+        key="dcxx"
+        v-model:value="changeTitleFieldMenu"
+        :use-meta-fields="meta?.id !== view?.fk_model_id"
+      />
+      <DlgFieldPermissions
+        v-if="column && meta && isEeUI"
+        key="dfp"
+        v-model:visible="showFieldPermissionsModal"
+        :field="column"
+        :field-id="column.id!"
+        :field-title="column.title!"
+        :field-uidt="column.uidt!"
+      />
+    </div>
+  </NcMenu>
+</template>
+
+<style scoped lang="scss">
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
+}
+
+:deep(.nc-header-menu-item) {
+  @apply text-dropdown flex items-center gap-2;
+}
+
+.nc-column-options {
+  .nc-icons {
+    @apply !w-5 !h-5;
+  }
+}
+
+:deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
+  @apply text-current;
+}
+</style>

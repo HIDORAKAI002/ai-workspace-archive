@@ -1,0 +1,2711 @@
+{
+  "nodes": [
+    {
+      "id": "startAgentflow_0",
+      "type": "agentFlow",
+      "position": {
+        "x": -234.25083179589828,
+        "y": 89.8928676312403
+      },
+      "data": {
+        "id": "startAgentflow_0",
+        "label": "Start",
+        "version": 1.1,
+        "name": "startAgentflow",
+        "type": "Start",
+        "color": "#7EE787",
+        "hideInput": true,
+        "baseClasses": [
+          "Start"
+        ],
+        "category": "Agent Flows",
+        "description": "Starting point of the agentflow",
+        "inputParams": [
+          {
+            "label": "Input Type",
+            "name": "startInputType",
+            "type": "options",
+            "options": [
+              {
+                "label": "Chat Input",
+                "name": "chatInput",
+                "description": "Start the conversation with chat input"
+              },
+              {
+                "label": "Form Input",
+                "name": "formInput",
+                "description": "Start the workflow with form inputs"
+              }
+            ],
+            "default": "chatInput",
+            "id": "startAgentflow_0-input-startInputType-options",
+            "display": true
+          },
+          {
+            "label": "Form Title",
+            "name": "formTitle",
+            "type": "string",
+            "placeholder": "Please Fill Out The Form",
+            "show": {
+              "startInputType": "formInput"
+            },
+            "id": "startAgentflow_0-input-formTitle-string",
+            "display": false
+          },
+          {
+            "label": "Form Description",
+            "name": "formDescription",
+            "type": "string",
+            "placeholder": "Complete all fields below to continue",
+            "show": {
+              "startInputType": "formInput"
+            },
+            "id": "startAgentflow_0-input-formDescription-string",
+            "display": false
+          },
+          {
+            "label": "Form Input Types",
+            "name": "formInputTypes",
+            "description": "Specify the type of form input",
+            "type": "array",
+            "show": {
+              "startInputType": "formInput"
+            },
+            "array": [
+              {
+                "label": "Type",
+                "name": "type",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "String",
+                    "name": "string"
+                  },
+                  {
+                    "label": "Number",
+                    "name": "number"
+                  },
+                  {
+                    "label": "Boolean",
+                    "name": "boolean"
+                  },
+                  {
+                    "label": "Options",
+                    "name": "options"
+                  }
+                ],
+                "default": "string"
+              },
+              {
+                "label": "Label",
+                "name": "label",
+                "type": "string",
+                "placeholder": "Label for the input"
+              },
+              {
+                "label": "Variable Name",
+                "name": "name",
+                "type": "string",
+                "placeholder": "Variable name for the input (must be camel case)",
+                "description": "Variable name must be camel case. For example: firstName, lastName, etc."
+              },
+              {
+                "label": "Add Options",
+                "name": "addOptions",
+                "type": "array",
+                "show": {
+                  "formInputTypes[$index].type": "options"
+                },
+                "array": [
+                  {
+                    "label": "Option",
+                    "name": "option",
+                    "type": "string"
+                  }
+                ]
+              }
+            ],
+            "id": "startAgentflow_0-input-formInputTypes-array",
+            "display": false
+          },
+          {
+            "label": "Ephemeral Memory",
+            "name": "startEphemeralMemory",
+            "type": "boolean",
+            "description": "Start fresh for every execution without past chat history",
+            "optional": true,
+            "display": true
+          },
+          {
+            "label": "Flow State",
+            "name": "startState",
+            "description": "Runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "string",
+                "placeholder": "Foo"
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "placeholder": "Bar"
+              }
+            ],
+            "id": "startAgentflow_0-input-startState-array",
+            "display": true
+          },
+          {
+            "label": "Persist State",
+            "name": "startPersistState",
+            "type": "boolean",
+            "description": "Persist the state in the same session",
+            "optional": true,
+            "id": "startAgentflow_0-input-startPersistState-boolean",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "startInputType": "chatInput",
+          "startState": [
+            {
+              "key": "next",
+              "value": ""
+            },
+            {
+              "key": "instruction",
+              "value": ""
+            },
+            {
+              "key": "research",
+              "value": "\"placeholder for returned research\""
+            },
+            {
+              "key": "analysis",
+              "value": "\"placeholder for analysis\""
+            },
+            {
+              "key": "strategy",
+              "value": "\"placeholder for strategy\""
+            },
+            {
+              "key": "report",
+              "value": "\"placeholder for complete report\""
+            },
+            {
+              "key": "answers",
+              "value": "{{output}}"
+            }
+          ],
+          "startPersistState": true
+        },
+        "outputAnchors": [
+          {
+            "id": "startAgentflow_0-output-startAgentflow",
+            "label": "Start",
+            "name": "startAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 103,
+      "height": 66,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -234.25083179589828,
+        "y": 89.8928676312403
+      },
+      "dragging": false
+    },
+    {
+      "id": "conditionAgentflow_0",
+      "position": {
+        "x": 136.77483032286085,
+        "y": 54.9860598192505
+      },
+      "data": {
+        "id": "conditionAgentflow_0",
+        "label": "Check next worker",
+        "version": 1,
+        "name": "conditionAgentflow",
+        "type": "Condition",
+        "color": "#FFB938",
+        "baseClasses": [
+          "Condition"
+        ],
+        "category": "Agent Flows",
+        "description": "Split flows based on If Else conditions",
+        "inputParams": [
+          {
+            "label": "Conditions",
+            "name": "conditions",
+            "type": "array",
+            "description": "Values to compare",
+            "acceptVariable": true,
+            "default": [
+              {
+                "type": "string",
+                "value1": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.next\" data-label=\"$flow.state.next\">{{ $flow.state.next }}</span> </p>",
+                "operation": "equal",
+                "value2": "<p>SOFTWARE</p>"
+              }
+            ],
+            "array": [
+              {
+                "label": "Type",
+                "name": "type",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "String",
+                    "name": "string"
+                  },
+                  {
+                    "label": "Number",
+                    "name": "number"
+                  },
+                  {
+                    "label": "Boolean",
+                    "name": "boolean"
+                  }
+                ],
+                "default": "string"
+              },
+              {
+                "label": "Value 1",
+                "name": "value1",
+                "type": "string",
+                "default": "",
+                "description": "First value to be compared with",
+                "acceptVariable": true,
+                "show": {
+                  "conditions[$index].type": "string"
+                }
+              },
+              {
+                "label": "Operation",
+                "name": "operation",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "Contains",
+                    "name": "contains"
+                  },
+                  {
+                    "label": "Ends With",
+                    "name": "endsWith"
+                  },
+                  {
+                    "label": "Equal",
+                    "name": "equal"
+                  },
+                  {
+                    "label": "Not Contains",
+                    "name": "notContains"
+                  },
+                  {
+                    "label": "Not Equal",
+                    "name": "notEqual"
+                  },
+                  {
+                    "label": "Regex",
+                    "name": "regex"
+                  },
+                  {
+                    "label": "Starts With",
+                    "name": "startsWith"
+                  },
+                  {
+                    "label": "Is Empty",
+                    "name": "isEmpty"
+                  },
+                  {
+                    "label": "Not Empty",
+                    "name": "notEmpty"
+                  }
+                ],
+                "default": "equal",
+                "description": "Type of operation",
+                "show": {
+                  "conditions[$index].type": "string"
+                }
+              },
+              {
+                "label": "Value 2",
+                "name": "value2",
+                "type": "string",
+                "default": "",
+                "description": "Second value to be compared with",
+                "acceptVariable": true,
+                "show": {
+                  "conditions[$index].type": "string"
+                },
+                "hide": {
+                  "conditions[$index].operation": [
+                    "isEmpty",
+                    "notEmpty"
+                  ]
+                }
+              },
+              {
+                "label": "Value 1",
+                "name": "value1",
+                "type": "number",
+                "default": "",
+                "description": "First value to be compared with",
+                "acceptVariable": true,
+                "show": {
+                  "conditions[$index].type": "number"
+                }
+              },
+              {
+                "label": "Operation",
+                "name": "operation",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "Smaller",
+                    "name": "smaller"
+                  },
+                  {
+                    "label": "Smaller Equal",
+                    "name": "smallerEqual"
+                  },
+                  {
+                    "label": "Equal",
+                    "name": "equal"
+                  },
+                  {
+                    "label": "Not Equal",
+                    "name": "notEqual"
+                  },
+                  {
+                    "label": "Larger",
+                    "name": "larger"
+                  },
+                  {
+                    "label": "Larger Equal",
+                    "name": "largerEqual"
+                  },
+                  {
+                    "label": "Is Empty",
+                    "name": "isEmpty"
+                  },
+                  {
+                    "label": "Not Empty",
+                    "name": "notEmpty"
+                  }
+                ],
+                "default": "equal",
+                "description": "Type of operation",
+                "show": {
+                  "conditions[$index].type": "number"
+                }
+              },
+              {
+                "label": "Value 2",
+                "name": "value2",
+                "type": "number",
+                "default": 0,
+                "description": "Second value to be compared with",
+                "acceptVariable": true,
+                "show": {
+                  "conditions[$index].type": "number"
+                }
+              },
+              {
+                "label": "Value 1",
+                "name": "value1",
+                "type": "boolean",
+                "default": false,
+                "description": "First value to be compared with",
+                "show": {
+                  "conditions[$index].type": "boolean"
+                }
+              },
+              {
+                "label": "Operation",
+                "name": "operation",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "Equal",
+                    "name": "equal"
+                  },
+                  {
+                    "label": "Not Equal",
+                    "name": "notEqual"
+                  }
+                ],
+                "default": "equal",
+                "description": "Type of operation",
+                "show": {
+                  "conditions[$index].type": "boolean"
+                }
+              },
+              {
+                "label": "Value 2",
+                "name": "value2",
+                "type": "boolean",
+                "default": false,
+                "description": "Second value to be compared with",
+                "show": {
+                  "conditions[$index].type": "boolean"
+                }
+              }
+            ],
+            "id": "conditionAgentflow_0-input-conditions-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "conditions": [
+            {
+              "type": "string",
+              "value1": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.next\" data-label=\"$flow.state.next\">{{ $flow.state.next }}</span> </p>",
+              "operation": "equal",
+              "value2": "<p>RESEARCHER</p>"
+            },
+            {
+              "type": "string",
+              "value1": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.next\" data-label=\"$flow.state.next\">{{ $flow.state.next }}</span> </p>",
+              "operation": "equal",
+              "value2": "<p>ANALYST</p>"
+            },
+            {
+              "type": "string",
+              "value1": "<p>STRATEGIST</p>",
+              "operation": "equal",
+              "value2": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.next\" data-label=\"$flow.state.next\">{{ $flow.state.next }}</span></p>"
+            },
+            {
+              "type": "string",
+              "value1": "<p>REPORTER</p>",
+              "operation": "equal",
+              "value2": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.next\" data-label=\"$flow.state.next\">{{ $flow.state.next }}</span></p>"
+            }
+          ]
+        },
+        "outputAnchors": [
+          {
+            "id": "conditionAgentflow_0-output-0",
+            "label": 0,
+            "name": 0,
+            "description": "Condition 0"
+          },
+          {
+            "id": "conditionAgentflow_0-output-1",
+            "label": 1,
+            "name": 1,
+            "description": "Condition 1"
+          },
+          {
+            "id": "conditionAgentflow_0-output-2",
+            "label": 2,
+            "name": 2,
+            "description": "Condition 2"
+          },
+          {
+            "id": "conditionAgentflow_0-output-3",
+            "label": 3,
+            "name": 3,
+            "description": "Condition 3"
+          },
+          {
+            "id": "conditionAgentflow_0-output-4",
+            "label": 4,
+            "name": 4,
+            "description": "Else"
+          }
+        ],
+        "outputs": {
+          "conditionAgentflow": ""
+        },
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 194,
+      "height": 140,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 136.77483032286085,
+        "y": 54.9860598192505
+      },
+      "dragging": false
+    },
+    {
+      "id": "loopAgentflow_0",
+      "position": {
+        "x": 648.9594845239482,
+        "y": -35.55868018531492
+      },
+      "data": {
+        "id": "loopAgentflow_0",
+        "label": "Loop to Supervisor",
+        "version": 1,
+        "name": "loopAgentflow",
+        "type": "Loop",
+        "color": "#FFA07A",
+        "hideOutput": true,
+        "baseClasses": [
+          "Loop"
+        ],
+        "category": "Agent Flows",
+        "description": "Loop back to a previous node",
+        "inputParams": [
+          {
+            "label": "Loop Back To",
+            "name": "loopBackToNode",
+            "type": "asyncOptions",
+            "loadMethod": "listPreviousNodes",
+            "freeSolo": true,
+            "id": "loopAgentflow_0-input-loopBackToNode-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Max Loop Count",
+            "name": "maxLoopCount",
+            "type": "number",
+            "default": 5,
+            "id": "loopAgentflow_0-input-maxLoopCount-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "loopBackToNode": "llmAgentflow_0-Supervisor",
+          "maxLoopCount": 5,
+          "undefined": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 195,
+      "height": 66,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 648.9594845239482,
+        "y": -35.55868018531492
+      }
+    },
+    {
+      "id": "llmAgentflow_0",
+      "position": {
+        "x": -78.28788541792727,
+        "y": 87.1528514813091
+      },
+      "data": {
+        "id": "llmAgentflow_0",
+        "label": "Supervisor",
+        "version": 1,
+        "name": "llmAgentflow",
+        "type": "LLM",
+        "color": "#64B5F6",
+        "baseClasses": [
+          "LLM"
+        ],
+        "category": "Agent Flows",
+        "description": "Large language models to analyze user-provided inputs and generate responses",
+        "inputParams": [
+          {
+            "label": "Model",
+            "name": "llmModel",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "loadConfig": true,
+            "id": "llmAgentflow_0-input-llmModel-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Messages",
+            "name": "llmMessages",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Role",
+                "name": "role",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "System",
+                    "name": "system"
+                  },
+                  {
+                    "label": "Assistant",
+                    "name": "assistant"
+                  },
+                  {
+                    "label": "Developer",
+                    "name": "developer"
+                  },
+                  {
+                    "label": "User",
+                    "name": "user"
+                  }
+                ]
+              },
+              {
+                "label": "Content",
+                "name": "content",
+                "type": "string",
+                "acceptVariable": true,
+                "generateInstruction": true,
+                "rows": 4
+              }
+            ],
+            "id": "llmAgentflow_0-input-llmMessages-array",
+            "display": true
+          },
+          {
+            "label": "Enable Memory",
+            "name": "llmEnableMemory",
+            "type": "boolean",
+            "description": "Enable memory for the conversation thread",
+            "default": true,
+            "optional": true,
+            "id": "llmAgentflow_0-input-llmEnableMemory-boolean",
+            "display": true
+          },
+          {
+            "label": "Memory Type",
+            "name": "llmMemoryType",
+            "type": "options",
+            "options": [
+              {
+                "label": "All Messages",
+                "name": "allMessages",
+                "description": "Retrieve all messages from the conversation"
+              },
+              {
+                "label": "Window Size",
+                "name": "windowSize",
+                "description": "Uses a fixed window size to surface the last N messages"
+              },
+              {
+                "label": "Conversation Summary",
+                "name": "conversationSummary",
+                "description": "Summarizes the whole conversation"
+              },
+              {
+                "label": "Conversation Summary Buffer",
+                "name": "conversationSummaryBuffer",
+                "description": "Summarize conversations once token limit is reached. Default to 2000"
+              }
+            ],
+            "optional": true,
+            "default": "allMessages",
+            "show": {
+              "llmEnableMemory": true
+            },
+            "id": "llmAgentflow_0-input-llmMemoryType-options",
+            "display": true
+          },
+          {
+            "label": "Window Size",
+            "name": "llmMemoryWindowSize",
+            "type": "number",
+            "default": "20",
+            "description": "Uses a fixed window size to surface the last N messages",
+            "show": {
+              "llmMemoryType": "windowSize"
+            },
+            "id": "llmAgentflow_0-input-llmMemoryWindowSize-number",
+            "display": false
+          },
+          {
+            "label": "Max Token Limit",
+            "name": "llmMemoryMaxTokenLimit",
+            "type": "number",
+            "default": "2000",
+            "description": "Summarize conversations once token limit is reached. Default to 2000",
+            "show": {
+              "llmMemoryType": "conversationSummaryBuffer"
+            },
+            "id": "llmAgentflow_0-input-llmMemoryMaxTokenLimit-number",
+            "display": false
+          },
+          {
+            "label": "Input Message",
+            "name": "llmUserMessage",
+            "type": "string",
+            "description": "Add an input message as user message at the end of the conversation",
+            "rows": 4,
+            "optional": true,
+            "acceptVariable": true,
+            "show": {
+              "llmEnableMemory": true
+            },
+            "id": "llmAgentflow_0-input-llmUserMessage-string",
+            "display": true
+          },
+          {
+            "label": "Return Response As",
+            "name": "llmReturnResponseAs",
+            "type": "options",
+            "options": [
+              {
+                "label": "User Message",
+                "name": "userMessage"
+              },
+              {
+                "label": "Assistant Message",
+                "name": "assistantMessage"
+              }
+            ],
+            "default": "userMessage",
+            "id": "llmAgentflow_0-input-llmReturnResponseAs-options",
+            "display": true
+          },
+          {
+            "label": "JSON Structured Output",
+            "name": "llmStructuredOutput",
+            "description": "Instruct the LLM to give output in a JSON structured schema",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "string"
+              },
+              {
+                "label": "Type",
+                "name": "type",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "String",
+                    "name": "string"
+                  },
+                  {
+                    "label": "String Array",
+                    "name": "stringArray"
+                  },
+                  {
+                    "label": "Number",
+                    "name": "number"
+                  },
+                  {
+                    "label": "Boolean",
+                    "name": "boolean"
+                  },
+                  {
+                    "label": "Enum",
+                    "name": "enum"
+                  },
+                  {
+                    "label": "JSON Array",
+                    "name": "jsonArray"
+                  }
+                ]
+              },
+              {
+                "label": "Enum Values",
+                "name": "enumValues",
+                "type": "string",
+                "placeholder": "value1, value2, value3",
+                "description": "Enum values. Separated by comma",
+                "optional": true,
+                "show": {
+                  "llmStructuredOutput[$index].type": "enum"
+                }
+              },
+              {
+                "label": "JSON Schema",
+                "name": "jsonSchema",
+                "type": "code",
+                "placeholder": "{\n    \"answer\": {\n        \"type\": \"string\",\n        \"description\": \"Value of the answer\"\n    },\n    \"reason\": {\n        \"type\": \"string\",\n        \"description\": \"Reason for the answer\"\n    },\n    \"optional\": {\n        \"type\": \"boolean\"\n    },\n    \"count\": {\n        \"type\": \"number\"\n    },\n    \"children\": {\n        \"type\": \"array\",\n        \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"value\": {\n                    \"type\": \"string\",\n                    \"description\": \"Value of the children's answer\"\n                }\n            }\n        }\n    }\n}",
+                "description": "JSON schema for the structured output",
+                "optional": true,
+                "show": {
+                  "llmStructuredOutput[$index].type": "jsonArray"
+                }
+              },
+              {
+                "label": "Description",
+                "name": "description",
+                "type": "string",
+                "placeholder": "Description of the key"
+              }
+            ],
+            "id": "llmAgentflow_0-input-llmStructuredOutput-array",
+            "display": true
+          },
+          {
+            "label": "Update Flow State",
+            "name": "llmUpdateState",
+            "description": "Update runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "asyncOptions",
+                "loadMethod": "listRuntimeStateKeys",
+                "freeSolo": true
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "acceptVariable": true,
+                "acceptNodeOutputAsVariable": true
+              }
+            ],
+            "id": "llmAgentflow_0-input-llmUpdateState-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "llmModel": "chatOpenAI",
+          "llmMessages": [
+            {
+              "role": "system",
+              "content": "<p>You are an AI Strategy generator team tasked with defining a comprehensive, well-researched strategy for implementing AI in your organization. You have four workers: a Researcher, an Analyst, a Strategist, and a Reporter.</p><p>The work process should follow this order:</p><ol><li><p>The Researcher begins by gathering relevant information and data about AI implementation strategies.</p></li><li><p>Next, the Analyst analyzes the research data to identify key themes and insights that will inform the strategy.</p></li><li><p>The Strategist then crafts the strategic approach based on the analysis, outlining the implementation plan and objectives.</p></li><li><p>Finally, the Reporter documents the strategy in a clear and organized manner, ensuring it is suitable for distribution within the organization. If the reporter needs more info from the user then it should ask and can be updated with the response without going through the rest of the team</p></li></ol><p>Each worker should provide their results and status at the end of their task. The process should be streamlined to minimize the number of steps taken.</p><h1>Output Format</h1><p>Each worker's response should be a structured summary, ideally in bullet points or short paragraphs, clearly indicating their results and status. The final report should be a cohesive document that includes all contributions from the team</p><h1>Examples</h1><p><strong>Example 1:</strong></p><ul><li><p><strong>Researcher Input:</strong> \"Gathered recent studies on AI implementation frameworks in organizations.\"</p></li><li><p><strong>Researcher Output:</strong> \"Identified three key frameworks: Technology Adoption Model, AI Maturity Model, and Change Management Approach.\"</p></li><li><p><strong>Status:</strong> \"Research complete.\"</p></li></ul><p><strong>Example 2:</strong></p><ul><li><p><strong>Analyst Input:</strong> \"Reviewed Researcher's findings for patterns.\"</p></li><li><p><strong>Analyst Output:</strong> \"AI Maturity Model is most commonly referenced in successful AI implementations; also noted challenges in change management.\"</p></li><li><p><strong>Status:</strong> \"Analysis complete.\"</p></li></ul><p><strong>Example 3:</strong></p><ul><li><p><strong>Strategist Input:</strong> \"Developed the strategic plan based on the Analysts' insights.\"</p></li><li><p><strong>Strategist Output:</strong> \"The strategy aims to adopt the AI Maturity Model while addressing change management challenges. Key objectives include training staff and establishing guidelines.\"</p></li><li><p><strong>Status:</strong> \"Strategy drafted.\"</p></li></ul><p><strong>Example 4:</strong></p><ul><li><p><strong>Reporter Input:</strong> \"Compiled the research, analysis, and strategy into a single document.\"</p></li><li><p><strong>Reporter Output:</strong> \"Document includes an introduction, methodology, strategic plan, and conclusion.\"</p></li><li><p><strong>Status:</strong> \"Documentation complete.\"</p></li></ul><p>(Each example should generally reflect the complexity and depth expected in real tasks, where detailed findings or plans could be longer and more sophisticated.)</p><h1>Notes</h1><ul><li><p>Ensure that all steps are documented in a way that allows for easy tracking of each worker’s contributions.</p></li><li><p>Maintain a collaborative approach, facilitating communication among workers as needed to enhance the quality of the strategy.</p></li></ul>"
+            }
+          ],
+          "llmEnableMemory": true,
+          "llmMemoryType": "allMessages",
+          "llmUserMessage": "<p>Given the conversation above, who should act next? Or should we FINISH? Select one of: RESEARCHER, ANALYST, STRATEGIST, REPORTER</p>",
+          "llmReturnResponseAs": "userMessage",
+          "llmStructuredOutput": [
+            {
+              "key": "next",
+              "type": "enum",
+              "enumValues": "FINISH, RESEARCHER, ANALYST, STRATEGIST,  REPORTER",
+              "jsonSchema": "",
+              "description": "next worker to act"
+            },
+            {
+              "key": "instructions",
+              "type": "string",
+              "enumValues": "",
+              "jsonSchema": "",
+              "description": "The specific instructions of the sub-task the next worker should accomplish."
+            },
+            {
+              "key": "reasoning",
+              "type": "string",
+              "enumValues": "",
+              "jsonSchema": "",
+              "description": "The reason why next worker is tasked to do the job"
+            }
+          ],
+          "llmUpdateState": [
+            {
+              "key": "next",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output.next\" data-label=\"output.next\">{{ output.next }}</span> </p>"
+            },
+            {
+              "key": "instruction",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output.instructions\" data-label=\"output.instructions\">{{ output.instructions }}</span> </p>"
+            }
+          ],
+          "llmModelConfig": {
+            "cache": "",
+            "modelName": "gpt-4o-mini",
+            "temperature": 0.9,
+            "streaming": true,
+            "maxTokens": "",
+            "topP": "",
+            "frequencyPenalty": "",
+            "presencePenalty": "",
+            "timeout": "",
+            "strictToolCalling": "",
+            "stopSequence": "",
+            "basepath": "",
+            "proxyUrl": "",
+            "baseOptions": "",
+            "allowImageUploads": "",
+            "imageResolution": "low",
+            "reasoningEffort": "medium",
+            "llmModel": "chatOpenAI"
+          }
+        },
+        "outputAnchors": [
+          {
+            "id": "llmAgentflow_0-output-llmAgentflow",
+            "label": "LLM",
+            "name": "llmAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 175,
+      "height": 71,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -78.28788541792727,
+        "y": 87.1528514813091
+      },
+      "dragging": false
+    },
+    {
+      "id": "stickyNoteAgentflow_0",
+      "position": {
+        "x": -258.8561250343464,
+        "y": 331.8637020831388
+      },
+      "data": {
+        "id": "stickyNoteAgentflow_0",
+        "label": "Sticky Note",
+        "version": 1,
+        "name": "stickyNoteAgentflow",
+        "type": "StickyNote",
+        "color": "#fee440",
+        "baseClasses": [
+          "StickyNote"
+        ],
+        "category": "Agent Flows",
+        "description": "Add notes to the agent flow",
+        "inputParams": [
+          {
+            "label": "",
+            "name": "note",
+            "type": "string",
+            "rows": 1,
+            "placeholder": "Type something here",
+            "optional": true,
+            "id": "stickyNoteAgentflow_0-input-note-string",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "note": "COMPANY INFO --> GOALS\nPROCESSES\nTOOLS\nINDUSTRY\nAUDIENCE"
+        },
+        "outputAnchors": [
+          {
+            "id": "stickyNoteAgentflow_0-output-stickyNoteAgentflow",
+            "label": "Sticky Note",
+            "name": "stickyNoteAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "stickyNote",
+      "width": 226,
+      "height": 162,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -258.8561250343464,
+        "y": 331.8637020831388
+      },
+      "dragging": false
+    },
+    {
+      "id": "agentAgentflow_0",
+      "position": {
+        "x": 415.55941609743377,
+        "y": -272.1206560709196
+      },
+      "data": {
+        "id": "agentAgentflow_0",
+        "label": "Researcher",
+        "version": 1,
+        "name": "agentAgentflow",
+        "type": "Agent",
+        "color": "#4DD0E1",
+        "baseClasses": [
+          "Agent"
+        ],
+        "category": "Agent Flows",
+        "description": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
+        "inputParams": [
+          {
+            "label": "Model",
+            "name": "agentModel",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "loadConfig": true,
+            "id": "agentAgentflow_0-input-agentModel-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Messages",
+            "name": "agentMessages",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Role",
+                "name": "role",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "System",
+                    "name": "system"
+                  },
+                  {
+                    "label": "Assistant",
+                    "name": "assistant"
+                  },
+                  {
+                    "label": "Developer",
+                    "name": "developer"
+                  },
+                  {
+                    "label": "User",
+                    "name": "user"
+                  }
+                ]
+              },
+              {
+                "label": "Content",
+                "name": "content",
+                "type": "string",
+                "acceptVariable": true,
+                "generateInstruction": true,
+                "rows": 4
+              }
+            ],
+            "id": "agentAgentflow_0-input-agentMessages-array",
+            "display": true
+          },
+          {
+            "label": "Tools",
+            "name": "agentTools",
+            "type": "array",
+            "optional": true,
+            "array": [
+              {
+                "label": "Tool",
+                "name": "agentSelectedTool",
+                "type": "asyncOptions",
+                "loadMethod": "listTools",
+                "loadConfig": true
+              },
+              {
+                "label": "Require Human Input",
+                "name": "agentSelectedToolRequiresHumanInput",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "id": "agentAgentflow_0-input-agentTools-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Document Stores)",
+            "name": "agentKnowledgeDocumentStores",
+            "type": "array",
+            "description": "Give your agent context about different document sources. Document stores must be upserted in advance.",
+            "array": [
+              {
+                "label": "Document Store",
+                "name": "documentStore",
+                "type": "asyncOptions",
+                "loadMethod": "listStores"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "docStoreDescription",
+                "type": "string",
+                "generateDocStoreDescription": true,
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_0-input-agentKnowledgeDocumentStores-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Vector Embeddings)",
+            "name": "agentKnowledgeVSEmbeddings",
+            "type": "array",
+            "description": "Give your agent context about different document sources from existing vector stores and embeddings",
+            "array": [
+              {
+                "label": "Vector Store",
+                "name": "vectorStore",
+                "type": "asyncOptions",
+                "loadMethod": "listVectorStores",
+                "loadConfig": true
+              },
+              {
+                "label": "Embedding Model",
+                "name": "embeddingModel",
+                "type": "asyncOptions",
+                "loadMethod": "listEmbeddings",
+                "loadConfig": true
+              },
+              {
+                "label": "Knowledge Name",
+                "name": "knowledgeName",
+                "type": "string",
+                "placeholder": "A short name for the knowledge base, this is useful for the AI to know when and how to search for correct information"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "knowledgeDescription",
+                "type": "string",
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_0-input-agentKnowledgeVSEmbeddings-array",
+            "display": true
+          },
+          {
+            "label": "Enable Memory",
+            "name": "agentEnableMemory",
+            "type": "boolean",
+            "description": "Enable memory for the conversation thread",
+            "default": true,
+            "optional": true,
+            "id": "agentAgentflow_0-input-agentEnableMemory-boolean",
+            "display": true
+          },
+          {
+            "label": "Memory Type",
+            "name": "agentMemoryType",
+            "type": "options",
+            "options": [
+              {
+                "label": "All Messages",
+                "name": "allMessages",
+                "description": "Retrieve all messages from the conversation"
+              },
+              {
+                "label": "Window Size",
+                "name": "windowSize",
+                "description": "Uses a fixed window size to surface the last N messages"
+              },
+              {
+                "label": "Conversation Summary",
+                "name": "conversationSummary",
+                "description": "Summarizes the whole conversation"
+              },
+              {
+                "label": "Conversation Summary Buffer",
+                "name": "conversationSummaryBuffer",
+                "description": "Summarize conversations once token limit is reached. Default to 2000"
+              }
+            ],
+            "optional": true,
+            "default": "allMessages",
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_0-input-agentMemoryType-options",
+            "display": true
+          },
+          {
+            "label": "Window Size",
+            "name": "agentMemoryWindowSize",
+            "type": "number",
+            "default": "20",
+            "description": "Uses a fixed window size to surface the last N messages",
+            "show": {
+              "agentMemoryType": "windowSize"
+            },
+            "id": "agentAgentflow_0-input-agentMemoryWindowSize-number",
+            "display": false
+          },
+          {
+            "label": "Max Token Limit",
+            "name": "agentMemoryMaxTokenLimit",
+            "type": "number",
+            "default": "2000",
+            "description": "Summarize conversations once token limit is reached. Default to 2000",
+            "show": {
+              "agentMemoryType": "conversationSummaryBuffer"
+            },
+            "id": "agentAgentflow_0-input-agentMemoryMaxTokenLimit-number",
+            "display": false
+          },
+          {
+            "label": "Input Message",
+            "name": "agentUserMessage",
+            "type": "string",
+            "description": "Add an input message as user message at the end of the conversation",
+            "rows": 4,
+            "optional": true,
+            "acceptVariable": true,
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_0-input-agentUserMessage-string",
+            "display": true
+          },
+          {
+            "label": "Return Response As",
+            "name": "agentReturnResponseAs",
+            "type": "options",
+            "options": [
+              {
+                "label": "User Message",
+                "name": "userMessage"
+              },
+              {
+                "label": "Assistant Message",
+                "name": "assistantMessage"
+              }
+            ],
+            "default": "userMessage",
+            "id": "agentAgentflow_0-input-agentReturnResponseAs-options",
+            "display": true
+          },
+          {
+            "label": "Update Flow State",
+            "name": "agentUpdateState",
+            "description": "Update runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "asyncOptions",
+                "loadMethod": "listRuntimeStateKeys",
+                "freeSolo": true
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "acceptVariable": true,
+                "acceptNodeOutputAsVariable": true
+              }
+            ],
+            "id": "agentAgentflow_0-input-agentUpdateState-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "agentModel": "chatOpenAI",
+          "agentMessages": [
+            {
+              "role": "system",
+              "content": "<p>As a Researcher, your role is to conduct an in-depth exploration of the client's industry landscape to gather critical insights that will inform the AI implementation strategy. Utilize perplexity search and advanced web search tools to collect information on the client's industry, the tools they currently use, and any external services or APIs they have mentioned. Your research is foundational for developing a tailored AI implementation roadmap.</p><p><strong>Your goal is to:</strong></p><ul><li><p>Collect comprehensive and accurate data to assess the client's current technological environment and industry trends.</p></li><li><p>Conduct a thorough web search on the client's industry, focusing on prevalent technologies and tools.</p></li><li><p>Pay special attention to any external services or APIs the client has mentioned.</p></li><li><p>Compile your findings into a detailed research document, ensuring the information is relevant, up-to-date, and sourced from verified sources.</p></li><li><p>Avoid assumptions and rely solely on verified sources.</p></li><li><p>Pass the research document to the Data Analyst for further processing.</p></li><li><p>Use perplexity search for any research required</p></li></ul>"
+            }
+          ],
+          "agentTools": [
+            {
+              "agentSelectedTool": "composio",
+              "agentSelectedToolRequiresHumanInput": "",
+              "agentSelectedToolConfig": {
+                "appName": "perplexityai",
+                "authStatus": "Connected",
+                "actions": "[\"PERPLEXITYAI_PERPLEXITY_AI_SEARCH\"]",
+                "agentSelectedTool": "composio"
+              }
+            }
+          ],
+          "agentKnowledgeDocumentStores": "",
+          "agentKnowledgeVSEmbeddings": "",
+          "agentEnableMemory": true,
+          "agentMemoryType": "allMessages",
+          "agentUserMessage": "",
+          "agentReturnResponseAs": "userMessage",
+          "agentUpdateState": [
+            {
+              "key": "research",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output\" data-label=\"output\">{{ output }}</span> </p>"
+            }
+          ],
+          "agentModelConfig": {
+            "cache": "",
+            "modelName": "gpt-4.1",
+            "temperature": "0.5",
+            "streaming": true,
+            "maxTokens": "",
+            "topP": "",
+            "frequencyPenalty": "",
+            "presencePenalty": "",
+            "timeout": "",
+            "strictToolCalling": "",
+            "stopSequence": "",
+            "basepath": "",
+            "proxyUrl": "",
+            "baseOptions": "",
+            "allowImageUploads": "",
+            "reasoningEffort": "medium",
+            "agentModel": "chatOpenAI"
+          }
+        },
+        "outputAnchors": [
+          {
+            "id": "agentAgentflow_0-output-agentAgentflow",
+            "label": "Agent",
+            "name": "agentAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 148,
+      "height": 99,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 415.55941609743377,
+        "y": -272.1206560709196
+      },
+      "dragging": false
+    },
+    {
+      "id": "loopAgentflow_2",
+      "position": {
+        "x": 652.1111704303338,
+        "y": -159.72149882711588
+      },
+      "data": {
+        "id": "loopAgentflow_2",
+        "label": "Loop to Supervisor (2)",
+        "version": 1,
+        "name": "loopAgentflow",
+        "type": "Loop",
+        "color": "#FFA07A",
+        "hideOutput": true,
+        "baseClasses": [
+          "Loop"
+        ],
+        "category": "Agent Flows",
+        "description": "Loop back to a previous node",
+        "inputParams": [
+          {
+            "label": "Loop Back To",
+            "name": "loopBackToNode",
+            "type": "asyncOptions",
+            "loadMethod": "listPreviousNodes",
+            "freeSolo": true,
+            "id": "loopAgentflow_2-input-loopBackToNode-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Max Loop Count",
+            "name": "maxLoopCount",
+            "type": "number",
+            "default": 5,
+            "id": "loopAgentflow_2-input-maxLoopCount-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "loopBackToNode": "llmAgentflow_0-Supervisor",
+          "maxLoopCount": 5,
+          "undefined": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 217,
+      "height": 66,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 652.1111704303338,
+        "y": -159.72149882711588
+      }
+    },
+    {
+      "id": "loopAgentflow_3",
+      "position": {
+        "x": 649.4777864735572,
+        "y": -255.4747899504115
+      },
+      "data": {
+        "id": "loopAgentflow_3",
+        "label": "Loop to Supervisor (2) (3)",
+        "version": 1,
+        "name": "loopAgentflow",
+        "type": "Loop",
+        "color": "#FFA07A",
+        "hideOutput": true,
+        "baseClasses": [
+          "Loop"
+        ],
+        "category": "Agent Flows",
+        "description": "Loop back to a previous node",
+        "inputParams": [
+          {
+            "label": "Loop Back To",
+            "name": "loopBackToNode",
+            "type": "asyncOptions",
+            "loadMethod": "listPreviousNodes",
+            "freeSolo": true,
+            "id": "loopAgentflow_3-input-loopBackToNode-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Max Loop Count",
+            "name": "maxLoopCount",
+            "type": "number",
+            "default": 5,
+            "id": "loopAgentflow_3-input-maxLoopCount-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "loopBackToNode": "llmAgentflow_0-Supervisor",
+          "maxLoopCount": 5
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 239,
+      "height": 66,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 649.4777864735572,
+        "y": -255.4747899504115
+      }
+    },
+    {
+      "id": "agentAgentflow_2",
+      "position": {
+        "x": 423.09721820842776,
+        "y": -19.86579114772789
+      },
+      "data": {
+        "id": "agentAgentflow_2",
+        "label": "Strategist",
+        "version": 1,
+        "name": "agentAgentflow",
+        "type": "Agent",
+        "color": "#4DD0E1",
+        "baseClasses": [
+          "Agent"
+        ],
+        "category": "Agent Flows",
+        "description": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
+        "inputParams": [
+          {
+            "label": "Model",
+            "name": "agentModel",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "loadConfig": true,
+            "id": "agentAgentflow_2-input-agentModel-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Messages",
+            "name": "agentMessages",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Role",
+                "name": "role",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "System",
+                    "name": "system"
+                  },
+                  {
+                    "label": "Assistant",
+                    "name": "assistant"
+                  },
+                  {
+                    "label": "Developer",
+                    "name": "developer"
+                  },
+                  {
+                    "label": "User",
+                    "name": "user"
+                  }
+                ]
+              },
+              {
+                "label": "Content",
+                "name": "content",
+                "type": "string",
+                "acceptVariable": true,
+                "generateInstruction": true,
+                "rows": 4
+              }
+            ],
+            "id": "agentAgentflow_2-input-agentMessages-array",
+            "display": true
+          },
+          {
+            "label": "Tools",
+            "name": "agentTools",
+            "type": "array",
+            "optional": true,
+            "array": [
+              {
+                "label": "Tool",
+                "name": "agentSelectedTool",
+                "type": "asyncOptions",
+                "loadMethod": "listTools",
+                "loadConfig": true
+              },
+              {
+                "label": "Require Human Input",
+                "name": "agentSelectedToolRequiresHumanInput",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "id": "agentAgentflow_2-input-agentTools-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Document Stores)",
+            "name": "agentKnowledgeDocumentStores",
+            "type": "array",
+            "description": "Give your agent context about different document sources. Document stores must be upserted in advance.",
+            "array": [
+              {
+                "label": "Document Store",
+                "name": "documentStore",
+                "type": "asyncOptions",
+                "loadMethod": "listStores"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "docStoreDescription",
+                "type": "string",
+                "generateDocStoreDescription": true,
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_2-input-agentKnowledgeDocumentStores-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Vector Embeddings)",
+            "name": "agentKnowledgeVSEmbeddings",
+            "type": "array",
+            "description": "Give your agent context about different document sources from existing vector stores and embeddings",
+            "array": [
+              {
+                "label": "Vector Store",
+                "name": "vectorStore",
+                "type": "asyncOptions",
+                "loadMethod": "listVectorStores",
+                "loadConfig": true
+              },
+              {
+                "label": "Embedding Model",
+                "name": "embeddingModel",
+                "type": "asyncOptions",
+                "loadMethod": "listEmbeddings",
+                "loadConfig": true
+              },
+              {
+                "label": "Knowledge Name",
+                "name": "knowledgeName",
+                "type": "string",
+                "placeholder": "A short name for the knowledge base, this is useful for the AI to know when and how to search for correct information"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "knowledgeDescription",
+                "type": "string",
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_0-input-agentKnowledgeVSEmbeddings-array",
+            "display": true
+          },
+          {
+            "label": "Enable Memory",
+            "name": "agentEnableMemory",
+            "type": "boolean",
+            "description": "Enable memory for the conversation thread",
+            "default": true,
+            "optional": true,
+            "id": "agentAgentflow_2-input-agentEnableMemory-boolean",
+            "display": true
+          },
+          {
+            "label": "Memory Type",
+            "name": "agentMemoryType",
+            "type": "options",
+            "options": [
+              {
+                "label": "All Messages",
+                "name": "allMessages",
+                "description": "Retrieve all messages from the conversation"
+              },
+              {
+                "label": "Window Size",
+                "name": "windowSize",
+                "description": "Uses a fixed window size to surface the last N messages"
+              },
+              {
+                "label": "Conversation Summary",
+                "name": "conversationSummary",
+                "description": "Summarizes the whole conversation"
+              },
+              {
+                "label": "Conversation Summary Buffer",
+                "name": "conversationSummaryBuffer",
+                "description": "Summarize conversations once token limit is reached. Default to 2000"
+              }
+            ],
+            "optional": true,
+            "default": "allMessages",
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_2-input-agentMemoryType-options",
+            "display": true
+          },
+          {
+            "label": "Window Size",
+            "name": "agentMemoryWindowSize",
+            "type": "number",
+            "default": "20",
+            "description": "Uses a fixed window size to surface the last N messages",
+            "show": {
+              "agentMemoryType": "windowSize"
+            },
+            "id": "agentAgentflow_2-input-agentMemoryWindowSize-number",
+            "display": false
+          },
+          {
+            "label": "Max Token Limit",
+            "name": "agentMemoryMaxTokenLimit",
+            "type": "number",
+            "default": "2000",
+            "description": "Summarize conversations once token limit is reached. Default to 2000",
+            "show": {
+              "agentMemoryType": "conversationSummaryBuffer"
+            },
+            "id": "agentAgentflow_2-input-agentMemoryMaxTokenLimit-number",
+            "display": false
+          },
+          {
+            "label": "Input Message",
+            "name": "agentUserMessage",
+            "type": "string",
+            "description": "Add an input message as user message at the end of the conversation",
+            "rows": 4,
+            "optional": true,
+            "acceptVariable": true,
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_2-input-agentUserMessage-string",
+            "display": true
+          },
+          {
+            "label": "Return Response As",
+            "name": "agentReturnResponseAs",
+            "type": "options",
+            "options": [
+              {
+                "label": "User Message",
+                "name": "userMessage"
+              },
+              {
+                "label": "Assistant Message",
+                "name": "assistantMessage"
+              }
+            ],
+            "default": "userMessage",
+            "id": "agentAgentflow_2-input-agentReturnResponseAs-options",
+            "display": true
+          },
+          {
+            "label": "Update Flow State",
+            "name": "agentUpdateState",
+            "description": "Update runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "asyncOptions",
+                "loadMethod": "listRuntimeStateKeys",
+                "freeSolo": true
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "acceptVariable": true,
+                "acceptNodeOutputAsVariable": true
+              }
+            ],
+            "id": "agentAgentflow_2-input-agentUpdateState-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "agentModel": "chatOpenAI",
+          "agentMessages": [
+            {
+              "role": "system",
+              "content": "<p>As the AI Strategist, your task is to synthesize the analysis provided by the Data Analyst into a comprehensive AI implementation strategy report. This report will guide the client in building a robust implementation roadmap.</p><p><strong>Your goal is to:</strong></p><ul><li><p>Provide a clear, actionable, and strategic roadmap that aligns with the client's objectives and industry trends.</p></li><li><p>Using the analyst document, create a detailed AI implementation strategy report.</p></li><li><p>Begin with a 1-page summary that encapsulates the key findings and recommendations.</p></li><li><p>Follow with a full report that expands on the analysis, integrating insights from the research document.</p></li><li><p>Ensure the report is well-structured, logical, and tailored to the client's needs.</p></li><li><p>When complete hand it off to the reporter agent for packaging and distribution</p></li></ul>"
+            }
+          ],
+          "agentTools": "",
+          "agentKnowledgeDocumentStores": "",
+          "agentEnableMemory": true,
+          "agentMemoryType": "allMessages",
+          "agentUserMessage": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.instruction\" data-label=\"$flow.state.instruction\">{{ $flow.state.instruction }}</span></p>",
+          "agentReturnResponseAs": "userMessage",
+          "agentUpdateState": [
+            {
+              "key": "strategy",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output\" data-label=\"output\">{{ output }}</span> </p>"
+            }
+          ],
+          "agentModelConfig": {
+            "credential": "",
+            "modelName": "gpt-4.1",
+            "temperature": "0.5",
+            "streaming": true,
+            "maxTokens": "",
+            "topP": "",
+            "frequencyPenalty": "",
+            "presencePenalty": "",
+            "timeout": "",
+            "strictToolCalling": "",
+            "stopSequence": "",
+            "basepath": "",
+            "proxyUrl": "",
+            "baseOptions": "",
+            "allowImageUploads": "",
+            "reasoningEffort": "medium",
+            "agentModel": "chatOpenAI"
+          }
+        },
+        "outputAnchors": [
+          {
+            "id": "agentAgentflow_2-output-agentAgentflow",
+            "label": "Agent",
+            "name": "agentAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 148,
+      "height": 71,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 423.09721820842776,
+        "y": -19.86579114772789
+      },
+      "dragging": false
+    },
+    {
+      "id": "agentAgentflow_1",
+      "position": {
+        "x": 418.17903995342965,
+        "y": -140.2955487886227
+      },
+      "data": {
+        "id": "agentAgentflow_1",
+        "label": "Analyst",
+        "version": 1,
+        "name": "agentAgentflow",
+        "type": "Agent",
+        "color": "#4DD0E1",
+        "baseClasses": [
+          "Agent"
+        ],
+        "category": "Agent Flows",
+        "description": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
+        "inputParams": [
+          {
+            "label": "Model",
+            "name": "agentModel",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "loadConfig": true,
+            "id": "agentAgentflow_1-input-agentModel-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Messages",
+            "name": "agentMessages",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Role",
+                "name": "role",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "System",
+                    "name": "system"
+                  },
+                  {
+                    "label": "Assistant",
+                    "name": "assistant"
+                  },
+                  {
+                    "label": "Developer",
+                    "name": "developer"
+                  },
+                  {
+                    "label": "User",
+                    "name": "user"
+                  }
+                ]
+              },
+              {
+                "label": "Content",
+                "name": "content",
+                "type": "string",
+                "acceptVariable": true,
+                "generateInstruction": true,
+                "rows": 4
+              }
+            ],
+            "id": "agentAgentflow_1-input-agentMessages-array",
+            "display": true
+          },
+          {
+            "label": "Tools",
+            "name": "agentTools",
+            "type": "array",
+            "optional": true,
+            "array": [
+              {
+                "label": "Tool",
+                "name": "agentSelectedTool",
+                "type": "asyncOptions",
+                "loadMethod": "listTools",
+                "loadConfig": true
+              },
+              {
+                "label": "Require Human Input",
+                "name": "agentSelectedToolRequiresHumanInput",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "id": "agentAgentflow_1-input-agentTools-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Document Stores)",
+            "name": "agentKnowledgeDocumentStores",
+            "type": "array",
+            "description": "Give your agent context about different document sources. Document stores must be upserted in advance.",
+            "array": [
+              {
+                "label": "Document Store",
+                "name": "documentStore",
+                "type": "asyncOptions",
+                "loadMethod": "listStores"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "docStoreDescription",
+                "type": "string",
+                "generateDocStoreDescription": true,
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_1-input-agentKnowledgeDocumentStores-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Vector Embeddings)",
+            "name": "agentKnowledgeVSEmbeddings",
+            "type": "array",
+            "description": "Give your agent context about different document sources from existing vector stores and embeddings",
+            "array": [
+              {
+                "label": "Vector Store",
+                "name": "vectorStore",
+                "type": "asyncOptions",
+                "loadMethod": "listVectorStores",
+                "loadConfig": true
+              },
+              {
+                "label": "Embedding Model",
+                "name": "embeddingModel",
+                "type": "asyncOptions",
+                "loadMethod": "listEmbeddings",
+                "loadConfig": true
+              },
+              {
+                "label": "Knowledge Name",
+                "name": "knowledgeName",
+                "type": "string",
+                "placeholder": "A short name for the knowledge base, this is useful for the AI to know when and how to search for correct information"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "knowledgeDescription",
+                "type": "string",
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_0-input-agentKnowledgeVSEmbeddings-array",
+            "display": true
+          },
+          {
+            "label": "Enable Memory",
+            "name": "agentEnableMemory",
+            "type": "boolean",
+            "description": "Enable memory for the conversation thread",
+            "default": true,
+            "optional": true,
+            "id": "agentAgentflow_1-input-agentEnableMemory-boolean",
+            "display": true
+          },
+          {
+            "label": "Memory Type",
+            "name": "agentMemoryType",
+            "type": "options",
+            "options": [
+              {
+                "label": "All Messages",
+                "name": "allMessages",
+                "description": "Retrieve all messages from the conversation"
+              },
+              {
+                "label": "Window Size",
+                "name": "windowSize",
+                "description": "Uses a fixed window size to surface the last N messages"
+              },
+              {
+                "label": "Conversation Summary",
+                "name": "conversationSummary",
+                "description": "Summarizes the whole conversation"
+              },
+              {
+                "label": "Conversation Summary Buffer",
+                "name": "conversationSummaryBuffer",
+                "description": "Summarize conversations once token limit is reached. Default to 2000"
+              }
+            ],
+            "optional": true,
+            "default": "allMessages",
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_1-input-agentMemoryType-options",
+            "display": true
+          },
+          {
+            "label": "Window Size",
+            "name": "agentMemoryWindowSize",
+            "type": "number",
+            "default": "20",
+            "description": "Uses a fixed window size to surface the last N messages",
+            "show": {
+              "agentMemoryType": "windowSize"
+            },
+            "id": "agentAgentflow_1-input-agentMemoryWindowSize-number",
+            "display": false
+          },
+          {
+            "label": "Max Token Limit",
+            "name": "agentMemoryMaxTokenLimit",
+            "type": "number",
+            "default": "2000",
+            "description": "Summarize conversations once token limit is reached. Default to 2000",
+            "show": {
+              "agentMemoryType": "conversationSummaryBuffer"
+            },
+            "id": "agentAgentflow_1-input-agentMemoryMaxTokenLimit-number",
+            "display": false
+          },
+          {
+            "label": "Input Message",
+            "name": "agentUserMessage",
+            "type": "string",
+            "description": "Add an input message as user message at the end of the conversation",
+            "rows": 4,
+            "optional": true,
+            "acceptVariable": true,
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_1-input-agentUserMessage-string",
+            "display": true
+          },
+          {
+            "label": "Return Response As",
+            "name": "agentReturnResponseAs",
+            "type": "options",
+            "options": [
+              {
+                "label": "User Message",
+                "name": "userMessage"
+              },
+              {
+                "label": "Assistant Message",
+                "name": "assistantMessage"
+              }
+            ],
+            "default": "userMessage",
+            "id": "agentAgentflow_1-input-agentReturnResponseAs-options",
+            "display": true
+          },
+          {
+            "label": "Update Flow State",
+            "name": "agentUpdateState",
+            "description": "Update runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "asyncOptions",
+                "loadMethod": "listRuntimeStateKeys",
+                "freeSolo": true
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "acceptVariable": true,
+                "acceptNodeOutputAsVariable": true
+              }
+            ],
+            "id": "agentAgentflow_1-input-agentUpdateState-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "agentModel": "chatOpenAI",
+          "agentMessages": [
+            {
+              "role": "system",
+              "content": "<p>As a Data Analyst, your role is to transform raw research data into actionable insights. Utilize the SWOT (Strengths, Weaknesses, Opportunities, Threats) analysis technique to evaluate the research document provided by the Industry Researcher. Additionally, apply the PRICE (Priority, Relevance, Impact, Complexity, Ease) framework to prioritize the most critical insights for the client's AI implementation strategy.</p><p><strong>Your goal is to:</strong></p><ul><li><p>Distill the research into a concise and strategic analysis that highlights key areas for AI integration.</p></li><li><p>Analyze the research document, identifying the strengths, weaknesses, opportunities, and threats related to AI implementation.</p></li><li><p>Use the PRICE framework to prioritize insights based on their strategic importance.</p></li><li><p>Compile your analysis into a structured document, focusing on the most relevant and actionable information.</p></li><li><p>Ensure clarity and precision in your analysis.</p></li><li><p>Pass the analyst document to the AI Strategist for report structuring.</p></li></ul><p><strong>Annotations:</strong></p><ul><li><p>Clarified the role and goals to ensure the analyst understands the importance of strategic prioritization.</p></li><li><p>Structured instructions into bullet points for clarity and ease of understanding.</p></li></ul>"
+            }
+          ],
+          "agentTools": "",
+          "agentKnowledgeDocumentStores": "",
+          "agentEnableMemory": true,
+          "agentMemoryType": "allMessages",
+          "agentUserMessage": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"$flow.state.instruction\" data-label=\"$flow.state.instruction\">{{ $flow.state.instruction }}</span></p>",
+          "agentReturnResponseAs": "userMessage",
+          "agentUpdateState": [
+            {
+              "key": "analysis",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output\" data-label=\"output\">{{ output }}</span> </p>"
+            }
+          ],
+          "agentModelConfig": {
+            "credential": "",
+            "modelName": "gpt-4.1",
+            "temperature": "0.5",
+            "streaming": true,
+            "maxTokens": "",
+            "topP": "",
+            "frequencyPenalty": "",
+            "presencePenalty": "",
+            "timeout": "",
+            "strictToolCalling": "",
+            "stopSequence": "",
+            "basepath": "",
+            "proxyUrl": "",
+            "baseOptions": "",
+            "allowImageUploads": "",
+            "reasoningEffort": "medium",
+            "agentModel": "chatOpenAI"
+          }
+        },
+        "outputAnchors": [
+          {
+            "id": "agentAgentflow_1-output-agentAgentflow",
+            "label": "Agent",
+            "name": "agentAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 148,
+      "height": 71,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 418.17903995342965,
+        "y": -140.2955487886227
+      },
+      "dragging": false
+    },
+    {
+      "id": "agentAgentflow_4",
+      "position": {
+        "x": 422.37388848391913,
+        "y": 123.490283795562
+      },
+      "data": {
+        "id": "agentAgentflow_4",
+        "label": "Reporter (4)",
+        "version": 1,
+        "name": "agentAgentflow",
+        "type": "Agent",
+        "color": "#4DD0E1",
+        "baseClasses": [
+          "Agent"
+        ],
+        "category": "Agent Flows",
+        "description": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
+        "inputParams": [
+          {
+            "label": "Model",
+            "name": "agentModel",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "loadConfig": true,
+            "id": "agentAgentflow_4-input-agentModel-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Messages",
+            "name": "agentMessages",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Role",
+                "name": "role",
+                "type": "options",
+                "options": [
+                  {
+                    "label": "System",
+                    "name": "system"
+                  },
+                  {
+                    "label": "Assistant",
+                    "name": "assistant"
+                  },
+                  {
+                    "label": "Developer",
+                    "name": "developer"
+                  },
+                  {
+                    "label": "User",
+                    "name": "user"
+                  }
+                ]
+              },
+              {
+                "label": "Content",
+                "name": "content",
+                "type": "string",
+                "acceptVariable": true,
+                "generateInstruction": true,
+                "rows": 4
+              }
+            ],
+            "id": "agentAgentflow_4-input-agentMessages-array",
+            "display": true
+          },
+          {
+            "label": "Tools",
+            "name": "agentTools",
+            "type": "array",
+            "optional": true,
+            "array": [
+              {
+                "label": "Tool",
+                "name": "agentSelectedTool",
+                "type": "asyncOptions",
+                "loadMethod": "listTools",
+                "loadConfig": true
+              },
+              {
+                "label": "Require Human Input",
+                "name": "agentSelectedToolRequiresHumanInput",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "id": "agentAgentflow_4-input-agentTools-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Document Stores)",
+            "name": "agentKnowledgeDocumentStores",
+            "type": "array",
+            "description": "Give your agent context about different document sources. Document stores must be upserted in advance.",
+            "array": [
+              {
+                "label": "Document Store",
+                "name": "documentStore",
+                "type": "asyncOptions",
+                "loadMethod": "listStores"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "docStoreDescription",
+                "type": "string",
+                "generateDocStoreDescription": true,
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_4-input-agentKnowledgeDocumentStores-array",
+            "display": true
+          },
+          {
+            "label": "Knowledge (Vector Embeddings)",
+            "name": "agentKnowledgeVSEmbeddings",
+            "type": "array",
+            "description": "Give your agent context about different document sources from existing vector stores and embeddings",
+            "array": [
+              {
+                "label": "Vector Store",
+                "name": "vectorStore",
+                "type": "asyncOptions",
+                "loadMethod": "listVectorStores",
+                "loadConfig": true
+              },
+              {
+                "label": "Embedding Model",
+                "name": "embeddingModel",
+                "type": "asyncOptions",
+                "loadMethod": "listEmbeddings",
+                "loadConfig": true
+              },
+              {
+                "label": "Knowledge Name",
+                "name": "knowledgeName",
+                "type": "string",
+                "placeholder": "A short name for the knowledge base, this is useful for the AI to know when and how to search for correct information"
+              },
+              {
+                "label": "Describe Knowledge",
+                "name": "knowledgeDescription",
+                "type": "string",
+                "placeholder": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "rows": 4
+              },
+              {
+                "label": "Return Source Documents",
+                "name": "returnSourceDocuments",
+                "type": "boolean",
+                "optional": true
+              }
+            ],
+            "optional": true,
+            "id": "agentAgentflow_4-input-agentKnowledgeVSEmbeddings-array",
+            "display": true
+          },
+          {
+            "label": "Enable Memory",
+            "name": "agentEnableMemory",
+            "type": "boolean",
+            "description": "Enable memory for the conversation thread",
+            "default": true,
+            "optional": true,
+            "id": "agentAgentflow_4-input-agentEnableMemory-boolean",
+            "display": true
+          },
+          {
+            "label": "Memory Type",
+            "name": "agentMemoryType",
+            "type": "options",
+            "options": [
+              {
+                "label": "All Messages",
+                "name": "allMessages",
+                "description": "Retrieve all messages from the conversation"
+              },
+              {
+                "label": "Window Size",
+                "name": "windowSize",
+                "description": "Uses a fixed window size to surface the last N messages"
+              },
+              {
+                "label": "Conversation Summary",
+                "name": "conversationSummary",
+                "description": "Summarizes the whole conversation"
+              },
+              {
+                "label": "Conversation Summary Buffer",
+                "name": "conversationSummaryBuffer",
+                "description": "Summarize conversations once token limit is reached. Default to 2000"
+              }
+            ],
+            "optional": true,
+            "default": "allMessages",
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_4-input-agentMemoryType-options",
+            "display": true
+          },
+          {
+            "label": "Window Size",
+            "name": "agentMemoryWindowSize",
+            "type": "number",
+            "default": "20",
+            "description": "Uses a fixed window size to surface the last N messages",
+            "show": {
+              "agentMemoryType": "windowSize"
+            },
+            "id": "agentAgentflow_4-input-agentMemoryWindowSize-number",
+            "display": false
+          },
+          {
+            "label": "Max Token Limit",
+            "name": "agentMemoryMaxTokenLimit",
+            "type": "number",
+            "default": "2000",
+            "description": "Summarize conversations once token limit is reached. Default to 2000",
+            "show": {
+              "agentMemoryType": "conversationSummaryBuffer"
+            },
+            "id": "agentAgentflow_4-input-agentMemoryMaxTokenLimit-number",
+            "display": false
+          },
+          {
+            "label": "Input Message",
+            "name": "agentUserMessage",
+            "type": "string",
+            "description": "Add an input message as user message at the end of the conversation",
+            "rows": 4,
+            "optional": true,
+            "acceptVariable": true,
+            "show": {
+              "agentEnableMemory": true
+            },
+            "id": "agentAgentflow_4-input-agentUserMessage-string",
+            "display": true
+          },
+          {
+            "label": "Return Response As",
+            "name": "agentReturnResponseAs",
+            "type": "options",
+            "options": [
+              {
+                "label": "User Message",
+                "name": "userMessage"
+              },
+              {
+                "label": "Assistant Message",
+                "name": "assistantMessage"
+              }
+            ],
+            "default": "userMessage",
+            "id": "agentAgentflow_4-input-agentReturnResponseAs-options",
+            "display": true
+          },
+          {
+            "label": "Update Flow State",
+            "name": "agentUpdateState",
+            "description": "Update runtime state during the execution of the workflow",
+            "type": "array",
+            "optional": true,
+            "acceptVariable": true,
+            "array": [
+              {
+                "label": "Key",
+                "name": "key",
+                "type": "asyncOptions",
+                "loadMethod": "listRuntimeStateKeys",
+                "freeSolo": true
+              },
+              {
+                "label": "Value",
+                "name": "value",
+                "type": "string",
+                "acceptVariable": true,
+                "acceptNodeOutputAsVariable": true
+              }
+            ],
+            "id": "agentAgentflow_4-input-agentUpdateState-array",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "agentModel": "chatOpenAI",
+          "agentMessages": "",
+          "agentTools": [
+            {
+              "agentSelectedTool": "composio",
+              "agentSelectedToolRequiresHumanInput": false,
+              "agentSelectedToolConfig": {
+                "appName": "slack",
+                "authStatus": "Connected",
+                "actions": "[\"SLACK_CHAT_POST_MESSAGE\"]",
+                "agentSelectedTool": "composio"
+              }
+            },
+            {
+              "agentSelectedTool": "googleDocsTool",
+              "agentSelectedToolRequiresHumanInput": "",
+              "agentSelectedToolConfig": {
+                "actions": "[\"createDocument\"]",
+                "title": "",
+                "text": "",
+                "index": 1,
+                "imageUrl": "",
+                "rows": "",
+                "columns": "",
+                "agentSelectedTool": "googleDocsTool"
+              }
+            }
+          ],
+          "agentKnowledgeDocumentStores": "",
+          "agentEnableMemory": true,
+          "agentMemoryType": "allMessages",
+          "agentUserMessage": "<p>Given the above conversations, generate a detailed report package that includes md files for the research, the analysis and the strategy.</p><p>At the top level client page - create a summary of the strategy along with a condensed 3-5 action items to get their implementation started</p><p>Create a new google doc for each client strategy, research and analysis </p><p>Convert the formatting from Markdown to Google Docs formatting with headers, sub headers, bullet points and block quotes used for legibility - make sure there are so that there is no markdown markup rendered in the document but retain the formatting styles</p><p>Please post to Slack #strategy channel when you are done with links to the reports on option and google.<br><br>Please also update the chat with these links and links to download the md files</p>",
+          "agentReturnResponseAs": "userMessage",
+          "agentUpdateState": [
+            {
+              "key": "report",
+              "value": "<p><span class=\"variable\" data-type=\"mention\" data-id=\"output\" data-label=\"output\">{{ output }}</span> </p>"
+            }
+          ],
+          "agentModelConfig": {
+            "credential": "",
+            "modelName": "gpt-4.1",
+            "temperature": "0.6",
+            "streaming": true,
+            "maxTokens": "",
+            "topP": "",
+            "frequencyPenalty": "",
+            "presencePenalty": "",
+            "timeout": "",
+            "strictToolCalling": "",
+            "stopSequence": "",
+            "basepath": "",
+            "proxyUrl": "",
+            "baseOptions": "",
+            "allowImageUploads": "",
+            "reasoningEffort": "high",
+            "agentModel": "chatOpenAI"
+          }
+        },
+        "outputAnchors": [
+          {
+            "id": "agentAgentflow_4-output-agentAgentflow",
+            "label": "Agent",
+            "name": "agentAgentflow"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "type": "agentFlow",
+      "width": 150,
+      "height": 99,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 422.37388848391913,
+        "y": 123.490283795562
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "startAgentflow_0",
+      "sourceHandle": "startAgentflow_0-output-startAgentflow",
+      "target": "llmAgentflow_0",
+      "targetHandle": "llmAgentflow_0",
+      "data": {
+        "sourceColor": "#7EE787",
+        "targetColor": "#64B5F6",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "startAgentflow_0-startAgentflow_0-output-startAgentflow-llmAgentflow_0-llmAgentflow_0"
+    },
+    {
+      "source": "llmAgentflow_0",
+      "sourceHandle": "llmAgentflow_0-output-llmAgentflow",
+      "target": "conditionAgentflow_0",
+      "targetHandle": "conditionAgentflow_0",
+      "data": {
+        "sourceColor": "#64B5F6",
+        "targetColor": "#FFB938",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "llmAgentflow_0-llmAgentflow_0-output-llmAgentflow-conditionAgentflow_0-conditionAgentflow_0"
+    },
+    {
+      "source": "agentAgentflow_0",
+      "sourceHandle": "agentAgentflow_0-output-agentAgentflow",
+      "target": "loopAgentflow_3",
+      "targetHandle": "loopAgentflow_3",
+      "data": {
+        "sourceColor": "#4DD0E1",
+        "targetColor": "#FFA07A",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "agentAgentflow_0-agentAgentflow_0-output-agentAgentflow-loopAgentflow_3-loopAgentflow_3"
+    },
+    {
+      "source": "conditionAgentflow_0",
+      "sourceHandle": "conditionAgentflow_0-output-0",
+      "target": "agentAgentflow_0",
+      "targetHandle": "agentAgentflow_0",
+      "data": {
+        "sourceColor": "#FFB938",
+        "targetColor": "#4DD0E1",
+        "edgeLabel": "0",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "conditionAgentflow_0-conditionAgentflow_0-output-0-agentAgentflow_0-agentAgentflow_0",
+      "selected": false
+    },
+    {
+      "source": "conditionAgentflow_0",
+      "sourceHandle": "conditionAgentflow_0-output-1",
+      "target": "agentAgentflow_1",
+      "targetHandle": "agentAgentflow_1",
+      "data": {
+        "sourceColor": "#FFB938",
+        "targetColor": "#4DD0E1",
+        "edgeLabel": "1",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "conditionAgentflow_0-conditionAgentflow_0-output-1-agentAgentflow_1-agentAgentflow_1"
+    },
+    {
+      "source": "conditionAgentflow_0",
+      "sourceHandle": "conditionAgentflow_0-output-2",
+      "target": "agentAgentflow_2",
+      "targetHandle": "agentAgentflow_2",
+      "data": {
+        "sourceColor": "#FFB938",
+        "targetColor": "#4DD0E1",
+        "edgeLabel": "2",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "conditionAgentflow_0-conditionAgentflow_0-output-2-agentAgentflow_2-agentAgentflow_2"
+    },
+    {
+      "source": "conditionAgentflow_0",
+      "sourceHandle": "conditionAgentflow_0-output-3",
+      "target": "agentAgentflow_4",
+      "targetHandle": "agentAgentflow_4",
+      "data": {
+        "sourceColor": "#FFB938",
+        "targetColor": "#4DD0E1",
+        "edgeLabel": "3",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "conditionAgentflow_0-conditionAgentflow_0-output-3-agentAgentflow_4-agentAgentflow_4"
+    },
+    {
+      "source": "agentAgentflow_1",
+      "sourceHandle": "agentAgentflow_1-output-agentAgentflow",
+      "target": "loopAgentflow_2",
+      "targetHandle": "loopAgentflow_2",
+      "data": {
+        "sourceColor": "#4DD0E1",
+        "targetColor": "#FFA07A",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "agentAgentflow_1-agentAgentflow_1-output-agentAgentflow-loopAgentflow_2-loopAgentflow_2"
+    },
+    {
+      "source": "agentAgentflow_2",
+      "sourceHandle": "agentAgentflow_2-output-agentAgentflow",
+      "target": "loopAgentflow_0",
+      "targetHandle": "loopAgentflow_0",
+      "data": {
+        "sourceColor": "#4DD0E1",
+        "targetColor": "#FFA07A",
+        "isHumanInput": false
+      },
+      "type": "agentFlow",
+      "id": "agentAgentflow_2-agentAgentflow_2-output-agentAgentflow-loopAgentflow_0-loopAgentflow_0"
+    }
+  ]
+}

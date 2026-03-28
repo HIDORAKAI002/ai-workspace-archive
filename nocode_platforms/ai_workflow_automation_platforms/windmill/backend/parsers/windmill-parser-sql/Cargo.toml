@@ -1,0 +1,22 @@
+[package]
+name = "windmill-parser-sql"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[lib]
+name = "windmill_parser_sql"
+path = "./src/lib.rs"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+regex-lite.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+regex.workspace = true
+
+[dependencies]
+windmill-parser.workspace = true
+anyhow.workspace = true
+lazy_static.workspace = true
+serde_json.workspace = true
+serde.workspace = true

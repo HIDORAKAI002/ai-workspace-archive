@@ -1,0 +1,52 @@
+package com.appsmith.server.configurations.mongo;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.repository.query.ConvertingParameterAccessor;
+import org.springframework.data.mongodb.repository.query.ReactiveMongoQueryMethod;
+import org.springframework.data.mongodb.repository.query.ReactivePartTreeMongoQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
+import reactor.core.publisher.Mono;
+
+import java.lang.reflect.Method;
+
+import static com.appsmith.server.repositories.ce.BaseAppsmithRepositoryCEImpl.notDeleted;
+
+@Slf4j
+public class SoftDeletePartTreeMongoQuery extends ReactivePartTreeMongoQuery {
+    private ReactivePartTreeMongoQuery reactivePartTreeQuery;
+    private Method method;
+
+    SoftDeletePartTreeMongoQuery(
+            Method method,
+            ReactivePartTreeMongoQuery reactivePartTreeMongoQuery,
+            ReactiveMongoOperations mongoOperations,
+            ValueExpressionDelegate valueExpressionDelegate) {
+        super(
+                (ReactiveMongoQueryMethod) reactivePartTreeMongoQuery.getQueryMethod(),
+                mongoOperations,
+                valueExpressionDelegate);
+        this.reactivePartTreeQuery = reactivePartTreeMongoQuery;
+        this.method = method;
+    }
+
+    @Override
+    protected Mono<Query> createQuery(ConvertingParameterAccessor accessor) {
+        Mono<Query> queryMono = super.createQuery(accessor);
+        return withNotDeleted(queryMono);
+    }
+
+    @Override
+    protected Mono<Query> createCountQuery(ConvertingParameterAccessor accessor) {
+        Mono<Query> queryMono = super.createCountQuery(accessor);
+        return withNotDeleted(queryMono);
+    }
+
+    private Mono<Query> withNotDeleted(Mono<Query> queryMono) {
+        return queryMono.map(query -> {
+            query.addCriteria(notDeleted());
+            return query;
+        });
+    }
+}

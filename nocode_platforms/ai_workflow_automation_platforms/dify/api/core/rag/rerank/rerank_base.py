@@ -1,0 +1,25 @@
+from abc import ABC, abstractmethod
+
+from core.rag.index_processor.constant.query_type import QueryType
+from core.rag.models.document import Document
+
+
+class BaseRerankRunner(ABC):
+    @abstractmethod
+    def run(
+        self,
+        query: str,
+        documents: list[Document],
+        score_threshold: float | None = None,
+        top_n: int | None = None,
+        query_type: QueryType = QueryType.TEXT_QUERY,
+    ) -> list[Document]:
+        """
+        Run rerank model
+        :param query: search query
+        :param documents: documents for reranking
+        :param score_threshold: score threshold
+        :param top_n: top n
+        :return:
+        """
+        raise NotImplementedError

@@ -1,0 +1,121 @@
+import { structures } from "@budibase/backend-core/tests"
+import { WorkspaceApp } from "@budibase/types"
+import TestConfiguration from "../../../../tests/utilities/TestConfiguration"
+import { getMatchedWorkspaceApp } from "../utils"
+
+describe("workspaceApps utils", () => {
+  const config = new TestConfiguration()
+  let workspaceApps: WorkspaceApp[]
+
+  beforeAll(async () => {
+    await config.init()
+
+    workspaceApps = (await config.api.workspaceApp.fetch()).workspaceApps
+    expect(workspaceApps).toHaveLength(1)
+    expect(workspaceApps.find(x => x.url === "/")).toBeDefined()
+
+    for (const url of ["/app", "/app2"]) {
+      workspaceApps.push(
+        (
+          await config.api.workspaceApp.create(
+            structures.workspaceApps.createRequest({ url })
+          )
+        ).workspaceApp
+      )
+    }
+  })
+
+  describe.each(["", "/"])(
+    "getMatchedWorkspaceApp (url closing char: %s)",
+    closingChar => {
+      it("should be able to get the base workspaceApp", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[0]._id)
+        })
+      })
+
+      it("should be able to get the a workspaceApp by its path", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/app${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[1]._id)
+        })
+      })
+
+      it("should be able to get the a workspaceApp by its path for overlapping urls", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/app2${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[2]._id)
+        })
+      })
+
+      it("should return undefined for partial matching paths", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/app22${closingChar}`
+          )
+          expect(result).toBeUndefined()
+        })
+      })
+
+      it("should match the default workspace app for a chat path", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/_chat${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[0]._id)
+        })
+      })
+
+      it("should match nested workspace app paths with chat suffix", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/app/_chat${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[1]._id)
+        })
+      })
+
+      it("should match workspace app when chat path has trailing segments", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/${config.getDevWorkspaceId()}/app/_chat/history${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[1]._id)
+        })
+      })
+
+      it("should match the default workspace app for published chat route", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/app-chat/${config.getDevWorkspaceId()}${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[0]._id)
+        })
+      })
+
+      it("should match the default workspace app for published chat route with trailing segments", async () => {
+        await config.doInContext(config.getDevWorkspaceId(), async () => {
+          const result = await getMatchedWorkspaceApp(
+            `/app-chat/${config.getDevWorkspaceId()}/history${closingChar}`
+          )
+          expect(result).toBeDefined()
+          expect(result?._id).toEqual(workspaceApps[0]._id)
+        })
+      })
+    }
+  )
+})

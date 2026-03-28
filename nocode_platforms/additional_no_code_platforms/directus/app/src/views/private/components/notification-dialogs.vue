@@ -1,0 +1,116 @@
+<script setup lang="ts">
+import { render } from 'micromustache';
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import VButton from '@/components/v-button.vue';
+import VCardActions from '@/components/v-card-actions.vue';
+import VCardText from '@/components/v-card-text.vue';
+import VCardTitle from '@/components/v-card-title.vue';
+import VCard from '@/components/v-card.vue';
+import VDialog from '@/components/v-dialog.vue';
+import VError from '@/components/v-error.vue';
+import { DEFAULT_REPORT_BUG_URL } from '@/constants';
+import { useNotificationsStore } from '@/stores/notifications';
+import { useSettingsStore } from '@/stores/settings';
+import { useUserStore } from '@/stores/user';
+import { Snackbar } from '@/types/notifications';
+
+const notificationsStore = useNotificationsStore();
+const { isAdmin, currentUser } = useUserStore();
+const { settings } = storeToRefs(useSettingsStore());
+
+const notifications = computed(() => notificationsStore.dialogs);
+
+function getErrorUrl(error: undefined | Error) {
+	if (!settings.value?.report_error_url) {
+		return DEFAULT_REPORT_BUG_URL;
+	}
+
+	const route = useRoute();
+
+	const renderScope = {
+		error: {
+			name: error?.name,
+			message: error?.message,
+		},
+		route: {
+			fullPath: route.fullPath,
+			hash: route.hash,
+			name: route.name,
+			path: route.path,
+			query: route.query,
+		},
+		navigator: {
+			language: navigator.language,
+			userAgent: navigator.userAgent,
+		},
+		user: {},
+		role: {},
+	};
+
+	if (currentUser !== null && 'id' in currentUser) {
+		renderScope.user = {
+			id: currentUser.id,
+			first_name: currentUser.first_name,
+			last_name: currentUser.last_name,
+			title: currentUser.title,
+			description: currentUser.description,
+			location: currentUser.location,
+			status: currentUser.status,
+		};
+
+		renderScope.role = {
+			id: currentUser.role?.id,
+			name: currentUser.role?.name,
+		};
+	}
+
+	return render(settings.value.report_error_url, renderScope);
+}
+
+const done = async (notification: Snackbar) => {
+	if (notification.dismissAction) {
+		await notification.dismissAction();
+	}
+
+	notificationsStore.remove(notification.id);
+};
+</script>
+
+<template>
+	<div class="notification-dialogs">
+		<VDialog v-for="notification in notifications" :key="notification.id" model-value persist>
+			<VCard :class="[notification.type]">
+				<VCardTitle>{{ notification.title }}</VCardTitle>
+				<VCardText v-if="notification.text || notification.error" class="notification-text">
+					{{ notification.text }}
+
+					<VError v-if="notification.error" :error="notification.error" />
+				</VCardText>
+				<VCardActions>
+					<VButton v-if="notification.type === 'error' && isAdmin && notification.code === 'UNKNOWN'" secondary>
+						<a target="_blank" :href="getErrorUrl(notification.error)">
+							{{ $t('report_error') }}
+						</a>
+					</VButton>
+					<VButton @click="done(notification)">{{ notification.dismissText ?? $t('dismiss') }}</VButton>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.notification-dialogs {
+	position: relative;
+}
+
+.notification-text {
+	white-space: pre-line;
+}
+
+.v-error {
+	margin-block-start: 0.6875rem;
+}
+</style>

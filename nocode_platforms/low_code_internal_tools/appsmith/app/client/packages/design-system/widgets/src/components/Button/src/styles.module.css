@@ -1,0 +1,304 @@
+@import "../../../shared/colors/colors.module.css";
+
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  border: none;
+  font-family: inherit;
+  max-inline-size: var(--sizing-70);
+  border-radius: var(--border-radius-elevation-3);
+
+  @each $color in colors {
+    &[data-variant="filled"][data-color="$(color)"] {
+      background-color: var(--color-bg-$(color));
+      color: var(--color-fg-on-$(color));
+
+      &[data-hovered]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-hover);
+      }
+
+      &[data-pressed]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-active);
+      }
+    }
+
+    &[data-variant="outlined"][data-color="$(color)"] {
+      background-color: transparent;
+      color: var(--color-fg-$(color));
+      /** We use !important here to override the disabled outline styles in the main app. */
+      outline: var(--border-width-1) solid var(--color-bd-$(color)-subtle) !important;
+      outline-offset: calc(-1 * var(--border-width-1)) !important;
+
+      &[data-hovered]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-subtle-hover);
+      }
+
+      &[data-pressed]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-subtle-active);
+      }
+    }
+
+    &[data-variant="ghost"][data-color="$(color)"] {
+      background: transparent;
+      color: var(--color-fg-$(color));
+
+      &[data-hovered]:not([data-loading]) {
+        background: var(--color-bg-$(color)-subtle-hover);
+      }
+
+      &[data-pressed]:not([data-loading]) {
+        background: var(--color-bg-$(color)-subtle-active);
+      }
+    }
+
+    &[data-variant="subtle"][data-color="$(color)"] {
+      background-color: var(--color-bg-$(color)-subtle);
+      color: var(--color-fg-$(color));
+
+      &[data-hovered]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-subtle-hover);
+      }
+
+      &[data-pressed]:not([data-loading]) {
+        background-color: var(--color-bg-$(color)-subtle-active);
+      }
+    }
+  }
+
+  /*
+    This is a special case for the "neutral" color for "subtle" variant. The subtle color is lighter than required.
+    So we added the soft token for neutral color which is little more darker than the subtle color tokens.
+  */
+  &[data-variant="subtle"][data-color="neutral"] {
+    background-color: var(--color-bg-neutral-soft);
+    color: var(--color-fg-neutral);
+
+    &[data-hovered]:not([data-loading]) {
+      background-color: var(--color-bg-neutral-soft-hover);
+    }
+
+    &[data-pressed]:not([data-loading]) {
+      background-color: var(--color-bg-neutral-soft-active);
+    }
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * CONTENT
+  *-----------------------------------------------------------------------------
+  */
+  & [data-content] {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &[data-icon-position="end"] [data-content] {
+    flex-direction: row-reverse;
+  }
+
+  & [data-empty-text] {
+    block-size: var(--body-line-height);
+    margin-block-start: var(--body-margin-start);
+    margin-block-end: var(--body-margin-end);
+    inline-size: var(--body-line-height);
+    margin-inline: calc(
+      (var(--body-margin-start) + var(--body-margin-end)) / 2
+    );
+  }
+
+  &[data-size="xSmall"] [data-empty-text] {
+    block-size: var(--footnote-line-height);
+    margin-block-start: var(--footnote-margin-start);
+    margin-block-end: var(--footnote-margin-end);
+    inline-size: var(--footnote-line-height);
+    margin-inline: calc(
+      (var(--footnote-margin-start) + var(--footnote-margin-end)) / 2
+    );
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * FOCUS VISIBLE
+  *-----------------------------------------------------------------------------
+  */
+  &[data-focus-visible]:not([data-loading]) {
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-bd-focus);
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * DISABLED
+  *-----------------------------------------------------------------------------
+  */
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * LOADING AND LOADER
+  *-----------------------------------------------------------------------------
+  */
+  &[data-loading] {
+    cursor: default;
+  }
+
+  &[data-loading] [data-content] {
+    visibility: hidden;
+  }
+
+  & [data-loader] {
+    display: none;
+  }
+
+  &[data-loading] [data-loader] {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    border-radius: inherit;
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * ICON BUTTON
+  *-----------------------------------------------------------------------------
+  */
+  & [data-icon] {
+    /**
+      Icons are positioned absolutely because we need to align the elements along the baseline
+      but icons takes more space than the text content.
+    */
+    position: absolute;
+  }
+
+  &[data-icon-position="start"]:has([data-text]):not(:has([data-loader]))
+    [data-icon] {
+    left: 0;
+  }
+
+  &[data-icon-position="end"]:has([data-text]):not(:has([data-loader]))
+    [data-icon] {
+    right: 0;
+  }
+
+  /**
+  * ----------------------------------------------------------------------------
+  * SIZES
+  *-----------------------------------------------------------------------------
+  */
+  &[data-size="xSmall"] {
+    padding-inline: var(--inner-spacing-1);
+    padding-block: var(--inner-spacing-1);
+  }
+
+  &[data-size="xSmall"]:has([data-icon]):has([data-text]) {
+    min-inline-size: var(--sizing-13);
+  }
+
+  &[data-size="xSmall"]:has([data-text]) {
+    min-inline-size: var(--sizing-9);
+  }
+
+  &[data-icon-position="start"][data-size="xSmall"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-1) var(--inner-spacing-2);
+  }
+
+  &[data-icon-position="start"][data-size="xSmall"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-start: calc(var(--icon-size-1) + var(--inner-spacing-1));
+  }
+
+  &[data-icon-position="end"][data-size="xSmall"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-2) var(--inner-spacing-1);
+  }
+
+  &[data-icon-position="end"][data-size="xSmall"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-end: calc(var(--icon-size-1) + var(--inner-spacing-1));
+  }
+
+  &[data-size="small"] {
+    padding-inline: var(--inner-spacing-2);
+    padding-block: var(--inner-spacing-2);
+  }
+
+  &[data-size="small"]:has([data-icon]):has([data-text]) {
+    min-inline-size: var(--sizing-15);
+  }
+
+  &[data-size="small"]:has([data-text]) {
+    min-inline-size: var(--sizing-13);
+  }
+
+  &[data-icon-position="start"][data-size="small"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-1) var(--inner-spacing-3);
+  }
+
+  &[data-icon-position="start"][data-size="small"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-start: calc(var(--icon-size-1) + var(--inner-spacing-1));
+  }
+
+  &[data-icon-position="end"][data-size="small"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-3) var(--inner-spacing-1);
+  }
+
+  &[data-icon-position="end"][data-size="small"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-end: calc(var(--icon-size-1) + var(--inner-spacing-1));
+  }
+
+  &[data-size="medium"] {
+    padding-inline: var(--inner-spacing-3);
+    padding-block: var(--inner-spacing-3);
+  }
+
+  &[data-size="medium"]:has([data-icon]):has([data-text]) {
+    min-inline-size: var(--sizing-22);
+  }
+
+  &[data-size="medium"]:has([data-text]) {
+    min-inline-size: var(--sizing-17);
+  }
+
+  &[data-icon-position="start"][data-size="medium"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-2) var(--inner-spacing-3);
+  }
+
+  &[data-icon-position="start"][data-size="medium"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-start: calc(var(--icon-size-3) + var(--inner-spacing-1));
+  }
+
+  &[data-icon-position="end"][data-size="medium"]:has([data-icon]):has(
+      [data-text]
+    ) {
+    padding-inline: var(--inner-spacing-3) var(--inner-spacing-2);
+  }
+
+  &[data-icon-position="end"][data-size="medium"]
+    [data-content]:has([data-icon]):has([data-text]) {
+    padding-inline-end: calc(var(--icon-size-3) + var(--inner-spacing-1));
+  }
+}

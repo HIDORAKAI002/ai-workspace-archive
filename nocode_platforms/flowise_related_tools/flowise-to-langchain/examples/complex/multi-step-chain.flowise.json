@@ -1,0 +1,435 @@
+{
+  "nodes": [
+    {
+      "id": "promptTemplate_1",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "promptTemplate_1",
+        "label": "Research Prompt",
+        "version": 3,
+        "name": "promptTemplate",
+        "type": "PromptTemplate",
+        "baseClasses": ["PromptTemplate", "BasePromptTemplate"],
+        "category": "Prompts",
+        "description": "Research phase prompt template",
+        "inputParams": [
+          {
+            "label": "Template",
+            "name": "template",
+            "type": "string",
+            "rows": 4,
+            "placeholder": "Research the topic: {topic}"
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "template": "Research and gather key information about {topic}. Focus on the most important facts, recent developments, and practical applications. Provide a comprehensive overview in 3-4 paragraphs."
+        },
+        "outputAnchors": [
+          {
+            "id": "promptTemplate_1-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+            "name": "promptTemplate",
+            "label": "PromptTemplate",
+            "description": "Research phase prompt template",
+            "type": "PromptTemplate | BasePromptTemplate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_4",
+      "position": { "x": 100, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_4",
+        "label": "Research LLM",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "LLM for research phase",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-4",
+          "temperature": 0.3
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_4-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "LLM for research phase",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "llmChain_1",
+      "position": { "x": 400, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "llmChain_1",
+        "label": "Research Chain",
+        "version": 3,
+        "name": "llmChain",
+        "type": "LLMChain",
+        "baseClasses": ["LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Research phase chain",
+        "inputParams": [
+          {
+            "label": "Chain Name",
+            "name": "chainName",
+            "type": "string",
+            "placeholder": "Name your chain",
+            "optional": true
+          },
+          {
+            "label": "Output Key",
+            "name": "outputKey",
+            "type": "string",
+            "default": "text",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "llmChain_1-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for this chain",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "llmChain_1-input-prompt-BasePromptTemplate",
+            "name": "prompt",
+            "label": "Prompt",
+            "description": "Prompt template for this chain",
+            "type": "BasePromptTemplate"
+          }
+        ],
+        "inputs": {
+          "chainName": "Research Phase",
+          "outputKey": "research_result"
+        },
+        "outputAnchors": [
+          {
+            "id": "llmChain_1-output-llmChain-LLMChain|BaseChain",
+            "name": "llmChain",
+            "label": "LLM Chain",
+            "description": "Research phase chain",
+            "type": "LLMChain | BaseChain"
+          }
+        ]
+      }
+    },
+    {
+      "id": "promptTemplate_2",
+      "position": { "x": 700, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "promptTemplate_2",
+        "label": "Summary Prompt",
+        "version": 3,
+        "name": "promptTemplate",
+        "type": "PromptTemplate",
+        "baseClasses": ["PromptTemplate", "BasePromptTemplate"],
+        "category": "Prompts",
+        "description": "Summary phase prompt template",
+        "inputParams": [
+          {
+            "label": "Template",
+            "name": "template",
+            "type": "string",
+            "rows": 4,
+            "placeholder": "Summarize: {text}"
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "template": "Based on the following research: {research_result}\\n\\nCreate a concise, well-structured summary with:\\n1. Key points (3-5 bullet points)\\n2. Main takeaways\\n3. Practical implications\\n\\nMake it accessible for a general audience."
+        },
+        "outputAnchors": [
+          {
+            "id": "promptTemplate_2-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+            "name": "promptTemplate",
+            "label": "PromptTemplate",
+            "description": "Summary phase prompt template",
+            "type": "PromptTemplate | BasePromptTemplate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_5",
+      "position": { "x": 700, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_5",
+        "label": "Summary LLM",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "LLM for summary phase",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-3.5-turbo",
+          "temperature": 0.5
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_5-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "LLM for summary phase",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "llmChain_2",
+      "position": { "x": 1000, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "llmChain_2",
+        "label": "Summary Chain",
+        "version": 3,
+        "name": "llmChain",
+        "type": "LLMChain",
+        "baseClasses": ["LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Summary phase chain",
+        "inputParams": [
+          {
+            "label": "Chain Name",
+            "name": "chainName",
+            "type": "string",
+            "placeholder": "Name your chain",
+            "optional": true
+          },
+          {
+            "label": "Output Key",
+            "name": "outputKey",
+            "type": "string",
+            "default": "text",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "llmChain_2-input-model-BaseLanguageModel",
+            "name": "model",
+            "label": "Language Model",
+            "description": "Language Model to use for this chain",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "llmChain_2-input-prompt-BasePromptTemplate",
+            "name": "prompt",
+            "label": "Prompt",
+            "description": "Prompt template for this chain",
+            "type": "BasePromptTemplate"
+          }
+        ],
+        "inputs": {
+          "chainName": "Summary Phase",
+          "outputKey": "final_summary"
+        },
+        "outputAnchors": [
+          {
+            "id": "llmChain_2-output-llmChain-LLMChain|BaseChain",
+            "name": "llmChain",
+            "label": "LLM Chain",
+            "description": "Summary phase chain",
+            "type": "LLMChain | BaseChain"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sequentialChain_0",
+      "position": { "x": 1300, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "sequentialChain_0",
+        "label": "Sequential Chain",
+        "version": 3,
+        "name": "sequentialChain",
+        "type": "SequentialChain",
+        "baseClasses": ["SequentialChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Chain multiple steps in sequence",
+        "inputParams": [
+          {
+            "label": "Input Variables",
+            "name": "inputVariables",
+            "type": "string",
+            "placeholder": "topic,context",
+            "description": "Comma-separated list of input variables"
+          },
+          {
+            "label": "Output Variables",
+            "name": "outputVariables",
+            "type": "string",
+            "placeholder": "result,summary",
+            "description": "Comma-separated list of output variables",
+            "optional": true
+          },
+          {
+            "label": "Verbose",
+            "name": "verbose",
+            "type": "boolean",
+            "default": false,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "sequentialChain_0-input-chains-BaseChain",
+            "name": "chains",
+            "label": "Chains",
+            "description": "Chains to run in sequence",
+            "type": "BaseChain",
+            "list": true
+          }
+        ],
+        "inputs": {
+          "inputVariables": "topic",
+          "outputVariables": "research_result,final_summary",
+          "verbose": true
+        },
+        "outputAnchors": [
+          {
+            "id": "sequentialChain_0-output-sequentialChain-SequentialChain|BaseChain",
+            "name": "sequentialChain",
+            "label": "Sequential Chain",
+            "description": "Chain multiple steps in sequence",
+            "type": "SequentialChain | BaseChain"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "promptTemplate_1",
+      "sourceHandle": "promptTemplate_1-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+      "target": "llmChain_1",
+      "targetHandle": "llmChain_1-input-prompt-BasePromptTemplate",
+      "type": "buttonedge",
+      "id": "promptTemplate_1-llmChain_1"
+    },
+    {
+      "source": "chatOpenAI_4",
+      "sourceHandle": "chatOpenAI_4-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "llmChain_1",
+      "targetHandle": "llmChain_1-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_4-llmChain_1"
+    },
+    {
+      "source": "promptTemplate_2",
+      "sourceHandle": "promptTemplate_2-output-promptTemplate-PromptTemplate|BasePromptTemplate",
+      "target": "llmChain_2",
+      "targetHandle": "llmChain_2-input-prompt-BasePromptTemplate",
+      "type": "buttonedge",
+      "id": "promptTemplate_2-llmChain_2"
+    },
+    {
+      "source": "chatOpenAI_5",
+      "sourceHandle": "chatOpenAI_5-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "llmChain_2",
+      "targetHandle": "llmChain_2-input-model-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_5-llmChain_2"
+    },
+    {
+      "source": "llmChain_1",
+      "sourceHandle": "llmChain_1-output-llmChain-LLMChain|BaseChain",
+      "target": "sequentialChain_0",
+      "targetHandle": "sequentialChain_0-input-chains-BaseChain",
+      "type": "buttonedge",
+      "id": "llmChain_1-sequentialChain_0"
+    },
+    {
+      "source": "llmChain_2",
+      "sourceHandle": "llmChain_2-output-llmChain-LLMChain|BaseChain",
+      "target": "sequentialChain_0",
+      "targetHandle": "sequentialChain_0-input-chains-BaseChain",
+      "type": "buttonedge",
+      "id": "llmChain_2-sequentialChain_0"
+    }
+  ],
+  "chatflow": {
+    "id": "multi-step-chain",
+    "name": "Multi-Step Research and Summary",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Complex Examples",
+    "description": "A multi-step workflow that first researches a topic, then creates a structured summary"
+  }
+}

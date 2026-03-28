@@ -1,0 +1,511 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: אודות
+first_name: שם פרטי
+last_name: שם משפחה
+identifier: מזהה
+avatar: צלמית
+application: יישום
+default_provider: ספק ברירת מחדל
+method: פונקציה
+published: פורסם
+draft: טיוטה
+archived: ארכיון
+marketplace: חנות
+extensions: הרחבות
+modules: מודולים
+module_bar: סרגל מודולים
+logs: לוגים
+unknown: לא ידוע
+reset_width: אפס רוחב
+tile_size: גודל צלמית
+edit_field: ערוך שדה
+conditions: תנאים
+location: מיקום
+collection_names_are_case_sensitive: יש חשיבות לגודל אותיות בשמות
+condition_rules: תנאי כלל
+input: קלט
+maps: מפות
+switch_user: החלף משתמש
+item_creation: יצירת פריט חדש
+item_revision: גרסת פריט
+enter_a_name: הכניסו שם...
+duplicate_field: שדה כפול
+half_width: חצי עמוד
+full_width: רוחב מלא
+group: קבוצה
+popular: פופולרי
+recent: אחרון
+export_items: יצא פריטים
+and: ו
+or: או
+init: אתחל
+dataset_too_large_currently_showing_n_items: מערך הנתונים גדול מדי. מציג כעת את {n} הפריטים הראשונים.
+extension_interface: ממשק
+extension_display: תצוגה
+extension_layout: פריסה
+extension_module: מודול
+extension_panel: לוח
+extension_theme: ערכת נושא
+extension_hook: נקודת השחלה
+extension_endpoint: כתובת קצה
+extension_operation: פעולה
+extension_bundle: חבילה
+extension_interfaces: ממשקים
+extension_displays: תצוגה
+extension_layouts: פריסה
+extension_modules: מודולים
+extension_panels: לוחות
+extension_themes: ערכות נושא
+extension_hooks: נקודת השחלה
+extension_endpoints: נקודת גישה
+extension_operations: תהליכים
+extension_bundles: חבילות
+extension_missing: חסרים
+extension_reload_required: יש לטעון את הדף מחדש
+extension_reload_required_copy: יש לטעון את הדף מחדש לאחר הפעלה או נטרול של תוסף.
+extension_reload_now: טען מחדש כעת
+published_relative: פורסם ב{relativeTime}
+compatible_with_your_project: תואם את הפרויקט שלך
+last_updated_relative: תאריך עדכון {relativeTime}
+n_files: '{n} קבצים'
+verified: מאומת
+homepage: דף הבית
+repository: מאגר
+reload_page: רענן דף
+reload_required: יש לטעון את הדף מחדש
+report_an_issue: דווח על תקלה
+website: אתר
+github: גיטהאב
+beta: בטא
+n_downloads: '{n} הורדות'
+downloads: הורדות
+compatibility_not_guaranteed: תאימות לא מובטחת
+enable: אפשר
+disable: מושבת
+custom: מותאם אישית
+hook: נקודת השחלה
+fill_width: עמוד מלא
+field_name_translations: תרגומי שמות שדות
+enter_password_to_enable_tfa: הכניסו סיסמה להפעלת אימות דו שלבי
+add_field: הוסף שדה
+role_name: שם תפקיד
+branch: ענף
+leaf: עלה
+indeterminate: לא מוגדר
+edit_collection: ערוך אוסף
+exclusive: בלעדי
+children: ילדים
+db_only_click_to_configure: 'דאטהבייס בלבד: יש ללחץ כאן על מנת להגדיר'
+show_active_items: הצג פריטים פעילים
+show_archived_items: הצג פריטי ארכיון
+show_all_items: הצג את כל הפריטים
+edited: ערך נערך
+required: שדה חובה
+required_for_app_access: נדרש עבור גישה לאפליקציה
+requires_value: דורש ערך
+create_preset: יצירת הגדרה מראש
+create_panel: יצירת לוח
+create_role: צור תפקיד
+create_user: צור משתמש
+message: הודעה
+delete_panel: מחיקת לוח
+create_custom_translation: יצירת תרגומים
+edit_custom_translation: עריכת תרגומים
+no_custom_translations: חסרים תרגומים
+no_custom_translations_copy: חסרים תרגומים.
+invite_users: הזמן משתמשים
+invite: הזמן
+email_already_invited: כבר נשלחה הזמנה לכתובת מייל "{email}"
+subject: נושא
+inbox: תיבת דואר
+emails: אימייל
+connection_excellent: קליטה מצואן
+connection_good: קליטה טובה
+connection_fair: קליטה בינוני
+connection_poor: קליטה לא טובה
+primary: ראשי
+rename_folder: שינוי שם תיקיה
+delete_folder: מחק תיקייה
+prefix: קידומת
+suffix: סיומת
+keep: שמור
+version: גרסה
+version_key: מזהה גרסה
+version_name: שם הגרסה
+main_version: ראשי
+switch_version: החלפת גרסה
+switch_version_copy: האם את/ה רוצה להחליף לגרסה {version}? שינויים שלא נשמרו יאבדו.
+create_version: צור גרסה
+rename_version: לשנות שם גרסה
+compare_version: השווה גירסאות
+save_version: לשמור גרסה
+promote_version: לקדם גרסה
+delete_version: מחיקת גרסא
+delete_version_copy: >-
+  האם ברצונך למחוק את גרסה {version}? הפעולה אינה ניתנת לביטול.
+reached_maximum_number_of_extensions: הגעת למספר התוספות המקסימלי עבור הפרויקט ({n}). למידע נוסף, פנה למנהל המערכת.
+not_allowed: לא מורשה
+archive: ארכיון
+archive_confirm: האם אתם בטוחים שברצונכם להעביר פריט זה לארכיון?
+unarchive: הוצאה מהארכיון
+unarchive_confirm: האם אתם בטוחים שברצונכם להוציא פריט זה מהארכיון?
+validationError:
+  eq: הערך צריך להיות {valid}
+  neq: הערך אינו יכול להיות {invalid}
+  in: הערך צריך להיות אחד מ- {valid}
+  nempty: הערך אינו יכול להיות ריק
+  null: הערך צריך להיות null
+  nnull: הערך צריך להיות לא null
+  starts_with: ערך צריך להתחיל ב{substring}
+  istarts_with: ערך צריך להתחיל ב{substring}
+  nstarts_with: ערך לא יכול יכול להתחיל ב{substring}
+  nistarts_with: ערך לא יכול יכול להתחיל ב{substring}
+  ends_with: ערך צריך להסתיים ב{substring}
+  iends_with: ערך צריך להסתיים ב{substring}
+  nends_with: ערך לא יכול יכול להסתיים ב{substring}
+  niends_with: ערך לא יכול יכול להסתיים ב{substring}
+all_access: גישה פתוחה
+no_access: אין גישה
+use_custom: השתמש במותאם אישית
+nullable: לא חובה
+allow_null_value: אפשר ערך ריק
+allow_multiple: מאפשר כמה
+field_standard: סטנדרטי
+field_file: קובץ בודד
+field_files: כמה קובצים
+field_m2o: קשר רבים ליחיד (M2O)
+field_o2m: קשר יחיד לרבים (O2M)
+field_m2m: קשר רבים לרבים (M2M)
+field_translations: תרגומים
+field_group: קבוצת שדות
+item_permissions: הרשאות פריט
+field_permissions: הרשאות שדה
+field_validation: וולידציות שדה
+field_presets: פריסטים שדה
+hide_field: שדה הסתר
+hide_field_on_detail: הסתר שדה
+show_field_on_detail: הצג שדה
+delete_field: מחק שדה
+field_create_success: 'שדה "{field}" נוצר בהצלחה'
+language: שפה
+language_placeholder: בחר שפה...
+global: גלובלי
+camera: מצלמה
+validation: אימות
+sum: סכום
+avg: ממוצע
+count: כמות
+count_distinct: ספירה מובחנת
+min: מינימום
+max: מקסימום
+create_field: צור שדה
+creating_new_field: 'שדה חדש ({collection})'
+field_in_collection: '{field} ({collection})'
+hidden_field: שדה מוסתר
+clear_hidden_field: נקה שדות
+key: מפתח
+boolean: בוליאני
+date: תאריך
+date_range: טווח תאריכים
+precision: דיוק
+string: מחרוזת
+text: טקסט
+time: זמן
+click_here: לחץ כאן
+new_field: 'שדה חדש'
+new_collection: 'אוסף חדש'
+add_link: הוסף קישור
+default_value: ערך ברירת מחדל
+single_file: קובץ בודד
+multiple_files: כמה קובצים
+m2o_relationship: קשר רבים ליחיד
+m2m_relationship: קשר רבים לרבים
+dialog: חלונית
+modal: מודל
+confirmation_dialog: חלונית אישור
+next: המשך
+field_name: שם שדה
+translations: תרגומים
+no_translations: אין תרגומים
+left_to_right: שמאל לימין
+right_to_left: ימין לשמאל
+note: הערה
+enter_a_value: הכנס ערך...
+length: אורך
+readonly: קריאה בלבד
+unique: ייחודי
+index: אינדקס
+updated_on: עודכן ב-
+updated_by: עודכן על ידי
+primary_key: מפתח ראשי
+foreign_key: מפתח זר
+dismiss: דחה
+copy_raw_value_success: הועתק
+copy_raw_value_fail: העתקה נכשלה
+paste_raw_value_success: הודבק
+paste_raw_value_fail: ההדבקה נכשלה
+clear_value: נקה שדות
+notifications: התראות
+title: כותרת
+subtitle: כותרת משנית
+revision_delta_deleted: נמחק
+leave_comment: השאר תגובה...
+post_comment_success: תגובה פורסמה
+post_comment_updated: התגובה עודכנה
+label_import: ייבוא
+functions:
+  count: כמות
+months:
+  january: ינואר
+  february: פברואר
+  march: מרץ
+  april: אפריל
+  may: מאי
+  june: יוני
+  july: יולי
+  august: אוגוסט
+  september: ספטמבר
+  october: אוקטובר
+  november: נובמבר
+  december: דצמבר
+drag_mode: מצב גרירה
+original: מקורי
+import_label: ייבוא
+file_details: פרטי קובץ
+copy_id: העתק ID
+size: גודל
+created: נוצר
+modified: נערך
+owner: בעלים
+edited_by: נערך על ידי
+folder: תיקייה
+folders: תיקיות
+zoom: זום
+download: הורדה
+open: פתיחה
+open_in_new_window: פתח בחלון חדש
+open_folder: פתח תקייה "{folder}"
+background_color: צבע רקע
+upload_from_device: העלאה ממכשיר
+choose_from_library: בחר קובץ מספריית הקבצים
+import_from_url: יבא קובץ מקישור URL
+no_image_selected: לא נבחרה תמונה
+created_by: נוצר על ידי
+created_on: נוצר בתאריך
+save_and_create_new: שמור וצור חדש
+add_existing: הוסף קיים
+enable_create_button: אפשר כפתור יצירה
+collapse: צמצם
+collapse_all: צמצם הכל
+select_item: בחר פריט
+no_items: אין פריטים
+search_items: חפש פריטים...
+search_extensions: חפש הרחבות...
+disabled: מושבת
+information: מידע
+report_bug: דווח על תקלה
+item_count: 'אין פריטים | פריט אחד | {count} פריטים'
+filtered_item_count: 'אין פריטים מסוננים | פריט אחד מסונן | {count} פריטים מסוננים'
+no_items_copy: אין פריטים במאגר עדיין.
+file_count: 'אין קבצים | קובץ אחד | {count} קבצים'
+user_count: 'אין משתמשים | משתמש אחד | {count} משתמשים'
+no_users_copy: אין משתמשים בתפקיד זה.
+no_notifications: אין התראות
+no_notifications_copy: אתם מעודכנים לגמרי!
+activity_log: יומן פעילות
+all_items: כל הפריטים
+any: כל
+csv: CSV
+no_collections: אין מאגרים
+create_collection: צור מאגר
+select_a_field: בחירת שדה
+active: פעיל
+move_to: העבר אל...
+copy: העתק
+copy_to: העתק אל...
+inactive: לא פעיל
+users: משתמשים
+roles: תפקידים
+activity: פעילות
+action: פעולה
+ip_address: '‏כתובת IP'
+duration: משך זמן
+collection_created: המאגר נוצר
+status: סטטוס
+select_an_item: בחר פריט...
+edit: עריכה
+edit_item: עריכת פריט
+enabled: מופעל
+create_account: צור חשבון
+account_created_successfully: חשבון נוצר בהצלחה
+errors:
+  NOT_NULL_VIOLATION: הערך צריך להיות לא null
+create_bookmark: צור סימניה
+create_item: צור פריט
+create_folder: צור תיקייה
+role: תפקיד
+create: צור
+width: רוחב
+height: גובה
+wysiwyg_options:
+  backcolor: צבע רקע
+settings_translations: תרגומים
+source_registry: חנות
+collection: מאגר
+fields:
+  directus_activity:
+    item: מפתח ראשי
+    action: פעולה
+    collection: מאגר
+    timestamp: מועד פעולה
+    user: מבצע פעולה
+    comment: הערה
+    ip: '‏כתובת IP'
+  directus_collections:
+    collection: מאגר
+    note: הערה
+  directus_files:
+    title: כותרת
+    description: תיאור
+    tags: תגיות
+    location: מיקום
+    metadata: מטא-נתונים
+    filesize: גודל קובץ
+    created_on: נוצר בתאריך
+    created_by: נוצר על ידי
+    folder: תיקייה
+    width: רוחב
+    height: גובה
+    duration: משך זמן
+  directus_users:
+    first_name: שם פרטי
+    last_name: שם משפחה
+    email: דוא"ל
+    password: סיסמה
+    avatar: צלמית
+    location: מיקום
+    title: כותרת
+    description: תיאור
+    tags: תגיות
+    language: שפה
+    tfa_secret: אימות דו-שלבי
+    status: סטטוס
+    status_active: פעיל
+    role: תפקיד
+  directus_settings:
+    module_bar: סרגל מודולים
+  directus_shares:
+    role: תפקיד
+    password: סיסמה
+  directus_fields:
+    note: הערה
+    translation: תרגומי שמות שדות
+  directus_roles:
+    name: שם תפקיד
+    description: תיאור
+  directus_policies:
+    description: תיאור
+field_options:
+  directus_activity:
+    create: צור
+  directus_collections:
+    language: שפה
+    archive_divider: ארכיון
+  directus_users:
+    status_dropdown_active: פעיל
+comment: הערה
+live_preview:
+  new_window: פתח בחלון חדש
+ai:
+  unknown: לא ידוע
+  tool_approval:
+    disabled: מושבת
+  ask_user_next: המשך
+ai_tools:
+  files: קבצים
+  folders: תיקיות
+  operations: תהליכים
+description: תיאור
+email: דוא"ל
+password: סיסמה
+interfaces:
+  filter:
+    any: כל
+  presentation-links:
+    primary: ראשי
+  system-collection:
+    collection: מאגר
+  select-dropdown:
+    choices_value_placeholder: הכנס ערך...
+  files:
+    files: קבצים
+  input-rich-text-md:
+    edit: עריכה
+  map:
+    zoom: זום
+  tags:
+    tags: תגיות
+  boolean:
+    label_default: מופעל
+displays:
+  translations:
+    translations: תרגומים
+  boolean:
+    boolean: בוליאני
+  collection:
+    collection: מאגר
+  datetime:
+    suffix: סיומת
+  formatted-value:
+    prefix: קידומת
+    suffix: סיומת
+    text: טקסט
+  labels:
+    choices_value_placeholder: הכנס ערך...
+  mime-type:
+    mime-type: MIME Type
+  rating:
+    rating: דירוג
+    simple: פשוט
+  user:
+    avatar: צלמית
+    both: שניהם
+layouts:
+  cards:
+    title: כותרת
+    subtitle: כותרת משנית
+  calendar:
+    calendar: לוח שנה
+both: שניהם
+triggers:
+  webhook:
+    method: פונקציה
+operations:
+  log:
+    message: הודעה
+  notification:
+    message: הודעה
+    subject: נושא
+  request:
+    method: פונקציה
+standard: סטנדרטי

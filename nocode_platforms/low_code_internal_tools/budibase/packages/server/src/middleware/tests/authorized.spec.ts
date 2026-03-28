@@ -1,0 +1,253 @@
+jest.mock("../../sdk/workspace/permissions", () => ({
+  ...jest.requireActual("../../sdk/workspace/permissions"),
+  getResourcePerms: jest.fn().mockResolvedValue({}),
+}))
+
+import {
+  PermissionLevel,
+  PermissionSource,
+  PermissionType,
+} from "@budibase/types"
+
+import { generator, mocks } from "@budibase/backend-core/tests"
+import env from "../../environment"
+import sdk from "../../sdk"
+import { initProMocks } from "../../tests/utilities/mocks/pro"
+import { authorizedMiddleware } from "../authorized"
+
+const APP_ID = ""
+
+initProMocks()
+
+class TestConfiguration {
+  middleware: ReturnType<typeof authorizedMiddleware>
+  next: () => void
+  throw: () => void
+  headers: Record<string, string>
+  ctx: any
+
+  constructor() {
+    this.middleware = authorizedMiddleware(PermissionType.WORKSPACE)
+    this.next = jest.fn()
+    this.throw = jest.fn()
+    this.headers = {}
+    this.ctx = {
+      headers: {},
+      path: "",
+      request: {
+        url: "",
+      },
+      appId: APP_ID,
+      auth: {},
+      next: this.next,
+      throw: this.throw,
+      get: (name: string) => this.headers[name],
+    }
+  }
+
+  executeMiddleware() {
+    return this.middleware(this.ctx, this.next)
+  }
+
+  setUser(user: any) {
+    this.ctx.user = user
+  }
+
+  setMiddlewareRequiredPermission(
+    ...perms: Parameters<typeof authorizedMiddleware>
+  ) {
+    this.middleware = authorizedMiddleware(...perms)
+  }
+
+  setResourceId(id?: string) {
+    this.ctx.resourceId = id
+  }
+
+  setAuthenticated(isAuthed: boolean) {
+    this.ctx.isAuthenticated = isAuthed
+  }
+
+  setRequestUrl(url: string) {
+    this.ctx.request.url = url
+    this.ctx.path = url.split("?")[0]
+  }
+
+  setEnvironment(isProd: boolean) {
+    env._set("NODE_ENV", isProd ? "production" : "jest")
+  }
+
+  setRequestHeaders(headers: Record<string, string>) {
+    this.ctx.headers = headers
+  }
+
+  afterEach() {
+    jest.clearAllMocks()
+  }
+}
+
+describe("Authorization middleware", () => {
+  let config: TestConfiguration
+
+  afterEach(() => {
+    config.afterEach()
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mocks.licenses.useCloudFree()
+    config = new TestConfiguration()
+  })
+
+  describe("non-webhook call", () => {
+    beforeEach(() => {
+      config = new TestConfiguration()
+      config.setEnvironment(true)
+      config.setAuthenticated(true)
+    })
+
+    it("throws when no user data is present in context", async () => {
+      await config.executeMiddleware()
+
+      expect(config.throw).toHaveBeenCalledWith(401, "No user info found")
+    })
+
+    it("passes on to next() middleware if user is an admin", async () => {
+      config.setUser({
+        _id: "user",
+        role: {
+          _id: "ADMIN",
+        },
+      })
+
+      await config.executeMiddleware()
+
+      expect(config.next).toHaveBeenCalled()
+    })
+
+    it("throws if the user does not have builder permissions", async () => {
+      config.setEnvironment(false)
+      config.setMiddlewareRequiredPermission(PermissionType.BUILDER)
+      config.setUser({
+        role: {
+          _id: "",
+        },
+      })
+      await config.executeMiddleware()
+
+      expect(config.throw).toHaveBeenCalledWith(403, "Not Authorized")
+    })
+
+    it("passes on to next() middleware if the user has resource permission", async () => {
+      config.setResourceId(PermissionType.QUERY)
+      config.setUser({
+        role: {
+          _id: "",
+        },
+      })
+      config.setMiddlewareRequiredPermission(PermissionType.QUERY)
+
+      await config.executeMiddleware()
+      expect(config.next).toHaveBeenCalled()
+    })
+
+    it("throws if the user session is not authenticated", async () => {
+      config.setUser({
+        role: {
+          _id: "",
+        },
+      })
+      config.setAuthenticated(false)
+
+      await config.executeMiddleware()
+      expect(config.throw).toHaveBeenCalledWith(
+        401,
+        "Session not authenticated"
+      )
+    })
+
+    it("throws if the user does not have base permissions to perform the operation", async () => {
+      config.setUser({
+        role: {
+          _id: "",
+        },
+      })
+      config.setMiddlewareRequiredPermission(
+        PermissionType.WORKSPACE,
+        PermissionLevel.READ
+      )
+
+      await config.executeMiddleware()
+      expect(config.throw).toHaveBeenCalledWith(
+        403,
+        "User does not have permission"
+      )
+    })
+
+    describe("with resource", () => {
+      let resourceId: string
+      const mockedGetResourcePerms = sdk.permissions
+        .getResourcePerms as jest.MockedFunction<
+        typeof sdk.permissions.getResourcePerms
+      >
+
+      beforeEach(() => {
+        config.setMiddlewareRequiredPermission(
+          PermissionType.VIEW,
+          PermissionLevel.READ
+        )
+        resourceId = generator.guid()
+        config.setResourceId(resourceId)
+
+        mockedGetResourcePerms.mockResolvedValue({
+          [PermissionLevel.READ]: {
+            role: "PUBLIC",
+            type: PermissionSource.BASE,
+          },
+        })
+
+        config.setUser({
+          _id: "user",
+          role: {
+            _id: "PUBLIC",
+          },
+        })
+      })
+
+      it("will fetch resource permissions when resource is set", async () => {
+        await config.executeMiddleware()
+
+        expect(config.throw).not.toHaveBeenCalled()
+        expect(config.next).toHaveBeenCalled()
+
+        expect(mockedGetResourcePerms).toHaveBeenCalledTimes(1)
+        expect(mockedGetResourcePerms).toHaveBeenCalledWith(resourceId)
+      })
+    })
+  })
+
+  describe("webhook detection", () => {
+    beforeEach(() => {
+      config = new TestConfiguration()
+      config.setEnvironment(true)
+      config.setAuthenticated(true)
+    })
+
+    it("does not bypass auth when webhook path appears in query string", async () => {
+      config.setRequestUrl("/api/tables?/webhooks/trigger")
+
+      await config.executeMiddleware()
+
+      expect(config.throw).toHaveBeenCalledWith(401, "No user info found")
+      expect(config.next).not.toHaveBeenCalled()
+    })
+
+    it("bypasses auth for actual webhook endpoints", async () => {
+      config.setRequestUrl("/api/webhooks/trigger/app-id/webhook-id")
+
+      await config.executeMiddleware()
+
+      expect(config.next).toHaveBeenCalled()
+      expect(config.throw).not.toHaveBeenCalled()
+    })
+  })
+})

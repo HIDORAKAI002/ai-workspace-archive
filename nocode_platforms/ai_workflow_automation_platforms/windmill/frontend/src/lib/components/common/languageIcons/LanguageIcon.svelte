@@ -1,0 +1,163 @@
+<script lang="ts">
+	import { untrack } from 'svelte'
+	import type { SupportedLanguage } from '$lib/common'
+	import MySQLIcon from '$lib/components/icons/Mysql.svelte'
+	import PostgresIcon from '$lib/components/icons/PostgresIcon.svelte'
+	import { BashIcon, GoIcon, PythonIcon, TypeScriptIcon } from './'
+	import JavaScript from './JavaScript.svelte'
+	import FetchIcon from './FetchIcon.svelte'
+	import DockerIcon from '$lib/components/icons/DockerIcon.svelte'
+	import RestIcon from '$lib/components/icons/RestIcon.svelte'
+	import PowershellIcon from '$lib/components/icons/PowershellIcon.svelte'
+	import BigQueryIcon from '$lib/components/icons/BigQueryIcon.svelte'
+	import OracleDBIcon from '$lib/components/icons/OracleDBIcon.svelte'
+	import SnowflakeIcon from '$lib/components/icons/SnowflakeIcon.svelte'
+	import GraphqlIcon from '$lib/components/icons/GraphqlIcon.svelte'
+	import MSSqlServerIcon from '$lib/components/icons/MSSqlServerIcon.svelte'
+	import BunIcon from '$lib/components/icons/BunIcon.svelte'
+	import DenoIcon from '$lib/components/icons/DenoIcon.svelte'
+	import type { Script } from '$lib/gen'
+	import PHPIcon from '$lib/components/icons/PHPIcon.svelte'
+	import RustIcon from '$lib/components/icons/RustIcon.svelte'
+	import AnsibleIcon from '$lib/components/icons/AnsibleIcon.svelte'
+	import CSharpIcon from '$lib/components/icons/CSharpIcon.svelte'
+	import NuIcon from '$lib/components/icons/NuIcon.svelte'
+	import JavaIcon from '$lib/components/icons/JavaIcon.svelte'
+	import DuckDbIcon from '$lib/components/icons/DuckDbIcon.svelte'
+	import RubyIcon from '$lib/components/icons/RubyIcon.svelte'
+	import ClaudeIcon from '$lib/components/icons/ClaudeIcon.svelte'
+
+	interface Props {
+		lang:
+			| SupportedLanguage
+			| 'mysql'
+			| 'bun'
+			| 'pgsql'
+			| 'javascript'
+			| 'fetch'
+			| 'docker'
+			| 'powershell'
+			| 'bunnative'
+			| 'claudesandbox'
+		width?: number
+		height?: number
+		scale?: number
+		[key: string]: any
+		size?: number
+	}
+
+	let { lang, width = 30, height = 30, scale = 1, size = undefined, ...rest }: Props = $props()
+
+	const languageLabel: Record<Script['language'] | 'bunnative' | 'claudesandbox', String> = {
+		python3: 'Python',
+		deno: 'TypeScript',
+		go: 'Go',
+		bash: 'Bash',
+		powershell: 'PowerShell',
+		nativets: 'HTTP',
+		bunnative: 'HTTP',
+		graphql: 'GraphQL',
+		postgresql: 'Postgresql',
+		bigquery: 'BigQuery',
+		oracledb: 'Oracle Database',
+		duckdb: 'DuckDB',
+		snowflake: 'Snowflake',
+		mysql: 'MySQL',
+		mssql: 'MS SQL Server',
+		bun: 'TypeScript',
+		php: 'PHP',
+		rust: 'Rust',
+		ansible: 'Ansible',
+		csharp: 'C#',
+		nu: 'Nu',
+		java: 'Java',
+		ruby: 'Ruby',
+		claudesandbox: 'Claude Sandbox'
+		// for related places search: ADD_NEW_LANG
+	}
+
+	const langToComponent: Record<
+		SupportedLanguage | 'pgsql' | 'javascript' | 'fetch' | 'docker' | 'powershell' | 'bunnative' | 'claudesandbox',
+		any
+	> = {
+		go: GoIcon,
+		python3: PythonIcon,
+		deno: TypeScriptIcon,
+		// graphql: TypeScriptIcon,
+		bun: TypeScriptIcon,
+		bunnative: RestIcon,
+		bash: BashIcon,
+		pgsql: PostgresIcon,
+		mysql: MySQLIcon,
+		bigquery: BigQueryIcon,
+		oracledb: OracleDBIcon,
+		snowflake: SnowflakeIcon,
+		mssql: MSSqlServerIcon,
+		javascript: JavaScript,
+		fetch: FetchIcon,
+		docker: DockerIcon,
+		powershell: PowershellIcon,
+		postgresql: PostgresIcon,
+		nativets: RestIcon,
+		graphql: GraphqlIcon,
+		php: PHPIcon,
+		rust: RustIcon,
+		ansible: AnsibleIcon,
+		csharp: CSharpIcon,
+		nu: NuIcon,
+		java: JavaIcon,
+		ruby: RubyIcon,
+		duckdb: DuckDbIcon,
+		claudesandbox: TypeScriptIcon
+		// for related places search: ADD_NEW_LANG
+	}
+
+	let subIconScale = untrack(() => width) === 30 ? 0.6 : 0.8
+
+	const SvelteComponent = $derived(langToComponent[lang])
+</script>
+
+<div class="relative">
+	<SvelteComponent
+		title={languageLabel[lang]}
+		width={size ? size : width * scale}
+		height={size ? size : height * scale}
+		{...rest}
+	/>
+	{#if lang === 'deno'}
+		<div
+			class="absolute -top-1.5 -right-1.5 bg-surface rounded-full flex items-center"
+			style={`width: ${width * scale * subIconScale}px; height: ${
+				height * scale * subIconScale
+			}px;`}
+		>
+			<DenoIcon width={width * scale * subIconScale} height={height * scale * subIconScale} />
+		</div>
+	{/if}
+	{#if lang === 'bun'}
+		<div
+			class="absolute -top-1.5 -right-1.5 bg-surface rounded-full flex items-center justify-center"
+			style={`width: ${width * scale * subIconScale}px; height: ${
+				height * scale * subIconScale
+			}px;`}
+		>
+			<BunIcon
+				width={width * scale * (subIconScale - 0.1)}
+				height={height * scale * (subIconScale - 0.1)}
+			/>
+		</div>
+	{/if}
+	{#if lang === 'claudesandbox'}
+		<div
+			class="absolute -top-1.5 -right-1.5 bg-surface rounded-full flex items-center justify-center"
+			style={`width: ${width * scale * subIconScale}px; height: ${
+				height * scale * subIconScale
+			}px;`}
+		>
+			<ClaudeIcon
+				width={width * scale * (subIconScale - 0.1)}
+				height={height * scale * (subIconScale - 0.1)}
+			/>
+		</div>
+	{/if}
+</div>

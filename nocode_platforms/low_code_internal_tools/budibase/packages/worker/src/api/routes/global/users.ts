@@ -1,0 +1,144 @@
+import { auth } from "@budibase/backend-core"
+import Joi from "joi"
+import * as controller from "../../controllers/global/users"
+import {
+  adminRoutes,
+  builderOrAdminRoutes,
+  cloudRestrictedRoutes,
+  loggedInRoutes,
+} from "../endpointGroups"
+import { users } from "../validation"
+
+const OPTIONAL_STRING = Joi.string().optional().allow(null).allow("")
+
+function buildAdminInitValidation() {
+  return auth.joiValidator.body(
+    Joi.object({
+      email: Joi.string().required(),
+      password: OPTIONAL_STRING,
+      tenantId: Joi.string().required(),
+      ssoId: Joi.string(),
+      familyName: OPTIONAL_STRING,
+      givenName: OPTIONAL_STRING,
+    })
+      .required()
+      .unknown(false)
+  )
+}
+
+function buildInviteValidation() {
+  // prettier-ignore
+  return auth.joiValidator.body(Joi.object({
+    email: Joi.string().required(),
+    userInfo: Joi.object().optional(),
+  }).required())
+}
+
+function buildInviteMultipleValidation() {
+  // prettier-ignore
+  return auth.joiValidator.body(Joi.array().required().items(
+    Joi.object({
+      email: Joi.string(),
+      userInfo: Joi.object().optional(),
+    })
+  ))
+}
+
+function buildInviteAcceptValidation() {
+  // prettier-ignore
+  return auth.joiValidator.body(Joi.object({
+    inviteCode: Joi.string().required(),
+    password: Joi.string().optional(),
+    firstName: Joi.string().optional(),
+    lastName: Joi.string().optional(),
+    tenantId: Joi.string().optional(),
+  }).required().unknown(true))
+}
+
+function buildChangeTenantOwnerEmailValidation() {
+  return auth.joiValidator.body(
+    Joi.object({
+      newAccountEmail: Joi.string().required(),
+      originalEmail: Joi.string().required(),
+      tenantIds: Joi.array().items(Joi.string()).required(),
+    }).required()
+  )
+}
+
+cloudRestrictedRoutes
+  .post(
+    "/api/global/users/sso",
+    users.buildAddSsoSupport(),
+    controller.addSsoSupport
+  )
+  .post(
+    "/api/global/users/init",
+    buildAdminInitValidation(),
+    controller.adminUser
+  )
+  .put(
+    "/api/global/users/tenant/owner",
+    buildChangeTenantOwnerEmailValidation(),
+    controller.changeTenantOwnerEmail
+  )
+
+adminRoutes
+  .post(
+    "/api/global/users/bulk",
+    users.buildUserBulkUserValidation(),
+    controller.bulkUpdate
+  )
+  .delete("/api/global/users/:id", controller.destroy)
+
+builderOrAdminRoutes
+  .get("/api/global/users", controller.fetch)
+  .get("/api/global/users/count/:workspaceId", controller.countByWorkspace)
+  .get("/api/global/users/invites", controller.getUserInvites)
+  .get("/api/global/users/:id", controller.find)
+  .post(
+    "/api/global/users/invite/:code/:role",
+    controller.addWorkspaceIdToInvite
+  )
+  .delete(
+    "/api/global/users/invite/:code",
+    controller.removeWorkspaceIdFromInvite
+  )
+  .post(
+    "/api/global/users/onboard",
+    buildInviteMultipleValidation(),
+    controller.onboardUsers
+  )
+  .post(
+    "/api/global/users/:userId/permission/:role",
+    controller.addUserToWorkspace
+  )
+  .delete(
+    "/api/global/users/:userId/permission",
+    controller.removeUserFromWorkspace
+  )
+
+adminRoutes
+  .post("/api/global/users/invite", buildInviteValidation(), controller.invite)
+  .post(
+    "/api/global/users/multi/invite",
+    buildInviteMultipleValidation(),
+    controller.inviteMultiple
+  )
+  .post(
+    "/api/global/users/multi/invite/delete",
+    controller.removeMultipleInvites
+  )
+  .post("/api/global/users", users.buildUserSaveValidation(), controller.save)
+
+loggedInRoutes
+  // search can be used by any user now, to retrieve users for user column
+  .post("/api/global/users/search", controller.search)
+  // non-global endpoints
+  .get("/api/global/users/invite/:code", controller.checkInvite)
+  .post(
+    "/api/global/users/invite/accept",
+    buildInviteAcceptValidation(),
+    controller.inviteAccept
+  )
+  .get("/api/global/users/accountholder", controller.accountHolderLookup)
+  .get("/api/global/users/tenant/:id", controller.tenantUserLookup)

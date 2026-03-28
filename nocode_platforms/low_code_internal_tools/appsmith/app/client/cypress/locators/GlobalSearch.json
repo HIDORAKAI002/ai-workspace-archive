@@ -1,0 +1,7 @@
+{
+  "searchHit": ".t--searchHit",
+  "filterButton": ".t--filter-button",
+  "category": ".t--global-search-category",
+  "blankDatasource": ".ads-v2-listitem span:contains('New datasource')",
+  "fileOperation": ".t--file-operation"
+}

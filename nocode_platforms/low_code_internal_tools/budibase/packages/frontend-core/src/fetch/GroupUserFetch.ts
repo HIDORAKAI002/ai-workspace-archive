@@ -1,0 +1,68 @@
+import { GroupUserDatasource } from "@budibase/types"
+import { get } from "svelte/store"
+import BaseDataFetch, { DataFetchParams } from "./DataFetch"
+
+interface GroupUserQuery {
+  groupId: string
+  emailSearch?: string
+}
+
+interface GroupUserDefinition {
+  schema?: Record<string, any> | null
+  primaryDisplay?: string
+}
+
+export default class GroupUserFetch extends BaseDataFetch<
+  GroupUserDatasource,
+  GroupUserDefinition,
+  GroupUserQuery
+> {
+  constructor(opts: DataFetchParams<GroupUserDatasource, GroupUserQuery>) {
+    super({
+      ...opts,
+      datasource: {
+        type: "groupUser",
+      },
+    })
+  }
+
+  async determineFeatureFlags() {
+    return {
+      supportsSearch: true,
+      supportsSort: false,
+      supportsPagination: true,
+    }
+  }
+
+  async getDefinition() {
+    return {
+      schema: {},
+    }
+  }
+
+  async getData() {
+    const { limit } = this.options
+    const { query, cursor } = get(this.store)
+
+    try {
+      const res = await this.API.getGroupUsers({
+        id: query.groupId,
+        emailSearch: query.emailSearch,
+        bookmark: cursor ?? undefined,
+        pageSize: limit,
+      })
+
+      return {
+        rows: res?.users || [],
+        hasNextPage: res?.hasNextPage || false,
+        cursor: res?.bookmark || null,
+      }
+    } catch (error) {
+      return {
+        rows: [],
+        hasNextPage: false,
+        error,
+      }
+    }
+  }
+}

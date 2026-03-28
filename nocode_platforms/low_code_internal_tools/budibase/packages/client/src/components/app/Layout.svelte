@@ -1,0 +1,883 @@
+<script>
+  import { getContext, setContext } from "svelte"
+  import { writable } from "svelte/store"
+  import { Heading, Icon, Button, clickOutside } from "@budibase/bbui"
+  import { Constants } from "@budibase/frontend-core"
+  import NavItem from "./NavItem.svelte"
+  import UserMenu from "./UserMenu.svelte"
+  import Logo from "./Logo.svelte"
+  import {
+    getActiveConditions,
+    reduceConditionActions,
+  } from "@/utils/conditions"
+  import { authStore } from "@/stores/auth"
+  import { currentRole } from "@/stores/derived/currentRole.js"
+
+  const sdk = getContext("sdk")
+  const {
+    routeStore,
+    roleStore,
+    linkable,
+    builderStore,
+    sidePanelStore,
+    modalStore,
+  } = sdk
+  const context = getContext("context")
+  const navStateStore = writable({})
+  let navStateBeforeCollapse = {}
+
+  // Legacy props which must remain unchanged for backwards compatibility
+  export let title
+  export let hideTitle = false
+  export let logoUrl
+  export let hideLogo = false
+  export let navigation = "Top"
+  export let sticky = false
+  export let links
+  export let width = "Large"
+
+  // New props from new design UI
+  export let navBackground
+  export let navTextColor
+  export let navWidth
+  export let pageWidth
+  export let logoLinkUrl
+  export let logoHeight
+  export let openLogoLinkInNewTab
+  export let textAlign
+  export let embedded = false
+  export let banner
+  export let showLoginButton = true
+
+  export let collapsible = false
+
+  const NavigationClasses = {
+    Top: "top",
+    Left: "left",
+    None: "none",
+  }
+  const WidthClasses = {
+    Max: "max",
+    Large: "l",
+    Medium: "m",
+    Small: "s",
+    "Extra small": "xs",
+  }
+
+  export let logoPosition = "top" // "top" or "bottom"
+  export let titleSize = "S"
+  export let titleColor // CSS color string, only affects title
+
+  let mobileOpen = false
+  let navCollapsed = false
+
+  // When a developer uses devtools to "view as public", hide the user menu and
+  // show the login button instead so it accurately previews the public UX.
+  $: isPublicPreview =
+    $authStore != null && $currentRole === Constants.Roles.PUBLIC
+
+  // Set some layout context. This isn't used in bindings but can be used
+  // determine things about the current app layout.
+  $: mobile = $context.device.mobile
+  const store = writable({ headerHeight: 0 })
+  $: store.set({
+    screenXOffset: getScreenXOffset(navigation, mobile),
+    screenYOffset: getScreenYOffset(navigation, mobile),
+  })
+  setContext("layout", store)
+
+  $: enrichedNavItems = enrichNavItems(links, $roleStore)
+  $: typeClass = NavigationClasses[navigation] || NavigationClasses.None
+  $: navWidthClass = WidthClasses[navWidth || width] || WidthClasses.Large
+  $: pageWidthClass = WidthClasses[pageWidth || width] || WidthClasses.Large
+  $: navStyle = getNavStyle(
+    navBackground,
+    navTextColor,
+    logoHeight,
+    $context.device.width,
+    $context.device.height
+  )
+  $: bannerStyle = getBannerStyle(
+    banner?.background,
+    banner?.textColor,
+    banner?.textSize
+  )
+  $: showBanner = !!banner?.text?.trim?.() && typeClass !== "none"
+  $: autoCloseSidePanel =
+    !$builderStore.inBuilder &&
+    $sidePanelStore.open &&
+    !$sidePanelStore.ignoreClicksOutside
+
+  $: screenId = $builderStore.inBuilder
+    ? `${$builderStore.screen?._id}-screen`
+    : "screen"
+  $: navigationId = $builderStore.inBuilder
+    ? `${$builderStore.screen?._id}-navigation`
+    : "navigation"
+
+  const enrichNavItem = navItem => {
+    const internalLink = isInternal(navItem.url)
+    return {
+      ...navItem,
+      internalLink,
+      url: internalLink ? navItem.url : ensureExternal(navItem.url),
+    }
+  }
+
+  const enrichNavItems = (navItems, userRoleHierarchy) => {
+    if (!navItems?.length) {
+      return []
+    }
+    return navItems
+      .filter(navItem => {
+        // Strip nav items without text
+        if (!navItem.text) {
+          return false
+        }
+
+        // Strip out links without URLs
+        if (navItem.type !== "sublinks" && !navItem.url) {
+          return false
+        }
+
+        // Filter to only links allowed by the current role
+        const role = navItem.roleId || Constants.Roles.BASIC
+        return userRoleHierarchy?.find(roleId => roleId === role)
+      })
+      .map(navItem => {
+        const enrichedNavItem = enrichNavItem(navItem)
+        if (navItem.type === "sublinks" && navItem.subLinks?.length) {
+          enrichedNavItem.subLinks = navItem.subLinks
+            .filter(subLink => subLink.text && subLink.url)
+            .map(enrichNavItem)
+        }
+        return enrichedNavItem
+      })
+  }
+
+  function evaluateNavItemConditions(conditions = []) {
+    if (!conditions?.length) return true
+
+    // Get only the active (matching) conditions
+    const activeConditions = getActiveConditions(conditions)
+    const { visible } = reduceConditionActions(activeConditions)
+
+    if (visible == null) {
+      // If any show condition exists, default to hidden unless one matches
+      const hasShow = conditions.some(cond => cond.action === "show")
+      return hasShow ? false : true
+    }
+    return visible
+  }
+
+  const isInternal = url => {
+    return url?.startsWith("/")
+  }
+
+  const ensureExternal = url => {
+    if (!url?.length) {
+      return url
+    }
+    return !url.startsWith("http") ? `http://${url}` : url
+  }
+
+  const getScreenXOffset = (navigation, mobile) => {
+    if (navigation !== "Left") {
+      return 0
+    }
+    return mobile ? "0px" : "250px"
+  }
+  const getScreenYOffset = (navigation, mobile) => {
+    if (mobile) {
+      return !navigation || navigation === "None" ? 0 : "61px"
+    } else {
+      return navigation === "Top" ? "137px" : "0px"
+    }
+  }
+
+  const getNavStyle = (
+    backgroundColor,
+    textColor,
+    logoHeight,
+    width,
+    height
+  ) => {
+    let style = `--width:${width}px; --height:${height}px;`
+    if (backgroundColor) {
+      style += `--navBackground:${backgroundColor};`
+    }
+    if (textColor) {
+      style += `--navTextColor:${textColor};`
+    }
+    style += `--logoHeight:${logoHeight || 24}px;`
+    return style
+  }
+
+  const getBannerStyle = (backgroundColor, textColor, textSize) => {
+    let style = ""
+    if (backgroundColor) {
+      style += `--bannerBackground:${backgroundColor};`
+    }
+    if (textColor) {
+      style += `--bannerTextColor:${textColor};`
+    }
+    if (textSize) {
+      style += `--bannerTextSize:${textSize}px;`
+    }
+    return style
+  }
+
+  const getSanitizedUrl = (url, openInNewTab) => {
+    if (!isInternal(url)) {
+      return ensureExternal(url)
+    }
+    if (openInNewTab) {
+      return `#${url}`
+    }
+    return url
+  }
+
+  const handleClickLink = () => {
+    mobileOpen = false
+    sidePanelStore.actions.close()
+    modalStore.actions.close()
+  }
+
+  const handleBannerActionClick = () => {
+    if (typeof banner?.action?.onClick === "function") {
+      banner.action.onClick()
+    }
+  }
+</script>
+
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div
+  class="component layout layout--{typeClass}"
+  class:desktop={!mobile}
+  class:mobile={!!mobile}
+  data-id={screenId}
+  data-name="Screen"
+  data-icon="browser"
+>
+  <div class="screen-wrapper layout-body">
+    {#if showBanner && (typeClass !== "left" || mobile)}
+      <div class="banner" style={bannerStyle}>
+        <div class="banner-content">
+          {banner?.text}
+          {#if banner?.action}
+            <Button cta on:click={handleBannerActionClick}>
+              {banner.action.label}
+            </Button>
+          {/if}
+        </div>
+      </div>
+    {/if}
+    <div class="layout-content">
+      {#if typeClass !== "none"}
+        <div
+          class="interactive component {navigationId}"
+          data-id={navigationId}
+          data-name="Navigation"
+          data-icon="eye"
+        >
+          <div
+            class="nav-wrapper {navigationId}-dom"
+            class:sticky
+            class:hidden={$routeStore.queryParams?.peek}
+            class:clickable={$builderStore.inBuilder}
+            on:click={$builderStore.inBuilder
+              ? builderStore.actions.selectComponent(navigationId)
+              : null}
+            style={navStyle}
+          >
+            <div
+              class="nav nav--{typeClass} size--{navWidthClass}"
+              class:collapsed={navCollapsed}
+              on:click={() => {
+                if (navCollapsed) {
+                  // Restore dropdown state when expanding
+                  navStateStore.set(navStateBeforeCollapse)
+                  navStateBeforeCollapse = {}
+                  navCollapsed = false
+                }
+              }}
+            >
+              <div class="nav-header">
+                {#if enrichedNavItems.length}
+                  <div class="burger">
+                    <Icon
+                      hoverable
+                      name="list"
+                      color="var(--navTextColor)"
+                      on:click={() => (mobileOpen = !mobileOpen)}
+                    />
+                  </div>
+                {/if}
+                <div class="logo" class:collapsed-logo={navCollapsed}>
+                  {#if logoPosition === "top"}
+                    <Logo
+                      {logoUrl}
+                      {logoLinkUrl}
+                      {openLogoLinkInNewTab}
+                      hideLogo={hideLogo && !navCollapsed}
+                      {title}
+                      {linkable}
+                      {isInternal}
+                      {getSanitizedUrl}
+                    />
+                  {/if}
+                  {#if !hideTitle && title && !navCollapsed}
+                    <Heading size={titleSize} {textAlign} color={titleColor}>
+                      {title}
+                    </Heading>
+                  {/if}
+                </div>
+                {#if navigation === "Left" && collapsible && !mobile && !navCollapsed}
+                  <div
+                    class="nav-toggle"
+                    on:click|stopPropagation={() => {
+                      // Save current dropdown state before collapsing
+                      navStateBeforeCollapse = $navStateStore
+                      navStateStore.set({})
+                      navCollapsed = !navCollapsed
+                    }}
+                  >
+                    <i
+                      class="ph ph-sidebar-simple"
+                      style:color={"var(--navTextColor)"}
+                    ></i>
+                  </div>
+                {/if}
+                {#if !embedded}
+                  <div class="user top">
+                    <UserMenu compact {showLoginButton} {isPublicPreview} />
+                  </div>
+                {/if}
+              </div>
+              <div
+                class="mobile-click-handler"
+                class:visible={mobileOpen}
+                on:click={() => (mobileOpen = false)}
+              ></div>
+
+              <div class="links" class:visible={mobileOpen}>
+                {#if enrichedNavItems.length}
+                  {#each enrichedNavItems as navItem}
+                    {#if evaluateNavItemConditions(navItem._conditions)}
+                      <NavItem
+                        type={navItem.type}
+                        text={navItem.text}
+                        url={navItem.url}
+                        subLinks={navItem.subLinks}
+                        icon={navItem.icon}
+                        internalLink={navItem.internalLink}
+                        customStyles={navItem._styles?.custom}
+                        on:clickLink={handleClickLink}
+                        leftNav={navigation === "Left"}
+                        {mobile}
+                        {navStateStore}
+                        collapsed={navCollapsed}
+                      />
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
+
+              {#if !embedded}
+                <div class="user left" class:collapsed={navCollapsed}>
+                  <UserMenu
+                    collapsed={navCollapsed}
+                    {showLoginButton}
+                    {isPublicPreview}
+                  />
+                  {#if logoPosition === "bottom"}
+                    <div>
+                      <Logo
+                        {logoUrl}
+                        {logoLinkUrl}
+                        {openLogoLinkInNewTab}
+                        {hideLogo}
+                        {title}
+                        {linkable}
+                        {isInternal}
+                        {getSanitizedUrl}
+                      />
+                    </div>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+      {/if}
+      <div
+        class="main-wrapper"
+        on:click={() => {
+          if ($builderStore.inBuilder) {
+            builderStore.actions.selectComponent(screenId)
+          }
+        }}
+      >
+        <div class="main-content-area">
+          {#if showBanner && typeClass === "left" && !mobile}
+            <div class="banner" style={bannerStyle}>
+              <div class="banner-content">
+                {banner?.text}
+                {#if banner?.action}
+                  <Button cta on:click={handleBannerActionClick}>
+                    {banner.action.label}
+                  </Button>
+                {/if}
+              </div>
+            </div>
+          {/if}
+          <div class="main size--{pageWidthClass}">
+            <slot />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    id="side-panel-container"
+    class:open={$sidePanelStore.open}
+    use:clickOutside={autoCloseSidePanel ? sidePanelStore.actions.close : null}
+    class:builder={$builderStore.inBuilder}
+  >
+    <div class="side-panel-header">
+      <Icon
+        color="var(--spectrum-global-color-gray-600)"
+        name="caret-line-right"
+        hoverable
+        on:click={sidePanelStore.actions.close}
+      />
+    </div>
+  </div>
+  <div class="modal-container"></div>
+</div>
+
+<style>
+  /*  Main components */
+  .layout {
+    height: 100%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    z-index: 1;
+    overflow: hidden;
+    position: relative;
+
+    /* Deliberately unitless as we need to do unitless calculations in grids */
+    --grid-spacing: 4;
+  }
+  .component {
+    display: contents;
+  }
+  .layout-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex: 1 1 auto;
+    overflow: auto;
+    overflow-x: hidden;
+    position: relative;
+    background: var(--spectrum-alias-background-color-secondary);
+  }
+  .layout-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .banner {
+    width: 100%;
+    background: var(--bannerBackground, var(--spectrum-global-color-gray-100));
+    color: var(--bannerTextColor, var(--spectrum-global-color-gray-800));
+    text-align: center;
+    padding: 8px 16px;
+    font-size: var(--bannerTextSize, 12px);
+    line-height: 1.4;
+    z-index: 3;
+  }
+  .banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .banner-content :global(.spectrum-Button) {
+    margin-left: 1em;
+  }
+
+  .nav-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    background: var(--navBackground);
+    z-index: 2;
+  }
+  .nav-wrapper.clickable {
+    cursor: pointer;
+  }
+  .nav-wrapper.clickable .nav {
+    pointer-events: none;
+  }
+  .nav-wrapper.hidden {
+    display: none;
+  }
+  .layout--top .nav-wrapper.sticky {
+    position: sticky;
+    top: 0;
+    left: 0;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 18px 32px 18px 32px;
+    max-width: 100%;
+    gap: var(--spacing-xs);
+  }
+  .nav :global(.icon) {
+    color: var(--navTextColor);
+    opacity: 0.75;
+  }
+  .nav :global(.icon:hover) {
+    color: var(--navTextColor);
+    opacity: 1;
+  }
+  .nav :global(h1) {
+    color: var(--navTextColor);
+  }
+  .nav-header {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-xl);
+  }
+
+  #side-panel-container {
+    max-width: calc(100vw - 40px);
+    background: var(--spectrum-global-color-gray-50);
+    z-index: 3;
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: transform 130ms ease-out;
+    position: absolute;
+    width: 400px;
+    right: 0;
+    transform: translateX(100%);
+    height: 100%;
+  }
+  #side-panel-container.builder {
+    transform: translateX(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #side-panel-container.open {
+    transform: translateX(0);
+    box-shadow: 0 0 40px 10px rgba(0, 0, 0, 0.1);
+  }
+  #side-panel-container.builder.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .side-panel-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .main-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    flex: 1 1 auto;
+    z-index: 1;
+  }
+  .main-content-area {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .main {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    max-width: 100%;
+    position: relative;
+    padding: 32px;
+    align-self: center;
+    flex: 1;
+  }
+  .main:not(.size--max):has(.screenslot-dom > .component > .grid) {
+    padding: calc(32px - var(--grid-spacing) * 2px);
+  }
+
+  .layout--none .main {
+    padding: 0;
+  }
+  .size--xs {
+    width: 400px;
+  }
+  .size--s {
+    width: 800px;
+  }
+  .size--m {
+    width: 1100px;
+  }
+  .size--l {
+    width: 1400px;
+  }
+  .size--max {
+    width: 100%;
+  }
+  .main.size--max {
+    padding: 0;
+  }
+
+  /*  Nav components */
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: var(--spacing-s);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+  .nav-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+  .collapsed-logo {
+    cursor: pointer;
+  }
+  .logo.collapsed-logo {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 4px;
+  }
+  .logo.collapsed-logo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .burger {
+    display: none;
+  }
+  .logo {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: var(--spacing-m);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .logo :global(img) {
+    flex-shrink: 0;
+  }
+  .logo :global(h1) {
+    font-weight: 600;
+    flex: 1 1 auto;
+    width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .links {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+  }
+  .mobile-click-handler {
+    display: none;
+  }
+
+  /* Left overrides for both desktop and mobile */
+  .nav--left {
+    overflow-y: auto;
+  }
+
+  /* Desktop nav overrides */
+  .desktop.layout--left .layout-body {
+    overflow: hidden;
+  }
+  .desktop.layout--left .layout-content {
+    flex-direction: row;
+    overflow: hidden;
+  }
+  .desktop.layout--left .main-wrapper {
+    height: 100%;
+    overflow: auto;
+  }
+  .desktop .nav--left {
+    width: 250px;
+    padding: var(--spacing-xl);
+    transition: width 0.2s ease-in-out;
+  }
+  .desktop .nav--left.collapsed {
+    width: 60px;
+    padding: var(--spacing-xl) var(--spacing-m);
+    cursor: pointer;
+  }
+  .desktop .nav--left.collapsed .logo {
+    justify-content: center;
+  }
+  .desktop .nav--left.collapsed .links :global(.link),
+  .desktop .nav--left.collapsed .links :global(.dropdown .text) {
+    padding: var(--spacing-xs);
+    justify-content: center;
+    width: 100%;
+  }
+  .desktop .nav--left.collapsed .links :global(.link:hover),
+  .desktop .nav--left.collapsed .links :global(.dropdown .text:hover) {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+  .desktop .nav--left .links {
+    margin-top: var(--spacing-m);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+  }
+  .desktop .nav--left .user.top,
+  .desktop .nav--top .user.left {
+    display: none;
+  }
+
+  /* Mobile nav overrides */
+  .mobile .nav-wrapper {
+    position: sticky;
+    top: 0;
+    left: 0;
+    box-shadow: 0 0 8px -1px rgba(0, 0, 0, 0.075);
+  }
+  .user.left {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--spacing-m);
+  }
+
+  .user.left.collapsed {
+    align-items: center;
+  }
+  .mobile .user.left {
+    display: none;
+  }
+
+  /* Force standard top bar */
+  .mobile .nav {
+    padding: var(--spacing-m) 16px;
+  }
+  .mobile .burger {
+    display: grid;
+    place-items: center;
+  }
+  .mobile .logo {
+    flex: 0 0 auto;
+  }
+  .mobile .logo :global(h1) {
+    display: none;
+  }
+
+  /* Reduce padding */
+  .mobile:not(.layout--none) .main {
+    padding: 16px;
+  }
+  .mobile:not(.layout--none)
+    .main:not(.size--max):has(.screenslot-dom > .component > .grid) {
+    padding: 6px;
+  }
+  .mobile .main.size--max {
+    padding: 0;
+  }
+
+  /* Transform links into drawer */
+  .mobile .links {
+    margin-top: 0;
+    position: absolute;
+    top: 0;
+    left: -250px;
+    transform: translateX(0);
+    width: 250px;
+    max-width: 75%;
+    transition:
+      transform 0.26s ease-in-out,
+      opacity 0.26s ease-in-out;
+    height: var(--height);
+    opacity: 0;
+    background: var(--navBackground);
+    z-index: 999;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: var(--spacing-xl);
+    overflow-y: auto;
+    gap: var(--spacing-xs);
+  }
+  .mobile .links :global(a) {
+    flex: 0 0 auto;
+  }
+  .mobile .links.visible {
+    opacity: 1;
+    transform: translateX(250px);
+    box-shadow: 0 0 80px 20px rgba(0, 0, 0, 0.3);
+  }
+  .mobile .mobile-click-handler.visible {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: var(--width);
+    height: var(--height);
+    z-index: 998;
+  }
+
+  /* Print styles */
+  @media print {
+    .layout,
+    .main-wrapper {
+      overflow: visible !important;
+    }
+    .nav-wrapper {
+      display: none !important;
+    }
+    .layout {
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      align-items: stretch !important;
+    }
+  }
+</style>

@@ -1,0 +1,127 @@
+package com.appsmith.external.helpers;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.PropertyAccessorFactory;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+public final class AppsmithBeanUtils {
+
+    private static String[] getNullPropertyNames(Object source) {
+        // TODO: The `BeanWrapperImpl` class has been declared to be an internal class. Migrate to using
+        //  `PropertyAccessorFactory.forBeanPropertyAccess` instead.
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
+
+        Set<String> emptyNames = new HashSet<String>();
+        for (java.beans.PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) {
+                emptyNames.add(pd.getName());
+            }
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
+    }
+
+    // Use Spring BeanUtils to copy and ignore null
+    public static void copyNewFieldValuesIntoOldObject(Object src, Object target) {
+        BeanUtils.copyProperties(src, target, getNullPropertyNames(src));
+    }
+
+    public static void copyNestedNonNullProperties(Object source, Object target) {
+        if (source == null || target == null) {
+            return;
+        }
+
+        final BeanWrapper sourceBeanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(source);
+        BeanWrapper targetBeanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(target);
+        PropertyDescriptor[] propertyDescriptors = sourceBeanWrapper.getPropertyDescriptors();
+
+        for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+            String name = propertyDescriptor.getName();
+
+            // For properties like `class` that don't have a set method, we can't copy so we just ignore them.
+            if (targetBeanWrapper.getPropertyDescriptor(name).getWriteMethod() == null) {
+                continue;
+            }
+
+            // Please check if the getter function is overloaded in the domain
+            // for example, if a Boolean field's getter method is overloaded, to return false instead of a null
+            // the copyNestedNonNullProperties method will result in updating the target object with
+            // false even when the source field was null originally.
+            Object sourceValue = sourceBeanWrapper.getPropertyValue(name);
+
+            // If sourceValue is null, don't copy it over to target and just move on to the next property.
+            if (sourceValue == null) {
+                continue;
+            }
+
+            Object targetValue = targetBeanWrapper.getPropertyValue(name);
+
+            if (targetValue != null
+                    && sourceValue.getClass().isAssignableFrom(targetValue.getClass())
+                    && isDomainModel(propertyDescriptor.getPropertyType())) {
+                // Go deeper *only* if the property belongs to Appsmith's models, and both the source and target values
+                // are not null.
+                copyNestedNonNullProperties(sourceValue, targetValue);
+            } else {
+                targetBeanWrapper.setPropertyValue(name, sourceValue);
+            }
+        }
+    }
+
+    public static boolean isDomainModel(Class<?> type) {
+        return !type.isEnum() && type.getPackageName().startsWith("com.appsmith.");
+    }
+
+    public static void copyProperties(Object src, Object trg, Iterable<String> props) {
+
+        BeanWrapper srcWrap = PropertyAccessorFactory.forBeanPropertyAccess(src);
+        BeanWrapper trgWrap = PropertyAccessorFactory.forBeanPropertyAccess(trg);
+
+        props.forEach(p -> trgWrap.setPropertyValue(p, srcWrap.getPropertyValue(p)));
+    }
+
+    public static List<Object> getBeanPropertyValues(Object object) {
+        final BeanWrapper sourceBeanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(object);
+        final List<Object> values = new ArrayList<>();
+
+        for (PropertyDescriptor propertyDescriptor : sourceBeanWrapper.getPropertyDescriptors()) {
+            // For properties like `class` that don't have a set method, just ignore them.
+            if (propertyDescriptor.getWriteMethod() == null) {
+                continue;
+            }
+
+            String name = propertyDescriptor.getName();
+            Object value = sourceBeanWrapper.getPropertyValue(name);
+
+            if (value != null) {
+                values.add(value);
+            }
+        }
+
+        return values;
+    }
+
+    public static Stream<Field> getAllFields(Class<?> currentType) {
+
+        Set<Class<?>> classes = new HashSet<>();
+
+        while (currentType != null) {
+            classes.add(currentType);
+            currentType = currentType.getSuperclass();
+        }
+
+        return classes.stream().flatMap(currentClass -> Arrays.stream(currentClass.getDeclaredFields()));
+    }
+}

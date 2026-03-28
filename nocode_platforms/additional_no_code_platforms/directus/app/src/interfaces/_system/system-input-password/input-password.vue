@@ -1,0 +1,54 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInput from '@/components/v-input.vue';
+
+defineOptions({ inheritAttrs: false });
+
+withDefaults(
+	defineProps<{
+		value?: string | null;
+		autofocus?: boolean;
+		autocomplete?: string | null;
+		placeholder?: string;
+		disabled?: boolean;
+	}>(),
+	{
+		value: null,
+		autofocus: false,
+		autocomplete: 'new-password',
+		disabled: false,
+	},
+);
+
+const emit = defineEmits<{
+	input: [value: string];
+}>();
+
+const hidden = ref<boolean>(true);
+
+function toggleHidePassword() {
+	hidden.value = !hidden.value;
+}
+</script>
+
+<template>
+	<VInput
+		:model-value="value"
+		:type="hidden ? 'password' : 'text'"
+		:autocomplete="autocomplete"
+		:autofocus="autofocus"
+		:placeholder="placeholder ?? $t('password')"
+		:disabled="disabled"
+		@update:model-value="emit('input', $event)"
+	>
+		<template #append>
+			<VIcon
+				v-tooltip="hidden ? $t('show_password') : $t('hide_password')"
+				:name="hidden ? 'visibility' : 'visibility_off'"
+				clickable
+				@click="toggleHidePassword"
+			/>
+		</template>
+	</VInput>
+</template>

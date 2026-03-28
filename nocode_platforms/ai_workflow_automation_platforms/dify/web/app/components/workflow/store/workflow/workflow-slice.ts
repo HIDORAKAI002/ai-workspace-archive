@@ -1,0 +1,83 @@
+import type { StateCreator } from 'zustand'
+import type {
+  Node,
+  TriggerNodeType,
+  WorkflowRunningData,
+} from '@/app/components/workflow/types'
+import type { FileUploadConfigResponse } from '@/models/common'
+
+type PreviewRunningData = WorkflowRunningData & {
+  resultTabActive?: boolean
+  resultText?: string
+  // human input form schema or data cached when node is in 'Paused' status
+  extraContentAndFormData?: Record<string, any>
+}
+
+export type WorkflowSliceShape = {
+  workflowRunningData?: PreviewRunningData
+  setWorkflowRunningData: (workflowData: PreviewRunningData) => void
+  isListening: boolean
+  setIsListening: (listening: boolean) => void
+  listeningTriggerType: TriggerNodeType | null
+  setListeningTriggerType: (triggerType: TriggerNodeType | null) => void
+  listeningTriggerNodeId: string | null
+  setListeningTriggerNodeId: (nodeId: string | null) => void
+  listeningTriggerNodeIds: string[]
+  setListeningTriggerNodeIds: (nodeIds: string[]) => void
+  listeningTriggerIsAll: boolean
+  setListeningTriggerIsAll: (isAll: boolean) => void
+  clipboardElements: Node[]
+  setClipboardElements: (clipboardElements: Node[]) => void
+  selection: null | { x1: number, y1: number, x2: number, y2: number }
+  setSelection: (selection: WorkflowSliceShape['selection']) => void
+  bundleNodeSize: { width: number, height: number } | null
+  setBundleNodeSize: (bundleNodeSize: WorkflowSliceShape['bundleNodeSize']) => void
+  controlMode: 'pointer' | 'hand'
+  setControlMode: (controlMode: WorkflowSliceShape['controlMode']) => void
+  mousePosition: { pageX: number, pageY: number, elementX: number, elementY: number }
+  setMousePosition: (mousePosition: WorkflowSliceShape['mousePosition']) => void
+  showConfirm?: { title: string, desc?: string, onConfirm: () => void }
+  setShowConfirm: (showConfirm: WorkflowSliceShape['showConfirm']) => void
+  controlPromptEditorRerenderKey: number
+  setControlPromptEditorRerenderKey: (controlPromptEditorRerenderKey: number) => void
+  showImportDSLModal: boolean
+  setShowImportDSLModal: (showImportDSLModal: boolean) => void
+  fileUploadConfig?: FileUploadConfigResponse
+  setFileUploadConfig: (fileUploadConfig: FileUploadConfigResponse) => void
+}
+
+export const createWorkflowSlice: StateCreator<WorkflowSliceShape> = set => ({
+  workflowRunningData: undefined,
+  setWorkflowRunningData: workflowRunningData => set(() => ({ workflowRunningData })),
+  isListening: false,
+  setIsListening: listening => set(() => ({ isListening: listening })),
+  listeningTriggerType: null,
+  setListeningTriggerType: triggerType => set(() => ({ listeningTriggerType: triggerType })),
+  listeningTriggerNodeId: null,
+  setListeningTriggerNodeId: nodeId => set(() => ({ listeningTriggerNodeId: nodeId })),
+  listeningTriggerNodeIds: [],
+  setListeningTriggerNodeIds: nodeIds => set(() => ({ listeningTriggerNodeIds: nodeIds })),
+  listeningTriggerIsAll: false,
+  setListeningTriggerIsAll: isAll => set(() => ({ listeningTriggerIsAll: isAll })),
+  clipboardElements: [],
+  setClipboardElements: clipboardElements => set(() => ({ clipboardElements })),
+  selection: null,
+  setSelection: selection => set(() => ({ selection })),
+  bundleNodeSize: null,
+  setBundleNodeSize: bundleNodeSize => set(() => ({ bundleNodeSize })),
+  controlMode: localStorage.getItem('workflow-operation-mode') === 'pointer' ? 'pointer' : 'hand',
+  setControlMode: (controlMode) => {
+    set(() => ({ controlMode }))
+    localStorage.setItem('workflow-operation-mode', controlMode)
+  },
+  mousePosition: { pageX: 0, pageY: 0, elementX: 0, elementY: 0 },
+  setMousePosition: mousePosition => set(() => ({ mousePosition })),
+  showConfirm: undefined,
+  setShowConfirm: showConfirm => set(() => ({ showConfirm })),
+  controlPromptEditorRerenderKey: 0,
+  setControlPromptEditorRerenderKey: controlPromptEditorRerenderKey => set(() => ({ controlPromptEditorRerenderKey })),
+  showImportDSLModal: false,
+  setShowImportDSLModal: showImportDSLModal => set(() => ({ showImportDSLModal })),
+  fileUploadConfig: undefined,
+  setFileUploadConfig: fileUploadConfig => set(() => ({ fileUploadConfig })),
+})

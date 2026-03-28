@@ -1,0 +1,79 @@
+import logging
+import time
+
+import click
+from celery import shared_task
+from sqlalchemy import delete, select
+
+from core.db.session_factory import session_factory
+from core.indexing_runner import DocumentIsPausedError, IndexingRunner
+from core.rag.index_processor.index_processor_factory import IndexProcessorFactory
+from libs.datetime_utils import naive_utc_now
+from models.dataset import Dataset, Document, DocumentSegment
+from models.enums import IndexingStatus
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task(queue="dataset")
+def document_indexing_update_task(dataset_id: str, document_id: str):
+    """
+    Async update document
+    :param dataset_id:
+    :param document_id:
+
+    Usage: document_indexing_update_task.delay(dataset_id, document_id)
+    """
+    logger.info(click.style(f"Start update document: {document_id}", fg="green"))
+    start_at = time.perf_counter()
+
+    with session_factory.create_session() as session, session.begin():
+        document = session.query(Document).where(Document.id == document_id, Document.dataset_id == dataset_id).first()
+
+        if not document:
+            logger.info(click.style(f"Document not found: {document_id}", fg="red"))
+            return
+
+        document.indexing_status = IndexingStatus.PARSING
+        document.processing_started_at = naive_utc_now()
+
+        dataset = session.query(Dataset).where(Dataset.id == dataset_id).first()
+        if not dataset:
+            return
+
+        index_type = document.doc_form
+        segments = session.scalars(select(DocumentSegment).where(DocumentSegment.document_id == document_id)).all()
+        index_node_ids = [segment.index_node_id for segment in segments]
+
+    clean_success = False
+    try:
+        index_processor = IndexProcessorFactory(index_type).init_index_processor()
+        if index_node_ids:
+            index_processor.clean(dataset, index_node_ids, with_keywords=True, delete_child_chunks=True)
+            end_at = time.perf_counter()
+            logger.info(
+                click.style(
+                    "Cleaned document when document update data source or process rule: {} latency: {}".format(
+                        document_id, end_at - start_at
+                    ),
+                    fg="green",
+                )
+            )
+            clean_success = True
+    except Exception:
+        logger.exception("Failed to clean document index during update, document_id: %s", document_id)
+
+    if clean_success:
+        with session_factory.create_session() as session, session.begin():
+            segment_delete_stmt = delete(DocumentSegment).where(DocumentSegment.document_id == document_id)
+            session.execute(segment_delete_stmt)
+
+    try:
+        indexing_runner = IndexingRunner()
+        indexing_runner.run([document])
+        end_at = time.perf_counter()
+        logger.info(click.style(f"update document: {document.id} latency: {end_at - start_at}", fg="green"))
+    except DocumentIsPausedError as ex:
+        logger.info(click.style(str(ex), fg="yellow"))
+    except Exception:
+        logger.exception("document_indexing_update_task failed, document_id: %s", document_id)

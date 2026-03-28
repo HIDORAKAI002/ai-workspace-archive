@@ -1,0 +1,10 @@
+query InvitedUsers($skip: Int, $take: Int) {
+  infra {
+    invitedUsers(skip: $skip, take: $take) {
+      adminUid
+      adminEmail
+      inviteeEmail
+      invitedOn
+    }
+  }
+}

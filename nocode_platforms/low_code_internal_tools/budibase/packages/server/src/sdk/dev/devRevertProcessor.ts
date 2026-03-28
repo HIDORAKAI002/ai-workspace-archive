@@ -1,0 +1,94 @@
+import {
+  cache,
+  context,
+  db as dbCore,
+  events,
+  queue,
+} from "@budibase/backend-core"
+import {
+  DeploymentDoc,
+  DevRevertQueueData,
+  DocumentType,
+  Workspace,
+} from "@budibase/types"
+import { isWorkspacePublished } from "../workspace/workspaces/utils"
+let _devRevertProcessor: DevRevertProcessor | undefined
+
+class DevRevertProcessor extends queue.QueuedProcessor<DevRevertQueueData> {
+  constructor() {
+    super(queue.JobQueue.DEV_REVERT_PROCESSOR, {
+      maxAttempts: 3,
+      removeOnFail: false,
+      removeOnComplete: false,
+      maxStalledCount: 3,
+      waitForCompletionMs: 10000,
+    })
+  }
+
+  protected processFn = async (
+    data: DevRevertQueueData
+  ): Promise<{ message: string }> => {
+    return await context.doInWorkspaceContext(data.appId, () =>
+      this.revertApp(data)
+    )
+  }
+
+  private async revertApp(
+    data: DevRevertQueueData
+  ): Promise<{ message: string }> {
+    const { appId } = data
+    const productionAppId = dbCore.getProdWorkspaceID(appId)
+
+    // App must have been deployed first
+    const db = context.getProdWorkspaceDB({ skip_setup: true })
+
+    const isPublished = await isWorkspacePublished(productionAppId)
+    if (!isPublished) {
+      throw new queue.UnretriableError("App must be deployed to be reverted.")
+    }
+    const deploymentDoc = await db.get<DeploymentDoc>(DocumentType.DEPLOYMENTS)
+    if (
+      !deploymentDoc.history ||
+      Object.keys(deploymentDoc.history).length === 0
+    ) {
+      throw new queue.UnretriableError("No deployments for app")
+    }
+
+    const replication = new dbCore.Replication({
+      source: productionAppId,
+      target: appId,
+    })
+
+    try {
+      await replication.rollback()
+
+      // update appID in reverted app to be dev version again
+      const db = context.getWorkspaceDB()
+      const appDoc = await db.get<Workspace>(DocumentType.WORKSPACE_METADATA)
+      appDoc.appId = appId
+      appDoc.instance._id = appId
+      await db.put(appDoc)
+      await cache.workspace.invalidateWorkspaceMetadata(appId)
+      await events.app.reverted(appDoc)
+
+      return { message: "Reverted changes successfully." }
+    } catch (err) {
+      throw new Error(`Unable to revert. ${err}`, { cause: err })
+    } finally {
+      await replication.close()
+    }
+  }
+}
+
+export function devRevertProcessor(): DevRevertProcessor {
+  if (!_devRevertProcessor) {
+    _devRevertProcessor = new DevRevertProcessor()
+  }
+  return _devRevertProcessor
+}
+
+export async function revertDevChanges(data: DevRevertQueueData) {
+  const processor = devRevertProcessor()
+  const result = await processor.execute(data)
+  return result
+}

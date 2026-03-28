@@ -1,0 +1,115 @@
+export * from "./fileUtils"
+export * from "./fetch"
+import { context } from "@budibase/backend-core"
+import { Document } from "@budibase/types"
+import dayjs from "dayjs"
+import customParseFormat from "dayjs/plugin/customParseFormat"
+import { generateMetadataID } from "../db/utils"
+import env from "../environment"
+
+dayjs.extend(customParseFormat)
+
+export function wait(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export const isDev = env.isDev
+
+export const NUMBER_REGEX = /^[+-]?([0-9]*[.])?[0-9]+$/g
+const ACCEPTED_DATE_FORMATS = [
+  "MM/DD/YYYY",
+  "MM/DD/YY",
+  "DD/MM/YYYY",
+  "DD/MM/YY",
+  "YYYY/MM/DD",
+  "YYYY-MM-DD",
+  "YYYY-MM-DDTHH:mm",
+  "YYYY-MM-DDTHH:mm:ss",
+  "YYYY-MM-DDTHH:mm:ss[Z]",
+  "YYYY-MM-DDTHH:mm:ss.SSS[Z]",
+]
+
+export function isDate(str: string) {
+  // checks for xx/xx/xx or ISO date timestamp formats
+  for (const format of ACCEPTED_DATE_FORMATS) {
+    if (dayjs(str, format, true).isValid()) {
+      return true
+    }
+  }
+  return false
+}
+
+export function removeFromArray(array: unknown[], element: unknown) {
+  const index = array.indexOf(element)
+  if (index !== -1) {
+    array.splice(index, 1)
+  }
+  return array
+}
+
+/**
+ * Makes sure that a URL has the correct number of slashes, while maintaining the
+ * http(s):// double slashes.
+ * @param url The URL to test and remove any extra double slashes.
+ * @return The updated url.
+ */
+export function checkSlashesInUrl(url: string) {
+  return url.replace(/(https?:\/\/)|(\/)+/g, "$1$2")
+}
+
+export async function updateEntityMetadata(
+  type: string,
+  entityId: string,
+  updateFn: (metadata: Document) => Document
+) {
+  const db = context.getWorkspaceDB()
+  const id = generateMetadataID(type, entityId)
+  const metadata = updateFn((await db.tryGet(id)) || {})
+  metadata._id = id
+  const response = await db.put(metadata)
+  return { ...metadata, _id: id, _rev: response.rev }
+}
+
+export async function saveEntityMetadata(
+  type: string,
+  entityId: string,
+  metadata: Document
+): Promise<Document> {
+  return updateEntityMetadata(type, entityId, () => metadata)
+}
+
+export async function deleteEntityMetadata(type: string, entityId: string) {
+  const db = context.getWorkspaceDB()
+  const id = generateMetadataID(type, entityId)
+  const metadata = await db.tryGet(id)
+  if (!metadata) {
+    return
+  }
+  await db.remove(metadata)
+}
+
+export function escapeDangerousCharacters(string: string) {
+  return string
+    .replace(/[\\]/g, "\\\\")
+    .replace(/[\b]/g, "\\b")
+    .replace(/[\f]/g, "\\f")
+    .replace(/[\n]/g, "\\n")
+    .replace(/[\r]/g, "\\r")
+    .replace(/[\t]/g, "\\t")
+}
+
+export function convertBookmark(bookmark: string) {
+  const IS_NUMBER = /^\d+\.?\d*$/
+  if (typeof bookmark === "string" && bookmark.match(IS_NUMBER)) {
+    return parseFloat(bookmark)
+  }
+  return bookmark
+}
+
+export function isQsTrue(param: string) {
+  if (typeof param === "string") {
+    return param.toLowerCase() === "true"
+  } else {
+    return param === true
+  }
+}

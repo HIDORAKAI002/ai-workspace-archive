@@ -1,0 +1,268 @@
+<script lang="ts">
+	import { createBubbler } from 'svelte/legacy'
+
+	const bubble = createBubbler()
+	import { Badge } from '$lib/components/common'
+	import Button from '$lib/components/common/button/Button.svelte'
+	import { getNextId } from '$lib/components/flows/idUtils'
+	import { classNames, generateRandomString } from '$lib/utils'
+	import { getContext, onMount } from 'svelte'
+	import type { AppViewerContext, BaseAppComponent, RichConfiguration } from '../../types'
+	import { appComponentFromType } from '../appUtils'
+	import type {
+		ButtonComponent,
+		CheckboxComponent,
+		ModalComponent,
+		SelectComponent
+	} from '../component'
+	import PanelSection from './common/PanelSection.svelte'
+	import { GripVertical, Inspect, List, ToggleRightIcon, ListOrdered } from 'lucide-svelte'
+	import { dragHandle, dragHandleZone } from '@windmill-labs/svelte-dnd-action'
+	import CloseButton from '$lib/components/common/CloseButton.svelte'
+	import { flip } from 'svelte/animate'
+	import TableActionsWizard from '$lib/components/wizards/TableActionsWizard.svelte'
+	import Alert from '$lib/components/common/alert/Alert.svelte'
+	import DropdownV2 from '$lib/components/DropdownV2.svelte'
+
+	interface Props {
+		components:
+			| (BaseAppComponent &
+					(ButtonComponent | CheckboxComponent | SelectComponent | ModalComponent))[]
+			| undefined
+		actionsOrder?: RichConfiguration | undefined
+		id: string
+	}
+
+	let { components = $bindable(), actionsOrder = $bindable(undefined), id }: Props = $props()
+
+	// Migration code:
+	onMount(() => {
+		if (components === undefined) {
+			components = []
+		}
+	})
+
+	let items = $state(
+		components?.map((tab, index) => {
+			return { value: tab, id: generateRandomString(), originalIndex: index }
+		}) ?? []
+	)
+
+	$effect(() => {
+		components = items.map((item) => item.value)
+	})
+
+	const { selectedComponent, app, errorByComponent, hoverStore } =
+		getContext<AppViewerContext>('AppViewerContext')
+
+	function addComponent(
+		typ: 'buttoncomponent' | 'checkboxcomponent' | 'selectcomponent' | 'modalcomponent'
+	) {
+		if (!components) {
+			return
+		}
+
+		const actionId = getNextId(components.map((x) => x.id.split('_')[1]))
+
+		const newComponent = appComponentFromType(typ)(`${id}_${actionId}`)
+
+		if (newComponent?.type == 'buttoncomponent') {
+			if (newComponent?.configuration?.size) {
+				// @ts-ignore
+				newComponent.configuration.size = { type: 'static', value: 'xs2' }
+			}
+		}
+		if (newComponent?.type == 'modalcomponent') {
+			if (newComponent?.configuration?.buttonSize) {
+				// @ts-ignore
+				newComponent.configuration.buttonSize = { type: 'static', value: 'xs2' }
+			}
+			// Create associated subgrid
+			if ($app.subgrids) $app.subgrids[`${newComponent.id}-0`] = []
+			newComponent.id
+		}
+
+		const newItem = {
+			value: newComponent,
+			id: generateRandomString(),
+			originalIndex: items.length
+		}
+		items = [...items, newItem as any]
+		components = [...components, newComponent as any]
+		$app = $app
+	}
+
+	function deleteComponent(cid: string, index: number) {
+		if (!components) {
+			return
+		}
+		if (components.find((x) => x.id === cid)?.type === 'modalcomponent') {
+			// Remove associated subgrid
+			delete $app.subgrids?.[`${cid}-0`]
+		}
+		components = components.filter((x) => x.id !== cid)
+		delete $errorByComponent[cid]
+
+		$selectedComponent = [id]
+		$app = $app
+		// Remove the corresponding item from the items array
+		items = items.filter((item) => item.originalIndex !== index)
+	}
+
+	function handleConsider(e: CustomEvent): void {
+		const { items: newItems } = e.detail
+
+		items = newItems
+	}
+	function handleFinalize(e: CustomEvent): void {
+		const { items: newItems } = e.detail
+
+		items = newItems
+	}
+
+	const rnd = generateRandomString()
+</script>
+
+{#if components}
+	<PanelSection title={`Table Actions`}>
+		{#snippet action()}
+			<TableActionsWizard bind:actionsOrder selectedId={$selectedComponent?.[0] ?? ''} {components}>
+				{#snippet trigger()}
+					<Button
+						color="light"
+						size="xs2"
+						nonCaptureEvent={true}
+						btnClasses={actionsOrder ? 'bg-blue-100 dark:bg-blue-900' : 'text-primary'}
+						title="Edit order programmatically"
+					>
+						<div class="flex flex-row items-center gap-2 text-xs font-normal">
+							<ListOrdered size={16} />
+						</div>
+					</Button>
+				{/snippet}
+			</TableActionsWizard>
+		{/snippet}
+		{#if components.length == 0}
+			<span class="text-xs text-primary">No action buttons</span>
+		{/if}
+		<div class="w-full flex gap-2 flex-col mt-2">
+			<section
+				use:dragHandleZone={{
+					items,
+					flipDurationMs: 200,
+					dropTargetStyle: {},
+					type: rnd
+				}}
+				onconsider={handleConsider}
+				onfinalize={handleFinalize}
+			>
+				{#each items as item, index (item.id)}
+					{@const component = items[index].value}
+
+					<div animate:flip={{ duration: 200 }} class="flex flex-row gap-2 items-center mb-2">
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+						<div
+							class={classNames(
+								'w-full text-xs text-semibold truncate py-1.5 px-2 cursor-pointer justify-between flex items-center border rounded-md',
+								'bg-surface hover:bg-surface-hover focus:border-primary text-secondary'
+							)}
+							onclick={() => {
+								$selectedComponent = [component.id]
+							}}
+							onmouseover={() => {
+								$hoverStore = component.id
+							}}
+							onkeypress={bubble('keypress')}
+						>
+							<div class="flex flex-row gap-2 items-center">
+								<Badge color="dark-indigo">
+									{component.id}
+								</Badge>
+
+								<div>
+									{#if component.type == 'buttoncomponent'}
+										Button
+									{:else if component.type == 'selectcomponent'}
+										Select
+									{:else if component.type == 'checkboxcomponent'}
+										Toggle
+									{:else if component.type == 'modalcomponent'}
+										Modal
+									{/if}
+								</div>
+							</div>
+							<div class="flex flex-row items-center gap-1">
+								<CloseButton
+									small
+									on:close={() => deleteComponent(component.id, item.originalIndex)}
+								/>
+							</div>
+						</div>
+						{#if actionsOrder === undefined}
+							<div use:dragHandle class="handle w-4 h-4" aria-label="drag-handle">
+								<GripVertical size={16} />
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</section>
+		</div>
+		<div class="w-full flex gap-2">
+			<Button
+				btnClasses="gap-1 flex items-center text-xs text-primary"
+				wrapperClasses="flex-1"
+				variant="default"
+				on:click={() => addComponent('buttoncomponent')}
+				title="Add Button"
+			>
+				+ <Inspect size={14} />
+			</Button>
+			<Button
+				btnClasses="gap-1 flex items-center text-xs text-primary"
+				wrapperClasses="flex-1"
+				variant="default"
+				on:click={() => addComponent('checkboxcomponent')}
+				title="Add Toggle"
+			>
+				+ <ToggleRightIcon size={14} />
+			</Button>
+			<Button
+				btnClasses="gap-1 flex items-center text-xs text-primary"
+				wrapperClasses="flex-1"
+				variant="default"
+				on:click={() => addComponent('selectcomponent')}
+				title="Add Select"
+			>
+				+ <List size={14} />
+			</Button>
+			<DropdownV2
+				items={[
+					{
+						displayName: 'Modal button',
+						icon: Inspect,
+						action: () => addComponent('modalcomponent')
+					}
+				]}
+				fixedHeight={false}
+			></DropdownV2>
+		</div>
+		<div class="w-full flex flex-col">
+			{#if actionsOrder}
+				<Alert size="xs" title="Order managed programmatically" type="info">
+					Actions order is managed programmatically. Adding or removing an action will require you
+					to update the order manually.
+					<Button
+						btnClasses="mt-2"
+						size="xs2"
+						on:click={() => {
+							actionsOrder = undefined
+						}}
+					>
+						Disable order management
+					</Button>
+				</Alert>
+			{/if}
+		</div>
+	</PanelSection>
+{/if}

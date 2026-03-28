@@ -1,0 +1,183 @@
+import { Type } from '@directus/types';
+
+export const VALIDATION_TYPES = ['FAILED_VALIDATION', 'RECORD_NOT_UNIQUE'];
+
+export const DIRECTUS_LOGO = `
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠛⠿⠿⠿⠿⠿⠛⠛⠉⠀⢰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣦⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡌⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁⠛⠛⠿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣤⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠉⠛⣿⣿⣿⣿⣿⡆⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠿⣿⣄⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠉⢿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣤⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣴⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+`;
+
+/**
+ * These are the system endpoints that don't have full/regular CRUD operations available.
+ */
+export const COLLECTIONS_DENY_LIST = [
+	'directus_activity',
+	'directus_collections',
+	'directus_extensions',
+	'directus_fields',
+	'directus_migrations',
+	'directus_relations',
+	'directus_revisions',
+	'directus_sessions',
+	'directus_settings',
+];
+
+export const MODULE_BAR_DEFAULT = [
+	{
+		type: 'module',
+		id: 'content',
+		enabled: true,
+	},
+	{
+		type: 'module',
+		id: 'visual',
+		enabled: false,
+	},
+	{
+		type: 'module',
+		id: 'users',
+		enabled: true,
+	},
+	{
+		type: 'module',
+		id: 'files',
+		enabled: true,
+	},
+	{
+		type: 'module',
+		id: 'insights',
+		enabled: true,
+	},
+	{
+		type: 'module',
+		id: 'deployments',
+		enabled: false,
+	},
+	{
+		type: 'link',
+		id: 'docs',
+		enabled: true,
+		name: '$t:documentation',
+		icon: 'help',
+		url: 'https://docs.directus.io',
+	},
+	{
+		type: 'module',
+		id: 'settings',
+		enabled: true,
+		locked: true,
+	},
+];
+
+// Keep in sync with $breakpoints in app/src/styles/mixins/_breakpoints.scss
+export const BREAKPOINTS = {
+	sm: '36rem',
+	lg: '57.625rem',
+	xl: '72rem',
+};
+
+export const FIELD_TYPES_SELECT: Array<{ value: Type; text: string } | { divider: true }> = [
+	{
+		text: '$t:string',
+		value: 'string',
+	},
+	{
+		text: '$t:text',
+		value: 'text',
+	},
+	{ divider: true },
+	{
+		text: '$t:boolean',
+		value: 'boolean',
+	},
+	{ divider: true },
+	{
+		text: '$t:integer',
+		value: 'integer',
+	},
+	{
+		text: '$t:bigInteger',
+		value: 'bigInteger',
+	},
+	{
+		text: '$t:float',
+		value: 'float',
+	},
+	{
+		text: '$t:decimal',
+		value: 'decimal',
+	},
+	{ divider: true },
+	{
+		text: '$t:geometry.All',
+		value: 'geometry',
+	},
+	{ divider: true },
+	{
+		text: '$t:timestamp',
+		value: 'timestamp',
+	},
+	{
+		text: '$t:datetime',
+		value: 'dateTime',
+	},
+	{
+		text: '$t:date',
+		value: 'date',
+	},
+	{
+		text: '$t:time',
+		value: 'time',
+	},
+	{ divider: true },
+	{
+		text: '$t:json',
+		value: 'json',
+	},
+	{
+		text: '$t:csv',
+		value: 'csv',
+	},
+	{
+		text: '$t:uuid',
+		value: 'uuid',
+	},
+	{
+		text: '$t:hash',
+		value: 'hash',
+	},
+];
+
+export const DRAFT_VERSION_KEY = 'draft';
+
+/** Contains `integer` and `float` – exclude `bigInteger` and `decimal` to avoid rounding errors. */
+export const APP_NUMERIC_TYPES = ['integer', 'float'];
+/** Treat `bigInteger` and `decimal` as strings to avoid rounding errors. */
+export const APP_NUMERIC_STRING_TYPES = ['bigInteger', 'decimal'];
+
+export const DEFAULT_AUTH_PROVIDER = 'local';
+export const DEFAULT_AUTH_DRIVER = 'default';
+
+export const AUTH_SSO_DRIVERS = ['oauth2', 'openid', 'saml'];
+
+export const DEFAULT_REPORT_BUG_URL = 'https://github.com/directus/directus/issues/new?template=bug_report.yml';
+export const DEFAULT_REPORT_FEATURE_URL = 'https://roadmap.directus.io/';
+
+export const SDK_AUTH_REFRESH_BEFORE_EXPIRES = 10_000;

@@ -1,0 +1,42 @@
+[
+  {
+    "kind": "noop",
+    "jobs": 90000
+  },
+  {
+    "kind": "2steps",
+    "jobs": 250
+  },
+  {
+    "kind": "deno",
+    "jobs": 500
+  },
+  {
+    "kind": "bun",
+    "jobs": 500
+  },
+  {
+    "kind": "python",
+    "jobs": 500
+  },
+  {
+    "kind": "go",
+    "jobs": 2000
+  },
+  {
+    "kind": "bash",
+    "jobs": 2000
+  },
+  {
+    "kind": "nativets",
+    "jobs": 2000
+  },
+  {
+    "kind": "bigrawscript",
+    "jobs": 4000
+  },
+  {
+    "kind": "bigscriptinflow",
+    "jobs": 4000
+  }
+]

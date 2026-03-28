@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "DOM.AsyncIterable", "ES2022"],
+    "target": "ES2022",
+    "noEmit": true,
+    "paths": {
+      "~/*": ["./app/*"],
+      "@/*": ["./*"]
+    },
+    "customConditions": []
+  },
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+}

@@ -1,0 +1,49 @@
+{
+	"name": "@directus/storage-driver-s3",
+	"version": "12.1.6",
+	"description": "S3 file storage abstraction for `@directus/storage`",
+	"homepage": "https://directus.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/storage-driver-s3"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "BUSL-1.1",
+	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown src/index.ts --dts",
+		"dev": "tsdown src/index.ts --dts --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "catalog:",
+		"@aws-sdk/lib-storage": "catalog:",
+		"@directus/storage": "workspace:*",
+		"@directus/utils": "workspace:*",
+		"@shopify/semaphore": "catalog:",
+		"@smithy/node-http-handler": "catalog:",
+		"@tus/utils": "catalog:",
+		"ms": "catalog:"
+	},
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@directus/types": "workspace:*",
+		"@ngneat/falso": "catalog:",
+		"@types/ms": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

@@ -1,0 +1,66 @@
+package com.appsmith.server.repositories.ce;
+
+import com.appsmith.external.git.constants.ce.RefType;
+import com.appsmith.server.acl.AclPermission;
+import com.appsmith.server.domains.NewPage;
+import com.appsmith.server.repositories.AppsmithRepository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+public interface CustomNewPageRepositoryCE extends AppsmithRepository<NewPage> {
+
+    Mono<NewPage> findById(String id, AclPermission permission, List<String> projectedFields);
+
+    Flux<NewPage> findByApplicationId(String applicationId, AclPermission aclPermission);
+
+    Flux<NewPage> findByApplicationId(String applicationId, AclPermission aclPermission, List<String> includeFields);
+
+    Flux<NewPage> findByApplicationIdAndNonDeletedEditMode(String applicationId, AclPermission aclPermission);
+
+    Mono<NewPage> findByIdAndLayoutsIdAndViewMode(
+            String id, String layoutId, AclPermission aclPermission, Boolean viewMode);
+
+    Mono<NewPage> findByNameAndViewMode(String name, AclPermission aclPermission, Boolean viewMode);
+
+    Mono<NewPage> findByNameAndApplicationIdAndViewMode(
+            String name, String applicationId, AclPermission aclPermission, Boolean viewMode);
+
+    Flux<NewPage> findAllPageDTOsByIds(List<String> ids, AclPermission aclPermission);
+
+    Mono<String> getNameByPageId(String pageId, boolean isPublishedName);
+
+    Flux<NewPage> findByBasePageId(String basePageId, AclPermission permission, List<String> projectedFieldNames);
+
+    Mono<NewPage> findPageByRefTypeAndRefNameAndBasePageId(
+            RefType refType,
+            String refName,
+            String basePageId,
+            AclPermission permission,
+            List<String> projectedFieldNames);
+
+    Flux<NewPage> findAllByApplicationIds(List<String> branchedArtifactIds, List<String> includedFields);
+
+    Mono<Void> publishPages(Collection<String> pageIds, AclPermission permission);
+
+    Flux<NewPage> findAllByApplicationIdsWithoutPermission(List<String> applicationIds, List<String> includeFields);
+
+    Mono<Integer> updateDependencyMap(String pageId, Map<String, List<String>> dependencyMap);
+
+    Flux<NewPage> findByApplicationId(String applicationId);
+
+    Mono<Long> countByDeletedAtNull();
+
+    Mono<NewPage> findByUniquePageSlug(
+            String applicationId, String uniquePageName, AclPermission permission, boolean viewMode);
+
+    Mono<NewPage> findByApplicationIdAndPageSlug(
+            String applicationId,
+            String pageSlug,
+            boolean viewMode,
+            AclPermission aclPermission,
+            List<String> projections);
+}

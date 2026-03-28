@@ -1,0 +1,123 @@
+import { readFile, unlink } from "node:fs/promises"
+import { HTTPError } from "@budibase/backend-core"
+import {
+  FetchKnowledgeBaseFilesResponse,
+  KnowledgeBaseFileUploadResponse,
+  UserCtx,
+} from "@budibase/types"
+import sdk from "../../../sdk"
+
+const normalizeUpload = (fileInput: any) => {
+  if (!fileInput) {
+    return undefined
+  }
+  if (Array.isArray(fileInput)) {
+    return fileInput[0]
+  }
+  return fileInput
+}
+
+const unlinkSafe = async (path?: string) => {
+  if (!path) {
+    return
+  }
+  try {
+    await unlink(path)
+  } catch (error) {
+    console.log("Failed to delete temp file", error)
+  }
+}
+
+export async function fetchKnowledgeBaseFiles(
+  ctx: UserCtx<void, FetchKnowledgeBaseFilesResponse>
+) {
+  const { knowledgeBaseId } = ctx.params
+  const knowledgeBase = await sdk.ai.knowledgeBase.find(knowledgeBaseId)
+  if (!knowledgeBase) {
+    throw new HTTPError("Knowledge base not found", 404)
+  }
+  const files =
+    await sdk.ai.knowledgeBase.listKnowledgeBaseFiles(knowledgeBaseId)
+  ctx.body = { files }
+  ctx.status = 200
+}
+
+export async function uploadKnowledgeBaseFile(
+  ctx: UserCtx<
+    void,
+    KnowledgeBaseFileUploadResponse,
+    { knowledgeBaseId: string }
+  >
+) {
+  const { knowledgeBaseId } = ctx.params
+  const knowledgeBase = await sdk.ai.knowledgeBase.find(knowledgeBaseId)
+  if (!knowledgeBase) {
+    throw new HTTPError("Knowledge base not found", 404)
+  }
+
+  const upload = normalizeUpload(
+    ctx.request.files?.file ||
+      ctx.request.files?.knowledgeBaseFile ||
+      ctx.request.files?.upload
+  )
+
+  if (!upload) {
+    throw new HTTPError("file is required", 400)
+  }
+  const filePath = upload.filepath || upload.path
+  if (!filePath) {
+    throw new HTTPError("Invalid upload payload", 400)
+  }
+
+  const filename =
+    upload.originalFilename || upload.name || "knowledge-base-document"
+  const mimetype = upload.mimetype || upload.type
+  const fileSize =
+    typeof upload.size === "number"
+      ? upload.size
+      : Number(upload.size) || undefined
+
+  const buffer = await readFile(filePath)
+
+  try {
+    const updated = await sdk.ai.knowledgeBase.uploadKnowledgeBaseFile({
+      knowledgeBaseId,
+      filename,
+      mimetype,
+      size: fileSize ?? buffer.byteLength,
+      buffer,
+      uploadedBy: ctx.user?._id!,
+    })
+    ctx.body = { file: updated }
+    ctx.status = 201
+  } catch (error: any) {
+    console.error("Failed to upload knowledge base file", error)
+    throw new HTTPError(
+      error?.message || "Failed to process uploaded file",
+      400
+    )
+  } finally {
+    await unlinkSafe(filePath)
+  }
+}
+
+export async function deleteKnowledgeBaseFile(
+  ctx: UserCtx<
+    void,
+    { deleted: true },
+    { knowledgeBaseId: string; fileId: string }
+  >
+) {
+  const { knowledgeBaseId, fileId } = ctx.params
+  const file = await sdk.ai.knowledgeBase.getKnowledgeBaseFileOrThrow(fileId)
+  if (file.knowledgeBaseId !== knowledgeBaseId) {
+    throw new HTTPError("File does not belong to this knowledge base", 404)
+  }
+  const knowledgeBase = await sdk.ai.knowledgeBase.find(knowledgeBaseId)
+  if (!knowledgeBase) {
+    throw new HTTPError("Knowledge base not found", 404)
+  }
+  await sdk.ai.knowledgeBase.removeKnowledgeBaseFile(knowledgeBase, file)
+  ctx.body = { deleted: true }
+  ctx.status = 200
+}

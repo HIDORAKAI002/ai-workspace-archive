@@ -1,0 +1,85 @@
+<script lang="ts">
+	import { getContext, tick, untrack } from 'svelte'
+	import type { AppInput } from '../../../inputType'
+	import type { AppViewerContext } from '../../../types'
+	import type RunnableComponent from '../../helpers/RunnableComponent.svelte'
+	import RunnableWrapper from '../../helpers/RunnableWrapper.svelte'
+	import { initOutput } from '../../../editor/appUtils'
+	import { getPrimaryKeys, type ColumnDef } from './utils'
+	import { sendUserToast } from '$lib/toast'
+	import { getUpdateInput } from './queries/update'
+	import type { DbInput } from '$lib/components/dbTypes'
+
+	interface Props {
+		id: string
+	}
+
+	let { id }: Props = $props()
+
+	const { worldStore } = getContext<AppViewerContext>('AppViewerContext')
+
+	let outputs = initOutput($worldStore, `${untrack(() => id)}_update`, {
+		result: undefined,
+		loading: false,
+		jobId: undefined
+	})
+
+	let runnableComponent: RunnableComponent | undefined = $state(undefined)
+	let loading = $state(false)
+	let input: AppInput | undefined = $state(undefined)
+
+	export async function triggerUpdate(
+		dbInput: DbInput,
+		table: string,
+		column: ColumnDef,
+		allColumns: ColumnDef[],
+		valueToUpdate: string,
+		data: Record<string, any>,
+		oldValue: string | undefined = undefined
+	) {
+		// const datatype = tableMetaData?.find((column) => column.isprimarykey)?.datatype
+
+		let primaryColumns = getPrimaryKeys(allColumns)
+		let columns = allColumns?.filter((x) => primaryColumns.includes(x.field))
+
+		input = getUpdateInput(dbInput, table, column, columns)
+
+		await tick()
+
+		if (runnableComponent) {
+			let ndata = {}
+			columns.forEach((x) => {
+				ndata[x.field] = data[x.field]
+			})
+			ndata[column.field] = oldValue
+			await runnableComponent?.runComponent(
+				undefined,
+				undefined,
+				undefined,
+				{ value_to_update: valueToUpdate, ...ndata },
+				{
+					onDone: (x) => {
+						sendUserToast('Value updated', false)
+					},
+					onCancel: () => {
+						sendUserToast('Error updating value', true)
+					},
+					onError: (e) => {
+						sendUserToast(`Error updating value: ${e?.message ?? e}`, true)
+					}
+				}
+			)
+		}
+	}
+</script>
+
+<RunnableWrapper
+	noInitialize
+	bind:runnableComponent
+	bind:loading
+	componentInput={input}
+	autoRefresh={false}
+	render={false}
+	id={`${id}_update`}
+	{outputs}
+/>

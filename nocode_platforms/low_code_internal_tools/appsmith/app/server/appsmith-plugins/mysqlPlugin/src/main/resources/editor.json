@@ -1,0 +1,43 @@
+{
+  "editor": [
+    {
+      "controlType": "SECTION_V2",
+      "identifier": "SECTION-ONE",
+      "isFullWidth": true,
+      "children": [
+        {
+          "controlType": "SINGLE_COLUMN_ZONE",
+          "identifier": "SO-Z1",
+          "children": [
+            {
+              "label": "",
+              "internalLabel": "Query",
+              "propertyName": "mysql_query_non_prepared",
+              "configProperty": "actionConfiguration.body",
+              "controlType": "QUERY_DYNAMIC_TEXT",
+              "evaluationSubstitutionType": "PARAMETER",
+              "hidden": {
+                "path": "actionConfiguration.pluginSpecifiedTemplates[0].value",
+                "comparison": "EQUALS",
+                "value": false
+              }
+            },
+            {
+              "label": "",
+              "internalLabel": "Query",
+              "propertyName": "mysql_query_prepared",
+              "configProperty": "actionConfiguration.body",
+              "controlType": "QUERY_DYNAMIC_TEXT",
+              "evaluationSubstitutionType": "TEMPLATE",
+              "hidden": {
+                "path": "actionConfiguration.pluginSpecifiedTemplates[0].value",
+                "comparison": "EQUALS",
+                "value": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

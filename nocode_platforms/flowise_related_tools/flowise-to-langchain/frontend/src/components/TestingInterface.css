@@ -1,0 +1,533 @@
+/* TestingInterface.css */
+.testing-interface {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.testing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.testing-title h2 {
+  margin: 0 0 0.25rem 0;
+  color: #333;
+}
+
+.testing-title p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.testing-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.test-type-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-type-selector label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.test-type-selector select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.run-test-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #28a745;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.run-test-button:hover:not(:disabled) {
+  background-color: #1e7e34;
+}
+
+.run-test-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.testing-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.testing-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.testing-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.testing-sidebar {
+  width: 250px;
+  background: #f8f9fa;
+  border-right: 1px solid #eee;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.testing-sidebar h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.conversion-summary,
+.test-summary,
+.test-files {
+  margin-bottom: 2rem;
+}
+
+.summary-stats,
+.test-stats {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.stat.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.stat.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.no-test-data {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+}
+
+.file-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.file-icon {
+  color: #666;
+  flex-shrink: 0;
+}
+
+.file-name {
+  color: #333;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.testing-content-area {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.result-indicator {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.result-indicator.success {
+  color: #28a745;
+}
+
+.result-indicator.error {
+  color: #dc3545;
+}
+
+/* Test Configuration Styles */
+.test-configuration {
+  max-width: 600px;
+}
+
+.config-group {
+  margin-bottom: 2rem;
+}
+
+.config-group h4 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.test-type-options {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.radio-option:hover {
+  background-color: #f8f9fa;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.config-item label {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.config-item input[type="text"],
+.config-item input[type="number"] {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.config-item.checkbox {
+  flex-direction: row;
+}
+
+.config-item.checkbox input[type="checkbox"] {
+  margin: 0;
+}
+
+.config-summary {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.config-summary h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.config-summary p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Test Results Styles */
+.test-results {
+  max-width: 800px;
+}
+
+.test-results.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #666;
+}
+
+.test-results.empty {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+}
+
+.result-status {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.result-status.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.result-status.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.test-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.failed-tests {
+  margin-bottom: 2rem;
+}
+
+.failed-tests h4 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.failed-test {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.failed-test h5 {
+  margin: 0 0 0.5rem 0;
+  color: #721c24;
+}
+
+.failed-test .error {
+  color: #721c24;
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.failed-test .suggestion {
+  color: #856404;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.test-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.rerun-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.rerun-button:hover {
+  background-color: #0056b3;
+}
+
+/* Interactive Testing Console Styles */
+.interactive-testing-console {
+  max-width: 800px;
+}
+
+.console-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.console-info p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.console-history {
+  background: #1e1e1e;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.console-line {
+  margin-bottom: 0.5rem;
+}
+
+.console-line.input {
+  color: #4ec9b0;
+}
+
+.console-line.output {
+  color: #dcdcaa;
+}
+
+.console-line.running {
+  color: #569cd6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.console-input {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.console-input textarea {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.console-input button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: #28a745;
+  color: white;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+}
+
+.console-input button:hover:not(:disabled) {
+  background-color: #1e7e34;
+}
+
+.console-input button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.console-examples {
+  margin-top: 1rem;
+}
+
+.console-examples h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.console-examples button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background-color: white;
+  color: #333;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
+}
+
+.console-examples button:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+}

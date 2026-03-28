@@ -1,0 +1,14 @@
+mutation ChangeUserRoleInTeamByAdmin(
+  $userUID: ID!
+  $teamID: ID!
+  $newRole: TeamAccessRole!
+) {
+  changeUserRoleInTeamByAdmin(
+    userUID: $userUID
+    teamID: $teamID
+    newRole: $newRole
+  ) {
+    membershipID
+    role
+  }
+}

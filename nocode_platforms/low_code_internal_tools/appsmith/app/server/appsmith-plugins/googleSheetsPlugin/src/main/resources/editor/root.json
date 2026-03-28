@@ -1,0 +1,63 @@
+{
+  "editor": [
+    {
+      "controlType": "SECTION_V2",
+      "identifier": "SELECTOR",
+      "children": [
+        {
+          "controlType": "DOUBLE_COLUMN_ZONE",
+          "identifier": "SELECTOR-Z1",
+          "children": [
+            {
+              "label": "Operation",
+              "tooltipText": "The command to run on the datasource",
+              "description": "Select the operation you would like to execute",
+              "propertyName": "rows_commands",
+              "configProperty": "actionConfiguration.formData.command.data",
+              "controlType": "DROP_DOWN",
+              "initialValue": "FETCH_MANY",
+              "isRequired": true,
+              "options": [
+                {
+                  "label": "Fetch Details",
+                  "value": "FETCH_DETAILS"
+                },
+                {
+                  "label": "Insert One",
+                  "value": "INSERT_ONE"
+                },
+                {
+                  "label": "Update One",
+                  "value": "UPDATE_ONE"
+                },
+                {
+                  "label": "Delete One",
+                  "value": "DELETE_ONE"
+                },
+                {
+                  "label": "Fetch Many",
+                  "value": "FETCH_MANY"
+                },
+                {
+                  "label": "Insert Many",
+                  "value": "INSERT_MANY"
+                },
+                {
+                  "label": "Update Many",
+                  "value": "UPDATE_MANY"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "files": [
+    "entity_data.json",
+    "insert.json",
+    "delete.json",
+    "fetch_many.json",
+    "update.json"
+  ]
+}

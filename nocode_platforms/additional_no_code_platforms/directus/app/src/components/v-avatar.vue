@@ -1,0 +1,103 @@
+<script setup lang="ts">
+import { useSizeClass } from '@directus/composables';
+
+interface Props {
+	/** Render as a tile (square) */
+	tile?: boolean;
+	/** Render round */
+	round?: boolean;
+	/** Render border with optional color */
+	border?: boolean | string;
+	/** Renders a smaller avatar */
+	xSmall?: boolean;
+	/** Renders a small avatar */
+	small?: boolean;
+	/** Renders a large avatar */
+	large?: boolean;
+	/** Renders a larger avatar */
+	xLarge?: boolean;
+	/** Makes the avatar clickable */
+	clickable?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	tile: false,
+});
+
+const sizeClass = useSizeClass(props);
+</script>
+
+<template>
+	<component
+		:is="clickable ? 'button' : 'div'"
+		:type="clickable ? 'button' : undefined"
+		class="v-avatar"
+		:class="[{ tile, round, border }, sizeClass]"
+		:style="typeof border === 'string' ? [{ '--v-avatar-border-color': border }] : []"
+	>
+		<slot />
+	</component>
+</template>
+
+<style scoped>
+/*
+
+	Available Variables:
+
+	--v-avatar-border-width [2px]
+	--v-avatar-border-color [var(--theme--border-color)]
+	--v-avatar-color  [var(--theme--background-normal)]
+	--v-avatar-size   [2.6875rem]
+*/
+
+.v-avatar {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--v-avatar-size, 2.6875rem);
+	block-size: var(--v-avatar-size, 2.6875rem);
+	overflow: hidden;
+	color: var(--theme--foreground-subdued);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	background-color: var(--v-avatar-color, var(--theme--background-normal));
+	border-radius: var(--theme--border-radius);
+}
+
+.tile {
+	border-radius: 0;
+}
+
+.border {
+	border: var(--v-avatar-border-width, 2px) solid var(--v-avatar-border-color, var(--theme--border-color));
+}
+
+.x-small {
+	--v-avatar-size: 1.375rem;
+
+	border-radius: 0.25rem;
+}
+
+.small {
+	--v-avatar-size: 2rem;
+}
+
+.large {
+	--v-avatar-size: 3.375rem;
+}
+
+.x-large {
+	--v-avatar-size: 4.5rem;
+}
+
+.round {
+	border-radius: 50% !important;
+}
+
+:slotted(img) {
+	inline-size: 100%;
+	block-size: 100%;
+	object-fit: cover;
+}
+</style>

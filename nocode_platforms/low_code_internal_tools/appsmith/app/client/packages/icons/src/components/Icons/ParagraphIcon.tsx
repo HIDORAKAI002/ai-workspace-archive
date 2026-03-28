@@ -1,0 +1,4 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const ParagraphIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width={15} height={15} fill="none" {...props}><path fill="#4C5664" fillOpacity={0.5} d="M7 1.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5M7 3.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5M7.5 5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zM1 7.5a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1h-12a.5.5 0 0 1-.5-.5M1.5 9a.5.5 0 0 0 0 1h12a.5.5 0 0 0 0-1zM1 11.5a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1h-12a.5.5 0 0 1-.5-.5M1.5 13a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z" /><path fill="#4C5664" fillRule="evenodd" d="M1 1.5a.5.5 0 0 1 .5-.5h3a1.5 1.5 0 1 1 0 3H3v1h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H2V2h-.5a.5.5 0 0 1-.5-.5M3 2v1h1.5a.5.5 0 0 0 0-1z" clipRule="evenodd" /></svg>;
+export { ParagraphIcon };

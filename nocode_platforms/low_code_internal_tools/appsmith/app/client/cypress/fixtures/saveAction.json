@@ -1,0 +1,36 @@
+{
+  "responseMeta": {
+    "status": 200,
+    "success": true
+  },
+  "data": {
+    "id": "602d5150be5b8626c2dad9e0",
+    "userPermissions": [
+      "execute:datasources",
+      "manage:datasources",
+      "read:datasources"
+    ],
+    "name": "Untitled datasource 5213",
+    "pluginId": "5e687c18fb01e64e6a3f873f",
+    "workspaceId": "5fd639aceb554e031ee61fef",
+    "datasourceConfiguration": {
+      "connection": {
+        "mode": "READ_WRITE",
+        "type": "REPLICA_SET",
+        "defaultDatabaseName": "sample_airbnb"
+      },
+      "endpoints": [
+        {
+          "host": "localhost"
+        }
+      ],
+      "authentication": {
+        "databaseName": "sample_airbnb"
+      },
+      "sshProxyEnabled": false
+    },
+    "invalids": [],
+    "isValid": true,
+    "new": false
+  }
+}

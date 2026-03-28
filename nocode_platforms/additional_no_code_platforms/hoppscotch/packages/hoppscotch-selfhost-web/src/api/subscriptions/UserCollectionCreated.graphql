@@ -1,0 +1,11 @@
+subscription UserCollectionCreated {
+  userCollectionCreated {
+    parent {
+      id
+    }
+    id
+    title
+    type
+    data
+  }
+}

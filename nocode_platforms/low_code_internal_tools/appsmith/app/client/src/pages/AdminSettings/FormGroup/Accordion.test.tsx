@@ -1,0 +1,93 @@
+import { render, screen } from "test/testUtils";
+import React from "react";
+import type { Setting } from "ee/pages/AdminSettings/config/types";
+import {
+  SettingTypes,
+  SettingSubtype,
+} from "ee/pages/AdminSettings/config/types";
+import Accordion from "./Accordion";
+import { SETTINGS_FORM_NAME } from "ee/constants/forms";
+import { reduxForm } from "redux-form";
+
+// TODO: Fix this the next time the file is edited
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let container: any = null;
+const setting: Setting = {
+  id: "SETTING_TOGGLE_ID",
+  name: "SETTING_TOGGLE_ID",
+  category: "test category",
+  subCategory: "test sub category",
+  controlType: SettingTypes.ACCORDION,
+  label: "test accordion label",
+  advanced: [
+    {
+      id: "SETTING_TEXT_INPUT_ID",
+      name: "SETTING_TEXT_INPUT_ID",
+      category: "test input category",
+      subCategory: "test input sub category",
+      controlType: SettingTypes.TEXTINPUT,
+      controlSubType: SettingSubtype.TEXT,
+      label: "test input label",
+    },
+  ],
+};
+
+function renderComponent() {
+  function ToggleComponent() {
+    return (
+      <Accordion
+        category={setting.category}
+        label={setting.label}
+        settings={setting.advanced}
+        subCategory={setting.subCategory}
+      />
+    );
+  }
+
+  // TODO: Fix this the next time the file is edited
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Parent = reduxForm<any, any>({
+    validate: () => {
+      return {};
+    },
+    form: SETTINGS_FORM_NAME,
+    touchOnBlur: true,
+  })(ToggleComponent);
+
+  render(<Parent />, {
+    initialState: {
+      form: {
+        [SETTINGS_FORM_NAME]: {
+          values: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            [setting.advanced![0].id]: false,
+          },
+        },
+      },
+    },
+  });
+}
+
+describe("Accordion", () => {
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  it("is rendered", () => {
+    renderComponent();
+    expect(screen.getAllByText(/test accordion label/)).toBeDefined();
+    expect(document.querySelector("hr")).toBeDefined();
+    expect(document.querySelector("[name='expand-more']")).toBeDefined();
+    expect(screen.queryByTestId("admin-settings-group-wrapper")).toBeFalsy();
+  });
+
+  it("is open", () => {
+    renderComponent();
+    expect(document.querySelector("hr")).toBeDefined();
+    expect(document.querySelector("[name='expand-more']")).toBeDefined();
+    document.querySelector("hr")?.click();
+    expect(document.querySelector("[name='expand-less']")).toBeDefined();
+    expect(screen.getByTestId("admin-settings-group-wrapper")).toBeDefined();
+  });
+});

@@ -1,0 +1,71 @@
+<script setup lang="ts">
+import { isPlainObject } from 'lodash';
+import { computed, ref } from 'vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import { useClipboard } from '@/composables/use-clipboard';
+import { extractErrorCode } from '@/utils/extract-error-code';
+
+interface Props {
+	error: Record<string, any>;
+}
+
+const props = defineProps<Props>();
+
+const code = computed(() => extractErrorCode(props.error));
+
+const message = computed(() => {
+	let message = props.error?.response?.data?.errors?.[0]?.message || props.error?.message;
+
+	if (message.length > 200) {
+		message = message.substring(0, 197) + '...';
+	}
+
+	return message;
+});
+
+const copied = ref(false);
+
+const { isCopySupported, copyToClipboard } = useClipboard();
+
+async function copyError() {
+	const error = props.error?.response?.data || props.error;
+
+	const isCopied = await copyToClipboard(
+		JSON.stringify(error, isPlainObject(error) ? null : Object.getOwnPropertyNames(error), 2),
+	);
+
+	if (!isCopied) return;
+	copied.value = true;
+}
+</script>
+
+<template>
+	<div class="v-error">
+		<output>[{{ code }}] {{ message }}</output>
+		<VIcon
+			v-if="isCopySupported"
+			v-tooltip="$t('copy_details')"
+			small
+			class="copy-error"
+			:name="copied ? 'check' : 'content_copy'"
+			clickable
+			@click="copyError"
+		/>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.v-error {
+	max-block-size: 50vh;
+	padding: 0.3125rem 0.6875rem;
+	overflow: auto;
+	color: var(--theme--danger);
+	font-family: var(--theme--fonts--monospace--font-family);
+	background-color: var(--danger-alt);
+	border-radius: var(--theme--border-radius);
+
+	.copy-error {
+		margin-inline-start: 0.6875rem;
+	}
+}
+</style>

@@ -1,0 +1,113 @@
+<script lang="ts">
+  import { createEventDispatcher, getContext } from "svelte"
+  import Icon from "../Icon/Icon.svelte"
+
+  const dispatch = createEventDispatcher()
+  const actionMenu = getContext("actionMenu")
+
+  export let icon: string | undefined = undefined
+  export let iconWeight: "regular" | "bold" | "fill" = "regular"
+  export let iconColour: string | undefined = undefined
+  export let iconHidden: boolean = false
+  export let iconAlign: "center" | "start" = "center"
+  export let disabled: boolean | undefined = undefined
+  export let noClose: boolean = false
+  export let keyBind: string | undefined = undefined
+
+  $: keys = getKeys(keyBind)
+
+  const getKeys = (keyBind: string | undefined): string[] => {
+    let keys = keyBind?.split("+") || []
+    for (let i = 0; i < keys.length; i++) {
+      if (
+        keys[i].toLowerCase() === "ctrl" &&
+        navigator.platform.startsWith("Mac")
+      ) {
+        keys[i] = "⌘"
+      }
+    }
+    return keys
+  }
+
+  const onClick = () => {
+    if (actionMenu && !noClose) {
+      actionMenu.hideAll()
+    }
+    dispatch("click")
+  }
+</script>
+
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<li
+  on:click={disabled ? null : onClick}
+  on:auxclick
+  on:contextmenu
+  on:keydown
+  class="spectrum-Menu-item"
+  class:is-disabled={disabled}
+  role="menuitem"
+  tabindex="0"
+>
+  {#if icon}
+    <div class="icon" class:iconHidden style="align-self: {iconAlign}">
+      <Icon
+        name={icon}
+        weight={iconWeight}
+        size="S"
+        color={iconColour || "var(--spectrum-global-color-gray-700)"}
+      />
+    </div>
+  {/if}
+  <span class="spectrum-Menu-itemLabel"><slot /></span>
+  {#if keys?.length || $$slots.right}
+    <div class="keys">
+      <slot name="right" />
+      {#each keys as key}
+        <div class="key">
+          {#if key.startsWith("!")}
+            <Icon size="XS" weight={iconWeight} name={key.split("!")[1]} />
+          {:else}
+            {key}
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {/if}
+</li>
+
+<style>
+  .icon {
+    margin-right: var(--spacing-s);
+  }
+  .iconHidden {
+    opacity: 0;
+  }
+  .keys {
+    margin-left: 30px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+  }
+  .key {
+    color: var(--spectrum-global-color-gray-900);
+    padding: 2px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--spectrum-global-color-gray-300);
+    border-radius: 4px;
+    min-width: 12px;
+    height: 16px;
+    text-align: center;
+    margin: -1px 0;
+    display: grid;
+    place-items: center;
+  }
+  .is-disabled .spectrum-Menu-itemLabel {
+    color: var(--spectrum-global-color-gray-600);
+  }
+  .spectrum-Menu-itemLabel {
+    color: var(--spectrum-global-color-gray-900);
+  }
+</style>

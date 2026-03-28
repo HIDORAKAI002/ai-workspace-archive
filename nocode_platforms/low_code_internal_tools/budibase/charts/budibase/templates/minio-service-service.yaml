@@ -1,0 +1,17 @@
+{{- if .Values.services.objectStore.minio }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: minio-service
+  name: minio-service
+spec:
+  ports:
+  - name: {{ .Values.services.objectStore.port | quote }}
+    port: {{ .Values.services.objectStore.port }}
+    targetPort: {{ .Values.services.objectStore.port }}
+  selector:
+    io.kompose.service: minio-service
+status:
+  loadBalancer: {}
+{{- end }}

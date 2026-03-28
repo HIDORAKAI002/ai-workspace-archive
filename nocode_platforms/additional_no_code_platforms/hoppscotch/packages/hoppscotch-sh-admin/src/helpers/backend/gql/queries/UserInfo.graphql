@@ -1,0 +1,13 @@
+query UserInfo($uid: ID!) {
+  infra {
+    userInfo(userUid: $uid) {
+      uid
+      displayName
+      email
+      isAdmin
+      photoURL
+      createdOn
+      lastActiveOn
+    }
+  }
+}

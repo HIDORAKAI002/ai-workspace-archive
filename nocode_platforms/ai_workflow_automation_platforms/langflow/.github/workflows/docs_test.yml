@@ -1,0 +1,38 @@
+name: Test Docs Build
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "(Optional) Branch to checkout"
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  test-docs-build:
+    name: Test Docs Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        id: setup-node
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ./docs/package-lock.json
+
+      - name: Install dependencies
+        run: cd docs && npm install
+
+      - name: Build docs
+        run: cd docs && npm run build

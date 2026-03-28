@@ -1,0 +1,211 @@
+<script setup lang="ts">
+import { useSizeClass } from '@directus/composables';
+import { computed, ref } from 'vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+
+interface Props {
+	/** Model the active state */
+	active?: boolean;
+	/** Displays a close icon which triggers the close event */
+	close?: boolean;
+	/** Which icon should be displayed to close it */
+	closeIcon?: string;
+	/** No background */
+	outlined?: boolean;
+	/** Adds a border radius */
+	label?: boolean;
+	/** Disables the chip */
+	disabled?: boolean;
+	/** Renders a smaller chip */
+	xSmall?: boolean;
+	/** Renders a small chip */
+	small?: boolean;
+	/** Renders a large chip */
+	large?: boolean;
+	/** Renders a larger chip */
+	xLarge?: boolean;
+	clickable?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	active: undefined,
+	close: false,
+	closeIcon: 'close',
+	outlined: false,
+	label: true,
+	disabled: false,
+});
+
+const emit = defineEmits<{
+	'update:active': [active: boolean];
+	click: [event: MouseEvent];
+	close: [event: MouseEvent];
+}>();
+
+const internalLocalActive = ref(true);
+
+const internalActive = computed<boolean>({
+	get: () => {
+		if (props.active !== undefined) return props.active;
+		return internalLocalActive.value;
+	},
+	set: (active: boolean) => {
+		emit('update:active', active);
+		internalLocalActive.value = active;
+	},
+});
+
+const sizeClass = useSizeClass(props);
+
+function onClick(event: MouseEvent) {
+	if (props.disabled) return;
+	emit('click', event);
+}
+
+function onCloseClick(event: MouseEvent) {
+	if (props.disabled) return;
+	internalActive.value = !internalActive.value;
+	emit('close', event);
+}
+</script>
+
+<template>
+	<component
+		:is="clickable ? 'button' : 'span'"
+		v-if="internalActive"
+		:type="clickable ? 'button' : undefined"
+		:disabled="clickable ? disabled : undefined"
+		:aria-pressed="internalActive ? 'true' : 'false'"
+		class="v-chip"
+		:class="[sizeClass, { outlined, label, disabled, close, clickable }]"
+		@click="onClick"
+	>
+		<span class="chip-content">
+			<slot />
+			<span v-if="close" class="close-outline" :class="{ disabled }" @click.stop="onCloseClick">
+				<VIcon class="close" :name="closeIcon" x-small />
+			</span>
+		</span>
+	</component>
+</template>
+
+<style lang="scss" scoped>
+/*
+
+	Available Variables:
+
+		--v-chip-color                   [var(--theme--foreground)]
+		--v-chip-color-hover             [var(--white)]
+		--v-chip-background-color        [var(--theme--background-normal)]
+		--v-chip-background-color-hover  [var(--theme--primary-accent)]
+		--v-chip-border-color            [var(--v-chip-background-color)]
+		--v-chip-border-color-hover      [var(--v-chip-background-color-hover)]
+		--v-chip-close-color             [var(--theme--danger)]
+		--v-chip-close-color-disabled    [var(--theme--primary)]
+		--v-chip-close-color-hover       [var(--theme--primary-accent)]
+		--v-chip-padding                 [0 0.4375rem]
+
+*/
+
+.v-chip {
+	display: inline-flex;
+	align-items: center;
+	block-size: 2rem;
+	padding: var(--v-chip-padding, 0 0.4375rem);
+	color: var(--v-chip-color, var(--theme--foreground));
+	font-weight: var(--weight-normal);
+	font-family: var(--v-chip-font-family);
+	line-height: 1.25rem;
+	background-color: var(--v-chip-background-color, var(--theme--background-normal));
+	border: var(--theme--border-width) solid
+		var(--v-chip-border-color, var(--v-chip-background-color, var(--theme--background-normal)));
+	border-radius: 0.875rem;
+
+	&.clickable:hover {
+		color: var(--v-chip-color-hover, var(--white));
+		background-color: var(--v-chip-background-color-hover, var(--theme--primary-accent));
+		border-color: var(--v-chip-border-color-hover, var(--v-chip-background-color-hover), var(--theme--primary-accent));
+	}
+
+	&.outlined {
+		background-color: transparent;
+	}
+
+	&.disabled {
+		cursor: auto;
+
+		color: var(--v-chip-color, var(--theme--foreground));
+		background-color: var(--v-chip-background-color, var(--theme--background-normal));
+		border-color: var(--v-chip-border-color, var(--v-chip-background-color, var(--theme--background-normal)));
+
+		&.clickable:hover {
+			color: var(--v-chip-color, var(--theme--foreground));
+			background-color: var(--v-chip-background-color, var(--theme--background-normal));
+			border-color: var(--v-chip-background-color, var(--theme--background-normal));
+		}
+	}
+
+	&.x-small {
+		block-size: 1.125rem;
+		padding: var(--v-chip-padding, 0 0.3125rem);
+		font-size: 0.6875rem;
+		border-radius: 0.5625rem;
+	}
+
+	&.small {
+		block-size: 1.375rem;
+		padding: var(--v-chip-padding, 0 0.4375rem);
+		font-size: 0.8125rem;
+		border-radius: 0.6875rem;
+	}
+
+	&.large {
+		block-size: 2.5rem;
+		padding: var(--v-chip-padding, 0 1.125rem);
+		font-size: 0.875rem;
+		border-radius: 1.25rem;
+	}
+
+	&.x-large {
+		block-size: 2.6875rem;
+		padding: var(--v-chip-padding, 0 1.125rem);
+		font-size: 1rem;
+		border-radius: 1.375rem;
+	}
+
+	&.label {
+		border-radius: var(--theme--border-radius);
+	}
+
+	.chip-content {
+		display: inline-flex;
+		align-items: center;
+		white-space: nowrap;
+
+		.close-outline {
+			position: relative;
+			inset-inline-end: -0.25rem;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			inline-size: 0.8125rem;
+			block-size: 0.8125rem;
+			margin-inline-start: 0.25rem;
+			background-color: var(--v-chip-close-color, var(--theme--danger));
+			border-radius: 0.5625rem;
+
+			&.disabled {
+				background-color: var(--v-chip-close-color-disabled, var(--theme--primary));
+
+				&:hover {
+					background-color: var(--v-chip-close-color-disabled, var(--theme--primary));
+				}
+			}
+
+			&:hover {
+				background-color: var(--v-chip-close-color-hover, var(--theme--primary-accent));
+			}
+		}
+	}
+}
+</style>

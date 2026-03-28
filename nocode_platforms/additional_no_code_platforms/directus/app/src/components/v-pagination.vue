@@ -1,0 +1,185 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import VButton from './v-button.vue';
+import VIcon from './v-icon/v-icon.vue';
+
+const props = defineProps<{
+	/** Currently selected page */
+	modelValue: number;
+	/** The amount of pages to render */
+	length: number;
+	/** Disables the pagination */
+	disabled?: boolean;
+	/** Specify the max total visible pagination numbers */
+	totalVisible?: number;
+	/** Show first/last buttons */
+	showFirstLast?: boolean;
+}>();
+
+const emit = defineEmits(['update:modelValue']);
+
+const visiblePages = computed<number[]>(() => {
+	if (props.totalVisible === undefined) return [];
+
+	let startPage: number;
+	let endPage: number;
+
+	if (!Number.isInteger(props.totalVisible) || props.length <= props.totalVisible) {
+		startPage = 1;
+		endPage = props.length;
+	} else {
+		const pagesBeforeCurrentPage = Math.floor(props.totalVisible / 2);
+		const pagesAfterCurrentPage = Math.ceil(props.totalVisible / 2) - 1;
+
+		if (props.modelValue <= pagesBeforeCurrentPage) {
+			startPage = 1;
+			endPage = props.totalVisible;
+		} else if (props.modelValue + pagesAfterCurrentPage >= props.length) {
+			startPage = props.length - props.totalVisible + 1;
+			endPage = props.length;
+		} else {
+			startPage = props.modelValue - pagesBeforeCurrentPage;
+			endPage = props.modelValue + pagesAfterCurrentPage;
+		}
+	}
+
+	return Array.from(Array(endPage + 1 - startPage).keys()).map((i) => startPage + i);
+});
+
+function toPrev() {
+	toPage(props.modelValue - 1);
+}
+
+function toNext() {
+	toPage(props.modelValue + 1);
+}
+
+function toPage(page: number) {
+	emit('update:modelValue', page);
+}
+</script>
+
+<template>
+	<div class="v-pagination">
+		<VButton class="previous" :disabled="disabled || modelValue === 1" secondary icon small @click="toPrev">
+			<VIcon name="chevron_left" />
+		</VButton>
+
+		<VButton
+			v-if="showFirstLast && totalVisible && modelValue > Math.ceil(totalVisible / 2) + 1 && length > totalVisible"
+			class="page"
+			secondary
+			small
+			:disabled="disabled"
+			@click="toPage(1)"
+		>
+			1
+		</VButton>
+
+		<span
+			v-if="showFirstLast && totalVisible && modelValue > Math.ceil(totalVisible / 2) + 1 && length > totalVisible + 1"
+			class="gap"
+		>
+			...
+		</span>
+
+		<VButton
+			v-for="page in visiblePages"
+			:key="page"
+			:class="{ active: modelValue === page }"
+			class="page"
+			secondary
+			small
+			:disabled="disabled"
+			@click="toPage(page)"
+		>
+			{{ page }}
+		</VButton>
+
+		<span
+			v-if="
+				showFirstLast && totalVisible && modelValue < length - Math.ceil(totalVisible / 2) && length > totalVisible + 1
+			"
+			class="gap"
+		>
+			...
+		</span>
+
+		<VButton
+			v-if="
+				showFirstLast && totalVisible && modelValue <= length - Math.ceil(totalVisible / 2) && length > totalVisible
+			"
+			:class="{ active: modelValue === length }"
+			class="page"
+			secondary
+			small
+			:disabled="disabled"
+			@click="toPage(length)"
+		>
+			{{ length }}
+		</VButton>
+
+		<VButton class="next" :disabled="disabled || modelValue === length" secondary icon small @click="toNext">
+			<VIcon name="chevron_right" />
+		</VButton>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+@use '@/styles/mixins';
+
+.v-pagination {
+	display: flex;
+}
+
+.gap {
+	display: none;
+	margin: 0 0.25rem;
+	color: var(--theme--foreground-subdued);
+	line-height: 2;
+}
+
+@include mixins.breakpoint-up('sm') {
+	.gap {
+		display: inline;
+	}
+}
+
+.v-button {
+	--v-button-background-color-hover: var(--theme--background-normal);
+	--v-button-background-color: var(--theme--form--field--input--background-subdued);
+	--v-button-color: var(--theme--foreground);
+
+	margin: 0 0.125rem;
+	vertical-align: middle;
+}
+
+.v-button.page:not(.active) {
+	display: none;
+}
+
+@include mixins.breakpoint-up('sm') {
+	.v-button.page:not(.active) {
+		display: inline;
+	}
+}
+
+.v-button :deep(.small) {
+	--v-button-min-width: 1.8125rem;
+}
+
+.v-button:first-child {
+	margin-inline-start: 0;
+}
+
+.v-button:last-child {
+	margin-inline-end: 0;
+}
+
+.v-button.active {
+	--v-button-background-color-hover: var(--theme--primary);
+	--v-button-color-hover: var(--foreground-inverted);
+	--v-button-background-color: var(--theme--primary);
+	--v-button-color: var(--foreground-inverted);
+}
+</style>

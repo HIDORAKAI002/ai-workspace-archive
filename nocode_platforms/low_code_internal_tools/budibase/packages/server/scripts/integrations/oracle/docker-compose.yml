@@ -1,0 +1,19 @@
+# For more information see:
+# https://container-registry.oracle.com/
+# - Database > Express
+version: "3.8"
+services:
+  db:
+    restart: unless-stopped
+    platform: linux/x86_64
+    image: gvenzl/oracle-free:23.2-slim-faststart
+    environment:
+      ORACLE_PWD: Password1
+    ports:
+      - 1521:1521
+      - 5500:5500
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+
+volumes:
+ oracle_data:

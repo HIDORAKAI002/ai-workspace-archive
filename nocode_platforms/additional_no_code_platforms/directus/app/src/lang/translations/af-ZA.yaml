@@ -1,0 +1,245 @@
+---
+first_name: Eerste naam
+last_name: Van
+identifier: Identifiseerder
+avatar: Profiel prentjie
+application: Toepassing
+default_provider: Verstek
+method: Metode
+published: Gepubliseer
+draft: Konsep
+archived: Geargiveer
+modules: Modules
+module_bar: Modulebalk
+reset_width: Stel breedte terug
+tile_size: Teëlgrootte
+edit_field: Wysig veld
+conditions: Voorwaardes
+location: Ligging
+condition_rules: Voorwaardereëls
+input: Inset
+maps: Kaarte
+switch_user: Verander gebruiker
+item_creation: Item skepping
+item_revision: Item Hersiening
+enter_a_name: Voer 'n naam in...
+duplicate_field: Dupliseer veld
+half_width: Halwe breedte
+full_width: Volle breedte
+group: Groep
+export_items: Voer items uit
+and: En
+or: Of
+modifier: Wysiger
+extension_hook: Haak
+extension_modules: Modules
+custom: Pasgemaak
+hook: Haak
+fill_width: Vulbreedte
+field_name_translations: Veldnaam vertalings
+enter_password_to_enable_tfa: Voer jou wagwoord in om twee-faktor-verifikasie te aktiveer
+add_field: Voeg veld by
+role_name: Rol Naam
+branch: Tak
+leaf: Blaar
+indeterminate: Onbepaald
+edit_collection: Wysig versameling
+exclusive: Eksklusief
+children: Kinders
+db_only_click_to_configure: 'Slegs databasis: Klik om te konfigureer'
+show_active_items: Wys aktiewe items
+show_archived_items: Wys Geargiveerde Items
+show_all_items: Wys alle items
+edited: Waarde Bygewerk
+required: Verpligtend
+required_for_app_access: Benodig vir Toep-toegang
+requires_value: Benodig 'n waarde
+create_preset: Skep Voorafinstelling
+create_panel: Skep Paneel
+create_role: Skep Rol
+create_user: Skep Gebruiker
+message: Boodskap
+delete_panel: Skrap paneel
+invite_users: Nooi Gebruikers
+invite: Nooi uit
+email_already_invited: E-pos "{email}" is reeds uit genooi
+subject: Onderwerp
+inbox: Inkassie
+emails: E-pos
+connection_excellent: Uitstekende Konneksie
+connection_good: Goeie Konneksie
+connection_fair: Redelike Konneksie
+connection_poor: Swak Konneksie
+primary: Primêre
+rename_folder: Hernoem Gids
+delete_folder: Skrap Gids
+prefix: Voorvoegsel
+suffix: Agtervoegsel
+reset_bookmark: Stel Boekmerk Terug
+update_bookmark: Opdateer Boekmerk
+delete_bookmark: Wis Boekmerk Uit
+delete_bookmark_copy: >-
+  Is jy seker jy wil die "{bookmark}" boekmerk uitvee? Hierdie aksie kan nie ongedaan gemaak word nie.
+delete_personal_bookmark: Wis Persoonlike Boekmerk Uit
+delete_role_bookmark: Wis Rolboekmerk Uit
+field_translations: Vertalings
+language: Taal
+create_field: Skep Veld
+auto_generate: Auto-Genereer
+add_note: Voeg 'n nuttige nota vir gebruikers...
+default_value: Standaard Waarde
+title: Titel
+subtitle: Subtitels
+owner: Eienaar
+created_by: Geskep Deur
+created_on: Geskep Op
+add_existing: Mövcudlardan seçin
+comments: Kommentaar
+create_collection: Skep Versameling
+users: Gebruikers
+activity: Aktiwiteit
+action: Aksie
+ip_address: IP Adres
+user_agent: Gebruiker Agent
+duration: Tydsduur
+status: Status
+bookmarks: Boekmerke
+back: Terug
+operators:
+  contains: Bevat
+role: Rol
+create: Skep
+code: Kode
+width: Breedte
+height: Hoogte
+wysiwyg_options:
+  codeblock: Kode
+  table: Tafel
+choices: Keuses
+settings_presets: Boekmerke
+add_new: Voeg nuwe
+all: Alle
+batch_delete_confirm: >-
+  Geen items is gekies nie | Is jy seker jy wil hierdie item uitwis? Hierdie aksie kan nie ontdoen word nie. | Is jy seker jy wil hierdie {count} items uitwis? Hierdie aksie kan nie ontdoen word nie.
+cancel: Kanselleer
+collection: Versameling
+fields:
+  directus_activity:
+    item: Item Primêre Sleutel
+    action: Aksie
+    collection: Versameling
+    timestamp: Aksie Op
+    user: Aksie Deur
+    comment: Kommentaar
+    user_agent: Gebruiker Agent
+    ip: IP Adres
+  directus_collections:
+    collection: Versameling
+  directus_files:
+    title: Titel
+    description: Beskrywing
+    tags: Sleutelwoorde
+    location: Ligging
+    metadata: Metadata
+    filesize: Lêer Grootte
+    created_on: Geskep Op
+    created_by: Geskep Deur
+    uploaded_by: Opgelaai Deur
+    width: Breedte
+    uploaded_on: Opgelaai Op
+    height: Hoogte
+    duration: Tydsduur
+  directus_users:
+    first_name: Eerste naam
+    last_name: Van
+    email: E-pos
+    password: Wagwoord
+    avatar: Profiel prentjie
+    location: Ligging
+    title: Titel
+    description: Beskrywing
+    tags: Sleutelwoorde
+    language: Taal
+    tfa_secret: Twee-Faktor Verifikasie
+    status: Status
+    role: Rol
+  directus_settings:
+    module_bar: Modulebalk
+  directus_shares:
+    role: Rol
+    password: Wagwoord
+  directus_fields:
+    translation: Veldnaam vertalings
+    display_template: Modelvorm
+  directus_roles:
+    name: Rol Naam
+    description: Beskrywing
+  directus_policies:
+    description: Beskrywing
+field_options:
+  directus_activity:
+    create: Skep
+  directus_collections:
+    language: Taal
+comment: Kommentaar
+ai_tools:
+  files: Lêers
+description: Beskrywing
+email: E-pos
+password: Wagwoord
+template: Modelvorm
+table: Tafel
+interfaces:
+  filter:
+    all: Alle
+  presentation-links:
+    primary: Primêre
+  input-code:
+    code: Kode
+  system-collection:
+    collection: Versameling
+  files:
+    files: Lêers
+  tags:
+    tags: Sleutelwoorde
+  input-block-editor:
+    tools_options:
+      code: Kode
+      table: Tafel
+displays:
+  collection:
+    collection: Versameling
+  datetime:
+    suffix: Agtervoegsel
+  formatted-value:
+    prefix: Voorvoegsel
+    suffix: Agtervoegsel
+  user:
+    avatar: Profiel prentjie
+    both: Beide
+layouts:
+  cards:
+    cards: Kaarte
+    image_source: Foto Bron
+    title: Titel
+    subtitle: Subtitels
+  tabular:
+    tabular: Tafel
+    comfortable: Gemaklik
+    compact: Kompak
+    cozy: Snoesig
+both: Beide
+triggers:
+  webhook:
+    method: Metode
+operations:
+  log:
+    message: Boodskap
+  mail:
+    template: Modelvorm
+  notification:
+    message: Boodskap
+    subject: Onderwerp
+  request:
+    method: Metode
+compact: Kompak

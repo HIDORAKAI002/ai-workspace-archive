@@ -1,0 +1,66 @@
+.stepHeader {
+  padding: 42px 64px 12px 0;
+}
+
+.form {
+  position: relative;
+  padding: 12px 64px;
+}
+
+.dataSourceItem {
+  @apply w-full relative flex items-center p-3 h-14 bg-components-option-card-option-bg rounded-xl
+  cursor-pointer border border-components-option-card-option-border text-text-secondary;
+}
+
+.dataSourceItem:hover {
+  @apply bg-components-option-card-option-bg-hover border border-components-option-card-option-border-hover shadow-xs shadow-shadow-shadow-3;
+}
+
+.dataSourceItem.active {
+  @apply bg-components-option-card-option-selected-bg border border-components-option-card-option-selected-border
+  ring-[0.5px] ring-components-option-card-option-selected-border;
+}
+
+.dataSourceItem.disabled,
+.dataSourceItem.disabled:hover {
+  @apply bg-components-option-card-option-bg border-[0.5px] border-components-option-card-option-border cursor-not-allowed text-text-disabled shadow-none;
+}
+
+.comingTag {
+  @apply flex justify-center items-center bg-white;
+  position: absolute;
+  right: 8px;
+  top: -10px;
+  padding: 1px 6px;
+  height: 20px;
+  border: 1px solid #E0EAFF;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: #444CE7;
+}
+
+.datasetIcon {
+  @apply flex shrink-0 mr-2 w-8 h-8 rounded-lg bg-center bg-no-repeat bg-text-primary-on-surface border-[0.5px] border-divider-regular backdrop-blur-sm;
+  background-image: url(../assets/file.svg);
+  background-size: 16px;
+}
+
+.datasetIcon.notion {
+  background-image: url(../assets/notion.svg);
+  background-size: 20px;
+}
+
+.datasetIcon.web {
+  background-image: url(../assets/web.svg);
+}
+
+.submitButton {
+  width: 120px;
+}
+
+.notionIcon {
+  background: var(--color-components-card-bg) center no-repeat url(../assets/notion.svg);
+  background-size: 24px;
+}

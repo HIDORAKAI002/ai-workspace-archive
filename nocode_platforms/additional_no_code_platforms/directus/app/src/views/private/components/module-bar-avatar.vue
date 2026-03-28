@@ -1,0 +1,203 @@
+<script setup lang="ts">
+import { useAppStore } from '@directus/stores';
+import { User } from '@directus/types';
+import { storeToRefs } from 'pinia';
+import { computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import VAvatar from '@/components/v-avatar.vue';
+import VBadge from '@/components/v-badge.vue';
+import VButton from '@/components/v-button.vue';
+import VCardActions from '@/components/v-card-actions.vue';
+import VCardTitle from '@/components/v-card-title.vue';
+import VCard from '@/components/v-card.vue';
+import VDialog from '@/components/v-dialog.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import { useNotificationsStore } from '@/stores/notifications';
+import { useUserStore } from '@/stores/user';
+import { getAssetUrl } from '@/utils/get-asset-url';
+
+const appStore = useAppStore();
+const notificationsStore = useNotificationsStore();
+
+const { notificationsDrawerOpen } = storeToRefs(appStore);
+const { unread } = storeToRefs(notificationsStore);
+
+const userStore = useUserStore();
+
+(async () => await userStore.hydrateAdditionalFields(['avatar.modified_on']))();
+
+const signOutActive = ref(false);
+
+const avatarURL = computed<string | null>(() => {
+	if (!userStore.currentUser || !('avatar' in userStore.currentUser) || !userStore.currentUser?.avatar) return null;
+
+	return getAssetUrl(userStore.currentUser.avatar.id, {
+		imageKey: 'system-medium-cover',
+		cacheBuster: userStore.currentUser.avatar.modified_on,
+	});
+});
+
+const avatarError = ref<null | Event>(null);
+
+const userProfileLink = computed<string>(() => {
+	const id = (userStore.currentUser as User).id;
+	return `/users/${id}`;
+});
+
+const signOutLink = computed<string>(() => {
+	return `/logout`;
+});
+
+const userFullName = userStore.fullName ?? undefined;
+</script>
+
+<template>
+	<div class="module-bar-avatar">
+		<VBadge :value="unread" :disabled="unread == 0" class="notifications-badge">
+			<VButton
+				v-tooltip.right="$t('notifications')"
+				tile
+				icon
+				x-large
+				class="notifications"
+				@click="notificationsDrawerOpen = true"
+			>
+				<VIcon name="notifications" />
+			</VButton>
+		</VBadge>
+
+		<div class="space-bar">
+			<VDialog v-model="signOutActive" @esc="signOutActive = false">
+				<template #activator="{ on }">
+					<Transition name="sign-out">
+						<VButton v-tooltip.right="$t('sign_out')" tile icon x-large class="sign-out" @click="on">
+							<VIcon name="logout" />
+						</VButton>
+					</Transition>
+				</template>
+
+				<VCard>
+					<VCardTitle>{{ $t('sign_out_confirm') }}</VCardTitle>
+					<VCardActions>
+						<VButton secondary @click="signOutActive = !signOutActive">
+							{{ $t('cancel') }}
+						</VButton>
+						<VButton :to="signOutLink">{{ $t('sign_out') }}</VButton>
+					</VCardActions>
+				</VCard>
+			</VDialog>
+
+			<RouterLink :to="userProfileLink" class="avatar-btn">
+				<VAvatar v-tooltip.right="userFullName" tile large :class="{ 'no-avatar': !avatarURL }">
+					<img
+						v-if="avatarURL && !avatarError"
+						:src="avatarURL"
+						:alt="userFullName"
+						class="avatar-image"
+						@error="avatarError = $event"
+					/>
+					<VIcon v-else name="account_circle" />
+				</VAvatar>
+			</RouterLink>
+		</div>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.module-bar-avatar {
+	position: relative;
+
+	.v-avatar {
+		--v-button-color: var(--theme--navigation--modules--button--foreground);
+		--v-button-color-hover: var(--white);
+		--v-avatar-color: var(--theme--navigation--modules--background);
+
+		position: relative;
+		z-index: 3;
+		overflow: visible;
+
+		.avatar-image {
+			opacity: 0.8;
+			transition: opacity var(--fast) var(--transition);
+		}
+
+		&.no-avatar {
+			&::after {
+				position: absolute;
+				inset-block-start: -0.0625rem;
+				inset-inline: 0.4375rem;
+				block-size: var(--theme--border-width);
+				background-color: var(--theme--navigation--modules--button--foreground);
+				opacity: 0.25;
+				content: '';
+			}
+		}
+
+		.v-icon {
+			--v-icon-color: var(--theme--navigation--modules--button--foreground);
+		}
+
+		&:hover {
+			.avatar-image {
+				opacity: 1;
+			}
+
+			.v-icon {
+				--v-icon-color: var(--theme--navigation--modules--button--foreground-hover);
+			}
+		}
+	}
+
+	.avatar-btn:focus-visible {
+		.v-avatar {
+			outline: var(--focus-ring-width) solid var(--focus-ring-color);
+			outline-offset: var(--focus-ring-offset);
+
+			.avatar-image {
+				opacity: 1;
+
+				/* This adds a second focus ring to the image so we can see the focus better */
+				outline: var(--focus-ring-width) solid var(--theme--navigation--modules--background);
+				outline-offset: var(--focus-ring-offset-invert);
+			}
+		}
+	}
+
+	.notifications-badge {
+		--v-badge-offset-x: 0.875rem;
+		--v-badge-offset-y: 0.875rem;
+	}
+
+	.notifications {
+		--v-button-color: var(--theme--navigation--modules--button--foreground);
+		--v-button-color-hover: var(--theme--navigation--modules--button--foreground-hover);
+		--v-button-background-color: var(--theme--navigation--modules--background);
+		--v-button-background-color-hover: var(--theme--navigation--modules--background);
+	}
+
+	.sign-out {
+		--v-button-color: var(--theme--navigation--modules--button--foreground);
+		--v-button-color-hover: var(--theme--navigation--modules--button--foreground-hover);
+		--v-button-background-color: var(--theme--navigation--modules--background);
+		--v-button-background-color-hover: var(--theme--navigation--modules--background);
+
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		z-index: 2;
+		transition: transform var(--fast) var(--transition);
+		opacity: 0;
+		transform: translateY(100%);
+	}
+
+	.space-bar {
+		&:focus-within,
+		&:hover {
+			.sign-out {
+				opacity: 1;
+				transform: translateY(0%);
+			}
+		}
+	}
+}
+</style>

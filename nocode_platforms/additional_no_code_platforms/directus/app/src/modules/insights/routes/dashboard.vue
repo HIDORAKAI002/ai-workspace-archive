@@ -1,0 +1,455 @@
+<script setup lang="ts">
+import { applyOptionsData } from '@directus/utils';
+import { assign, isEmpty } from 'lodash';
+import { computed, ref, toRefs, unref, watch } from 'vue';
+import { RouterView } from 'vue-router';
+import InsightsNavigation from '../components/navigation.vue';
+import InsightsNotFound from './not-found.vue';
+import VBreadcrumb from '@/components/v-breadcrumb.vue';
+import VButton from '@/components/v-button.vue';
+import VCardActions from '@/components/v-card-actions.vue';
+import VCardText from '@/components/v-card-text.vue';
+import VCardTitle from '@/components/v-card-title.vue';
+import VCard from '@/components/v-card.vue';
+import VDialog from '@/components/v-dialog.vue';
+import VErrorBoundary from '@/components/v-error-boundary.vue';
+import VError from '@/components/v-error.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VNotice from '@/components/v-notice.vue';
+import VProgressCircular from '@/components/v-progress-circular.vue';
+import VSelect from '@/components/v-select/v-select.vue';
+import { AppTile } from '@/components/v-workspace-tile.vue';
+import VWorkspace from '@/components/v-workspace.vue';
+import { useEditsGuard } from '@/composables/use-edits-guard';
+import { useItemPermissions } from '@/composables/use-permissions';
+import { useShortcut } from '@/composables/use-shortcut';
+import { useExtensions } from '@/extensions';
+import { router } from '@/router';
+import { useInsightsStore } from '@/stores/insights';
+import { pointOnLine } from '@/utils/point-on-line';
+import { PrivateViewHeaderBarActionButton } from '@/views/private';
+import { PrivateView } from '@/views/private';
+import CommentsSidebarDetail from '@/views/private/components/comments-sidebar-detail.vue';
+import RefreshSidebarDetail from '@/views/private/components/refresh-sidebar-detail.vue';
+
+const props = withDefaults(
+	defineProps<{
+		primaryKey: string;
+		panelKey?: string | null;
+	}>(),
+	{ panelKey: null },
+);
+
+const { panels: panelsInfo } = useExtensions();
+
+const insightsStore = useInsightsStore();
+
+const { loading, errors, data, saving, hasEdits, refreshIntervals, variables } = toRefs(insightsStore);
+
+const zoomToFit = ref(false);
+
+const { updateAllowed } = useItemPermissions('directus_panels', props.primaryKey, false);
+
+const now = new Date();
+
+const editMode = ref(false);
+
+const tiles = computed<AppTile[]>(() => {
+	const panels = insightsStore.getPanelsForDashboard(props.primaryKey);
+
+	const panelsWithCoordinates = panels.map((panel) => ({
+		...panel,
+		coordinates: [
+			[panel.position_x!, panel.position_y!],
+			[panel.position_x! + panel.width!, panel.position_y!],
+			[panel.position_x! + panel.width!, panel.position_y! + panel.height!],
+			[panel.position_x!, panel.position_y! + panel.height!],
+		] as [number, number][],
+	}));
+
+	const tiles: AppTile[] = panelsWithCoordinates
+		.map((panel) => {
+			let topLeftIntersects = false;
+			let topRightIntersects = false;
+			let bottomRightIntersects = false;
+			let bottomLeftIntersects = false;
+
+			for (const otherPanel of panelsWithCoordinates) {
+				if (otherPanel.id === panel.id) continue;
+
+				const borders = [
+					[otherPanel.coordinates[0], otherPanel.coordinates[1]],
+					[otherPanel.coordinates[1], otherPanel.coordinates[2]],
+					[otherPanel.coordinates[2], otherPanel.coordinates[3]],
+					[otherPanel.coordinates[3], otherPanel.coordinates[0]],
+				];
+
+				if (topLeftIntersects === false) {
+					topLeftIntersects = borders.some(([p1, p2]) => pointOnLine(panel.coordinates[0], p1, p2));
+				}
+
+				if (topRightIntersects === false) {
+					topRightIntersects = borders.some(([p1, p2]) => pointOnLine(panel.coordinates[1], p1, p2));
+				}
+
+				if (bottomRightIntersects === false) {
+					bottomRightIntersects = borders.some(([p1, p2]) => pointOnLine(panel.coordinates[2], p1, p2));
+				}
+
+				if (bottomLeftIntersects === false) {
+					bottomLeftIntersects = borders.some(([p1, p2]) => pointOnLine(panel.coordinates[3], p1, p2));
+				}
+			}
+
+			const panelType = unref(panelsInfo).find((panelType) => panelType.id === panel.type);
+
+			const tile: AppTile = {
+				id: panel.id,
+				x: panel.position_x,
+				y: panel.position_y,
+				width: panel.width,
+				height: panel.height,
+				name: panel.name,
+				icon: panel.icon ?? panelType?.icon,
+				color: panel.color,
+				note: panel.note,
+				showHeader: panel.show_header === true,
+				minWidth: panelType?.minWidth,
+				minHeight: panelType?.minHeight,
+				draggable: true,
+				borderRadius: [!topLeftIntersects, !topRightIntersects, !bottomRightIntersects, !bottomLeftIntersects],
+				data: {
+					options: applyOptionsData(panel.options ?? {}, unref(variables), panelType?.skipUndefinedKeys),
+					type: panel.type,
+				},
+			};
+
+			return tile;
+		})
+		.filter((t) => t);
+
+	return tiles;
+});
+
+watch(
+	() => props.primaryKey,
+	() => {
+		insightsStore.refresh(props.primaryKey);
+	},
+);
+
+const confirmCancel = ref(false);
+
+const cancelChanges = (force = false) => {
+	if (unref(hasEdits) && force !== true) {
+		confirmCancel.value = true;
+	} else {
+		insightsStore.clearEdits();
+		editMode.value = false;
+		confirmCancel.value = false;
+		insightsStore.refresh(props.primaryKey);
+	}
+};
+
+const copyPanelTo = ref(insightsStore.dashboards.find((dashboard) => dashboard.id !== props.primaryKey)?.id);
+const copyPanelID = ref<string | null>();
+
+const copyPanel = () => {
+	if (!copyPanelChoices.value.length) return;
+
+	insightsStore.stagePanelDuplicate(unref(copyPanelID)!, { dashboard: unref(copyPanelTo) });
+	copyPanelID.value = null;
+};
+
+useShortcut('meta+s', () => {
+	saveChanges();
+});
+
+async function saveChanges() {
+	await insightsStore.saveChanges();
+	editMode.value = false;
+}
+
+watch(editMode, (editModeEnabled) => {
+	if (editModeEnabled) {
+		zoomToFit.value = false;
+	}
+});
+
+const currentDashboard = computed(() => insightsStore.getDashboard(props.primaryKey));
+
+const copyPanelChoices = computed(() => {
+	return insightsStore.dashboards.filter((dashboard) => dashboard.id !== props.primaryKey);
+});
+
+const { confirmLeave, leaveTo } = useEditsGuard(hasEdits, {
+	ignorePrefix: computed(() => `/insights/${props.primaryKey}`),
+});
+
+const discardAndLeave = () => {
+	if (!unref(leaveTo)) return;
+	cancelChanges(true);
+	confirmLeave.value = false;
+	router.push(unref(leaveTo)!);
+};
+
+const toggleZoomToFit = () => (zoomToFit.value = !zoomToFit.value);
+
+const refreshInterval = computed({
+	get() {
+		return unref(refreshIntervals)[props.primaryKey] ?? null;
+	},
+	set(val) {
+		refreshIntervals.value = assign({}, unref(refreshIntervals), { [props.primaryKey]: val });
+	},
+});
+</script>
+
+<template>
+	<InsightsNotFound v-if="!currentDashboard" />
+	<PrivateView v-else :title="currentDashboard.name" :icon="currentDashboard.icon">
+		<template #headline>
+			<VBreadcrumb :items="[{ name: $t('insights'), to: '/insights' }]" />
+		</template>
+
+		<template #actions>
+			<template v-if="editMode">
+				<PrivateViewHeaderBarActionButton
+					v-tooltip.bottom="$t('clear_changes')"
+					class="clear-changes"
+					outlined
+					icon="clear"
+					@click="cancelChanges"
+				/>
+
+				<PrivateViewHeaderBarActionButton
+					v-tooltip.bottom="$t('create_panel')"
+					outlined
+					:to="`/insights/${currentDashboard.id}/+`"
+					icon="add"
+				/>
+
+				<PrivateViewHeaderBarActionButton
+					v-tooltip.bottom="$t('save')"
+					:disabled="!hasEdits"
+					:loading="saving"
+					icon="check"
+					@click="saveChanges"
+				/>
+			</template>
+
+			<template v-else>
+				<PrivateViewHeaderBarActionButton
+					v-tooltip.bottom="$t('fit_to_screen')"
+					:active="zoomToFit"
+					class="zoom-to-fit"
+					outlined
+					icon="aspect_ratio"
+					@click="toggleZoomToFit"
+				/>
+
+				<PrivateViewHeaderBarActionButton
+					v-tooltip.bottom="$t('edit_panels')"
+					class="edit"
+					outlined
+					:disabled="!updateAllowed"
+					icon="edit"
+					@click="editMode = !editMode"
+				/>
+			</template>
+		</template>
+
+		<template #sidebar>
+			<CommentsSidebarDetail :key="primaryKey" collection="directus_dashboards" :primary-key="primaryKey" />
+
+			<RefreshSidebarDetail v-model="refreshInterval" @refresh="insightsStore.refresh(primaryKey)" />
+		</template>
+
+		<template #navigation>
+			<InsightsNavigation />
+		</template>
+
+		<VWorkspace
+			:edit-mode="editMode"
+			:tiles="tiles"
+			:zoom-to-fit="zoomToFit"
+			@duplicate="(tile) => insightsStore.stagePanelDuplicate(tile.id)"
+			@edit="(tile) => router.push(`/insights/${primaryKey}/${tile.id}`)"
+			@update="insightsStore.stagePanelUpdate"
+			@delete="insightsStore.stagePanelDelete"
+			@move="copyPanelID = $event"
+		>
+			<template #default="{ tile, gridSize }">
+				<VProgressCircular
+					v-if="loading.includes(tile.id) && !data[tile.id]"
+					:class="{ 'header-offset': tile.showHeader }"
+					class="panel-loading"
+					indeterminate
+				/>
+				<div v-else class="panel-container" :class="{ loading: loading.includes(tile.id) }">
+					<div v-if="errors[tile.id]" class="panel-error">
+						<VIcon name="warning" />
+						{{ $t('unexpected_error') }}
+						<VError :error="errors[tile.id]" />
+					</div>
+					<div
+						v-else-if="tile.id in data && isEmpty(data[tile.id])"
+						class="panel-no-data type-note"
+						:class="{ 'header-offset': tile.showHeader }"
+					>
+						{{ $t('no_data') }}
+					</div>
+					<VErrorBoundary v-else :name="`panel-${tile.data.type}`">
+						<component
+							:is="`panel-${tile.data.type}`"
+							v-bind="tile.data.options"
+							:id="tile.id"
+							:dashboard="primaryKey"
+							:show-header="tile.showHeader"
+							:height="tile.height"
+							:width="tile.width"
+							:now="now"
+							:data="data[tile.id]"
+							:grid-size="gridSize"
+						/>
+
+						<template #fallback="{ error }">
+							<div class="panel-error">
+								<VIcon name="warning" />
+								{{ $t('unexpected_error') }}
+								<VError :error="error" />
+							</div>
+						</template>
+					</VErrorBoundary>
+				</div>
+			</template>
+		</VWorkspace>
+
+		<RouterView name="detail" :dashboard-key="primaryKey" :panel-key="panelKey" />
+
+		<VDialog
+			:model-value="!!copyPanelID"
+			@update:model-value="copyPanelID = null"
+			@esc="copyPanelID = null"
+			@apply="copyPanel"
+		>
+			<VCard>
+				<VCardTitle>{{ $t('copy_to') }}</VCardTitle>
+
+				<VCardText>
+					<VNotice v-if="!copyPanelChoices.length">
+						{{ $t('no_other_dashboards_copy') }}
+					</VNotice>
+					<VSelect v-else v-model="copyPanelTo" :items="copyPanelChoices" item-text="name" item-value="id" />
+				</VCardText>
+
+				<VCardActions>
+					<VButton secondary @click="copyPanelID = null">
+						{{ $t('cancel') }}
+					</VButton>
+					<VButton :disabled="!copyPanelChoices.length" @click="copyPanel">
+						{{ $t('copy') }}
+					</VButton>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+
+		<VDialog v-model="confirmCancel" @esc="confirmCancel = false" @apply="cancelChanges(true)">
+			<VCard>
+				<VCardTitle>{{ $t('unsaved_changes') }}</VCardTitle>
+				<VCardText>{{ $t('discard_changes_copy') }}</VCardText>
+				<VCardActions>
+					<VButton secondary @click="cancelChanges(true)">
+						{{ $t('discard_changes') }}
+					</VButton>
+					<VButton @click="confirmCancel = false">{{ $t('keep_editing') }}</VButton>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+
+		<VDialog v-model="confirmLeave" @esc="confirmLeave = false" @apply="discardAndLeave">
+			<VCard>
+				<VCardTitle>{{ $t('unsaved_changes') }}</VCardTitle>
+				<VCardText>{{ $t('unsaved_changes_copy') }}</VCardText>
+				<VCardActions>
+					<VButton secondary @click="discardAndLeave">
+						{{ $t('discard_changes') }}
+					</VButton>
+
+					<VButton @click="confirmLeave = false">{{ $t('keep_editing') }}</VButton>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+	</PrivateView>
+</template>
+
+<style scoped lang="scss">
+.zoom-to-fit,
+.clear-changes {
+	--v-button-color: var(--theme--foreground);
+	--v-button-color-hover: var(--theme--foreground);
+	--v-button-background-color: var(--theme--foreground-subdued);
+	--v-button-background-color-hover: var(--theme--foreground);
+	--v-button-color-active: var(--foreground-inverted);
+	--v-button-background-color-active: var(--theme--primary);
+}
+
+.header-icon {
+	--v-button-color-disabled: var(--theme--foreground);
+}
+
+.panel-container {
+	inline-size: 100%;
+	block-size: 100%;
+	opacity: 1;
+	transition: opacity var(--fast) var(--transition);
+
+	&.loading {
+		opacity: 0.5;
+	}
+}
+
+.panel-loading {
+	position: absolute;
+	inset-inline-start: 50%;
+	inset-block-start: 50%;
+	transform: translate(-50%, -50%);
+
+	html[dir='rtl'] & {
+		transform: translate(50%, -50%);
+	}
+
+	&.header-offset {
+		inset-block-start: calc(50% - 0.6875rem);
+	}
+}
+
+.panel-error {
+	padding: 1.125rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	inline-size: 100%;
+	block-size: 100%;
+
+	--v-icon-color: var(--theme--danger);
+
+	.v-error {
+		margin-block-start: 0.4375rem;
+		max-inline-size: 100%;
+	}
+}
+
+.panel-no-data {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 100%;
+	block-size: 100%;
+
+	&.header-offset {
+		block-size: calc(100% - 1.375rem);
+	}
+}
+</style>

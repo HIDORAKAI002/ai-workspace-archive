@@ -1,0 +1,46 @@
+{
+	"name": "@directus/release-notes-generator",
+	"version": "2.0.4",
+	"description": "Directus tailored release notes generator for changesets",
+	"homepage": "https://directus.io",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/release-notes-generator"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "MIT",
+	"author": "Pascal Jufer <pascal-jufer@bluewin.ch>",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown --tsconfig tsconfig.prod.json",
+		"dev": "tsdown --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@changesets/get-github-info": "catalog:",
+		"@pnpm/logger": "catalog:",
+		"@pnpm/workspace.find-packages": "catalog:",
+		"@pnpm/workspace.pkgs-graph": "catalog:",
+		"semver": "catalog:"
+	},
+	"devDependencies": {
+		"@changesets/types": "catalog:",
+		"@directus/tsconfig": "catalog:",
+		"@types/node": "catalog:",
+		"@types/semver": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"typescript": "catalog:",
+		"tsdown": "catalog:",
+		"vitest": "catalog:"
+	}
+}

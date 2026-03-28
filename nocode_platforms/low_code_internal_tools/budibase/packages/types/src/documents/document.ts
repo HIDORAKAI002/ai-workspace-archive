@@ -1,0 +1,103 @@
+export const SEPARATOR = "_"
+export const UNICODE_MAX = "\ufff0"
+
+export const prefixed = (type: DocumentType) => `${type}${SEPARATOR}`
+
+export enum DocumentType {
+  USER = "us",
+  GROUP = "gr",
+  CONFIG = "config",
+  TEMPLATE = "template",
+  WORKSPACE = "app",
+  DEV = "dev",
+  WORKSPACE_DEV = "app_dev",
+  WORKSPACE_METADATA = "app_metadata",
+  ROLE = "role",
+  DEV_INFO = "devinfo",
+  AUTOMATION_LOG = "log_au",
+  ACCOUNT_METADATA = "acc_metadata",
+  PLUGIN = "plg",
+  DATASOURCE = "datasource",
+  DATASOURCE_PLUS = "datasource_plus",
+  WORKSPACE_BACKUP = "backup",
+  TABLE = "ta",
+  ROW = "ro",
+  AUTOMATION = "au",
+  LINK = "li",
+  WEBHOOK = "wh",
+  INSTANCE = "inst",
+  LAYOUT = "layout",
+  SCREEN = "screen",
+  QUERY = "query",
+  DEPLOYMENTS = "deployments",
+  METADATA = "metadata",
+  MEM_VIEW = "view",
+  USER_FLAG = "flag",
+  AUTOMATION_METADATA = "meta_au",
+  AUDIT_LOG = "al",
+  SCIM_LOG = "scimlog",
+  ROW_ACTIONS = "ra",
+  OAUTH2_CONFIG = "oauth2",
+  OAUTH2_CONFIG_LOG = "oauth2log",
+  AGENT = "agent",
+  CHAT_APP = "chatapp",
+  CHAT_CONVERSATION = "chatconvo",
+  CHAT_IDENTITY_LINK = "chatidentitylink",
+  AGENT_TOOL_SOURCE = "agenttoolsource",
+  AGENT_FILE = "agentfile",
+  AGENT_LOG_SESSION = "agentlogsession",
+  AGENT_LOG_REQUEST = "agentlogrequest",
+  KNOWLEDGE_BASE_FILE = "knowledgebasefile",
+  AI_CONFIG = "aiconfig",
+  LITELLM_KEY = "litellmkey",
+  VECTOR_STORE = "vectordb",
+  KNOWLEDGE_BASE = "knowledgebase",
+  WORKSPACE_APP = "workspace_app",
+  WORKSPACE_FAVOURITE = "workspace_favourite",
+  AUTO_COLUMN_STATE = "autocolumn_state",
+}
+
+// these are the core documents that make up the data, design
+// and automation sections of an app. This excludes any internal
+// rows as we shouldn't import data.
+export const DocumentTypesToImport: DocumentType[] = [
+  DocumentType.ROLE,
+  DocumentType.DATASOURCE,
+  DocumentType.DATASOURCE_PLUS,
+  DocumentType.TABLE,
+  DocumentType.AUTOMATION,
+  DocumentType.WEBHOOK,
+  DocumentType.SCREEN,
+  DocumentType.QUERY,
+  DocumentType.METADATA,
+  DocumentType.MEM_VIEW,
+  DocumentType.WORKSPACE_APP,
+  DocumentType.WORKSPACE_FAVOURITE,
+  // Deprecated but still copied
+  DocumentType.INSTANCE,
+  DocumentType.LAYOUT,
+]
+
+export enum InternalTable {
+  USER_METADATA = "ta_users",
+}
+
+// these documents don't really exist, they are part of other
+// documents or enriched into existence as part of get requests
+export enum VirtualDocumentType {
+  VIEW = "view",
+  ROW_ACTION = "row_action",
+}
+
+export interface Document {
+  _id?: string
+  _rev?: string
+  // document has been tombstoned - needed for replication
+  _deleted?: boolean
+  createdAt?: string | number
+  updatedAt?: string
+}
+
+export interface AnyDocument extends Document {
+  [key: string]: any
+}

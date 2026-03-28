@@ -1,0 +1,142 @@
+{
+  "identifier": "INVOKE_FUNCTION",
+  "controlType": "SECTION_V2",
+  "conditionals": {
+    "show": "{{actionConfiguration.formData.command.data === 'INVOKE_FUNCTION'}}"
+  },
+  "children": [
+    {
+      "controlType": "DOUBLE_COLUMN_ZONE",
+      "label": "Details of lambda function",
+      "children": [
+        {
+          "label": "Function to invoke",
+          "tooltipText": "This is the name of the AWS lambda function that will be invoked.",
+          "subtitle": "",
+          "isRequired": true,
+          "propertyName": "function_name",
+          "configProperty": "actionConfiguration.formData.functionName.data",
+          "controlType": "DROP_DOWN",
+          "initialValue": "",
+          "options": [],
+          "placeholderText": "All function names will be fetched.",
+          "fetchOptionsConditionally": true,
+          "setFirstOptionAsDefault": true,
+          "alternateViewTypes": ["json"],
+          "conditionals": {
+            "enable": "{{true}}",
+            "fetchDynamicValues": {
+              "condition": "{{actionConfiguration.formData.command.data === 'INVOKE_FUNCTION'}}",
+              "config": {
+                "params": {
+                  "requestType": "FUNCTION_NAMES",
+                  "displayType": "DROP_DOWN"
+                }
+              }
+            }
+          }
+        },
+        {
+          "label": "Function version",
+          "tooltipText": "Optional: Specify a version number (e.g., 1, 2, $LATEST) or leave empty for $LATEST.",
+          "subtitle": "",
+          "isRequired": false,
+          "propertyName": "function_version",
+          "configProperty": "actionConfiguration.formData.functionVersion.data",
+          "controlType": "DROP_DOWN",
+          "initialValue": "",
+          "options": [],
+          "placeholderText": "Leave empty for $LATEST version",
+          "fetchOptionsConditionally": true,
+          "setFirstOptionAsDefault": false,
+          "alternateViewTypes": ["json"],
+          "conditionals": {
+            "enable": "{{actionConfiguration.formData.functionName.data}}",
+            "fetchDynamicValues": {
+              "condition": "{{actionConfiguration.formData.command.data === 'INVOKE_FUNCTION' && actionConfiguration.formData.functionName.data}}",
+              "config": {
+                "params": {
+                  "requestType": "FUNCTION_VERSIONS",
+                  "displayType": "DROP_DOWN",
+                  "parameters": {
+                    "functionName": "{{actionConfiguration.formData.functionName.data}}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "label": "Function alias",
+          "tooltipText": "Optional: Specify an alias name (e.g., PROD, STAGING) or leave empty for no alias.",
+          "subtitle": "",
+          "isRequired": false,
+          "propertyName": "function_alias",
+          "configProperty": "actionConfiguration.formData.functionAlias.data",
+          "controlType": "DROP_DOWN",
+          "initialValue": "",
+          "options": [],
+          "placeholderText": "Leave empty for no alias",
+          "fetchOptionsConditionally": true,
+          "setFirstOptionAsDefault": false,
+          "alternateViewTypes": ["json"],
+          "conditionals": {
+            "enable": "{{actionConfiguration.formData.functionName.data}}",
+            "fetchDynamicValues": {
+              "condition": "{{actionConfiguration.formData.command.data === 'INVOKE_FUNCTION' && actionConfiguration.formData.functionName.data}}",
+              "config": {
+                "params": {
+                  "requestType": "FUNCTION_ALIASES",
+                  "displayType": "DROP_DOWN",
+                  "parameters": {
+                    "functionName": "{{actionConfiguration.formData.functionName.data}}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "label": "Type of invocation",
+          "tooltipText": "Should the invocation be synchronous or asynchronous?",
+          "subtitle": "",
+          "isRequired": true,
+          "propertyName": "invocation_type",
+          "configProperty": "actionConfiguration.formData.invocationType.data",
+          "controlType": "DROP_DOWN",
+          "initialValue": "",
+          "options": [
+            {
+              "label": "Synchronous",
+              "value": "RequestResponse"
+            },
+            {
+              "label": "Asynchronous",
+              "value": "Event"
+            },
+            {
+              "label": "Dry run",
+              "value": "DryRun"
+            }
+          ],
+          "placeholderText": "",
+          "fetchOptionsConditionally": false,
+          "setFirstOptionAsDefault": true,
+          "alternateViewTypes": ["json"]
+        }
+      ]
+    },
+    {
+      "controlType": "SINGLE_COLUMN_ZONE",
+      "children": [
+        {
+          "label": "Post body",
+          "configProperty": "actionConfiguration.formData.body.data",
+          "controlType": "QUERY_DYNAMIC_TEXT",
+          "initialValue": "",
+          "placeHolderText": "{`\"key1\": \"value1\"`}"
+        }
+      ]
+    }
+  ]
+}

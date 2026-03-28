@@ -1,0 +1,165 @@
+name: Style check
+
+on:
+  workflow_call:
+
+concurrency:
+  group: style-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  statuses: write
+  contents: read
+
+jobs:
+  python-style:
+    name: Python Style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check changed files
+        id: changed-files
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+        with:
+          files: |
+            api/**
+            .github/workflows/style.yml
+
+      - name: Setup UV and Python
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: false
+          python-version: "3.12"
+          cache-dependency-glob: api/uv.lock
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: uv sync --project api --dev
+
+      - name: Run Import Linter
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: uv run --directory api --dev lint-imports
+
+      - name: Run Type Checks
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: make type-check-core
+
+      - name: Dotenv check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: uv run --project api dotenv-linter ./api/.env.example ./web/.env.example
+
+  web-style:
+    name: Web Style
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+    permissions:
+      checks: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check changed files
+        id: changed-files
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+        with:
+          files: |
+            web/**
+            .github/workflows/style.yml
+            .github/actions/setup-web/**
+
+      - name: Setup web environment
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: ./.github/actions/setup-web
+
+      - name: Restore ESLint cache
+        if: steps.changed-files.outputs.any_changed == 'true'
+        id: eslint-cache-restore
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: web/.eslintcache
+          key: ${{ runner.os }}-web-eslint-${{ hashFiles('web/package.json', 'web/pnpm-lock.yaml', 'web/eslint.config.mjs', 'web/eslint.constants.mjs', 'web/plugins/eslint/**') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-web-eslint-${{ hashFiles('web/package.json', 'web/pnpm-lock.yaml', 'web/eslint.config.mjs', 'web/eslint.constants.mjs', 'web/plugins/eslint/**') }}-
+
+      - name: Web style check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        working-directory: ./web
+        run: vp run lint:ci
+
+      - name: Web tsslint
+        if: steps.changed-files.outputs.any_changed == 'true'
+        working-directory: ./web
+        run: vp run lint:tss
+
+      - name: Web type check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        working-directory: ./web
+        run: vp run type-check
+
+      - name: Web dead code check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        working-directory: ./web
+        run: vp run knip
+
+      - name: Save ESLint cache
+        if: steps.changed-files.outputs.any_changed == 'true' && success() && steps.eslint-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: web/.eslintcache
+          key: ${{ steps.eslint-cache-restore.outputs.cache-primary-key }}
+
+  superlinter:
+    name: SuperLinter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check changed files
+        id: changed-files
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+        with:
+          files: |
+            **.sh
+            **.yaml
+            **.yml
+            **Dockerfile
+            dev/**
+            .editorconfig
+
+      - name: Super-linter
+        uses: super-linter/super-linter/slim@61abc07d755095a68f4987d1c2c3d1d64408f1f9 # v8.5.0
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          BASH_SEVERITY: warning
+          DEFAULT_BRANCH: origin/main
+          EDITORCONFIG_FILE_NAME: editorconfig-checker.json
+          FILTER_REGEX_INCLUDE: pnpm-lock.yaml
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IGNORE_GENERATED_FILES: true
+          IGNORE_GITIGNORED_FILES: true
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          # FIXME: temporarily disabled until api-docker.yaml's run script is fixed for shellcheck
+          # VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_EDITORCONFIG: true
+          VALIDATE_XML: true
+          VALIDATE_YAML: true

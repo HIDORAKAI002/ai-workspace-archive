@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "target": "es2020"
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/tests",
+    "**/*.spec.js",
+    "**/*.spec.ts"
+  ]
+}

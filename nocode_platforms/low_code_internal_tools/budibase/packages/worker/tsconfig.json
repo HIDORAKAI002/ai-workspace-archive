@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.build.json",
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "include": ["src/**/*", "__mocks__/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

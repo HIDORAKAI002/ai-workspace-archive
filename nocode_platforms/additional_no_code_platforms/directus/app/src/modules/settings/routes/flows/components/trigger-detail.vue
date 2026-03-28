@@ -1,0 +1,125 @@
+<script setup lang="ts">
+import { FlowRaw, TriggerType } from '@directus/types';
+import { computed, ref } from 'vue';
+import { getTriggers } from '../triggers';
+import VDrawer from '@/components/v-drawer.vue';
+import VFancySelect from '@/components/v-fancy-select.vue';
+import VForm from '@/components/v-form/v-form.vue';
+import { PrivateViewHeaderBarActionButton } from '@/views/private';
+
+const props = defineProps<{
+	open: boolean;
+	flow?: FlowRaw;
+	preview?: boolean;
+}>();
+
+const emit = defineEmits(['update:open', 'update:flow', 'first-save']);
+
+const flowEdits = ref<{
+	trigger?: TriggerType;
+	options: Record<string, any>;
+}>({
+	trigger: props.flow?.trigger ?? undefined,
+	options: props.flow?.options ?? {
+		name: '',
+	},
+});
+
+function saveTrigger() {
+	if (!currentTrigger.value) return;
+
+	emit('update:flow', {
+		...(props.flow ?? {}),
+		...flowEdits.value,
+	});
+
+	emit('update:open', false);
+}
+
+const { triggers } = getTriggers();
+
+const currentTrigger = computed(() => triggers.find((trigger) => trigger.id === flowEdits.value.trigger));
+
+const currentTriggerOptionFields = computed(() => {
+	if (!currentTrigger.value) return [];
+
+	if (typeof currentTrigger.value.options === 'function') {
+		return currentTrigger.value.options(flowEdits.value.options);
+	}
+
+	return currentTrigger.value.options;
+});
+</script>
+
+<template>
+	<VDrawer
+		:model-value="open"
+		:title="$t('change_trigger')"
+		:subtitle="$t('trigger_options')"
+		icon="offline_bolt"
+		persistent
+		@cancel="$emit('update:open', false)"
+	>
+		<template #actions>
+			<PrivateViewHeaderBarActionButton
+				v-tooltip.bottom="$t('done')"
+				:disabled="!currentTrigger"
+				icon="check"
+				@click="saveTrigger"
+			/>
+		</template>
+
+		<div class="content">
+			<VFancySelect v-model="flowEdits.trigger" class="select" :items="triggers" item-text="name" item-value="id" />
+
+			<VForm
+				v-if="flowEdits.trigger"
+				v-model="flowEdits.options"
+				class="extension-options"
+				:fields="currentTriggerOptionFields"
+				:initial-values="flow?.options"
+				primary-key="+"
+			/>
+		</div>
+	</VDrawer>
+</template>
+
+<style scoped lang="scss">
+@use '@/styles/mixins';
+
+.content {
+	padding: var(--content-padding);
+	padding-block-end: var(--content-padding-bottom);
+
+	.grid {
+		@include mixins.form-grid;
+	}
+}
+
+.v-divider {
+	margin: 2.9375rem 0;
+}
+
+.type-label {
+	margin-block-end: 0.4375rem;
+}
+
+.type-title,
+.select {
+	margin-block-end: 1.8125rem;
+}
+
+.not-found {
+	.spacer {
+		flex-grow: 1;
+	}
+
+	button {
+		text-decoration: underline;
+	}
+}
+
+.v-notice {
+	margin-block-end: 2rem;
+}
+</style>

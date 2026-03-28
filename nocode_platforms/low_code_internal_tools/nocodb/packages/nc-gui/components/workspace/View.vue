@@ -1,0 +1,453 @@
+<script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+
+const props = defineProps<{
+  workspaceId?: string
+  isNewWsPage?: boolean
+}>()
+
+const router = useRouter()
+const route = router.currentRoute
+
+const { t } = useI18n()
+
+const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
+
+const { appInfo, isMobileMode } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { loadCollaborators, loadWorkspace } = workspaceStore
+
+const orgStore = useOrg()
+const { orgId, org } = storeToRefs(orgStore)
+
+const {
+  isWsAuditEnabled,
+  handleUpgradePlan,
+  isPaymentEnabled,
+  getFeature,
+  blockTeamsManagement,
+  showUpgradeToUseTeams,
+  showEEFeatures,
+} = useEeConfig()
+
+const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
+
+// Local ref for inner integrations sub-tabs in settings sidebar mode.
+// Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
+// also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
+const integrationsSubTab = ref<string>('integrations')
+
+const hasTeamsEditPermission = computed(() => {
+  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
+})
+
+const currentWorkspace = computedAsync(async () => {
+  if (deletingWorkspace.value) return
+  let ws
+  if (props.workspaceId) {
+    ws = workspaces.value.get(props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+      ws = workspaces.value.get(props.workspaceId)
+    }
+  } else {
+    ws = _activeWorkspace.value
+  }
+  await loadRoles(undefined, {}, ws?.id)
+  return ws
+})
+
+const tab = computed({
+  get() {
+    return props.isNewWsPage
+      ? routeNameToWsTab[route.value.name as string] || 'collaborators'
+      : route.value.query?.tab ?? 'collaborators'
+  },
+  set(tab: string) {
+    if (!isWsAuditEnabled.value && tab === 'audits') {
+      return handleUpgradePlan({
+        title: t('upgrade.upgradeToAccessWsAudit'),
+        content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
+          plan: PlanTitles.ENTERPRISE,
+        }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      })
+    }
+
+    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+
+    if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({} as any, props.workspaceId)
+    }
+
+    if (props.isNewWsPage) {
+      router.push({ name: wsTabToRouteName[tab] || 'index-typeOrId' })
+    } else {
+      router.push({ query: { ...route.value.query, tab } })
+    }
+  },
+})
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
+})
+
+const tabTitleMap: Record<string, string> = {
+  bases: t('objects.projects'),
+  collaborators: t('labels.members'),
+  teams: t('general.teams'),
+  integrations: t('general.integrations'),
+  billing: t('general.billing'),
+  audits: t('title.audits'),
+  sso: t('title.sso'),
+  settings: t('labels.settings'),
+}
+
+watch(
+  [() => currentWorkspace.value?.title, () => tab.value],
+  ([wsTitle, activeTab]) => {
+    if (!wsTitle) return
+
+    const capitalizedTitle = wsTitle.charAt(0).toUpperCase() + wsTitle.slice(1)
+
+    if (props.isNewWsPage) {
+      const tabLabel = tabTitleMap[activeTab as string]
+      useTitle(tabLabel ? `${tabLabel} - ${capitalizedTitle}` : capitalizedTitle)
+    } else {
+      useTitle(capitalizedTitle)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+onMounted(() => {
+  until(() => currentWorkspace.value?.id && isBaseRolesLoaded.value)
+    .toMatch((v) => !!v)
+    .then(async () => {
+      if (isUIAllowed('workspaceCollaborators')) {
+        await loadCollaborators({} as any, currentWorkspace.value!.id)
+      }
+    })
+})
+
+watch(
+  () => tab.value,
+  async (newTab, oldTab) => {
+    if (newTab === 'integrations') {
+      isFromIntegrationPage.value = true
+
+      await until(() => currentWorkspace.value?.id)
+        .toMatch((v) => !!v)
+        .then(async () => {
+          await loadIntegrations()
+        })
+    }
+
+    if (oldTab === 'integrations') {
+      isFromIntegrationPage.value = false
+      integrationsSubTab.value = 'integrations'
+    }
+
+    await until(() => isBaseRolesLoaded.value).toBeTruthy()
+
+    if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+      tab.value = 'settings'
+    } else if (
+      (!isWsAuditEnabled.value && newTab === 'audits') ||
+      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
+    ) {
+      tab.value = 'collaborators'
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+if (!props.isNewWsPage) {
+  onMounted(() => {
+    hideSidebar.value = true
+  })
+
+  onBeforeUnmount(() => {
+    hideSidebar.value = false
+  })
+}
+</script>
+
+<template>
+  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
+    <div
+      v-if="!props.workspaceId && !isNewWsPage"
+      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
+    >
+      <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
+      <div
+        class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title"
+        :class="{
+          'max-w-[calc(100%_-_52px)]': isMobileMode,
+        }"
+      >
+        <div
+          class="nc-breadcrumb-item capitalize truncate"
+          :class="{
+            '!text-bodyLgBold': isNewWsPage,
+          }"
+        >
+          {{ currentWorkspace?.title }}
+        </div>
+        <template v-if="!isNewWsPage">
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+
+          <h1 class="nc-breadcrumb-item active truncate">
+            {{ $t('title.teamAndSettings') }}
+          </h1>
+        </template>
+      </div>
+
+      <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
+    </div>
+    <template v-else-if="!isNewWsPage">
+      <div class="nc-breadcrumb px-2">
+        <div class="nc-breadcrumb-item">
+          {{ org.title }}
+        </div>
+        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+
+        <NuxtLink
+          :href="`/admin/${orgId}/workspaces`"
+          class="!hover:(text-nc-content-gray underline-nc-border-gray-underline) flex items-center !text-nc-content-gray-subtle !underline-transparent max-w-1/4"
+        >
+          <div class="nc-breadcrumb-item">
+            {{ $t('labels.workspaces') }}
+          </div>
+        </NuxtLink>
+        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+
+        <div class="nc-breadcrumb-item active truncate capitalize">
+          {{ currentWorkspace?.title }}
+        </div>
+      </div>
+      <NcPageHeader>
+        <template #icon>
+          <div class="flex justify-center items-center h-6 w-6">
+            <GeneralWorkspaceIcon :workspace="currentWorkspace" size="medium" />
+          </div>
+        </template>
+        <template #title>
+          <span data-rec="true" class="capitalize">
+            {{ currentWorkspace?.title }}
+          </span>
+        </template>
+      </NcPageHeader>
+    </template>
+
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :class="{ 'hide-tabs': isNewWsPage }">
+      <template #leftExtra>
+        <div class="w-3"></div>
+      </template>
+      <template v-if="isUIAllowed('workspaceCollaborators')">
+        <a-tab-pane key="collaborators" class="w-full h-full">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="users" class="h-4 w-4" />
+              {{ $t('labels.members') }}
+            </div>
+          </template>
+
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
+        </a-tab-pane>
+
+        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission && showEEFeatures" key="teams" class="w-full h-full">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
+              {{ $t('general.teams') }}
+              <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT" remove-click />
+            </div>
+          </template>
+
+          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
+        </a-tab-pane>
+      </template>
+      <template v-if="!isMobileMode">
+        <a-tab-pane
+          v-if="isNewWsPage && isUIAllowed('workspaceIntegrations') && !isMobileMode"
+          key="integrations"
+          class="w-full h-full"
+        >
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="integration" class="h-4 w-4" />
+              {{ $t('general.integrations') }}
+            </div>
+          </template>
+          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] flex nc-content-max-w mx-auto">
+            <!-- Left: vertical nav -->
+            <div class="nc-integrations-sidebar flex flex-col gap-1 pl-6 pr-2 pt-6 w-48 flex-shrink-0">
+              <div
+                class="nc-integrations-nav-item"
+                :class="{ active: integrationsSubTab === 'integrations' }"
+                @click="integrationsSubTab = 'integrations'"
+              >
+                <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
+                <span class="flex-1">{{ $t('general.integrations') }}</span>
+              </div>
+              <div
+                class="nc-integrations-nav-item"
+                :class="{ active: integrationsSubTab === 'connections' }"
+                @click="integrationsSubTab = 'connections'"
+              >
+                <GeneralIcon icon="gitCommit" class="h-4 w-4 flex-none" />
+                <span class="flex-1">{{ $t('general.connections') }}</span>
+                <div
+                  v-if="integrationPaginationData?.totalRows"
+                  class="tab-info flex-none"
+                  :class="{
+                    'bg-primary-selected': integrationsSubTab === 'connections',
+                    'bg-nc-bg-gray-extralight': integrationsSubTab !== 'connections',
+                  }"
+                >
+                  {{ integrationPaginationData.totalRows }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: content -->
+            <div class="flex-1 min-w-0 flex flex-col h-full">
+              <div v-if="integrationsSubTab === 'integrations'" class="h-full">
+                <WorkspaceIntegrationsTab show-filter show-title />
+              </div>
+              <div v-else-if="integrationsSubTab === 'connections'" class="p-6 h-full">
+                <WorkspaceIntegrationsConnectionsTab show-title />
+              </div>
+            </div>
+
+            <WorkspaceIntegrationsEditOrAdd />
+          </div>
+        </a-tab-pane>
+
+        <template
+          v-if="
+            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
+          "
+        >
+          <a-tab-pane key="billing" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+                {{ $t('general.billing') }}
+              </div>
+            </template>
+
+            <PaymentBillingPage />
+          </a-tab-pane>
+        </template>
+
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
+          <a-tab-pane key="audits" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+                <GeneralIcon icon="audit" class="h-4 w-4" />
+                {{ $t('title.audits') }}
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
+                  :feature-enabled-callback="() => isWsAuditEnabled"
+                  remove-click
+                />
+              </div>
+            </template>
+            <WorkspaceAudits v-if="isWsAuditEnabled" />
+            <div v-else>&nbsp;</div>
+          </a-tab-pane>
+        </template>
+
+        <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
+          <a-tab-pane key="sso" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+                {{ $t('title.sso') }}
+              </div>
+            </template>
+
+            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
+          </a-tab-pane>
+        </template>
+      </template>
+
+      <a-tab-pane v-if="showEEFeatures" key="settings" class="w-full">
+        <template #tab>
+          <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
+            <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+            {{ $t('labels.settings') }}
+          </div>
+        </template>
+
+        <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+      </a-tab-pane>
+    </NcTabs>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.tab {
+  @apply flex flex-row items-center gap-x-2;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !pl-0;
+}
+
+:deep(.ant-tabs-tab) {
+  @apply pt-2 pb-3;
+}
+
+:deep(.ant-tabs-tab + .ant-tabs-tab) {
+  @apply !ml-3;
+}
+
+.ant-tabs-content-top {
+  @apply !h-full;
+}
+
+.tab-info {
+  @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
+}
+
+.tab-title {
+  @apply flex flex-row items-center gap-x-2 py-[1px];
+}
+
+.nc-integrations-nav-item {
+  @apply flex items-center gap-2 px-3 h-8 rounded-md cursor-pointer
+    text-bodyDefaultSm text-nc-content-gray-subtle
+    transition-colors;
+
+  &:hover {
+    @apply bg-nc-bg-gray-medium;
+  }
+
+  &.active {
+    @apply bg-nc-bg-brand-inverted text-nc-content-brand font-medium;
+  }
+}
+
+.hide-tabs {
+  // Hide only the top-level tab nav (this element IS the .ant-tabs)
+  > :deep(.ant-tabs-nav) {
+    @apply !hidden;
+  }
+}
+</style>

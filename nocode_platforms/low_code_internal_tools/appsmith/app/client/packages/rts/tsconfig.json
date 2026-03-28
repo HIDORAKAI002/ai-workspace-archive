@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["ES2021"],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "allowJs": true,
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@constants/*": ["./src/constants/*"],
+      "@services/*": ["./src/services/*"],
+      "@middlewares/*": ["./src/middlewares/*"],
+      "@controllers/*": ["./src/controllers/*"],
+      "@rules/*": ["./src/middlewares/rules/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["jest.config.js", "src/test", "index.js", "build.js"],
+  "lib": ["es2015"]
+}

@@ -1,0 +1,7 @@
+FROM oven/bun:slim
+
+RUN bun install -g windmill-cli
+
+RUN ln -s $(bun pm bin -g)/wmill /usr/bin/wmill
+
+ENTRYPOINT [ "wmill" ]

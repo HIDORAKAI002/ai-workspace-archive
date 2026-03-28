@@ -1,0 +1,204 @@
+<script setup lang="ts">
+import { useGroupable } from '@directus/composables';
+import { Action } from '@directus/constants';
+import type { FlowRaw } from '@directus/types';
+import { abbreviateNumber } from '@directus/utils';
+import { computed, onMounted, ref, toRefs, unref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import LogsDrawer from './logs-drawer.vue';
+import VDetail from '@/components/v-detail.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VPagination from '@/components/v-pagination.vue';
+import VProgressLinear from '@/components/v-progress-linear.vue';
+import { useRevisions } from '@/composables/use-revisions';
+import SidebarDetail from '@/views/private/components/sidebar-detail.vue';
+import { useSidebarStore } from '@/views/private/private-view/stores/sidebar';
+
+const props = defineProps<{
+	flow: FlowRaw;
+}>();
+
+const { flow } = toRefs(props);
+
+const { t } = useI18n();
+
+const title = computed(() => t('logs'));
+
+const { active: open } = useGroupable({
+	value: title.value,
+	group: 'sidebar-detail',
+});
+
+const sidebarStore = useSidebarStore();
+
+const page = ref<number>(1);
+const selectedRevision = ref();
+const showFailedOnly = ref(false);
+
+const { revisionsByDate, getRevisions, revisionsCount, getRevisionsCount, loading, loadingCount, pagesCount, refresh } =
+	useRevisions(
+		ref('directus_flows'),
+		computed(() => unref(flow).id),
+		ref(null),
+		{
+			action: Action.RUN,
+			full: true,
+		},
+	);
+
+watch([() => page.value, () => showFailedOnly.value], async () => {
+	await refresh(page.value);
+	if (showFailedOnly.value) filterRevisions();
+});
+
+function filterRevisions() {
+	if (!revisionsByDate.value) return;
+
+	revisionsByDate.value = revisionsByDate.value
+		.map((group) => ({
+			...group,
+			revisions: group.revisions.filter((r) => r.status === 'reject'),
+		}))
+		.filter((group) => group.revisions.length > 0);
+}
+
+onMounted(() => {
+	getRevisionsCount();
+
+	if (open.value || sidebarStore.activeAccordionItem === 'logs') {
+		getRevisions();
+	}
+});
+
+function onToggle(open: boolean) {
+	if (open && revisionsByDate.value === null) getRevisions();
+}
+</script>
+
+<template>
+	<SidebarDetail
+		id="logs"
+		:title
+		icon="fact_check"
+		:badge="!loadingCount && revisionsCount > 0 ? abbreviateNumber(revisionsCount) : undefined"
+		@toggle="onToggle"
+	>
+		<VProgressLinear v-if="!revisionsByDate && loading" indeterminate />
+
+		<div v-else-if="revisionsCount === 0" class="empty">{{ $t('no_logs') }}</div>
+
+		<template v-else>
+			<button class="toggle-failed" :class="{ active: showFailedOnly }" @click="showFailedOnly = !showFailedOnly">
+				<VIcon v-if="!showFailedOnly" name="circle" small />
+				<VIcon v-else name="cancel" small />
+				{{ $t('show_failed_only') }}
+			</button>
+
+			<div v-if="!revisionsByDate?.length" class="empty">{{ $t('no_logs_on_page') }}</div>
+
+			<VDetail
+				v-for="group in revisionsByDate"
+				:key="group.dateFormatted"
+				:label="group.dateFormatted"
+				class="revisions-date-group"
+				start-open
+			>
+				<div class="scroll-container">
+					<div v-for="revision in group.revisions" :key="revision.id" class="log">
+						<button @click="selectedRevision = revision">
+							<VIcon v-if="revision.status === 'resolve'" name="check_circle" color="var(--theme--primary)" small />
+							<VIcon v-else name="cancel" color="var(--theme--secondary)" small />
+							{{ revision.timeRelative }}
+						</button>
+					</div>
+				</div>
+			</VDetail>
+		</template>
+
+		<VPagination v-if="pagesCount > 1" v-model="page" :length="pagesCount" :total-visible="3" />
+	</SidebarDetail>
+
+	<LogsDrawer :flow="flow" :revision="selectedRevision" @close="selectedRevision = null"></LogsDrawer>
+</template>
+
+<style lang="scss" scoped>
+.v-progress-linear {
+	margin: 1.375rem 0;
+}
+
+.v-detail + .v-detail {
+	margin-block-start: 0.6875rem;
+}
+
+.v-icon {
+	vertical-align: text-top;
+}
+
+.toggle-failed {
+	color: var(--theme--foreground-subdued);
+	transition: color var(--fast) var(--transition);
+	margin-block-end: 1.375rem;
+
+	&.active,
+	&:hover {
+		color: var(--theme--foreground);
+	}
+}
+
+.log {
+	position: relative;
+	display: block;
+
+	button {
+		position: relative;
+		z-index: 2;
+		display: block;
+		inline-size: 100%;
+		text-align: start;
+	}
+
+	&::before {
+		position: absolute;
+		inset-block-start: -0.25rem;
+		inset-inline-start: -0.25rem;
+		z-index: 1;
+		inline-size: calc(100% + 0.4375rem);
+		block-size: calc(100% + 0.4375rem);
+		background-color: var(--theme--background-accent);
+		border-radius: var(--theme--border-radius);
+		opacity: 0;
+		transition: opacity var(--fast) var(--transition);
+		content: '';
+		pointer-events: none;
+	}
+
+	&:hover {
+		cursor: pointer;
+
+		.header {
+			.dot {
+				border-color: var(--theme--background-accent);
+			}
+		}
+
+		&::before {
+			opacity: 1;
+		}
+	}
+
+	& + & {
+		margin-block-start: 0.4375rem;
+	}
+}
+
+.empty {
+	margin-inline-start: 0.125rem;
+	color: var(--theme--foreground-subdued);
+	font-style: italic;
+}
+
+.v-pagination {
+	justify-content: center;
+	margin-block-start: 1.8125rem;
+}
+</style>

@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "id": "calculator_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "calculator_0",
+        "label": "E2E Calculator Tool",
+        "name": "calculator",
+        "type": "Calculator",
+        "category": "Tools"
+      }
+    },
+    {
+      "id": "serpAPI_0",
+      "position": { "x": 100, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "serpAPI_0",
+        "label": "E2E Search Tool",
+        "name": "serpAPI",
+        "type": "SerpAPI",
+        "category": "Tools"
+      }
+    },
+    {
+      "id": "bufferMemory_0",
+      "position": { "x": 100, "y": 500 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferMemory_0",
+        "label": "E2E Memory",
+        "name": "bufferMemory",
+        "type": "BufferMemory",
+        "category": "Memory"
+      }
+    },
+    {
+      "id": "chatOpenAI_0",
+      "position": { "x": 400, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_0",
+        "label": "E2E Agent LLM",
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "category": "Chat Models",
+        "inputs": {
+          "modelName": "gpt-4",
+          "temperature": 0.1,
+          "streaming": false
+        }
+      }
+    },
+    {
+      "id": "agentExecutor_0",
+      "position": { "x": 700, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "agentExecutor_0",
+        "label": "E2E Agent Executor",
+        "name": "agentExecutor",
+        "type": "AgentExecutor",
+        "category": "Agents",
+        "inputs": {
+          "agentType": "zero-shot-react-description",
+          "maxIterations": 5,
+          "verbose": true
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "calculator_0",
+      "target": "agentExecutor_0",
+      "id": "calculator_0-agentExecutor_0"
+    },
+    {
+      "source": "serpAPI_0",
+      "target": "agentExecutor_0",
+      "id": "serpAPI_0-agentExecutor_0"
+    },
+    {
+      "source": "bufferMemory_0",
+      "target": "agentExecutor_0",
+      "id": "bufferMemory_0-agentExecutor_0"
+    },
+    {
+      "source": "chatOpenAI_0",
+      "target": "agentExecutor_0",
+      "id": "chatOpenAI_0-agentExecutor_0"
+    }
+  ],
+  "chatflow": {
+    "id": "e2e-test-complex",
+    "name": "E2E Test Complex Agent Workflow",
+    "description": "Complex multi-agent workflow for E2E testing"
+  }
+}

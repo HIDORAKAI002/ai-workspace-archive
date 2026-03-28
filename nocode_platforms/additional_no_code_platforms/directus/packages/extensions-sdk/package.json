@@ -1,0 +1,74 @@
+{
+	"name": "@directus/extensions-sdk",
+	"version": "17.1.0",
+	"description": "A toolkit to develop extensions to extend Directus",
+	"homepage": "https://directus.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/extensions-sdk"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "MIT",
+	"author": "Nicola Krumschmidt",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./cli": "./dist/cli/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"bin": {
+		"directus-extension": "cli.js"
+	},
+	"files": [
+		"dist",
+		"templates"
+	],
+	"scripts": {
+		"build": "tsc --project tsconfig.prod.json",
+		"dev": "tsc --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@directus/composables": "workspace:*",
+		"@directus/constants": "workspace:*",
+		"@directus/extensions": "workspace:*",
+		"@directus/themes": "workspace:*",
+		"@directus/types": "workspace:*",
+		"@directus/utils": "workspace:*",
+		"@rollup/plugin-commonjs": "catalog:",
+		"@rollup/plugin-json": "catalog:",
+		"@rollup/plugin-node-resolve": "catalog:",
+		"@rollup/plugin-replace": "catalog:",
+		"@rollup/plugin-terser": "catalog:",
+		"@rollup/plugin-virtual": "catalog:",
+		"@vitejs/plugin-vue": "catalog:",
+		"chalk": "catalog:",
+		"commander": "catalog:",
+		"esbuild": "catalog:",
+		"execa": "catalog:",
+		"fs-extra": "catalog:",
+		"inquirer": "catalog:",
+		"ora": "catalog:",
+		"rollup": "catalog:",
+		"rollup-plugin-esbuild": "catalog:",
+		"rollup-plugin-styler": "catalog:",
+		"semver": "catalog:",
+		"vite": "catalog:",
+		"vue": "catalog:"
+	},
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@types/fs-extra": "catalog:",
+		"@types/inquirer": "catalog:",
+		"@types/semver": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"engines": {
+		"node": ">=20.19.0"
+	}
+}

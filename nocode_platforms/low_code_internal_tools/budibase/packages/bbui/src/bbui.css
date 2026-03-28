@@ -1,0 +1,270 @@
+/* Custom variables */
+:root {
+  --background: #ffffff;
+  --ink: #000000;
+
+  /* Brand colours */
+  --bb-coral: #ff4e4e;
+  --bb-coral-light: #f97777;
+  --bb-indigo: #6e56ff;
+  --bb-indigo-light: #9f8fff;
+  --bb-lime: #ecffb5;
+  --bb-forest-green: #053835;
+  --bb-beige: #f6efea;
+  --bb-blue: #6a9bcc;
+  --bb-green: #788c5d;
+
+  /* temporary colours for Joe testing */
+  /* Brand */
+  --color-brand-100: #e9f0ff;
+  --color-brand-200: #d3e0ff;
+  --color-brand-300: #afc7ff;
+  --color-brand-400: #7fa6ff;
+  --color-brand-500: #386cf4;
+  --color-brand-600: #2660f3;
+  --color-brand-700: #1e4fd4;
+  --color-brand-800: #173ea8;
+  --color-brand-900: #112d7a;
+  --color-brand-950: #091841;
+
+  /* Blue */
+  --color-blue-100: #eaf2f9;
+  --color-blue-200: #c3daea;
+  --color-blue-300: #89b5e2;
+  --color-blue-400: #6a9bcc;
+  --color-blue-500: #467db4;
+  --color-blue-600: #215f9e;
+  --color-blue-700: #1b436a;
+  --color-blue-800: #13324f;
+  --color-blue-900: #0c2236;
+  --color-blue-950: #0c2236;
+
+  /* Clay / Orange */
+  --color-orange-100: #f6e6da;
+  --color-orange-200: #ecd3c2;
+  --color-orange-300: #ddb99a;
+  --color-orange-400: #d4a27f;
+  --color-orange-500: #d97757;
+  --color-orange-600: #c86240;
+  --color-orange-700: #aa4321;
+  --color-orange-800: #7f3118;
+  --color-orange-900: #4a1d0e;
+  --color-orange-950: #301208;
+
+  /* Grass / Green */
+  --color-green-100: #eef3e9;
+  --color-green-200: #d2ddc3;
+  --color-green-300: #b6c7a8;
+  --color-green-400: #9fb88a;
+  --color-green-500: #8ca171;
+  --color-green-600: #788c5d;
+  --color-green-700: #4c622f;
+  --color-green-800: #35461f;
+  --color-green-900: #1f2a12;
+  --color-green-950: #141b0c;
+
+  /* Lavender / Purple */
+  --color-purple-100: #f1eefb;
+  --color-purple-200: #d2ccef;
+  --color-purple-300: #bdb0f5;
+  --color-purple-400: #a292e3;
+  --color-purple-500: #8777d1;
+  --color-purple-600: #585392;
+  --color-purple-700: #363174;
+  --color-purple-800: #252154;
+  --color-purple-900: #171336;
+  --color-purple-950: #110e27;
+
+  /* Reds */
+  --color-red-100: #f4e7e4;
+  --color-red-200: #e9c8c3;
+  --color-red-300: #d9a29a;
+  --color-red-400: #c87c72;
+  --color-red-500: #b4564b;
+  --color-red-600: #9c3f36;
+  --color-red-700: #7e2c24;
+  --color-red-800: #5a1e19;
+  --color-red-900: #361210;
+  --color-red-950: #220b0a;
+
+  /* Custom spectrum additions */
+  --spectrum-global-color-static-red-1200: #740000;
+  --spectrum-global-color-static-orange-1200: #612300;
+  --spectrum-global-color-static-yellow-1200: #483300;
+  --spectrum-global-color-static-green-1200: #053f27;
+  --spectrum-global-color-static-seafoam-1200: #123c3a;
+  --spectrum-global-color-static-blue-1200: #003571;
+  --spectrum-global-color-static-indigo-1200: #262986;
+  --spectrum-global-color-static-magenta-1200: #700037;
+
+  --grey-1: #fafafa;
+  --grey-2: #f5f5f5;
+  --grey-3: #eeeeee;
+  --grey-4: #e0e0e0;
+  --grey-5: #bdbdbd;
+  --grey-6: #9e9e9e;
+  --grey-7: #757575;
+  --grey-8: #616161;
+  --grey-9: #424242;
+
+  --blue-light: #f1f4fc;
+  --blue: #4285f4;
+  --blue-dark: #2f4c9b;
+
+  --red-light: #ffe6e6;
+  --red: #e26d69;
+  --red-dark: #800400;
+
+  --yellow-light: #fff7e6;
+  --yellow: #ffd26a;
+  --yellow-dark: #805900;
+
+  --orange-light: #fff0e6;
+  --orange: #f0955a;
+  --orange-dark: #803300;
+
+  --green-light: #e6ffeb;
+  --green: #84c991;
+  --green-dark: #008017;
+
+  --purple-light: #e9e6ff;
+  --purple: #806fde;
+  --purple-dark: #130080;
+
+  --error-bg: rgba(226, 109, 105, 0.3);
+  --warning-bg: rgba(255, 210, 106, 0.3);
+  --error-content: rgba(226, 109, 105, 0.6);
+  --warning-content: rgba(255, 210, 106, 0.6);
+
+  --rounded-small: 4px;
+  --rounded-medium: 8px;
+  --rounded-large: 16px;
+
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --font-accent:
+    "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --font-serif: "Georgia", Cambria, Times New Roman, Times, serif;
+  --font-mono:
+    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  font-size: 16px;
+  --font-size-xs: 0.75rem;
+  --font-size-s: 0.875rem;
+  --font-size-m: 1rem;
+  --font-size-l: 1.15rem;
+  --font-size-xl: 1.3rem;
+
+  --heading-font-size-xs: 0.875rem;
+  --heading-font-size-s: 1.12rem;
+  --heading-font-size-m: 1.5rem;
+  --heading-font-size-l: 2.6rem;
+  --heading-font-size-xl: 3rem;
+
+  --font-render: optimizeLegibility;
+  --font-smooth: antialiased;
+
+  --spacing-xs: 0.25rem;
+  --spacing-s: 0.5rem;
+  --spacing-m: 0.75rem;
+  --spacing-l: 1rem;
+  --spacing-xl: 1.25rem;
+
+  --layout-xs: 1.25rem;
+  --layout-s: 1.5rem;
+  --layout-m: 2rem;
+  --layout-l: 3rem;
+  --layout-xl: 4rem;
+
+  --border-radius-xs: 0.125rem;
+  --border-radius-s: 0.35rem;
+  --border-radius-m: 0.5rem;
+  --border-radius-l: 1rem;
+  --border-radius-xl: 100rem;
+
+  --border-black: 2px var(--ink) solid;
+  --border-dark: 2px var(--grey-7) solid;
+  --border-grey: 1px var(--grey-4) solid;
+  --border-grey-2: 2px var(--grey-4) solid;
+  --border-light: 1px var(--grey-3) solid;
+  --border-light-2: 2px var(--grey-3) solid;
+  --border-blue: 2px var(--blue) solid;
+  --border-transparent: 2px transparent solid;
+}
+
+/* Spectrum overrides */
+.spectrum {
+  --spectrum-alias-body-text-font-family: var(--font-sans) !important;
+  --spectrum-global-font-family-base: var(--font-sans) !important;
+  --spectrum-global-font-line-height-small: 1.4 !important;
+  --spectrum-alias-text-color-disabled: var(
+    --spectrum-global-color-gray-600
+  ) !important;
+  --spectrum-global-dimension-font-size-25: 9px !important;
+  --spectrum-global-dimension-font-size-50: 11px !important;
+  --spectrum-global-dimension-font-size-75: 12px !important;
+  --spectrum-global-dimension-font-size-100: 13px !important;
+  --spectrum-global-dimension-font-size-150: 15px !important;
+  --spectrum-global-dimension-font-size-200: 16px !important;
+  --spectrum-global-dimension-font-size-300: 18px !important;
+  --spectrum-global-dimension-font-size-400: 20px !important;
+  --spectrum-global-dimension-font-size-500: 22px !important;
+  --spectrum-global-dimension-font-size-600: 25px !important;
+  --spectrum-global-dimension-font-size-700: 28px !important;
+  --spectrum-global-dimension-font-size-800: 32px !important;
+  --spectrum-global-dimension-font-size-900: 36px !important;
+  --spectrum-global-dimension-font-size-1000: 40px !important;
+  --spectrum-global-dimension-font-size-1100: 45px !important;
+  --spectrum-global-dimension-font-size-1200: 50px !important;
+  --spectrum-global-dimension-font-size-1300: 60px !important;
+  --spectrum-alias-font-size-default: 14px !important;
+}
+* {
+  font-style: normal !important;
+}
+
+/* Generic styles */
+a {
+  text-decoration: none;
+}
+
+/* Custom theme additions */
+.spectrum--darkest {
+  --drop-shadow: rgba(0, 0, 0, 0.6);
+  --spectrum-global-color-red-100: #570000;
+  --spectrum-global-color-orange-100: #481801;
+  --spectrum-global-color-yellow-100: #352400;
+  --spectrum-global-color-green-100: #002f07;
+  --spectrum-global-color-seafoam-100: #122b2a;
+  --spectrum-global-color-blue-100: #002651;
+  --spectrum-global-color-indigo-100: #1a1d61;
+  --spectrum-global-color-magenta-100: #530329;
+  --translucent-grey: rgba(255, 255, 255, 0.1);
+}
+.spectrum--dark {
+  --drop-shadow: rgba(0, 0, 0, 0.3);
+  --spectrum-global-color-red-100: #7b0000;
+  --spectrum-global-color-orange-100: #662500;
+  --spectrum-global-color-yellow-100: #4c3600;
+  --spectrum-global-color-green-100: #00450a;
+  --spectrum-global-color-seafoam-100: #12413f;
+  --spectrum-global-color-blue-100: #003877;
+  --spectrum-global-color-indigo-100: #282c8c;
+  --spectrum-global-color-magenta-100: #76003a;
+  --translucent-grey: rgba(255, 255, 255, 0.065);
+}
+.spectrum--light,
+.spectrum--lightest {
+  --drop-shadow: rgba(0, 0, 0, 0.075);
+  --spectrum-global-color-red-100: #ffddd6;
+  --spectrum-global-color-orange-100: #ffdfad;
+  --spectrum-global-color-yellow-100: #fbf198;
+  --spectrum-global-color-green-100: #cef8e0;
+  --spectrum-global-color-seafoam-100: #cef7f3;
+  --spectrum-global-color-blue-100: #e0f2ff;
+  --spectrum-global-color-indigo-100: #edeeff;
+  --spectrum-global-color-magenta-100: #ffeaf1;
+  --translucent-grey: rgba(0, 0, 0, 0.085);
+}

@@ -1,0 +1,770 @@
+<script setup lang="ts">
+import { useElementSize } from '@directus/composables';
+import type { ContentVersion } from '@directus/types';
+import { SplitPanel } from '@directus/vue-split-panel';
+import { computed, type CSSProperties, nextTick, onMounted, ref, useSlots, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import VButton from '@/components/v-button.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInfo from '@/components/v-info.vue';
+import VListItemContent from '@/components/v-list-item-content.vue';
+import VListItemIcon from '@/components/v-list-item-icon.vue';
+import VListItem from '@/components/v-list-item.vue';
+import VList from '@/components/v-list.vue';
+import VMenu from '@/components/v-menu.vue';
+import VProgressCircular from '@/components/v-progress-circular.vue';
+import VSelect from '@/components/v-select/v-select.vue';
+import VTextOverflow from '@/components/v-text-overflow.vue';
+import EditingLayer from '@/modules/visual/components/editing-layer.vue';
+import { useVisualEditorUrls } from '@/modules/visual/composables/use-visual-editor-urls';
+import { getUrlRoute } from '@/modules/visual/utils/get-url-route';
+import { sameOrigin } from '@/modules/visual/utils/same-origin';
+import { parseUrl } from '@/utils/parse-url';
+import PrivateViewResizeHandle from '@/views/private/private-view/components/private-view-resize-handle.vue';
+
+declare global {
+	interface Window {
+		refreshLivePreview: (url: string | null) => void;
+	}
+}
+
+const {
+	url,
+	invalidUrl = false,
+	dynamicUrl,
+	dynamicDisplay,
+	singleUrlSubdued = true,
+	canEnableVisualEditing = false,
+	version = null,
+	showOpenInVisualEditor = true,
+	defaultShowEditableElements = false,
+	isFullWidth = false,
+	sidebarSize,
+	sidebarCollapsed = true,
+	sidebarDisabled = false,
+} = defineProps<{
+	url: string | string[];
+	invalidUrl?: boolean;
+	dynamicUrl?: string;
+	dynamicDisplay?: string;
+	singleUrlSubdued?: boolean;
+	headerExpanded?: boolean;
+	hideRefreshButton?: boolean;
+	hidePopupButton?: boolean;
+	inPopup?: boolean;
+	centered?: boolean;
+	canEnableVisualEditing?: boolean;
+	version?: Pick<ContentVersion, 'key' | 'name'> | null;
+	showOpenInVisualEditor?: boolean;
+	defaultShowEditableElements?: boolean;
+	isFullWidth?: boolean;
+	sidebarSize?: number;
+	sidebarCollapsed?: boolean;
+	sidebarDisabled?: boolean;
+}>();
+
+const emit = defineEmits<{
+	'new-window': [];
+	selectUrl: [newUrl: string, oldUrl: string];
+	saved: [data: { collection: string; primaryKey: string | number }];
+	'exit-full-width': [];
+	'update:sidebarSize': [size: number];
+	'update:sidebarCollapsed': [collapsed: boolean];
+}>();
+
+const { t } = useI18n();
+const router = useRouter();
+const slots = useSlots();
+useResizeObserver();
+
+const { urls, frameSrc, urlDisplay, multipleUrls, dynamicUrlIncluded, matchesDynamicUrl, selectUrl } = useUrls();
+const { visualEditingEnabled, showEditableElements, openInVisualEditor } = useVisualEditing();
+
+const width = ref<number>();
+const height = ref<number>();
+const zoom = ref<number>(1);
+
+const zoomOptions = [
+	{ text: '25%', value: 0.25 },
+	{ text: '50%', value: 0.5 },
+	{ text: '75%', value: 0.75 },
+	{ text: '100%', value: 1 },
+	{ text: '150%', value: 1.5 },
+	{ text: '200%', value: 2 },
+];
+
+const displayWidth = ref<number>();
+const displayHeight = ref<number>();
+const isRefreshing = ref(false);
+const overlayProvided = computed(() => !!slots.overlay);
+const hasDisplayOptions = computed(() => !!slots['display-options']);
+const hasSidebar = computed(() => !!slots.sidebar);
+
+const livePreviewEl = ref<HTMLElement>();
+const resizeHandle = ref<HTMLDivElement>();
+const frameEl = ref<HTMLIFrameElement>();
+
+const livePreviewSize = useElementSize(livePreviewEl);
+
+const iframeViewStyle = computed(() => {
+	const style: CSSProperties = {};
+
+	if (zoom.value <= 1) {
+		style.placeItems = 'center';
+	}
+
+	if (zoom.value > 1 && width.value && height.value) {
+		const paddingWidth = (livePreviewSize.width.value - width.value * zoom.value) / 2;
+		const paddingInlineStart = Math.max((livePreviewSize.width.value - width.value * zoom.value) / 2, 48);
+		style.paddingInlineStart = `${paddingInlineStart}px`;
+
+		if (paddingWidth < 48) {
+			const iframeViewWidth = 48 + width.value * zoom.value + 48;
+			style.inlineSize = `${iframeViewWidth}px`;
+		}
+
+		const paddingHeight = (livePreviewSize.height.value - 44 - height.value * zoom.value) / 2;
+		const paddingBlockStart = Math.max(paddingHeight, 48);
+		style.paddingBlockStart = `${paddingBlockStart}px`;
+
+		if (paddingHeight < 48) {
+			const iframeViewHeight = 48 + height.value * zoom.value + 48;
+			style.blockSize = `${iframeViewHeight}px`;
+		}
+	}
+
+	return style;
+});
+
+const fullscreen = computed(() => {
+	return width.value === undefined && height.value === undefined;
+});
+
+function toggleFullscreen() {
+	if (fullscreen.value) {
+		width.value = 400;
+		height.value = 600;
+	} else {
+		width.value = undefined;
+		height.value = undefined;
+		zoom.value = 1;
+	}
+}
+
+function refresh(url: string | null) {
+	if (!frameEl.value || isRefreshing.value) return;
+
+	isRefreshing.value = true;
+
+	// this is technically a self-assignment, but it works to refresh the iframe
+	const newSrc = url || frameEl.value.src;
+	frameEl.value.src = newSrc;
+}
+
+function onIframeLoad() {
+	isRefreshing.value = false;
+}
+
+window.refreshLivePreview = refresh;
+
+function useVisualEditing() {
+	const { resolveUrls } = useVisualEditorUrls();
+	const showEditableElements = ref(defaultShowEditableElements);
+
+	const visualEditingEnabled = computed(() => {
+		if (!canEnableVisualEditing) return false;
+		if (invalidUrl) return false;
+
+		const currentUrl = frameSrc.value;
+		if (!currentUrl) return false;
+
+		const allowedUrls = resolveUrls(version?.key);
+		if (!allowedUrls.length) return false;
+
+		return allowedUrls.some((allowedUrl) => sameOrigin(allowedUrl, currentUrl));
+	});
+
+	watch(
+		() => frameSrc.value,
+		() => {
+			showEditableElements.value = false;
+		},
+	);
+
+	watch(visualEditingEnabled, (enabled) => {
+		if (!enabled) showEditableElements.value = false;
+	});
+
+	return { visualEditingEnabled, showEditableElements, openInVisualEditor };
+
+	function openInVisualEditor() {
+		if (frameSrc.value) router.push(getUrlRoute(frameSrc.value));
+	}
+}
+
+function useResizeObserver() {
+	let observerInitialized = false;
+
+	onMounted(setResizeObserver);
+	watch(() => invalidUrl, changeUrlAfterInvalid);
+
+	async function changeUrlAfterInvalid(newInvalidUrl: boolean, oldInvalidUrl: boolean) {
+		if (!newInvalidUrl && oldInvalidUrl) {
+			await nextTick();
+			setResizeObserver();
+		}
+	}
+
+	function setResizeObserver() {
+		if (observerInitialized || !resizeHandle.value) return;
+
+		new ResizeObserver(() => {
+			if (!resizeHandle.value) return;
+
+			displayWidth.value = resizeHandle.value.offsetWidth;
+			displayHeight.value = resizeHandle.value.offsetHeight;
+
+			if (width.value === undefined && height.value === undefined) return;
+
+			width.value = resizeHandle.value.offsetWidth;
+			height.value = resizeHandle.value.offsetHeight;
+		}).observe(resizeHandle.value);
+
+		observerInitialized = true;
+	}
+}
+
+function useUrls() {
+	const internalFrameSrc = ref<string>();
+	const urlArray = computed(() => (Array.isArray(url) ? url : [url]));
+	const multipleUrls = computed(() => urls.value.length > 1);
+
+	const dynamicUrlIncluded = computed(
+		() => dynamicUrl && urlArray.value.map((url) => normalizeUrl(url)).includes(normalizeUrl(dynamicUrl)),
+	);
+
+	const urls = computed(() => {
+		if (dynamicUrl && !dynamicUrlIncluded.value) return [dynamicUrl, ...urlArray.value];
+		return urlArray.value;
+	});
+
+	const frameSrc = computed({
+		get: () => internalFrameSrc.value ?? urls.value[0],
+		set(value) {
+			internalFrameSrc.value = value;
+		},
+	});
+
+	const urlDisplay = computed(() => {
+		if (invalidUrl) return t('select');
+		return dynamicDisplay ?? frameSrc.value;
+	});
+
+	watch(urlArray, updateFrameSrcWithDynamicUrl, { immediate: true });
+
+	return {
+		urls,
+		frameSrc,
+		urlDisplay,
+		multipleUrls,
+		dynamicUrlIncluded,
+		matchesDynamicUrl,
+		selectUrl,
+	};
+
+	function matchesDynamicUrl(url: string): boolean {
+		if (!dynamicUrl) return false;
+		return normalizeUrl(url) === normalizeUrl(dynamicUrl);
+	}
+
+	function normalizeUrl(url: string): string {
+		const parsed = parseUrl(url);
+		if (!parsed) return '';
+
+		return parsed.href.replace(/\/$/, '');
+	}
+
+	function updateFrameSrcWithDynamicUrl() {
+		if (dynamicUrl) internalFrameSrc.value = dynamicUrl;
+	}
+
+	function selectUrl(newUrl: string) {
+		emit('selectUrl', newUrl, String(frameSrc.value));
+
+		if (frameSrc.value === newUrl) {
+			refresh(null);
+			return;
+		}
+
+		frameSrc.value = newUrl;
+	}
+}
+</script>
+
+<template>
+	<div ref="livePreviewEl" class="live-preview" :class="{ fullscreen, 'header-expanded': headerExpanded }">
+		<div class="header">
+			<div class="group">
+				<slot name="prepend-header" />
+
+				<VButton
+					v-if="isFullWidth"
+					v-tooltip.bottom.end="t('live_preview.exit_full_width')"
+					x-small
+					rounded
+					icon
+					@click="emit('exit-full-width')"
+				>
+					<VIcon small name="width_full" />
+				</VButton>
+
+				<VButton
+					v-else-if="inPopup"
+					v-tooltip.bottom.end="$t('live_preview.close_window')"
+					x-small
+					rounded
+					icon
+					secondary
+					@click="emit('new-window')"
+				>
+					<VIcon small name="exit_to_app" outline />
+				</VButton>
+
+				<VMenu v-else-if="hasDisplayOptions" show-arrow placement="bottom-start">
+					<template #activator="{ toggle }">
+						<VButton
+							v-tooltip.bottom.end="t('live_preview.display_options')"
+							x-small
+							rounded
+							icon
+							secondary
+							@click="toggle"
+						>
+							<VIcon small name="display_settings" />
+						</VButton>
+					</template>
+
+					<VList>
+						<slot name="display-options" />
+						<VListItem v-if="!hidePopupButton" clickable @click="emit('new-window')">
+							<VListItemIcon><VIcon name="open_in_new" /></VListItemIcon>
+							<VListItemContent>{{ t('live_preview.new_window') }}</VListItemContent>
+						</VListItem>
+						<VListItem v-if="visualEditingEnabled && showOpenInVisualEditor" clickable @click="openInVisualEditor">
+							<VListItemIcon><VIcon name="edit_square" /></VListItemIcon>
+							<VListItemContent>{{ t('live_preview.open_in_visual_editor') }}</VListItemContent>
+						</VListItem>
+					</VList>
+				</VMenu>
+
+				<VButton
+					v-if="visualEditingEnabled"
+					v-tooltip.bottom.end="$t('toggle_editable_elements')"
+					x-small
+					rounded
+					icon
+					:active="showEditableElements"
+					secondary
+					@click="showEditableElements = !showEditableElements"
+				>
+					<VIcon small name="edit" outline />
+				</VButton>
+
+				<VButton
+					v-if="!hideRefreshButton"
+					v-tooltip.bottom.end="$t('live_preview.refresh')"
+					x-small
+					icon
+					rounded
+					secondary
+					:disabled="isRefreshing || !frameSrc || invalidUrl"
+					@click="refresh(null)"
+				>
+					<VProgressCircular v-if="isRefreshing" indeterminate x-small />
+					<VIcon v-else small name="refresh" />
+				</VButton>
+
+				<div v-if="centered" class="spacer" />
+
+				<VMenu
+					v-if="urls.length"
+					class="url"
+					:class="{ disabled: singleUrlSubdued, clickable: multipleUrls }"
+					:disabled="!multipleUrls"
+					show-arrow
+					:placement="centered ? 'bottom' : 'bottom-start'"
+				>
+					<template #activator="{ toggle }">
+						<component
+							:is="multipleUrls ? 'button' : 'div'"
+							:type="multipleUrls ? 'button' : undefined"
+							class="activator"
+							@click="toggle"
+						>
+							<VTextOverflow :text="urlDisplay" placement="bottom" />
+							<VIcon v-if="multipleUrls" small name="arrow_drop_down" />
+						</component>
+					</template>
+
+					<VList v-if="multipleUrls">
+						<VListItem
+							v-for="(urlItem, index) in urls"
+							:key="index"
+							:active="matchesDynamicUrl(urlItem)"
+							clickable
+							@click="selectUrl(urlItem)"
+						>
+							<VListItemContent :class="{ dynamic: !dynamicUrlIncluded && urlItem === dynamicUrl }">
+								{{ urlItem }}
+							</VListItemContent>
+						</VListItem>
+					</VList>
+				</VMenu>
+
+				<slot name="append-url" />
+			</div>
+
+			<div class="spacer" />
+
+			<div v-if="frameSrc && !invalidUrl" class="dimensions" :class="{ disabled: fullscreen }">
+				<input
+					:value="displayWidth"
+					class="width"
+					:disabled="fullscreen"
+					@input="width = Number(($event as any).target.value)"
+				/>
+				<VIcon x-small name="close" />
+				<input
+					:value="displayHeight"
+					class="height"
+					:disabled="fullscreen"
+					@input="height = Number(($event as any).target.value)"
+				/>
+
+				<VSelect v-model="zoom" :items="zoomOptions" :disabled="fullscreen" :attached="false" show-arrow>
+					<template #preview="{ toggle, active }">
+						<button type="button" :disabled="fullscreen" :aria-pressed="active" class="zoom-select" @click="toggle">
+							<span>{{ zoomOptions.find((option) => option.value === zoom)?.text || zoom }}</span>
+							<VIcon small name="arrow_drop_down" :class="{ active }" />
+						</button>
+					</template>
+				</VSelect>
+			</div>
+			<VButton
+				v-tooltip.bottom.start="$t('live_preview.change_size')"
+				x-small
+				icon
+				rounded
+				secondary
+				:active="!fullscreen"
+				:disabled="!frameSrc || invalidUrl"
+				@click="toggleFullscreen"
+			>
+				<VIcon small name="devices" />
+			</VButton>
+			<slot name="append-header" />
+		</div>
+
+		<VInfo v-if="!frameSrc" :title="$t('no_url')" icon="edit_square" center>
+			{{ $t('no_url_copy') }}
+		</VInfo>
+
+		<VInfo v-else-if="invalidUrl" :title="$t('invalid_url')" type="danger" icon="edit_square" center>
+			{{ $t('invalid_url_copy') }}
+		</VInfo>
+
+		<SplitPanel
+			v-else-if="hasSidebar"
+			:size="sidebarSize"
+			:collapsed="sidebarCollapsed"
+			:disabled="sidebarDisabled"
+			primary="end"
+			size-unit="px"
+			collapsible
+			:collapsed-size="0"
+			:collapse-threshold="70"
+			:min-size="252"
+			:max-size="540"
+			:snap-points="[333]"
+			:snap-threshold="6"
+			:transition-duration="125"
+			divider-hit-area="4px"
+			class="content-split"
+			@update:size="(size: number) => emit('update:sidebarSize', size)"
+			@update:collapsed="
+				(collapsed: boolean) => {
+					emit('update:sidebarCollapsed', collapsed);
+				}
+			"
+		>
+			<template #start>
+				<div class="container">
+					<div class="iframe-view" :style="iframeViewStyle">
+						<div
+							ref="resizeHandle"
+							class="resize-handle"
+							:style="{
+								inlineSize: width ? `${width}px` : '100%',
+								blockSize: height ? `${height}px` : '100%',
+								resize: fullscreen ? 'none' : 'both',
+								transform: `scale(${zoom})`,
+								transformOrigin: zoom >= 1 ? 'top left' : 'center center',
+							}"
+						>
+							<iframe
+								id="frame"
+								ref="frameEl"
+								:src="frameSrc"
+								:title="$t('live_preview.iframe_title')"
+								@load="onIframeLoad"
+							/>
+							<slot name="overlay" :frame-el :frame-src />
+							<EditingLayer
+								v-if="visualEditingEnabled && !overlayProvided"
+								:frame-el="frameEl"
+								:frame-src="frameSrc"
+								:version="version"
+								:show-editable-elements="showEditableElements"
+								@saved="(data) => emit('saved', data)"
+							/>
+						</div>
+					</div>
+					<slot name="notifications" />
+				</div>
+			</template>
+			<template #divider>
+				<PrivateViewResizeHandle />
+			</template>
+			<template #end>
+				<slot name="sidebar" />
+			</template>
+		</SplitPanel>
+
+		<div v-else class="container">
+			<div class="iframe-view" :style="iframeViewStyle">
+				<div
+					ref="resizeHandle"
+					class="resize-handle"
+					:style="{
+						inlineSize: width ? `${width}px` : '100%',
+						blockSize: height ? `${height}px` : '100%',
+						resize: fullscreen ? 'none' : 'both',
+						transform: `scale(${zoom})`,
+						transformOrigin: zoom >= 1 ? 'top left' : 'center center',
+					}"
+				>
+					<iframe
+						id="frame"
+						ref="frameEl"
+						:src="frameSrc"
+						:title="$t('live_preview.iframe_title')"
+						@load="onIframeLoad"
+					/>
+					<slot name="overlay" :frame-el :frame-src />
+					<EditingLayer
+						v-if="visualEditingEnabled && !overlayProvided"
+						:frame-el="frameEl"
+						:frame-src="frameSrc"
+						:version="version"
+						:show-editable-elements="showEditableElements"
+						@saved="(data) => emit('saved', data)"
+					/>
+				</div>
+			</div>
+			<slot name="notifications" />
+		</div>
+	</div>
+</template>
+
+<style>
+#split-content {
+	background-color: var(--theme--background-subdued);
+}
+</style>
+
+<style scoped lang="scss">
+.live-preview {
+	--preview--color: var(--theme--navigation--modules--button--foreground-hover, #fff);
+	--preview--color-disabled: color-mix(
+		in srgb,
+		var(--theme--navigation--modules--background),
+		var(--preview--color) 50%
+	);
+	--preview--header--background-color: var(--theme--navigation--modules--background);
+	--preview--header--border-width: var(--theme--navigation--modules--border-width);
+	--preview--header--border-color: var(--theme--navigation--modules--border-color);
+	--preview--header--height: 2.5rem;
+
+	container-type: inline-size;
+	inline-size: 100%;
+	block-size: 100%;
+
+	&.header-expanded {
+		--preview--header--height: 3.375rem;
+
+		.header {
+			padding: 0.4375rem 0.875rem;
+		}
+	}
+
+	.header {
+		--focus-ring-color: var(--theme--navigation--modules--button--background-active);
+
+		inline-size: 100%;
+		color: var(--preview--color);
+		background-color: var(--preview--header--background-color);
+		border-block-end: var(--preview--header--border-width) solid var(--preview--header--border-color);
+		block-size: var(--preview--header--height);
+		display: flex;
+		align-items: center;
+		z-index: 10;
+		gap: 0.4375rem;
+		padding: 0 0.4375rem;
+		transition:
+			padding var(--medium) var(--transition),
+			block-size var(--medium) var(--transition);
+
+		:deep(.v-button.secondary) {
+			--v-button-color: var(--theme--navigation--modules--button--foreground-active);
+			--v-button-color-hover: var(--v-button-color);
+			--v-button-color-active: var(--foreground-inverted);
+			--v-button-background-color: var(--theme--navigation--modules--button--background-active);
+			--v-button-background-color-hover: color-mix(
+				in srgb,
+				var(--theme--navigation--modules--background),
+				var(--v-button-background-color) 87.5%
+			);
+			--v-button-background-color-active: var(--theme--primary);
+
+			.button {
+				&.active {
+					box-shadow: 0 0 8px 0 rgb(0 0 0 / 0.15);
+				}
+
+				&:focus:not(:hover) {
+					color: var(--v-button-color);
+					background-color: var(--v-button-background-color);
+					border-color: var(--v-button-background-color);
+				}
+			}
+		}
+
+		.group {
+			display: contents;
+		}
+
+		.url {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			color: var(--preview--color);
+
+			&.disabled {
+				color: var(--preview--color-disabled);
+			}
+
+			&.clickable {
+				cursor: pointer;
+			}
+
+			.activator {
+				display: flex;
+				align-items: center;
+				min-inline-size: 0;
+
+				.v-icon {
+					inset-block-start: 0.0625rem;
+				}
+			}
+		}
+
+		.spacer {
+			flex: 1;
+		}
+
+		.dimensions {
+			display: flex;
+			align-items: center;
+
+			&.disabled {
+				color: var(--preview--color-disabled);
+
+				.zoom-select {
+					cursor: not-allowed;
+				}
+			}
+
+			.zoom-select {
+				white-space: nowrap;
+			}
+		}
+
+		input {
+			border: none;
+			inline-size: 2.8125rem;
+			background-color: transparent;
+
+			&:first-child {
+				text-align: end;
+			}
+		}
+
+		@container (max-width: 27rem) {
+			.dimensions.disabled {
+				display: none;
+			}
+
+			.group:has(~ .dimensions:not(.disabled)) {
+				display: none;
+			}
+		}
+	}
+
+	.container {
+		position: relative;
+		inline-size: 100%;
+		block-size: calc(100% - var(--preview--header--height));
+		overflow: auto;
+	}
+
+	.content-split {
+		block-size: calc(100% - var(--preview--header--height));
+
+		.container {
+			block-size: 100%;
+		}
+
+		&:deep(.sp-divider) {
+			z-index: 8;
+		}
+	}
+
+	.iframe-view {
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: auto;
+		display: grid;
+		padding: 2.6875rem;
+
+		#frame {
+			inline-size: 100%;
+			block-size: 100%;
+			border: 0;
+		}
+
+		.resize-handle {
+			overflow: hidden;
+			box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.2);
+		}
+	}
+
+	&.fullscreen .iframe-view {
+		padding: 0;
+	}
+}
+
+.dynamic {
+	font-style: italic;
+}
+</style>

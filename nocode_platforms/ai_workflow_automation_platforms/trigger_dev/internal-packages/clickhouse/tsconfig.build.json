@@ -1,0 +1,22 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM", "DOM.Iterable", "DOM.AsyncIterable"],
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "declaration": true
+  }
+}

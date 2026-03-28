@@ -1,0 +1,16 @@
+query GetInviteDetails($inviteID: ID!) {
+  teamInvitation(inviteID: $inviteID) {
+    id
+    inviteeEmail
+    inviteeRole
+    team {
+      id
+      name
+    }
+    creator {
+      uid
+      displayName
+      email
+    }
+  }
+}

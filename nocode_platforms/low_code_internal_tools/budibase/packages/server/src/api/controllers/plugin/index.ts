@@ -1,0 +1,192 @@
+import { plugins as pluginCore } from "@budibase/backend-core"
+import {
+  PluginType,
+  PluginSource,
+  CreatePluginRequest,
+  CreatePluginResponse,
+  UserCtx,
+  UploadPluginRequest,
+  Plugin,
+  UploadPluginResponse,
+  FetchPluginResponse,
+  DeletePluginResponse,
+  PluginMetadata,
+  PluginUpdateApplyRequest,
+  PluginUpdateApplyResponse,
+  PluginUpdateCheckResponse,
+} from "@budibase/types"
+import { sdk as pro } from "@budibase/pro"
+import {
+  applyPluginUpdates as applyUpdatesSdk,
+  checkPluginUpdates as checkUpdatesSdk,
+} from "../../../sdk/plugins/update"
+import { npmUpload, urlUpload, githubUpload } from "./uploaders"
+import env from "../../../environment"
+import { clientAppSocket } from "../../../websockets"
+import sdk from "../../../sdk"
+import { deleteFolderFileSystem } from "../../../utilities/fileSystem"
+
+export async function upload(
+  ctx: UserCtx<UploadPluginRequest, UploadPluginResponse>
+) {
+  const files = ctx.request.files
+  const plugins =
+    files && Array.isArray(files.file) && files.file.length > 1
+      ? Array.from(files.file)
+      : [files?.file]
+
+  try {
+    let docs: Plugin[] = []
+    // can do single or multiple plugins
+    for (let plugin of plugins) {
+      if (!plugin || Array.isArray(plugin)) {
+        continue
+      }
+      const doc = await sdk.plugins.processUploaded(plugin, PluginSource.FILE)
+      docs.push(doc)
+    }
+    ctx.body = {
+      message: "Plugin(s) uploaded successfully",
+      plugins: docs,
+    }
+  } catch (err: any) {
+    const errMsg = err?.message ? err?.message : err
+
+    ctx.throw(400, `Failed to import plugin: ${errMsg}`)
+  }
+}
+
+export async function create(
+  ctx: UserCtx<CreatePluginRequest, CreatePluginResponse>
+) {
+  const { source, url, headers, githubToken } = ctx.request.body
+  let directory: string | undefined
+  let cleanupDirectory: string | undefined
+
+  try {
+    let metadata: PluginMetadata
+
+    // Generating random name as a backup and needed for url
+    const name = "PLUGIN_" + Math.floor(100000 + Math.random() * 900000)
+
+    switch (source) {
+      case PluginSource.NPM: {
+        const {
+          metadata: metadataNpm,
+          directory: directoryNpm,
+          cleanupDirectory: cleanupDirectoryNpm,
+        } = await npmUpload(url, name)
+        metadata = metadataNpm
+        directory = directoryNpm
+        cleanupDirectory = cleanupDirectoryNpm
+        break
+      }
+      case PluginSource.GITHUB: {
+        const {
+          metadata: metadataGithub,
+          directory: directoryGithub,
+          cleanupDirectory: cleanupDirectoryGithub,
+        } = await githubUpload(url, name, githubToken)
+        metadata = metadataGithub
+        directory = directoryGithub
+        cleanupDirectory = cleanupDirectoryGithub
+        break
+      }
+      case PluginSource.URL: {
+        const headersObj = headers || {}
+        const {
+          metadata: metadataUrl,
+          directory: directoryUrl,
+          cleanupDirectory: cleanupDirectoryUrl,
+        } = await urlUpload(url, name, headersObj)
+        metadata = metadataUrl
+        directory = directoryUrl
+        cleanupDirectory = cleanupDirectoryUrl
+        break
+      }
+      default:
+        ctx.throw(400, "Invalid source")
+    }
+
+    pluginCore.validate(metadata.schema)
+
+    // Only allow components in cloud
+    if (!env.SELF_HOSTED && metadata.schema?.type !== PluginType.COMPONENT) {
+      throw new Error(
+        "Only component plugins are supported outside of self-host"
+      )
+    }
+
+    if (
+      metadata.schema?.metadata?.svelteMajor !== 5 &&
+      metadata.schema?.type === PluginType.COMPONENT
+    ) {
+      throw new Error("Only Svelte 5 plugins are supported on this branch")
+    }
+
+    let origin
+    if (source === PluginSource.GITHUB) {
+      const { repo, url: canonical } = sdk.plugins.parseGithubRepo(url)
+      if (repo && canonical) {
+        origin = { source: "github" as const, repo, url: canonical }
+      }
+    }
+
+    const doc = await pro.plugins.storePlugin(
+      metadata,
+      directory!,
+      source,
+      origin
+    )
+
+    clientAppSocket?.emit("plugins-update", { name, hash: doc.hash })
+    ctx.body = { plugin: doc }
+  } catch (err: any) {
+    const errMsg = err?.message ? err?.message : err
+    ctx.throw(400, `Failed to import plugin: ${errMsg}`)
+  } finally {
+    if (cleanupDirectory) {
+      deleteFolderFileSystem(cleanupDirectory)
+    }
+  }
+}
+
+export async function fetch(ctx: UserCtx<void, FetchPluginResponse>) {
+  if (env.ENABLE_PLUGIN_GH_ORIGIN_BACKFILL) {
+    try {
+      await sdk.plugins.backfillPluginOrigins()
+    } catch (err) {
+      console.log(
+        "Plugin origin backfill failed during fetch",
+        err instanceof Error ? err.message : String(err)
+      )
+    }
+  }
+  ctx.body = await sdk.plugins.fetch()
+}
+
+export async function destroy(ctx: UserCtx<void, DeletePluginResponse>) {
+  const { pluginId } = ctx.params
+
+  try {
+    await pro.plugins.deletePlugin(pluginId)
+
+    ctx.body = { message: `Plugin ${ctx.params.pluginId} deleted.` }
+  } catch (err: any) {
+    ctx.throw(400, err.message)
+  }
+}
+
+export async function checkUpdates(
+  ctx: UserCtx<void, PluginUpdateCheckResponse>
+) {
+  const token = ctx.query.token as string | undefined
+  ctx.body = await checkUpdatesSdk({ token })
+}
+
+export async function applyUpdates(
+  ctx: UserCtx<PluginUpdateApplyRequest, PluginUpdateApplyResponse>
+) {
+  const body = ctx.request.body || {}
+  ctx.body = await applyUpdatesSdk(body)
+}

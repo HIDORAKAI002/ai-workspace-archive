@@ -1,0 +1,71 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+postgres-data
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# next.js
+.next/
+out/
+dist
+packages/**/dist
+
+# vendored bundles (generated during build)
+packages/**/src/**/vendor
+
+# Tailwind
+apps/**/styles/tailwind.css
+packages/**/styles/tailwind.css
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.*
+.docker/*.env
+!.env.example
+
+# turbo
+.turbo
+.vercel
+.cache
+.env
+.output
+apps/**/public/build
+.tests-container-id.txt
+.sentryclirc
+.buildt
+
+**/tmp/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+.cosine
+.trigger
+.tshy*
+.yarn
+*.tsbuildinfo
+/packages/cli-v3/src/package.json
+.husky
+/packages/react-hooks/src/package.json
+/packages/core/src/package.json
+/packages/trigger-sdk/src/package.json
+/packages/python/src/package.json
+**/.claude/settings.local.json
+.mcp.log
+.mcp.json
+.cursor/debug.log
+ailogger-output.log

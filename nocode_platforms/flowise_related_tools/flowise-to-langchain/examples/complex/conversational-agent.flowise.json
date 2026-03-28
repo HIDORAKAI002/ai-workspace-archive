@@ -1,0 +1,315 @@
+{
+  "nodes": [
+    {
+      "id": "calculator_0",
+      "position": { "x": 100, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "calculator_0",
+        "label": "Calculator",
+        "version": 3,
+        "name": "calculator",
+        "type": "Calculator",
+        "baseClasses": ["Calculator", "Tool", "StructuredTool"],
+        "category": "Tools",
+        "description": "Perform calculations on response",
+        "inputParams": [],
+        "inputAnchors": [],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "calculator_0-output-calculator-Calculator|Tool|StructuredTool",
+            "name": "calculator",
+            "label": "Calculator",
+            "description": "Perform calculations on response",
+            "type": "Calculator | Tool | StructuredTool"
+          }
+        ]
+      }
+    },
+    {
+      "id": "serpAPI_0",
+      "position": { "x": 100, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "serpAPI_0",
+        "label": "Serp API",
+        "version": 2,
+        "name": "serpAPI",
+        "type": "SerpAPI",
+        "baseClasses": ["SerpAPI", "Tool", "StructuredTool"],
+        "category": "Tools",
+        "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["serpApi"]
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {},
+        "outputAnchors": [
+          {
+            "id": "serpAPI_0-output-serpAPI-SerpAPI|Tool|StructuredTool",
+            "name": "serpAPI",
+            "label": "Serp API",
+            "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
+            "type": "SerpAPI | Tool | StructuredTool"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chatOpenAI_0",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_0",
+        "label": "ChatOpenAI",
+        "version": 5,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": ["openAIApi"]
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "options",
+            "options": [
+              { "label": "gpt-4", "name": "gpt-4" },
+              { "label": "gpt-3.5-turbo", "name": "gpt-3.5-turbo" }
+            ],
+            "default": "gpt-3.5-turbo",
+            "optional": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "gpt-3.5-turbo",
+          "temperature": 0.7
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bufferMemory_0",
+      "position": { "x": 400, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferMemory_0",
+        "label": "Buffer Memory",
+        "version": 1,
+        "name": "bufferMemory",
+        "type": "BufferMemory",
+        "baseClasses": ["BufferMemory", "BaseMemory"],
+        "category": "Memory",
+        "description": "Simple conversation buffer memory",
+        "inputParams": [
+          {
+            "label": "Memory Key",
+            "name": "memoryKey",
+            "type": "string",
+            "default": "chat_history",
+            "optional": true
+          },
+          {
+            "label": "Input Key",
+            "name": "inputKey",
+            "type": "string",
+            "default": "input",
+            "optional": true
+          },
+          {
+            "label": "Output Key",
+            "name": "outputKey",
+            "type": "string",
+            "default": "output",
+            "optional": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "memoryKey": "chat_history",
+          "inputKey": "input",
+          "outputKey": "output"
+        },
+        "outputAnchors": [
+          {
+            "id": "bufferMemory_0-output-memory-BufferMemory|BaseMemory",
+            "name": "memory",
+            "label": "Memory",
+            "description": "Buffer memory instance",
+            "type": "BufferMemory | BaseMemory"
+          }
+        ]
+      }
+    },
+    {
+      "id": "conversationalAgent_0",
+      "position": { "x": 700, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "conversationalAgent_0",
+        "label": "Conversational Agent",
+        "version": 1,
+        "name": "conversationalAgent",
+        "type": "ConversationalAgent",
+        "baseClasses": ["ConversationalAgent", "Agent", "AgentExecutor"],
+        "category": "Agents",
+        "description": "Agent optimized for conversations that can use tools",
+        "inputParams": [
+          {
+            "label": "Agent Type",
+            "name": "agentType",
+            "type": "options",
+            "options": [
+              { "label": "Chat Conversational React", "name": "chat-conversational-react-description" },
+              { "label": "Conversational React", "name": "conversational-react-description" },
+              { "label": "Zero Shot React", "name": "zero-shot-react-description" }
+            ],
+            "default": "chat-conversational-react-description"
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "default": 15,
+            "optional": true
+          },
+          {
+            "label": "Max Execution Time",
+            "name": "maxExecutionTime",
+            "type": "number",
+            "optional": true
+          },
+          {
+            "label": "Verbose",
+            "name": "verbose",
+            "type": "boolean",
+            "default": false,
+            "optional": true
+          },
+          {
+            "label": "Return Intermediate Steps",
+            "name": "returnIntermediateSteps",
+            "type": "boolean",
+            "default": false,
+            "optional": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "id": "conversationalAgent_0-input-llm-BaseLanguageModel",
+            "name": "llm",
+            "label": "Language Model",
+            "description": "Language model for the agent",
+            "type": "BaseLanguageModel"
+          },
+          {
+            "id": "conversationalAgent_0-input-tools-Tool",
+            "name": "tools",
+            "label": "Tools",
+            "description": "Tools for the agent to use",
+            "type": "Tool",
+            "list": true
+          },
+          {
+            "id": "conversationalAgent_0-input-memory-BaseMemory",
+            "name": "memory",
+            "label": "Memory",
+            "description": "Memory for conversation history",
+            "type": "BaseMemory",
+            "optional": true
+          }
+        ],
+        "inputs": {
+          "agentType": "chat-conversational-react-description",
+          "maxIterations": 20,
+          "verbose": true,
+          "returnIntermediateSteps": false
+        },
+        "outputAnchors": [
+          {
+            "id": "conversationalAgent_0-output-agent-Agent|AgentExecutor",
+            "name": "agent",
+            "label": "Agent",
+            "description": "Conversational Agent executor",
+            "type": "Agent | AgentExecutor"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "calculator_0",
+      "sourceHandle": "calculator_0-output-calculator-Calculator|Tool|StructuredTool",
+      "target": "conversationalAgent_0",
+      "targetHandle": "conversationalAgent_0-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "calculator_0-conversationalAgent_0"
+    },
+    {
+      "source": "serpAPI_0",
+      "sourceHandle": "serpAPI_0-output-serpAPI-SerpAPI|Tool|StructuredTool",
+      "target": "conversationalAgent_0",
+      "targetHandle": "conversationalAgent_0-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "serpAPI_0-conversationalAgent_0"
+    },
+    {
+      "source": "chatOpenAI_0",
+      "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel",
+      "target": "conversationalAgent_0",
+      "targetHandle": "conversationalAgent_0-input-llm-BaseLanguageModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_0-conversationalAgent_0"
+    },
+    {
+      "source": "bufferMemory_0",
+      "sourceHandle": "bufferMemory_0-output-memory-BufferMemory|BaseMemory",
+      "target": "conversationalAgent_0",
+      "targetHandle": "conversationalAgent_0-input-memory-BaseMemory",
+      "type": "buttonedge",
+      "id": "bufferMemory_0-conversationalAgent_0"
+    }
+  ],
+  "chatflow": {
+    "id": "conversational-agent-example",
+    "name": "Conversational Agent Example",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T07:46:00.000Z",
+    "updatedDate": "2025-07-15T07:46:00.000Z",
+    "category": "Complex Examples",
+    "description": "Demonstrates Conversational Agent with memory, calculator and search tools optimized for interactive conversations"
+  }
+}

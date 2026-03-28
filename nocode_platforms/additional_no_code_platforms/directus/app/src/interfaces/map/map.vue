@@ -1,0 +1,626 @@
+<script setup lang="ts">
+import { useAppStore } from '@directus/stores';
+import { Field, GeoJSONParser, GeoJSONSerializer, GeometryType, MultiGeometry, SimpleGeometry } from '@directus/types';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import StaticMode from '@mapbox/mapbox-gl-draw-static-mode';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import { Geometry } from 'geojson';
+import { debounce, isEqual, snakeCase } from 'lodash';
+import maplibre, {
+	AnimationOptions,
+	AttributionControl,
+	CameraOptions,
+	GeolocateControl,
+	LngLatBoundsLike,
+	LngLatLike,
+	Map,
+	NavigationControl,
+} from 'maplibre-gl';
+import type { Ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, toRefs, watch } from 'vue';
+import { TranslateResult, useI18n } from 'vue-i18n';
+import { getMapStyle } from './style';
+import VButton from '@/components/v-button.vue';
+import VCardActions from '@/components/v-card-actions.vue';
+import VIcon from '@/components/v-icon/v-icon.vue';
+import VInfo from '@/components/v-info.vue';
+import VNotice from '@/components/v-notice.vue';
+import VSelect from '@/components/v-select/v-select.vue';
+import { useSettingsStore } from '@/stores/settings';
+import { flatten, getBBox, getGeometryFormatForType, getParser, getSerializer } from '@/utils/geometry';
+import { getBasemapSources, getStyleFromBasemapSource } from '@/utils/geometry/basemap';
+import { ButtonControl } from '@/utils/geometry/controls';
+
+// @ts-ignore
+
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+const activeLayers = [
+	'directus-point',
+	'directus-line',
+	'directus-polygon-fill',
+	'directus-polygon-stroke',
+	'directus-polygon-midpoint',
+	'directus-polygon-and-line-vertex',
+].flatMap((name) => [name + '.hot', name + '.cold']);
+
+const props = withDefaults(
+	defineProps<{
+		value: Record<string, unknown> | unknown[] | string | null;
+		type: 'geometry' | 'json' | 'csv' | 'string' | 'text';
+		fieldData?: Field;
+		loading?: boolean;
+		disabled?: boolean;
+		nonEditable?: boolean;
+		geometryType?: GeometryType;
+		defaultView?: Record<string, unknown>;
+	}>(),
+	{
+		loading: true,
+		defaultView: () => ({}),
+	},
+);
+
+const emit = defineEmits<{
+	(e: 'input', value: Record<string, unknown> | unknown[] | string | null): void;
+}>();
+
+const { t } = useI18n();
+const container: Ref<HTMLElement | null> = ref(null);
+let map: Map;
+const mapLoading = ref(true);
+let currentGeometry: Geometry | null | undefined;
+
+const geometryOptionsError = ref<string | null>();
+const geometryParsingError = ref<string | TranslateResult>();
+
+const geometryType = props.fieldData?.type.split('.')[1] as GeometryType;
+const geometryFormat = getGeometryFormatForType(props.type)!;
+
+const settingsStore = useSettingsStore();
+const mapboxKey = settingsStore.settings?.mapbox_key;
+
+const basemaps = getBasemapSources();
+const appStore = useAppStore();
+const { basemap } = toRefs(appStore);
+
+const style = computed(() => {
+	const source = basemaps.find((source) => source.name == basemap.value) ?? basemaps[0];
+	if (!source) return;
+	return (basemap.value, getStyleFromBasemapSource(source));
+});
+
+let parse: GeoJSONParser;
+let serialize: GeoJSONSerializer;
+
+try {
+	parse = getParser({ geometryFormat, geometryField: 'value' });
+	serialize = getSerializer({ geometryFormat, geometryField: 'value' });
+} catch (error: any) {
+	geometryOptionsError.value = error;
+}
+
+const selection = ref<GeoJSON.Feature[]>([]);
+
+const location = ref<LngLatLike | null>();
+const projection = ref<{ x: number; y: number } | null>();
+
+function updateProjection() {
+	projection.value = !location.value ? null : map.project(location.value as any);
+}
+
+watch(location, updateProjection);
+
+const controls = {
+	attribution: new AttributionControl(),
+	draw: new MapboxDraw(getDrawOptions(geometryType)),
+	fitData: new ButtonControl('mapboxgl-ctrl-fitdata', fitDataBounds),
+	navigation: new NavigationControl({
+		showCompass: false,
+	}),
+	geolocate: new GeolocateControl({
+		showUserLocation: false,
+	}),
+	geocoder: undefined as MapboxGeocoder | undefined,
+};
+
+if (mapboxKey) {
+	controls.geocoder = new MapboxGeocoder({
+		accessToken: mapboxKey,
+		collapsed: true,
+		flyTo: { speed: 1.4 },
+		marker: false,
+		mapboxgl: maplibre as any,
+		placeholder: t('layouts.map.find_location'),
+	});
+}
+
+const tooltipVisible = ref(false);
+const tooltipMessage = ref('');
+const tooltipPosition = ref({ x: 0, y: 0 });
+
+function hideTooltip() {
+	tooltipVisible.value = false;
+}
+
+const updateTooltipDebounce = debounce((event: any) => {
+	const feature = event.features?.[0];
+
+	if (feature && feature.properties!.active === 'false') {
+		tooltipMessage.value = t('interfaces.map.click_to_select', { geometry: feature.geometry.type });
+		tooltipVisible.value = true;
+		tooltipPosition.value = event.point;
+	}
+}, 200);
+
+function updateTooltip(event: any) {
+	tooltipVisible.value = false;
+	updateTooltipDebounce({ point: event.point, features: event.features });
+}
+
+onMounted(() => {
+	const cleanup = setupMap();
+	onUnmounted(cleanup);
+});
+
+function setupMap(): () => void {
+	map = new Map({
+		container: container.value!,
+		style: style.value,
+		dragRotate: false,
+		logoPosition: 'bottom-left',
+		attributionControl: false,
+		...props.defaultView,
+		...(mapboxKey ? { accessToken: mapboxKey } : {}),
+	});
+
+	if (controls.geocoder) {
+		controls.geocoder.on('result', (event: any) => {
+			location.value = event.result.center;
+		});
+
+		controls.geocoder.on('clear', () => {
+			location.value = null;
+		});
+	}
+
+	controls.geolocate.on('geolocate', (event: any) => {
+		const { longitude, latitude } = event.coords;
+		location.value = [longitude, latitude];
+	});
+
+	watch(() => style.value, updateStyle);
+	watch(() => props.disabled, updateDisabled, { immediate: true });
+	watch(() => props.value, updateValue, { immediate: true });
+
+	map.on('load', async () => {
+		map.resize();
+		mapLoading.value = false;
+		map.on('draw.create', handleDrawUpdate);
+		map.on('draw.delete', handleDrawUpdate);
+		map.on('draw.update', handleDrawUpdate);
+		map.on('draw.modechange', handleDrawModeChange);
+		map.on('draw.selectionchange', handleSelectionChange);
+		map.on('move', updateProjection);
+
+		for (const layer of activeLayers) {
+			map.on('mousedown', layer, hideTooltip);
+			map.on('mousemove', layer, updateTooltip);
+			map.on('mouseleave', layer, updateTooltip);
+		}
+
+		window.addEventListener('keydown', handleKeyDown);
+	});
+
+	return () => {
+		window.removeEventListener('keydown', handleKeyDown);
+		map.remove();
+	};
+}
+
+function updateValue(value: any) {
+	if (!value) {
+		controls.draw.deleteAll();
+		currentGeometry = null;
+
+		if (geometryType) {
+			const snaked = snakeCase(geometryType.replace('Multi', ''));
+			const mode = `draw_${snaked}` as any;
+			controls.draw.changeMode(mode);
+		}
+	} else {
+		if (!isEqual(value, currentGeometry && serialize(currentGeometry as any))) {
+			loadValueFromProps();
+			controls.draw.changeMode('simple_select');
+		}
+	}
+
+	if (props.disabled) {
+		controls.draw.changeMode('static');
+	}
+}
+
+function updateStyle() {
+	refreshUI();
+}
+
+function updateDisabled() {
+	refreshUI(true);
+}
+
+function refreshUI(updatedDisabled = false) {
+	if (map.hasControl(controls.draw as any)) map.removeControl(controls.draw as any);
+	if (style.value) map.setStyle(style.value, { diff: false });
+
+	if (updatedDisabled) refreshDisabledState();
+
+	controls.draw = new MapboxDraw(getDrawOptions(geometryType));
+	map.addControl(controls.draw as any, 'top-left');
+	if (props.disabled) controls.draw.changeMode('static');
+	loadValueFromProps();
+}
+
+function refreshDisabledState() {
+	if (!props.disabled) {
+		map.dragPan.enable();
+		map.scrollZoom.enable();
+		map.boxZoom.enable();
+		map.keyboard.enable();
+		map.doubleClickZoom.enable();
+		map.touchZoomRotate.enable();
+
+		map.addControl(controls.geocoder as any, 'top-right');
+		map.addControl(controls.attribution, 'bottom-left');
+		map.addControl(controls.navigation, 'top-left');
+		map.addControl(controls.geolocate, 'top-left');
+		map.addControl(controls.fitData, 'top-left');
+
+		return;
+	}
+
+	if (!props.nonEditable) {
+		map.dragPan.disable();
+		map.scrollZoom.disable();
+		map.boxZoom.disable();
+		map.keyboard.disable();
+		map.doubleClickZoom.disable();
+		map.touchZoomRotate.disable();
+	}
+
+	if (props.nonEditable) map.addControl(controls.navigation, 'top-left');
+	else if (map.hasControl(controls.navigation)) map.removeControl(controls.navigation);
+
+	if (map.hasControl(controls.geocoder as any)) map.removeControl(controls.geocoder as any);
+	if (map.hasControl(controls.attribution)) map.removeControl(controls.attribution);
+	if (map.hasControl(controls.geolocate)) map.removeControl(controls.geolocate);
+	if (map.hasControl(controls.fitData)) map.removeControl(controls.fitData);
+}
+
+function resetValue(hard: boolean) {
+	geometryParsingError.value = undefined;
+	if (hard) emit('input', null);
+}
+
+function fitDataBounds(options: CameraOptions & AnimationOptions) {
+	if (map && currentGeometry) {
+		const bbox = getBBox(currentGeometry);
+
+		map.fitBounds(bbox as LngLatBoundsLike, {
+			padding: 80,
+			maxZoom: 8,
+			...options,
+		});
+	}
+}
+
+function getDrawOptions(type: GeometryType): any {
+	const options = {
+		styles: getMapStyle(),
+		controls: {},
+		userProperties: true,
+		displayControlsDefault: false,
+		modes: Object.assign(MapboxDraw.modes, {
+			static: StaticMode,
+		}),
+	} as any;
+
+	if (props.disabled) {
+		return options;
+	}
+
+	if (!type) {
+		options.controls.line_string = true;
+		options.controls.polygon = true;
+		options.controls.point = true;
+		options.controls.trash = true;
+		return options;
+	} else {
+		const base = snakeCase(type!.replace('Multi', ''));
+		options.controls[base] = true;
+		options.controls.trash = true;
+		return options;
+	}
+}
+
+function isTypeCompatible(a?: GeometryType, b?: GeometryType): boolean {
+	if (!a || !b) {
+		return true;
+	}
+
+	if (a.startsWith('Multi')) {
+		return a.replace('Multi', '') == b.replace('Multi', '');
+	}
+
+	return a == b;
+}
+
+function loadValueFromProps() {
+	try {
+		controls.draw.deleteAll();
+		const initialValue = parse(props);
+
+		if (!initialValue) {
+			return;
+		}
+
+		if (!props.disabled && !isTypeCompatible(geometryType, initialValue!.type)) {
+			geometryParsingError.value = t('interfaces.map.unexpected_geometry', {
+				expected: geometryType,
+				got: initialValue!.type,
+			});
+		}
+
+		const flattened = flatten(initialValue);
+
+		for (const geometry of flattened) {
+			controls.draw.add(geometry);
+		}
+
+		currentGeometry = getCurrentGeometry();
+		currentGeometry!.bbox = getBBox(currentGeometry!);
+
+		if (geometryParsingError.value) {
+			const bbox = getBBox(initialValue!) as LngLatBoundsLike;
+			map.fitBounds(bbox, { padding: 0, maxZoom: 8, duration: 0 });
+		} else {
+			fitDataBounds({ duration: 0 });
+		}
+	} catch (error: any) {
+		geometryParsingError.value = error;
+	}
+}
+
+function getCurrentGeometry(): Geometry | null {
+	const features = controls.draw.getAll().features;
+	const geometries = features.map((f) => f.geometry) as (SimpleGeometry | MultiGeometry)[];
+	let result: Geometry;
+
+	if (geometries.length === 0) {
+		return null;
+	} else if (!geometryType) {
+		if (geometries.length > 1) {
+			result = { type: 'GeometryCollection', geometries };
+		} else {
+			result = geometries[0] as Geometry;
+		}
+	} else if (geometryType.startsWith('Multi')) {
+		const coordinates = geometries
+			.filter(({ type }) => `Multi${type}` == geometryType)
+			.map(({ coordinates }) => coordinates);
+
+		result = { type: geometryType, coordinates } as Geometry;
+	} else {
+		result = geometries[geometries.length - 1] as Geometry;
+	}
+
+	return result;
+}
+
+function handleDrawModeChange(event: any) {
+	if (!props.disabled && event.mode.startsWith('draw') && geometryType && !geometryType.startsWith('Multi')) {
+		for (const feature of controls.draw.getAll().features.slice(0, -1)) {
+			controls.draw.delete(feature.id as string);
+		}
+	}
+}
+
+function handleSelectionChange(event: any) {
+	selection.value = event.features;
+}
+
+function handleDrawUpdate() {
+	currentGeometry = getCurrentGeometry();
+
+	if (!currentGeometry) {
+		controls.draw.deleteAll();
+		emit('input', null);
+	} else {
+		emit('input', serialize(currentGeometry as any));
+	}
+}
+
+function handleKeyDown(event: any) {
+	if ([8, 46].includes(event.keyCode)) {
+		controls.draw.trash();
+	}
+}
+</script>
+
+<template>
+	<div class="interface-map" :class="{ disabled }">
+		<div
+			class="map"
+			:class="{
+				loading: mapLoading,
+				error: geometryParsingError || geometryOptionsError,
+				'has-selection': selection.length > 0,
+			}"
+		>
+			<div ref="container" />
+		</div>
+		<div
+			v-if="location"
+			class="mapboxgl-user-location-dot mapboxgl-search-location-dot"
+			:style="`transform: translate(${projection!.x}px, ${
+				projection!.y
+			}px) translate(-50%, -50%) rotateX(0deg) rotateZ(0deg)`"
+		></div>
+		<Transition name="fade">
+			<div
+				v-if="tooltipVisible"
+				class="tooltip top"
+				:style="`display: block; transform: translate(${tooltipPosition.x}px, ${tooltipPosition.y}px) translate(-50%, -150%) rotateX(0deg) rotateZ(0deg)`"
+			>
+				{{ tooltipMessage }}
+			</div>
+		</Transition>
+		<div v-if="!nonEditable" class="mapboxgl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-dropdown basemap-select">
+			<VIcon name="map" />
+			<VSelect v-model="basemap" inline :disabled :items="basemaps.map((s) => ({ text: s.name, value: s.name }))" />
+		</div>
+		<Transition name="fade">
+			<VInfo
+				v-if="geometryOptionsError"
+				icon="error"
+				center
+				type="danger"
+				:title="$t('interfaces.map.invalid_options')"
+			>
+				<VNotice type="danger" :icon="false">
+					{{ geometryOptionsError }}
+				</VNotice>
+			</VInfo>
+			<VInfo
+				v-else-if="geometryParsingError"
+				icon="error"
+				center
+				type="warning"
+				:title="$t('layouts.map.invalid_geometry')"
+			>
+				<VNotice type="warning" :icon="false">
+					{{ geometryParsingError }}
+				</VNotice>
+				<template #append>
+					<VCardActions>
+						<VButton small secondary @click="resetValue(false)">{{ $t('continue') }}</VButton>
+						<VButton small kind="danger" @click="resetValue(true)">{{ $t('reset') }}</VButton>
+					</VCardActions>
+				</template>
+			</VInfo>
+		</Transition>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.interface-map {
+	position: relative;
+	overflow: hidden;
+	border: var(--theme--border-width) solid var(--theme--form--field--input--border-color);
+	border-radius: var(--theme--border-radius);
+
+	&:not(.disabled):focus-within {
+		border-color: var(--v-input-border-color-focus, var(--theme--form--field--input--border-color-focus));
+		box-shadow: var(--theme--form--field--input--box-shadow-focus);
+	}
+
+	:deep(button) {
+		--focus-ring-offset: var(--focus-ring-offset-invert);
+		--focus-ring-radius: 0;
+	}
+
+	.map {
+		position: relative;
+		inline-size: 100%;
+		block-size: 28.125rem;
+
+		&.error,
+		&.loading {
+			opacity: 0.25;
+		}
+
+		.maplibregl-map {
+			inline-size: 100%;
+			block-size: 100%;
+		}
+
+		&:not(.has-selection) :deep(.mapbox-gl-draw_trash) {
+			display: none;
+		}
+	}
+
+	.v-info {
+		padding: 1.125rem;
+		background-color: var(--theme--form--field--input--background);
+		border-radius: var(--theme--border-radius);
+	}
+
+	.basemap-select {
+		position: absolute;
+		inset-inline-end: 0.5625rem;
+		inset-block-end: 0.5625rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		block-size: 2rem;
+		padding: 0.5625rem;
+		color: var(--theme--form--field--input--foreground-subdued);
+		background-color: var(--theme--background);
+		border: var(--theme--border-width) solid var(--theme--background);
+		border-radius: var(--theme--border-radius);
+
+		span {
+			inline-size: auto;
+			margin-inline-end: 0.25rem;
+		}
+
+		.v-select {
+			color: var(--theme--form--field--input--foreground);
+
+			:deep(button) {
+				background-color: transparent !important;
+			}
+
+			:deep(button.active) {
+				color: inherit !important;
+			}
+
+			:deep(button.disabled) {
+				color: var(--theme--form--field--input--foreground-subdued) !important;
+			}
+		}
+	}
+
+	&:not(.disabled) .basemap-select:hover {
+		background-color: var(--theme--background-normal);
+	}
+
+	.mapboxgl-search-location-dot {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+	}
+}
+
+.center {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.tooltip {
+	pointer-events: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+	transition: opacity var(--medium) var(--transition);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+	opacity: 0;
+}
+</style>

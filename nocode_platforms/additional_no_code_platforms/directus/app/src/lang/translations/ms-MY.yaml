@@ -1,0 +1,295 @@
+---
+first_name: Nama pertama
+identifier: Identifier
+avatar: Avatar
+application: Aplikasi
+default_provider: Permintaan
+method: Kaedah
+published: Diterbitkan
+draft: Draf
+archived: Diarkibkan
+modules: Modul
+module_bar: Modul.bar
+logs: Log
+reset_width: Lebar set semula
+tile_size: Saiz jubin
+edit_field: Sunting halaman
+conditions: Syarat
+location: Lokasi
+condition_rules: Hukum syarat
+input: Input
+maps: Peta
+switch_user: Tukar pengguna
+item_creation: Pembuatan barang
+item_revision: Barang semakan
+enter_a_name: Masukkan nama
+duplicate_field: Halaman salinan
+half_width: Separuh lebar
+full_width: Kelebaran penuh
+group: Kumpulan
+export_items: Ekspot item
+and: Dan
+or: Atau
+init: Init
+dataset_too_large_currently_showing_n_items: Set data terlalu besar. Paparan semasa menunjukkan item {n} yang pertama.
+modifier: Pengubah suai
+extension_hook: Cangkuk
+extension_modules: Modul
+custom: Suai langgan
+hook: Cangkuk
+fill_width: Isi lebar
+field_name_translations: Terjemahan nama bidang
+enter_password_to_enable_tfa: Masukkan kata laluan anda untuk mengaktifkan pengesahan dua faktor
+add_field: Tambah medan
+role_name: Nama peranan
+branch: Cawangan
+leaf: Daun
+indeterminate: Tidak tentu arah
+edit_collection: Edit koleksi
+exclusive: Eksklusif
+children: Kanak-kanak
+db_only_click_to_configure: 'Pangkalan data sahaja: klik untuk konfigurasi'
+show_active_items: Tunjukkan item yang aktif
+show_archived_items: Tunjukkan item yang diarkibkan
+show_all_items: Tunjukkan semua item
+edited: Nilai diedit
+required: Diperlukan
+required_for_app_access: Diperlukan untuk akses app
+requires_value: Nilai diperlukan
+create_preset: Bina Pratetapan
+create_panel: Cipta Panel
+create_role: Buat Peranan
+create_user: Cipta Pengguna
+message: Mesej
+delete_panel: Panel hapus
+invite: Jemputan
+emails: Emel
+connection_excellent: Rangkaian bagus
+connection_good: Rangkaian baik
+connection_fair: Rangkaian sederhana
+connection_poor: Rangkaian lemah
+primary: Utama
+rename_folder: Tukar nama fail
+delete_folder: Padam fail
+prefix: Awalan
+suffix: Akhiran
+reset_bookmark: Tetapkan semula penanda buku
+update_bookmark: Padam Penanda Buku
+delete_bookmark: Padam Penanda Buku
+validationError:
+  eq: Nilai mesti {valid}
+create_field: Cipta Medan
+hidden_on_detail: Tersembunyi di Butiran
+text: Teks
+auto_generate: Menjana Secara Automatik
+add_note: Tambah nota berguna untuk pengguna...
+next: Kemudian
+note: Nota
+length: Panjang
+readonly: Baca Sahaja
+unique: Unik
+primary_key: Kunci Utama
+page_not_found: Halaman Tidak Dijumpai
+page_not_found_body: Halaman yang anda cari tidak wujud
+title: Tajuk
+leave_comment: Tinggalkan komen...
+this_collection: Koleksi Ini
+related_collection: Koleksi Berkaitan
+translations_preview_collections: Koleksi-koleksi
+name: Nama
+save_and_stay: Simpan dan Tetap Disini
+save_as_copy: Simpan sebagai Salinan
+comments: Komen-komen
+request_feature: Minta Ciri
+item_count: 'Tiada Benda | Satu Benda | {count} Benda'
+create_collection: Cipta Koleksi
+users: Pengguna-pengguna
+activity: Aktiviti
+action: Tindakan
+ip_address: Alamat IP
+user_directory: Direktori pengguna
+duration: Durasi
+status: Status
+remove: Buang
+bookmarks: Penandabuku
+back: Kembali
+operators:
+  lt: Kurang daripada
+  gt: Lebih daripada
+  lte: Kurang daripada atau sama dengan
+  gte: Lebih daripada atau sama dengan
+  contains: Mengandungi
+  ncontains: Tidak mengandungi
+  empty: Kosong
+loading: Memuatkan...
+no_results: Tiada keputusan
+role: Peranan
+create: Cipta
+on_update: Apabila Dikemaskini
+read: Baca
+update: Kemaskini
+select_fields: Pilih medan-medan
+flow_name: Nama
+width: Lebar
+height: Tinggi
+wysiwyg_options:
+  remove: Buang
+editing_in_batch: 'Menyunting Secara Kumpulan Sebanyak {count} Benda'
+settings_project: Tetapan
+settings_presets: Penandabuku
+discard_changes: Buang Perubahan
+keep_editing: Terus Menyunting
+add_new: Tambah Baru
+all: Semua
+batch_delete_confirm: >-
+  Tiada benda dipilih | Adakah anda pasti ingin memadam benda ini? Tindakan ini tidak dapat dibatalkan. | Adakah anda pasti ingin memadam {count} benda ini? Tindakan ini tidak dapat dibatalkan.
+cancel: Batal
+collection: Koleksi
+collections: Koleksi-koleksi
+fields:
+  directus_activity:
+    item: Kunci Utama Item
+    action: Tindakan
+    collection: Koleksi
+    timestamp: Tindakan Pada
+    user: Tindakan Oleh
+    comment: Komen
+    ip: Alamat IP
+  directus_collections:
+    collection: Koleksi
+    note: Nota
+  directus_files:
+    title: Tajuk
+    description: Penerangan
+    tags: Tag
+    location: Lokasi
+    metadata: Metadata
+    embed: Benamkan
+    uploaded_by: Dimuat naik oleh
+    width: Lebar
+    uploaded_on: Dimuat naik pada
+    height: Tinggi
+    duration: Durasi
+  directus_users:
+    first_name: Nama pertama
+    email: Emel
+    password: Katalaluan
+    avatar: Avatar
+    location: Lokasi
+    title: Tajuk
+    description: Penerangan
+    tags: Tag
+    status: Status
+    role: Peranan
+  directus_settings:
+    project_name: Nama Projek
+    module_bar: Modul.bar
+  directus_shares:
+    name: Nama
+    role: Peranan
+    password: Katalaluan
+  directus_fields:
+    note: Nota
+    translation: Terjemahan nama bidang
+  directus_roles:
+    name: Nama peranan
+    description: Penerangan
+  directus_policies:
+    description: Penerangan
+field_options:
+  directus_activity:
+    create: Cipta
+    update: Kemaskini
+  directus_roles:
+    fields:
+      name_name: Nama
+    collections_name: Koleksi-koleksi
+comment: Komen
+ai:
+  settings: Tetapan
+  ask_user_next: Kemudian
+ai_tools:
+  files: Fail-fail
+  schema: Skema
+  collections: Koleksi-koleksi
+delete_field_are_you_sure: >-
+  Adakah anda pasti ingin memadam medan "{field}"? Tindakan ini tidak dapat dibatalkan.
+description: Penerangan
+duplicate: Pendua
+email: Emel
+embed: Benamkan
+file: Fail
+file_library: Perpustakaan Fail
+forgot_password: Lupa Katalaluan
+junction_collection: Koleksi Persimpangan
+latency: Kependaman
+login: Log masuk
+my_activity: Aktiviti Saya
+options: Pilihan-pilihan
+password: Katalaluan
+permissions: Kebenaran
+relationship: Perhubungan
+reset_password: Tetapkan Semula Katalaluan
+revert: Kembalikan
+save: Simpan
+schema: Skema
+search: Cari
+select_existing: Pilih yang sedia ada
+settings: Tetapan
+sign_in: Masuk
+sign_out: Keluar
+sign_out_confirm: Adakah anda pasti ingin keluar?
+something_went_wrong: Ada yang salah.
+value: Nilai
+interfaces:
+  filter:
+    all: Semua
+  presentation-links:
+    primary: Utama
+  system-collection:
+    collection: Koleksi
+  system-collections:
+    collections: Koleksi-koleksi
+  file:
+    file: Fail
+  files:
+    files: Fail-fail
+  tags:
+    tags: Tag
+  input-block-editor:
+    tools_options:
+      embed: Benamkan
+displays:
+  collection:
+    collection: Koleksi
+  datetime:
+    suffix: Akhiran
+  file:
+    file: Fail
+  formatted-value:
+    prefix: Awalan
+    suffix: Akhiran
+    text: Teks
+  user:
+    avatar: Avatar
+    name: Nama
+    both: Kedua-duanya
+layouts:
+  cards:
+    title: Tajuk
+  tabular:
+    compact: Padat
+both: Kedua-duanya
+triggers:
+  webhook:
+    method: Kaedah
+operations:
+  json-web-token:
+    options: Pilihan-pilihan
+  log:
+    message: Mesej
+  notification:
+    message: Mesej
+  request:
+    method: Kaedah
+compact: Padat

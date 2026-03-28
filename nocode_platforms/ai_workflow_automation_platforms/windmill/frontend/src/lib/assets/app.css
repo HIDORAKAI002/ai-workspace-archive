@@ -1,0 +1,234 @@
+/* Write your global styles here, in PostCSS syntax */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media (min-width: 1760px) {
+	:root {
+		font-size: 18px;
+	}
+}
+
+@layer base {
+	/* Light mode: default border color */
+	.border,
+	.border-t,
+	.border-r,
+	.border-b,
+	.border-l,
+	.border-x,
+	.border-y,
+	.divide-x > :not([hidden]) ~ :not([hidden]),
+	.divide-y > :not([hidden]) ~ :not([hidden]) {
+		border-color: rgb(var(--color-border-light));
+	}
+
+	/* Dark mode: change border color */
+	.dark .border,
+	.dark .border-t,
+	.dark .border-r,
+	.dark .border-b,
+	.dark .border-l,
+	.dark .border-x,
+	.dark .border-y,
+	.dark .divide-x > :not([hidden]) ~ :not([hidden]),
+	.dark .divide-y > :not([hidden]) ~ :not([hidden]) {
+		border-color: rgb(var(--color-border-light));
+	}
+
+	/* Chrome, Edge, and Safari */
+	*::-webkit-scrollbar {
+		width: 5px;
+		height: 5px;
+	}
+
+	/* 
+	*::-webkit-scrollbar-track {
+		@apply bg-tertiary; 
+	}
+	*/
+
+	*::-webkit-scrollbar-thumb {
+		@apply bg-tertiary-inverse dark:bg-tertiary;
+		border-radius: 3px;
+	}
+
+	@font-face {
+		font-family: 'Inter';
+		src: url('/Inter-Variable.woff2') format('woff2');
+		font-weight: 100 900;
+		font-display: swap;
+	}
+
+	.prose-xs ul {
+		margin-top: 0.5rem;
+		list-style-type: '- ';
+		padding-left: 1.5rem;
+	}
+
+	.prose ul {
+		margin-top: 1.5rem;
+		list-style-type: '- ';
+		padding-left: 3rem;
+	}
+	.prose a {
+		@apply text-accent no-underline;
+	}
+
+	.autocomplete-list-item-create {
+		@apply !text-primary-inverse !bg-surface-inverse;
+	}
+
+	.autocomplete-list-item {
+		@apply !text-primary !bg-surface text-xs;
+	}
+
+	.autocomplete-list-item.selected {
+		@apply !text-primary-inverse !bg-surface-inverse;
+	}
+
+	.autocomplete-list-item.selected.confirmed {
+		@apply !text-primary-inverse !bg-surface-inverse;
+	}
+
+	.autocomplete-list {
+		@apply !bg-surface;
+	}
+}
+
+@layer utilities {
+	@variants responsive {
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		.no-scrollbar::-webkit-scrollbar {
+			display: none;
+		}
+
+		/* Hide scrollbar for IE, Edge and Firefox */
+		.no-scrollbar {
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+		}
+	}
+}
+
+.driver-popover-title {
+	@apply leading-6 !text-primary !text-base;
+}
+
+.driver-popover-description {
+	@apply !text-secondary !text-sm;
+}
+
+.driver-popover {
+	@apply p-6 !bg-surface !max-w-2xl;
+}
+
+.panel-item {
+	@apply border dark:border-gray-600 border-gray-200 flex gap-1 truncate font-normal justify-between w-full items-center py-1 px-2 rounded-sm duration-200;
+}
+
+.splitpanes--vertical > .splitpanes__pane {
+	transition: none !important;
+}
+
+.splitpanes--horizontal > .splitpanes__pane {
+	transition: none !important;
+}
+
+.monaco-workbench > .notifications-toasts.visible {
+	display: none !important;
+}
+
+.monaco-editor .suggest-widget {
+	z-index: 10001 !important;
+}
+
+svelte-virtual-list-row {
+	overflow: visible !important;
+}
+
+svelte-virtual-list-contents > * + * {
+	border-top-width: 1px !important;
+	border-bottom-width: 0px !important;
+}
+
+.monaco-editor textarea:focus {
+	box-shadow: none !important;
+}
+
+.component-wrapper {
+	@apply rounded-component border overflow-hidden border-gray-300 dark:border-gray-600;
+}
+
+.app-editor-input {
+	@apply rounded-component border border-gray-300 dark:border-gray-500 focus:border-gray-300 focus:dark:border-gray-500 focus:!ring-1 focus:!ring-blue-300;
+	@apply placeholder:text-gray-400 dark:placeholder:text-gray-200;
+	@apply bg-surface;
+	@apply disabled:placeholder:text-gray-200 disabled:placeholder:dark:text-gray-500 disabled:text-gray-200 disabled:dark:text-gray-500 disabled:border-gray-200 disabled:dark:border-gray-600;
+}
+
+.nonmain-editor .cursor.monaco-mouse-cursor-text {
+	width: 1px !important;
+}
+
+.bg-locked {
+	background-image: repeating-linear-gradient(
+		-45deg,
+		rgba(128, 128, 128, 0.2),
+		rgba(128, 128, 128, 0.2) 10px,
+		rgba(192, 192, 192, 0.2) 10px,
+		rgba(192, 192, 192, 0.2) 20px
+	);
+}
+
+.bg-locked-hover {
+	background-image: repeating-linear-gradient(
+		-45deg,
+		rgba(255, 99, 71, 0.2),
+		rgba(255, 99, 71, 0.2) 10px,
+		rgba(255, 69, 58, 0.2),
+		rgba(255, 69, 58, 0.2) 20px
+	);
+}
+
+.bg-draggedover {
+	background-image: repeating-linear-gradient(
+		-45deg,
+		rgba(0, 0, 128, 0.2),
+		rgba(0, 0, 192, 0.2) 10px,
+		rgba(0, 0, 128, 0.2) 10px,
+		rgba(0, 0, 192, 0.2) 20px
+	);
+}
+
+.bg-draggedover-dark {
+	background-image: repeating-linear-gradient(
+		-45deg,
+		rgba(0, 0, 128, 0.6),
+		rgba(0, 0, 192, 0.6) 10px,
+		rgba(0, 0, 128, 0.6) 10px,
+		rgba(0, 0, 192, 0.6) 20px
+	);
+}
+
+/* Prevent clock icon in input[type="time"] making the input taller */
+
+/* Chrome, Safari, Edge, Opera */
+input[type='time']::-webkit-calendar-picker-indicator {
+	margin: 0;
+	padding: 0;
+}
+
+/* Settings search highlight (used by both the drawer and the setup page) */
+[data-setting-key] {
+	transition: outline 0.8s ease;
+	outline: 2px solid transparent;
+	outline-offset: -2px;
+}
+[data-setting-key].setting-highlight {
+	outline: 2px solid rgb(var(--color-border-accent, 59 130 246));
+}
+
+.svelte-flow__edges {
+	z-index: -10;
+}

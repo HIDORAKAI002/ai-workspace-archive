@@ -1,0 +1,195 @@
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# Jest
+jest-cache/
+
+# Prettier
+.prettierignore
+
+# Claude Flow generated files
+.claude/settings.local.json
+.claude/mcp.json
+.swarm/
+.hive-mind/
+memory/claude-flow-data.json
+memory/sessions/*
+!memory/sessions/README.md
+memory/agents/*
+!memory/agents/README.md
+coordination/memory_bank/*
+coordination/subtasks/*
+coordination/orchestration/*
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+claude-flow
+claude-flow.bat
+claude-flow.ps1
+hive-mind-prompt-*.txt
+
+# Project cleanup patterns
+# Temporary test and build scripts
+test-*.mjs
+test-*.js
+*-test.mjs
+*-test.js
+compile-*.mjs
+build-*.mjs
+verify-*.mjs
+verify-*.js
+manual-*.js
+analyze-*.js
+fix-*.js
+quick-*.js
+debug-*.js
+
+# Test outputs and temporary directories
+test-output*/
+test-outputs/
+output*/
+test-flows/
+temp-*/
+tmp-*/
+*.test-output
+*.test-result
+
+# Converted outputs
+*-converted.ts
+*-converted.js
+*-working.ts
+*-modified.json
+
+# Output folder for converted files
+output/
+
+# Status and report files from development
+*-STATUS.md
+*-REPORT.md
+*-FIXES*.md
+*-COMPLETE.md
+BUILD-*.md
+COMPREHENSIVE-*.md
+FINAL-*.md
+MISSION-STATUS.md
+NPM-PUBLISH-*.md
+PUBLISH-INSTRUCTIONS.md
+PYTHON-SUPPORT-*.md
+TYPESCRIPT-*.md
+
+# Archive and backup directories
+archive/
+old/
+backup/
+
+# Development artifacts
+*.mjs.tmp
+*.js.tmp

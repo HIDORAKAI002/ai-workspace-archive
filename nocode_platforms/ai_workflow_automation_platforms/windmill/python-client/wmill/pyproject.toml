@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "wmill"
+version = "1.668.2"
+description = "A client library for accessing Windmill server wrapping the Windmill client API"
+license = "Apache-2.0"
+homepage = "https://windmill.dev"
+documentation = "https://windmill.dev"
+
+authors = ["Ruben Fiszel <ruben@windmill.dev>"]
+
+readme = "README.md"
+packages = [
+    {include = "wmill"},
+]
+include = ["wmill/py.typed"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+httpx = ">=0.24"
+
+[build-system]
+requires = ["poetry>=1.0.2", "poetry-dynamic-versioning"]
+build-backend = "poetry.masonry.api"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.2",
+]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+format-jinja = "{% if distance == 0 %}{{ base }}{% else %}{{ base }}+{{ distance }}.{{ commit }}{% endif %}"
+
+
+[tool.black]
+line-length = 120
+target_version = ['py36', 'py37', 'py38']
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+    | \.mypy_cache
+  )/
+)
+'''
+
+[tool.isort]
+line_length = 120
+profile = "black"

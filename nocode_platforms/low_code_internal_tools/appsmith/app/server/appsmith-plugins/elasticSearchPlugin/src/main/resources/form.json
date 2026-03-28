@@ -1,0 +1,56 @@
+{
+  "form": [
+    {
+      "sectionName": "Connection",
+      "children": [
+        {
+          "sectionName": null,
+          "children": [
+            {
+              "label": "Host URL",
+              "configProperty": "datasourceConfiguration.endpoints[*].host",
+              "controlType": "KEYVALUE_ARRAY",
+              "validationMessage": "Please enter a valid URL, for example, https://example.com",
+              "validationRegex": "^(http|https)://",
+              "placeholderText": "myapp.abcde.elasticsearch.net"
+            },
+            {
+              "label": "Port",
+              "configProperty": "datasourceConfiguration.endpoints[*].port",
+              "dataType": "NUMBER",
+              "initialValue": ["9200"],
+              "controlType": "KEYVALUE_ARRAY",
+              "placeholderText": "9200"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sectionName": "Authentication",
+      "children": [
+        {
+          "label": "Username for Basic Auth",
+          "configProperty": "datasourceConfiguration.authentication.username",
+          "controlType": "INPUT_TEXT",
+          "placeholderText": "Username"
+        },
+        {
+          "label": "Password for Basic Auth",
+          "configProperty": "datasourceConfiguration.authentication.password",
+          "dataType": "PASSWORD",
+          "controlType": "INPUT_TEXT",
+          "placeholderText": "Password",
+          "encrypted": true
+        },
+        {
+          "label": "Authorization Header (if username, password are not set)",
+          "configProperty": "datasourceConfiguration.headers[0]",
+          "controlType": "FIXED_KEY_INPUT",
+          "fixedKey": "Authorization",
+          "placeholderText": "Authorization Header"
+        }
+      ]
+    }
+  ]
+}

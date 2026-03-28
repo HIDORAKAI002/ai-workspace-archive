@@ -1,0 +1,55 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import VTab from '@/components/v-tab.vue';
+import VTabs from '@/components/v-tabs.vue';
+
+type Tab = {
+	value: string;
+	text: string;
+	hasValue: boolean;
+};
+
+const props = defineProps<{
+	tabs: Tab[];
+	currentTab?: string;
+}>();
+
+const emit = defineEmits<{
+	'update:currentTab': [value: string | undefined];
+}>();
+
+const internalCurrentTab = computed({
+	get() {
+		return props.currentTab ? [props.currentTab] : [];
+	},
+	set(value: string[]) {
+		emit('update:currentTab', value[0]);
+	},
+});
+</script>
+
+<template>
+	<VTabs v-model="internalCurrentTab" vertical>
+		<VTab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+			<span class="text">{{ tab.text }}</span>
+			<span class="dot" :class="{ on: tab.hasValue }" />
+		</VTab>
+	</VTabs>
+</template>
+
+<style lang="scss" scoped>
+.text {
+	flex-grow: 1;
+}
+
+.dot {
+	inline-size: 0.6875rem;
+	block-size: 0.6875rem;
+	background-color: var(--theme--foreground-subdued);
+	border-radius: 50%;
+
+	&.on {
+		background-color: var(--theme--primary);
+	}
+}
+</style>

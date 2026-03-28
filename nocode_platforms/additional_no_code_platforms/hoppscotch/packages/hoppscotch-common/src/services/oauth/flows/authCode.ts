@@ -1,0 +1,352 @@
+import { PersistenceService } from "~/services/persistence"
+import {
+  OauthAuthService,
+  PersistedOAuthConfig,
+  createFlowConfig,
+  decodeResponseAsJSON,
+  generateRandomString,
+} from "../oauth.service"
+import { z } from "zod"
+import { getService } from "~/modules/dioc"
+import * as E from "fp-ts/Either"
+import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
+import { content } from "@hoppscotch/kernel"
+import { refreshToken, OAuth2ParamSchema } from "../utils"
+import {
+  AuthCodeGrantTypeParams,
+  OAuth2AuthRequestParam,
+} from "@hoppscotch/data"
+
+const persistenceService = getService(PersistenceService)
+const interceptorService = getService(KernelInterceptorService)
+
+// Use the existing schema from hoppscotch-data but ensure required arrays
+const AuthCodeOauthFlowParamsSchema = AuthCodeGrantTypeParams.omit({
+  grantType: true,
+  token: true,
+})
+  .extend({
+    // Override optional arrays to be required for the service layer
+    authRequestParams: z.array(OAuth2AuthRequestParam),
+    tokenRequestParams: z.array(OAuth2ParamSchema),
+    refreshRequestParams: z.array(OAuth2ParamSchema),
+  })
+  .refine(
+    (params) => {
+      return (
+        params.authEndpoint.length >= 1 &&
+        params.tokenEndpoint.length >= 1 &&
+        params.clientID.length >= 1 &&
+        (!params.scopes || params.scopes.trim().length >= 1)
+      )
+    },
+    {
+      message: "Minimum length requirement not met for one or more parameters",
+    }
+  )
+  .refine((params) => (params.isPKCE ? !!params.codeVerifierMethod : true), {
+    message: "codeVerifierMethod is required when using PKCE",
+    path: ["codeVerifierMethod"],
+  })
+
+export type AuthCodeOauthFlowParams = z.infer<
+  typeof AuthCodeOauthFlowParamsSchema
+>
+
+export type AuthCodeOauthRefreshParams = {
+  tokenEndpoint: string
+  clientID: string
+  clientSecret?: string
+  refreshToken: string
+}
+
+export const getDefaultAuthCodeOauthFlowParams =
+  (): AuthCodeOauthFlowParams => ({
+    authEndpoint: "",
+    tokenEndpoint: "",
+    clientID: "",
+    clientSecret: "",
+    scopes: undefined,
+    isPKCE: false,
+    codeVerifierMethod: "S256",
+    authRequestParams: [],
+    refreshRequestParams: [],
+    tokenRequestParams: [],
+  })
+
+const initAuthCodeOauthFlow = async ({
+  tokenEndpoint,
+  clientID,
+  clientSecret,
+  scopes,
+  authEndpoint,
+  isPKCE,
+  codeVerifierMethod,
+  authRequestParams,
+  refreshRequestParams,
+  tokenRequestParams,
+}: AuthCodeOauthFlowParams) => {
+  const state = generateRandomString()
+
+  let codeVerifier: string | undefined
+  let codeChallenge: string | undefined
+
+  // Ensure backward compatibility for collections that were imported before
+  // `codeVerifierMethod` was added. If PKCE is enabled but the method is
+  // missing, default to 'plain' as requested by the user.
+  const codeVerifierMethodNormalized =
+    isPKCE && !codeVerifierMethod ? ("plain" as const) : codeVerifierMethod
+
+  if (isPKCE) {
+    codeVerifier = generateCodeVerifier()
+    // codeVerifierMethodNormalized might be undefined only if isPKCE is false,
+    // but here we guard with isPKCE so it's safe to pass a value.
+    codeChallenge = await generateCodeChallenge(
+      codeVerifier,
+      codeVerifierMethodNormalized
+    )
+  }
+
+  let oauthTempConfig: {
+    state: string
+    grant_type: "AUTHORIZATION_CODE"
+    authEndpoint: string
+    tokenEndpoint: string
+    clientSecret?: string
+    clientID: string
+    isPKCE: boolean
+    codeVerifier?: string
+    codeVerifierMethod?: string
+    codeChallenge?: string
+    scopes?: string
+    authRequestParams?: Array<{
+      key: string
+      value: string
+      active: boolean
+      sendIn?: string
+    }>
+    refreshRequestParams?: Array<{
+      key: string
+      value: string
+      active: boolean
+      sendIn?: string
+    }>
+    tokenRequestParams?: Array<{
+      key: string
+      value: string
+      active: boolean
+      sendIn?: string
+    }>
+  } = {
+    state,
+    grant_type: "AUTHORIZATION_CODE",
+    authEndpoint,
+    tokenEndpoint,
+    clientSecret,
+    clientID,
+    isPKCE,
+    // Persist the normalized method so subsequent redirect handling has a value
+    codeVerifierMethod: codeVerifierMethodNormalized,
+    scopes,
+    authRequestParams,
+    refreshRequestParams,
+    tokenRequestParams,
+  }
+
+  if (codeVerifier && codeChallenge) {
+    oauthTempConfig = {
+      ...oauthTempConfig,
+      codeVerifier,
+      codeChallenge,
+    }
+  }
+
+  const localOAuthTempConfig =
+    await persistenceService.getLocalConfig("oauth_temp_config")
+
+  const persistedOAuthConfig: PersistedOAuthConfig = localOAuthTempConfig
+    ? { ...JSON.parse(localOAuthTempConfig) }
+    : {}
+
+  const { grant_type, ...rest } = oauthTempConfig
+
+  // persist the state so we can compare it when we get redirected back
+  // also persist the grant_type,tokenEndpoint and clientSecret so we can use them when we get redirected back
+  await persistenceService.setLocalConfig(
+    "oauth_temp_config",
+    JSON.stringify(<PersistedOAuthConfig>{
+      ...persistedOAuthConfig,
+      fields: rest,
+      grant_type,
+    })
+  )
+
+  let url: URL
+
+  try {
+    url = new URL(authEndpoint)
+  } catch (_e) {
+    return E.left("INVALID_AUTH_ENDPOINT")
+  }
+
+  url.searchParams.set("grant_type", "authorization_code")
+  url.searchParams.set("client_id", clientID)
+  url.searchParams.set("state", state)
+  url.searchParams.set("response_type", "code")
+  url.searchParams.set("redirect_uri", OauthAuthService.redirectURI)
+
+  if (scopes) url.searchParams.set("scope", scopes)
+
+  if (codeVerifierMethod && codeChallenge) {
+    url.searchParams.set("code_challenge", codeChallenge)
+    url.searchParams.set("code_challenge_method", codeVerifierMethod)
+  }
+
+  if (authRequestParams.length > 0) {
+    authRequestParams.forEach((param) => {
+      if (param.active && param.key && param.value) {
+        url.searchParams.set(param.key, param.value)
+      }
+    })
+  }
+
+  // Redirect to the authorization server
+  window.location.assign(url.toString())
+
+  return E.right(undefined)
+}
+
+const handleRedirectForAuthCodeOauthFlow = async (localConfig: string) => {
+  // parse the query string
+  const params = new URLSearchParams(window.location.search)
+
+  const code = params.get("code")
+  const state = params.get("state")
+  const error = params.get("error")
+
+  if (error) {
+    return E.left("AUTH_SERVER_RETURNED_ERROR")
+  }
+
+  if (!code) {
+    return E.left("AUTH_TOKEN_REQUEST_FAILED")
+  }
+
+  const expectedSchema = z.object({
+    source: z.optional(z.string()),
+    state: z.string(),
+    tokenEndpoint: z.string(),
+    clientSecret: z.string(),
+    clientID: z.string(),
+    codeVerifier: z.string().optional(),
+    codeChallenge: z.string().optional(),
+  })
+
+  const decodedLocalConfig = expectedSchema.safeParse(
+    JSON.parse(localConfig).fields
+  )
+
+  if (!decodedLocalConfig.success) {
+    return E.left("INVALID_LOCAL_CONFIG")
+  }
+
+  // check if the state matches
+  if (decodedLocalConfig.data.state !== state) {
+    return E.left("INVALID_STATE")
+  }
+
+  // exchange the code for a token
+  const { response } = interceptorService.execute({
+    id: Date.now(),
+    url: decodedLocalConfig.data.tokenEndpoint,
+    method: "POST",
+    version: "HTTP/1.1",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    content: content.urlencoded({
+      code,
+      grant_type: "authorization_code",
+      client_id: decodedLocalConfig.data.clientID,
+      client_secret: decodedLocalConfig.data.clientSecret,
+      redirect_uri: OauthAuthService.redirectURI,
+      ...(decodedLocalConfig.data.codeVerifier && {
+        code_verifier: decodedLocalConfig.data.codeVerifier,
+      }),
+    }),
+  })
+
+  const res = await response
+
+  if (E.isLeft(res)) {
+    return E.left("AUTH_TOKEN_REQUEST_FAILED" as const)
+  }
+
+  const responsePayload = decodeResponseAsJSON(res.right)
+
+  if (E.isLeft(responsePayload)) {
+    return E.left("AUTH_TOKEN_REQUEST_FAILED" as const)
+  }
+
+  const withAccessTokenSchema = z.object({
+    access_token: z.string(),
+    refresh_token: z.string().optional(),
+  })
+
+  const parsedTokenResponse = withAccessTokenSchema.safeParse(
+    responsePayload.right
+  )
+
+  return parsedTokenResponse.success
+    ? E.right(parsedTokenResponse.data)
+    : E.left("AUTH_TOKEN_REQUEST_INVALID_RESPONSE" as const)
+}
+
+const generateCodeVerifier = () => {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+  const length = Math.floor(Math.random() * (128 - 43 + 1)) + 43 // Random length between 43 and 128
+  let codeVerifier = ""
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length)
+    codeVerifier += characters[randomIndex]
+  }
+
+  return codeVerifier
+}
+
+const generateCodeChallenge = async (
+  codeVerifier: string,
+  strategy: AuthCodeOauthFlowParams["codeVerifierMethod"]
+) => {
+  if (strategy === "plain") {
+    return codeVerifier
+  }
+
+  const encoder = new TextEncoder()
+  const data = encoder.encode(codeVerifier)
+
+  const buffer = await crypto.subtle.digest("SHA-256", data)
+
+  return encodeArrayBufferAsUrlEncodedBase64(buffer)
+}
+
+const encodeArrayBufferAsUrlEncodedBase64 = (buffer: ArrayBuffer) => {
+  const hashArray = Array.from(new Uint8Array(buffer))
+  const hashBase64URL = btoa(String.fromCharCode(...hashArray))
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+
+  return hashBase64URL
+}
+
+export default createFlowConfig(
+  "AUTHORIZATION_CODE" as const,
+  AuthCodeOauthFlowParamsSchema,
+  initAuthCodeOauthFlow,
+  handleRedirectForAuthCodeOauthFlow,
+  refreshToken
+)

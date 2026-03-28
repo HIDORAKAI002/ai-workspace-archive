@@ -1,0 +1,102 @@
+<script>
+  import { Body, ProgressBar, Heading, Icon, Link } from "@budibase/bbui"
+  import { helpers } from "@budibase/shared-core"
+  import { admin } from "@/stores/portal/admin"
+  import { auth } from "@/stores/portal/auth"
+  export let usage
+  export let warnWhenFull = false
+
+  let percentage
+  let unlimited = false
+  let showWarning = false
+
+  $: accountPortalAccess = $auth?.user?.accountPortalAccess
+  const { accountPortalUpgradeUrl } = helpers
+
+  const getPercentage = () => {
+    if (!usage?.total || usage.total <= 0) {
+      return 0
+    }
+    return (usage.used / usage.total) * 100
+  }
+
+  $: upgradeUrl = accountPortalUpgradeUrl($admin.accountPortalUrl)
+
+  $: unlimited = usage?.total === -1
+  $: percentage = unlimited ? 100 : getPercentage()
+  $: showWarning = warnWhenFull && !unlimited && percentage >= 100
+</script>
+
+<div class="usage">
+  <div class="info">
+    <div class="header-container">
+      {#if showWarning}
+        <Icon name="warning" />
+      {/if}
+      <Heading size="XS" weight="light">
+        <span class="nowrap">
+          {usage.name}
+        </span>
+      </Heading>
+    </div>
+    <Body size="S">
+      <span class="nowrap">
+        {#if unlimited}
+          {usage.used} / Unlimited
+        {:else}
+          {usage.used} / {usage.total}
+        {/if}
+      </span>
+    </Body>
+  </div>
+  <div>
+    {#if unlimited}
+      <ProgressBar
+        showPercentage={false}
+        width={"100%"}
+        duration={1}
+        value={100}
+      />
+    {:else}
+      <ProgressBar
+        color={showWarning ? "red" : "green"}
+        showPercentage={false}
+        width={"100%"}
+        duration={1}
+        value={percentage}
+      />
+    {/if}
+    {#if showWarning}
+      <Body size="S">
+        To get more {usage.name.toLowerCase()}
+        {#if accountPortalAccess}
+          <Link href={upgradeUrl}>upgrade your plan</Link>
+        {:else}
+          contact your account holder
+        {/if}
+      </Body>
+    {/if}
+  </div>
+</div>
+
+<style>
+  .usage {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+    gap: var(--spacing-m);
+  }
+  .header-container {
+    display: flex;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,706 @@
+import { PutObjectCommand, S3 } from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import {
+  ActiveContentFileError,
+  BadRequestError,
+  configs,
+  context,
+  env as envCore,
+  objectStore,
+  roles,
+  utils,
+} from "@budibase/backend-core"
+import * as pro from "@budibase/pro"
+import { InvalidFileExtensions } from "@budibase/shared-core"
+import { processString } from "@budibase/string-templates"
+import {
+  BudibaseAppProps,
+  Ctx,
+  DocumentType,
+  Feature,
+  GetSignedUploadUrlRequest,
+  GetSignedUploadUrlResponse,
+  ProcessAttachmentResponse,
+  PWAManifest,
+  ServeAppResponse,
+  ServeBuilderPreviewResponse,
+  ServeClientLibraryResponse,
+  UserCtx,
+  Workspace,
+} from "@budibase/types"
+import extract from "extract-zip"
+import fs from "fs"
+import fsp from "fs/promises"
+import send from "koa-send"
+import { tmpdir } from "os"
+import path from "path"
+import * as uuid from "uuid"
+import { ObjectStoreBuckets } from "../../../constants"
+import { getThemeVariables } from "../../../constants/themes"
+import env from "../../../environment"
+import sdk from "../../../sdk"
+import { join } from "../../../utilities/centralPath"
+import {
+  loadHandlebarsFile,
+  NODE_MODULES_PATH,
+  shouldServeLocally,
+} from "../../../utilities/fileSystem"
+import { isWorkspaceFullyMigrated } from "../../../workspaceMigrations"
+import AppComponent from "./templates/BudibaseApp.svelte"
+import { render } from "svelte/server"
+
+const ACTIVE_CONTENT_EXTENSIONS = new Set([
+  "html",
+  "htm",
+  "svg",
+  "svgz",
+  "xhtml",
+  "mhtml",
+  "shtml",
+])
+
+const ACTIVE_CONTENT_MIME_TYPES = [
+  "text/html",
+  "image/svg+xml",
+  "application/xhtml+xml",
+]
+
+const MAX_SNIFF_BYTES = 4096
+const GLOBAL_CLIENT_ASSET_ID = "global"
+
+const detectActiveContent = async (filePath: fs.PathLike) => {
+  const handle = await fsp.open(filePath, "r")
+  try {
+    const buffer = new Uint8Array(MAX_SNIFF_BYTES)
+    const { bytesRead } = await handle.read(buffer, 0, MAX_SNIFF_BYTES, 0)
+    if (!bytesRead) {
+      return false
+    }
+    const sample = Buffer.from(buffer)
+      .toString("utf8", 0, bytesRead)
+      .trimStart()
+      .toLowerCase()
+    return (
+      sample.startsWith("<!doctype html") ||
+      sample.startsWith("<html") ||
+      sample.startsWith("<svg") ||
+      /<svg[\s>]/i.test(sample) ||
+      /<script[\s>]/i.test(sample)
+    )
+  } finally {
+    await handle.close()
+  }
+}
+
+const getUploadFilename = (file: unknown) => {
+  if (!file || typeof file !== "object") {
+    return undefined
+  }
+  const upload = file as {
+    originalFilename?: string | null
+  }
+  return upload.originalFilename || undefined
+}
+
+const getUploadPath = (file: unknown) => {
+  if (!file || typeof file !== "object") {
+    return undefined
+  }
+  const upload = file as {
+    filepath?: string
+  }
+  return upload.filepath
+}
+
+const getUploadMimeType = (file: unknown) => {
+  if (!file || typeof file !== "object") {
+    return undefined
+  }
+  const upload = file as {
+    mimetype?: string | null
+  }
+  return upload.mimetype || undefined
+}
+
+export const uploadFile = async function (
+  ctx: Ctx<void, ProcessAttachmentResponse>
+) {
+  const file = ctx.request?.files?.file
+  if (!file) {
+    throw new BadRequestError("No file provided")
+  }
+
+  let files = file && Array.isArray(file) ? Array.from(file) : [file]
+
+  ctx.body = await Promise.all(
+    files.map(async file => {
+      const fileName = getUploadFilename(file)
+      const filePath = getUploadPath(file)
+      const rawMimeType = getUploadMimeType(file)
+      if (!fileName) {
+        throw new BadRequestError(
+          "Attempted to upload a file without a filename"
+        )
+      }
+      if (!filePath) {
+        throw new BadRequestError("Attempted to upload a file without a path")
+      }
+
+      const extension = [...fileName.split(".")].pop()
+      if (!extension) {
+        throw new BadRequestError(
+          `File "${fileName}" has no extension, an extension is required to upload a file`
+        )
+      }
+
+      const extensionLower = extension.toLowerCase()
+      const isPublicUser =
+        ctx.roleId === roles.BUILTIN_ROLE_IDS.PUBLIC ||
+        ctx.user?.roleId === roles.BUILTIN_ROLE_IDS.PUBLIC
+      const enforceInvalidExtension = isPublicUser || !env.SELF_HOSTED
+      if (
+        enforceInvalidExtension &&
+        InvalidFileExtensions.includes(extensionLower)
+      ) {
+        throw new BadRequestError(
+          `File "${fileName}" has an invalid extension: "${extension}"`
+        )
+      }
+
+      if (isPublicUser) {
+        if (ACTIVE_CONTENT_EXTENSIONS.has(extensionLower)) {
+          throw new ActiveContentFileError(fileName)
+        }
+
+        const mimeType =
+          typeof rawMimeType === "string"
+            ? rawMimeType.toLowerCase()
+            : undefined
+        if (
+          mimeType &&
+          ACTIVE_CONTENT_MIME_TYPES.some(type => mimeType.includes(type))
+        ) {
+          throw new ActiveContentFileError(fileName)
+        }
+
+        if (
+          filePath &&
+          (typeof filePath === "string" || Buffer.isBuffer(filePath)) &&
+          (await detectActiveContent(filePath))
+        ) {
+          throw new ActiveContentFileError(fileName)
+        }
+      }
+
+      // filenames converted to UUIDs so they are unique
+      const processedFileName = `${uuid.v4()}.${extension}`
+
+      const s3Key = `${context.getProdWorkspaceId()}/attachments/${processedFileName}`
+
+      const response = await objectStore.upload({
+        bucket: ObjectStoreBuckets.APPS,
+        filename: s3Key,
+        path: filePath,
+        type: rawMimeType,
+      })
+
+      return {
+        size: file.size,
+        name: fileName,
+        url: await objectStore.getAppFileUrl(s3Key),
+        extension,
+        key: response.Key!,
+      }
+    })
+  )
+}
+
+export async function processPWAZip(ctx: UserCtx) {
+  const file = ctx.request.files?.file
+  if (!file || Array.isArray(file)) {
+    ctx.throw(400, "No file or multiple files provided")
+  }
+
+  const filePath = getUploadPath(file)
+  const fileName = getUploadFilename(file)
+  if (!filePath || !fileName?.toLowerCase().endsWith(".zip")) {
+    ctx.throw(400, "Invalid file - must be a zip file")
+  }
+
+  const tempDir = join(tmpdir(), `pwa-${Date.now()}`)
+  try {
+    await fsp.mkdir(tempDir, { recursive: true })
+
+    await extract(filePath, { dir: tempDir })
+    const iconsJsonPath = join(tempDir, "icons.json")
+
+    if (!fs.existsSync(iconsJsonPath)) {
+      ctx.throw(400, "Invalid zip structure - missing icons.json")
+    }
+
+    let iconsData
+    try {
+      const iconsContent = await fsp.readFile(iconsJsonPath, "utf-8")
+      iconsData = JSON.parse(iconsContent)
+    } catch (error) {
+      ctx.throw(400, "Invalid icons.json file - could not parse JSON")
+    }
+
+    if (!iconsData.icons || !Array.isArray(iconsData.icons)) {
+      ctx.throw(400, "Invalid icons.json file - missing icons array")
+    }
+
+    const icons = []
+    const baseDir = path.dirname(iconsJsonPath)
+    const appId = context.getProdWorkspaceId()
+
+    for (const icon of iconsData.icons) {
+      const resolvedSrc = icon.src ? path.resolve(baseDir, icon.src) : undefined
+      if (
+        !icon.src ||
+        !icon.sizes ||
+        !resolvedSrc ||
+        !resolvedSrc.startsWith(baseDir + path.sep) ||
+        !fs.existsSync(resolvedSrc)
+      ) {
+        continue
+      }
+
+      const extension = path.extname(icon.src) || ".png"
+      const key = `${appId}/pwa/${uuid.v4()}${extension}`
+      const mimeType =
+        icon.type || (extension === ".png" ? "image/png" : "image/jpeg")
+
+      try {
+        const result = await objectStore.upload({
+          bucket: ObjectStoreBuckets.APPS,
+          filename: key,
+          path: resolvedSrc,
+          type: mimeType,
+        })
+
+        if (result.Key) {
+          icons.push({
+            src: result.Key,
+            sizes: icon.sizes,
+            type: mimeType,
+          })
+        }
+      } catch (uploadError) {
+        throw new Error(`Failed to upload icon ${icon.src}: ${uploadError}`)
+      }
+    }
+
+    if (icons.length === 0) {
+      ctx.throw(400, "No valid icons found in the zip file")
+    }
+
+    ctx.body = { icons }
+  } catch (error: any) {
+    ctx.throw(500, `Error processing zip: ${error.message}`)
+  }
+}
+
+const getAppScriptHTML = (
+  workspace: Workspace,
+  location: "Head" | "Body",
+  nonce: string
+) => {
+  if (!workspace.scripts?.length) {
+    return ""
+  }
+  return workspace.scripts
+    .filter(script => script.location === location && script.html?.length)
+    .map(script => script.html)
+    .join("\n")
+    .replaceAll("<script", `<script nonce="${nonce}"`)
+}
+
+export const serveApp = async function (ctx: UserCtx<void, ServeAppResponse>) {
+  // No app ID found, cannot serve - return message instead
+  const workspaceId = context.getWorkspaceId()
+  if (!workspaceId) {
+    ctx.body = "No content found - requires app ID"
+    return
+  }
+
+  const bbHeaderEmbed =
+    ctx.request.get("x-budibase-embed")?.toLowerCase() === "true"
+  const normalizedPath = ctx.path.replace(/\/$/, "")
+  const isChatRoute =
+    normalizedPath === "/app-chat" || normalizedPath.startsWith("/app-chat/")
+  const [fullyMigrated, settingsConfig, recaptchaConfig] = await Promise.all([
+    isWorkspaceFullyMigrated(workspaceId),
+    configs.getSettingsConfigDoc(),
+    configs.getRecaptchaConfig(),
+  ])
+  const branding = await pro.branding.getBrandingConfig(settingsConfig.config)
+  // incase running direct from TS
+  let appHbsPath = join(__dirname, "app.hbs")
+  if (!fs.existsSync(appHbsPath)) {
+    appHbsPath = join(__dirname, "templates", "app.hbs")
+  }
+
+  try {
+    context.getWorkspaceDB({ skip_setup: true })
+
+    const workspaceApp = await sdk.workspaceApps.getMatchedWorkspaceApp(ctx.url)
+
+    const appInfo = await sdk.workspaces.metadata.get()
+    const clientVersion = isChatRoute ? envCore.VERSION : appInfo.version
+    const clientCacheKey = await objectStore.getClientCacheKey(clientVersion)
+    const clientAssetScopeId = isChatRoute
+      ? GLOBAL_CLIENT_ASSET_ID
+      : workspaceId
+    const clientLibPath = `/api/assets/${clientAssetScopeId}/client?${clientCacheKey}`
+    const hideDevTools = !!ctx.params.appUrl
+    const sideNav = workspaceApp?.navigation.navigation === "Left"
+    const hideFooter =
+      ctx?.user?.license?.features?.includes(Feature.BRANDING) || false
+    const themeVariables = getThemeVariables(appInfo.theme)
+    const hasPWA = Object.keys(appInfo.pwa || {}).length > 0
+    const manifestUrl = hasPWA ? `/api/apps/${workspaceId}/manifest.json` : ""
+    const addAppScripts =
+      ctx?.user?.license?.features?.includes(Feature.CUSTOM_APP_SCRIPTS) ||
+      false
+
+    if (!env.isJest()) {
+      const plugins = await objectStore.enrichPluginURLs(appInfo.usedPlugins)
+      /*
+       * Server rendering in svelte sadly does not support type checking, the .render function
+       * always will just expect "any" when typing - so it is pointless for us to type the
+       * BudibaseApp.svelte file as we can never detect if the types are correct. To get around this
+       * I've created a type which expects what the app will expect to receive.
+       */
+      const appName = isChatRoute
+        ? "Chat"
+        : workspaceApp?.name || `${appInfo.name}`
+      const appTitle = isChatRoute ? "Chat" : branding?.platformTitle || appName
+      const nonce = ctx.state.nonce || ""
+      let props: BudibaseAppProps = {
+        title: appTitle,
+        showSkeletonLoader: appInfo.features?.skeletonLoader ?? false,
+        hideDevTools,
+        sideNav,
+        hideFooter,
+        metaImage:
+          branding?.metaImageUrl ||
+          "https://res.cloudinary.com/daog6scxm/image/upload/v1698759482/meta-images/plain-branded-meta-image-coral_ocxmgu.png",
+        metaDescription: branding?.metaDescription || "",
+        metaTitle: isChatRoute
+          ? "Chat"
+          : branding?.metaTitle || `${appName} - built with Budibase`,
+        clientCacheKey,
+        clientLibPath,
+        usedPlugins: plugins,
+        favicon: branding.faviconUrl
+          ? await objectStore.getGlobalFileUrl("settings", "faviconUrl")
+          : "",
+        appMigrating: !fullyMigrated,
+        recaptchaKey: recaptchaConfig?.config.siteKey,
+        nonce,
+        workspaceId,
+      }
+
+      // Add custom app scripts if enabled
+      if (addAppScripts) {
+        props.headAppScripts = getAppScriptHTML(appInfo, "Head", nonce)
+        props.bodyAppScripts = getAppScriptHTML(appInfo, "Body", nonce)
+      }
+
+      const { head, body } = await render(AppComponent, { props: { props } })
+      const appHbs = loadHandlebarsFile(appHbsPath)
+
+      let extraHead = ""
+      const pwaEnabled = await pro.features.isPWAEnabled()
+      if (hasPWA && appInfo.pwa && pwaEnabled) {
+        extraHead = `<link rel="manifest" href="${manifestUrl}">`
+        extraHead += `<meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content=${
+          appInfo.pwa.theme_color
+        }>
+        <meta name="apple-mobile-web-app-title" content="${
+          appInfo.pwa.short_name || appInfo.name
+        }">`
+
+        if (appInfo.pwa.icons && appInfo.pwa.icons.length > 0) {
+          try {
+            // Enrich all icons
+            const enrichedIcons = await objectStore.enrichPWAImages(
+              appInfo.pwa.icons
+            )
+
+            let appleTouchIcon = enrichedIcons.find(
+              icon => icon.sizes === "180x180"
+            )
+
+            if (!appleTouchIcon && enrichedIcons.length > 0) {
+              appleTouchIcon = enrichedIcons[0]
+            }
+
+            if (appleTouchIcon) {
+              extraHead += `<link rel="apple-touch-icon" sizes="${appleTouchIcon.sizes}" href="${appleTouchIcon.src}">`
+            }
+          } catch (error) {
+            throw new Error("Error enriching PWA icons: " + error)
+          }
+        }
+      }
+
+      ctx.body = await processString(appHbs, {
+        head: `${head}${extraHead}`,
+        body: body,
+        css: `:root{${themeVariables}}`,
+        appId: workspaceId,
+        embedded: bbHeaderEmbed,
+        nonce: ctx.state.nonce,
+      })
+    } else {
+      // just return the app info for jest to assert on
+      ctx.body = { ...appInfo, clientCacheKey, clientLibPath }
+    }
+  } catch (error: any) {
+    let msg = "An unknown error occurred"
+    if (typeof error === "string") {
+      msg = error
+    } else if (error?.message) {
+      msg = error.message
+    }
+    ctx.throw(500, msg)
+  }
+}
+
+export const serveBuilderPreview = async function (
+  ctx: Ctx<void, ServeBuilderPreviewResponse>
+) {
+  const db = context.getWorkspaceDB({ skip_setup: true })
+  const appInfo = await db.get<Workspace>(DocumentType.WORKSPACE_METADATA)
+
+  if (!env.isJest()) {
+    let appId = context.getWorkspaceId()
+    const templateLoc = join(__dirname, "templates")
+    const previewLoc = fs.existsSync(templateLoc) ? templateLoc : __dirname
+    const previewHbs = loadHandlebarsFile(join(previewLoc, "preview.hbs"))
+    const nonce = ctx.state.nonce || ""
+    const addAppScripts =
+      ctx?.user?.license?.features?.includes(Feature.CUSTOM_APP_SCRIPTS) ||
+      false
+    let props: any = {
+      clientLibPath: await objectStore.clientLibraryUrl(
+        appId!,
+        appInfo.version
+      ),
+      nonce,
+    }
+
+    // Add custom app scripts if enabled
+    if (addAppScripts) {
+      props.headAppScripts = getAppScriptHTML(appInfo, "Head", nonce)
+      props.bodyAppScripts = getAppScriptHTML(appInfo, "Body", nonce)
+    }
+
+    ctx.body = await processString(previewHbs, props)
+  } else {
+    // just return the app info for jest to assert on
+    ctx.body = { ...appInfo, builderPreview: true }
+  }
+}
+
+function serveLocalFile(ctx: Ctx, fileName: string) {
+  // Resolve via the package.json to avoid ESM/CJS export resolution issues
+  // with require.resolve on packages that mark "type":"module".
+  const pkgJsonPath = require.resolve("@budibase/client/package.json")
+  const pkgDir = path.dirname(pkgJsonPath)
+  const distFromPkg = join(pkgDir, "dist")
+  //normal fallback
+  const nodeModulesDist = join(NODE_MODULES_PATH, "@budibase", "client", "dist")
+  const root = nodeModulesDist || distFromPkg
+  return send(ctx, fileName, { root })
+}
+
+export const serveClientLibrary = async function (
+  ctx: Ctx<void, ServeClientLibraryResponse>
+) {
+  const appId = ctx.params.appId
+  if (appId === GLOBAL_CLIENT_ASSET_ID) {
+    return serveLocalFile(ctx, "budibase-client.js")
+  }
+
+  const workspaceId = context.getWorkspaceId()
+
+  if (!workspaceId) {
+    ctx.throw(400, "No workspace ID provided - cannot fetch client library.")
+  }
+
+  const serveLocally = await shouldServeLocally()
+  if (!serveLocally) {
+    const { stream } = await objectStore.getReadStream(
+      ObjectStoreBuckets.APPS,
+      objectStore.clientLibraryPath(workspaceId!)
+    )
+    ctx.body = stream
+    ctx.set("Content-Type", "application/javascript")
+  } else {
+    return serveLocalFile(ctx, "budibase-client.js")
+  }
+}
+
+export const serve3rdPartyFile = async function (ctx: Ctx) {
+  const file = Array.isArray(ctx.params.file)
+    ? ctx.params.file.join("/")
+    : ctx.params.file
+  const appId = ctx.params.appId
+  if (appId === GLOBAL_CLIENT_ASSET_ID) {
+    return serveLocalFile(ctx, file)
+  }
+
+  const workspaceId = context.getWorkspaceId()
+  if (!workspaceId) {
+    ctx.throw(400, "No workspace ID provided - cannot fetch client library.")
+  }
+
+  const serveLocally = await shouldServeLocally()
+  if (!serveLocally) {
+    const { stream, contentType } = await objectStore.getReadStream(
+      ObjectStoreBuckets.APPS,
+      objectStore.client3rdPartyLibrary(workspaceId, file)
+    )
+
+    if (contentType) {
+      ctx.set("Content-Type", contentType)
+    }
+    ctx.body = stream
+  } else {
+    return serveLocalFile(ctx, file)
+  }
+}
+
+export const serveServiceWorker = async function (ctx: Ctx) {
+  const serviceWorkerContent = `
+    self.addEventListener('install', () => {
+    self.skipWaiting();
+  });`
+
+  ctx.set("Content-Type", "application/javascript")
+  ctx.body = serviceWorkerContent
+}
+
+export const getSignedUploadURL = async function (
+  ctx: Ctx<GetSignedUploadUrlRequest, GetSignedUploadUrlResponse>
+) {
+  // Ensure datasource is valid
+  let datasource
+  try {
+    const { datasourceId } = ctx.params
+    datasource = await sdk.datasources.get(datasourceId, { enriched: true })
+    if (!datasource) {
+      ctx.throw(400, "The specified datasource could not be found")
+    }
+  } catch (error) {
+    ctx.throw(400, "The specified datasource could not be found")
+  }
+
+  // Determine type of datasource and generate signed URL
+  let signedUrl
+  let publicUrl
+  const awsRegion = (datasource?.config?.region || "eu-west-1") as string
+  if (datasource?.source === "S3") {
+    const { bucket, key } = ctx.request.body || {}
+    if (!bucket || !key) {
+      ctx.throw(400, "bucket and key values are required")
+    }
+    try {
+      let endpoint = datasource?.config?.endpoint
+      if (endpoint && !utils.urlHasProtocol(endpoint)) {
+        endpoint = `https://${endpoint}`
+      }
+      const s3 = new S3({
+        region: awsRegion,
+        endpoint: endpoint,
+        credentials: {
+          accessKeyId: datasource?.config?.accessKeyId as string,
+          secretAccessKey: datasource?.config?.secretAccessKey as string,
+        },
+      })
+      const params = { Bucket: bucket, Key: key }
+      signedUrl = await getSignedUrl(s3, new PutObjectCommand(params))
+      if (endpoint) {
+        publicUrl = `${endpoint}/${bucket}/${key}`
+      } else {
+        publicUrl = `https://${bucket}.s3.${awsRegion}.amazonaws.com/${key}`
+      }
+    } catch (error: any) {
+      ctx.throw(400, error)
+    }
+  }
+
+  ctx.body = { signedUrl, publicUrl }
+}
+
+export async function servePwaManifest(ctx: UserCtx<void, any>) {
+  const appId = context.getWorkspaceId()
+  if (!appId) {
+    ctx.throw(404)
+  }
+
+  try {
+    const db = context.getWorkspaceDB({ skip_setup: true })
+    const appInfo = await db.get<Workspace>(DocumentType.WORKSPACE_METADATA)
+
+    if (!appInfo.pwa) {
+      ctx.throw(404)
+    }
+
+    const manifest: PWAManifest = {
+      name: appInfo.pwa.name || appInfo.name,
+      scope: `/app${appInfo.url}`,
+      short_name: appInfo.pwa.short_name || appInfo.name,
+      description: appInfo.pwa.description || "",
+      start_url: `/app${appInfo.url}`,
+      display: appInfo.pwa.display || "standalone",
+      background_color: appInfo.pwa.background_color || "#FFFFFF",
+      theme_color: appInfo.pwa.theme_color || "#FFFFFF",
+      icons: [],
+      screenshots: [],
+    }
+
+    if (appInfo.pwa.icons && appInfo.pwa.icons.length > 0) {
+      try {
+        manifest.icons = await objectStore.enrichPWAImages(appInfo.pwa.icons)
+
+        const desktopScreenshot = manifest.icons.find(
+          icon => icon.sizes === "1240x600" || icon.sizes === "2480x1200"
+        )
+        if (desktopScreenshot) {
+          manifest.screenshots.push({
+            src: desktopScreenshot.src,
+            sizes: desktopScreenshot.sizes,
+            type: "image/png",
+            form_factor: "wide",
+            label: "Desktop view",
+          })
+        }
+
+        const mobileScreenshot = manifest.icons.find(
+          icon => icon.sizes === "620x620" || icon.sizes === "1024x1024"
+        )
+        if (mobileScreenshot) {
+          manifest.screenshots.push({
+            src: mobileScreenshot.src,
+            sizes: mobileScreenshot.sizes,
+            type: "image/png",
+            label: "Mobile view",
+          })
+        }
+      } catch (error) {
+        throw new Error("Error processing manifest icons: " + error)
+      }
+    }
+
+    ctx.set("Content-Type", "application/json")
+    ctx.body = manifest
+  } catch (error) {
+    ctx.status = 500
+    ctx.body = { message: "Error generating manifest" }
+  }
+}

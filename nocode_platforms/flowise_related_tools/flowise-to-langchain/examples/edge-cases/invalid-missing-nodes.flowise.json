@@ -1,0 +1,25 @@
+{
+  "nodes": [],
+  "edges": [
+    {
+      "source": "nonexistent_1",
+      "sourceHandle": "nonexistent_1-output",
+      "target": "nonexistent_2",
+      "targetHandle": "nonexistent_2-input",
+      "type": "buttonedge",
+      "id": "nonexistent_1-nonexistent_2"
+    }
+  ],
+  "chatflow": {
+    "id": "invalid-missing-nodes",
+    "name": "Invalid: Missing Nodes",
+    "flowData": "",
+    "deployed": false,
+    "isPublic": false,
+    "apikeyid": "",
+    "createdDate": "2025-07-15T03:45:00.000Z",
+    "updatedDate": "2025-07-15T03:45:00.000Z",
+    "category": "Edge Cases",
+    "description": "Invalid flow: edges reference non-existent nodes (should fail validation)"
+  }
+}

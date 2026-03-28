@@ -1,0 +1,520 @@
+jest.mock("nodemailer")
+import { configs, events } from "@budibase/backend-core"
+import {
+  Config,
+  ConfigType,
+  GetPublicSettingsResponse,
+  PKCEMethod,
+  TranslationsConfig,
+} from "@budibase/types"
+import { TestConfiguration, mocks, structures } from "../../../../tests"
+import { resolveTranslationGroup } from "@budibase/shared-core"
+import { processStringSync } from "@budibase/string-templates"
+
+mocks.email.mock()
+
+const { google, smtp, settings, oidc, translations } = structures.configs
+
+describe("configs", () => {
+  const config = new TestConfiguration()
+
+  beforeEach(async () => {
+    await config.beforeAll()
+    jest.clearAllMocks()
+    mocks.licenses.usePkceOidc()
+  })
+
+  afterAll(async () => {
+    await config.afterAll()
+  })
+
+  const saveConfig = async (conf: Config, _id?: string, _rev?: string) => {
+    const data = { ...conf, _id, _rev }
+    const res = await config.api.configs.saveConfig(data)
+    return { ...data, ...res }
+  }
+
+  describe("POST /api/global/configs", () => {
+    describe("google", () => {
+      afterEach(async () => {
+        await config.deleteConfig(ConfigType.GOOGLE)
+      })
+
+      describe("create", () => {
+        it("should create activated google config", async () => {
+          await saveConfig(google())
+          expect(events.auth.SSOCreated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOCreated).toHaveBeenCalledWith(ConfigType.GOOGLE)
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+          expect(events.auth.SSOActivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOActivated).toHaveBeenCalledWith(
+            ConfigType.GOOGLE
+          )
+        })
+
+        it("should create deactivated google config", async () => {
+          await saveConfig(google({ activated: false }))
+          expect(events.auth.SSOCreated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOCreated).toHaveBeenCalledWith(ConfigType.GOOGLE)
+          expect(events.auth.SSOActivated).not.toHaveBeenCalled()
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+        })
+      })
+
+      describe("update", () => {
+        it("should update google config to deactivated", async () => {
+          const googleConf = await saveConfig(google())
+          jest.clearAllMocks()
+          await saveConfig(
+            google({ activated: false }),
+            googleConf._id,
+            googleConf._rev
+          )
+          expect(events.auth.SSOUpdated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOUpdated).toHaveBeenCalledWith(ConfigType.GOOGLE)
+          expect(events.auth.SSOActivated).not.toHaveBeenCalled()
+          expect(events.auth.SSODeactivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSODeactivated).toHaveBeenCalledWith(
+            ConfigType.GOOGLE
+          )
+        })
+
+        it("should update google config to activated", async () => {
+          const googleConf = await saveConfig(google({ activated: false }))
+          jest.clearAllMocks()
+          await saveConfig(
+            google({ activated: true }),
+            googleConf._id,
+            googleConf._rev
+          )
+          expect(events.auth.SSOUpdated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOUpdated).toHaveBeenCalledWith(ConfigType.GOOGLE)
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+          expect(events.auth.SSOActivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOActivated).toHaveBeenCalledWith(
+            ConfigType.GOOGLE
+          )
+        })
+
+        it("should not overwrite secret when updating google config", async () => {
+          await saveConfig(google({ clientSecret: "spooky" }))
+
+          const conf = await config.api.configs.getConfig(ConfigType.GOOGLE)
+          await saveConfig(conf)
+
+          await config.doInTenant(async () => {
+            const rawConf = await configs.getGoogleConfig()
+            expect(rawConf!.clientSecret).toEqual("spooky")
+          })
+        })
+      })
+
+      describe("get", () => {
+        it("should not leak credentials", async () => {
+          await saveConfig(google())
+          const conf = await config.api.configs.getConfig(ConfigType.GOOGLE)
+          expect(conf.config.clientSecret).toEqual("--secret-value--")
+        })
+      })
+    })
+
+    describe("oidc", () => {
+      beforeEach(async () => {
+        await config.deleteConfig(ConfigType.OIDC)
+      })
+
+      afterEach(async () => {
+        await config.deleteConfig(ConfigType.OIDC)
+      })
+
+      describe("create", () => {
+        it("should create activated OIDC config", async () => {
+          await saveConfig(oidc())
+          expect(events.auth.SSOCreated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOCreated).toHaveBeenCalledWith(ConfigType.OIDC)
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+          expect(events.auth.SSOActivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOActivated).toHaveBeenCalledWith(ConfigType.OIDC)
+        })
+
+        it("should create deactivated OIDC config", async () => {
+          await saveConfig(oidc({ activated: false }))
+          expect(events.auth.SSOCreated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOCreated).toHaveBeenCalledWith(ConfigType.OIDC)
+          expect(events.auth.SSOActivated).not.toHaveBeenCalled()
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+        })
+      })
+
+      describe("update", () => {
+        it("should update OIDC config to deactivated", async () => {
+          const oidcConf = await saveConfig(oidc())
+          jest.clearAllMocks()
+          await saveConfig(
+            oidc({ activated: false }),
+            oidcConf._id,
+            oidcConf._rev
+          )
+          expect(events.auth.SSOUpdated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOUpdated).toHaveBeenCalledWith(ConfigType.OIDC)
+          expect(events.auth.SSOActivated).not.toHaveBeenCalled()
+          expect(events.auth.SSODeactivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSODeactivated).toHaveBeenCalledWith(
+            ConfigType.OIDC
+          )
+        })
+
+        it("should update OIDC config to activated", async () => {
+          const oidcConf = await saveConfig(oidc({ activated: false }))
+          jest.clearAllMocks()
+          await saveConfig(
+            oidc({ activated: true }),
+            oidcConf._id,
+            oidcConf._rev
+          )
+          expect(events.auth.SSOUpdated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOUpdated).toHaveBeenCalledWith(ConfigType.OIDC)
+          expect(events.auth.SSODeactivated).not.toHaveBeenCalled()
+          expect(events.auth.SSOActivated).toHaveBeenCalledTimes(1)
+          expect(events.auth.SSOActivated).toHaveBeenCalledWith(ConfigType.OIDC)
+        })
+
+        it("should not overwrite secret when updating OIDC config", async () => {
+          await saveConfig(oidc({ clientSecret: "spooky" }))
+          const conf = await config.api.configs.getConfig(ConfigType.OIDC)
+          await saveConfig(conf)
+          await config.doInTenant(async () => {
+            const rawConf = await configs.getOIDCConfig()
+            expect(rawConf!.clientSecret).toEqual("spooky")
+          })
+        })
+      })
+
+      describe("get", () => {
+        it("should not leak credentials", async () => {
+          await saveConfig(oidc({ clientSecret: "spooky" }))
+          const conf = await config.api.configs.getConfig(ConfigType.OIDC)
+          expect(conf.config.configs[0].clientSecret).toEqual(
+            "--secret-value--"
+          )
+        })
+
+        it("should strip pkce field when null", async () => {
+          await saveConfig(oidc({ pkce: null as any }))
+
+          await config.doInTenant(async () => {
+            const rawConf = await configs.getOIDCConfig()
+            expect(rawConf!).not.toHaveProperty("pkce")
+          })
+        })
+
+        it("should preserve pkce field when set to valid value", async () => {
+          await saveConfig(oidc({ pkce: PKCEMethod.S256 }))
+
+          await config.doInTenant(async () => {
+            const rawConf = await configs.getOIDCConfig()
+            expect(rawConf!.pkce).toBe(PKCEMethod.S256)
+          })
+        })
+      })
+    })
+
+    describe("smtp", () => {
+      beforeEach(async () => {
+        await config.deleteConfig(ConfigType.SMTP)
+      })
+
+      afterEach(async () => {
+        await config.deleteConfig(ConfigType.SMTP)
+      })
+
+      describe("create", () => {
+        it("should create SMTP config", async () => {
+          await saveConfig(smtp())
+          expect(events.email.SMTPUpdated).not.toHaveBeenCalled()
+          expect(events.email.SMTPCreated).toHaveBeenCalledTimes(1)
+        })
+      })
+
+      describe("update", () => {
+        it("should update SMTP config", async () => {
+          const smtpConf = await saveConfig(smtp())
+          jest.clearAllMocks()
+          await saveConfig(smtp({ secure: true }), smtpConf._id, smtpConf._rev)
+          expect(events.email.SMTPCreated).not.toHaveBeenCalled()
+          expect(events.email.SMTPUpdated).toHaveBeenCalledTimes(1)
+        })
+
+        it("should not overwrite secret when updating SMTP config", async () => {
+          await saveConfig(smtp({ auth: { user: "jeff", pass: "spooky" } }))
+          const conf = await config.api.configs.getConfig(ConfigType.SMTP)
+          await saveConfig(conf)
+          await config.doInTenant(async () => {
+            const rawConf = await configs.getSMTPConfig()
+            expect(rawConf!.auth!.pass).toEqual("spooky")
+          })
+        })
+      })
+
+      describe("get", () => {
+        it("should not leak credentials", async () => {
+          await saveConfig(smtp({ auth: { user: "jeff", pass: "spooky" } }))
+          const conf = await config.api.configs.getConfig(ConfigType.SMTP)
+          expect(conf.config.auth!.pass).toEqual("--secret-value--")
+        })
+      })
+    })
+
+    describe("settings", () => {
+      beforeEach(async () => {
+        await config.deleteConfig(ConfigType.SETTINGS)
+      })
+
+      afterEach(async () => {
+        await config.deleteConfig(ConfigType.SETTINGS)
+      })
+
+      describe("create", () => {
+        it("should create settings config with default settings", async () => {
+          await saveConfig(settings())
+          expect(events.org.nameUpdated).not.toHaveBeenCalled()
+          expect(events.org.logoUpdated).not.toHaveBeenCalled()
+          expect(events.org.platformURLUpdated).not.toHaveBeenCalled()
+        })
+
+        it("should create settings config with non-default settings", async () => {
+          config.selfHosted()
+          await config.deleteConfig(ConfigType.SETTINGS)
+          const conf = {
+            company: "acme",
+            logoUrl: "http://example.com",
+            platformUrl: "http://example.com",
+          }
+
+          await saveConfig(settings(conf))
+
+          expect(events.org.nameUpdated).toHaveBeenCalledTimes(1)
+          expect(events.org.logoUpdated).toHaveBeenCalledTimes(1)
+          expect(events.org.platformURLUpdated).toHaveBeenCalledTimes(1)
+          config.cloudHosted()
+        })
+      })
+
+      describe("update", () => {
+        it("should update settings config", async () => {
+          config.selfHosted()
+          await config.deleteConfig(ConfigType.SETTINGS)
+          const settingsConfig = await saveConfig(settings())
+          settingsConfig.config.company = "acme"
+          settingsConfig.config.logoUrl = "http://example.com"
+          settingsConfig.config.platformUrl = "http://example.com"
+
+          await saveConfig(
+            settingsConfig,
+            settingsConfig._id,
+            settingsConfig._rev
+          )
+
+          expect(events.org.nameUpdated).toHaveBeenCalledTimes(1)
+          expect(events.org.logoUpdated).toHaveBeenCalledTimes(1)
+          expect(events.org.platformURLUpdated).toHaveBeenCalledTimes(1)
+          config.cloudHosted()
+        })
+      })
+    })
+  })
+
+  describe("translations", () => {
+    beforeEach(async () => {
+      await config.deleteConfig(ConfigType.TRANSLATIONS)
+      mocks.licenses.useTranslations()
+      mocks.pro.features.isTranslationsEnabled.mockResolvedValue(true)
+    })
+
+    afterEach(async () => {
+      await config.deleteConfig(ConfigType.TRANSLATIONS)
+      mocks.pro.features.isTranslationsEnabled.mockReset()
+    })
+
+    it("should save translations when feature enabled", async () => {
+      await saveConfig(translations({ "login.emailLabel": "Profile test" }))
+      const saved = await config.api.configs.getConfig(ConfigType.TRANSLATIONS)
+      expect(saved.config.locales.en.overrides["login.emailLabel"]).toEqual(
+        "Profile test"
+      )
+    })
+
+    it("should support non-default locales", async () => {
+      const spanishConfig: TranslationsConfig = {
+        type: ConfigType.TRANSLATIONS,
+        config: {
+          defaultLocale: "es",
+          locales: {
+            es: {
+              label: "Spanish",
+              overrides: {
+                "login.emailLabel": "Correo",
+              },
+            },
+            en: {
+              label: "English",
+              overrides: {
+                "login.emailLabel": "Email",
+              },
+            },
+          },
+        },
+      }
+
+      await saveConfig(spanishConfig)
+      const saved = await config.api.configs.getConfig(ConfigType.TRANSLATIONS)
+      expect(saved.config.locales.es.overrides["login.emailLabel"]).toEqual(
+        "Correo"
+      )
+    })
+
+    it("should filter invalid override keys", async () => {
+      await saveConfig(translations({ invalid: "value" }))
+      const saved = await config.api.configs.getConfig(ConfigType.TRANSLATIONS)
+      expect(saved.config.locales.en.overrides).toEqual({})
+    })
+
+    it("should reject when translations feature disabled", async () => {
+      mocks.pro.features.isTranslationsEnabled.mockResolvedValue(false)
+      await expect(
+        saveConfig(translations({ "login.emailLabel": "Profile test" }))
+      ).rejects.toThrow("License does not allow translations")
+    })
+
+    it("should resolve bindings inside translation overrides", async () => {
+      await saveConfig(
+        translations({ "portal.greeting": "Welcome {{ name }}" })
+      )
+      const saved = await config.api.configs.getConfig(ConfigType.TRANSLATIONS)
+      const portalLabels = resolveTranslationGroup(
+        "portal",
+        saved.config.locales.en.overrides
+      )
+      const boundValue = processStringSync(portalLabels.greeting, {
+        name: "Budibuddy",
+      })
+      expect(boundValue).toEqual("Welcome Budibuddy")
+    })
+  })
+
+  describe("GET /api/global/configs/checklist", () => {
+    it("should return the correct checklist", async () => {
+      await config.saveSmtpConfig()
+
+      const res = await config.api.configs.getConfigChecklist()
+      const checklist = res.body
+
+      expect(checklist.apps.checked).toBeFalsy()
+      expect(checklist.smtp.checked).toBeTruthy()
+      expect(checklist.smtp.fallback).toBeFalsy()
+      expect(checklist.adminUser.checked).toBeTruthy()
+    })
+  })
+
+  describe("GET /api/global/configs/public", () => {
+    beforeEach(async () => {
+      await config.deleteConfig(ConfigType.SETTINGS)
+    })
+
+    afterEach(async () => {
+      await config.deleteConfig(ConfigType.SETTINGS)
+    })
+
+    it("should return the expected public settings", async () => {
+      await saveConfig(settings())
+      mocks.pro.features.isSSOEnforced.mockResolvedValue(false)
+
+      const res = await config.api.configs.getPublicSettings()
+      const body = res.body as GetPublicSettingsResponse
+
+      const expected = {
+        _id: `config_${ConfigType.SETTINGS}`,
+        type: ConfigType.SETTINGS,
+        config: {
+          company: "Budibase",
+          emailBrandingEnabled: true,
+          logoUrl: "",
+          analyticsEnabled: false,
+          google: false,
+          googleDatasourceConfigured: false,
+          googleCallbackUrl: `http://localhost:10000/api/global/auth/${config.tenantId}/google/callback`,
+          isSSOEnforced: false,
+          oidc: false,
+          oidcCallbackUrl: `http://localhost:10000/api/global/auth/${config.tenantId}/oidc/callback`,
+          platformUrl: "http://localhost:10000",
+        },
+      }
+      delete body._rev
+      expect(body).toEqual(expected)
+    })
+  })
+
+  describe("POST /api/global/configs/upload/:type/:name", () => {
+    it("should upload an OIDC logo and store the key in config", async () => {
+      const logoName = "test-logo.png"
+      const res = await config.api.configs
+        .uploadOIDCLogo(logoName, Buffer.from("fake-png-data"), logoName)
+        .expect(200)
+
+      expect(res.body.message).toBe(
+        "File has been uploaded and url stored to config."
+      )
+
+      const oidcLogosConfig = await config.api.configs.getConfig(
+        ConfigType.OIDC_LOGOS
+      )
+      expect(oidcLogosConfig.config[logoName]).toBeDefined()
+    })
+
+    it("should return 400 when multiple files are uploaded", async () => {
+      await config.api.configs
+        .uploadOIDCLogoMultiple("test-logo.png")
+        .expect(400)
+    })
+  })
+
+  describe("GET /api/global/configs/public/translations", () => {
+    beforeEach(async () => {
+      await config.deleteConfig(ConfigType.TRANSLATIONS)
+      mocks.licenses.useTranslations()
+      mocks.pro.features.isTranslationsEnabled.mockResolvedValue(true)
+    })
+
+    afterEach(async () => {
+      await config.deleteConfig(ConfigType.TRANSLATIONS)
+      mocks.pro.features.isTranslationsEnabled.mockReset()
+    })
+
+    it("should return translation overrides", async () => {
+      await saveConfig(translations({ "login.emailLabel": "Hello" }))
+      const res = await config.api.configs.getPublicTranslations()
+      expect(res.body.defaultLocale).toEqual("en")
+      expect(res.body.locales.en.overrides["login.emailLabel"]).toEqual("Hello")
+    })
+
+    it("should expose login and forgot labels without authentication", async () => {
+      await saveConfig(
+        translations({
+          "login.emailLabel": "Public email",
+          "forgotPassword.heading": "Reset password",
+        })
+      )
+      const res = await config
+        .getRequest()
+        .get(
+          `/api/global/configs/public/translations?tenantId=${config.getTenantId()}`
+        )
+        .expect(200)
+        .expect("Content-Type", /json/)
+
+      const overrides = res.body.locales.en.overrides
+      expect(overrides["login.emailLabel"]).toEqual("Public email")
+      expect(overrides["forgotPassword.heading"]).toEqual("Reset password")
+    })
+  })
+})

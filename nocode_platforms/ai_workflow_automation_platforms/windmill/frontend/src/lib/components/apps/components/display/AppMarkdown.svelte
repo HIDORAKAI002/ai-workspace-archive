@@ -1,0 +1,172 @@
+<script lang="ts">
+	import { getContext, untrack } from 'svelte'
+	import { initConfig, initOutput } from '../../editor/appUtils'
+	import type { AppInput } from '../../inputType'
+	import type { AppViewerContext, ComponentCustomCSS, RichConfigurations } from '../../types'
+	import { initCss } from '../../utils'
+	import RunnableWrapper from '../helpers/RunnableWrapper.svelte'
+	import { Markdown, type Plugin } from 'svelte-exmarkdown'
+	import { gfmPlugin } from 'svelte-exmarkdown/gfm'
+	import rehypeRaw from 'rehype-raw'
+	import { rehypeGithubAlerts } from 'rehype-github-alerts'
+	import { classNames } from '$lib/utils'
+	import { components } from '../../editor/component'
+	import ResolveConfig from '../helpers/ResolveConfig.svelte'
+	import ResolveStyle from '../helpers/ResolveStyle.svelte'
+	interface Props {
+		id: string
+		componentInput: AppInput | undefined
+		initializing?: boolean | undefined
+		customCss?: ComponentCustomCSS<'mardowncomponent'> | undefined
+		render: boolean
+		configuration: RichConfigurations
+	}
+
+	let {
+		id,
+		componentInput,
+		initializing = $bindable(undefined),
+		customCss = undefined,
+		render,
+		configuration
+	}: Props = $props()
+
+	const plugins: Plugin[] = [
+		gfmPlugin(),
+		{ rehypePlugin: [rehypeRaw] },
+		{ rehypePlugin: [rehypeGithubAlerts] }
+	]
+	const { app, worldStore, mode } = getContext<AppViewerContext>('AppViewerContext')
+
+	const resolvedConfig = $state(
+		initConfig(components['mardowncomponent'].initialData.configuration, untrack(() => configuration))
+	)
+
+	const outputs = initOutput($worldStore, untrack(() => id), {
+		result: undefined,
+		loading: false
+	})
+
+	let result: string | undefined = $state(undefined)
+
+	let css = $state(initCss($app.css?.mardowncomponent, untrack(() => customCss)))
+
+	const proseMapping = {
+		sm: 'prose-sm',
+		Default: 'prose-base',
+		lg: 'prose-lg',
+		xl: 'prose-xl',
+		'2xl': 'prose-2xl'
+	}
+</script>
+
+{#each Object.keys(components['mardowncomponent'].initialData.configuration) as key (key)}
+	<ResolveConfig
+		{id}
+		{key}
+		bind:resolvedConfig={resolvedConfig[key]}
+		configuration={configuration[key]}
+	/>
+{/each}
+
+{#each Object.keys(css ?? {}) as key (key)}
+	<ResolveStyle
+		{id}
+		{customCss}
+		{key}
+		bind:css={css[key]}
+		componentStyle={$app.css?.mardowncomponent}
+	/>
+{/each}
+
+{#if render}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		onpointerdown={(e) => {
+			if ($mode != 'preview') {
+				e?.preventDefault()
+			}
+		}}
+		class={classNames(
+			'h-full w-full overflow-y-auto prose max-w-full',
+			resolvedConfig?.size ? proseMapping[resolvedConfig.size] : '',
+			css?.container?.class,
+			'dark:prose-invert',
+			'wm-markdown'
+		)}
+		style={css?.container?.style}
+	>
+		<RunnableWrapper
+			{outputs}
+			render={true}
+			autoRefresh
+			{componentInput}
+			{id}
+			bind:initializing
+			bind:result
+			>{#if result}{#key result}<Markdown md={result} {plugins} />{/key}{/if}
+		</RunnableWrapper>
+	</div>
+{:else}
+	<RunnableWrapper {outputs} render={false} autoRefresh {componentInput} {id} />
+{/if}
+
+<style global>
+	.wm-markdown p:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown p:last-child {
+		margin-bottom: 0;
+	}
+
+	.wm-markdown ol:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown ol:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown ul:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown ul:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown li:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown li:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown h1:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown h1:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown h2:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown h2:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown h3:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown h3:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown h4:first-child {
+		margin-top: 0;
+	}
+	.wm-markdown h4:last-child {
+		margin-bottom: 0;
+	}
+	.wm-markdown code:not([class~='not-prose']):not(.not-prose *)::before,
+	.wm-markdown code:not([class~='not-prose']):not(.not-prose *)::after {
+		content: none !important;
+	}
+	.wm-markdown.prose code::before,
+	.wm-markdown.prose code::after {
+		content: none !important;
+	}
+</style>

@@ -1,0 +1,8 @@
+{
+	"remote.portsAttributes": {
+		"3000": {
+			"label": "Development Server",
+			"onAutoForward": "openPreview"
+		}
+	}
+}

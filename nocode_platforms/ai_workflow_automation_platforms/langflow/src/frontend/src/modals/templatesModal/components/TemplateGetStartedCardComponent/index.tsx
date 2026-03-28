@@ -1,0 +1,112 @@
+import { useParams } from "react-router-dom";
+import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
+import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
+import { track } from "@/customization/utils/analytics";
+import useAddFlow from "@/hooks/flows/use-add-flow";
+import { useFolderStore } from "@/stores/foldersStore";
+import { updateIds } from "@/utils/reactflowUtils";
+import { cn } from "@/utils/utils";
+import type { CardData } from "../../../../types/templates/types";
+
+interface TemplateGetStartedCardComponentProps extends CardData {
+  loading: boolean;
+  onFlowCreating: (loading: boolean) => void;
+}
+
+export default function TemplateGetStartedCardComponent({
+  bgImage,
+  bgHorizontalImage,
+  icon,
+  category,
+  flow,
+  loading,
+  onFlowCreating,
+}: TemplateGetStartedCardComponentProps) {
+  const addFlow = useAddFlow();
+  const navigate = useCustomNavigate();
+  const { folderId } = useParams();
+  const myCollectionId = useFolderStore((state) => state.myCollectionId);
+
+  const folderIdUrl = folderId ?? myCollectionId;
+
+  const handleClick = () => {
+    if (loading) return;
+
+    if (flow) {
+      onFlowCreating(true);
+      updateIds(flow.data!);
+      addFlow({ flow })
+        .then((id) => {
+          navigate(`/flow/${id}/folder/${folderIdUrl}`);
+        })
+        .finally(() => {
+          onFlowCreating(false);
+        });
+
+      track("New Flow Created", { template: `${flow.name} Template` });
+    } else {
+      console.error(`Flow template not found`);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
+  return flow ? (
+    <div
+      className={cn(
+        "group relative flex h-full min-h-[200px] w-full cursor-pointer flex-col overflow-hidden rounded-3xl border focus-visible:border-ring md:min-h-[250px]",
+        loading ? "cursor-default opacity-80" : "cursor-pointer",
+      )}
+      tabIndex={1}
+      onKeyDown={handleKeyDown}
+      onClick={handleClick}
+    >
+      <div className="absolute inset-2 h-[calc(100%-16px)] w-[calc(100%-16px)] overflow-hidden rounded-2xl">
+        <img
+          src={bgImage}
+          alt={`${flow.name} Spiral`}
+          className="hidden h-full w-full object-cover transition-all duration-300 group-hover:scale-[102%] group-focus-visible:scale-[102%] lg:block"
+        />
+        <img
+          src={bgHorizontalImage}
+          alt={`${flow.name} Horizontal`}
+          className="block h-full w-full object-cover transition-all duration-300 group-hover:scale-[102%] group-focus-visible:scale-[102%] lg:hidden"
+        />
+      </div>
+      <div className="card-shine-effect absolute inset-2 flex h-[calc(100%-16px)] min-w-[calc(100%-16px)] flex-col items-start gap-1 rounded-2xl p-4 text-white md:gap-3 lg:gap-4 lg:py-6">
+        <div className="flex items-center gap-2 text-muted-foreground mix-blend-plus-lighter">
+          <ForwardedIconComponent name={icon} className="h-4 w-4" />
+          <span className="font-mono text-xs font-semibold uppercase tracking-wider">
+            {category}
+          </span>
+        </div>
+        <div className="flex w-full items-center justify-between">
+          <h3
+            data-testid={`template-get-started-card-${convertTestName(
+              flow?.name,
+            )}`}
+            className="line-clamp-3 text-lg font-bold lg:text-xl"
+          >
+            {flow.name}
+          </h3>
+          <ForwardedIconComponent
+            name="ArrowRight"
+            className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
+          />
+        </div>
+
+        <p className="line-clamp-3 w-full overflow-hidden text-sm font-medium opacity-90">
+          {flow.description}
+        </p>
+      </div>
+    </div>
+  ) : (
+    <></>
+  );
+}

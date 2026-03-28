@@ -1,0 +1,100 @@
+import type { Component } from "svelte"
+
+// General
+import ProfilePage from "@/settings/pages/profile.svelte"
+import OrganisationUsersPage from "@/settings/pages/people/users/organisation.svelte"
+import WorkspaceUsersPage from "@/settings/pages/people/users/workspace.svelte"
+import UserPage from "@/settings/pages/people/users/user.svelte"
+import UserInvitesPage from "@/settings/pages/people/users/invites.svelte"
+import GroupPage from "@/settings/pages/people/groups/group.svelte"
+import GroupsPage from "@/settings/pages/people/groups/index.svelte"
+import PluginsPage from "@/settings/pages/plugins/index.svelte"
+import EmailPage from "@/settings/pages/email.svelte"
+import EmailTemplatesPage from "@/settings/pages/email/EmailTemplates.svelte"
+import EmailTemplatePage from "@/settings/pages/email/Template.svelte"
+import AuditLogsPage from "@/settings/pages/auditLogs/index.svelte"
+import AuthPage from "@/settings/pages/auth/index.svelte"
+import OrgPage from "@/settings/pages/organisation.svelte"
+import BrandingPage from "@/settings/pages/branding.svelte"
+import EnvironmentPage from "@/settings/pages/environment/index.svelte"
+import VersionPage from "@/settings/pages/version.svelte"
+import DiagnosticsPage from "@/settings/pages/diagnostics.svelte"
+import SystemLogsPage from "@/settings/pages/systemLogs.svelte"
+import UpgradePage from "@/settings/pages/upgrade.svelte"
+import UsagePage from "@/settings/pages/usage.svelte"
+import Connections from "@/settings/pages/connections/Connections.svelte"
+import Connection from "@/settings/pages/connections/Connection.svelte"
+import CreateConnection from "./connections/CreateConnection.svelte"
+
+// App pages
+import GeneralInfoPage from "@/settings/pages/general.svelte"
+import AutomationsPage from "@/settings/pages/automations/automations.svelte"
+import BackupsPage from "@/settings/pages/backups/index.svelte"
+import PWAPage from "@/settings/pages/pwa.svelte"
+import Translations from "@/settings/pages/translations/translations.svelte"
+import EmbedPage from "@/settings/pages/embed.svelte"
+import ScriptsPage from "@/settings/pages/scripts.svelte"
+import OAuth2Page from "@/settings/pages/oauth2/index.svelte"
+import Recaptcha from "@/settings/pages/recaptcha.svelte"
+
+// AI config
+import AIConfigsPage from "@/settings/pages/ai/completion-models/index.svelte"
+import AIConfigForm from "@/settings/pages/ai/completion-models/AIConfigForm.svelte"
+import KnowledgeBasesPage from "@/settings/pages/ai/knowledge-bases/index.svelte"
+import KnowledgeBaseForm from "@/settings/pages/ai/knowledge-bases/KnowledgeBaseForm.svelte"
+import EmbeddingModelForm from "@/settings/pages/ai/knowledge-bases/EmbeddingModelForm.svelte"
+import VectorDatabaseForm from "@/settings/pages/ai/knowledge-bases/VectorDatabaseForm.svelte"
+
+const componentMap = {
+  profile: ProfilePage,
+  users: OrganisationUsersPage,
+  workspace_users: WorkspaceUsersPage,
+  user: UserPage,
+  user_invites: UserInvitesPage,
+  group: GroupPage,
+  groups: GroupsPage,
+  plugins: PluginsPage,
+  email: EmailPage,
+  email_templates: EmailTemplatesPage,
+  email_template: EmailTemplatePage,
+  audit_logs: AuditLogsPage,
+  ai_configs: AIConfigsPage,
+  ai_config: AIConfigForm,
+  knowledgeBases: KnowledgeBasesPage,
+  knowledgeBase: KnowledgeBaseForm,
+  auth: AuthPage,
+  org: OrgPage,
+  branding: BrandingPage,
+  environment: EnvironmentPage,
+  version: VersionPage,
+  diagnostics: DiagnosticsPage,
+  system_logs: SystemLogsPage,
+  upgrade: UpgradePage,
+  usage: UsagePage,
+  general_info: GeneralInfoPage,
+  automations: AutomationsPage,
+  backups: BackupsPage,
+  pwa: PWAPage,
+  embed: EmbedPage,
+  scripts: ScriptsPage,
+  translations: Translations,
+  oauth2: OAuth2Page,
+  recaptcha: Recaptcha,
+  connections: Connections,
+  connection: Connection,
+  create_connection: CreateConnection,
+  embedding_model: EmbeddingModelForm,
+  vector_database: VectorDatabaseForm,
+} satisfies Record<string, Component<any>>
+
+export const Pages = {
+  get: (key: keyof typeof componentMap): Component<any> | undefined => {
+    const component = componentMap[key]
+    if (!component) {
+      console.error(`Component not found for key: ${key}`)
+      return undefined
+    }
+
+    return component
+  },
+}

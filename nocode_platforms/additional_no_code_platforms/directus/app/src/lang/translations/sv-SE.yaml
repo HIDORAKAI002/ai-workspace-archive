@@ -1,0 +1,2170 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: Om
+first_name: Förnamn
+last_name: Efternamn
+identifier: Identifierare
+avatar: Profilbild
+application: Applikation
+default_provider: Standard
+method: Metod
+published: Publicerad
+draft: Utkast
+archived: Arkiverad
+marketplace: Marketplace
+extensions: Tillägg
+skip_link_nav: Hoppa till navigering
+skip_link_module_nav: Hoppa över till modulnavigering
+skip_link_main: Hoppa till huvudinnehåll
+skip_link_sidebar: Hoppa till sidofält
+modules: Moduler
+module_bar: Modulfält
+logs: Loggar
+unknown: Okänd
+reset_width: Återställ bredd
+tile_size: Rutstorlek
+edit_field: Redigera fält
+conditions: Villkor
+location: Position
+collection_names_are_case_sensitive: Samlingsnamn är skiftlägeskänsliga
+condition_rules: Villkor
+input: Inmatning
+invalid_input: Ogiltig inmatning
+not_a_number: Inte en siffra
+maps: Kartor
+switch_user: Byt användare
+item_creation: Skapa ny
+item_revision: Uppdatera
+enter_a_name: Ange ett namn...
+duplicate_field: Duplicera fält
+half_width: Halv bredd
+full_width: Full bredd
+group: Gruppera
+popular: Populära
+recent: Senaste
+export_items: Exportera objekt
+and: Och
+or: Eller
+init: Init
+dataset_too_large_currently_showing_n_items: Dataset är för stort. Visar för närvarande de första {n} objekten.
+modifier: Modifierare
+extension_interface: Gränssnitt
+extension_display: Visa
+extension_layout: Layout
+extension_module: Modul
+extension_panel: Panel
+extension_theme: Tema
+extension_hook: Hook
+extension_endpoint: Endpoint
+extension_operation: Funktion
+extension_bundle: Paket
+extension_interfaces: Gränssnitt
+extension_displays: Display
+extension_layouts: Layouter
+extension_modules: Moduler
+extension_panels: Paneler
+extension_themes: Teman
+extension_hooks: Hooks
+extension_endpoints: Endpoints
+extension_operations: Aktiviteter
+extension_bundles: Paket
+extension_missing: Saknas
+extension_reload_required: Siduppdatering krävs
+extension_reload_required_copy: Sidan måste laddas om för att kunna se ändringarna efter att ha aktiverad eller inaktiverad tillägg.
+extension_reload_now: Ladda om nu
+published_relative: Publicerad {relativeTime}
+compatible_with_your_project: Kompatibel med ditt projekt
+compatible_with_your_project_copy: Skaparen har angett att tillägget är kompatibelt med version {hostVersion}, vilket matchar ditt projekts version ({currentVersion})
+last_updated_relative: Senast uppdaterad {relativeTime}
+n_files: '{n} filer'
+verified: Verifierad
+homepage: Hemsida
+repository: Utveckling
+reload_page: Ladda om sida
+reload_required: Omladdning krävs
+report_an_issue: Rapportera ett problem
+website: Webbplats
+github: GitHub
+beta: Beta
+n_downloads: '{n} nedladdningar'
+downloads: Nedladdningar
+compatibility_not_guaranteed: Kompatibilitet kan inte garanteras
+compatibility_not_guaranteed_copy: Skaparen har angett att tillägget är kompatibelt med version {hostVersion}, vilket inte matchar ditt projekts version ({currentVersion})
+enable: Aktivera
+disable: Inaktivera
+custom: Anpassad
+hook: Hook
+fill_width: Full bredd
+field_name_translations: Översättningar fältnamn
+enter_password_to_enable_tfa: Ange ditt lösenord för att aktivera tvåfaktorsautentisering
+sso_tfa_setup_notice: Du kommer att loggas ut från ditt konto och måste logga in på nytt. Alla osparade ändringar kommer att försvinna.
+enable_tfa: Aktivera 2FA
+cancel_tfa_setup: Avbryt 2FA aktivering
+cancel_tfa_setup_notice: Är du säker på att du vill avbryta 2FA aktiveringen?
+keep_setup: Fortsätt aktiveringen
+cancel_setup: Avbryt aktiveringen
+add_field: Lägg till fält
+role_name: Rollens namn
+policy_name: Policynamn
+branch: Gren
+leaf: Blad
+indeterminate: Obestämd
+edit_collection: Redigera samling
+exclusive: Exklusiv
+children: Barn
+db_only_click_to_configure: 'Enbart databas: klicka för att konfigurera'
+show_active_items: Visa aktiva objekt
+show_archived_items: Visa arkiverade objekt
+show_all_items: Visa alla objekt
+edited: Redigerat värde
+required: Obligatoriskt
+required_for_app_access: Krävs för tillgång till applikationen
+requires_value: Kräver ett värde
+create_preset: Skapa förval
+create_panel: Skapa panel
+create_role: Skapa roll
+create_policy: Skapa policy
+create_user: Skapa användare
+message: Meddelande
+delete_panel: Ta bort panel
+create_custom_translation: Skapa anpassad översättning
+edit_custom_translation: Redigera egen översättning
+no_custom_translations: Inga egna översättningar
+no_custom_translations_copy: Det finns inga anpassade översättningar ännu.
+invite_users: Bjud in användare
+invite: Bjud in
+email_already_invited: E-postadressen "{email}" har redan blivit inbjuden
+subject: Ämne
+inbox: Inkorg
+emails: E-postadresser
+connection_excellent: Utmärkt anslutning
+connection_good: Bra anslutning
+connection_fair: God anslutning
+connection_poor: Dålig anslutning
+primary: Primär
+rename_folder: Döp om mapp
+delete_folder: Ta bort mapp
+prefix: Prefix
+suffix: Suffix
+keep: Behåll
+version: Version
+version_key: Versionsnyckel
+version_name: Versionsnamn
+main_version: Huvud
+switch_version: Byt Version
+switch_version_copy: Är du säker på att du vill byta till "{version}" versionen? Osparade ändringar kommer att försvinna.
+create_version: Skapa Version
+rename_version: Byt namn på version
+compare_version: Jämför versioner
+save_version: Spara version
+promote_version: Promota version
+delete_version: Ta bort version
+delete_version_copy: >-
+  Är du säker på att du vill ta bort versionen "{version}"? Denna åtgärd kan inte ångras.
+reset_bookmark: Återställ bokmärke
+update_bookmark: Uppdatera bokmärke
+delete_bookmark: Radera bokmärke
+delete_bookmark_copy: >-
+  Är du säker på att du vill ta bort bokmärket "{bookmark}"? Denna åtgärd kan inte ångras.
+delete_personal_bookmark: Ta bort personligt bokmärke
+delete_role_bookmark: Radera roll-bokmärke
+delete_global_bookmark: Ta bort globalt bokmärke
+logoutReason:
+  SIGN_OUT: Utloggad
+  SESSION_EXPIRED: Sessionen har upphört
+public_label: Publik
+public_description: Kontrollerar vilken data som är tillgängliga via APIet utan autentisering.
+public_role_info: >-
+  Den publika rollen kontrollerar vilken API-data som är tillgänglig för oautentiserade användare eller användare som saknar roller. Anrop med den publika rollen kan inte ha app- eller admin-behörighet. Om app- eller admin-behörighet finns i en policy som tilldelats den publika rollen så kommer de att ignoreras.
+admin_description: Initial administrativ roll med obegränsad app/API-åtkomst.
+admin_policy_description: Initial administrativ policy med obegränsad App/API-behörighet.
+no_description: Ingen beskrivning...
+reached_maximum_number_of_extensions: Du har nått det maximala antalet tillägg för detta projekt ({n}). Kontakta din systemadministratör för mer information.
+not_allowed: Inte tillåtet
+archive: Arkivera
+archive_confirm: Är du säker på att du vill arkivera detta objekt?
+archive_confirm_count: >-
+  Inga objekt valda | Är du säker på att du vill arkivera detta objekt? | Är du säker på att du vill arkivera dessa {count} objekt?
+reset_system_permissions_to: 'Återställ systemrättigheter till:'
+reset_system_permissions_copy: Den här åtgärden kommer att skriva över alla anpassade behörigheter som du kan ha tillämpat på systemkollektionerna. Är du säker?
+the_following_are_minimum_permissions: Följande minimibehörigheter tillämpas automatiskt när "App Access" är aktiverat. Du kan lägga till ytterligare behörigheter om det behövs, men du kan inte ha lägre behörigheter än denna nivå.
+app_access_minimum: Minsta tillgång till applikationen
+recommended_defaults: Rekommenderade standardvärden
+unarchive: Ångra arkivering
+unarchive_confirm: Är du säker på att du vill ångra arkivering av detta objekt?
+nested_files_folders_will_be_moved: Nästlade filer och mappar kommer flyttas upp en nivå.
+validation_errors_notice: 'Följande fält har ogiltiga värden:'
+validationError:
+  eq: Värdet måste vara {valid}
+  neq: Värdet kan inte vara {invalid}
+  in: Värdet måste vara en av {valid}
+  nin: Värdet kan inte vara en av {invalid}
+  contains: Värdet måste innehålla {substring}
+  ncontains: Värdet får inte innehålla {substring}
+  gt: Värdet måste vara större än {valid}
+  gte: Värdet måste vara större än eller lika med {valid}
+  lt: Värdet måste vara mindre än {valid}
+  lte: Värdet måste vara mindre än eller lika med {valid}
+  empty: Värdet måste vara tomt
+  nempty: Värdet kan inte vara tomt
+  null: Värdet måste vara null
+  nnull: Värdet kan inte vara null
+  required: Ett värde är obligatoriskt
+  unique: Värdet måste vara unikt
+  email: Värdet måste vara en giltig epost-adress
+  regex: Värdet har inte rätt format
+  starts_with: Värdet måste börja med {substring}
+  istarts_with: Värdet måste börja med {substring}
+  nstarts_with: Värdet får inte börja med {substring}
+  nistarts_with: Värdet får inte börja med {substring}
+  ends_with: Värdet måste sluta med {substring}
+  iends_with: Värdet måste sluta med {substring}
+  nends_with: Värdet kan inte sluta med {substring}
+  niends_with: Värdet kan inte sluta med {substring}
+all_access: Alla behörigheter
+no_access: Ingen åtkomst
+use_custom: Använd anpassad
+nullable: Nullable
+allow_null_value: Tillåt NULL-värde
+allow_multiple: Tillåt flera
+allow_multiple_to_be_open: Tillåt flera att öppnas
+enter_value_to_replace_nulls: Ange ett nytt värde för att ersätta alla NULL som finns i detta fält.
+field_standard: Standard
+field_presentation: Presentation & alias
+field_file: Enskild fil
+field_files: Flera filer
+field_m2o: M2O Relation
+field_m2a: M2A Relationship
+field_o2m: O2M Relation
+field_m2m: M2M Relation
+field_translations: Översättningar
+field_group: Fältgrupp
+item_permissions: Behörigheter för objekt
+field_permissions: Behörigheter för fält
+field_validation: Validering av fält
+field_presets: Fältets förvalda inställningar
+permissions_for_role: 'Objekt som {role} rollen kan {action}.'
+permissions_for_policy: 'Objekt som {policy} policyn kan {action}.'
+fields_for_role: 'Fält {role} rollen kan {action}.'
+fields_for_policy: 'Fält som {policy} policyn kan {action}.'
+validation_for_role: 'Fältets {action} regler {role} rollen måste lyda.'
+presets_for_role: 'Förvalt fältvärde för rollen {role}.'
+presets_for_policy: 'Förvalt fältvärde för rollen {policy}.'
+presentation_and_aliases: Presentation & alias
+revision_post_create: Så här såg objektet ut när det skapades.
+revision_post_update: Så här såg objektet ut efter uppdateringen.
+changes_made: Nedan följer de specifika ändringarna i denna revision.
+no_relational_data: Tänk på att relationsdata inte ingår här.
+junction_field_location: Plats för kopplingsfält
+top: Överst
+bottom: Botten
+hide_field: Göm fält
+hide_field_on_detail: Dölj fältet på detaljnivå
+show_field_on_detail: Visa fältet på detaljnivå
+delete_field: Radera fält
+fields_and_layout: Fält & layout
+field_create_success: 'Skapade fältet: "{field}"'
+field_update_success: 'Uppdaterade fältet: "{field}"'
+duplicate_where_to: Vart vill du duplicera det här fältet någonstans?
+language: Språk
+language_placeholder: Välj ett språk...
+aggregate_function: Funktion för aggregering
+aggregate_precision: Precision för aggregering
+group_aggregation: Aggregera grupp
+group_precision: Precision för grupp
+global: Global
+admins_have_all_permissions: Administratörer har alla behörigheter
+camera: Kamera
+show_zero: Visa noll
+create_in_advanced_field_creation_mode: Skapa ett fält i avancerat läge
+continue_in_advanced_field_creation_mode: Fortsätta skapa ett fält i avancerat läge
+validation: Validering
+sum: Summa
+sum_distinct: Summa distinkt
+avg: Genomsnitt
+avg_distinct: Genomsnitt distinkt
+count: Antal
+count_distinct: Antal distinkt
+min: Min
+max: Max
+exposure: Exponering
+shutter: Slutare
+iso: ISO
+focal_length: Skärpedjup
+schema_setup_key: Detta fälts kolumnnamn i databasen och API-nyckel
+create_field: Skapa fält
+creating_new_field: 'Nytt fält ({collection})'
+field_in_collection: '{field} ({collection})'
+reset_page_preferences: Återställ sidans inställningar
+hidden_field: Dolt fält
+hidden_on_detail: Dolt på detaljnivå
+readonly_field_label: Inaktivera fältet i appen
+key: Nyckel
+alias: Alias
+bigInteger: Big Integer
+boolean: Boolean
+date: Datum
+date_range: Datumintervall
+datetime: DateTime
+dateTime: DateTime
+precision: Precision
+decimal: Decimal
+float: Float
+integer: Integer
+json: JSON
+xml: XML
+yaml: YAML
+string: String
+text: Text
+time: Time
+timestamp: Timestamp
+uuid: UUID
+hash: Hash
+geometry:
+  All: Geometri (alla)
+  Point: Punkt
+  Polygon: Polygon
+theme_light: Ljust läge
+theme_dark: Mörkt läge
+theme_directus_default: Directus Default
+theme_directus_minimal: Directus Minimal
+not_available_for_type: Inte tillgänglig för denna typ
+create_translations: Skapa översättningar
+auto_refresh: Uppdatera automatiskt
+refresh_interval: Uppdateringsintervall
+no_refresh: Uppdatera inte
+refresh_interval_seconds: Uppdatera direkt | Varje sekund | Var {seconds} sekund
+refresh_interval_minutes: Varje minut | Var {minutes} minut
+auto_generate: Generera automatiskt
+this_will_auto_setup_fields_relations: Detta kommer automatiskt att ställa in alla obligatoriska fält och relationer.
+click_here: Klicka här
+to_manually_setup_translations: för att manuellt konfigurera översättningar.
+manage: Hantera
+click_to_manage_translated_fields: >-
+  Det finns inga översatta fält ännu. Klicka här för att skapa dem. | Det finns ett översatt fält. Klicka här för att administrera det. | Det finns {count} översatta fält. Klicka här för att administrera dem.
+fields_group: Fältens grupp
+no_collections_found: Inga kollektioner hittades.
+new_data_alert: 'Följande kommer att skapas inom din datamodell:'
+search_collection: Sök i kollektion...
+search_role: Sök roll...
+search_policy: Sök policy...
+search_field: Sök fält...
+new_field: 'Nytt fält'
+new_collection: 'Ny kollektion'
+add_m2o_to_collection: 'Lägg till M2O i "{collection}"'
+add_o2m_to_collection: 'Lägg till O2M i "{collection}"'
+add_m2m_to_collection: 'Lägg till M2M i "{collection}"'
+choose_a_type: Välj en typ...
+determined_by_relationship: Bestämd av relation
+add_note: Lägg till kommentar för användare...
+add_link: Lägg till länk
+custom_link: Anpassad länk
+default_value: Standardvärde
+standard_field: Standardfält
+single_file: Enskild fil
+multiple_files: Flera filer
+m2o_relationship: Many to One relation
+o2m_relationship: One to Many relation
+m2m_relationship: Many to Many relation
+m2a_relationship: Many to Any relation
+invalid_item: Ogiltigt objekt
+require_confirmation: Kräv bekräftelse
+dialog: Dialog
+modal: Popup
+confirmation_dialog: Bekräftelsedialog
+next: Nästa
+field_name: Fältnamn
+translations: Översättningar
+no_translations: Inga översättningar
+left_to_right: Vänster till höger
+right_to_left: Höger till Vänster
+note: Anteckning
+enter_a_value: Ange ett värde...
+enter_a_placeholder: Ange en platshållare...
+length: Längd
+soft_length: Mjuk gräns
+precision_scale: Precision & skala
+readonly: Skrivskyddad
+unique: Unik
+index: Index
+updated_on: Uppdaterad den
+updated_by: Uppdaterad av
+primary_key: Primärnyckel
+foreign_key: Främmande nyckel
+finish_setup: Slutför installation
+dismiss: Avfärda
+toggle_raw_editor: Växla Råredigerare
+raw_editor_placeholder: "{'{'}{'{'}$trigger.payload.example{'}'}{'}'}"
+raw_value: Obearbetat värde
+copy_raw_value: Kopiera obearbetat värde
+copy_raw_value_success: Kopierad
+copy_raw_value_fail: Kopiering misslyckades
+paste_raw_value: Klistra in obearbetat värde
+paste_raw_value_success: Inklistrad
+paste_raw_value_fail: Klistra in misslyckades
+view_raw_value: Visa obearbetat värde
+edit_raw_value: Redigera obearbetat värde
+enter_raw_value: Ange obearbetat värde...
+clear_value: Rensa fält
+clear_changes: Rensa ändringar
+clear_items: Rensa objekt
+reset_to_default: Återställ Till Standard
+undo_changes: Ångra ändringar
+notifications: Aviseringar
+archive_all: Arkivera alla
+show_all_activity: Visa all aktivitet
+page_not_found: Sidan hittades inte
+page_not_found_body: Sidan du letar efter verkar inte finnas.
+confirm_revert: Bekräfta annullering
+confirm_revert_body: Det här objektet kommer återgå till vald position.
+display: Visa
+settings_update_success: Inställningar uppdaterade
+title: Rubrik
+subtitle: Underrubrik
+revision_delta_created: Skapad
+revision_delta_created_externally: Skapad externt
+revision_delta_updated: 'Uppdaterade 1 fält | Uppdaterade {count} fält'
+revision_delta_deleted: Raderad
+revision_delta_reverted: Annullerad
+revision_delta_update_message: Detta fält har uppdaterats men dess värde döljs av säkerhetsskäl.
+revision_delta_other: Revision
+revision_delta_by: '{date} av {user}'
+presentation_text_values_cannot_be_reimported: 'Använder presentationstext, värden kan inte återimporteras.'
+download_page_as_csv: 'Ladda ned sida som CSV'
+download_page_as_csv_unsupported: Denna layout stöder inte nedladdning av den aktuella sidan.
+private_user: Privat användare
+creation_preview: Förhandsgranskning av skapande
+revision_preview: Förhandsgranska revision
+updates_made: Uppdateringar gjorda
+leave_comment: Lämna en kommentar...
+post_comment_success: Kommentar inskickad
+post_comment_updated: Kommentar uppdaterad
+item_create_success: Objekt skapat | Objekt skapade
+item_update_success: Objekt uppdaterat | Objekt uppdaterade
+item_delete_success: Objekt raderat | Objekt raderade
+this_collection: Den här kollektionen
+related_collection: Relaterad kollektion
+related_collections: Relaterade kollektioner
+translations_collection: Kollektion för översättningar
+languages_collection: Kollektion med språk
+translations_preview_collections: Kollektioner
+translations_preview_fields: Fält
+import_data_input_placeholder: CSV eller JSON...
+import_data_button: Starta import
+import_data_indeterminate: Importerar data...
+import_data_success: Data importerades framgångsrikt från {filename}
+import_data_error: Den här filens datastruktur matchar inte samlingen.
+label_import: Importera
+label_export: Exportera
+import_export: Importera/exportera
+format: Format
+last_page: Sista sidan
+last_access: Senaste åtkomsten
+fill_template: Fyll med mallens värden
+a_unique_table_name: Ett unikt tabellnamn...
+a_unique_column_name: Ett unikt kolumnnamn...
+enable_custom_values: Aktivera anpassade värden
+submit: Skicka
+move_to_folder: Flytta till mapp
+move: Flytta
+system: System
+add_field_related: Lägg till fält i relaterad kollektion
+interface_label: Gränssnitt
+display_label: Visa
+today: Idag
+yesterday: Igår
+delete_comment: Ta bort kommentar
+delete_share: Ta bort delning
+functions:
+  year: År
+  month: Månad
+  week: Vecka
+  day: Dag
+  weekday: Veckodag
+  hour: Timme
+  minute: Minut
+  second: Sekund
+  count: Antal
+date-fns_date: PPP
+date-fns_time: 'h:mm:ss a'
+date-fns_time_no_seconds: 'h:mm a'
+date-fns_time_24hour: 'HH:mm:ss'
+date-fns_time_no_seconds_24hour: 'HH:mm'
+date-fns_date_short: 'MMM d, u'
+date-fns_time_short: 'h:mma'
+date-fns_date_short_no_year: MMM d
+minutes: Minuter
+hours: Timmar
+month: Månad
+year: År
+select_all: Markera alla
+months:
+  january: Januari
+  february: Februari
+  march: Mars
+  april: April
+  may: Maj
+  june: Juni
+  july: Juli
+  august: Augusti
+  september: September
+  october: Oktober
+  november: November
+  december: December
+drag_mode: Dra läge
+cancel_crop: Avbryt beskärning
+original: Ursprunglig
+url: URL
+import_label: Importera
+file_details: Fildetaljer
+copy_id: Kopiera ID
+copy_id_success: ID kopierat
+copy_id_fail: ID inte kopierat
+dimensions: Dimensioner
+size: Storlek
+created: Skapad
+uploaded: Uppladdad
+modified: Ändrad
+owner: Ägare
+edited_by: Redigerad av
+folder: Mapp
+folders: Mappar
+zoom: Zooma
+download: Ladda ner
+open: Öppna
+open_in_new_window: Öppna i nytt fönster
+open_folder: Öppna "{folder}" mapp
+foreground_color: Förgrundsfärg
+background_color: Bakgrundsfärg
+upload_from_device: Ladda upp fil från enhet
+choose_from_library: Välj fil från biblioteket
+import_from_url: Importera fil från URL
+replace_from_device: Ersätt fil från enhet
+replace_from_library: Ersätt fil från biblioteket
+replace_from_url: Ersätt fil från URL
+no_image_selected: Ingen bild vald
+no_file_selected: Ingen fil vald
+download_file: Ladda ner fil
+open_file_in_tab: Öppna fil i ny flik
+start_export: Påbörja exportering
+not_available_for_local_downloads: Inte tillgänglig för lokala nedladdningar
+exporting_all_items_in_collection: Exporterar alla {total} objekt inom {collection}.
+collection_key: Kollektionsnyckel
+name: Namn
+primary_key_field: Primär nyckelfält
+type: Typ
+creating_new_collection: Skapar ny kollektion
+created_by: Skapad av
+created_on: Skapad den
+creating_collection_info: Namnge kollektionen och konfigurera dess unika "nyckelfält"...
+creating_collection_system: Aktivera och döp om något av dessa valfria fält.
+auto_increment_integer: Auto-incremented integer
+auto_increment_big_integer: Auto-incremented integer
+generated_uuid: Genererad UUID
+manual_string: Manuellt inmatad textsträng
+save_and_create_new: Spara och skapa ny
+save_and_stay: Spara och stanna
+save_and_quit: Spara och avsluta
+save_as_copy: Spara som kopia
+add_existing: Lägg till befintlig
+creating_items: Skapar objekt
+enable_create_button: Aktivera skapa knapp
+selecting_items: Markerar objekt
+enable_select_button: Aktivera markerings knapp
+allow_duplicates: Tillåt dubbletter
+comments: Kommentarer
+no_comments: Inga kommentarer ännu
+expand: Expandera
+expand_all: Expandera alla
+select_item: Välj objekt
+no_items: Inga objekt
+search_items: Sök objekt...
+search_extensions: Sök tillägg...
+disabled: Inaktiverad
+information: Information
+report_bug: Rapportera bugg
+request_feature: Efterfråga funktionalitet
+request_body: Begär text
+interface_not_found: 'Gränssnittet "{interface}" hittades inte.'
+reset_interface: Återställ gränssnitt
+display_not_found: 'Vyn "{display}" hittades inte.'
+reset_display: Återställ visning
+list-m2a: Byggare (M2A)
+item_count: 'Inga objekt | Ett objekt | {count} objekt'
+no_items_copy: Det finns inga objekt i denna kollektion ännu.
+file_count: 'Inga filer | En fil | {count} filer'
+no_files_copy: Det finns inga filer här.
+user_count: 'Inga användare | En användare | {count} användare'
+no_users_copy: Det finns inga användare i denna roll ännu.
+no_notifications: Inga notifikationer
+no_notifications_copy: Inget nytt!
+activity_log: Aktivitetslogg
+all_items: Alla objekt
+any: Valfri
+csv: CSV
+no_collections: Inga kollektioner
+create_collection: Skapa samling
+no_collections_copy_admin: Du har inga kollektioner än. Klicka på knappen nedan för att komma igång.
+no_collections_copy: Du har inga kollektioner än. Kontakta din systemadministratör.
+relationship_not_setup: Relationen har inte konfigurerats korrekt
+display_template_not_setup: Visningsmallens alternativ är felaktigt konfigurerad
+collection_field_not_setup: Kollektionsfältets alternativ är felaktigt konfigurerad
+select_a_collection: Välj en kollektion
+select_a_field: Välj ett fält
+active: Aktiv
+move_to: Flytta till...
+copy: Kopiera
+copy_to: Kopiera till...
+no_other_dashboards_copy: Du har inga andra kontrollpaneler än.
+inactive: Inaktiv
+users: Användare
+roles: Roller
+activity: Händelser
+activity_item: Aktivitetsobjekt
+action: Åtgärd
+ip_address: IP-adress
+user_agent: Användaragent
+origin: Ursprung
+decimals: Decimaler
+value_decimals: Värde decimaler
+min_value: Minsta värde
+max_value: Maxvärde
+automatic: Automatisk
+field_width: Fältbredd
+add_filter: Lägg till filter
+upper_limit: Övre gräns...
+lower_limit: Undre gräns...
+user_directory: Användarkatalog
+documentation: Dokumentation
+sidebar: Sidokolumn
+duration: Varaktighet
+charset: Teckenuppsättning
+second: sekund
+file_moved: Fil flyttad
+collection_created: Kollektion skapad
+modified_on: Ändrad den
+card_size: Kortets storlek
+sort_field: Sortera fält
+add_sort_field: Lägg till sorteringsfält
+sort: Sortera
+status: Status
+remove: Ta bort
+toggle_manual_sorting: Växla manuell sortering
+bookmark_doesnt_exist: Bokmärket finns inte
+bookmark_doesnt_exist_copy: Bokmärket du försöker öppna kunde inte hittas.
+bookmark_doesnt_exist_cta: Återgå till kollektion
+select_an_item: Välj ett objekt...
+edit: Redigera
+edit_item: Redigera objekt
+enabled: Aktiverad
+enable_all: Aktivera alla
+disable_all: Inaktivera alla
+disable_tfa: Inaktivera 2FA
+admin_disable_tfa_text: Är du säker på att du vill inaktivera 2FA för den här användaren?
+tfa_setup: Konfigurera 2FA
+tfa_scan_code: Skanna koden i din autentiserings-app för att slutföra konfigureringen av 2FA
+enter_otp_to_disable_tfa: Ange OTP för att inaktivera 2FA
+create_account: Skapa konto
+account_created_successfully: Kontot har skapats
+auto_fill: Automatisk ifyllning
+corresponding_field: Motsvarande fält
+errors:
+  COLLECTION_NOT_FOUND: "Kollektionen finns inte"
+  CONTAINS_NULL_VALUES: Fältet innehåller nullvärden
+  FAILED_VALIDATION: Validering misslyckades
+  FIELD_NOT_FOUND: Fältet hittades inte
+  FORBIDDEN: Otillåten
+  GRAPHQL_VALIDATION: GraphQL-validering
+  ILLEGAL_ASSET_TRANSFORMATION: Bildkälla för stor för att förhandsgranska
+  INTERNAL_SERVER_ERROR: Oväntat fel
+  INVALID_CONFIG: Ogiltig konfiguration
+  INVALID_CREDENTIALS: Fel användarnamn eller lösenord
+  INVALID_FOREIGN_KEY: Ogiltig främmande nyckel
+  INVALID_IP: IP-adress är inte tillåten
+  INVALID_OTP: Fel engångslösenord
+  INVALID_PAYLOAD: Ogiltig payload
+  INVALID_PROVIDER: Användaren tillhör en annan auth leverantör
+  INVALID_QUERY: Ogiltig query
+  INVALID_TOKEN: Ogiltig token
+  INVALID_USER: Det gick inte att autentisera användaren
+  ITEM_LIMIT_REACHED: Objektgränsen har uppnåtts
+  ITEM_NOT_FOUND: Objektet hittades inte
+  LIMIT_EXCEEDED: 'Gräns överskriden'
+  METHOD_NOT_ALLOWED: Metoden är inte tillåten
+  NOT_NULL_VIOLATION: Värdet kan inte vara null
+  RECORD_NOT_UNIQUE: Duplicerat värde upptäckt
+  ROUTE_NOT_FOUND: Hittades inte
+  SERVICE_UNAVAILABLE: Tjänsten är inte tillgänglig
+  TOKEN_EXPIRED: Token har löpt ut
+  UNEXPECTED_RESPONSE: Oväntat svar
+  UNKNOWN: Oväntat fel
+  UNSUPPORTED_MEDIA_TYPE: Mediatyp som inte stöds
+  USER_SUSPENDED: Användare avstängd
+  VALUE_OUT_OF_RANGE: Värdet är utanför giltigt intervall
+  VALUE_TOO_LONG: Värdet är för långt
+security: Säkerhet
+bookmark_name: Bokmärkesnamn...
+create_bookmark: Skapa bokmärke
+edit_bookmark: Redigera bokmärke
+edit_personal_bookmark: Redigera personligt bokmärke
+edit_role_bookmark: Redigera roll-bokmärke
+edit_global_bookmark: Redigera globalt bokmärke
+cannot_edit_global_bookmarks: Kan inte redigera globala bokmärken
+bookmarks: Bokmärken
+presets: Förval
+unexpected_error: Oväntat fel
+unexpected_error_copy: Ett oväntat fel har uppstått. Försök igen.
+copy_details: Kopiera detaljer
+no_app_access: Ingen appåtkomst
+no_app_access_copy: Den här användaren får inte använda administratörs-appen.
+password_reset_successful: Lösenordet har återställts
+back: Tillbaka
+filter: Filtrera
+edit_image: Redigera bild
+editing_image: Redigerar bild
+square: Kvadrat
+free: Valfri
+flip_horizontal: Vänd horisontellt
+flip_vertical: Vänd vertikalt
+aspect_ratio: Bildförhållande
+rotate: Rotera
+all_users: Alla användare
+delete_collection: Ta bort kollektion
+update_collection_success: Uppdaterad kollektion
+delete_collection_success: Raderar kollektion
+make_collection_visible: Gör samling synlig
+make_collection_hidden: Gör samling dold
+make_folder_visible: Gör mappen synlig
+make_folder_hidden: Gör mappen dold
+goto_collection_content: Visa innehåll
+count_of_total_items: '{count} av {total} objekt'
+start_end_of_count_items: '{start}-{end} av {count} objekt'
+delete_collection_are_you_sure: >-
+  Är du säker på att du vill ta bort denna kollektion? Detta kommer att ta bort kollektionen och alla objekt i den. Denna åtgärd är permanent.
+delete_folder_are_you_sure: Är du säker på att du vill ta bort mappen "{folder}"? Kapslade mappar och samlingar kommer att flyttas till den översta nivån.
+collections_shown: Visade kollektioner
+visible_collections: Synliga kollektioner
+hidden_collections: Dolda kollektioner
+show_hidden_collections: Visa dolda kollektioner
+hide_hidden_collections: Dölj dolda kollektioner
+show_header: Visa sidhuvud
+unmanaged_collections: Okonfigurerade kollektioner
+system_collections: Systemets kollektioner
+placeholder: Platshållare
+icon_left: Ikon till vänster
+icon_right: Ikon höger
+count_other_revisions: '{count} Andra revisioner'
+font: Typsnitt
+sans_serif: Sans Serif
+serif: Serif
+monospace: Monospace
+divider: Avdelare
+color: Färg
+circle: Cirkel
+empty_item: Tomt objekt
+log_in_with: 'Logga in med {provider}'
+conditional_styles: Villkorade stilar
+advanced_settings: Avancerade inställningar
+advanced_filter: Avancerat filter
+delete_advanced_filter: Ta bort filter
+change_advanced_filter_operator: Ändra operatör
+advanced: Avancerat
+operators:
+  eq: Lika med
+  neq: Inte lika med
+  lt: Mindre än
+  gt: Större än
+  lte: Mindre än eller lika med
+  gte: Större än eller lika med
+  in: Är en av
+  nin: Är inte en av
+  null: Är null
+  nnull: Är inte null
+  contains: Innehåller
+  ncontains: Innehåller ej
+  icontains: Innehåller (okänslig)
+  starts_with: Börjar med
+  nstarts_with: Börjar inte med
+  ends_with: Slutar med
+  nends_with: Slutar inte med
+  between: Är mellan
+  nbetween: Är inte mellan
+  empty: Är tom
+  nempty: Är inte tom
+  all: Innehåller dessa nycklar
+  has: Innehåller några av dessa nycklar
+  intersects: Korsar
+  nintersects: Korsar inte
+loading: Laddar...
+drop_to_upload: Släpp för att ladda upp
+item: Objekt
+items: Objekt
+upload_file: Ladda upp fil
+upload_file_indeterminate: Laddar upp fil...
+upload_file_success: Fil uppladdad
+upload_files_indeterminate: 'Laddar upp filer {done}/{total}'
+upload_files_success: '{count} filer uppladdade'
+upload_pending: Väntande uppladdning
+drag_file_here: Dra och släpp en fil här
+click_to_browse: Klicka för att bläddra
+interface_options: Alternativ för gränssnitt
+display_options: Visningsalternativ
+layout_options: Layout alternativ
+rows: Rader
+columns: Kolumner
+collection_setup: Konfiguration av kollektion
+optional_system_fields: Valfria fält
+value_unique: Värdet måste vara unikt
+value_index: Fältet är indexerat
+all_activity: All aktivitet
+create_item: Skapa objekt
+display_template: Visningsmall
+language_display_template: Språkvisningsmall
+per_page: Per sida
+all_files: Alla filer
+my_files: Mina filer
+recent_files: Senaste filer
+create_folder: Skapa mapp
+edit_folder: Redigera mapp
+folder_name: Mappens namn...
+folder_key: Mappens nyckel...
+add_file: Lägg till fil
+replace_file: Ersätt fil
+no_results: Inga resultat
+no_results_copy: Justera eller rensa sökfilter för att se resultat.
+no_visible_fields: Tomt formulär
+clear_filters: Rensa filter
+saves_automatically: Sparar automatiskt
+role: Roll
+edit_role: Redigera roll
+rule: Regel
+user: Användare
+no_presets: Inga förval
+no_presets_copy: Inga förval eller bokmärken har sparats ännu.
+no_presets_cta: Lägg till förval
+presets_only: Endast förval
+create: Skapa
+on_create: Vid skapande
+on_update: Vid uppdatering
+read: Läsning
+update: Uppdatera
+delete: Radera
+select_fields: Välj fält
+format_text: Formatera text
+format_value: Formatera värde
+abbreviate_value: Förkorta värde
+bold: Fet
+toggle: Växla
+icon_on: Ikon på
+icon_off: Ikon Av
+label: Etikett
+flows: Flöden
+flow: Flöde
+select_a_flow: Välj ett flöde
+run_flow_on_current_collection: Kör flöde på nuvarande samling
+run_flow_on_current: Kör flöde på aktuellt objekt
+field_name_placeholder: Ange fältnamn...
+field_key_placeholder: Ange fältnyckel...
+trigger: Utlösare
+create_trigger: Skapa utlösare
+trigger_setup: Konfiguration av utlösare
+change_trigger: Ändra utlösare
+flow_delete_confirm: Är du säker på att du vill ta bort Flow "{flow}"? Denna åtgärd kan inte ångras.
+set_flow_active: Sätt Flöde till aktiv
+set_flow_inactive: Sätt Flödet till inaktivt
+edit_flow: Redigera flöde
+delete_flow: Radera flöde
+no_other_flows_copy: Du har inga andra flöden ännu.
+no_flows: Inga flöden
+no_flows_copy: Du har inga flöden ännu.
+create_flow: Skapa flöde
+creating_new_flow: Skapar nytt flöde
+updating_flow: Uppdaterar flöde
+flow_name: Namn
+flow_tracking: Aktivitets- och loggspårning
+flow_tracking_all: Spåra aktivitet och loggar
+flow_tracking_activity: Spåra endast aktivitet
+flow_tracking_null: Spåra ingenting
+start_flow: Starta flöde
+stop_flow: Stoppa flöde
+edit_operation: Redigera åtgärd
+code: Kod
+operation_options: Åtgärdsalternativ
+operation_key: Identifierare för referens...
+visual_editor: Visuell redigerare
+toggle_navigation: Växla navigering
+toggle_editable_elements: Växla redigerbara element
+no_url: Ingen URL angiven
+invalid_url: Ogiltig URL
+insights: Insikter
+deployment:
+  provider:
+    settings:
+      delete_confirm: Denna åtgärd är permanent och kan inte ångras. Är du säker på att du vill fortsätta?
+    run:
+      cancel_confirm: Denna åtgärd är permanent och kan inte ångras. Är du säker på att du vill fortsätta?
+      log_all: Alla loggnivåer
+  target_value:
+    preview: Förhandsgranska
+dashboard: Kontrollpanel
+panel: Panel
+panel_options: Alternativ för panel
+panel_header: Panelens sidhuvud
+panel_name_placeholder: Namnge denna panel...
+panel_note_placeholder: Valfri information om denna panel...
+panel_delete_confirm: Är du säker på att du vill ta bort denna panel? Denna åtgärd kan inte ångras.
+dashboard_delete_confirm: Är du säker på att du vill radera kontrollpanelen? Denna åtgärd kan inte ångras.
+edit_dashboard: Redigera kontrollpanel
+delete_dashboard: Radera kontrollpanel
+visible: Synlig
+prefix_placeholder: Text före värde...
+suffix_placeholder: Text efter värde...
+decimals_placeholder: Antal decimaler...
+no_dashboards: Inga kontrollpaneler
+no_dashboards_copy: Du har inga kontrollpaneler än.
+create_dashboard: Skapa kontrollpanel
+dashboard_name: Kontrollpanelens namn
+no_data: Ingen data
+accountability: Ansvarsskyldighet
+details: Detaljer
+logs_waiting: 'Väntar på fler loggar...'
+logs_unread_count: '{count} olästa'
+clear_logs: Rensa loggar
+search_logs: Sök loggar...
+all_instances: Alla instanser
+all_log_levels: Alla loggnivåer
+full_screen: Helskärm
+full_text_search: Fulltextsökning
+edit_panels: Redigera paneler
+left_align: Vänsterjustera
+right_align: Högerjustera
+fit_to_screen: Anpassa till skärm
+image_url: Bild-URL
+alt_text: Alternativ text
+media: Media
+quality: Kvalitet
+width: Bredd
+height: Höjd
+source: Källa
+url_placeholder: Ange en webbadress...
+display_text: Visningstext
+display_text_placeholder: Ange en visningstext...
+interface_group_text_and_numbers: Text & Nummer
+interface_group_selection: Markering
+interface_group_relational: Relation
+interface_group_presentation: Presentation
+interface_group_groups: Grupper
+interface_group_other: Övrigt
+tooltip: Inforuta
+tooltip_placeholder: Ange en inforuta...
+unlimited: Obegränsad
+open_link_in: Öppna länk i
+new_tab: Ny flik
+save_image: Spara bild
+save_media: Spara media
+wysiwyg_options:
+  aligncenter: Centrera
+  alignjustify: Justera
+  alignleft: Vänsterjustera
+  alignnone: Ingen justering
+  alignright: Högerjustera
+  forecolor: Förgrundsfärg
+  backcolor: Bakgrundsfärg
+  bold: Fet
+  italic: Kursiv
+  underline: Understruken
+  strikethrough: Genomstruken
+  subscript: Nedsänkt text
+  superscript: Upphöjd text
+  codeblock: Kod
+  blockquote: Citat
+  bullist: Punktlista
+  numlist: Numrerad lista
+  hr: Horisontell linje
+  link: Lägg till/redigera länk
+  unlink: Ta bort länk
+  media: Lägg till/redigera media
+  image: Lägg till/redigera bild
+  copy: Kopiera
+  cut: Klipp
+  paste: Klistra in
+  heading: Rubrik
+  h1: Rubrik 1
+  h2: Rubrik 2
+  h3: Rubrik 3
+  h4: Rubrik 4
+  h5: Rubrik 5
+  h6: Rubrik 6
+  pre: Förformaterad
+  fontselect: Välj typsnitt
+  fontsizeselect: Välj teckenstorlek
+  indent: Indrag
+  outdent: Minska indrag
+  undo: Ångra
+  redo: Gör om
+  remove: Ta bort
+  removeformat: Ta bort format
+  selectall: Markera alla
+  table: Tabell
+  visualaid: Visa osynliga element
+  source_code: Redigera källkod
+  fullscreen: Helskärm
+  directionality: Riktning
+dropdown: Rullgardinsmeny
+choices: Alternativ
+choices_option_configured_incorrectly: Val felaktigt konfigurerade
+deselect: Avmarkera
+deselect_all: Avmarkera alla
+theme: Tema
+select_a_theme: Välj ett tema
+appearance_light: Ljus
+appearance_dark: Mörk
+other: Annat...
+adding_user: Lägger till användare
+unknown_user: Okänd användare
+creating_in: 'Skapar objekt i {collection}'
+editing_in: 'Redigerar objekt i {collection}'
+creating_unit: 'Skapar {unit}'
+editing_unit: 'Redigerar {unit}'
+editing_in_batch: 'Massredigerar {count} objekt'
+no_options_available: Inga tillgängliga alternativ
+settings_data_model: Datamodell
+settings_roles: Användarroller
+settings_permissions: Åtkomstpolicyer
+settings_project: Inställningar
+settings_appearance: Utseende
+settings_flows: Flöden
+settings_system_logs: Systemloggar
+settings_presets: Bokmärken
+settings_translations: Översättningar
+one_or_more_options_are_missing: Ett eller flera alternativ saknas
+scope: Omfattning
+actions: Åtgärder
+select: Välj...
+layout: Layout
+tree_view: Trädvy
+changes_are_permanent: Ändringar är permanenta
+preset_name_placeholder: Används som standard om tom...
+preset_search_placeholder: Sök...
+editing_preset: Redigerar förval
+layout_preview: Förhandsgranska layout
+layout_setup: Konfiguration av layout
+data: Data
+unsaved_changes: Osparade ändringar
+unsaved_changes_copy: Är du säker på att du vill lämna denna sida?
+discard_changes: Ignorera ändringar
+discard_all_changes: Ignorera alla ändringar
+discard_changes_copy: Är du säker på att du vill ignorera alla ändringar som gjorts?
+show_x_axis: Visa X-axeln
+show_y_axis: Visa Y-axeln
+keep_editing: Fortsätt redigera
+activity_feed: Aktivitetsflöde
+add_new: Lägg till ny
+create_new: Skapa ny
+all: Alla
+none: Ingen
+no_layout_collection_selected_yet: Ingen layout/kollektion vald ännu
+batch_delete_confirm: >-
+  Inga objekt har valts | Är du säker på att du vill radera det här objektet? Den här åtgärden kan inte ångras. | Är du säker på att du vill radera de här {count} objekten? Den här åtgärden kan inte ångras.
+cancel: Avbryt
+no_upscale: Skala inte upp bilder
+no_extensions: Inga tillägg
+install_extension: Installera tillägg
+uninstall: Avinstallera
+installed: Installerad
+reinstall: Installera om
+source_registry: Marketplace
+source_local: Lokal
+source_module: Nodmodul
+collection: Kollektion
+collections: Kollektioner
+content: Innehåll
+singleton: Singleton
+singleton_label: Behandla som ett enskilt objekt
+system_fields_locked: Systemfälten är låsta och kan inte redigeras
+directus_collection:
+  directus_activity: Ansvarsloggar för alla händelser
+  directus_comments: Kommentarer för objekt
+  directus_dashboards: Kontrollpaneler i insights modulen
+  directus_migrations: Vilken version av databasen du använder
+  directus_notifications: Meddelande skickat till användare
+  directus_panels: Individuella paneler inom Insights kontrollpaneler
+  directus_revisions: Ögonblicksbilder för all aktivitet
+  directus_roles: Behörighetsgrupper för systemanvändare
+  directus_sessions: Information om användarsessioner
+  directus_settings: Projektets konfigurationsalternativ
+  directus_users: Systemanvändare för plattformen
+  directus_translations: Anpassade översättningar
+  directus_extensions: Konfiguration av tillägg
+fields:
+  directus_activity:
+    item: Primärnyckel för objekt
+    action: Åtgärd
+    collection: Kollektion
+    timestamp: Åtgärd på
+    user: Åtgärd av
+    comment: Kommentera
+    user_agent: Användaragent
+    origin: Ursprung
+    ip: IP-adress
+    revisions: Revidering
+  directus_collections:
+    collection: Kollektion
+    icon: Ikon
+    note: Anteckning
+    color: Färg
+    display_template: Visningsmall
+    hidden: Dold
+    singleton: Singleton
+    archive_app_filter: Arkivera appfilter
+    archive_value: Arkivera värde
+    unarchive_value: Avarkivera värde
+    sort_field: Sortera fält
+    archive_field: Arkivera fält
+  directus_files:
+    $thumbnail: Miniatyrbild
+    title: Rubrik
+    description: Beskrivning
+    tags: Etiketter
+    location: Position
+    storage: Lagring
+    filename_disk: Filnamn (Disk)
+    filename_download: Filnamn (nedladdning)
+    metadata: Metadata
+    type: Mime Type
+    filesize: Filstorlek
+    modified_by: Ändrad av
+    modified_on: Ändrad den
+    created_on: Skapad den
+    created_by: Skapad av
+    embed: Bädda in
+    uploaded_by: Uppladdad av
+    folder: Mapp
+    width: Bredd
+    uploaded_on: Uppladdad den
+    height: Höjd
+    charset: Teckenuppsättning
+    duration: Varaktighet
+    focal_point_x: X-koordinat
+    focal_point_y: Y-koordinat
+  directus_users:
+    first_name: Förnamn
+    last_name: Efternamn
+    email: E-post
+    password: Lösenord
+    avatar: Profilbild
+    location: Position
+    title: Rubrik
+    description: Beskrivning
+    tags: Etiketter
+    user_preferences: Användarinställningar
+    language: Språk
+    tfa_secret: Tvåfaktorsautentisering
+    admin_options: Admin-alternativ
+    status: Status
+    status_draft: Utkast
+    status_invited: Inbjuden
+    status_unverified: Overifierad
+    status_active: Aktiv
+    status_suspended: Avstängd
+    status_archived: Arkiverad
+    role: Roll
+    token: Token
+    provider: Leverantör
+    external_identifier: Extern identifierare
+    last_page: Sista sidan
+    last_access: Senaste åtkomsten
+    appearance: Utseende
+    theme_light: Ljust tema
+    theme_dark: Mörkt tema
+    theme_light_overrides: Anpassning av ljust tema
+    theme_dark_overrides: Anpassning av mörkt tema
+  directus_settings:
+    jpg: JPEG
+    png: PNG
+    webP: WebP
+    tiff: Tiff
+    avif: AVIF
+    reporting: Rapportering
+    basemaps: Baskartor
+    basemaps_raster: Raster
+    basemaps_tile: Raster TileJSON
+    basemaps_style: Mapbox-stil
+    mapbox_key: Mapbox åtkomsttoken
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    project_name: Projektnamn
+    project_url: Projektets URL
+    project_color: Projektets färg
+    project_logo: Projektets logotyp
+    default_language: Förvalt språk
+    branding: Branding
+    public_foreground: Publik förgrund
+    public_background: Publik bakgrund
+    public_note: Publik anteckning
+    default_appearance: Standardutseende
+    default_theme_light: Standardljust tema
+    default_theme_dark: Mörkt standardtema
+    auth_password_policy: Policy för lösenord vid inloggning
+    auth_login_attempts: Inloggningsförsök
+    files_and_thumbnails: Filer och lagring
+    storage_default_folder: Förvald mapp
+    storage_asset_transform: Tillåtna transformationer
+    custom_css: Custom CSS
+    module_bar: Modulfält
+    transformations_all: Tillåt alla transformationer
+    transformations_none: Inaktivera transformationer
+    transformations_presets: Begränsa transformationer till inställningarna nedan
+    image_editor: Bildredigerare
+    theme_light_overrides: Anpassning av ljust tema
+    theme_dark_overrides: Anpassning av mörkt tema
+    public_registration: Användarregistrering
+    public_registration_role: Användarroll
+    public_registration_verify_email: Verifiera e-post
+    visual_editor_urls: URL:er för visuell redigare
+  directus_shares:
+    name: Namn
+    role: Roll
+    password: Lösenord
+    date_start: Startdatum
+    date_end: Slutdatum
+    times_used: Gånger använd
+  directus_fields:
+    collection: Namn kollektion
+    icon: Ikon kollektion
+    note: Anteckning
+    hidden: Dold
+    singleton: Singleton
+    translation: Översättningar fältnamn
+    display_template: Mall
+  directus_roles:
+    name: Rollens namn
+    icon: Ikon roll
+    description: Beskrivning
+    users: Användare i rollen
+    parent: Förälderroll
+  directus_policies:
+    name: Policynamn
+    description: Beskrivning
+    app_access: Appåtkomst
+    admin_access: Adminåtkomst
+    ip_access: IP-åtkomst
+    enforce_tfa: Kräv 2FA
+field_options:
+  directus_settings:
+    project_name_placeholder: Mitt projekt...
+    project_color_note: Inloggning & logotyp bakgrund
+    project_logo_note: Vit 40×40 SVG/PNG
+    project_favicon_note: 32×32 ICO
+    public_note_placeholder: Ett kort, offentligt meddelande som stödjer formatering av markdown...
+    security_divider_title: Säkerhet
+    auth_password_policy:
+      none_text: Ingen – Rekommenderas ej
+      weak_text: Svag – minst 8 tecken
+      strong_text: Starkt – Versaler / Gemener / Siffror / Specialtecken
+    storage_asset_presets:
+      fit_label: Passa
+      upscaling: Uppskalning
+      fit:
+        contain_text: Bevara (bevara bildförhållandet)
+        cover_text: Fyll (tvingar exakt storlek)
+        fit_text: Passa inuti
+        outside_text: Passa utanför
+    additional_transforms: Ytterligare Transformationer
+    transforms_note: Skarpa metodens namn och dess argument. Se https://sharp.pixelplumbing.com/api-constructor för mer information.
+    mapbox_key: Mapbox åtkomsttoken
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    basemaps: Baskartor
+    basemaps_raster: Raster
+    basemaps_tile: Raster TileJSON
+    basemaps_style: Mapbox-stil
+    files_divider_title: Filer och miniatyrer
+  directus_activity:
+    login: Inloggning
+    create: Skapa
+    update: Uppdatera
+    delete: Radera
+  directus_collections:
+    track_activity_revisions: Spåra aktivitet och revisioner
+    only_track_activity: Spåra endast aktivitet
+    do_not_track_anything: Spåra ingenting
+    collection_setup: Konfiguration av kollektion
+    note_placeholder: En beskrivning av kollektionen...
+    hidden_label: Dölj i appen
+    singleton: Behandla som ett enskilt objekt
+    language: Språk
+    translation: Översättning
+    translation_placeholder: Ange en översättning...
+    collection_name: Namn kollektion
+    singular_unit: Enhet för singular
+    plural_unit: Enhet för plural
+    archive_divider: Arkivera
+    archive_field_placeholder: Välj ett fält...
+    archive_app_filter: Aktivera filtret för apparkiv
+    archive_value: Värde som sätts vid arkivering...
+    unarchive_value: Värde som sätts vid avarkivering...
+    sort_divider: Sortera
+    sort_field: Välj ett fält...
+    accountability_divider: Ansvarsskyldighet
+    duplication_divider: Duplicering
+    preview_divider: Förhandsgranska
+  directus_files:
+    title: En unik titel...
+    description: En valfri beskrivning...
+    location: En valfri plats...
+    storage_divider: Namngivning av fil
+    focal_point_divider: Fokuspunkt
+    filename_disk: Namn på disk...
+    filename_download: Namn vid nedladdning...
+  directus_policies:
+    description: En beskrivning av denna policy...
+    assigned_to: Tilldelad till
+  directus_roles:
+    name: Unikt namn för denna roll...
+    description: Beskrivning av rollen...
+    fields:
+      icon_name: Ikon
+      name_name: Namn
+      name_placeholder: Ange en titel...
+      link_name: Länk
+      link_placeholder: Relativ eller absolut URL...
+    collections_name: Kollektioner
+    collections_addLabel: Lägg till kollektion...
+  directus_users:
+    preferences_divider: Användarinställningar
+    dropdown_auto: Automatisk (baserat på system)
+    dropdown_light: Ljust läge
+    dropdown_dark: Mörkt läge
+    admin_divider: Admin-alternativ
+    status_dropdown_draft: Utkast
+    status_dropdown_invited: Inbjuden
+    status_dropdown_active: Aktiv
+    status_dropdown_suspended: Avstängd
+    status_dropdown_archived: Arkiverad
+    token: Ange ett säkert åtkomsttoken...
+no_fields_in_collection: 'Det finns inga fält i "{collection}" ännu'
+no_value: Inget värde
+do_nothing: Gör ingenting
+generate_and_save_uuid: Generera och spara UUID
+save_current_user_id: Spara nuvarande användar-ID
+save_current_user_role: Spara aktuell användarroll
+save_current_datetime: Spara aktuellt datum/tid
+always_open: Alltid öppen
+start_open: Start öppen
+start_collapsed: Start ihopfälld
+block: Blockera
+inline: Infogad
+comment: Kommentera
+live_preview:
+  enable: Aktivera förhandsvisning
+  disable: Inaktivera förhandsgranskning
+  change_size: Ändra visningsdimensioner
+  refresh: Uppdatera förhandsgranskning
+  new_window: Öppna i nytt fönster
+  close_window: Öppna i delad vy
+  toggle_3d: Växla 3D
+  display_options: Visningsalternativ
+unlimited_usage: Obegränsad användning
+ai:
+  input: Inmatning
+  unknown: Okänd
+  items: Objekt
+  content: Innehåll
+  settings: Inställningar
+  tool_approval:
+    disabled: Inaktiverad
+  ask_user_submit: Skicka
+  ask_user_next: Nästa
+ai_tools:
+  items: Objekt
+  files: Filer
+  folders: Mappar
+  flows: Flöden
+  operations: Aktiviteter
+  schema: Schema
+  collections: Kollektioner
+  fields: Fält
+mcp_prompts_collection_schema:
+  messages_role_user: Användare
+expired: Upphört
+upcoming: Kommande
+share: Dela
+share_item: Dela objekt
+shared_leave_blank_for_passwordless_access: Lämna tomt för lösenordslös åtkomst
+shared_leave_blank_for_unlimited: Lämna tomt för obegränsat
+shared_times_remaining: Denna länk kan endast användas {n} gånger
+shared_last_remaining: Denna länk kan endast användas en gång
+share_access_not_found_desc: Kontakta en auktoriserad användare av detta projekt för att begära åtkomst.
+share_copy_link: Kopiera länk
+share_copy_link_success: Länk kopierad
+share_copy_link_error: Kunde inte kopiera länk
+share_send_link: Skicka länk
+referential_action_field_label_m2o: Vid radering av {collection}...
+referential_action_field_label_o2m: Vid avmarkering av {collection}...
+referential_action_no_action: Förhindra radering
+referential_action_cascade: Radera objektet {collection} (överlappa)
+referential_action_set_null: Nullifiera fältet {field}
+referential_action_set_default: Sätt {field} till standardvärde
+choose_action: Välj åtgärd
+continue_label: Fortsätt
+continue_as: >-
+  {name} är redan inloggad. Om det är du, tryck fortsätt.
+editing_role: '{role} roll'
+no_permissions: Inga behörigheter
+permission_add_collection: Lägg till samling
+default_label: Standard
+delete_label: Radera
+delete_are_you_sure: >-
+  Denna åtgärd är permanent och kan inte ångras. Är du säker på att du vill fortsätta?
+delete_field_are_you_sure: >-
+  Är du säker på att du vill radera fältet "{field}"? Den här åtgärden kan inte ångras.
+description: Beskrivning
+done: Klart
+duplicate: Duplicera
+limit: Gräns
+email: E-post
+embed: Bädda in
+fallback_icon: Fallback Ikon
+field: Fält | Fält
+file: Fil
+file_library: Filbibliotek
+forgot_password: Glömt lösenord
+hidden: Dold
+hidden_in_group: Dold i {group}
+icon: Ikon
+info: Info
+normal: Normal
+success: Slutförd
+warning: Varning
+danger: Varning
+colors:
+  purple: Lila
+  blue: Blå
+  green: Grön
+  yellow: Gul
+  orange: Orange
+  red: Röd
+  black: Svart
+  gray: Grå
+  white: Vit
+junction_collection: Kopplingskollektion
+latency: Latens
+login: Logga in
+my_activity: Mina aktiviteter
+not_authenticated: Inte autentiserad
+authenticated: Autentiserad
+options: Alternativ
+otp: Engångslösenord
+password: Lösenord
+confirm_password: Bekräfta lösenord
+permissions: Behörigheter
+relationship: Relation
+reset: Återställ
+reset_password: Återställ lösenord
+revisions: Revidering
+no_revisions: Inga revisioner ännu
+no_logs: Inga loggar ännu
+show_failed_only: Visa bara misslyckade
+no_logs_on_page: Inga loggar på denna sida
+revert: Återgå
+save: Spara
+schema: Schema
+search: Sök
+select_existing: Välj existerande
+select_field_type: Välj en fälttyp
+select_interface: Välj ett gränssnitt
+settings: Inställningar
+register: Registrera
+dont_have_an_account: Har du inget konto?
+already_have_an_account: Har du redan ett konto?
+sign_up_now: Registrera dig nu
+sign_in: Logga in
+sign_out: Logga ut
+sign_out_confirm: Är du säker på att du vill logga ut?
+something_went_wrong: Något gick fel.
+sort_direction: Sorteringsordning
+export_location: Exportera plats
+export_started_copy: Din export har börjat. Du kommer att meddelas när den är klar för nedladdning.
+sort_asc: Sortera stigande
+sort_desc: Sortera fallande
+disable_sort: Inaktivera sortering
+template: Mall
+translation: Översättning
+translation_placeholder: Ange en översättning...
+value: Värde
+view_project: Visa projekt
+report_error: Rapportera fel
+table: Tabell
+list: Lista
+search_filter: Sök & filtrera
+enable_search_filter: Aktivera sökning & filtrering
+item_link: Objektlänk
+show_link_to_item: Visa en länk till objektet
+navigate_to_item: Navigera till objekt
+undo_removed_item: Ångra borttaget objekt
+remove_item: Ta bort objekt
+delete_item: Radera objekt
+resume: Återuppta
+interfaces:
+  filter:
+    name: Filtrera
+    description: Konfigurera ett filterobjekt.
+    add_filter: Lägg till filter
+    add_group: Och / Eller grupp
+    add_value: Lägg till värde
+    logic_type_and: AND
+    logic_type_or: OR
+    all: Alla
+    any: Valfri
+    and: och
+    of_the_following: av följande
+    no_rules: Inga regler konfigurerade
+    change_value: Klicka för att ändra värde
+    placeholder: Dra regler hit
+    add_key_placeholder: Lägg till en nyckel och tryck på enter...
+  fields:
+    name: Fält
+  group-accordion:
+    name: Dragspel
+    description: Visa fält eller grupper som dragspels-sektioner
+    start: Starta
+    all_closed: Alla stängda
+    first_opened: Öppnad först
+    all_opened: Alla öppnade
+    accordion_mode: Läge för dragspel
+    max_one_section_open: Max 1 sektion öppen
+  presentation-links:
+    presentation-links: Knappar
+    style: Stil
+    primary: Primär
+    link: Länkar
+    button: Knappar
+    error: Kan inte utföra åtgärd
+  select-multiple-checkbox:
+    checkboxes: Kryssrutor
+    description: Välj mellan flera alternativ via kryssrutor
+    allow_other: Tillåt annan
+    show_more: 'Visa {count} till'
+    items_shown: Objekt som visas
+  select-multiple-checkbox-tree:
+    name: Kryssrutor (Träd)
+    description: Välj mellan flera alternativ via nästlade kryssrutor
+    value_combining: Kombinera värde
+    value_combining_note: Kontrollerar vilket värde som lagras när nästlade val görs.
+    show_all: Visa alla
+    show_selected: Visa markerade
+  input-code:
+    code: Kod
+    description: Skriv eller dela kod-snippets
+    line_number: Radnummer
+    placeholder: Ange kod här...
+  system-collection:
+    collection: Kollektion
+    description: Välj mellan befintliga kollektioner
+    include_system_collections: Inkludera systemets kollektioner
+  system-collections:
+    collections: Kollektioner
+    description: Välj mellan befintliga kollektioner
+    include_system_collections: Inkludera systemets kollektioner
+  select-color:
+    color: Färg
+    description: Ange eller välj ett färgvärde
+    placeholder: Välj en färg...
+    preset_colors: Förinställda färger
+    preset_colors_add_label: Lägg till ny färg...
+    name_placeholder: Ange färgnamn...
+  datetime:
+    datetime: Datum och tid
+    description: Ange datum och tider
+    include_seconds: Inkludera sekunder
+    set_to_now: Ställ in till nu
+    use_24: Använd 24-timmars format
+  system-fields:
+    select_a_collection: Välj en kollektion
+    no_fields: Inga fält
+  system-display-template:
+    display-template: Visningsmall
+    description: Blanda statisk text och dynamiska fältvärden
+    collection_field: Kollektionens fält
+    collection_field_not_setup: Kollektionsfältets alternativ är felaktigt konfigurerad
+    select_a_collection: Välj en kollektion
+  presentation-divider:
+    divider: Avdelare
+    description: Märk och dela upp fält i sektioner
+    title_placeholder: Ange en titel, eller lämna tomt för att bara visa en rad...
+    inline_title: Infogad titel
+    inline_title_label: Visa rubrik inuti raden
+    margin_top: Marginal topp
+    margin_top_label: Öka marginal topp
+  select-dropdown:
+    description: Välj ett värde från flervalslista
+    choices_placeholder: Lägg till ett nytt alternativ
+    allow_other: Tillåt annan
+    allow_other_label: Tillåt andra värden
+    allow_none: Tillåt inga
+    allow_none_label: Tillåt inga val
+    choices_name_placeholder: Ange ett namn...
+    choices_value_placeholder: Ange ett värde...
+  select-multiple-dropdown:
+    select-multiple-dropdown: Flervalslista (flera)
+    description: Välj flera värden från flervalslista
+  file:
+    file: Fil
+    description: Välj eller ladda upp en fil
+  files:
+    files: Filer
+    description: Välj eller ladda upp flera filer
+  input-hash:
+    hash: Hash
+    description: Ange ett värde som ska hashas
+    masked: Maskerad
+    masked_label: Dölj det riktiga värdet
+  select-icon:
+    icon: Ikon
+    description: Välj en ikon från en flervalslista
+    search_for_icon: Sök efter en ikon...
+  file-image:
+    image: Bild
+    description: Välj eller ladda upp en bild
+    crop: Beskär för att passa
+  system-interface:
+    interface: Gränssnitt
+    description: Välj ett befintligt gränssnitt
+    placeholder: Välj ett gränssnitt...
+  system-interface-options:
+    interface-options: Alternativ för gränssnitt
+    description: En popup för att välja alternativ för ett gränssnitt
+  system-display:
+    display: Visa
+  system-display-options:
+    display-options: Visningsalternativ
+  list-m2m:
+    many-to-many: Many to Many
+    description: Välj flera relaterade kopplingsobjekt
+  select-dropdown-m2o:
+    many-to-one: Many to One
+    description: Välj ett relaterat objekt
+    display_template: Visningsmall
+  input-rich-text-md:
+    markdown: Markdown
+    description: Ange och förhandsgranska markdown
+    edit: Redigera
+    preview: Förhandsgranska
+    editorFont: Typsnitt för redigerare
+    previewFont: Förhandsgranska typsnitt
+    default_view: Förvald vy
+    default_view_editor: Redigerare
+    default_view_preview: Förhandsgranska
+    customSyntax: Anpassade block
+    customSyntax_label: Lägg till anpassade syntaxtyper
+    customSyntax_add: Lägg till anpassad syntax
+    box: Block / Infogad
+  map:
+    map: Karta
+    description: Välj en plats på en karta
+    zoom: Zooma
+    geometry_type: Geometrityp
+    geometry_format: Geometriformat
+    default_view: Förvald vy
+    invalid_options: Ogiltiga alternativ
+    invalid_format: Ogiltigt format ({format})
+    unexpected_geometry: Förväntade {expected}, fick {got}.
+    fit_bounds: Anpassa vy till data
+    native: Inbyggt
+    geojson: GeoJSON
+    lnglat: Longitud, latitud
+    wkt: WKT
+    wkb: WKB
+    click_to_select: Klicka för att välja {geometry}
+  presentation-notice:
+    notice: Notis
+    description: Visa en kort notis
+    text: Ange notisens innehåll här...
+    no_text: Ingen text konfigurerad...
+  list-o2m:
+    one-to-many: One to Many
+    description: Välj flera relaterade objekt
+    no_collection: Kollektionen kunde inte hittas
+  system-folder:
+    folder: Rotmapp
+    description: Välj en mapp
+    root_name: Filbibliotek
+    system_default: Systemstandard
+  select-radio:
+    radio-buttons: Radioknappar
+    description: Välj ett av flera val
+  list:
+    repeater: Repeterare
+    description: Skapa flera poster av samma struktur
+    edit_fields: Redigera fält
+    add_label: 'Etikett för "Skapa nytt"'
+    sort: Sortera
+    sort_placeholder: Manuell
+    field_note_placeholder: Ange fältanteckning...
+    interface_group: Alternativ för gränssnitt
+    display_group: Visningsalternativ
+  slider:
+    slider: Reglage
+    description: Välj ett nummer med ett reglage
+    always_show_value: Visa alltid värde
+  tags:
+    tags: Etiketter
+    description: Välj eller lägg till taggar
+    whitespace: Blanksteg
+    hyphen: Ersätt med bindestreck
+    underscore: Ersätt med understreck
+    remove: Ta bort blanksteg
+    capitalization: Versalisering
+    uppercase: Konvertera versaler
+    lowercase: Konvertera gemener
+    auto_formatter: Använd titel Auto-Formatter
+    alphabetize: Alfabetisera
+    alphabetize_label: Tvinga alfabetisk ordning
+    add_tags: Lägg till en tagg och tryck enter...
+  input:
+    input: Inmatning
+    description: Ange ett värde manuellt
+    trim: Beskär
+    trim_label: Beskär start och slut
+    mask: Maskerad
+    mask_label: Dölj det verkliga värdet
+    clear: Rensat värde
+    clear_label: Spara som tom sträng
+    minimum_value: Minsta värde
+    maximum_value: Maximalt värde
+    step_interval: Steg intervall
+    slug: Slugify
+    slug_label: Gör inmatat värde URL säkert
+  input-multiline:
+    textarea: Textfält
+    description: Ange fritext på flera rader
+  input-translated-string:
+    input-translated-string: Översatta strängar
+    search_placeholder: Sök...
+    new_custom_translation: Ny anpassad översättning
+  boolean:
+    toggle: Växla
+    description: Växla mellan på och av
+    color_on: Färg på
+    color_off: Färg av
+    label_placeholder: Ange en etikett...
+    label_default: Aktiverad
+  translations:
+    display_template: Visningsmall
+    no_collection: Ingen kollektion
+    toggle_split_view: Visa/dölj delad vy
+    enable: Aktivera
+    user_language: Använd nuvarande användarspråk
+    default_language: Förvalt språk
+  user:
+    user: Användare
+    description: Välj en befintlig Directus användare
+    select_mode: Välj läge
+    modes:
+      auto: Automatisk
+      dropdown: Rullgardinsmeny
+      modal: Popup
+  input-rich-text-html:
+    wysiwyg: WYSIWYG
+    description: En textredigerare som skriver HTML-innehåll
+    toolbar: Verktygsfält
+    custom_formats: Anpassade format
+    options_override: Skriv över alternativ
+    folder_note: Mapp för uppladdade filer. Påverkar inte befintliga filer.
+  input-block-editor:
+    input-block-editor: Blockredigerare
+    tools: Verktygsfält
+    tools_options:
+      nestedlist: Lista
+      embed: Bädda in
+      paragraph: Paragraf
+      code: Kod
+      image: Bild
+      table: Tabell
+      quote: Citat
+      underline: Understruken
+      inlinecode: Inline-kod
+      delimiter: Avgränsare
+      checklist: Checklista
+      toggle: Växla block
+      alignment: Justering
+      raw: Rå HTML
+  input-autocomplete-api:
+    results_path: Sökväg för resultat
+    trigger: Utlösare
+    rate: Begränsning
+  group-raw:
+    name: Avskalad grupp
+  group-detail:
+    name: Detalj grupp
+    header_icon: Ikon sidhuvud
+    header_color: Färg sidhuvud
+    start_open: Start öppen
+    start_closed: Start stängd
+  system-token:
+    system-token: Token
+    description: Hantera statisk åtkomsttoken
+    generate: Generera token
+    regenerate: Regenerera token
+    remove_token: Ta bort token
+  system-raw-editor:
+    system-raw-editor: Råredigerare
+  input-password:
+    input-password: Ange lösenord
+  header:
+    links: Länkar
+displays:
+  translations:
+    translations: Översättningar
+    description: Förhandsgranska översättningar
+    enable: Aktivera
+    user_language: Använd nuvarande användarspråk
+    default_language: Förvalt språk
+  boolean:
+    boolean: Boolean
+    description: Visa på och av lägen
+    label_on: Etikett aktiv
+    label_on_placeholder: Ange en aktiv etikett...
+    label_off: Etikett avstängd
+    label_off_placeholder: Ange en avstängd etikett...
+    icon_on: Ikon på
+    icon_off: Ikon Av
+    color_on: Färg på
+    color_off: Färg av
+  collection:
+    collection: Kollektion
+    description: Visa en kollektion
+    icon_label: Visa kollektionens ikon
+  color:
+    color: Färg
+    description: Visa en färgad punkt
+    default_color: Förvald färg
+  datetime:
+    datetime: Datum och tid
+    description: Visa värden relaterade till tid
+    format: Format
+    format_note: >-
+      Det anpassade formatet accepterar __[Date Field Symbol Table](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)__
+    long: Lång
+    short: Kort
+    relative: Relativ
+    relative_label: 'Visa relativ tid, t. ex.: 5 minuter sedan'
+    suffix: Suffix
+    suffix_label: Visa relativ indikator
+    strict: Strikt
+    strict_note: Tar bort ord som "nästan", "över", "mindre än"
+    round: Rund
+    down: Ner
+    nearest: Närmaste
+    up: Upp
+  file:
+    file: Fil
+    description: Visa filer
+  filesize:
+    filesize: Filstorlek
+    description: Visa storleken på en fil
+  formatted-value:
+    formatted-value: Formaterat värde
+    description: Visa en formaterad version av texten
+    format: Format
+    font: Typsnitt
+    font_sans_serif: Sans-serif
+    font_serif: Serif
+    font_monospace: Monospace
+    bold: Fet
+    bold_label: Använd fet stil
+    italic: Kursiv
+    italic_label: Använd kursiv stil
+    prefix: Prefix
+    suffix: Suffix
+    color: Färg
+    background: Bakgrund
+    icon: Ikon
+    mask: Maskerad
+    mask_label: Dölj det verkliga värdet
+    text: Text
+  formatted-json-value:
+    formatted-json-value: Formaterat JSON-värde
+    description: Visa en formaterad version av objektet
+  hash:
+    hash: Hash
+  icon:
+    icon: Ikon
+    description: Visa en ikon
+    filled: Fylld
+    filled_label: Använd den ifyllda varianten
+  image:
+    image: Bild
+    description: Visa en liten förhandsgranskning av bilden
+    circle: Cirkel
+    circle_label: Visa som en cirkel
+  labels:
+    labels: Etiketter
+    description: Visa antingen en eller en lista med etiketter
+    default_foreground: Förvald förgrund
+    default_background: Förvald bakgrund
+    format_label: Formatera varje etikett
+    show_as_dot: Visa som punkt
+    choices_value_placeholder: Ange ett värde...
+    choices_text_placeholder: Ange en text...
+  mime-type:
+    mime-type: MIME Type
+    description: Visa MIME Type av en fil
+    extension_only: Endast tillägg
+    extension_only_label: Visa endast filtillägget
+  rating:
+    rating: Betyg
+    description: Visualisera ett tal som stjärnor i förhållande till max-värdet
+    simple: Enkel
+    simple_label: Visa stjärnor i ett enkelt format
+  raw:
+    raw: Obearbetat värde
+  related-values:
+    related-values: Relaterade värden
+    description: Visa relativa värden
+  user:
+    user: Användare
+    description: Visa en Directus användare
+    avatar: Profilbild
+    name: Namn
+    both: Båda
+    circle_label: Visa användare i en cirkel
+layouts:
+  cards:
+    cards: Kort
+    image_source: Bildkälla
+    image_fit: Anpassa bildstorlek
+    crop: Beskär
+    contain: Behåll
+    title: Rubrik
+    subtitle: Underrubrik
+  tabular:
+    tabular: Tabell
+    spacing: Mellanrum
+    comfortable: Bekväm
+    compact: Kompakt
+    cozy: Mysig
+  calendar:
+    calendar: Kalender
+    start_date_field: Fält för startdatum
+    end_date_field: Fält för slutdatum
+    optional: Valfri
+    first_day: Första dagen i veckan
+  map:
+    map: Karta
+    basemap: Basemap
+    layers: Lager
+    cluster_radius: Klusterradie
+    invalid_geometry: Ogiltig geometri
+    find_location: Hitta plats...
+    no_compatible_fields: Inga kompatibla fält
+  kanban:
+    name: Kanban
+    group_field: Gruppera efter
+    group_field_placeholder: Fält att gruppera efter...
+    group_title: Grupptitel
+    title: Kortets titel
+    title_placeholder: Valfritt titelfält...
+    text: Kortets text
+    text_placeholder: Valfritt textfält...
+    date: Kortets datum
+    date_placeholder: Valfritt datumfält...
+    tags: Kortets taggar
+    tags_placeholder: Valfria taggfält...
+    user: Kortets användare
+    user_placeholder: Valfritt användarfält...
+    image: Kortets bild
+    image_placeholder: Valfritt bildfält...
+    crop: Beskär
+    advanced: Avancerat
+    edit_group: Redigera grupp
+    delete_group: Radera grupp
+    add_group: Lägg till grupp
+    add_group_placeholder: Ange en ny grupptitel...
+    show_ungrouped: Visa ogrupperade
+    show: Visa
+    no_group: Ingen grupp
+horizontal: Horisontell
+vertical: Vertikal
+axis: Axel
+x_axis: X-axel
+y_axis: Y-axel
+show_x_only: Visa endast X-axel
+show_y_only: Visa endast Y-axel
+show_data_label: Visa dataetikett
+both: Båda
+show_axis_labels: Visa Axel-etiketter
+function: Funktion
+half_circle: Halvcirkel
+full_circle: Hel cirkel
+thin: Tunn
+medium: Medel
+show_labels: Visa etiketter
+right: Höger
+left: Vänster
+start: Starta
+continuous: Kontinuerlig
+panels:
+  metric:
+    name: Metrisk
+    description: Visa ett enskilt värde baserat på en query
+    field: Fält
+  metric_list:
+    name: Metrisk lista
+  time_series:
+    name: Tidsserier
+    description: Rendera ett linjediagram baserat på värden över tid
+    date_field: Datumfält
+    value_field: Värdefält
+    fill_type: Typ av fyllning
+    curve_type: Kurvtyp
+    missing_data: Saknad data
+  label:
+    name: Etikett
+    description: Visa lite text
+  list:
+    name: Lista
+    description: Filtrera och lista fält från en kollektion
+  barchart:
+    name: Stapeldiagram
+    horizontal: Horisontell
+    select_collection: Du måste välja en samling.
+  linechart:
+    name: Linjediagram
+    description: Linjediagram för att jämföra förändring av ett fält
+    curve_type: Kurvtyp
+  variable:
+    name: Global variabel
+  relational-variable:
+    multiple: Multipla
+    multiple-label: Välj flera objekt
+triggers:
+  common:
+    response_body_all: Alla data
+  webhook:
+    name: Webhook
+    method: Metod
+    async: Asynkron
+  operation:
+    name: Ett annat flöde
+  schedule:
+    name: Schema (CRON)
+  manual:
+    name: Manuell
+    collection_and_item: Samling- och objektsidor
+    collection_only: Endast samlingssida
+    item_only: Objektsida endast
+    collection_page: Samlingssida
+any_string_or_json: Valfri sträng eller JSON...
+operations:
+  condition:
+    name: Villkor
+  exec:
+    name: Kör skript
+    modules: 'Följande **nodmoduler** kan användas:'
+  item-create:
+    name: Skapa data
+    description: Skapa objekt i databasen
+  item-delete:
+    name: Ta bort data
+    description: Ta bort objekt i databasen
+  item-read:
+    name: Läs data
+    description: Läs objekt från databasen
+  item-update:
+    name: Uppdatera data
+    description: Uppdatera objekt i databasen
+  json-web-token:
+    name: JSON webbtoken (JWT)
+    secret: Hemlighet
+    secret_placeholder: Ange en hemlighet...
+    token: Token
+    token_placeholder: eyJhbGciOi......
+    options: Alternativ
+    verify: Verifiera token
+    decode: Avkoda token
+  log:
+    name: Logga till konsolen
+    message: Meddelande
+    message_placeholder: Ange ett meddelande att visa i konsolen...
+  mail:
+    name: Skicka e-post
+    description: Skicka ett mejl till en eller flera personer
+    to: Till
+    template: Mall
+    data: Data
+    cc: CC
+    bcc: BCC
+    reply_to: Svara till
+  notification:
+    recipient: Användare
+    recipient_placeholder: Ange ett UUID...
+    message: Meddelande
+    subject: Ämne
+  request:
+    url: URL
+    url_placeholder: https://example.com/example
+    method: Metod
+    data: Data
+  sleep:
+    name: Sömn
+    description: Vänta ett visst antal millisekunder
+    milliseconds: Millisekunder
+  trigger:
+    flows: Flöden
+    flow: Flöde
+    data: Data
+    iteration_mode: Itereringsläge
+    batch: Batch
+    batch_size: Batchstorlek
+    cache: Cache
+standard: Standard
+scientific: Vetenskaplig
+compact: Kompakt
+currency: Valuta
+style: Stil
+fonts:
+  thin: Tunn
+  extra_light: Extra lätt
+  light: Ljus
+  normal: Normal
+  medium: Medel
+  semi_bold: Halvfet
+  bold: Fet
+  extra_bold: Extra fet
+  black: Svart
+  italic: Kursiv
+  small: Liten
+  large: Stor
+  auto: Automatisk
+font_weight: Teckenvikt
+font_style: Fontstil
+font_size: Teckenstorlek
+minimum_fraction_digits: Minsta antal decimaler
+maximum_fraction_digits: Maximalt antal decimaler
+show_percentage: Visa procent
+aggregation: Aggregering
+date_precision: Datumprecision
+percent: Procent
+show_password: Visa lösenord
+hide_password: Dölj lösenord
+accepted: Accepterad
+set_to_now: Ställ in till nu

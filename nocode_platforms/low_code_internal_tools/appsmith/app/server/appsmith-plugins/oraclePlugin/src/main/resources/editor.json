@@ -1,0 +1,43 @@
+{
+  "editor": [
+    {
+      "controlType": "SECTION_V2",
+      "identifier": "SECTION-ONE",
+      "isFullWidth": true,
+      "children": [
+        {
+          "controlType": "SINGLE_COLUMN_ZONE",
+          "identifier": "SO-Z1",
+          "children": [
+            {
+              "label": "",
+              "internalLabel": "Query",
+              "propertyName": "oracle_query_non_prepared",
+              "configProperty": "actionConfiguration.formData.body.data",
+              "controlType": "QUERY_DYNAMIC_TEXT",
+              "evaluationSubstitutionType": "PARAMETER",
+              "hidden": {
+                "path": "actionConfiguration.formData.preparedStatement.data",
+                "comparison": "EQUALS",
+                "value": false
+              }
+            },
+            {
+              "label": "",
+              "internalLabel": "Query",
+              "propertyName": "oracle_query_prepared",
+              "configProperty": "actionConfiguration.formData.body.data",
+              "controlType": "QUERY_DYNAMIC_TEXT",
+              "evaluationSubstitutionType": "TEMPLATE",
+              "hidden": {
+                "path": "actionConfiguration.formData.preparedStatement.data",
+                "comparison": "EQUALS",
+                "value": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

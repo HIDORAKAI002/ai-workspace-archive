@@ -1,0 +1,42 @@
+{{- $workloadKind := upper (toString .Values.workload.kind) -}}
+{{- $useDeployment := or (eq $workloadKind "DEPLOYMENT") .Values.autoscaling.enabled }}
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim.enabled) $useDeployment }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "appsmith.pvName" . }}
+spec:
+  capacity:
+    storage: {{ .Values.persistence.size | quote }}
+  volumeMode: Filesystem # Mount volume into Pod as a directory.
+  accessModes:
+  {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.reclaimPolicy }}
+  {{- if .Values.persistence.localStorage }}
+  local:
+    path: {{ .Values.persistence.storagePath }} # Path to the directory this PV refers to.
+  nodeAffinity: # nodeAffinity is required when using local volumes.
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: 
+            {{- toYaml .Values.persistence.localCluster | nindent 12 }}
+  {{- end }}
+  {{- if .Values.persistence.storageClass }}
+  {{- if (eq "-" .Values.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ .Values.persistence.storageClass }}"
+  {{- end }}
+  {{- end }}
+  {{- if .Values.persistence.efs.enabled }}
+  csi:
+    driver: {{ .Values.persistence.efs.driver }}
+    nfs:
+    volumeHandle: {{ .Values.persistence.efs.volumeHandle }}
+  {{ end }}
+{{- end }}

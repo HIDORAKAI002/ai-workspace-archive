@@ -1,0 +1,72 @@
+cargo-features = ["panic-immediate-abort"]
+
+[package]
+name = "windmill-parser-wasm"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+name = "windmill_parser_wasm"
+path = "./src/lib.rs"
+
+[dev-dependencies]
+wasm-bindgen-test.workspace = true
+windmill-parser-ts.workspace = true
+windmill-parser-bash.workspace = true
+
+[profile.release]
+panic = "immediate-abort"
+
+[unstable]
+build-std = ["std", "panic_abort"]
+
+
+[features]
+default = []
+go-parser = [ "dep:windmill-parser-go"]
+bash-parser = [ "dep:windmill-parser-bash"]
+sql-parser = [ "dep:windmill-parser-sql"]
+py-parser = [ "dep:windmill-parser-py"]
+ts-parser = [ "dep:windmill-parser-ts"]
+php-parser = [ "dep:windmill-parser-php"]
+rust-parser = [ "dep:windmill-parser-rust"]
+graphql-parser = [ "dep:windmill-parser-graphql"]
+ansible-parser = [ "dep:windmill-parser-yaml"]
+csharp-parser = [ "dep:windmill-parser-csharp"]
+nu-parser = [ "dep:windmill-parser-nu"]
+java-parser = [ "dep:windmill-parser-java"]
+ruby-parser = [ "dep:windmill-parser-ruby"]
+wac-parser = [ "dep:windmill-parser-wac"]
+asset-parser = [ "dep:windmill-parser-ts-asset", "dep:windmill-parser-py-asset", "dep:windmill-parser-sql-asset"]
+py-imports-parser = [ "dep:windmill-parser-py-imports"]
+
+[dependencies]
+anyhow.workspace = true
+windmill-parser.workspace = true
+windmill-parser-go = { workspace = true, optional = true }
+windmill-parser-bash = { workspace = true, optional = true }
+windmill-parser-sql = { workspace = true, optional = true }
+windmill-parser-py = { workspace = true, optional = true }
+windmill-parser-ts = { workspace = true, optional = true }
+windmill-parser-php = { workspace = true, optional = true }
+windmill-parser-graphql = { workspace = true, optional = true }
+windmill-parser-rust = { workspace = true, optional = true }
+windmill-parser-yaml = { workspace = true, optional = true }
+windmill-parser-csharp = { workspace = true, optional = true }
+windmill-parser-nu = { workspace = true, optional = true }
+windmill-parser-java = { workspace = true, optional = true }
+windmill-parser-ruby = { workspace = true, optional = true }
+windmill-parser-wac = { workspace = true, optional = true }
+windmill-parser-ts-asset = { workspace = true, optional = true }
+windmill-parser-py-asset = { workspace = true, optional = true }
+windmill-parser-sql-asset = { workspace = true, optional = true }
+windmill-parser-py-imports = { workspace = true, optional = true }
+wasm-bindgen.workspace = true
+
+serde_json.workspace = true
+getrandom = { workspace = true, features = ["js"] }
+# getrandom 0.3 is pulled in transitively by rand 0.9 (via windmill-types).
+# It requires the "wasm_js" feature to work on wasm32-unknown-unknown.
+getrandom3 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }

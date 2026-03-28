@@ -1,0 +1,35 @@
+annotations:
+  category: Application
+apiVersion: v2
+name: appsmith
+type: application
+description: Appsmith is an open source framework to build admin panels, CRUD apps and workflows. Build everything you need, 10x faster.
+maintainers:
+  - email: tech@appsmith.com
+    name: Appsmith
+sources:
+  - https://github.com/appsmithorg/appsmith
+home: https://www.appsmith.com/
+icon: https://assets.appsmith.com/appsmith-icon.png
+version: 3.6.9
+dependencies:
+  - condition: redis.enabled
+    name: redis
+    version: 16.11.2
+    appVersion: 6.2.7
+    repository: https://charts.bitnami.com/bitnami
+  - condition: mongodb.enabled
+    name: mongodb
+    version: 12.1.16
+    appVersion: 6.0.27
+    repository: https://charts.bitnami.com/bitnami
+  - condition: postgresql.enabled
+    name: postgresql
+    version: 11.9.5
+    appVersion: 14.12.0
+    repository: https://charts.bitnami.com/bitnami
+  - condition: prometheus.enabled
+    name: prometheus
+    version: 25.27.0
+    appVersion: 2.54.1
+    repository: https://prometheus-community.github.io/helm-charts

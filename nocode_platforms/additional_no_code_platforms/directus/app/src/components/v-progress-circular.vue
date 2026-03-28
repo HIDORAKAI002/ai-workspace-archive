@@ -1,0 +1,162 @@
+<script setup lang="ts">
+import { useSizeClass } from '@directus/composables';
+import { computed } from 'vue';
+
+interface Props {
+	/** If set to true displays no value but spins indefinitely */
+	indeterminate?: boolean;
+	/** Which value to represent going from 0 to 100 */
+	value?: number;
+	/** Renders the progress circular smaller */
+	xSmall?: boolean;
+	/** Renders the progress circular small */
+	small?: boolean;
+	/** Renders the progress circular large */
+	large?: boolean;
+	/** Renders the progress circular larger */
+	xLarge?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	indeterminate: false,
+	value: 0,
+});
+
+defineEmits(['animationiteration']);
+
+const sizeClass = useSizeClass(props);
+
+const circleStyle = computed(() => ({
+	'stroke-dasharray': (props.value / 100) * 78.5 + ', 78.5',
+}));
+</script>
+
+<template>
+	<div class="v-progress-circular" :class="sizeClass">
+		<svg
+			class="circle"
+			viewBox="0 0 30 30"
+			:class="{ indeterminate }"
+			@animationiteration="$emit('animationiteration', $event)"
+		>
+			<path
+				class="circle-background"
+				d="M12.5,0A12.5,12.5,0,1,1,0,12.5,12.5,12.5,0,0,1,12.5,0Z"
+				transform="translate(2.5 2.5)"
+			/>
+			<path
+				class="circle-path"
+				:style="circleStyle"
+				d="M12.5,0A12.5,12.5,0,1,1,0,12.5,12.5,12.5,0,0,1,12.5,0Z"
+				transform="translate(2.5 2.5)"
+			/>
+		</svg>
+		<slot />
+	</div>
+</template>
+
+<style lang="scss" scoped>
+/*
+
+	Available Variables:
+
+		--v-progress-circular-color             [var(--theme--foreground)]
+		--v-progress-circular-background-color  [var(--theme--form--field--input--border-color)]
+		--v-progress-circular-transition        [400ms]
+		--v-progress-circular-speed             [2s]
+		--v-progress-circular-size              [1.5625rem]
+		--v-progress-circular-line-size         [0.1875rem]
+
+*/
+
+.v-progress-circular {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--v-progress-circular-size, 1.5625rem);
+	block-size: var(--v-progress-circular-size, 1.5625rem);
+
+	&.x-small {
+		--v-progress-circular-size: 0.6875rem;
+		--v-progress-circular-line-size: 0.25rem;
+	}
+
+	&.small {
+		--v-progress-circular-size: 1.125rem;
+		--v-progress-circular-line-size: 0.1875rem;
+
+		margin: 0.125rem;
+	}
+
+	&.large {
+		--v-progress-circular-size: 2.6875rem;
+		--v-progress-circular-line-size: 2.5px; /* stylelint-disable-line unit-disallowed-list -- SVG stroke sub-pixel */
+	}
+
+	&.x-large {
+		--v-progress-circular-size: 3.625rem;
+		--v-progress-circular-line-size: 0.125rem;
+	}
+
+	.circle {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		inline-size: var(--v-progress-circular-size, 1.5625rem);
+		block-size: var(--v-progress-circular-size, 1.5625rem);
+
+		&-path {
+			transition: stroke-dasharray var(--v-progress-circular-transition, 400ms) ease-in-out;
+			fill: transparent;
+			stroke: var(--v-progress-circular-color, var(--theme--foreground));
+			stroke-width: var(--v-progress-circular-line-size, 0.1875rem);
+		}
+
+		&.indeterminate {
+			animation: rotate var(--v-progress-circular-speed, 2s) infinite linear;
+
+			.circle-path {
+				animation: stroke var(--v-progress-circular-speed, 2s) infinite linear;
+			}
+		}
+
+		&-background {
+			fill: transparent;
+			stroke: var(--v-progress-circular-background-color, var(--theme--form--field--input--border-color));
+			stroke-width: var(--v-progress-circular-line-size, 0.1875rem);
+		}
+	}
+}
+
+@keyframes rotate {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	50% {
+		transform: rotate(360deg);
+	}
+
+	100% {
+		transform: rotate(1080deg);
+	}
+}
+
+/* stylelint-disable unit-disallowed-list -- SVG stroke-dasharray requires px */
+@keyframes stroke {
+	0% {
+		stroke-dasharray: 0, 78.5px;
+	}
+
+	50% {
+		stroke-dasharray: 78.5px, 78.5px;
+	}
+
+	100% {
+		stroke-dasharray: 0, 78.5px;
+	}
+}
+
+/* stylelint-enable unit-disallowed-list */
+</style>

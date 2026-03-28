@@ -1,0 +1,651 @@
+import get from "lodash/get";
+import {
+  all,
+  call,
+  delay,
+  fork,
+  put,
+  race,
+  select,
+  take,
+  takeEvery,
+  takeLatest,
+  takeLeading,
+} from "redux-saga/effects";
+import type {
+  ReduxAction,
+  ReduxActionWithoutPayload,
+} from "actions/ReduxActionTypes";
+import { ReduxActionTypes } from "ee/constants/ReduxActionConstants";
+import { resetApplicationWidgets, resetPageList } from "actions/pageActions";
+import { resetCurrentApplication } from "ee/actions/applicationActions";
+import log from "loglevel";
+import { resetRecentEntities } from "actions/globalSearchActions";
+
+import {
+  initAppViewerAction,
+  initEditorAction,
+  resetEditorSuccess,
+} from "actions/initActions";
+import {
+  getCurrentPageId,
+  getIsEditorInitialized,
+  getIsWidgetConfigBuilt,
+  selectCurrentApplicationSlug,
+} from "selectors/editorSelectors";
+import { getIsInitialized as getIsViewerInitialized } from "selectors/appViewSelectors";
+import { setPreviewModeAction } from "actions/editorActions";
+import type { AppEnginePayload } from "entities/Engine";
+import { PageNotFoundError } from "entities/Engine";
+import type AppEngine from "entities/Engine";
+import { AppEngineApiError } from "entities/Engine";
+import AppEngineFactory from "entities/Engine/factory";
+import type {
+  ApplicationPagePayload,
+  FetchApplicationResponse,
+} from "ee/api/ApplicationApi";
+import { getSearchQuery, updateSlugNamesInURL } from "utils/helpers";
+import { generateAutoHeightLayoutTreeAction } from "actions/autoHeightActions";
+import { safeCrashAppRequest } from "../actions/errorActions";
+import { resetSnipingMode } from "actions/propertyPaneActions";
+import {
+  setExplorerActiveAction,
+  setExplorerPinnedAction,
+} from "actions/explorerActions";
+import {
+  isEditorPath,
+  isViewerPath,
+  matchEditorPath,
+  matchViewerPathTyped,
+} from "ee/pages/Editor/Explorer/helpers";
+import { APP_MODE } from "../entities/App";
+import { GIT_BRANCH_QUERY_KEY } from "../constants/routes";
+import AnalyticsUtil from "ee/utils/AnalyticsUtil";
+import {
+  getAppMode,
+  getFavoriteApplicationIds,
+} from "ee/selectors/applicationSelectors";
+import { getDebuggerErrors } from "selectors/debuggerSelectors";
+import { deleteErrorLog } from "actions/debuggerActions";
+import { getCurrentUser } from "actions/authActions";
+import { getCurrentUser as getCurrentUserSelector } from "selectors/usersSelectors";
+import { ANONYMOUS_USERNAME } from "constants/userConstants";
+import history from "utils/history";
+import { APPLICATIONS_URL } from "constants/routes";
+import { FAVORITES_KEY } from "ee/constants/workspaceConstants";
+import { toast } from "@appsmith/ads";
+
+import { getCurrentOrganization } from "ee/actions/organizationActions";
+import {
+  fetchFeatureFlagsInit,
+  fetchProductAlertInit,
+} from "actions/userActions";
+import { embedRedirectURL, validateResponse } from "./ErrorSagas";
+import type { ApiResponse } from "api/ApiResponses";
+import type { ProductAlert } from "reducers/uiReducers/usersReducer";
+import type { FeatureFlags } from "ee/entities/FeatureFlag";
+import type { Action, ActionViewMode } from "entities/Action";
+import type { JSCollection } from "entities/JSCollection";
+import type { FetchPageResponse, FetchPageResponseData } from "api/PageApi";
+import type { AppTheme } from "entities/AppTheming";
+import type { Datasource } from "entities/Datasource";
+import type { PluginFormPayload } from "api/PluginApi";
+import type { Plugin } from "entities/Plugin";
+import { ConsolidatedPageLoadApi } from "api";
+import { AXIOS_CONNECTION_ABORTED_CODE } from "ee/constants/ApiConstants";
+import {
+  endSpan,
+  startNestedSpan,
+  startRootSpan,
+} from "instrumentation/generateTraces";
+import type { ApplicationPayload } from "entities/Application";
+import type { Page } from "entities/Page";
+import type { PACKAGE_PULL_STATUS } from "ee/constants/ModuleConstants";
+import { validateSessionToken } from "utils/SessionUtils";
+import { appsmithTelemetry } from "instrumentation";
+import { clearAllWidgetFactoryCache } from "WidgetProvider/factory/decorators";
+
+export const URL_CHANGE_ACTIONS = [
+  ReduxActionTypes.CURRENT_APPLICATION_NAME_UPDATE,
+  ReduxActionTypes.UPDATE_PAGE_SUCCESS,
+  ReduxActionTypes.UPDATE_APPLICATION_SUCCESS,
+];
+
+export interface ReduxURLChangeAction {
+  type: typeof URL_CHANGE_ACTIONS;
+  payload: ApplicationPagePayload | ApplicationPayload | Page;
+}
+
+export interface DeployConsolidatedApi {
+  productAlert: ApiResponse<ProductAlert>;
+  organizationConfig: ApiResponse;
+  featureFlags: ApiResponse<FeatureFlags>;
+  userProfile: ApiResponse;
+  pages: FetchApplicationResponse;
+  publishedActions: ApiResponse<ActionViewMode[]>;
+  publishedActionCollections: ApiResponse<JSCollection[]>;
+  customJSLibraries: ApiResponse;
+  pageWithMigratedDsl: FetchPageResponse;
+  currentTheme: ApiResponse<AppTheme[]>;
+  themes: ApiResponse<AppTheme>;
+}
+
+export interface EditConsolidatedApi {
+  productAlert: ApiResponse<ProductAlert>;
+  organizationConfig: ApiResponse;
+  featureFlags: ApiResponse<FeatureFlags>;
+  userProfile: ApiResponse;
+  pages: FetchApplicationResponse;
+  publishedActions: ApiResponse<ActionViewMode[]>;
+  publishedActionCollections: ApiResponse<JSCollection[]>;
+  customJSLibraries: ApiResponse;
+  pageWithMigratedDsl: FetchPageResponse;
+  currentTheme: ApiResponse<AppTheme[]>;
+  themes: ApiResponse<AppTheme>;
+  datasources: ApiResponse<Datasource[]>;
+  pagesWithMigratedDsl: ApiResponse<FetchPageResponseData[]>;
+  plugins: ApiResponse<Plugin[]>;
+  mockDatasources: ApiResponse;
+  pluginFormConfigs: ApiResponse<PluginFormPayload>[];
+  unpublishedActions: ApiResponse<Action[]>;
+  unpublishedActionCollections: ApiResponse<JSCollection[]>;
+  packagePullStatus: ApiResponse<PACKAGE_PULL_STATUS>;
+}
+
+export type InitConsolidatedApi = DeployConsolidatedApi | EditConsolidatedApi;
+
+export function* failFastApiCalls(
+  triggerActions: Array<ReduxAction<unknown> | ReduxActionWithoutPayload>,
+  successActions: string[],
+  failureActions: string[],
+) {
+  yield all(triggerActions.map((triggerAction) => put(triggerAction)));
+  const effectRaceResult: { success: boolean; failure: boolean } = yield race({
+    success: all(successActions.map((successAction) => take(successAction))),
+    failure: take(failureActions),
+  });
+
+  if (effectRaceResult.failure) {
+    yield put(
+      safeCrashAppRequest(get(effectRaceResult, "failure.payload.error.code")),
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+export function* waitForWidgetConfigBuild() {
+  const isBuilt: boolean = yield select(getIsWidgetConfigBuilt);
+
+  if (!isBuilt) {
+    yield take(ReduxActionTypes.WIDGET_INIT_SUCCESS);
+  }
+}
+
+export function* reportSWStatus() {
+  const mode: APP_MODE = yield select(getAppMode);
+  const startTime = Date.now();
+
+  if ("serviceWorker" in navigator) {
+    // TODO: Fix this the next time the file is edited
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: { success: any; failed: any } = yield race({
+      success: navigator.serviceWorker.ready.then((reg) => ({
+        reg,
+        timeTaken: Date.now() - startTime,
+      })),
+      failed: delay(20000),
+    });
+
+    if (result.success) {
+      AnalyticsUtil.logEvent("SW_REGISTRATION_SUCCESS", {
+        message: "Service worker is active",
+        mode,
+        timeTaken: result.success.timeTaken,
+      });
+    } else {
+      AnalyticsUtil.logEvent("SW_REGISTRATION_FAILED", {
+        message: "Service worker is not active in 20s",
+        mode,
+      });
+    }
+  } else {
+    AnalyticsUtil.logEvent("SW_REGISTRATION_FAILED", {
+      message: "Service worker is not supported",
+      mode,
+    });
+  }
+}
+
+export function* executeActionDuringUserDetailsInitialisation(
+  actionType: string,
+  shouldInitialiseUserDetails?: boolean,
+) {
+  if (!shouldInitialiseUserDetails) {
+    return;
+  }
+
+  yield put({ type: actionType });
+}
+
+export function* getInitResponses({
+  applicationId,
+  basePageId,
+  branch,
+  mode,
+  shouldInitialiseUserDetails,
+  staticApplicationSlug,
+  staticPageSlug,
+}: {
+  applicationId?: string;
+  basePageId?: string;
+  mode?: APP_MODE;
+  shouldInitialiseUserDetails?: boolean;
+  branch?: string;
+  staticApplicationSlug?: string;
+  staticPageSlug?: string;
+}) {
+  const isStaticPageUrl = staticApplicationSlug && staticPageSlug;
+
+  const params = {
+    applicationId,
+    defaultPageId: basePageId,
+    branchName: branch,
+    staticApplicationSlug,
+    staticPageSlug,
+  };
+  let response: InitConsolidatedApi | undefined;
+
+  try {
+    yield call(
+      executeActionDuringUserDetailsInitialisation,
+      ReduxActionTypes.START_CONSOLIDATED_PAGE_LOAD,
+      shouldInitialiseUserDetails,
+    );
+
+    const rootSpan = startRootSpan("fetch-consolidated-api");
+    const consolidatedApiParams = isStaticPageUrl
+      ? {
+          branchName: branch,
+          applicationId: staticApplicationSlug,
+          defaultPageId: staticPageSlug,
+        }
+      : {
+          applicationId,
+          defaultPageId: basePageId,
+          branchName: branch,
+        };
+
+    const initConsolidatedApiResponse: ApiResponse<InitConsolidatedApi> =
+      yield mode === APP_MODE.EDIT
+        ? ConsolidatedPageLoadApi.getConsolidatedPageLoadDataEdit(
+            consolidatedApiParams,
+          )
+        : ConsolidatedPageLoadApi.getConsolidatedPageLoadDataView(
+            consolidatedApiParams,
+          );
+
+    endSpan(rootSpan);
+
+    const isValidResponse: boolean = yield validateResponse(
+      initConsolidatedApiResponse,
+    );
+
+    response = initConsolidatedApiResponse.data;
+
+    if (!isValidResponse) {
+      // its only invalid when there is a axios related error
+      throw new Error("Error occured " + AXIOS_CONNECTION_ABORTED_CODE);
+    }
+    // TODO: Fix this the next time the file is edited
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    // when the user is an anonymous user we embed the url with the attempted route
+    // this is taken care in ce code repo but not on ee
+    if (e?.response?.status === 401) {
+      embedRedirectURL();
+    }
+
+    yield call(
+      executeActionDuringUserDetailsInitialisation,
+      ReduxActionTypes.END_CONSOLIDATED_PAGE_LOAD,
+      shouldInitialiseUserDetails,
+    );
+    appsmithTelemetry.captureException(
+      new Error(`consolidated api failure for ${JSON.stringify(params)}`),
+      {
+        errorName: "ConsolidatedApiError",
+        extra: { error: e },
+      },
+    );
+    throw new PageNotFoundError(`Cannot find page with base id: ${basePageId}`);
+  }
+
+  const {
+    featureFlags,
+    organizationConfig,
+    productAlert,
+    userProfile,
+    ...rest
+  } = response || {};
+  //actions originating from INITIALIZE_CURRENT_PAGE should update user details
+  //other actions are not necessary
+
+  if (!shouldInitialiseUserDetails) {
+    return rest;
+  }
+
+  yield put(getCurrentUser(userProfile));
+
+  yield put(fetchFeatureFlagsInit(featureFlags));
+
+  yield put(getCurrentOrganization(false, organizationConfig));
+
+  yield put(fetchProductAlertInit(productAlert));
+
+  return rest;
+}
+
+export function* startAppEngine(action: ReduxAction<AppEnginePayload>) {
+  const rootSpan = startRootSpan("startAppEngine", {
+    mode: action.payload.mode,
+    pageId: action.payload.basePageId,
+    applicationId: action.payload.applicationId,
+    branch: action.payload.branch,
+    staticApplicationSlug: action.payload.staticApplicationSlug,
+    staticPageSlug: action.payload.staticPageSlug,
+  });
+  const isStaticPageUrl =
+    action.payload.staticApplicationSlug && action.payload.staticPageSlug;
+
+  try {
+    const engine: AppEngine = AppEngineFactory.create(
+      action.payload.mode,
+      action.payload.mode,
+    );
+
+    yield call(engine.setupEngine, action.payload, rootSpan);
+
+    const getInitResponsesSpan = startNestedSpan(
+      "getInitResponsesSpan",
+      rootSpan,
+    );
+
+    const allResponses: InitConsolidatedApi = yield call(getInitResponses, {
+      ...action.payload,
+    });
+
+    endSpan(getInitResponsesSpan);
+
+    yield put({ type: ReduxActionTypes.LINT_SETUP });
+
+    // First, load app data to stabilize page states
+    const { applicationId, toLoadBasePageId, toLoadPageId } = yield call(
+      engine.loadAppData,
+      action.payload,
+      allResponses,
+      rootSpan,
+    );
+
+    yield call(
+      executeActionDuringUserDetailsInitialisation,
+      ReduxActionTypes.END_CONSOLIDATED_PAGE_LOAD,
+      action.payload.shouldInitialiseUserDetails,
+    );
+
+    if (!isStaticPageUrl) {
+      // Defer the load actions until after page states are stabilized
+      yield call(engine.loadAppURL, {
+        basePageId: toLoadBasePageId,
+        basePageIdInUrl: action.payload.basePageId,
+        rootSpan,
+      });
+    }
+
+    yield call(
+      engine.loadAppEntities,
+      toLoadPageId,
+      applicationId,
+      allResponses,
+      rootSpan,
+    );
+    yield call(engine.loadGit, applicationId, rootSpan);
+    yield call(engine.completeChore, rootSpan);
+    yield put(generateAutoHeightLayoutTreeAction(true, false));
+  } catch (e) {
+    log.error(e);
+
+    yield call(
+      executeActionDuringUserDetailsInitialisation,
+      ReduxActionTypes.END_CONSOLIDATED_PAGE_LOAD,
+      action.payload.shouldInitialiseUserDetails,
+    );
+
+    if (e instanceof AppEngineApiError) return;
+
+    if (e instanceof PageNotFoundError) {
+      const currentUser: ReturnType<typeof getCurrentUserSelector> =
+        yield select(getCurrentUserSelector);
+
+      if (currentUser && currentUser.email !== ANONYMOUS_USERNAME) {
+        // Only redirect to favorites page if the app was actually favorited;
+        // otherwise fall through to safeCrashAppRequest to show the error page.
+        const favoriteIds: string[] = yield select(getFavoriteApplicationIds);
+
+        if (favoriteIds.includes(action.payload.applicationId ?? "")) {
+          history.replace(`${APPLICATIONS_URL}?workspaceId=${FAVORITES_KEY}`);
+          yield put({
+            type: ReduxActionTypes.FETCH_FAVORITE_APPLICATIONS_INIT,
+          });
+          toast.show("Application not found or deleted.", { kind: "error" });
+
+          return;
+        }
+      }
+    }
+
+    appsmithTelemetry.captureException(e, { errorName: "AppEngineError" });
+    yield put(safeCrashAppRequest());
+  } finally {
+    endSpan(rootSpan);
+  }
+}
+
+export function* resetDebuggerLogs() {
+  // clear all existing debugger errors
+  const debuggerErrors: ReturnType<typeof getDebuggerErrors> =
+    yield select(getDebuggerErrors);
+  const existingErrors = Object.values(debuggerErrors).filter(
+    (payload) => !!payload.id,
+  );
+  const errorsToDelete = existingErrors.map(
+    (payload) => payload.id,
+  ) as string[];
+
+  yield put(deleteErrorLog(errorsToDelete));
+}
+
+function* resetEditorSaga() {
+  yield put(resetCurrentApplication());
+  yield put(resetPageList());
+  yield put(resetApplicationWidgets());
+  yield put(resetRecentEntities());
+  // Reset to edit mode once user exits editor
+  // Without doing this if the user creates a new app they
+  // might end up in preview mode if they were in preview mode
+  // previously
+  yield put(setPreviewModeAction(false));
+  yield put(resetSnipingMode());
+  yield put(setExplorerActiveAction(true));
+  yield put(setExplorerPinnedAction(true));
+  yield put(resetEditorSuccess());
+  yield fork(resetDebuggerLogs);
+}
+
+export function* waitForInit() {
+  const isEditorInitialised: boolean = yield select(getIsEditorInitialized);
+  const isViewerInitialized: boolean = yield select(getIsViewerInitialized);
+
+  if (!isEditorInitialised && !isViewerInitialized) {
+    yield take([
+      ReduxActionTypes.INITIALIZE_EDITOR_SUCCESS,
+      ReduxActionTypes.INITIALIZE_PAGE_VIEWER_SUCCESS,
+    ]);
+  }
+}
+
+function* updateURLSaga(action: ReduxURLChangeAction) {
+  yield call(waitForInit);
+  const currentPageId: string = yield select(getCurrentPageId);
+  const applicationSlug: string = yield select(selectCurrentApplicationSlug);
+  const payload = action.payload;
+
+  if ("applicationVersion" in payload) {
+    updateSlugNamesInURL({ applicationSlug: payload.slug });
+
+    return;
+  }
+
+  if ("pageId" in payload) {
+    if (payload.pageId !== currentPageId) return;
+
+    updateSlugNamesInURL({
+      pageSlug: payload.slug,
+      customSlug: payload.customSlug || "",
+      applicationSlug,
+    });
+
+    return;
+  }
+
+  if (payload.id !== currentPageId) return;
+
+  updateSlugNamesInURL({
+    pageSlug: payload.slug,
+    customSlug: payload.customSlug || "",
+    applicationSlug,
+  });
+}
+
+function* appEngineSaga(action: ReduxAction<AppEnginePayload>) {
+  yield race({
+    task: call(startAppEngine, action),
+    cancel: take(ReduxActionTypes.RESET_EDITOR_REQUEST),
+  });
+}
+
+function* eagerPageInitSaga() {
+  try {
+    // Validate session token if present
+    yield call(validateSessionToken);
+  } catch (error) {
+    // Log error but don't block the rest of the initialization
+    log.error("Error validating session token:", error);
+    appsmithTelemetry.captureException(error, {
+      errorName: "SessionValidationError",
+    });
+  }
+
+  const url = window.location.pathname;
+  const search = window.location.search;
+
+  if (isEditorPath(url)) {
+    const matchedEditorParams = matchEditorPath(url);
+
+    if (matchedEditorParams) {
+      const {
+        params: {
+          baseApplicationId,
+          basePageId,
+          staticApplicationSlug,
+          staticPageSlug,
+        },
+      } = matchedEditorParams;
+      const branch = getSearchQuery(search, GIT_BRANCH_QUERY_KEY);
+      const isStaticPageUrl = staticApplicationSlug && staticPageSlug;
+
+      if (basePageId || isStaticPageUrl) {
+        yield put(
+          initEditorAction({
+            basePageId,
+            baseApplicationId,
+            branch,
+            mode: APP_MODE.EDIT,
+            shouldInitialiseUserDetails: true,
+            staticApplicationSlug,
+            staticPageSlug,
+          }),
+        );
+
+        return;
+      }
+    }
+  } else if (isViewerPath(url)) {
+    const matchedViewerParams = matchViewerPathTyped(url);
+
+    if (matchedViewerParams) {
+      const {
+        params: {
+          baseApplicationId,
+          basePageId,
+          staticApplicationSlug,
+          staticPageSlug,
+        },
+      } = matchedViewerParams;
+      const branch = getSearchQuery(search, GIT_BRANCH_QUERY_KEY);
+      const isStaticPageUrl = staticApplicationSlug && staticPageSlug;
+
+      if (baseApplicationId || basePageId || isStaticPageUrl) {
+        yield put(
+          initAppViewerAction({
+            baseApplicationId,
+            branch,
+            basePageId,
+            mode: APP_MODE.PUBLISHED,
+            shouldInitialiseUserDetails: true,
+            staticApplicationSlug,
+            staticPageSlug,
+          }),
+        );
+
+        return;
+      }
+    }
+  }
+
+  try {
+    yield call(getInitResponses, {
+      shouldInitialiseUserDetails: true,
+      mode: APP_MODE.PUBLISHED,
+    });
+    yield call(
+      executeActionDuringUserDetailsInitialisation,
+      ReduxActionTypes.END_CONSOLIDATED_PAGE_LOAD,
+      true,
+    );
+  } catch (e) {}
+}
+
+function handleWidgetInitSuccess() {
+  //every time a widget is initialized, we clear the cache so that all widgetFactory values are recomputed
+  clearAllWidgetFactoryCache();
+}
+
+export default function* watchInitSagas() {
+  yield all([
+    takeLeading(
+      [
+        ReduxActionTypes.INITIALIZE_EDITOR,
+        ReduxActionTypes.INITIALIZE_PAGE_VIEWER,
+      ],
+      appEngineSaga,
+    ),
+    takeLatest(ReduxActionTypes.RESET_EDITOR_REQUEST, resetEditorSaga),
+    takeEvery(URL_CHANGE_ACTIONS, updateURLSaga),
+    takeEvery(ReduxActionTypes.INITIALIZE_CURRENT_PAGE, eagerPageInitSaga),
+
+    takeLeading(ReduxActionTypes.WIDGET_INIT_SUCCESS, handleWidgetInitSuccess),
+  ]);
+}

@@ -1,0 +1,73 @@
+{{- if .Values.services.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: redis-service
+  name: redis-service
+spec:
+  replicas: {{ .Values.services.redis.replicaCount }}
+  selector:
+    matchLabels:
+      io.kompose.service: redis-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: redis-service
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - args:
+        - redis-server 
+        - --requirepass 
+        - {{ .Values.services.redis.password }}
+        image: {{ .Values.globals.dockerRegistry }}{{ .Values.services.redis.image }}
+        imagePullPolicy: ""
+        name: redis-service
+        ports:
+        - containerPort: {{ .Values.services.redis.port }}
+        {{ with .Values.services.redis.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{ end }}
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data
+        {{ if .Values.services.redis.extraVolumeMounts }}
+          {{- toYaml .Values.services.redis.extraVolumeMounts | nindent 8 }}
+        {{- end }}
+    {{- if .Values.services.redis.extraContainers }}
+      {{- toYaml .Values.services.redis.extraContainers | nindent 6 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      {{ if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{ end }}
+      {{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml .Values.imagePullSecrets | nindent 6 }}
+      {{ end }}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-data
+      {{ if .Values.services.redis.extraVolumes }}
+        {{- toYaml .Values.services.redis.extraVolumes | nindent 6 }}
+      {{- end }}
+
+status: {}
+{{- end }}

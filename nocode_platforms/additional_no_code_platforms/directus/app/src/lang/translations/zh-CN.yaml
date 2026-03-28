@@ -1,0 +1,2636 @@
+---
+## Be aware:
+#Due to the way this is imported, JavaScript reserved words, including "delete", "private",
+#"void", etc are stripped out. See
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/pluginutils/src/makeLegalIdentifier.ts#L4
+#and
+#https://github.com/rollup/plugins/blob/8748b8cd3bbab3c5ac6190556930219f19060e63/packages/yaml/src/index.js#L45
+#Illegal words:
+#'break', 'case', 'class', 'catch', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+#'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof',
+#'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void',
+#'while', 'with', 'yield', 'enum', 'await', 'implements', 'package', 'protected', 'static',
+#'interface', 'private', 'public', 'arguments', 'Infinity', 'NaN', 'undefined', 'null', 'true',
+#'false', 'eval', 'uneval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'decodeURI',
+#'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'unescape', 'Object',
+#'Function', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError',
+#'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'String',
+#'RegExp', 'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array',
+#'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet',
+#'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
+#'Proxy', 'Intl'
+about: 关于
+directus_bsl: Directus BSL 1.1 许可证
+privacy_policy: 隐私政策
+contact_our_team: 联系我们团队
+setup_welcome: 欢迎使用 Directus
+setup_info: 让我们创建您的管理员帐户并启动您的项目。
+setup_license_notice: >
+  Directus对年收入、资金或经营预算低于500万美元的实体免费开放。
+setup_license_follow_up: >
+  超过此阈值的实体需要付费许可证。您现在可以继续评估 Directus，并在准备讨论生产使用时{contactOurTeam}。
+setup_save_accept_license: >
+  点击保存即表示您接受 {directusBsl} 和 {privacyPolicy} 的条款。
+setup_accept_license: 我接受 {directusBsl} 和 {privacyPolicy} 的条款
+setup_marketing_emails: 向我发送产品更新和发行说明
+setup_launch: 启动 Directus
+setup_project: 设置项目
+first_name: 名
+last_name: 姓
+admin_email: 管理员邮箱
+owner_email: 所有者邮箱
+email_address: 邮箱地址
+organization_name: 组织名称
+how_do_you_use_directus: 您使用 Directus 的用途是什么？
+usage_personal: 个人使用/学习
+usage_commercial: 商业 / 商用
+usage_community: 开源 / 社区
+identifier: 标识符（identifier）
+avatar: 头像
+application: 应用程序
+default_provider: 默认
+method: 方法
+published: 已发布
+draft: 草稿
+archived: 已存档
+marketplace: 扩展集市
+extensions: 扩展
+skip_link_nav: 跳转至导航
+skip_link_module_nav: 跳转至导航
+skip_link_main: 跳转到主要内容
+skip_link_sidebar: 跳到侧边栏
+modules: 模块
+module_bar: 模块栏
+logs: 日志
+unknown: 未知
+reset_width: 重置宽度
+tile_size: 瓦块大小
+edit_field: 编辑
+conditions: 条件
+location: 地理位置
+collection_names_are_case_sensitive: 集合名称是区分大小写
+condition_rules: 条件规则
+input: 输入
+invalid_input: 无效的输入
+invalid_files_selected: '没有无效文件 | 已选择无效文件 | 选择了 {count} 个无效文件'
+not_a_number: 不是一个数字
+invalid_range_min: 数值低于最小值 {value}
+invalid_range_max: 数值超出最大值 {value}
+maps: 地图
+switch_user: 切换用户
+item_deleted: 您编辑中的项目已被删除。
+item_creation: 新建
+item_revision: 条目修订
+enter_a_name: 请输入名称...
+duplicate_field: 复制字段
+half_width: 半宽
+full_width: 全宽
+group: 分组
+popular: 热门
+recent: 最近
+latest: 最近
+updated: 已更新
+export_items: 导出
+and: 与
+or: 或
+init: 初始化
+dataset_too_large_currently_showing_n_items: 数据集太大，目前显示前 {n} 项。
+modifier: 修改者
+extension_interface: 接口
+extension_display: 显示
+extension_layout: 布局
+extension_module: 模块
+extension_panel: 面板
+extension_theme: 主题
+extension_hook: 钩子
+extension_endpoint: 端点
+extension_operation: 操作
+extension_bundle: 打包
+extension_interfaces: 接口
+extension_displays: 显示
+extension_layouts: 布局
+extension_modules: 模块
+extension_panels: 面板
+extension_themes: 主题
+extension_hooks: 钩子
+extension_endpoints: 端点
+extension_operations: 操作
+extension_bundles: 包
+extension_missing: 缺失
+extension_reload_required: 需要重新加载页面
+extension_reload_required_copy: 启用或禁用应用扩展后需要重新加载页面才能看到更改。
+extension_reload_now: 立即重新加载
+published_relative: 已发布 {relativeTime}
+compatible_with_your_project: 与您的项目兼容
+compatible_with_your_project_copy: 作者已将此扩展的兼容性版本定为 {hostVersion}，它与您的项目版本 ({currentVersion}) 不匹配
+last_updated_relative: 最近更新 {relativeTime}
+n_files: '{n} 个文件'
+verified: 已验证
+homepage: 首页
+repository: 存储库
+reload_page: 重新加载页面
+reload_required: 需要重载
+report_an_issue: 反馈问题
+website: 网站
+github: GitHub
+beta: 测试版
+n_downloads: '{n} 次下载'
+downloads: 下载数
+compatibility_not_guaranteed: 兼容性没有保障
+compatibility_not_guaranteed_copy: 作者已将此扩展的兼容性版本定为 {hostVersion}，它与您的项目版本 ({currentVersion}) 不匹配
+enable: 启用
+disable: 禁用
+custom: 自定义
+hook: 钩子
+fill_width: 全宽
+field_name_translations: 字段名称翻译
+enter_password_to_enable_tfa: 输入您的密码以启用双因素认证(2FA)
+sso_tfa_setup_notice: 您将注销您的帐户并需要重新登录。任何未保存的更改都将被丢弃。
+enable_tfa: 启用 2FA
+cancel_tfa_setup: 取消 2FA 设置
+cancel_tfa_setup_notice: 您确定要取消2FA 设置吗？
+keep_setup: 保持设置
+cancel_setup: 取消设置
+add_field: 添加字段
+role_name: 角色名称
+policy_name: 策略名称
+branch: 分支
+leaf: 叶节点
+indeterminate: 不确定的状态
+edit_collection: 编辑模型
+exclusive: 排他，分支或叶节点间互斥
+children: 子页面
+db_only_click_to_configure: '仅限数据库：点击配置'
+show_active_items: 显示活动项
+show_archived_items: 显示存档条目
+show_all_items: 显示所有条目
+edited: 已编辑的值
+required: 必填
+required_for_app_access: 应用程序访问所需的
+requires_value: 必填值
+create_preset: 创建预设
+create_panel: 创建面板
+create_role: 创建角色
+create_policy: 创建策略
+create_user: 创建用户
+message: 消息
+delete_panel: 删除面板
+create_custom_translation: 建立自定义翻译
+edit_custom_translation: 编辑自定义翻译
+no_custom_translations: 没有自定义翻译
+no_custom_translations_copy: 尚无自定义翻译。
+invite_users: 邀请用户
+invite: 邀请
+email_already_invited: 电子邮件 "{email}" 已被邀请
+subject: 主題
+inbox: 收件箱
+emails: 邮箱
+connection_excellent: 优秀的连接状态
+connection_good: 好的连接状态
+connection_fair: 一般的连接状态
+connection_poor: 连接不良
+primary: 主要的
+rename_folder: 重命名文件夹
+delete_folder: 删除文件夹
+prefix: 前缀
+suffix: 后缀
+keep: 保持
+version: 版本号
+version_key: 版本密钥
+version_name: 版本名称
+main_version: 主要
+switch_version: 切换版本
+switch_version_copy: 确定要切换到"{version}"版本？未保存的更改将会丢失。
+create_version: 创建新版本
+rename_version: 重命名版本
+compare_version: 对比版本
+save_version: 保存版本
+promote_version: 推广版本
+apply: 应用
+select_all_differences: 选择所有差异
+main_updated_notice: 自此版本创建以来，主条目已更新。
+delete_version: 删除版本
+delete_version_copy: >-
+  你确定要删除"{version}" 这个版本吗? 此操作无法撤销。
+delete_on_apply_copy: >-
+  您即将将 "{version}" 提升为主版本。提升后 "{version}" 应该如何处理？
+reset_bookmark: 重置书签
+update_bookmark: 更新书签
+delete_bookmark: 删除书签
+delete_bookmark_copy: >-
+  你确定要删除"{bookmark}" 这个书签吗? 此操作无法撤销。
+delete_personal_bookmark: 删除个人书签
+delete_role_bookmark: 删除角色书签
+delete_global_bookmark: 删除全局书签
+logoutReason:
+  SIGN_OUT: 注销
+  SESSION_EXPIRED: 会话过期
+public_label: 公开
+public_description: 设置哪些API无需身份验证。
+public_role_info: >-
+  公共角色控制未经身份验证的用户或没有角色的用户可以访问哪些API数据。具有公共角色的请求不能拥有应用程序或管理员访问权限。如果将应用程序或管理员访问权限分配给与公共角色相关的策略，这些权限将被忽略。
+admin_description: 不受限制的 App/ API 访问权限的初始管理角色
+admin_policy_description: 具有不受限制的应用/API访问权限的初始管理策略。
+no_description: 没有描述。
+reached_maximum_number_of_extensions: 您已达到此项目的最大扩展数 ({n})。请联系您的系统管理员以获取更多信息。
+not_allowed: 不允许
+archive: 存档
+archive_confirm: 您确定要归档所选吗？
+archive_confirm_count: >-
+  没有选定条目 | 你确定要存档这个条目吗？| 你确定你想要存档这些 {count} 个条目吗？
+reset_system_permissions_to: '重置系统权限：'
+reset_system_permissions_copy: 此操作将覆盖您可能应用到系统模型中的自定义权限。确定吗？
+the_following_are_minimum_permissions: 当启用“应用访问”时，以下最低权限将自动应用。 您可以在需要时授予额外的权限，但是您不能将权限降低到这个级别以下。
+app_access_minimum: 最小权限
+recommended_defaults: 推荐设置
+unarchive: 取消存档
+unarchive_confirm: 您确定要取消归档此条目吗？
+nested_files_folders_will_be_moved: 文件和文件夹将被上移一级。
+validation_errors_notice: '以下字段含有无效值:'
+validationError:
+  eq: 值必须是 {valid}
+  neq: 值不能为 {invalid}
+  in: 值必须是其中之一 {valid}
+  nin: 值不能是 {invalid} 之一
+  contains: 值必须包含 {substring}
+  ncontains: 值不能包含 {substring}
+  gt: 值必须大于 {valid}
+  gte: 值必须大于或等于 {valid}
+  lt: 值必须小于 {valid}
+  lte: 值必须小于或等于 {valid}
+  empty: 值必须为空
+  nempty: 值不能为空
+  null: 值必须为null
+  nnull: 值不能为null
+  required: 值是必需的
+  unique: 值必须唯一
+  email: 值必须是一个有效的电子邮件地址
+  regex: 值格式不正确
+  starts_with: 值必须以"{substring}"开头
+  istarts_with: 值必须以"{substring}"开头
+  nstarts_with: 值不能以"{substring}"开头
+  nistarts_with: 值不能以"{substring}"开头
+  ends_with: 值必须以"{substring}"结尾
+  iends_with: 值必须以"{substring}"结尾
+  nends_with: 值不能以"{substring}"结尾
+  niends_with: 值不能以"{substring}"结尾
+  confirm_password: 密码不匹配
+  org_name: 请包含组织名称
+all_access: 允许所有
+no_access: 禁止访问
+use_custom: 自定义
+nullable: 允许为空
+allow_null_value: 允许NULL值
+allow_multiple: 允许多个
+allow_multiple_to_be_open: 允许打开多个
+enter_value_to_replace_nulls: 请输入一个新的值来替换当前在此字段内的任何NULL。
+field_standard: 基本设置
+field_presentation: 别名
+field_file: 单个文件
+field_files: 多个文件
+field_m2o: M2O 关系
+field_m2a: M2A 关系
+field_o2m: O2M 关系
+field_m2m: M2M 关系
+field_translations: 翻译
+field_group: 字段组
+item_permissions: 条目权限
+field_permissions: 字段权限
+field_validation: 字段验证
+field_presets: 字段预设
+permissions_for_role: '{role} 角色能够 {action}。'
+permissions_for_policy: '{policy} 策略可以 {action} 的项目。'
+fields_for_role: '{role} 角色能够 {action} 字段。'
+fields_for_policy: '{policy} 策略可以 {action} 的字段。'
+validation_for_role: '{role} 角色必须遵守字段的 {action} 规则。'
+validation_for_policy: '{policy} 策略必须遵守的字段 {action} 规则。'
+presets_for_role: '{role} 角色的默认值。'
+presets_for_policy: '{policy} 策略的字段值默认设置。'
+presets_field_warning: '字段“{field}”的关系预设应使用“详细”语法配置。'
+presentation_and_aliases: 别名
+revision_post_create: 这是新建条目后看起来的样子。
+revision_post_update: 这是更新后该条目的外观。
+changes_made: 下面是本次修订中所作的具体修改。
+no_relational_data: 请记住，此处不包括关系数据。
+junction_field_location: 交叉字段位置
+top: 顶部
+bottom: 底部
+hide_field: 隐藏字段
+hide_field_on_detail: 在详情中隐藏该字段
+show_field_on_detail: 在详情中显示
+delete_field: 删除
+fields_and_layout: 字段和布局
+field_create_success: '创建字段: "{field}"'
+field_update_success: '更新字段: "{field}"'
+duplicate_where_to: 您想要复制此字段到哪？
+language: 语言
+language_placeholder: 选择语言...
+aggregate_function: 聚合函数
+aggregate_precision: 聚合精度
+group_aggregation: Group聚合
+group_precision: Group精度
+global: 全局
+admins_have_all_permissions: 管理员拥有所有权限
+camera: 摄像头
+show_zero: 显示0
+create_in_advanced_field_creation_mode: 在高级模式下创建字段
+continue_in_advanced_field_creation_mode: 在高级字段创建模式中继续
+validation: 验证
+sum: 求和
+sum_distinct: Sum Distinct
+avg: 平均值
+avg_distinct: 唯一均值
+count: 总计
+count_distinct: 唯一计数
+min: 最小值
+max: 最大值
+exposure: 过期
+shutter: 快门
+iso: ISO
+focal_length: 焦距
+schema_setup_key: 数据库列的名称和 API 密钥
+create_field: 创建字段
+creating_new_field: '新字段 ({collection})'
+field_in_collection: '{field} ({collection})'
+reset_page_preferences: 重置页面首选项
+hidden_field: 隐藏字段
+hidden_on_detail: 在详情中隐藏
+clear_hidden_field: 清除数据
+clear_value_on_save_when_hidden: 保存时清除隐藏数据
+readonly_field_label: 在应用中禁用该字段
+required_readonly_field_warning: 启用只读和必填字段可以防止保存一个值为空的项目。
+key: 关键字
+alias: 别名
+bigInteger: Big Integer
+boolean: Boolean
+date: Date
+date_range: 时间段
+translation_key_placeholder: 请输入键...
+datetime: DateTime
+dateTime: DateTime
+precision: 精度
+decimal: Decimal
+float: Float
+integer: Integer
+json: JSON
+xml: XML
+yaml: YAML
+string: String
+text: 文本
+time: 时间
+timestamp: Timestamp
+uuid: UUID
+hash: Hash
+geometry:
+  All: 几何要素(全部)
+  Point: 点
+  LineString: 线段
+  Polygon: 多边形
+  MultiPoint: 多点
+  MultiLineString: 多段线
+  MultiPolygon: 复杂多边型
+theme_auto: 自动(基于系统)
+theme_light: 亮色模式
+theme_dark: 暗色模式
+theme_directus_default: 默认设置
+theme_directus_minimal: 迷你设置
+theme_directus_colormatch: 色彩匹配
+not_available_for_type: 此类型不可用
+create_translations: 创建翻译
+auto_refresh: 自动刷新
+refresh_interval: 刷新间隔
+no_refresh: 不刷新
+refresh_interval_seconds: 立即刷新 | 每秒 | 每 {seconds} 秒
+refresh_interval_minutes: 每分钟 | 每 {minutes} 分钟
+auto_generate: 自动生成
+this_will_auto_setup_fields_relations: 这将自动设置所有必填字段和关系。
+click_here: 点击
+to_manually_setup_translations: 手动设置翻译。
+manage: 管理
+click_to_manage_translated_fields: >-
+  还没有翻译的字段。点击这里创建它们。 点击这里来管理它。| 有 {count} 个翻译的字段。点击这里来管理。
+fields_group: 字段组
+no_collections_found: 未找到任何模型
+new_data_alert: '以下将在您的模型中创建：'
+search_collection: 搜索模型...
+search_role: 搜索角色...
+search_policy: 搜索策略...
+search_field: 搜索字段
+new_field: '新建字段'
+new_collection: '新建模型'
+add_m2o_to_collection: '添加 M2O 到 "{collection}"'
+add_o2m_to_collection: '添加 O2M 到 "{collection}"'
+add_m2m_to_collection: '添加M2M到"{collection}"'
+choose_a_type: 选择类型...
+determined_by_relationship: 由关系确定
+add_note: 为用户添加有用的注释...
+add_link: 添加链接
+custom_link: 自定义链接
+default_value: 默认值
+standard_field: 标准字段
+single_file: 单个文件
+multiple_files: 多个文件
+m2o_relationship: 多对一关系
+o2m_relationship: 一对多关系
+m2m_relationship: 多对多关系
+m2a_relationship: 多对任何关系
+invalid_item: 无效条目
+require_confirmation: 需要确认
+dialog: 对话框
+modal: 模式
+confirmation_dialog: 确认对话框
+confirmation_description: 确认描述
+confirmation_input_fields: 确认输入字段
+next: 下一步
+field_name: 字段名
+translations: 翻译
+no_translations: 无翻译
+left_to_right: 从左到右
+right_to_left: 从右到左
+note: 注释
+enter_a_value: 请输入值...
+enter_a_placeholder: 输入占位符...
+length: 长度
+soft_length: 软限制
+precision_scale: 精度和缩放
+readonly: 只读
+unique: 唯一
+index: 索引
+searchable: 可搜索的
+field_searchable: 在搜索中包含字段
+updated_on: 更新于
+updated_by: 更新，由
+primary_key: 主键
+foreign_key: 外键
+field_key: 字段键
+finish_setup: 完成安装
+dismiss: 关闭
+toggle_raw_editor: 切换原始编辑器
+toggle_variable_input: 切换变量输入
+raw_editor_placeholder: "{'{'}{'{'}$trigger.payload.example{'}'}{'}'}"
+raw_value: 原始值
+copy_raw_value: 复制原始值
+copy_raw_value_success: 已复制
+copy_raw_value_fail: 复制失败
+paste_raw_value: 粘贴原始值
+paste_raw_value_success: 已粘贴
+paste_raw_value_fail: 粘贴失败
+view_raw_value: 查看原始值
+edit_raw_value: 编辑原始值
+enter_raw_value: 输入原始值...
+clear_value: 清除值
+clear_changes: 清除更改
+clear_items: 清除条目
+reset_to_default: 重置为默认值
+undo_changes: 撤销更改
+notifications: 通知
+archive_all: 全部存档
+show_all_activity: 显示所有活动
+page_not_found: 找不到页面
+page_not_found_body: 您正在寻找的页面似乎不存在。
+confirm_revert: 确认恢复
+confirm_revert_body: 此操作会使条目恢复至选中状态
+display: 显示
+settings_update_success: 设置已更新
+title: 标题
+subtitle: 副标题
+revision_delta_created: 已创建
+revision_delta_created_externally: 外部创建
+revision_delta_updated: '更新了 1 个字段 | 更新了 {count} 个字段'
+revision_delta_deleted: 已删除
+revision_delta_reverted: Reverted
+revision_delta_update_message: 此字段已更新，但由于安全原因，其值被隐藏。
+revision_delta_other: 修订版本
+revision_delta_by: '由 {user} 于 {date}'
+differences_count: '无差异 | 1 处差异 | {count} 处差异'
+presentation_text_values_cannot_be_reimported: '仅包含当前页面中展示的字段和数据，且无法被重新导入'
+download_page_as_csv: '导出当前页面数据为CSV格式'
+download_page_as_csv_unsupported: 此布局不支持下载当前页面。
+private_user: 私人用户
+creation_preview: 创建预览
+revision_preview: 修订预览
+updates_made: 更新完成
+leave_comment: 发表评论...
+post_comment_success: 注释已发布
+post_comment_updated: 注释已更新
+item_create_success: 条目已创建 | 条目已创建
+item_update_success: 条目已更新 | 条目已更新
+item_delete_success: 条目已删除 | 条目已删除
+this_collection: 该模型
+related_collection: 相关模型
+related_collections: 相关模型
+translations_collection: 翻译模型
+languages_collection: 语言模型
+translations_preview_collections: 数据模型
+translations_preview_fields: 字段
+import_data_input_placeholder: CSV 或 JSON
+import_data_button: 开始导入
+import_data_indeterminate: 导入数据中
+import_data_success: 成功从 {filename} 导入数据
+import_data_errors: 导入错误
+import_data_error: 此文件的数据结构与模型不匹配。
+import_data_validation_errors_notice: '以下行记录有无效数据：'
+import_data_error_row: '行 {rows}{field}：'
+snapshot:
+  export: 导出Schema
+  download: 下载快照 (JSON)
+  info: 仅导出Schema用于共享或调试
+label_import: 导入
+label_export: 导出
+import_export: 导入 / 导出
+format: 格式
+last_page: 尾页
+last_access: 上次访问
+fill_template: 使用模板填入
+a_unique_table_name: 唯一的表名...
+a_unique_column_name: 唯一列名称...
+enable_custom_values: 启用自定义值
+submit: 提交
+move_to_folder: 移动到文件夹
+move: 移动
+system: 系统
+add_field_related: 将字段添加到关联的模型
+interface_label: 接口
+display_label: 显示
+today: 今天
+yesterday: 昨天
+delete_comment: 删除注释
+delete_share: 删除分享
+functions:
+  year: 年
+  month: 月
+  week: 周
+  day: 日
+  weekday: 星期几
+  hour: 时
+  minute: 分
+  second: 秒
+  count: 总计
+date-fns_date: PPP
+date-fns_time: 'h:mm:ss a'
+date-fns_time_no_seconds: 'h:mm a'
+date-fns_time_24hour: 'HH:mm:ss'
+date-fns_time_no_seconds_24hour: 'HH:mm'
+date-fns_date_short: 'MMM d, u'
+date-fns_time_short: 'h:mma'
+date-fns_time_short_seconds: 'h:mm:ssa'
+date-fns_date_short_no_year: MMM d
+minutes: 分
+hours: 时
+month: 月
+year: 年
+select_all: 全选
+permissionsLevel:
+  all: 完全 {action} 访问权限
+  partial: 部分 {action} 访问权限
+  custom: 部分 {action} 访问权限
+  none: 无 {action} 访问权限
+months:
+  january: 1 月
+  february: 2 月
+  march: 3 月
+  april: 4 月
+  may: 5 月
+  june: 6 月
+  july: 7 月
+  august: 8 月
+  september: 9 月
+  october: 10 月
+  november: 11 月
+  december: 12 月
+drag_mode: 拖动模式
+move_tool: 移动工具
+crop_tool: 裁剪工具
+focal_point_tool: 焦点工具
+cancel_crop: 取消裁剪。
+cancel_selection: 取消选择
+original: 原始
+url: URl
+import_label: 导入
+file_details: 文件信息
+copy_id: 复制ID
+copy_id_success: ID已复制
+copy_id_fail: ID未复制
+dimensions: 尺寸
+size: 大小
+created: 已创建
+uploaded: 上传完成
+modified: 已修改
+owner: 所有者
+edited_by: 编辑者
+folder: 文件夹
+folders: 文件夹
+zoom: 缩放
+download: 下载
+open: 打开
+open_in_new_window: 在新窗口中打开
+open_folder: 打开 "{folder}" 文件夹
+foreground_color: 前景色
+background_color: 背景色
+upload_from_device: 从设备中上传文件
+choose_from_library: 从库中选择文件
+import_from_url: 从 URL 导入文件
+replace_from_device: 从设备中替换文件
+replace_from_library: 从库中替换文件
+replace_from_url: 从 URL 中替换文件
+no_image_selected: 未选择图像
+no_file_selected: 未选择文件
+download_file: 下载文件
+open_file_in_tab: 在新标签中打开文件
+start_export: 开始导出
+not_available_for_local_downloads: 本地下载不可用
+exporting_all_items_in_collection: 正在导出 {collection} 内所有的 {total} 项。
+exporting_limited_items_in_collection: '将导出的集合“{collection}”的条目数量{count} 超过总数{total}。'
+exporting_no_items_to_export: 没有要导出的项目。调整导出配置和/或添加项目到收藏中。
+exporting_download_hint: 一旦“{format}”文件被创建，它将被下载到您的设备。
+exporting_library_hint: 一旦创建“{format}”文件后, 它将保存到文件库中。
+exporting_library_hint_forced: 此导出必须分批处理，完成后 {format} 文件将被保存到文件库。
+collection_key: 模型的主键
+name: 名称
+primary_key_field: 主键字段
+type: 类型
+creating_new_collection: 新建模型
+created_by: 创建自
+created_on: 创建于
+creating_collection_info: 命名集合并设置唯一键字段...
+creating_collection_system: 启用并重命名这些可选字段。
+auto_increment_integer: 自动递增整数
+auto_increment_big_integer: 自动递增长整数（Big Integer）
+generated_uuid: 生成的 UUID
+manual_string: 手动输入字符串
+save_and_create_new: 保存并创建新的
+save_and_stay: 保存并继续
+save_and_quit: 保存并退出
+save_and_return_to_main: 保存并返回到主页面
+save_as_copy: 另存为
+add_existing: 添加现有
+creating_items: 创建条目
+enable_create_button: 启用创建按钮
+selecting_items: 选择条目
+enable_select_button: 启用选择按钮
+allow_duplicates: 允许重复项
+comments: 注释
+no_comments: 暂无注释
+expand: 展开
+expand_all: 展开全部
+expand_none: 展开无
+collapse: 收起
+collapse_all: 全部折叠
+select_item: 选择条目
+no_items: 无条目
+search_items: 搜索项
+search_extensions: 搜索扩展
+disabled: 禁用
+information: 信息
+report_bug: 反馈Bug
+request_feature: 功能建议
+request_body: 请求体
+interface_not_found: '未找到接口 "{interface}"。'
+operation_not_found: '操作 "{operation}" 未找到。'
+reset_interface: 重置接口
+display_not_found: '未找到显示 "{display}" 。'
+reset_display: 重置显示
+list-m2a: 构建器 (M2A)
+item_count: '暂无数据 | 找到一条数据 | 找到 {count} 条数据'
+filtered_item_count: '无过滤项目 | 一个过滤项目 | {count} 个过滤项目'
+no_items_copy: 该模型中没有数据。
+file_count: '没有文件 | 一个文件 | {count} 个文件'
+no_files_copy: 没有任何文件。
+user_count: '没有用户 | 一个用户 | {count} 个用户'
+no_users_copy: 该角色下还没有用户。
+no_notifications: 无通知
+no_notifications_copy: 你已全部搞定！
+activity_log: 活动日志
+all_items: 所有条目
+any: 任意
+csv: CSV
+no_collections: 没有任何模型
+create_collection: 新建模型
+no_collections_copy_admin: 您还没有任何模型。点击下面的按钮开始新建。
+no_collections_copy: 您还没有任何可用的模型。请联系您的系统管理员。
+relationship_not_setup: 关系配置不正确
+no_singleton_relations: 不支持与单例的关系"
+display_template_not_setup: 显示的模板选项配置错误
+collection_field_not_setup: 该模型的字段配置错误
+select_a_collection: 选择模型
+select_a_field: 选择字段
+active: 激活
+move_to: 移动到...
+copy: 复制
+copy_to: 复制到...
+no_other_dashboards_copy: 您还没有任何其他工作台。
+inactive: 非活跃
+users: 用户
+roles: 角色
+activity: 操作记录
+activity_item: 活动项
+action: 操作
+ip_address: IP 地址
+user_agent: 用户代理（User Agent）
+origin: 原始
+decimals: 小数
+value_decimals: 小数的值
+min_value: 最小值
+max_value: 最大值
+automatic: 自动
+field_width: 字段宽度
+add_filter: 添加过滤器
+upper_limit: 上限...
+lower_limit: 下限...
+user_directory: 用户列表
+documentation: 文档
+sidebar: 侧边栏
+duration: 持续时间
+charset: 字符集
+second: 秒
+file_moved: 文件已移动
+collection_created: 模型已创建
+modified_on: 修改于
+card_size: 卡片大小
+sort_field: 排序字段
+add_sort_field: 添加排序字段
+sort: 排序
+status: 状态
+remove: 移除
+toggle_manual_sorting: 切换手动排序
+bookmark_doesnt_exist: 书签不存在
+bookmark_doesnt_exist_copy: 找不到您试图打开的书签。
+bookmark_doesnt_exist_cta: 返回模型
+select_an_item: 选择一个条目...
+edit: 编辑
+edit_item: 编辑条目
+enabled: 已启用
+partially_enabled: 部分启用
+enable_all: 全部启用
+disable_all: 全部禁用
+enabled_dev_tooltip: 应用程序扩展总是在开发模式下启用
+disable_tfa: 停用双重认证
+admin_disable_tfa_text: 您确定要为此用户禁用2FA吗？
+tfa_setup: 设置 2FA
+tfa_setup_description: 设置双重身份验证以保护您的帐户
+tfa_scan_code: 扫描您的身份验证程序中的代码来完成设置 2FA
+enter_otp_to_disable_tfa: 输入OTP以禁用双重认证
+create_account: 创建账号
+account_created_successfully: 账号成功创建！
+auto_fill: 自动填充
+corresponding_field: 相应字段
+errors:
+  COLLECTION_NOT_FOUND: "模型不存在"
+  CONTAINS_NULL_VALUES: 字段包含空值
+  CONTENT_TOO_LARGE: 提交的项目/文件太大了
+  FAILED_VALIDATION: 验证失败
+  FIELD_NOT_FOUND: 字段未找到
+  FORBIDDEN: 禁止
+  GRAPHQL_VALIDATION: GraphQL 验证
+  ILLEGAL_ASSET_TRANSFORMATION: 原图太大，无法预览
+  INTERNAL_SERVER_ERROR: 未知错误
+  INVALID_CONFIG: 无效配置
+  INVALID_CREDENTIALS: 错误的用户名或密码
+  INVALID_FOREIGN_KEY: 无效的外键
+  INVALID_IP: IP地址不允许访问
+  INVALID_OTP: 错误的一次性密码
+  INVALID_PAYLOAD: 无效的内容
+  INVALID_PROVIDER: 用户属于另一个认证提供商
+  INVALID_QUERY: 无效的查询
+  INVALID_TOKEN: 令牌无效
+  INVALID_USER: 用户身份验证失败
+  ITEM_LIMIT_REACHED: 条目已达到限制
+  ITEM_NOT_FOUND: 找不到条目
+  LIMIT_EXCEEDED: '超出限制'
+  METHOD_NOT_ALLOWED: 不被允许的方法
+  NOT_NULL_VIOLATION: 值不能为null
+  RANGE_NOT_SATISFIABLE: 无效的范围
+  RECORD_NOT_UNIQUE: 检测到重复的值
+  REQUESTS_EXCEEDED: 已达到请求数量限制
+  ROUTE_NOT_FOUND: 未找到
+  SERVICE_UNAVAILABLE: 服务不可用
+  TOKEN_EXPIRED: 令牌已过期
+  UNEXPECTED_RESPONSE: 响应异常
+  UNKNOWN: 未知错误
+  UNPROCESSABLE_CONTENT: 不可处理的内容
+  UNSUPPORTED_MEDIA_TYPE: 不支持的媒体类型。
+  USER_SUSPENDED: 用户已禁用
+  VALUE_OUT_OF_RANGE: 数值超出范围
+  VALUE_TOO_LONG: 数值太长
+security: 安全
+bookmark_name: 书签名称
+create_bookmark: 创建书签
+edit_bookmark: 编辑书签
+edit_personal_bookmark: 编辑个人书签
+edit_role_bookmark: 编辑角色书签
+edit_global_bookmark: 编辑全局书签
+cannot_edit_role_bookmarks: 无法编辑角色书签
+cannot_edit_global_bookmarks: 无法编辑全局书签
+bookmarks: 书签
+presets: 预设
+unexpected_error: 未知错误
+unexpected_error_copy: 发生意外错误。请重试。
+copy_details: 复制详细信息
+no_app_access: 没有应用权限
+no_app_access_copy: 此用户不允许使用管理员应用程序。
+password_reset_successful: 密码重置成功。
+back: 后退
+filter: 筛选
+edit_image: 编辑图片
+editing_image: 编辑图像
+square: 正方形
+free: 自由的
+flip_horizontal: 水平翻转
+flip_vertical: 垂直翻转
+aspect_ratio: 宽高比
+rotate: 旋转
+all_users: 全部用户
+delete_collection: 删除模型
+update_collection_success: 模型已更新
+delete_collection_success: 模型已删除
+make_collection_visible: 显示收藏
+make_collection_hidden: 隐藏模型
+make_folder_visible: 显示文件夹
+make_folder_hidden: 隐藏文件夹
+goto_collection_content: 查看内容
+count_of_total_items: '{count} 个，共 {total} 个项目'
+start_end_of_count_items: '{start}-{end}，共 {count} 个项目'
+start_end_of_count_filtered_items: '{start}-{end}，共 {count} 个筛选项目'
+delete_collection_are_you_sure: >-
+  您确定要删除 "{collection}" 数据模型吗？这将删除该模型及其中的所有数据。此操作是永久性的。
+delete_folder_are_you_sure: 您确定要删除 "{folder}" 文件夹吗？嵌套文件夹和数据模型将被移动到最上层。
+delete_collection_peer_dependencies: 以下字段也将被删除，因为它们与当前集合相关。
+collections_shown: 展开模型
+visible_collections: 显示模型
+hidden_collections: 隐藏模型
+show_hidden_collections: 显示/隐藏模型
+hide_hidden_collections: 不显示隐藏的模型
+show_header: 显示页头
+unmanaged_collections: 未配置的模型
+system_collections: 系统模型
+placeholder: 占位文本
+icon_left: 左图标
+icon_right: 右图标
+count_other_revisions: '{count} 个其它版本'
+font: 字体
+sans_serif: 无衬线字体
+serif: 衬线字体
+monospace: 等宽
+divider: 分隔线
+color: 颜色
+circle: 圆圈
+empty_item: 空项
+log_in_with: '使用 {provider} 登录'
+conditional_styles: 条件
+advanced_settings: 高级设置
+advanced_filter: 高级过滤器
+delete_advanced_filter: 删除过滤器
+change_advanced_filter_operator: 更改操作者
+advanced: 高级
+operators:
+  eq: 等于
+  neq: 不等于
+  lt: 小于
+  gt: 大于
+  lte: 小于或等于
+  gte: 大于或等于
+  in: 属于
+  nin: 不属于
+  null: 为空
+  nnull: 不是空的
+  contains: 包含
+  ncontains: 不包含
+  icontains: 包含 (大小写不敏感)
+  starts_with: 开始于
+  nstarts_with: 不是以xx开始
+  istarts_with: 开始于 (不敏感)
+  nistarts_with: 不以(不敏感) 开始
+  ends_with: 结束于
+  nends_with: 结尾不是
+  iends_with: 结束于 (不敏感)
+  niends_with: 不以(不敏感) 结束
+  between: 介于
+  nbetween: 不介于
+  empty: 空
+  nempty: 不是空的
+  all: 包含这些关键词
+  has: 包含其中之一的关键词
+  intersects: 相交
+  nintersects: 不相交
+  intersects_bbox: 相交边框
+  nintersects_bbox: 没有相交边框
+  regex: 匹配正则表达式
+custom_validation_message: 自定义验证消息
+loading: 正在载入...
+extension_readme_missing: 此扩展没有README 文件。
+drop_to_upload: 拖拽文件并上传
+item: 条目
+items: 条目
+upload_file: 上传文件
+upload_file_indeterminate: 正在上传文件...
+upload_file_success: 文件已上传
+upload_files_indeterminate: '正在上传文件 {done}/{total}'
+upload_files_success: '{count} 个文件已上传'
+upload_pending: 上传等待中
+drag_file_here: 拖放文件到这里
+click_to_browse: 点击浏览
+interface_options: 接口选项
+display_options: 显示选项
+layout_options: 布局选项
+rows: 行
+columns: 列
+collection_setup: 模型设置
+optional_system_fields: 可选字段
+value_unique: 值必须唯一
+value_index: 字段已索引
+all_activity: 所有活动的
+create_item: 创建条目
+display_template: 显示模板
+language_display_template: 语言显示模板
+translations_display_template: 翻译显示模板
+n_items_selected: '未选择项目 | 选择了一个项目 | 选择了 {n} 个项目'
+per_page: 每页
+all_files: 所有文件
+my_files: 我的文件
+recent_files: 最近的文件
+create_folder: 创建文件夹
+edit_folder: 编辑文件夹
+folder_name: 文件夹名
+folder_key: 文件夹密钥...
+add_file: 添加文件
+replace_file: 替换文件
+no_results: 找不到查询结果
+no_results_copy: 调整或清除搜索过滤器以查看结果。
+no_visible_fields: 空表单
+no_visible_fields_copy: 此表单没有可见字段。
+clear_filters: 清除过滤器
+saves_automatically: 自动保存
+role: 角色
+edit_role: 编辑角色
+rule: 规则
+user: 用户
+no_presets: 无预设
+no_presets_copy: 尚未保存预设或书签。
+no_presets_cta: 添加预设
+presets_only: 仅预设
+create: 创建
+on_create: 创建时
+on_update: 在更新操作上
+read: 查看
+update: 更新
+delete: 删除
+select_fields: 选择字段
+format_text: 格式化文本
+format_value: 格式化
+abbreviate_value: 缩写
+operator: 运算符
+bold: 加粗
+toggle: 切换
+icon_on: 图标开启
+icon_off: 关闭图标
+label: 标签
+flows: 流程
+flow: 流程
+select_a_flow: 选择一个流程
+run_flow_anyway: 仍然运行流程
+run_flow_on_current_collection: 在当前集合上运行流程
+run_flow_on_current: 在当前项目上运行流程
+run_flow_on_selected: 先选择一个或多个项目 | 在 1 个选定项目 上运行 | 在 {n} 个选定项目 上运行
+run_flow: 运行流程
+trigger_flow_success: 流程 "{flow}" 已成功触发
+field_name_placeholder: 输入字段名称...
+field_key_placeholder: 请输入字段键...
+trigger: 触发器
+trigger_options: 触发器选项
+view_trigger: 查看触发器
+create_trigger: 创建触发器
+trigger_setup: 触发器设置
+change_trigger: 更改触发器
+flow_delete_confirm: 您确定要删除流程 "{flow}" 吗? 此操作无法撤消。
+set_flow_active: 设置流程为激活
+set_flow_inactive: 设置流程为未激活
+edit_flow: 编辑流程
+delete_flow: 删除流程
+no_other_flows_copy: 您尚未创建任何其他流程
+no_flows: 没有流程
+no_flows_copy: 您尚未创建任何流程
+create_flow: 新建流程
+creating_new_flow: 新建流程
+updating_flow: 更新流程
+flow_setup: 流程设置
+flow_name: 名称
+flow_tracking: 活动和日志跟踪
+flow_tracking_all: 跟踪活动和日志
+flow_tracking_activity: 仅跟踪活动
+flow_tracking_null: 不跟踪任何内容
+start_flow: 启动流程
+stop_flow: 中止流程
+create_operation: 新建操作
+edit_operation: 编辑操作
+code: 代码
+operation_options: 操作选项
+operation_name: 操作名称...
+operation_key: 用于引用的标识...
+operation_key_unique_error: 操作的键值(keys)在同一流程中必须是唯一的
+operation_handle_resolve: '成功：点击添加或拖动布局'
+operation_handle_reject: '失败：点击添加或拖动布局'
+visual_editor: 可视化编辑器
+toggle_navigation: 切换导航
+toggle_editable_elements: 切换可编辑元素
+no_url: 未提供 URL
+no_url_copy: 请在设置中添加一个URL。
+invalid_url: 无效的URL
+invalid_url_copy: 指定的 URL 与设置中指定的任何 URL 都不匹配。
+insights: 洞察分析
+deployment:
+  provider:
+    token:
+      placeholder: 输入您的访问令牌……
+    settings:
+      settings: '{provider} 配置'
+      delete_confirm: 此操作是永久性的，无法撤销。您确定要继续吗？
+      remove_projects_confirm: 移除下列项目（{projects}）会从Directus永久删除其所有部署历史。此操作不可撤销。您确定要继续吗？
+    run:
+      cancel_confirm: 此操作是永久性的，无法撤销。您确定要继续吗？
+      log_all: 所有日志级别
+  target_value:
+    preview: 预览
+dashboard: 控制面板
+panel: 面板
+panel_options: 选项
+panel_header: 面板标题
+panel_name_placeholder: 命名此面板...
+panel_note_placeholder: 面板的详细配置...
+panel_delete_confirm: 您确定要删除? 此操作无法撤消。
+list_panel_allow_edit: 允许行内编辑
+dashboard_delete_confirm: 您确定要删除? 此操作无法撤消。
+edit_dashboard: 编辑仪表板
+delete_dashboard: 删除
+visible: 可见
+prefix_placeholder: 前缀
+suffix_placeholder: 后缀
+decimals_placeholder: 小数位数...
+no_dashboards: 没有仪表盘
+no_dashboards_copy: 您还没有任何工作台。
+create_dashboard: 创建Dashboard
+dashboard_name: Dashboard名称
+no_data: 没有数据
+no_data_in_flow: 此Flow没有产生或获取任何数据
+accountability: 访问控制
+payload: 有效载荷 (Payload)
+details: 详细信息
+resume_streaming_logs: 恢复日志流
+pause_streaming_logs: 暂停流日志
+logs_session_resumed: 日志会话已恢复...
+logs_session_paused: 日志会话已暂停...
+logs_stream_disconnected: 日志流断开连接...
+log_detail_filter_paths: '过滤路径 (例如：req.method，res.statusCode)'
+logs_beginning: 这是日志会话的开始...
+logs_waiting: '等待更多日志...'
+logs_unread_count: '{count} 条未读'
+clear_logs: 清除日志
+search_logs: 搜索日志...
+all_instances: 所有实例
+instance_count: '无实例 | 一个实例 | {count} 个实例'
+all_log_levels: 所有日志级别
+log_level_count: '无日志级别 | 一个日志级别 | {count} 个日志级别'
+soft_wrap_lines: 软换行显示行
+full_screen: 全屏显示
+full_text_search: 全文搜索
+edit_panels: 编辑面板
+center_align: 居中对齐
+left_align: 左对齐
+right_align: 右对齐
+fit_to_screen: 自适应
+image_url: 图片 Url
+alt_text: 替代文本
+media: Media
+quality: 质量
+width: 宽
+height: 高度
+transformation_preset_key: 转换预设密钥
+source: 来源
+url_placeholder: 输入网址...
+display_text: 显示文本
+display_text_placeholder: 输入显示文本...
+interface_group_text_and_numbers: 文本和数字
+interface_group_selection: 选择
+interface_group_relational: 关系
+interface_group_presentation: 列报内容
+interface_group_groups: 组
+interface_group_other: 其他
+tooltip: 提示
+tooltip_placeholder: 输入工具提示...
+unlimited: 无限制
+open_link_in: 打开链接于
+new_tab: 新标签页
+save_image: 保存图像
+save_media: 保存媒体
+wysiwyg_options:
+  aligncenter: 居中对齐
+  alignjustify: 两端对齐
+  alignleft: 左对齐
+  alignnone: 不对齐
+  alignright: 右对齐
+  forecolor: 前景色
+  backcolor: 背景色
+  bold: 加粗
+  italic: 斜体
+  underline: 下划线
+  strikethrough: 删除线
+  subscript: 下标
+  superscript: 上标
+  codeblock: 代码
+  blockquote: 块引用
+  bullist: 符号列表
+  numlist: 数字列表
+  hr: 水平线
+  link: 添加/编辑链接
+  unlink: 移除链接
+  media: 添加/编辑媒体
+  image: 添加/编辑图像
+  copy: 复制
+  cut: 剪切
+  paste: 粘帖
+  heading: 标题
+  h1: 一级标题
+  h2: 二级标题
+  h3: 三级标题
+  h4: 四级标题
+  h5: 五级标题
+  h6: 六级标题
+  pre: 预格式化
+  fontselect: 选择字体
+  fontsizeselect: 选择字体大小
+  indent: 缩进
+  outdent: 减少缩进
+  undo: 撤销
+  redo: 重做
+  remove: 移除
+  removeformat: 清除格式
+  selectall: 全选
+  table: 表
+  visualaid: 显示不可见的元素
+  source_code: 编辑源代码
+  fullscreen: 全屏显示
+  directionality: 方向
+  lazy_loading: "延迟加载图像\n"
+  lazy_loading_label: 允许延迟加载
+dropdown: 下拉列表
+choices: 选择项
+choices_option_configured_incorrectly: 选择配置错误
+deselect: 取消选择
+deselect_all: 取消全选
+theme: 主题
+select_a_theme: 选择主题
+default_sync_with_project: 默认 (与项目同步)
+appearance_auto: 自动(系统同步)
+appearance_light: 亮色
+appearance_dark: 深色
+other: 其他...
+adding_user: 添加用户
+unknown_user: 未知用户
+unknown_version: 未知的版本
+unknown_revision: 未知的修订版
+creating_in: '在 {collection} 中创建条目'
+editing_in: '在 {collection} 中编辑条目'
+viewing_in: '在 {collection} 中查看条目'
+creating_unit: '正在创建 {unit}'
+editing_unit: '正在编辑 {unit}'
+editing_in_batch: '批量编辑 {count} 条数据'
+no_options_available: 无可用的选项
+settings_data_model: 数据模型
+settings_roles: 用户角色
+settings_permissions: 访问策略
+settings_project: 设置
+settings_appearance: 外观
+settings_ai: AI
+model_context_protocol: 模型上下文协议
+ai_assistant: AI助手
+settings_flows: 流程
+settings_system_logs: 系统日志
+settings_presets: 书签
+settings_translations: 翻译
+one_or_more_options_are_missing: 缺少一个或多个选项
+configure_field_key_to_continue: 配置字段关键字再继续
+scope: 范围
+actions: 操作
+select: 选择...
+layout: 布局
+tree_view: 树状图
+changes_are_permanent: 更改是永久的
+preset_name_placeholder: 为空时作为默认值...
+preset_search_placeholder: 搜索...
+editing_preset: 编辑预设​​​​​​​
+layout_preview: 布局预览
+layout_setup: 布局设置
+data: 数据
+theme-overrides: 主题覆盖
+unsaved_changes: 修改还未保存
+unsaved_changes_copy: 您确定要离开此页面吗？
+discard_changes: 不保存修改并离开此页
+discard_all_changes: 放弃所有更改
+discard_changes_copy: 您确定要放弃所有更改吗？
+show_x_axis: 显示 X 轴
+show_y_axis: 显示 Y 轴
+keep_editing: 继续编辑
+activity_feed: 活动摘要
+add_new: 新增
+create_new: 新建
+all: 全部，全选时保留分支节点
+none: 无
+no_layout_collection_selected_yet: 尚未选择布局/模型
+batch_delete_confirm: >-
+  您还没有选择数据 | 您确定要删除此条数据吗? 此操作无法撤消。 | 您确定要删除这 {count} 条数据吗?  此操作无法撤消。
+cancel: 取消
+no_upscale: 不要放大图片
+no_extensions: 无扩展
+no_extensions_copy: 尚未安装扩展。
+install_extension: 安装扩展
+uninstall_locked: 无法卸载未通过市场安装的扩展
+uninstall: 卸载
+installed: 已安装
+reinstall: 重新安装
+open_in_marketplace: 在市场中打开
+source_registry: 扩展集市
+source_local: 本地
+source_module: Node模块
+collection: 数据模型
+collections: 数据模型
+content: 内容
+singleton: 单一
+singleton_label: 视为单个对象
+system_fields_locked: 系统字段已锁定，无法编辑
+directus_collection:
+  directus_access: 策略附件
+  directus_activity: 所有事件操作日志
+  directus_collections: 其他集合配置和元数据
+  directus_comments: 评论此条目
+  directus_dashboards: Insights模块中的仪表板
+  directus_fields: 其他字段配置和元数据
+  directus_files: 文件资源元数据
+  directus_folders: 虚拟文件目录
+  directus_migrations: 您的数据库版本是
+  directus_notifications: 发送给用户的通知
+  directus_operations: 在Flow中运行的操作
+  directus_panels: Insights仪表板中的个别面板
+  directus_permissions: 每个策略的访问权限
+  directus_policies: 访问控制策略
+  directus_presets: 书签/预设默认值
+  directus_relations: 元数据和关系配置
+  directus_revisions: 数据快照
+  directus_roles: 系统用户权限组
+  directus_sessions: 用户会话信息
+  directus_settings: 项目配置
+  directus_shares: 跟踪外部共享条目
+  directus_users: 平台系统用户
+  directus_translations: 自定义翻译
+  directus_versions: 条目的内容版本
+  directus_extensions: 扩展配置
+fields:
+  directus_activity:
+    item: 条目主键
+    action: 操作
+    collection: 数据模型
+    timestamp: 操作于
+    user: 操作人
+    comment: 注释
+    user_agent: 用户代理（User Agent）
+    origin: 原始
+    ip: IP 地址
+    revisions: 修订版本
+  directus_collections:
+    collection: 数据模型
+    icon: 图标
+    note: 注释
+    color: 颜色
+    display_template: 显示模板
+    hidden: 隐藏
+    singleton: 单一
+    translations: 模型名称的翻译
+    archive_app_filter: 后台Admin App中归档数据过滤器
+    archive_value: 归档值
+    unarchive_value: 取消归档值
+    sort_field: 排序字段
+    accountability: 活动和版本修订跟踪
+    versioning: 版本
+    archive_field: 归档字段
+    item_duplication_fields: 条目重复字段
+  directus_files:
+    $thumbnail: 缩略图
+    title: 标题
+    description: 描述
+    tags: 标签
+    location: 地理位置
+    storage: 存储
+    filename_disk: 文件名(磁盘)
+    filename_download: 文件名(下载)
+    metadata: 元数据（Metadata）
+    type: Mime 类型
+    filesize: 文件大小
+    modified_by: 修改人：
+    modified_on: 修改于
+    created_on: 创建于
+    created_by: 创建自
+    embed: 嵌入
+    uploaded_by: 上传人
+    folder: 文件夹
+    width: 宽
+    uploaded_on: 上传于
+    height: 高度
+    charset: 字符集
+    duration: 持续时间
+    focal_point_x: X-坐标
+    focal_point_y: Y-坐标
+  directus_users:
+    first_name: 名
+    last_name: 姓
+    email: 邮箱
+    password: 密码
+    avatar: 头像
+    location: 地理位置
+    title: 标题
+    description: 描述
+    tags: 标签
+    user_preferences: 用户设置
+    language: 语言
+    text_direction: 文字方向
+    tfa_secret: 2FA（双因素身份验证）
+    admin_options: 管理员设置
+    status: 状态
+    status_draft: 草稿
+    status_invited: 已邀请
+    status_unverified: 未验证
+    status_active: 激活
+    status_suspended: 已停用
+    status_archived: 已存档
+    role: 角色
+    token: Token
+    provider: 提供方
+    external_identifier: 外部标识符
+    last_page: 尾页
+    last_access: 上次访问
+    email_notifications: 电子邮件通知
+    appearance: 外观
+    theme_light: 浅色
+    theme_dark: 深色
+    theme_light_overrides: 亮色主题自定义
+    theme_dark_overrides: 暗色主题自定义
+  directus_settings:
+    jpg: JPEG
+    png: PNG
+    webP: WebP
+    tiff: Tiff
+    avif: AVIF
+    reporting: 反馈中
+    mapping: 映射
+    basemaps: 底图
+    basemaps_raster: 栅格化
+    basemaps_tile: Raster TileJSON
+    basemaps_style: Mapbox 样式
+    mapbox_key: Mapbox 访问令牌
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    attribution: 属性
+    attribution_placeholder: '© OpenStreetMap 贡献者'
+    transforms_note: Sharp 方法名称及其参数。 有关更多信息，请参阅 https://sharp.pixelplumbing.com/api-constructor。
+    additional_transforms: 其它转换
+    project_name: 项目名称
+    project_descriptor: 项目描述
+    project_url: 项目URL
+    project_color: 项目颜色
+    project_logo: 项目 Logo
+    default_language: 默认语言
+    project_owner: 项目负责人
+    branding: 招牌
+    public_foreground: 公共前景
+    public_background: 公共背景
+    public_note: 公共便笺
+    theming: 默认主题
+    default_appearance: 默认外观
+    default_theme_light: 默认浅色主题
+    default_theme_dark: 默认深色主题
+    auth_password_policy: 认证密码策略
+    auth_login_attempts: 尝试认证登录次数
+    files_and_thumbnails: 文件和存储
+    storage_default_folder: 默认文件夹
+    storage_asset_presets: 转换预设
+    storage_asset_transform: 允许的转换
+    overrides: 应用设置覆盖
+    custom_css: 自定义 CSS
+    module_bar: 模块栏
+    transformations_all: 允许所有转换
+    transformations_none: 禁用转换
+    transformations_presets: 将转换限制为以下预设
+    image_editor: 图像编辑器
+    custom_aspect_ratios: 自定义长宽比
+    theme_light_overrides: 亮色主题自定义
+    theme_dark_overrides: 暗色主题自定义
+    public_registration: 用户注册
+    public_registration_note: 允许用户通过 [注册路径] (/admin/register) 注册。
+    public_registration_role: 用户角色
+    public_registration_role_note: 此角色分配给使用此方法注册的用户。不影响已注册用户。
+    public_registration_email_filter: 电子邮件地址过滤器
+    public_registration_email_filter_note: 只有符合此过滤规则的电子邮件地址才能注册。
+    public_registration_verify_email: 验证电子邮件
+    public_registration_verify_email_note: 向注册用户发送一封电子邮件，请他们在登录前点击验证链接。
+    visual_editor_urls: 可视化编辑器网址
+    report_feature_url: 用于反馈功能的网址
+    report_bug_url: 用于反馈Bug的网址
+    report_error_url: 用于反馈错误的网址
+    collaborative_editing: 共同编辑
+    collaborative_editing_note: 共同编辑需要WebSockets才能正常工作。
+    ai_notice: 'AI助手提供一个内置的侧边栏，用于与大型语言模型交谈。启用后，从工具栏中打开此侧边栏，以便询问问题、生成内容、获取帮助。<a href="https://directus.io/docs/guides/ai/assistant" target="_blank">了解更多关于配置和使用AI助手的信息。</a>'
+    mcp_enabled: MCP服务器
+    mcp_enabled_note: '通过 <a href="https://directus.io/docs/guides/ai/mcp" target="_blank">模型上下文协议 (MCP)</a> 将 AI/LLM 工具连接到您的 Directus 项目。这使 AI 助手能够安全地读取您的 Directus 数据并与之交互。'
+    mcp_notice: '模型上下文协议（Model Context Protocol）是将大型语言模型（LLM）连接到像 Directus 这样的应用的标准。启用后，Directus MCP 服务器将在 /mcp 可用。<a href="https://directus.io/docs/guides/ai/mcp" target="_blank">了解有关 MCP 及如何连接的更多信息。</a>'
+    mcp_allow_deletes: 允许删除
+    mcp_allow_deletes_note:
+      - 允许通过MCP工具删除条目、文件、流程、字段、关系以及模型。<strong>注意：这可能导致数据丢失。</strong>出于安全考虑，默认为禁用。
+    mcp_prompts_collection: AI 提示词集合
+    mcp_prompts_collection_note: '选择用于存储 AI 交互<a href="https://directus.io/docs/guides/ai/mcp/prompts" target="_blank">可重复使用的提示词模板</a>的集合。'
+    mcp_system_prompt_divider: 系统提示配置
+    mcp_system_prompt_enabled: 使用系统提示
+    mcp_system_prompt_enabled_note: "使用<a href='https://directus.io/docs/guides/ai/mcp#system-prompt' target='_blank'>默认系统提示词</a>来指导大型语言模型（LLM）的行为。禁用后可以移除或使用下方您自己的提示词覆盖。"
+    mcp_system_prompt: 自定义系统提示
+    mcp_system_prompt_note: '自定义系统提示替换默认值。留空则使用默认值(如果已启用)。'
+    ai_system_prompt: 用于AI系统的提示词
+    ai_system_prompt_note: '自定义用于AI系统的提示词，可以在与AI助手的交互中引导大型语言模型的行为。若留空，则使用默认值。'
+    ai_openai_allowed_models: AI OpenAI的可用模型
+    ai_anthropic_allowed_models: AI Anthropic的可用模型
+    ai_google_allowed_models: AI Google的可用模型
+    ai_openai_compatible: 与OpenAI相兼容的提供者
+    ai_openai_compatible_name: 提供者的名称
+    ai_openai_compatible_base_url: 根URL
+    ai_openai_compatible_models: 模型
+    ai_openai_compatible_headers: 自定义标头
+    ai_model_id: 型号
+    ai_header_name: 报头
+  directus_shares:
+    name: 名称
+    role: 角色
+    password: 密码
+    date_start: 开始日期
+    date_end: 结束日期
+    max_uses: 最大使用
+    times_used: 已使用时间
+  directus_fields:
+    collection: 模型名称
+    icon: 图标
+    note: 注释
+    hidden: 隐藏
+    singleton: 单一
+    translation: 字段名称翻译
+    display_template: 模板
+  directus_roles:
+    name: 角色名称
+    icon: 角色 Icon
+    description: 描述
+    users: 角色中的用户
+    parent: 父角色
+    children: 子角色
+    policies: 策略
+  directus_policies:
+    name: 策略名称
+    description: 描述
+    app_access: 应用访问
+    admin_access: 管理员访问
+    ip_access: IP 访问
+    enforce_tfa: 需要 2FA
+field_options:
+  directus_settings:
+    project_name_placeholder: 我的项目
+    project_color_note: 登录和标志背景
+    project_logo_note: 白色40×40 SVG/PNG
+    project_favicon_note: 32×32 ICO
+    public_note_placeholder: 简短的公开消息（支持Markdown语法）...
+    security_divider_title: 安全
+    auth_password_policy:
+      none_text: 无 — 不推荐使用
+      weak_text: 弱 - 最少 8 个字符
+      strong_text: 强度 - 大写/小写/数字/特殊符号
+    storage_asset_presets:
+      fit_label: 适合的
+      upscaling: 放大
+      fit:
+        contain_text: Contain (等比例)
+        cover_text: 裁剪（强制大小）
+        fit_text: 自适应（短边）
+        outside_text: 自适应（长边）
+    additional_transforms: 其它转换
+    transforms_note: Sharp 方法名称及其参数。 有关更多信息，请参阅 https://sharp.pixelplumbing.com/api-constructor。
+    mapbox_key: Mapbox 访问令牌
+    mapbox_placeholder: pk.eyJ1Ijo.....
+    basemaps: 底图
+    basemaps_name_placeholder: 输入基图名称：
+    basemaps_raster: 栅格化
+    basemaps_tile: Raster TileJSON
+    basemaps_style: Mapbox 样式
+    files_divider_title: 文件和缩略图
+    overrides_divider_title: 应用设置覆盖
+  directus_activity:
+    login: 登录
+    create: 创建
+    update: 更新
+    delete: 删除
+  directus_collections:
+    track_activity_revisions: 跟踪活动和历史修改版本
+    only_track_activity: 仅跟踪活动
+    do_not_track_anything: 不跟踪任何内容
+    collection_setup: 模型设置
+    note_placeholder: 此模型的简介...
+    hidden_label: 在管理菜单中隐藏
+    singleton: 视为单个对象
+    language: 语言
+    translation: 翻译
+    translation_placeholder: 输入翻译...
+    collection_name: 模型名称
+    singular_unit: 单一单位
+    plural_unit: 复数单位
+    archive_divider: 存档
+    archive_field_placeholder: 选择字段...
+    archive_app_filter: 启用归档功能
+    archive_value: 归档时设定的值...
+    unarchive_value: 解除归档时设定的值...
+    sort_divider: 排序
+    sort_field: 选择字段...
+    accountability_divider: 访问控制
+    duplication_divider: 复制
+    preview_divider: 预览
+    content_versioning_divider: 内容版本
+    enable_versioning: 启用版本
+  directus_files:
+    title: 唯一的标题...
+    description: 可选描述...
+    location: 可选位置...
+    storage_divider: 文件名
+    focal_point_divider: 聚焦点
+    filename_disk: 服务端的名称...
+    filename_download: 下载时的文件名
+  directus_policies:
+    name: 此策略的唯一名称...
+    description: 此策略的描述...
+    ip_access: 添加允许的 IP 地址、 IP 范围和 CIDR 块。留空以允许所有...
+    enforce_tfa: 强制两步验证
+    assigned_to: 分配给
+  directus_roles:
+    name: 角色名称...
+    description: 角色介绍...
+    fields:
+      icon_name: 图标
+      name_name: 名称
+      name_placeholder: 输入标题...
+      link_name: 链接
+      link_placeholder: 相对或绝对的 URL...
+    parent_note: 此角色继承权限的可选父角色
+    children_note: 继承此角色权限的嵌套子角色
+    collections_name: 数据模型
+    collections_addLabel: 添加到模型...
+  directus_users:
+    preferences_divider: 用户设置
+    dropdown_auto: 自动 (系统主题)
+    dropdown_light: 亮色模式
+    dropdown_dark: 暗色模式
+    admin_divider: 管理员设置
+    status_dropdown_draft: 草稿
+    status_dropdown_invited: 已邀请
+    status_dropdown_active: 激活
+    status_dropdown_suspended: 已停用
+    status_dropdown_archived: 已存档
+    token: 请输入安全访问令牌...
+no_fields_in_collection: '集合 {collection} 中没有任何字段'
+no_value: 没有值
+do_nothing: 什么都不做
+generate_and_save_uuid: 生成并保存 UUID
+save_current_user_id: 保存当前用户 ID
+save_current_user_role: 保存当前用户角色
+save_current_datetime: 保存当前日期/时间
+always_open: 总是展开
+start_open: 默认打开
+start_collapsed: 默认收起
+block: 阻止
+inline: 内联
+comment: 注释
+live_preview:
+  enable: 启用预览
+  disable: 禁用预览
+  change_size: 更改显示尺寸
+  refresh: 刷新预览
+  new_window: 在新窗口中打开
+  close_window: 在分割视图中打开
+  toggle_3d: 切换 3D
+  iframe_title: 实时网站预览
+  display_options: 显示选项
+shares: 共享
+unlimited_usage: 无限使用
+uses_left: 无剩余使用次数 | 剩余一次使用次数 | 剩余 {n} 次使用次数
+no_shares: 没有要显示的共享
+new_share: 新建分享
+ai:
+  input: Input
+  unknown: 未知
+  items: 条目
+  content: 内容
+  settings: 设置
+  tool_approval:
+    disabled: 禁用
+  ask_user_submit: 提交
+  ask_user_next: 下一步
+ai_tools:
+  items: 条目
+  files: 多个文件
+  folders: 文件夹
+  flows: 流程
+  trigger-flow: 触发流程
+  operations: 操作
+  schema: Schema
+  collections: 数据模型
+  fields: 字段
+mcp_prompts_collection:
+  no_collection_selected: 无选择的集合
+  no_collection_selected_copy: 选择一个集合来启用可重复使用的提示词模板。
+  collection_not_found: 集合未找到
+  collection_not_found_description: 集合 "{collection}" 在数据库中不存在。
+  generate: 生成 AI 提示词集合...
+  already_exists: AI 提示词集合已存在
+  generate_collection_dialog_title: 生成 AI 提示词集合
+  generate_fields_dialog_title: 生成 AI 提示词字段
+  generate_collection_dialog_description: '这将创建一个新集合 "{collection}"，其中包含存储可重复使用的提示词模板所需的字段和设置。'
+  generate_fields_dialog_description: '这将在您的 "{collection}" 集合上创建所需的字段。'
+  validation_success: '集合已准备好用作"AI 提示词"集合。'
+  validation_error_invalid: 集合不能被使用
+  validation_error_missing: 集合仍不能被使用
+  invalid_fields: '以下字段存在但类型不兼容：'
+  missing_fields: '以下字段是必需的，但丢失：'
+  generate_missing: 生成缺失的字段……
+mcp_prompts_collection_schema:
+  system_prompt_note: 塑造大型语言模型（LLM）响应方式的指令。
+  messages_note: '可选：定义用户与大型语言模型（LLM）之间的对话结构。用于添加上下文并改进输出。'
+  messages_role_user: 用户
+  messages_role_assistant: 助理
+  messages_role_note: 谁正在这个信息中说话。
+  meta_prompts_notice: '提示词是可重复使用的模板，您可以通过 Directus MCP 服务器、流程或其他 AI 应用程序与大型语言模型（LLM）一起使用。<a href="https://directus.io/docs/guides/ai/mcp/prompts" target="_blank">了解更多关于创建有效提示词的信息。</a>'
+expired: 已过期
+upcoming: 即将到来的
+share: 分享
+share_item: 分享条目
+shared_with_you: 已与您分享一个条目
+shared_enter_passcode: 输入您的密码以继续...
+generate: 生成
+shared_leave_blank_for_passwordless_access: 留空以无密码访问
+shared_leave_blank_for_unlimited: 留空表示无限制
+shared_times_remaining: 此链接只能使用 {n} 次
+shared_last_remaining: 此链接只能使用一次
+shared_uses_left: 为了增加安全性，该共享页面已被设置成只可显示有限次。 目前还剩下 {n} 次显示，此后本页面将无法访问。
+share_access_page: 访问共享页面
+share_access_not_found: 这个共享页面不存在或已经超过允许的最大数量。
+share_access_not_found_desc: 请联系此条目的授权用户以请求访问。
+share_access_not_found_title: 未知共享页面
+share_copy_link: 复制链接
+share_copy_link_success: 链接已复制
+share_copy_link_error: 无法复制链接
+share_send_link: 发送链接
+relational_triggers: 关联触发器
+referential_action_field_label_m2o: 删除 {collection} 时...
+referential_action_field_label_o2m: 取消选择 {collection}...
+referential_action_no_action: 防止删除
+referential_action_cascade: 删除 {collection} 项 (分类)
+referential_action_set_null: 伪装 {field} 字段
+referential_action_set_default: 设置 {field} 为默认值
+choose_action: 选择操作
+continue_label: 继续
+continue_as: >-
+  {name} 目前已被身份验证。如果您确认此帐户，请按继续。
+editing_role: '{role} 角色'
+editing_policy: '{policy} 策略'
+no_permissions: 没有权限
+permission_add_collection: 添加模型
+default_label: 默认值
+delete_label: 删除
+delete_are_you_sure: >-
+  此操作是永久性的，无法撤销。您确定要继续吗？
+delete_field_are_you_sure: >-
+  您确定要删除字段 "{field}" 吗? 此操作无法撤消。
+description: 描述
+done: 已完成
+duplicate: 复制
+limit: 限制
+email: 邮箱
+embed: 嵌入
+fallback_icon: 备用图标
+field: 字段 | 字段
+file: 文件
+file_library: 文件管理
+forgot_password: 忘记密码
+hidden: 隐藏
+hidden_in_group: 在 {group} 中隐藏
+icon: 图标
+info: 更多信息
+normal: 标准
+success: 成功
+warning: 警示
+danger: 危险
+colors:
+  purple: 紫色
+  blue: 蓝色
+  green: 绿色
+  yellow: 黄色
+  orange: 橙色
+  red: 红色
+  black: 黑色
+  gray: 灰色
+  white: 白色
+junction_collection: 交叉模型
+latency: 延迟
+login: 登录
+my_activity: 操作记录
+not_authenticated: 未认证
+authenticated: 已认证。
+options: 选项
+otp: 一次性密码
+password: 密码
+confirm_password: 确认密码
+permissions: 权限
+relationship: 关联
+reset: 重置
+reset_password: 重置密码
+revisions: 修订版本
+no_revisions: 尚未更新
+no_logs: 暂无记录
+show_failed_only: 仅显示失败
+no_logs_on_page: 此页面没有日志
+revert: 还原
+save: 保存
+schema: Schema
+search: 搜索
+select_existing: 选择现有
+select_field_type: 选择字段类型
+select_interface: 选择接口
+select_display: 选择一个显示
+settings: 设置
+register: 注册
+registration_successful_headline: 成功！
+registration_successful_note: 您现在可以进入登录页面。
+registration_successful_check_email_note: |
+  请注意，您需要通过点击发送给您的验证链接来验证您的电子邮件地址。
+dont_have_an_account: 还没有帐户吗？
+already_have_an_account: 已经有一个帐户了？
+sign_up_now: 立即注册
+sign_in: 登录
+sign_out: 退出登录
+sign_out_confirm: 您确定要退出登录吗?
+something_went_wrong: 出了点问题。
+sort_direction: 排序
+export_location: 导出位置
+export_started: 导出已开始
+export_started_copy: 您的导出已经开始。当准备下载时，您会收到通知。
+sort_asc: 升序
+sort_desc: 降序
+disable_sort: 禁用排序
+template: 模板
+require_value_to_be_set: 创建时需要设置值
+translation: 翻译
+translation_placeholder: 输入翻译...
+value: 值
+view_project: 查看项目
+report_error: 报告错误
+table: 表
+list: 列表
+search_filter: 搜索与过滤器
+enable_search_filter: 启用搜索和过滤
+item_link: 项目链接
+show_link_to_item: 显示项目链接
+navigate_to_item: 导航到项目
+undo_removed_item: 撤消删除的项目
+remove_item: 删除项目
+delete_item: 删除项目
+pause: 暂停
+resume: 恢复
+interfaces:
+  list-m2a:
+    prefix_note: 默认情况下使用相关项目的收藏名称
+    sorting_disabled: 排序被禁用，因为有太多的条目而无法适应在一张页面上。
+  filter:
+    name: 筛选
+    description: 配置过滤对象。
+    add_filter: 添加过滤器
+    add_group: 或 / 与 组
+    add_value: 添加值
+    logic_type_and: 逻辑与 - AND
+    logic_type_or: 逻辑或 - OR
+    all: 全部，全选时保留分支节点
+    any: 任意
+    and: 和
+    of_the_following: 条件时生效
+    no_rules: 无已配置的规则
+    change_value: 点击修改名称
+    placeholder: 拖拽规则到此处
+    add_key_placeholder: 添加键并按回车键...
+  fields:
+    name: 字段
+  group-accordion:
+    name: 折叠
+    description: 在折叠面板中显示字段或分组
+    start: 开始
+    all_closed: 全部已关闭
+    first_opened: 最早打开
+    all_opened: 全部已打开
+    accordion_mode: 折叠模式
+    max_one_section_open: 最多展开 1 项
+  presentation-links:
+    presentation-links: 按钮
+    style: 样式
+    primary: 主要的
+    link: 链接
+    button: 按钮
+    error: 无法执行操作
+  select-multiple-checkbox:
+    checkboxes: 复选框
+    description: 通过复选框选择多个选项
+    allow_other: 允许其他
+    show_more: '显示更多 {count}'
+    items_shown: 显示条目
+  select-multiple-checkbox-tree:
+    name: 复选框 (树状)
+    description: 通过复选框选择多个选项
+    value_combining: 组合值
+    value_combining_note: 控制嵌套选择时存储的值。
+    show_all: 显示全部
+    show_selected: 显示所选
+  input-code:
+    code: 代码
+    description: 编辑或分享代码片段
+    line_number: 行号
+    line_wrapping: 换行
+    placeholder: 在此输入
+  system-collection:
+    collection: 数据模型
+    description: 在现有模型之间选择
+    include_system_collections: 包含系统模型
+  system-owner:
+    update: 更新项目所有者
+    edit: 编辑项目所有者
+    system-owner: 系统所有者
+    description: 系统所有者接口
+  system-collections:
+    collections: 数据模型
+    description: 在现有模型之间选择
+    include_system_collections: 包含系统模型
+  select-color:
+    color: 颜色
+    description: 输入或选择颜色
+    placeholder: 选择颜色
+    preset_colors: 预设颜色
+    opacity: 不透明度
+    preset_colors_add_label: 添加新颜色...
+    name_placeholder: 输入颜色名称...
+  datetime:
+    datetime: 日期时间
+    description: 输入日期时间
+    include_seconds: 包括秒数
+    set_to_now: 设置为现在
+    use_24: 使用24小时格式
+    placeholder: 选择日期时间...
+  system-fields:
+    select_a_collection: 选择模型
+    no_fields: 没有字段
+  system-display-template:
+    display-template: 显示模板
+    description: 混合静态文本和动态字段值
+    collection_field: 模型字段
+    collection_field_not_setup: 该模型的字段配置错误
+    select_a_collection: 选择模型
+  presentation-divider:
+    divider: 分隔线
+    description: 标记字段并分成多个部分
+    title_placeholder: 输入标题，或者留空只显示一条线...
+    inline_title: 行内标题
+    inline_title_label: 在行内显示标题
+    margin_top: 上边距
+    margin_top_label: 增加上边距
+  select-dropdown:
+    description: 请选择
+    choices_placeholder: 添加选项
+    allow_other: 允许其他
+    allow_other_label: 允许其他值
+    allow_none: 不允许
+    allow_none_label: 不允许选择
+    choices_name_placeholder: 输入名称...
+    choices_value_placeholder: 请输入值...
+    preview_threshold: 预览阈值
+  select-multiple-dropdown:
+    select-multiple-dropdown: 下拉(多选)
+    description: 从下拉列表中选择多个值
+  file:
+    file: 文件
+    description: 选择或上传文件
+  files:
+    files: 多个文件
+    description: 选择或上传多个文件
+  input-hash:
+    hash: Hash
+    description: 输入一个hash值
+    masked: 隐藏
+    masked_label: 隐藏真实值
+  select-icon:
+    icon: 图标
+    description: 从下拉列表中选择一个图标
+    search_for_icon: 搜索图标...
+  file-image:
+    image: 图片
+    description: 选择或上传图片
+    crop: 裁剪为适合的
+    crop_label: 视需要裁剪图像
+    letterbox: 信箱
+    letterbox_label: 添加图像预览间距
+  system-interface:
+    interface: 接口
+    description: 选择一个现有接口
+    placeholder: 选择接口...
+  system-interface-options:
+    interface-options: 接口选项
+    description: 选择接口选项的模式
+  system-display:
+    display: 显示
+    description: 选择一个已存在的显示
+    placeholder: 选择一个显示...
+  system-display-options:
+    display-options: 显示选项
+    description: 选择显示选项的模式
+  list-m2m:
+    many-to-many: 多对多
+    description: 选择多个相关项目
+    columns_configure_notice: 您可以在创建此字段后配置显示模板。
+    display_template_configure_notice: 您可以在创建此字段后配置显示模板。
+  select-dropdown-m2o:
+    many-to-one: 多对一
+    description: 选择一个条目
+    display_template: 显示模板
+  collection-item-dropdown:
+    collection-item-dropdown: 集合项下拉菜单
+    description: 从JSON格式的集合中选择一个项目
+  input-rich-text-md:
+    markdown: Markdown
+    description: 输入并预览Markdown
+    edit: 编辑
+    preview: 预览
+    editorFont: 编辑器字体
+    previewFont: 预览字体
+    default_view: 默认视图
+    default_view_editor: 编辑器
+    default_view_preview: 预览
+    customSyntax: 自定义块
+    customSyntax_label: 添加自定义语法类型
+    customSyntax_add: 添加自定义语法
+    box: Block / Inline
+    imageToken: 静态访问令牌
+    imageToken_label: 静态访问令牌已被附加到资源的 URL
+  map:
+    map: 地图
+    description: 选择地图上的位置
+    zoom: 缩放
+    geometry_type: 地图的几何类型
+    geometry_format: 地图的几何格式
+    default_view: 默认视图
+    invalid_options: 无效选项
+    invalid_format: 无效格式 ({format})
+    unexpected_geometry: 需要 {expected}，但收到 {got}。
+    fit_bounds: 自适应
+    native: 原生
+    geojson: GeoJSON
+    lnglat: 经度、纬度
+    wkt: WKT
+    wkb: WKB
+    click_to_select: 单击以选择 {geometry}
+  presentation-notice:
+    notice: 提示
+    description: 显示一个快捷提示
+    text: 在此输入通知内容...
+    no_text: 没有配置文本...
+  list-o2m:
+    one-to-many: 一对多
+    description: 选择多个相关项目
+    no_collection: 找不到collection
+  system-folder:
+    folder: 根文件夹
+    description: 选择文件夹
+    field_hint: 默认文件夹，用于未指定文件夹的上传文件。不影响现有文件。
+    root_name: 文件管理
+    system_default: 系统默认
+  select-radio:
+    radio-buttons: 单选按钮
+    description: 选择多项选择
+  list:
+    repeater: 重复器
+    description: 创建同一结构的多个条目
+    edit_fields: 编辑字段
+    add_label: '"创建新"标签'
+    sort: 排序
+    sort_placeholder: 手动
+    field_note_placeholder: 输入字段备注...
+    incompatible_data: 当前数据与重复器接口不兼容，添加项目到重复器时将被覆盖
+    interface_group: 接口选项
+    display_group: 显示选项
+  slider:
+    slider: 滑块
+    description: 使用滑块选择一个数字
+    always_show_value: 总是显示
+  tags:
+    tags: 标签
+    description: 选择或添加标签
+    whitespace: 空白
+    hyphen: 用连字符替换
+    underscore: 将空格替换为下划线
+    remove: 删除空格
+    capitalization: 大写
+    uppercase: 转为大写
+    lowercase: 转为小写
+    auto_formatter: 自动格式化标题
+    alphabetize: 按字母表排序
+    alphabetize_label: 强制按字母顺序排序
+    add_tags: 添加标签并按回车键...
+  input:
+    input: Input
+    description: 手动输入一个值
+    trim: 裁剪
+    trim_label: 修剪开始和结束
+    mask: 隐藏
+    mask_label: 隐藏真实值
+    clear: 已清除的值
+    clear_label: 保存为空字符串
+    minimum_value: 最小值
+    maximum_value: 最大值
+    step_interval: 步骤间隔
+    slug: Slugify
+    slug_label: 使输入的 URL 安全
+  input-multiline:
+    textarea: 文本区域
+    description: 输入多行纯文本
+  input-translated-string:
+    input-translated-string: 已翻译的字符串
+    description: 选择或添加翻译字符串
+    search_placeholder: 搜索...
+    new_custom_translation: 新建自定义翻译
+  boolean:
+    toggle: 切换
+    description: 开启或关闭
+    color_on: 启用颜色
+    color_off: 禁用颜色
+    label_placeholder: 输入标签...
+    label_default: 已启用
+  translations:
+    display_template: 显示模板
+    no_collection: 暂无模型
+    toggle_split_view: 切换视图
+    enable: 启用
+    default_split_view_state: 默认分割视图状态
+    user_language: 使用当前用户语言
+    default_language: 默认语言
+    language_field: 语言指示字段
+    language_direction_field: 语言方向字段
+  list-o2m-tree-view:
+    description: 递归显示树状图
+    recursive_only: 树状图仅适用于递归关系。
+  user:
+    user: 用户
+    description: 选择一个已有的用户
+    select_mode: 选择模式
+    modes:
+      auto: 自动
+      dropdown: 下拉列表
+      modal: 模式
+  input-rich-text-html:
+    wysiwyg: 所见即所得
+    description: 富文本编辑器
+    toolbar: 工具栏
+    custom_formats: 自定义格式
+    custom_formats_note: TinyMCE 内容格式列表。有关更多信息，请参阅有关 [内容格式](https://www.tiny.cloud/docs/tinymce/latest/content-formatting/) 的 TinyMCE 文档。
+    options_override: 覆盖选项
+    options_override_note: TinyMCE 自定义格式快捷键及其值。有关更多信息，请参阅有关 [自定义格式](https://www.tiny.cloud/docs/tinymce/latest/user-formatting-options/) 的 TinyMCE 文档。
+    folder_note: 用于上传文件的文件夹。不影响现有文件。
+    imageToken: 静态访问令牌
+    imageToken_label: 静态访问令牌已被附加到资源的 URL
+    media_preview_iframe_title: 媒体预览
+  input-block-editor:
+    input-block-editor: 块编辑器
+    description: 用于富媒体故事的块式编辑器，使用 Editor.js 以 JSON 格式输出干净的数据
+    tools: 工具栏
+    tools_options:
+      header: 报头
+      nestedlist: 列表
+      embed: 嵌入
+      paragraph: 段落
+      code: 代码
+      image: 图片
+      attaches: 附件
+      table: 表
+      quote: 引用
+      underline: 下划线
+      inlinecode: 内联代码
+      delimiter: 分隔符
+      checklist: 清单
+      toggle: 切换块
+      alignment: 对齐
+      raw: 原始HTML
+  input-autocomplete-api:
+    input-autocomplete-api: 自动完成 Input (API)
+    description: 一个事先搜索的外部API
+    results_path: 结果路径
+    value_path: 值路径
+    text_path: 文本路径
+    trigger: 触发器
+    rate: 评价
+  group-raw:
+    name: 原始组
+    description: 渲染字段为
+  group-detail:
+    name: 详情
+    description: 渲染字段为可折叠部分
+    show_header: 显示分组名称
+    header_icon: 图标
+    header_color: 颜色
+    start_open: 默认打开
+    start_closed: 默认收起
+  system-token:
+    system-token: Token
+    description: 管理静态访问令牌
+    placeholder: 点击“生成令牌”创建一个新的静态访问令牌
+    value_securely_saved: 值已安全保存
+    generate: 生成令牌
+    regenerate: 重新生成令牌
+    generate_success_copy: 确保备份并复制上述令牌。 出于安全原因，保存并导航此页面后，您将无法再次查看令牌。
+    remove_token: 删除令牌
+  system-raw-editor:
+    system-raw-editor: 原始编辑器
+    description: 允许输入原始或mustache 模板值
+  input-password:
+    input-password: 输入密码
+    description: 带有隐藏值切换的密码输入
+  header:
+    header: 报头
+    links: 链接
+displays:
+  translations:
+    translations: 翻译
+    description: 翻译预览
+    enable: 启用
+    user_language: 使用当前用户语言
+    default_language: 默认语言
+    language_field: 语言指示字段
+  boolean:
+    boolean: Boolean
+    description: 显示开启或关闭状态
+    label_on: 标签开启
+    label_on_placeholder: 在标签上输入...
+    label_off: 关闭标签
+    label_off_placeholder: 输入关闭标签...
+    icon_on: 图标开启
+    icon_off: 关闭图标
+    color_on: 启用颜色
+    color_off: 禁用颜色
+  collection:
+    collection: 数据模型
+    description: 显示模型
+    icon_label: 显示模型的图标
+  color:
+    color: 颜色
+    description: 显示一个彩色的圆点
+    default_color: 默认颜色
+  datetime:
+    datetime: 日期时间
+    description: 显示与时间相关的值
+    format: 格式
+    format_note: >-
+      自定义格式接受__[日期字段符号表](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)__
+    long: Long
+    short: 排序
+    relative: 相对
+    relative_label: '显示相对时间，例如 5 分钟前'
+    suffix: 后缀
+    suffix_label: 显示相对指示器
+    suffix_note: 使用 'in' 和 'ago' 等单词
+    strict: 严格的
+    strict_label: 使用严格的单位
+    strict_note: 删除像‘几乎’，‘超过’，‘小于’ 这样的单词
+    round: 圆角
+    round_note: 选择 (取整函数) 四舍五入的方式
+    down: 向下取整
+    nearest: 最近的
+    up: 向上取整
+  file:
+    file: 文件
+    description: 显示文件
+  filesize:
+    filesize: 文件大小
+    description: 显示文件大小
+  formatted-value:
+    formatted-value: 格式化值
+    description: 显示文本格式化
+    format: 格式
+    format_label: 自动格式
+    font: 字体
+    font_sans_serif: 无衬线字体
+    font_serif: 衬线字体
+    font_monospace: 等宽
+    bold: 加粗
+    bold_label: 使用粗体
+    italic: 斜体
+    italic_label: 使用斜体
+    prefix: 前缀
+    prefix_label: 前置文本
+    suffix: 后缀
+    suffix_label: 附加文本
+    color: 颜色
+    background: 背景
+    icon: 图标
+    border: 边框
+    border_label: 显示边框
+    mask: 隐藏
+    mask_label: 隐藏真实值
+    text: 文本
+    text_placeholder: 可选值覆盖...
+  formatted-json-value:
+    formatted-json-value: 格式化JSON值
+    description: 显示对象的格式化版本
+  hash:
+    hash: Hash
+    description: 显示对象的格式化版本
+  icon:
+    icon: 图标
+    description: 显示图标
+    filled: 填充
+    filled_label: 使用填充变量
+  image:
+    image: 图片
+    description: 显示一个小的图像预览
+    circle: 圆圈
+    circle_label: 显示为圆形
+  labels:
+    labels: 标签
+    description: 显示单个标签或标签列表
+    default_foreground: 默认文字颜色
+    default_background: 默认背景颜色
+    format_label: 格式化每个标签
+    show_as_dot: 显示小圆点
+    choices_value_placeholder: 请输入值...
+    choices_text_placeholder: 请输入文本…
+  mime-type:
+    mime-type: MIME 类型
+    description: 显示文件的 MIME 类型
+    extension_only: 仅限扩展
+    extension_only_label: 只显示文件扩展名
+  rating:
+    rating: 评分
+    description: 显示为星星（基于最大值）
+    simple: 基础
+    simple_label: 显示基础星星
+  raw:
+    raw: 原始值
+  related-values:
+    related-values: 应用值
+    description: 显示相对值
+    display_template_configure_notice: 您可以在创建此字段后配置显示模板。
+  user:
+    user: 用户
+    description: 显示一个系统用户
+    avatar: 头像
+    name: 名称
+    both: 两个
+    circle_label: 以圆形头像显示用户
+layouts:
+  cards:
+    cards: 卡片
+    image_source: 图像来源
+    image_fit: 适合图像
+    crop: 裁剪
+    contain: 包含
+    title: 标题
+    subtitle: 副标题
+  tabular:
+    tabular: 表
+    spacing: 间距
+    comfortable: 宽松
+    compact: 紧凑
+    cozy: 适中
+  calendar:
+    calendar: 日历
+    start_date_field: 开始日期
+    end_date_field: 结束日期
+    optional: 可选的
+    first_day: 一周的起始日
+  map:
+    map: 地图
+    basemap: 底图
+    layers: 图层
+    cluster_options: 集群选项
+    cluster: 集群附近数据
+    cluster_radius: 集群半径
+    cluster_minpoints: 集群最小尺寸
+    cluster_maxzoom: 集群的最大缩放
+    field: 地理空间字段
+    invalid_geometry: 无效几何图形
+    find_location: 搜索地点
+    default_template: 使用Collection默认值
+    no_compatible_fields: 没有兼容的字段
+  kanban:
+    name: 看板
+    group_field: 分组依据
+    group_field_placeholder: 用于分组的字段...，
+    group_title: 分组标题：
+    group_title_placeholder: 分组标题字段...，
+    title: 卡片标题
+    title_placeholder: 可选标题字段...
+    text: 卡片文本
+    text_placeholder: 可选文本字段...
+    date: 卡片日期
+    date_placeholder: 可选日期字段...
+    tags: 卡片标签
+    tags_placeholder: 可选标签字段...
+    user: 卡片用户
+    user_placeholder: 可选用户字段...
+    image: 卡片图像
+    image_placeholder: 可选图像字段...
+    image_fit: 适合的卡片图像
+    crop: 裁剪
+    advanced: 高级
+    edit_group: 编辑分组
+    delete_group: 删除分组
+    add_group: 添加分组
+    add_group_placeholder: 输入一个新的分组标题...
+    show_ungrouped: 显示未分组
+    show: 显示
+    no_group: 无分组
+horizontal: 横向
+vertical: 垂直
+axis: 轴
+x_axis: X-轴
+y_axis: Y-轴
+y_axis_function: Y-轴函数
+show_x_only: 仅显示 X-轴
+show_y_only: 仅显示 Y-轴
+show_data_label: 显示数据标签
+both: 两个
+show_axis_labels: 显示轴标签
+function: 函数
+half_circle: 半圆
+full_circle: 全圆
+stroke_width: 描边宽度
+rounded_stroke: 圆角描边
+thin: 细
+medium: 中
+broad: 大
+show_labels: 显示标签
+show_legend: 显示图例
+right: 右
+left: 左
+start: 开始
+end: 结束
+donut: 圆环图
+continuous: 继续
+gap: 间隙
+panels:
+  metric:
+    name: 公制
+    description: 基于查询显示单个值
+    field: 字段
+  metric_list:
+    name: 公制度量列表
+    description: 将搜集的内容列表并可视化其合计指标
+  time_series:
+    name: 时间系列
+    description: 根据一段时间的值渲染线形图
+    date_field: 日期字段
+    value_field: 值字段
+    fill_type: 填充类型
+    curve_type: 曲线类型
+    missing_data: 缺失数据
+  label:
+    name: 标签
+    description: 显示一些文本
+  list:
+    name: 列表
+    description: 筛选并列出表模型中的字段
+  barchart:
+    name: 条形图
+    description: 比较数值组的条形图或柱形图
+    horizontal: 横向
+    select_collection: 您必须选择一个集合。
+  linechart:
+    name: 折线图
+    description: 比较字段变化的线形图
+    disabled_grouping: 选择分组时禁用。
+    disabled_no_grouping: 未选择分组时禁用。
+    show_marker: 显示工具提示标志
+    curve_type: 曲线类型
+    smooth: 平滑模式
+    straight: 直线模式
+    step_line: 分步线条
+    show_legend: 显示图例
+  meter:
+    name: 电表模式
+    description: 跟踪值的仪表
+  piechart:
+    name: 饼图或环图
+    description: 在列上显示分组比率的圆形图表
+  variable:
+    name: 全局变量
+    description: 设置用于其他面板筛选器的全局值
+    variable_key: 变量键
+  relational-variable:
+    name: 全局关联变量
+    description: 设置用于其他面板筛选器的全局关联值
+    variable_key: 变量键
+    multiple: 多
+    multiple-label: 选择多个条目
+triggers:
+  common:
+    response_body: 响应体
+    response_body_all: 所有数据
+    response_body_last: 上次操作的数据
+  event:
+    name: 事件钩子
+    description: 由平台触发或数据事件触发
+    action: '动作(非阻塞)'
+    filter: '过滤器(阻塞)'
+  webhook:
+    name: 互联网钩子
+    error_on_reject: 拒绝时出错
+    description: 由传入的 HTTP 请求触发
+    method: 方法
+    async: 异步的
+  operation:
+    name: 另一个流程
+    description: 被另一个流程触发，形成流程链
+    preview: 在不同的流程中被一个操作触发
+  schedule:
+    name: 计划任务(CRON)
+    description: 在常规时间点触发
+    cron: 间隔
+  manual:
+    name: 手动
+    description: 在选定的数据集 (一个或多个) 上手动触发
+    collection_and_item: 集合和条目页面
+    collection_only: 仅集合页面
+    item_only: 仅条目页面
+    collection_page: 集合页面
+    require_selection: 需要选择
+a_flow_uuid: 选择要触发的流...
+any_string_or_json: 任意字符串或JSON对象...
+item_payload_placeholder: 这是用于更新条目字段值的 JSON对象...
+operations:
+  condition:
+    name: 条件
+  exec:
+    name: 运行脚本
+    description: 执行任意代码来修改有效负载
+    modules: '以下**Node modules** 可以使用：'
+  item-create:
+    name: 创建数据
+    description: 在数据库中创建项目
+    payload: 有效载荷 (Payload)
+    emit_events: 发出事件
+  item-delete:
+    name: 删除数据
+    description: 删除数据库中的项目
+    emit_events: 发出事件
+    key: ID组
+    query: 查询
+  item-read:
+    name: 读取数据
+    description: 从数据库读取项目
+    key: ID组
+    query: 查询
+    emit_events: 发出事件
+  item-update:
+    name: 更新数据
+    description: 更新数据库中的项目
+    emit_events: 发出事件
+    key: ID组
+    payload: 有效载荷 (Payload)
+    query: 查询
+  json-web-token:
+    name: JWT
+    description: 签名并验证JWT
+    operation: 操作
+    secret: 秘密
+    secret_placeholder: 输入文本
+    payload: 有效载荷 (Payload)
+    token: Token
+    token_placeholder: eyJhbGciOi
+    options: 选项
+    options_placeholder: '请参考阅读https://www.npmjs.com/package/jsonwebtoken#usage for the available options'
+    sign: 签名令牌
+    verify: 验证令牌
+    decode: 解码令牌
+  log:
+    name: 记录到控制台
+    description: 输出内容到控制台
+    message: 消息
+    message_placeholder: 输入要在控制台中显示的消息...
+  mail:
+    name: 发送电子邮件
+    description: 向一个或多个用户发送电子邮件
+    to: 至
+    to_placeholder: 添加电子邮件地址并按回车……
+    body: 正文内容
+    template: 模板
+    data: 数据
+    cc: 抄送
+    cc_placeholder: 添加电子邮件地址并按回车……
+    bcc: 密送
+    bcc_placeholder: 添加密送电子邮件地址并按回车……
+    reply_to: 回复给
+    reply_to_placeholder: 添加回复邮件地址并按回车键……
+  notification:
+    name: 发送通知
+    description: 向一个或多个用户发送应用内通知
+    recipient: 用户
+    recipient_placeholder: 输入一个UUID...
+    recipient_note: 添加用户UUID并按回车键...
+    item_note: 条目关键字或相对网址
+    message: 消息
+    subject: 主題
+  request:
+    name: 互联网钩子 / 请求 URL
+    description: '向一个 URL 地址发出请求'
+    url: URl
+    url_placeholder: https://example.com/example
+    method: 方法
+    data: 数据
+    headers: 请求头
+    header: 报头
+    header_placeholder: 身份验证
+    value_placeholder: Bearer eyJhbGciOi...
+  sleep:
+    name: 休眠
+    description: 等待给定的毫秒数
+    milliseconds: 毫秒
+  throw-error:
+    name: 抛出错误
+    description: 在拒绝情况抛出错误
+    code: 错误代码
+    status: HTTP 状态码
+    message: 错误信息
+  transform:
+    name: 转换有效负载
+    description: 修改流程的JSON格式负载
+  trigger:
+    name: 触发流程
+    flows: 流程
+    flow: 流程
+    data: 数据
+    iteration_mode: 迭代模式
+    iteration_mode_note: 数组上的迭代模式。
+    serial: 串行
+    parallel: 并行
+    batch: 批处理
+    batch_size: 批量大小
+    cache: 缓存
+unit: 单位
+standard: 基本设置
+scientific: 科学的
+engineering: 工程
+compact: 紧凑
+currency: 货币
+notation: 标记符号
+style: 样式
+fonts:
+  thin: 细
+  extra_light: 高亮
+  light: 亮的
+  normal: 标准
+  medium: 中
+  semi_bold: 半黑体
+  bold: 加粗
+  extra_bold: 大号黑体
+  black: 黑色
+  italic: 斜体
+  oblique: 斜体
+  small: 小字体
+  large: 大号
+  auto: 自动
+text_wrap: 文本换行
+center: 居中
+justify: 两端对齐
+text_align: 文本对齐
+font_weight: 字体粗细
+font_style: 字体样式
+font_size: 字体大小
+minimum_fraction_digits: 最小小数
+maximum_fraction_digits: 最大小数
+show_percentage: 显示百分比
+aggregation: 聚合
+series_grouping: 系列分组
+date_precision: 日期精度
+export_dashboard: 导出仪表盘
+duplicate_dashboard: 复制仪表板
+search_dashboard: 搜索仪表板...
+search_flow: 搜索流程...
+percent: 百分比
+show_password: 显示密码
+hide_password: 隐藏密码
+bsl_banner:
+  title: 您没有设置项目的所有者。
+  license: 我们需要此信息以确保符合我们的 BSL 1.1 许可证。这应该是负责您项目的主要联系人。
+  set_owner: 设置所有者
+  remind_later: 稍后提醒
+  remind_next_login: 我们会在您下次登录时再次提醒。
+accepted: 已接受
+text_direction_auto: 自动(匹配语言)
+text_direction_ltr: 从左到右 (LTR)
+text_direction_rtl: 从右到左 (RTL)
+set_to_now: 设置为现在

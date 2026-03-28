@@ -1,0 +1,10 @@
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+
+litellm_settings:
+  drop_params: true
+  num_retries: 3
+  retry_after: 5
+  retry_policy:
+    RateLimitErrorRetries: 4

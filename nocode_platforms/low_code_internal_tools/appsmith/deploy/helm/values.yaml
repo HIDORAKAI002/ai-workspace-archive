@@ -1,0 +1,474 @@
+## Redis parameters
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    nodeSelector: {}
+    disableCommands: []
+    affinity: {}
+    tolerations: []
+  replica:
+    replicaCount: 1
+    nodeSelector: {}
+    disableCommands: []
+    affinity: {}
+    tolerations: []
+  image:
+    registry: docker.io
+    repository: redis
+    tag: 7.0.15
+
+mongodb:
+  enabled: true
+  service:
+    nameOverride: appsmith-mongodb
+  auth:
+    rootUser: root
+    rootPassword: password
+  replicaCount: 2
+  architecture: "replicaset"
+  replicaSetName: rs0
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  image:
+    registry: docker.io
+    repository: appsmith/mongodb
+    tag: 6.0.27
+  arbiter:
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+  hidden:
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+
+## postgresql parameters
+postgresql:
+  enabled: true
+  auth:
+    username: root
+    password: password
+    postgresPassword: password
+    database: keycloak
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: 14.12.0
+  primary:
+    affinity: {}
+    nodeSelector: {}
+    tolerations: []
+  readReplicas:
+    affinity: {}
+    nodeSelector: {}
+    tolerations: []
+
+## external secrets parameters
+externalSecrets:
+  enabled: false
+  refreshInterval: 1m
+  remoteNameSecret: "" # name of the secret in Secret provider
+
+
+## prometheus paramaters
+prometheus:
+  enabled: false
+  image:
+    tag: v0.74.0
+
+
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+##
+
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+## @param global.namespaceOverride Override the namespace for resource deployed by the chart, but can itself be overridden by the local namespaceOverride
+##
+global:
+  storageClass: ""
+  namespaceOverride: ""
+## @param fullnameOverride String to fully override appsmith.fullname template
+##
+fullnameOverride: ""
+## @param containerName specify running container name in a pod
+##
+containerName: "appsmith"
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Common annotations to add to all Appsmith resources (sub-charts are not considered). Evaluated as a template
+##
+commonAnnotations: {}
+## @param schedulerName Name of the scheduler (other than default) to dispatch pods
+## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+##
+schedulerName: ""
+## @param strategyType StrategyType for Appsmith&reg; statefulset
+## It can be set to RollingUpdate or Recreate by default.
+##
+strategyType: RollingUpdate
+##
+## Init containers for redis & mongodb
+##
+initContainer: {}
+  # redis:
+  #   image: docker.io/redis:7.0.15
+  # mongodb:
+  #   image:  docker.io/bitnami/mongodb:5.0.21-debian-11-r5
+  # postgresql:
+  #   image: docker.io/bitnami/postgresql:14.5.0-debian-11-r21
+## Image
+##
+image:
+  registry: index.docker.io
+  repository: appsmith/appsmith-ee
+  pullPolicy: IfNotPresent
+  pullSecrets: ""
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+## ServiceAccount
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+##
+serviceAccount:
+  ## @param serviceAccount.create Enable creation of ServiceAccount for Appsmith; pods
+  ##
+  create: true
+  ## @param serviceAccount.name Name of the created serviceAccount
+  ## If not set and create is true, a name is generated using the appsmith.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations
+  ##
+  annotations: {}
+
+## @param annotations Annotations to add to the Deployment/StatefulSet resource
+##
+annotations: {}
+
+podAnnotations: {}
+
+podLabels: {}
+
+podSecurityContext: {}
+# For non-root user
+#  fsGroup: 1001
+#  sysctls:
+#  - name: net.ipv4.ip_unprivileged_port_start
+#    value: "80"
+
+securityContext: {}
+  # For non-root user
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+## @param extraVolumes Additional volumes to add to the pod
+## e.g:
+## extraVolumes:
+##   - name: tmp-dir
+##     emptyDir: {}
+##
+extraVolumes: []
+
+## @param extraVolumeMounts Additional volume mounts to add to the appsmith container
+## e.g:
+## extraVolumeMounts:
+##   - name: tmp-dir
+##     mountPath: /tmp
+##
+extraVolumeMounts: []
+
+service:
+  ## @param service.type Kubernetes Service type
+  ##
+  type: ClusterIP
+  ## @param service.port; service port
+  ##
+  port: 80
+  ## @param service.nodePort; Node port to expose if service type is "LoadBalancer" or "NodePort"
+  ##
+  nodePort: 8000
+  ## @param service.portName Appsmith; service port name
+  ##
+  portName: appsmith
+  ## @param service.clusterIP Appsmith; service cluster IP
+  ## e.g:
+  ## clusterIP: None
+  ##
+  clusterIP: ""
+  ## @param service.loadBalancerIP loadBalancerIP for Appsmith&reg; Service
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Address(es) that are allowed when service is LoadBalancer
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.annotations Provide any additional annotations that may be required
+  ##
+  annotations: {}
+
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for Ghost
+  ##
+  enabled: false
+  ## @param ingress.annotations Additional custom annotations for the ingress record
+  ## NOTE: If `ingress.certManager=true`, annotation `kubernetes.io/tls-acme: "true"` will automatically be added
+  ##
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts: []
+    # - host: appsmith-domain.me
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hosts` parameter
+  ## You can:
+  ##   - Use the `ingress.secrets` parameter to create this TLS secret
+  ##   - Relay on cert-manager to create it by setting `ingress.certManager=true`
+  ##   - Relay on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
+  ##
+  tls: false
+  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## NOTE: 'key' and 'certificate' are expected in PEM format
+  ## NOTE: 'name' should line up with a 'secretName' set further up
+  ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
+  ## If it is not set and you're NOT using cert-manager either, self-signed certificates will be created valid for 365 days
+  ## It is also possible to create and manage the certificates outside of this helm chart
+  ## Please see README.md for more information
+  ## e.g:
+  ## secrets:
+  ##   - host: chart-example.local
+  ##     key: |-
+  ##       -----BEGIN RSA PRIVATE KEY-----
+  ##       ...
+  ##       -----END RSA PRIVATE KEY-----
+  ##     certificate: |-
+  ##       -----BEGIN CERTIFICATE-----
+  ##       ...
+  ##       -----END CERTIFICATE-----
+  ##
+  secrets: []
+  ## @param ingress.certManager Enable ingress to use TLS certificates provided by Cert Manager
+  ##
+  certManager: false
+  ## @param ingress.certManagerTls Specify the TLS secret created by Cert Manager
+  ## e.g:
+  ## certManagerTls:
+  ##   - hosts:
+  ##       - appsmith-domain.me
+  ##     secretName: appsmith-tls
+  certManagerTls: []
+  ## @parm ingress.className Configure Ingress class that being used in ingress resource
+  ## e.g:
+  ## className: "nginx"
+  ##
+  className: "nginx"
+
+customCAcert:
+# cert1: |
+# paste-cert-1-contents-here
+# cert2: |
+# paste-cert-2-contents-here
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  limits: {}
+  requests:
+     cpu: 500m
+     memory: 3000Mi
+
+## @param workload.kind Select workload resource type: Deployment or StatefulSet
+## When set to Deployment, the chart creates a Deployment instead of a StatefulSet.
+## Note: This value is ignored when autoscaling.enabled is true (Deployment is used).
+##
+workload:
+  kind: StatefulSet
+
+## @param replicas Number of replicas when autoscaling is disabled
+## Only used when workload.kind is Deployment and autoscaling.enabled is false
+##
+replicas: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 5
+
+nodeSelector: {}
+
+#HTTPContainerPort: 8080
+
+tolerations: []
+
+affinity: {}
+
+#topologySpreadConstraints:
+#  - maxSkew: 1 # distribute pods in an absolute even manner
+#    topologyKey: kubernetes.io/hostname  # use the hostname as topology domain
+#    whenUnsatisfiable: ScheduleAnyway # always schedule pods even if it can’t satisfy even distribution of pods
+
+persistence:
+  ## @param persistence.enabled - Enable data persistence using PVC
+  ##
+  enabled: true
+  ## @param persistence.storageClass PVC Storage Class
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Additional custom annotations for the PVC
+  ##
+  annotations: {}
+  ## @param persistence.localStorage - Use local storage for PVC
+  ##
+  localStorage: false
+  ## @param persistence.storagePath - local storage path
+  ##
+  storagePath: /tmp/hostpath_pv
+  ## @param persistence.localCluster
+  ##
+  localCluster: {}
+  ## @param persistence.accessModes PV Access Mode
+  ##
+  accessModes:
+    - ReadWriteMany
+  ## @param persistence.size PVC Storage Request
+  ##
+  size: 10Gi
+  ## Fine tuning for volumeClaimTemplates
+  ##
+  reclaimPolicy: Retain
+
+  ## @param persistence.pvNameOverride Override the PV name
+  ## Useful when deploying multiple releases across different namespaces with the same name
+  ## since PersistentVolumes are cluster-scoped resources
+  ##
+  pvNameOverride: ""
+
+  existingClaim:
+    enabled:
+    name:
+    claimName:
+  efs:
+    enabled:
+    driver:
+    volumeHandle:
+  volumeClaimTemplates:
+    ## @param persistence.volumeClaimTemplates.selector A label query over volumes to consider for binding (e.g. when using local volumes)
+    ## A label query over volumes to consider for binding (e.g. when using local volumes)
+    ## See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#labelselector-v1-meta for more details
+    ##
+    selector: {}
+    ## @param persistence.volumeClaimTemplates.requests Custom PVC requests attributes
+    ## Sometime cloud providers use additional requests attributes to provision custom storage instance
+    ## See https://cloud.ibm.com/docs/containers?topic=containers-file_storage#file_dynamic_statefulset
+    ##
+    requests: {}
+    ## @param persistence.volumeClaimTemplates.dataSource Add dataSource to the VolumeClaimTemplate
+    ##
+    dataSource: {}
+# tags:
+#   install-ingress-nginx: true
+storageClass:
+  ## @param storageClass.enabled - Enable config storage class
+  ##
+  enabled: false
+  ## @param storageClass.bindingMode - the binding mode for PVCs using this storage class
+  ##
+  bindingMode: Immediate
+  ## @param storageClass.defaultClass - boolean to set annotation designating this object as the default storage class
+  ##
+  defaultClass: false
+  ## @param storageClass.allowVolumeExpansion - allow expansion of PVCs using this storage class
+  ##
+  allowVolumeExpansion: true
+  ## @param storageClass.reclaimPolicy - configures the retention of the PV when dynamically created using this class
+  ##
+  reclaimPolicy: Delete
+  ## @param storageClass.provisioner - storage class parameters used for volumes created with this storage class
+  ##
+  provisioner: ""
+  ## @param storageClass.annotations - annotations in yaml map format to be added to the object
+  ##
+  annotations: {}
+  ## @param storageClass.mountOptions - options used by volumes created by this storage class
+  ##
+  mountOptions: {}
+  ## @param storageClass.parameters - storage class parameters used for volumes created with this storage class
+  ##
+  parameters: {}
+
+podDisruptionBudgets:
+  enabled: true
+  minAvailable: 1
+
+metrics:
+  enabled: false
+  port: 2019
+
+keda:
+  enabled: false
+  pollingInterval: 30
+  cooldownPeriod: 60
+  minReplicaCount: 1
+  maxReplicaCount: 6
+  fallback:
+    failureThreshold: 3
+    replicas: 4
+  triggers: []
+
+autoupdate:
+  ## @param autoupdate.enabled - Enable config autoupdate
+  ##
+  enabled: false
+  ## @param autoupdate.scheduler - Schedule cron job to check & update Helm image
+  ##
+  scheduler: "0 * * * *"
+
+secretName: ""
+
+applicationConfig:
+  APPSMITH_OAUTH2_GOOGLE_CLIENT_ID: ""
+  APPSMITH_OAUTH2_GOOGLE_CLIENT_SECRET: ""
+  APPSMITH_OAUTH2_GITHUB_CLIENT_ID: ""
+  APPSMITH_OAUTH2_GITHUB_CLIENT_SECRET: ""
+  APPSMITH_FORM_LOGIN_DISABLED: ""
+  APPSMITH_SIGNUP_DISABLED: ""
+  APPSMITH_CLIENT_LOG_LEVEL: ""
+  APPSMITH_MAIL_ENABLED: ""
+  APPSMITH_MAIL_HOST: ""
+  APPSMITH_MAIL_PORT: ""
+  APPSMITH_MAIL_USERNAME: ""
+  APPSMITH_MAIL_PASSWORD: ""
+  APPSMITH_MAIL_FROM: ""
+  APPSMITH_REPLY_TO: ""
+  APPSMITH_MAIL_SMTP_AUTH: ""
+  APPSMITH_MAIL_SMTP_TLS_ENABLED: ""
+  APPSMITH_DISABLE_TELEMETRY: ""
+  APPSMITH_RECAPTCHA_SITE_KEY: ""
+  APPSMITH_RECAPTCHA_SECRET_KEY: ""
+  APPSMITH_RECAPTCHA_ENABLED: ""
+  APPSMITH_DB_URL: ""
+  APPSMITH_REDIS_URL: ""
+  APPSMITH_ENCRYPTION_PASSWORD: ""
+  APPSMITH_ENCRYPTION_SALT: ""
+  APPSMITH_CUSTOM_DOMAIN: ""
+  APPSMITH_DISABLE_IFRAME_WIDGET_SANDBOX: "false"
+  APPSMITH_LICENSE_KEY: ""
+  APPSMITH_KEYCLOAK_DB_DRIVER: ""
+  APPSMITH_KEYCLOAK_DB_USERNAME: ""
+  APPSMITH_KEYCLOAK_DB_PASSWORD: ""
+  APPSMITH_KEYCLOAK_DB_URL: ""

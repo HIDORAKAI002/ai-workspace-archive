@@ -1,0 +1,46 @@
+{
+	"name": "@directus/storage-driver-supabase",
+	"version": "3.0.20",
+	"description": "Supabase file storage abstraction for `@directus/storage`",
+	"homepage": "https://directus.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/directus/directus.git",
+		"directory": "packages/storage-driver-supabase"
+	},
+	"funding": "https://github.com/directus/directus?sponsor=1",
+	"license": "BUSL-1.1",
+	"author": "Matthew Rollinson <matt@rolley.io>",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown src/index.ts --dts",
+		"dev": "tsdown src/index.ts --dts --watch",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@directus/constants": "workspace:*",
+		"@directus/storage": "workspace:*",
+		"@directus/utils": "workspace:*",
+		"@supabase/storage-js": "catalog:",
+		"tus-js-client": "catalog:",
+		"undici": "catalog:"
+	},
+	"devDependencies": {
+		"@directus/tsconfig": "catalog:",
+		"@directus/types": "workspace:*",
+		"@ngneat/falso": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

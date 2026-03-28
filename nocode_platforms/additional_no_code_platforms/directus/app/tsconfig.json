@@ -1,0 +1,13 @@
+{
+	"extends": "@directus/tsconfig/vue3",
+	"compilerOptions": {
+		"verbatimModuleSyntax": false,
+		"exactOptionalPropertyTypes": false,
+		"noPropertyAccessFromIndexSignature": false,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
+	},
+	"include": ["env.d.ts", "src/**/*", "src/**/*.vue"]
+}

@@ -1,0 +1,421 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+
+env:
+  NODE_VERSION: '20'
+  NPM_CACHE_VERSION: 'v1'
+  PLAYWRIGHT_BROWSERS_PATH: '0'
+
+jobs:
+  # Quick quality checks that run first
+  quality-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should-run-tests: ${{ steps.changes.outputs.should-run-tests }}
+      should-deploy: ${{ steps.changes.outputs.should-deploy }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'frontend/src/**'
+              - 'testing-ui/src/**'
+            config:
+              - '*.json'
+              - '*.js'
+              - '*.ts'
+              - '.github/workflows/**'
+            tests:
+              - 'test/**'
+              - '**/*.test.ts'
+              - '**/*.spec.ts'
+            docs:
+              - 'docs/**'
+              - '*.md'
+        
+      - name: Set job outputs
+        id: outputs
+        run: |
+          if [[ "${{ steps.changes.outputs.src }}" == "true" || "${{ steps.changes.outputs.config }}" == "true" || "${{ steps.changes.outputs.tests }}" == "true" ]]; then
+            echo "should-run-tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run-tests=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ github.event_name }}" == "release" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Lint and format checks
+  code-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality-gates
+    if: needs.quality-gates.outputs.should-run-tests == 'true'
+    
+    strategy:
+      matrix:
+        workspace: ['.', 'frontend', 'testing-ui']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Run ESLint
+        working-directory: ${{ matrix.workspace }}
+        run: npm run lint
+        continue-on-error: true
+        
+      - name: Run Prettier
+        working-directory: ${{ matrix.workspace }}
+        run: npm run format:check
+        continue-on-error: true
+        
+      - name: TypeScript type checking
+        working-directory: ${{ matrix.workspace }}
+        run: npm run type-check
+
+  # Build and test
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [quality-gates, code-quality]
+    if: needs.quality-gates.outputs.should-run-tests == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: ['.', 'frontend', 'testing-ui']
+        node-version: [18, 20]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Build application
+        working-directory: ${{ matrix.workspace }}
+        run: npm run build
+        env:
+          NODE_ENV: production
+          
+      - name: Run unit tests
+        working-directory: ${{ matrix.workspace }}
+        run: npm run test:coverage
+        env:
+          CI: true
+          
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == 20
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ${{ matrix.workspace }}/coverage
+          flags: ${{ matrix.workspace }}
+          name: ${{ matrix.workspace }}-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          
+      - name: Cache build artifacts
+        if: matrix.node-version == 20
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.workspace }}/dist
+            ${{ matrix.workspace }}/.next
+          key: ${{ runner.os }}-build-${{ matrix.workspace }}-${{ github.sha }}
+
+  # Security scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality-gates
+    permissions:
+      security-events: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Audit NPM dependencies
+        run: |
+          npm audit --audit-level=moderate --prod
+          npm audit --audit-level=high
+        continue-on-error: true
+
+  # E2E testing with optimized matrix
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [build-and-test]
+    if: needs.quality-gates.outputs.should-run-tests == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+        shard: [1, 2, 3, 4]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            frontend/.next
+            testing-ui/.next
+          key: ${{ runner.os }}-build-.-${{ github.sha }}
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          cd testing-ui && npm run dev &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+        env:
+          CI: true
+          
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
+        env:
+          CI: true
+          PWTEST_SKIP_TEST_OUTPUT: true
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Performance testing
+  performance-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [build-and-test]
+    if: needs.quality-gates.outputs.should-run-tests == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+        
+      - name: Start application servers
+        run: |
+          npm run dev &
+          cd testing-ui && npm run dev &
+          npx wait-on http://localhost:3000 http://localhost:8080 --timeout 120000
+          
+      - name: Run performance tests
+        run: npm run test:performance
+        
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --config .lighthouserc.json
+        continue-on-error: true
+        
+      - name: Upload performance artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            test-results/performance/
+            .lighthouseci/
+          retention-days: 7
+
+  # Deploy to staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [e2e-tests, performance-tests, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.flowise-converter.dev
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            frontend/.next
+            testing-ui/.next
+          key: ${{ runner.os }}-build-.-${{ github.sha }}
+          
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add staging deployment commands here
+        env:
+          STAGING_API_KEY: ${{ secrets.STAGING_API_KEY }}
+
+  # Deploy to production
+  deploy-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [e2e-tests, performance-tests, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://flowise-converter.dev
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            frontend/.next
+            testing-ui/.next
+          key: ${{ runner.os }}-build-.-${{ github.sha }}
+          
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add production deployment commands here
+        env:
+          PRODUCTION_API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+          
+      - name: Create deployment notification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment.id,
+              state: 'success',
+              environment_url: 'https://flowise-converter.dev',
+              description: 'Deployment completed successfully'
+            });
+
+  # Notify about workflow completion
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production, e2e-tests, performance-tests]
+    if: always()
+    
+    steps:
+      - name: Notify completion
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              'Quality Gates': '${{ needs.quality-gates.result }}',
+              'Code Quality': '${{ needs.code-quality.result }}',
+              'Build & Test': '${{ needs.build-and-test.result }}',
+              'Security Scan': '${{ needs.security-scan.result }}',
+              'E2E Tests': '${{ needs.e2e-tests.result }}',
+              'Performance Tests': '${{ needs.performance-tests.result }}',
+              'Deploy Staging': '${{ needs.deploy-staging.result }}',
+              'Deploy Production': '${{ needs.deploy-production.result }}'
+            };
+            
+            let summary = '## CI/CD Pipeline Results\n\n';
+            for (const [job, result] of Object.entries(results)) {
+              const icon = result === 'success' ? '✅' : result === 'failure' ? '❌' : result === 'skipped' ? '⏭️' : '⏸️';
+              summary += `${icon} **${job}**: ${result}\n`;
+            }
+            
+            console.log(summary);

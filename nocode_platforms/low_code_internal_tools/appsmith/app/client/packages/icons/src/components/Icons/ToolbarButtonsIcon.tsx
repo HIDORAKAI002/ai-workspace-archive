@@ -1,0 +1,4 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const ToolbarButtonsIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width={15} height={15} fill="none" {...props}><path fill="#4C5664" fillOpacity={0.5} fillRule="evenodd" d="M0 5.5A2.5 2.5 0 0 1 2.5 3h10A2.5 2.5 0 0 1 15 5.5v4a2.5 2.5 0 0 1-2.5 2.5h-10A2.5 2.5 0 0 1 0 9.5zM2.5 4A1.5 1.5 0 0 0 1 5.5v4A1.5 1.5 0 0 0 2.5 11h10A1.5 1.5 0 0 0 14 9.5v-4A1.5 1.5 0 0 0 12.5 4z" clipRule="evenodd" /><path fill="#4C5664" d="M12.146 5.146a.5.5 0 0 1 .708.708l-3 3a.5.5 0 1 1-.708-.708zM8.245 9.235a.375.375 0 0 1 .53.53l-.01.01a.375.375 0 1 1-.53-.53zM4.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H5v1.5a.5.5 0 0 1-1 0V8H2.5a.5.5 0 0 1 0-1H4V5.5a.5.5 0 0 1 .5-.5" /></svg>;
+export { ToolbarButtonsIcon };

@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Mount component 1`] = `
+"<div data-v-167e9f7d="" class="v-fancy-select">
+  <transition-group-stub data-v-167e9f7d="" tag="div" name="option" appear="false" persisted="false" css="true"><button data-v-167e9f7d="" type="button" class="v-fancy-select-option" style="--index: 0;">
+      <div data-v-167e9f7d="" class="icon">
+        <v-icon-stub data-v-167e9f7d="" name="person" filled="false" sup="false" left="false" right="false" disabled="false" clickable="false" xsmall="false" small="false" large="false" xlarge="false"></v-icon-stub>
+      </div>
+      <div data-v-167e9f7d="" class="content">
+        <div data-v-167e9f7d="" class="text">Person</div>
+        <div data-v-167e9f7d="" class="description"></div>
+      </div>
+      <!--v-if-->
+    </button><button data-v-167e9f7d="" type="button" class="v-fancy-select-option" style="--index: 1;">
+      <div data-v-167e9f7d="" class="icon">
+        <v-icon-stub data-v-167e9f7d="" name="directions_car" filled="false" sup="false" left="false" right="false" disabled="false" clickable="false" xsmall="false" small="false" large="false" xlarge="false"></v-icon-stub>
+      </div>
+      <div data-v-167e9f7d="" class="content">
+        <div data-v-167e9f7d="" class="text">Car</div>
+        <div data-v-167e9f7d="" class="description"></div>
+      </div>
+      <!--v-if-->
+    </button>
+    <v-divider-stub data-v-167e9f7d="" vertical="false" inlinetitle="true" large="false"></v-divider-stub><button data-v-167e9f7d="" type="button" class="v-fancy-select-option" style="--index: 3;">
+      <div data-v-167e9f7d="" class="icon">
+        <v-icon-stub data-v-167e9f7d="" name="home" filled="false" sup="false" left="false" right="false" disabled="false" clickable="false" xsmall="false" small="false" large="false" xlarge="false"></v-icon-stub>
+      </div>
+      <div data-v-167e9f7d="" class="content">
+        <div data-v-167e9f7d="" class="text">Home</div>
+        <div data-v-167e9f7d="" class="description">A home is a nice place</div>
+      </div>
+      <!--v-if-->
+    </button>
+  </transition-group-stub>
+</div>"
+`;

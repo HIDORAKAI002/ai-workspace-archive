@@ -1,0 +1,40 @@
+name: Prepare
+description: Install dependencies and build the platform
+inputs:
+  build:
+    description: Build the production bundle of the platform
+    required: false
+    default: 'true'
+  registry:
+    description: NPM registry to set up for auth
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: package.json
+        registry-url: ${{ inputs.registry }}
+
+    - name: Update npm
+      shell: bash
+      run: npm install -g npm@11
+
+    - uses: pnpm/action-setup@v4
+      name: Install pnpm
+      with:
+        run_install: false
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install
+
+    - name: Build
+      if: inputs.build == 'true'
+      shell: bash
+      env:
+        npm_config_workspace_concurrency: 2
+        NODE_OPTIONS: --max_old_space_size=6144
+      run: pnpm run build

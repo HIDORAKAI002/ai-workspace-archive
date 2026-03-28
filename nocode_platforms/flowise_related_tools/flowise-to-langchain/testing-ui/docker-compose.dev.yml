@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Development frontend service
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: flowise-converter-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_APP_NAME=Flowise Converter (Dev)
+      - NEXT_PUBLIC_APP_VERSION=1.0.0-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - dev-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # Development database
+  database-dev:
+    image: postgres:15-alpine
+    container_name: flowise-converter-db-dev
+    environment:
+      - POSTGRES_DB=flowise_converter_dev
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=devpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  # Development Redis
+  redis-dev:
+    image: redis:7-alpine
+    container_name: flowise-converter-redis-dev
+    ports:
+      - "6380:6379"
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  dev-network:
+    driver: bridge

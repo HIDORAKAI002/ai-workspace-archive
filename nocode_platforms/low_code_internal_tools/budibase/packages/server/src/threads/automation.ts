@@ -1,0 +1,988 @@
+if (process.env.DD_APM_ENABLED) {
+  require("../ddApm")
+}
+
+import { configs, context, events, logging } from "@budibase/backend-core"
+import { quotas } from "@budibase/pro"
+import { automations, dataFilters, helpers } from "@budibase/shared-core"
+import {
+  findHBSBlocks,
+  processObject,
+  processStringSync,
+} from "@budibase/string-templates"
+import {
+  Automation,
+  AutomationActionStepId,
+  AutomationData,
+  AutomationJob,
+  AutomationMetadata,
+  AutomationResults,
+  AutomationStatus,
+  AutomationStep,
+  AutomationStepResult,
+  AutomationStepStatus,
+  AutomationTestProgressStatus,
+  AutomationTriggerResult,
+  Branch,
+  BranchSearchFilters,
+  BranchStep,
+  ContextEmitter,
+  isCronTrigger,
+  isEmailTrigger,
+  isLogicalFilter,
+  LoopV2Step,
+  LoopV2StepInputs,
+} from "@budibase/types"
+import { Job } from "bull"
+import tracer from "dd-trace"
+import { cloneDeep } from "lodash/fp"
+import * as actions from "../automations/actions"
+import * as automationUtils from "../automations/automationUtils"
+import { storeLog } from "../automations/logging"
+import { disableCronById } from "../automations/utils"
+import { MAX_AUTOMATION_RECURRING_ERRORS } from "../constants"
+import { generateAutomationMetadataID, isProdWorkspaceID } from "../db/utils"
+import { AutomationContext } from "../definitions/automations"
+import env from "../environment"
+import { default as AutomationEmitter } from "../events/AutomationEmitter"
+import * as sdkUtils from "../sdk/utils"
+import sdk from "../sdk"
+import { WorkerCallback } from "./definitions"
+import { default as threadUtils } from "./utils"
+import { AutomationTestProgressEvent } from "../automations/testProgress"
+
+threadUtils.threadSetup()
+const CRON_STEP_ID = automations.triggers.definitions.CRON.stepId
+const STOPPED_STATUS = { success: true, status: AutomationStatus.STOPPED }
+const ERROR_PREVIEW_LENGTH = 512
+
+function getAutomationLogContext(job: Job<AutomationData>) {
+  const appId = job.data.event.appId
+  const automationId = job.data.automation?._id
+  const tenantId = context.getTenantIDFromWorkspaceID(appId!)
+  const trigger = job.data.automation?.definition?.trigger?.event
+
+  return { tenantId, appId, automationId, trigger }
+}
+
+function getErrorLogDetails(err: any) {
+  const message = err?.message ?? `${err}`
+  return {
+    name: err?.name,
+    code: err?.code,
+    messagePreview:
+      typeof message === "string"
+        ? message.slice(0, ERROR_PREVIEW_LENGTH)
+        : undefined,
+  }
+}
+
+function stepSuccess(
+  step: Readonly<AutomationStep>,
+  outputs: Record<string, any>,
+  inputs?: Record<string, any>
+): AutomationStepResult {
+  if (step.isLegacyLoop) {
+    outputs.items = automationUtils.convertLegacyLoopOutputs(outputs.items)
+
+    const legacyChild = (step as LoopV2Step)?.inputs?.children?.[0]
+    const legacyId = legacyChild?.id || step.id
+    const legacyStepId = legacyChild?.stepId || step.stepId
+    const legacyInputs = inputs || legacyChild?.inputs || step.inputs
+
+    return {
+      id: legacyId,
+      stepId: legacyStepId,
+      inputs: legacyInputs,
+      outputs: {
+        success: true,
+        ...outputs,
+      },
+    }
+  }
+  return {
+    id: step.id,
+    stepId: step.stepId,
+    inputs: inputs || step.inputs,
+    outputs: {
+      success: true,
+      ...outputs,
+    },
+  }
+}
+
+function stepFailure(
+  step: Readonly<AutomationStep>,
+  outputs: Record<string, any>,
+  inputs?: Record<string, any>
+): AutomationStepResult {
+  if (step.isLegacyLoop) {
+    // Convert items structure and surface the child step identity for legacy loops
+    outputs.items = automationUtils.convertLegacyLoopOutputs(outputs.items)
+
+    const legacyChild: any = (step as any)?.inputs?.children?.[0]
+    const legacyId = legacyChild?.id || step.id
+    const legacyStepId = legacyChild?.stepId || step.stepId
+    const legacyInputs = inputs || legacyChild?.inputs || step.inputs
+
+    return {
+      id: legacyId,
+      stepId: legacyStepId,
+      inputs: legacyInputs,
+      outputs: {
+        success: false,
+        ...outputs,
+      },
+    }
+  }
+  return {
+    id: step.id,
+    stepId: step.stepId,
+    inputs: inputs || step.inputs,
+    outputs: {
+      success: false,
+      ...outputs,
+    },
+  }
+}
+
+function stepStopped(step: AutomationStep): AutomationStepResult {
+  return {
+    id: step.id,
+    stepId: step.stepId,
+    inputs: step.inputs,
+    outputs: STOPPED_STATUS,
+  }
+}
+
+async function branchMatches(
+  ctx: AutomationContext,
+  branch: Readonly<Branch>
+): Promise<boolean> {
+  const requiresEvaluation = (condition: any): boolean => {
+    if (!condition || typeof condition !== "object") {
+      return false
+    }
+
+    return Object.entries(condition).some(([key, value]) => {
+      if (key === "onEmptyFilter" || value === undefined || value === null) {
+        return false
+      }
+
+      if (key === "$and" || key === "$or") {
+        const logical = value as { conditions?: any[] }
+        return (
+          Array.isArray(logical?.conditions) && logical.conditions.length > 0
+        )
+      }
+
+      if (typeof value === "object") {
+        return Object.keys(value).length > 0
+      }
+
+      return true
+    })
+  }
+
+  if (!requiresEvaluation(branch.condition)) {
+    return true
+  }
+
+  const toFilter: Record<string, any> = {}
+
+  // If the condition requires evaluation (has actual filtering logic), evaluate it.
+  // If not (empty condition), it's a default/ELSE branch that should always match.
+  // Because we allow bindings on both the left and right of each condition in
+  // automation branches, we can't pass the BranchSearchFilters directly to
+  // dataFilters.runQuery as-is. We first need to walk the filter tree and
+  // evaluate all of the bindings.
+  const evaluateBindings = (fs: Readonly<BranchSearchFilters>) => {
+    const filters = cloneDeep(fs)
+    for (const filter of Object.values(filters)) {
+      if (!filter) {
+        continue
+      }
+
+      if (isLogicalFilter(filter)) {
+        filter.conditions = filter.conditions.map(evaluateBindings)
+      } else {
+        for (const [field, value] of Object.entries(filter)) {
+          toFilter[field] = processStringSync(field, ctx)
+          if (typeof value === "string" && findHBSBlocks(value).length > 0) {
+            filter[field] = processStringSync(value, ctx)
+          }
+        }
+      }
+    }
+
+    return filters
+  }
+
+  const result = dataFilters.runQuery(
+    [toFilter],
+    evaluateBindings(branch.condition)
+  )
+  return result.length > 0
+}
+
+async function enrichBaseContext(context: AutomationContext) {
+  context.env = await sdkUtils.getEnvironmentVariables()
+
+  try {
+    const { config } = await configs.getSettingsConfigDoc()
+    context.settings = {
+      url: config.platformUrl,
+      logo: config.logoUrl,
+      company: config.company,
+    }
+  } catch (e) {
+    context.settings = {}
+  }
+}
+
+// Because the trigger appears twice in an AutomationResult, once as .trigger
+// and again as .steps[0], this function makes sure that the two are kept in
+// sync when setting trigger output.
+function setTriggerOutput(result: AutomationResults, outputs: any) {
+  result.trigger.outputs = {
+    ...result.trigger.outputs,
+    ...outputs,
+  }
+  result.steps[0] = result.trigger
+}
+
+async function reloadAutomation(job: Job<AutomationData>) {
+  const trigger = job.data.automation?.definition?.trigger
+  if (!trigger || (!isCronTrigger(trigger) && !isEmailTrigger(trigger))) {
+    return
+  }
+
+  const appId = job.data.event.appId
+  const automationId = job.data.automation._id
+  if (!appId) {
+    throw new Error("Unable to execute, event doesn't contain app ID.")
+  }
+  if (!automationId) {
+    throw new Error("Unable to execute, event doesn't contain automation ID.")
+  }
+
+  job.data.automation = await sdk.automations.get(automationId)
+}
+
+class Orchestrator {
+  private readonly job: AutomationJob
+  private emitter: ContextEmitter
+  private stopped: boolean
+  private readonly onProgress?: (event: AutomationTestProgressEvent) => void
+
+  constructor(
+    job: Readonly<AutomationJob>,
+    opts: { onProgress?: (event: AutomationTestProgressEvent) => void } = {}
+  ) {
+    this.job = job
+    this.stopped = false
+    this.onProgress = opts.onProgress
+
+    // Pre-process the automation to transform legacy loops
+    this.job.data.automation = automationUtils.preprocessAutomation(
+      job.data.automation
+    )
+
+    // create an emitter which has the chain count for this automation run in
+    // it, so it can block excessive chaining if required
+    const chainCount = job.data.event.metadata?.automationChainCount || 0
+    this.emitter = new AutomationEmitter(chainCount + 1)
+  }
+
+  get automation(): Automation {
+    return this.job.data.automation
+  }
+
+  get appId(): string {
+    return this.job.data.event.appId!
+  }
+
+  isCron(): boolean {
+    return this.automation.definition.trigger.stepId === CRON_STEP_ID
+  }
+
+  async stopCron(reason: string, opts?: { result: AutomationResults }) {
+    if (!this.isCron()) {
+      return
+    }
+
+    const msg = `CRON disabled reason=${reason} - ${this.appId}/${this.automation._id}`
+    logging.logWarn(msg)
+
+    await disableCronById(this.job.id)
+
+    const { result } = opts || {}
+    if (result) {
+      setTriggerOutput(result, {
+        success: false,
+        status: AutomationStatus.STOPPED_ERROR,
+      })
+      result.status = AutomationStatus.STOPPED_ERROR
+      await this.logResult(result)
+    }
+  }
+
+  private async logResult(result: AutomationResults) {
+    await storeLog(this.automation, result)
+  }
+
+  async getMetadata(): Promise<AutomationMetadata> {
+    const metadataId = generateAutomationMetadataID(this.automation._id!)
+    const db = context.getWorkspaceDB()
+    const metadata = await db.tryGet<AutomationMetadata>(metadataId)
+    return metadata || { _id: metadataId, errorCount: 0 }
+  }
+
+  async incrementErrorCount() {
+    const db = context.getWorkspaceDB()
+    let err: Error | undefined = undefined
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const metadata = await this.getMetadata()
+      metadata.errorCount ||= 0
+      metadata.errorCount++
+
+      try {
+        await db.put(metadata)
+        return metadata.errorCount
+      } catch (error: any) {
+        err = error
+        await helpers.wait(1000 + Math.random() * 1000)
+      }
+    }
+
+    logging.logAlertWithInfo(
+      "Failed to update error count in automation metadata",
+      db.name,
+      this.automation._id!,
+      err
+    )
+    return undefined
+  }
+
+  private isProd(): boolean {
+    return isProdWorkspaceID(this.appId)
+  }
+
+  hasErrored(context: AutomationContext): boolean {
+    return context._error === true
+  }
+
+  private reportStepProgress(
+    step: Readonly<AutomationStep>,
+    status: AutomationTestProgressEvent["status"],
+    result?: AutomationStepResult,
+    ctx?: AutomationContext
+  ) {
+    if (!this.onProgress) {
+      return
+    }
+    const loop = ctx?._loopIteration
+    this.onProgress({
+      automationId: this.automation._id!,
+      appId: this.appId,
+      blockId: step.id,
+      stepId: step.stepId,
+      status,
+      occurredAt: Date.now(),
+      result,
+      ...(loop ? { loop } : {}),
+    })
+  }
+
+  async execute(): Promise<AutomationResults> {
+    return await tracer.trace("execute", async span => {
+      span.addTags({ appId: this.appId, automationId: this.automation._id })
+
+      const data = cloneDeep(this.job.data)
+      delete data.event.appId
+      delete data.event.metadata
+
+      if (this.isCron() && !data.event.timestamp) {
+        data.event.timestamp = Date.now()
+      }
+
+      const trigger: AutomationTriggerResult = {
+        id: data.automation.definition.trigger.id,
+        stepId: data.automation.definition.trigger.stepId,
+        inputs: null,
+        outputs: data.event,
+      }
+      const result: AutomationResults = {
+        trigger,
+        steps: [trigger],
+        status: AutomationStatus.SUCCESS,
+      }
+
+      this.onProgress?.({
+        automationId: this.automation._id!,
+        appId: this.appId,
+        blockId: data.automation.definition.trigger.id,
+        stepId: data.automation.definition.trigger.stepId,
+        status: "running",
+        occurredAt: Date.now(),
+      })
+
+      const ctx: AutomationContext = {
+        trigger: trigger.outputs,
+        steps: { "0": trigger.outputs },
+        stepsByName: {},
+        stepsById: {},
+        user: trigger.outputs.user,
+        state: {},
+        _error: false,
+        _stepIndex: 1,
+        _stepResults: [],
+      }
+      await enrichBaseContext(ctx)
+
+      const timeout =
+        this.job.data.event.timeout || env.AUTOMATION_THREAD_TIMEOUT
+
+      let stepResults: AutomationStepResult[] = []
+
+      try {
+        const outputs = await helpers.withTimeout(timeout, () =>
+          this.executeSteps(ctx, data.automation.definition.steps)
+        )
+        stepResults = outputs
+        if (this.stopped) {
+          result.status = AutomationStatus.STOPPED
+        } else if (this.hasErrored(ctx)) {
+          result.status = AutomationStatus.ERROR
+        }
+      } catch (err: any) {
+        if (err.errno === "ETIME") {
+          span.addTags({ timeout: true })
+          result.status = AutomationStatus.TIMED_OUT
+          stepResults = ctx._stepResults
+        } else {
+          throw err
+        }
+      }
+
+      result.steps.push(...stepResults)
+
+      let errorCount = 0
+      if (this.isProd() && this.isCron() && this.hasErrored(ctx)) {
+        errorCount = (await this.incrementErrorCount()) || 0
+      }
+
+      if (errorCount >= MAX_AUTOMATION_RECURRING_ERRORS) {
+        await this.stopCron("errors", { result })
+        span?.addTags({ shouldStop: true })
+      } else {
+        await this.logResult(result)
+      }
+
+      // Return any content pushed to state.
+      if (Object.keys(ctx?.state || {}).length > 0) {
+        result.state = ctx.state
+      }
+
+      const statusMap: Partial<
+        Record<AutomationStatus, AutomationTestProgressStatus>
+      > = {
+        [AutomationStatus.SUCCESS]: "success",
+        [AutomationStatus.ERROR]: "error",
+        [AutomationStatus.STOPPED]: "stopped",
+      }
+
+      this.onProgress?.({
+        automationId: this.automation._id!,
+        appId: this.appId,
+        blockId: trigger.id,
+        stepId: trigger.stepId,
+        status: statusMap[result.status] || "error",
+        occurredAt: Date.now(),
+        result: trigger,
+      })
+
+      return result
+    })
+  }
+
+  private async executeSteps(
+    ctx: AutomationContext,
+    steps: AutomationStep[]
+  ): Promise<AutomationStepResult[]> {
+    return await tracer.trace("executeSteps", async () => {
+      let stepIndex = 0
+      const results: AutomationStepResult[] = []
+
+      const progressStatus = (result: AutomationStepResult) => {
+        if (result.outputs.success === false) {
+          return "error"
+        }
+        if (result.outputs.status === AutomationStatus.STOPPED) {
+          return "stopped"
+        }
+        return "success"
+      }
+
+      function addToContext(
+        step: AutomationStep,
+        result: AutomationStepResult,
+        looped = false
+      ) {
+        // Put State block data into the state
+        if (step.stepId === AutomationActionStepId.EXTRACT_STATE && !looped) {
+          ctx.state ??= {}
+          ctx.state[result.inputs.key] = result.outputs.value
+        }
+
+        ctx.steps[step.id] = result.outputs
+        ctx.steps[step.name || step.id] = result.outputs
+
+        ctx.stepsById[step.id] = result.outputs
+        ctx.stepsByName[step.name || step.id] = result.outputs
+
+        ctx.previous = result.outputs
+
+        ctx._stepIndex ||= 0
+        ctx.steps[ctx._stepIndex] = result.outputs
+        ctx._stepIndex++
+
+        if (result.outputs.success === false) {
+          ctx._error = true
+        }
+
+        ctx._stepResults.push(result)
+        results.push(result)
+      }
+
+      while (stepIndex < steps.length) {
+        if (this.stopped) {
+          break
+        }
+
+        const step = steps[stepIndex]
+        switch (step.stepId) {
+          case AutomationActionStepId.BRANCH: {
+            const branchResults = await quotas.addAction(() =>
+              this.executeBranchStep(ctx, step)
+            )
+            ctx._stepResults.push(...branchResults)
+            results.push(...branchResults)
+            if (branchResults[0]) {
+              this.reportStepProgress(
+                step,
+                progressStatus(branchResults[0]),
+                branchResults[0],
+                ctx
+              )
+            }
+            stepIndex++
+            break
+          }
+          case AutomationActionStepId.LOOP_V2: {
+            this.reportStepProgress(step, "running", undefined, ctx)
+            const result = await this.executeLoopStep(ctx, step)
+            if (step.isLegacyLoop) {
+              const childStep = step.inputs.children?.[0]
+              if (childStep) {
+                addToContext(childStep, result, true)
+              }
+            } else {
+              addToContext(step, result, true)
+            }
+            this.reportStepProgress(step, progressStatus(result), result, ctx)
+            if (
+              result.outputs.success === false &&
+              result.outputs.status == null
+            ) {
+              return results
+            }
+            stepIndex++
+            break
+          }
+          default: {
+            this.reportStepProgress(step, "running", undefined, ctx)
+            addToContext(
+              step,
+              await quotas.addAction(async () => {
+                const response = await this.executeStep(ctx, step)
+                if (step.stepId === AutomationActionStepId.EXTRACT_STATE) {
+                  ctx.state ??= {}
+                  ctx.state[response.inputs.key] = response.outputs.value
+                }
+
+                events.action.automationStepExecuted({ stepId: step.stepId })
+                return response
+              })
+            )
+            const latest = results.at(-1)
+            if (latest) {
+              this.reportStepProgress(step, progressStatus(latest), latest, ctx)
+              if (
+                step.stepId === AutomationActionStepId.TRIGGER_AUTOMATION_RUN &&
+                latest.outputs.success === false &&
+                (latest.outputs.status === AutomationStatus.ERROR ||
+                  latest.outputs.status === AutomationStatus.STOPPED_ERROR)
+              ) {
+                return results
+              }
+            }
+            stepIndex++
+            break
+          }
+        }
+      }
+
+      return results
+    })
+  }
+
+  private async executeLoopStep(
+    ctx: AutomationContext,
+    step: LoopV2Step
+  ): Promise<AutomationStepResult> {
+    return await tracer.trace("executeLoopStep", async span => {
+      // Clone the children to avoid processObject modifying them
+      let children = cloneDeep(step.inputs.children) || []
+
+      const inputs = step.inputs as LoopV2StepInputs
+      await processObject(inputs, ctx)
+
+      const maxIterations = automationUtils.getLoopMaxIterations(step)
+
+      // Track loop depth for nested loops
+      const loopDepth = (ctx._loopDepth || 0) + 1
+      ctx._loopDepth = loopDepth
+
+      try {
+        let iterations = 0
+        let iterable: any[] = []
+        try {
+          iterable = automationUtils.getLoopIterable(step)
+        } catch (err) {
+          span.addTags({
+            status: AutomationStepStatus.INCORRECT_TYPE,
+            iterations,
+          })
+          return stepFailure(step, {
+            status: AutomationStepStatus.INCORRECT_TYPE,
+          })
+        }
+        const isLegacyLoop = step.isLegacyLoop
+
+        const maxStoredResults = isLegacyLoop
+          ? Number.MAX_SAFE_INTEGER
+          : automationUtils.getMaxStoredResults(step)
+
+        const storage = automationUtils.initializeLoopStorage(
+          children,
+          maxStoredResults
+        )
+
+        const totalIterations = Math.min(iterable.length, maxIterations)
+
+        for (; iterations < iterable.length; iterations++) {
+          const currentItem = iterable[iterations]
+
+          if (iterations === maxIterations) {
+            span.addTags({
+              status: AutomationStepStatus.MAX_ITERATIONS,
+              iterations,
+            })
+            return stepFailure(
+              step,
+              automationUtils.buildLoopOutput(
+                storage,
+                AutomationStepStatus.MAX_ITERATIONS,
+                iterations
+              )
+            )
+          }
+
+          if (automationUtils.matchesLoopFailureCondition(step, currentItem)) {
+            span.addTags({
+              status: AutomationStepStatus.FAILURE_CONDITION,
+              iterations,
+            })
+            return stepFailure(
+              step,
+              automationUtils.buildLoopOutput(
+                storage,
+                AutomationStepStatus.FAILURE_CONDITION,
+                iterations
+              )
+            )
+          }
+
+          // Save the current loop context to support nested loops
+          const savedLoopContext = ctx.loop
+          const savedLoopIteration = ctx._loopIteration
+          ctx.loop = { currentItem }
+          ctx._loopIteration = {
+            current: iterations + 1,
+            total: totalIterations,
+          }
+          try {
+            // For both legacy and new loops, we need to preserve the step index
+            // so child steps don't affect the main step numbering
+            const savedStepIndex = ctx._stepIndex
+            const iterationResults = await this.executeSteps(ctx, children)
+            ctx._stepIndex = savedStepIndex
+
+            // Process results based on their type
+            for (const result of iterationResults) {
+              const isDirectChild = children.some(
+                child => child.id === result.id
+              )
+              if (isDirectChild) {
+                automationUtils.processStandardResult(
+                  storage,
+                  result,
+                  iterations
+                )
+              }
+            }
+
+            const hasFailures = iterationResults.some(
+              result => result.outputs.success === false
+            )
+            if (hasFailures) {
+              return stepFailure(
+                step,
+                automationUtils.buildLoopOutput(
+                  storage,
+                  undefined,
+                  undefined,
+                  true
+                )
+              )
+            }
+
+            if (this.stopped) {
+              const output = automationUtils.buildLoopOutput(
+                storage,
+                undefined,
+                iterations + 1
+              )
+              output.status = AutomationStatus.STOPPED
+              span.addTags({
+                status: AutomationStatus.STOPPED,
+                iterations: iterations + 1,
+              })
+              return stepSuccess(step, output)
+            }
+          } finally {
+            // Restore the previous loop context (for nested loops)
+            ctx.loop = savedLoopContext
+            ctx._loopIteration = savedLoopIteration
+          }
+        }
+
+        const status =
+          iterations === 0 ? AutomationStepStatus.NO_ITERATIONS : undefined
+
+        return stepSuccess(
+          step,
+          automationUtils.buildLoopOutput(storage, status, iterations)
+        )
+      } finally {
+        ctx._loopDepth = loopDepth - 1
+      }
+    })
+  }
+
+  private async executeBranchStep(
+    ctx: AutomationContext,
+    step: BranchStep
+  ): Promise<AutomationStepResult[]> {
+    return await tracer.trace("executeBranchStep", async span => {
+      const { branches, children } = step.inputs
+
+      for (const branch of branches) {
+        if (await branchMatches(ctx, branch)) {
+          span.addTags({ branchName: branch.name, branchId: branch.id })
+          const selection = stepSuccess(step, {
+            branchName: branch.name,
+            status: `${branch.name} branch taken`,
+            branchId: `${branch.id}`,
+          })
+
+          // Emit an early "running" update with the selected branch ID so the
+          // builder can indicate which branch is active while children execute.
+          this.reportStepProgress(step, "running", selection, ctx)
+
+          const childResults = await this.executeSteps(
+            ctx,
+            children?.[branch.id] || []
+          )
+          return [selection, ...childResults]
+        }
+      }
+
+      span.addTags({ status: AutomationStatus.NO_CONDITION_MET })
+      return [stepFailure(step, { status: AutomationStatus.NO_CONDITION_MET })]
+    })
+  }
+
+  private async executeStep(
+    ctx: AutomationContext,
+    step: Readonly<AutomationStep>
+  ): Promise<AutomationStepResult> {
+    return await tracer.trace(step.stepId, async span => {
+      span.addTags({
+        step: {
+          stepId: step.stepId,
+          id: step.id,
+          name: step.name,
+          type: step.type,
+          title: step.stepTitle,
+          internal: step.internal,
+          deprecated: step.deprecated,
+        },
+        inputsKeys: Object.keys(step.inputs),
+      })
+
+      if (this.stopped) {
+        span.addTags({ stopped: true })
+        return stepStopped(step)
+      }
+
+      const fn = await actions.getAction(step.stepId)
+      if (fn == null) {
+        throw new Error(`Cannot find automation step by name ${step.stepId}`)
+      }
+
+      let inputs = cloneDeep(step.inputs)
+      if (
+        step.stepId !== AutomationActionStepId.EXECUTE_BASH &&
+        step.stepId !== AutomationActionStepId.EXECUTE_SCRIPT_V2 &&
+        step.stepId !== AutomationActionStepId.EXTRACT_STATE
+      ) {
+        // The EXECUTE_SCRIPT_V2 step saves its input.code value as a `{{ js
+        // "..." }}` template, and expects to receive it that way in the
+        // function that runs it. EXECUTE_BASH also handles its own templating
+        // so it can reject bindings in the command name while still allowing
+        // templated args. So we skip this next bit for those steps.
+        inputs = await processObject(inputs, ctx)
+      }
+
+      inputs = automationUtils.cleanInputValues(
+        inputs,
+        step.schema.inputs.properties
+      )
+
+      let outputs
+      try {
+        outputs = await tracer.trace("fn", () =>
+          fn({
+            inputs,
+            appId: this.appId,
+            emitter: this.emitter,
+            context: ctx,
+          })
+        )
+      } catch (err: any) {
+        return stepFailure(step, {
+          status: AutomationStatus.ERROR,
+          error: automationUtils.getError(err),
+        })
+      }
+
+      if (
+        step.stepId === AutomationActionStepId.FILTER &&
+        "result" in outputs &&
+        outputs.result === false
+      ) {
+        this.stopped = true
+        ;(outputs as any).status = AutomationStatus.STOPPED
+      }
+      if (
+        step.stepId === AutomationActionStepId.TRIGGER_AUTOMATION_RUN &&
+        "status" in outputs &&
+        outputs.status === AutomationStatus.STOPPED
+      ) {
+        this.stopped = true
+      }
+
+      span.addTags({ outputsKeys: Object.keys(outputs) })
+      return stepSuccess(step, outputs, inputs)
+    })
+  }
+}
+
+export async function execute(
+  job: Job<AutomationData>,
+  callback: WorkerCallback
+) {
+  const workspaceId = job.data.event.appId
+  if (!workspaceId) {
+    throw new Error("Unable to execute, event doesn't contain app ID.")
+  }
+
+  const automationId = job.data.automation._id
+  if (!automationId) {
+    throw new Error("Unable to execute, event doesn't contain automation ID.")
+  }
+
+  return await tracer.trace("automation.execute", async span => {
+    span.addTags({ workspaceId, automationId: job.data.automation?._id })
+    return await context.doInAutomationContext({
+      workspaceId,
+      automationId,
+      task: async () => {
+        try {
+          await reloadAutomation(job)
+          await context.ensureSnippetContext()
+          const envVars = await sdkUtils.getEnvironmentVariables()
+          await context.doInEnvironmentContext(envVars, async () => {
+            const orchestrator = new Orchestrator(job)
+            callback(null, await orchestrator.execute())
+          })
+        } catch (err) {
+          console.error(
+            "automation worker failed",
+            { _logKey: "automation", ...getAutomationLogContext(job) },
+            { _logKey: "bull", jobId: job.id },
+            { _logKey: "error", ...getErrorLogDetails(err) }
+          )
+          callback(err)
+        }
+      },
+    })
+  })
+}
+
+export async function executeInThread(
+  job: Job<AutomationData>,
+  opts: { onProgress?: (event: AutomationTestProgressEvent) => void } = {}
+): Promise<AutomationResults> {
+  const workspaceId = job.data.event.appId
+  if (!workspaceId) {
+    throw new Error("Unable to execute, event doesn't contain workspace ID.")
+  }
+
+  return await tracer.trace("automation.executeInThread", async span => {
+    span.addTags({ workspaceId, automationId: job.data.automation?._id })
+
+    return await context.doInWorkspaceContext(workspaceId, async () => {
+      await reloadAutomation(job)
+      await context.ensureSnippetContext()
+      const envVars = await sdkUtils.getEnvironmentVariables()
+      return await context.doInEnvironmentContext(envVars, async () => {
+        const orchestrator = new Orchestrator(job, opts)
+        return orchestrator.execute()
+      })
+    })
+  })
+}
+
+export const removeStalled = async (job: Job<AutomationData>) => {
+  const appId = job.data.event.appId
+  if (!appId) {
+    throw new Error("Unable to execute, event doesn't contain app ID.")
+  }
+  await context.doInWorkspaceContext(appId, async () => {
+    const orchestrator = new Orchestrator(job)
+    await orchestrator.stopCron("stalled")
+  })
+}

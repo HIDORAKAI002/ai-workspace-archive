@@ -1,0 +1,71 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import VButton from '@/components/v-button.vue';
+import VCardActions from '@/components/v-card-actions.vue';
+import VCardText from '@/components/v-card-text.vue';
+import VCardTitle from '@/components/v-card-title.vue';
+import VCard from '@/components/v-card.vue';
+import VDialog from '@/components/v-dialog.vue';
+import VUpload from '@/components/v-upload.vue';
+import { parseGlobalMimeTypeAllowList } from '@/composables/use-mime-type-filter';
+import { useServerStore } from '@/stores/server';
+import FilePreview, { type Props as FilePreviewProps } from '@/views/private/components/file-preview.vue';
+
+defineProps<FilePreviewProps>();
+
+const { info } = useServerStore();
+
+const allowedMimeTypes = computed(() => parseGlobalMimeTypeAllowList(info.files?.mimeTypeAllowList)?.join(','));
+
+const emit = defineEmits<{
+	click: [];
+	replace: [];
+}>();
+
+const dialogActive = ref(false);
+
+function onInput() {
+	dialogActive.value = false;
+	emit('replace');
+}
+
+function close() {
+	dialogActive.value = false;
+}
+</script>
+
+<template>
+	<div class="file-preview-replace">
+		<FilePreview :file="file" />
+
+		<button v-if="!nonEditable" class="replace-toggle" :disabled @click="dialogActive = true">
+			{{ $t('replace_file') }}
+		</button>
+
+		<VDialog :model-value="dialogActive" @esc="close">
+			<VCard>
+				<VCardTitle>{{ $t('replace_file') }}</VCardTitle>
+				<VCardText>
+					<VUpload :file-id="file.id" from-url :accept="allowedMimeTypes" @input="onInput" />
+				</VCardText>
+				<VCardActions>
+					<VButton secondary @click="close">{{ $t('done') }}</VButton>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.replace-toggle {
+	color: var(--theme--primary);
+	cursor: pointer;
+	font-weight: 600;
+	margin-block-start: 0.6875rem;
+
+	&[disabled] {
+		cursor: not-allowed;
+		color: var(--theme--foreground-subdued);
+	}
+}
+</style>

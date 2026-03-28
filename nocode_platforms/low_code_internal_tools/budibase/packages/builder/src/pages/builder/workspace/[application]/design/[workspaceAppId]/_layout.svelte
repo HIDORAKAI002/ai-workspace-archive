@@ -1,0 +1,37 @@
+<script lang="ts">
+  import * as routify from "@roxi/routify"
+  import { syncURLToState } from "@/helpers/urlStateSync"
+  import { workspaceAppStore } from "@/stores/builder"
+  import { onDestroy } from "svelte"
+
+  // Extract stores from namespace for Svelte 5 compatibility
+  const { goto, params, url, redirect, isActive, page, layout } = routify
+
+  $goto
+  $params
+  $url
+  $redirect
+  $isActive
+  $page
+  $layout
+
+  // Keep URL and state in sync for selected screen ID
+  const stopSyncing = syncURLToState({
+    urlParam: "workspaceAppId",
+    stateKey: "selectedWorkspaceAppId",
+    validate: (id: string) =>
+      $workspaceAppStore.workspaceApps.some(app => app._id === id),
+    fallbackUrl: () => {
+      return "../../home?type=app"
+    },
+    routify,
+    update: (id: string) => workspaceAppStore.select(id),
+    store: workspaceAppStore,
+  })
+
+  onDestroy(() => {
+    stopSyncing?.()
+  })
+</script>
+
+<slot />

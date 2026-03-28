@@ -1,0 +1,47 @@
+package com.appsmith.server.git.fs;
+
+import com.appsmith.external.git.handler.FSGitHandler;
+import com.appsmith.git.configurations.GitServiceConfig;
+import com.appsmith.server.git.GitRedisUtils;
+import com.appsmith.server.git.central.GitHandlingServiceCECompatible;
+import com.appsmith.server.git.resolver.GitArtifactHelperResolver;
+import com.appsmith.server.git.utils.GitAnalyticsUtils;
+import com.appsmith.server.helpers.CommonGitFileUtils;
+import com.appsmith.server.repositories.GitDeployKeysRepository;
+import com.appsmith.server.services.AnalyticsService;
+import com.appsmith.server.services.FeatureFlagService;
+import com.appsmith.server.services.SessionUserService;
+import io.micrometer.observation.ObservationRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class GitFSServiceCECompatibleImpl extends GitFSServiceCEImpl implements GitHandlingServiceCECompatible {
+
+    public GitFSServiceCECompatibleImpl(
+            GitDeployKeysRepository gitDeployKeysRepository,
+            CommonGitFileUtils commonGitFileUtils,
+            GitRedisUtils gitRedisUtils,
+            SessionUserService sessionUserService,
+            AnalyticsService analyticsService,
+            ObservationRegistry observationRegistry,
+            FSGitHandler fsGitHandler,
+            GitAnalyticsUtils gitAnalyticsUtils,
+            GitArtifactHelperResolver gitArtifactHelperResolver,
+            FeatureFlagService featureFlagService,
+            GitServiceConfig gitServiceConfig) {
+        super(
+                gitDeployKeysRepository,
+                commonGitFileUtils,
+                gitRedisUtils,
+                sessionUserService,
+                analyticsService,
+                observationRegistry,
+                fsGitHandler,
+                gitAnalyticsUtils,
+                gitArtifactHelperResolver,
+                featureFlagService,
+                gitServiceConfig);
+    }
+}

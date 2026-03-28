@@ -1,0 +1,267 @@
+/* FlowViewer.css */
+.flow-viewer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.flow-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.flow-info h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.flow-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.flow-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.validation-status {
+  font-weight: 500;
+}
+
+.validation-icon {
+  font-size: 0.8rem;
+}
+
+.validation-icon.valid {
+  color: #28a745;
+}
+
+.validation-icon.invalid {
+  color: #dc3545;
+}
+
+.validation-icon.warnings {
+  color: #ffc107;
+}
+
+.flow-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.validation-button,
+.convert-button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.validation-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.validation-button:hover {
+  background-color: #5a6268;
+}
+
+.convert-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.convert-button:hover {
+  background-color: #0056b3;
+}
+
+.flow-viewer-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.flow-controls button {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.flow-controls button:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+}
+
+.flow-canvas {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+  position: relative;
+}
+
+.flow-canvas:active {
+  cursor: grabbing;
+}
+
+.flow-content {
+  transform-origin: 0 0;
+  transition: transform 0.1s ease-out;
+}
+
+.mini-map {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.validation-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.validation-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.validation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.validation-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.close-button:hover {
+  background-color: #f8f9fa;
+}
+
+.validation-summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.status.valid {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.status.invalid {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.validation-section {
+  margin-bottom: 1.5rem;
+}
+
+.validation-section h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.validation-item {
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.validation-item.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.validation-item.warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.validation-item.suggestion {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.validation-item .message {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.validation-item .suggestion {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.validation-item .impact {
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+}

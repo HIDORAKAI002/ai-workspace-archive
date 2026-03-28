@@ -1,0 +1,319 @@
+---
+title: "Common problems"
+description: "Some common problems you might experience and their solutions"
+---
+
+import NextjsTroubleshootingMissingApiKey from "/snippets/nextjs-missing-api-key.mdx";
+import NextjsTroubleshootingButtonSyntax from "/snippets/nextjs-button-syntax.mdx";
+import RateLimitHitUseBatchTrigger from "/snippets/rate-limit-hit-use-batchtrigger.mdx";
+import CorepackError from "/snippets/corepack-error.mdx";
+
+## Development
+
+### `EACCES: permission denied`
+
+If you see this error:
+
+```
+6090 verbose stack Error: EACCES: permission denied, rename '/Users/user/.npm/_cacache/tmp/f1bfea11' -> '/Users/user/.npm/_cacache/content-v2/sha512/31/d8/e094a47a0105d06fd246892ed1736c02eae323726ec6a3f34734eeb71308895dfba4f4f82a88ffe7e480c90b388c91fc3d9f851ba7b96db4dc33fbc65528'
+```
+
+First, clear the npm cache:
+
+```sh
+npm cache clean --force
+```
+
+Then change the permissions of the npm folder (if 1 doesn't work):
+
+```sh
+sudo chown -R $(whoami) ~/.npm
+```
+
+### Clear the build cache
+
+Ensure you have stopped your local dev server then locate the hidden `.trigger` folder in your project and delete it. You can then restart your local dev server.
+
+### Yarn Plug'n'Play conflicts
+
+If you see errors like this when running `trigger.dev dev`:
+
+```
+Could not resolve "@trigger.dev/core"
+The Yarn Plug'n'Play manifest forbids importing "@trigger.dev/core" here because it's not listed as a dependency of this package
+```
+
+And you're using Yarn v1.22 or another package manager, check if you have a `.pnp.cjs` file in your home directory. This can happen if you previously had Yarn Plug'n'Play enabled globally. Remove the `.pnp.cjs` file to resolve the issue.
+
+## Deployment
+
+Running the [trigger.dev deploy] command builds and deploys your code. Sometimes there can be issues building your code.
+
+You can run the deploy command with `--log-level debug` at the end. This will spit out a lot of information about the deploy. If you can't figure out the problem from the information below please join [our Discord](https://trigger.dev/discord) and create a help forum post. Do NOT share the extended debug logs publicly as they might reveal private information about your project.
+
+You can also review the build by supplying the `--dry-run` flag. This will build your project but not deploy it. You can then inspect the build output on your machine.
+
+Here are some common problems and their solutions:
+
+### `Failed to build project image: Error building image`
+
+There should be a link below the error message to the full build logs on your machine. Take a look at these to see what went wrong. Join [our Discord](https://trigger.dev/discord) and you share it privately with us if you can't figure out what's going wrong. Do NOT share these publicly as the verbose logs might reveal private information about your project.
+
+### `Error: failed to solve: failed to resolve source metadata for docker.io/docker/dockerfile:1`
+
+If you see this error after uninstalling Docker Desktop:
+
+```
+Error: failed to solve: failed to resolve source metadata for docker.io/docker/dockerfile:1: error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH
+```
+
+This happens because Docker Desktop left behind a config file that's still trying to use its credential store. To fix this, remove or update the `~/.docker/config.json` file. You don't need Docker Desktop installed to use Trigger.dev.
+
+### `Deployment encountered an error`
+
+Usually there will be some useful guidance below this message. If you can't figure out what's going wrong then join [our Discord](https://trigger.dev/discord) and create a Help forum post with a link to your deployment.
+
+### `resource_exhausted`
+
+If you see a `resource_exhausted` error during deploy, the build may have hit resource limits on our build infrastructure. Try our [native builder](https://trigger.dev/changelog/deployments-with-native-builds).
+
+### `No loader is configured for ".node" files`
+
+This happens because `.node` files are native code and can't be bundled like other packages. To fix this, add your package to [`build.external`](/config/config-file#external) in the `trigger.config.ts` file like this:
+
+```ts trigger.config.ts
+import { defineConfig } from "@trigger.dev/sdk";
+
+export default defineConfig({
+  project: "<project ref>",
+  // Your other config settings...
+  build: {
+    external: ["your-node-package"],
+  },
+});
+```
+
+### `Cannot find module '/app/lib/worker.js"` when using pino
+
+If you see this error, add pino (and any other associated packages) to your `external` build settings in your `trigger.config.ts` file. Learn more about the `external` setting in the [config docs](/config/config-file#external).
+
+### `Failed to index deployment` with `Column must be greater than or equal to 0, got -1`
+
+This can occur when using `runtime: "bun"` during the indexing phase (we load and execute your task files to discover exports). A short-term workaround is to [pnpm patch](https://pnpm.io/cli/patch) the `source-map` package. See [this GitHub issue](https://github.com/triggerdotdev/trigger.dev/issues/3045) for the patch details.
+
+### `reactDOMServer.renderToPipeableStream is not a function` when using react-email
+
+If you see this error when using `@react-email/render`:
+
+```
+TypeError: reactDOMServer.renderToPipeableStream is not a function
+    at __spreadValues.selectors (file:///node_modules/.pnpm/@react-email+render@1.0.6_react-dom@19.0.0_react@19.0.0/node_modules/@react-email/render/dist/node/index.mjs:162:37)
+```
+
+This happens because react-email packages have bundling conflicts with our build process. To fix this, add the react-email packages to your `external` build settings in your `trigger.config.ts` file:
+
+```ts trigger.config.ts
+import { defineConfig } from "@trigger.dev/sdk";
+
+export default defineConfig({
+  project: "<project ref>",
+  // Your other config settings...
+  build: {
+    external: ["react", "react-dom", "@react-email/render", "@react-email/components"],
+  },
+});
+```
+
+<CorepackError />
+
+## Project setup issues
+
+### `The requested module 'node:events' does not provide an export named 'addAbortListener'`
+
+If you see this error it means you're not a supported version of Node:
+
+```
+SyntaxError: The requested module 'node:events' does not provide an export named 'addAbortListener'
+at ModuleJob._instantiate (node:internal/modules/esm/module_job:123:21)
+at async ModuleJob.run (node:internal/modules/esm/module_job:189:5)
+
+Node.js v19.9.0
+```
+
+You need to be on at least these minor versions:
+
+| Version | Minimum |
+| ------- | ------- |
+| 18      | 18.20+  |
+| 20      | 20.5+   |
+| 21      | 21.0+   |
+| 22      | 22.0+   |
+
+## Runtime issues
+
+### `Environment variable not found:`
+
+Your code is deployed separately from the rest of your app(s) so you need to make sure that you set any environment variables you use in your tasks in the Trigger.dev dashboard. [Read the guide](/deploy-environment-variables).
+
+### `Error: @prisma/client did not initialize yet.`
+
+Prisma uses code generation to create the client from your schema file. This means you need to add a bit of config so we can generate this file before your tasks run: [Read the guide](/config/extensions/prismaExtension).
+
+### Database connection requires IPv4
+
+Trigger.dev currently only supports IPv4 database connections. If your database provider only provides an IPv6 connection string, you'll need to use an IPv4 address instead. [Upvote IPv6 support](https://triggerdev.featurebase.app/p/support-ipv6-database-connections).
+
+### `Parallel waits are not supported`
+
+In the current version, you can't perform more that one "wait" in parallel.
+
+Waits include:
+
+- `wait.for()`
+- `wait.until()`
+- `task.triggerAndWait()`
+- `task.batchTriggerAndWait()`
+- And any of our functions with `wait` in the name.
+
+This restriction exists because we suspend the task server after a wait, and resume it when the wait is done. At the moment, if you do more than one wait, the run will never continue when deployed, so we throw this error instead.
+
+The most common situation this happens is if you're using `Promise.all` around some of our wait functions. Instead of doing this use our built-in functions for [triggering tasks](/triggering#triggering-from-inside-another-task). We have functions that allow you to trigger different tasks in parallel.
+
+### When triggering subtasks the parent task finishes too soon
+
+Make sure that you always use `await` when you call `trigger`, `triggerAndWait`, `batchTrigger`, and `batchTriggerAndWait`. If you don't then it's likely the task(s) won't be triggered because the calling function process can be terminated before the networks calls are sent.
+
+### `COULD_NOT_FIND_EXECUTOR`
+
+If you see a `COULD_NOT_FIND_EXECUTOR` error when triggering a task, it may be caused by dynamically importing the child task. When tasks are dynamically imported, the executor may not be properly registered.
+
+Use a top-level import instead:
+
+```ts
+import { myChildTask } from "~/trigger/my-child-task";
+
+export const myTask = task({
+  id: "my-task",
+  run: async (payload: string) => {
+    await myChildTask.trigger({ payload: "data" });
+  },
+});
+```
+
+Alternatively, use `tasks.trigger()` or `batch.triggerAndWait()` without importing the task:
+
+```ts
+import { batch } from "@trigger.dev/sdk";
+
+export const myTask = task({
+  id: "my-task",
+  run: async (payload: string) => {
+    await batch.triggerAndWait([{ id: "my-child-task", payload: "data" }]);
+  },
+});
+```
+
+### Rate limit exceeded
+
+<RateLimitHitUseBatchTrigger />
+
+View the [rate limits](/limits) page for more information.
+
+### Runs waiting in queue due to concurrency limits
+
+If runs are staying in the `QUEUED` state for extended periods, check your concurrency usage in the dashboard. Review how many runs are `EXECUTING` or `DEQUEUED` (these count against limits) and check if any runs are stuck in `EXECUTING` state, as they may be blocking new runs.
+
+**Solutions:**
+
+- **Increase concurrency limits** - If you're on a paid plan, increase your environment concurrency limit via the dashboard
+- **Review queue concurrency limits** - Check if individual queues have restrictive `concurrencyLimit` settings
+- **Check for stuck runs** - See if stalled runs are blocking new executions
+
+### `Crypto is not defined`
+
+This can happen in different situations, for example when using plain strings as idempotency keys. Support for `Crypto` without a special flag was added in Node `v19.0.0`. You will have to upgrade Node - we recommend even-numbered major releases, e.g. `v20` or `v22`. Alternatively, you can switch from plain strings to the `idempotencyKeys.create` SDK function. [Read the guide](/idempotency).
+
+### Task run stalled executing
+
+If you see a `TASK_RUN_STALLED_EXECUTING` error it means that we didn't receive a heartbeat from your task before the stall timeout. We automatically heartbeat runs every 30 seconds, and the heartbeat timeout is 5 minutes.
+
+<Note>
+
+If this was a dev run, then most likely the `trigger.dev dev` CLI was stopped, and it wasn't an issue with your code.
+
+</Note>
+
+These errors can happen when code inside your task is blocking the event loop for too long. The most likely cause would be an accidental infinite loop. It could also be a CPU-heavy operation that's blocking the event loop, like nested loops with very large arrays.
+
+If you use **Prisma 7.x**, query compilation and caching run on the main thread and can block the event loop during heavy or repeated database work. In tasks that do a lot of Prisma calls (e.g. in loops or many sequential queries), add `await heartbeats.yield()` periodically so the event loop can run and send heartbeats.
+
+We recommend reading the [Don't Block the Event Loop](https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop) guide from Node.js for common patterns that can cause this.
+
+If you are doing a continuous CPU-heavy task, then we recommend you try using our `heartbeats.yield` function to automatically yield to the event loop periodically:
+
+```ts
+import { heartbeats } from "@trigger.dev/sdk";
+
+// code inside your task
+for (const row of bigDataset) {
+  await heartbeats.yield(); // safe to call every iteration, we will only actually yield when we need to
+  process(row); // this is a synchronous operation
+}
+```
+
+<Note>
+
+You could also offload the CPU-heavy work to a Node.js worker thread, but this is more complex to setup currently. We are planning on adding support for this in the future.
+
+</Note>
+
+If the above doesn't work, then we recommend you try increasing the machine size of your task. See our [machines guide](/machines) for more information.
+
+## Framework specific issues
+
+### NestJS swallows all errors/exceptions
+
+If you're using NestJS and you add code like this into your tasks you will prevent any errors from being surfaced:
+
+```ts
+export const simplestTask = task({
+  id: "nestjs-example",
+  run: async (payload) => {
+    //by doing this you're swallowing any errors
+    const app = await NestFactory.createApplicationContext(AppModule);
+    await app.init();
+
+    //etc...
+  },
+});
+```
+
+NestJS has a global exception filter that catches all errors and swallows them, so we can't receive them. Our current recommendation is to not use NestJS inside your tasks. If you're a NestJS user you can still use Trigger.dev but just don't use NestJS inside your tasks like this.
+
+### React is not defined
+
+If you see this error:
+
+```
+Worker failed to start ReferenceError: React is not defined
+```
+
+Either add this to your file:
+
+```ts
+import React from "react";
+```
+
+Or change the tsconfig jsx setting:
+
+```json
+{
+  "compilerOptions": {
+    //...
+    "jsx": "react-jsx"
+  }
+}
+```
+
+<NextjsTroubleshootingMissingApiKey />
+<NextjsTroubleshootingButtonSyntax />

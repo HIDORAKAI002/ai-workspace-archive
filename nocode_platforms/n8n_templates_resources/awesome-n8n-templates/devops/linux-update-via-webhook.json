@@ -1,0 +1,116 @@
+{
+  "name": "Update Server",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "ab983738-8b2e-4388-b9e2-8849a307cd18",
+      "name": "Webhook",
+      "webhookId": "06dec1b4-a026-43f6-8af9-aa71edc18c9d",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SzVLzGYkPN0xTmdA",
+          "name": "Ferris Thiel"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "sudo apt update && sudo apt upgrade -y"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -16
+      ],
+      "id": "d75fdbb3-3768-463d-8c24-08e183962ef3",
+      "name": "Execute a command",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "sshPassword": {
+          "id": "POdOIYhR5Qu9Uob8",
+          "name": "My Server's SSH Password"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.stdout }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "b6b13f8b-28fe-487f-b65d-8351f1c91648",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## What it does:\nThis workflow is built for updating your linux system with a single API Request which can be automated in web interfaces or shortcut app...\n## Setup:\nAdd your credentials for basic auth and ssh\nCopy the custom webhook url and get started!\nExample:\n``` curl\ncurl -X POST -u \"username:password\" https://<your-domain>/update\n```\n## Info:\nThis workflow is built only for debian based systems but i think it is not too hard to change for your needs ;-)",
+        "height": 352,
+        "width": 672
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -384
+      ],
+      "id": "01a69511-2a7a-41e5-b709-9f3731530402",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a command": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0a11f125-d32f-47ec-98c1-ed50aaa8161b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "737b7f3d77a2af21123eccde4b438403bcc76147b5fa7ff5e27fd2189efa0a80"
+  },
+  "id": "XGBwtopjOPIN0oNt",
+  "tags": []
+}

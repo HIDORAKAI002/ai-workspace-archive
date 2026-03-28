@@ -1,0 +1,26 @@
+export enum ClientHeader {
+  BUILDER = "builder",
+}
+
+export enum Header {
+  API_KEY = "x-budibase-api-key",
+  LICENSE_KEY = "x-budibase-license-key",
+  API_VER = "x-budibase-api-version",
+  APP_ID = "x-budibase-app-id",
+  SESSION_ID = "x-budibase-session-id",
+  CLIENT = "x-budibase-client",
+  TYPE = "x-budibase-type",
+  PREVIEW_ROLE = "x-budibase-role",
+  TENANT_ID = "x-budibase-tenant-id",
+  VERIFICATION_CODE = "x-budibase-verification-code",
+  RETURN_VERIFICATION_CODE = "x-budibase-return-verification-code",
+  RESET_PASSWORD_CODE = "x-budibase-reset-password-code",
+  RETURN_RESET_PASSWORD_CODE = "x-budibase-return-reset-password-code",
+  TOKEN = "x-budibase-token",
+  CSRF_TOKEN = "x-csrf-token",
+  CORRELATION_ID = "x-budibase-correlation-id",
+  AUTHORIZATION = "authorization",
+  MIGRATING_APP = "x-budibase-migrating-app",
+  SKIP_MIGRATING_WAIT = "x-budibase-migrating-app-skip-wait",
+  COOKIE = "cookie",
+}

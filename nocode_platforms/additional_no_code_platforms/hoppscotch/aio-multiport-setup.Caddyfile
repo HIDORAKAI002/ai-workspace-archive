@@ -1,0 +1,31 @@
+{
+	admin off
+	persist_config off
+}
+
+:3000 {
+	try_files {path} /
+	root * /site/selfhost-web
+	file_server
+}
+
+:3100 {
+	try_files {path} /
+	root * /site/sh-admin-multiport-setup
+	file_server
+}
+
+:3170 {
+	@mock {
+		header_regexp host Host ^[^.]+\.mock\..*$
+	}
+	
+	handle @mock {
+		rewrite * /mock{uri}
+		reverse_proxy localhost:8080
+	}
+	
+	handle {
+		reverse_proxy localhost:8080
+	}
+}
