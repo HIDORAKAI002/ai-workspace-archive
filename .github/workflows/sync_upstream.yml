@@ -1,0 +1,45 @@
+name: 🔄 Sync Upstream Repositories
+
+on:
+  schedule:
+    # Runs every day at 02:00 UTC (7:30 AM IST)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Also allows manual trigger from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout archive repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: 🔧 Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🌐 Sync public-apis/public-apis
+        run: |
+          echo "Syncing public-apis..."
+          rm -rf public_apis
+          git clone --depth 1 --quiet https://github.com/public-apis/public-apis.git public_apis
+          rm -rf public_apis/.git
+          echo "✅ public-apis synced"
+
+      - name: 🤖 Check for changes and commit
+        run: |
+          git add public_apis/
+          if git diff --staged --quiet; then
+            echo "No changes detected in public-apis. Skipping commit."
+          else
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "chore(sync): Auto-sync public-apis [$TIMESTAMP]"
+            git push origin main
+            echo "✅ Changes pushed!"
+          fi
