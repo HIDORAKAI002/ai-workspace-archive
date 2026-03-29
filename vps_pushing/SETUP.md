@@ -1,79 +1,73 @@
-# 🚀 Pterodactyl Python Egg — Setup Guide
+# 🚀 Pterodactyl Setup — Git Auto-Sync Bot
 
-Upload `app.py`, `requirements.txt`, and `sync_manifest.json` to your server.
+## Upload These 3 Files via SFTP
 
----
+Connect to: `sftp://panel.flagsbot.in:2022`  
+Username: `admin.aac51ff6`  
+Password: your panel password
 
-## Step 1 — Edit `app.py`
-
-Open `app.py` and fill in your details at the top:
-
-```python
-GIT_NAME      = "HIDORAKAI002"           # Your GitHub username
-GIT_EMAIL     = "your@email.com"         # Your GitHub account email
-GITHUB_TOKEN  = "ghp_xxxxxxxxxxxx"       # Your GitHub Personal Access Token
-SYNC_INTERVAL = 6 * 60 * 60             # How often to sync (default: every 6 hours)
+Upload to `/home/container/`:
+```
+app.py
+requirements.txt
+sync_manifest.json
 ```
 
-**To get a GitHub Personal Access Token:**
-1. GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
-2. Generate new token → give it `repo` scope only → copy it
+---
+
+## Step 1 — Edit `app.py` (fill in your details)
+
+Open `app.py` and update the top section:
+
+```python
+GIT_NAME      = "HIDORAKAI002"           # your GitHub username
+GIT_EMAIL     = "your@email.com"         # your GitHub account email  ← CHANGE THIS
+GITHUB_TOKEN  = "ghp_xxxxxxxxxxxx"       # your PAT token             ← CHANGE THIS
+```
+
+**To get your GitHub Personal Access Token (PAT):**
+1. GitHub.com → **Settings** → **Developer Settings** → **Personal Access Tokens** → **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Name it `vps-sync`, check only the **`repo`** scope
+4. Copy the token (starts with `ghp_...`) → paste into `app.py`
 
 ---
 
-## Step 2 — Pterodactyl Egg Settings
+## Step 2 — Install Script (run once)
 
-In your Pterodactyl panel for this server:
-
-| Setting | Value |
-|---|---|
-| **Egg** | Generic Python |
-| **Startup Command** | `python app.py` |
-| **Python Version** | 3.10+ |
-
----
-
-## Step 3 — Make Sure `git` Is Installed
-
-Add this to your server's **Install Script** in Pterodactyl (or run once via console):
+In Pterodactyl, go to **Startup** tab and make sure the install script includes:
 ```bash
 apt update && apt install git -y
 ```
 
+Or run in the console manually before first start:
+```bash
+apt install git -y
+```
+
 ---
 
-## Step 4 — Start the Server
+## Step 3 — Start the Server
 
-Hit **Start** in Pterodactyl. You'll see output like:
+Hit **Start** in Pterodactyl. The console will show:
 
 ```
-[2026-03-29 02:00 UTC] 🚀 AI Workspace Archive — VPS Sync Bot Started
-[2026-03-29 02:00 UTC] 📥 Cloning archive repo for the first time...
-[2026-03-29 02:00 UTC] 📦 Syncing 44 repos...
+[2026-03-29 02:00 UTC] 🚀 AI Workspace Archive — Auto-Sync Bot
+[2026-03-29 02:00 UTC]    Interval : every 6 hours
+[2026-03-29 02:00 UTC] ✅ git version 2.x.x
+[2026-03-29 02:00 UTC] ✅ Manifest loaded — 44 repos tracked
+[2026-03-29 02:00 UTC] 📥 First run — cloning your archive repo...
+[2026-03-29 02:00 UTC] ✅ Archive cloned successfully.
+[2026-03-29 02:00 UTC] 🔁 Sync cycle starting...
 [2026-03-29 02:00 UTC] [1/44] Public APIs Directory
 [2026-03-29 02:00 UTC]   ✅ Updated!
 ...
-[2026-03-29 02:08 UTC] ✅ Pushed! 3 repos updated → 🟩 contribution counted!
-[2026-03-29 02:08 UTC] ⏰ Next sync in 6 hours...
+[2026-03-29 02:10 UTC] 🟩 Pushed! 3 changes → GitHub contribution counted!
+[2026-03-29 02:10 UTC] ⏰ Sleeping 6h until next sync...
 ```
 
-The bot runs forever — syncing every 6 hours, pushing real commits to your GitHub.
-
 ---
 
-## 🟩 Contribution Graph
+## That's It! ✅
 
-Every push counts as a real GitHub contribution because the commits are authored with your `GIT_NAME` and `GIT_EMAIL`. As long as these match your GitHub account, the green squares appear automatically.
-
----
-
-## What the Bot Does Every 6 Hours
-
-1. Pulls your archive repo to get latest state  
-2. For each of the 44+ upstream repos in `sync_manifest.json`:
-   - Re-clones it fresh (`--depth 1`)
-   - Strips the `.git` folder
-   - Replaces the old copy in your archive
-   - Checks if anything actually changed
-3. If changes exist → commits with timestamp → pushes → 🟩
-4. Sleeps 6 hours → repeats
+The bot runs **forever** inside Pterodactyl. Every 6 hours it checks all 44 repos for updates, and if anything changed upstream it pushes a commit to your GitHub — which **counts as a green square on your contribution graph**.
