@@ -1,0 +1,89 @@
+{
+  "light": [
+    {"url": "https://github.com/public-apis/public-apis", "path": "public_apis"},
+
+    {"url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools", "path": "system_prompts/system_prompts_leaks_collections/system-prompts-and-models-of-ai-tools"},
+    {"url": "https://github.com/EliFuzz/awesome-system-prompts", "path": "system_prompts/system_prompts_leaks_collections/awesome-system-prompts"},
+    {"url": "https://github.com/dontriskit/awesome-ai-system-prompts", "path": "system_prompts/system_prompts_leaks_collections/awesome-ai-system-prompts"},
+    {"url": "https://github.com/oxbshw/System-Prompt-Agent-Prompts", "path": "system_prompts/system_prompts_leaks_collections/System-Prompt-Agent-Prompts"},
+    {"url": "https://github.com/guy915/System-Prompts", "path": "system_prompts/system_prompts_leaks_collections/System-Prompts"},
+    {"url": "https://github.com/asgeirtj/system_prompts_leaks", "path": "system_prompts/system_prompts_leaks_collections/system_prompts_leaks"},
+    {"url": "https://github.com/0xeb/TheBigPromptLibrary", "path": "system_prompts/system_prompts_leaks_collections/TheBigPromptLibrary"},
+    {"url": "https://github.com/LouisShark/chatgpt_system_prompt", "path": "system_prompts/system_prompts_leaks_collections/chatgpt_system_prompt"},
+    {"url": "https://github.com/marckrenn/claude-code-changelog", "path": "system_prompts/system_prompts_leaks_collections/claude-code-changelog"},
+    {"url": "https://github.com/DoctorDiffusion/LLM-System-Prompts", "path": "system_prompts/system_prompts_leaks_collections/LLM-System-Prompts"},
+    {"url": "https://github.com/spsanderson/LLM_Prompts", "path": "system_prompts/system_prompts_leaks_collections/LLM_Prompts"},
+
+    {"url": "https://github.com/NirDiamant/Prompt_Engineering", "path": "system_prompts/prompt_engineering_guides/Prompt_Engineering"},
+    {"url": "https://github.com/natnew/Awesome-Prompt-Engineering", "path": "system_prompts/prompt_engineering_guides/Awesome-Prompt-Engineering"},
+    {"url": "https://github.com/ai-boost/awesome-prompts", "path": "system_prompts/prompt_engineering_guides/awesome-prompts"},
+    {"url": "https://github.com/f/awesome-chatgpt-prompts", "path": "system_prompts/prompt_engineering_guides/awesome-chatgpt-prompts"},
+    {"url": "https://github.com/Grow-Online-Digital/awesome-aipromptlibrary-templates", "path": "system_prompts/prompt_engineering_guides/awesome-aipromptlibrary-templates"},
+    {"url": "https://github.com/jonverrier/PromptRepository", "path": "system_prompts/prompt_engineering_guides/PromptRepository"},
+
+    {"url": "https://github.com/conradBruchmann/claude-admin", "path": "system_prompts/prompt_management_tools/claude-admin"},
+    {"url": "https://github.com/comet-ml/opik", "path": "system_prompts/prompt_management_tools/opik"},
+    {"url": "https://github.com/helicone/helicone", "path": "system_prompts/prompt_management_tools/helicone"},
+
+    {"url": "https://github.com/promptfoo/promptfoo", "path": "system_prompts/prompt_testing_evaluation/promptfoo"},
+    {"url": "https://github.com/truera/trulens", "path": "system_prompts/prompt_testing_evaluation/trulens"},
+    {"url": "https://github.com/wandb/weave", "path": "system_prompts/prompt_testing_evaluation/weave"},
+
+    {"url": "https://github.com/guardrails-ai/guardrails", "path": "system_prompts/safety_guardrails/guardrails"},
+    {"url": "https://github.com/NVIDIA/NeMo-Guardrails", "path": "system_prompts/safety_guardrails/NeMo-Guardrails"},
+    {"url": "https://github.com/protectai/rebuff", "path": "system_prompts/safety_guardrails/rebuff"},
+
+    {"url": "https://github.com/modelcontextprotocol/servers", "path": "mcps/Official Anthropic/servers"},
+    {"url": "https://github.com/modelcontextprotocol/python-sdk", "path": "mcps/Official Anthropic/python-sdk"},
+    {"url": "https://github.com/modelcontextprotocol/typescript-sdk", "path": "mcps/Official Anthropic/typescript-sdk"},
+    {"url": "https://github.com/modelcontextprotocol/inspector", "path": "mcps/Official Anthropic/inspector"},
+    {"url": "https://github.com/modelcontextprotocol/csharp-sdk", "path": "mcps/Official Anthropic/csharp-sdk"},
+    {"url": "https://github.com/modelcontextprotocol/java-sdk", "path": "mcps/Official Anthropic/java-sdk"},
+    {"url": "https://github.com/modelcontextprotocol/rust-sdk", "path": "mcps/Official Anthropic/rust-sdk"},
+    {"url": "https://github.com/modelcontextprotocol/kotlin-sdk", "path": "mcps/Official Anthropic/kotlin-sdk"},
+
+    {"url": "https://github.com/microsoft/playwright-mcp", "path": "mcps/Browser Automation/playwright-mcp"},
+    {"url": "https://github.com/executeautomation/mcp-playwright", "path": "mcps/Browser Automation/mcp-playwright"},
+    {"url": "https://github.com/browserbase/mcp-server-browserbase", "path": "mcps/Browser Automation/mcp-server-browserbase"},
+
+    {"url": "https://github.com/isaacwasserman/mcp-snowflake-server", "path": "mcps/Databases/mcp-snowflake-server"},
+    {"url": "https://github.com/ergut/mcp-bigquery-server", "path": "mcps/Databases/mcp-bigquery-server"},
+    {"url": "https://github.com/supabase-community/supabase-mcp", "path": "mcps/Databases/supabase-mcp"},
+
+    {"url": "https://github.com/lastmile-ai/mcp-agent", "path": "mcps/AI & ML Services/mcp-agent"},
+    {"url": "https://github.com/evalstate/mcp-hfspace", "path": "mcps/AI & ML Services/mcp-hfspace"},
+    {"url": "https://github.com/mark3labs/mcphost", "path": "mcps/Developer Tools/mcphost"},
+    {"url": "https://github.com/idosal/git-mcp", "path": "mcps/Developer Tools/git-mcp"},
+    {"url": "https://github.com/strowk/mcp-k8s-go", "path": "mcps/Cloud Platforms/mcp-k8s-go"},
+    {"url": "https://github.com/manusa/kubernetes-mcp-server", "path": "mcps/Cloud Platforms/kubernetes-mcp-server"},
+    {"url": "https://github.com/alexei-led/aws-mcp-server", "path": "mcps/Cloud Platforms/aws-mcp-server"},
+    {"url": "https://github.com/keboola/keboola-mcp-server", "path": "mcps/Cloud Platforms/keboola-mcp-server"},
+
+    {"url": "https://github.com/enescingoz/awesome-n8n-templates", "path": "nocode_platforms/n8n_templates_resources/awesome-n8n-templates"},
+    {"url": "https://github.com/n8n-io/n8n-hosting", "path": "nocode_platforms/n8n_templates_resources/n8n-hosting"},
+    {"url": "https://github.com/iaminawe/flowise-to-langchain", "path": "nocode_platforms/flowise_related_tools/flowise-to-langchain"},
+    {"url": "https://github.com/FlowiseAI/FlowiseDocs", "path": "nocode_platforms/flowise_related_tools/FlowiseDocs"},
+    {"url": "https://github.com/langgenius/dify-docs", "path": "nocode_platforms/dify_related_tools/dify-docs"},
+    {"url": "https://github.com/BorisPolonsky/dify-helm", "path": "nocode_platforms/dify_related_tools/dify-helm"},
+    {"url": "https://github.com/rowyio/rowy", "path": "nocode_platforms/additional_no_code_platforms/rowy"}
+  ],
+  "heavy": [
+    {"url": "https://github.com/n8n-io/n8n", "path": "nocode_platforms/ai_workflow_automation_platforms/n8n"},
+    {"url": "https://github.com/langgenius/dify", "path": "nocode_platforms/ai_workflow_automation_platforms/dify"},
+    {"url": "https://github.com/FlowiseAI/Flowise", "path": "nocode_platforms/ai_workflow_automation_platforms/Flowise"},
+    {"url": "https://github.com/langflow-ai/langflow", "path": "nocode_platforms/ai_workflow_automation_platforms/langflow"},
+    {"url": "https://github.com/activepieces/activepieces", "path": "nocode_platforms/ai_workflow_automation_platforms/activepieces"},
+    {"url": "https://github.com/triggerdotdev/trigger.dev", "path": "nocode_platforms/ai_workflow_automation_platforms/trigger_dev"},
+    {"url": "https://github.com/windmill-labs/windmill", "path": "nocode_platforms/ai_workflow_automation_platforms/windmill"},
+    {"url": "https://github.com/appsmithorg/appsmith", "path": "nocode_platforms/low_code_internal_tools/appsmith"},
+    {"url": "https://github.com/ToolJet/ToolJet", "path": "nocode_platforms/low_code_internal_tools/ToolJet"},
+    {"url": "https://github.com/Budibase/budibase", "path": "nocode_platforms/low_code_internal_tools/budibase"},
+    {"url": "https://github.com/nocodb/nocodb", "path": "nocode_platforms/low_code_internal_tools/nocodb"},
+    {"url": "https://github.com/directus/directus", "path": "nocode_platforms/additional_no_code_platforms/directus"},
+    {"url": "https://github.com/hoppscotch/hoppscotch", "path": "nocode_platforms/additional_no_code_platforms/hoppscotch"},
+    {"url": "https://github.com/makeplane/plane", "path": "nocode_platforms/additional_no_code_platforms/plane"},
+    {"url": "https://github.com/langfuse/langfuse", "path": "system_prompts/prompt_management_tools/langfuse"},
+    {"url": "https://github.com/agenta-ai/agenta", "path": "system_prompts/prompt_management_tools/agenta"},
+    {"url": "https://github.com/emretasss/AI-Workflow-Hub-2000-", "path": "nocode_platforms/n8n_templates_resources/AI-Workflow-Hub-2000"}
+  ]
+}

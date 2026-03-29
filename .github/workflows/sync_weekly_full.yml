@@ -1,0 +1,47 @@
+name: 🏋️ Weekly Sync — All Repos (Including Heavy)
+
+on:
+  schedule:
+    # Every Sunday at 03:00 UTC (8:30 AM IST) — full sync including heavy repos
+    - cron: '0 3 * * 0'
+  workflow_dispatch: # Manual trigger anytime
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6-hour ceiling for large repos
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout archive repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🔧 Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🏋️ Run FULL sync (all repos)
+        run: |
+          echo "Running FULL sync — this includes heavy repos like n8n, Dify, Flowise..."
+          python scripts/sync_repos.py --mode all
+
+      - name: 📦 Commit and push if changes exist
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "✨ No changes detected across any repo. All up to date."
+          else
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "chore(sync): Weekly full sync — all repos [$TIMESTAMP]"
+            git push origin main
+            echo "✅ Weekly sync complete and pushed!"
+          fi
