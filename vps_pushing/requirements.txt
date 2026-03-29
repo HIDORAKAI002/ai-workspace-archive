@@ -1,1 +1,0 @@
-# No external packages needed - pure Python stdlib + system git

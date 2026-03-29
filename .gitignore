@@ -1,0 +1,16 @@
+# Private — VPS sync config with tokens, never push to GitHub
+vps_pushing/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Temp
+/tmp/
+*.log
