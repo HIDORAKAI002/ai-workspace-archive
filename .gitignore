@@ -1,5 +1,6 @@
 # Private — VPS sync config with tokens, never push to GitHub
 vps_pushing/
+vps_pushing2/
 
 # OS
 .DS_Store
