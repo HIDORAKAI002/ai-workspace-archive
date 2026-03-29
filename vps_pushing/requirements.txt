@@ -1,0 +1,9 @@
+# No external dependencies required!
+# All libraries used are Python standard library:
+# - os, json, shutil, subprocess, time, datetime
+#
+# The only system requirement is:
+#   git  (must be installed on the server)
+#
+# Install git on Pterodactyl startup command or via:
+#   apt install git -y
