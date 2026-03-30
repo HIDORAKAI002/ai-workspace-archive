@@ -15,7 +15,7 @@ Because of this architecture, **you should not submit Pull Requests editing the 
 If you've found a new, high-quality MCP server, a brilliant curated skill repository, or a highly useful AI framework, here is the exact process to add it to the archive:
 
 1. **Fork this repository**.
-2. **Edit `vps_pushing2/sync_manifest.json`**.
+2. **Edit `sync_manifest.json`** located in the root directory.
 3. Add a new JSON object to the end of the array outlining the repository upstream URL and its destination. 
 
 ### Example Addition to Manifest
