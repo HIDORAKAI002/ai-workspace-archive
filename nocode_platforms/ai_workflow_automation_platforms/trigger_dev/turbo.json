@@ -1,0 +1,142 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "public/build/**",
+        "build/**",
+        "app/styles/tailwind.css",
+        ".cache"
+      ]
+    },
+    "webapp#start": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "public/build/**"
+      ]
+    },
+    "start": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "public/build/**"
+      ]
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate:deploy": {
+      "cache": false
+    },
+    "db:seed": {
+      "cache": false,
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "db:studio": {
+      "cache": false
+    },
+    "db:populate": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "i:dev": {
+      "cache": false
+    },
+    "generate": {
+      "dependsOn": [
+        "^generate"
+      ]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "docker:build": {
+      "outputs": [],
+      "cache": false
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "test:dev": {
+      "outputs": [],
+      "cache": false
+    },
+    "test:e2e:dev": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "cache": false
+    },
+    "test:e2e:ci": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "check-exports": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    },
+    "clean:sourcemaps": {
+      "cache": false
+    },
+    "storybook": {
+      "cache": false
+    }
+  },
+  "globalDependencies": [
+    ".env"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "REMIX_APP_PORT",
+    "CI",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "SESSION_SECRET",
+    "APP_ORIGIN",
+    "LOGIN_ORIGIN",
+    "POSTHOG_PROJECT_KEY",
+    "MAGIC_LINK_SECRET",
+    "AUTH_GITHUB_CLIENT_ID",
+    "AUTH_GITHUB_CLIENT_SECRET",
+    "FROM_EMAIL",
+    "REPLY_TO_EMAIL",
+    "RESEND_API_KEY",
+    "DEBUG",
+    "TRIGGER_LOG_LEVEL",
+    "TRIGGER_API_KEY",
+    "TRIGGER_API_URL",
+    "APP_ENV",
+    "APP_LOG_LEVEL"
+  ]
+}

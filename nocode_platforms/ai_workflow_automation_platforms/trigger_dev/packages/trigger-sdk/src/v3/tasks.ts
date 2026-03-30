@@ -1,0 +1,113 @@
+import {
+  onStart,
+  onStartAttempt,
+  onFailure,
+  onSuccess,
+  onComplete,
+  onWait,
+  onResume,
+  onHandleError,
+  onCatchError,
+  middleware,
+  onCancel,
+} from "./hooks.js";
+import {
+  batchTrigger,
+  batchTriggerAndWait,
+  createTask,
+  createSchemaTask,
+  createToolTask,
+  SubtaskUnwrapError,
+  trigger,
+  triggerAndWait,
+} from "./shared.js";
+
+export { SubtaskUnwrapError };
+
+import type {
+  AnyTask,
+  BatchItem,
+  BatchResult,
+  BatchRunHandle,
+  Queue,
+  RunHandle,
+  Task,
+  TaskIdentifier,
+  TaskOptions,
+  TaskOutput,
+  TaskPayload,
+  TriggerOptions,
+  TaskRunResult,
+  TaskFromIdentifier,
+  TaskWithSchemaOptions,
+  TaskSchema,
+  TaskWithSchema,
+  TaskOptionsWithSchema,
+} from "./shared.js";
+
+export type {
+  AnyTask,
+  BatchItem,
+  BatchResult,
+  BatchRunHandle,
+  Queue,
+  RunHandle,
+  Task,
+  TaskIdentifier,
+  TaskOptions,
+  TaskOutput,
+  TaskPayload,
+  TriggerOptions,
+  TaskRunResult,
+  TaskFromIdentifier,
+  TaskWithSchemaOptions,
+  TaskSchema,
+  TaskWithSchema,
+  TaskOptionsWithSchema,
+};
+
+export type * from "./hooks.js";
+
+/** Creates a task that can be triggered
+ * @param options - Task options
+ * @example 
+ * 
+ * ```ts
+ * import { task } from "@trigger.dev/sdk/v3";
+ *
+ * export const helloWorld = task({
+    id: "hello-world",
+ *    run: async (payload: { url: string }) => {
+ *    return { hello: "world" };
+ *  },
+ * });
+ *
+ * ```
+ * 
+ * @returns A task that can be triggered
+ */
+export const task = createTask;
+
+export const schemaTask = createSchemaTask;
+
+export const toolTask = createToolTask;
+
+export const tasks = {
+  trigger,
+  batchTrigger,
+  triggerAndWait,
+  batchTriggerAndWait,
+  /** @deprecated Use onStartAttempt instead */
+  onStart,
+  onStartAttempt,
+  onFailure,
+  onSuccess,
+  onComplete,
+  onWait,
+  onResume,
+  onCancel,
+  /** @deprecated Use catchError instead */
+  handleError: onHandleError,
+  catchError: onCatchError,
+  middleware,
+};

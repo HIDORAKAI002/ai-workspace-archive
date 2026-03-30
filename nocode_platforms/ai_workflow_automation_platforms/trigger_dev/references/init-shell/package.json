@@ -1,0 +1,8 @@
+{
+  "name": "references-init-shell",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "trigger.dev": "workspace:*"
+  }
+}
