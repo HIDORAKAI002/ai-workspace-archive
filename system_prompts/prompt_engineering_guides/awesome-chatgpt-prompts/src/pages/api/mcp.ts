@@ -10,7 +10,7 @@ import {
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { isValidApiKeyFormat } from "@/lib/api-key";
-import { parseSkillFiles, serializeSkillFiles, DEFAULT_SKILL_FILE } from "@/lib/skill-files";
+import { parseSkillFiles, serializeSkillFiles, sanitizeFilename, DEFAULT_SKILL_FILE } from "@/lib/skill-files";
 import appConfig from "@/../prompts.config";
 import {
   mcpGeneralLimiter,
@@ -772,6 +772,16 @@ function createServer(options: ServerOptions = {}) {
           };
         }
 
+        // Validate all filenames to prevent path traversal
+        for (const f of files) {
+          if (f.filename !== DEFAULT_SKILL_FILE && !sanitizeFilename(f.filename)) {
+            return {
+              content: [{ type: "text" as const, text: JSON.stringify({ error: `Invalid filename: '${f.filename}'. Filenames must not contain '..', start/end with '/', or use special characters.` }) }],
+              isError: true,
+            };
+          }
+        }
+
         // Serialize files to multi-file format
         const content = serializeSkillFiles(files.map(f => ({ filename: f.filename, content: f.content })));
 
@@ -913,6 +923,14 @@ function createServer(options: ServerOptions = {}) {
           };
         }
 
+        // Validate filename to prevent path traversal
+        if (!sanitizeFilename(filename)) {
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify({ error: `Invalid filename: '${filename}'. Filenames must not contain '..', start/end with '/', or use special characters.` }) }],
+            isError: true,
+          };
+        }
+
         // Add the new file
         files.push({ filename, content });
 
@@ -983,6 +1001,14 @@ function createServer(options: ServerOptions = {}) {
         if (!skill) {
           return {
             content: [{ type: "text" as const, text: JSON.stringify({ error: "Skill not found or you don't have permission to edit it" }) }],
+            isError: true,
+          };
+        }
+
+        // Validate filename to prevent path traversal
+        if (filename !== DEFAULT_SKILL_FILE && !sanitizeFilename(filename)) {
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify({ error: `Invalid filename: '${filename}'. Filenames must not contain '..', start/end with '/', or use special characters.` }) }],
             isError: true,
           };
         }

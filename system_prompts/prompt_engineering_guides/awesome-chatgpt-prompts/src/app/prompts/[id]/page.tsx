@@ -8,6 +8,7 @@ import { AnimatedDate } from "@/components/ui/animated-date";
 import { ShareDropdown } from "@/components/prompts/share-dropdown";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canViewPrompt } from "@/lib/prompt-access";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -62,11 +63,18 @@ export async function generateMetadata({ params }: PromptPageProps): Promise<Met
   const id = extractPromptId(idParam);
   const prompt = await db.prompt.findUnique({
     where: { id },
-    select: { title: true, description: true },
+    select: { title: true, description: true, isPrivate: true, authorId: true },
   });
 
   if (!prompt) {
     return { title: "Prompt Not Found" };
+  }
+
+  if (prompt.isPrivate) {
+    const session = await auth();
+    if (!canViewPrompt(prompt, session)) {
+      return { title: "Prompt Not Found" };
+    }
   }
 
   return {
@@ -224,7 +232,7 @@ export default async function PromptPage({ params }: PromptPageProps) {
   }
 
   // Check if user can view private prompt
-  if (prompt.isPrivate && prompt.authorId !== session?.user?.id) {
+  if (!canViewPrompt(prompt, session)) {
     notFound();
   }
 

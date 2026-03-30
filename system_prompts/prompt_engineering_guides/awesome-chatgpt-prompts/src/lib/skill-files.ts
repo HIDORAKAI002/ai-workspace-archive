@@ -193,8 +193,25 @@ export function getLanguageFromFilename(filename: string): string {
   return languageMap[ext] || "plaintext";
 }
 
+/**
+ * Server-side filename sanitization for skill files.
+ * Returns the sanitized filename, or null if the filename is invalid.
+ * Use this on all server-side write and read paths to prevent path traversal.
+ */
+export function sanitizeFilename(filename: string): string | null {
+  const trimmed = filename.trim();
+  if (!trimmed) return null;
+  if (/[\x00-\x1F\x7F]/.test(trimmed)) return null;
+  if (trimmed.includes("..")) return null;
+  if (trimmed.startsWith("/") || trimmed.endsWith("/")) return null;
+  if (trimmed.includes("//")) return null;
+  if (/[<>:"|?*\\]/.test(trimmed)) return null;
+  if (trimmed.length > 200) return null;
+  return trimmed;
+}
+
 // Validation error codes for translation
-export type FilenameValidationError = 
+export type FilenameValidationError =
   | "filenameEmpty"
   | "filenameInvalidChars"
   | "pathStartEndSlash"
