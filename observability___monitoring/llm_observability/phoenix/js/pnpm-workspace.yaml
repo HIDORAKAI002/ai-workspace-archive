@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+  - examples/apps/*
+  - benchmarks/*
+onlyBuiltDependencies:
+  - esbuild
+  - protobufjs
+minimumReleaseAge: 4320

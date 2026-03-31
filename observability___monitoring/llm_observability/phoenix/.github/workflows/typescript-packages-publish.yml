@@ -1,0 +1,65 @@
+name: Typescript Packages Publish
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+on:
+  push:
+    branches:
+      - main
+env:
+  CI: true
+  PNPM_CACHE_FOLDER: .pnpm-store
+jobs:
+  version:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.MY_CHANGESET_TOKEN }}
+      - name: setup node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: lts/*
+          registry-url: https://registry.npmjs.org/
+          scope: "@arizeai"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Setup PNPM
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          package_json_file: js/package.json
+      - name: setup pnpm config
+        run: pnpm config set store-dir $PNPM_CACHE_FOLDER
+      - name: Install Dependencies
+        working-directory: ./js
+        run: pnpm install --frozen-lockfile
+      - name: Creating .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: create and publish versions
+        # Using PAT instead of GITHUB_TOKEN so that PRs created by this action
+        # can trigger subsequent workflows (like publish) when merged
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1.7.0
+        with:
+          version: pnpm ci:version
+          commit: "chore(js): update versions"
+          title: "chore(js): update versions"
+          publish: pnpm ci:publish
+          createGithubReleases: true
+          cwd: "./js"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_CHANGESET_TOKEN }}
+      # - name: Release docs
+      # Run pnpm run docs in js/packages/phoenix-client
+      # Deploy the static files in js/packages/phoenix-client/docs to github pages
