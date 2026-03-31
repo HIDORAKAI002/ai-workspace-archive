@@ -1,0 +1,46 @@
+module Anthropic
+  module Models
+    type web_search_tool_result_block =
+      {
+        caller_: Anthropic::Models::WebSearchToolResultBlock::caller_,
+        content: Anthropic::Models::web_search_tool_result_block_content,
+        tool_use_id: String,
+        type: :web_search_tool_result
+      }
+
+    class WebSearchToolResultBlock < Anthropic::Internal::Type::BaseModel
+      attr_accessor caller_: Anthropic::Models::WebSearchToolResultBlock::caller_
+
+      attr_accessor content: Anthropic::Models::web_search_tool_result_block_content
+
+      attr_accessor tool_use_id: String
+
+      attr_accessor type: :web_search_tool_result
+
+      def initialize: (
+        caller_: Anthropic::Models::WebSearchToolResultBlock::caller_,
+        content: Anthropic::Models::web_search_tool_result_block_content,
+        tool_use_id: String,
+        ?type: :web_search_tool_result
+      ) -> void
+
+      def to_hash: -> {
+        caller_: Anthropic::Models::WebSearchToolResultBlock::caller_,
+        content: Anthropic::Models::web_search_tool_result_block_content,
+        tool_use_id: String,
+        type: :web_search_tool_result
+      }
+
+      type caller_ =
+        Anthropic::DirectCaller
+        | Anthropic::ServerToolCaller
+        | Anthropic::ServerToolCaller20260120
+
+      module Caller
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::WebSearchToolResultBlock::caller_]
+      end
+    end
+  end
+end

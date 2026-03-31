@@ -1,0 +1,27 @@
+module Anthropic
+  module Models
+    type message_count_tokens_tool =
+      Anthropic::Tool
+      | Anthropic::ToolBash20250124
+      | Anthropic::CodeExecutionTool20250522
+      | Anthropic::CodeExecutionTool20250825
+      | Anthropic::CodeExecutionTool20260120
+      | Anthropic::MemoryTool20250818
+      | Anthropic::ToolTextEditor20250124
+      | Anthropic::ToolTextEditor20250429
+      | Anthropic::ToolTextEditor20250728
+      | Anthropic::WebSearchTool20250305
+      | Anthropic::WebFetchTool20250910
+      | Anthropic::WebSearchTool20260209
+      | Anthropic::WebFetchTool20260209
+      | Anthropic::WebFetchTool20260309
+      | Anthropic::ToolSearchToolBm25_20251119
+      | Anthropic::ToolSearchToolRegex20251119
+
+    module MessageCountTokensTool
+      extend Anthropic::Internal::Type::Union
+
+      def self?.variants: -> ::Array[Anthropic::Models::message_count_tokens_tool]
+    end
+  end
+end

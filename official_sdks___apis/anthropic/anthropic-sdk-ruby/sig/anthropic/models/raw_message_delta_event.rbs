@@ -1,0 +1,57 @@
+module Anthropic
+  module Models
+    type raw_message_delta_event =
+      {
+        delta: Anthropic::RawMessageDeltaEvent::Delta,
+        type: :message_delta,
+        usage: Anthropic::MessageDeltaUsage
+      }
+
+    class RawMessageDeltaEvent < Anthropic::Internal::Type::BaseModel
+      attr_accessor delta: Anthropic::RawMessageDeltaEvent::Delta
+
+      attr_accessor type: :message_delta
+
+      attr_accessor usage: Anthropic::MessageDeltaUsage
+
+      def initialize: (
+        delta: Anthropic::RawMessageDeltaEvent::Delta,
+        usage: Anthropic::MessageDeltaUsage,
+        ?type: :message_delta
+      ) -> void
+
+      def to_hash: -> {
+        delta: Anthropic::RawMessageDeltaEvent::Delta,
+        type: :message_delta,
+        usage: Anthropic::MessageDeltaUsage
+      }
+
+      type delta =
+        {
+          container: Anthropic::Container?,
+          stop_reason: Anthropic::Models::stop_reason?,
+          stop_sequence: String?
+        }
+
+      class Delta < Anthropic::Internal::Type::BaseModel
+        attr_accessor container: Anthropic::Container?
+
+        attr_accessor stop_reason: Anthropic::Models::stop_reason?
+
+        attr_accessor stop_sequence: String?
+
+        def initialize: (
+          container: Anthropic::Container?,
+          stop_reason: Anthropic::Models::stop_reason?,
+          stop_sequence: String?
+        ) -> void
+
+        def to_hash: -> {
+          container: Anthropic::Container?,
+          stop_reason: Anthropic::Models::stop_reason?,
+          stop_sequence: String?
+        }
+      end
+    end
+  end
+end

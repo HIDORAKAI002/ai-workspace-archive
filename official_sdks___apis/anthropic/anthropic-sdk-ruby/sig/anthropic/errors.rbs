@@ -1,0 +1,120 @@
+module Anthropic
+  module Errors
+    class Error < StandardError
+      attr_accessor cause: StandardError?
+    end
+
+    class ConversionError < Anthropic::Errors::Error
+      def cause: -> StandardError?
+
+      def initialize: (
+        on: Class,
+        method: Symbol,
+        target: top,
+        value: top,
+        ?cause: StandardError?
+      ) -> void
+    end
+
+    class APIError < Anthropic::Errors::Error
+      attr_accessor url: URI::Generic
+
+      attr_accessor status: Integer?
+
+      attr_accessor headers: ::Hash[String, String]?
+
+      attr_accessor body: top?
+
+      def initialize: (
+        url: URI::Generic,
+        ?status: Integer?,
+        ?headers: ::Hash[String, String]?,
+        ?body: Object?,
+        ?request: nil,
+        ?response: nil,
+        ?message: String?
+      ) -> void
+    end
+
+    class APIConnectionError < Anthropic::Errors::APIError
+      def initialize: (
+        url: URI::Generic,
+        ?status: nil,
+        ?headers: ::Hash[String, String]?,
+        ?body: nil,
+        ?request: nil,
+        ?response: nil,
+        ?message: String?
+      ) -> void
+    end
+
+    class APITimeoutError < Anthropic::Errors::APIConnectionError
+      def initialize: (
+        url: URI::Generic,
+        ?status: nil,
+        ?headers: ::Hash[String, String]?,
+        ?body: nil,
+        ?request: nil,
+        ?response: nil,
+        ?message: String?
+      ) -> void
+    end
+
+    class APIStatusError < Anthropic::Errors::APIError
+      attr_reader type: Anthropic::Models::error_type?
+
+      def self.for: (
+        url: URI::Generic,
+        status: Integer,
+        headers: ::Hash[String, String]?,
+        body: Object?,
+        request: nil,
+        response: nil,
+        ?message: String?
+      ) -> instance
+
+      def initialize: (
+        url: URI::Generic,
+        status: Integer,
+        headers: ::Hash[String, String]?,
+        body: Object?,
+        request: nil,
+        response: nil,
+        ?message: String?,
+        ?type: Anthropic::Models::error_type?
+      ) -> void
+    end
+
+    class BadRequestError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 400
+    end
+
+    class AuthenticationError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 401
+    end
+
+    class PermissionDeniedError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 403
+    end
+
+    class NotFoundError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 404
+    end
+
+    class ConflictError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 409
+    end
+
+    class UnprocessableEntityError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 422
+    end
+
+    class RateLimitError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: 429
+    end
+
+    class InternalServerError < Anthropic::Errors::APIStatusError
+      HTTP_STATUS: Range[Integer]
+    end
+  end
+end

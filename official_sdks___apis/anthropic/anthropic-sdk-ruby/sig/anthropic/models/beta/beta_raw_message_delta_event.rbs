@@ -1,0 +1,66 @@
+module Anthropic
+  module Models
+    class BetaRawMessageDeltaEvent = Beta::BetaRawMessageDeltaEvent
+
+    module Beta
+      type beta_raw_message_delta_event =
+        {
+          context_management: Anthropic::Beta::BetaContextManagementResponse?,
+          delta: Anthropic::Beta::BetaRawMessageDeltaEvent::Delta,
+          type: :message_delta,
+          usage: Anthropic::Beta::BetaMessageDeltaUsage
+        }
+
+      class BetaRawMessageDeltaEvent < Anthropic::Internal::Type::BaseModel
+        attr_accessor context_management: Anthropic::Beta::BetaContextManagementResponse?
+
+        attr_accessor delta: Anthropic::Beta::BetaRawMessageDeltaEvent::Delta
+
+        attr_accessor type: :message_delta
+
+        attr_accessor usage: Anthropic::Beta::BetaMessageDeltaUsage
+
+        def initialize: (
+          context_management: Anthropic::Beta::BetaContextManagementResponse?,
+          delta: Anthropic::Beta::BetaRawMessageDeltaEvent::Delta,
+          usage: Anthropic::Beta::BetaMessageDeltaUsage,
+          ?type: :message_delta
+        ) -> void
+
+        def to_hash: -> {
+          context_management: Anthropic::Beta::BetaContextManagementResponse?,
+          delta: Anthropic::Beta::BetaRawMessageDeltaEvent::Delta,
+          type: :message_delta,
+          usage: Anthropic::Beta::BetaMessageDeltaUsage
+        }
+
+        type delta =
+          {
+            container: Anthropic::Beta::BetaContainer?,
+            stop_reason: Anthropic::Models::Beta::beta_stop_reason?,
+            stop_sequence: String?
+          }
+
+        class Delta < Anthropic::Internal::Type::BaseModel
+          attr_accessor container: Anthropic::Beta::BetaContainer?
+
+          attr_accessor stop_reason: Anthropic::Models::Beta::beta_stop_reason?
+
+          attr_accessor stop_sequence: String?
+
+          def initialize: (
+            container: Anthropic::Beta::BetaContainer?,
+            stop_reason: Anthropic::Models::Beta::beta_stop_reason?,
+            stop_sequence: String?
+          ) -> void
+
+          def to_hash: -> {
+            container: Anthropic::Beta::BetaContainer?,
+            stop_reason: Anthropic::Models::Beta::beta_stop_reason?,
+            stop_sequence: String?
+          }
+        end
+      end
+    end
+  end
+end

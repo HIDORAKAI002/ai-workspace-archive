@@ -1,0 +1,34 @@
+module Anthropic
+  module Models
+    module BetaContentBlockParam = Beta::BetaContentBlockParam
+
+    module Beta
+      type beta_content_block_param =
+        Anthropic::Beta::BetaTextBlockParam
+        | Anthropic::Beta::BetaImageBlockParam
+        | Anthropic::Beta::BetaRequestDocumentBlock
+        | Anthropic::Beta::BetaSearchResultBlockParam
+        | Anthropic::Beta::BetaThinkingBlockParam
+        | Anthropic::Beta::BetaRedactedThinkingBlockParam
+        | Anthropic::Beta::BetaToolUseBlockParam
+        | Anthropic::Beta::BetaToolResultBlockParam
+        | Anthropic::Beta::BetaServerToolUseBlockParam
+        | Anthropic::Beta::BetaWebSearchToolResultBlockParam
+        | Anthropic::Beta::BetaWebFetchToolResultBlockParam
+        | Anthropic::Beta::BetaCodeExecutionToolResultBlockParam
+        | Anthropic::Beta::BetaBashCodeExecutionToolResultBlockParam
+        | Anthropic::Beta::BetaTextEditorCodeExecutionToolResultBlockParam
+        | Anthropic::Beta::BetaToolSearchToolResultBlockParam
+        | Anthropic::Beta::BetaMCPToolUseBlockParam
+        | Anthropic::Beta::BetaRequestMCPToolResultBlockParam
+        | Anthropic::Beta::BetaContainerUploadBlockParam
+        | Anthropic::Beta::BetaCompactionBlockParam
+
+      module BetaContentBlockParam
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Beta::beta_content_block_param]
+      end
+    end
+  end
+end

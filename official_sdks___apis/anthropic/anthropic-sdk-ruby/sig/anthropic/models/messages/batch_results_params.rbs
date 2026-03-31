@@ -1,0 +1,26 @@
+module Anthropic
+  module Models
+    module Messages
+      type batch_results_params =
+        { message_batch_id: String }
+        & Anthropic::Internal::Type::request_parameters
+
+      class BatchResultsParams < Anthropic::Internal::Type::BaseModel
+        extend Anthropic::Internal::Type::RequestParameters::Converter
+        include Anthropic::Internal::Type::RequestParameters
+
+        attr_accessor message_batch_id: String
+
+        def initialize: (
+          message_batch_id: String,
+          ?request_options: Anthropic::request_opts
+        ) -> void
+
+        def to_hash: -> {
+          message_batch_id: String,
+          request_options: Anthropic::RequestOptions
+        }
+      end
+    end
+  end
+end
