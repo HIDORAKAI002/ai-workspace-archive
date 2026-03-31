@@ -1,0 +1,85 @@
+name: Publish Elixir SDK
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/elixir-sdk/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./apps/elixir-sdk
+
+jobs:
+  regenerate-and-publish:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17'
+          otp-version: '27'
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Regenerate from OpenAPI spec
+        run: mix run generate.exs
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet HEAD -- . && [ -z "$(git ls-files --others --exclude-standard .)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit regenerated code
+        if: steps.check_changes.outputs.changed == 'true' && github.event_name == 'schedule'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cd "$GITHUB_WORKSPACE"
+          git add apps/elixir-sdk/
+          VERSION=$(grep '@version' apps/elixir-sdk/mix.exs | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          git commit -m "chore(elixir-sdk): regenerate from OpenAPI spec (v${VERSION})"
+          git push
+
+      - name: Check if version needs publishing
+        id: version_info
+        run: |
+          LOCAL_VERSION=$(grep '@version' mix.exs | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "local_version=$LOCAL_VERSION" >> "$GITHUB_OUTPUT"
+
+          # Check published version on hex.pm
+          HTTP_STATUS=$(curl -s -o /tmp/hex_response.json -w "%{http_code}" "https://hex.pm/api/packages/firecrawl")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            PUBLISHED_VERSION=$(python3 -c "import sys,json; releases=json.load(open('/tmp/hex_response.json'))['releases']; print(releases[0]['version'] if releases else '0.0.0')")
+          else
+            PUBLISHED_VERSION="0.0.0"
+          fi
+          echo "published_version=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
+
+          # Compare versions using simple tuple comparison
+          python3 -c "
+          local = tuple(map(int, '$LOCAL_VERSION'.split('.')))
+          pub = tuple(map(int, '$PUBLISHED_VERSION'.split('.')))
+          print('should_publish=true' if local > pub else 'should_publish=false')
+          " >> "$GITHUB_OUTPUT"
+
+      - name: Publish to hex.pm
+        if: steps.version_info.outputs.should_publish == 'true'
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          mix hex.publish --yes

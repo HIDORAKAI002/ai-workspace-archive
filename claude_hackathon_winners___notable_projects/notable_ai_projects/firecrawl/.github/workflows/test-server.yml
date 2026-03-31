@@ -1,0 +1,538 @@
+name: Server Test Suite
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci=${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  self-host:
+    name: Self-hosted environment tests
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['playwright', 'fetch'] # unsure if we need both of these
+        proxy: ['proxy', 'no-proxy'] # proxy / no-proxy run different tests, keep both
+        search: ['searxng'] # disabled google for now, should be fine with just Searxng
+        ai: ['openai'] # AI only should be fine, as it simply adds tests, if non-AI fails, AI will fail.
+
+        # legacy matrix:
+        # engine: ["playwright", "fetch"]
+        # proxy: ["proxy", "no-proxy"]
+        # search: ["searxng", "google"]
+        # ai: ["openai", "no-ai"]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      rabbitmq:
+        image: rabbitmq
+        ports:
+          - 5672:5672
+    env:
+      HOST: 0.0.0.0
+      TEST_SUITE_SELF_HOSTED: true
+      TEST_SUITE_WEBSITE: http://127.0.0.1:4321
+      OPENAI_API_KEY: ${{ matrix.ai == 'openai' && secrets.OPENAI_API_KEY || '' }}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+      SEARXNG_ENDPOINT: ${{ matrix.search == 'searxng' && 'http://localhost:3434' || '' }}
+      PLAYWRIGHT_MICROSERVICE_URL: ${{ matrix.engine == 'playwright' && 'http://localhost:3003/scrape' || '' }}
+      PROXY_SERVER: ${{ matrix.proxy == 'proxy' && secrets.PROXY_SERVER || '' }}
+      PROXY_USERNAME: ${{ matrix.proxy == 'proxy' && secrets.PROXY_USERNAME || '' }}
+      PROXY_PASSWORD: ${{ matrix.proxy == 'proxy' && secrets.PROXY_PASSWORD || '' }}
+      NUQ_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      NUQ_RABBITMQ_URL: amqp://localhost:5672
+      USE_GO_MARKDOWN_PARSER: true
+      ALLOW_LOCAL_WEBHOOKS: true
+      FIRECRAWL_LOG_TO_FILE: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - run: pnpm config set store-dir ~/.pnpm-store
+      - run: mkdir -p ~/.pnpm-store
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            apps/api/pnpm-lock.yaml
+            apps/test-site/pnpm-lock.yaml
+            apps/playwright-service-ts/pnpm-lock.yaml
+
+      - run: pnpm fetch
+        working-directory: apps/api
+      - run: pnpm fetch
+        working-directory: apps/test-site
+      - run: pnpm fetch
+        if: matrix.engine == 'playwright'
+        working-directory: apps/playwright-service-ts
+
+      - name: Restore native lib
+        id: napi_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            apps/api/native/*.node
+            apps/api/native/index.js
+            apps/api/native/index.d.ts
+          # note: this key is not ideal, need to find a better solution
+          key: ${{ runner.os }}-napi-${{ hashFiles('apps/api/native/Cargo.toml', 'apps/api/native/package.json', 'apps/api/native/src/**') }}
+
+      - name: Build native lib
+        if: steps.napi_restore.outputs.cache-hit != 'true'
+        run: pnpm install
+        working-directory: apps/api/native
+
+      - name: Cache native lib
+        if: steps.napi_restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            apps/api/native/*.node
+            apps/api/native/index.js
+            apps/api/native/index.d.ts
+          key: ${{ steps.napi_restore.outputs.cache-primary-key }}
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.24
+          cache-dependency-path: apps/api/sharedLibs/go-html-to-md/go.sum
+
+      - name: Verify go.sum is up to date (sharedLibs/go-html-to-md)
+        run: |
+          cd apps/api/sharedLibs/go-html-to-md
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum is out of sync -- run 'go mod tidy' and commit" && exit 1)
+
+      - name: Verify go.sum is up to date (go-html-to-md-service)
+        run: |
+          cd apps/go-html-to-md-service
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum is out of sync -- run 'go mod tidy' and commit" && exit 1)
+
+      - name: Restore Go lib
+        id: golib_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: apps/api/sharedLibs/go-html-to-md/libhtml-to-markdown.so
+          key: ${{ runner.os }}-golib-${{ hashFiles('apps/api/sharedLibs/go-html-to-md/go.sum', 'apps/api/sharedLibs/go-html-to-md/*.go') }}
+
+      - name: Build go-html-to-md
+        if: steps.golib_restore.outputs.cache-hit != 'true'
+        run: |
+          cd apps/api/sharedLibs/go-html-to-md
+          go build -o libhtml-to-markdown.so -buildmode=c-shared html-to-markdown.go
+
+      - name: Cache Go lib
+        if: steps.golib_restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: apps/api/sharedLibs/go-html-to-md/libhtml-to-markdown.so
+          key: ${{ steps.golib_restore.outputs.cache-primary-key }}
+
+      - name: Restore Playwright cache
+        if: matrix.engine == 'playwright'
+        id: pw_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-pw-chromium-${{ hashFiles('apps/playwright-service-ts/pnpm-lock.yaml', 'apps/playwright-service-ts/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-pw-chromium-
+
+      - name: Install Playwright node modules
+        if: matrix.engine == 'playwright'
+        run: pnpm install --frozen-lockfile
+        working-directory: ./apps/playwright-service-ts
+
+      - name: Install Playwright system deps
+        if: matrix.engine == 'playwright'
+        run: pnpm exec playwright install-deps chromium
+        working-directory: ./apps/playwright-service-ts
+
+      - name: Install Playwright Chromium
+        if: matrix.engine == 'playwright' && steps.pw_cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: ./apps/playwright-service-ts
+
+      - name: Cache Playwright
+        if: matrix.engine == 'playwright' && steps.pw_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.pw_cache.outputs.cache-primary-key }}
+
+      - name: Set up SearXNG
+        if: matrix.search == 'searxng'
+        run: |
+          mkdir searxng
+
+          echo "use_default_settings: true
+          search:
+            formats: [html, json, csv]
+          server:
+            secret_key: 'fcsecret'" > searxng/settings.yml
+
+          docker run -d -p 3434:8080 -v "${PWD}/searxng:/etc/searxng" --name searxng searxng/searxng
+          pnpx wait-on tcp:3434 -t 30s
+        working-directory: ./
+
+      - name: Install API dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+        working-directory: apps/api
+        env:
+          npm_config_ignore_scripts: 'true'
+
+      - name: Install test site dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: apps/test-site
+
+      - name: Build + serve test site
+        run: |
+          pnpm build
+          pnpm preview --port 4321 --strictPort --host 127.0.0.1 > test-site.log 2>&1 &
+          pnpx wait-on tcp:4321 -t 20s
+        working-directory: apps/test-site
+
+      - name: Start playwright
+        if: matrix.engine == 'playwright'
+        run: |
+          pnpm run dev > playwright.log 2>&1 &
+          pnpx wait-on tcp:3003 -t 15s
+        working-directory: ./apps/playwright-service-ts
+        env:
+          PORT: 3003
+
+      - name: Run Docker Postgres
+        run: |
+          docker build -t firecrawl/nuq-postgres:latest ./apps/nuq-postgres
+          docker run -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres --name postgres firecrawl/nuq-postgres:latest
+
+      - name: Run tests
+        run: pnpm harness pnpm test:snips
+        working-directory: apps/api
+        env:
+          npm_config_ignore_scripts: 'true' # required currently to prevent re-building cached native lib
+
+      - name: Publish test report
+        if: always()
+        shell: python3 {0}
+        env:
+          JUNIT: apps/api/test-results/junit.xml
+          MATRIX_LABEL: "${{ matrix.engine }}, ${{ matrix.proxy }}, ${{ matrix.search }}, ${{ matrix.ai }}"
+        run: |
+          import os, sys, xml.etree.ElementTree as ET
+
+          junit = os.environ["JUNIT"]
+          label = os.environ["MATRIX_LABEL"]
+          summary = os.environ["GITHUB_STEP_SUMMARY"]
+
+          if not os.path.isfile(junit):
+              print(f"::warning::No junit.xml found — tests may have crashed before producing a report.")
+              with open(summary, "a") as f:
+                  f.write(f"## ⚠️ No test report\njunit.xml was not generated. Tests likely crashed before completing.\n")
+              sys.exit(0)
+
+          try:
+              tree = ET.parse(junit)
+              root = tree.getroot()
+          except ET.ParseError as e:
+              print(f"::warning::junit.xml is malformed: {e}")
+              with open(summary, "a") as f:
+                  f.write(f"## ⚠️ Malformed test report\njunit.xml could not be parsed (tests may have crashed mid-run): `{e}`\n")
+              sys.exit(1)
+
+          # Get total time from root element
+          top = root if root.tag == "testsuites" else root
+          time_s = top.get("time", "?")
+
+          failed = []
+          passed = []
+          skipped = []
+          for tc in tree.iter("testcase"):
+              name = tc.get("name", "unknown")
+              suite = tc.get("classname", "")
+              t = tc.get("time", "?")
+              if tc.find("skipped") is not None:
+                  skipped.append((suite, name, t))
+                  continue
+              fail = tc.find("failure")
+              if fail is None:
+                  fail = tc.find("error")
+              if fail is not None:
+                  msg = (fail.get("message") or fail.text or "")[:200].replace("\n", " ")
+                  failed.append((suite, name, t, msg))
+              else:
+                  passed.append((suite, name, t))
+
+          # Derive counts from parsed testcases (root attributes can be unreliable)
+          tests = len(failed) + len(passed) + len(skipped)
+          failures = len(failed)
+
+          def esc(s):
+              return s.replace("|", "\\|")
+
+          def log(line):
+              print(line)
+
+          def md(line, f):
+              f.write(line + "\n")
+
+          # Print plain text to step log (failures at the end so they're visible on auto-scroll)
+          log(f"Test Report ({label}): {tests} tests, {failures} failures, {time_s}s")
+          log("")
+          log("All tests:")
+          for suite, name, t in passed:
+              log(f"  ✅ PASS  {suite} > {name} ({t}s)")
+          for suite, name, t in skipped:
+              log(f"  ⏭️ SKIP  {suite} > {name} ({t}s)")
+          for suite, name, t, _msg in failed:
+              log(f"  ❌ FAIL  {suite} > {name} ({t}s)")
+          if failed:
+              log("")
+              log("Failed tests:")
+              for suite, name, t, msg in failed:
+                  log(f"  ❌ {suite} > {name} ({t}s)")
+                  if msg:
+                      log(f"     {msg}")
+
+          # Write markdown tables to step summary
+          with open(summary, "a") as f:
+              status = "❌" if failures > 0 else "✅"
+              md(f"## {status} Test Report ({label})", f)
+              md("| 🧪 Tests | ❌ Failures | ⏭️ Skipped | ⏱️ Time |", f)
+              md("|----------|------------|-----------|---------|", f)
+              md(f"| {tests} | {failures} | {len(skipped)} | {time_s}s |", f)
+              md("", f)
+
+              if failed:
+                  md("### ❌ Failed tests", f)
+                  md("", f)
+                  md("| Suite | Test | Time | Message |", f)
+                  md("|-------|------|------|---------|", f)
+                  for suite, name, t, msg in failed:
+                      md(f"| `{esc(suite)}` | **{esc(name)}** | {t}s | {esc(msg)} |", f)
+                  md("", f)
+
+              md("<details>", f)
+              md(f"<summary>📋 All tests ({len(passed)} passed, {len(failed)} failed, {len(skipped)} skipped)</summary>", f)
+              md("", f)
+              md("| Status | Suite | Test | Time |", f)
+              md("|--------|-------|------|------|", f)
+              for suite, name, t, _msg in failed:
+                  md(f"| ❌ | `{esc(suite)}` | {esc(name)} | {t}s |", f)
+              for suite, name, t in passed:
+                  md(f"| ✅ | `{esc(suite)}` | {esc(name)} | {t}s |", f)
+              for suite, name, t in skipped:
+                  md(f"| ⏭️ | `{esc(suite)}` | {esc(name)} | {t}s |", f)
+              md("", f)
+              md("</details>", f)
+
+          if failures > 0:
+              print(f"::error::{failures} failure(s)")
+              sys.exit(1)
+
+      - name: Copy log files
+        if: always()
+        run: |
+          mkdir -p logs
+          cp ./apps/api/firecrawl-app.log logs/firecrawl.log || true
+          cp ./apps/api/firecrawl-worker.log logs/firecrawl-worker.log || true
+
+      - name: Copy SearXNG logs
+        if: always() && matrix.search == 'searxng'
+        run: docker logs searxng > logs/searxng.log && docker kill searxng
+
+      - name: Copy Playwright logs
+        if: always() && matrix.engine == 'playwright'
+        run: cp ./apps/playwright-service-ts/playwright.log logs/playwright.log
+
+      - name: Zip logs
+        if: always()
+        run: |
+          cd logs
+          zip -r logs.zip ./*
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Logs (kubernetes, ${{ matrix.ai }}, ${{ matrix.search }}, ${{ matrix.engine }}, ${{ matrix.proxy }})
+          path: logs/logs.zip
+
+  # temp disabled
+  # prod-test:
+  #   name: Production environment tests
+  #   runs-on: big-runner
+  #   services:
+  #     redis:
+  #       image: redis
+  #       ports:
+  #         - 6379:6379
+  #     rabbitmq:
+  #       image: rabbitmq
+  #       ports:
+  #         - 5672:5672
+  #   env:
+  #     BULL_AUTH_KEY: ${{ secrets.BULL_AUTH_KEY }}
+  #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  #     REDIS_URL: ${{ secrets.REDIS_URL }}
+  #     SUPABASE_ANON_TOKEN: ${{ secrets.SUPABASE_ANON_TOKEN }}
+  #     SUPABASE_SERVICE_TOKEN: ${{ secrets.SUPABASE_SERVICE_TOKEN }}
+  #     SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  #     SUPABASE_REPLICA_URL: ${{ secrets.SUPABASE_REPLICA_URL }}
+  #     INDEX_SUPABASE_SERVICE_TOKEN: ${{ secrets.INDEX_SUPABASE_SERVICE_TOKEN }}
+  #     INDEX_SUPABASE_ANON_TOKEN: ${{ secrets.INDEX_SUPABASE_ANON_TOKEN }}
+  #     INDEX_SUPABASE_URL: ${{ secrets.INDEX_SUPABASE_URL }}
+  #     TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+  #     TEST_TEAM_ID: ${{ secrets.TEST_TEAM_ID }}
+  #     TEST_API_KEY_CONCURRENCY: ${{ secrets.TEST_API_KEY_CONCURRENCY }}
+  #     TEST_TEAM_ID_CONCURRENCY: ${{ secrets.TEST_TEAM_ID_CONCURRENCY }}
+  #     TEST_API_KEY_ZDR: ${{ secrets.TEST_API_KEY_ZDR }}
+  #     TEST_TEAM_ID_ZDR: ${{ secrets.TEST_TEAM_ID_ZDR }}
+  #     FIRE_ENGINE_BETA_URL: ${{ secrets.FIRE_ENGINE_BETA_URL }}
+  #     FIRE_ENGINE_STAGING_URL: ${{ secrets.FIRE_ENGINE_STAGING_URL }}
+  #     USE_DB_AUTHENTICATION: true
+  #     ENV: ${{ secrets.ENV }}
+  #     RUNPOD_MU_POD_ID: ${{ secrets.RUNPOD_MU_POD_ID }}
+  #     RUNPOD_MUV2_POD_ID: ${{ secrets.RUNPOD_MUV2_POD_ID }}
+  #     RUNPOD_MU_API_KEY: ${{ secrets.RUNPOD_MU_API_KEY }}
+  #     GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
+  #     GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+  #     GCS_INDEX_BUCKET_NAME: ${{ secrets.GCS_INDEX_BUCKET_NAME }}
+  #     GCS_MEDIA_BUCKET_NAME: ${{ secrets.GCS_MEDIA_BUCKET_NAME }}
+  #     GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+  #     GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  #     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  #     VERTEX_CREDENTIALS: ${{ secrets.VERTEX_CREDENTIALS }}
+  #     USE_GO_MARKDOWN_PARSER: true
+  #     SENTRY_ENVIRONMENT: dev
+  #     IDMUX_URL: ${{ secrets.IDMUX_URL }}
+  #     LOG_ENCRYPTION_KEY: ${{ secrets.LOG_ENCRYPTION_KEY }}
+  #     TEST_SUITE_WEBSITE: ${{ secrets.TEST_SUITE_WEBSITE }}
+  #     NUQ_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+  #     NUQ_RABBITMQ_URL: amqp://localhost:5672
+  #     HOST: 0.0.0.0
+  #   steps:
+  #     - uses: actions/checkout@v5
+
+  #     - name: Tailscale
+  #       uses: tailscale/github-action@v4
+  #       with:
+  #         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+  #         oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+  #         tags: tag:ci
+  #         use-cache: 'true'
+
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 10
+
+  #     - run: pnpm config set store-dir ~/.pnpm-store
+  #     - run: mkdir -p ~/.pnpm-store
+
+  #     - uses: actions/setup-node@v6
+  #       with:
+  #         node-version: 22
+  #         cache: pnpm
+  #         cache-dependency-path: |
+  #           apps/api/pnpm-lock.yaml
+
+  #     - run: pnpm fetch
+  #       working-directory: apps/api
+
+  #     - name: Restore native lib
+  #       id: napi_restore
+  #       uses: actions/cache/restore@v4
+  #       with:
+  #         path: |
+  #           apps/api/native/*.node
+  #           apps/api/native/index.js
+  #           apps/api/native/index.d.ts
+  #         # note: this key is not ideal, need to find a better solution
+  #         key: ${{ runner.os }}-napi-${{ hashFiles('apps/api/native/Cargo.toml', 'apps/api/native/package.json', 'apps/api/native/src/**') }}
+
+  #     - name: Build native lib
+  #       if: steps.napi_restore.outputs.cache-hit != 'true'
+  #       run: pnpm install
+  #       working-directory: apps/api/native
+
+  #     - name: Cache native lib
+  #       if: steps.napi_restore.outputs.cache-hit != 'true'
+  #       uses: actions/cache/save@v4
+  #       with:
+  #         path: |
+  #           apps/api/native/*.node
+  #           apps/api/native/index.js
+  #           apps/api/native/index.d.ts
+  #         key: ${{ steps.napi_restore.outputs.cache-primary-key }}
+
+  #     - uses: actions/setup-go@v6
+  #       with:
+  #         go-version: 1.24
+  #         cache-dependency-path: apps/api/sharedLibs/go-html-to-md/go.sum
+
+  #     - name: Restore Go lib
+  #       id: golib_restore
+  #       uses: actions/cache/restore@v4
+  #       with:
+  #         path: apps/api/sharedLibs/go-html-to-md/libhtml-to-markdown.so
+  #         key: ${{ runner.os }}-golib-${{ hashFiles('apps/api/sharedLibs/go-html-to-md/go.sum', 'apps/api/sharedLibs/go-html-to-md/*.go') }}
+
+  #     - name: Build go-html-to-md
+  #       if: steps.golib_restore.outputs.cache-hit != 'true'
+  #       run: |
+  #         cd apps/api/sharedLibs/go-html-to-md
+  #         go mod tidy
+  #         go build -o libhtml-to-markdown.so -buildmode=c-shared html-to-markdown.go
+
+  #     - name: Cache Go lib
+  #       if: steps.golib_restore.outputs.cache-hit != 'true'
+  #       uses: actions/cache/save@v4
+  #       with:
+  #         path: apps/api/sharedLibs/go-html-to-md/libhtml-to-markdown.so
+  #         key: ${{ steps.golib_restore.outputs.cache-primary-key }}
+
+  #     - name: Install API dependencies
+  #       run: pnpm install --frozen-lockfile --ignore-scripts
+  #       working-directory: apps/api
+  #       env:
+  #         npm_config_ignore_scripts: "true"
+
+  #     - name: Run Docker Postgres
+  #       run: |
+  #         docker build -t firecrawl/nuq-postgres:latest ./apps/nuq-postgres
+  #         docker run -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres --name postgres firecrawl/nuq-postgres:latest
+
+  #     - name: Run tests
+  #       run: pnpm harness pnpm test:snips
+  #       working-directory: apps/api
+  #       env:
+  #         npm_config_ignore_scripts: "true" # required currently to prevent re-building cached native lib
+
+  #     - name: Create logs directory
+  #       if: always()
+  #       run: |
+  #         mkdir -p logs
+  #         cp ./apps/api/firecrawl.log logs/firecrawl.log
+  #         cd logs
+  #         zip -r logs.zip ./*
+  #         echo "${{ secrets.LOG_ENCRYPTION_KEY }}" | gpg --batch --yes --passphrase-fd 0 -c logs.zip
+  #         rm logs.zip
+
+  #     - uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: Encrypted Logs
+  #         path: logs/logs.zip.gpg
+  #         retention-days: 5

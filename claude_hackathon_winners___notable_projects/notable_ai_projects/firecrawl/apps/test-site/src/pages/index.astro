@@ -1,0 +1,42 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Firecrawl Test Site</h1>
+			<p>
+				Welcome to the <a href="https://firecrawl.dev">Firecrawl</a> test website. This site is designed to provide a stable,
+				deterministic environment for testing web scraping and crawling functionality.
+			</p>
+			<p>
+				<a href="https://firecrawl.dev">Firecrawl</a> is a powerful open-source API that transforms any website into clean,
+				LLM-ready markdown or structured data. This test site contains various content types
+				and structures to validate scraping capabilities.
+			</p>
+			<p>
+				This website contains <strong>no real content</strong> and is not intended to be used for
+				production purposes. It is designed to provide a stable, deterministic environment for
+				testing web scraping and crawling functionality. Content may be outdated or inaccurate.
+				Anything you see here is purely for testing purposes, and does not represent any real
+				content.
+				<a href="https://firecrawl.dev">Learn more about Firecrawl</a>.
+			</p>
+			<p>
+				The <a href="/blog">test blog</a> contains sample posts, learn more on the
+				<a href="/about">about page</a>. For more information about Firecrawl,
+				visit <a href="https://firecrawl.dev">firecrawl.dev</a>.
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>

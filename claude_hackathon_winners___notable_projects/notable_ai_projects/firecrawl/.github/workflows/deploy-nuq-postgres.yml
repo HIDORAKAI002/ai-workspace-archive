@@ -1,0 +1,31 @@
+name: Deploy NuQ Postgres to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/nuq-postgres/**
+  workflow_dispatch:
+
+jobs:
+  push-app-image:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: './apps/nuq-postgres'
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: 'Build NuQ Postgres Image'
+        run: |
+          docker build . --tag ghcr.io/firecrawl/nuq-postgres:latest
+          docker push ghcr.io/firecrawl/nuq-postgres:latest
