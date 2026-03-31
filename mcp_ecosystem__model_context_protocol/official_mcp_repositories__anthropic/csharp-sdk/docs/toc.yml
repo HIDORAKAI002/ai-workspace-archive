@@ -1,0 +1,13 @@
+items:
+- name: Documentation
+  href: concepts/index.md
+- name: API Reference
+  href: api/ModelContextProtocol.yml
+- name: Roadmap
+  href: roadmap.md
+- name: Versioning
+  href: versioning.md
+- name: Experimental APIs
+  href: experimental.md
+- name: GitHub
+  href: https://github.com/ModelContextProtocol/csharp-sdk
