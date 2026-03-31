@@ -1,0 +1,45 @@
+name: SDK Benchmark Tests
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  sdk-benchmarks:
+    permissions:
+      contents: write # required for pushing to gh-pages
+    runs-on: oracle-bare-metal-64cpu-1024gb-x86-64-ubuntu-24
+    container:
+      image: python:3.13-slim
+    steps:
+    - name: Install Git # since Git isn't available in the container image used above
+      run: |
+        apt-get update
+        apt-get install -y git
+    - name: Make repo safe for Git inside container
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    - name: Checkout Core Repo @ SHA - ${{ github.sha }}
+      uses: actions/checkout@v4
+    - name: Install tox
+      run: pip install tox-uv
+    - name: Run tox
+      run: tox -e benchmark-opentelemetry-sdk -- -k opentelemetry-sdk/benchmarks --benchmark-json=opentelemetry-sdk/output.json
+    - name: Report on SDK benchmark results
+      uses: benchmark-action/github-action-benchmark@v1
+      with:
+        name: OpenTelemetry Python SDK Benchmarks
+        tool: pytest
+        output-file-path: opentelemetry-sdk/output.json
+        gh-pages-branch: gh-pages
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # Make a commit on `gh-pages` with benchmarks from previous step
+        benchmark-data-dir-path: "benchmarks"
+        auto-push: true
+        max-items-in-chart: 100
+        # Alert with a commit comment on possible performance regression
+        alert-threshold: '200%'
+        comment-on-alert: true
+        alert-comment-cc-users: "@open-telemetry/python-approvers,@open-telemetry/python-maintainers"

@@ -1,0 +1,362 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# pylint: disable=protected-access,invalid-name,no-self-use
+
+import gc
+import math
+import weakref
+from logging import WARNING
+from time import sleep, time_ns
+from typing import Optional, cast
+from unittest.mock import Mock
+
+import pytest
+
+from opentelemetry.sdk.metrics import (
+    Counter,
+    MeterProvider,
+    MetricsTimeoutError,
+)
+from opentelemetry.sdk.metrics._internal import _Counter
+from opentelemetry.sdk.metrics._internal.point import (
+    HistogramDataPoint,
+    MetricsData,
+    ResourceMetrics,
+    ScopeMetrics,
+)
+from opentelemetry.sdk.metrics.export import (
+    AggregationTemporality,
+    Gauge,
+    Metric,
+    MetricExporter,
+    MetricExportResult,
+    NumberDataPoint,
+    PeriodicExportingMetricReader,
+    Sum,
+)
+from opentelemetry.sdk.metrics.view import (
+    DefaultAggregation,
+    LastValueAggregation,
+)
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.util.instrumentation import InstrumentationScope
+from opentelemetry.test.concurrency_test import ConcurrencyTestBase
+
+
+class FakeMetricsExporter(MetricExporter):
+    def __init__(
+        self, wait=0, preferred_temporality=None, preferred_aggregation=None
+    ):
+        self.wait = wait
+        self.metrics: list[MetricsData] = []
+        self._shutdown = False
+        super().__init__(
+            preferred_temporality=preferred_temporality,
+            preferred_aggregation=preferred_aggregation,
+        )
+
+    def export(
+        self,
+        metrics_data: MetricsData,
+        timeout_millis: float = 10_000,
+        **kwargs,
+    ) -> MetricExportResult:
+        sleep(self.wait)
+        self.metrics.append(metrics_data)
+        return MetricExportResult.SUCCESS
+
+    def shutdown(self, timeout_millis: float = 30_000, **kwargs) -> None:
+        self._shutdown = True
+
+    def force_flush(self, timeout_millis: float = 10_000) -> bool:
+        return True
+
+
+class ExceptionAtCollectionPeriodicExportingMetricReader(
+    PeriodicExportingMetricReader
+):
+    def __init__(
+        self,
+        exporter: MetricExporter,
+        exception: Exception,
+        export_interval_millis: Optional[float] = None,
+        export_timeout_millis: Optional[float] = None,
+    ) -> None:
+        super().__init__(
+            exporter, export_interval_millis, export_timeout_millis
+        )
+        self._collect_exception = exception
+
+    # pylint: disable=overridden-final-method
+    def collect(self, timeout_millis: float = 10_000) -> None:
+        raise self._collect_exception
+
+
+metrics_list = [
+    Metric(
+        name="sum_name",
+        description="",
+        unit="",
+        data=Sum(
+            data_points=[
+                NumberDataPoint(
+                    attributes={},
+                    start_time_unix_nano=time_ns(),
+                    time_unix_nano=time_ns(),
+                    value=2,
+                )
+            ],
+            aggregation_temporality=1,
+            is_monotonic=True,
+        ),
+    ),
+    Metric(
+        name="gauge_name",
+        description="",
+        unit="",
+        data=Gauge(
+            data_points=[
+                NumberDataPoint(
+                    attributes={},
+                    start_time_unix_nano=time_ns(),
+                    time_unix_nano=time_ns(),
+                    value=2,
+                )
+            ]
+        ),
+    ),
+]
+metrics = MetricsData(
+    resource_metrics=[
+        ResourceMetrics(
+            scope_metrics=[
+                ScopeMetrics(
+                    metrics=metrics_list,
+                    scope=InstrumentationScope(name="test"),
+                    schema_url="",
+                )
+            ],
+            resource=Resource.create(),
+            schema_url="",
+        )
+    ]
+)
+
+
+class TestPeriodicExportingMetricReader(ConcurrencyTestBase):
+    def test_defaults(self):
+        pmr = PeriodicExportingMetricReader(FakeMetricsExporter())
+        self.assertEqual(pmr._export_interval_millis, 60000)
+        self.assertEqual(pmr._export_timeout_millis, 30000)
+        with self.assertLogs(level=WARNING):
+            pmr.shutdown()
+
+    def _create_periodic_reader(
+        self,
+        metrics_data: MetricsData,
+        exporter,
+        collect_wait=0,
+        interval=60000,
+        timeout=30000,
+    ):
+        pmr = PeriodicExportingMetricReader(
+            exporter,
+            export_interval_millis=interval,
+            export_timeout_millis=timeout,
+        )
+
+        def _collect(reader, timeout_millis):
+            sleep(collect_wait)
+            return metrics_data
+
+        pmr._set_collect_callback(_collect)
+        return pmr
+
+    def test_ticker_called(self):
+        collect_mock = Mock()
+        exporter = FakeMetricsExporter()
+        exporter.export = Mock()
+        pmr = PeriodicExportingMetricReader(exporter, export_interval_millis=1)
+        pmr._set_collect_callback(collect_mock)
+        sleep(0.1)
+        self.assertTrue(collect_mock.assert_called_once)
+        pmr.shutdown()
+
+    def test_ticker_not_called_on_infinity(self):
+        collect_mock = Mock()
+        exporter = FakeMetricsExporter()
+        exporter.export = Mock()
+        pmr = PeriodicExportingMetricReader(
+            exporter, export_interval_millis=math.inf
+        )
+        pmr._set_collect_callback(collect_mock)
+        sleep(0.1)
+        self.assertTrue(collect_mock.assert_not_called)
+        pmr.shutdown()
+
+    def test_ticker_value_exception_on_zero(self):
+        exporter = FakeMetricsExporter()
+        exporter.export = Mock()
+        self.assertRaises(
+            ValueError,
+            PeriodicExportingMetricReader,
+            exporter,
+            export_interval_millis=0,
+        )
+
+    def test_ticker_value_exception_on_negative(self):
+        exporter = FakeMetricsExporter()
+        exporter.export = Mock()
+        self.assertRaises(
+            ValueError,
+            PeriodicExportingMetricReader,
+            exporter,
+            export_interval_millis=-100,
+        )
+
+    @pytest.mark.flaky(max_runs=3, min_passes=1)
+    def test_ticker_collects_metrics(self):
+        exporter = FakeMetricsExporter()
+
+        pmr = self._create_periodic_reader(metrics, exporter, interval=100)
+        sleep(0.15)
+        self.assertEqual(exporter.metrics[0], metrics)
+        pmr.shutdown()
+
+    def test_shutdown(self):
+        exporter = FakeMetricsExporter()
+
+        pmr = self._create_periodic_reader(
+            MetricsData(resource_metrics=[]), exporter
+        )
+        pmr.shutdown()
+        self.assertEqual(exporter.metrics[0], MetricsData(resource_metrics=[]))
+        self.assertTrue(pmr._shutdown)
+        self.assertTrue(exporter._shutdown)
+
+    def test_shutdown_multiple_times(self):
+        pmr = self._create_periodic_reader(
+            MetricsData(resource_metrics=[]), FakeMetricsExporter()
+        )
+        with self.assertLogs(level="WARNING") as w:
+            self.run_with_many_threads(pmr.shutdown)
+        self.assertTrue("Can't shutdown multiple times" in w.output[0])
+        with self.assertLogs(level="WARNING") as w:
+            pmr.shutdown()
+
+    def test_exporter_temporality_preference(self):
+        exporter = FakeMetricsExporter(
+            preferred_temporality={
+                Counter: AggregationTemporality.DELTA,
+            },
+        )
+        pmr = PeriodicExportingMetricReader(exporter)
+        for key, value in pmr._instrument_class_temporality.items():
+            if key is not _Counter:
+                self.assertEqual(value, AggregationTemporality.CUMULATIVE)
+            else:
+                self.assertEqual(value, AggregationTemporality.DELTA)
+
+    def test_exporter_aggregation_preference(self):
+        exporter = FakeMetricsExporter(
+            preferred_aggregation={
+                Counter: LastValueAggregation(),
+            },
+        )
+        pmr = PeriodicExportingMetricReader(exporter)
+        for key, value in pmr._instrument_class_aggregation.items():
+            if key is not _Counter:
+                self.assertTrue(isinstance(value, DefaultAggregation))
+            else:
+                self.assertTrue(isinstance(value, LastValueAggregation))
+
+    def test_metric_timeout_does_not_kill_worker_thread(self):
+        exporter = FakeMetricsExporter()
+        pmr = ExceptionAtCollectionPeriodicExportingMetricReader(
+            exporter,
+            MetricsTimeoutError("test timeout"),
+            export_timeout_millis=1,
+        )
+
+        sleep(0.1)
+        self.assertTrue(pmr._daemon_thread.is_alive())
+        pmr.shutdown()
+
+    def test_metric_exporer_gc(self):
+        # Given a PeriodicExportingMetricReader
+        exporter = FakeMetricsExporter(
+            preferred_aggregation={
+                Counter: LastValueAggregation(),
+            },
+        )
+        processor = PeriodicExportingMetricReader(exporter)
+        weak_ref = weakref.ref(processor)
+        processor.shutdown()
+
+        # When we garbage collect the reader
+        del processor
+        gc.collect()
+
+        # Then the reference to the reader should no longer exist
+        self.assertIsNone(
+            weak_ref(),
+            "The PeriodicExportingMetricReader object created by this test wasn't garbage collected",
+        )
+
+    def test_metric_reader_metrics(self):
+        exporter = FakeMetricsExporter()
+        pmr = PeriodicExportingMetricReader(
+            exporter, export_interval_millis=100000
+        )
+        mp = MeterProvider(metric_readers=[pmr])
+
+        counter = mp.get_meter("test").create_counter("test_counter")
+        counter.add(1)
+
+        mp.force_flush()
+        self.assertEqual(len(exporter.metrics), 1)
+        # Need a second collection to get the metric we recorded during first collection
+        exporter.metrics.clear()
+        mp.force_flush()
+        self.assertEqual(len(exporter.metrics), 1)
+        metric_data = exporter.metrics[0]
+
+        scope_metrics = [
+            sm
+            for sm in metric_data.resource_metrics[0].scope_metrics
+            if sm.scope.name == "opentelemetry-sdk"
+        ]
+        self.assertEqual(len(scope_metrics), 1)
+        reader_metrics = [
+            m
+            for m in scope_metrics[0].metrics
+            if m.name == "otel.sdk.metric_reader.collection.duration"
+        ]
+        self.assertEqual(len(reader_metrics), 1)
+        metric = reader_metrics[0]
+
+        point = metric.data.data_points[0]
+        histogram = cast(HistogramDataPoint, point)
+        self.assertEqual(histogram.count, 1)
+        attrs = histogram.attributes
+        assert attrs is not None
+        self.assertEqual(
+            attrs["otel.component.type"], "periodic_metric_reader"
+        )
+        name = attrs["otel.component.name"]
+        assert isinstance(name, str)
+        self.assertTrue(name.startswith("periodic_metric_reader/"))
+
+        mp.shutdown()
