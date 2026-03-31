@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +18,11 @@ import (
 const (
 	DefaultDropInConfigDir = "conf.d"
 )
+
+// ToolOverride contains per-tool configuration overrides.
+type ToolOverride struct {
+	Description string `toml:"description,omitempty"`
+}
 
 // StaticConfig is the configuration for the server.
 // It allows to configure server specific settings and tools to be enabled or disabled.
@@ -41,8 +47,9 @@ type StaticConfig struct {
 	DisableDestructive bool     `toml:"disable_destructive,omitempty"`
 	Toolsets           []string `toml:"toolsets,omitempty"`
 	// Tool configuration
-	EnabledTools  []string `toml:"enabled_tools,omitempty"`
-	DisabledTools []string `toml:"disabled_tools,omitempty"`
+	EnabledTools  []string                `toml:"enabled_tools,omitempty"`
+	DisabledTools []string                `toml:"disabled_tools,omitempty"`
+	ToolOverrides map[string]ToolOverride `toml:"tool_overrides,omitempty"`
 	// Prompt configuration
 	Prompts []api.Prompt `toml:"prompts,omitempty"`
 
@@ -105,6 +112,12 @@ type StaticConfig struct {
 	// When enabled, validates resources, schemas, and RBAC before execution.
 	// Defaults to false.
 	ValidationEnabled bool `toml:"validation_enabled,omitempty"`
+
+	// ConfirmationFallback is the global default fallback behavior when a client
+	// does not support elicitation. Valid values are "deny" and "allow".
+	ConfirmationFallback string `toml:"confirmation_fallback,omitempty"`
+	// ConfirmationRules define rules for prompting the user before dangerous actions.
+	ConfirmationRules []api.ConfirmationRule `toml:"confirmation_rules,omitempty"`
 
 	// Internal: parsed provider configs (not exposed to TOML package)
 	parsedClusterProviderConfigs map[string]api.ExtendedConfig
@@ -313,6 +326,16 @@ func ReadToml(configData []byte, opts ...ReadConfigOpt) (*StaticConfig, error) {
 		return nil, err
 	}
 
+	var ruleErrors []error
+	for i := range config.ConfirmationRules {
+		if ruleErr := config.ConfirmationRules[i].Validate(); ruleErr != nil {
+			ruleErrors = append(ruleErrors, fmt.Errorf("confirmation_rules[%d]: %w", i, ruleErr))
+		}
+	}
+	if len(ruleErrors) > 0 {
+		return nil, fmt.Errorf("invalid confirmation rules:\n%w", errors.Join(ruleErrors...))
+	}
+
 	return config, nil
 }
 
@@ -363,6 +386,27 @@ func (c *StaticConfig) IsValidationEnabled() bool {
 	return c.ValidationEnabled
 }
 
+func (c *StaticConfig) GetConfirmationRules() []api.ConfirmationRule {
+	return c.ConfirmationRules
+}
+
+func (c *StaticConfig) GetConfirmationFallback() string {
+	return c.ConfirmationFallback
+}
+
 func (c *StaticConfig) IsRequireTLS() bool {
 	return c.RequireTLS
+}
+
+// ValidateRequireTLS validates outbound URL schemes when RequireTLS is enabled.
+// Called at startup (root.go Validate) and on config reload (ReloadConfiguration).
+func (c *StaticConfig) ValidateRequireTLS() error {
+	if !c.RequireTLS {
+		return nil
+	}
+	return ValidateURLsRequireTLS(map[string]string{
+		"authorization_url": c.AuthorizationURL,
+		"server_url":        c.ServerURL,
+		"sse_base_url":      c.SSEBaseURL,
+	})
 }
