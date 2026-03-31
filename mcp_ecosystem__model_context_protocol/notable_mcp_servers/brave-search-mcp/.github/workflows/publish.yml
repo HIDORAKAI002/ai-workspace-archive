@@ -1,0 +1,77 @@
+name: Publish to NPM
+on:
+  release:
+    types: [created]
+jobs:
+  publish-to-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Prepare npm config for trusted publishing
+        run: |
+          echo "registry=https://registry.npmjs.org/" > "$RUNNER_TEMP/npmrc"
+          npm config delete //registry.npmjs.org/:_authToken || true
+      - name: Install dependencies and build 🔧
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build || (echo "Build failed" && exit 1)
+        working-directory: apps/brave-search-mcp
+      - name: Rewrite workspace dependency for publish
+        run: node scripts/rewrite-workspace-dep.js
+        working-directory: apps/brave-search-mcp
+      - name: Publish to NPM 📦
+        run: npm publish --provenance
+        working-directory: apps/brave-search-mcp
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/npmrc
+    permissions:
+      contents: read
+      id-token: write
+
+  create-dxt-release:
+    needs: publish-to-npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies and build 🔧
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build || (echo "Build failed" && exit 1)
+        working-directory: apps/brave-search-mcp
+      - name: Install Anthropic MCPB CLI
+        run: pnpm add -g @anthropic-ai/mcpb
+      - name: Clean for MCPB packaging
+        run: |
+          rm -rf node_modules
+          rm -rf ../../node_modules
+        working-directory: apps/brave-search-mcp
+      - name: Create MCPB file
+        run: mcpb pack
+        working-directory: apps/brave-search-mcp
+      - name: Debug MCPB file
+        run: |
+          ls -la apps/brave-search-mcp/*.mcpb || echo "No .mcpb files found"
+          find apps/brave-search-mcp -name "*.mcpb" -type f || echo "No .mcpb files found in subdirectories"
+      - name: Upload MCPB to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/brave-search-mcp/brave-search-mcp.mcpb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+      id-token: write

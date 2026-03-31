@@ -1,0 +1,154 @@
+/* ========================================
+   Web Search Widget Styles (Classic)
+   ======================================== */
+
+.web-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fullscreen mode - fill available space */
+.web-app[data-display-mode='fullscreen'] .web-results-list {
+  max-height: none;
+}
+
+.web-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  cursor: pointer;
+  padding: 12px;
+  padding-right: 48px;
+  /* Space for context button */
+  border-radius: 10px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  animation: fadeInUp 0.3s ease both;
+  position: relative;
+  width: 100%;
+}
+
+.web-result-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.web-result:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.web-result:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.web-result-url-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.web-result-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.web-result-favicon-placeholder {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.web-result-domain {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-result-dot {
+  opacity: 0.5;
+}
+
+.web-result-age {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.web-result-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.3;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.web-result:hover .web-result-title {
+  text-decoration: underline;
+}
+
+.web-result-description {
+  font-size: 13px;
+  color: var(--bg-ink);
+  line-height: 1.5;
+  margin: 0;
+  min-height: calc(1.5em * 2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Context Selection - position button in center-right */
+.web-result--in-context {
+  border-color: var(--accent);
+  background: var(--accent-soft-weak);
+}
+
+.web-result--in-context:hover {
+  border-color: var(--accent);
+}
+
+.web-result-shell .context-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .web-results-list {
+    padding: 12px;
+    gap: 16px;
+  }
+
+  .web-result-title {
+    font-size: 14px;
+  }
+
+  .web-result-description {
+    font-size: 12px;
+  }
+}

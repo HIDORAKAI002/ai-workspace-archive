@@ -1,0 +1,547 @@
+@import 'tailwindcss';
+@import '../../node_modules/@openai/apps-sdk-ui/dist/es/styles/base.css';
+@import '../../node_modules/@openai/apps-sdk-ui/dist/es/styles/variables-primitive.css';
+@import '../../node_modules/@openai/apps-sdk-ui/dist/es/styles/variables-semantic.css';
+@import '../../node_modules/@openai/apps-sdk-ui/dist/es/styles/variables-components.css';
+@import '../../node_modules/@openai/apps-sdk-ui/dist/es/styles/globals.css';
+
+/* Tailwind v4 CSS-first configuration */
+@source "../**/*.{ts,tsx,html}";
+
+@theme {
+  /* Font - use system fonts per ChatGPT UI guidelines */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Colors for shadcn/ui components */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface-elevated);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-surface-elevated);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--color-background-primary-solid);
+  --color-primary-foreground: var(--color-text-primary-solid);
+  --color-secondary: var(--color-background-secondary-soft);
+  --color-secondary-foreground: var(--color-text-secondary);
+  --color-muted: var(--color-surface-secondary);
+  --color-muted-foreground: var(--color-text-tertiary);
+  --color-accent: var(--color-background-primary-soft);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: var(--color-background-danger-solid);
+  --color-destructive-foreground: var(--color-text-danger-solid);
+  --color-input: var(--color-border);
+
+  /* Border radius */
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-surface);
+  --bg-ink: var(--color-text);
+  --bg-ink-soft: var(--color-text-secondary);
+  --grid-line: var(--color-border-subtle);
+  --grid-line-strong: var(--color-border-strong);
+  --accent: var(--color-text-info);
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --accent-soft-weak: color-mix(in oklab, var(--accent) 5%, transparent);
+  --card-bg: var(--color-surface-elevated);
+  --card-border: var(--color-border);
+  --card-shadow: var(--shadow);
+  --card-shadow-hover: var(--shadow-200);
+  --muted: var(--color-text-secondary);
+  /* Additional variables for widgets */
+  --border: var(--color-border);
+  --bg-card: var(--color-surface-elevated);
+  --bg-muted: var(--color-surface-secondary);
+  --bg-surface: var(--color-surface);
+}
+
+html[data-theme='dark'] {
+  --bg-ink-soft: color-mix(in oklab, var(--color-text-secondary) 85%, var(--color-text) 15%);
+  --muted: color-mix(in oklab, var(--color-text-secondary) 85%, var(--color-text) 15%);
+  --card-bg: color-mix(in oklab, var(--color-surface-elevated) 92%, white 8%);
+  --card-border: color-mix(in oklab, var(--color-border-strong) 80%, white 20%);
+  --card-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 14px 28px rgba(0, 0, 0, 0.45);
+  --grid-line: color-mix(in oklab, var(--color-border-subtle) 55%, transparent);
+  --grid-line-strong: color-mix(in oklab, var(--color-border-strong) 65%, transparent);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--bg-ink);
+  background: var(--bg);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+.app {
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--grid-line-strong);
+  padding-bottom: 16px;
+}
+
+/* Right side of header (meta + actions) */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.header .meta {
+  text-align: right;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 14px;
+}
+
+.brand-mark {
+  color: var(--accent);
+}
+
+.brand-sub {
+  color: var(--bg-ink);
+}
+
+.meta {
+  text-align: right;
+}
+
+.term {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--bg-ink);
+}
+
+.count {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Fullscreen button (Shared) */
+.fullscreen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fullscreen-btn:hover {
+  background: var(--accent);
+  color: var(--color-text-inverse);
+  border-color: var(--accent);
+}
+
+.error-banner {
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-danger-outline);
+  background: var(--color-background-danger-soft-alpha);
+  color: var(--color-text-danger);
+  font-size: 14px;
+}
+
+/* Loading state - shown when search is in progress */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 24px;
+  border: 1px dashed var(--grid-line-strong);
+  background: color-mix(in oklab, var(--color-surface) 60%, transparent);
+  text-align: center;
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.loading-state p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.loading-state strong {
+  color: var(--accent);
+}
+
+/* Empty state - shown when no data and not loading */
+.empty-state {
+  padding: 48px 24px;
+  border: 1px dashed var(--grid-line-strong);
+  background: color-mix(in oklab, var(--color-surface) 60%, transparent);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.empty-state code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Results area loading overlay (used during pagination fetches) */
+.results-region {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.results-region--loading {
+  overflow: hidden;
+}
+
+.results-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.results-content--locked {
+  pointer-events: none;
+  user-select: none;
+}
+
+.results-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--bg) 70%, transparent);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+  cursor: progress;
+}
+
+.results-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--grid-line-strong);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: color-mix(in oklab, var(--card-bg) 92%, transparent);
+  box-shadow: var(--card-shadow);
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+/* Image grid styles (shared by image widget) */
+.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* Shared animations */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Image card (used by image widget) */
+.card {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rise 0.5s ease forwards;
+  opacity: 0;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.thumb {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.card:hover .thumb img {
+  transform: scale(1.04);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-text) 0%, transparent) 20%,
+    color-mix(in oklab, var(--color-text) 55%, transparent) 100%
+  );
+  color: var(--color-text-inverse);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.card:hover .overlay {
+  opacity: 1;
+}
+
+.overlay-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.overlay-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.caption-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-ink-soft);
+}
+
+.caption-source {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.loading,
+.error {
+  padding: 24px;
+}
+
+/* Responsive header */
+@media (max-width: 720px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .meta {
+    text-align: left;
+  }
+
+  .term {
+    font-size: 18px;
+  }
+}
+
+/* =====================
+   Shared Pagination Controls
+   ===================== */
+.app-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+  padding: 8px 0;
+  /* Base padding; JS inline style overrides with SDK safe area when available */
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  min-height: 44px;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--grid-line);
+  z-index: 10;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* =====================
+   Shared Context Selection
+   ===================== */
+.context-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  align-self: center;
+}
+
+.context-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.context-btn--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--color-text-inverse);
+}
+
+.context-btn--active:hover {
+  background: var(--accent);
+  opacity: 0.9;
+}
+
+.context-btn--pending {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.context-btn--pending:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.context-btn:disabled {
+  cursor: wait;
+  opacity: 1;
+}
+
+/* =====================
+   Shared Header Actions
+   ===================== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

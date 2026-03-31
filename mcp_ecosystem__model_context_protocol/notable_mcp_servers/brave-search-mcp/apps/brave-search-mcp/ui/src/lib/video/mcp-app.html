@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brave Video Search</title>
+    <link rel="stylesheet" href="/src/global.css" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mountWidget } from '/src/lib/shared/mountWidget.tsx';
+      import VideoMcpMode from '/src/lib/video/video-mcp-mode.tsx';
+      import '/src/lib/video/video.css';
+
+      mountWidget(VideoMcpMode);
+    </script>
+  </body>
+</html>

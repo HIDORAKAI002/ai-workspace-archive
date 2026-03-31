@@ -1,0 +1,257 @@
+import type { BraveSearch } from 'brave-search';
+import { SafeSearchLevel } from 'brave-search';
+import { describe, expect, it, vi } from 'vitest';
+import { TOOL_NAMES } from '../../src/tool-catalog.js';
+import { BraveImageSearchTool } from '../../src/tools/BraveImageSearchTool.js';
+import { createMockBraveSearch } from '../mocks/index.js';
+import { getFirstTextContent, getMetaStructuredContent } from './tool-result-helpers.js';
+
+function createLogStub() {
+  return vi.fn();
+}
+
+describe('braveImageSearchTool', () => {
+  it('calls brave image search with strict safe search and formats text output for non-UI', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      mockBraveSearch as unknown as BraveSearch,
+      false,
+    );
+
+    mockBraveSearch.imageSearch.mockResolvedValue({
+      type: 'images',
+      query: { original: 'cats' },
+      results: [
+        {
+          type: 'image_result',
+          title: 'Cat One',
+          url: 'https://example.com/cat-1',
+          source: 'example.com',
+          page_fetched: '2026-02-01T00:00:00Z',
+          thumbnail: {
+            src: 'https://imgs.search.brave.com/cat-1.jpg',
+            width: 640,
+            height: 480,
+          },
+          properties: {
+            url: 'https://example.com/cat-1.jpg',
+            resized: 'https://example.com/cat-1-resized.jpg',
+            height: 480,
+            width: 640,
+            format: 'jpg',
+            content_size: '100KB',
+          },
+          meta_url: {
+            scheme: 'https',
+            netloc: 'example.com',
+            hostname: 'example.com',
+            favicon: 'https://example.com/favicon.ico',
+            path: '/cat-1',
+          },
+          confidence: 'high',
+        },
+      ],
+    } as unknown as Awaited<ReturnType<BraveSearch['imageSearch']>>);
+
+    const result = await tool.executeCore({ query: 'cats', count: 5 });
+
+    expect(mockBraveSearch.imageSearch).toHaveBeenCalledWith('cats', {
+      count: 5,
+      safesearch: SafeSearchLevel.Strict,
+    });
+    const text = getFirstTextContent(result);
+    expect(text).toContain('1: Title: Cat One');
+    expect(text).toContain('URL: https://example.com/cat-1');
+    expect(text).toContain('Image URL: https://imgs.search.brave.com/cat-1.jpg');
+    expect(text).toContain('Confidence: high');
+    expect(text).toContain('Width: 640');
+    expect(text).toContain('Height: 480');
+    expect(log).toHaveBeenCalledWith(
+      'Searching for images of "cats" with count 5',
+      'debug',
+    );
+  });
+
+  it('returns no-results text and structured content in UI mode', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      mockBraveSearch as unknown as BraveSearch,
+      true,
+    );
+
+    mockBraveSearch.imageSearch.mockResolvedValue({
+      type: 'images',
+      query: { original: 'unknown' },
+      results: [],
+    } as unknown as Awaited<ReturnType<BraveSearch['imageSearch']>>);
+
+    const result = await tool.executeCore({ query: 'unknown', count: 3 });
+
+    expect(getFirstTextContent(result)).toBe('No image results found for "unknown"');
+    const structured = getMetaStructuredContent(result);
+    expect(structured).toEqual({
+      query: 'unknown',
+      count: 0,
+      items: [],
+    });
+  });
+
+  it('skips image results without thumbnail src and reports filtered count in UI mode', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      mockBraveSearch as unknown as BraveSearch,
+      true,
+    );
+
+    mockBraveSearch.imageSearch.mockResolvedValue({
+      type: 'images',
+      query: { original: 'landscape' },
+      results: [
+        {
+          type: 'image_result',
+          title: 'Missing Thumbnail',
+          url: 'https://example.com/missing',
+          source: 'example.com',
+          page_fetched: '2026-02-01T00:00:00Z',
+          thumbnail: {},
+          properties: {
+            url: 'https://example.com/missing.jpg',
+            resized: 'https://example.com/missing-resized.jpg',
+            height: 320,
+            width: 480,
+            format: 'jpg',
+            content_size: '60KB',
+          },
+          meta_url: {
+            scheme: 'https',
+            netloc: 'example.com',
+            hostname: 'example.com',
+            favicon: 'https://example.com/favicon.ico',
+            path: '/missing',
+          },
+        },
+        {
+          type: 'image_result',
+          title: 'Valid Thumbnail',
+          url: 'https://example.com/valid',
+          source: 'example.com',
+          page_fetched: '2026-02-01T00:00:00Z',
+          thumbnail: {
+            src: 'https://imgs.search.brave.com/valid.jpg',
+            width: 800,
+            height: 600,
+          },
+          properties: {
+            url: 'https://example.com/valid.jpg',
+            resized: 'https://example.com/valid-resized.jpg',
+            height: 600,
+            width: 800,
+            format: 'jpg',
+            content_size: '140KB',
+          },
+          meta_url: {
+            scheme: 'https',
+            netloc: 'example.com',
+            hostname: 'example.com',
+            favicon: 'https://example.com/favicon.ico',
+            path: '/valid',
+          },
+        },
+      ],
+    } as unknown as Awaited<ReturnType<BraveSearch['imageSearch']>>);
+
+    const result = await tool.executeCore({ query: 'landscape', count: 10 });
+
+    const text = getFirstTextContent(result);
+    expect(text).toContain('Found 1 image results for "landscape".');
+    expect(text).toContain('IMPORTANT: You CANNOT see the image titles, sources, URLs, metadata, or pixel contents.');
+    const structured = getMetaStructuredContent(result);
+    expect(structured).toEqual({
+      query: 'landscape',
+      count: 1,
+      items: [
+        {
+          title: 'Valid Thumbnail',
+          pageUrl: 'https://example.com/valid',
+          imageUrl: 'https://imgs.search.brave.com/valid.jpg',
+          source: 'example.com',
+          confidence: undefined,
+          width: 800,
+          height: 600,
+        },
+      ],
+    });
+  });
+
+  it('returns isError response when execute catches an error (non-UI)', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      mockBraveSearch as unknown as BraveSearch,
+      false,
+    );
+    mockBraveSearch.imageSearch.mockRejectedValue(new Error('network down'));
+
+    const result = await tool.execute({ query: 'failure', count: 2 });
+
+    expect(result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: `Error in ${TOOL_NAMES.image}: network down` }],
+    });
+    expect(result).not.toHaveProperty('structuredContent');
+  });
+
+  it('returns structured error response when execute catches an error in UI mode', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      mockBraveSearch as unknown as BraveSearch,
+      true,
+    );
+    mockBraveSearch.imageSearch.mockRejectedValue(new Error('timeout'));
+
+    const result = await tool.execute({ query: 'failure', count: 2 });
+
+    expect(result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: `Error in ${TOOL_NAMES.image}: timeout` }],
+      _meta: {
+        structuredContent: {
+          query: 'failure',
+          count: 0,
+          items: [],
+          error: 'timeout',
+        },
+      },
+    });
+  });
+
+  it('validates count schema max matches description', () => {
+    // This is a regression test for the bug where schema allowed 50 but description said 20
+    // The description states "maximum 20", so we verify the schema enforces that limit
+    const log = createLogStub();
+    const tool = new BraveImageSearchTool(
+      log,
+      null as unknown as BraveSearch,
+      false,
+    );
+
+    // Test that count=20 (the stated maximum in the description) is valid
+    const shouldSucceed = tool.inputSchema.safeParse({ query: 'test', count: 20 });
+
+    // Test that count=21 (one more than the stated maximum) is invalid
+    const shouldFail = tool.inputSchema.safeParse({ query: 'test', count: 21 });
+
+    expect(shouldSucceed.success).toBe(true);
+    expect(shouldFail.success).toBe(false);
+    expect(shouldFail.error?.issues[0].message).toMatch(/(less than or equal to|<=)/);
+  });
+});

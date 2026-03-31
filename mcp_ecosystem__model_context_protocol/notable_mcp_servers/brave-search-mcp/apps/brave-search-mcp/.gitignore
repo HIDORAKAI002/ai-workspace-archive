@@ -1,0 +1,10 @@
+node_modules
+build
+dist
+build-reports
+.env
+notes.txt
+.vscode
+.DS_Store
+coverage/
+.test-build/
