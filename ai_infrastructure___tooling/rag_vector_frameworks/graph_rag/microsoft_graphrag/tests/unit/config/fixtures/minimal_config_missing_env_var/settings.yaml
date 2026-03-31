@@ -1,0 +1,11 @@
+completion_models:
+  default_completion_model:
+    api_key: ${SOME_NON_EXISTENT_ENV_VAR}
+    model_provider: openai
+    model: gpt-4.1
+
+embedding_models:
+  default_embedding_model:
+    api_key: ${SOME_NON_EXISTENT_ENV_VAR}
+    model_provider: openai
+    model: text-embedding-3-large
