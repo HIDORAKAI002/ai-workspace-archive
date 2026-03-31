@@ -1,0 +1,159 @@
+import {
+  Box,
+  Caption,
+  Checkbox,
+  Colors,
+  Icon,
+  Spinner,
+  Table,
+  Tooltip,
+} from '@dagster-io/ui-components';
+import * as React from 'react';
+import {Link} from 'react-router-dom';
+
+import {
+  NO_RELOAD_PERMISSION_TEXT,
+  ReloadRepositoryLocationButton,
+} from './ReloadRepositoryLocationButton';
+import {buildRepoAddress} from '../workspace/buildRepoAddress';
+import {repoAddressAsHumanString} from '../workspace/repoAddressAsString';
+import {RepoAddress} from '../workspace/types';
+import {workspacePathFromAddress} from '../workspace/workspacePath';
+import styles from './css/RepoSelector.module.css';
+
+export interface RepoSelectorOption {
+  repositoryLocation: {name: string};
+  repository: {
+    name: string;
+    displayMetadata: {
+      key: string;
+      value: string;
+    }[];
+  };
+}
+
+interface Props {
+  onBrowse: () => void;
+  onToggle: (repoAddresses: RepoAddress[]) => void;
+  options: RepoSelectorOption[];
+  selected: RepoSelectorOption[];
+}
+
+export const RepoSelector = (props: Props) => {
+  const {onBrowse, onToggle, options, selected} = props;
+
+  const optionCount = options.length;
+  const selectedCount = selected.length;
+
+  const onToggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const {checked} = e.target;
+    const reposToToggle = options
+      .filter((option) => (checked ? !selected.includes(option) : selected.includes(option)))
+      .map((option) => buildRepoAddress(option.repository.name, option.repositoryLocation.name));
+    onToggle(reposToToggle);
+  };
+
+  return (
+    <div>
+      <Box padding={{vertical: 8, horizontal: 24}} flex={{alignItems: 'center', gap: 12}}>
+        <Checkbox
+          checked={selectedCount > 0}
+          indeterminate={!!(selectedCount && optionCount !== selectedCount)}
+          onChange={onToggleAll}
+        />
+        {`${selected.length} of ${options.length} selected`}
+      </Box>
+      <Table>
+        <tbody>
+          {options.map((option) => {
+            const checked = selected.includes(option);
+            const repoAddress = {
+              location: option.repositoryLocation.name,
+              name: option.repository.name,
+            };
+            const addressString = repoAddressAsHumanString(repoAddress);
+            return (
+              <tr key={addressString}>
+                <td>
+                  <Checkbox
+                    checked={checked}
+                    onChange={(e) => {
+                      if (e.target instanceof HTMLInputElement) {
+                        onToggle([repoAddress]);
+                      }
+                    }}
+                    id={`switch-${addressString}`}
+                  />
+                </td>
+                <td>
+                  <label className={styles.repoLabel} htmlFor={`switch-${addressString}`}>
+                    <Box flex={{direction: 'column', gap: 4}}>
+                      <div className={styles.repoLocation}>{addressString}</div>
+                      <Box flex={{direction: 'column', gap: 2}}>
+                        {option.repository.displayMetadata.map(({key, value}) => (
+                          <Caption
+                            style={{color: Colors.textLighter()}}
+                            key={key}
+                          >{`${key}: ${value}`}</Caption>
+                        ))}
+                      </Box>
+                    </Box>
+                  </label>
+                </td>
+                <td>
+                  <Link to={workspacePathFromAddress(repoAddress)} onClick={() => onBrowse()}>
+                    Browse
+                  </Link>
+                </td>
+                <td>
+                  <ReloadButton repoAddress={repoAddress} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
+    </div>
+  );
+};
+
+const ReloadButton = ({repoAddress}: {repoAddress: RepoAddress}) => {
+  return (
+    <ReloadRepositoryLocationButton
+      location={repoAddress.location}
+      ChildComponent={({codeLocation, tryReload, reloading, hasReloadPermission}) => {
+        const tooltipContent = () => {
+          if (!hasReloadPermission) {
+            return NO_RELOAD_PERMISSION_TEXT;
+          }
+          return reloading ? (
+            'Reloading…'
+          ) : (
+            <>
+              Reload <strong>{codeLocation}</strong>
+            </>
+          );
+        };
+
+        return (
+          <Tooltip placement="right" content={tooltipContent()}>
+            <button
+              className={styles.reloadButtonInner}
+              disabled={!hasReloadPermission}
+              onClick={tryReload}
+            >
+              {reloading ? (
+                <Spinner purpose="body-text" />
+              ) : (
+                <Icon
+                  name="refresh"
+                  color={hasReloadPermission ? Colors.accentGray() : Colors.accentGrayHover()}
+                />
+              )}
+            </button>
+          </Tooltip>
+        );
+      }}
+    />
+  );
+};
