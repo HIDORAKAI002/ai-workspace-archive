@@ -1,0 +1,17 @@
+{
+  "name": "pkg-outputs",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "@manypkg/get-packages": "^3.1.0",
+    "globby": "^14.1.0",
+    "resolve.exports": "^2.0.3",
+    "vitest": "^4.1.0"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "dependencies": {
+    "form-data": "^2.5.5"
+  }
+}

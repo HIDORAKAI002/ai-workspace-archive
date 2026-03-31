@@ -1,0 +1,37 @@
+import {
+  Header,
+  Breadcrumb,
+  Crumb,
+  Button,
+  HeaderAction,
+  Icon,
+  DocsIcon,
+  AgentIcon,
+  AgentCombobox,
+} from '@mastra/playground-ui';
+import { Link } from 'react-router';
+
+export function AgentHeader({ agentId }: { agentId: string }) {
+  return (
+    <Header>
+      <Breadcrumb>
+        <Crumb as={Link} to={`/agents`}>
+          <Icon>
+            <AgentIcon />
+          </Icon>
+          Agents
+        </Crumb>
+        <Crumb as="span" to="" isCurrent>
+          <AgentCombobox value={agentId} variant="ghost" />
+        </Crumb>
+      </Breadcrumb>
+
+      <HeaderAction>
+        <Button as={Link} to="https://mastra.ai/en/docs/agents/overview" target="_blank" variant="ghost" size="md">
+          <DocsIcon />
+          Agents documentation
+        </Button>
+      </HeaderAction>
+    </Header>
+  );
+}
