@@ -1,0 +1,124 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+name = "swarms"
+version = "10.0.1"
+description = "Swarms - TGSC"
+license = "MIT"
+authors = ["Kye Gomez <kye@swarms.world>"]
+homepage = "https://github.com/kyegomez/swarms"
+documentation = "https://docs.swarms.world"
+readme = "README.md"
+repository = "https://github.com/kyegomez/swarms"
+keywords = [
+    "artificial intelligence",
+    "deep learning",
+    "optimizers",
+    "Prompt Engineering",
+    "swarms",
+    "agents",
+    "llms",
+    "transformers",
+    "multi-agent",
+    "swarms of agents",
+    "Enterprise-Grade Agents",
+    "Production-Grade Agents",
+    "Agents",
+    "Multi-Grade-Agents",
+    "Swarms",
+    "Transformers",
+    "LLMs",
+    "Prompt Engineering",
+    "Agents",
+    "Generative Agents",
+    "Generative AI",
+    "Agent Marketplace",
+    "Agent Store",
+    "quant",
+    "finance",
+    "algorithmic trading",
+    "portfolio optimization",
+    "risk management",
+    "financial modeling",
+    "machine learning for finance",
+    "natural language processing for finance",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+]
+
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+setuptools = "*"
+asyncio = ">=3.4.3,<5.0"
+toml = "*"
+pypdf = "5.1.0"
+loguru = "*"
+pydantic = "*"
+tenacity = "*"
+psutil = "*"
+python-dotenv = "*"
+PyYAML = "*"
+networkx = "*"
+aiofiles = "*"
+rich = "*"
+numpy = "*"
+litellm = "1.76.1"
+httpx = "*"
+mcp = "*"
+aiohttp = "*"
+schedule = "*"
+uvloop = {version = "*", markers = "sys_platform == 'linux' or sys_platform == 'darwin'"}
+winloop = {version = "*", markers = "sys_platform == 'win32'"}
+
+[tool.poetry.scripts]
+swarms = "swarms.cli.main:main"
+
+
+[tool.poetry.group.lint.dependencies]
+black = ">=23.1,<27.0"
+ruff = ">=0.5.1,<0.15.9"
+types-toml = "^0.10.8.1"
+types-pytz = ">=2023.3,<2027.0"
+types-chardet = "^5.0.4.6"
+mypy-protobuf = ">=3,<6"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = ">=8.1.1,<10.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+ruff = "*"
+pytest = "*"
+
+[tool.ruff]
+line-length = 70
+
+[tool.black]
+target-version = ["py38"]
+line-length = 70
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | docs
+)/
+'''
+
