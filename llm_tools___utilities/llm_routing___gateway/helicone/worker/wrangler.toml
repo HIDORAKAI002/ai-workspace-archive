@@ -1,0 +1,337 @@
+name = "helicone-worker-dev"
+main = "src/index.ts"
+compatibility_date = "2025-08-03"
+compatibility_flags = ["nodejs_compat_v2"]
+logpush = true
+keep_vars = true
+
+durable_objects.bindings = [
+	{ name = "RATE_LIMITER", class_name = "InMemoryRateLimiter" },
+	{ name = "RATE_LIMITER_SQL", class_name = "RateLimiterDO" },
+	{ name = "BUCKET_RATE_LIMITER", class_name = "BucketRateLimiterDO" },
+	{ name = "WALLET", class_name = "Wallet" },
+	{ name = "REQUEST_BODY_BUFFER", class_name = "RequestBodyBufferContainer" },
+]
+
+
+kv_namespaces = [
+	{ binding = "RATE_LIMIT_KV", id = "0492dc9511cb4ed5b6f012a85354fa34", preview_id = "d275df550f7a4276ad50a3115f3e84b4" },
+	{ binding = "CACHE_KV", id = "81f49b61645345a499b37e3944c3502d", preview_id = "9d7e936c78be456c8c7e296a15215837" },
+	{ binding = "INSERT_KV", id = "364ccea321534b4397fd8934f5757bd6", preview_id = "03504e09b1c949e6a3b77b11bb45d602" },
+	{ binding = "UTILITY_KV", id = "8b5d1650741d4f999e858f788387e3fa", preview_id = "a0ecbc9180784f7096e7ca1932b5676a" },
+	{ binding = "WALLET_KV", id = "7635e7dd625a482ba6afc086f55a7e89" },
+	{ binding = "REQUEST_AND_RESPONSE_QUEUE_KV", id = "cf75f1c978d14eaeabc4483662688ab4", preview_id = "cf75f1c978d14eaeabc4483662688ab4" },
+	{ binding = "SECURE_CACHE", id = "23d7b3cb44254e0eb0b824a310abe155", preview_id = "9d7e936c78be456c8c7e296a15215837" },
+	{ binding = "EU_SECURE_CACHE", id = "a0243398352c4ea996e5bf4008938285", preview_id = "9d7e936c78be456c8c7e296a15215837" },
+]
+
+queues.producers = [
+	{ binding = "FALLBACK_QUEUE", queue = "fallback-queue-dev" },
+]
+
+containers = [
+	{ image = "./RequestBodyBufferContainer/Dockerfile", class_name = "RequestBodyBufferContainer", max_instances = 10, instance_type = "standard" },
+]
+
+[vars]
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+SUPABASE_URL = "http://localhost:54321"
+EU_SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+EU_SUPABASE_URL = "http://localhost:54321"
+CLICKHOUSE_HOST = "http://localhost:18123"
+CLICKHOUSE_USER = "default"
+CLICKHOUSE_PASSWORD = ""
+PROVIDER = "OPENAI"
+TOKEN_COUNT_URL = "https://tokens.helicone.ai/anthropic/count_tokens"
+WORKER_TYPE = "OPENAI_PROXY"
+VAULT_ENABLED = "true"
+REQUEST_CACHE_KEY = "9984c295ec7d0f506b8af65e9d60773480eb0c9347a6bd8a2b08fb57b5117701"
+REQUEST_CACHE_KEY_2 = "9984c295ec7d0f506b8af65e9d60773480eb0c9347a6bd8a2b08fb57b5117701"
+VALHALLA_URL = "http://localhost:8585"
+EU_VALHALLA_URL = "http://localhost:8585"
+S3_ENDPOINT = "http://localhost:9000"
+S3_ACCESS_KEY = "minioadmin"
+S3_SECRET_KEY = "minioadmin"
+S3_BUCKET_NAME = "request-response-storage"
+HELICONE_MANUAL_ACCESS_KEY = "sk-helicone-rrrrrrr-xxxxxxx-vvvvvvv-wwwwwww"
+APP_URL = "https://us.helicone.ai"
+ENVIRONMENT = "development"
+TOKENIZER_COUNT_API = "https://tokens.helicone.ai/anthropic/count_tokens"
+TOKEN_CALC_URL = "https://tokens.helicone.ai/anthropic/count_tokens"
+STORAGE_URL = "http://localhost:9000"
+LOOPS_API_KEY = ""
+POSTHOG_API_KEY = ""
+OPENAI_API_KEY = ""
+OPENAI_ORG_ID = ""
+CUSTOMER_GATEWAY_URL = ""
+RESEND_API_KEY = ""
+PROMPTARMOR_API_KEY = ""
+DATADOG_ENABLED = "false"
+DATADOG_API_KEY = ""
+DATADOG_ENDPOINT = ""
+DATADOG_APM_ENABLED = "false"
+DATADOG_APM_ENDPOINT = "https://http-intake.logs.us5.datadoghq.com"
+DATADOG_APM_SAMPLING_RATE = "0.01"
+GATEWAY_TARGET = ""
+S3_ENABLED = "true"
+S3_REGION = "us-west-2"
+SENTRY_API_KEY = ""
+SENTRY_PROJECT_ID = ""
+WORKER_DEFINED_REDIRECT_URL = ""
+AWS_REGION = "us-west-2"
+AWS_ACCESS_KEY_ID = ""
+AWS_SECRET_ACCESS_KEY = ""
+REQUEST_LOGS_QUEUE_URL = ""
+REQUEST_LOGS_QUEUE_URL_LOW_PRIORITY = ""
+ORG_IDS = ""
+EU_CLICKHOUSE_HOST = "http://localhost:18123"
+EU_CLICKHOUSE_USER = "default"
+EU_CLICKHOUSE_PASSWORD = ""
+EU_S3_BUCKET_NAME = "request-response-storage"
+EU_REQUEST_LOGS_QUEUE_URL = ""
+EU_REQUEST_LOGS_QUEUE_URL_LOW_PRIORITY = ""
+EU_AWS_REGION = "eu-west-1"
+SLACK_WEBHOOK_URL = ""
+SLACK_ALERT_CHANNEL = "C092GFJQP43"
+STRIPE_SECRET_KEY = "sk_test_"
+
+STRIPE_WEBHOOK_SECRET = ""
+HELICONE_ORG_ID = ""
+
+EU_HELICONE_ORG_ID = ""
+STRIPE_CLOUD_GATEWAY_TOKEN_USAGE_PRODUCT = "prod_StWk1FmJ88b9Ju"
+
+UPSTASH_KAFKA_URL = ""
+UPSTASH_KAFKA_USERNAME = ""
+UPSTASH_KAFKA_PASSWORD = ""
+
+[triggers]
+crons = ["* * * * *", "0 * * * *", "0 10 * * mon", "*/5 * * * *"]
+
+
+[env.production]
+name = "helicone-worker-prod"
+routes = [
+	{ pattern = "oai.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "anthropic.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "llama.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "nvidia.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "google.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "groq.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "openrouter.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "together.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "gateway.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "deepinfra.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "hyperbolic.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "fireworks.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "predibase.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "api.worker.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "qstash.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "firecrawl.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "vercel.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "cerebras.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "mistral.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "llmmapper.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "bedrock.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "deepseek.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "x.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "nebius.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "perplexity.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "novita.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "generate.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "ai-gateway.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+
+	{ pattern = "oai.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "anthropic.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "groq.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "openrouter.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "together.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "gateway.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "hyperbolic.us.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+
+	{ pattern = "oai.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "anthropic.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "groq.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "api.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "openrouter.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "together.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "gateway.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "2yfv.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "fireworks.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "predibase.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+
+	{ pattern = "oai.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "anthropic.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "groq.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "api.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "openrouter.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "together.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "gateway.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "2yfv.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+
+	{ pattern = "oai.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "anthropic.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "groq.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "api.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "openrouter.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "together.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "gateway.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+]
+
+durable_objects.bindings = [
+	{ name = "RATE_LIMITER", class_name = "InMemoryRateLimiter" },
+	{ name = "RATE_LIMITER_SQL", class_name = "RateLimiterDO" },
+	{ name = "BUCKET_RATE_LIMITER", class_name = "BucketRateLimiterDO" },
+	{ name = "WALLET", class_name = "Wallet" },
+	{ name = "REQUEST_BODY_BUFFER", class_name = "RequestBodyBufferContainer" },
+]
+
+kv_namespaces = [
+	{ binding = "RATE_LIMIT_KV", id = "0492dc9511cb4ed5b6f012a85354fa34", preview_id = "d275df550f7a4276ad50a3115f3e84b4" },
+	{ binding = "CACHE_KV", id = "81f49b61645345a499b37e3944c3502d", preview_id = "9d7e936c78be456c8c7e296a15215837" },
+	{ binding = "INSERT_KV", id = "364ccea321534b4397fd8934f5757bd6", preview_id = "03504e09b1c949e6a3b77b11bb45d602" },
+	{ binding = "UTILITY_KV", id = "8b5d1650741d4f999e858f788387e3fa", preview_id = "a0ecbc9180784f7096e7ca1932b5676a" },
+	{ binding = "REQUEST_AND_RESPONSE_QUEUE_KV", id = "cf75f1c978d14eaeabc4483662688ab4", preview_id = "cf75f1c978d14eaeabc4483662688ab4" },
+	{ binding = "WALLET_KV", id = "7635e7dd625a482ba6afc086f55a7e89" },
+	{ binding = "SECURE_CACHE", id = "43d1ce4eaa9c4be9ae88a97ea8ed88ef", preview_id = "23d7b3cb44254e0eb0b824a310abe155" },
+	{ binding = "EU_SECURE_CACHE", id = "39c1d7b64db749e39adeba19c698e6a1" },
+]
+
+containers = [
+	{ image = "./RequestBodyBufferContainer/Dockerfile", class_name = "RequestBodyBufferContainer", max_instances = 10, instance_type = "standard" },
+]
+
+[env.production.triggers]
+crons = ["* * * * *", "0 * * * *", "0 10 * * mon", "*/5 * * * *"]
+
+queues.producers = [
+	{ binding = "FALLBACK_QUEUE", queue = "fallback-queue-prod" },
+]
+
+[env.production.vars]
+SUPABASE_URL = "https://bolqqmqbrciybnypvklh.supabase.co"
+CLICKHOUSE_HOST = "https://p76qbrlulo.us-east-1.aws.clickhouse.cloud:8443"
+VAULT_ENABLED = "true"
+DATADOG_ENABLED = "true"
+DATADOG_APM_ENABLED = "true"
+DATADOG_APM_ENDPOINT = "https://http-intake.logs.us5.datadoghq.com"
+DATADOG_APM_SAMPLING_RATE = "0.10"
+QUEUE_PROVIDER = "sqs"
+ENVIRONMENT = "production"
+APP_URL = "https://us.helicone.ai"
+
+[env.production_staging]
+name = "helicone-worker-prod-staging"
+routes = [
+	{ pattern = "oai.staging.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+
+
+	{ pattern = "oai.staging.us.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+
+	{ pattern = "oai.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "test.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "anthropic.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "api.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "openrouter.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "together.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "gateway.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "hyperbolic.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "vercel.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	# { pattern = "groq.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "fireworks.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "llmmapper.staging.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "ai-gateway.staging.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "bedrock.staging.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+	{ pattern = "perplexity.staging.helicone.ai", custom_domain = true, zone_name = "helicone.ai" },
+
+	{ pattern = "oai.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "anthropic.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "api.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "openrouter.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "together.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "gateway.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+	{ pattern = "hyperbolic.staging.eu.hconeai.com", custom_domain = true, zone_name = "hconeai.com" },
+]
+
+kv_namespaces = [
+	{ binding = "RATE_LIMIT_KV", id = "0492dc9511cb4ed5b6f012a85354fa34", preview_id = "d275df550f7a4276ad50a3115f3e84b4" },
+	{ binding = "CACHE_KV", id = "81f49b61645345a499b37e3944c3502d", preview_id = "9d7e936c78be456c8c7e296a15215837" },
+	{ binding = "INSERT_KV", id = "364ccea321534b4397fd8934f5757bd6", preview_id = "03504e09b1c949e6a3b77b11bb45d602" },
+	{ binding = "UTILITY_KV", id = "8b5d1650741d4f999e858f788387e3fa", preview_id = "a0ecbc9180784f7096e7ca1932b5676a" },
+	{ binding = "WALLET_KV", id = "7635e7dd625a482ba6afc086f55a7e89" },
+	{ binding = "REQUEST_AND_RESPONSE_QUEUE_KV", id = "cf75f1c978d14eaeabc4483662688ab4", preview_id = "cf75f1c978d14eaeabc4483662688ab4" },
+	{ binding = "SECURE_CACHE", id = "23d7b3cb44254e0eb0b824a310abe155" },
+	{ binding = "EU_SECURE_CACHE", id = "a0243398352c4ea996e5bf4008938285" },
+	# TODO: Add prompts table
+]
+
+durable_objects.bindings = [
+	{ name = "RATE_LIMITER", class_name = "InMemoryRateLimiter" },
+	{ name = "RATE_LIMITER_SQL", class_name = "RateLimiterDO" },
+	{ name = "BUCKET_RATE_LIMITER", class_name = "BucketRateLimiterDO" },
+	{ name = "WALLET", class_name = "Wallet" },
+	{ name = "REQUEST_BODY_BUFFER", class_name = "RequestBodyBufferContainer" },
+]
+
+queues.producers = [
+	{ binding = "FALLBACK_QUEUE", queue = "fallback-queue-staging" },
+]
+
+containers = [
+	{ image = "./RequestBodyBufferContainer/Dockerfile", class_name = "RequestBodyBufferContainer", max_instances = 10, instance_type = "standard" },
+]
+
+# Environment-specific variables only (inherit most from top-level [vars])
+[env.production_staging.vars]
+SUPABASE_URL = "https://bolqqmqbrciybnypvklh.supabase.co"
+CLICKHOUSE_HOST = "https://p76qbrlulo.us-east-1.aws.clickhouse.cloud:8443"
+VAULT_ENABLED = "true"
+QUEUE_PROVIDER = "sqs"
+ENVIRONMENT = "production"
+APP_URL = "https://us.helicone.ai"
+
+[env.production_staging.triggers]
+crons = []
+
+
+[[migrations]]
+tag = "v1"
+new_classes = ["AtomicRateLimiter"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["AtomicAlerter"]
+
+[[migrations]]
+tag = "v3"
+deleted_classes = ["AtomicAlerter"]
+
+[[migrations]]
+tag = "v4"
+new_classes = ["AtomicAlerter"]
+
+[[migrations]]
+tag = "v5"
+deleted_classes = ["AtomicAlerter"]
+
+[[migrations]]
+tag = "v6"
+new_classes = ["InMemoryRateLimiter"]
+deleted_classes = ["AtomicRateLimiter"]
+
+[[migrations]]
+tag = "v7"
+new_sqlite_classes = ["RateLimiterDO"]
+
+
+[[migrations]]
+tag = "v8"
+new_sqlite_classes = ["Wallet"]
+
+[[migrations]]
+tag = "v9"
+new_sqlite_classes = ["RequestBodyBufferContainer"]
+
+[[migrations]]
+tag = "v10"
+new_classes = ["BucketRateLimiterDO"]

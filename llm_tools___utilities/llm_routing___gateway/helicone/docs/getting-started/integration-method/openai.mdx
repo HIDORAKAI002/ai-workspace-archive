@@ -1,0 +1,258 @@
+---
+title: "OpenAI Async Logging"
+---
+
+This page will show you how to log requests in Helicone when using OpenAI. This does not use the Helicone Proxy.
+For more information on Async Logging, see the [Proxy vs Async](/getting-started/proxy-vs-async) page.
+
+<Tabs>
+  <Tab title="Python">
+
+## 1 line integration
+
+Add `HELICONE_API_KEY` to your environment variables.
+
+```bash
+export HELICONE_API_KEY=sk-<your-api-key>
+# You can also set it in your code (See below)
+```
+
+Replace
+
+```python
+from openai import openai
+```
+
+with
+
+```python
+from helicone.openai_async import openai
+```
+
+## More complex example
+
+```python
+from helicone.openai_async import openai, Meta
+
+# export HELICONE_API_KEY=sk-<your-api-key>
+
+# or ...
+
+# from helicone.globals import helicone_global
+
+# helicone_global.api_key = "sk-<your-api-key>"
+
+x = openai.ChatCompletion.create(
+  model="gpt-4o-mini",
+  messages=[{
+  "role": "system",
+  "content": "This will be logged"
+  }],
+  max_tokens=512,
+  helicone_meta=Meta(
+    custom_properties={
+    "age": 25
+    }
+  )
+)
+
+```
+
+  </Tab>
+  <Tab title="Node.js">
+    # Installation and Setup
+    <Steps>
+      <Step title="To get started, install the `helicone-openai` package">
+      ```bash
+      npm install @helicone/helicone@2.1.19
+      ```
+      </Step>
+      <Step title="Set `HELICONE_API_KEY` as an environment variable">
+       ```bash
+      export HELICONE_API_KEY=sk-<your-api-key>
+      ```
+      <Info>You can also set the Helicone API Key in your code (See below)</Info>
+      </Step>
+      <Step title="Replace">
+      ```typescript
+      const { ClientOptions, OpenAI } = require("openai");
+      ```
+
+      with
+
+      ```typescript
+      const { HeliconeAsyncOpenAI as OpenAI,
+        IHeliconeAsyncClientOptions as ClientOptions } = require("helicone");
+      ```
+      </Step>
+      <Step title="Make a request">
+      Chat, Completion, Embedding, etc usage is equivalent to OpenAI package.
+      ```typescript
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        heliconeMeta: {
+          apiKey: process.env.HELICONE_API_KEY, // Can be set as env variable
+          // ... additional helicone meta fields
+        },
+      });
+
+      const chatCompletion = await openai.chat.completion.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: "Hello world" }],
+      });
+
+      console.log(chatCompletion.data.choices[0].message);
+      ```
+      </Step>
+    </Steps>
+
+    ## Send feedback
+    With Async logging, you must retrieve the `helicone-id` header from the log response (not LLM response).
+    ```typescript
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        heliconeMeta: {
+          apiKey: process.env.HELICONE_API_KEY,
+          onLog: async (response: Response) => {
+            const heliconeId = response.headers.get("helicone-id");
+            await openai.helicone.logFeedback(
+              heliconeId,
+              HeliconeFeedbackRating.Positive
+            );
+          },
+        },
+      });
+    ```
+
+    #### HeliconeMeta options
+    Async logging loses some additional features such as cache, rate limits, and retries
+    ```typescript
+    interface IHeliconeMeta {
+      apiKey?: string;
+      properties?: { [key: string]: any };
+      user?: string;
+      baseUrl?: string;
+      onLog?: OnHeliconeLog;
+      onFeedback?: OnHeliconeFeedback;
+    }
+
+    type OnHeliconeLog = (response: Response) => Promise<void>;
+    type OnHeliconeFeedback = (result: Response) => Promise<void>;
+    ```
+
+  </Tab>
+  <Tab title="Raw">
+  The Helicone Async Log Request API is used for logging requests and responses that
+go through an endpoint. This is highly useful for auditing, debugging and observing
+the behavior of your interactions with the system.
+
+## Request Structure
+
+A typical request will have the following structure:
+
+### Endpoint
+
+```
+
+POST https://api.helicone.ai/oai/v1/log
+
+```
+
+### Headers
+
+| Name          | Value              |
+| ------------- | ------------------ |
+| Authorization | Bearer `{API_KEY}` |
+
+Replace `{API_KEY}` with your actual API Key.
+
+### Body
+
+The body of the request should follow the `HeliconeAyncLogRequest` structure:
+
+```ts
+export type HeliconeAyncLogRequest = {
+  providerRequest: ProviderRequest;
+  providerResponse: ProviderResponse;
+  timing: Timing;
+};
+
+export type ProviderRequest = {
+  url: string;
+  json: {
+    [key: string]: any;
+  };
+  meta: Record<string, string>;
+};
+
+export type ProviderResponse = {
+  json: {
+    [key: string]: any;
+  };
+  status: number;
+  headers: Record<string, string>;
+};
+
+export type Timing = {
+  // From Unix epoch in Milliseconds
+  startTime: {
+    seconds: number;
+    milliseconds: number;
+  };
+  endTime: {
+    seconds: number;
+    milliseconds: number;
+  };
+};
+```
+
+## Example Usage
+
+Here's an example using curl:
+
+```sh
+curl -X POST https://api.helicone.ai/oai/v1/log \
+-H "Authorization: Bearer your_api_key" \
+-H "Content-Type: application/json" \
+-d '{
+  "providerRequest": {
+    "url": "https://example.com",
+    "json": {
+      "key1": "value1",
+      "key2": "value2"
+    },
+    "meta": {
+      "metaKey1": "metaValue1",
+      "metaKey2": "metaValue2"
+    }
+  },
+  "providerResponse": {
+    "json": {
+      "responseKey1": "responseValue1",
+      "responseKey2": "responseValue2"
+    },
+    "status": 200,
+    "headers": {
+      "headerKey1": "headerValue1",
+      "headerKey2": "headerValue2"
+    }
+  },
+  "timing": {
+    "startTime": {
+      "seconds": 1625686222,
+      "milliseconds": 500
+    },
+    "endTime": {
+      "seconds": 1625686244,
+      "milliseconds": 750
+    }
+  }
+}'
+```
+
+In the curl command above, replace `your_api_key` with your actual API key, and adjust the values in the JSON to fit your actual request and response data and timing.
+
+The response body is a JSON object of the entire response returned by OpenAI, unless it is a streamed request. In that case, it is a JSON object with a key called "streamed_data", which is an array of every single chunk.
+
+</Tab>
+</Tabs>

@@ -1,0 +1,15 @@
+{
+  "extends": ["next/core-web-vitals", "plugin:prettier/recommended"],
+
+  "ignorePatterns": ["lib/clients/jawnTypes/*.ts"],
+  "plugins": ["unused-imports"],
+  "parserOptions": {
+    "ecmaVersion": 13
+  },
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-undef": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  }
+}

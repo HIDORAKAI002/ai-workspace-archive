@@ -1,0 +1,11 @@
+{
+  "title": "Helicone: An Open-Source Datadog Alternative for LLM Observability",
+  "title1": "Helicone: An Open-Source Datadog Alternative for LLM Observability",
+  "title2": "Helicone: An Open-Source Datadog Alternative for LLM Observability",
+  "description": "Datadog has long been a favourite among developers for its application monitoring and observability capabilities. But recently, LLM developers have been exploring open-source observability options. Why? We have some answers.",
+  "images": "/static/blog/datadog/title.webp",
+  "time": "5 minute read",
+  "author": "Lina Lam",
+  "date": "Apr 29, 2024",
+  "badge": "Comparisons"
+}
