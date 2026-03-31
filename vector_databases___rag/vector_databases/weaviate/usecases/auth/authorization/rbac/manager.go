@@ -1,0 +1,624 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package rbac
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
+	"strings"
+	"sync"
+
+	"github.com/weaviate/weaviate/usecases/auth/authentication"
+
+	"github.com/casbin/casbin/v2"
+	"github.com/sirupsen/logrus"
+
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/usecases/auth/authorization"
+	"github.com/weaviate/weaviate/usecases/auth/authorization/conv"
+	"github.com/weaviate/weaviate/usecases/auth/authorization/rbac/rbacconf"
+	"github.com/weaviate/weaviate/usecases/config"
+)
+
+const (
+	SnapshotVersionV0 = iota
+	SnapshotVersionLatest
+)
+
+type Manager struct {
+	casbin      *casbin.SyncedCachedEnforcer
+	logger      logrus.FieldLogger
+	authNconf   config.Authentication
+	rbacConf    rbacconf.Config
+	restoreLock sync.RWMutex
+}
+
+func New(rbacStoragePath string, rbacConf rbacconf.Config, authNconf config.Authentication, logger logrus.FieldLogger) (*Manager, error) {
+	csbin, err := Init(rbacConf, rbacStoragePath, authNconf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Manager{csbin, logger, authNconf, rbacConf, sync.RWMutex{}}, nil
+}
+
+// there is no different between UpdateRolesPermissions and CreateRolesPermissions, purely to satisfy an interface
+func (m *Manager) UpdateRolesPermissions(roles map[string][]authorization.Policy) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	return m.upsertRolesPermissions(roles)
+}
+
+func (m *Manager) CreateRolesPermissions(roles map[string][]authorization.Policy) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	return m.upsertRolesPermissions(roles)
+}
+
+func (m *Manager) GetUsersOrGroupsWithRoles(isGroup bool, authType authentication.AuthType) ([]string, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	roles, err := m.casbin.GetAllSubjects()
+	if err != nil {
+		return nil, err
+	}
+	usersOrGroups := map[string]struct{}{}
+	for _, role := range roles {
+		users, err := m.casbin.GetUsersForRole(role)
+		if err != nil {
+			return nil, err
+		}
+		for _, userOrGroup := range users {
+			name, _, err := conv.GetUserAndPrefix(userOrGroup)
+			if err != nil {
+				return nil, fmt.Errorf("GetUserAndPrefix: %w", err)
+			}
+			if isGroup {
+				// groups are only supported for OIDC
+				if authType == authentication.AuthTypeOIDC && strings.HasPrefix(userOrGroup, conv.OIDC_GROUP_NAME_PREFIX) {
+					usersOrGroups[name] = struct{}{}
+				}
+			} else {
+				// groups are only supported for OIDC
+				if authType == authentication.AuthTypeOIDC && strings.HasPrefix(userOrGroup, string(authentication.AuthTypeOIDC)) {
+					usersOrGroups[name] = struct{}{}
+				}
+
+				if authType == authentication.AuthTypeDb && strings.HasPrefix(userOrGroup, string(authentication.AuthTypeDb)) {
+					usersOrGroups[name] = struct{}{}
+				}
+
+			}
+		}
+	}
+
+	usersOrGroupsList := make([]string, 0, len(usersOrGroups))
+	for user := range usersOrGroups {
+		usersOrGroupsList = append(usersOrGroupsList, user)
+	}
+
+	return usersOrGroupsList, nil
+}
+
+func (m *Manager) upsertRolesPermissions(roles map[string][]authorization.Policy) error {
+	for roleName, policies := range roles {
+		// assign role to internal user to make sure to catch empty roles
+		// e.g. : g, user:wv_internal_empty, role:roleName
+		if _, err := m.casbin.AddRoleForUser(conv.UserNameWithTypeFromId(conv.InternalPlaceHolder, authentication.AuthTypeDb), conv.PrefixRoleName(roleName)); err != nil {
+			return fmt.Errorf("AddRoleForUser: %w", err)
+		}
+		for _, policy := range policies {
+			if _, err := m.casbin.AddNamedPolicy("p", conv.PrefixRoleName(roleName), policy.Resource, policy.Verb, policy.Domain); err != nil {
+				return fmt.Errorf("AddNamedPolicy: %w", err)
+			}
+		}
+	}
+	if err := m.casbin.SavePolicy(); err != nil {
+		return fmt.Errorf("SavePolicy: %w", err)
+	}
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("InvalidateCache: %w", err)
+	}
+	return nil
+}
+
+func (m *Manager) GetRoles(names ...string) (map[string][]authorization.Policy, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	var (
+		casbinStoragePolicies    [][][]string
+		casbinStoragePoliciesMap = make(map[string]struct{})
+	)
+
+	if len(names) == 0 {
+		// get all roles
+		polices, err := m.casbin.GetNamedPolicy("p")
+		if err != nil {
+			return nil, fmt.Errorf("GetNamedPolicy: %w", err)
+		}
+		casbinStoragePolicies = append(casbinStoragePolicies, polices)
+
+		for _, p := range polices {
+			// e.g. policy line in casbin -> role:roleName resource verb domain, that's why p[0]
+			casbinStoragePoliciesMap[p[0]] = struct{}{}
+		}
+
+		polices, err = m.casbin.GetNamedGroupingPolicy("g")
+		if err != nil {
+			return nil, fmt.Errorf("GetNamedGroupingPolicy: %w", err)
+		}
+		casbinStoragePolicies = collectStaleRoles(polices, casbinStoragePoliciesMap, casbinStoragePolicies)
+	} else {
+		for _, name := range names {
+			polices, err := m.casbin.GetFilteredNamedPolicy("p", 0, conv.PrefixRoleName(name))
+			if err != nil {
+				return nil, fmt.Errorf("GetFilteredNamedPolicy: %w", err)
+			}
+			casbinStoragePolicies = append(casbinStoragePolicies, polices)
+
+			for _, p := range polices {
+				// e.g. policy line in casbin -> role:roleName resource verb domain, that's why p[0]
+				casbinStoragePoliciesMap[p[0]] = struct{}{}
+			}
+
+			polices, err = m.casbin.GetFilteredNamedGroupingPolicy("g", 1, conv.PrefixRoleName(name))
+			if err != nil {
+				return nil, fmt.Errorf("GetFilteredNamedGroupingPolicy: %w", err)
+			}
+			casbinStoragePolicies = collectStaleRoles(polices, casbinStoragePoliciesMap, casbinStoragePolicies)
+		}
+	}
+	policies, err := conv.CasbinPolicies(casbinStoragePolicies...)
+	if err != nil {
+		return nil, fmt.Errorf("CasbinPolicies: %w", err)
+	}
+	return policies, nil
+}
+
+func (m *Manager) RemovePermissions(roleName string, permissions []*authorization.Policy) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	for _, permission := range permissions {
+		ok, err := m.casbin.RemoveNamedPolicy("p", conv.PrefixRoleName(roleName), permission.Resource, permission.Verb, permission.Domain)
+		if err != nil {
+			return fmt.Errorf("RemoveNamedPolicy: %w", err)
+		}
+		if !ok {
+			return nil // deletes are idempotent
+		}
+	}
+	if err := m.casbin.SavePolicy(); err != nil {
+		return fmt.Errorf("SavePolicy: %w", err)
+	}
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("InvalidateCache: %w", err)
+	}
+	return nil
+}
+
+func (m *Manager) HasPermission(roleName string, permission *authorization.Policy) (bool, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	policy, err := m.casbin.HasNamedPolicy("p", conv.PrefixRoleName(roleName), permission.Resource, permission.Verb, permission.Domain)
+	if err != nil {
+		return false, fmt.Errorf("HasNamedPolicy: %w", err)
+	}
+	return policy, nil
+}
+
+func (m *Manager) DeleteRoles(roles ...string) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	for _, roleName := range roles {
+		// remove role
+		roleRemoved, err := m.casbin.RemoveFilteredNamedPolicy("p", 0, conv.PrefixRoleName(roleName))
+		if err != nil {
+			return fmt.Errorf("RemoveFilteredNamedPolicy: %w", err)
+		}
+		// remove role assignment
+		roleAssignmentsRemoved, err := m.casbin.RemoveFilteredGroupingPolicy(1, conv.PrefixRoleName(roleName))
+		if err != nil {
+			return fmt.Errorf("RemoveFilteredGroupingPolicy: %w", err)
+		}
+
+		if !roleRemoved && !roleAssignmentsRemoved {
+			return nil // deletes are idempotent
+		}
+	}
+	if err := m.casbin.SavePolicy(); err != nil {
+		return fmt.Errorf("SavePolicy: %w", err)
+	}
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("InvalidateCache: %w", err)
+	}
+	return nil
+}
+
+// AddRolesFroUser NOTE: user has to be prefixed by user:, group:, key: etc.
+// see func PrefixUserName(user) it will prefix username and nop-op if already prefixed
+func (m *Manager) AddRolesForUser(user string, roles []string) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	if !conv.NameHasPrefix(user) {
+		return errors.New("user does not contain a prefix")
+	}
+
+	for _, role := range roles {
+		if _, err := m.casbin.AddRoleForUser(user, conv.PrefixRoleName(role)); err != nil {
+			return fmt.Errorf("AddRoleForUser: %w", err)
+		}
+	}
+	if err := m.casbin.SavePolicy(); err != nil {
+		return fmt.Errorf("SavePolicy: %w", err)
+	}
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("InvalidateCache: %w", err)
+	}
+	return nil
+}
+
+func (m *Manager) GetRolesForUserOrGroup(userName string, authType authentication.AuthType, isGroup bool) (map[string][]authorization.Policy, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	var rolesNames []string
+	var err error
+	if isGroup {
+		rolesNames, err = m.casbin.GetRolesForUser(conv.PrefixGroupName(userName))
+		if err != nil {
+			return nil, fmt.Errorf("GetRolesForUserOrGroup: %w", err)
+		}
+	} else {
+		rolesNames, err = m.casbin.GetRolesForUser(conv.UserNameWithTypeFromId(userName, authType))
+		if err != nil {
+			return nil, fmt.Errorf("GetRolesForUserOrGroup: %w", err)
+		}
+	}
+	if len(rolesNames) == 0 {
+		return map[string][]authorization.Policy{}, err
+	}
+	roles, err := m.GetRoles(rolesNames...)
+	if err != nil {
+		return nil, fmt.Errorf("GetRoles: %w", err)
+	}
+	return roles, err
+}
+
+func (m *Manager) GetUsersOrGroupForRole(roleName string, authType authentication.AuthType, isGroup bool) ([]string, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	pusers, err := m.casbin.GetUsersForRole(conv.PrefixRoleName(roleName))
+	if err != nil {
+		return nil, fmt.Errorf("GetUsersOrGroupForRole: %w", err)
+	}
+	users := make([]string, 0, len(pusers))
+	for idx := range pusers {
+		userOrGroup, prefix, err := conv.GetUserAndPrefix(pusers[idx])
+		if err != nil {
+			return nil, fmt.Errorf("GetUserAndPrefix: %w", err)
+		}
+		if userOrGroup == conv.InternalPlaceHolder {
+			continue
+		}
+		if isGroup {
+			if authType == authentication.AuthTypeOIDC && strings.HasPrefix(conv.OIDC_GROUP_NAME_PREFIX, prefix) {
+				users = append(users, userOrGroup)
+			}
+		} else {
+			if prefix == string(authType) {
+				users = append(users, userOrGroup)
+			}
+		}
+	}
+	return users, nil
+}
+
+func (m *Manager) RevokeRolesForUser(userName string, roles ...string) error {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	if !conv.NameHasPrefix(userName) {
+		return errors.New("user does not contain a prefix")
+	}
+
+	for _, roleName := range roles {
+		if _, err := m.casbin.DeleteRoleForUser(userName, conv.PrefixRoleName(roleName)); err != nil {
+			return fmt.Errorf("DeleteRoleForUser: %w", err)
+		}
+	}
+	if err := m.casbin.SavePolicy(); err != nil {
+		return fmt.Errorf("SavePolicy: %w", err)
+	}
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("InvalidateCache: %w", err)
+	}
+	return nil
+}
+
+// Snapshot is the RBAC state to be used for RAFT snapshots
+type snapshot struct {
+	Policy         [][]string `json:"roles_policies"`
+	GroupingPolicy [][]string `json:"grouping_policies"`
+	Version        int        `json:"version"`
+}
+
+func (m *Manager) Snapshot() ([]byte, error) {
+	// snapshot isn't always initialized, e.g. when RBAC is disabled
+	if m == nil {
+		return []byte{}, nil
+	}
+	if m.casbin == nil {
+		return nil, nil
+	}
+
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	policy, err := m.casbin.GetPolicy()
+	if err != nil {
+		return nil, err
+	}
+	groupingPolicy, err := m.casbin.GetGroupingPolicy()
+	if err != nil {
+		return nil, err
+	}
+
+	// Use a buffer to stream the JSON encoding
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(snapshot{Policy: policy, GroupingPolicy: groupingPolicy, Version: SnapshotVersionLatest}); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (m *Manager) Restore(b []byte) error {
+	// don't overwrite with empty snapshot to avoid overwriting recovery from file
+	// with a non-existent RBAC snapshot when coming from old versions
+	if m == nil || len(b) == 0 {
+		return nil
+	}
+	if m.casbin == nil {
+		return nil
+	}
+
+	snapshot := snapshot{}
+	if err := json.Unmarshal(b, &snapshot); err != nil {
+		return fmt.Errorf("restore snapshot: decode json: %w", err)
+	}
+
+	// Hold the write lock only for the casbin mutation and cache invalidation
+	// so that concurrent Enforce() calls (which hold RLock) are blocked.
+	// Unmarshalling is done above without the lock since it doesn't touch
+	// shared state and can be expensive for large snapshots.
+	m.restoreLock.Lock()
+	defer m.restoreLock.Unlock()
+
+	// we need to clear the policies before adding the new ones
+	m.casbin.ClearPolicy()
+
+	_, err := m.casbin.AddPolicies(snapshot.Policy)
+	if err != nil {
+		return fmt.Errorf("add policies: %w", err)
+	}
+
+	_, err = m.casbin.AddGroupingPolicies(snapshot.GroupingPolicy)
+	if err != nil {
+		return fmt.Errorf("add grouping policies: %w", err)
+	}
+
+	if snapshot.Version == SnapshotVersionV0 {
+		if err := upgradePoliciesFrom129(m.casbin, true); err != nil {
+			return fmt.Errorf("upgrade policies: %w", err)
+		}
+
+		if err := upgradeGroupingsFrom129(m.casbin, m.authNconf); err != nil {
+			return fmt.Errorf("upgrade groupings: %w", err)
+		}
+	}
+
+	// environment config needs to be applied again in case there were changes since the last snapshot
+	if err := applyPredefinedRoles(m.casbin, m.rbacConf, m.authNconf); err != nil {
+		return fmt.Errorf("apply env config: %w", err)
+	}
+
+	// Load the policies to ensure they are in memory
+	if err := m.casbin.LoadPolicy(); err != nil {
+		return fmt.Errorf("load policies: %w", err)
+	}
+
+	// Invalidate the cache so the first Enforce() after the lock is released
+	// evaluates against the freshly loaded policies. ClearPolicy() is not
+	// overridden by SyncedCachedEnforcer and does not invalidate on its own.
+	if err := m.casbin.InvalidateCache(); err != nil {
+		return fmt.Errorf("restore snapshot: InvalidateCache: %w", err)
+	}
+
+	return nil
+}
+
+// BatchEnforcers is not needed after some digging they just loop over requests,
+// w.r.t.
+// source code https://github.com/casbin/casbin/blob/master/enforcer.go#L872
+// issue https://github.com/casbin/casbin/issues/710
+func (m *Manager) checkPermissions(principal *models.Principal, resource, verb string) (bool, error) {
+	m.restoreLock.RLock()
+	defer m.restoreLock.RUnlock()
+
+	// first check group permissions
+	for _, group := range principal.Groups {
+		allowed, err := m.casbin.Enforce(conv.PrefixGroupName(group), resource, verb)
+		if err != nil {
+			return false, err
+		}
+		if allowed {
+			return true, nil
+		}
+	}
+
+	// If no group permissions, check user permissions
+	return m.casbin.Enforce(conv.UserNameWithTypeFromPrincipal(principal), resource, verb)
+}
+
+func prettyPermissionsActions(perm *models.Permission) string {
+	if perm == nil || perm.Action == nil {
+		return ""
+	}
+	return *perm.Action
+}
+
+func prettyPermissionsResources(perm *models.Permission) string {
+	res := ""
+	if perm == nil {
+		return ""
+	}
+
+	if perm.Backups != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.BackupsDomain)
+		if perm.Backups.Collection != nil && *perm.Backups.Collection != "" {
+			s += fmt.Sprintf("Collection: %s", *perm.Backups.Collection)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Data != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.DataDomain)
+		if perm.Data.Collection != nil && *perm.Data.Collection != "" {
+			s += fmt.Sprintf(" Collection: %s,", *perm.Data.Collection)
+		}
+		if perm.Data.Tenant != nil && *perm.Data.Tenant != "" {
+			s += fmt.Sprintf(" Tenant: %s,", *perm.Data.Tenant)
+		}
+		if perm.Data.Object != nil && *perm.Data.Object != "" {
+			s += fmt.Sprintf(" Object: %s", *perm.Data.Object)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Nodes != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.NodesDomain)
+
+		if perm.Nodes.Verbosity != nil && *perm.Nodes.Verbosity != "" {
+			s += fmt.Sprintf(" Verbosity: %s,", *perm.Nodes.Verbosity)
+		}
+		if perm.Nodes.Collection != nil && *perm.Nodes.Collection != "" {
+			s += fmt.Sprintf(" Collection: %s", *perm.Nodes.Collection)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Roles != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.RolesDomain)
+		if perm.Roles.Role != nil && *perm.Roles.Role != "" {
+			s += fmt.Sprintf(" Role: %s,", *perm.Roles.Role)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Collections != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.CollectionsDomain)
+
+		if perm.Collections.Collection != nil && *perm.Collections.Collection != "" {
+			s += fmt.Sprintf(" Collection: %s,", *perm.Collections.Collection)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Tenants != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.TenantsDomain)
+
+		if perm.Tenants.Tenant != nil && *perm.Tenants.Tenant != "" {
+			s += fmt.Sprintf(" Collection: %s,", *perm.Tenants.Collection)
+			s += fmt.Sprintf(" Tenant: %s", *perm.Tenants.Tenant)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Users != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.UsersDomain)
+
+		if perm.Users.Users != nil {
+			s += fmt.Sprintf(" User: %s,", *perm.Users.Users)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Replicate != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.ReplicateDomain)
+
+		if perm.Replicate.Collection != nil && *perm.Replicate.Collection != "" {
+			s += fmt.Sprintf(" Collection: %s,", *perm.Replicate.Collection)
+		}
+		if perm.Replicate.Shard != nil && *perm.Replicate.Shard != "" {
+			s += fmt.Sprintf(" Shard: %s,", *perm.Replicate.Shard)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	if perm.Aliases != nil {
+		s := fmt.Sprintf("Domain: %s,", authorization.AliasesDomain)
+
+		if perm.Aliases.Collection != nil && *perm.Aliases.Collection != "" {
+			s += fmt.Sprintf(" Collection: %s,", *perm.Aliases.Collection)
+		}
+		if perm.Aliases.Alias != nil && *perm.Aliases.Alias != "" {
+			s += fmt.Sprintf(" Alias: %s,", *perm.Aliases.Alias)
+		}
+		s = strings.TrimSuffix(s, ",")
+		res += fmt.Sprintf("[%s]", s)
+	}
+
+	return res
+}
+
+func prettyStatus(value bool) string {
+	if value {
+		return "success"
+	}
+	return "failed"
+}
+
+func collectStaleRoles(polices [][]string, casbinStoragePoliciesMap map[string]struct{}, casbinStoragePolicies [][][]string) [][][]string {
+	for _, p := range polices {
+		// ignore builtin roles
+		if slices.Contains(authorization.BuiltInRoles, conv.TrimRoleNamePrefix(p[1])) {
+			continue
+		}
+		// collect stale or empty roles
+		if _, ok := casbinStoragePoliciesMap[p[1]]; !ok {
+			// e.g. policy line in casbin -> g, user:wv_internal_empty, role:roleName, that's why p[1]
+			casbinStoragePolicies = append(casbinStoragePolicies, [][]string{{
+				p[1], conv.InternalPlaceHolder, conv.InternalPlaceHolder, "*",
+			}})
+		}
+	}
+	return casbinStoragePolicies
+}
