@@ -1,0 +1,108 @@
+[tool.poetry]
+name = "autochain"
+version = "0.0.5"
+description = "AutoChain: Build lightweight, extensible, and testable LLM Agents"
+# TODO: add URLs, homepage, documentation
+authors = [
+    "Yi Lu <yi.lu@forethought.ai>",
+    "Forethought Engineering <eng-oss@forethought.ai>",
+]
+readme = "README.md"
+classifiers = [
+    "Intended Audience :: Customer Service",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development",
+    "Typing :: Typed",
+    "Development Status :: 4 - Beta",
+    "Framework :: Pydantic",
+    "Framework :: Pydantic :: 1",
+    # TODO: define license
+    # "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+colorama = ">=0.4.6"
+pydantic = "^1.10.9"
+google-api-python-client = {version = ">=2.89.0", optional = true}
+chromadb = ">=0.3.26"
+lancedb = {version = ">=0.1.16", optional = true}
+pandas = ">=2.0.2"
+openai = ">=0.27.8"
+types-colorama = ">=0.4.15.11"
+pytest = "^7.3.2"
+redis = "^4.6.0"
+pinecone-client = {version = "^2.2.2", optional = true}
+mkdocs-git-authors-plugin = "^0.7.2"
+tenacity = "^8.2.2"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.3.0"
+black = "^23.3.0"
+ruff = "^0.0.272"
+mkdocs = "^1.4.2"
+mkdocs-material = "^8.5.7"
+mdx-include = "^1.4.2"
+Pillow = "^9.3.0"
+CairoSVG = "^2.5.2"
+pytest = "^7.3.2"
+coverage = {extras = ["toml"], version = "^7.3.0"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.extras]
+google = ["google-api-python-client"]
+pinecone= ["pinecone-client"]
+lancedb = ["lancedb"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = [
+    "googleapiclient.discovery",
+    "chromadb",
+    "chromadb.api",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "C", # flake8-comprehensions
+    "B", # flake8-bugbear
+]
+ignore = [
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+]
+
+[tool.ruff.per-file-ignores]
+# "__init__.py" = ["F401"]
+
+[tool.ruff.isort]
+known-third-party = ["autochain"]
