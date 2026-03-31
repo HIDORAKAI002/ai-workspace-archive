@@ -1,0 +1,68 @@
+/experiments/
+/checkpoints/
+# /data/
+/logs/
+/mlruns/
+/profiler/
+/logs/
+/docs/downloads/
+/docs/experiments/
+
+/examples/qa/hotpot/MIPRO_notebook_cache/
+/examples/nli/scone/MIPRO_notebook_cache/
+/examples/nli/scone/ScoNe/
+/examples/nli/scone/compiled_program.dspy
+/examples/qa/hotpot/compiled_program.dspy
+/ScoNe/
+testing/outputs/
+testing/playbook.ipynb
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vim
+*.swp
+
+# Jupyter Notebook
+.ipynb_checkpoints
+# notebooks/
+
+# mac
+.DS_Store
+
+# Other
+.vscode
+*.tsv
+*.pt
+gpt*.txt
+*.env
+local/
+build/
+*.egg-info/
+# *.jsonl
+# *.json
+!/data/*.json
+/dist/
+# **/*.pkl
+checklist.md
+finetuning_ckpts/
+# cache/
+* copy*
+.idea
+assertion.log
+*.log
+*.db
+/.devcontainer/.personalization.sh
+
+.mypy_cache
+CLAUDE.local.md
+dummy.csv
+docs/docs/**/*.json*
+*.index
+*.pkl
+*.tar.gz
+
+test_before_pypi/
+.github/.internal_dspyai/dist/
