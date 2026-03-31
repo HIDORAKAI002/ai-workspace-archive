@@ -1,0 +1,325 @@
+[project]
+name = "upsonic"
+version = "0.74.3"
+description = "Agent Framework For Fintech"
+readme = "README.md"
+authors = [
+    { name = "Onur ULUSOY", email = "onur@upsonic.co" },
+    { name = "Dogan Keskin", email = "dogan@upsonic.co" }
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+requires-python = ">=3.10"
+dependencies = [
+    "psutil==6.1.1",
+    "rich>=13.9.4",
+    "sentry-sdk[opentelemetry]>=2.35.0",
+    "toml>=0.10.2",
+    "uv>=0.5.20",
+    "mcp[cli]>=1.26.0",
+    "python-dotenv>=1.0.1",
+    "uvicorn>=0.34.0",
+    "nest-asyncio>=1.6.0",
+    "pydantic>=2.10.5",
+    "pydantic-core>=2.27.2",
+    "typing-extensions>=4.15.0",
+    "anyio>=4.10.0",
+    "griffe>=1.14.0",
+    "typing-inspection>=0.4.1",
+    "httpx>=0.28.1",
+    "aiohttp>=3.13.3",
+    "requests>=2.32.5",
+    "openai>=2.2.0",
+    "genai-prices>=0.0.38",
+    "protobuf>=5.27.2,<6.0.0",
+    "cloudpickle>=3.1.2",
+    "fastmcp>=2.14.5",
+]
+
+[project.optional-dependencies]
+chroma = [
+    "chromadb>=1.0.20; python_version < '3.14'",
+]
+qdrant = [
+    "qdrant-client>=1.12.1",
+]
+milvus = [
+    "pymilvus>=2.6.1",
+]
+weaviate = [
+    "weaviate-client>=4.16.9",
+]
+pinecone = [
+    "pinecone>=7.3.0",
+    "pinecone-text>=0.11.0; python_version < '3.14'",
+]
+faiss = [
+    "faiss-cpu>=1.12.0",
+    "numpy>=2.2.6",
+]
+pgvector = [
+    "psycopg>=3.2.9",
+    "pgvector>=0.4.1",
+    "sqlalchemy>=2.0.44",
+]
+supermemory = [
+    "supermemory>=3.25.0",
+]
+vectordb = [
+    "chromadb>=1.0.20; python_version < '3.14'",
+    "faiss-cpu>=1.12.0",
+    "pinecone>=7.3.0",
+    "psycopg>=3.2.9",
+    "pymilvus[milvus-lite]>=2.6.1",
+    "qdrant-client>=1.12.1",
+    "weaviate-client>=4.16.9",
+    "scipy>=1.13.0",
+    "scikit-learn>=1.4.0",
+    "reportlab>=4.1.0",
+    "pgvector>=0.4.1",
+    "sqlalchemy>=2.0.44",
+    "pinecone-text>=0.11.0; python_version < '3.14'",
+    "supermemory>=3.25.0",
+]
+
+sqlite-storage = [
+    "sqlalchemy>=2.0.42",
+    "aiosqlite>=0.21.0",
+    "greenlet>=3.2.3",
+]
+redis-storage = [
+    "redis>=5.2.1",
+]
+postgres-storage = [
+    "sqlalchemy>=2.0.42",
+    "psycopg2-binary>=2.9.10",
+    "psycopg[binary]>=3.2.9",
+    "asyncpg>=0.30.0",
+    "greenlet>=3.2.3",
+]
+mongo-storage = [
+    "pymongo>=4.9.0",
+    "motor>=3.7.1",
+]
+mem0-storage = [
+    "mem0ai>=0.1.116",
+]
+
+storage = [
+    "upsonic[sqlite-storage]",
+    "upsonic[redis-storage]",
+    "upsonic[postgres-storage]",
+    "upsonic[mongo-storage]",
+    "upsonic[mem0-storage]",
+]
+models = [
+    "anthropic>=0.69.0",
+    "anyio>=4.10.0",
+    "azure-core>=1.35.1",
+    "azure-identity>=1.25.0",
+    "boto3>=1.40.45",
+    "botocore>=1.40.45",
+    "cohere>=5.18.0",
+    "google-auth>=2.40.3",
+    "google-genai>=1.41.0",
+    "groq>=0.32.0",
+    "httpx>=0.28.1",
+    "mistralai>=1.9.11",
+    "mypy-boto3-bedrock-runtime>=1.40.41",
+    "openai>=2.1.0",
+    "outlines>=1.2.9",
+    "xai-sdk>=1.4.0",
+]
+embeddings = [
+    "aiohttp>=3.13.3",
+    "anthropic>=0.69.0",
+    "azure-core>=1.35.1",
+    "azure-identity>=1.25.0",
+    "boto3>=1.40.45",
+    "botocore>=1.40.45",
+    "fastembed>=0.7.3; python_version < '3.14'",
+    "google-auth>=2.40.3",
+    "google-genai>=1.41.0",
+    "huggingface-hub>=0.34.4",
+    "numpy>=2.2.6",
+    "onnxruntime>=1.22.1; python_version < '3.14'",
+    "openai>=2.1.0",
+    "requests>=2.32.5",
+    "torch>=2.8.0",
+    "transformers>=4.57.0",
+]
+csv-loader = [
+    "aiofiles>=24.1.0",
+]
+docling-loader = [
+    "docling>=2.55.1",
+]
+docx-loader = [
+    "python-docx>=1.2.0",
+]
+html-loader = [
+    "aiohttp>=3.13.3",
+    "beautifulsoup4>=4.14.2",
+    "requests>=2.32.5",
+]
+json-loader = [
+    "jq>=1.10.0",
+]
+markdown-loader = [
+    "markdown-it-py>=4.0.0",
+    "python-frontmatter>=1.1.0",
+]
+pdf-loader = [
+    "pypdf>=6.1.1",
+    "rapidocr-onnxruntime>=1.4.4; python_version < '3.13'",
+]
+pdfplumber-loader = [
+    "pdfplumber>=0.11.7",
+    "rapidocr-onnxruntime>=1.4.4; python_version < '3.13'",
+]
+pymupdf-loader = [
+    "pymupdf>=1.26.4",
+    "rapidocr-onnxruntime>=1.4.4; python_version < '3.13'",
+]
+text-loader = [
+    "aiofiles>=24.1.0",
+]
+xml-loader = [
+    "lxml>=4.9.1",
+]
+yaml-loader = [
+    "jq>=1.10.0",
+    "pyyaml>=6.0.2",
+]
+loaders = [
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.13.3",
+    "beautifulsoup4>=4.14.2",
+    "docling>=2.55.1",
+    "jq>=1.10.0",
+    "lxml>=4.9.1",
+    "markdown-it-py>=4.0.0",
+    "pdfplumber>=0.11.7",
+    "pillow>=11.3.0",
+    "pymupdf>=1.26.4",
+    "pypdf>=6.1.1",
+    "python-docx>=1.2.0",
+    "python-frontmatter>=1.1.0",
+    "pyyaml>=6.0.2",
+    "rapidocr-onnxruntime>=1.4.4; python_version < '3.13'",
+    "requests>=2.32.5",
+]
+tools = [
+    "beautifulsoup4>=4.14.2",
+    "ddgs>=9.10.0",
+    "genai-prices>=0.0.29",
+    "pandas>=2.3.2",
+    "tavily-python>=0.7.12",
+    "yfinance>=0.2.66",
+]
+web = [
+    "celery>=5.5.3",
+    "fastapi",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.35.0",
+]
+ocr = [
+    "easyocr>=1.7.2",
+    "paddleocr>=2.10.0",
+    "pymupdf>=1.26.4",
+    "pillow>=11.3.0",
+    "pytesseract>=0.3.13",
+    "rapidocr-onnxruntime>=1.4.4; python_version < '3.13'",
+]
+
+custom-tools = [
+    "apify-client>=1.8.1",
+    "firecrawl-py>=4.14.1",
+    "slack-sdk>=3.38.0",
+    "crawlee[beautifulsoup]>=1.4.0",
+]
+apify-tool = [
+    "apify-client>=1.8.1",
+]
+crawlee-browser = [
+    "crawlee[playwright]>=1.4.0",
+]
+gmail-interface = [
+    "fastapi",
+    "google-api-python-client",
+    "google-auth-httplib2",
+    "google-auth-oauthlib",
+]
+safety-engine = [
+    "detoxify>=0.5.2",
+]
+slack-interface = [
+    "fastapi>=0.128.0",
+    "slack-sdk>=3.39.0",
+]
+discord-interface = [
+    "fastapi>=0.128.0",
+    "websockets>=12.0",
+]
+otel = [
+    "opentelemetry-api>=1.39.1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.39.1",
+    "opentelemetry-exporter-otlp-proto-http>=1.39.1",
+    "opentelemetry-sdk>=1.39.1",
+]
+langfuse = [
+    "opentelemetry-api>=1.39.1",
+    "opentelemetry-exporter-otlp-proto-http>=1.39.1",
+    "opentelemetry-sdk>=1.39.1",
+]
+gmail-tool = [
+    "google-api-python-client>=2.188.0",
+    "google-auth-httplib2>=0.3.0",
+    "google-auth-oauthlib>=1.2.4",
+]
+
+[project.scripts]
+upsonic = "upsonic.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.uv]
+default-groups = ["dev"]
+required-version = ">=0.10.0"
+override-dependencies = ["packaging>=25.0,<26"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/upsonic"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.1",
+    "pytest-timeout>=2.3.1",
+    "tomlkit>=0.13.3",
+]
+
+
+
+
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://upload.pypi.org/legacy/"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"

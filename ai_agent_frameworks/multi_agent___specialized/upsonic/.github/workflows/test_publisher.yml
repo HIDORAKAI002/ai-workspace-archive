@@ -1,0 +1,54 @@
+name: "Test Publish"
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  generate_version:
+    name: "Generate Random Version"
+    runs-on: ubuntu-latest
+    outputs:
+      random_version: ${{ steps.set_version.outputs.random_version }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pip install poetry>=2.0.0
+
+      - name: Generate Randomized Alpha Version
+        id: set_version
+        run: |
+          BASE_VERSION=$(poetry version | awk '{print $2}')
+          RANDOM_VERSION="${BASE_VERSION}a$(date +%s)"
+          echo "Generated Version: $RANDOM_VERSION"
+          echo "random_version=$RANDOM_VERSION" >> $GITHUB_OUTPUT
+
+  pypi:
+    name: "Build and Publish Test Release"
+    needs: generate_version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Dependencies
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: dev
+        run: pip install poetry>=2.0.0
+
+      - name: Set Version from generate_version
+        run: |
+          poetry version ${{ needs.generate_version.outputs.random_version }}
+
+      - name: Build
+        run: uv build
+
+      - name: Publish to TestPyPI
+        run: uv publish -t ${{ secrets.THE_PYPI_TOKEN }}
+
