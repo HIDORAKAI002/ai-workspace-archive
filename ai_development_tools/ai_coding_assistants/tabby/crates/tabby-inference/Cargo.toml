@@ -1,0 +1,22 @@
+[package]
+name = "tabby-inference"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+dashmap = "5.5.3"
+derive_builder.workspace = true
+futures = { workspace = true }
+tabby-common = { path = "../tabby-common" }
+trie-rs = "0.1.1"
+async-openai-alt.workspace = true
+secrecy = "0.8"
+reqwest.workspace = true
+tracing.workspace = true

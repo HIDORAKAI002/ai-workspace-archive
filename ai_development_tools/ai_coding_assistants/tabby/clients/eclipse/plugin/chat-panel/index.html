@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html {
+      background-color: hsl(var(--sidebar-background));
+    }
+
+    html,
+    body,
+    div,
+    p,
+    iframe {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    #message {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      font-family: ui-sans-serif, system-ui;
+    }
+
+    #message div {
+      width: 100%;
+      max-width: 300px;
+      color: hsl(var(--foreground));
+    }
+
+    #message a {
+      color: hsl(var(--primary));
+    }
+
+    #message div {
+      margin: 16px;
+    }
+
+    #message div p {
+      margin: 8px 0;
+    }
+
+    iframe {
+      border-width: 0;
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="message">
+    <div>
+      <h4>Welcome to Tabby Chat</h4>
+      <p id="messageContent"></p>
+      <a href="javascript:reload();">Reload</a>
+    </div>
+  </div>
+  <iframe id="chat" style="display: none;"></iframe>
+  <script src="tabby-chat-panel.min.js"></script>
+  <script>
+    function getChatPanel() {
+      return document.getElementById("chat");
+    }
+
+    function reload() {
+      // handleReload is a function injected by the client
+      handleReload();
+    }
+
+    function showMessage(message) {
+      const messageDiv = document.getElementById("message");
+      messageDiv.style.cssText = "display: " + (message ? "flex" : "none") + ";";
+      const messageContent = document.getElementById("messageContent");
+      messageContent.innerHTML = message;
+    }
+
+    function showChatPanel(visible) {
+      const chat = getChatPanel();
+      chat.style.cssText = "display: " + (visible ? "block" : "none") + ";";
+    }
+
+    function loadChatPanel(url) {
+      const chat = getChatPanel();
+      chat.src = url;
+    }
+
+    function applyStyle(style) {
+      const { theme, css } = JSON.parse(style);
+      document.documentElement.className = theme;
+      document.documentElement.style.cssText = css;
+    }
+
+    window.addEventListener("focus", (event) => {
+      const chat = getChatPanel();
+      if (chat.style.cssText == "display: block;") {
+        setTimeout(() => {
+          chat.contentWindow.focus();
+        }, 1);
+      }
+    });
+  </script>
+</body>
+
+</html>

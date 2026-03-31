@@ -1,0 +1,29 @@
+id: validate-requires-code
+message: Validations requires code / message being set for frontend error display
+severity: error
+language: rust
+files:
+  - ./ee/tabby-webserver/src/**
+  - ./ee/tabby-schema/src/**
+rule:
+  all:
+    - pattern: "#[validate]"
+    - not:
+        all:
+          - has:
+              stopBy: end
+              pattern: code
+          - has:
+              stopBy: end
+              pattern: message
+    - not:
+        any:
+          - has:
+              stopBy: end
+              pattern: custom
+          - has:
+              stopBy: end
+              pattern: nested
+          - has:
+              stopBy: end
+              pattern: schema

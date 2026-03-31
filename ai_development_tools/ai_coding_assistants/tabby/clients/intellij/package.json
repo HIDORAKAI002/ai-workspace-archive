@@ -1,0 +1,8 @@
+{
+  "name": "intellij-tabby",
+  "private": true,
+  "devDependencies": {
+    "tabby-agent": "workspace:*",
+    "tabby-chat-panel": "workspace:*"
+  }
+}
