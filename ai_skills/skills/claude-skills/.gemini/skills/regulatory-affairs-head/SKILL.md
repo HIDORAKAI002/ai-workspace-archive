@@ -1,1 +1,0 @@
-../../../ra-qm-team/regulatory-affairs-head/SKILL.md

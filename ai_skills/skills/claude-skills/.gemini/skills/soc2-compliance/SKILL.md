@@ -1,1 +1,0 @@
-../../../ra-qm-team/soc2-compliance/SKILL.md

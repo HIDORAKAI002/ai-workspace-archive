@@ -1,1 +1,0 @@
-../../../engineering-team/senior-prompt-engineer/SKILL.md

@@ -1,1 +1,0 @@
-../../../business-growth/sales-engineer/SKILL.md

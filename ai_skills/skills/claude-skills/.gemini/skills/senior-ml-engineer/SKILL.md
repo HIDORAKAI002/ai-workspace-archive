@@ -1,1 +1,0 @@
-../../../engineering-team/senior-ml-engineer/SKILL.md

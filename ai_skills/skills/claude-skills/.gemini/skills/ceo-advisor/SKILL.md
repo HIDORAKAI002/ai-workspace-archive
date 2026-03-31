@@ -1,1 +1,0 @@
-../../../c-level-advisor/ceo-advisor/SKILL.md

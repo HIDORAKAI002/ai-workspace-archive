@@ -1,1 +1,0 @@
-../../../marketing-skill/brand-guidelines/SKILL.md

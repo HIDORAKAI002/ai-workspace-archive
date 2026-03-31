@@ -1,1 +1,0 @@
-../../../c-level-advisor/culture-architect/SKILL.md

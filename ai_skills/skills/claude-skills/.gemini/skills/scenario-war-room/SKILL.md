@@ -1,1 +1,0 @@
-../../../c-level-advisor/scenario-war-room/SKILL.md

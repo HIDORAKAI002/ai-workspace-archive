@@ -1,1 +1,0 @@
-../../../agents/personas/content-strategist.md

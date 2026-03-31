@@ -1,1 +1,0 @@
-../../../engineering/pr-review-expert/SKILL.md

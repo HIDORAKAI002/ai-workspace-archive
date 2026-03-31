@@ -1,1 +1,0 @@
-../../../product-team/ui-design-system/SKILL.md

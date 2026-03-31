@@ -1,1 +1,0 @@
-../../../agents/product/cs-product-analyst.md

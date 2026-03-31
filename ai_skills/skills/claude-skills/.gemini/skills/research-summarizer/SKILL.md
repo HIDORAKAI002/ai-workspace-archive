@@ -1,1 +1,0 @@
-../../../product-team/research-summarizer/SKILL.md

@@ -1,1 +1,0 @@
-../../../engineering-team/aws-solution-architect/SKILL.md

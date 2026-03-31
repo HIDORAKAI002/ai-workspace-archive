@@ -1,1 +1,0 @@
-../../../engineering-team/adversarial-reviewer/SKILL.md

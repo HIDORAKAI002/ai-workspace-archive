@@ -1,1 +1,0 @@
-../../../engineering-team/senior-computer-vision/SKILL.md

@@ -1,1 +1,0 @@
-../../../engineering-team/code-reviewer/SKILL.md

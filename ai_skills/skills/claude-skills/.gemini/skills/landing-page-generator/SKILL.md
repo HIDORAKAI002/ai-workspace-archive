@@ -1,1 +1,0 @@
-../../../product-team/landing-page-generator/SKILL.md

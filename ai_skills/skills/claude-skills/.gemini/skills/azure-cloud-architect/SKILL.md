@@ -1,1 +1,0 @@
-../../../engineering-team/azure-cloud-architect/SKILL.md

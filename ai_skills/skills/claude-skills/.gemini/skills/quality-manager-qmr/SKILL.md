@@ -1,1 +1,0 @@
-../../../ra-qm-team/quality-manager-qmr/SKILL.md

@@ -1,1 +1,0 @@
-../../../agents/engineering-team/cs-workspace-admin.md

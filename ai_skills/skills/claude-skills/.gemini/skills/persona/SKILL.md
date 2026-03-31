@@ -1,1 +1,0 @@
-../../../commands/persona.md

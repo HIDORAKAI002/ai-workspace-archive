@@ -1,1 +1,0 @@
-../../../project-management/atlassian-admin/SKILL.md

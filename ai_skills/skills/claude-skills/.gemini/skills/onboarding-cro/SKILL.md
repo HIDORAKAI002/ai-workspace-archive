@@ -1,1 +1,0 @@
-../../../marketing-skill/onboarding-cro/SKILL.md

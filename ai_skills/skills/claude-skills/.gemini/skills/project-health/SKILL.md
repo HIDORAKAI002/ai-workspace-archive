@@ -1,1 +1,0 @@
-../../../commands/project-health.md

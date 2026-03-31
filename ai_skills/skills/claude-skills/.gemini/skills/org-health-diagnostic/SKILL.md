@@ -1,1 +1,0 @@
-../../../c-level-advisor/org-health-diagnostic/SKILL.md

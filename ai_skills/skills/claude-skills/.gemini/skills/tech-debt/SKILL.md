@@ -1,1 +1,0 @@
-../../../commands/tech-debt.md

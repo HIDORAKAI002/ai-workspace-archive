@@ -1,1 +1,0 @@
-../../../engineering/docker-development/SKILL.md

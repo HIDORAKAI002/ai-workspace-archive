@@ -1,1 +1,0 @@
-../../../c-level-advisor/company-os/SKILL.md

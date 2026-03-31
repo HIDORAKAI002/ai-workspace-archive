@@ -1,1 +1,0 @@
-../../../marketing-skill/email-sequence/SKILL.md

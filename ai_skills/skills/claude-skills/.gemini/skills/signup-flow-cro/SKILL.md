@@ -1,1 +1,0 @@
-../../../marketing-skill/signup-flow-cro/SKILL.md

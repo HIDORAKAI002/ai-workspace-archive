@@ -1,1 +1,0 @@
-../../../c-level-advisor/board-deck-builder/SKILL.md

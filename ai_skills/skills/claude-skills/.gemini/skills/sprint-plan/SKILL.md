@@ -1,1 +1,0 @@
-../../../commands/sprint-plan.md

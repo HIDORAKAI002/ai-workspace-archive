@@ -1,1 +1,0 @@
-../../../engineering/skill-security-auditor/SKILL.md

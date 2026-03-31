@@ -1,1 +1,0 @@
-../../../agents/engineering/cs-senior-engineer.md

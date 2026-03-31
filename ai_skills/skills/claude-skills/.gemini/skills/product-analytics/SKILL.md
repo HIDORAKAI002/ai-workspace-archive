@@ -1,1 +1,0 @@
-../../../product-team/product-analytics/SKILL.md

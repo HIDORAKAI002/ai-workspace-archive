@@ -1,1 +1,0 @@
-../../../marketing-skill/referral-program/SKILL.md

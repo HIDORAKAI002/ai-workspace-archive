@@ -1,1 +1,0 @@
-../../../engineering-team/threat-detection/SKILL.md

@@ -1,1 +1,0 @@
-../../../commands/rice.md

@@ -1,1 +1,0 @@
-../../../engineering/llm-cost-optimizer/SKILL.md
