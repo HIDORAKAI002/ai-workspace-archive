@@ -1,0 +1,217 @@
+# @arizeai/openinference-core
+
+## 2.0.5
+
+### Patch Changes
+
+- c79c564: force publish
+- c79c564: signed publishing
+- Updated dependencies [c79c564]
+- Updated dependencies [c79c564]
+  - @arizeai/openinference-semantic-conventions@2.1.7
+
+## 2.0.4
+
+### Patch Changes
+
+- a4eead1: force publish
+- a4eead1: signed publishing
+- Updated dependencies [a4eead1]
+- Updated dependencies [a4eead1]
+  - @arizeai/openinference-semantic-conventions@2.1.6
+
+## 2.0.3
+
+### Patch Changes
+
+- 74f278c: force publish
+- 74f278c: signed publishing
+- Updated dependencies [74f278c]
+- Updated dependencies [74f278c]
+  - @arizeai/openinference-semantic-conventions@2.1.5
+
+## 2.0.2
+
+### Patch Changes
+
+- fe61379: force publish
+- fe61379: signed publishing
+- Updated dependencies [fe61379]
+- Updated dependencies [fe61379]
+  - @arizeai/openinference-semantic-conventions@2.1.4
+
+## 2.0.1
+
+### Patch Changes
+
+- 006a685: signed publishing
+- Updated dependencies [006a685]
+  - @arizeai/openinference-semantic-conventions@2.1.3
+
+## 2.0.0
+
+### Major Changes
+
+- d3d7017: # feat: Add tracing capabilities with decorators and function wrappers
+  - **Function Wrapping**: `withSpan()`, `traceAgent()`, `traceTool()` ....
+  - **Decorators**: `@observe()` for class methods
+
+  **Function Wrapping:**
+
+  ```typescript
+  const tracedLLM = traceAgent(callOpenAI, {
+    attributes: { "llm.model": "gpt-4" },
+  });
+  ```
+
+  **Decorators:**
+
+  ```typescript
+  class Agent {
+    @observe({ kind: "AGENT" })
+    async makeDecision(context) {
+      /* ... */
+    }
+  }
+  ```
+
+  **Custom Processing:**
+
+  ```typescript
+  const traced = traceChain(fn, {
+    attributes: { "service.name": "my-service" },
+    processInput: (...args) => ({ "input.count": args.length }),
+  });
+  ```
+
+## 1.0.8
+
+### Patch Changes
+
+- 5161c9f: add documentation for context attributes
+
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [c50ffb0]
+  - @arizeai/openinference-semantic-conventions@2.1.2
+
+## 1.0.6
+
+### Patch Changes
+
+- 9d3bdb4: Openinference core modified to force unknown type for JSON.parse. Initial release of bedrock agents runtime
+
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [59be946]
+  - @arizeai/openinference-semantic-conventions@2.1.1
+
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [34a4159]
+  - @arizeai/openinference-semantic-conventions@2.1.0
+
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [c2ee804]
+- Updated dependencies [5f904bf]
+- Updated dependencies [5f90a80]
+  - @arizeai/openinference-semantic-conventions@2.0.0
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [ae5cd15]
+  - @arizeai/openinference-semantic-conventions@1.1.0
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [c4e2252]
+  - @arizeai/openinference-semantic-conventions@1.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- 16a3815: ESM support
+
+  Packages are now shipped as "Dual Package" meaning that ESM and CJS module resolution
+  should be supported for each package.
+
+  Support is described as "experimental" because opentelemetry describes support for autoinstrumenting
+  ESM projects as "ongoing". See https://github.com/open-telemetry/opentelemetry-js/blob/61d5a0e291db26c2af638274947081b29db3f0ca/doc/esm-support.md
+
+### Patch Changes
+
+- Updated dependencies [16a3815]
+  - @arizeai/openinference-semantic-conventions@1.0.0
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [1188c6d]
+  - @arizeai/openinference-semantic-conventions@0.14.0
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [710d1d3]
+  - @arizeai/openinference-semantic-conventions@0.13.0
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [a0e6f30]
+  - @arizeai/openinference-semantic-conventions@0.12.0
+
+## 0.3.0
+
+### Minor Changes
+
+- 712b9da: add OITracer and trace config to allow for masking of sensitive information on spans
+
+### Patch Changes
+
+- Updated dependencies [f965410]
+- Updated dependencies [d200d85]
+  - @arizeai/openinference-semantic-conventions@0.11.0
+
+## 0.2.0
+
+### Minor Changes
+
+- 3b8702a: remove generic log from withSafety and add onError callback
+
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [ba142d5]
+  - @arizeai/openinference-semantic-conventions@0.10.0
+
+## 0.1.0
+
+### Minor Changes
+
+- 92f7fb1: Adds support for context attributes which can be propagated to all spans within the context scope
+
+### Patch Changes
+
+- 3d00a02: removes isAttributeValue to pull from open telemetry, exports utilities
+- Updated dependencies [28a4ea2]
+- Updated dependencies [96af3d6]
+  - @arizeai/openinference-semantic-conventions@0.9.0

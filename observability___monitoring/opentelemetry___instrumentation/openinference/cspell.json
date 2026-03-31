@@ -1,0 +1,33 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "arize",
+        "arizeai",
+        "autouse",
+        "chatbot",
+        "dotenv",
+        "dspy",
+        "instrumentator",
+        "Instrumentor",
+        "instrumentors",
+        "langchain",
+        "litellm",
+        "llms",
+        "Mastra",
+        "mistralai",
+        "nextjs",
+        "openinference",
+        "otel",
+        "OTLP",
+        "SEMRESATTRS",
+        "Streamlit",
+        "uninstrument",
+        "unsuppress",
+        "vertexai",
+        "weaviate"
+    ],
+    "flagWords": [
+        "hte"
+    ]
+}
