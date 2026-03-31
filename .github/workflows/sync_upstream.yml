@@ -1,4 +1,4 @@
-name: 🔄 Sync Upstream Repositories
+name: ðŸ”„ Sync Upstream Repositories
 
 on:
   schedule:
@@ -13,26 +13,26 @@ jobs:
       contents: write
 
     steps:
-      - name: 📥 Checkout archive repo
+      - name: ðŸ“¥ Checkout archive repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 1
 
-      - name: 🔧 Configure Git
+      - name: ðŸ”§ Configure Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "HIDORAKAI002"
+          git config user.email "josephnikhil916@gmail.com"
 
-      - name: 🌐 Sync public-apis/public-apis
+      - name: ðŸŒ Sync public-apis/public-apis
         run: |
           echo "Syncing public-apis..."
           rm -rf public_apis
           git clone --depth 1 --quiet https://github.com/public-apis/public-apis.git public_apis
           rm -rf public_apis/.git
-          echo "✅ public-apis synced"
+          echo "âœ… public-apis synced"
 
-      - name: 🤖 Check for changes and commit
+      - name: ðŸ¤– Check for changes and commit
         run: |
           git add public_apis/
           if git diff --staged --quiet; then
@@ -41,5 +41,5 @@ jobs:
             TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
             git commit -m "chore(sync): Auto-sync public-apis [$TIMESTAMP]"
             git push origin main
-            echo "✅ Changes pushed!"
+            echo "âœ… Changes pushed!"
           fi
