@@ -1,0 +1,454 @@
+# MCP Security Controls - February 2026 Update
+
+> **มาตรฐานปัจจุบัน**: เอกสารนี้สะท้อนข้อกำหนดด้านความปลอดภัยตาม [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) และ [MCP Security Best Practices อย่างเป็นทางการ](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+
+Model Context Protocol (MCP) ได้พัฒนาขึ้นอย่างมากพร้อมการควบคุมความปลอดภัยที่เสริมความแข็งแกร่งสำหรับทั้งซอฟต์แวร์แบบดั้งเดิมและภัยคุกคามที่เฉพาะเจาะจงสำหรับ AI เอกสารนี้ให้การควบคุมความปลอดภัยที่ครอบคลุมเพื่อการใช้งาน MCP อย่างปลอดภัยสอดคล้องกับกรอบงาน OWASP MCP Top 10
+
+## 🏔️ Hands-On Security Training
+
+สำหรับประสบการณ์การใช้งานความปลอดภัยแบบลงมือทำจริง เราแนะนำ **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - การสำรวจเชิงนำทางอย่างละเอียดเพื่อรักษาความปลอดภัยของ MCP servers ใน Azure โดยใช้วิธีการ "vulnerable → exploit → fix → validate"
+
+การควบคุมความปลอดภัยทั้งหมดในเอกสารนี้สอดคล้องกับ **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)** ซึ่งให้สถาปัตยกรรมอ้างอิงและคำแนะนำการใช้งานเฉพาะ Azure สำหรับความเสี่ยง OWASP MCP Top 10
+
+## **ข้อกำหนดด้านความปลอดภัยที่บังคับใช้**
+
+### **ข้อห้ามสำคัญจาก MCP Specification:**
+
+> **ต้องห้าม**: MCP servers **ต้องไม่** รับโทเค็นที่ไม่ได้ออกอย่างชัดเจนสำหรับ MCP server  
+>
+> **ต้องห้าม**: MCP servers **ต้องไม่** ใช้ sessions สำหรับการตรวจสอบสิทธิ์  
+>
+> **ต้องปฏิบัติ**: MCP servers ที่ใช้งาน authorization **ต้อง** ตรวจสอบคำขอเข้าไปทั้งหมด  
+>
+> **บังคับ**: MCP proxy servers ที่ใช้ client IDs แบบคงที่ **ต้อง** ได้รับความยินยอมจากผู้ใช้สำหรับลูกค้าลงทะเบียนแบบไดนามิกแต่ละราย
+
+---
+
+## 1. **Authentication & Authorization Controls**
+
+### **การผสานรวมผู้ให้บริการตัวตนนอก**
+
+**มาตรฐาน MCP ปัจจุบัน (2025-11-25)** อนุญาตให้ MCP servers มอบหมายการตรวจสอบสิทธิ์ให้ผู้ให้บริการตัวตนนอกซึ่งเป็นการปรับปรุงความปลอดภัยอย่างมาก:
+
+**OWASP MCP Risk Addressed**: [MCP07 - Insufficient Authentication & Authorization](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+
+**ประโยชน์ด้านความปลอดภัย:**
+1. **กำจัดความเสี่ยงการตรวจสอบสิทธิ์แบบกำหนดเอง**: ลดพื้นผิวที่เปิดรับความเสี่ยงโดยหลีกเลี่ยงการสร้างการตรวจสอบสิทธิ์เอง  
+2. **ความปลอดภัยระดับองค์กร**: ใช้ประโยชน์จากผู้ให้บริการตัวตนที่มีชื่อเสียง เช่น Microsoft Entra ID ที่มีฟีเจอร์ความปลอดภัยขั้นสูง  
+3. **การจัดการตัวตนแบบศูนย์กลาง**: ทำให้การจัดการวงจรชีวิตผู้ใช้, การควบคุมการเข้าถึง และการตรวจสอบปฏิบัติตามข้อกำหนดเป็นเรื่องง่ายขึ้น  
+4. **การตรวจสอบสิทธิ์หลายปัจจัย**: รับความสามารถ MFA มาจากผู้ให้บริการตัวตนระดับองค์กร  
+5. **นโยบายการเข้าถึงตามเงื่อนไข**: ได้รับประโยชน์จากการควบคุมการเข้าถึงตามความเสี่ยงและการตรวจสอบสิทธิ์แบบปรับเปลี่ยนได้
+
+**ข้อกำหนดการใช้งาน:**
+- **ตรวจสอบผู้รับโทเค็น**: ยืนยันว่าโทเค็นทั้งหมดถูกออกให้สำหรับ MCP server โดยเฉพาะ  
+- **ตรวจสอบผู้ให้ออกโทเค็น**: ยืนยันผู้ให้ออกโทเค็นตรงกับผู้ให้บริการตัวตนที่คาดหวัง  
+- **ตรวจสอบลายเซ็นดิจิทัล**: ตรวจสอบความครบถ้วนของโทเค็นด้วยวิธีเข้ารหัส  
+- **บังคับใช้อายุโทเค็น**: บังคับใช้อย่างเข้มงวดตามอายุของโทเค็น  
+- **ตรวจสอบขอบเขต**: ตรวจสอบให้แน่ใจว่าโทเค็นมีสิทธิที่เหมาะสมสำหรับการดำเนินการที่ร้องขอ
+
+### **ความปลอดภัยของตรรกะการอนุญาต**
+
+**มาตรการควบคุมสำคัญ:**
+- **การตรวจสอบการอนุญาตอย่างครบถ้วน**: ทบทวนความปลอดภัยอย่างสม่ำเสมอในทุกจุดการตัดสินใจอนุญาต  
+- **ค่าเริ่มต้นแบบปลอดภัย (Fail-Safe Defaults)**: ปฏิเสธการเข้าถึงเมื่อไม่สามารถตัดสินใจอนุญาตได้  
+- **ขอบเขตสิทธิ์**: การแยกสิทธิ์และการเข้าถึงทรัพยากรอย่างชัดเจน  
+- **การบันทึกการตรวจสอบ (Audit Logging)**: บันทึกการตัดสินใจทั้งหมดเพื่อการเฝ้าระวังความปลอดภัย  
+- **การทบทวนสิทธิ์เป็นประจำ**: ตรวจสอบสิทธิ์และการกำหนดสิทธิ์ของผู้ใช้เป็นระยะ
+
+## 2. **Token Security & Anti-Passthrough Controls**
+
+**OWASP MCP Risk Addressed**: [MCP01 - Token Mismanagement & Secret Exposure](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+
+### **การป้องกัน Token Passthrough**
+
+**การส่งผ่านโทเค็นโดยตรงถือเป็นข้อห้ามอย่างชัดเจน** ใน MCP Authorization Specification เนื่องจากความเสี่ยงด้านความปลอดภัยอย่างสำคัญ:
+
+**ความเสี่ยงด้านความปลอดภัยที่จัดการ:**
+- **การหลบเลี่ยงการควบคุม**: ข้ามการควบคุมความปลอดภัยสำคัญ เช่น การจำกัดอัตรา, การตรวจสอบคำขอ, และการตรวจตราการจราจร  
+- **ความรับผิดชอบขาดตกบกพร่อง**: ทำให้การระบุผู้ใช้ลูกค้าเป็นไปไม่ได้ เสียหายต่อการตรวจสอบและการสืบสวนเหตุการณ์  
+- **การขโมยข้อมูลโดยใช้ Proxy**: ให้ผู้โจมตีใช้เซิร์ฟเวอร์เป็นพร็อกซีเพื่อเข้าถึงข้อมูลโดยไม่ได้รับอนุญาต  
+- **การละเมิดขอบเขตความไว้วางใจ**: ทำลายสมมติฐานความไว้วางใจเกี่ยวกับแหล่งกำเนิดของโทเค็นในบริการปลายทาง  
+- **การเคลื่อนไหวในแนวข้าง**: โทเค็นที่ถูกเจาะใช้ขยายการโจมตีในบริการหลายแห่ง
+
+**การควบคุมการใช้งาน:**
+```yaml
+Token Validation Requirements:
+  audience_validation: MANDATORY
+  issuer_verification: MANDATORY  
+  signature_check: MANDATORY
+  expiration_enforcement: MANDATORY
+  scope_validation: MANDATORY
+  
+Token Lifecycle Management:
+  rotation_frequency: "Short-lived tokens preferred"
+  secure_storage: "Azure Key Vault or equivalent"
+  transmission_security: "TLS 1.3 minimum"
+  replay_protection: "Implemented via nonce/timestamp"
+```
+
+### **แบบแผนการจัดการโทเค็นอย่างปลอดภัย**
+
+**แนวทางปฏิบัติที่ดีที่สุด:**
+- **โทเค็นระยะสั้น**: ลดช่วงเวลาที่โทเค็นถูกเปิดเผยด้วยการหมุนเวียนบ่อยครั้ง  
+- **ออกโทเค็นแบบ Just-in-Time**: ออกโทเค็นเฉพาะเมื่อจำเป็นสำหรับการดำเนินการเฉพาะ  
+- **จัดเก็บอย่างปลอดภัย**: ใช้ฮาร์ดแวร์รักษาความปลอดภัย (HSMs) หรือตู้เก็บกุญแจที่ปลอดภัย  
+- **ผูกโทเค็นกับลูกค้า**: ผูกโทเค็นกับลูกค้า, session หรือการดำเนินการเฉพาะถ้าเป็นไปได้  
+- **เฝ้าระวังและแจ้งเตือน**: ตรวจจับการใช้งานโทเค็นที่ผิดปกติหรือเข้าถึงโดยไม่ได้รับอนุญาตแบบเรียลไทม์
+
+## 3. **Session Security Controls**
+
+### **การป้องกัน Session Hijacking**
+
+**ช่องทางการโจมตีที่จัดการ:**
+- **Session Hijack Prompt Injection**: การแทรกเหตุการณ์อันตรายเข้าสู่สถานะ session ที่ใช้ร่วมกัน  
+- **Session Impersonation**: การใช้ ID session ที่ถูกขโมยเพื่อผ่านการตรวจสอบสิทธิ์อย่างไม่ถูกต้อง  
+- **Resumable Stream Attacks**: การใช้ประโยชน์จากการส่งเหตุการณ์เซิร์ฟเวอร์แบบ resume เพื่อฉีดเนื้อหาอันตราย
+
+**ข้อควบคุม session ที่บังคับ:**
+```yaml
+Session ID Generation:
+  randomness_source: "Cryptographically secure RNG"
+  entropy_bits: 128 # Minimum recommended
+  format: "Base64url encoded"
+  predictability: "MUST be non-deterministic"
+
+Session Binding:
+  user_binding: "REQUIRED - <user_id>:<session_id>"
+  additional_identifiers: "Device fingerprint, IP validation"
+  context_binding: "Request origin, user agent validation"
+  
+Session Lifecycle:
+  expiration: "Configurable timeout policies"
+  rotation: "After privilege escalation events"
+  invalidation: "Immediate on security events"
+  cleanup: "Automated expired session removal"
+```
+
+**ความปลอดภัยการส่งข้อมูล:**
+- **บังคับใช้ HTTPS**: การสื่อสาร session ทั้งหมดผ่าน TLS 1.3  
+- **คุณสมบัติ Secure Cookie**: HttpOnly, Secure, SameSite=Strict  
+- **Certificate Pinning**: สำหรับการเชื่อมต่อสำคัญเพื่อป้องกัน MITM attacks
+
+### **ข้อควรพิจารณาสำหรับ Stateful กับ Stateless**
+
+**สำหรับการใช้งานแบบ Stateful:**
+- สถานะ session ที่ใช้ร่วมกันต้องป้องกันการโจมตีแบบ Injection เพิ่มเติม  
+- การจัดการ session แบบ queue ต้องตรวจสอบความครบถ้วน  
+- การใช้งานหลายเซิร์ฟเวอร์ต้องซิงโครไนซ์สถานะ session อย่างปลอดภัย
+
+**สำหรับการใช้งานแบบ Stateless:**
+- การจัดการ session โดยใช้ JWT หรือโทเค็นที่คล้ายกัน  
+- การตรวจสอบความครบถ้วนของสถานะ session แบบเข้ารหัส  
+- ลดพื้นผิวที่สามารถถูกโจมตีได้แต่ต้องมีการตรวจสอบโทเค็นที่แข็งแกร่ง
+
+## 4. **AI-Specific Security Controls**
+
+**OWASP MCP Risks Addressed**:
+- [MCP06 - Prompt Injection via Contextual Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+- [MCP03 - Tool Poisoning](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
+- [MCP05 - Command Injection & Execution](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+
+### **การป้องกัน Prompt Injection**
+
+**การผสานรวม Microsoft Prompt Shields:**
+```yaml
+Detection Mechanisms:
+  - "Advanced ML-based instruction detection"
+  - "Contextual analysis of external content"
+  - "Real-time threat pattern recognition"
+  
+Protection Techniques:
+  - "Spotlighting trusted vs untrusted content"
+  - "Delimiter systems for content boundaries"  
+  - "Data marking for content source identification"
+  
+Integration Points:
+  - "Azure Content Safety service"
+  - "Real-time content filtering"
+  - "Threat intelligence updates"
+```
+
+**การควบคุมการใช้งาน:**
+- **การทำความสะอาดข้อมูลนำเข้า**: การตรวจสอบและกรองข้อมูลผู้ใช้ทั้งหมดอย่างครอบคลุม  
+- **การกำหนดขอบเขตเนื้อหา**: แยกอย่างชัดเจนระหว่างคำสั่งระบบกับเนื้อหาผู้ใช้  
+- **ลำดับขั้นคำสั่ง**: กฎลำดับความสำคัญที่เหมาะสมสำหรับคำสั่งที่ขัดแย้งกัน  
+- **การเฝ้าระวังผลลัพธ์**: ตรวจจับผลลัพธ์ที่อาจเป็นอันตรายหรือถูกจัดการอย่างผิดปกติ
+
+### **การป้องกัน Tool Poisoning**
+
+**กรอบการรักษาความปลอดภัยของเครื่องมือ:**
+```yaml
+Tool Definition Protection:
+  validation:
+    - "Schema validation against expected formats"
+    - "Content analysis for malicious instructions" 
+    - "Parameter injection detection"
+    - "Hidden instruction identification"
+  
+  integrity_verification:
+    - "Cryptographic hashing of tool definitions"
+    - "Digital signatures for tool packages"
+    - "Version control with change auditing"
+    - "Tamper detection mechanisms"
+  
+  monitoring:
+    - "Real-time change detection"
+    - "Behavioral analysis of tool usage"
+    - "Anomaly detection for execution patterns"
+    - "Automated alerting for suspicious modifications"
+```
+
+**การจัดการเครื่องมือแบบไดนามิก:**
+- **เวิร์กโฟลว์อนุมัติ**: รับความยินยอมจากผู้ใช้สำหรับการแก้ไขเครื่องมือ  
+- **ความสามารถในการย้อนกลับ**: สามารถย้อนกลับไปใช้เวอร์ชันเครื่องมือก่อนหน้าได้  
+- **การตรวจสอบประวัติการเปลี่ยนแปลง**: บันทึกประวัติการปรับแต่งเครื่องมืออย่างสมบูรณ์  
+- **การประเมินความเสี่ยง**: ประเมินสถานะความปลอดภัยของเครื่องมือโดยอัตโนมัติ
+
+## 5. **Confused Deputy Attack Prevention**
+
+### **ความปลอดภัย OAuth Proxy**
+
+**มาตรการป้องกันการโจมตี:**
+```yaml
+Client Registration:
+  static_client_protection:
+    - "Explicit user consent for dynamic registration"
+    - "Consent bypass prevention mechanisms"  
+    - "Cookie-based consent validation"
+    - "Redirect URI strict validation"
+    
+  authorization_flow:
+    - "PKCE implementation (OAuth 2.1)"
+    - "State parameter validation"
+    - "Authorization code binding"
+    - "Nonce verification for ID tokens"
+```
+
+**ข้อกำหนดการใช้งาน:**
+- **การยืนยันความยินยอมของผู้ใช้**: ห้ามข้ามหน้าจอความยินยอมสำหรับการลงทะเบียนลูกค้าแบบไดนามิก  
+- **การตรวจสอบ Redirect URI**: ตรวจสอบแบบ whitelist อย่างเข้มงวดสำหรับที่อยู่ปลายทางการเปลี่ยนเส้นทาง  
+- **การป้องกันโค้ดอนุมัติ**: ใช้โค้ดระยะสั้นและบังคับใช้การใช้ครั้งเดียว  
+- **การตรวจสอบตัวตนลูกค้า**: ตรวจสอบข้อมูลประจำตัวและเมตาดาต้าของลูกค้าอย่างแข็งแกร่ง
+
+## 6. **Tool Execution Security**
+
+### **Sandboxing & Isolation**
+
+**การแยกด้วยคอนเทนเนอร์:**
+```yaml
+Execution Environment:
+  containerization: "Docker/Podman with security profiles"
+  resource_limits:
+    cpu: "Configurable CPU quotas"
+    memory: "Memory usage restrictions"
+    disk: "Storage access limitations"
+    network: "Network policy enforcement"
+  
+  privilege_restrictions:
+    user_context: "Non-root execution mandatory"
+    capability_dropping: "Remove unnecessary Linux capabilities"
+    syscall_filtering: "Seccomp profiles for syscall restriction"
+    filesystem: "Read-only root with minimal writable areas"
+```
+
+**การแยกกระบวนการ:**
+- **บริบทกระบวนการแยกกัน**: การดำเนินเครื่องมือแต่ละรายการในพื้นที่กระบวนการแยก  
+- **การสื่อสารระหว่างกระบวนการอย่างปลอดภัย**: กลไก IPC ที่มีการตรวจสอบ  
+- **การตรวจสอบกระบวนการ**: วิเคราะห์พฤติกรรมเวลาทำงานและการตรวจจับความผิดปกติ  
+- **การบังคับใช้ทรัพยากร**: จำกัดการใช้ CPU, หน่วยความจำ และ I/O อย่างเข้มงวด
+
+### **การใช้สิทธิ์แบบน้อยที่สุด**
+
+**การจัดการสิทธิ์:**
+```yaml
+Access Control:
+  file_system:
+    - "Minimal required directory access"
+    - "Read-only access where possible"
+    - "Temporary file cleanup automation"
+    
+  network_access:
+    - "Explicit allowlist for external connections"
+    - "DNS resolution restrictions" 
+    - "Port access limitations"
+    - "SSL/TLS certificate validation"
+  
+  system_resources:
+    - "No administrative privilege elevation"
+    - "Limited system call access"
+    - "No hardware device access"
+    - "Restricted environment variable access"
+```
+
+## 7. **Supply Chain Security Controls**
+
+**OWASP MCP Risk Addressed**: [MCP04 - Supply Chain Attacks](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+
+### **การตรวจสอบความถูกต้องของ Dependencies**
+
+**ความปลอดภัยส่วนประกอบแบบครบวงจร:**
+```yaml
+Software Dependencies:
+  scanning: 
+    - "Automated vulnerability scanning (GitHub Advanced Security)"
+    - "License compliance verification"
+    - "Known vulnerability database checks"
+    - "Malware detection and analysis"
+  
+  verification:
+    - "Package signature verification"
+    - "Checksum validation"
+    - "Provenance attestation"
+    - "Software Bill of Materials (SBOM)"
+
+AI Components:
+  model_verification:
+    - "Model provenance validation"
+    - "Training data source verification" 
+    - "Model behavior testing"
+    - "Adversarial robustness assessment"
+  
+  service_validation:
+    - "Third-party API security assessment"
+    - "Service level agreement review"
+    - "Data handling compliance verification"
+    - "Incident response capability evaluation"
+```
+
+### **การเฝ้าระวังอย่างต่อเนื่อง**
+
+**การตรวจจับภัยคุกคามใน supply chain:**
+- **การเฝ้าระวังสุขภาพของ dependence**: ประเมินความปลอดภัยของ dependencies ทั้งหมดอย่างต่อเนื่อง  
+- **การผสานรวมข่าวกรองภัยคุกคาม**: อัปเดตเรียลไทม์เกี่ยวกับภัยคุกคาม emerging supply chain  
+- **การวิเคราะห์พฤติกรรม**: ตรวจจับพฤติกรรมที่ผิดปกติในส่วนประกอบภายนอก  
+- **การตอบสนองอัตโนมัติ**: กักกันทันทีหากส่วนประกอบติดมัลแวร์
+
+## 8. **Monitoring & Detection Controls**
+
+**OWASP MCP Risk Addressed**: [MCP08 - Lack of Audit & Telemetry](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **การจัดการข้อมูลความปลอดภัยและเหตุการณ์ (SIEM)**
+
+**กลยุทธ์การบันทึกข้อมูลอย่างครอบคลุม:**
+```yaml
+Authentication Events:
+  - "All authentication attempts (success/failure)"
+  - "Token issuance and validation events"
+  - "Session creation, modification, termination"
+  - "Authorization decisions and policy evaluations"
+
+Tool Execution:
+  - "Tool invocation details and parameters"
+  - "Execution duration and resource usage"
+  - "Output generation and content analysis"
+  - "Error conditions and exception handling"
+
+Security Events:
+  - "Potential prompt injection attempts"
+  - "Tool poisoning detection events"
+  - "Session hijacking indicators"
+  - "Unusual access patterns and anomalies"
+```
+
+### **การตรวจจับภัยคุกคามแบบเรียลไทม์**
+
+**การวิเคราะห์พฤติกรรม:**
+- **การวิเคราะห์พฤติกรรมผู้ใช้ (UBA)**: ตรวจจับรูปแบบการเข้าถึงที่ผิดปกติของผู้ใช้  
+- **การวิเคราะห์พฤติกรรมหน่วยงาน (EBA)**: เฝ้าติดตามพฤติกรรมของ MCP server และเครื่องมือ  
+- **การตรวจจับความผิดปกติด้วย Machine Learning**: ใช้ AI ในการค้นหาและระบุภัยคุกคามความปลอดภัย  
+- **การสืบค้นข่าวกรองภัยคุกคาม**: เชื่อมโยงกิจกรรมที่ตรวจพบเข้ากับรูปแบบการโจมตีที่รู้จัก
+
+## 9. **Incident Response & Recovery**
+
+### **ความสามารถในการตอบสนองอัตโนมัติ**
+
+**การตอบสนองทันที:**
+```yaml
+Threat Containment:
+  session_management:
+    - "Immediate session termination"
+    - "Account lockout procedures"
+    - "Access privilege revocation"
+  
+  system_isolation:
+    - "Network segmentation activation"
+    - "Service isolation protocols"
+    - "Communication channel restriction"
+
+Recovery Procedures:
+  credential_rotation:
+    - "Automated token refresh"
+    - "API key regeneration"
+    - "Certificate renewal"
+  
+  system_restoration:
+    - "Clean state restoration"
+    - "Configuration rollback"
+    - "Service restart procedures"
+```
+
+### **ความสามารถสนับสนุนการสืบสวน**
+
+**สนับสนุนการตรวจสอบเหตุการณ์:**
+- **การเก็บรักษา Audit Trail**: บันทึกอย่างไม่เปลี่ยนแปลงด้วยความครบถ้วนทางเข้ารหัส  
+- **การเก็บรวบรวมหลักฐาน**: รวบรวมสิ่งของหลักฐานความปลอดภัยโดยอัตโนมัติ  
+- **การสร้างลำดับเหตุการณ์**: จัดเรียงลำดับเหตุการณ์อย่างละเอียดก่อนเกิดเหตุการณ์ความปลอดภัย  
+- **การประเมินผลกระทบ**: ประเมินขอบเขตการถูกโจมตีและการเปิดเผยข้อมูล
+
+## **หลักการสำคัญของสถาปัตยกรรมความปลอดภัย**
+
+### **Defense in Depth**
+- **หลายชั้นของความปลอดภัย**: ไม่มีจุดล้มเหลวเดียวในสถาปัตยกรรมความปลอดภัย  
+- **มาตรการควบคุมซ้ำซ้อน**: มาตรการซ้อนทับเพื่อรองรับฟังก์ชันสำคัญ  
+- **กลไก Fail-Safe**: ค่าปริยายที่ปลอดภัยเมื่อระบบเจอข้อผิดพลาดหรือการโจมตี
+
+### **การใช้งาน Zero Trust**
+- **ไม่เคยไว้ใจ ตรวจสอบเสมอ**: การยืนยันความถูกต้องของหน่วยงานและคำขอทุกตัวอย่างต่อเนื่อง  
+- **หลักการสิทธิ์น้อยที่สุด**: สิทธิ์เข้าถึงขั้นต่ำสำหรับทุกส่วนประกอบ  
+- **Micro-Segmentation**: การควบคุมเครือข่ายและการเข้าถึงแบบละเอียด
+
+### **วิวัฒนาการความปลอดภัยอย่างต่อเนื่อง**
+- **ปรับตัวตามภูมิทัศน์ภัยคุกคาม**: อัปเดตอย่างสม่ำเสมอเพื่อตอบสนองภัยคุกคามใหม่  
+- **ประสิทธิภาพการควบคุมความปลอดภัย**: ประเมินและพัฒนามาตรการอย่างต่อเนื่อง  
+- **การปฏิบัติตามข้อกำหนด**: สอดคล้องกับมาตรฐานความปลอดภัย MCP ที่เปลี่ยนแปลงต่อเนื่อง
+
+---
+
+## **แหล่งข้อมูลสำหรับการใช้งาน**
+
+### **เอกสาร MCP อย่างเป็นทางการ**
+- [MCP Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+
+### **แหล่งข้อมูลความปลอดภัย OWASP MCP**
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - OWASP MCP Top 10 ฉบับครบครันกับการใช้งานบน Azure  
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - ความเสี่ยงด้านความปลอดภัย MCP อย่างเป็นทางการจาก OWASP  
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - การฝึกอบรมความปลอดภัยแบบลงมือทำสำหรับ MCP บน Azure
+
+### **โซลูชันความปลอดภัยของ Microsoft**
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [GitHub Advanced Security](https://github.com/security/advanced-security)
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
+
+### **มาตรฐานความปลอดภัย**
+- [OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 for Large Language Models](https://genai.owasp.org/)
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+
+---
+
+> **สำคัญ**: การควบคุมความปลอดภัยเหล่านี้สะท้อนมาตรฐาน MCP ปัจจุบัน (2025-11-25) กรุณาตรวจสอบกับ [เอกสารอย่างเป็นทางการล่าสุด](https://spec.modelcontextprotocol.io/) เสมอ เนื่องจากมาตรฐานมีการเปลี่ยนแปลงอย่างรวดเร็ว
+
+## ขั้นตอนต่อไป
+
+- กลับไปที่: [Security Module Overview](./README.md)
+- ดำเนินการต่อที่: [Module 3: Getting Started](../03-GettingStarted/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ข้อจำกัดความรับผิดชอบ**:  
+เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษาอัตโนมัติ [Co-op Translator](https://github.com/Azure/co-op-translator) แม้เราจะพยายามให้ความถูกต้องสูงสุด แต่โปรดทราบว่าการแปลอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่แม่นยำ เอกสารต้นฉบับในภาษาต้นทางถือเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลสำคัญ แนะนำให้ใช้บริการแปลโดยผู้เชี่ยวชาญมนุษย์ เรายินดีไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดใด ๆ อันเกิดจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

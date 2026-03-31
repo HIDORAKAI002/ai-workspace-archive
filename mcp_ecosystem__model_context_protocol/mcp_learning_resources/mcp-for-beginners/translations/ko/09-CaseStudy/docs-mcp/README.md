@@ -1,0 +1,197 @@
+# 사례 연구: 클라이언트에서 Microsoft Learn Docs MCP 서버에 연결하기
+
+코드 문제를 해결하려고 할 때 문서 사이트, Stack Overflow, 수많은 검색 엔진 탭 사이를 바쁘게 오가 본 적이 있나요? 혹시 문서 전용으로 두 번째 모니터를 사용하거나 IDE와 브라우저 사이를 계속해서 Alt+Tab 하는 경우도 있을 겁니다. 문서를 워크플로우 안에서—앱, IDE 또는 맞춤 도구에 통합해서—바로 확인할 수 있다면 훨씬 낫지 않을까요? 이번 사례 연구에서는 클라이언트 애플리케이션에서 직접 Microsoft Learn Docs MCP 서버에 연결하는 방법을 살펴봅니다.
+
+## 개요
+
+현대 개발은 단지 코드를 작성하는 것이 아니라, 적시에 적절한 정보를 찾는 일입니다. 문서는 어디에나 존재하지만, 가장 필요할 때인 도구와 워크플로우 내부에 있는 경우는 드뭅니다. 문서 검색을 애플리케이션에 직접 통합하면 시간을 절약하고, 컨텍스트 전환을 줄이며 생산성을 높일 수 있습니다. 이 섹션에서는 클라이언트가 Microsoft Learn Docs MCP 서버에 연결하여 앱을 떠나지 않고도 실시간 맥락 인식 문서에 접근하는 방법을 안내합니다.
+
+연결을 설정하고, 요청을 보내며, 스트리밍 응답을 효율적으로 처리하는 과정을 단계별로 설명합니다. 이 접근법은 워크플로우를 간소화할 뿐 아니라, 더 똑똑하고 도움이 되는 개발자 도구를 구축할 수 있는 가능성을 열어줍니다.
+
+## 학습 목표
+
+왜 이 작업을 할까요? 최고의 개발자 경험은 마찰을 제거하는 데 있습니다. 코드 편집기, 챗봇 또는 웹 앱이 Microsoft Learn의 최신 콘텐츠를 사용해 문서 질문에 즉시 답할 수 있다고 상상해 보세요. 이 장을 마치면 다음을 할 수 있습니다:
+
+- 문서용 MCP 서버-클라이언트 통신의 기본 이해
+- Microsoft Learn Docs MCP 서버에 연결하는 콘솔 또는 웹 애플리케이션 구현
+- 실시간 문서 검색을 위한 스트리밍 HTTP 클라이언트 사용법
+- 애플리케이션 내에서 문서 응답을 로깅하고 해석하는 방법
+
+이 기술들을 통해 반응형 뿐만 아니라 진정으로 대화형이며 맥락 인식이 가능한 도구를 만드는 법을 배우실 겁니다.
+
+## 시나리오 1 - MCP를 이용한 실시간 문서 검색
+
+이 시나리오에서는 클라이언트를 Microsoft Learn Docs MCP 서버에 연결하는 방법을 보여줍니다. 앱을 떠나지 않고도 실시간 맥락 인식 문서에 접근할 수 있습니다.
+
+실습을 시작해 봅시다. Microsoft Learn Docs MCP 서버에 연결하여 `microsoft_docs_search` 도구를 호출하고, 스트리밍 응답을 콘솔에 기록하는 앱을 작성하는 것이 과제입니다.
+
+### 왜 이 방법인가요?
+이것이 챗봇, IDE 확장, 웹 대시보드와 같은 고급 통합 기능을 구축하는 토대가 되기 때문입니다.
+
+이 시나리오의 코드와 지침은 이 사례 연구 내 [`solution`](./solution/README.md) 폴더에서 찾을 수 있습니다. 다음 단계에 따라 연결을 설정하세요:
+- 공식 MCP SDK와 스트리밍 가능한 HTTP 클라이언트 사용
+- `microsoft_docs_search` 도구를 쿼리 매개변수와 함께 호출하여 문서 가져오기
+- 적절한 로깅 및 오류 처리 구현
+- 사용자가 여러 검색 쿼리를 입력할 수 있는 대화형 콘솔 인터페이스 생성
+
+이 시나리오는 다음을 시연합니다:
+- Docs MCP 서버 연결
+- 쿼리 전송
+- 결과 파싱 및 출력
+
+실행 예시는 다음과 같습니다:
+
+```
+Prompt> What is Azure Key Vault?
+Answer> Azure Key Vault is a cloud service for securely storing and accessing secrets. ...
+```
+
+아래는 최소 샘플 솔루션입니다. 전체 코드와 자세한 내용은 solution 폴더에서 확인 가능합니다.
+
+<details>
+<summary>Python</summary>
+
+```python
+import asyncio
+from mcp.client.streamable_http import streamablehttp_client
+from mcp import ClientSession
+
+async def main():
+    async with streamablehttp_client("https://learn.microsoft.com/api/mcp") as (read_stream, write_stream, _):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+            result = await session.call_tool("microsoft_docs_search", {"query": "Azure Functions best practices"})
+            print(result.content)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+- 완전한 구현 및 로깅은 [`scenario1.py`](../../../../09-CaseStudy/docs-mcp/solution/python/scenario1.py)를 참조하세요.
+- 설치 및 사용법 안내는 동일 폴더의 [`README.md`](./solution/python/README.md)를 참고하세요.
+</details>
+
+
+## 시나리오 2 - MCP로 구현하는 대화형 학습 플랜 생성 웹 앱
+
+이 시나리오에서는 Docs MCP를 웹 개발 프로젝트에 통합하는 방법을 배웁니다. 목표는 사용자들이 웹 인터페이스에서 직접 Microsoft Learn 문서를 검색할 수 있게 하여, 앱이나 사이트 내에서 즉시 문서 접근을 가능하게 하는 것입니다.
+
+다음 내용을 배울 수 있습니다:
+- 웹 앱 설정 방법
+- Docs MCP 서버에 연결 방법
+- 사용자 입력 처리 및 결과 표시 방법
+
+실행 예시는 다음과 같습니다:
+
+```
+User> I want to learn about AI102 - so suggest the roadmap to get it started from learn for 6 weeks
+
+Assistant> Here’s a detailed 6-week roadmap to start your preparation for the AI-102: Designing and Implementing a Microsoft Azure AI Solution certification, using official Microsoft resources and focusing on exam skills areas:
+
+---
+## Week 1: Introduction & Fundamentals
+- **Understand the Exam**: Review the [AI-102 exam skills outline](https://learn.microsoft.com/en-us/credentials/certifications/exams/ai-102/).
+- **Set up Azure**: Sign up for a free Azure account if you don't have one.
+- **Learning Path**: [Introduction to Azure AI services](https://learn.microsoft.com/en-us/training/modules/intro-to-azure-ai/)
+- **Focus**: Get familiar with Azure portal, AI capabilities, and necessary tools.
+
+....more weeks of the roadmap...
+
+Let me know if you want module-specific recommendations or need more customized weekly tasks!
+```
+
+아래는 최소 샘플 솔루션입니다. 전체 코드와 자세한 내용은 solution 폴더에서 확인 가능합니다.
+
+![시나리오 2 개요](../../../../translated_images/ko/scenario2.0c92726d5cd81f68.webp)
+
+<details>
+<summary>Python (Chainlit)</summary>
+
+Chainlit은 대화형 AI 웹 앱을 구축하는 프레임워크입니다. MCP 도구를 호출하고 실시간으로 결과를 표시하는 대화형 챗봇과 어시스턴트를 쉽게 만들 수 있습니다. 빠른 프로토타이핑과 사용자 친화적 인터페이스에 적합합니다.
+
+```python
+import chainlit as cl
+import requests
+
+MCP_URL = "https://learn.microsoft.com/api/mcp"
+
+@cl.on_message
+def handle_message(message):
+    query = {"question": message}
+    response = requests.post(MCP_URL, json=query)
+    if response.ok:
+        result = response.json()
+        cl.Message(content=result.get("answer", "No answer found.")).send()
+    else:
+        cl.Message(content="Error: " + response.text).send()
+```
+
+- 완전한 구현은 [`scenario2.py`](../../../../09-CaseStudy/docs-mcp/solution/python/scenario2.py)를 참고하세요.
+- 설정 및 실행 안내는 [`README.md`](./solution/python/README.md)를 참조하세요.
+</details>
+
+
+## 시나리오 3: VS Code 내 MCP 서버를 이용한 에디터 내 문서 조회
+
+VS Code 내에서 별도 브라우저 탭을 전환하지 않고 Microsoft Learn Docs를 직접 보고 싶다면 MCP 서버를 에디터 내에서 사용할 수 있습니다. 이를 통해 다음이 가능합니다:
+- VS Code 내에서 코딩 환경을 벗어나지 않고 문서 검색 및 읽기
+- README 또는 강의 파일에 문서 참조 및 링크 삽입
+- GitHub Copilot과 MCP를 함께 활용하여 원활한 AI 기반 문서 워크플로우 구현
+
+**다음 방법을 배우게 됩니다:**
+- 작업공간 루트에 유효한 `.vscode/mcp.json` 파일 추가(예시는 아래 참조)
+- VS Code 내 MCP 패널 열기 또는 명령 팔레트 사용하여 문서 검색 및 삽입
+- 마크다운 파일 작업 중에 문서 직접 참조
+- GitHub Copilot과 결합하여 생산성 극대화
+
+VS Code에서 MCP 서버 설정 예시는 다음과 같습니다:
+
+```json
+{
+  "servers": {
+    "LearnDocsMCP": {
+      "url": "https://learn.microsoft.com/api/mcp"
+    }
+  }
+}
+```
+
+</details>
+
+> 단계별 가이드와 스크린샷이 포함된 자세한 설명은 [`README.md`](./solution/scenario3/README.md)를 참조하세요.
+
+![시나리오 3 개요](../../../../translated_images/ko/step4-prompt-chat.12187bb001605efc.webp)
+
+이 방법은 기술 강좌를 만들거나 문서를 작성하거나 빈번하게 참조가 필요한 코드를 개발하는 모든 사람에게 이상적입니다.
+
+## 주요 요점
+
+문서를 도구에 직접 통합하는 것은 단순한 편의가 아니라 생산성의 혁명입니다. 클라이언트에서 Microsoft Learn Docs MCP 서버에 연결하면:
+
+- 코드와 문서 사이의 컨텍스트 전환을 없앨 수 있습니다.
+- 최신 맥락 인식 문서를 실시간으로 가져올 수 있습니다.
+- 더 똑똑하고 대화형적인 개발자 도구를 구축할 수 있습니다.
+
+이 기술들은 효율적일 뿐 아니라 사용하기 즐거운 솔루션을 만드는 데 도움을 줄 것입니다.
+
+## 추가 자료
+
+이해를 깊게 하려면 다음 공식 자원을 탐색해 보세요:
+
+- [Microsoft Learn Docs MCP 서버 (GitHub)](https://github.com/MicrosoftDocs/mcp)
+- [Azure MCP 서버 시작하기 (mcp-python)](https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/get-started#create-the-python-app)
+- [Azure MCP 서버란?](https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/)
+- [Model Context Protocol (MCP) 소개](https://modelcontextprotocol.io/introduction)
+- [MCP 서버에서 플러그인 추가하기 (Python)](https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins)
+
+## 다음 단계
+
+- 이전으로: [사례 연구 개요](../README.md)
+- 계속: [모듈 10: AI Toolkit으로 AI 워크플로우 간소화](../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**면책 조항**:  
+이 문서는 AI 번역 서비스 [Co-op Translator](https://github.com/Azure/co-op-translator)를 사용하여 번역되었습니다. 정확성을 위해 노력하고 있으나, 자동 번역에는 오류나 부정확한 내용이 포함될 수 있음을 유의해 주시기 바랍니다. 원문 문서는 권위 있는 출처로 간주되어야 합니다. 중요한 정보의 경우, 전문적인 인간 번역을 권장합니다. 본 번역 사용으로 인한 오해나 잘못된 해석에 대해 당사는 책임을 지지 않습니다.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
