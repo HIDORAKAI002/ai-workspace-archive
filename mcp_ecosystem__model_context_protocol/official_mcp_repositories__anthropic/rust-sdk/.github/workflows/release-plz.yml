@@ -1,0 +1,64 @@
+name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # Release unpublished packages.
+  release-plz-release:
+    name: Release-plz release
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'modelcontextprotocol' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      # Using fork until semver_check_features support is released upstream.
+      # See: https://github.com/release-plz/release-plz/pull/2757
+      - name: Install release-plz from fork
+        run: cargo install --git https://github.com/DaleSeo/release-plz --branch feat/semver-check-features release-plz
+      - name: Run release-plz release
+        run: release-plz release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # Create a PR with the new versions and changelog, preparing the next release.
+  release-plz-pr:
+    name: Release-plz PR
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'modelcontextprotocol' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      # Using fork until semver_check_features support is released upstream.
+      # See: https://github.com/release-plz/release-plz/pull/2757
+      - name: Install release-plz from fork
+        run: cargo install --git https://github.com/DaleSeo/release-plz --branch feat/semver-check-features release-plz
+      - name: Run release-plz release-pr
+        run: release-plz release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
