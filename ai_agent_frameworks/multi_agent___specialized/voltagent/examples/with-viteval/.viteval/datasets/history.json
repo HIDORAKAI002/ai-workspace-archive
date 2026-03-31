@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-08-20T16:20:11.271Z",
+  "data": [
+    {
+      "input": "What was the purpose and outcome of the Berlin Conference of 1884–85, and what key principle did it establish regarding colonial claims in Africa?",
+      "expected": "European powers met (without African representation) to regulate colonization and trade in Africa, formalizing the Scramble for Africa. The conference recognized the Congo Free State under King Leopold II, guaranteed free navigation on the Congo and Niger rivers, and—most importantly—established the principle of “effective occupation,” requiring actual administrative control for a state to claim territory."
+    },
+    {
+      "input": "Which civilization built the city of Tenochtitlan, and on which lake was it constructed?",
+      "expected": "The Aztec (Mexica) civilization built Tenochtitlan on an island in Lake Texcoco."
+    },
+    {
+      "input": "What was the primary purpose of the voyages led by Zheng He during the early Ming dynasty, and under which emperor and in what year did they begin?",
+      "expected": "To project Ming power, establish tributary relations, and expand trade and diplomacy; they began under the Yongle Emperor in 1405."
+    },
+    {
+      "input": "Who led the Haitian Revolution, when did it occur, and name two major global impacts of its success.",
+      "expected": "The revolution lasted from 1791 to 1804. Key leaders were Toussaint Louverture (early unifying leader) and Jean-Jacques Dessalines (who declared independence in 1804). Two major impacts: it created the first independent Black republic and the first state born from a successful slave revolt, abolishing slavery in Saint-Domingue; and it helped compel Napoleon to sell Louisiana to the United States (the 1803 Louisiana Purchase), reshaping North America."
+    },
+    {
+      "input": "Who was Mansa Musa, and why was his 1324 pilgrimage to Mecca significant for West Africa and the wider Mediterranean world?",
+      "expected": "Mansa Musa I was the ruler of the Mali Empire (c. 1312–1337). His 1324 hajj showcased Mali’s vast wealth in gold, distributing so much in Cairo that it depressed gold prices for years. The pilgrimage forged diplomatic and commercial ties with Egypt and the broader Islamic world, expanded trans-Saharan trade, and elevated Mali’s prestige. He patronized Islamic learning and architecture (e.g., commissioning the Djinguereber Mosque in Timbuktu), helping make Timbuktu a center of scholarship. His fame also put West Africa prominently on European maps, such as the 1375 Catalan Atlas."
+    },
+    {
+      "input": "The Peace of Westphalia (1648) is often cited as a turning point in European diplomacy. Which two wars did it conclude, and what core principle of the modern state system did it affirm?",
+      "expected": "It concluded the Thirty Years’ War in the Holy Roman Empire and the Eighty Years’ War between Spain and the Dutch Republic, and it affirmed state sovereignty—sovereign equality of states and non-intervention."
+    },
+    {
+      "input": "What was the significance of the Edict of Nantes (1598) in France, and which monarch revoked it (in what year)?",
+      "expected": "Issued by Henry IV in 1598, the Edict of Nantes granted French Huguenots limited religious toleration, civil rights, and control of certain fortified towns, helping end the French Wars of Religion. It was revoked by Louis XIV in 1685 with the Edict of Fontainebleau, which reimposed persecution and prompted widespread Huguenot emigration."
+    },
+    {
+      "input": "What event triggered the outbreak of World War I in 1914?",
+      "expected": "The assassination of Archduke Franz Ferdinand of Austria-Hungary and his wife Sophie in Sarajevo on June 28, 1914, by Gavrilo Princip, a Bosnian Serb nationalist."
+    },
+    {
+      "input": "Which 1494 agreement divided newly discovered lands outside Europe between Spain and Portugal along a meridian west of the Cape Verde Islands?",
+      "expected": "The Treaty of Tordesillas (1494)."
+    },
+    {
+      "input": "When and where did the Berlin Conference take place, and what was its primary outcome for Africa?",
+      "expected": "It was held in Berlin from November 1884 to February 1885. The conference established the rules for European colonization and trade in Africa—formalizing the Scramble for Africa—and recognized the Congo Free State under King Leopold II."
+    }
+  ]
+}

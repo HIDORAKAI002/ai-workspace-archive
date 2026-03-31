@@ -1,0 +1,261 @@
+body,
+html {
+  max-width: 100vw;
+  font-family: "Inter", sans-serif;
+  background-color: #070f12;
+}
+
+/* Documentation and blog pages background */
+[class*="docsWrapper_"],
+[class*="docMainContainer_"],
+[class*="docItemContainer_"],
+main[class*="docMainContainer_"],
+html.blog-wrapper,
+html.blog-post-page,
+html[class*="blog-wrapper"],
+html[class*="blog-post-page"],
+.blog-wrapper,
+.blog-post-page {
+  background-color: #0a0a0a !important;
+}
+
+/* Target blog content areas specifically */
+html.blog-post-page #__docusaurus,
+html.blog-post-page body {
+  background-color: #0a0a0a !important;
+}
+
+/* Ensure the entire documentation page area has the dark background */
+html.docs-wrapper[data-theme="dark"] #__docusaurus {
+  background-color: #0a0a0a;
+}
+
+/* Target the main wrapper when rendering documentation */
+html.docs-wrapper .main-wrapper {
+  background-color: #0a0a0a !important;
+  /* Docs pages should span full width */
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 auto;
+}
+
+/* Announcement bar height */
+div[class^="announcementBar_"] {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  font-size: 17px !important;
+  font-weight: 500;
+  color: #ffffff !important;
+  cursor: pointer;
+  padding: 0 5px;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 0
+    rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Remove underline from announcement bar links */
+div[class^="announcementBar_"] a {
+  text-decoration: none;
+  color: #10b981 !important;
+}
+
+/* Close button color */
+div[class^="announcementBar_"] button[class*="close"] {
+  color: #10b981 !important;
+}
+
+div[class^="announcementBar_"] button {
+  color: #10b981 !important;
+}
+
+/* Mobile styles for announcement bar */
+@media (max-width: 768px) {
+  div[class^="announcementBar_"] {
+    height: auto;
+    min-height: 50px;
+    padding: 10px 12px;
+    font-size: 16px !important;
+    line-height: 1.3;
+  }
+}
+
+.footer {
+  padding-bottom: 0 !important;
+  display: none;
+}
+
+.navbar {
+  max-width: 100%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+#__docusaurus {
+  /*     padding-left: 1rem;
+    padding-right: 1rem; */
+}
+
+.main-wrapper {
+  margin: 0 auto;
+  max-width: 1440px;
+  width: 100%;
+}
+
+.main-wrapper .navbar {
+  max-width: 100% !important;
+}
+
+#__docusaurus .footer {
+  padding-bottom: 0 !important;
+}
+
+.menu__link {
+  text-decoration: none;
+}
+
+.theme-doc-markdown h1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@media (min-width: 1024px) {
+  /* #__docusaurus {
+        padding-left: 5rem;
+        padding-right: 5rem;
+    } */
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /*   #__docusaurus {
+        padding-left: calc(((34 / 16) * 1rem));
+        padding-right: calc(((34 / 16) * 1rem));
+    } */
+}
+
+.container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.max-w-container {
+  max-width: var(--max-page-width);
+}
+
+/* Mobile docs layout (below 997px) */
+@media (max-width: 996px) {
+  .main-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  html.docs-wrapper .main-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Target docMainContainer by attribute selector */
+  [class*="docMainContainer"] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Target docItemCol by attribute selector */
+  [class*="docItemCol"] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .docs-wrapper #__docusaurus article {
+    padding: 1rem;
+  }
+
+  .pagination-nav {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+/* Desktop docs layout (997px and above) */
+@media (min-width: 997px) {
+  /* Target docMainContainer by attribute selector */
+  [class*="docMainContainer"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 !important;
+  }
+
+  /* Target docItemCol by attribute selector */
+  [class*="docItemCol"] {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .theme-doc-sidebar-container {
+    /*  border-right: none !important; */
+    margin-top: 0 !important;
+    margin-left: 0;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 100px);
+    align-self: flex-start;
+    overflow: hidden;
+  }
+
+  /* Target docSidebarContainer by attribute selector */
+  [class*="docSidebarContainer"] {
+    min-width: 300px !important;
+    max-width: 300px !important;
+    margin-top: 0 !important;
+  }
+
+  .docs-wrapper #__docusaurus article {
+    padding: 1rem 2rem;
+  }
+
+  .pagination-nav {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+/* Large screens: center content with max-width */
+@media (min-width: 1992px) {
+  [class*="docMainContainer"] {
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+  }
+
+  [class*="docItemCol"] {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* Table of Contents visibility control - target the exact column */
+div.col.col--3 {
+  display: none; /* Hide by default on all screens */
+}
+
+@media (min-width: 1025px) {
+  div.col.col--3 {
+    display: block; /* Show only on screens 1025px and wider */
+    flex: 0 0 280px !important;
+    max-width: 280px !important;
+  }
+}
+
+/* Additional selector to target the TOC with more specificity if needed */
+.table-of-contents__wrapper,
+.tableOfContents {
+  display: inherit; /* Inherit display property from parent */
+}
