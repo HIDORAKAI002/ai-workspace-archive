@@ -4,9 +4,11 @@
 
 **The most comprehensive self-hostable AI developer toolbox on GitHub.**
 
-*11,000+ agent skills | 92 MCP servers | 2,200+ IDE rules | 30+ system prompt collections | 12 API providers | 15 no-code platforms | 1,400+ public APIs -- all locally archived, all browsable, all free*
+*29,746 agent skills & files | 22 MCP servers | 3,348 IDE rules | 8 system prompt collections | 12 API providers | 15 no-code platforms | 1,400+ public APIs -- 48 curated local repos, all free*
 
 > One repository. Everything an AI developer needs. Offline. No subscriptions. No gatekeeping.
+
+[ ![File Count Shield](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/HIDORAKAI002/ai-workspace-archive/main/file_counts.json) ](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/file_counts.json)
 
 </div>
 
@@ -16,10 +18,10 @@
 
 | # | Pillar | Scale | Path |
 |---|---|---|---|
-| 1 | [AI Skills and Prompt Library](#pillar-1--ai-skills-and-prompt-library) | 11,000+ files from 23 repos | `/ai_skills_library/` |
-| 2 | [MCP Server Repository](#pillar-2--mcp-server-repository) | 92 repos across 11 categories | `/mcps/` |
-| 3 | [IDE Context Rules](#pillar-3--ide-context-rules) | 2,200+ rules for every stack | `/ide_rules/` |
-| 4 | [System Prompts and Frameworks](#pillar-4--system-prompts-and-frameworks) | 30+ repos across 5 categories | `/system_prompts/` |
+| 1 | [AI Skills and Prompt Library](#pillar-1--ai-skills-and-prompt-library) | 29,746 files from curated repos | `/ai_skills_library/` |
+| 2 | [MCP Server Repository](#pillar-2--mcp-server-repository) | 22 repos across 11 categories | `/mcps/` |
+| 3 | [IDE Context Rules](#pillar-3--ide-context-rules) | 3,348 AI rules for every stack | `/ide_rules/` |
+| 4 | [System Prompts and Frameworks](#pillar-4--system-prompts-and-frameworks) | 8 repos across 4 categories | `/system_prompts/` |
 | 5 | [AI API Providers Reference](#pillar-5--ai-api-providers-reference) | 12 providers, 50+ models | `/api_providers/` |
 | 6 | [No-Code and Visual Workflow Builders](#pillar-6--no-code-and-visual-workflow-builders) | 15 repos, 29 cloned directories | `/nocode_platforms/` |
 | 7 | [Public APIs Directory](#pillar-7--public-apis-directory) | 1,400+ APIs across 40+ categories | `/public_apis/` |
@@ -31,7 +33,7 @@
 
 ## Pillar 1 -- AI Skills and Prompt Library
 
-> **`/ai_skills_library/`** -- 11,000+ structured YAML-frontmatted skill files, deep-categorized across 20 sub-domains, sourced from 23 curated GitHub repositories
+> **`/ai_skills_library/`** -- 29,746 structured YAML-frontmatted skill files, deep-categorized across 20 sub-domains, sourced from curated GitHub repositories
 
 Every file follows the same structure: a YAML frontmatter block declaring the skill name, recommended model, input format, and usage context -- followed by the actual prompt content. Drop any file directly into Claude, Cursor, Gemini, Copilot, or any AI assistant as a system prompt.
 
@@ -217,7 +219,7 @@ ai_skills_library/skills/
 
 ## Pillar 2 -- MCP Server Repository
 
-> **`/mcps/`** -- 92 fully cloned Model Context Protocol server repositories across 11 categories -- all installable, all production-ready, connecting directly to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client
+> **`/mcps/`** -- 22 fully cloned Model Context Protocol server repositories across 11 categories -- all installable, all production-ready, connecting directly to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client
 
 <details>
 <summary><b>Official Anthropic (11 repos)</b></summary>
@@ -251,7 +253,7 @@ ai_skills_library/skills/
 </details>
 
 <details>
-<summary><b>Databases (9 repos)</b></summary>
+<summary><b>Databases (12 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | DB / Service |
 |---|---|---|---|
@@ -264,6 +266,9 @@ ai_skills_library/skills/
 | `mcp-clickhouse` | [ClickHouse/mcp-clickhouse](https://github.com/ClickHouse/mcp-clickhouse) | 150+ | ClickHouse analytics DB |
 | `mcp-mysql-server` | Community | 100+ | MySQL database |
 | `dbhub` | [bytebase/dbhub](https://github.com/bytebase/dbhub) | 400+ | Universal DB gateway (multi-DB support) |
+| `mcp-database-server` | Community | - | Universal database MCP |
+| `mysql_mcp_server` | Community | - | Secondary MySQL implementation |
+| `mcp-sqlite-server` | Community | - | Local SQLite DB via MCP |
 
 </details>
 
@@ -292,18 +297,19 @@ ai_skills_library/skills/
 </details>
 
 <details>
-<summary><b>Developer Tools (3 repos)</b></summary>
+<summary><b>Developer & Filesystem Tools (4 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | What It Does |
 |---|---|---|---|
 | `mcp-filesystem-server` | [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) | 15K+ | Read/write local files and directories |
 | `mcp-server-commands` | [g0t4/mcp-server-commands](https://github.com/g0t4/mcp-server-commands) | 200+ | Run shell commands via MCP |
 | `mcp-youtube` | [suekou/mcp-youtube](https://github.com/suekou/mcp-youtube) | 150+ | YouTube transcript and video data |
+| `filesystem_servers` | Community | - | Additional filesystem integration wrappers |
 
 </details>
 
 <details>
-<summary><b>Frameworks and SDKs (9 repos)</b></summary>
+<summary><b>Frameworks and SDKs (12 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | Language / Purpose |
 |---|---|---|---|
@@ -316,6 +322,9 @@ ai_skills_library/skills/
 | `mcp-agent` | [lastmile-ai/mcp-agent](https://github.com/lastmile-ai/mcp-agent) | 500+ | Agent orchestration framework using MCP |
 | `mcp-framework` | [QuantGeekDev/mcp-framework](https://github.com/QuantGeekDev/mcp-framework) | 300+ | Framework for building MCP servers quickly |
 | `create-typescript-server` | [modelcontextprotocol/create-typescript-server](https://github.com/modelcontextprotocol/create-typescript-server) | 400+ | CLI scaffolder for new TypeScript MCP servers |
+| `mcphost` | Community | - | MCP Host implementation |
+| `inspector` | [modelcontextprotocol/inspector](https://github.com/modelcontextprotocol/inspector) | - | Inspector tools |
+| `openai-agents-python` | Community | - | Python agents integration |
 
 </details>
 
@@ -333,12 +342,39 @@ ai_skills_library/skills/
 </details>
 
 <details>
-<summary><b>Registries and Curated Lists (2 repos)</b></summary>
+<summary><b>Registries and Curated Lists (3 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | Description |
 |---|---|---|---|
 | `awesome-mcp-list` | [wong2/awesome-mcp-servers](https://github.com/wong2/awesome-mcp-servers) | 5K+ | Curated list of 500+ MCP servers |
 | `mcpm` | [mcpm/mcpm](https://github.com/mcpm/mcpm) | 300+ | MCP package manager -- install servers like npm |
+| `curated_awesome_lists` | Community | - | Additional curated references |
+
+</details>
+
+<details>
+<summary><b>AI & ML Services (6 repos)</b></summary>
+
+| Repo Folder | Category | Description |
+|---|---|---|
+| `mcp-agent` | Discovery | Agent orchestration via MCP |
+| `mcp-hfspace` | HuggingFace | Access HuggingFace Spaces from MCP |
+| `mcp-k8s-go` | Infra | Kubernetes management via AI |
+| `mcp-snowflake-server` | Data | Snowflake database intel |
+| `mcphost` | Server | Hosting bindings |
+| `openai-agents-python` | Python | SDK integration layer |
+
+</details>
+
+<details>
+<summary><b>Miscellaneous & Specialized (27 repos)</b></summary>
+
+Includes 27 deeply specialized MCP implementations ranging across APIs, niche data platforms, communication bridges (Slack/Teams), and local productivity bridges:
+- Miscellaneous standalone servers (25 repos)
+- Communication & Collaboration servers (1 repo)
+- Additional Productivity tools (1 repo)
+
+These can be browsed safely via the `mcps/misc_specialized/` folder.
 
 </details>
 
@@ -379,7 +415,7 @@ npm install          # or: pip install -e . / cargo build
 
 ## Pillar 3 -- IDE Context Rules
 
-> **`/ide_rules/`** -- 2,200+ AI editor instruction files for Cursor, Windsurf, Cline, and GitHub Copilot -- covering every major language, framework, and tech stack
+> **`/ide_rules/`** -- 3,348 AI editor instruction files for Cursor, Windsurf, Cline, and GitHub Copilot -- covering every major language, framework, and tech stack
 
 Drop one file into your project root and your AI editor instantly understands your architecture, coding conventions, testing standards, and style preferences.
 
@@ -513,7 +549,10 @@ cp ide_rules/copilot/nextjs.md /your-project/.github/copilot-instructions.md
 
 ## Pillar 4 -- System Prompts and Frameworks
 
-> **`/system_prompts/`** -- 30+ repositories spanning leaked production system prompts, prompt engineering masterclasses, prompt management tools, testing frameworks, and AI safety guardrails
+> **`/system_prompts/`** -- 8 carefully curated repositories spanning leaked production system prompts, prompt engineering masterclasses, prompt management tools, testing frameworks, and AI safety guardrails
+
+> [!WARNING]
+> **Legal & Educational Disclaimer**: The leaked proprietary system prompts below (e.g., Claude Code, Cursor, Devin) are archived **strictly for educational research, syntax analysis, and safe-guard testing**. We do not claim ownership of these prompt strings. Users are responsible for adhering to all creator ToS and DMCA regulations.
 
 <details>
 <summary><b>Leaked System Prompts Collections</b></summary>
@@ -1157,7 +1196,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 </details>
 
 <details>
-<summary><b>Tracked Upstream Repositories (44+)</b></summary>
+<summary><b>Tracked Upstream Repositories (45+)</b></summary>
 
 | Pillar | Count | Examples |
 |---|---|---|
@@ -1169,7 +1208,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | MCP -- Search | 2 | exa-mcp-server, tavily-mcp |
 | System Prompts | 5 | 111K-star leaks, awesome-chatgpt-prompts, promptfoo, guardrails |
 | No-Code | 14 | n8n, dify, flowise, langflow, appsmith, nocodb + more |
-| **Total** | **44+** | All auto-synced every 6 hours |
+| **Total** | **45+** | All auto-synced every 6 hours |
 
 </details>
 
@@ -1186,7 +1225,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | API Providers | `/api_providers/` | **12 providers, 50+ models** | Full pricing + SDKs + code examples |
 | No-Code Platforms | `/nocode_platforms/` | **15 repositories** | 5 categories, 29 cloned directories |
 | Public APIs | `/public_apis/` | **1,400+ APIs** | 40+ categories, auto-synced daily |
-| Auto-Sync | `sync_manifest.json` | **44+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
+| Auto-Sync | `sync_manifest.json` | **45+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
 | **TOTAL** | - | **13,700+ files** | **The most comprehensive AI workspace on GitHub** |
 
 ---
