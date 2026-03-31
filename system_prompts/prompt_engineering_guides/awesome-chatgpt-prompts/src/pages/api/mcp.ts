@@ -25,9 +25,18 @@ interface AuthenticatedUser {
   mcpPromptsPublicByDefault: boolean;
 }
 
+// In-memory auth cache for warm function instances (5-min TTL)
+const authCache = new Map<string, { user: AuthenticatedUser | null; expiry: number }>();
+const AUTH_CACHE_TTL = 5 * 60 * 1000;
+
 async function authenticateApiKey(apiKey: string | null): Promise<AuthenticatedUser | null> {
   if (!apiKey || !isValidApiKeyFormat(apiKey)) {
     return null;
+  }
+
+  const cached = authCache.get(apiKey);
+  if (cached && Date.now() < cached.expiry) {
+    return cached.user;
   }
 
   const user = await db.user.findUnique({
@@ -39,6 +48,7 @@ async function authenticateApiKey(apiKey: string | null): Promise<AuthenticatedU
     },
   });
 
+  authCache.set(apiKey, { user, expiry: Date.now() + AUTH_CACHE_TTL });
   return user;
 }
 
@@ -182,7 +192,6 @@ function createServer(options: ServerOptions = {}) {
         slug: true,
         title: true,
         description: true,
-        content: true,
       },
     });
 
@@ -191,16 +200,10 @@ function createServer(options: ServerOptions = {}) {
 
     return {
       prompts: results.map((p) => {
-        const variables = extractVariables(p.content);
         return {
           name: getPromptName(p),
           title: p.title,
           description: p.description || undefined,
-          arguments: variables.map((v) => ({
-            name: v.name,
-            description: v.defaultValue ? `Default: ${v.defaultValue}` : undefined,
-            required: !v.defaultValue,
-          })),
         };
       }),
       nextCursor: hasMore ? String(page + 1) : undefined,
@@ -225,15 +228,15 @@ function createServer(options: ServerOptions = {}) {
         select: promptSelect,
       });
     }
-    // Fallback: lookup by slugified title (for prompts without stored slug)
+    // Fallback: lookup by title for prompts without stored slug
+    // Uses indexed DB query instead of loading 500 rows into memory
     // TODO: Backfill slug column for all existing prompts so this fallback can be removed
     if (!prompt) {
-      const unslugged = await db.prompt.findMany({
-        where: { ...promptFilter, slug: null },
+      const titleGuess = promptSlug.replace(/-/g, " ");
+      prompt = await db.prompt.findFirst({
+        where: { ...promptFilter, slug: null, title: { contains: titleGuess, mode: "insensitive" } },
         select: promptSelect,
-        take: 500,
       });
-      prompt = unslugged.find((p) => slugify(p.title) === promptSlug) || null;
     }
 
     if (!prompt) {
@@ -342,7 +345,7 @@ function createServer(options: ServerOptions = {}) {
           slug: getPromptName(p),
           title: p.title,
           description: p.description,
-          contentPreview: p.content.substring(0, 1000) + (p.content.length > 1000 ? '...' : ''),
+          contentPreview: p.content.substring(0, 300) + (p.content.length > 300 ? '...' : ''),
           type: p.type,
           author: p.author.name || p.author.username,
           category: p.category?.name || null,
@@ -1386,64 +1389,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: "MCP is not enabled" });
   }
 
+  // Per MCP Streamable HTTP spec, GET is for opening an SSE stream.
+  // This server is stateless and doesn't push notifications, so return 405.
+  // See: https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#listening-for-messages-from-the-server
   if (req.method === "GET") {
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-    return res.status(200).json({
-      name: "prompts-chat",
-      version: "1.0.0",
-      description: "MCP server for prompts.chat - Search and discover AI prompts",
-      protocol: "Model Context Protocol (MCP)",
-      capabilities: {
-        tools: true,
-        prompts: true,
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(405).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32000,
+        message: "Method not allowed. This MCP server does not support SSE. Use POST for JSON-RPC requests.",
       },
-      tools: [
-        {
-          name: "search_prompts",
-          description: "Search for AI prompts by keyword.",
-        },
-        {
-          name: "get_prompt",
-          description: "Get a prompt by ID with variable elicitation support.",
-        },
-        {
-          name: "save_prompt",
-          description: "Save a new prompt (requires API key authentication).",
-        },
-        {
-          name: "improve_prompt",
-          description: "Transform a basic prompt into a well-structured, comprehensive prompt using AI.",
-        },
-        {
-          name: "save_skill",
-          description: "Save a new Agent Skill with multiple files (requires API key authentication).",
-        },
-        {
-          name: "add_file_to_skill",
-          description: "Add a file to an existing Agent Skill (requires API key authentication).",
-        },
-        {
-          name: "update_skill_file",
-          description: "Update an existing file in an Agent Skill (requires API key authentication).",
-        },
-        {
-          name: "remove_file_from_skill",
-          description: "Remove a file from an Agent Skill (requires API key authentication).",
-        },
-        {
-          name: "get_skill",
-          description: "Get an Agent Skill by ID with all its files.",
-        },
-        {
-          name: "search_skills",
-          description: "Search for Agent Skills by keyword.",
-        },
-      ],
-      prompts: {
-        description: "All public prompts are available as MCP prompts. Use prompts/list to browse and prompts/get to retrieve with variable substitution.",
-        usage: "Access via slash commands in MCP clients (e.g., /prompt-id)",
-      },
-      endpoint: "/api/mcp",
+      id: null,
     });
   }
 

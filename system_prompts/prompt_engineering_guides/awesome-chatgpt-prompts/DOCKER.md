@@ -1,45 +1,68 @@
 # Docker Deployment Guide
 
-Run your own prompts.chat instance with a single command.
+Run your own prompts.chat instance using Docker Compose.
 
 ## Quick Start
 
 ```bash
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  ghcr.io/f/prompts.chat
+git clone https://github.com/f/prompts.chat.git
+cd prompts.chat
+docker compose up -d
 ```
-
-**First run:** The container will clone the repository and build the app (~3-5 minutes).  
-**Subsequent runs:** Starts immediately using the cached build.
 
 Open http://localhost:4444 in your browser.
 
-## Custom Branding
+## Using a Pre-built Image
 
-Customize your instance with environment variables:
+Edit `compose.yml` and replace the `build` block with the published image:
 
-```bash
-docker run -d \
-  --name my-prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -e PCHAT_NAME="Acme Prompts" \
-  -e PCHAT_DESCRIPTION="Our team's AI prompt library" \
-  -e PCHAT_COLOR="#ff6600" \
-  -e PCHAT_AUTH_PROVIDERS="github,google" \
-  -e PCHAT_LOCALES="en,es,fr" \
-  ghcr.io/f/prompts.chat
+```yaml
+services:
+  app:
+    # build:
+    #   context: .
+    #   dockerfile: docker/Dockerfile
+    image: ghcr.io/f/prompts.chat:latest
 ```
 
-> **Note:** Branding is applied during the first build. To change branding later, delete the volume and re-run:
-> ```bash
-> docker rm -f my-prompts
-> docker volume rm prompts-data
-> docker run ... # with new env vars
-> ```
+Then run:
+
+```bash
+docker compose up -d
+```
+
+## Standalone (Bring Your Own Database)
+
+If you already have a PostgreSQL instance, you can run just the app container:
+
+```bash
+docker build -f docker/Dockerfile -t prompts.chat .
+docker run -d \
+  --name prompts \
+  -p 4444:3000 \
+  -e DATABASE_URL="postgresql://user:pass@your-db-host:5432/prompts?schema=public" \
+  -e AUTH_SECRET="$(openssl rand -base64 32)" \
+  prompts.chat
+```
+
+## Custom Branding
+
+All branding is configured via `PCHAT_*` environment variables at runtime -- no rebuild needed.
+
+```yaml
+# compose.yml
+services:
+  app:
+    environment:
+      # ... existing vars ...
+      PCHAT_NAME: "Acme Prompts"
+      PCHAT_DESCRIPTION: "Our team's AI prompt library"
+      PCHAT_COLOR: "#ff6600"
+      PCHAT_AUTH_PROVIDERS: "github,google"
+      PCHAT_LOCALES: "en,es,fr"
+```
+
+Then restart: `docker compose up -d`
 
 ## Configuration Variables
 
@@ -95,103 +118,102 @@ All variables are prefixed with `PCHAT_` to avoid conflicts.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `AUTH_SECRET` | Secret for authentication tokens | Auto-generated |
-| `PORT` | Internal container port | `3000` |
-| `DATABASE_URL` | PostgreSQL connection string | Internal DB |
+| `AUTH_SECRET` | Secret for authentication tokens | Auto-generated (set explicitly for production) |
+| `DATABASE_URL` | PostgreSQL connection string | Set in compose.yml |
+| `DIRECT_URL` | Direct PostgreSQL URL (bypasses poolers) | Same as DATABASE_URL |
+| `PORT` | Host port mapping | `4444` |
 
 ## Production Setup
 
-For production, set `AUTH_SECRET` explicitly:
+For production, always set `AUTH_SECRET` explicitly:
 
 ```bash
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -e AUTH_SECRET="$(openssl rand -base64 32)" \
-  -e PCHAT_NAME="My Company Prompts" \
-  ghcr.io/f/prompts.chat
+# Generate a secret
+export AUTH_SECRET=$(openssl rand -base64 32)
+
+# Start with explicit secret
+docker compose up -d
+```
+
+Or add it to a `.env` file next to `compose.yml`:
+
+```env
+AUTH_SECRET=your-secret-key-here
 ```
 
 ### With OAuth Providers
 
-```bash
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -e AUTH_SECRET="your-secret-key" \
-  -e PCHAT_AUTH_PROVIDERS="github,google" \
-  -e AUTH_GITHUB_ID="your-github-client-id" \
-  -e AUTH_GITHUB_SECRET="your-github-client-secret" \
-  -e AUTH_GOOGLE_ID="your-google-client-id" \
-  -e AUTH_GOOGLE_SECRET="your-google-client-secret" \
-  ghcr.io/f/prompts.chat
+```yaml
+# compose.yml
+services:
+  app:
+    environment:
+      # ... existing vars ...
+      PCHAT_AUTH_PROVIDERS: "github,google"
+      AUTH_GITHUB_ID: "your-github-client-id"
+      AUTH_GITHUB_SECRET: "your-github-client-secret"
+      AUTH_GOOGLE_ID: "your-google-client-id"
+      AUTH_GOOGLE_SECRET: "your-google-client-secret"
 ```
 
 ### With AI Features (OpenAI)
 
+```yaml
+# compose.yml
+services:
+  app:
+    environment:
+      # ... existing vars ...
+      PCHAT_FEATURE_AI_SEARCH: "true"
+      OPENAI_API_KEY: "sk-..."
+```
+
+## Database Seeding
+
+Seed the database with example prompts:
+
 ```bash
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -e PCHAT_FEATURE_AI_SEARCH="true" \
-  -e OPENAI_API_KEY="sk-..." \
-  ghcr.io/f/prompts.chat
+docker compose exec app npx prisma db seed
 ```
 
 ## Custom Logo
 
-Mount your logo file:
+Mount your logo file into the app container:
 
-```bash
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -v ./my-logo.svg:/data/app/public/logo.svg \
-  -e PCHAT_NAME="My App" \
-  ghcr.io/f/prompts.chat
+```yaml
+# compose.yml
+services:
+  app:
+    volumes:
+      - ./my-logo.svg:/app/public/logo.svg
+    environment:
+      PCHAT_LOGO: "/logo.svg"
 ```
 
 ## Data Persistence
 
-### All-in-One Image
-
-Data is stored in `/data` inside the container:
-- `/data/postgres` - PostgreSQL database files
-
-Mount a volume to persist data:
-
-```bash
-docker run -d \
-  -v prompts-data:/data \
-  ghcr.io/f/prompts.chat
-```
+PostgreSQL data is stored in the `postgres_data` named volume and persists across container restarts, rebuilds, and image updates.
 
 ### Backup
 
 ```bash
 # Backup database
-docker exec prompts pg_dump -U prompts prompts > backup.sql
+docker compose exec db pg_dump -U prompts prompts > backup.sql
 
 # Restore database
-docker exec -i prompts psql -U prompts prompts < backup.sql
+docker compose exec -T db psql -U prompts prompts < backup.sql
 ```
 
 ## Building Locally
 
-Build and run locally:
-
 ```bash
-docker build -f docker/Dockerfile -t prompts.chat .
-docker run -p 4444:3000 -v prompts-data:/data prompts.chat
+docker compose build
+docker compose up -d
 ```
 
 ## Health Check
 
-The container includes a health check endpoint:
+The app container includes a health check endpoint:
 
 ```bash
 curl http://localhost:4444/api/health
@@ -211,48 +233,82 @@ Response:
 ### View Logs
 
 ```bash
-# All logs
-docker logs prompts
+# All services
+docker compose logs
 
 # Follow logs
-docker logs -f prompts
+docker compose logs -f
 
-# PostgreSQL logs (inside container)
-docker exec prompts cat /var/log/supervisor/postgresql.log
+# App logs only
+docker compose logs app
 
-# Next.js logs (inside container)
-docker exec prompts cat /var/log/supervisor/nextjs.log
+# Database logs only
+docker compose logs db
 ```
 
 ### Database Access
 
 ```bash
 # Connect to PostgreSQL
-docker exec -it prompts psql -U prompts -d prompts
+docker compose exec db psql -U prompts -d prompts
 
-# Run SQL query
-docker exec prompts psql -U prompts -d prompts -c "SELECT COUNT(*) FROM \"Prompt\""
+# Run a query
+docker compose exec db psql -U prompts -d prompts -c "SELECT COUNT(*) FROM \"Prompt\""
 ```
 
 ### Container Shell
 
 ```bash
-docker exec -it prompts bash
+docker compose exec app sh
+docker compose exec db bash
 ```
 
 ### Common Issues
 
-**Container won't start:**
-- Check logs: `docker logs prompts`
-- Ensure port 4444 is available: `lsof -i :4444`
+**App container keeps restarting:**
+- Check logs: `docker compose logs app`
+- Database may not be ready yet -- the entrypoint retries for up to 60 seconds
 
 **Database connection errors:**
-- Wait for PostgreSQL to initialize (can take 30-60 seconds on first run)
-- Check database logs: `docker exec prompts cat /var/log/supervisor/postgresql.log`
+- Verify the `db` service is healthy: `docker compose ps`
+- Check database logs: `docker compose logs db`
 
 **Authentication issues:**
-- Ensure `AUTH_SECRET` is set for production
-- For OAuth, verify callback URLs are configured correctly
+- Set `AUTH_SECRET` explicitly for production
+- For OAuth, verify callback URLs match your domain
+
+## Updating
+
+```bash
+# If using pre-built images
+docker compose pull
+docker compose up -d
+
+# If building locally
+git pull
+docker compose build
+docker compose up -d
+```
+
+Data persists in the `postgres_data` volume across updates.
+
+## Migrating from the Old Single-Image Setup
+
+If you were using the previous all-in-one Docker image:
+
+```bash
+# 1. Export your database from the old container
+docker exec prompts pg_dump -U prompts prompts > backup.sql
+
+# 2. Stop and remove the old container
+docker stop prompts && docker rm prompts
+
+# 3. Start the new compose setup
+docker compose up -d
+
+# 4. Import your data
+docker compose exec -T db psql -U prompts prompts < backup.sql
+```
 
 ## Resource Requirements
 
@@ -266,33 +322,9 @@ Recommended:
 - 2GB RAM
 - 10GB disk space
 
-## Updating
+## Running Behind a Reverse Proxy
 
-```bash
-# Pull latest image
-docker pull ghcr.io/f/prompts.chat
-
-# Stop and remove old container
-docker stop prompts && docker rm prompts
-
-# Start new container (data persists in volume)
-docker run -d \
-  --name prompts \
-  -p 4444:3000 \
-  -v prompts-data:/data \
-  -e AUTH_SECRET="your-secret-key" \
-  ghcr.io/f/prompts.chat
-```
-
-## Security Considerations
-
-1. **Always set AUTH_SECRET** in production
-2. **Use HTTPS** - put a reverse proxy (nginx, Caddy, Traefik) in front
-3. **Limit exposed ports** - only expose what's needed
-4. **Regular updates** - pull the latest image regularly
-5. **Backup data** - regularly backup the `/data` volume
-
-## Example: Running Behind Nginx
+### Nginx
 
 ```nginx
 server {
@@ -315,6 +347,23 @@ server {
     }
 }
 ```
+
+### Caddy
+
+```caddyfile
+prompts.example.com {
+    reverse_proxy localhost:4444
+}
+```
+
+## Security Considerations
+
+1. **Always set AUTH_SECRET** in production
+2. **Use HTTPS** -- put a reverse proxy (Nginx, Caddy, Traefik) in front
+3. **Change default database password** -- update `POSTGRES_PASSWORD` in compose.yml and the connection strings
+4. **Limit exposed ports** -- only expose what's needed
+5. **Regular updates** -- pull the latest image regularly
+6. **Backup data** -- regularly backup the database
 
 ## License
 

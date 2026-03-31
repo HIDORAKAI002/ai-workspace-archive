@@ -10,6 +10,7 @@ dist
 # Git
 .git
 .gitignore
+.gitattributes
 
 # IDE
 .vscode
@@ -23,10 +24,11 @@ dist
 .env.development.local
 .env.test.local
 .env.production.local
+.env.sentry-build-plugin
 
 # Docker
+compose.yml
 docker-compose*.yml
-Dockerfile*
 
 # Development files
 .github
@@ -38,6 +40,8 @@ packages
 # Test files
 coverage
 .nyc_output
+vitest.config.ts
+vitest.setup.ts
 
 # OS files
 .DS_Store
