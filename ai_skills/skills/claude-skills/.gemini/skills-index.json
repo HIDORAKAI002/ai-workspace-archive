@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 263,
+  "total_skills": 274,
   "skills": [
     {
       "name": "README",
@@ -439,6 +439,16 @@
       "description": "Accessibility audit skill for scanning, fixing, and verifying WCAG 2.2 Level A and AA compliance across React, Next.js, Vue, Angular, Svelte, and plain HTML codebases. Use when auditing accessibility, fixing a11y violations, checking color contrast, generating compliance reports, or integrating accessibility checks into CI/CD pipelines."
     },
     {
+      "name": "adversarial-reviewer",
+      "category": "engineering",
+      "description": "Adversarial code review that breaks the self-review monoculture. Use when you want a genuinely critical review of recent changes, before merging a PR, or when you suspect Claude is being too agreeable about code quality. Forces perspective shifts through hostile reviewer personas that catch blind spots the author's mental model shares with the reviewer."
+    },
+    {
+      "name": "ai-security",
+      "category": "engineering",
+      "description": "Use when assessing AI/ML systems for prompt injection, jailbreak vulnerabilities, model inversion risk, data poisoning exposure, or agent tool abuse. Covers MITRE ATLAS technique mapping, injection signature detection, and adversarial robustness scoring."
+    },
+    {
       "name": "aws-solution-architect",
       "category": "engineering",
       "description": "Design AWS architectures for startups using serverless patterns and IaC templates. Use when asked to design serverless architecture, create CloudFormation templates, optimize AWS costs, set up CI/CD pipelines, or migrate to AWS. Covers Lambda, API Gateway, DynamoDB, ECS, Aurora, and cost optimization."
@@ -452,6 +462,11 @@
       "name": "browserstack",
       "category": "engineering",
       "description": ">-"
+    },
+    {
+      "name": "cloud-security",
+      "category": "engineering",
+      "description": "Use when assessing cloud infrastructure for security misconfigurations, IAM privilege escalation paths, S3 public exposure, open security group rules, or IaC security gaps. Covers AWS, Azure, and GCP posture assessment with MITRE ATT&CK mapping."
     },
     {
       "name": "code-reviewer",
@@ -509,6 +524,11 @@
       "description": "Incident Commander Skill"
     },
     {
+      "name": "incident-response",
+      "category": "engineering",
+      "description": "Use when a security incident has been detected or declared and needs classification, triage, escalation path determination, and forensic evidence collection. Covers SEV1-SEV4 classification, false positive filtering, incident taxonomy, and NIST SP 800-61 lifecycle."
+    },
+    {
       "name": "init",
       "category": "engineering",
       "description": ">-"
@@ -532,6 +552,11 @@
       "name": "promote",
       "category": "engineering",
       "description": "Graduate a proven pattern from auto-memory (MEMORY.md) to CLAUDE.md or .claude/rules/ for permanent enforcement."
+    },
+    {
+      "name": "red-team",
+      "category": "engineering",
+      "description": "Use when planning or executing authorized red team engagements, attack path analysis, or offensive security simulations. Covers MITRE ATT&CK kill-chain planning, technique scoring, choke point identification, OPSEC risk assessment, and crown jewel targeting."
     },
     {
       "name": "remember",
@@ -659,6 +684,11 @@
       "description": ">-"
     },
     {
+      "name": "threat-detection",
+      "category": "engineering",
+      "description": "Use when hunting for threats in an environment, analyzing IOCs, or detecting behavioral anomalies in telemetry. Covers hypothesis-driven threat hunting, IOC sweep generation, z-score anomaly detection, and MITRE ATT&CK-mapped signal prioritization."
+    },
+    {
       "name": "agent-designer",
       "category": "engineering-advanced",
       "description": "Use when the user asks to design multi-agent systems, create agent architectures, define agent communication patterns, or build autonomous agent workflows."
@@ -769,6 +799,11 @@
       "description": "This skill should be used when the user asks to \"design interview processes\", \"create hiring pipelines\", \"calibrate interview loops\", \"generate interview questions\", \"design competency matrices\", \"analyze interviewer bias\", \"create scoring rubrics\", \"build question banks\", or \"optimize hiring systems\". Use for designing role-specific interview loops, competency assessments, and hiring calibration systems."
     },
     {
+      "name": "llm-cost-optimizer",
+      "category": "engineering-advanced",
+      "description": "Use when you need to reduce LLM API spend, control token usage, route between models by cost/quality, implement prompt caching, or build cost observability for AI features. Triggers: 'my AI costs are too high', 'optimize token usage', 'which model should I use', 'LLM spend is out of control', 'implement prompt caching'. NOT for RAG pipeline design (use rag-architect). NOT for prompt writing quality (use senior-prompt-engineer)."
+    },
+    {
       "name": "loop",
       "category": "engineering-advanced",
       "description": "Start an autonomous experiment loop with user-selected interval (10min, 1h, daily, weekly, monthly). Uses CronCreate for scheduling."
@@ -809,6 +844,11 @@
       "description": "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code quality of diffs."
     },
     {
+      "name": "prompt-governance",
+      "category": "engineering-advanced",
+      "description": "Use when managing prompts in production at scale: versioning prompts, running A/B tests on prompts, building prompt registries, preventing prompt regressions, or creating eval pipelines for production AI features. Triggers: 'manage prompts in production', 'prompt versioning', 'prompt regression', 'prompt A/B test', 'prompt registry', 'eval pipeline'. NOT for writing or improving individual prompts (use senior-prompt-engineer). NOT for RAG pipeline design (use rag-architect). NOT for LLM cost reduction (use llm-cost-optimizer)."
+    },
+    {
       "name": "rag-architect",
       "category": "engineering-advanced",
       "description": "Use when the user asks to design RAG pipelines, optimize retrieval strategies, choose embedding models, implement vector search, or build knowledge retrieval systems."
@@ -842,6 +882,11 @@
       "name": "secrets-vault-manager",
       "category": "engineering-advanced",
       "description": "Use when the user asks to set up secret management infrastructure, integrate HashiCorp Vault, configure cloud secret stores (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager), implement secret rotation, or audit secret access patterns."
+    },
+    {
+      "name": "self-eval",
+      "category": "engineering-advanced",
+      "description": "Honestly evaluate AI work quality using a two-axis scoring system. Use after completing a task, code review, or work session to get an unbiased assessment. Detects score inflation, forces devil's advocate reasoning, and persists scores across sessions."
     },
     {
       "name": "setup",
@@ -902,6 +947,11 @@
       "name": "terraform-patterns",
       "category": "engineering-advanced",
       "description": "Terraform infrastructure-as-code agent skill and plugin for Claude Code, Codex, Gemini CLI, Cursor, OpenClaw. Covers module design patterns, state management strategies, provider configuration, security hardening, policy-as-code with Sentinel/OPA, and CI/CD plan/apply workflows. Use when: user wants to design Terraform modules, manage state backends, review Terraform security, implement multi-region deployments, or follow IaC best practices."
+    },
+    {
+      "name": "business-investment-advisor",
+      "category": "finance",
+      "description": "Business investment analysis and capital allocation advisor. Use when evaluating whether to invest in equipment, real estate, a new business, hiring, technology, or any capital expenditure. Also use for ROI calculations, IRR, NPV, payback period, build vs buy decisions, lease vs buy analysis, vendor evaluation, or deciding where to allocate limited budget for maximum return."
     },
     {
       "name": "finance-bundle",
@@ -1134,6 +1184,11 @@
       "description": "When the user wants to develop social media strategy, plan content calendars, manage community engagement, or grow their social presence across platforms. Also use when the user mentions 'social media strategy,' 'social calendar,' 'community management,' 'social media plan,' 'grow followers,' 'engagement rate,' 'social media audit,' or 'which platforms should I use.' For writing individual social posts, see social-content. For analyzing social performance data, see social-media-analyzer."
     },
     {
+      "name": "video-content-strategist",
+      "category": "marketing",
+      "description": "Use when planning video content strategy, writing video scripts, optimizing YouTube channels, building short-form video pipelines (Reels, TikTok, Shorts), or repurposing long-form content into video. Triggers: 'start a YouTube channel', 'video content strategy', 'write a video script', 'repurpose into video', 'YouTube SEO', 'short-form video'. NOT for written blog content (use content-production). NOT for social captions without video (use social-media-manager)."
+    },
+    {
       "name": "x-twitter-growth",
       "category": "marketing",
       "description": "X/Twitter growth engine for building audience, crafting viral content, and analyzing engagement. Use when the user wants to grow on X/Twitter, write tweets or threads, analyze their X profile, research competitors on X, plan a posting strategy, or optimize engagement. Complements social-content (generic multi-platform) with X-specific depth: algorithm mechanics, thread engineering, reply strategy, profile optimization, and competitive intelligence via web search."
@@ -1337,19 +1392,19 @@
       "description": "Command resources"
     },
     "engineering": {
-      "count": 45,
+      "count": 51,
       "description": "Engineering resources"
     },
     "engineering-advanced": {
-      "count": 49,
+      "count": 52,
       "description": "Engineering-advanced resources"
     },
     "finance": {
-      "count": 3,
+      "count": 4,
       "description": "Finance resources"
     },
     "marketing": {
-      "count": 44,
+      "count": 45,
       "description": "Marketing resources"
     },
     "product": {
