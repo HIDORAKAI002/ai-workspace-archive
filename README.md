@@ -1196,7 +1196,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 </details>
 
 <details>
-<summary><b>Tracked Upstream Repositories (44+)</b></summary>
+<summary><b>Tracked Upstream Repositories (45+)</b></summary>
 
 | Pillar | Count | Examples |
 |---|---|---|
@@ -1208,7 +1208,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | MCP -- Search | 2 | exa-mcp-server, tavily-mcp |
 | System Prompts | 5 | 111K-star leaks, awesome-chatgpt-prompts, promptfoo, guardrails |
 | No-Code | 14 | n8n, dify, flowise, langflow, appsmith, nocodb + more |
-| **Total** | **44+** | All auto-synced every 6 hours |
+| **Total** | **45+** | All auto-synced every 6 hours |
 
 </details>
 
@@ -1225,7 +1225,7 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | API Providers | `/api_providers/` | **12 providers, 50+ models** | Full pricing + SDKs + code examples |
 | No-Code Platforms | `/nocode_platforms/` | **15 repositories** | 5 categories, 29 cloned directories |
 | Public APIs | `/public_apis/` | **1,400+ APIs** | 40+ categories, auto-synced daily |
-| Auto-Sync | `sync_manifest.json` | **44+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
+| Auto-Sync | `sync_manifest.json` | **45+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
 | **TOTAL** | - | **13,700+ files** | **The most comprehensive AI workspace on GitHub** |
 
 ---
