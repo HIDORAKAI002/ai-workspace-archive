@@ -1,0 +1,21 @@
+# typsht type safety tests - runs against mypy, pyright, and ty
+- case: automations_aread_by_id
+  checkers: [mypy, pyright, ty]
+  main: |
+    from uuid import uuid4
+    from prefect.automations import Automation
+    async def test_func() -> None:
+        automation = await Automation.aread(id=uuid4())
+        reveal_type(automation)  # N: Revealed type is "prefect.automations.Automation"
+        automation = await Automation.aread(id=uuid4(), name=None)
+        reveal_type(automation)  # N: Revealed type is "prefect.automations.Automation"
+
+- case: automations_aread_by_name
+  checkers: [mypy, pyright, ty]
+  main: |
+    from prefect.automations import Automation
+    async def test_func() -> None:
+        automation = await Automation.aread(name="foobar")
+        reveal_type(automation)  # N: Revealed type is "prefect.automations.Automation"
+        automation = await Automation.aread(id=None, name="foobar")
+        reveal_type(automation)  # N: Revealed type is "prefect.automations.Automation"

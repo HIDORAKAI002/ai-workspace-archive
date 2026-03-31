@@ -1,0 +1,47 @@
+{
+  "editor.formatOnSave": false,
+  "javascript.format.enable": false,
+  "eslint.alwaysShowStatus": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.options": {
+    "extensions": [
+      "*.html",
+      "*.js",
+      "*.vue",
+      "*.jsx",
+      "*.json",
+      "*.ts"
+    ]
+  },
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "cSpell.words": [
+    "automations",
+    "camelcase",
+    "Combobox",
+    "kubernetes",
+    "prefecthq",
+    "rrule",
+    "semibold",
+    "subflow",
+    "subflows",
+    "tailwindcss",
+    "Unconfigured",
+    "vite",
+    "vitejs"
+  ],
+  "search.exclude": {
+    "**/dist": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.exclude": {
+    "node_modules": true,
+    "dist": true,
+    "test-results": true,
+  },
+  "css.customData": [
+    "./.vscode/css-data.json"
+  ]
+}

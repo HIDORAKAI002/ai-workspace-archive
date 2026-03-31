@@ -1,0 +1,80 @@
+import { useCallback } from "react";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { DocsLink } from "@/components/ui/docs-link";
+import { Icon } from "@/components/ui/icons";
+import { LazyMarkdown } from "@/components/ui/lazy-markdown";
+import {
+	Menubar,
+	MenubarContent,
+	MenubarItem,
+	MenubarMenu,
+	MenubarTrigger,
+} from "@/components/ui/menubar";
+
+type ArtifactsKeyHeaderProps = {
+	artifactKey: string;
+	pageHeader?: string;
+};
+
+export const ArtifactsKeyHeader = ({
+	artifactKey,
+	pageHeader,
+}: ArtifactsKeyHeaderProps) => {
+	const handleCopyId = useCallback(() => {
+		void navigator.clipboard.writeText(artifactKey);
+	}, [artifactKey]);
+
+	return (
+		<>
+			<div className="flex items-center justify-between">
+				<Header artifactKey={artifactKey} />
+				<div className="flex items-center space-x-2">
+					<DocsLink id="artifacts-guide" label="Documentation" />
+					{/* <Button variant="outline" className="px-1"><Icon id="EllipsisVertical" /></Button> */}
+					<Menubar>
+						<MenubarMenu>
+							<MenubarTrigger className="px-1">
+								<Icon id="EllipsisVertical" />
+							</MenubarTrigger>
+							<MenubarContent>
+								<MenubarItem onClick={handleCopyId}>Copy Id</MenubarItem>
+							</MenubarContent>
+						</MenubarMenu>
+					</Menubar>
+				</div>
+			</div>
+			{pageHeader && (
+				<div className="">
+					<h2 className="text-3xl font-semibold tracking-tight my-4 font-bold prose lg:prose-xl">
+						<LazyMarkdown>{pageHeader}</LazyMarkdown>
+					</h2>
+					<hr />
+				</div>
+			)}
+		</>
+	);
+};
+
+const Header = ({ artifactKey }: ArtifactsKeyHeaderProps) => (
+	<div className="flex items-center gap-2">
+		<Breadcrumb>
+			<BreadcrumbList>
+				<BreadcrumbItem>
+					<BreadcrumbLink to="/artifacts" className="text-xl font-semibold">
+						Artifacts
+					</BreadcrumbLink>
+				</BreadcrumbItem>
+				<BreadcrumbSeparator />
+				<BreadcrumbItem className="text-xl font-semibold">
+					{artifactKey}
+				</BreadcrumbItem>
+			</BreadcrumbList>
+		</Breadcrumb>
+	</div>
+);

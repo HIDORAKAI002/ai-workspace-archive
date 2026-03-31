@@ -1,0 +1,378 @@
+---
+title: actions
+sidebarTitle: actions
+---
+
+# `prefect.server.schemas.actions`
+
+
+
+Reduced schemas for accepting API actions.
+
+
+## Functions
+
+### `validate_base_job_template` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L863" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_base_job_template(v: dict[str, Any]) -> dict[str, Any]
+```
+
+## Classes
+
+### `ActionBaseModel` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L57" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `model_validate_list` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/_internal/schemas/bases.py#L56" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+model_validate_list(cls, obj: Any) -> list[Self]
+```
+
+#### `reset_fields` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/_internal/schemas/bases.py#L85" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+reset_fields(self: Self) -> Self
+```
+
+Reset the fields of the model that are in the `_reset_fields` set.
+
+**Returns:**
+- A new instance of the model with the reset fields.
+
+
+### `FlowCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L61" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a flow.
+
+
+### `FlowUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L79" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a flow.
+
+
+### `DeploymentScheduleCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L89" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `validate_max_scheduled_runs` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L114" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_max_scheduled_runs(cls, v: PositiveInteger | None) -> PositiveInteger | None
+```
+
+### `DeploymentScheduleUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L122" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `validate_max_scheduled_runs` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L148" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_max_scheduled_runs(cls, v: PositiveInteger | None) -> PositiveInteger | None
+```
+
+### `DeploymentCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L156" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a deployment.
+
+
+**Methods:**
+
+#### `check_valid_configuration` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L234" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+check_valid_configuration(self, base_job_template: dict[str, Any]) -> None
+```
+
+Check that the combination of base_job_template defaults and job_variables
+conforms to the specified schema.
+
+NOTE: This method does not hydrate block references in default values within the
+base job template to validate them. Failing to do this can cause user-facing
+errors. Instead of this method, use `validate_job_variables_for_deployment`
+function from `prefect_cloud.orion.api.validation`.
+
+
+#### `remove_old_fields` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L260" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+remove_old_fields(cls, values: dict[str, Any]) -> dict[str, Any]
+```
+
+### `DeploymentUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L289" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a deployment.
+
+
+**Methods:**
+
+#### `check_valid_configuration` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L356" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+check_valid_configuration(self, base_job_template: dict[str, Any]) -> None
+```
+
+Check that the combination of base_job_template defaults and job_variables
+conforms to the schema specified in the base_job_template.
+
+NOTE: This method does not hydrate block references in default values within the
+base job template to validate them. Failing to do this can cause user-facing
+errors. Instead of this method, use `validate_job_variables_for_deployment`
+function from `prefect_cloud.orion.api.validation`.
+
+
+#### `remove_old_fields` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L294" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+remove_old_fields(cls, values: dict[str, Any]) -> dict[str, Any]
+```
+
+### `FlowRunUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L395" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a flow run.
+
+
+**Methods:**
+
+#### `set_name` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L410" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set_name(cls, name: str) -> str
+```
+
+### `StateCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L414" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a new state.
+
+
+**Methods:**
+
+#### `default_name_from_type` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L435" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+default_name_from_type(self)
+```
+
+If a name is not provided, use the type
+
+
+#### `default_scheduled_start_time` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L445" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+default_scheduled_start_time(self)
+```
+
+### `TaskRunCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L455" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a task run
+
+
+**Methods:**
+
+#### `set_name` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L527" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set_name(cls, name: str) -> str
+```
+
+#### `validate_cache_key` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L532" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_cache_key(cls, cache_key: str | None) -> str | None
+```
+
+### `TaskRunUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L536" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a task run
+
+
+**Methods:**
+
+#### `set_name` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L545" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set_name(cls, name: str) -> str
+```
+
+### `FlowRunCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L549" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a flow run.
+
+
+**Methods:**
+
+#### `set_name` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L624" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set_name(cls, name: str) -> str
+```
+
+### `DeploymentFlowRunCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L628" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a flow run from a deployment.
+
+
+**Methods:**
+
+#### `set_name` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L683" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set_name(cls, name: str) -> str
+```
+
+### `SavedSearchCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L687" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a saved search.
+
+
+### `ConcurrencyLimitCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L696" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a concurrency limit.
+
+
+### `ConcurrencyLimitV2Create` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L705" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a v2 concurrency limit.
+
+
+### `ConcurrencyLimitV2Update` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L725" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a v2 concurrency limit.
+
+
+### `BlockTypeCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L736" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a block type.
+
+
+### `BlockTypeUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L757" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a block type.
+
+
+**Methods:**
+
+#### `updatable_fields` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L766" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+updatable_fields(cls) -> set[str]
+```
+
+### `BlockSchemaCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L770" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a block schema.
+
+
+### `BlockDocumentCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L788" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a block document.
+
+
+**Methods:**
+
+#### `validate_name_is_present_if_not_anonymous` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L813" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_name_is_present_if_not_anonymous(cls, values: dict[str, Any]) -> dict[str, Any]
+```
+
+### `BlockDocumentUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L819" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a block document.
+
+
+### `BlockDocumentReferenceCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L831" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used to create block document reference.
+
+
+**Methods:**
+
+#### `validate_parent_and_ref_are_different` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L848" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+validate_parent_and_ref_are_different(cls, values)
+```
+
+### `LogCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L852" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a log.
+
+
+### `WorkPoolCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L894" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a work pool.
+
+
+### `WorkPoolUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L923" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a work pool.
+
+
+### `WorkQueueCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L939" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a work queue.
+
+
+### `WorkQueueUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L968" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a work queue.
+
+
+### `ArtifactCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L989" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create an artifact.
+
+
+**Methods:**
+
+#### `from_result` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L1029" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+from_result(cls, data: Any | dict[str, Any]) -> 'ArtifactCreate'
+```
+
+### `ArtifactUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L1047" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update an artifact.
+
+
+### `VariableCreate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L1057" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to create a Variable.
+
+
+### `VariableUpdate` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/schemas/actions.py#L1073" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Data used by the Prefect REST API to update a Variable.
+

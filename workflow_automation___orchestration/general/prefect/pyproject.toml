@@ -1,0 +1,386 @@
+[build-system]
+requires = ["hatchling", "versioningit"]
+build-backend = "hatchling.build"
+
+[project]
+name = "prefect"
+dynamic = ["version"]
+description = "Workflow orchestration and management."
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Prefect Technologies, Inc.", email = "help@prefect.io" }]
+classifiers = [
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    # Server dependencies
+    "aiosqlite>=0.17.0,<1.0.0",
+    "alembic>=1.7.5,<2.0.0",
+    "apprise>=1.1.0,<2.0.0",
+    "asyncpg>=0.23,<1.0.0",
+    "click>=8.0,<9",
+    "cryptography>=36.0.1",
+    "dateparser>=1.1.1,<2.0.0",
+    "docker>=4.0,<8.0",
+    "jinja2>=3.1.6,<4.0.0",
+    "jinja2-humanize-extension>=0.4.0",
+    "pytz>=2021.1,<2027",
+    "readchar>=4.0.0,<5.0.0",
+    "sqlalchemy[asyncio]>=2.0,<3.0.0",
+    "cyclopts>=4.8.0",
+    # Client dependencies
+    # If you modify this list, make the same modification in client/pyproject.toml
+    "amplitude-analytics>=1.2.1,<2.0.0",
+    "anyio>=4.4.0,<5.0.0",
+    "asgi-lifespan>=1.0,<3.0",
+    "cachetools>=5.3,<8.0",
+    "cloudpickle>=2.0,<4.0",
+    "coolname>=1.0.4,<5.0.0",
+    "exceptiongroup>=1.0.0",
+    "fastapi>=0.111.0,<1.0.0",
+    "fsspec>=2022.5.0",
+    "graphviz>=0.20.1",
+    "griffe>=0.49.0,<3.0.0",
+    "httpcore>=1.0.5,<2.0.0",
+    "httpx[http2]>=0.23,!=0.23.2",
+    "humanize>=4.9.0,<5.0.0",
+    "jsonpatch>=1.32,<2.0",
+    "jsonschema>=4.18.0,<5.0.0",
+    "opentelemetry-api>=1.27.0,<2.0.0",
+    "orjson>=3.7,<4.0",
+    "packaging>=21.3,<26.1",
+    "pathspec>=0.8.0",
+    "pendulum>=3.0.0,<4; python_version<'3.13'",
+    "prometheus-client>=0.20.0",
+    "pydantic>=2.10.1,<3.0.0,!=2.11.0,!=2.11.1,!=2.11.2,!=2.11.3,!=2.11.4",
+    "pydantic_core>=2.12.0,<3.0.0",
+    "pydantic_extra_types>=2.8.2,<3.0.0",
+    "pydantic_settings>2.2.1,<3.0.0,!=2.9.0",
+    "python-dateutil>=2.8.2,<3.0.0",
+    "python-slugify>=5.0,<9.0",
+    "pyyaml>=5.4.1,<7.0.0",
+    "rfc3339-validator>=0.1.4,<0.2.0",
+    "rich>=11.0,<15.0",
+    "ruamel.yaml>=0.17.0",
+    "ruamel.yaml.clib>=0.2.8; platform_python_implementation == 'CPython'",
+    "sniffio>=1.3.0,<2.0.0",
+    "toml>=0.10.0",
+    "typing_extensions>=4.10.0,<5.0.0",
+    "uvicorn>=0.14.0,!=0.29.0",
+    "websockets>=15.0.1,<17.0",
+    "whenever>=0.7.3,<0.10.0; python_version>='3.13'",
+    "semver>=3.0.4",
+    "pluggy>=1.6.0",
+    "pydocket>=0.17.7",
+]
+[project.urls]
+Changelog = "https://github.com/PrefectHQ/prefect/releases"
+Documentation = "https://docs.prefect.io"
+Source = "https://github.com/PrefectHQ/prefect"
+Tracker = "https://github.com/PrefectHQ/prefect/issues"
+
+[project.optional-dependencies]
+otel = [
+    "opentelemetry-distro>=0.48b0,<1.0.0",
+    "opentelemetry-exporter-otlp>=1.27.0,<2.0.0",
+    "opentelemetry-instrumentation>=0.48b0,<1.0.0",
+    "opentelemetry-instrumentation-logging>=0.48b0,<1.0.0",
+    "opentelemetry-instrumentation-system-metrics>=0.48b0,<1.0.0",
+    "opentelemetry-test-utils>=0.48b0,<1.0.0",
+]
+
+# bundles extra for bundle features (requires uv)
+bundles = ["uv>=0.6.0"]
+
+# Infrastructure extras
+aws = ["prefect-aws>=0.5.8"]
+azure = ["prefect-azure>=0.4.0"]
+gcp = ["prefect-gcp>=0.6.0"]
+docker = ["prefect-docker>=0.6.0"]
+kubernetes = ["prefect-kubernetes>=0.4.0"]
+shell = ["prefect-shell>=0.3.0"]
+# Build backend extras
+buildx = ["python-on-whales>=0.81"]
+# Distributed task execution extras
+dask = ["prefect-dask>=0.3.0"]
+ray = ["prefect-ray>=0.4.0"]
+# Version control extras
+bitbucket = ["prefect-bitbucket>=0.3.0"]
+github = ["prefect-github>=0.3.0"]
+gitlab = ["prefect-gitlab>=0.3.0"]
+# Database extras
+databricks = ["prefect-databricks>=0.3.0"]
+dbt = ["prefect-dbt>=0.6.0"]
+snowflake = ["prefect-snowflake>=0.28.0"]
+sqlalchemy = ["prefect-sqlalchemy>=0.5.0"]
+redis = ["prefect-redis>=0.2.0"]
+# Monitoring extras
+email = ["prefect-email>=0.4.0"]
+slack = ["prefect-slack>=0.3.0"]
+
+[project.scripts]
+prefect = "prefect.cli:app"
+
+[project.entry-points."mkdocs.plugins"]
+render_swagger = "prefect.utilities.render_swagger:SwaggerPlugin"
+
+[dependency-groups]
+dev = [
+    "cairosvg>=2.7.1; python_version<'3.14'",
+    "codespell>=2.2.6",
+    "ipython",
+    "jinja2>=3.1.6",
+    "moto>=5",
+    "numpy",
+    "pendulum[test]>=3.0.0,<4; python_version<'3.13'",
+    "pillow>=11.1.0; python_version<'3.14'",
+    "pre-commit>=4.1.0",
+    "pluggy>=1.5.0",
+    "pyright>=1.1.390",
+    "pytest>=8.3.4",
+    "pytest-asyncio<1.4",
+    "pytest-cov>=6.0",
+    "pytest-env>=1.1.5",
+    "pytest-flakefinder>=1.1.0",
+    "typsht>=0.0.1a4",
+    "pytest-timeout>=2.3.1",
+    "pytest-xdist>=3.6.1",
+    "pyyaml>=6.0.1",
+    "redis>=5.2.1",
+    "setuptools>=65.6.3",
+    "uv>=0.5.30",
+    "vale>=3.9.5",
+    "virtualenv>=20.29.2",
+    "watchfiles>=1.0.4",
+    "yamllint>=1.35.1",
+    "respx>=0.22.0",
+    "codespell==2.4.2",
+    "ruff==0.15.7",
+    "mypy==1.19.1",
+    "types-cachetools>=5.3.1",
+    "types-PyYAML>=6.0.12",
+    "types-dateparser>=1.2.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.4",
+    "mkdocstrings[python]>=0.28.0",
+    "mkdocs-gen-files>=0.5.0",
+    "whenever>=0.7.3,<1.0.0",
+    # Need to stay in sync with otel extra
+    "opentelemetry-distro>=0.48b0,<1.0.0",
+    "opentelemetry-exporter-otlp>=1.27.0,<2.0.0",
+    "opentelemetry-instrumentation>=0.48b0,<1.0.0",
+    "opentelemetry-instrumentation-logging>=0.48b0,<1.0.0",
+    "opentelemetry-instrumentation-system-metrics>=0.48b0,<1.0.0",
+    "opentelemetry-test-utils>=0.48b0,<1.0.0",
+]
+
+perf = ["logfire[fastapi,sqlalchemy]>=3.14.0", "pyinstrument>=5.0.0"]
+
+cli-bench = ["python-cli-bench @ git+https://github.com/zzstoatzz/python-cli-bench.git"]
+
+markdown-docs = [
+    "pytest-markdown-docs>=0.6.0",
+    "prefect[aws]",
+    "prefect[azure]",
+    "prefect[bitbucket]",
+    "prefect[dask]",
+    "prefect[databricks]",
+    "prefect[email]",
+    "prefect[gcp]",
+    "prefect[github]",
+    "prefect[gitlab]",
+    "prefect[kubernetes]",
+    "prefect[ray]",
+    "prefect[redis]",
+    "prefect[shell]",
+    "prefect[slack]",
+    "prefect[snowflake]",
+    "prefect[sqlalchemy]",
+]
+
+type-checking = [
+    "pandas>=2.2.3",
+    "pandas-stubs>=2.2.2.240807",
+    "pyright>=1.1.394",
+]
+
+
+benchmark = ["pytest-benchmark>=5.1.0", "pytest-codspeed>=2.2.1"]
+
+[tool.hatch.version]
+source = "versioningit"
+
+[tool.versioningit]
+# This fallback is used in git-less environments (e.g. archive builds).
+# It must stay above the highest prefect>= floor declared by in-repo integrations
+# (currently >=3.6.22 in prefect-aws / prefect-kubernetes) so that uv lock can
+# resolve integration dependencies against the local package.
+default-version = "3.6.24+nogit"
+
+[tool.versioningit.vcs]
+match = ["[0-9]*.[0-9]*.[0-9]*", "[0-9]*.[0-9]*.[0-9]*.dev[0-9]*"]
+# Dependabot clones with `--no-tags --depth 1`, so .git exists but
+# `git describe` finds no tags.  versioningit then uses default-tag as the
+# base version.  Keep this above the highest in-repo prefect>= floor
+# (currently >=3.6.22) so the local wheel satisfies integration constraints.
+default-tag = "3.6.24"
+
+[tool.versioningit.write]
+method = { module = "write_build_info", value = "write_build_info", module-dir = "tools" }
+path = "src/prefect/_build_info.py"
+
+[tool.versioningit.format]
+distance = "{base_version}+{distance}.{vcs}{rev}"
+dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+
+[tool.hatch.build]
+artifacts = ["src/prefect/_build_info.py", "src/prefect/_internal/analytics/_config.py", "src/prefect/server/ui", "src/prefect/server/ui-v2"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src/prefect", "/README.md", "/LICENSE", "/pyproject.toml"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/prefect"]
+# Hatch only includes Python files in wheel builds by default. Non-Python files
+# like Jinja2 templates must be explicitly included here so they're available
+# at runtime when using importlib.resources to load the SDK template.
+include = ["src/prefect/_sdk/templates/*.jinja"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-rfEs"
+norecursedirs = [
+    "*.egg-info",
+    ".git",
+    ".mypy_cache",
+    "node_modules",
+    ".pytest_cache",
+    ".vscode",
+]
+python_files = ["test_*.py", "bench_*.py"]
+python_functions = ["test_*", "bench_*"]
+markers = [
+    "service(arg): a service integration test. For example 'docker'",
+    "enable_api_log_handler: by default, sending logs to the API is disabled. Tests marked with this use the handler.",
+    "clear_db: marker to clear the database after test completion",
+    "windows: tests that specifically test Windows-only behavior",
+    "unix: tests that specifically test Unix-only behavior",
+]
+env = [
+    "PREFECT_TESTING_TEST_MODE=1",
+    "PREFECT_TESTING_UNIT_TEST_MODE=1",
+    "PREFECT_SERVER_LOGGING_LEVEL=DEBUG",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+timeout = 90
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:tornado.platform.asyncio.*",
+    "ignore::DeprecationWarning:tornado.ioloop",
+    "ignore:Default value default=",
+    "ignore:Implicitly cleaning up:ResourceWarning",
+    "ignore::ResourceWarning:distributed.diskutils",
+    "ignore:unclosed:ResourceWarning:distributed.node",
+    "ignore::ImportWarning:google.api_core.exceptions",
+    "ignore:coroutine 'Connection.cursor' was never awaited:RuntimeWarning",
+    "ignore:coroutine 'AsyncAdapt_asyncpg_cursor._prepare_and_execute' was never awaited:RuntimeWarning",
+    "ignore:the imp module is deprecated:DeprecationWarning",
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    "ignore:The distutils package is deprecated:DeprecationWarning",
+    "ignore:Skipped unsupported reflection of expression-based index:sqlalchemy.exc.SAWarning",
+    "ignore:The --rsyncdir command line argument and rsyncdirs config variable are deprecated.:DeprecationWarning",
+    "ignore:Prefect will drop support for Python 3.7:FutureWarning",
+    "ignore:`PREFECT_API_URL` uses `/account/` but should use `/accounts/`.:UserWarning",
+    "ignore:`PREFECT_API_URL` should have `/api` after the base URL.:UserWarning",
+    "ignore:datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version.:DeprecationWarning",
+    "ignore::DeprecationWarning:pendulum.*",                                                                             # TODO: remove when pendulum is removed
+    "ignore::DeprecationWarning:botocore.*",
+    "ignore::DeprecationWarning:coolname.*",
+    "ignore:Runner\\.execute_flow_run has been deprecated:prefect._internal.compatibility.deprecated.PrefectDeprecationWarning",
+    "ignore:Runner\\.execute_bundle has been deprecated:prefect._internal.compatibility.deprecated.PrefectDeprecationWarning",
+    "ignore:Runner\\.reschedule_current_flow_runs has been deprecated:prefect._internal.compatibility.deprecated.PrefectDeprecationWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore::ResourceWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::pluggy.PluggyTeardownRaisedWarning",
+]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+follow_imports = "skip"
+python_version = "3.10"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["@(abc.)?abstractmethod", "if TYPE_CHECKING:"]
+omit = ["src/prefect/server/database/migrations/versions/*"]
+ignore_errors = true
+
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401", "I"]
+"main.py" = ["E402", "F401", "I"]
+"src/prefect/utilities/compat.py" = ["F401", "I"]
+"tests/conftest.py" = ["F405", "E402", "F403"]
+"src/prefect/runtime/*" = ["F822"]
+"src/prefect/server/database/migrations/**/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-third-party = []
+
+[tool.codespell]
+skip = [
+    ".git",
+    "*.pdf",
+    "*.svg",
+    "package-lock.json",
+    "_vendor",
+    "*.css",
+    "tests/utilities/test_text.py",
+    "pyproject.toml",
+]
+# from https://github.com/PrefectHQ/prefect/pull/10813#issuecomment-1732676130
+ignore-regex = ".*lazy=\"selectin\"|.*e import Bloc$|America/Nome"
+
+ignore-words-list = [
+    "selectin",
+    "aci",
+    "wqs",
+    "aks",
+    "ines",
+    "dependant",
+    "fsspec",
+    "automations",
+    "nmme",
+    "afterall",
+    "medias",
+    "falso",
+    "aapply",
+]
+
+check-hidden = true
+
+
+[tool.uv]
+required-version = ">=0.6.15" # make sure upload_time is included to avoid churn (see https://github.com/dependabot/dependabot-core/issues/12127)

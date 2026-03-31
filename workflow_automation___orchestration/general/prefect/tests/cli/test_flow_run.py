@@ -1,0 +1,1747 @@
+from __future__ import annotations
+
+import json
+import os
+import signal
+import subprocess
+from time import sleep
+from typing import Any, Awaitable, Callable
+from unittest.mock import AsyncMock, MagicMock
+from uuid import UUID, uuid4
+
+import anyio
+import pytest
+
+import prefect.exceptions
+from prefect import __development_base_path__, flow
+from prefect.cli.flow_run import LOGS_WITH_LIMIT_FLAG_DEFAULT_NUM_LOGS
+from prefect.client.orchestration import PrefectClient, SyncPrefectClient
+from prefect.client.schemas.actions import LogCreate
+from prefect.client.schemas.objects import FlowRun
+from prefect.deployments.runner import RunnerDeployment
+from prefect.settings import PREFECT_UI_URL, temporary_settings
+from prefect.settings.context import get_current_settings
+from prefect.states import (
+    AwaitingRetry,
+    Cancelled,
+    Completed,
+    Crashed,
+    Failed,
+    Late,
+    Pending,
+    Retrying,
+    Running,
+    Scheduled,
+    State,
+    StateType,
+)
+from prefect.testing.cli import invoke_and_assert
+from prefect.types._datetime import now
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
+
+
+@flow(name="hello")
+def hello_flow():
+    return "Hello!"
+
+
+@flow(name="goodbye")
+def goodbye_flow():
+    return "Goodbye"
+
+
+@flow()
+def tired_flow():
+    print("I am so tired...")
+
+    for _ in range(100):
+        print("zzzzz...")
+        sleep(5)
+
+
+async def assert_flow_run_is_deleted(prefect_client: PrefectClient, flow_run_id: UUID):
+    """
+    Make sure that the flow run created for our CLI test is actually deleted.
+    """
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_flow_run(flow_run_id)
+
+
+def assert_flow_run_is_deleted_sync(
+    prefect_client: SyncPrefectClient, flow_run_id: UUID
+):
+    """
+    Make sure that the flow run created for our CLI test is actually deleted.
+    """
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        prefect_client.read_flow_run(flow_run_id)
+
+
+def assert_flow_runs_in_result(result: Any, expected: Any, unexpected: Any = None):
+    output = result.stdout.strip()
+
+    # When running in tests the output of the columns in the table are
+    # truncated, so this only asserts that the first 20 characters of each
+    # flow run's id is in the output.
+
+    for flow_run in expected:
+        id_start = str(flow_run.id)[:20]
+        assert id_start in output
+
+    if unexpected:
+        for flow_run in unexpected:
+            id_start = str(flow_run.id)[:20]
+            assert id_start not in output, f"{flow_run} should not be in the output"
+
+
+@pytest.fixture
+async def scheduled_flow_run(prefect_client: PrefectClient) -> FlowRun:
+    return await prefect_client.create_flow_run(
+        name="scheduled_flow_run", flow=hello_flow, state=Scheduled()
+    )
+
+
+@pytest.fixture
+async def completed_flow_run(prefect_client: PrefectClient) -> FlowRun:
+    return await prefect_client.create_flow_run(
+        name="completed_flow_run", flow=hello_flow, state=Completed()
+    )
+
+
+@pytest.fixture
+async def running_flow_run(prefect_client: PrefectClient) -> FlowRun:
+    return await prefect_client.create_flow_run(
+        name="running_flow_run", flow=goodbye_flow, state=Running()
+    )
+
+
+@pytest.fixture
+async def late_flow_run(prefect_client: PrefectClient) -> FlowRun:
+    return await prefect_client.create_flow_run(
+        name="late_flow_run", flow=goodbye_flow, state=Late()
+    )
+
+
+def test_delete_flow_run_fails_correctly():
+    missing_flow_run_id = "ccb86ed0-e824-4d8b-b825-880401320e41"
+    invoke_and_assert(
+        command=["flow-run", "delete", missing_flow_run_id],
+        user_input="y",
+        expected_output_contains=f"Flow run '{missing_flow_run_id}' not found!",
+        expected_code=1,
+    )
+
+
+def test_delete_flow_run_succeeds(
+    sync_prefect_client: SyncPrefectClient, flow_run: FlowRun
+):
+    invoke_and_assert(
+        command=["flow-run", "delete", str(flow_run.id)],
+        user_input="y",
+        expected_output_contains=f"Successfully deleted flow run '{str(flow_run.id)}'.",
+        expected_code=0,
+    )
+
+    assert_flow_run_is_deleted_sync(sync_prefect_client, flow_run.id)
+
+
+@pytest.fixture
+def mock_webbrowser(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    mock = MagicMock()
+    import webbrowser as _wb
+
+    monkeypatch.setattr(_wb, "open_new_tab", mock.open_new_tab)
+    return mock
+
+
+def test_inspect_flow_run_with_web_flag(flow_run: FlowRun, mock_webbrowser: MagicMock):
+    invoke_and_assert(
+        command=["flow-run", "inspect", str(flow_run.id), "--web"],
+        expected_code=0,
+        expected_output_contains=f"Opened flow run {flow_run.id!r} in browser.",
+    )
+
+    mock_webbrowser.open_new_tab.assert_called_once()
+    call_args = mock_webbrowser.open_new_tab.call_args[0][0]
+    assert f"/runs/flow-run/{flow_run.id}" in call_args
+
+
+def test_inspect_flow_run_with_web_flag_no_ui_url(
+    flow_run: FlowRun, mock_webbrowser: MagicMock
+):
+    with temporary_settings({PREFECT_UI_URL: ""}):
+        invoke_and_assert(
+            command=["flow-run", "inspect", str(flow_run.id), "--web"],
+            expected_code=1,
+            expected_output_contains="Failed to generate URL for flow run. Make sure PREFECT_UI_URL is configured.",
+        )
+
+    mock_webbrowser.open_new_tab.assert_not_called()
+
+
+def test_inspect_flow_run_with_json_output(flow_run: FlowRun):
+    """Test flow-run inspect command with JSON output flag."""
+    result = invoke_and_assert(
+        command=["flow-run", "inspect", str(flow_run.id), "--output", "json"],
+        expected_code=0,
+    )
+
+    # Parse JSON output and verify it's valid JSON
+    output_data = json.loads(result.stdout.strip())
+
+    # Verify key fields are present
+    assert "id" in output_data
+    assert "name" in output_data
+    assert "state" in output_data
+    assert output_data["id"] == str(flow_run.id)
+
+
+def test_ls_no_args(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+    late_flow_run: FlowRun,
+):
+    result = invoke_and_assert(
+        command=["flow-run", "ls"],
+        expected_code=0,
+    )
+
+    assert_flow_runs_in_result(
+        result,
+        [
+            scheduled_flow_run,
+            completed_flow_run,
+            running_flow_run,
+            late_flow_run,
+        ],
+    )
+
+
+def test_ls_flow_name_filter(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+    late_flow_run: FlowRun,
+):
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "--flow-name", "goodbye"],
+        expected_code=0,
+    )
+
+    assert_flow_runs_in_result(
+        result,
+        expected=[running_flow_run, late_flow_run],
+        unexpected=[scheduled_flow_run, completed_flow_run],
+    )
+
+
+@pytest.mark.parametrize(
+    "state_type_1, state_type_2",
+    [
+        ("completed", "running"),
+        ("COMPLETED", "RUNNING"),
+        ("Completed", "Running"),
+    ],
+)
+def test_ls_state_type_filter(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+    late_flow_run: FlowRun,
+    state_type_1: str,
+    state_type_2: str,
+):
+    result = invoke_and_assert(
+        command=[
+            "flow-run",
+            "ls",
+            "--state-type",
+            state_type_1,
+            "--state-type",
+            state_type_2,
+        ],
+        expected_code=0,
+    )
+
+    assert_flow_runs_in_result(
+        result,
+        expected=[running_flow_run, completed_flow_run],
+        unexpected=[scheduled_flow_run, late_flow_run],
+    )
+
+
+def test_ls_state_type_filter_invalid_raises():
+    invoke_and_assert(
+        command=["flow-run", "ls", "--state-type", "invalid"],
+        expected_code=1,
+        expected_output_contains=(
+            "Invalid state type. Options are SCHEDULED, PENDING, RUNNING, COMPLETED, FAILED, CANCELLED, CRASHED, PAUSED, CANCELLING."
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "state_name",
+    [
+        "Late",
+        "LATE",
+        "late",
+    ],
+)
+def test_ls_state_name_filter(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+    late_flow_run: FlowRun,
+    state_name: str,
+):
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "--state", state_name],
+        expected_code=0,
+    )
+
+    assert_flow_runs_in_result(
+        result,
+        expected=[late_flow_run],
+        unexpected=[running_flow_run, scheduled_flow_run, completed_flow_run],
+    )
+
+
+def test_ls_state_name_filter_unofficial_state_warns(caplog):
+    invoke_and_assert(
+        command=["flow-run", "ls", "--state", "MyCustomState"],
+        expected_code=0,
+        expected_output_contains=("No flow runs found.",),
+    )
+
+    assert (
+        "State name 'MyCustomState' is not one of the official Prefect state names"
+        in caplog.text
+    )
+
+
+def test_ls_limit(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+    late_flow_run: FlowRun,
+):
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "--limit", "2"],
+        expected_code=0,
+    )
+
+    output = result.stdout.strip()
+
+    found_count = 0
+    for flow_run in [
+        scheduled_flow_run,
+        completed_flow_run,
+        running_flow_run,
+        late_flow_run,
+    ]:
+        id_start = str(flow_run.id)[:20]
+        if id_start in output:
+            found_count += 1
+
+    assert found_count == 2
+
+
+def test_ls_json_output(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+):
+    """Test flow-run ls command with JSON output flag."""
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "-o", "json"],
+        expected_code=0,
+    )
+
+    # Parse JSON output and verify it's valid JSON array
+    output_data = json.loads(result.stdout.strip())
+    assert isinstance(output_data, list)
+
+    output_ids = {item["id"] for item in output_data}
+    assert str(scheduled_flow_run.id) in output_ids
+    assert str(completed_flow_run.id) in output_ids
+    assert str(running_flow_run.id) in output_ids
+
+
+def test_ls_json_output_empty():
+    """Test flow-run ls with JSON output when no flow runs exist."""
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "-o", "json"],
+        expected_code=0,
+    )
+
+    output_data = json.loads(result.stdout.strip())
+    assert output_data == []
+
+    assert "No flow runs found" not in result.stdout
+
+
+def test_ls_json_output_with_state_filter(
+    scheduled_flow_run: FlowRun,
+    completed_flow_run: FlowRun,
+    running_flow_run: FlowRun,
+):
+    """Test flow-run ls with JSON output and state filter."""
+    result = invoke_and_assert(
+        command=["flow-run", "ls", "--state", "Running", "-o", "json"],
+        expected_code=0,
+    )
+
+    # Parse JSON output
+    output_data = json.loads(result.stdout.strip())
+    assert isinstance(output_data, list)
+
+    output_ids = {item["id"] for item in output_data}
+    assert str(running_flow_run.id) in output_ids
+    assert str(scheduled_flow_run.id) not in output_ids
+    assert str(completed_flow_run.id) not in output_ids
+
+
+def test_ls_invalid_output_format():
+    """Test flow-run ls with invalid output format."""
+    invoke_and_assert(
+        command=["flow-run", "ls", "-o", "xml"],
+        expected_code=1,
+        expected_output_contains="Only 'json' output format is supported.",
+    )
+
+
+class TestCancelFlowRun:
+    @pytest.mark.parametrize(
+        "state",
+        [
+            Running,
+            Pending,
+            Retrying,
+        ],
+    )
+    async def test_non_terminal_states_set_to_cancelling(
+        self, prefect_client: PrefectClient, state: State
+    ):
+        """Should set the state of the flow to Cancelling. Does not include Scheduled
+        states, because they should be set to Cancelled instead.
+        """
+        before = await prefect_client.create_flow_run(
+            name="scheduled_flow_run", flow=hello_flow, state=state()
+        )
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "cancel",
+                str(before.id),
+            ],
+            expected_code=0,
+            expected_output_contains=(
+                f"Flow run '{before.id}' was successfully scheduled for cancellation."
+            ),
+        )
+        after = await prefect_client.read_flow_run(before.id)
+        assert before.state.name != after.state.name
+        assert before.state.type != after.state.type
+        assert after.state.type == StateType.CANCELLING
+
+    @pytest.mark.parametrize(
+        "state",
+        [
+            Scheduled,
+            AwaitingRetry,
+            Late,
+        ],
+    )
+    async def test_scheduled_states_set_to_cancelled(
+        self, prefect_client: PrefectClient, state: State
+    ):
+        """Should set the state of the flow run to Cancelled."""
+        before = await prefect_client.create_flow_run(
+            name="scheduled_flow_run", flow=hello_flow, state=state()
+        )
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "cancel",
+                str(before.id),
+            ],
+            expected_code=0,
+            expected_output_contains=(
+                f"Flow run '{before.id}' was successfully scheduled for cancellation."
+            ),
+        )
+        after = await prefect_client.read_flow_run(before.id)
+        assert before.state.name != after.state.name
+        assert before.state.type != after.state.type
+        assert after.state.type == StateType.CANCELLED
+
+    @pytest.mark.parametrize("state", [Completed, Failed, Crashed, Cancelled])
+    async def test_cancelling_terminal_states_exits_with_error(
+        self, prefect_client: PrefectClient, state: State
+    ):
+        before = await prefect_client.create_flow_run(
+            name="scheduled_flow_run", flow=hello_flow, state=state()
+        )
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "cancel",
+                str(before.id),
+            ],
+            expected_code=1,
+            expected_output_contains=(
+                f"Flow run '{before.id}' was unable to be cancelled."
+            ),
+        )
+        after = await prefect_client.read_flow_run(before.id)
+
+        assert after.state.name == before.state.name
+        assert after.state.type == before.state.type
+
+    def test_wrong_id_exits_with_error(self):
+        bad_id = str(uuid4())
+        invoke_and_assert(
+            ["flow-run", "cancel", bad_id],
+            expected_code=1,
+            expected_output_contains=f"Flow run '{bad_id}' not found!\n",
+        )
+
+
+class TestGetFlowRunByIdOrName:
+    """Tests for the _get_flow_run_by_id_or_name helper function."""
+
+    async def test_lookup_by_valid_uuid(self, prefect_client: PrefectClient):
+        """Test that lookup by valid UUID returns the flow run."""
+        flow_run = await prefect_client.create_flow_run(
+            flow=hello_flow,
+            state=Completed(),
+        )
+
+        # Verify can look up by full UUID via the retry command (which uses the helper)
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "retry",
+                str(flow_run.id),
+                "--entrypoint",
+                "fake.py:flow",
+            ],
+            expected_code=1,
+            # Should fail on entrypoint loading, not on lookup
+            expected_output_contains="Failed to load flow from entrypoint",
+        )
+
+    async def test_lookup_by_invalid_uuid_treated_as_name(
+        self, prefect_client: PrefectClient
+    ):
+        """Test that an invalid UUID-like string is treated as a name."""
+        # Create a flow run with a name that looks almost like a UUID
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment",
+        )
+
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+            name="not-a-uuid-but-similar",
+        )
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=Failed(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "not-a-uuid-but-similar"],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+    async def test_lookup_by_name_case_sensitive(self, prefect_client: PrefectClient):
+        """Test that name lookup is case sensitive."""
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment-case",
+        )
+
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+            name="MyFlowRunName",
+        )
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=Failed(), force=True
+        )
+
+        # Exact case should work
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "MyFlowRunName"],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+    async def test_lookup_by_name_not_found(self):
+        """Test that non-existent name returns not found error."""
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "definitely-not-a-real-flow-run-name"],
+            expected_code=1,
+            expected_output_contains="not found",
+        )
+
+
+class TestFlowRunRetry:
+    async def test_retry_nonexistent_flow_run_by_id(self):
+        """Test retrying a flow run that doesn't exist (by UUID)."""
+        bad_id = str(uuid4())
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", bad_id],
+            expected_code=1,
+            expected_output_contains="not found",
+        )
+
+    async def test_retry_nonexistent_flow_run_by_name(self):
+        """Test retrying a flow run that doesn't exist (by name)."""
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "nonexistent-flow-run-name"],
+            expected_code=1,
+            expected_output_contains="not found",
+        )
+
+    async def test_retry_by_name_unique(self, prefect_client: PrefectClient):
+        """Test retrying a flow run by name when name is unique."""
+        # Create a deployment
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment",
+        )
+
+        # Create a flow run with a unique name and deployment, then set to failed state
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+            name="unique-test-flow-run",
+        )
+        # Set to terminal state for retry
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=Failed(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "unique-test-flow-run"],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+        # Verify the correct flow run was retried
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.SCHEDULED
+
+    async def test_retry_by_name_multiple_matches(self, prefect_client: PrefectClient):
+        """Test that retrying by name shows error when multiple flow runs match."""
+        # Create a deployment
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment-multi",
+        )
+
+        # Create two flow runs with the same name
+        flow_run1 = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+            name="duplicate-name",
+        )
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run1.id, state=Failed(), force=True
+        )
+
+        flow_run2 = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+            name="duplicate-name",
+        )
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run2.id, state=Completed(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", "duplicate-name"],
+            expected_code=1,
+            expected_output_contains=[
+                "Multiple flow runs found",
+                str(flow_run1.id),
+                str(flow_run2.id),
+                "Please retry using an explicit flow run ID",
+            ],
+        )
+
+    @pytest.mark.parametrize("state", [Running, Pending, Scheduled])
+    async def test_retry_non_terminal_flow_run(
+        self, prefect_client: PrefectClient, state: State
+    ):
+        """Test retrying a flow run that's not in a terminal state."""
+        flow_run = await prefect_client.create_flow_run(
+            flow=hello_flow,
+            state=state(),
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", str(flow_run.id)],
+            expected_code=1,
+            expected_output_contains="cannot be retried",
+        )
+
+    async def test_retry_without_deployment_requires_entrypoint(
+        self, prefect_client: PrefectClient
+    ):
+        """Test that retrying without deployment requires --entrypoint."""
+        flow_run = await prefect_client.create_flow_run(
+            flow=hello_flow,
+            state=Failed(),
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", str(flow_run.id)],
+            expected_code=1,
+            expected_output_contains="does not have an associated deployment",
+        )
+
+    async def test_retry_with_deployment_schedules_run(
+        self, prefect_client: PrefectClient
+    ):
+        """Test that retrying with deployment sets state to Scheduled."""
+        # Create a deployment
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment-retry",
+        )
+
+        # Create a flow run with deployment
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+        )
+        # Set to failed state
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=Failed(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", str(flow_run.id)],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+        # Verify state changed to Scheduled
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.SCHEDULED
+
+    @pytest.mark.parametrize("state", [Completed, Failed, Cancelled, Crashed])
+    async def test_retry_terminal_states(
+        self, prefect_client: PrefectClient, state: State
+    ):
+        """Test retrying flow runs in various terminal states."""
+        # Create a deployment
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name=f"test-deployment-{state.__name__}",
+        )
+
+        # Create a flow run with deployment
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+        )
+        # Set to the specific terminal state
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=state(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", str(flow_run.id)],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+        # Verify state changed to Scheduled
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.SCHEDULED
+
+    async def test_retry_invalid_entrypoint(self, prefect_client: PrefectClient):
+        """Test that an invalid entrypoint returns error."""
+        flow_run = await prefect_client.create_flow_run(
+            flow=hello_flow,
+            state=Failed(),
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "retry",
+                str(flow_run.id),
+                "--entrypoint",
+                "/nonexistent/path.py:flow",
+            ],
+            expected_code=1,
+            expected_output_contains="Failed to load flow from entrypoint",
+        )
+
+
+class TestFlowRunRetryIntegration:
+    async def test_retry_local_execution_with_entrypoint(
+        self, prefect_client: PrefectClient, tmp_path
+    ):
+        """Test retrying a flow run locally with entrypoint."""
+        # Create a test flow file
+        flow_file = tmp_path / "test_flow.py"
+        flow_file.write_text(
+            """
+from prefect import flow
+
+@flow
+def my_test_flow(value: int = 42):
+    return value * 2
+"""
+        )
+
+        @flow
+        def my_test_flow(value: int = 42):
+            return value * 2
+
+        # Create a failed flow run without deployment
+        flow_run = await prefect_client.create_flow_run(
+            flow=my_test_flow,
+            parameters={"value": 10},
+            state=Failed(message="Initial failure"),
+        )
+        initial_run_count = flow_run.run_count
+
+        # Retry with entrypoint
+        entrypoint = f"{flow_file}:my_test_flow"
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "retry",
+                str(flow_run.id),
+                "--entrypoint",
+                entrypoint,
+            ],
+            expected_code=0,
+            expected_output_contains="completed successfully",
+        )
+
+        # Verify same flow run ID was used and run_count incremented
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.COMPLETED
+        assert updated_run.run_count > initial_run_count
+
+    async def test_retry_local_execution_preserves_parameters(
+        self, prefect_client: PrefectClient, tmp_path
+    ):
+        """Test that retrying a flow run preserves the original parameters."""
+        # Create a test flow file that uses parameters
+        flow_file = tmp_path / "test_param_flow.py"
+        flow_file.write_text(
+            """
+from prefect import flow
+
+@flow
+def param_flow(x: int, y: str = "default"):
+    return f"{x}-{y}"
+"""
+        )
+
+        @flow
+        def param_flow(x: int, y: str = "default"):
+            return f"{x}-{y}"
+
+        # Create a failed flow run with specific parameters
+        flow_run = await prefect_client.create_flow_run(
+            flow=param_flow,
+            parameters={"x": 42, "y": "custom"},
+            state=Failed(message="Initial failure"),
+        )
+
+        # Retry with entrypoint
+        entrypoint = f"{flow_file}:param_flow"
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "retry",
+                str(flow_run.id),
+                "--entrypoint",
+                entrypoint,
+            ],
+            expected_code=0,
+            expected_output_contains="completed successfully",
+        )
+
+        # Verify the flow run completed successfully (meaning parameters worked)
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.COMPLETED
+
+    async def test_retry_local_execution_parameter_mismatch(
+        self, prefect_client: PrefectClient, tmp_path
+    ):
+        """Test that parameter mismatch produces appropriate error."""
+        # Create a test flow file with DIFFERENT signature than the original
+        flow_file = tmp_path / "test_mismatch_flow.py"
+        flow_file.write_text(
+            """
+from prefect import flow
+
+@flow
+def mismatch_flow(completely_different_param: str):
+    return completely_different_param
+"""
+        )
+
+        @flow
+        def original_flow(x: int, y: int):
+            return x + y
+
+        # Create a failed flow run with original parameters
+        flow_run = await prefect_client.create_flow_run(
+            flow=original_flow,
+            parameters={"x": 1, "y": 2},
+            state=Failed(message="Initial failure"),
+        )
+
+        # Retry with a flow that has incompatible signature
+        entrypoint = f"{flow_file}:mismatch_flow"
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "retry",
+                str(flow_run.id),
+                "--entrypoint",
+                entrypoint,
+            ],
+            expected_code=1,
+            expected_output_contains="Failed to use parameters from previous attempt",
+        )
+
+    async def test_retry_with_infrastructure_bound_flow_error_handling(
+        self, prefect_client: PrefectClient, tmp_path, monkeypatch
+    ):
+        """Test retrying a flow run with InfrastructureBoundFlow - error path."""
+        from unittest.mock import AsyncMock, patch
+
+        from prefect.flows import InfrastructureBoundFlow
+
+        # Create a test flow file with infrastructure binding
+        flow_file = tmp_path / "test_infra_flow.py"
+        flow_file.write_text(
+            """
+from prefect import flow
+from prefect.flows import InfrastructureBoundFlow
+
+@flow
+def infra_test_flow():
+    return "success"
+"""
+        )
+
+        @flow
+        def infra_test_flow():
+            return "success"
+
+        # Create a failed flow run without deployment
+        flow_run = await prefect_client.create_flow_run(
+            flow=infra_test_flow,
+            state=Failed(message="Initial failure"),
+        )
+
+        # Create a mock InfrastructureBoundFlow that raises an exception
+        mock_infra_flow = MagicMock(spec=InfrastructureBoundFlow)
+        mock_infra_flow.work_pool = "test-pool"
+        mock_infra_flow.retry = AsyncMock(
+            side_effect=RuntimeError("Infrastructure error")
+        )
+
+        # Patch at the source module where it's imported from
+        with patch(
+            "prefect.flows.load_flow_from_entrypoint", return_value=mock_infra_flow
+        ):
+            entrypoint = f"{flow_file}:infra_test_flow"
+            await run_sync_in_worker_thread(
+                invoke_and_assert,
+                command=[
+                    "flow-run",
+                    "retry",
+                    str(flow_run.id),
+                    "--entrypoint",
+                    entrypoint,
+                ],
+                expected_code=1,
+                expected_output_contains=[
+                    "remote infrastructure",
+                    "Flow run failed: Infrastructure error",
+                ],
+            )
+
+        # Verify retry was called on the infrastructure bound flow
+        mock_infra_flow.retry.assert_called_once()
+
+    async def test_retry_failed_state_message(self, prefect_client: PrefectClient):
+        """Test that retrying sets an appropriate state message."""
+        # Create a deployment
+        flow_id = await prefect_client.create_flow(hello_flow)
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment-message",
+        )
+
+        # Create a flow run with deployment
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id,
+        )
+        # Set to failed state
+        await prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id, state=Failed(), force=True
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "retry", str(flow_run.id)],
+            expected_code=0,
+            expected_output_contains="scheduled for retry",
+        )
+
+        # Verify state message
+        updated_run = await prefect_client.read_flow_run(flow_run.id)
+        assert updated_run.state.type == StateType.SCHEDULED
+        assert "Retried via CLI" in (updated_run.state.message or "")
+
+
+@pytest.fixture()
+def flow_run_factory(
+    prefect_client: PrefectClient,
+) -> Callable[[int], Awaitable[FlowRun]]:
+    async def create_flow_run(num_logs: int) -> FlowRun:
+        flow_run = await prefect_client.create_flow_run(
+            name="scheduled_flow_run", flow=hello_flow
+        )
+
+        logs = [
+            LogCreate(
+                name="prefect.flow_runs",
+                level=20,
+                message=f"Log {i} from flow_run {flow_run.id}.",
+                timestamp=now(),
+                flow_run_id=flow_run.id,
+            )
+            for i in range(num_logs)
+        ]
+        await prefect_client.create_logs(logs)
+
+        return flow_run
+
+    return create_flow_run
+
+
+class TestFlowRunLogs:
+    LOGS_DEFAULT_PAGE_SIZE = 200
+
+    async def test_logs_json_output_with_num_logs(self, flow_run_factory):
+        flow_run = await flow_run_factory(num_logs=25)
+
+        result = await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--num-logs",
+                "10",
+                "-o",
+                "json",
+            ],
+            expected_code=0,
+        )
+
+        output_data = json.loads(result.stdout.strip())
+        assert isinstance(output_data, list)
+        assert len(output_data) == 10
+        assert [item["message"] for item in output_data] == [
+            f"Log {i} from flow_run {flow_run.id}." for i in range(10)
+        ]
+
+    async def test_logs_invalid_output_format(self, flow_run_factory):
+        flow_run = await flow_run_factory(num_logs=1)
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "logs", str(flow_run.id), "-o", "xml"],
+            expected_code=1,
+            expected_output_contains="Only 'json' output format is supported.",
+        )
+
+    async def test_when_num_logs_smaller_than_page_size_then_no_pagination(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE - 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(self.LOGS_DEFAULT_PAGE_SIZE - 1)
+            ],
+        )
+
+    async def test_when_num_logs_greater_than_page_size_then_pagination(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(self.LOGS_DEFAULT_PAGE_SIZE + 1)
+            ],
+        )
+
+    async def test_when_flow_run_not_found_then_exit_with_error(self, flow_run_factory):
+        # Given
+        bad_id = str(uuid4())
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                bad_id,
+            ],
+            expected_code=1,
+            expected_output_contains=f"Flow run '{bad_id}' not found!\n",
+        )
+
+    async def test_when_num_logs_smaller_than_page_size_with_head_then_no_pagination(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--head",
+                "--num-logs",
+                "10",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(10)
+            ],
+            expected_line_count=10,
+        )
+
+    async def test_when_num_logs_greater_than_page_size_with_head_then_pagination(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--head",
+                "--num-logs",
+                self.LOGS_DEFAULT_PAGE_SIZE + 1,
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(self.LOGS_DEFAULT_PAGE_SIZE + 1)
+            ],
+            expected_line_count=self.LOGS_DEFAULT_PAGE_SIZE + 1,
+        )
+
+    async def test_when_num_logs_greater_than_page_size_with_head_outputs_correct_num_logs(
+        self, flow_run_factory
+    ):
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 50)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--head",
+                "--num-logs",
+                self.LOGS_DEFAULT_PAGE_SIZE + 50,
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(self.LOGS_DEFAULT_PAGE_SIZE + 50)
+            ],
+            expected_line_count=self.LOGS_DEFAULT_PAGE_SIZE + 50,
+        )
+
+    async def test_default_head_returns_default_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--head",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(LOGS_WITH_LIMIT_FLAG_DEFAULT_NUM_LOGS)
+            ],
+            expected_line_count=LOGS_WITH_LIMIT_FLAG_DEFAULT_NUM_LOGS,
+        )
+
+    async def test_h_and_n_shortcuts_for_head_and_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "-h",
+                "-n",
+                "10",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(10)
+            ],
+            expected_line_count=10,
+        )
+
+    async def test_num_logs_passed_standalone_returns_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--num-logs",
+                "10",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(10)
+            ],
+            expected_line_count=10,
+        )
+
+    @pytest.mark.skip(reason="we need to disable colors for this test to pass")
+    async def test_when_num_logs_is_smaller_than_one_then_exit_with_error(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--num-logs",
+                "0",
+            ],
+            expected_code=2,
+            expected_output_contains=(
+                "Invalid value for '--num-logs' / '-n': 0 is not in the range x>=1."
+            ),
+        )
+
+    async def test_when_num_logs_passed_with_reverse_param_and_num_logs(
+        self, flow_run_factory
+    ):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--num-logs",
+                "10",
+                "--reverse",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(
+                    self.LOGS_DEFAULT_PAGE_SIZE, self.LOGS_DEFAULT_PAGE_SIZE - 10, -1
+                )
+            ],
+            expected_line_count=10,
+        )
+
+    async def test_passing_head_and_tail_raises(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--tail",
+                "--num-logs",
+                "10",
+                "--head",
+            ],
+            expected_code=1,
+            expected_output_contains=(
+                "Please provide either a `head` or `tail` option but not both."
+            ),
+        )
+
+    async def test_default_tail_returns_default_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "logs", str(flow_run.id), "-t"],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(
+                    self.LOGS_DEFAULT_PAGE_SIZE - 9, self.LOGS_DEFAULT_PAGE_SIZE
+                )
+            ],
+            expected_line_count=20,
+        )
+
+    async def test_reverse_tail_with_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--tail",
+                "--num-logs",
+                "10",
+                "--reverse",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(
+                    self.LOGS_DEFAULT_PAGE_SIZE, self.LOGS_DEFAULT_PAGE_SIZE - 10, -1
+                )
+            ],
+            expected_line_count=10,
+        )
+
+    async def test_reverse_tail_returns_default_num_logs(self, flow_run_factory):
+        # Given
+        flow_run = await flow_run_factory(num_logs=self.LOGS_DEFAULT_PAGE_SIZE + 1)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--tail",
+                "--reverse",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(
+                    self.LOGS_DEFAULT_PAGE_SIZE, self.LOGS_DEFAULT_PAGE_SIZE - 20, -1
+                )
+            ],
+            expected_line_count=20,
+        )
+
+    async def test_when_num_logs_greater_than_page_size_with_tail_outputs_correct_num_logs(
+        self, flow_run_factory
+    ):
+        # Given
+        num_logs = 300
+        flow_run = await flow_run_factory(num_logs=num_logs)
+
+        # When/Then
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=[
+                "flow-run",
+                "logs",
+                str(flow_run.id),
+                "--tail",
+                "--num-logs",
+                "251",
+            ],
+            expected_code=0,
+            expected_output_contains=[
+                f"Flow run '{flow_run.name}' - Log {i} from flow_run {flow_run.id}."
+                for i in range(num_logs - 250, num_logs)
+            ],
+            expected_line_count=251,
+        )
+
+
+class TestFlowRunWatch:
+    def test_watch_completed_flow_run(self, flow_run: FlowRun, monkeypatch):
+        """Test watching a flow run that completes successfully."""
+        completed_run = FlowRun.model_construct(
+            id=flow_run.id,
+            flow_id=flow_run.flow_id,
+            name=flow_run.name,
+            state=Completed(),
+        )
+
+        mock_watch = AsyncMock(return_value=completed_run)
+        monkeypatch.setattr(
+            "prefect.cli.flow_run.watch_flow_run",
+            mock_watch,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id)],
+            expected_code=0,
+            expected_output_contains="Flow run finished successfully",
+        )
+
+        mock_watch.assert_called_once()
+        assert mock_watch.call_args[0][0] == flow_run.id
+
+    def test_watch_failed_flow_run(self, flow_run: FlowRun, monkeypatch):
+        """Test watching a flow run that fails."""
+        failed_run = FlowRun.model_construct(
+            id=flow_run.id,
+            flow_id=flow_run.flow_id,
+            name=flow_run.name,
+            state=Failed(),
+        )
+
+        mock_watch = AsyncMock(return_value=failed_run)
+        monkeypatch.setattr(
+            "prefect.cli.flow_run.watch_flow_run",
+            mock_watch,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id)],
+            expected_code=1,
+            expected_output_contains="Flow run finished in state 'Failed'",
+        )
+
+    def test_watch_with_timeout(self, flow_run: FlowRun, monkeypatch):
+        """Test that --timeout is passed through to watch_flow_run."""
+        completed_run = FlowRun.model_construct(
+            id=flow_run.id,
+            flow_id=flow_run.flow_id,
+            name=flow_run.name,
+            state=Completed(),
+        )
+
+        mock_watch = AsyncMock(return_value=completed_run)
+        monkeypatch.setattr(
+            "prefect.cli.flow_run.watch_flow_run",
+            mock_watch,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id), "--timeout", "300"],
+            expected_code=0,
+            expected_output_contains="Flow run finished successfully",
+        )
+
+        mock_watch.assert_called_once()
+        assert mock_watch.call_args[1]["timeout"] == 300
+
+    def test_watch_unknown_state(self, flow_run: FlowRun, monkeypatch):
+        """Test watching a flow run that finishes with no state."""
+        unknown_run = FlowRun.model_construct(
+            id=flow_run.id,
+            flow_id=flow_run.flow_id,
+            name=flow_run.name,
+            state=None,
+        )
+
+        mock_watch = AsyncMock(return_value=unknown_run)
+        monkeypatch.setattr(
+            "prefect.cli.flow_run.watch_flow_run",
+            mock_watch,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id)],
+            expected_code=1,
+            expected_output_contains="Flow run finished in an unknown state",
+        )
+
+    def test_watch_nonexistent_flow_run(self):
+        """Test watching a flow run that does not exist."""
+        missing_id = "ccb86ed0-e824-4d8b-b825-880401320e41"
+        invoke_and_assert(
+            command=["flow-run", "watch", missing_id],
+            expected_code=1,
+            expected_output_contains=f"Flow run '{missing_id}' not found!",
+        )
+
+    def test_watch_already_completed_flow_run(
+        self, sync_prefect_client: SyncPrefectClient, flow_run: FlowRun
+    ):
+        """Test watching a flow run that is already completed."""
+        sync_prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id,
+            state=Completed(),
+            force=True,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id)],
+            expected_code=0,
+            expected_output_contains="Flow run already finished",
+        )
+
+    def test_watch_already_failed_flow_run(
+        self, sync_prefect_client: SyncPrefectClient, flow_run: FlowRun
+    ):
+        """Test watching a flow run that is already failed."""
+        sync_prefect_client.set_flow_run_state(
+            flow_run_id=flow_run.id,
+            state=Failed(),
+            force=True,
+        )
+
+        invoke_and_assert(
+            command=["flow-run", "watch", str(flow_run.id)],
+            expected_code=1,
+            expected_output_contains="Flow run already finished in state 'Failed'",
+        )
+
+
+class TestFlowRunExecute:
+    async def test_execute_flow_run_via_argument(self, prefect_client: PrefectClient):
+        deployment_id = await RunnerDeployment.from_entrypoint(
+            entrypoint=f"{__development_base_path__}/tests/cli/test_flow_run.py:hello_flow",
+            name="test",
+        ).apply()
+
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id
+        )
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "execute", str(flow_run.id)],
+            expected_code=0,
+        )
+
+        flow_run = await prefect_client.read_flow_run(flow_run.id)
+        assert flow_run.state.is_completed()
+
+    async def test_execute_flow_run_via_environment_variable(
+        self, prefect_client: PrefectClient, monkeypatch
+    ):
+        deployment = RunnerDeployment.from_entrypoint(
+            entrypoint=f"{__development_base_path__}/tests/cli/test_flow_run.py:hello_flow",
+            name="test",
+        )
+        deployment_id = await deployment.apply()
+
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id
+        )
+
+        monkeypatch.setenv("PREFECT__FLOW_RUN_ID", str(flow_run.id))
+
+        await run_sync_in_worker_thread(
+            invoke_and_assert,
+            command=["flow-run", "execute"],
+            expected_code=0,
+        )
+
+        flow_run = await prefect_client.read_flow_run(flow_run.id)
+        assert flow_run.state.is_completed()
+
+
+class TestSignalHandling:
+    @pytest.mark.parametrize("sigterm_handling", ["reschedule", None])
+    async def test_flow_run_execute_sigterm_handling(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        prefect_client: PrefectClient,
+        sigterm_handling: str | None,
+    ):
+        if sigterm_handling is not None:
+            monkeypatch.setenv(
+                "PREFECT_FLOW_RUN_EXECUTE_SIGTERM_BEHAVIOR", sigterm_handling
+            )
+
+        # Create a flow run that will take a while to run
+        deployment_id = await (await tired_flow.to_deployment(__file__)).apply()
+
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id
+        )
+
+        # Run the flow run in a new process with a Runner
+        popen = subprocess.Popen(
+            [
+                "prefect",
+                "flow-run",
+                "execute",
+                str(flow_run.id),
+            ],
+            env=get_current_settings().to_environment_variables(exclude_unset=True)
+            | os.environ,
+        )
+
+        assert popen.pid is not None
+
+        # Wait for the flow run to start
+        while True:
+            await anyio.sleep(0.5)
+            flow_run = await prefect_client.read_flow_run(flow_run_id=flow_run.id)
+            assert flow_run.state
+            if flow_run.state.is_running():
+                break
+
+        # Send the SIGTERM signal
+        popen.terminate()
+
+        # Wait for the process to exit
+        return_code = popen.wait(timeout=10)
+
+        flow_run = await prefect_client.read_flow_run(flow_run_id=flow_run.id)
+        assert flow_run.state
+
+        if sigterm_handling == "reschedule":
+            assert flow_run.state.is_scheduled(), (
+                "The flow run should have been rescheduled"
+            )
+            assert return_code == 0, "The process should have exited with a 0 exit code"
+        else:
+            assert flow_run.state.is_running(), (
+                "The flow run should be stuck in running"
+            )
+            assert return_code == -signal.SIGTERM.value, (
+                "The process should have exited with a SIGTERM exit code"
+            )
+
+    async def test_reschedule_handler_installed_even_when_submit_exits_early(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        prefect_client: PrefectClient,
+    ):
+        """The SIGTERM reschedule handler is installed before submit() runs,
+        so it is active even if submit exits early (e.g. rejected by server)."""
+        from unittest.mock import AsyncMock, patch
+
+        monkeypatch.setenv("PREFECT_FLOW_RUN_EXECUTE_SIGTERM_BEHAVIOR", "reschedule")
+
+        deployment_id = await (await hello_flow.to_deployment(__file__)).apply()
+        flow_run = await prefect_client.create_flow_run_from_deployment(
+            deployment_id=deployment_id
+        )
+
+        sigterm_handlers_installed: list[Any] = []
+        original_signal = signal.signal
+
+        def capture_signal(signum: signal.Signals, handler: Any) -> Any:
+            if signum == signal.SIGTERM:
+                sigterm_handlers_installed.append(handler)
+            return original_signal(signum, handler)
+
+        # Mock submit to do nothing — simulates early exit (e.g. rejected by server)
+        mock_submit = AsyncMock(return_value=None)
+
+        with (
+            patch("prefect.cli.flow_run.signal.signal", side_effect=capture_signal),
+            patch(
+                "prefect.runner._flow_run_executor.FlowRunExecutor.submit",
+                mock_submit,
+            ),
+        ):
+            from prefect.cli.flow_run import execute
+
+            await execute(id=flow_run.id)
+
+            # The handler is installed before submit() so it covers the
+            # startup window as well.
+            assert len(sigterm_handlers_installed) == 1, (
+                "SIGTERM reschedule handler should be installed before submit()"
+            )
