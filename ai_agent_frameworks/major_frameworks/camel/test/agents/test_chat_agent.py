@@ -1,0 +1,2254 @@
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+import asyncio
+import json
+from copy import deepcopy
+from io import BytesIO
+from typing import List, Literal
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+from openai.types.chat import ChatCompletionMessageFunctionToolCall
+from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion_message_function_tool_call import (
+    Function,
+)
+from openai.types.completion_usage import CompletionUsage
+from PIL import Image
+from pydantic import BaseModel, Field
+
+from camel.agents import ChatAgent
+from camel.agents.chat_agent import (
+    StreamContentAccumulator,
+    ToolCallingRecord,
+    _ToolOutputHistoryEntry,
+)
+from camel.configs import ChatGPTConfig
+from camel.generators import SystemMessageGenerator
+from camel.memories import MemoryRecord
+from camel.messages import BaseMessage
+from camel.models import (
+    AnthropicModel,
+    BaseModelBackend,
+    ModelFactory,
+    OpenAIModel,
+)
+from camel.terminators import ResponseWordsTerminator
+from camel.toolkits import (
+    FunctionTool,
+    MathToolkit,
+    SearchToolkit,
+)
+from camel.types import (
+    ChatCompletion,
+    ModelPlatformType,
+    ModelType,
+    OpenAIBackendRole,
+    RoleType,
+    TaskType,
+    UnifiedModelType,
+)
+from camel.utils.async_func import sync_funcs_to_async
+
+model_backend_rsp_base = ChatCompletion(
+    id="mock_response_id",
+    choices=[
+        Choice(
+            finish_reason="stop",
+            index=0,
+            logprobs=None,
+            message=ChatCompletionMessage(
+                content="This is a mock response content.",
+                role="assistant",
+                function_call=None,
+                tool_calls=None,
+            ),
+        )
+    ],
+    created=123456789,
+    model="gpt-4o-2024-05-13",
+    object="chat.completion",
+    usage=CompletionUsage(
+        completion_tokens=32,
+        prompt_tokens=15,
+        total_tokens=47,
+    ),
+)
+
+parametrize = pytest.mark.parametrize(
+    'model',
+    [
+        ModelFactory.create(
+            model_platform=ModelPlatformType.OPENAI,
+            model_type=ModelType.DEFAULT,
+        ),
+        pytest.param(None, marks=pytest.mark.model_backend),
+    ],
+)
+
+
+class DummyModel(BaseModelBackend):
+    @property
+    def token_counter(self):
+        return self._token_counter
+
+    def _run(self, messages, response_format=None, tools=None):
+        raise NotImplementedError
+
+    async def _arun(self, messages, response_format=None, tools=None):
+        raise NotImplementedError
+
+
+@parametrize
+def test_chat_agent(model, step_call_count=3):
+    model = model
+    system_msg = SystemMessageGenerator(
+        task_type=TaskType.AI_SOCIETY
+    ).from_dict(
+        dict(assistant_role="doctor"),
+        role_tuple=("doctor", RoleType.ASSISTANT),
+    )
+    assistant_with_sys_msg = ChatAgent(system_msg, model=model)
+    assistant_without_sys_msg = ChatAgent(model=model)
+
+    assert str(assistant_with_sys_msg) == (
+        f"ChatAgent(doctor, RoleType.ASSISTANT, {ModelType.DEFAULT})"
+    )
+    assert str(assistant_without_sys_msg) == (
+        "ChatAgent(assistant, "
+        f"RoleType.ASSISTANT, {UnifiedModelType(ModelType.DEFAULT)})"
+    )
+
+    for assistant in [assistant_with_sys_msg, assistant_without_sys_msg]:
+        assistant.reset()
+        assistant.model_backend.run = MagicMock(
+            return_value=model_backend_rsp_base
+        )
+
+    user_msg_bm = BaseMessage(
+        role_name="Patient",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Hello!",
+    )
+
+    user_msg_str = "Hello!"
+
+    for assistant in [assistant_with_sys_msg, assistant_without_sys_msg]:
+        for i in range(step_call_count):
+            for user_msg in [user_msg_bm, user_msg_str]:
+                response = assistant.step(user_msg)
+                assert isinstance(
+                    response.msgs, list
+                ), f"Error in round {i + 1}"
+                assert len(response.msgs) > 0, f"Error in round {i + 1}"
+                assert isinstance(
+                    response.terminated, bool
+                ), f"Error in round {i + 1}"
+                assert response.terminated is False, f"Error in round {i + 1}"
+                assert isinstance(
+                    response.info, dict
+                ), f"Error in round {i + 1}"
+                assert (
+                    response.info['id'] is not None
+                ), f"Error in round {i + 1}"
+
+
+def test_chat_agent_reset_clears_tool_output_history():
+    model = DummyModel(ModelType.GPT_4O_MINI)
+    assistant = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        enable_snapshot_clean=True,
+    )
+    assistant._tool_output_history = [
+        _ToolOutputHistoryEntry(
+            tool_name="tool_a",
+            tool_call_id="call_a",
+            result_text="old",
+            record_uuids=["uuid_a"],
+            record_timestamps=[1.0],
+        )
+    ]
+
+    assistant.reset()
+
+    assert assistant._tool_output_history == []
+
+
+def test_clean_snapshot_in_memory_skips_missing_records():
+    model = DummyModel(ModelType.GPT_4O_MINI)
+    assistant = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        enable_snapshot_clean=True,
+    )
+    entry = _ToolOutputHistoryEntry(
+        tool_name="browser_get_page_snapshot",
+        tool_call_id="call_missing",
+        result_text="- button [ref=1]",
+        record_uuids=["missing_uuid"],
+        record_timestamps=[123.0],
+    )
+
+    chat_history_block = getattr(assistant.memory, "_chat_history_block", None)
+    storage = getattr(chat_history_block, "storage", None)
+    assert storage is not None
+    records_before = storage.load()
+
+    assistant._clean_snapshot_in_memory(entry)
+
+    records_after = storage.load()
+    assert records_after == records_before
+    assert entry.cached is True
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stored_messages():
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+
+    assistant_with_sys_msg = ChatAgent(system_msg)
+    assistant_without_sys_msg = ChatAgent()
+
+    expected_context = [system_msg.to_openai_system_message()]
+
+    context_with_sys_msg, _ = assistant_with_sys_msg.memory.get_context()
+    assert context_with_sys_msg == expected_context
+    context_without_sys_msg, _ = assistant_without_sys_msg.memory.get_context()
+    assert context_without_sys_msg == []
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+
+    for assistant in [assistant_with_sys_msg, assistant_without_sys_msg]:
+        assistant.update_memory(user_msg, OpenAIBackendRole.USER)
+
+    expected_context_with_sys_msg = [
+        system_msg.to_openai_system_message(),
+        user_msg.to_openai_user_message(),
+    ]
+    expected_context_without_sys_msg = [
+        user_msg.to_openai_user_message(),
+    ]
+
+    context_with_sys_msg, _ = assistant_with_sys_msg.memory.get_context()
+    assert context_with_sys_msg == expected_context_with_sys_msg
+    context_without_sys_msg, _ = assistant_without_sys_msg.memory.get_context()
+    assert context_without_sys_msg == expected_context_without_sys_msg
+
+
+@pytest.mark.model_backend
+def test_chat_agent_step_with_structure_response(step_call_count=3):
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    assistant = ChatAgent(
+        system_message=system_msg,
+    )
+
+    class JokeResponse(BaseModel):
+        joke: str = Field(description="a joke")
+        funny_level: str = Field(description="Funny level, from 1 to 10")
+
+    user_msg = BaseMessage.make_user_message(
+        role_name="User",
+        content="Tell a jokes.",
+    )
+
+    model_backend_rsp_tool = deepcopy(model_backend_rsp_base)
+
+    model_backend_rsp_tool.choices[0].message.content = '{ \
+        "joke":"What do you call fake spaghetti? An impasta!", \
+        "funny_level":"6" \
+    }'
+    model_backend_rsp_tool.choices[0].message.tool_calls = []
+    model_backend_rsp_tool.choices[0].message.parsed = JokeResponse(
+        joke="What do you call fake spaghetti? An impasta!", funny_level='6'
+    )
+    assistant.model_backend.run = MagicMock(
+        return_value=model_backend_rsp_tool
+    )
+
+    for i in range(step_call_count):
+        response = assistant.step(user_msg, response_format=JokeResponse)
+        response_content_json = json.loads(response.msg.content)
+        joke_response_keys = set(
+            JokeResponse.model_json_schema()["properties"].keys()
+        )
+
+        response_content_keys = set(response_content_json.keys())
+
+        assert joke_response_keys.issubset(response_content_keys), (
+            f"Error in calling round {i + 1}: "
+            f"Missing keys: {joke_response_keys - response_content_keys}"
+        )
+
+        for key in joke_response_keys:
+            assert key in response_content_json, (
+                f"Error in calling round {i + 1}: "
+                f"Key {key} not found in response content"
+            )
+
+
+@pytest.mark.model_backend
+def test_chat_agent_step_with_external_tools(step_call_count=3):
+    internal_tools = [FunctionTool(SearchToolkit().search_wiki)]
+    external_tools = MathToolkit().get_tools()
+    tool_list = internal_tools + external_tools
+
+    model_config_dict = ChatGPTConfig(
+        tools=tool_list,
+    ).as_dict()
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config_dict,
+    )
+    model_backend_external1 = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{ \
+                                    "entity": "Portal game release year" \
+                                }',
+                                name='search_wiki',
+                            ),
+                            type='function',
+                        ),
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123457',
+                            function=Function(
+                                arguments='{ \
+                                    "entity": "United States founding year" \
+                                }',
+                                name='search_wiki',
+                            ),
+                            type='function',
+                        ),
+                    ],
+                ),
+            )
+        ],
+        created=1730745899,
+        model='gpt-5-mini',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=56, prompt_tokens=292, total_tokens=348
+        ),
+    )
+
+    model_backend_external2 = ChatCompletion(
+        id='chatcmpl-mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{"a":1776,"b":2007}',
+                                name='math_subtract',
+                            ),
+                            type='function',
+                        )
+                    ],
+                ),
+            )
+        ],
+        created=1730745902,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=19, prompt_tokens=991, total_tokens=1010
+        ),
+    )
+
+    model.run = MagicMock(
+        side_effect=[model_backend_external1, model_backend_external2]
+        * step_call_count
+    )
+
+    # Set external_tools
+    external_tool_agent = ChatAgent(
+        system_message=BaseMessage.make_assistant_message(
+            role_name="Tools calling operator",
+            content="You are a helpful assistant",
+        ),
+        model=model,
+        tools=internal_tools,
+        external_tools=external_tools,
+    )
+
+    usr_msg = BaseMessage.make_user_message(
+        role_name="User",
+        content="What's the result of the release year of Portal subtracted "
+        "from the year that United States was founded?",
+    )
+
+    for i in range(step_call_count):
+        response = external_tool_agent.step(usr_msg)
+        assert not response.msg.content
+
+        external_tool_call_requests = response.info[
+            "external_tool_call_requests"
+        ]
+        assert (
+            external_tool_call_requests[0].tool_name == "math_subtract"
+        ), f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_astep_with_external_tools(step_call_count=3):
+    internal_tools = [FunctionTool(SearchToolkit().search_wiki)]
+    external_tools = MathToolkit().get_tools()
+    tool_list = internal_tools + external_tools
+
+    model_config_dict = ChatGPTConfig(
+        tools=tool_list,
+    ).as_dict()
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config_dict,
+    )
+    model_backend_external1 = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{ \
+                                    "entity": "Portal game release year" \
+                                }',
+                                name='search_wiki',
+                            ),
+                            type='function',
+                        ),
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123457',
+                            function=Function(
+                                arguments='{ \
+                                    "entity": "United States founding year" \
+                                }',
+                                name='search_wiki',
+                            ),
+                            type='function',
+                        ),
+                    ],
+                ),
+            )
+        ],
+        created=1730745899,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=56, prompt_tokens=292, total_tokens=348
+        ),
+    )
+
+    model_backend_external2 = ChatCompletion(
+        id='chatcmpl-mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{"a":1776,"b":2007}',
+                                name='math_subtract',
+                            ),
+                            type='function',
+                        )
+                    ],
+                ),
+            )
+        ],
+        created=1730745902,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=19, prompt_tokens=991, total_tokens=1010
+        ),
+    )
+
+    # Mock the arun method with an async function that returns the
+    # ChatCompletion objects
+    async def mock_arun(*args, **kwargs):
+        # Alternate between the two responses
+        if mock_arun.call_count % 2 == 0:
+            mock_arun.call_count += 1
+            return model_backend_external1
+        else:
+            mock_arun.call_count += 1
+            return model_backend_external2
+
+    # Initialize the counter
+    mock_arun.call_count = 0
+
+    # Assign the mock function
+    model.arun = mock_arun
+
+    # Set external_tools
+    external_tool_agent = ChatAgent(
+        system_message=BaseMessage.make_assistant_message(
+            role_name="Tools calling operator",
+            content="You are a helpful assistant",
+        ),
+        model=model,
+        tools=internal_tools,
+        external_tools=external_tools,
+    )
+
+    usr_msg = BaseMessage.make_user_message(
+        role_name="User",
+        content="What's the result of the release year of Portal subtracted "
+        "from the year that United States was founded?",
+    )
+
+    for i in range(step_call_count):
+        response = await external_tool_agent.astep(usr_msg)
+        assert not response.msg.content
+
+        external_tool_call_requests = response.info[
+            "external_tool_call_requests"
+        ]
+        assert (
+            external_tool_call_requests[0].tool_name == "math_subtract"
+        ), f"Error in calling round {i + 1}"
+
+
+def _mock_completion_with_usage(
+    response_id: str,
+    *,
+    finish_reason: Literal[
+        "stop", "length", "tool_calls", "content_filter", "function_call"
+    ],
+    content: str | None,
+    created: int,
+    prompt_tokens: int,
+    completion_tokens: int,
+    total_tokens: int,
+    tool_call: ChatCompletionMessageFunctionToolCall | None = None,
+) -> ChatCompletion:
+    return ChatCompletion(
+        id=response_id,
+        choices=[
+            Choice(
+                finish_reason=finish_reason,
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=content,
+                    role="assistant",
+                    function_call=None,
+                    tool_calls=[tool_call] if tool_call else None,
+                ),
+            )
+        ],
+        created=created,
+        model="gpt-5-mini",
+        object="chat.completion",
+        usage=CompletionUsage(
+            completion_tokens=completion_tokens,
+            prompt_tokens=prompt_tokens,
+            total_tokens=total_tokens,
+        ),
+    )
+
+
+def _assert_request_usage_event(
+    event: dict,
+    *,
+    request_index: int,
+    response_id: str,
+    request_total_tokens: int,
+    step_total_tokens: int,
+) -> None:
+    assert event["request_index"] == request_index
+    assert event["response_id"] == response_id
+    assert event["request_usage"]["total_tokens"] == request_total_tokens
+    assert event["step_usage"]["total_tokens"] == step_total_tokens
+
+
+@pytest.mark.model_backend
+def test_chat_agent_step_on_request_usage_callback():
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+    )
+
+    def add(a: int, b: int) -> int:
+        return a + b
+
+    request_events = []
+
+    first_response = _mock_completion_with_usage(
+        "mock_step_usage_1",
+        finish_reason="tool_calls",
+        content=None,
+        created=123456789,
+        prompt_tokens=10,
+        completion_tokens=3,
+        total_tokens=13,
+        tool_call=ChatCompletionMessageFunctionToolCall(
+            id="call_mock_add_1",
+            function=Function(arguments='{"a": 1, "b": 2}', name="add"),
+            type="function",
+        ),
+    )
+    second_response = _mock_completion_with_usage(
+        "mock_step_usage_2",
+        finish_reason="stop",
+        content="The result is 3.",
+        created=123456790,
+        prompt_tokens=20,
+        completion_tokens=4,
+        total_tokens=24,
+    )
+    model.run = MagicMock(side_effect=[first_response, second_response])
+
+    agent = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        tools=[FunctionTool(add)],
+        on_request_usage=lambda payload: request_events.append(payload),
+    )
+    response = agent.step("Please add 1 and 2.")
+
+    assert len(request_events) == 2
+    _assert_request_usage_event(
+        request_events[0],
+        request_index=1,
+        response_id="mock_step_usage_1",
+        request_total_tokens=13,
+        step_total_tokens=13,
+    )
+    _assert_request_usage_event(
+        request_events[1],
+        request_index=2,
+        response_id="mock_step_usage_2",
+        request_total_tokens=24,
+        step_total_tokens=37,
+    )
+    assert response.info["usage"]["total_tokens"] == 37
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_astep_on_request_usage_callback():
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+    )
+
+    def add(a: int, b: int) -> int:
+        return a + b
+
+    request_events = []
+
+    async def on_request_usage(payload):
+        request_events.append(payload)
+
+    first_response = _mock_completion_with_usage(
+        "mock_astep_usage_1",
+        finish_reason="tool_calls",
+        content=None,
+        created=123456791,
+        prompt_tokens=12,
+        completion_tokens=5,
+        total_tokens=17,
+        tool_call=ChatCompletionMessageFunctionToolCall(
+            id="call_mock_add_2",
+            function=Function(arguments='{"a": 2, "b": 3}', name="add"),
+            type="function",
+        ),
+    )
+    second_response = _mock_completion_with_usage(
+        "mock_astep_usage_2",
+        finish_reason="stop",
+        content="The result is 5.",
+        created=123456792,
+        prompt_tokens=18,
+        completion_tokens=6,
+        total_tokens=24,
+    )
+    model.arun = AsyncMock(side_effect=[first_response, second_response])
+
+    agent = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        tools=[FunctionTool(add)],
+        on_request_usage=on_request_usage,
+    )
+    response = await agent.astep("Please add 2 and 3.")
+
+    assert len(request_events) == 2
+    _assert_request_usage_event(
+        request_events[0],
+        request_index=1,
+        response_id="mock_astep_usage_1",
+        request_total_tokens=17,
+        step_total_tokens=17,
+    )
+    _assert_request_usage_event(
+        request_events[1],
+        request_index=2,
+        response_id="mock_astep_usage_2",
+        request_total_tokens=24,
+        step_total_tokens=41,
+    )
+    assert response.info["usage"]["total_tokens"] == 41
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stream_step_on_request_usage_callback():
+    from openai.types.chat.chat_completion_chunk import (
+        ChatCompletionChunk,
+        ChoiceDelta,
+    )
+    from openai.types.chat.chat_completion_chunk import (
+        Choice as ChunkChoice,
+    )
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict={"stream": True},
+    )
+    request_events = []
+
+    chunks = [
+        ChatCompletionChunk(
+            id="mock_stream_usage_1",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content="Hello", role="assistant"),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="mock_stream_usage_1",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content=" world"),
+                    index=0,
+                    finish_reason="stop",
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+            usage={
+                "prompt_tokens": 10,
+                "completion_tokens": 3,
+                "total_tokens": 13,
+            },
+        ),
+    ]
+
+    def mock_stream():
+        for chunk in chunks:
+            yield chunk
+
+    model.run = MagicMock(return_value=mock_stream())
+
+    agent = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        on_request_usage=lambda payload: request_events.append(payload),
+    )
+
+    responses = list(agent.step("Say hello"))
+    assert len(responses) > 0
+    assert responses[-1].info["usage"]["total_tokens"] == 13
+    assert len(request_events) == 1
+    _assert_request_usage_event(
+        request_events[0],
+        request_index=1,
+        response_id="mock_stream_usage_1",
+        request_total_tokens=13,
+        step_total_tokens=13,
+    )
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_async_stream_on_request_usage_callback():
+    from typing import AsyncGenerator
+
+    from openai.types.chat.chat_completion_chunk import (
+        ChatCompletionChunk,
+        ChoiceDelta,
+    )
+    from openai.types.chat.chat_completion_chunk import (
+        Choice as ChunkChoice,
+    )
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict={"stream": True},
+    )
+    request_events = []
+
+    async def on_request_usage(payload):
+        request_events.append(payload)
+
+    chunks = [
+        ChatCompletionChunk(
+            id="mock_async_stream_usage_1",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content="Hello", role="assistant"),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="mock_async_stream_usage_1",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content=" world"),
+                    index=0,
+                    finish_reason="stop",
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+            usage={
+                "prompt_tokens": 11,
+                "completion_tokens": 4,
+                "total_tokens": 15,
+            },
+        ),
+    ]
+
+    async def mock_async_stream() -> AsyncGenerator[ChatCompletionChunk, None]:
+        for chunk in chunks:
+            yield chunk
+
+    model.arun = AsyncMock(return_value=mock_async_stream())
+
+    agent = ChatAgent(
+        system_message="You are a helpful assistant.",
+        model=model,
+        on_request_usage=on_request_usage,
+    )
+
+    responses = []
+    streaming_response = await agent.astep("Say hello")
+    async for response in streaming_response:
+        responses.append(response)
+
+    assert len(responses) > 0
+    assert responses[-1].info["usage"]["total_tokens"] == 15
+    assert len(request_events) == 1
+    _assert_request_usage_event(
+        request_events[0],
+        request_index=1,
+        response_id="mock_async_stream_usage_1",
+        request_total_tokens=15,
+        step_total_tokens=15,
+    )
+
+
+@pytest.mark.model_backend
+def test_chat_agent_messages_window():
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    assistant = ChatAgent(
+        system_message=system_msg,
+        message_window_size=2,
+    )
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+
+    assistant.memory.write_records(
+        [
+            MemoryRecord(
+                message=user_msg,
+                role_at_backend=OpenAIBackendRole.USER,
+            )
+            for _ in range(5)
+        ]
+    )
+
+    openai_messages, _ = assistant.memory.get_context()
+    # system msg does not count in the window size
+    assert len(openai_messages) == 2 + 1
+
+
+@pytest.mark.model_backend
+def test_chat_agent_step_exceed_token_number(step_call_count=3):
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    assistant = ChatAgent(
+        system_message=system_msg,
+        token_limit=1,
+    )
+
+    original_get_context = assistant.memory.get_context
+
+    def mock_get_context():
+        messages, _ = original_get_context()
+        # Raise RuntimeError as if context size exceeded limit
+        raise RuntimeError(
+            "Context size exceeded",
+            {
+                "status": "error",
+                "message": "The context has exceeded the maximum token limit.",
+            },
+        )
+
+    assistant.memory.get_context = mock_get_context
+    assistant.model_backend.run = MagicMock(
+        return_value=model_backend_rsp_base
+    )
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+
+    for i in range(step_call_count):
+        response = assistant.step(user_msg)
+        assert len(response.msgs) == 0, f"Error in calling round {i + 1}"
+        assert response.terminated, f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+@pytest.mark.parametrize('n', [1, 2, 3])
+def test_chat_agent_multiple_return_messages(n, step_call_count=3):
+    model_config = ChatGPTConfig(temperature=1.4, n=n)
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config.as_dict(),
+    )
+    model_backend_rsp_tool = ChatCompletion(
+        id="mock_response_id",
+        choices=[
+            Choice(
+                finish_reason="stop",
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content="What do you call fake spaghetti? An impasta!",
+                    role="assistant",
+                    function_call=None,
+                ),
+            )
+        ]
+        * n,
+        created=123456789,
+        model="gpt-4o-2024-05-13",
+        object="chat.completion",
+        usage=CompletionUsage(
+            completion_tokens=32,
+            prompt_tokens=15,
+            total_tokens=47,
+        ),
+    )
+    model.run = MagicMock(return_value=model_backend_rsp_tool)
+
+    system_msg = BaseMessage(
+        "Assistant",
+        RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a helpful assistant.",
+    )
+    assistant_with_sys_msg = ChatAgent(system_msg, model=model)
+    assistant_without_sys_msg = ChatAgent(model=model)
+
+    assistant_with_sys_msg.reset()
+    assistant_without_sys_msg.reset()
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+    assistant_with_sys_msg_response = assistant_with_sys_msg.step(user_msg)
+    assistant_without_sys_msg_response = assistant_without_sys_msg.step(
+        user_msg
+    )
+
+    for i in range(step_call_count):
+        assert (
+            assistant_with_sys_msg_response.msgs is not None
+        ), f"Error in calling round {i + 1}"
+        assert (
+            len(assistant_with_sys_msg_response.msgs) == n
+        ), f"Error in calling round {i + 1}"
+        assert (
+            assistant_without_sys_msg_response.msgs is not None
+        ), f"Error in calling round {i + 1}"
+        assert (
+            len(assistant_without_sys_msg_response.msgs) == n
+        ), f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+@pytest.mark.parametrize('n', [2])
+def test_chat_agent_multiple_return_message_error(n, step_call_count=3):
+    model_config = ChatGPTConfig(temperature=1.4, n=n)
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config.as_dict(),
+    )
+    model_backend_multi_messages = deepcopy(model_backend_rsp_base)
+    model_backend_multi_messages.choices.append(
+        Choice(
+            finish_reason='stop',
+            index=1,
+            logprobs=None,
+            message=ChatCompletionMessage(
+                content='Why did the scarecrow win an award? '
+                'Because he was outstanding in his field!',
+                refusal=None,
+                role='assistant',
+                audio=None,
+                function_call=None,
+                tool_calls=None,
+            ),
+        )
+    )
+    model.run = MagicMock(return_value=model_backend_multi_messages)
+
+    system_msg = BaseMessage(
+        "Assistant",
+        RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a helpful assistant.",
+    )
+
+    assistant = ChatAgent(system_msg, model=model)
+    assistant.reset()
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+    for _ in range(step_call_count):
+        assistant_response = assistant.step(user_msg)
+        assert assistant_response.msg is None
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stream_output(step_call_count=3):
+    system_msg = BaseMessage(
+        "Assistant",
+        RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a helpful assistant.",
+    )
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Tell me a joke.",
+    )
+
+    stream_model_config = ChatGPTConfig(temperature=0, n=2, stream=True)
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=stream_model_config.as_dict(),
+    )
+    model.run = MagicMock(return_value=model_backend_rsp_base)
+    stream_assistant = ChatAgent(
+        system_msg, model=model, stream_accumulate=False
+    )
+    stream_assistant.reset()
+    for i in range(step_call_count):
+        stream_assistant_response = stream_assistant.step(user_msg)
+
+        for msg in stream_assistant_response.msgs:
+            assert len(msg.content) > 0, f"Error in calling round {i + 1}"
+
+        stream_usage = stream_assistant_response.info["usage"]
+        assert (
+            stream_usage["completion_tokens"] > 0
+        ), f"Error in calling round {i + 1}"
+        assert (
+            stream_usage["prompt_tokens"] > 0
+        ), f"Error in calling round {i + 1}"
+        assert (
+            stream_usage["total_tokens"]
+            == stream_usage["completion_tokens"]
+            + stream_usage["prompt_tokens"]
+        ), f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stream_accumulate_mode_accumulated():
+    """Verify accumulated streaming behavior (stream_accumulate=True)."""
+    chunks = ["Hello", " ", "world"]
+    step_usage = {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "total_tokens": 0,
+    }
+
+    agent = ChatAgent(stream_accumulate=True)
+    accumulator = StreamContentAccumulator()
+    outputs = []
+    for c in chunks:
+        resp = agent._create_streaming_response_with_accumulator(
+            accumulator, c, step_usage, "acc", []
+        )
+        outputs.append(resp.msg.content)
+
+    assert len(outputs) == 3
+    assert outputs[0] == "Hello"
+    assert outputs[1] == "Hello "
+    assert outputs[2] == "Hello world"
+    assert accumulator.get_full_content() == "Hello world"
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stream_accumulate_mode_delta():
+    """Verify delta streaming behavior (stream_accumulate=False, default)."""
+    chunks = ["Hello", " ", "world"]
+    step_usage = {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "total_tokens": 0,
+    }
+
+    agent = ChatAgent(stream_accumulate=False)
+    accumulator = StreamContentAccumulator()
+    outputs = []
+    for c in chunks:
+        resp = agent._create_streaming_response_with_accumulator(
+            accumulator, c, step_usage, "delta", []
+        )
+        outputs.append(resp.msg.content)
+
+    assert outputs == chunks
+    assert accumulator.get_full_content() == "Hello world"
+
+
+@pytest.mark.model_backend
+def test_set_output_language():
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    agent = ChatAgent(system_message=system_message)
+    assert agent.output_language is None
+
+    # Set the output language to "Arabic"
+    output_language = "Arabic"
+    agent.output_language = output_language
+
+    # Check if the output language is set correctly
+    assert agent.output_language == output_language
+
+    # Verify that the system message is updated with the new output language
+    updated_system_message = {
+        'role': 'system',
+        'content': 'You are a help assistant.\nRegardless of the '
+        'input language, you must output text in Arabic.',
+    }
+    memory_content = agent.memory.get_context()
+    assert memory_content[0][0] == updated_system_message
+
+
+@pytest.mark.model_backend
+def test_set_multiple_output_language():
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    agent_with_sys_msg = ChatAgent(system_message=system_message)
+    agent_without_sys_msg = ChatAgent()
+
+    # Verify that the length of the system message is kept constant even when
+    # multiple set_output_language operations are called
+    agent_with_sys_msg.output_language = "Chinese"
+    agent_with_sys_msg.output_language = "English"
+    agent_with_sys_msg.output_language = "French"
+    agent_without_sys_msg.output_language = "Chinese"
+    agent_without_sys_msg.output_language = "English"
+    agent_without_sys_msg.output_language = "French"
+
+    updated_system_message_with_sys_msg = {
+        'role': 'system',
+        'content': 'You are a help assistant.\nRegardless of the '
+        'input language, you must output text in French.',
+    }
+    updated_system_message_without_sys_msg = {
+        'role': 'system',
+        'content': '\nRegardless of the input language, you must output '
+        'text in French.',
+    }
+
+    memory_content_with_sys_msg = agent_with_sys_msg.memory.get_context()
+    memory_content_without_sys_msg = agent_without_sys_msg.memory.get_context()
+
+    assert (
+        memory_content_with_sys_msg[0][0]
+        == updated_system_message_with_sys_msg
+    )
+    assert (
+        memory_content_without_sys_msg[0][0]
+        == updated_system_message_without_sys_msg
+    )
+
+
+@pytest.mark.model_backend
+def test_tool_calling_sync(step_call_count=3):
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+    )
+    agent = ChatAgent(
+        system_message=system_message,
+        model=model,
+        tools=MathToolkit().get_tools(),
+    )
+
+    ref_funcs = MathToolkit().get_tools()
+
+    assert len(agent.tool_dict) == len(ref_funcs)
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Calculate the result of: 2*8-10.",
+    )
+    model_backend_rsp_tool = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{ \
+                                    "a": 2, \
+                                    "b": 8, \
+                                    "decimal_places": 0 \
+                                }',
+                                name='math_multiply',
+                            ),
+                            type='function',
+                        ),
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123457',
+                            function=Function(
+                                arguments='{"a": 0, "b": 10}',
+                                name='math_subtract',
+                            ),
+                            type='function',
+                        ),
+                    ],
+                ),
+            )
+        ],
+        created=1730752528,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=50, prompt_tokens=152, total_tokens=202
+        ),
+    )
+    model_backend_rsp_tool1 = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_kIJby7Y6As6gAbWoxDqxD6HG',
+                            function=Function(
+                                arguments='{"a":16,"b":10}',
+                                name='math_subtract',
+                            ),
+                            type='function',
+                        )
+                    ],
+                ),
+            )
+        ],
+        created=1730752528,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=50, prompt_tokens=152, total_tokens=202
+        ),
+    )
+    model_backend_rsp_tool2 = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content='The result of the calculation \
+                        (2 times 8 - 10) is (6).',
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=None,
+                ),
+            )
+        ],
+        created=1730752528,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=50, prompt_tokens=152, total_tokens=202
+        ),
+    )
+
+    model.run = MagicMock(
+        side_effect=[
+            model_backend_rsp_tool,
+            model_backend_rsp_tool1,
+            model_backend_rsp_tool2,
+        ]
+        * step_call_count
+    )
+
+    for i in range(step_call_count):
+        agent_response = agent.step(user_msg)
+
+        tool_calls: List[ToolCallingRecord] = [
+            call for call in agent_response.info['tool_calls']
+        ]
+
+        assert len(tool_calls) > 0, f"Error in calling round {i + 1}"
+        assert str(tool_calls[0]).startswith(
+            "Tool Execution"
+        ), f"Error in calling round {i + 1}"
+        assert (
+            tool_calls[0].tool_name == "math_multiply"
+        ), f"Error in calling round {i + 1}"
+        assert tool_calls[0].args == {
+            "a": 2,
+            "b": 8,
+            'decimal_places': 0,
+        }, f"Error in calling round {i + 1}"
+        assert tool_calls[0].result == 16, f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_tool_calling_math_async(step_call_count=3):
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    model_config = ChatGPTConfig(temperature=0)
+    math_funcs = sync_funcs_to_async(
+        [FunctionTool(MathToolkit().math_multiply)]
+    )
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config.as_dict(),
+    )
+    agent = ChatAgent(
+        system_message=system_message,
+        model=model,
+        tools=math_funcs,
+    )
+
+    ref_funcs = math_funcs
+
+    assert len(agent.tool_dict) == len(ref_funcs)
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Calculate the result of: 2*8 with decimal places 0",
+    )
+
+    model_backend_rsp_tool = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content=None,
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=[
+                        ChatCompletionMessageFunctionToolCall(
+                            id='call_mock_123456',
+                            function=Function(
+                                arguments='{ \
+                                    "a": 2, \
+                                    "b": 8, \
+                                    "decimal_places": 0 \
+                                }',
+                                name='math_multiply',
+                            ),
+                            type='function',
+                        )
+                    ],
+                ),
+            )
+        ],
+        created=1730752528,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=50, prompt_tokens=152, total_tokens=202
+        ),
+    )
+    model_backend_rsp_tool1 = ChatCompletion(
+        id='mock_id_123456',
+        choices=[
+            Choice(
+                finish_reason='tool_calls',
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content='The result of ( 2 times 8 ) is ( 16 ).',
+                    refusal=None,
+                    role='assistant',
+                    audio=None,
+                    function_call=None,
+                    tool_calls=None,
+                ),
+            )
+        ],
+        created=1730752528,
+        model='gpt-5-mini-2024-07-18',
+        object='chat.completion',
+        service_tier=None,
+        usage=CompletionUsage(
+            completion_tokens=50, prompt_tokens=152, total_tokens=202
+        ),
+    )
+
+    model.arun = AsyncMock(
+        side_effect=[
+            model_backend_rsp_tool,
+            model_backend_rsp_tool1,
+        ]
+        * step_call_count
+    )
+
+    for i in range(step_call_count):
+        agent_response = await agent.astep(user_msg)
+
+        tool_calls = agent_response.info['tool_calls']
+
+        assert (
+            tool_calls[0].tool_name == "math_multiply"
+        ), f"Error in calling round {i + 1}"
+        assert tool_calls[0].args == {
+            "a": 2,
+            "b": 8,
+            'decimal_places': 0,
+        }, f"Error in calling round {i + 1}"
+        assert tool_calls[0].result == 16, f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_tool_calling_async(step_call_count=3):
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+
+    async def async_sleep(second: int) -> int:
+        r"""Async sleep function.
+
+        Args:
+            second (int): Number of seconds to sleep.
+
+        Returns:
+            integer: Number of seconds to sleep.
+        """
+        await asyncio.sleep(second)
+        return second
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+    )
+    model_backend_rsp_tool_async = deepcopy(model_backend_rsp_base)
+
+    # Mock tool calling
+    def mock_run_tool_calling_async(*args, **kwargs):
+        # Reset tool_calls at the beginning of each new round of step() call
+        if model.run.call_count % 2 == 1:
+            model_backend_rsp_tool_async.choices[0].message.tool_calls = [
+                ChatCompletionMessageFunctionToolCall(
+                    id='call_mock_123456',
+                    function=Function(
+                        arguments='{"second":1}', name='async_sleep'
+                    ),
+                    type='function',
+                )
+            ]
+
+        # mock the completion of the tool call
+        elif model_backend_rsp_tool_async.choices[0].message.tool_calls:
+            model_backend_rsp_tool_async.choices[0].message.tool_calls.pop(0)
+
+        if (
+            len(model_backend_rsp_tool_async.choices[0].message.tool_calls)
+            == 0
+        ):
+            model_backend_rsp_tool_async.choices[0].message.tool_calls = None
+
+        return model_backend_rsp_tool_async
+
+    model.run = MagicMock(side_effect=mock_run_tool_calling_async)
+
+    agent = ChatAgent(
+        system_message=system_message,
+        model=model,
+        tools=[FunctionTool(async_sleep)],
+    )
+
+    assert len(agent.tool_dict) == 1
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Call the async sleep which is specified in function list with"
+        " 1 second.",
+    )
+
+    for i in range(step_call_count):
+        agent_response = await agent.astep(user_msg)
+
+        tool_calls = agent_response.info['tool_calls']
+
+        assert tool_calls, f"Error in calling round {i + 1}"
+        assert str(tool_calls[0]).startswith(
+            "Tool Execution"
+        ), f"Error in calling round {i + 1}"
+
+        assert (
+            tool_calls[0].tool_name == "async_sleep"
+        ), f"Error in calling round {i + 1}"
+        assert tool_calls[0].args == {
+            'second': 1
+        }, f"Error in calling round {i + 1}"
+        assert tool_calls[0].result == 1, f"Error in calling round {i + 1}"
+
+
+def test_response_words_termination(step_call_count=3):
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    response_terminator = ResponseWordsTerminator(words_dict=dict(goodbye=1))
+    agent = ChatAgent(
+        system_message=system_message,
+        response_terminators=[response_terminator],
+    )
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Just say 'goodbye' once.",
+    )
+    model_backend_rsp = deepcopy(model_backend_rsp_base)
+    model_backend_rsp.choices[0].message.content = "Goodbye."
+    agent.model_backend.run = MagicMock(return_value=model_backend_rsp)
+
+    for i in range(step_call_count):
+        agent_response = agent.step(user_msg)
+
+        assert agent.terminated, f"Error in calling round {i + 1}"
+        assert agent_response.terminated, f"Error in calling round {i + 1}"
+        assert (
+            "goodbye" in agent_response.info['termination_reasons'][0]
+        ), f"Error in calling round {i + 1}"
+
+
+def test_chat_agent_vision(step_call_count=3):
+    system_message = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a help assistant.",
+    )
+    model_config = ChatGPTConfig(temperature=0, max_tokens=200, stop="")
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict=model_config.as_dict(),
+    )
+    agent = ChatAgent(
+        system_message=system_message,
+        model=model,
+    )
+
+    # Create an all blue PNG image:
+    image = Image.new("RGB", (100, 100), "blue")
+    image_list = []
+    img_byte_arr = BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    image = Image.open(img_byte_arr)
+    image_list.append(image)
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Is this image blue? Just answer yes or no.",
+        image_list=image_list,
+        image_detail="low",
+    )
+    # Mock the OpenAI model return value:
+    agent.model_backend.run = MagicMock(
+        return_value=ChatCompletion(
+            id="mock_vision_id",
+            choices=[
+                Choice(
+                    finish_reason='stop',
+                    index=0,
+                    logprobs=None,
+                    message=ChatCompletionMessage(
+                        content='Yes.',
+                        role='assistant',
+                        function_call=None,
+                        tool_calls=None,
+                    ),
+                )
+            ],
+            created=123456,
+            model='gpt-4-turbo-2024-04-09',
+            object='chat.completion',
+            system_fingerprint='fp_5d12056990',
+            usage=CompletionUsage(
+                completion_tokens=2, prompt_tokens=113, total_tokens=115
+            ),
+        )
+    )
+
+    for i in range(step_call_count):
+        agent_response = agent.step(user_msg)
+        assert (
+            agent_response.msgs[0].content == "Yes."
+        ), f"Error in calling round {i + 1}"
+
+
+@pytest.mark.model_backend
+def test_chat_agent_creation_methods():
+    r"""Test different ways to create a ChatAgent with various model
+    specifications.
+    """
+    # Method 1: Initialize with just a string (model name)
+    agent_1 = ChatAgent("You are a helpful assistant.", model="gpt-5-mini")
+    assert agent_1.model_type.value == "gpt-5-mini"
+    assert isinstance(agent_1.model_backend.models[0], OpenAIModel)
+
+    # Method 2: Initialize with just a ModelType enum
+    agent_2 = ChatAgent(
+        "You are a helpful assistant.", model=ModelType.GPT_5_MINI
+    )
+    assert agent_2.model_type.value == "gpt-5-mini"
+    assert isinstance(agent_2.model_backend.models[0], OpenAIModel)
+
+    # Method 3: Initialize with a tuple of strings (platform, model)
+    agent_3 = ChatAgent(
+        "You are a helpful assistant.",
+        model=("anthropic", "claude-3-7-sonnet-latest"),
+    )
+    assert agent_3.model_type.value == "claude-3-7-sonnet-latest"
+    assert (
+        agent_3.model_backend.models[0].model_type.value
+        == "claude-3-7-sonnet-latest"
+    )
+    assert isinstance(agent_3.model_backend.models[0], AnthropicModel)
+
+    # Method 4: Initialize with a tuple of enums
+    agent_4 = ChatAgent(
+        "You are a helpful assistant.",
+        model=(ModelPlatformType.ANTHROPIC, ModelType.CLAUDE_HAIKU_4_5),
+    )
+    assert agent_4.model_type.value == "claude-haiku-4-5"
+    assert isinstance(agent_4.model_backend.models[0], AnthropicModel)
+
+    # Method 5: Default model when none is specified
+    agent_5 = ChatAgent("You are a helpful assistant.")
+    assert agent_5.model_type.value == ModelType.DEFAULT.value
+
+    # All agents should have the same system message
+    for agent in [agent_1, agent_2, agent_3, agent_4, agent_5]:
+        assert "You are a helpful assistant." in agent.system_message.content
+
+
+def test_memory_setter_preserves_system_message():
+    r"""Test that setting memory after initialization preserves the system
+    message.
+    """
+    from camel.memories import ChatHistoryMemory, ScoreBasedContextCreator
+    from camel.utils import OpenAITokenCounter
+
+    # Create an agent with a specific system message
+    system_content = "Your name is 'John'. When asked, introduce yourself."
+    sys_msg = BaseMessage.make_assistant_message(
+        role_name='Agent',
+        content=system_content,
+    )
+
+    agent = ChatAgent(system_message=sys_msg)
+
+    # Verify initial memory has system message
+    initial_context, _ = agent.memory.get_context()
+    assert len(initial_context) > 0
+    assert initial_context[0]['role'] == 'system'
+    assert initial_context[0]['content'] == system_content
+
+    # Create a new memory instance
+    context_creator = ScoreBasedContextCreator(
+        token_counter=OpenAITokenCounter(ModelType.GPT_5_MINI),
+        token_limit=1024,
+    )
+    new_memory = ChatHistoryMemory(context_creator=context_creator)
+
+    # Set the new memory (this is where the bug occurred)
+    agent.memory = new_memory
+
+    # Verify the system message is preserved in the new memory
+    new_context, _ = agent.memory.get_context()
+    assert len(new_context) > 0
+    assert new_context[0]['role'] == 'system'
+    assert new_context[0]['content'] == system_content
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_async_stream_with_async_generator():
+    r"""Test async streaming when model backend returns an async generator."""
+    from typing import AsyncGenerator
+
+    from openai.types.chat.chat_completion_chunk import (
+        ChatCompletionChunk,
+        ChoiceDelta,
+    )
+    from openai.types.chat.chat_completion_chunk import (
+        Choice as ChunkChoice,
+    )
+
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a helpful assistant.",
+    )
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict={"stream": True},
+    )
+
+    agent = ChatAgent(
+        system_message=system_msg, model=model, stream_accumulate=True
+    )
+
+    # Create mock streaming chunks
+    chunks = [
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content="Hello", role="assistant"),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content=" world"),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(content="!"),
+                    index=0,
+                    finish_reason="stop",
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+            usage={
+                "completion_tokens": 3,
+                "prompt_tokens": 10,
+                "total_tokens": 13,
+            },
+        ),
+    ]
+
+    # Create an async generator that wraps the chunks
+    # This simulates what GeminiModel does with _wrap_async_stream_with_
+    # thought_preservation
+    async def mock_async_generator() -> (
+        AsyncGenerator[ChatCompletionChunk, None]
+    ):
+        for chunk in chunks:
+            yield chunk
+
+    # Mock the model_backend.arun method to return an async generator
+    # (not AsyncStream). This simulates GeminiModel behavior.
+    agent.model_backend.arun = AsyncMock(return_value=mock_async_generator())
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Say hello",
+    )
+
+    # Use astep to test async streaming. astep returns
+    # AsyncStreamingChatAgentResponse which supports async iteration.
+    responses = []
+    streaming_response = await agent.astep(user_msg)
+    async for response in streaming_response:
+        responses.append(response)
+
+    # Verify we got streaming responses
+    assert len(responses) > 0, "Should receive streaming responses"
+
+    # Verify final response contains the accumulated content
+    final_response = responses[-1]
+    assert (
+        final_response.msg is not None
+    ), "Final response should have a message"
+    assert (
+        "Hello" in final_response.msg.content
+    ), "Final content should contain 'Hello'"
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_async_stream_with_async_generator_tool_calls():
+    r"""Test async streaming with tool calls when model returns async
+    generator.
+    """
+    from typing import AsyncGenerator
+
+    from openai.types.chat.chat_completion_chunk import (
+        ChatCompletionChunk,
+        ChoiceDelta,
+        ChoiceDeltaToolCall,
+        ChoiceDeltaToolCallFunction,
+    )
+    from openai.types.chat.chat_completion_chunk import (
+        Choice as ChunkChoice,
+    )
+
+    system_msg = BaseMessage(
+        role_name="assistant",
+        role_type=RoleType.ASSISTANT,
+        meta_dict=None,
+        content="You are a helpful assistant.",
+    )
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_5_MINI,
+        model_config_dict={"stream": True},
+    )
+
+    # Define a simple test tool
+    def test_add(a: int, b: int) -> int:
+        r"""Add two numbers.
+
+        Args:
+            a (int): First number.
+            b (int): Second number.
+
+        Returns:
+            int: Sum of a and b.
+        """
+        return a + b
+
+    agent = ChatAgent(
+        system_message=system_msg,
+        model=model,
+        tools=[FunctionTool(test_add)],
+        stream_accumulate=False,
+    )
+
+    # Create mock streaming chunks with tool calls
+    tool_call_chunks = [
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(
+                        role="assistant",
+                        tool_calls=[
+                            ChoiceDeltaToolCall(
+                                index=0,
+                                id="call_mock_123",
+                                type="function",
+                                function=ChoiceDeltaToolCallFunction(
+                                    name="test_add",
+                                    arguments='{"a":',
+                                ),
+                            )
+                        ],
+                    ),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(
+                        tool_calls=[
+                            ChoiceDeltaToolCall(
+                                index=0,
+                                function=ChoiceDeltaToolCallFunction(
+                                    arguments='1,"b":2}',
+                                ),
+                            )
+                        ],
+                    ),
+                    index=0,
+                    finish_reason=None,
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+        ),
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(),
+                    index=0,
+                    finish_reason="tool_calls",
+                )
+            ],
+            created=1234567890,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+            usage={
+                "completion_tokens": 10,
+                "prompt_tokens": 20,
+                "total_tokens": 30,
+            },
+        ),
+    ]
+
+    # Create final response chunks after tool execution
+    final_chunks = [
+        ChatCompletionChunk(
+            id="chatcmpl-mock-id-2",
+            choices=[
+                ChunkChoice(
+                    delta=ChoiceDelta(
+                        content="The result is 3.", role="assistant"
+                    ),
+                    index=0,
+                    finish_reason="stop",
+                )
+            ],
+            created=1234567891,
+            model="gpt-5-mini",
+            object="chat.completion.chunk",
+            usage={
+                "completion_tokens": 5,
+                "prompt_tokens": 30,
+                "total_tokens": 35,
+            },
+        ),
+    ]
+
+    call_count = 0
+
+    async def mock_async_generator() -> (
+        AsyncGenerator[ChatCompletionChunk, None]
+    ):
+        nonlocal call_count
+        if call_count == 0:
+            call_count += 1
+            for chunk in tool_call_chunks:
+                yield chunk
+        else:
+            for chunk in final_chunks:
+                yield chunk
+
+    # Mock the model_backend.arun method to return an async generator
+    agent.model_backend.arun = AsyncMock(
+        side_effect=lambda *args, **kwargs: mock_async_generator()
+    )
+
+    user_msg = BaseMessage(
+        role_name="User",
+        role_type=RoleType.USER,
+        meta_dict=dict(),
+        content="Add 1 and 2",
+    )
+
+    # Use astep to test async streaming with tool calls
+    responses = []
+    streaming_response = await agent.astep(user_msg)
+    async for response in streaming_response:
+        responses.append(response)
+
+    # Verify we got responses
+    assert len(responses) > 0, "Should receive streaming responses"
+
+    # Verify tool was called
+    tool_calls_found = False
+    for response in responses:
+        if response.info and "tool_calls" in response.info:
+            tool_calls = response.info["tool_calls"]
+            if tool_calls:
+                tool_calls_found = True
+                # Verify the tool was executed correctly
+                for tc in tool_calls:
+                    if tc.tool_name == "test_add":
+                        assert tc.result == 3, "Tool should return 3"
+                break
+
+    assert tool_calls_found, "Tool calls should be found in responses"
+
+
+@pytest.mark.model_backend
+def test_chat_agent_stream_with_structured_output():
+    r"""Test streaming with structured output (response_format).
+
+    This is an e2e test for the fix that properly detects and handles
+    ChatCompletionStreamManager returned by OpenAI when using
+    streaming + structured output together.
+    """
+
+    class MathResult(BaseModel):
+        answer: int = Field(description="The numerical answer")
+        explanation: str = Field(description="Brief explanation")
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_4_1,
+        model_config_dict={"stream": True},
+    )
+
+    agent = ChatAgent(
+        system_message="You are a helpful math assistant.",
+        model=model,
+    )
+
+    # Stream with structured output - this triggers ChatCompletionStreamManager
+    responses = []
+    for response in agent.step("What is 2 + 2?", response_format=MathResult):
+        responses.append(response)
+
+    assert len(responses) > 1, "Should receive multiple streaming chunks"
+    assert responses[-1].msg.parsed.answer == 4
+    assert responses[-1].msg.parsed.explanation
+
+
+@pytest.mark.model_backend
+@pytest.mark.asyncio
+async def test_chat_agent_async_stream_with_structured_output():
+    r"""Test async streaming with structured output (response_format).
+
+    This is an e2e test for the fix that properly detects and handles
+    AsyncChatCompletionStreamManager returned by OpenAI when using
+    async streaming + structured output together.
+    """
+
+    class MathResult(BaseModel):
+        answer: int = Field(description="The numerical answer")
+        explanation: str = Field(description="Brief explanation")
+
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.OPENAI,
+        model_type=ModelType.GPT_4_1,
+        model_config_dict={"stream": True},
+    )
+
+    agent = ChatAgent(
+        system_message="You are a helpful math assistant.",
+        model=model,
+    )
+
+    # Async stream with structured output - triggers
+    # AsyncChatCompletionStreamManager
+    responses = []
+    async for response in await agent.astep(
+        "What is 3 + 3?", response_format=MathResult
+    ):
+        responses.append(response)
+
+    assert len(responses) > 1, "Should receive multiple streaming chunks"
+    assert responses[-1].msg.parsed.answer == 6
+    assert responses[-1].msg.parsed.explanation
