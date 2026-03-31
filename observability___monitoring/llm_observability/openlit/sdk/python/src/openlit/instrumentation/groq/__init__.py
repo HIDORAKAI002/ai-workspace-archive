@@ -1,0 +1,70 @@
+"""Initializer of Auto Instrumentation of Groq Functions"""
+
+from typing import Collection
+import importlib.metadata
+from opentelemetry import _logs, trace
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from wrapt import wrap_function_wrapper
+
+from openlit._config import OpenlitConfig
+from openlit.instrumentation.groq.groq import chat
+from openlit.instrumentation.groq.async_groq import async_chat
+
+_instruments = ("groq >= 0.5.0",)
+
+
+class GroqInstrumentor(BaseInstrumentor):
+    """
+    An instrumentor for Groq client library.
+    """
+
+    def instrumentation_dependencies(self) -> Collection[str]:
+        return _instruments
+
+    def _instrument(self, **kwargs):
+        application_name = kwargs.get("application_name", "default")
+        environment = kwargs.get("environment", "default")
+        tracer = trace.get_tracer(__name__)
+        metrics = OpenlitConfig.metrics_dict
+        pricing_info = kwargs.get("pricing_info", {})
+        capture_message_content = kwargs.get("capture_message_content", False)
+        disable_metrics = kwargs.get("disable_metrics")
+        event_provider = _logs.get_logger_provider().get_logger(__name__)
+        version = importlib.metadata.version("groq")
+
+        # Chat completions
+        wrap_function_wrapper(
+            "groq.resources.chat.completions",
+            "Completions.create",
+            chat(
+                version,
+                environment,
+                application_name,
+                tracer,
+                pricing_info,
+                capture_message_content,
+                metrics,
+                disable_metrics,
+                event_provider,
+            ),
+        )
+
+        # Chat completions
+        wrap_function_wrapper(
+            "groq.resources.chat.completions",
+            "AsyncCompletions.create",
+            async_chat(
+                version,
+                environment,
+                application_name,
+                tracer,
+                pricing_info,
+                capture_message_content,
+                metrics,
+                disable_metrics,
+                event_provider,
+            ),
+        )
+
+    def _uninstrument(self, **kwargs):
+        pass
