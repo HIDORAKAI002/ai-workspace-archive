@@ -1,0 +1,120 @@
+---
+title: IBM Watsonx.ai
+description: "Track and analyze your IBM Watsonx.ai API calls with AgentOps"
+---
+
+AgentOps provides seamless integration with [IBM Watsonx.ai Python SDK](https://ibm.github.io/watsonx-ai-python-sdk/), allowing you to track and analyze all your Watsonx.ai model interactions automatically.
+
+## Installation
+
+<CodeGroup>
+```bash pip
+pip install agentops ibm-watsonx-ai
+```
+```bash poetry
+poetry add agentops ibm-watsonx-ai
+```
+```bash uv
+uv pip install agentops ibm-watsonx-ai
+```
+</CodeGroup>
+
+## Setting Up API Keys
+
+Before using IBM Watsonx.ai with AgentOps, you need to set up your API keys. You can obtain:
+- **IBM_WATSONX_API_KEY**: From your [IBM Cloud account](https://cloud.ibm.com/)
+- **IBM_WATSONX_URL**: The URL for your Watsonx.ai instance, typically found in your IBM Cloud dashboard.
+- **IBM_WATSONX_PROJECT_ID**: The project ID for your Watsonx.ai project, which you can find in the Watsonx.ai console.
+- **AGENTOPS_API_KEY**: From your [AgentOps Dashboard](https://app.agentops.ai/)
+
+Then to set them up, you can either export them as environment variables or set them in a `.env` file.
+
+<CodeGroup>
+```bash Export to CLI
+export IBM_WATSONX_API_KEY="your_ibm_api_key_here"
+export IBM_WATSONX_URL="your_ibm_url_here"
+export IBM_WATSONX_PROJECT_ID="your_project_id_here"
+export AGENTOPS_API_KEY="your_agentops_api_key_here"
+```
+```txt Set in .env file
+IBM_WATSONX_API_KEY="your_ibm_api_key_here"
+IBM_WATSONX_URL="your_ibm_url_here"
+IBM_WATSONX_PROJECT_ID="your_project_id_here"
+AGENTOPS_API_KEY="your_agentops_api_key_here"
+```
+</CodeGroup>
+
+Then load the environment variables in your Python code:
+
+```python
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set up environment variables with fallback values
+os.environ["IBM_WATSONX_API_KEY"] = os.getenv("IBM_WATSONX_API_KEY")
+os.environ["IBM_WATSONX_URL"] = os.getenv("IBM_WATSONX_URL")
+os.environ["IBM_WATSONX_PROJECT_ID"] = os.getenv("IBM_WATSONX_PROJECT_ID")
+os.environ["AGENTOPS_API_KEY"] = os.getenv("AGENTOPS_API_KEY")
+```
+
+## Usage
+
+Initialize AgentOps at the beginning of your application to automatically track all IBM Watsonx.ai API calls:
+
+```python
+import agentops
+from ibm_watsonx_ai import Credentials
+from ibm_watsonx_ai.foundation_models import ModelInference
+
+# Initialize AgentOps
+agentops.init(api_key="")
+
+# Initialize credentials
+credentials = Credentials(
+    url=os.getenv("IBM_WATSONX_URL"),
+    api_key=os.getenv("IBM_WATSONX_API_KEY"),
+)
+
+# Project ID
+project_id = os.getenv("IBM_WATSONX_PROJECT_ID")
+
+# Create a model instance
+model = ModelInference(
+    model_id="meta-llama/llama-3-3-70b-instruct",
+    credentials=credentials,
+    project_id=project_id
+)
+
+# Make a completion request
+response = model.generate_text("What is artificial intelligence?")
+print(f"Generated Text:\n{response}")
+
+# Don't forget to close connection when done
+model.close_persistent_connection()
+```
+
+## Examples
+<CardGroup cols={2}>
+  <Card title="Watsonx Text Chat" icon="notebook" href="/v2/examples/watsonx">
+    Basic text generation and chat
+  </Card>
+  <Card title="Watsonx Streaming" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/watsonx/watsonx-streaming.ipynb" newTab={true}>
+    Demonstrates streaming responses with Watsonx.ai.
+  </Card>
+  <Card title="Watsonx Tokenization" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/watsonx/watsonx-tokeniation-model.ipynb" newTab={true}>
+    Example of text tokenization with Watsonx.ai models.
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [IBM Watsonx.ai Python SDK Documentation](https://ibm.github.io/watsonx-ai-python-sdk/)
+- [IBM Watsonx.ai Models](http://ibm.com/products/watsonx-ai/foundation-models)
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="css" src="/styles/styles.css"></script>

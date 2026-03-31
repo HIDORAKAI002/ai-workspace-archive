@@ -1,0 +1,136 @@
+---
+title: "Introduction"
+description: "AgentOps is the developer favorite platform for testing, debugging, and deploying AI agents and LLM apps."
+---
+<iframe
+  width="100%"
+  height="300"
+  src="https://www.youtube.com/embed/EU_A3_ux09s?si=I05b3Jf5eufCy3R-"
+  title="AgentOps Introduction"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
+
+<Note title="Chat with the docs in your IDE">
+Prefer asking your IDE? Install the Mintlify <a href="/v2/usage/mcp-docs"><strong>MCP Docs Server</strong></a> for AgentOps to chat with the docs while you code:
+`npx mint-mcp add agentops`
+</Note>
+
+
+<Note title="Open Source">
+The AgentOps app is open source. Browse the code or contribute in our <a href="https://github.com/AgentOps-AI/agentops/tree/main/app">GitHub app directory</a>.
+</Note>
+
+
+## Integrate with developer favorite LLM providers and agent frameworks
+
+### Agent Frameworks
+
+<CardGroup cols={2}>
+  <Card title="AG2" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/ag2/ag2-logo.svg?raw=true" alt="AG2"/>} iconType="image" href="/v2/integrations/ag2" />
+  <Card title="Agno" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/agno/agno.png?raw=true" alt="Agno" />} iconType="image" href="/v2/integrations/agno" />
+  <Card title="AutoGen" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/autogen/autogen-logo.svg?raw=true" alt="AutoGen" />} iconType="image" href="/v2/integrations/autogen" />
+  <Card title="CrewAI" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/crewai/crewai-logo.png?raw=true" alt="CrewAI" />} iconType="image" href="/v2/integrations/crewai" />
+  <Card title="Google ADK" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/google-adk/google-adk-logo.png?raw=true" alt="Google ADK" />} iconType="image" href="/v2/integrations/google_adk" />
+  <Card title="Haystack" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/haystack/haystack-logo.png?raw=true" alt="Haystack" />} iconType="image" href="/v2/integrations/haystack" />
+  <Card title="LangChain" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/langchain/langchain-logo.svg?raw=true" alt="LangChain" />} iconType="image" href="/v2/integrations/langchain" />
+  <Card title="OpenAI Agents (Python)" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/openai/openai-logomark.png?raw=true" alt="OpenAI Agents Python" />} iconType="image" href="/v2/integrations/openai_agents_python" />
+  <Card title="OpenAI Agents (TypeScript)" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/openai/openai-logomark.png?raw=true" alt="OpenAI Agents JS" />} iconType="image" href="/v2/integrations/openai_agents_js" />
+  <Card title="Smolagents" icon={<img src="https://github.com/AgentOps-AI/agentops/blob/main/docs/images/external/huggingface/hf-logo.png?raw=true" alt="smolagents" />} iconType="image" href="/v2/integrations/smolagents" />
+</CardGroup>
+
+### LLM Providers
+
+<CardGroup cols={2}>
+  <Card title="Anthropic" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/anthropic/anthropic_icon_slate.png?raw=true" alt="Anthropic" />} iconType="image" href="/v2/integrations/anthropic" />
+  <Card title="Google Generative AI" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/deepmind/gemini-logo.png?raw=true" alt="Gemini" />} iconType="image" href="/v2/integrations/google_generative_ai" />
+  <Card title="OpenAI" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/openai/openai-logomark.png?raw=true" alt="OpenAI" />} iconType="image" href="/v2/integrations/openai" />
+  <Card title="LiteLLM" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/litellm/litellm.png?raw=true" alt="LiteLLM" />} iconType="image" href="/v2/integrations/litellm" />
+  <Card title="Watsonx" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/ibm/ibm-logo.svg?raw=true" alt="IBM" />} iconType="image" href="/v2/integrations/ibm_watsonx_ai" />
+  <Card title="x.AI" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/xai/xai-logo.png?raw=true" alt="x.AI" />} iconType="image" href="/v2/integrations/xai" />
+  <Card title="Mem0" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/mem0/mem0.png?raw=true" alt="Mem0" />} iconType="image" href="/v2/integrations/mem0" />
+  <Card title="Memori" icon={<img src="https://www.github.com/agentops-ai/agentops/blob/main/docs/images/external/gibsonai/gibsonai.png?raw=true" alt="Memori" />} iconType="image" href="/v2/integrations/memori" />
+</CardGroup>
+
+Observability and monitoring for your AI agents and LLM apps. And we do it all in just two lines of code...
+<CodeGroup>
+	```python python
+	import agentops
+	agentops.init(<INSERT YOUR API KEY HERE>)
+	```
+</CodeGroup>
+... that logs everything back to your AgentOps Dashboard.
+
+<Note>
+AgentOps is also available for TypeScript/JavaScript applications. Check out our [TypeScript SDK guide](/v2/usage/typescript-sdk) for Node.js projects.
+</Note>
+
+That's it! AgentOps will automatically instrument your code and start tracking traces.
+
+Need more control? You can create custom traces using the `@trace` decorator (recommended) or manage traces manually for advanced use cases:
+
+<CodeGroup>
+	```python python
+	import agentops
+	from agentops.sdk.decorators import trace
+	
+	agentops.init(<INSERT YOUR API KEY HERE>, auto_start_session=False)
+	
+	@trace(name="my-workflow", tags=["production"])
+	def my_workflow():
+		# Your code here
+		return "Workflow completed"
+	
+	```
+</CodeGroup>
+
+You can also set a custom trace name during initialization:
+
+<CodeGroup>
+	```python python
+	import agentops
+	agentops.init(<INSERT YOUR API KEY HERE>, trace_name="custom-trace-name")
+	```
+</CodeGroup>
+
+## The AgentOps Dashboard
+
+<Check>[Give us a star](https://github.com/AgentOps-AI/agentops) to bookmark on GitHub, save for later 🖇️)</Check>
+
+With just two lines of code, you can free yourself from the chains of the terminal and, instead, visualize your agents' behavior
+in your AgentOps Dashboard. After setting up AgentOps, each execution of your program is recorded as a session and the above
+data is automatically recorded for you.
+
+The examples below were captured with two lines of code.
+
+### Session Drilldown
+Here you will find a list of all of your previously recorded sessions and useful data about each such as total execution time.
+You also get helpful debugging info such as any SDK versions you were on if you're building on a supported agent framework like Crew or AutoGen.
+LLM calls are presented as a familiar chat history view, and charts give you a breakdown of the types of events that were called and how long they took.
+
+<Frame type="glass" caption="Session Summary">
+  <img height="200" src="/images/session-summary.gif" />
+</Frame>
+
+Find any past sessions from your Session Drawer.
+<Frame type="glass" caption="Session Drawer">
+  <img height="250" src="/images/session-drawer.gif" />
+</Frame>
+
+Most powerful of all is the Session Waterfall. On the left, a time visualization of all your LLM calls, Action events, Tool calls, and Errors.
+On the right, specific details about the event you've selected on the waterfall. For instance the exact prompt and completion for a given LLM call. 
+Most of which has been automatically recorded for you.
+
+<Frame type="glass" caption="Session Waterfall">
+  <img height="200" src="/images/session-waterfall.gif" />
+</Frame>
+
+
+### Session Overview
+View a meta-analysis of all of your sessions in a single view.
+<Frame type="glass" caption="Session Overview">
+  <img height="200" src="/images/overview.png" />
+</Frame>
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/adjust_api_dynamically.js"></script>
