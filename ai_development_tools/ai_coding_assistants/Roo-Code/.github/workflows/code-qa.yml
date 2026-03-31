@@ -1,0 +1,60 @@
+name: Code QA Roo Code
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [main]
+    pull_request:
+        types: [opened, reopened, ready_for_review, synchronize]
+        branches: [main]
+
+jobs:
+    check-translations:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Verify all translations are complete
+              run: node scripts/find-missing-translations.js
+
+    knip:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Run knip checks
+              run: pnpm knip
+
+    compile:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Lint
+              run: pnpm lint
+            - name: Check types
+              run: pnpm check-types
+
+    unit-test:
+        name: platform-unit-test (${{ matrix.name }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      name: ubuntu-latest
+                    - os: windows-latest
+                      name: windows-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Run unit tests
+              run: pnpm test
