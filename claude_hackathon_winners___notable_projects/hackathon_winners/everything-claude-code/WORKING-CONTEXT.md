@@ -30,6 +30,10 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
   - control plane primitives
   - operator surface
   - self-improving skills
+- Skill quality:
+  - rewrite content-facing skills to use source-backed voice modeling
+  - remove generic LLM rhetoric, canned CTA patterns, and forced platform stereotypes
+  - continue one-by-one audit of overlapping or low-signal skill content
 - Security:
   - keep dependency posture clean
   - preserve self-contained hook and MCP behavior
@@ -78,3 +82,5 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 - 2026-04-01: Repo catalog truth is now synced at `36` agents, `68` commands, and `142` skills across the tracked English and zh-CN docs.
 - 2026-04-01: Legacy emoji and non-essential symbol usage in docs, scripts, and tests was normalized to keep the unicode-safety lane green without weakening the check itself.
 - 2026-04-01: The remaining self-contained piece of `#834`, `docs/zh-CN/skills/browser-qa/SKILL.md`, was ported directly into the repo. After commit, `#834` should be closed as superseded-by-direct-port.
+- 2026-04-01: Content skill cleanup started with `content-engine`, `crosspost`, `article-writing`, and `investor-outreach`. The new direction is source-first voice capture, explicit anti-trope bans, and no forced platform persona shifts.
+- 2026-04-01: `node scripts/ci/check-unicode-safety.js --write` sanitized the remaining emoji-bearing Markdown files, including several `remotion-video-creation` rule docs and an old local plan note.
