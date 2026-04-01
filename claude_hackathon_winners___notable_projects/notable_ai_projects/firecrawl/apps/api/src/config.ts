@@ -231,6 +231,9 @@ const configSchema = z.object({
   SENTRY_ENVIRONMENT: z.string().default("production"),
   NUQ_POD_NAME: z.string().default("main"),
 
+  // Billing
+  AUTO_RECHARGE_ENABLED: z.stringbool().default(false),
+
   // Miscellaneous
   IDMUX_URL: z.string().optional(),
   GITHUB_RUN_NUMBER: z.string().optional(),

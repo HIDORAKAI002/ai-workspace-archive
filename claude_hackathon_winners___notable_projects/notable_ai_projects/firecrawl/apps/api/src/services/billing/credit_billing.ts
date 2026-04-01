@@ -11,6 +11,7 @@ import { queueBillingOperation } from "./batch_billing";
 import { autumnService } from "../autumn/autumn.service";
 import { toAutumnBillingProperties, type BillingMetadata } from "./types";
 import type { Logger } from "winston";
+import { config } from "../../config";
 
 /**
  * If you do not know the subscription_id in the current context, pass subscription_id as undefined.
@@ -92,8 +93,7 @@ function evaluateTeamCredits(
   credits: number,
   isAutoRechargeEnabled: boolean,
 ) {
-  const allowOverages =
-    chunk.price_should_be_graceful && isAutoRechargeEnabled;
+  const allowOverages = chunk.price_should_be_graceful && isAutoRechargeEnabled;
   const remainingCredits = allowOverages
     ? chunk.remaining_credits + chunk.price_credits
     : chunk.remaining_credits;
@@ -173,6 +173,7 @@ async function supaCheckTeamCredits(
   } = evaluateTeamCredits(chunk, credits, isAutoRechargeEnabled);
 
   if (
+    config.AUTO_RECHARGE_ENABLED &&
     isAutoRechargeEnabled &&
     chunk.remaining_credits < autoRechargeThreshold &&
     !chunk.is_extract
