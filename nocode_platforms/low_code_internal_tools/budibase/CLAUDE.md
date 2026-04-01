@@ -40,6 +40,7 @@
 - When you're writing tests, you don't need to assert or do conditional checks
   on intermediate states. Just assert the final outcome
   against, provided there are no type errors.
+- Avoid adding nested ternary statements.
 
 ## Test style - packages/server
 
