@@ -117,7 +117,7 @@
     }
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.87",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.89",
     "@aws-sdk/client-bedrock-agent-runtime": "^3.1018.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1018.0",
     "@aws-sdk/client-s3": "^3.1003.0",
@@ -176,7 +176,7 @@
     "winston-transport": "^4.9.0"
   },
   "optionalDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.87",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.89",
     "@aws-sdk/client-bedrock-agent-runtime": "^3.1018.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1018.0",
     "@aws-sdk/client-s3": "^3.1003.0",
@@ -187,7 +187,7 @@
     "@azure/msal-node": "^5.1.0",
     "@azure/openai-assistants": "^1.0.0-beta.6",
     "@fal-ai/client": "~1.9.5",
-    "@huggingface/transformers": "^3.8.1",
+    "@huggingface/transformers": "^4.0.0",
     "@ibm-cloud/watsonx-ai": "^1.7.10",
     "@ibm-generative-ai/node-sdk": "^3.2.4",
     "@openai/codex-sdk": "^0.117.0",
@@ -210,7 +210,6 @@
     "pdf-parse": "^2.4.5",
     "playwright": "^1.58.2",
     "playwright-extra": "^4.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "read-excel-file": "^8.0.0",
     "sharp": "^0.34.5"
   },
