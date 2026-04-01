@@ -34,6 +34,8 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
   - rewrite content-facing skills to use source-backed voice modeling
   - remove generic LLM rhetoric, canned CTA patterns, and forced platform stereotypes
   - continue one-by-one audit of overlapping or low-signal skill content
+  - move repo guidance and contribution flow to skills-first, leaving commands only as explicit compatibility shims
+  - add operator skills that wrap connected surfaces instead of exposing only raw APIs or disconnected primitives
 - Security:
   - keep dependency posture clean
   - preserve self-contained hook and MCP behavior
@@ -43,6 +45,8 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 - Closed on 2026-04-01 under backlog hygiene / merge policy:
   - `#1069` `feat: add everything-claude-code ECC bundle`
   - `#1068` `feat: add everything-claude-code-conventions ECC bundle`
+  - `#1080` `feat: add everything-claude-code ECC bundle`
+  - `#1079` `feat: add everything-claude-code-conventions ECC bundle`
   - `#1064` `chore(deps-dev): bump @eslint/js from 9.39.2 to 10.0.1`
   - `#1063` `chore(deps-dev): bump eslint from 9.39.2 to 10.1.0`
 - Closed on 2026-04-01 because the content is sourced from external ecosystems and should only land via manual ECC-native re-port:
@@ -52,9 +56,11 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 - Native-support candidates to fully diff-audit next:
   - `#1055` Dart / Flutter support
   - `#1043` C# reviewer and .NET skills
+- Direct-port candidates landed after audit:
+  - `#1078` hook-id dedupe for managed Claude hook reinstalls
+  - `#844` ui-demo skill
 - Port or rebuild inside ECC after full audit:
   - `#894` Jira integration
-  - `#844` ui-demo skill
   - `#814` + `#808` rebuild as a single consolidated notifications lane for Opencode and cross-harness surfaces
 
 ## Interfaces
@@ -65,6 +71,7 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
   - `ECC-206` ecosystem CI baseline
   - `ECC-207` PR backlog audit and merge-policy enforcement
   - `ECC-208` context hygiene
+  - `ECC-210` skills-first workflow migration and command compatibility retirement
 
 ## Update Rule
 
@@ -84,3 +91,9 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 - 2026-04-01: The remaining self-contained piece of `#834`, `docs/zh-CN/skills/browser-qa/SKILL.md`, was ported directly into the repo. After commit, `#834` should be closed as superseded-by-direct-port.
 - 2026-04-01: Content skill cleanup started with `content-engine`, `crosspost`, `article-writing`, and `investor-outreach`. The new direction is source-first voice capture, explicit anti-trope bans, and no forced platform persona shifts.
 - 2026-04-01: `node scripts/ci/check-unicode-safety.js --write` sanitized the remaining emoji-bearing Markdown files, including several `remotion-video-creation` rule docs and an old local plan note.
+- 2026-04-01: Core English repo surfaces were shifted to a skills-first posture. README, AGENTS, plugin metadata, and contributor instructions now treat `skills/` as canonical and `commands/` as legacy slash-entry compatibility during migration.
+- 2026-04-01: Follow-up bundle cleanup closed `#1080` and `#1079`, which were generated `.claude/` bundle PRs duplicating command-first scaffolding instead of shipping canonical ECC source changes.
+- 2026-04-01: Ported the useful core of `#1078` directly into `main`, but tightened the implementation so legacy no-id hook installs deduplicate cleanly on the first reinstall instead of the second. Added stable hook ids to `hooks/hooks.json`, semantic fallback aliases in `mergeHookEntries()`, and a regression test covering upgrade from pre-id settings.
+- 2026-04-01: Collapsed the obvious command/skill duplicates into thin legacy shims so `skills/` now hold the maintained bodies for NanoClaw, context-budget, DevFleet, docs lookup, E2E, evals, orchestration, prompt optimization, rules distillation, TDD, and verification.
+- 2026-04-01: Ported the self-contained core of `#844` directly into `main` as `skills/ui-demo/SKILL.md` and registered it under the `media-generation` install module instead of merging the PR wholesale.
+- 2026-04-01: Added the first connected-workflow operator lane as ECC-native skills instead of leaving the surface as raw plugins or APIs: `workspace-surface-audit`, `customer-billing-ops`, `project-flow-ops`, and `google-workspace-ops`. These are tracked under the new `operator-workflows` install module.

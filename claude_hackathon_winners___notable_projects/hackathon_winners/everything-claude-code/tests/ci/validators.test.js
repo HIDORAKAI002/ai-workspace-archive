@@ -514,7 +514,7 @@ function runTests() {
     const zhDocsReadme = fs.readFileSync(zhDocsReadmePath, 'utf8');
     const zhAgentsDoc = fs.readFileSync(zhAgentsPath, 'utf8');
 
-    assert.ok(readme.includes('Access to 1 agents, 1 skills, and 1 commands.'), 'Should sync README quick-start summary');
+    assert.ok(readme.includes('Access to 1 agents, 1 skills, and 1 legacy command shims'), 'Should sync README quick-start summary');
     assert.ok(readme.includes('| Agents | PASS: 1 agents |'), 'Should sync README comparison table');
     assert.ok(readme.includes('| Skills | 16 | .agents/skills/ |'), 'Should not rewrite unrelated README tables');
     assert.ok(readme.includes('| **Agents** | 1 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |'), 'Should sync README parity table');

@@ -86,7 +86,9 @@ function replaceOrThrow(content, regex, replacer, source) {
 function parseReadmeExpectations(readmeContent) {
   const expectations = [];
 
-  const quickStartMatch = readmeContent.match(/access to\s+(\d+)\s+agents,\s+(\d+)\s+skills,\s+and\s+(\d+)\s+commands/i);
+  const quickStartMatch = readmeContent.match(
+    /access to\s+(\d+)\s+agents,\s+(\d+)\s+skills,\s+and\s+(\d+)\s+(?:commands|legacy command shims?)/i
+  );
   if (!quickStartMatch) {
     throw new Error('README.md is missing the quick-start catalog summary');
   }
@@ -369,9 +371,9 @@ function syncEnglishReadme(content, catalog) {
 
   nextContent = replaceOrThrow(
     nextContent,
-    /(access to\s+)(\d+)(\s+agents,\s+)(\d+)(\s+skills,\s+and\s+)(\d+)(\s+commands)/i,
-    (_, prefix, __, agentsSuffix, ___, skillsSuffix, ____, commandsSuffix) =>
-      `${prefix}${catalog.agents.count}${agentsSuffix}${catalog.skills.count}${skillsSuffix}${catalog.commands.count}${commandsSuffix}`,
+    /(access to\s+)(\d+)(\s+agents,\s+)(\d+)(\s+skills,\s+and\s+)(\d+)(\s+(?:commands|legacy command shims?))/i,
+    (_, prefix, __, agentsSuffix, ___, skillsSuffix) =>
+      `${prefix}${catalog.agents.count}${agentsSuffix}${catalog.skills.count}${skillsSuffix}${catalog.commands.count} legacy command shims`,
     'README.md quick-start summary'
   );
   nextContent = replaceOrThrow(
