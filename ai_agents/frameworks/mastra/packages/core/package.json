@@ -1,0 +1,332 @@
+{
+  "name": "@mastra/core",
+  "version": "1.20.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "./**/*.d.ts"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./*": {
+      "import": {
+        "types": "./dist/*/index.d.ts",
+        "default": "./dist/*/index.js"
+      },
+      "require": {
+        "types": "./dist/*/index.d.ts",
+        "default": "./dist/*/index.cjs"
+      }
+    },
+    "./auth/ee": {
+      "import": {
+        "types": "./dist/auth/ee/index.d.ts",
+        "default": "./dist/auth/ee/index.js"
+      },
+      "require": {
+        "types": "./dist/auth/ee/index.d.ts",
+        "default": "./dist/auth/ee/index.cjs"
+      }
+    },
+    "./tools/is-vercel-tool": {
+      "import": {
+        "types": "./dist/tools/is-vercel-tool.d.ts",
+        "default": "./dist/tools/is-vercel-tool.js"
+      },
+      "require": {
+        "types": "./dist/tools/is-vercel-tool.d.ts",
+        "default": "./dist/tools/is-vercel-tool.cjs"
+      }
+    },
+    "./workflows/_constants": {
+      "import": {
+        "types": "./dist/workflows/constants.d.ts",
+        "default": "./dist/workflows/constants.js"
+      },
+      "require": {
+        "types": "./dist/workflows/constants.d.ts",
+        "default": "./dist/workflows/constants.cjs"
+      }
+    },
+    "./network/vNext": {
+      "import": {
+        "types": "./dist/network/vNext/index.d.ts",
+        "default": "./dist/network/vNext/index.js"
+      },
+      "require": {
+        "types": "./dist/network/vNext/index.d.ts",
+        "default": "./dist/network/vNext/index.cjs"
+      }
+    },
+    "./workflows/evented": {
+      "import": {
+        "types": "./dist/workflows/evented/index.d.ts",
+        "default": "./dist/workflows/evented/index.js"
+      },
+      "require": {
+        "types": "./dist/workflows/evented/index.d.ts",
+        "default": "./dist/workflows/evented/index.cjs"
+      }
+    },
+    "./vector/filter": {
+      "import": {
+        "types": "./dist/vector/filter/index.d.ts",
+        "default": "./dist/vector/filter/index.js"
+      },
+      "require": {
+        "types": "./dist/vector/filter/index.d.ts",
+        "default": "./dist/vector/filter/index.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
+      },
+      "require": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./base": {
+      "import": {
+        "types": "./dist/base.d.ts",
+        "default": "./dist/base.js"
+      },
+      "require": {
+        "types": "./dist/base.d.ts",
+        "default": "./dist/base.cjs"
+      }
+    },
+    "./telemetry/otel-vendor": {
+      "import": {
+        "types": "./dist/telemetry/otel-vendor.d.ts",
+        "default": "./dist/telemetry/otel-vendor.js"
+      },
+      "require": {
+        "types": "./dist/telemetry/otel-vendor.d.ts",
+        "default": "./dist/telemetry/otel-vendor.cjs"
+      }
+    },
+    "./test-utils/llm-mock": {
+      "import": {
+        "types": "./dist/test-utils/llm-mock.d.ts",
+        "default": "./dist/test-utils/llm-mock.js"
+      },
+      "require": {
+        "types": "./dist/test-utils/llm-mock.d.ts",
+        "default": "./dist/test-utils/llm-mock.cjs"
+      }
+    },
+    "./processors": {
+      "import": {
+        "types": "./dist/processors/index.d.ts",
+        "default": "./dist/processors/index.js"
+      },
+      "require": {
+        "types": "./dist/processors/index.d.ts",
+        "default": "./dist/processors/index.cjs"
+      }
+    },
+    "./evals/scoreTraces": {
+      "import": {
+        "types": "./dist/evals/scoreTraces/index.d.ts",
+        "default": "./dist/evals/scoreTraces/index.js"
+      },
+      "require": {
+        "types": "./dist/evals/scoreTraces/index.d.ts",
+        "default": "./dist/evals/scoreTraces/index.cjs"
+      }
+    },
+    "./utils/zod-to-json": {
+      "import": {
+        "types": "./dist/zod-to-json.d.ts",
+        "default": "./dist/zod-to-json.js"
+      },
+      "require": {
+        "types": "./dist/zod-to-json.d.ts",
+        "default": "./dist/zod-to-json.cjs"
+      }
+    },
+    "./features": {
+      "import": {
+        "types": "./dist/features/index.d.ts",
+        "default": "./dist/features/index.js"
+      },
+      "require": {
+        "types": "./dist/features/index.d.ts",
+        "default": "./dist/features/index.cjs"
+      }
+    },
+    "./agent/message-list": {
+      "import": {
+        "types": "./dist/agent/message-list/index.d.ts",
+        "default": "./dist/agent/message-list/index.js"
+      },
+      "require": {
+        "types": "./dist/agent/message-list/index.d.ts",
+        "default": "./dist/agent/message-list/index.cjs"
+      }
+    },
+    "./loop/server": {
+      "import": {
+        "types": "./dist/loop/server.d.ts",
+        "default": "./dist/loop/server.js"
+      },
+      "require": {
+        "types": "./dist/loop/server.d.ts",
+        "default": "./dist/loop/server.cjs"
+      }
+    },
+    "./storage/constants": {
+      "import": {
+        "types": "./dist/storage/constants.d.ts",
+        "default": "./dist/storage/constants.js"
+      },
+      "require": {
+        "types": "./dist/storage/constants.d.ts",
+        "default": "./dist/storage/constants.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "check": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "lint": "eslint .",
+    "build:lib": "tsup --silent --config tsup.config.ts --no-dts",
+    "build:patch-commonjs": "node ../../scripts/commonjs-tsc-fixer.js",
+    "prepack": "pnpx tsx ../../scripts/generate-package-docs.ts",
+    "build:watch": "pnpm build:lib --watch",
+    "generate:providers": "pnpx tsx scripts/generate-providers.ts",
+    "generate:model-router": "pnpx tsx scripts/generate-providers.ts && pnpx tsx scripts/generate-model-docs.ts && cd ../.. && pnpm prettier:changed",
+    "test:unit": "vitest run --exclude '**/tool-builder/**'",
+    "test": "npm run test:unit"
+  },
+  "dependencies": {
+    "@a2a-js/sdk": "~0.2.5",
+    "@ai-sdk/provider-utils-v5": "npm:@ai-sdk/provider-utils@3.0.20",
+    "@ai-sdk/provider-utils-v6": "npm:@ai-sdk/provider-utils@4.0.0",
+    "@ai-sdk/provider-v5": "npm:@ai-sdk/provider@2.0.1",
+    "@ai-sdk/provider-v6": "npm:@ai-sdk/provider@3.0.5",
+    "@ai-sdk/ui-utils-v5": "npm:@ai-sdk/ui-utils@1.2.11",
+    "@isaacs/ttlcache": "^2.1.4",
+    "@lukeed/uuid": "^2.0.1",
+    "@mastra/schema-compat": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@sindresorhus/slugify": "^2.2.1",
+    "@standard-schema/spec": "^1.1.0",
+    "ajv": "^8.18.0",
+    "dotenv": "^17.3.1",
+    "execa": "^9.6.1",
+    "gray-matter": "^4.0.3",
+    "hono": "^4.12.8",
+    "hono-openapi": "^1.3.0",
+    "ignore": "^7.0.5",
+    "js-tiktoken": "^1.0.21",
+    "json-schema": "^0.4.0",
+    "tokenx": "^1.3.0",
+    "lru-cache": "^11.2.7",
+    "p-map": "^7.0.4",
+    "p-retry": "^7.1.1",
+    "picomatch": "^4.0.3",
+    "radash": "^12.1.1",
+    "ws": "^8.19.0",
+    "xxhash-wasm": "^1.1.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic-v5": "npm:@ai-sdk/anthropic@2.0.61",
+    "@internal/core": "workspace:*",
+    "@ai-sdk/azure": "^2.0.101",
+    "@ai-sdk/cerebras-v5": "npm:@ai-sdk/cerebras@1.0.36",
+    "@ai-sdk/deepinfra-v5": "npm:@ai-sdk/deepinfra@1.0.35",
+    "@ai-sdk/deepseek-v5": "npm:@ai-sdk/deepseek@1.0.33",
+    "@ai-sdk/google-v5": "npm:@ai-sdk/google@2.0.52",
+    "@ai-sdk/groq-v5": "npm:@ai-sdk/groq@2.0.34",
+    "@ai-sdk/mistral-v5": "npm:@ai-sdk/mistral@2.0.27",
+    "@ai-sdk/openai": "^1.3.24",
+    "@ai-sdk/openai-compatible-v5": "npm:@ai-sdk/openai-compatible@1.0.32",
+    "@ai-sdk/openai-v5": "npm:@ai-sdk/openai@2.0.89",
+    "@ai-sdk/openai-v6": "npm:@ai-sdk/openai@3.0.1",
+    "@ai-sdk/perplexity-v5": "npm:@ai-sdk/perplexity@2.0.23",
+    "@ai-sdk/provider-utils-v4": "npm:@ai-sdk/provider-utils@2.2.8",
+    "@ai-sdk/provider-v4": "npm:@ai-sdk/provider@1.1.3",
+    "@ai-sdk/togetherai-v5": "npm:@ai-sdk/togetherai@1.0.34",
+    "@ai-sdk/xai-v5": "npm:@ai-sdk/xai@2.0.57",
+    "@ast-grep/napi": "^0.40.5",
+    "@babel/core": "^7.29.0",
+    "@internal/ai-sdk-v4": "workspace:*",
+    "@internal/ai-sdk-v5": "workspace:*",
+    "@internal/ai-v6": "workspace:*",
+    "@internal/external-types": "workspace:*",
+    "@internal/lint": "workspace:*",
+    "@internal/llm-recorder": "workspace:*",
+    "@internal/test-utils": "workspace:*",
+    "@internal/types-builder": "workspace:*",
+    "@openrouter/ai-sdk-provider": "^0.4.6",
+    "@openrouter/ai-sdk-provider-v5": "npm:@openrouter/ai-sdk-provider@1.2.3",
+    "@types/babel__core": "^7.20.5",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "22.19.15",
+    "@types/picomatch": "4.0.2",
+    "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
+    "eslint": "^9.39.4",
+    "fast-deep-equal": "^3.1.3",
+    "globby": "^14.1.0",
+    "rollup": "^4.59.0",
+    "ts-morph": "^27.0.2",
+    "tsup": "^8.5.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "zod": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "llms",
+    "agent",
+    "agents",
+    "vectorstore",
+    "embeddings",
+    "rag",
+    "evals",
+    "memory",
+    "tools",
+    "typescript",
+    "otel",
+    "framework"
+  ],
+  "homepage": "https://mastra.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mastra-ai/mastra.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/mastra-ai/mastra/issues"
+  }
+}

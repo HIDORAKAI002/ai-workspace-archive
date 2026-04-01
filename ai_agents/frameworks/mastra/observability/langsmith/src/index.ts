@@ -1,0 +1,12 @@
+/**
+ * LangSmith Observability Provider for Mastra
+ *
+ * This package provides LangSmith-specific observability features for Mastra applications.
+ * Currently includes tracing support with plans for additional observability features.
+ */
+
+// Tracing
+export * from './tracing';
+
+// Helpers for building LangSmith-compatible tracing options
+export * from './helpers';

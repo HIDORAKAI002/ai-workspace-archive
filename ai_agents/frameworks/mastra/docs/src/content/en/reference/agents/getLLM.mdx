@@ -1,0 +1,78 @@
+---
+title: "Reference: Agent.getLLM() | Agents"
+description: "Documentation for the `Agent.getLLM()` method in Mastra agents, which retrieves the language model instance."
+packages:
+  - "@mastra/core"
+---
+
+# Agent.getLLM()
+
+The `.getLLM()` method retrieves the language model instance configured for an agent, resolving it if it's a function. This method provides access to the underlying LLM that powers the agent's capabilities.
+
+## Usage example
+
+```typescript
+await agent.getLLM()
+```
+
+## Parameters
+
+<PropertiesTable
+  content={[
+  {
+    name: 'options',
+    type: '{ requestContext?: RequestContext; model?: MastraLanguageModel | DynamicArgument<MastraLanguageModel> }',
+    isOptional: true,
+    defaultValue: '{}',
+    description: 'Optional configuration object containing request context and optional model override.',
+    properties: [
+      {
+        type: '{ requestContext?: RequestContext; model?: MastraLanguageModel | DynamicArgument<MastraLanguageModel> }',
+        parameters: [
+          {
+            name: 'requestContext',
+            type: 'RequestContext',
+            isOptional: true,
+            defaultValue: 'new RequestContext()',
+            description: 'Request Context for dependency injection and contextual information.',
+          },
+          {
+            name: 'model',
+            type: 'MastraLanguageModel | DynamicArgument<MastraLanguageModel>',
+            isOptional: true,
+            description:
+              "Optional model override. If provided, this model will be used used instead of the agent's configured model.",
+          },
+        ],
+      },
+    ],
+  },
+]}
+/>
+
+## Returns
+
+<PropertiesTable
+  content={[
+  {
+    name: 'llm',
+    type: 'MastraLLMV1 | Promise<MastraLLMV1>',
+    description:
+      'The language model instance configured for the agent, either as a direct instance or a promise that resolves to the LLM.',
+  },
+]}
+/>
+
+## Extended usage example
+
+```typescript
+await agent.getLLM({
+  requestContext: new RequestContext(),
+  model: 'openai/gpt-5.4',
+})
+```
+
+## Related
+
+- [Agents overview](/docs/agents/overview)
+- [Request Context](/docs/server/request-context)

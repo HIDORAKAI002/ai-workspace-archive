@@ -1,0 +1,116 @@
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { CircleAlertIcon } from 'lucide-react';
+import type { SidebarState } from './main-sidebar-context';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ds/components/Tooltip';
+import { useLinkComponent } from '@/lib/framework';
+import { cn } from '@/lib/utils';
+
+export type NavLink = {
+  name: string;
+  url: string;
+  icon?: React.ReactNode;
+  isActive?: boolean;
+  variant?: 'default' | 'featured';
+  tooltipMsg?: string;
+  isOnMastraPlatform: boolean;
+  isExperimental?: boolean;
+  indent?: boolean;
+};
+
+export type MainSidebarNavLinkProps = {
+  link?: NavLink;
+  isActive?: boolean;
+  state?: SidebarState;
+  children?: React.ReactNode;
+  className?: string;
+};
+export function MainSidebarNavLink({
+  link,
+  state = 'default',
+  children,
+  isActive,
+  className,
+}: MainSidebarNavLinkProps) {
+  const { Link } = useLinkComponent();
+  const isCollapsed = state === 'collapsed';
+  const isFeatured = link?.variant === 'featured';
+  const isExternal = link?.url?.startsWith('http');
+  const linkParams = isExternal ? { target: '_blank', rel: 'noreferrer' } : {};
+
+  return (
+    <li
+      className={cn(
+        'flex relative',
+        // Base link styles with smooth transitions
+        '[&>a]:flex [&>a]:items-center [&>a]:min-h-8 [&>a]:gap-2.5 [&>a]:text-ui-md [&>a]:text-neutral3 [&>a]:py-1.5 [&>a]:px-3 [&>a]:w-full [&>a]:rounded-lg [&>a]:justify-center',
+        '[&>a]:transition-all [&>a]:duration-normal [&>a]:ease-out-custom',
+        // Icon styles with transitions
+        '[&_svg]:w-4 [&_svg]:h-4 [&_svg]:text-neutral3/60 [&_svg]:transition-colors [&_svg]:duration-normal',
+        // Hover states
+        '[&>a:hover]:bg-surface4 [&>a:hover]:text-neutral5 [&>a:hover_svg]:text-neutral3',
+        {
+          // Active state with left indicator bar
+          '[&>a]:text-neutral5 [&>a]:bg-surface3': isActive,
+          '[&_svg]:text-neutral5': isActive,
+          // Active indicator bar
+          'before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-0.5 before:h-5 before:bg-black dark:before:bg-white before:rounded-r-full before:transition-all before:duration-normal':
+            isActive && !isCollapsed,
+          '[&>a]:justify-start': !isCollapsed,
+          '[&_svg]:text-neutral3': isCollapsed,
+          // Featured variant
+          '[&>a]:rounded-md [&>a]:my-2 [&>a]:bg-accent1Dark [&>a:hover]:bg-accent1Darker [&>a]:text-accent1 [&>a:hover]:text-accent1 [&>a]:border [&>a]:border-accent1/30':
+            isFeatured,
+          // Keep strong green CTA in dark mode
+          'dark:[&>a]:bg-accent1 dark:[&>a:hover]:bg-accent1/90 dark:[&>a]:text-black dark:[&>a:hover]:text-black dark:[&>a]:border-transparent':
+            isFeatured,
+          '[&_svg]:text-accent1 [&>a:hover_svg]:text-accent1 dark:[&_svg]:text-black/75 dark:[&>a:hover_svg]:text-black':
+            isFeatured,
+          // Indented sub-link
+          '[&>a]:pl-7 [&>a]:text-ui-sm': link?.indent && !isCollapsed,
+        },
+        className,
+      )}
+    >
+      {link ? (
+        <>
+          {isCollapsed || link.tooltipMsg ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href={link.url} {...linkParams}>
+                  {link.icon && link.icon}
+                  {isCollapsed ? <VisuallyHidden>{link.name}</VisuallyHidden> : link.name} {children}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" align="center" className="ml-4">
+                {link.tooltipMsg ? (
+                  <>
+                    {isCollapsed && `${link.name} | `} {link.tooltipMsg}
+                  </>
+                ) : (
+                  link.name
+                )}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Link href={link.url} {...linkParams}>
+              {link.icon && link.icon}
+              {isCollapsed ? <VisuallyHidden>{link.name}</VisuallyHidden> : link.name} {children}
+              {link.isExperimental && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleAlertIcon className="ml-auto stroke-accent5" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" align="center" className="ml-4">
+                    Experimental Feature
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </Link>
+          )}
+        </>
+      ) : (
+        children
+      )}
+    </li>
+  );
+}
