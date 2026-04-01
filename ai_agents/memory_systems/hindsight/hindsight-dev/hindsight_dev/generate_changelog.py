@@ -1,0 +1,597 @@
+#!/usr/bin/env python3
+"""
+Generate changelog entry for a new release.
+
+This script fetches the commit diff between releases, uses an LLM to summarize,
+and prepends the entry to the changelog page.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+from openai import OpenAI
+from pydantic import BaseModel
+from rich.console import Console
+
+console = Console()
+
+GITHUB_REPO = "vectorize-io/hindsight"
+GITHUB_RELEASES_URL = f"https://github.com/{GITHUB_REPO}/releases"
+GITHUB_COMMIT_URL = f"https://github.com/{GITHUB_REPO}/commit"
+REPO_PATH = Path(__file__).parent.parent.parent
+CHANGELOG_PATH = REPO_PATH / "hindsight-docs" / "src" / "pages" / "changelog" / "index.md"
+INTEGRATION_CHANGELOG_DIR = REPO_PATH / "hindsight-docs" / "src" / "pages" / "changelog" / "integrations"
+
+VALID_INTEGRATIONS = [
+    "litellm",
+    "pydantic-ai",
+    "crewai",
+    "ag2",
+    "ai-sdk",
+    "chat",
+    "openclaw",
+    "langgraph",
+    "nemoclaw",
+    "strands",
+    "claude-code",
+    "llamaindex",
+    "codex",
+    "hermes",
+]
+
+
+class ChangelogEntry(BaseModel):
+    """A single changelog entry."""
+
+    category: str  # "feature", "improvement", "bugfix", "breaking", "other"
+    summary: str  # Brief description of the change
+    commit_id: str  # Short commit hash
+
+
+class ChangelogResponse(BaseModel):
+    """Structured response from LLM."""
+
+    entries: list[ChangelogEntry]
+
+
+@dataclass
+class Commit:
+    """Parsed commit from git log."""
+
+    hash: str
+    message: str
+
+
+def parse_semver(version: str) -> tuple[int, int, int]:
+    """Parse a semver string into (major, minor, patch)."""
+    version = version.lstrip("v")
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version)
+    if not match:
+        raise ValueError(f"Invalid semver: {version}")
+    return int(match.group(1)), int(match.group(2)), int(match.group(3))
+
+
+def get_git_tags() -> list[str]:
+    """Get all git tags sorted by semver (newest first)."""
+    result = subprocess.run(
+        ["git", "tag"],
+        cwd=REPO_PATH,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tags = [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
+
+    valid_tags = []
+    for tag in tags:
+        try:
+            parse_semver(tag)
+            valid_tags.append(tag)
+        except ValueError:
+            continue
+
+    valid_tags.sort(key=lambda t: parse_semver(t), reverse=True)
+    return valid_tags
+
+
+def get_integration_tags(integration: str) -> list[str]:
+    """Get all tags for a specific integration, sorted by semver (newest first)."""
+    prefix = f"integrations/{integration}/v"
+    result = subprocess.run(
+        ["git", "tag", "-l", f"{prefix}*"],
+        cwd=REPO_PATH,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tags = [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
+
+    valid_tags = []
+    for tag in tags:
+        version_part = tag.removeprefix(prefix)
+        try:
+            parse_semver(version_part)
+            valid_tags.append(tag)
+        except ValueError:
+            continue
+
+    valid_tags.sort(key=lambda t: parse_semver(t.removeprefix(prefix)), reverse=True)
+    return valid_tags
+
+
+def find_previous_version(new_version: str, existing_tags: list[str]) -> str | None:
+    """Find the previous version based on semver rules."""
+    new_major, new_minor, new_patch = parse_semver(new_version)
+
+    candidates = []
+    for tag in existing_tags:
+        try:
+            major, minor, patch = parse_semver(tag)
+        except ValueError:
+            continue
+
+        if (major, minor, patch) >= (new_major, new_minor, new_patch):
+            continue
+
+        candidates.append((tag, (major, minor, patch)))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda x: x[1], reverse=True)
+    return candidates[0][0]
+
+
+def find_previous_integration_tag(new_version: str, existing_tags: list[str], integration: str) -> str | None:
+    """Find the previous integration tag based on semver rules."""
+    prefix = f"integrations/{integration}/v"
+    new_major, new_minor, new_patch = parse_semver(new_version)
+
+    candidates = []
+    for tag in existing_tags:
+        version_part = tag.removeprefix(prefix)
+        try:
+            major, minor, patch = parse_semver(version_part)
+        except ValueError:
+            continue
+
+        if (major, minor, patch) >= (new_major, new_minor, new_patch):
+            continue
+
+        candidates.append((tag, (major, minor, patch)))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda x: x[1], reverse=True)
+    return candidates[0][0]
+
+
+def get_commits(from_ref: str | None, to_ref: str, path_filter: str | None = None) -> list[Commit]:
+    """Get commits between two refs as structured data."""
+    if from_ref:
+        cmd = ["git", "log", "--format=%h|%s", "--no-merges", f"{from_ref}..{to_ref}"]
+    else:
+        cmd = ["git", "log", "--format=%h|%s", "--no-merges", to_ref]
+
+    if path_filter:
+        cmd += ["--", path_filter]
+
+    result = subprocess.run(
+        cmd,
+        cwd=REPO_PATH,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    commits = []
+    for line in result.stdout.strip().split("\n"):
+        if not line:
+            continue
+        parts = line.split("|", 1)
+        if len(parts) == 2:
+            commits.append(Commit(hash=parts[0], message=parts[1]))
+
+    return commits
+
+
+def get_detailed_diff(from_ref: str | None, to_ref: str, path_filter: str | None = None) -> str:
+    """Get file change stats between two refs."""
+    if from_ref:
+        cmd = ["git", "diff", "--stat", f"{from_ref}..{to_ref}"]
+    else:
+        cmd = ["git", "diff", "--stat", f"{to_ref}^..{to_ref}"]
+
+    if path_filter:
+        cmd += ["--", path_filter]
+
+    result = subprocess.run(
+        cmd,
+        cwd=REPO_PATH,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def analyze_commits_with_llm(
+    client: OpenAI,
+    model: str,
+    version: str,
+    commits: list[Commit],
+    file_diff: str,
+    integration: str | None = None,
+) -> list[ChangelogEntry]:
+    """Use LLM to analyze commits and return structured changelog entries."""
+    commits_json = json.dumps([{"commit_id": c.hash, "message": c.message} for c in commits], indent=2)
+
+    subject = f"the {integration} integration for Hindsight" if integration else f"release {version} of Hindsight"
+
+    prompt = f"""Analyze the following git commits for {subject} (an AI memory system).
+
+For each meaningful change, create a changelog entry with:
+- category: one of "feature", "improvement", "bugfix", "breaking", "other"
+- summary: brief one-line description of the change (user-facing, not technical)
+- commit_id: the commit hash from the input
+
+Rules:
+- Group related commits into a single entry if they're part of the same change
+- Skip trivial changes (typo fixes, formatting, internal refactoring)
+- Skip repository-only changes: README updates, CI/GitHub Actions, release scripts, changelog updates, version bumps
+- Focus on user-facing changes that affect the product functionality
+- Use the exact commit_id from the input (pick the most relevant one if grouping)
+- If no meaningful changes remain after filtering, return an empty list
+
+Commits:
+{commits_json}
+
+Files changed summary:
+{file_diff[:4000]}"""
+
+    response = client.beta.chat.completions.parse(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        response_format=ChangelogResponse,
+        max_completion_tokens=16000,
+    )
+
+    return response.choices[0].message.parsed.entries
+
+
+def build_changelog_markdown(
+    version: str,
+    tag: str,
+    entries: list[ChangelogEntry],
+    integration: str | None = None,
+) -> str:
+    """Build markdown changelog from structured entries."""
+    tag_url = (
+        f"https://github.com/{GITHUB_REPO}/releases/tag/{tag}"
+        if not integration
+        else f"https://github.com/{GITHUB_REPO}/tree/{tag}"
+    )
+
+    # Group entries by category
+    categories = {
+        "breaking": ("Breaking Changes", []),
+        "feature": ("Features", []),
+        "improvement": ("Improvements", []),
+        "bugfix": ("Bug Fixes", []),
+        "other": ("Other", []),
+    }
+
+    for entry in entries:
+        cat = entry.category.lower()
+        if cat in categories:
+            categories[cat][1].append(entry)
+        else:
+            categories["other"][1].append(entry)
+
+    # Build markdown
+    lines = [f"## [{version}]({tag_url})", ""]
+
+    has_entries = False
+    for cat_key in ["breaking", "feature", "improvement", "bugfix", "other"]:
+        cat_name, cat_entries = categories[cat_key]
+        if cat_entries:
+            has_entries = True
+            lines.append(f"**{cat_name}**")
+            lines.append("")
+            for entry in cat_entries:
+                commit_url = f"{GITHUB_COMMIT_URL}/{entry.commit_id}"
+                lines.append(f"- {entry.summary} ([`{entry.commit_id}`]({commit_url}))")
+            lines.append("")
+
+    if not has_entries:
+        lines.append("*This release contains internal maintenance and infrastructure changes only.*")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def read_existing_changelog(path: Path, default_header: str) -> tuple[str, str]:
+    """Read existing changelog and split into header and content."""
+    if not path.exists():
+        return default_header, ""
+
+    content = path.read_text()
+
+    match = re.search(r"^## ", content, re.MULTILINE)
+    if match:
+        header = content[: match.start()].rstrip() + "\n\n"
+        releases = content[match.start() :]
+    else:
+        header = content.rstrip() + "\n\n"
+        releases = ""
+
+    return header, releases
+
+
+def write_changelog(path: Path, header: str, new_entry: str, existing_releases: str) -> None:
+    """Write changelog with new entry prepended."""
+    content = header + new_entry + "\n" + existing_releases
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content.rstrip() + "\n")
+
+
+def generate_changelog_entry(
+    version: str,
+    llm_model: str = "gpt-5.2",
+) -> None:
+    """Generate changelog entry for a specific version."""
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        console.print("[red]Error: OPENAI_API_KEY environment variable not set[/red]")
+        sys.exit(1)
+
+    client = OpenAI(api_key=api_key)
+
+    tag = version if version.startswith("v") else f"v{version}"
+    display_version = version.lstrip("v")
+
+    console.print("[blue]Fetching tags from repository...[/blue]")
+    existing_tags = get_git_tags()
+
+    if tag not in existing_tags and display_version not in existing_tags:
+        console.print(f"[red]Error: Tag {tag} not found in repository[/red]")
+        console.print("[red]Create the tag first before generating changelog[/red]")
+        sys.exit(1)
+
+    actual_tag = tag if tag in existing_tags else display_version
+
+    previous_tag = find_previous_version(display_version, existing_tags)
+
+    if previous_tag:
+        console.print(f"[green]Found previous version: {previous_tag}[/green]")
+    else:
+        console.print("[yellow]No previous version found, will include all commits[/yellow]")
+
+    console.print("[blue]Getting commits...[/blue]")
+    commits = get_commits(previous_tag, actual_tag)
+    file_diff = get_detailed_diff(previous_tag, actual_tag)
+
+    if not commits:
+        console.print("[red]Error: No commits found for this release[/red]")
+        sys.exit(1)
+
+    console.print(f"[blue]Found {len(commits)} commits[/blue]")
+
+    # Log commits
+    console.print("\n[bold]Commits:[/bold]")
+    for c in commits:
+        console.print(f"  {c.hash} {c.message}")
+
+    console.print("\n[bold]Files changed:[/bold]")
+    console.print(file_diff[:4000] if len(file_diff) > 4000 else file_diff)
+    console.print("")
+
+    console.print(f"[blue]Analyzing commits with LLM ({llm_model})...[/blue]")
+    entries = analyze_commits_with_llm(client, llm_model, display_version, commits, file_diff)
+
+    console.print(f"\n[bold]LLM identified {len(entries)} changelog entries:[/bold]")
+    for entry in entries:
+        console.print(f"  [{entry.category}] {entry.summary} ({entry.commit_id})")
+
+    new_entry = build_changelog_markdown(display_version, tag, entries)
+
+    default_header = """---
+hide_table_of_contents: true
+---
+
+# Changelog
+
+This changelog highlights user-facing changes only. Internal maintenance, CI/CD, and infrastructure updates are omitted.
+
+For full release details, see [GitHub Releases](https://github.com/vectorize-io/hindsight/releases).
+
+"""
+    header, existing_releases = read_existing_changelog(CHANGELOG_PATH, default_header)
+
+    if f"## [{display_version}]" in existing_releases:
+        console.print(f"[red]Error: Version {display_version} already exists in changelog[/red]")
+        sys.exit(1)
+
+    write_changelog(CHANGELOG_PATH, header, new_entry, existing_releases)
+
+    console.print(f"\n[green]Changelog updated: {CHANGELOG_PATH}[/green]")
+    console.print(f"\n[bold]New entry:[/bold]\n{new_entry}")
+
+
+def generate_integration_changelog_entry(
+    integration: str,
+    version: str,
+    llm_model: str = "gpt-5.2",
+) -> None:
+    """Generate changelog entry for a specific integration version."""
+    if integration not in VALID_INTEGRATIONS:
+        console.print(f"[red]Error: Unknown integration '{integration}'. Valid: {', '.join(VALID_INTEGRATIONS)}[/red]")
+        sys.exit(1)
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        console.print("[red]Error: OPENAI_API_KEY environment variable not set[/red]")
+        sys.exit(1)
+
+    client = OpenAI(api_key=api_key)
+
+    display_version = version.lstrip("v")
+    path_filter = f"hindsight-integrations/{integration}/"
+    changelog_path = INTEGRATION_CHANGELOG_DIR / f"{integration}.md"
+
+    console.print(f"[blue]Fetching integration tags for {integration}...[/blue]")
+    existing_tags = get_integration_tags(integration)
+
+    previous_tag = find_previous_integration_tag(display_version, existing_tags, integration)
+
+    if previous_tag:
+        console.print(f"[green]Found previous tag: {previous_tag}[/green]")
+    else:
+        console.print("[yellow]No previous tag found, will include all commits touching this integration[/yellow]")
+
+    console.print(f"[blue]Getting commits for {path_filter}...[/blue]")
+    commits = get_commits(previous_tag, "HEAD", path_filter=path_filter)
+    file_diff = get_detailed_diff(previous_tag, "HEAD", path_filter=path_filter)
+
+    if not commits:
+        console.print("[yellow]Warning: No commits found touching this integration path[/yellow]")
+        entries = []
+    else:
+        console.print(f"[blue]Found {len(commits)} commits[/blue]")
+
+        console.print("\n[bold]Commits:[/bold]")
+        for c in commits:
+            console.print(f"  {c.hash} {c.message}")
+
+        console.print("\n[bold]Files changed:[/bold]")
+        console.print(file_diff[:4000] if len(file_diff) > 4000 else file_diff)
+        console.print("")
+
+        console.print(f"[blue]Analyzing commits with LLM ({llm_model})...[/blue]")
+        entries = analyze_commits_with_llm(
+            client, llm_model, display_version, commits, file_diff, integration=integration
+        )
+
+        console.print(f"\n[bold]LLM identified {len(entries)} changelog entries:[/bold]")
+        for entry in entries:
+            console.print(f"  [{entry.category}] {entry.summary} ({entry.commit_id})")
+
+    integration_tag = f"integrations/{integration}/v{display_version}"
+    new_entry = build_changelog_markdown(display_version, integration_tag, entries, integration=integration)
+
+    package_name = _get_package_name(integration)
+    default_header = f"""---
+hide_table_of_contents: true
+---
+
+# {_integration_display_name(integration)} Integration Changelog
+
+Changelog for [`{package_name}`]({_package_url(integration, package_name)}).
+
+For the source code, see [`hindsight-integrations/{integration}`](https://github.com/{GITHUB_REPO}/tree/main/hindsight-integrations/{integration}).
+
+← [Back to main changelog](/changelog)
+
+"""
+    header, existing_releases = read_existing_changelog(changelog_path, default_header)
+
+    if f"## [{display_version}]" in existing_releases:
+        console.print(f"[red]Error: Version {display_version} already exists in integration changelog[/red]")
+        sys.exit(1)
+
+    write_changelog(changelog_path, header, new_entry, existing_releases)
+
+    console.print(f"\n[green]Integration changelog updated: {changelog_path}[/green]")
+    console.print(f"\n[bold]New entry:[/bold]\n{new_entry}")
+
+
+def _get_package_name(integration: str) -> str:
+    packages = {
+        "litellm": "hindsight-litellm",
+        "pydantic-ai": "hindsight-pydantic-ai",
+        "crewai": "hindsight-crewai",
+        "ag2": "hindsight-ag2",
+        "ai-sdk": "@vectorize-io/hindsight-ai-sdk",
+        "chat": "@vectorize-io/hindsight-chat",
+        "openclaw": "@vectorize-io/hindsight-openclaw",
+        "langgraph": "hindsight-langgraph",
+        "nemoclaw": "@vectorize-io/hindsight-nemoclaw",
+        "strands": "hindsight-strands",
+        "claude-code": "hindsight-memory",
+        "llamaindex": "hindsight-llamaindex",
+        "codex": "hindsight-codex",
+        "hermes": "hindsight-hermes",
+    }
+    return packages[integration]
+
+
+def _package_url(integration: str, package_name: str) -> str:
+    if integration == "claude-code":
+        return "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/claude-code"
+    if package_name.startswith("@"):
+        return f"https://www.npmjs.com/package/{package_name}"
+    return f"https://pypi.org/project/{package_name}/"
+
+
+def _integration_display_name(integration: str) -> str:
+    names = {
+        "litellm": "LiteLLM",
+        "pydantic-ai": "Pydantic AI",
+        "crewai": "CrewAI",
+        "ai-sdk": "AI SDK",
+        "chat": "Chat SDK",
+        "openclaw": "OpenClaw",
+        "langgraph": "LangGraph",
+        "nemoclaw": "NemoClaw",
+        "strands": "Strands",
+        "claude-code": "Claude Code",
+        "llamaindex": "LlamaIndex",
+        "codex": "Codex",
+        "hermes": "Hermes",
+    }
+    return names.get(integration, integration)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate changelog entry for a release",
+        usage="generate-changelog VERSION [--model MODEL] [--integration NAME]",
+    )
+    parser.add_argument(
+        "version",
+        help="Version to generate changelog for (e.g., 1.0.5, v1.0.5)",
+    )
+    parser.add_argument(
+        "--model",
+        default="gpt-5.2",
+        help="OpenAI model to use (default: gpt-5.2)",
+    )
+    parser.add_argument(
+        "--integration",
+        default=None,
+        help=f"Generate changelog for a specific integration. Valid: {', '.join(VALID_INTEGRATIONS)}",
+    )
+
+    args = parser.parse_args()
+
+    if args.integration:
+        generate_integration_changelog_entry(
+            integration=args.integration,
+            version=args.version,
+            llm_model=args.model,
+        )
+    else:
+        generate_changelog_entry(
+            version=args.version,
+            llm_model=args.model,
+        )
+
+
+if __name__ == "__main__":
+    main()
