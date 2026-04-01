@@ -48,7 +48,6 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 - Native-support candidates to fully diff-audit next:
   - `#1055` Dart / Flutter support
   - `#1043` C# reviewer and .NET skills
-  - `#834` localized catalog sync and antigravity target filtering
 - Port or rebuild inside ECC after full audit:
   - `#894` Jira integration
   - `#844` ui-demo skill
@@ -75,3 +74,7 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 - 2026-04-01: Notification PRs `#808` and `#814` were identified as overlapping and should be rebuilt as one unified feature instead of landing as parallel branches.
 - 2026-04-01: External-source skill PRs `#640`, `#851`, and `#852` were closed under the new ingestion policy; copy ideas from audited source later rather than merging branded/source-import PRs directly.
 - 2026-04-01: The remaining low GitHub advisory on `ecc2/Cargo.lock` was addressed by moving `ratatui` to `0.30` with `crossterm_0_28`, which updated transitive `lru` from `0.12.5` to `0.16.3`. `cargo build --manifest-path ecc2/Cargo.toml` still passes.
+- 2026-04-01: Safe core of `#834` was ported directly into `main` instead of merging the PR wholesale. This included stricter install-plan validation, antigravity target filtering that skips unsupported module trees, tracked catalog sync for English plus zh-CN docs, and a dedicated `catalog:sync` write mode.
+- 2026-04-01: Repo catalog truth is now synced at `36` agents, `68` commands, and `142` skills across the tracked English and zh-CN docs.
+- 2026-04-01: Legacy emoji and non-essential symbol usage in docs, scripts, and tests was normalized to keep the unicode-safety lane green without weakening the check itself.
+- 2026-04-01: The remaining self-contained piece of `#834`, `docs/zh-CN/skills/browser-qa/SKILL.md`, was ported directly into the repo. After commit, `#834` should be closed as superseded-by-direct-port.
