@@ -43,6 +43,7 @@ VALID_INTEGRATIONS = [
     "llamaindex",
     "codex",
     "hermes",
+    "autogen",
 ]
 
 
@@ -527,6 +528,7 @@ def _get_package_name(integration: str) -> str:
         "llamaindex": "hindsight-llamaindex",
         "codex": "hindsight-codex",
         "hermes": "hindsight-hermes",
+        "autogen": "hindsight-autogen",
     }
     return packages[integration]
 
@@ -554,6 +556,7 @@ def _integration_display_name(integration: str) -> str:
         "llamaindex": "LlamaIndex",
         "codex": "Codex",
         "hermes": "Hermes",
+        "autogen": "AutoGen",
     }
     return names.get(integration, integration)
 

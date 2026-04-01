@@ -58,7 +58,7 @@ async def _bulk_insert_links(
     chunk_size: int = 5000,
     skip_exists_check: bool = False,
 ) -> None:
-    """Insert links into memory_links using sorted bulk INSERT FROM unnest().
+    """Bulk-insert links using sorted INSERT FROM unnest().
 
     Sorting by (from_unit_id, to_unit_id) ensures all concurrent transactions
     acquire index locks in the same order, eliminating circular-wait deadlocks.
@@ -944,7 +944,7 @@ async def create_semantic_links_batch(
 
 async def insert_entity_links_batch(conn, links: list[EntityLink], bank_id: str, chunk_size: int = 5000):
     """
-    Insert entity links into memory_links via sorted bulk INSERT FROM unnest().
+    Bulk-insert entity links via sorted INSERT FROM unnest().
 
     Args:
         conn: Database connection

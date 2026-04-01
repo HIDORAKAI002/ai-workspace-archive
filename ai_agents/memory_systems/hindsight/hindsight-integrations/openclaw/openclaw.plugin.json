@@ -215,6 +215,20 @@
         "type": "number",
         "description": "Interval in ms to batch retain/recall log summaries. 0 = log every event individually. Default: 300000 (5 min).",
         "default": 300000
+      },
+      "retainQueuePath": {
+        "type": "string",
+        "description": "Path to JSONL file for buffering failed retains (external API mode only). Default: ~/.openclaw/data/hindsight-retain-queue.jsonl"
+      },
+      "retainQueueMaxAgeMs": {
+        "type": "number",
+        "description": "Max age in ms for queued retain items. -1 = keep forever.",
+        "default": -1
+      },
+      "retainQueueFlushIntervalMs": {
+        "type": "number",
+        "description": "How often to attempt flushing queued retains in ms. Default: 60000 (1 min).",
+        "default": 60000
       }
     },
     "additionalProperties": false
@@ -349,6 +363,18 @@
     "logSummaryIntervalMs": {
       "label": "Log Summary Interval (ms)",
       "placeholder": "300000"
+    },
+    "retainQueuePath": {
+      "label": "Retain Queue File Path",
+      "placeholder": "~/.openclaw/data/hindsight-retain-queue.jsonl"
+    },
+    "retainQueueMaxAgeMs": {
+      "label": "Retain Queue Max Age (ms)",
+      "placeholder": "-1 (forever)"
+    },
+    "retainQueueFlushIntervalMs": {
+      "label": "Retain Queue Flush Interval (ms)",
+      "placeholder": "60000"
     }
   }
 }

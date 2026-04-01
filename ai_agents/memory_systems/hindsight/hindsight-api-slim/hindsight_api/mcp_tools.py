@@ -2873,6 +2873,7 @@ def _register_clear_memories(mcp: FastMCP, memory: MemoryEngine, config: MCPTool
                 result = await memory.delete_bank(
                     target_bank,
                     fact_type=type,
+                    delete_bank_profile=False,
                     request_context=_get_request_context(config),
                 )
                 return json.dumps({"status": "cleared", "bank_id": target_bank, **result}, default=str)
@@ -2905,6 +2906,7 @@ def _register_clear_memories(mcp: FastMCP, memory: MemoryEngine, config: MCPTool
                 result = await memory.delete_bank(
                     target_bank,
                     fact_type=type,
+                    delete_bank_profile=False,
                     request_context=_get_request_context(config),
                 )
                 return {"status": "cleared", "bank_id": target_bank, **result}

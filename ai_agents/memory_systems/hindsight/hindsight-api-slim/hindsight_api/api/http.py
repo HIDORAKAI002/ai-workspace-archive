@@ -5098,7 +5098,7 @@ def _register_routes(app: FastAPI):
     ):
         """Clear memories for a memory bank, optionally filtered by type."""
         try:
-            await app.state.memory.delete_bank(bank_id, fact_type=type, request_context=request_context)
+            await app.state.memory.delete_bank(bank_id, fact_type=type, delete_bank_profile=False, request_context=request_context)
 
             return DeleteResponse(success=True)
         except OperationValidationError as e:

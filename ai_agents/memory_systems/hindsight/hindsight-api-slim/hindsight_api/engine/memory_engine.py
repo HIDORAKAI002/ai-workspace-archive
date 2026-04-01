@@ -3838,6 +3838,7 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         fact_type: str | None = None,
         *,
+        delete_bank_profile: bool = True,
         request_context: "RequestContext",
     ) -> dict[str, int]:
         """
@@ -3924,19 +3925,20 @@ class MemoryEngine(MemoryEngineInterface):
                         # Delete entities (cascades to unit_entities, entity_cooccurrences, memory_links with entity_id)
                         await conn.execute(f"DELETE FROM {fq_table('entities')} WHERE bank_id = $1", bank_id)
 
-                        # Delete the bank profile and retrieve internal_id for HNSW index cleanup
-                        internal_id = await conn.fetchval(
-                            f"DELETE FROM {fq_table('banks')} WHERE bank_id = $1 RETURNING internal_id", bank_id
-                        )
-                        if internal_id:
-                            bank_internal_id = str(internal_id)
-
                         result = {
                             "memory_units_deleted": units_count,
                             "entities_deleted": entities_count,
                             "documents_deleted": documents_count,
-                            "bank_deleted": True,
                         }
+
+                        if delete_bank_profile:
+                            # Delete the bank profile and retrieve internal_id for HNSW index cleanup
+                            internal_id = await conn.fetchval(
+                                f"DELETE FROM {fq_table('banks')} WHERE bank_id = $1 RETURNING internal_id", bank_id
+                            )
+                            if internal_id:
+                                bank_internal_id = str(internal_id)
+                            result["bank_deleted"] = True
 
                 except Exception as e:
                     raise Exception(f"Failed to delete agent data: {str(e)}")
@@ -4338,15 +4340,19 @@ class MemoryEngine(MemoryEngineInterface):
                 link for link in links if link["from_unit_id"] in unit_id_set and link["to_unit_id"] in unit_id_set
             ]
 
-            # Get entity information — only for visible units
-            if unit_ids:
-                unit_entities = await conn.fetch(f"""
+            # Get entity information — for visible units AND their source memories
+            # (observations inherit entities from source memories)
+            if all_relevant_ids:
+                unit_entities = await conn.fetch(
+                    f"""
                     SELECT ue.unit_id, e.canonical_name
                     FROM {fq_table("unit_entities")} ue
                     JOIN {fq_table("entities")} e ON ue.entity_id = e.id
                     WHERE ue.unit_id = ANY($1::uuid[])
                     ORDER BY ue.unit_id
-                """, unit_ids)
+                """,
+                    all_relevant_ids,
+                )
             else:
                 unit_entities = []
 

@@ -434,6 +434,53 @@ async def retain_batch(
     # Convert dicts to RetainContent objects
     contents = _build_contents(contents_dicts, document_tags)
 
+    # When contents have multiple distinct per-content document_ids and no
+    # batch-level document_id, group by doc_id and process each group
+    # independently so each document is tracked separately.
+    if not document_id:
+        per_content_doc_ids = [item.get("document_id") for item in contents_dicts]
+        unique_doc_ids = {d for d in per_content_doc_ids if d}
+        if len(unique_doc_ids) > 1:
+            # Group contents by document_id, preserving original order
+            groups: dict[str, tuple[list[RetainContentDict], list[RetainContent]]] = {}
+            original_indices: dict[str, list[int]] = {}
+            for idx, (cd, c) in enumerate(zip(contents_dicts, contents)):
+                doc_key = cd.get("document_id") or str(uuid.uuid4())
+                if doc_key not in groups:
+                    groups[doc_key] = ([], [])
+                    original_indices[doc_key] = []
+                groups[doc_key][0].append(cd)
+                groups[doc_key][1].append(c)
+                original_indices[doc_key].append(idx)
+
+            # Process each group and merge results back in original order
+            result_unit_ids: list[list[str]] = [[] for _ in contents_dicts]
+            total_usage = TokenUsage()
+            for doc_key, (group_dicts, group_contents) in groups.items():
+                group_ids, group_usage = await retain_batch(
+                    pool=pool,
+                    embeddings_model=embeddings_model,
+                    llm_config=llm_config,
+                    entity_resolver=entity_resolver,
+                    format_date_fn=format_date_fn,
+                    bank_id=bank_id,
+                    contents_dicts=group_dicts,
+                    config=config,
+                    document_id=doc_key,
+                    is_first_batch=is_first_batch,
+                    fact_type_override=fact_type_override,
+                    document_tags=document_tags,
+                    operation_id=operation_id,
+                    schema=schema,
+                    outbox_callback=outbox_callback,
+                    db_semaphore=db_semaphore,
+                )
+                for group_idx, orig_idx in enumerate(original_indices[doc_key]):
+                    if group_idx < len(group_ids):
+                        result_unit_ids[orig_idx] = group_ids[group_idx]
+                total_usage = total_usage + group_usage
+            return result_unit_ids, total_usage
+
     # Resolve effective document_id early so both delta and streaming paths
     # can find existing chunks from a prior attempt. On retry, the generated
     # document_id is recovered from operation result_metadata.
@@ -508,10 +555,12 @@ async def retain_batch(
     # retain code paths.
     chunk_batch_size = getattr(config, "retain_chunk_batch_size", 100)
     chunk_size = getattr(config, "retain_chunk_size", 3000)
-    all_pre_chunks = []
-    for content in contents:
+    all_pre_chunks: list[str] = []
+    chunk_to_content: list[int] = []  # maps chunk index -> index into contents
+    for content_idx, content in enumerate(contents):
         content_chunks = fact_extraction.chunk_text(content.content, chunk_size)
         all_pre_chunks.extend(content_chunks)
+        chunk_to_content.extend([content_idx] * len(content_chunks))
 
     total_pre_chunks = len(all_pre_chunks)
     num_batches = (total_pre_chunks + chunk_batch_size - 1) // chunk_batch_size if total_pre_chunks > 0 else 1
@@ -538,6 +587,7 @@ async def retain_batch(
         log_buffer=log_buffer,
         start_time=start_time,
         all_pre_chunks=all_pre_chunks,
+        chunk_to_content=chunk_to_content,
         chunk_batch_size=chunk_batch_size,
         operation_id=operation_id,
         schema=schema,
@@ -676,6 +726,7 @@ async def _streaming_retain_batch(
     log_buffer: list[str],
     start_time: float,
     all_pre_chunks: list[str],
+    chunk_to_content: list[int],
     chunk_batch_size: int,
     operation_id: str | None = None,
     schema: str | None = None,
@@ -704,8 +755,8 @@ async def _streaming_retain_batch(
     # operation result_metadata on retry).
     effective_doc_id = document_id
 
-    # Use the first content item as the template for metadata (context, event_date, etc.)
-    template_content = contents[0] if contents else RetainContent(content="")
+    # Default template for metadata (context, event_date, etc.) when content list is empty.
+    _default_content = RetainContent(content="")
 
     # Load existing chunk hashes BEFORE document tracking to detect recovery.
     # If chunks exist AND the document content hash matches, this is a retry of
@@ -774,14 +825,15 @@ async def _streaming_retain_batch(
     # it pushes the enriched result into the queue for the DB consumer.
     async def _llm_producer() -> None:
         async def _extract_one(global_idx: int, chunk_text: str) -> None:
+            source = contents[chunk_to_content[global_idx]] if contents else _default_content
             content = RetainContent(
                 content=chunk_text,
-                context=template_content.context,
-                event_date=template_content.event_date,
-                metadata=template_content.metadata,
-                entities=template_content.entities,
-                tags=template_content.tags,
-                observation_scopes=template_content.observation_scopes,
+                context=source.context,
+                event_date=source.event_date,
+                metadata=source.metadata,
+                entities=source.entities,
+                tags=source.tags,
+                observation_scopes=source.observation_scopes,
             )
             extracted, processed, chunk_meta, usage = await _extract_and_embed(
                 [content],

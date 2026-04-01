@@ -71,9 +71,9 @@ function heatColor(t: number): string {
   // Brighter, more luminous stops — like stars in a night sky
   // teal glow → bright cyan → white-blue
   const stops = [
-    [80, 200, 205],   // bright teal
-    [100, 210, 255],  // bright cyan
-    [140, 180, 255],  // light blue-white
+    [80, 200, 205], // bright teal
+    [100, 210, 255], // bright cyan
+    [140, 180, 255], // light blue-white
   ];
   const seg = v * (stops.length - 1);
   const i = Math.min(Math.floor(seg), stops.length - 2);
@@ -678,7 +678,10 @@ export function Constellation({
         const meta = node.metadata as Record<string, any> | undefined;
         const fullText = meta?.text || node.label || node.id;
         const entities: string[] = meta?.entities
-          ? String(meta.entities).split(",").map((e: string) => e.trim()).filter(Boolean)
+          ? String(meta.entities)
+              .split(",")
+              .map((e: string) => e.trim())
+              .filter(Boolean)
           : [];
         const nodeColor = preparedNodes[idx].heatColor;
         const linkCount = preparedNodes[idx].linkCount;
@@ -717,9 +720,10 @@ export function Constellation({
         if (date) {
           html += `<div style="${rowStyle}"><span style="${labelStyle}">Date</span><span style="${valStyle}">${date}</span></div>`;
         } else if (occurredStart) {
-          const timeRange = occurredEnd && occurredEnd !== occurredStart
-            ? `${occurredStart.slice(0, 10)} → ${occurredEnd.slice(0, 10)}`
-            : occurredStart.slice(0, 10);
+          const timeRange =
+            occurredEnd && occurredEnd !== occurredStart
+              ? `${occurredStart.slice(0, 10)} → ${occurredEnd.slice(0, 10)}`
+              : occurredStart.slice(0, 10);
           html += `<div style="${rowStyle}"><span style="${labelStyle}">Occurred</span><span style="${valStyle}">${timeRange}</span></div>`;
         }
 
@@ -882,10 +886,7 @@ export function Constellation({
           : { position: "relative", width: "100%", height: `${height}px` }
       }
     >
-      <canvas
-        ref={canvasRef}
-        style={{ width: "100%", height: "100%", display: "block" }}
-      />
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
 
       {/* Fullscreen toggle */}
       <button
@@ -917,14 +918,32 @@ export function Constellation({
         title={isFullscreen ? "Exit fullscreen (Esc)" : "Enter fullscreen"}
       >
         {isFullscreen ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="4 14 10 14 10 20" />
             <polyline points="20 10 14 10 14 4" />
             <line x1="14" y1="10" x2="21" y2="3" />
             <line x1="3" y1="21" x2="10" y2="14" />
           </svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="15 3 21 3 21 9" />
             <polyline points="9 21 3 21 3 15" />
             <line x1="21" y1="3" x2="14" y2="10" />

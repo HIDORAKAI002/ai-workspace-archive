@@ -240,6 +240,7 @@ class MemoryEngineInterface(ABC):
         bank_id: str,
         *,
         fact_type: str | None = None,
+        delete_bank_profile: bool = True,
         request_context: "RequestContext",
     ) -> dict[str, int]:
         """
@@ -248,6 +249,8 @@ class MemoryEngineInterface(ABC):
         Args:
             bank_id: The memory bank ID.
             fact_type: If specified, only delete memories of this type.
+            delete_bank_profile: If True, also delete the bank profile row itself.
+                If False, only delete memories/entities/documents but preserve the bank.
             request_context: Request context for authentication.
 
         Returns:

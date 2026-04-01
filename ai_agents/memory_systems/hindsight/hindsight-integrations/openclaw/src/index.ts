@@ -1,11 +1,14 @@
 import type { MoltbotPluginAPI, PluginConfig, PluginHookAgentContext, MemoryResult } from './types.js';
 import { HindsightEmbedManager } from './embed-manager.js';
 import { HindsightClient, type HindsightClientOptions } from './client.js';
+import { RetainQueue } from './retain-queue.js';
 import { createHash } from 'crypto';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import * as log from './logger.js';
 import { configureLogger, setApiLogger, stopLogger } from './logger.js';
+import { mkdirSync } from 'fs';
+import { homedir } from 'os';
 
 // Debug logging: silent by default, enable with debug: true or logLevel: 'debug'
 let debugEnabled = false;
@@ -49,6 +52,69 @@ const registeredApis = new WeakSet<object>();
 let lastReinitAttempt = 0;
 let isReinitInProgress = false;
 const REINIT_COOLDOWN_MS = 30_000;
+
+// Retain queue (external API mode only)
+let retainQueue: RetainQueue | null = null;
+let retainQueueFlushTimer: ReturnType<typeof setInterval> | null = null;
+let isFlushInProgress = false;
+const DEFAULT_FLUSH_INTERVAL_MS = 60_000; // 1 min
+
+/**
+ * Attempt to flush pending retains from the queue.
+ * Each item is sent exactly as it would have been originally — same bank, payload, metadata.
+ */
+async function flushRetainQueue(): Promise<void> {
+  if (!retainQueue || isFlushInProgress) return;
+  const pending = retainQueue.size();
+  if (pending === 0) return;
+
+  isFlushInProgress = true;
+  let flushed = 0;
+  let failed = 0;
+
+  try {
+    if (!clientOptions) return; // no client config — can't flush
+
+    // Cleanup expired items first
+    retainQueue.cleanup();
+
+    const items = retainQueue.peek(50);
+    const flushedIds: string[] = [];
+    for (const item of items) {
+      try {
+        let bankClient = clientsByBankId.get(item.bankId);
+        if (!bankClient) {
+          bankClient = new HindsightClient(clientOptions);
+          bankClient.setBankId(item.bankId);
+          clientsByBankId.set(item.bankId, bankClient);
+        }
+
+        await bankClient.retain({
+          content: item.content,
+          document_id: item.documentId,
+          metadata: item.metadata,
+        });
+
+        flushedIds.push(item.id);
+        flushed++;
+      } catch {
+        // API still down — stop trying this batch
+        failed++;
+        break;
+      }
+    }
+
+    if (flushedIds.length > 0) retainQueue.removeMany(flushedIds);
+    const remaining = retainQueue.size();
+    if (flushed > 0) {
+      log.info(`queue flush: ${flushed} queued retains delivered${remaining > 0 ? `, ${remaining} still pending` : ', queue empty'}`);
+    } else if (failed > 0) {
+      debug(`[Hindsight] Queue flush: API still unreachable, ${remaining} retains pending`);
+    }
+  } finally {
+    isFlushInProgress = false;
+  }
+}
 
 const DEFAULT_RECALL_PROMPT_PREAMBLE =
   'Relevant memories from past conversations (prioritize recent when conflicting). Only use memories that are directly useful to continue this conversation; ignore the rest:';
@@ -808,6 +874,31 @@ export default function (api: MoltbotPluginAPI) {
           usingExternalApi = true;
           debug(`[Hindsight] ✓ Using external API: ${externalApi.apiUrl}`);
 
+          // Initialize retain queue (external API mode only)
+          try {
+            const queueDir = pluginConfig.retainQueuePath
+              ? dirname(pluginConfig.retainQueuePath)
+              : join(homedir(), '.openclaw', 'data');
+            mkdirSync(queueDir, { recursive: true });
+            const queuePath = pluginConfig.retainQueuePath || join(queueDir, 'hindsight-retain-queue.jsonl');
+            const queueFlushInterval = pluginConfig.retainQueueFlushIntervalMs ?? DEFAULT_FLUSH_INTERVAL_MS;
+            const queueMaxAge = pluginConfig.retainQueueMaxAgeMs ?? -1;
+            retainQueue = new RetainQueue({ filePath: queuePath, maxAgeMs: queueMaxAge });
+            const pending = retainQueue.size();
+            if (pending > 0) {
+              log.info(`retain queue: ${pending} items pending from previous session, will flush shortly`);
+            }
+            debug(`[Hindsight] Retain queue initialized: ${queuePath}`);
+
+            // Periodic flush timer
+            if (queueFlushInterval > 0) {
+              retainQueueFlushTimer = setInterval(flushRetainQueue, queueFlushInterval);
+              retainQueueFlushTimer.unref?.();
+            }
+          } catch (error) {
+            log.warn(`could not initialize retain queue: ${error}`);
+          }
+
           // Set env vars so CLI commands (uvx hindsight-embed) use external API
           process.env.HINDSIGHT_EMBED_API_URL = externalApi.apiUrl;
           if (externalApi.apiToken) {
@@ -1025,6 +1116,20 @@ export default function (api: MoltbotPluginAPI) {
           if (!usingExternalApi && embedManager) {
             await embedManager.stop();
             embedManager = null;
+          }
+
+          // Close retain queue
+          if (retainQueueFlushTimer) {
+            clearInterval(retainQueueFlushTimer);
+            retainQueueFlushTimer = null;
+          }
+          if (retainQueue) {
+            const pending = retainQueue.size();
+            if (pending > 0) {
+              debug(`[Hindsight] Service stopping with ${pending} queued retains (will resume on next start)`);
+            }
+            retainQueue.close();
+            retainQueue = null;
           }
 
           client = null;
@@ -1303,7 +1408,7 @@ ${memoriesFormatted}
 
         // Retain to Hindsight
         debug(`[Hindsight] Retaining to bank ${bankId}, document: ${documentId}, chars: ${transcript.length}\n---\n${transcript.substring(0, 500)}${transcript.length > 500 ? '\n...(truncated)' : ''}\n---`);
-        await client.retain({
+        const retainRequest = {
           content: transcript,
           document_id: documentId,
           metadata: {
@@ -1313,10 +1418,27 @@ ${memoriesFormatted}
             channel_id: effectiveCtx?.channelId,
             sender_id: effectiveCtx?.senderId,
           },
-        });
+        };
 
-        log.trackRetain(bankId, messageCount);
-        debug(`[Hindsight] Retained ${messageCount} messages to bank ${bankId} for session ${documentId}`);
+        try {
+          await client.retain(retainRequest);
+          log.trackRetain(bankId, messageCount);
+          debug(`[Hindsight] Retained ${messageCount} messages to bank ${bankId} for session ${documentId}`);
+
+          // After a successful retain, try flushing any queued items
+          if (retainQueue && retainQueue.size() > 0) {
+            flushRetainQueue().catch(() => {});
+          }
+        } catch (retainError) {
+          // Queue the failed retain for later delivery (external API mode only)
+          if (retainQueue) {
+            retainQueue.enqueue(bankId, retainRequest, retainRequest.metadata);
+            const pending = retainQueue.size();
+            log.warn(`API unreachable — retain queued (${pending} pending, bank: ${bankId}): ${retainError instanceof Error ? retainError.message : retainError}`);
+          } else {
+            log.error('error retaining messages', retainError);
+          }
+        }
       } catch (error) {
         log.error('error retaining messages', error);
       }

@@ -585,6 +585,87 @@ async def test_delete_bank(api_client):
 
 
 @pytest.mark.asyncio
+async def test_delete_bank_nonexistent(api_client):
+    """Test deleting a bank that doesn't exist returns success with zero counts."""
+    fake_bank_id = f"nonexistent_bank_{datetime.now().timestamp()}"
+
+    response = await api_client.delete(f"/v1/default/banks/{fake_bank_id}")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["success"] is True
+    assert result["deleted_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_clear_memories_preserves_bank(api_client):
+    """Test that clearing memories preserves the bank profile.
+
+    Workflow:
+    1. Create a bank with memories
+    2. Clear all memories via DELETE /memories
+    3. Verify the bank still exists with its profile intact
+    4. Verify all memories are gone
+    """
+    test_bank_id = f"clear_memories_test_{datetime.now().timestamp()}"
+
+    try:
+        # 1. Create bank with memories
+        response = await api_client.post(
+            f"/v1/default/banks/{test_bank_id}/memories",
+            json={
+                "items": [
+                    {"content": "Alice is a software engineer.", "context": "team info"},
+                    {"content": "Bob works on infrastructure.", "context": "team info"},
+                ]
+            },
+        )
+        assert response.status_code == 200
+
+        # Verify bank exists and has data
+        response = await api_client.get(f"/v1/default/banks/{test_bank_id}/stats")
+        assert response.status_code == 200
+        assert response.json()["total_nodes"] > 0
+
+        response = await api_client.get("/v1/default/banks")
+        assert response.status_code == 200
+        bank_ids = [b["bank_id"] for b in response.json()["banks"]]
+        assert test_bank_id in bank_ids
+
+        # 2. Clear all memories
+        response = await api_client.delete(f"/v1/default/banks/{test_bank_id}/memories")
+        assert response.status_code == 200
+        assert response.json()["success"] is True
+
+        # 3. Bank should still exist in the list
+        response = await api_client.get("/v1/default/banks")
+        assert response.status_code == 200
+        bank_ids = [b["bank_id"] for b in response.json()["banks"]]
+        assert test_bank_id in bank_ids, "Bank should still exist after clearing memories"
+
+        # Profile should still be accessible
+        response = await api_client.get(f"/v1/default/banks/{test_bank_id}/profile")
+        assert response.status_code == 200
+
+        # 4. Memories should be gone
+        response = await api_client.get(f"/v1/default/banks/{test_bank_id}/stats")
+        assert response.status_code == 200
+        assert response.json()["total_nodes"] == 0
+
+    finally:
+        await api_client.delete(f"/v1/default/banks/{test_bank_id}")
+
+
+@pytest.mark.asyncio
+async def test_clear_memories_nonexistent_bank(api_client):
+    """Test clearing memories for a bank that doesn't exist returns success."""
+    fake_bank_id = f"nonexistent_clear_{datetime.now().timestamp()}"
+
+    response = await api_client.delete(f"/v1/default/banks/{fake_bank_id}/memories")
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+
+
+@pytest.mark.asyncio
 async def test_async_retain(api_client):
     """Test asynchronous retain functionality.
 
