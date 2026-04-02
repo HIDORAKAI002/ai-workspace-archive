@@ -45,8 +45,8 @@ _INTENT_SIGNAL = re.compile(
     r"\b(?:now i|next i)\b"
     r")"
 )
-_MAX_REPROMPTS = 1
-_REPROMPT_MAX_CHARS = 500
+_MAX_REPROMPTS = 3
+_REPROMPT_MAX_CHARS = 2000
 
 # ── Pre-compiled patterns for GGUF shard detection ───────────
 _SHARD_FULL_RE = re.compile(r"^(.*)-(\d{5})-of-(\d{5})\.gguf$")
@@ -810,7 +810,9 @@ class LlamaCppBackend:
                 # Detect tool calling support from chat template
                 tool_markers = [
                     "{%- if tools %}",
+                    "{%- if tools -%}",
                     "{% if tools %}",
+                    "{% if tools -%}",
                     '"role" == "tool"',
                     "'role' == 'tool'",
                     'message.role == "tool"',
@@ -2657,8 +2659,9 @@ class LlamaCppBackend:
                                 {
                                     "role": "user",
                                     "content": (
-                                        "Please use the available tools to complete "
-                                        "the task instead of describing what to do."
+                                        "STOP. Do NOT write code or explain. "
+                                        "You MUST call a tool NOW. "
+                                        "Call web_search or python immediately."
                                     ),
                                 }
                             )
@@ -2905,10 +2908,15 @@ class LlamaCppBackend:
                         _error_prefixes
                     )
                     _tool_call_history.append((_tc_key, _is_error))
+                    # Strip image sentinel before feeding result to the LLM
+                    # (the full result with sentinel is still yielded via
+                    # tool_end so the frontend can extract image paths).
                     _result_content = result
+                    if "\n__IMAGES__:" in _result_content:
+                        _result_content = _result_content.rsplit("\n__IMAGES__:", 1)[0]
                     if _is_error:
                         _result_content = (
-                            result + "\n\nThe tool call encountered an issue. "
+                            _result_content + "\n\nThe tool call encountered an issue. "
                             "Please try a different approach or rephrase your request."
                         )
 
