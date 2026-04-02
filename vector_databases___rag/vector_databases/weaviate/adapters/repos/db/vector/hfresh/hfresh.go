@@ -64,10 +64,11 @@ type HFresh struct {
 	// some components require knowing the vector size beforehand
 	// and can only be initialized once the first vector has been
 	// received
-	initDimensionsOnce sync.Once
-	dims               uint32 // Number of dimensions of expected vectors
-	distancer          *Distancer
-	quantizer          *compressionhelpers.BinaryRotationalQuantizer
+	initMu    sync.Mutex
+	initDone  bool
+	dims      uint32 // Number of dimensions of expected vectors
+	distancer *Distancer
+	quantizer *compressionhelpers.BinaryRotationalQuantizer
 
 	// Internal components
 	Centroids     *HNSWIndex          // Provides access to the centroids.
@@ -128,7 +129,7 @@ func New(cfg *Config, uc ent.UserConfig, store *lsmkv.Store) (*HFresh, error) {
 		postingLocks:  common.NewDefaultShardedRWLocks(),
 		// TODO: choose a better starting size since we can predict the max number of
 		// visited vectors based on cfg.InternalPostingCandidates.
-		visitedPool:      visited.NewPool(1, 512, -1),
+		visitedPool:      visited.NewPool(512),
 		maxPostingSizeKB: uc.MaxPostingSizeKB,
 		replicas:         uc.Replicas,
 		rngFactor:        DefaultRNGFactor,
