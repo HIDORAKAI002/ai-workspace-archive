@@ -9,6 +9,7 @@ import logger from '../../src/logger';
 import { OpenAICodexSDKProvider } from '../../src/providers/openai/codex-sdk';
 import { providerRegistry } from '../../src/providers/providerRegistry';
 import { checkProviderApiKeys } from '../../src/util/provider';
+import { createDeferred } from '../util/utils';
 
 import type { CallApiContextParams } from '../../src/types/index';
 
@@ -74,17 +75,6 @@ function restoreEnvVar(name: 'OPENAI_API_KEY' | 'CODEX_API_KEY', value: string |
   } else {
     process.env[name] = value;
   }
-}
-
-function createDeferred<T>() {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: unknown) => void;
-  const promise = new Promise<T>((promiseResolve, promiseReject) => {
-    resolve = promiseResolve;
-    reject = promiseReject;
-  });
-
-  return { promise, resolve, reject };
 }
 
 describe('OpenAICodexSDKProvider', () => {

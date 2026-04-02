@@ -636,7 +636,7 @@ function parseJsonGradingResponse(
   label: string,
   resp: ProviderResponse,
 ): { parsed?: Partial<GradingResult>; failure?: Omit<GradingResult, 'assertion'> } {
-  let jsonObjects: object[] = [];
+  let jsonObjects: unknown[] = [];
   if (typeof resp.output === 'string') {
     try {
       jsonObjects = extractJsonObjects(resp.output);
@@ -653,7 +653,11 @@ function parseJsonGradingResponse(
         ),
       };
     }
-  } else if (typeof resp.output === 'object') {
+  } else if (
+    typeof resp.output === 'object' &&
+    resp.output !== null &&
+    !Array.isArray(resp.output)
+  ) {
     jsonObjects = [resp.output];
   } else {
     return {
@@ -664,8 +668,8 @@ function parseJsonGradingResponse(
     };
   }
 
-  const parsed = jsonObjects[0] as Partial<GradingResult>;
-  if (typeof parsed !== 'object' || parsed === null || parsed === undefined) {
+  const parsed = jsonObjects[0];
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     return {
       failure: fail(
         `${label} produced malformed response. We were not able to parse the response as JSON. Output: ${JSON.stringify(resp.output)}`,
@@ -674,7 +678,7 @@ function parseJsonGradingResponse(
     };
   }
 
-  return { parsed };
+  return { parsed: parsed as Partial<GradingResult> };
 }
 
 async function runJsonGradingPrompt({

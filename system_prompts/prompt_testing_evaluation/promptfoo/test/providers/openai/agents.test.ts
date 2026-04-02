@@ -129,6 +129,7 @@ import { Agent, handoff, tool } from '@openai/agents';
 import cliState from '../../../src/cliState';
 import { importModule } from '../../../src/esm';
 import { OpenAiAgentsProvider } from '../../../src/providers/openai/agents';
+import { loadAgentDefinition } from '../../../src/providers/openai/agents-loader';
 
 describe('OpenAiAgentsProvider', () => {
   const mockImportModule = vi.mocked(importModule);
@@ -706,5 +707,22 @@ describe('OpenAiAgentsProvider', () => {
     await provider.callApi(prompt);
 
     expect(mockRun).toHaveBeenCalledWith(expect.any(Agent), prompt, expect.any(Object));
+  });
+});
+
+describe('loadAgentDefinition', () => {
+  it('rejects nullish agent configs with the standard validation error', async () => {
+    await expect(loadAgentDefinition(null)).rejects.toThrow(
+      'Invalid agent configuration: expected Agent instance, file:// URL, or inline definition',
+    );
+    await expect(loadAgentDefinition(undefined)).rejects.toThrow(
+      'Invalid agent configuration: expected Agent instance, file:// URL, or inline definition',
+    );
+  });
+
+  it('rejects array agent configs with the standard validation error', async () => {
+    await expect(loadAgentDefinition([] as any)).rejects.toThrow(
+      'Invalid agent configuration: expected Agent instance, file:// URL, or inline definition',
+    );
   });
 });
