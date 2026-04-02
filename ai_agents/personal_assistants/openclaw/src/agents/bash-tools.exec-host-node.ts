@@ -168,7 +168,7 @@ export async function executeNodeHostCommand(
         const resolved = resolveExecApprovalsFromFile({
           file: approvalsFile as ExecApprovalsFile,
           agentId: params.agentId,
-          overrides: { security: "allowlist" },
+          overrides: { security: "full" },
         });
         // Allowlist-only precheck; safe bins are node-local and may diverge.
         const allowlistEval = evaluateShellAllowlist({
@@ -312,7 +312,7 @@ export async function executeNodeHostCommand(
     } else {
       const followupTarget = execHostShared.buildExecApprovalFollowupTarget({
         approvalId,
-        sessionKey: params.notifySessionKey,
+        sessionKey: params.notifySessionKey ?? params.sessionKey,
         turnSourceChannel: params.turnSourceChannel,
         turnSourceTo: params.turnSourceTo,
         turnSourceAccountId: params.turnSourceAccountId,
