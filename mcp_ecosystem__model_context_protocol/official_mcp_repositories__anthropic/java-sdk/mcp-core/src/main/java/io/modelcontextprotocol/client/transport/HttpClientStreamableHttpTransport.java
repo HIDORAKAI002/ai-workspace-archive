@@ -298,6 +298,10 @@ public class HttpClientStreamableHttpTransport implements McpClientTransport {
 											"Authorization error connecting to SSE stream",
 											responseEvent.responseInfo()));
 						}
+						else if (statusCode == METHOD_NOT_ALLOWED) {
+							logger.debug("The server does not support SSE streams, using request-response mode.");
+							return Flux.empty();
+						}
 
 						if (!(responseEvent instanceof ResponseSubscribers.SseResponseEvent sseResponseEvent)) {
 							return Flux.<McpSchema.JSONRPCMessage>error(new McpTransportException(
@@ -343,10 +347,6 @@ public class HttpClientStreamableHttpTransport implements McpClientTransport {
 								logger.debug("Received SSE event with type: {}", sseResponseEvent.sseEvent());
 								return Flux.empty();
 							}
-						}
-						else if (statusCode == METHOD_NOT_ALLOWED) { // NotAllowed
-							logger.debug("The server does not support SSE streams, using request-response mode.");
-							return Flux.empty();
 						}
 						else if (statusCode == NOT_FOUND) {
 
@@ -734,24 +734,6 @@ public class HttpClientStreamableHttpTransport implements McpClientTransport {
 		public Builder requestBuilder(HttpRequest.Builder requestBuilder) {
 			Assert.notNull(requestBuilder, "requestBuilder must not be null");
 			this.requestBuilder = requestBuilder;
-			return this;
-		}
-
-		/**
-		 * Applies the given consumer to the shared {@link HttpRequest.Builder} <b>once,
-		 * at build time</b>. Any headers set here are frozen into the template and
-		 * <b>cannot be updated</b> after the transport is built.
-		 * @param requestCustomizer the consumer to customize the HTTP request builder
-		 * @return this builder
-		 * @deprecated Use {@link #requestBuilder(HttpRequest.Builder)} for stable
-		 * headers, or {@link #httpRequestCustomizer(McpSyncHttpClientRequestCustomizer)}
-		 * / {@link #asyncHttpRequestCustomizer(McpAsyncHttpClientRequestCustomizer)} for
-		 * dynamic per-request customization.
-		 */
-		@Deprecated
-		public Builder customizeRequest(final Consumer<HttpRequest.Builder> requestCustomizer) {
-			Assert.notNull(requestCustomizer, "requestCustomizer must not be null");
-			requestCustomizer.accept(requestBuilder);
 			return this;
 		}
 
