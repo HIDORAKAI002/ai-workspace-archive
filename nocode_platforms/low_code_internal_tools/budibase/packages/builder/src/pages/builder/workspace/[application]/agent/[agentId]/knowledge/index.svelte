@@ -23,6 +23,9 @@
   import { onDestroy, onMount } from "svelte"
 
   const FILE_STATUS_POLL_MS = 1000
+  const BYTES_IN_MB = 1024 * 1024
+  const MAX_FILE_SIZE_BYTES = 100 * BYTES_IN_MB
+  const MAX_FILE_SIZE_LABEL = "100MB"
 
   let currentAgent: Agent | undefined = $derived($selectedAgent)
   let loading = $state(true)
@@ -57,6 +60,18 @@
 
   const shouldPoll = () =>
     files.some(file => file.status === KnowledgeBaseFileStatus.PROCESSING)
+
+  const getUploadErrorMessage = (error: any) => {
+    const status = error?.status
+    const message = error?.message || "Failed to upload file"
+    const isFileTooLargeError = status === 413
+
+    if (isFileTooLargeError) {
+      return `Files cannot exceed ${MAX_FILE_SIZE_LABEL}. Please try again with a smaller file.`
+    }
+
+    return message
+  }
 
   const poller = createPolling({
     intervalMs: FILE_STATUS_POLL_MS,
@@ -151,13 +166,23 @@
       return
     }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      notifications.error(
+        `Files cannot exceed ${MAX_FILE_SIZE_LABEL}. Please try again with a smaller file.`
+      )
+      if (target) {
+        target.value = ""
+      }
+      return
+    }
+
     try {
       await agentsStore.uploadAgentFile(agentId, file)
       await fetchFiles(agentId)
       notifications.success("File uploaded")
     } catch (error: any) {
       console.error(error)
-      notifications.error("Failed to upload file")
+      notifications.error(getUploadErrorMessage(error))
     } finally {
       if (target) {
         target.value = ""
@@ -216,6 +241,10 @@
     />
   </div>
 
+  <div class="file-limit-note">
+    <Body size="S">Max file size: {MAX_FILE_SIZE_LABEL} per file.</Body>
+  </div>
+
   {#if loading}
     <div class="loading-state">
       <ProgressCircle size="S" />
@@ -270,5 +299,9 @@
     gap: var(--spacing-s);
     padding: 24px 16px;
     text-align: center;
+  }
+
+  .file-limit-note {
+    color: var(--spectrum-global-color-gray-700);
   }
 </style>
