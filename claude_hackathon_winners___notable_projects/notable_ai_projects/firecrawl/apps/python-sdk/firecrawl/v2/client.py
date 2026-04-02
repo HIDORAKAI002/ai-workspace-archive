@@ -131,6 +131,7 @@ class FirecrawlClient:
         proxy: Optional[str] = None,
         max_age: Optional[int] = None,
         store_in_cache: Optional[bool] = None,
+        profile: Optional[Dict[str, Any]] = None,
         integration: Optional[str] = None,
     ) -> Document:
         """
@@ -156,6 +157,7 @@ class FirecrawlClient:
             proxy: Proxy to use
             max_age: Maximum age of the cache
             store_in_cache: Whether to store the result in the cache
+            profile: Browser profile for persistent state (e.g. {"name": "my-profile", "saveChanges": True})
         Returns:
             Document
         """
@@ -180,9 +182,10 @@ class FirecrawlClient:
                 proxy=proxy,
                 max_age=max_age,
                 store_in_cache=store_in_cache,
+                profile=profile,
                 integration=integration,
             ).items() if v is not None}
-        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, integration]) else None
+        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, profile, integration]) else None
         return scrape_module.scrape(self.http_client, url, options)
 
     def interact(

@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { ErrorResponse, RequestWithAuth } from "./types";
-import { getACUCTeam } from "../auth";
-import { RateLimiterMode } from "../../types";
+import { getTeamBalance } from "../../services/autumn/usage";
 
 interface CreditUsageResponse {
   success: true;
@@ -17,11 +16,9 @@ export async function creditUsageController(
   req: RequestWithAuth,
   res: Response<CreditUsageResponse | ErrorResponse>,
 ): Promise<void> {
-  const chunk =
-    req.acuc ??
-    (await getACUCTeam(req.auth.team_id, false, false, RateLimiterMode.Scrape));
+  const balance = await getTeamBalance(req.auth.team_id);
 
-  if (!chunk) {
+  if (!balance) {
     res.status(404).json({
       success: false,
       error: "Could not find credit usage information",
@@ -32,10 +29,10 @@ export async function creditUsageController(
   res.json({
     success: true,
     data: {
-      remainingCredits: chunk.remaining_credits,
-      planCredits: chunk.price_credits,
-      billingPeriodStart: chunk.sub_current_period_start,
-      billingPeriodEnd: chunk.sub_current_period_end,
+      remainingCredits: balance.remaining,
+      planCredits: balance.planCredits,
+      billingPeriodStart: balance.periodStart,
+      billingPeriodEnd: balance.periodEnd,
     },
   });
 }
