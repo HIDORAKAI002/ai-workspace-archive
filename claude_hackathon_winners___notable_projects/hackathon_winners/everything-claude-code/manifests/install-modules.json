@@ -287,6 +287,7 @@
         "skills/investor-materials",
         "skills/investor-outreach",
         "skills/lead-intelligence",
+        "skills/social-graph-ranker",
         "skills/market-research"
       ],
       "targets": [

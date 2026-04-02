@@ -42,6 +42,7 @@ If the user does not specify a mode, use `default`.
 
 - `x-api` for X graph inspection and recent activity
 - `lead-intelligence` for target discovery and warm-path ranking
+- `social-graph-ranker` when the user wants bridge value scored independently of the broader lead workflow
 - Exa / deep research for person and company enrichment
 - `brand-voice` before drafting outbound
 
@@ -182,6 +183,7 @@ Drafts
 ## Related Skills
 
 - `brand-voice` for the reusable voice profile
+- `social-graph-ranker` for the standalone bridge-scoring and warm-path math
 - `lead-intelligence` for weighted target and warm-path discovery
 - `x-api` for X graph access, drafting, and optional apply flows
 - `content-engine` when the user also wants public launch content around network moves

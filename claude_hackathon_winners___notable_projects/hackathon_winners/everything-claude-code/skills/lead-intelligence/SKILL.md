@@ -89,11 +89,12 @@ x_search = search_recent_tweets(
 
 For each scored target, analyze the user's social graph to find the warmest path.
 
-### Algorithm
+### Ranking Model
 
 1. Pull user's X following list and LinkedIn connections
 2. For each high-signal target, check for shared connections
-3. Rank mutuals by:
+3. Apply the `social-graph-ranker` model to score bridge value
+4. Rank mutuals by:
 
 | Factor | Weight |
 |--------|--------|
@@ -103,46 +104,19 @@ For each scored target, analyze the user's social graph to find the warmest path
 | Industry alignment | 15% — same vertical = natural intro |
 | Mutual's X handle / LinkedIn | 10% — identifiability for outreach |
 
-### Weighted Bridge Ranking
+Canonical rule:
 
-Treat this as the canonical network-ranking stage for lead intelligence. Do not run a separate graph skill when this stage is enough.
+```text
+Use social-graph-ranker when the user wants the graph math itself,
+the bridge ranking as a standalone report, or explicit decay-model tuning.
+```
 
-Given:
-- `T` = target leads
-- `M` = your mutuals / existing connections
-- `d(m, t)` = shortest hop distance from mutual `m` to target `t`
-- `w(t)` = target weight from signal scoring
-
-Compute the base bridge score for each mutual:
+Inside this skill, use the same weighted bridge model:
 
 ```text
 B(m) = Σ_{t ∈ T} w(t) · λ^(d(m,t) - 1)
-```
-
-Where:
-- `λ` is the decay factor, usually `0.5`
-- a direct connection contributes full value
-- each extra hop halves the contribution
-
-For second-order reach, expand one level into the mutual's own network:
-
-```text
-B_ext(m) = B(m) + α · Σ_{m' ∈ N(m) \\ M} Σ_{t ∈ T} w(t) · λ^(d(m',t))
-```
-
-Where:
-- `N(m) \\ M` is the set of people the mutual knows that you do not
-- `α` is the second-order discount, usually `0.3`
-
-Then rank by response-adjusted bridge value:
-
-```text
 R(m) = B_ext(m) · (1 + β · engagement(m))
 ```
-
-Where:
-- `engagement(m)` is a normalized responsiveness score
-- `β` is the engagement bonus, usually `0.2`
 
 Interpretation:
 - Tier 1: high `R(m)` and direct bridge paths -> warm intro asks
@@ -152,6 +126,8 @@ Interpretation:
 ### Output Format
 
 ```
+
+If the user explicitly wants the ranking engine broken out, the math visualized, or the network scored outside the full lead workflow, run `social-graph-ranker` as a standalone pass first and feed the result back into this pipeline.
 MUTUAL RANKING REPORT
 =====================
 
