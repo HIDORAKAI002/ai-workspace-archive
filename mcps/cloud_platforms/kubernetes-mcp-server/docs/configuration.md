@@ -15,6 +15,7 @@ This reference focuses on TOML file configuration. For CLI arguments, see the [C
 - [Dynamic Configuration Reload](#dynamic-configuration-reload)
 - [Configuration Reference](#configuration-reference-1)
   - [Server Settings](#server-settings)
+  - [HTTP Server Security](#http-server-security)
   - [Kubernetes Connection](#kubernetes-connection)
     - [Cross-Cluster Access from a Pod](#cross-cluster-access-from-a-pod)
   - [Access Control](#access-control)
@@ -151,6 +152,28 @@ tls_key = "/etc/tls/tls.key"
 
 # Enforce TLS for all connections (requires tls_cert and tls_key)
 require_tls = true
+```
+
+### HTTP Server Security
+
+Configure HTTP server settings to protect against denial-of-service attacks.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `http.read_header_timeout` | duration | `"10s"` | Maximum duration for reading request headers. Primary defense against Slowloris attacks. |
+| `http.max_body_bytes` | integer | `16777216` | Maximum size of request body in bytes (default: 16 MB). |
+
+Duration values use Go duration syntax: `"30s"`, `"5m"`, `"1h30m"`.
+
+**Security Considerations:**
+- `read_header_timeout` is the primary defense against Slowloris attacks, which send headers extremely slowly to exhaust server connections
+- `max_body_bytes` prevents memory exhaustion from unbounded request payloads. The 16 MB default accommodates large Kubernetes manifests (CRDs, ConfigMaps)
+
+**Example:**
+```toml
+[http]
+read_header_timeout = "10s"
+max_body_bytes = 16777216    # 16 MB
 ```
 
 ### Kubernetes Connection
@@ -584,16 +607,18 @@ token = "your-kiali-token"
 ```toml
 [toolset_configs.helm]
 allowed_registries = ["oci://ghcr.io/myorg", "https://charts.example.com"]
+storage_driver = "configmap"
 ```
 
 #### Helm Configuration
 
-The Helm toolset supports an optional `allowed_registries` allowlist to restrict which registries
-`helm_install` can fetch charts from.
-
 | Field | Type | Description |
 |-------|------|-------------|
 | `allowed_registries` | string array | Optional list of permitted chart registry URL prefixes. Only `oci://` and `https://` schemes are accepted. |
+| `storage_driver` | string | Optional default storage driver for Helm operations. Supported values: `secret` (default) and `configmap`. |
+
+The Helm toolset supports an optional `allowed_registries` allowlist to restrict which registries
+`helm_install` can fetch charts from.
 
 **Behavior:**
 
@@ -652,6 +677,11 @@ log_level = 2
 port = "8080"
 list_output = "table"
 stateless = false
+
+# HTTP server security
+[http]
+read_header_timeout = "10s"  # Slowloris protection
+max_body_bytes = 16777216    # 16 MB for large K8s manifests
 
 # Kubernetes connection
 kubeconfig = "/home/user/.kube/config"
