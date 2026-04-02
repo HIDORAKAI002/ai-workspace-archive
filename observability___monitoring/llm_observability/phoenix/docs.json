@@ -784,9 +784,43 @@
             "icon": "js",
             "pages": [
               "docs/phoenix/sdk-api-reference/typescript/overview",
-              "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-client",
-              "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-evals",
-              "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-otel",
+              {
+                "group": "@arizeai/phoenix-client",
+                "root": "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-client",
+                "pages": [
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/overview",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/traces",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/spans",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/annotations",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/span-annotations",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/document-annotations",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/session-annotations",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/sessions",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/prompts",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/datasets",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-client/experiments"
+                ]
+              },
+              {
+                "group": "@arizeai/phoenix-evals",
+                "root": "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-evals",
+                "pages": [
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/overview",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/create-evaluator",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/llm-evaluators",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/templates",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/classification",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-evals/phoenix-integration"
+                ]
+              },
+              {
+                "group": "@arizeai/phoenix-otel",
+                "root": "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-otel",
+                "pages": [
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-otel/overview",
+                  "docs/phoenix/sdk-api-reference/typescript/packages/phoenix-otel/manual-spans"
+                ]
+              },
               "docs/phoenix/sdk-api-reference/typescript/arizeai-openinference-core",
               "docs/phoenix/sdk-api-reference/typescript/mcp-server",
               "docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-cli"
