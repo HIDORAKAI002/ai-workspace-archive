@@ -1435,13 +1435,13 @@ export type MentalModelResponse = {
   /**
    * Source Query
    */
-  source_query: string;
+  source_query?: string | null;
   /**
    * Content
    *
    * The mental model content as well-formatted markdown (auto-generated from reflect endpoint)
    */
-  content: string;
+  content?: string | null;
   /**
    * Tags
    */
@@ -1449,8 +1449,8 @@ export type MentalModelResponse = {
   /**
    * Max Tokens
    */
-  max_tokens?: number;
-  trigger?: MentalModelTriggerOutput;
+  max_tokens?: number | null;
+  trigger?: MentalModelTriggerOutput | null;
   /**
    * Last Refreshed At
    */
@@ -3332,6 +3332,12 @@ export type ListMentalModelsData = {
      */
     tags_match?: "any" | "all" | "exact";
     /**
+     * Detail
+     *
+     * Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)
+     */
+    detail?: "metadata" | "content" | "full";
+    /**
      * Limit
      */
     limit?: number;
@@ -3458,7 +3464,14 @@ export type GetMentalModelData = {
      */
     mental_model_id: string;
   };
-  query?: never;
+  query?: {
+    /**
+     * Detail
+     *
+     * Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)
+     */
+    detail?: "metadata" | "content" | "full";
+  };
   url: "/v1/default/banks/{bank_id}/mental-models/{mental_model_id}";
 };
 

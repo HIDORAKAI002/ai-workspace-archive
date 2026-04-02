@@ -972,6 +972,23 @@
             "description": "How to match tags"
           },
           {
+            "name": "detail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "metadata",
+                "content",
+                "full"
+              ],
+              "type": "string",
+              "description": "Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)",
+              "default": "full",
+              "title": "Detail"
+            },
+            "description": "Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)"
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -1128,6 +1145,23 @@
               "type": "string",
               "title": "Mental Model Id"
             }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "metadata",
+                "content",
+                "full"
+              ],
+              "type": "string",
+              "description": "Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)",
+              "default": "full",
+              "title": "Detail"
+            },
+            "description": "Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)"
           },
           {
             "name": "authorization",
@@ -6706,11 +6740,25 @@
             "title": "Name"
           },
           "source_query": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Source Query"
           },
           "content": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Content",
             "description": "The mental model content as well-formatted markdown (auto-generated from reflect endpoint)"
           },
@@ -6723,13 +6771,25 @@
             "default": []
           },
           "max_tokens": {
-            "type": "integer",
-            "title": "Max Tokens",
-            "default": 2048
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens"
           },
           "trigger": {
-            "$ref": "#/components/schemas/MentalModelTrigger-Output",
-            "default": {}
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MentalModelTrigger-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "last_refreshed_at": {
             "anyOf": [
@@ -6771,9 +6831,7 @@
         "required": [
           "id",
           "bank_id",
-          "name",
-          "source_query",
-          "content"
+          "name"
         ],
         "title": "MentalModelResponse",
         "description": "Response model for a mental model (stored reflect response)."

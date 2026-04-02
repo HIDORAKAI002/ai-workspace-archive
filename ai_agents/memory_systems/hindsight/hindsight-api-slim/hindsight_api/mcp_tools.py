@@ -1002,6 +1002,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
         @mcp.tool()
         async def list_mental_models(
             tags: list[str] | None = None,
+            detail: str = "full",
             bank_id: str | None = None,
         ) -> str:
             """
@@ -1013,6 +1014,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
 
             Args:
                 tags: Optional tags to filter by (returns models matching any tag)
+                detail: Detail level - 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response). Default: 'full'
                 bank_id: Optional bank to list from (defaults to session bank). Use for cross-bank operations.
             """
             try:
@@ -1023,6 +1025,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
                 models = await memory.list_mental_models(
                     bank_id=target_bank,
                     tags=tags,
+                    detail=detail,
                     request_context=_get_request_context(config),
                 )
                 return json.dumps({"items": models}, indent=2, default=str)
@@ -1038,6 +1041,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
         @mcp.tool()
         async def list_mental_models(
             tags: list[str] | None = None,
+            detail: str = "full",
         ) -> dict:
             """
             List mental models (pinned reflections) for this memory bank.
@@ -1048,6 +1052,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
 
             Args:
                 tags: Optional tags to filter by (returns models matching any tag)
+                detail: Detail level - 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response). Default: 'full'
             """
             try:
                 target_bank = config.bank_id_resolver()
@@ -1057,6 +1062,7 @@ def _register_list_mental_models(mcp: FastMCP, memory: MemoryEngine, config: MCP
                 models = await memory.list_mental_models(
                     bank_id=target_bank,
                     tags=tags,
+                    detail=detail,
                     request_context=_get_request_context(config),
                 )
                 return {"items": models}
@@ -1076,16 +1082,18 @@ def _register_get_mental_model(mcp: FastMCP, memory: MemoryEngine, config: MCPTo
         @mcp.tool()
         async def get_mental_model(
             mental_model_id: str,
+            detail: str = "full",
             bank_id: str | None = None,
         ) -> str:
             """
             Get a specific mental model by ID.
 
-            Returns the full mental model including its generated content, source query,
-            and metadata. Use list_mental_models first to discover available model IDs.
+            Returns the mental model with the requested detail level. Use list_mental_models
+            first to discover available model IDs.
 
             Args:
                 mental_model_id: The ID of the mental model to retrieve
+                detail: Detail level - 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response). Default: 'full'
                 bank_id: Optional bank (defaults to session bank). Use for cross-bank operations.
             """
             try:
@@ -1096,6 +1104,7 @@ def _register_get_mental_model(mcp: FastMCP, memory: MemoryEngine, config: MCPTo
                 model = await memory.get_mental_model(
                     bank_id=target_bank,
                     mental_model_id=mental_model_id,
+                    detail=detail,
                     request_context=_get_request_context(config),
                 )
                 if model is None:
@@ -1113,15 +1122,17 @@ def _register_get_mental_model(mcp: FastMCP, memory: MemoryEngine, config: MCPTo
         @mcp.tool()
         async def get_mental_model(
             mental_model_id: str,
+            detail: str = "full",
         ) -> dict:
             """
             Get a specific mental model by ID.
 
-            Returns the full mental model including its generated content, source query,
-            and metadata. Use list_mental_models first to discover available model IDs.
+            Returns the mental model with the requested detail level. Use list_mental_models
+            first to discover available model IDs.
 
             Args:
                 mental_model_id: The ID of the mental model to retrieve
+                detail: Detail level - 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response). Default: 'full'
             """
             try:
                 target_bank = config.bank_id_resolver()
@@ -1131,6 +1142,7 @@ def _register_get_mental_model(mcp: FastMCP, memory: MemoryEngine, config: MCPTo
                 model = await memory.get_mental_model(
                     bank_id=target_bank,
                     mental_model_id=mental_model_id,
+                    detail=detail,
                     request_context=_get_request_context(config),
                 )
                 if model is None:

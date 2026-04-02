@@ -656,6 +656,23 @@ paths:
           title: Tags Match
           type: string
         style: form
+      - description: "Detail level: 'metadata' (names/tags only), 'content' (adds\
+          \ content/config), 'full' (includes reflect_response)"
+        explode: true
+        in: query
+        name: detail
+        required: false
+        schema:
+          default: full
+          description: "Detail level: 'metadata' (names/tags only), 'content' (adds\
+            \ content/config), 'full' (includes reflect_response)"
+          enum:
+          - metadata
+          - content
+          - full
+          title: Detail
+          type: string
+        style: form
       - explode: true
         in: query
         name: limit
@@ -810,6 +827,23 @@ paths:
           title: Mental Model Id
           type: string
         style: simple
+      - description: "Detail level: 'metadata' (names/tags only), 'content' (adds\
+          \ content/config), 'full' (includes reflect_response)"
+        explode: true
+        in: query
+        name: detail
+        required: false
+        schema:
+          default: full
+          description: "Detail level: 'metadata' (names/tags only), 'content' (adds\
+            \ content/config), 'full' (includes reflect_response)"
+          enum:
+          - metadata
+          - content
+          - full
+          title: Detail
+          type: string
+        style: form
       - explode: false
         in: header
         name: authorization
@@ -4534,12 +4568,10 @@ components:
           title: Name
           type: string
         source_query:
-          title: Source Query
+          nullable: true
           type: string
         content:
-          description: The mental model content as well-formatted markdown (auto-generated
-            from reflect endpoint)
-          title: Content
+          nullable: true
           type: string
         tags:
           default: []
@@ -4547,8 +4579,7 @@ components:
             type: string
           type: array
         max_tokens:
-          default: 2048
-          title: Max Tokens
+          nullable: true
           type: integer
         trigger:
           $ref: '#/components/schemas/MentalModelTrigger-Output'
@@ -4563,10 +4594,8 @@ components:
           nullable: true
       required:
       - bank_id
-      - content
       - id
       - name
-      - source_query
       title: MentalModelResponse
     MentalModelTrigger-Input:
       description: Trigger settings for a mental model.

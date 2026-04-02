@@ -1534,13 +1534,14 @@ class MentalModelResponse(BaseModel):
     id: str
     bank_id: str
     name: str
-    source_query: str
-    content: str = Field(
-        description="The mental model content as well-formatted markdown (auto-generated from reflect endpoint)"
+    source_query: str | None = None
+    content: str | None = Field(
+        default=None,
+        description="The mental model content as well-formatted markdown (auto-generated from reflect endpoint)",
     )
     tags: list[str] = FieldWithDefault(list)
-    max_tokens: int = Field(default=2048)
-    trigger: MentalModelTrigger = FieldWithDefault(MentalModelTrigger)
+    max_tokens: int | None = Field(default=None)
+    trigger: MentalModelTrigger | None = Field(default=None)
     last_refreshed_at: str | None = None
     created_at: str | None = None
     reflect_response: dict | None = Field(
@@ -3041,6 +3042,10 @@ def _register_routes(app: FastAPI):
         bank_id: str,
         tags_filter: list[str] | None = Query(None, alias="tags", description="Filter by tags"),
         tags_match: Literal["any", "all", "exact"] = Query("any", description="How to match tags"),
+        detail: Literal["metadata", "content", "full"] = Query(
+            "full",
+            description="Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)",
+        ),
         limit: int = Query(100, ge=1, le=1000),
         offset: int = Query(0, ge=0),
         request_context: RequestContext = Depends(get_request_context),
@@ -3051,6 +3056,7 @@ def _register_routes(app: FastAPI):
                 bank_id=bank_id,
                 tags=tags_filter,
                 tags_match=tags_match,
+                detail=detail,
                 limit=limit,
                 offset=offset,
                 request_context=request_context,
@@ -3078,6 +3084,10 @@ def _register_routes(app: FastAPI):
     async def api_get_mental_model(
         bank_id: str,
         mental_model_id: str,
+        detail: Literal["metadata", "content", "full"] = Query(
+            "full",
+            description="Detail level: 'metadata' (names/tags only), 'content' (adds content/config), 'full' (includes reflect_response)",
+        ),
         request_context: RequestContext = Depends(get_request_context),
     ):
         """Get a mental model by ID."""
@@ -3085,6 +3095,7 @@ def _register_routes(app: FastAPI):
             mental_model = await app.state.memory.get_mental_model(
                 bank_id=bank_id,
                 mental_model_id=mental_model_id,
+                detail=detail,
                 request_context=request_context,
             )
             if mental_model is None:

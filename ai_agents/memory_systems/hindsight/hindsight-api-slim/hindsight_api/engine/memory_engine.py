@@ -6351,6 +6351,7 @@ class MemoryEngine(MemoryEngineInterface):
         *,
         tags: list[str] | None = None,
         tags_match: str = "any",
+        detail: str = "full",
         limit: int = 100,
         offset: int = 0,
         request_context: "RequestContext",
@@ -6361,6 +6362,7 @@ class MemoryEngine(MemoryEngineInterface):
             bank_id: Bank identifier
             tags: Optional tags to filter by
             tags_match: How to match tags - 'any', 'all', or 'exact'
+            detail: Detail level - 'metadata', 'content', or 'full'
             limit: Maximum number of results
             offset: Offset for pagination
             request_context: Request context for authentication
@@ -6402,13 +6404,14 @@ class MemoryEngine(MemoryEngineInterface):
                 *params,
             )
 
-            return [self._row_to_mental_model(row) for row in rows]
+            return [self._row_to_mental_model(row, detail=detail) for row in rows]
 
     async def get_mental_model(
         self,
         bank_id: str,
         mental_model_id: str,
         *,
+        detail: str = "full",
         request_context: "RequestContext",
     ) -> dict[str, Any] | None:
         """Get a single pinned mental model by ID.
@@ -6416,6 +6419,7 @@ class MemoryEngine(MemoryEngineInterface):
         Args:
             bank_id: Bank identifier
             mental_model_id: Pinned mental model UUID
+            detail: Detail level - 'metadata', 'content', or 'full'
             request_context: Request context for authentication
 
         Returns:
@@ -6449,7 +6453,7 @@ class MemoryEngine(MemoryEngineInterface):
                 mental_model_id,
             )
 
-            result = self._row_to_mental_model(row) if row else None
+            result = self._row_to_mental_model(row, detail=detail) if row else None
 
         # Post-operation hook (usage recording)
         if result and self._operation_validator:
@@ -6847,34 +6851,47 @@ class MemoryEngine(MemoryEngineInterface):
 
         return result == "DELETE 1"
 
-    def _row_to_mental_model(self, row) -> dict[str, Any]:
-        """Convert a database row to a mental model dict."""
-        reflect_response = row.get("reflect_response")
-        # Parse JSON string to dict if needed (asyncpg may return JSONB as string)
-        if isinstance(reflect_response, str):
-            try:
-                reflect_response = json.loads(reflect_response)
-            except json.JSONDecodeError:
-                reflect_response = None
+    _MENTAL_MODEL_METADATA_FIELDS = frozenset({"id", "bank_id", "name", "tags", "last_refreshed_at", "created_at"})
+
+    def _row_to_mental_model(self, row, *, detail: str = "full") -> dict[str, Any]:
+        """Convert a database row to a mental model dict.
+
+        Args:
+            row: Database row
+            detail: Detail level - 'metadata', 'content', or 'full'
+        """
+        result: dict[str, Any] = {
+            "id": str(row["id"]),
+            "bank_id": row["bank_id"],
+            "name": row["name"],
+            "tags": row["tags"] or [],
+            "last_refreshed_at": row["last_refreshed_at"].isoformat() if row["last_refreshed_at"] else None,
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+        }
+        if detail == "metadata":
+            return result
+
         trigger = row.get("trigger")
         if isinstance(trigger, str):
             try:
                 trigger = json.loads(trigger)
             except json.JSONDecodeError:
                 trigger = None
-        return {
-            "id": str(row["id"]),
-            "bank_id": row["bank_id"],
-            "name": row["name"],
-            "source_query": row["source_query"],
-            "content": row["content"],
-            "tags": row["tags"] or [],
-            "max_tokens": row.get("max_tokens"),
-            "trigger": trigger,
-            "last_refreshed_at": row["last_refreshed_at"].isoformat() if row["last_refreshed_at"] else None,
-            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-            "reflect_response": reflect_response,
-        }
+        result["source_query"] = row["source_query"]
+        result["content"] = row["content"]
+        result["max_tokens"] = row.get("max_tokens")
+        result["trigger"] = trigger
+
+        if detail == "full":
+            reflect_response = row.get("reflect_response")
+            if isinstance(reflect_response, str):
+                try:
+                    reflect_response = json.loads(reflect_response)
+                except json.JSONDecodeError:
+                    reflect_response = None
+            result["reflect_response"] = reflect_response
+
+        return result
 
     # =========================================================================
     # Directives - Hard rules injected into prompts
