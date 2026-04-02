@@ -251,7 +251,8 @@ class SegmentInterface {
     Reopen(SchemaPtr sch) = 0;
 
     virtual void
-    Reopen(const milvus::proto::segcore::SegmentLoadInfo& new_load_info) = 0;
+    Reopen(milvus::OpContext* op_ctx,
+           const milvus::proto::segcore::SegmentLoadInfo& new_load_info) = 0;
 
     virtual void
     SetLoadInfo(const milvus::proto::segcore::SegmentLoadInfo& load_info) = 0;
@@ -520,6 +521,9 @@ class SegmentInternalInterface : public SegmentInterface {
 
     virtual int64_t
     get_active_count(Timestamp ts) const = 0;
+
+    virtual Timestamp
+    get_max_timestamp() const = 0;
 
     /**
      * search offset by possible pk values and mvcc timestamp

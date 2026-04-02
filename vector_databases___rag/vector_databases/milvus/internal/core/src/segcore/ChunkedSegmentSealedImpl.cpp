@@ -40,7 +40,10 @@
 #include "NamedType/named_type_impl.hpp"
 #include "Types.h"
 #include "Utils.h"
+#include "arrow/array.h"
 #include "arrow/result.h"
+#include "arrow/table.h"
+#include "arrow/type.h"
 #include "bitset/bitset.h"
 #include "cachinglayer/CacheSlot.h"
 #include "cachinglayer/Manager.h"
@@ -150,6 +153,98 @@ get_bit(const BitsetType& bitset, FieldId field_id) {
     return bitset[pos];
 }
 
+static inline void
+cancel_warmup(const index::CacheIndexBasePtr& index) {
+    if (index) {
+        index->CancelWarmup();
+    }
+}
+
+static inline void
+cancel_and_erase_scalar_index(
+    std::unordered_map<FieldId, index::CacheIndexBasePtr>& scalar_indexings,
+    FieldId field_id) {
+    if (auto it = scalar_indexings.find(field_id);
+        it != scalar_indexings.end()) {
+        cancel_warmup(it->second);
+        scalar_indexings.erase(it);
+    }
+}
+
+static inline void
+cancel_and_clear_scalar_indexings(
+    std::unordered_map<FieldId, index::CacheIndexBasePtr>& scalar_indexings) {
+    for (auto& [_, index] : scalar_indexings) {
+        cancel_warmup(index);
+    }
+    scalar_indexings.clear();
+}
+
+static inline void
+cancel_and_erase_ngram_index(
+    std::unordered_map<
+        FieldId,
+        std::unordered_map<std::string, index::CacheIndexBasePtr>>&
+        ngram_indexings,
+    FieldId field_id,
+    const std::string& nested_path) {
+    auto field_it = ngram_indexings.find(field_id);
+    if (field_it == ngram_indexings.end()) {
+        return;
+    }
+
+    auto& path_indexings = field_it->second;
+    if (auto path_it = path_indexings.find(nested_path);
+        path_it != path_indexings.end()) {
+        cancel_warmup(path_it->second);
+        path_indexings.erase(path_it);
+    }
+
+    if (path_indexings.empty()) {
+        ngram_indexings.erase(field_it);
+    }
+}
+
+static inline void
+cancel_and_clear_ngram_indexings(
+    std::unordered_map<
+        FieldId,
+        std::unordered_map<std::string, index::CacheIndexBasePtr>>&
+        ngram_indexings) {
+    for (auto& [_, path_indexings] : ngram_indexings) {
+        for (auto& [__, index] : path_indexings) {
+            cancel_warmup(index);
+        }
+    }
+    ngram_indexings.clear();
+}
+
+template <typename JsonIndexT>
+static void
+cancel_and_erase_json_indices(std::vector<JsonIndexT>& json_indices,
+                              FieldId field_id,
+                              std::string_view nested_path) {
+    auto new_end = std::remove_if(
+        json_indices.begin(), json_indices.end(), [&](auto& index) {
+            auto matched =
+                index.field_id == field_id && index.nested_path == nested_path;
+            if (matched) {
+                cancel_warmup(index.index);
+            }
+            return matched;
+        });
+    json_indices.erase(new_end, json_indices.end());
+}
+
+template <typename JsonIndexT>
+static void
+cancel_and_clear_json_indices(std::vector<JsonIndexT>& json_indices) {
+    for (auto& index : json_indices) {
+        cancel_warmup(index.index);
+    }
+    json_indices.clear();
+}
+
 void
 ChunkedSegmentSealedImpl::LoadIndex(LoadIndexInfo& info) {
     LoadIndex(info, false);
@@ -252,7 +347,7 @@ ChunkedSegmentSealedImpl::LoadScalarIndex(LoadIndexInfo& info,
         if (get_bit(index_ready_bitset_, field_id)) {
             auto [scalar_indexings, ngram_fields] = lock(
                 folly::wlock(scalar_indexings_), folly::wlock(ngram_fields_));
-            scalar_indexings->erase(field_id);
+            cancel_and_erase_scalar_index(*scalar_indexings, field_id);
             ngram_fields->erase(field_id);
         }
         LOG_INFO("Replacing scalar index for field {} in segment {}",
@@ -270,11 +365,12 @@ ChunkedSegmentSealedImpl::LoadScalarIndex(LoadIndexInfo& info,
             it != info.index_params.end() &&
             it->second == index::NGRAM_INDEX_TYPE) {
             auto ngram_indexings = ngram_indexings_.wlock();
-            if (ngram_indexings->find(field_id) == ngram_indexings->end()) {
-                (*ngram_indexings)[field_id] =
-                    std::unordered_map<std::string, index::CacheIndexBasePtr>();
+            auto& path_indexings = (*ngram_indexings)[field_id];
+            if (auto path_it = path_indexings.find(path);
+                path_it != path_indexings.end()) {
+                cancel_warmup(path_it->second);
             }
-            (*ngram_indexings)[field_id][path] = std::move(info.cache_index);
+            path_indexings[path] = std::move(info.cache_index);
             return;
         } else {
             JsonIndex index;
@@ -283,7 +379,10 @@ ChunkedSegmentSealedImpl::LoadScalarIndex(LoadIndexInfo& info,
             index.index = std::move(info.cache_index);
             index.cast_type =
                 JsonCastType::FromString(info.index_params.at(JSON_CAST_TYPE));
-            json_indices.wlock()->push_back(std::move(index));
+            json_indices.withWLock([&](auto& json_indexings) {
+                cancel_and_erase_json_indices(json_indexings, field_id, path);
+                json_indexings.push_back(std::move(index));
+            });
             return;
         }
     }
@@ -1257,7 +1356,7 @@ ChunkedSegmentSealedImpl::DropIndex(const FieldId field_id) {
     std::unique_lock lck(mutex_);
     auto [scalar_indexings, ngram_fields] =
         lock(folly::wlock(scalar_indexings_), folly::wlock(ngram_fields_));
-    scalar_indexings->erase(field_id);
+    cancel_and_erase_scalar_index(*scalar_indexings, field_id);
     ngram_fields->erase(field_id);
 
     set_bit(index_ready_bitset_, field_id, false);
@@ -1267,24 +1366,12 @@ void
 ChunkedSegmentSealedImpl::DropJSONIndex(const FieldId field_id,
                                         const std::string& nested_path) {
     std::unique_lock lck(mutex_);
-    json_indices.withWLock([&](auto& vec) {
-        vec.erase(std::remove_if(vec.begin(),
-                                 vec.end(),
-                                 [field_id, nested_path](const auto& index) {
-                                     return index.field_id == field_id &&
-                                            index.nested_path == nested_path;
-                                 }),
-                  vec.end());
+    json_indices.withWLock([&](auto& json_indexings) {
+        cancel_and_erase_json_indices(json_indexings, field_id, nested_path);
     });
 
     ngram_indexings_.withWLock([&](auto& ngram_indexings) {
-        auto iter = ngram_indexings.find(field_id);
-        if (iter != ngram_indexings.end()) {
-            iter->second.erase(nested_path);
-            if (iter->second.empty()) {
-                ngram_indexings.erase(iter);
-            }
-        }
+        cancel_and_erase_ngram_index(ngram_indexings, field_id, nested_path);
     });
 }
 
@@ -2012,9 +2099,16 @@ ChunkedSegmentSealedImpl::ClearData() {
         system_ready_count_ = 0;
         num_rows_ = std::nullopt;
         ngram_fields_.wlock()->clear();
-        scalar_indexings_.wlock()->clear();
+        scalar_indexings_.withWLock([&](auto& scalar_indexings) {
+            cancel_and_clear_scalar_indexings(scalar_indexings);
+        });
         vector_indexings_.clear();
-        ngram_indexings_.wlock()->clear();
+        ngram_indexings_.withWLock([&](auto& ngram_indexings) {
+            cancel_and_clear_ngram_indexings(ngram_indexings);
+        });
+        json_indices.withWLock([&](auto& json_indexings) {
+            cancel_and_clear_json_indices(json_indexings);
+        });
         insert_record_.clear();
         fields_.wlock()->clear();
         variable_fields_avg_size_.clear();
@@ -3177,6 +3271,7 @@ ChunkedSegmentSealedImpl::Reopen(SchemaPtr sch) {
 
 void
 ChunkedSegmentSealedImpl::Reopen(
+    milvus::OpContext* op_ctx,
     const milvus::proto::segcore::SegmentLoadInfo& new_load_info) {
     SegmentLoadInfo new_seg_load_info(new_load_info, schema_);
 
@@ -3188,15 +3283,15 @@ ChunkedSegmentSealedImpl::Reopen(
     // compute load diff
     auto diff = current.ComputeDiff(new_seg_load_info);
     LOG_INFO("Reopen segment {} with diff {}", id_, diff.ToString());
-    ApplyLoadDiff(new_seg_load_info, diff);
+    ApplyLoadDiff(op_ctx, new_seg_load_info, diff);
 
     LOG_INFO("Reopen segment {} done", id_);
 }
 
 void
-ChunkedSegmentSealedImpl::ApplyLoadDiff(SegmentLoadInfo& segment_load_info,
-                                        LoadDiff& diff,
-                                        milvus::OpContext* op_ctx) {
+ChunkedSegmentSealedImpl::ApplyLoadDiff(milvus::OpContext* op_ctx,
+                                        SegmentLoadInfo& segment_load_info,
+                                        LoadDiff& diff) {
     // TODO: pass trace_ctx separately when needed
     milvus::tracer::TraceContext trace_ctx;
 
@@ -3872,9 +3967,711 @@ ChunkedSegmentSealedImpl::Load(milvus::tracer::TraceContext& trace_ctx,
 
     auto diff = segment_load_info_.GetLoadDiff();
     LOG_WARN("Load segment {} with diff {}", id_, diff.ToString());
-    ApplyLoadDiff(segment_load_info_, diff, op_ctx);
+    ApplyLoadDiff(op_ctx, segment_load_info_, diff);
 
     LOG_INFO("Successfully loaded segment {} with {} rows", id_, num_rows);
+}
+
+void
+ChunkedSegmentSealedImpl::FillTargetEntry(const query::Plan* plan,
+                                          SearchResult& results) const {
+    std::shared_lock lck(mutex_);
+    AssertInfo(plan, "empty plan");
+    auto size = results.distances_.size();
+    AssertInfo(results.seg_offsets_.size() == size,
+               "Size of result distances is not equal to size of ids");
+
+    // Try take() for external fields; fills output_fields_data_ for
+    // external fields only. Non-external fields still go through
+    // bulk_subscript below.
+    bool used_take =
+        TryTakeForSearch(plan, results.seg_offsets_.data(), size, results);
+
+    std::unique_ptr<DataArray> field_data;
+    milvus::OpContext op_ctx;
+    for (auto field_id : plan->target_entries_) {
+        // Skip fields already filled by take
+        if (used_take && results.output_fields_data_.count(field_id) > 0) {
+            continue;
+        }
+        auto& field_meta = plan->schema_->operator[](field_id);
+        if (plan->schema_->get_dynamic_field_id().has_value() &&
+            plan->schema_->get_dynamic_field_id().value() == field_id &&
+            !plan->target_dynamic_fields_.empty()) {
+            auto& target_dynamic_fields = plan->target_dynamic_fields_;
+            field_data = bulk_subscript(&op_ctx,
+                                        field_id,
+                                        results.seg_offsets_.data(),
+                                        size,
+                                        target_dynamic_fields);
+        } else if (!is_field_exist(field_id)) {
+            field_data = bulk_subscript_not_exist_field(field_meta, size);
+        } else {
+            field_data = bulk_subscript(
+                &op_ctx, field_id, results.seg_offsets_.data(), size);
+        }
+        results.output_fields_data_[field_id] = std::move(field_data);
+    }
+    results.search_storage_cost_.scanned_remote_bytes +=
+        op_ctx.storage_usage.scanned_cold_bytes.load();
+    results.search_storage_cost_.scanned_total_bytes +=
+        op_ctx.storage_usage.scanned_total_bytes.load();
+}
+
+// ---- Shared helpers for TryTakeForRetrieve / TryTakeForSearch ----
+
+ChunkedSegmentSealedImpl::TakeContext
+ChunkedSegmentSealedImpl::BuildTakeContext(const int64_t* offsets,
+                                           int64_t size) {
+    struct OffsetEntry {
+        int64_t offset;
+        int64_t orig_pos;
+    };
+    std::vector<OffsetEntry> entries;
+    entries.reserve(size);
+    for (int64_t i = 0; i < size; i++) {
+        entries.push_back({offsets[i], i});
+    }
+    std::sort(entries.begin(),
+              entries.end(),
+              [](const OffsetEntry& a, const OffsetEntry& b) {
+                  return a.offset < b.offset;
+              });
+
+    TakeContext ctx;
+    ctx.unique_offsets.reserve(size);
+    ctx.result_mapping.resize(size);
+    for (auto& e : entries) {
+        if (ctx.unique_offsets.empty() ||
+            ctx.unique_offsets.back() != e.offset) {
+            ctx.unique_offsets.push_back(e.offset);
+        }
+        ctx.result_mapping[e.orig_pos] =
+            static_cast<int64_t>(ctx.unique_offsets.size() - 1);
+    }
+    return ctx;
+}
+
+std::unique_ptr<DataArray>
+ChunkedSegmentSealedImpl::ArrowToDataArray(
+    const std::shared_ptr<arrow::Array>& arr_in,
+    const FieldMeta& field_meta,
+    const std::vector<int64_t>& result_mapping,
+    int64_t size) {
+    // Normalize dense vector arrays (List/FixedSizeList → FixedSizeBinary),
+    // matching the Load path (ManifestGroupTranslator / GetFieldDatasFromManifest).
+    auto arr = arr_in;
+    auto dt = field_meta.get_data_type();
+    if (IsVectorDataType(dt) && !IsSparseFloatVectorDataType(dt) &&
+        !IsVectorArrayDataType(dt) &&
+        arr->type_id() != arrow::Type::FIXED_SIZE_BINARY) {
+        auto normalized = storage::NormalizeVectorArraysToFixedSizeBinary(
+            {arr}, dt, field_meta.get_dim());
+        arr = normalized[0];
+    }
+
+    // Normalize VectorArray: outer List stays, inner List<Float> → FixedSizeBinary.
+    // External Parquet stores as list(list(float)), Milvus expects list(fixed_size_binary).
+    if (IsVectorArrayDataType(dt) && arr->type_id() == arrow::Type::LIST) {
+        auto outer_list = std::static_pointer_cast<arrow::ListArray>(arr);
+        auto inner_values = outer_list->values();
+        if (inner_values->type_id() != arrow::Type::FIXED_SIZE_BINARY) {
+            auto normalized = storage::NormalizeVectorArraysToFixedSizeBinary(
+                {inner_values},
+                field_meta.get_element_type(),
+                field_meta.get_dim());
+            auto result = arrow::ListArray::FromArrays(*outer_list->offsets(),
+                                                       *normalized[0]);
+            AssertInfo(result.ok(),
+                       "Failed to rebuild ListArray for VectorArray: {}",
+                       result.status().ToString());
+            arr = *result;
+        }
+    }
+
+    auto data_array = std::make_unique<DataArray>();
+    data_array->set_type(static_cast<proto::schema::DataType>(dt));
+
+    switch (dt) {
+        case DataType::BOOL: {
+            auto typed = std::static_pointer_cast<arrow::BooleanArray>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_bool_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->Value(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::INT8: {
+            auto typed = std::static_pointer_cast<arrow::Int8Array>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_int_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(
+                    static_cast<int32_t>(typed->Value(result_mapping[i])));
+            }
+            break;
+        }
+        case DataType::INT16: {
+            auto typed = std::static_pointer_cast<arrow::Int16Array>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_int_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(
+                    static_cast<int32_t>(typed->Value(result_mapping[i])));
+            }
+            break;
+        }
+        case DataType::INT32: {
+            auto typed = std::static_pointer_cast<arrow::Int32Array>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_int_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->Value(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::INT64: {
+            auto typed = std::static_pointer_cast<arrow::Int64Array>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_long_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->Value(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::FLOAT: {
+            auto typed = std::static_pointer_cast<arrow::FloatArray>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_float_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->Value(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::DOUBLE: {
+            auto typed = std::static_pointer_cast<arrow::DoubleArray>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_double_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->Value(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::VARCHAR:
+        case DataType::STRING:
+        case DataType::TEXT: {
+            auto typed = std::static_pointer_cast<arrow::StringArray>(arr);
+            auto obj = data_array->mutable_scalars()->mutable_string_data();
+            for (int64_t i = 0; i < size; i++) {
+                obj->add_data(typed->GetString(result_mapping[i]));
+            }
+            break;
+        }
+        case DataType::VECTOR_FLOAT: {
+            // Always FixedSizeBinary after normalization.
+            auto typed =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(arr);
+            int byte_width = typed->byte_width();
+            int dim = byte_width / sizeof(float);
+            AssertInfo(dim == field_meta.get_dim(),
+                       "VECTOR_FLOAT dim mismatch: arrow={}, schema={}",
+                       dim,
+                       field_meta.get_dim());
+            auto vectors = data_array->mutable_vectors();
+            vectors->set_dim(dim);
+            auto* dst = vectors->mutable_float_vector()->mutable_data();
+            dst->Reserve(size * dim);
+            for (int64_t i = 0; i < size; i++) {
+                auto val = typed->Value(result_mapping[i]);
+                auto floats = reinterpret_cast<const float*>(val);
+                dst->Add(floats, floats + dim);
+            }
+            break;
+        }
+        case DataType::VECTOR_BINARY: {
+            auto typed =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(arr);
+            int byte_width = typed->byte_width();
+            AssertInfo(
+                byte_width == (field_meta.get_dim() + 7) / 8,
+                "VECTOR_BINARY byte_width mismatch: arrow={}, expected={}",
+                byte_width,
+                (field_meta.get_dim() + 7) / 8);
+            auto vectors = data_array->mutable_vectors();
+            vectors->set_dim(field_meta.get_dim());
+            auto* dst = vectors->mutable_binary_vector();
+            dst->reserve(size * byte_width);
+            for (int64_t i = 0; i < size; i++) {
+                auto val = typed->Value(result_mapping[i]);
+                dst->append(reinterpret_cast<const char*>(val), byte_width);
+            }
+            break;
+        }
+        case DataType::VECTOR_FLOAT16: {
+            auto typed =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(arr);
+            int byte_width = typed->byte_width();
+            int dim = byte_width / 2;
+            AssertInfo(dim == field_meta.get_dim(),
+                       "VECTOR_FLOAT16 dim mismatch: arrow={}, schema={}",
+                       dim,
+                       field_meta.get_dim());
+            auto vectors = data_array->mutable_vectors();
+            vectors->set_dim(dim);
+            auto* dst = vectors->mutable_float16_vector();
+            dst->reserve(size * byte_width);
+            for (int64_t i = 0; i < size; i++) {
+                auto val = typed->Value(result_mapping[i]);
+                dst->append(reinterpret_cast<const char*>(val), byte_width);
+            }
+            break;
+        }
+        case DataType::VECTOR_BFLOAT16: {
+            auto typed =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(arr);
+            int byte_width = typed->byte_width();
+            int dim = byte_width / 2;
+            AssertInfo(dim == field_meta.get_dim(),
+                       "VECTOR_BFLOAT16 dim mismatch: arrow={}, schema={}",
+                       dim,
+                       field_meta.get_dim());
+            auto vectors = data_array->mutable_vectors();
+            vectors->set_dim(dim);
+            auto* dst = vectors->mutable_bfloat16_vector();
+            dst->reserve(size * byte_width);
+            for (int64_t i = 0; i < size; i++) {
+                auto val = typed->Value(result_mapping[i]);
+                dst->append(reinterpret_cast<const char*>(val), byte_width);
+            }
+            break;
+        }
+        case DataType::VECTOR_INT8: {
+            auto typed =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(arr);
+            int byte_width = typed->byte_width();
+            AssertInfo(byte_width == field_meta.get_dim(),
+                       "VECTOR_INT8 dim mismatch: arrow={}, schema={}",
+                       byte_width,
+                       field_meta.get_dim());
+            auto vectors = data_array->mutable_vectors();
+            vectors->set_dim(byte_width);
+            auto* dst = vectors->mutable_int8_vector();
+            dst->reserve(size * byte_width);
+            for (int64_t i = 0; i < size; i++) {
+                auto val = typed->Value(result_mapping[i]);
+                dst->append(reinterpret_cast<const char*>(val), byte_width);
+            }
+            break;
+        }
+        case DataType::JSON: {
+            // External Parquet stores JSON as UTF-8 string (StringArray).
+            // Internal binlog stores as raw bytes (BinaryArray).
+            // Both contain identical UTF-8 bytes, just different Arrow type.
+            auto obj = data_array->mutable_scalars()->mutable_json_data();
+            if (arr->type_id() == arrow::Type::STRING) {
+                auto typed = std::static_pointer_cast<arrow::StringArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    auto val = typed->GetView(result_mapping[i]);
+                    obj->add_data(val.data(), val.size());
+                }
+            } else {
+                AssertInfo(arr->type_id() == arrow::Type::BINARY,
+                           "JSON field: unexpected Arrow type {}",
+                           arr->type()->ToString());
+                auto typed = std::static_pointer_cast<arrow::BinaryArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    auto val = typed->Value(result_mapping[i]);
+                    obj->add_data(val.data(), val.size());
+                }
+            }
+            break;
+        }
+        case DataType::GEOMETRY: {
+            // External Parquet may store as WKT text (StringArray) or
+            // WKB binary (BinaryArray). Both are passed through as raw bytes.
+            auto obj = data_array->mutable_scalars()->mutable_geometry_data();
+            if (arr->type_id() == arrow::Type::STRING) {
+                auto typed = std::static_pointer_cast<arrow::StringArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    auto val = typed->GetView(result_mapping[i]);
+                    obj->add_data(val.data(), val.size());
+                }
+            } else {
+                AssertInfo(arr->type_id() == arrow::Type::BINARY,
+                           "GEOMETRY field: unexpected Arrow type {}",
+                           arr->type()->ToString());
+                auto typed = std::static_pointer_cast<arrow::BinaryArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    auto val = typed->Value(result_mapping[i]);
+                    obj->add_data(val.data(), val.size());
+                }
+            }
+            break;
+        }
+        case DataType::TIMESTAMPTZ: {
+            auto obj =
+                data_array->mutable_scalars()->mutable_timestamptz_data();
+            if (arr->type_id() == arrow::Type::TIMESTAMP) {
+                auto typed =
+                    std::static_pointer_cast<arrow::TimestampArray>(arr);
+                auto ts_type =
+                    std::static_pointer_cast<arrow::TimestampType>(arr->type());
+                auto unit = ts_type->unit();
+                for (int64_t i = 0; i < size; i++) {
+                    obj->add_data(storage::ConvertToMicroseconds(
+                        typed->Value(result_mapping[i]), unit));
+                }
+            } else {
+                auto typed = std::static_pointer_cast<arrow::Int64Array>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    obj->add_data(typed->Value(result_mapping[i]));
+                }
+            }
+            break;
+        }
+        case DataType::ARRAY: {
+            auto obj = data_array->mutable_scalars()->mutable_array_data();
+            if (arr->type_id() == arrow::Type::LIST) {
+                auto list_arr = std::static_pointer_cast<arrow::ListArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    *obj->add_data() = storage::ArrowListToScalarFieldProto(
+                        list_arr, result_mapping[i]);
+                }
+            } else {
+                auto typed = std::static_pointer_cast<arrow::BinaryArray>(arr);
+                for (int64_t i = 0; i < size; i++) {
+                    auto val = typed->Value(result_mapping[i]);
+                    auto* sf = obj->add_data();
+                    sf->ParseFromArray(val.data(),
+                                       static_cast<int>(val.size()));
+                }
+            }
+            break;
+        }
+        case DataType::VECTOR_ARRAY: {
+            // After normalize, arr is List<FixedSizeBinaryArray>.
+            auto outer_list = std::static_pointer_cast<arrow::ListArray>(arr);
+            auto inner_values =
+                std::static_pointer_cast<arrow::FixedSizeBinaryArray>(
+                    outer_list->values());
+            int byte_width = inner_values->byte_width();
+            int dim = field_meta.get_dim();
+            auto element_type = field_meta.get_element_type();
+            auto* va = data_array->mutable_vectors()
+                           ->mutable_vector_array()
+                           ->mutable_data();
+            data_array->mutable_vectors()->set_dim(dim);
+            for (int64_t i = 0; i < size; i++) {
+                auto idx = result_mapping[i];
+                int64_t start = outer_list->value_offset(idx);
+                int64_t end = outer_list->value_offset(idx + 1);
+                int64_t num_vectors = end - start;
+                auto* vf = va->Add();
+                if (num_vectors == 0) {
+                    // Empty list row — add empty VectorField proto.
+                    continue;
+                }
+                VectorArray vec_arr(inner_values->GetValue(start),
+                                    num_vectors,
+                                    dim,
+                                    element_type);
+                *vf = vec_arr.output_data();
+            }
+            break;
+        }
+        default:
+            return nullptr;
+    }
+    return data_array;
+}
+
+std::shared_ptr<arrow::Table>
+ChunkedSegmentSealedImpl::ExecuteTake(
+    const std::vector<int64_t>& unique_offsets,
+    const std::shared_ptr<std::vector<std::string>>& needed_columns,
+    const char* caller_tag,
+    double& elapsed_ms) const {
+    // Reader is NOT thread-safe; serialize concurrent take() calls.
+    std::lock_guard<std::mutex> lock(reader_mutex_);
+    if (!reader_) {
+        LOG_WARN("[TakeAPI] {} reader is null for segment {}", caller_tag, id_);
+        return nullptr;
+    }
+    auto take_start = std::chrono::high_resolution_clock::now();
+    auto result = reader_->take(unique_offsets, 1, needed_columns);
+    elapsed_ms = std::chrono::duration<double, std::milli>(
+                     std::chrono::high_resolution_clock::now() - take_start)
+                     .count();
+    if (!result.ok()) {
+        LOG_WARN("[TakeAPI] {} take() failed for segment {}: {}",
+                 caller_tag,
+                 id_,
+                 result.status().ToString());
+        return nullptr;
+    }
+    return *result;
+}
+
+// ---- End shared helpers ----
+
+bool
+ChunkedSegmentSealedImpl::TryTakeForRetrieve(
+    const query::RetrievePlan* plan,
+    const std::unique_ptr<proto::segcore::RetrieveResults>& results,
+    const int64_t* offsets,
+    int64_t size,
+    bool ignore_non_pk,
+    bool fill_ids) const {
+    if (!schema_->is_external_collection() || size == 0) {
+        return false;
+    }
+    constexpr int64_t kTakeThreshold = 10000;
+    if (size > kTakeThreshold) {
+        return false;
+    }
+
+    auto pk_field_id = plan->schema_->get_primary_field_id();
+    auto is_pk_field = [&](const FieldId& fid) {
+        return pk_field_id.has_value() && pk_field_id.value() == fid;
+    };
+
+    // Collect needed external columns and their field IDs
+    auto needed_columns = std::make_shared<std::vector<std::string>>();
+    std::vector<FieldId> take_field_ids;
+    std::vector<const FieldMeta*> take_field_metas;
+    for (auto field_id : plan->field_ids_) {
+        if (SystemProperty::Instance().IsSystem(field_id)) {
+            continue;
+        }
+        if (ignore_non_pk && !is_pk_field(field_id)) {
+            continue;
+        }
+        auto& field_meta = schema_->operator[](field_id);
+        if (!field_meta.is_external_field()) {
+            continue;
+        }
+        needed_columns->push_back(field_meta.get_external_field());
+        take_field_ids.push_back(field_id);
+        take_field_metas.push_back(&field_meta);
+    }
+    if (take_field_ids.empty()) {
+        return false;
+    }
+
+    auto ctx = BuildTakeContext(offsets, size);
+
+    double take_elapsed_ms = 0;
+    auto table = ExecuteTake(
+        ctx.unique_offsets, needed_columns, "retrieve", take_elapsed_ms);
+    if (!table) {
+        return false;
+    }
+
+    // Convert Arrow Table columns to DataArray results
+    auto fields_data = results->mutable_fields_data();
+    auto ids = results->mutable_ids();
+
+    // Build lookup from field_id to index in take_field_ids/take_field_metas
+    std::unordered_map<int64_t, size_t> ext_field_idx;
+    for (size_t fi = 0; fi < take_field_ids.size(); fi++) {
+        ext_field_idx[take_field_ids[fi].get()] = fi;
+    }
+
+    // Pre-combine Arrow chunks for each external column
+    std::vector<std::shared_ptr<arrow::Array>> combined_arrays(
+        take_field_ids.size());
+    for (size_t fi = 0; fi < take_field_ids.size(); fi++) {
+        auto ext_name = take_field_metas[fi]->get_external_field();
+        auto col = table->GetColumnByName(ext_name);
+        if (!col || col->num_chunks() == 0) {
+            LOG_WARN(
+                "[TakeAPI] column '{}' not found in take result for "
+                "segment {}",
+                ext_name,
+                id_);
+            return false;
+        }
+        if (col->num_chunks() == 1) {
+            combined_arrays[fi] = col->chunk(0);
+        } else {
+            auto combined_result = arrow::Concatenate(col->chunks());
+            if (!combined_result.ok()) {
+                LOG_WARN("[TakeAPI] concatenate failed: {}",
+                         combined_result.status().ToString());
+                return false;
+            }
+            combined_arrays[fi] = *combined_result;
+        }
+    }
+
+    // Emit fields in plan->field_ids_ order so the positional index
+    // matches outputFieldsID in the Proxy's afterReduce.
+    for (auto field_id : plan->field_ids_) {
+        if (SystemProperty::Instance().IsSystem(field_id)) {
+            auto system_type =
+                SystemProperty::Instance().GetSystemFieldType(field_id);
+            FixedVector<int64_t> output(size);
+            milvus::OpContext op_ctx;
+            bulk_subscript(&op_ctx, system_type, offsets, size, output.data());
+            auto data_array = std::make_unique<DataArray>();
+            data_array->set_field_id(field_id.get());
+            data_array->set_type(milvus::proto::schema::DataType::Int64);
+            auto obj = data_array->mutable_scalars()->mutable_long_data();
+            auto data = reinterpret_cast<const int64_t*>(output.data());
+            obj->mutable_data()->Add(data, data + size);
+            fields_data->AddAllocated(data_array.release());
+            continue;
+        }
+
+        if (ignore_non_pk && !is_pk_field(field_id)) {
+            continue;
+        }
+
+        auto& field_meta = schema_->operator[](field_id);
+
+        // Virtual PK field (not external, computed on-the-fly)
+        if (!field_meta.is_external_field()) {
+            if (is_pk_field(field_id) &&
+                field_meta.get_data_type() == DataType::INT64) {
+                auto data_array = std::make_unique<DataArray>();
+                data_array->set_field_id(field_id.get());
+                data_array->set_type(milvus::proto::schema::DataType::Int64);
+                auto obj = data_array->mutable_scalars()->mutable_long_data();
+                for (int64_t i = 0; i < size; i++) {
+                    obj->add_data(GetVirtualPK(id_, offsets[i]));
+                }
+                if (!ignore_non_pk) {
+                    fields_data->AddAllocated(data_array.release());
+                }
+                if (fill_ids) {
+                    auto int_ids = ids->mutable_int_id();
+                    for (int64_t i = 0; i < size; i++) {
+                        int_ids->add_data(GetVirtualPK(id_, offsets[i]));
+                    }
+                }
+            }
+            continue;
+        }
+
+        // External field — convert from take() result
+        auto it = ext_field_idx.find(field_id.get());
+        if (it == ext_field_idx.end()) {
+            continue;
+        }
+        size_t fi = it->second;
+        auto& arr = combined_arrays[fi];
+
+        auto data_array =
+            ArrowToDataArray(arr, field_meta, ctx.result_mapping, size);
+        if (!data_array) {
+            LOG_WARN(
+                "[TakeAPI] unsupported data type {} for field '{}', "
+                "falling back",
+                static_cast<int>(field_meta.get_data_type()),
+                field_meta.get_external_field());
+            results->clear_fields_data();
+            results->clear_ids();
+            return false;
+        }
+        data_array->set_field_id(field_id.get());
+
+        if (!ignore_non_pk) {
+            fields_data->AddAllocated(data_array.release());
+        }
+    }
+
+    LOG_DEBUG(
+        "[TakeAPI] segment {} used take() for {} rows ({} unique), "
+        "{} fields, elapsed={:.2f}ms",
+        id_,
+        size,
+        ctx.unique_offsets.size(),
+        take_field_ids.size(),
+        take_elapsed_ms);
+    return true;
+}
+
+bool
+ChunkedSegmentSealedImpl::TryTakeForSearch(const query::Plan* plan,
+                                           const int64_t* seg_offsets,
+                                           int64_t size,
+                                           SearchResult& results) const {
+    if (!schema_->is_external_collection() || size == 0) {
+        return false;
+    }
+    constexpr int64_t kTakeThreshold = 10000;
+    if (size > kTakeThreshold) {
+        return false;
+    }
+
+    // Collect needed external columns
+    auto needed_columns = std::make_shared<std::vector<std::string>>();
+    std::vector<FieldId> take_field_ids;
+    std::vector<const FieldMeta*> take_field_metas;
+    for (auto field_id : plan->target_entries_) {
+        auto& field_meta = schema_->operator[](field_id);
+        if (!field_meta.is_external_field()) {
+            continue;
+        }
+        needed_columns->push_back(field_meta.get_external_field());
+        take_field_ids.push_back(field_id);
+        take_field_metas.push_back(&field_meta);
+    }
+    if (take_field_ids.empty()) {
+        return false;
+    }
+
+    auto ctx = BuildTakeContext(seg_offsets, size);
+
+    double take_elapsed_ms = 0;
+    auto table = ExecuteTake(
+        ctx.unique_offsets, needed_columns, "search", take_elapsed_ms);
+    if (!table) {
+        return false;
+    }
+
+    // Convert Arrow Table columns to DataArray and store in SearchResult
+    for (size_t fi = 0; fi < take_field_ids.size(); fi++) {
+        auto field_id = take_field_ids[fi];
+        auto& field_meta = *take_field_metas[fi];
+        auto ext_name = field_meta.get_external_field();
+        auto col = table->GetColumnByName(ext_name);
+        if (!col || col->num_chunks() == 0) {
+            LOG_WARN("[TakeAPI] search column '{}' not found for segment {}",
+                     ext_name,
+                     id_);
+            return false;
+        }
+
+        std::shared_ptr<arrow::Array> arr;
+        if (col->num_chunks() == 1) {
+            arr = col->chunk(0);
+        } else {
+            auto combined_result = arrow::Concatenate(col->chunks());
+            if (!combined_result.ok()) {
+                return false;
+            }
+            arr = *combined_result;
+        }
+
+        auto data_array =
+            ArrowToDataArray(arr, field_meta, ctx.result_mapping, size);
+        if (!data_array) {
+            LOG_WARN(
+                "[TakeAPI] search: unsupported type {} for '{}', "
+                "falling back",
+                static_cast<int>(field_meta.get_data_type()),
+                ext_name);
+            results.output_fields_data_.clear();
+            return false;
+        }
+        data_array->set_field_id(field_id.get());
+        results.output_fields_data_[field_id] = std::move(data_array);
+    }
+
+    LOG_DEBUG(
+        "[TakeAPI] search: segment {} used take() for {} rows ({} unique), "
+        "{} fields, elapsed={:.2f}ms",
+        id_,
+        size,
+        ctx.unique_offsets.size(),
+        take_field_ids.size(),
+        take_elapsed_ms);
+    return true;
 }
 
 }  // namespace milvus::segcore

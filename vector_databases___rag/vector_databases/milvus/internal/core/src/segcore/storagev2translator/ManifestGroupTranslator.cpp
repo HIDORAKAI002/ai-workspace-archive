@@ -40,6 +40,7 @@
 #include "common/GroupChunk.h"
 #include "common/Types.h"
 #include "fmt/core.h"
+#include "fmt/ranges.h"
 #include "glog/logging.h"
 #include "log/Log.h"
 #include "milvus-storage/common/constants.h"
@@ -50,88 +51,12 @@
 #include "segcore/storagev2translator/GroupCTMeta.h"
 #include "storage/Util.h"
 
+#include <atomic>
+
 namespace milvus::segcore::storagev2translator {
 
-// Convert LIST or FIXED_SIZE_LIST arrays to FixedSizeBinary.
-// External parquet files store vectors in list format; Milvus expects
-// FixedSizeBinary (raw bytes). Supports all fixed-width vector types
-// (FLOAT, FLOAT16, BFLOAT16, BINARY, INT8). Returns the input unchanged
-// if already FixedSizeBinary.
-static arrow::ArrayVector
-NormalizeVectorArraysToFixedSizeBinary(const arrow::ArrayVector& arrays,
-                                       const milvus::FieldMeta& field_meta) {
-    int dim = field_meta.get_dim();
-    int byte_width = GetDataTypeSize(field_meta.get_data_type(), dim);
-    auto fsb_type = arrow::fixed_size_binary(byte_width);
-
-    arrow::ArrayVector result;
-    result.reserve(arrays.size());
-
-    for (const auto& array : arrays) {
-        auto type_id = array->type_id();
-        if (type_id == arrow::Type::FIXED_SIZE_BINARY) {
-            result.push_back(array);
-            continue;
-        }
-
-        int64_t num_rows = array->length();
-        AssertInfo(array->null_count() == 0,
-                   "Null values in vector columns are not supported for "
-                   "external collections, field: {}",
-                   field_meta.get_name().get());
-        auto buffer_result = arrow::AllocateBuffer(num_rows * byte_width);
-        AssertInfo(buffer_result.ok(),
-                   "Failed to allocate buffer for vector normalization");
-        auto buffer = std::move(*buffer_result);
-        auto dst = buffer->mutable_data();
-
-        if (type_id == arrow::Type::LIST) {
-            auto list_array = std::static_pointer_cast<arrow::ListArray>(array);
-            auto values = list_array->values();
-            int elem_bit_width = values->type()->bit_width();
-            AssertInfo(elem_bit_width > 0 && elem_bit_width % 8 == 0,
-                       "Vector list element must be fixed-width byte-aligned "
-                       "type, got bit_width={}",
-                       elem_bit_width);
-            int elem_byte_size = elem_bit_width / 8;
-            auto raw = reinterpret_cast<const uint8_t*>(
-                values->data()->buffers[1]->data());
-            for (int64_t i = 0; i < num_rows; i++) {
-                auto offset = list_array->value_offset(i);
-                memcpy(dst + i * byte_width,
-                       raw + offset * elem_byte_size,
-                       byte_width);
-            }
-        } else if (type_id == arrow::Type::FIXED_SIZE_LIST) {
-            auto fsl_array =
-                std::static_pointer_cast<arrow::FixedSizeListArray>(array);
-            auto values = fsl_array->values();
-            int elem_bit_width = values->type()->bit_width();
-            AssertInfo(elem_bit_width > 0 && elem_bit_width % 8 == 0,
-                       "Vector list element must be fixed-width byte-aligned "
-                       "type, got bit_width={}",
-                       elem_bit_width);
-            int elem_byte_size = elem_bit_width / 8;
-            auto raw = reinterpret_cast<const uint8_t*>(
-                values->data()->buffers[1]->data());
-            for (int64_t i = 0; i < num_rows; i++) {
-                auto offset = fsl_array->value_offset(i);
-                memcpy(dst + i * byte_width,
-                       raw + offset * elem_byte_size,
-                       byte_width);
-            }
-        } else {
-            ThrowInfo(ErrorCode::Unsupported,
-                      "Unsupported arrow type for vector normalization: {}",
-                      array->type()->ToString());
-        }
-
-        auto fsb_array = std::make_shared<arrow::FixedSizeBinaryArray>(
-            fsb_type, num_rows, std::move(buffer));
-        result.push_back(std::move(fsb_array));
-    }
-    return result;
-}
+// See GroupChunkTranslator.cpp for explanation of g_mmap_path_generation.
+static std::atomic<uint64_t> g_mmap_path_generation{0};
 
 ManifestGroupTranslator::ManifestGroupTranslator(
     int64_t segment_id,
@@ -325,12 +250,23 @@ ManifestGroupTranslator::get_cells(
                                             DEFAULT_FIELD_MAX_MEMORY_LIMIT,
                                             load_priority_);
 
-    LOG_INFO(
-        "[StorageV2] translator {} submits {} batch tasks for manifest column "
-        "group {}",
-        key_,
-        load_futures.size(),
-        column_group_index_);
+    {
+        std::string rg_info;
+        for (size_t i = 0; i < cids.size(); ++i) {
+            auto [start, end] = meta_.get_row_group_range(cids[i]);
+            if (i > 0)
+                rg_info += ", ";
+            rg_info += fmt::format("cid{}:[{},{})", cids[i], start, end);
+        }
+        LOG_INFO(
+            "[StorageV2] translator {} submits {} batch tasks for manifest "
+            "column group {}, loading cids=[{}], row_group_ranges=[{}]",
+            key_,
+            load_futures.size(),
+            column_group_index_,
+            fmt::join(cids, ","),
+            rg_info);
+    }
 
     // Pop loop — convert each cell immediately, no ArrowTable accumulation
     std::unordered_map<milvus::cachinglayer::cid_t,
@@ -454,8 +390,10 @@ ManifestGroupTranslator::load_group_chunk(
             !IsVectorArrayDataType(field_metas[idx].get_data_type()) &&
             !array_vecs[idx].empty() &&
             array_vecs[idx][0]->type_id() != arrow::Type::FIXED_SIZE_BINARY) {
-            array_vecs[idx] = NormalizeVectorArraysToFixedSizeBinary(
-                array_vecs[idx], field_metas[idx]);
+            array_vecs[idx] = storage::NormalizeVectorArraysToFixedSizeBinary(
+                array_vecs[idx],
+                field_metas[idx].get_data_type(),
+                field_metas[idx].get_dim());
         }
     }
 
@@ -465,26 +403,31 @@ ManifestGroupTranslator::load_group_chunk(
         chunks = create_group_chunk(
             field_ids, field_metas, array_vecs, mmap_populate_);
     } else {
-        // Mmap mode
+        // Mmap mode — use unique generation suffix to avoid truncating files
+        // that old MAP_SHARED mmaps still reference (see #48658).
+        auto gen =
+            g_mmap_path_generation.fetch_add(1, std::memory_order_relaxed);
         std::filesystem::path filepath;
         switch (group_chunk_type_) {
             case GroupChunkType::DEFAULT:
                 filepath = std::filesystem::path(mmap_dir_path_) /
-                           fmt::format("seg_{}_cg_{}_{}",
+                           fmt::format("seg_{}_cg_{}_{}_{}",
                                        segment_id_,
                                        column_group_index_,
-                                       cid);
+                                       cid,
+                                       gen);
                 break;
             case GroupChunkType::JSON_KEY_STATS:
                 filepath =
                     std::filesystem::path(mmap_dir_path_) /
                     fmt::format(
-                        "seg_{}_jks_{}_cg_{}_{}",
+                        "seg_{}_jks_{}_cg_{}_{}_{}",
                         segment_id_,
                         // NOTE: here we assume the first field is the main field for json key stats group chunk
                         std::to_string(field_metas[0].get_main_field_id()),
                         column_group_index_,
-                        cid);
+                        cid,
+                        gen);
                 break;
             default:
                 ThrowInfo(ErrorCode::UnexpectedError,
