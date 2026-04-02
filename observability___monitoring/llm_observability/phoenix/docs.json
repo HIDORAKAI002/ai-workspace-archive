@@ -676,6 +676,13 @@
                   "docs/phoenix/integrations/python/pydantic/pydantic-tracing",
                   "docs/phoenix/integrations/python/pydantic/pydantic-evals"
                 ]
+              },
+              {
+                "group": "Strands Agents",
+                "pages": [
+                  "docs/phoenix/integrations/python/strands-agents",
+                  "docs/phoenix/integrations/python/strands-agents/strands-agents-tracing"
+                ]
               }
             ]
           },
@@ -1509,7 +1516,7 @@
     },
     {
       "source": "/docs/phoenix/tracing/how-to-tracing/trace-a-deployed-app",
-      "destination": "/docs/phoenix/tracing/llm-traces-1"
+      "destination": "/docs/phoenix/get-started/get-started-tracing"
     },
     {
       "source": "/docs/phoenix/tracing/how-to-tracing/filtering-spans",
