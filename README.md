@@ -297,10 +297,11 @@ ai_skills_library/skills/
 </details>
 
 <details>
-<summary><b>Developer & Filesystem Tools (4 repos)</b></summary>
+<summary><b>Developer & Filesystem Tools (5 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | What It Does |
 |---|---|---|---|
+| `delimit-mcp-server` | [delimit-ai/delimit-mcp-server](https://github.com/delimit-ai/delimit-mcp-server) | 100+ | API governance MCP with persistent memory, policy enforcement, and multi-model context. Works across Claude Code, Codex, Gemini CLI, and Cursor. Install: `npx delimit-cli setup` |
 | `mcp-filesystem-server` | [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) | 15K+ | Read/write local files and directories |
 | `mcp-server-commands` | [g0t4/mcp-server-commands](https://github.com/g0t4/mcp-server-commands) | 200+ | Run shell commands via MCP |
 | `mcp-youtube` | [suekou/mcp-youtube](https://github.com/suekou/mcp-youtube) | 150+ | YouTube transcript and video data |
