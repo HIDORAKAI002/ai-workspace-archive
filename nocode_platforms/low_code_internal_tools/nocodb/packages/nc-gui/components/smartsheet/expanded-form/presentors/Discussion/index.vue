@@ -79,7 +79,7 @@ export default {
       }"
     >
       <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
-        <div class="w-full h-0 flex-grow ml-15.8 border-l-1 border-nc-border-gray-dark" />
+        <div class="w-full h-0 flex-grow ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r-1) border-l-1 border-nc-border-gray-dark" />
       </div>
       <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-nc-border-gray-dark relative">
@@ -131,7 +131,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
