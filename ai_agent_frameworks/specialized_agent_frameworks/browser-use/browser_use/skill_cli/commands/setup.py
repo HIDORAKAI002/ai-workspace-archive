@@ -212,18 +212,42 @@ def _install_cloudflared() -> bool:
 			result = subprocess.run(['winget', 'install', 'Cloudflare.cloudflared'], timeout=120)
 			return result.returncode == 0
 		else:
-			# Linux: download binary
+			# Linux: download binary + verify SHA256 checksum before installing
+			import hashlib
 			import platform
+			import shutil
+			import tempfile
 			import urllib.request
 
 			arch = 'arm64' if platform.machine() in ('aarch64', 'arm64') else 'amd64'
-			url = f'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-{arch}'
-			dest = Path('/usr/local/bin/cloudflared')
-			if not os.access('/usr/local/bin', os.W_OK):
-				dest = Path.home() / '.local' / 'bin' / 'cloudflared'
-				dest.parent.mkdir(parents=True, exist_ok=True)
-			urllib.request.urlretrieve(url, dest)
-			dest.chmod(0o755)
+			base_url = f'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-{arch}'
+
+			# Download to a temp file so we can verify before installing
+			with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp:
+				tmp_path = Path(tmp.name)
+			try:
+				urllib.request.urlretrieve(base_url, tmp_path)
+
+				# Fetch checksum file published alongside the binary
+				with urllib.request.urlopen(f'{base_url}.sha256sum') as resp:
+					expected_sha256 = resp.read().decode().split()[0]
+
+				# Verify integrity before touching the install destination
+				actual_sha256 = hashlib.sha256(tmp_path.read_bytes()).hexdigest()
+				if actual_sha256 != expected_sha256:
+					raise RuntimeError(
+						f'cloudflared checksum mismatch — expected {expected_sha256}, got {actual_sha256}. '
+						'The download may be corrupt or tampered with.'
+					)
+
+				dest = Path('/usr/local/bin/cloudflared')
+				if not os.access('/usr/local/bin', os.W_OK):
+					dest = Path.home() / '.local' / 'bin' / 'cloudflared'
+					dest.parent.mkdir(parents=True, exist_ok=True)
+				shutil.move(str(tmp_path), dest)
+				dest.chmod(0o755)
+			finally:
+				tmp_path.unlink(missing_ok=True)
 			return True
 	except Exception:
 		return False

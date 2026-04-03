@@ -54,14 +54,36 @@ def read_config() -> dict:
 
 
 def write_config(data: dict) -> None:
-	"""Write CLI config file with 0o600 permissions."""
+	"""Write CLI config file with 0o600 permissions, atomically via tmp+rename.
+
+	Writing directly to config.json risks truncation if the process is killed
+	mid-write, which read_config() would silently treat as {} (empty config),
+	wiping the API key and all other settings.
+	"""
+	import os
+	import tempfile
+
 	path = _get_config_path()
 	path.parent.mkdir(parents=True, exist_ok=True)
-	path.write_text(json.dumps(data, indent=2) + '\n')
+	content = json.dumps(data, indent=2) + '\n'
+
+	# Write to a temp file in the same directory so os.replace() is atomic
+	# (same filesystem guaranteed — cross-device rename raises OSError).
+	fd, tmp_str = tempfile.mkstemp(dir=path.parent, prefix='.config_tmp_')
+	tmp_path = Path(tmp_str)
 	try:
-		path.chmod(0o600)
-	except OSError:
-		pass
+		with os.fdopen(fd, 'w') as f:
+			f.write(content)
+			f.flush()
+			os.fsync(f.fileno())
+		try:
+			tmp_path.chmod(0o600)
+		except OSError:
+			pass
+		os.replace(tmp_path, path)
+	except Exception:
+		tmp_path.unlink(missing_ok=True)
+		raise
 
 
 def get_config_value(key: str) -> str | int | None:
