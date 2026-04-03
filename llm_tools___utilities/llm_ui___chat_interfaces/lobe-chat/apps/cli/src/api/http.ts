@@ -57,3 +57,39 @@ export async function getAuthInfo(): Promise<AuthInfo> {
     serverUrl,
   };
 }
+
+export async function getAgentStreamAuthInfo(): Promise<Pick<AuthInfo, 'headers' | 'serverUrl'>> {
+  const serverUrl = resolveServerUrl();
+
+  const envJwt = process.env.LOBEHUB_JWT;
+  if (envJwt) {
+    return {
+      headers: { 'Oidc-Auth': envJwt },
+      serverUrl,
+    };
+  }
+
+  const envApiKey = process.env[CLI_API_KEY_ENV];
+  if (envApiKey) {
+    return {
+      headers: { 'X-API-Key': envApiKey },
+      serverUrl,
+    };
+  }
+
+  const result = await getValidToken();
+  if (!result) {
+    log.error(`No authentication found. Run 'lh login' first, or set ${CLI_API_KEY_ENV}.`);
+    process.exit(1);
+
+    return {
+      headers: {},
+      serverUrl,
+    };
+  }
+
+  return {
+    headers: { 'Oidc-Auth': result.credentials.accessToken },
+    serverUrl,
+  };
+}

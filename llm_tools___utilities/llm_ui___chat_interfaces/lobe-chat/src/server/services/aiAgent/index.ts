@@ -237,6 +237,7 @@ export class AiAgentService {
       appContext,
       autoStart = true,
       botContext,
+      deviceId: requestedDeviceId,
       botPlatformContext,
       discordContext,
       existingMessageIds = [],
@@ -402,15 +403,21 @@ export class AiAgentService {
 
     // 3. Handle topic creation: if no topicId provided, create a new topic; otherwise reuse existing
     let topicId = appContext?.topicId;
+    const topicBoundDeviceId = requestedDeviceId;
     if (!topicId) {
       if (resume) {
         throw new Error('Resume mode requires the parent message to belong to a topic');
       }
 
-      // Prepare metadata with cronJobId, taskId, and botContext if provided
+      // Prepare metadata with cronJobId, taskId, botContext, and bound device if provided
       const metadata =
-        cronJobId || taskId || botContext
-          ? { bot: botContext, cronJobId: cronJobId || undefined, taskId: taskId || undefined }
+        cronJobId || taskId || botContext || requestedDeviceId
+          ? {
+              bot: botContext,
+              boundDeviceId: requestedDeviceId,
+              cronJobId: cronJobId || undefined,
+              taskId: taskId || undefined,
+            }
           : undefined;
 
       const newTopic = await this.topicModel.create({
@@ -530,7 +537,8 @@ export class AiAgentService {
 
       // Build device context for ToolsEngine enableChecker
       const gatewayConfigured = deviceProxy.isConfigured;
-      const boundDeviceId = agentConfig.agencyConfig?.boundDeviceId;
+      const agentBoundDeviceId = agentConfig.agencyConfig?.boundDeviceId;
+      const boundDeviceId = topicBoundDeviceId || agentBoundDeviceId;
       if (gatewayConfigured) {
         try {
           onlineDevices = await deviceProxy.queryDeviceList(this.userId);
@@ -554,9 +562,13 @@ export class AiAgentService {
         ...(isBotConversation ? [MessageToolIdentifier] : []),
       ];
 
-      // Derive activeDeviceId from device context
+      // Derive activeDeviceId from device context:
+      // 1. If this run explicitly requested a device and that device is online, use it
+      // 2. Otherwise, if the current topic has a bound device and it is online, use that
+      // 3. Otherwise, fall back to the agent-level bound device when it is online
+      // 4. Otherwise, in IM/Bot scenarios, auto-activate only when exactly one device is online
       activeDeviceId = boundDeviceId
-        ? deviceOnline
+        ? onlineDevices.some((device) => device.deviceId === boundDeviceId)
           ? boundDeviceId
           : undefined
         : (discordContext || botContext) && onlineDevices.length === 1

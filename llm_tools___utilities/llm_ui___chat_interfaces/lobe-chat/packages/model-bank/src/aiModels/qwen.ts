@@ -3113,6 +3113,54 @@ const qwenImageModels: AIImageModelCard[] = [
     type: 'image',
   },
   {
+    description: 'Wanxiang 2.7 Image Professional Edition, supports 4K high-definition output.',
+    displayName: 'Wanxiang2.7 Image Pro',
+    enabled: true,
+    id: 'wan2.7-image-pro',
+    organization: 'Qwen',
+    parameters: {
+      height: { default: 2048, max: 11_585, min: 271, step: 1 },
+      imageUrls: {
+        default: [],
+      },
+      prompt: {
+        default: '',
+      },
+      seed: { default: null },
+      width: { default: 2048, max: 11_585, min: 271, step: 1 },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'imageGeneration', rate: 0.5, strategy: 'fixed', unit: 'image' }],
+    },
+    releasedAt: '2026-04-01',
+    type: 'image',
+  },
+  {
+    description: 'Wanxiang 2.7 Image, faster image generation speed.',
+    displayName: 'Wanxiang2.7 Image',
+    enabled: true,
+    id: 'wan2.7-image',
+    organization: 'Qwen',
+    parameters: {
+      height: { default: 2048, max: 5792, min: 271, step: 1 },
+      imageUrls: {
+        default: [],
+      },
+      prompt: {
+        default: '',
+      },
+      seed: { default: null },
+      width: { default: 2048, max: 5792, min: 271, step: 1 },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'imageGeneration', rate: 0.2, strategy: 'fixed', unit: 'image' }],
+    },
+    releasedAt: '2026-04-01',
+    type: 'image',
+  },
+  {
     description: 'Wanxiang 2.6 Image supports image editing and mixed image–text layout output.',
     displayName: 'Wanxiang2.6 Image',
     enabled: true,
@@ -3329,6 +3377,66 @@ const qwenImageModels: AIImageModelCard[] = [
   },
   {
     description:
+      'Supports up to 10 reference images, allowing you to lock subjects, elements, and color tones to ensure consistent style. Combines style transfer, portrait/character referencing, multi-image fusion, and localized inpainting for flexible control. Delivers realistic portrait details, with overall visuals that are delicate and richly layered, featuring cinematic color and atmosphere.',
+    displayName: 'Kling V3 Image Generation',
+    enabled: true,
+    id: 'kling/kling-v3-image-generation',
+    organization: 'Qwen',
+    parameters: {
+      aspectRatio: {
+        default: '16:9',
+        enum: ['16:9', '9:16', '1:1'],
+      },
+      imageUrl: {
+        default: '',
+      },
+      prompt: {
+        default: '',
+      },
+      resolution: {
+        default: '1k',
+        enum: ['1k', '2k'],
+      },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'imageGeneration', rate: 0.2, strategy: 'fixed', unit: 'image' }],
+    },
+    releasedAt: '2026-03-26',
+    type: 'image',
+  },
+  {
+    description:
+      'Unlock cinematic storytelling visuals with new series image generation and direct 2K/4K output. Deeply analyzes audiovisual elements in prompts to precisely execute creative instructions. Supports flexible multi-reference inputs and comprehensive quality upgrades, ideal for storyboards, narrative concept art, and scene design.',
+    displayName: 'Kling V3 Omni Image Generation',
+    enabled: true,
+    id: 'kling/kling-v3-omni-image-generation',
+    organization: 'Qwen',
+    parameters: {
+      aspectRatio: {
+        default: '16:9',
+        enum: ['16:9', '9:16', '1:1'],
+      },
+      imageUrls: {
+        default: [],
+      },
+      prompt: {
+        default: '',
+      },
+      resolution: {
+        default: '1k',
+        enum: ['1k', '2k', '4k'],
+      },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'imageGeneration', rate: 0.2, strategy: 'fixed', unit: 'image' }],
+    },
+    releasedAt: '2026-03-26',
+    type: 'image',
+  },
+  {
+    description:
       'FLUX.1 [schnell] is the most advanced open-source few-step model, surpassing similar competitors and even strong non-distilled models like Midjourney v6.0 and DALL-E 3 (HD). It is finely tuned to preserve pretraining diversity, significantly improving visual quality, instruction following, size/aspect variation, font handling, and output diversity.',
     displayName: 'FLUX.1 [schnell]',
     id: 'flux-schnell',
@@ -3486,6 +3594,89 @@ const qwenImageModels: AIImageModelCard[] = [
 ];
 
 const qwenVideoModels: AIVideoModelCard[] = [
+  {
+    description:
+      'Wanxiang 2.7 Image-to-Video delivers a comprehensive upgrade in performance capabilities. Dramatic scenes feature delicate and natural emotional expression, while action sequences are intense and impactful. Combined with more dynamic and rhythmically driven shot transitions, it achieves stronger overall performance and storytelling.',
+    displayName: 'Wan2.7 I2V',
+    enabled: true,
+    id: 'wan2.7-i2v',
+    parameters: {
+      duration: { default: 5, max: 15, min: 2 },
+      endImageUrl: {
+        default: null,
+      },
+      imageUrl: {
+        default: null,
+      },
+      prompt: { default: '' },
+      resolution: {
+        default: '1080P',
+        enum: ['720P', '1080P'],
+      },
+      seed: { default: null },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'videoGeneration', rate: 1, strategy: 'fixed', unit: 'second' }],
+    },
+    releasedAt: '2026-04-03',
+    type: 'video',
+  },
+  {
+    description:
+      'Wanxiang 2.7 Reference-to-Video offers more stable references for characters, props, and scenes. It supports up to 5 mixed reference images or videos, along with audio tone referencing. Combined with upgraded core capabilities, it delivers stronger performance and expressive power.',
+    displayName: 'Wan2.7 R2V',
+    enabled: true,
+    id: 'wan2.7-r2v',
+    parameters: {
+      aspectRatio: {
+        default: '16:9',
+        enum: ['16:9', '9:16', '1:1', '4:3', '3:4'],
+      },
+      duration: { default: 5, max: 10, min: 2 },
+      imageUrl: {
+        default: null,
+      },
+      prompt: { default: '' },
+      resolution: {
+        default: '1080P',
+        enum: ['720P', '1080P'],
+      },
+      seed: { default: null },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'videoGeneration', rate: 1, strategy: 'fixed', unit: 'second' }],
+    },
+    releasedAt: '2026-04-03',
+    type: 'video',
+  },
+  {
+    description:
+      'Wanxiang 2.7 Text-to-Video delivers a comprehensive upgrade in performance capabilities. Dramatic scenes feature delicate and natural emotional expression, while action sequences are intense and impactful. Enhanced with more dynamic and rhythmically driven shot transitions, it achieves stronger overall acting and storytelling performance.',
+    displayName: 'Wan2.7 T2V',
+    enabled: true,
+    id: 'wan2.7-t2v',
+    parameters: {
+      aspectRatio: {
+        default: '16:9',
+        enum: ['16:9', '9:16', '1:1', '4:3', '3:4'],
+      },
+      duration: { default: 5, max: 15, min: 2 },
+      prompt: { default: '' },
+      resolution: {
+        default: '1080P',
+        enum: ['720P', '1080P'],
+      },
+      seed: { default: null },
+    },
+    pricing: {
+      currency: 'CNY',
+      units: [{ name: 'videoGeneration', rate: 1, strategy: 'fixed', unit: 'second' }],
+    },
+    releasedAt: '2026-04-03',
+    type: 'video',
+  },
   {
     description:
       'Wanxiang 2.6 introduces multi-shot narrative capabilities, while also supporting automatic voiceover generation and the ability to incorporate custom audio files.',
