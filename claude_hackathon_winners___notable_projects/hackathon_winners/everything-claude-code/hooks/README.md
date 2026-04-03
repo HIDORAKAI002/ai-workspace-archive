@@ -35,6 +35,7 @@ User request → Claude picks a tool → PreToolUse hook runs → Tool executes 
 | **PR logger** | `Bash` | Logs PR URL and review command after `gh pr create` |
 | **Build analysis** | `Bash` | Background analysis after build commands (async, non-blocking) |
 | **Quality gate** | `Edit\|Write\|MultiEdit` | Runs fast quality checks after edits |
+| **Design quality check** | `Edit\|Write\|MultiEdit` | Warns when frontend edits drift toward generic template-looking UI |
 | **Prettier format** | `Edit` | Auto-formats JS/TS files with Prettier after edits |
 | **TypeScript check** | `Edit` | Runs `tsc --noEmit` after editing `.ts`/`.tsx` files |
 | **console.log warning** | `Edit` | Warns about `console.log` statements in edited files |

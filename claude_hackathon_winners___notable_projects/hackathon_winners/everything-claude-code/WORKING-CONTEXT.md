@@ -1,6 +1,6 @@
 # Working Context
 
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 - Local full suite status after fix: `1723/1723` passing
 - Main active operational work:
   - keep default branch green
-  - audit and classify remaining open PR backlog by full diff
+  - continue issue-driven fixes from `main` now that the public PR backlog is at zero
   - continue ECC 2.0 control-plane and operator-surface buildout
 
 ## Current Constraints
@@ -24,7 +24,7 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 
 ## Active Queues
 
-- PR backlog: audit and classify remaining open PRs into merge, port/rebuild, close, or park
+- PR backlog: currently cleared on the public queue; new work should land through direct mainline fixes or fresh narrowly scoped PRs
 - Product:
   - selective install cleanup
   - control plane primitives
@@ -84,6 +84,15 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 
 ## Latest Execution Notes
 
+- 2026-04-02: `ECC-Tools/main` shipped `9566637` (`fix: prefer commit lookup over git ref resolution`). The PR-analysis fire is now fixed in the app repo by preferring explicit commit resolution before `git.getRef`, with regression coverage for pull refs and plain branch refs. Mirrored public tracking issue `#1184` in this repo was closed as resolved upstream.
+- 2026-04-02: Direct-ported the clean native-support core of `#1043` into `main`: `agents/csharp-reviewer.md`, `skills/dotnet-patterns/SKILL.md`, and `skills/csharp-testing/SKILL.md`. This fills the gap between existing C# rule/docs mentions and actual shipped C# review/testing guidance.
+- 2026-04-02: Direct-ported the clean native-support core of `#1055` into `main`: `agents/dart-build-resolver.md`, `commands/flutter-build.md`, `commands/flutter-review.md`, `commands/flutter-test.md`, `rules/dart/*`, and `skills/dart-flutter-patterns/SKILL.md`. The skill paths were wired into the current `framework-language` module instead of replaying the older PR's separate `flutter-dart` module layout.
+- 2026-04-02: Closed `#1081` after diff audit. The PR only added vendor-marketing docs for an external X/Twitter backend (`Xquik` / `x-twitter-scraper`) to the canonical `x-api` skill instead of contributing an ECC-native capability.
+- 2026-04-02: Direct-ported the useful Jira lane from `#894`, but sanitized it to match current supply-chain policy. `commands/jira.md`, `skills/jira-integration/SKILL.md`, and the pinned `jira` MCP template in `mcp-configs/mcp-servers.json` are in-tree, while the skill no longer tells users to install `uv` via `curl | bash`. `jira-integration` is classified under `operator-workflows` for selective installs.
+- 2026-04-02: Closed `#1125` after full diff audit. The bundle/skill-router lane hardcoded many non-existent or non-canonical surfaces and created a second routing abstraction instead of a small ECC-native index layer.
+- 2026-04-02: Closed `#1124` after full diff audit. The added agent roster was thoughtfully written, but it duplicated the existing ECC agent surface with a second competing catalog (`dispatch`, `explore`, `verifier`, `executor`, etc.) instead of strengthening canonical agents already in-tree.
+- 2026-04-02: Closed the full Argus cluster `#1098`, `#1099`, `#1100`, `#1101`, and `#1102` after full diff audit. The common failure mode was the same across all five PRs: external multi-CLI dispatch was treated as a first-class runtime dependency of shipped ECC surfaces. Any useful protocol ideas should be re-ported later into ECC-native orchestration, review, or reflection lanes without external CLI fan-out assumptions.
+- 2026-04-02: The previously open native-support / integration queue (`#1081`, `#1055`, `#1043`, `#894`) has now been fully resolved by direct-port or closure policy. The active public PR queue is currently zero; next focus stays on issue-driven mainline fixes and CI health, not backlog PR intake.
 - 2026-04-01: `main` CI was restored locally with `1723/1723` tests passing after lockfile and hook validation fixes.
 - 2026-04-01: Auto-generated ECC bundle PRs `#1068` and `#1069` were closed instead of merged; useful ideas must be ported manually after explicit diff audit.
 - 2026-04-01: Major-version ESLint bump PRs `#1063` and `#1064` were closed; revisit only inside a planned ESLint 10 migration lane.
@@ -111,3 +120,12 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 - 2026-04-01: Added `connections-optimizer` as the review-first social-graph reorganization workflow for X and LinkedIn, with explicit pruning modes, browser fallback expectations, and Apple Mail drafting guidance.
 - 2026-04-01: Added `manim-video` as the reusable technical explainer lane and seeded it with a starter network-graph scene so launch and systems animations do not depend on one-off scratch scripts.
 - 2026-04-02: Re-extracted `social-graph-ranker` as a standalone primitive because the weighted bridge-decay model is reusable outside the full lead workflow. `lead-intelligence` now points to it for canonical graph ranking instead of carrying the full algorithm explanation inline, while `connections-optimizer` stays the broader operator layer for pruning, adds, and outbound review packs.
+- 2026-04-02: Applied the same consolidation rule to the writing lane. `brand-voice` remains the canonical voice system, while `content-engine`, `crosspost`, `article-writing`, and `investor-outreach` now keep only workflow-specific guidance instead of duplicating a second Affaan/ECC voice model or repeating the full ban list in multiple places.
+- 2026-04-02: Closed fresh auto-generated bundle PRs `#1182` and `#1183` under the existing policy. Useful ideas from generator output must be ported manually into canonical repo surfaces instead of merging `.claude`/bundle PRs wholesale.
+- 2026-04-02: Ported the safe one-file macOS observer fix from `#1164` directly into `main` as a POSIX `mkdir` fallback for `continuous-learning-v2` lazy-start locking, then closed the PR as superseded by direct port.
+- 2026-04-02: Ported the safe core of `#1153` directly into `main`: markdownlint cleanup for orchestration/docs surfaces plus the Windows `USERPROFILE` and path-normalization fixes in `install-apply` / `repair` tests. Local validation after installing repo deps: `node tests/scripts/install-apply.test.js`, `node tests/scripts/repair.test.js`, and targeted `yarn markdownlint` all passed.
+- 2026-04-02: Direct-ported the safe web/frontend rules lane from `#1122` into `rules/web/`, but adapted `rules/web/hooks.md` to prefer project-local tooling and avoid remote one-off package execution examples.
+- 2026-04-02: Adapted the design-quality reminder from `#1127` into the current ECC hook architecture with a local `scripts/hooks/design-quality-check.js`, Claude `hooks/hooks.json` wiring, Cursor `after-file-edit.js` wiring, and dedicated hook coverage in `tests/hooks/design-quality-check.test.js`.
+- 2026-04-02: Fixed `#1141` on `main` in `16e9b17`. The observer lifecycle is now session-aware instead of purely detached: `SessionStart` writes a project-scoped lease, `SessionEnd` removes that lease and stops the observer when the final lease disappears, `observe.sh` records project activity, and `observer-loop.sh` now exits on idle when no leases remain. Targeted validation passed with `bash -n`, `node tests/hooks/observer-memory.test.js`, `node tests/integration/hooks.test.js`, `node scripts/ci/validate-hooks.js hooks/hooks.json`, and `node scripts/ci/check-unicode-safety.js`.
+- 2026-04-02: Fixed the remaining Windows-only hook regression behind `#1070` by making `scripts/lib/utils.js#getHomeDir()` honor explicit `HOME` / `USERPROFILE` overrides before falling back to `os.homedir()`. This restores test-isolated observer state paths for hook integration runs on Windows. Added regression coverage in `tests/lib/utils.test.js`. Targeted validation passed with `node tests/lib/utils.test.js`, `node tests/integration/hooks.test.js`, `node tests/hooks/observer-memory.test.js`, and `node scripts/ci/check-unicode-safety.js`.
+- 2026-04-02: Direct-ported NestJS support for `#1022` into `main` as `skills/nestjs-patterns/SKILL.md` and wired it into the `framework-language` install module. Synced the repo catalog afterward (`38` agents, `72` commands, `156` skills) and updated the docs so NestJS is no longer listed as an unfilled framework gap.

@@ -76,6 +76,12 @@ test('observe.sh default throttle is 20 observations per signal', () => {
   assert.ok(content.includes('ECC_OBSERVER_SIGNAL_EVERY_N:-20'), 'Default signal frequency should be every 20 observations');
 });
 
+test('observe.sh touches observer activity marker on each observation', () => {
+  const content = fs.readFileSync(observeShPath, 'utf8');
+  assert.ok(content.includes('ACTIVITY_FILE="${PROJECT_DIR}/.observer-last-activity"'), 'observe.sh should define a project-scoped activity marker');
+  assert.ok(content.includes('touch "$ACTIVITY_FILE"'), 'observe.sh should update activity marker during observation capture');
+});
+
 // ──────────────────────────────────────────────────────
 // Test group 2: observer-loop.sh re-entrancy guard
 // ──────────────────────────────────────────────────────
@@ -124,6 +130,19 @@ test('on_usr1 enforces cooldown between analyses', () => {
 test('default cooldown is 60 seconds', () => {
   const content = fs.readFileSync(observerLoopPath, 'utf8');
   assert.ok(content.includes('ECC_OBSERVER_ANALYSIS_COOLDOWN:-60'), 'Default cooldown should be 60 seconds');
+});
+
+test('observer-loop.sh defines idle timeout fallback', () => {
+  const content = fs.readFileSync(observerLoopPath, 'utf8');
+  assert.ok(content.includes('IDLE_TIMEOUT_SECONDS'), 'observer-loop.sh should define an idle timeout');
+  assert.ok(content.includes('ECC_OBSERVER_IDLE_TIMEOUT_SECONDS:-1800'), 'Default idle timeout should be 30 minutes');
+});
+
+test('observer-loop.sh checks session lease directory before self-termination', () => {
+  const content = fs.readFileSync(observerLoopPath, 'utf8');
+  assert.ok(content.includes('SESSION_LEASE_DIR="${PROJECT_DIR}/.observer-sessions"'), 'observer-loop.sh should track active observer session leases');
+  assert.ok(content.includes('has_active_session_leases'), 'observer-loop.sh should define active session lease checks');
+  assert.ok(content.includes('exit_if_idle_without_sessions'), 'observer-loop.sh should define idle self-termination helper');
 });
 
 // ──────────────────────────────────────────────────────

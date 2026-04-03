@@ -20,6 +20,7 @@ const {
   stripAnsi,
   log
 } = require('../lib/utils');
+const { resolveProjectContext, writeSessionLease, resolveSessionId } = require('../lib/observer-sessions');
 const { getPackageManager, getSelectionPrompt } = require('../lib/package-manager');
 const { listAliases } = require('../lib/session-aliases');
 const { detectProjectType } = require('../lib/project-detect');
@@ -162,6 +163,18 @@ async function main() {
   // Ensure directories exist
   ensureDir(sessionsDir);
   ensureDir(learnedDir);
+
+  const observerSessionId = resolveSessionId();
+  if (observerSessionId) {
+    const observerContext = resolveProjectContext();
+    writeSessionLease(observerContext, observerSessionId, {
+      hook: 'SessionStart',
+      projectRoot: observerContext.projectRoot
+    });
+    log(`[SessionStart] Registered observer lease for ${observerSessionId}`);
+  } else {
+    log('[SessionStart] No CLAUDE_SESSION_ID available; skipping observer lease registration');
+  }
 
   // Check for recent session files (last 7 days)
   const recentSessions = dedupeRecentSessions(getSessionSearchDirs());

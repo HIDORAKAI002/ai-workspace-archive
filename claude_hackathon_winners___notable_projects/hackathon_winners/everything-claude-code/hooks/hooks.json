@@ -231,6 +231,18 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:design-quality-check\" \"scripts/hooks/design-quality-check.js\" \"standard,strict\"",
+            "timeout": 10
+          }
+        ],
+        "description": "Warn when frontend edits drift toward generic template-looking UI",
+        "id": "post:edit:design-quality-check"
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:accumulate\" \"scripts/hooks/post-edit-accumulator.js\" \"standard,strict\""
           }
         ],
