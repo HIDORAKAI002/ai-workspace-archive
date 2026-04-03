@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.9, <4.0"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -145,7 +145,7 @@ wheels = [
 
 [[package]]
 name = "anthropic"
-version = "0.71.0"
+version = "0.88.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -157,9 +157,9 @@ dependencies = [
     { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/4f/70682b068d897841f43223df82d96ec1d617435a8b759c4a2d901a50158b/anthropic-0.71.0.tar.gz", hash = "sha256:eb8e6fa86d049061b3ef26eb4cbae0174ebbff21affa6de7b3098da857d8de6a", size = 489102, upload-time = "2025-10-16T15:54:40.08Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/68/565f13059c0a6a6fd5f96f306f2a0fb478a0e1174ec18a4df16b5fac9379/anthropic-0.88.0.tar.gz", hash = "sha256:f4c7f6863d08c869913516f08d658fe53caaf8bcc4fbea3218df343d2a876c58", size = 596654, upload-time = "2026-04-01T19:59:05.287Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/77/073e8ac488f335aec7001952825275582fb8f433737e90f24eeef9d878f6/anthropic-0.71.0-py3-none-any.whl", hash = "sha256:85c5015fcdbdc728390f11b17642a65a4365d03b12b799b18b6cc57e71fdb327", size = 355035, upload-time = "2025-10-16T15:54:38.238Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/ac/68f646998160c9f2e6f9353a31dd87292ef02b915b455aaf70a52a059a75/anthropic-0.88.0-py3-none-any.whl", hash = "sha256:71898b32332bc75d9739bc10095288d40a29605da6d00da2fe832b1aa036552f", size = 478338, upload-time = "2026-04-01T19:59:03.832Z" },
 ]
 
 [[package]]
@@ -1766,11 +1766,10 @@ wheels = [
 
 [[package]]
 name = "instructor"
-version = "1.14.5"
+version = "1.15.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
-    { name = "diskcache" },
     { name = "docstring-parser" },
     { name = "jinja2" },
     { name = "jiter" },
@@ -1812,6 +1811,9 @@ dev = [
     { name = "python-dotenv" },
     { name = "ty" },
     { name = "xmltodict" },
+]
+diskcache = [
+    { name = "diskcache" },
 ]
 docs = [
     { name = "mkdocs" },
@@ -1877,40 +1879,39 @@ writer = [
     { name = "writer-sdk" },
 ]
 xai = [
-    { name = "python-dotenv" },
     { name = "xai-sdk", marker = "python_full_version >= '3.10'" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9.1,<4.0.0" },
-    { name = "anthropic", marker = "extra == 'anthropic'", specifier = "==0.71.0" },
-    { name = "anthropic", marker = "extra == 'dev'", specifier = "==0.71.0" },
+    { name = "anthropic", marker = "extra == 'anthropic'", specifier = "==0.88.0" },
+    { name = "anthropic", marker = "extra == 'dev'", specifier = "==0.88.0" },
     { name = "boto3", marker = "extra == 'bedrock'", specifier = ">=1.34.0,<2.0.0" },
     { name = "cerebras-cloud-sdk", marker = "extra == 'cerebras-cloud-sdk'", specifier = ">=1.5.0,<2.0.0" },
     { name = "cohere", marker = "extra == 'cohere'", specifier = ">=5.1.8,<6.0.0" },
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.3.2,<8.0.0" },
     { name = "datasets", marker = "extra == 'datasets'", specifier = ">=3.0.1,<5.0.0" },
-    { name = "diskcache", specifier = ">=5.6.3" },
+    { name = "diskcache", marker = "extra == 'diskcache'", specifier = ">=5.6.3,<6.0.0" },
     { name = "diskcache", marker = "extra == 'test-docs'", specifier = ">=5.6.3,<6.0.0" },
     { name = "docstring-parser", specifier = ">=0.16,<1.0" },
-    { name = "fastapi", marker = "extra == 'test-docs'", specifier = ">=0.109.2,<0.121.0" },
+    { name = "fastapi", marker = "extra == 'test-docs'", specifier = ">=0.109.2,<0.129.0" },
     { name = "fireworks-ai", marker = "extra == 'fireworks-ai'", specifier = ">=0.15.4,<1.0.0" },
     { name = "google-cloud-aiplatform", marker = "extra == 'vertexai'", specifier = ">=1.53.0,<2.0.0" },
     { name = "google-genai", marker = "extra == 'google-genai'", specifier = ">=1.5.0" },
     { name = "graphviz", marker = "extra == 'graphviz'", specifier = ">=0.20.3,<1.0.0" },
-    { name = "groq", marker = "extra == 'groq'", specifier = ">=0.4.2,<0.34.0" },
+    { name = "groq", marker = "extra == 'groq'", specifier = ">=0.4.2,<1.1.0" },
     { name = "jinja2", specifier = ">=3.1.4,<4.0.0" },
-    { name = "jiter", specifier = ">=0.6.1,<0.12" },
+    { name = "jiter", specifier = ">=0.6.1,<0.14" },
     { name = "jsonref", marker = "extra == 'dev'", specifier = ">=1.1.0,<2.0.0" },
     { name = "jsonref", marker = "extra == 'google-genai'", specifier = ">=1.1.0,<2.0.0" },
     { name = "jsonref", marker = "extra == 'vertexai'", specifier = ">=1.1.0,<2.0.0" },
-    { name = "litellm", marker = "extra == 'litellm'", specifier = ">=1.35.31,<2.0.0" },
-    { name = "litellm", marker = "extra == 'test-docs'", specifier = ">=1.35.31,<2.0.0" },
+    { name = "litellm", marker = "extra == 'litellm'", specifier = ">=1.35.31,<=1.83.0" },
+    { name = "litellm", marker = "extra == 'test-docs'", specifier = ">=1.35.31,<=1.83.0" },
     { name = "mistralai", marker = "extra == 'mistral'", specifier = ">=1.5.1,<2.0.0" },
     { name = "mistralai", marker = "extra == 'test-docs'", specifier = ">=1.5.1,<2.0.0" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6.1,<2.0.0" },
-    { name = "mkdocs-jupyter", marker = "extra == 'docs'", specifier = ">=0.24.6,<0.26.0" },
+    { name = "mkdocs-jupyter", marker = "extra == 'docs'", specifier = ">=0.24.6,<0.27.0" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.6.14" },
     { name = "mkdocs-material", extras = ["imaging"], marker = "extra == 'docs'", specifier = ">=9.5.9,<10.0.0" },
     { name = "mkdocs-material-extensions", marker = "extra == 'docs'", specifier = ">=1.3.1" },
@@ -1934,7 +1935,6 @@ requires-dist = [
     { name = "pytest-examples", marker = "extra == 'docs'", specifier = ">=0.0.15" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.8.0" },
     { name = "python-dotenv", marker = "extra == 'dev'", specifier = ">=1.0.1" },
-    { name = "python-dotenv", marker = "extra == 'xai'", specifier = ">=1.0.0" },
     { name = "redis", marker = "extra == 'test-docs'", specifier = ">=5.0.1,<8.0.0" },
     { name = "requests", specifier = ">=2.32.3,<3.0.0" },
     { name = "rich", specifier = ">=13.7.0,<15.0.0" },
@@ -1949,7 +1949,7 @@ requires-dist = [
     { name = "xmltodict", marker = "extra == 'anthropic'", specifier = ">=0.13,<1.1" },
     { name = "xmltodict", marker = "extra == 'dev'", specifier = ">=0.13,<1.1" },
 ]
-provides-extras = ["dev", "docs", "test-docs", "anthropic", "groq", "cohere", "vertexai", "cerebras-cloud-sdk", "fireworks-ai", "writer", "bedrock", "mistral", "perplexity", "google-genai", "litellm", "xai", "phonenumbers", "graphviz", "sqlmodel", "trafilatura", "pydub", "datasets"]
+provides-extras = ["dev", "docs", "test-docs", "anthropic", "groq", "cohere", "vertexai", "cerebras-cloud-sdk", "fireworks-ai", "writer", "bedrock", "mistral", "perplexity", "google-genai", "litellm", "xai", "phonenumbers", "graphviz", "sqlmodel", "diskcache", "trafilatura", "pydub", "datasets"]
 
 [[package]]
 name = "invoke"
