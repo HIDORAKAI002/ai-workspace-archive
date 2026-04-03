@@ -165,6 +165,8 @@ export interface OperationCreationParams {
   hooks?: AgentHook[];
   initialContext: AgentRuntimeContext;
   initialMessages?: any[];
+  /** Initial step count offset for resumed operations (accumulated from previous runs) */
+  initialStepCount?: number;
   maxSteps?: number;
   modelRuntimeConfig?: any;
   operationId: string;

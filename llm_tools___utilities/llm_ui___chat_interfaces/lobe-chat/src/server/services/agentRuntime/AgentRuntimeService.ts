@@ -277,6 +277,7 @@ export class AgentRuntimeService {
       operationSkillSet,
       signal,
       userTimezone,
+      initialStepCount = 0,
     } = params;
 
     const operationToolSet = toolSet;
@@ -338,7 +339,7 @@ export class AgentRuntimeService {
         operationId,
         operationToolSet,
         status: 'idle',
-        stepCount: 0,
+        stepCount: initialStepCount,
         // Backward-compat: resolved tool fields read by RuntimeExecutors
         toolManifestMap: operationToolSet.manifestMap,
         toolSourceMap: operationToolSet.sourceMap,
@@ -402,7 +403,7 @@ export class AgentRuntimeService {
           priority: 'high',
           retryDelay: queueRetryDelay,
           retries: queueRetries,
-          stepIndex: 0,
+          stepIndex: initialStepCount,
         });
         autoStarted = true;
         log('[%s] Scheduled first step (messageId: %s)', operationId, messageId);
