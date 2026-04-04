@@ -4,61 +4,31 @@
 // segments for custom rendering. The line-breaking engine does not consume
 // these levels.
 
-type BidiType = 'L' | 'R' | 'AL' | 'AN' | 'EN' | 'ES' | 'ET' | 'CS' |
-                'ON' | 'BN' | 'B' | 'S' | 'WS' | 'NSM'
+import {
+  latin1BidiTypes,
+  nonLatin1BidiRanges,
+  type GeneratedBidiType as BidiType,
+} from './generated/bidi-data.js'
 
-const baseTypes: BidiType[] = [
-  'BN','BN','BN','BN','BN','BN','BN','BN','BN','S','B','S','WS',
-  'B','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN',
-  'BN','BN','B','B','B','S','WS','ON','ON','ET','ET','ET','ON',
-  'ON','ON','ON','ON','ON','CS','ON','CS','ON','EN','EN','EN',
-  'EN','EN','EN','EN','EN','EN','EN','ON','ON','ON','ON','ON',
-  'ON','ON','L','L','L','L','L','L','L','L','L','L','L','L','L',
-  'L','L','L','L','L','L','L','L','L','L','L','L','L','ON','ON',
-  'ON','ON','ON','ON','L','L','L','L','L','L','L','L','L','L',
-  'L','L','L','L','L','L','L','L','L','L','L','L','L','L','L',
-  'L','ON','ON','ON','ON','BN','BN','BN','BN','BN','BN','B','BN',
-  'BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN',
-  'BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN','BN',
-  'BN','CS','ON','ET','ET','ET','ET','ON','ON','ON','ON','L','ON',
-  'ON','ON','ON','ON','ET','ET','EN','EN','ON','L','ON','ON','ON',
-  'EN','L','ON','ON','ON','ON','ON','L','L','L','L','L','L','L',
-  'L','L','L','L','L','L','L','L','L','L','L','L','L','L','L',
-  'L','ON','L','L','L','L','L','L','L','L','L','L','L','L','L',
-  'L','L','L','L','L','L','L','L','L','L','L','L','L','L','L',
-  'L','L','L','ON','L','L','L','L','L','L','L','L'
-]
+function classifyCodePoint(codePoint: number): BidiType {
+  if (codePoint <= 0x00FF) return latin1BidiTypes[codePoint]!
 
-const arabicTypes: BidiType[] = [
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'CS','AL','ON','ON','NSM','NSM','NSM','NSM','NSM','NSM','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','NSM','NSM','NSM','NSM','NSM','NSM','NSM',
-  'NSM','NSM','NSM','NSM','NSM','NSM','NSM','AL','AL','AL','AL',
-  'AL','AL','AL','AN','AN','AN','AN','AN','AN','AN','AN','AN',
-  'AN','ET','AN','AN','AL','AL','AL','NSM','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','NSM','NSM','NSM','NSM','NSM','NSM','NSM','NSM','NSM','NSM',
-  'NSM','NSM','NSM','NSM','NSM','NSM','NSM','NSM','NSM','ON','NSM',
-  'NSM','NSM','NSM','AL','AL','AL','AL','AL','AL','AL','AL','AL',
-  'AL','AL','AL','AL','AL','AL','AL','AL','AL'
-]
+  let lo = 0
+  let hi = nonLatin1BidiRanges.length - 1
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    const range = nonLatin1BidiRanges[mid]!
+    if (codePoint < range[0]) {
+      hi = mid - 1
+      continue
+    }
+    if (codePoint > range[1]) {
+      lo = mid + 1
+      continue
+    }
+    return range[2]
+  }
 
-function classifyChar(charCode: number): BidiType {
-  if (charCode <= 0x00ff) return baseTypes[charCode]!
-  if (0x0590 <= charCode && charCode <= 0x05f4) return 'R'
-  if (0x0600 <= charCode && charCode <= 0x06ff) return arabicTypes[charCode & 0xff]!
-  if (0x0700 <= charCode && charCode <= 0x08AC) return 'AL'
   return 'L'
 }
 
@@ -68,17 +38,49 @@ function computeBidiLevels(str: string): Int8Array | null {
 
   // eslint-disable-next-line unicorn/no-new-array
   const types: BidiType[] = new Array(len)
-  let numBidi = 0
+  let sawBidi = false
 
-  for (let i = 0; i < len; i++) {
-    const t = classifyChar(str.charCodeAt(i))
-    if (t === 'R' || t === 'AL' || t === 'AN') numBidi++
-    types[i] = t
+  // Keep the resolved bidi classes aligned to UTF-16 code-unit offsets,
+  // because the rich prepared segments index back into the normalized string
+  // with JavaScript string offsets.
+  for (let i = 0; i < len;) {
+    const first = str.charCodeAt(i)
+    let codePoint = first
+    let codeUnitLength = 1
+
+    if (first >= 0xD800 && first <= 0xDBFF && i + 1 < len) {
+      const second = str.charCodeAt(i + 1)
+      if (second >= 0xDC00 && second <= 0xDFFF) {
+        codePoint = ((first - 0xD800) << 10) + (second - 0xDC00) + 0x10000
+        codeUnitLength = 2
+      }
+    }
+
+    const t = classifyCodePoint(codePoint)
+    if (t === 'R' || t === 'AL' || t === 'AN') sawBidi = true
+    for (let j = 0; j < codeUnitLength; j++) {
+      types[i + j] = t
+    }
+    i += codeUnitLength
   }
 
-  if (numBidi === 0) return null
+  if (!sawBidi) return null
 
-  const startLevel = (len / numBidi) < 0.3 ? 0 : 1
+  // Use the first strong character to pick the paragraph base direction.
+  // Rich-path bidi metadata is only an approximation, but this keeps mixed
+  // LTR/RTL text aligned with the common UBA paragraph rule.
+  let startLevel = 0
+  for (let i = 0; i < len; i++) {
+    const t = types[i]!
+    if (t === 'L') {
+      startLevel = 0
+      break
+    }
+    if (t === 'R' || t === 'AL') {
+      startLevel = 1
+      break
+    }
+  }
   const levels = new Int8Array(len)
   for (let i = 0; i < len; i++) levels[i] = startLevel
 
