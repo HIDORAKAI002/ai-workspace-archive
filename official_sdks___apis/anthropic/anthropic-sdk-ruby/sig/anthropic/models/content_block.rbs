@@ -1,0 +1,23 @@
+module Anthropic
+  module Models
+    type content_block =
+      Anthropic::TextBlock
+      | Anthropic::ThinkingBlock
+      | Anthropic::RedactedThinkingBlock
+      | Anthropic::ToolUseBlock
+      | Anthropic::ServerToolUseBlock
+      | Anthropic::WebSearchToolResultBlock
+      | Anthropic::WebFetchToolResultBlock
+      | Anthropic::CodeExecutionToolResultBlock
+      | Anthropic::BashCodeExecutionToolResultBlock
+      | Anthropic::TextEditorCodeExecutionToolResultBlock
+      | Anthropic::ToolSearchToolResultBlock
+      | Anthropic::ContainerUploadBlock
+
+    module ContentBlock
+      extend Anthropic::Internal::Type::Union
+
+      def self?.variants: -> ::Array[Anthropic::Models::content_block]
+    end
+  end
+end

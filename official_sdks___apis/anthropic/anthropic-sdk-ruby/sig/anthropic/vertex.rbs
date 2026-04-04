@@ -1,0 +1,3 @@
+module Anthropic
+  class VertexClient = Anthropic::Helpers::Vertex::Client
+end

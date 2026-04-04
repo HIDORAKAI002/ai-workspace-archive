@@ -1,0 +1,21 @@
+module Anthropic
+  module Models
+    module BetaRawContentBlockDelta = Beta::BetaRawContentBlockDelta
+
+    module Beta
+      type beta_raw_content_block_delta =
+        Anthropic::Beta::BetaTextDelta
+        | Anthropic::Beta::BetaInputJSONDelta
+        | Anthropic::Beta::BetaCitationsDelta
+        | Anthropic::Beta::BetaThinkingDelta
+        | Anthropic::Beta::BetaSignatureDelta
+        | Anthropic::Beta::BetaCompactionContentBlockDelta
+
+      module BetaRawContentBlockDelta
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Beta::beta_raw_content_block_delta]
+      end
+    end
+  end
+end

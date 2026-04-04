@@ -1,0 +1,167 @@
+module Anthropic
+  module Models
+    module Beta
+      type message_count_tokens_params =
+        {
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          output_config: Anthropic::Beta::BetaOutputConfig,
+          output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          speed: Anthropic::Models::Beta::MessageCountTokensParams::speed?,
+          system_: Anthropic::Models::Beta::MessageCountTokensParams::system_,
+          thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          tools: ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool],
+          betas: ::Array[Anthropic::Models::anthropic_beta]
+        }
+        & Anthropic::Internal::Type::request_parameters
+
+      class MessageCountTokensParams < Anthropic::Internal::Type::BaseModel
+        extend Anthropic::Internal::Type::RequestParameters::Converter
+        include Anthropic::Internal::Type::RequestParameters
+
+        attr_accessor messages: ::Array[Anthropic::Beta::BetaMessageParam]
+
+        attr_accessor model: Anthropic::Models::model
+
+        attr_accessor cache_control: Anthropic::Beta::BetaCacheControlEphemeral?
+
+        attr_accessor context_management: Anthropic::Beta::BetaContextManagementConfig?
+
+        attr_reader mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]?
+
+        def mcp_servers=: (
+          ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]
+        ) -> ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]
+
+        attr_reader output_config: Anthropic::Beta::BetaOutputConfig?
+
+        def output_config=: (
+          Anthropic::Beta::BetaOutputConfig
+        ) -> Anthropic::Beta::BetaOutputConfig
+
+        attr_accessor output_format: Anthropic::Beta::BetaJSONOutputFormat?
+
+        attr_accessor speed: Anthropic::Models::Beta::MessageCountTokensParams::speed?
+
+        attr_reader system_: Anthropic::Models::Beta::MessageCountTokensParams::system_?
+
+        def system_=: (
+          Anthropic::Models::Beta::MessageCountTokensParams::system_
+        ) -> Anthropic::Models::Beta::MessageCountTokensParams::system_
+
+        attr_reader thinking: Anthropic::Models::Beta::beta_thinking_config_param?
+
+        def thinking=: (
+          Anthropic::Models::Beta::beta_thinking_config_param
+        ) -> Anthropic::Models::Beta::beta_thinking_config_param
+
+        attr_reader tool_choice: Anthropic::Models::Beta::beta_tool_choice?
+
+        def tool_choice=: (
+          Anthropic::Models::Beta::beta_tool_choice
+        ) -> Anthropic::Models::Beta::beta_tool_choice
+
+        attr_reader tools: ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool]?
+
+        def tools=: (
+          ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool]
+        ) -> ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool]
+
+        attr_reader betas: ::Array[Anthropic::Models::anthropic_beta]?
+
+        def betas=: (
+          ::Array[Anthropic::Models::anthropic_beta]
+        ) -> ::Array[Anthropic::Models::anthropic_beta]
+
+        def initialize: (
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          ?mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          ?output_config: Anthropic::Beta::BetaOutputConfig,
+          ?output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          ?speed: Anthropic::Models::Beta::MessageCountTokensParams::speed?,
+          ?system_: Anthropic::Models::Beta::MessageCountTokensParams::system_,
+          ?thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          ?tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          ?tools: ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool],
+          ?betas: ::Array[Anthropic::Models::anthropic_beta],
+          ?request_options: Anthropic::request_opts
+        ) -> void
+
+        def to_hash: -> {
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          output_config: Anthropic::Beta::BetaOutputConfig,
+          output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          speed: Anthropic::Models::Beta::MessageCountTokensParams::speed?,
+          system_: Anthropic::Models::Beta::MessageCountTokensParams::system_,
+          thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          tools: ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool],
+          betas: ::Array[Anthropic::Models::anthropic_beta],
+          request_options: Anthropic::RequestOptions
+        }
+
+        type speed = :standard | :fast
+
+        module Speed
+          extend Anthropic::Internal::Type::Enum
+
+          STANDARD: :standard
+          FAST: :fast
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::MessageCountTokensParams::speed]
+        end
+
+        type system_ = String | ::Array[Anthropic::Beta::BetaTextBlockParam]
+
+        module System
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::MessageCountTokensParams::system_]
+
+          BetaTextBlockParamArray: Anthropic::Internal::Type::Converter
+        end
+
+        type tool =
+          Anthropic::Beta::BetaTool
+          | Anthropic::Beta::BetaToolBash20241022
+          | Anthropic::Beta::BetaToolBash20250124
+          | Anthropic::Beta::BetaCodeExecutionTool20250522
+          | Anthropic::Beta::BetaCodeExecutionTool20250825
+          | Anthropic::Beta::BetaCodeExecutionTool20260120
+          | Anthropic::Beta::BetaToolComputerUse20241022
+          | Anthropic::Beta::BetaMemoryTool20250818
+          | Anthropic::Beta::BetaToolComputerUse20250124
+          | Anthropic::Beta::BetaToolTextEditor20241022
+          | Anthropic::Beta::BetaToolComputerUse20251124
+          | Anthropic::Beta::BetaToolTextEditor20250124
+          | Anthropic::Beta::BetaToolTextEditor20250429
+          | Anthropic::Beta::BetaToolTextEditor20250728
+          | Anthropic::Beta::BetaWebSearchTool20250305
+          | Anthropic::Beta::BetaWebFetchTool20250910
+          | Anthropic::Beta::BetaWebSearchTool20260209
+          | Anthropic::Beta::BetaWebFetchTool20260209
+          | Anthropic::Beta::BetaWebFetchTool20260309
+          | Anthropic::Beta::BetaToolSearchToolBm25_20251119
+          | Anthropic::Beta::BetaToolSearchToolRegex20251119
+          | Anthropic::Beta::BetaMCPToolset
+
+        module Tool
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool]
+        end
+      end
+    end
+  end
+end

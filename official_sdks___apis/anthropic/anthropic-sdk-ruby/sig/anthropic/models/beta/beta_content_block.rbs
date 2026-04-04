@@ -1,0 +1,30 @@
+module Anthropic
+  module Models
+    module BetaContentBlock = Beta::BetaContentBlock
+
+    module Beta
+      type beta_content_block =
+        Anthropic::Beta::BetaTextBlock
+        | Anthropic::Beta::BetaThinkingBlock
+        | Anthropic::Beta::BetaRedactedThinkingBlock
+        | Anthropic::Beta::BetaToolUseBlock
+        | Anthropic::Beta::BetaServerToolUseBlock
+        | Anthropic::Beta::BetaWebSearchToolResultBlock
+        | Anthropic::Beta::BetaWebFetchToolResultBlock
+        | Anthropic::Beta::BetaCodeExecutionToolResultBlock
+        | Anthropic::Beta::BetaBashCodeExecutionToolResultBlock
+        | Anthropic::Beta::BetaTextEditorCodeExecutionToolResultBlock
+        | Anthropic::Beta::BetaToolSearchToolResultBlock
+        | Anthropic::Beta::BetaMCPToolUseBlock
+        | Anthropic::Beta::BetaMCPToolResultBlock
+        | Anthropic::Beta::BetaContainerUploadBlock
+        | Anthropic::Beta::BetaCompactionBlock
+
+      module BetaContentBlock
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Beta::beta_content_block]
+      end
+    end
+  end
+end

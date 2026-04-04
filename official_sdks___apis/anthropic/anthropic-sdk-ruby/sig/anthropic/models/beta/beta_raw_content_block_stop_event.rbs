@@ -1,0 +1,20 @@
+module Anthropic
+  module Models
+    class BetaRawContentBlockStopEvent = Beta::BetaRawContentBlockStopEvent
+
+    module Beta
+      type beta_raw_content_block_stop_event =
+        { index: Integer, type: :content_block_stop }
+
+      class BetaRawContentBlockStopEvent < Anthropic::Internal::Type::BaseModel
+        attr_accessor index: Integer
+
+        attr_accessor type: :content_block_stop
+
+        def initialize: (index: Integer, ?type: :content_block_stop) -> void
+
+        def to_hash: -> { index: Integer, type: :content_block_stop }
+      end
+    end
+  end
+end

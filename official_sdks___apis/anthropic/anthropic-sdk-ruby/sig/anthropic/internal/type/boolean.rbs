@@ -1,0 +1,26 @@
+module Anthropic
+  module Internal
+    module Type
+      class Boolean
+        extend Anthropic::Internal::Type::Converter
+        extend Anthropic::Internal::Util::SorbetRuntimeSupport
+
+        def self.===: (top other) -> bool
+
+        def self.==: (top other) -> bool
+
+        def self.coerce: (
+          bool | top value,
+          state: Anthropic::Internal::Type::Converter::coerce_state
+        ) -> (bool | top)
+
+        def self.dump: (
+          bool | top value,
+          state: Anthropic::Internal::Type::Converter::dump_state
+        ) -> (bool | top)
+
+        def self.to_sorbet_type: -> top
+      end
+    end
+  end
+end

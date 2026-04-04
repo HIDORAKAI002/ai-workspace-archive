@@ -1,0 +1,15 @@
+module Anthropic
+  module Models
+    type citations_config_param = { enabled: bool }
+
+    class CitationsConfigParam < Anthropic::Internal::Type::BaseModel
+      attr_reader enabled: bool?
+
+      def enabled=: (bool) -> bool
+
+      def initialize: (?enabled: bool) -> void
+
+      def to_hash: -> { enabled: bool }
+    end
+  end
+end
