@@ -1,0 +1,220 @@
+---
+title: "Reference: Workflows API | Client SDK"
+description: Learn how to interact with and execute automated workflows in Mastra using the client-js SDK.
+packages:
+  - "@mastra/client-js"
+---
+
+# Workflows API
+
+The Workflows API provides methods to interact with and execute automated workflows in Mastra.
+
+## Getting all workflows
+
+Retrieve a list of all available workflows:
+
+```typescript
+const workflows = await mastraClient.listWorkflows()
+```
+
+## Working with a specific workflow
+
+Get an instance of a specific workflow by its ID:
+
+```typescript title="src/mastra/workflows/test-workflow.ts"
+export const testWorkflow = createWorkflow({
+  id: 'city-workflow',
+})
+```
+
+```typescript
+const workflow = mastraClient.getWorkflow('city-workflow')
+```
+
+## Workflow methods
+
+### `details()`
+
+Retrieve detailed information about a workflow:
+
+```typescript
+const details = await workflow.details()
+```
+
+### `createRun()`
+
+Create a new workflow run instance:
+
+```typescript
+const run = await workflow.createRun()
+
+// Or with an existing runId
+const run = await workflow.createRun({ runId: 'existing-run-id' })
+
+// Or with a resourceId to associate the run with a specific resource
+const run = await workflow.createRun({
+  runId: 'my-run-id',
+  resourceId: 'user-123',
+})
+```
+
+The `resourceId` parameter associates the workflow run with a specific resource (e.g., user ID, tenant ID). This value is persisted with the run and can be used for filtering and querying runs later.
+
+### `startAsync()`
+
+Start a workflow run and await its completion, returning the full result as the workflow output.
+
+```typescript
+const run = await workflow.createRun()
+
+const result = await run.startAsync({
+  inputData: {
+    city: 'New York',
+  },
+})
+```
+
+You can also pass `initialState` to set the starting values for the workflow's state:
+
+```typescript
+const result = await run.startAsync({
+  inputData: {
+    city: 'New York',
+  },
+  initialState: {
+    count: 0,
+    items: [],
+  },
+})
+```
+
+The `initialState` object should match the structure defined in the workflow's `stateSchema`. See [Workflow State](/docs/workflows/workflow-state) for more details.
+
+To associate a run with a specific resource, pass `resourceId` to `createRun()`:
+
+```typescript
+const run = await workflow.createRun({ resourceId: 'user-123' })
+
+const result = await run.startAsync({
+  inputData: {
+    city: 'New York',
+  },
+})
+```
+
+### `start()`
+
+Start a workflow run without waiting for completion (fire-and-forget). Returns immediately with a success message. Use `runById()` on the workflow instance to check results later:
+
+```typescript
+const run = await workflow.createRun()
+
+await run.start({
+  inputData: {
+    city: 'New York',
+  },
+})
+
+// Poll for results later
+const result = await workflow.runById(run.runId)
+```
+
+This is useful for long-running workflows where you want to start execution and check results later.
+
+### `resumeAsync()`
+
+Resume a suspended workflow step and await the full result:
+
+```typescript
+const run = await workflow.createRun({ runId: prevRunId })
+
+const result = await run.resumeAsync({
+  step: 'step-id',
+  resumeData: { key: 'value' },
+})
+```
+
+### `resume()`
+
+Resume a suspended workflow step without waiting for completion:
+
+```typescript
+const run = await workflow.createRun({ runId: prevRunId })
+
+await run.resume({
+  step: 'step-id',
+  resumeData: { key: 'value' },
+})
+```
+
+### `cancel()`
+
+Cancel a running workflow:
+
+```typescript
+const run = await workflow.createRun({ runId: existingRunId })
+
+const result = await run.cancel()
+// Returns: { message: 'Workflow run canceled' }
+```
+
+This method stops any running steps and prevents subsequent steps from executing. Steps that check the `abortSignal` parameter can respond to cancellation by cleaning up resources (timeouts, network requests, etc.).
+
+See the [Run.cancel()](/reference/workflows/run-methods/cancel) reference for detailed information about how cancellation works and how to write steps that respond to cancellation.
+
+### `stream()`
+
+Stream workflow execution for real-time updates:
+
+```typescript
+const run = await workflow.createRun()
+
+const stream = await run.stream({
+  inputData: {
+    city: 'New York',
+  },
+})
+
+for await (const chunk of stream) {
+  console.log(JSON.stringify(chunk, null, 2))
+}
+```
+
+### `runById()`
+
+Get the execution result for a workflow run:
+
+```typescript
+const result = await workflow.runById(runId)
+
+// Or with options for performance optimization:
+const result = await workflow.runById(runId, {
+  fields: ['status', 'result'], // Only fetch specific fields
+  withNestedWorkflows: false, // Skip expensive nested workflow data
+  requestContext: { userId: 'user-123' }, // Optional request context
+})
+```
+
+<h3>Run result format</h3>
+
+A workflow run result yields the following:
+
+<PropertiesTable
+  content={[
+  {
+    name: 'runId',
+    type: 'string',
+    description: 'Unique identifier for this workflow run instance',
+  },
+  {
+    name: 'eventTimestamp',
+    type: 'Date',
+    description: 'The timestamp of the event',
+  },
+  {
+    name: 'payload',
+    type: 'object',
+    description: 'Contains currentStep (id, status, output, payload) and workflowState (status, steps record)',
+  },
+]}
+/>
