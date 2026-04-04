@@ -1,0 +1,4 @@
+FROM arigaio/atlas:latest AS sysdb-migration
+
+COPY ./go/pkg/sysdb/metastore/db/migrations migrations
+COPY ./go/pkg/sysdb/metastore/db/atlas.hcl atlas.hcl
