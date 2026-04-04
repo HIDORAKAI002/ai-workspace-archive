@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+.vscode-test-web/**
+out/**
+**/node_modules/**
+src/**
+.gitignore
+.gitattributes
+.prettierrc.json
+tsup.config.ts
+.yarnrc
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts
+scripts/**
+.turbo
