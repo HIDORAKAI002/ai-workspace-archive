@@ -1,0 +1,149 @@
+---
+title: "Recording Operations"
+description: "Track operations and LLM calls in your agent applications."
+---
+
+AgentOps makes it easy to track operations and interactions in your AI applications with minimal setup.
+
+## Basic Setup
+
+The simplest way to get started with AgentOps is to initialize it at the beginning of your application:
+
+```python
+import agentops
+
+# Initialize AgentOps with your API key
+agentops.init("your-api-key")
+```
+
+That's it! This single line of code will:
+- Automatically create a session for tracking your application run
+- Intercept and track all LLM calls to supported providers (OpenAI, Anthropic, etc.)
+- Record relevant metrics such as token counts, costs, and response times
+
+You can also set a custom trace name during initialization:
+
+```python
+import agentops
+
+# Initialize with custom trace name
+agentops.init("your-api-key", trace_name="my-custom-workflow")
+```
+
+## Automatic Instrumentation
+
+AgentOps automatically instruments calls to popular LLM providers without requiring any additional code:
+
+```python
+import agentops
+from openai import OpenAI
+
+# Initialize AgentOps
+agentops.init("your-api-key")
+
+# Make LLM calls as usual - AgentOps will track them automatically
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello, world!"}]
+)
+```
+
+This works with many popular LLM providers including:
+- OpenAI
+- Anthropic
+- Google (Gemini)
+- Cohere
+- And more
+
+## Advanced: Using Decorators for Detailed Instrumentation
+
+For more detailed tracking, AgentOps provides decorators that allow you to explicitly instrument your code. This is optional but can provide more context in the dashboard.
+
+### `@operation` Decorator
+
+The `@operation` decorator helps track specific operations in your application:
+
+```python
+from agentops.sdk.decorators import operation
+
+@operation
+def process_data(data):
+    # Process the data
+    return result
+```
+
+### `@agent` Decorator
+
+If you use agent classes, you can track them with the `@agent` decorator:
+
+```python
+from agentops.sdk.decorators import agent, operation
+
+@agent
+class ResearchAgent:
+    @operation
+    def search(self, query):
+        # Implementation of search
+        return f"Results for: {query}"
+
+def research_workflow(topic):
+    agent = ResearchAgent()
+    results = agent.search(topic)
+    return results
+    
+results = research_workflow("quantum computing")
+```
+
+### `@tool` Decorator
+
+Track tool usage and costs with the `@tool` decorator. You can specify costs to get total cost tracking directly in your dashboard summary:
+
+```python
+from agentops.sdk.decorators import tool
+
+@tool(cost=0.05)
+def web_search(query):
+    # Tool implementation
+    return f"Search results for: {query}"
+
+@tool
+def calculator(expression):
+    # Tool without cost tracking
+    return eval(expression)
+```
+
+### `@trace` Decorator
+
+Create custom traces to group related operations using the `@trace` decorator. This is the recommended approach for most applications:
+
+```python
+import agentops
+from agentops.sdk.decorators import trace, agent, operation
+
+# Initialize AgentOps without auto-starting session since we use @trace
+agentops.init("your-api-key", auto_start_session=False)
+
+@trace(name="customer-service-workflow", tags=["customer-support"])
+def customer_service_workflow(customer_id):
+    agent = ResearchAgent()
+    results = agent.search(f"customer {customer_id}")
+    return results
+```
+
+
+## Best Practices
+
+1. **Keep it Simple**: For most applications, just initializing AgentOps with `agentops.init()` is sufficient.
+
+2. **Use @trace for Custom Workflows**: When you need to group operations, use the `@trace` decorator instead of manual trace management.
+
+3. **Meaningful Names and Tags**: When using decorators, choose descriptive names and relevant tags to make them easier to identify in the dashboard.
+
+4. **Cost Tracking**: Use the `@tool` decorator with cost parameters to track tool usage costs in your dashboard.
+
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="module" src="/scripts/adjust_api_dynamically.js"></script>
