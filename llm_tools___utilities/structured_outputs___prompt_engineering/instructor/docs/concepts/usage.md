@@ -1,0 +1,77 @@
+---
+title: Handling Non-Streaming Requests in OpenAI with Usage Tracking
+description: Learn how to manage non-streaming requests in OpenAI, track token usage, and handle exceptions with Python.
+---
+
+## See Also
+
+- [Getting Started](../getting-started.md) - Quick start guide
+- [from_provider Guide](./from_provider.md) - Detailed client configuration
+- [Response Models](./models.md) - Working with Pydantic models
+- [Raw Response](./raw_response.md) - Access original LLM responses
+
+The easiest way to get usage for non streaming requests is to access the raw response.
+
+```python
+import instructor
+
+from pydantic import BaseModel
+
+client = instructor.from_provider("openai/gpt-4.1-mini")
+
+
+class UserExtract(BaseModel):
+    name: str
+    age: int
+
+
+user, completion = client.create_with_completion(
+    response_model=UserExtract,
+    messages=[
+        {"role": "user", "content": "Extract jason is 25 years old"},
+    ],
+)
+
+print(completion.usage)
+"""
+CompletionUsage(
+    completion_tokens=10,
+    prompt_tokens=79,
+    total_tokens=89,
+    completion_tokens_details=CompletionTokensDetails(
+        accepted_prediction_tokens=None,
+        audio_tokens=0,
+        reasoning_tokens=0,
+        rejected_prediction_tokens=None,
+    ),
+    prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0),
+)
+"""
+```
+
+You can catch an IncompleteOutputException whenever the context length is exceeded and react accordingly, such as by trimming your prompt by the number of exceeding tokens.
+
+```python
+from instructor.core.exceptions import IncompleteOutputException
+import instructor
+from pydantic import BaseModel
+
+client = instructor.from_provider("openai/gpt-4.1-mini")
+
+
+class UserExtract(BaseModel):
+    name: str
+    age: int
+
+
+try:
+    client.create_with_completion(
+        response_model=UserExtract,
+        messages=[
+            {"role": "user", "content": "Extract jason is 25 years old"},
+        ],
+    )
+except IncompleteOutputException as e:
+    token_count = e.last_completion.usage.total_tokens  # type: ignore
+    # your logic here
+```
