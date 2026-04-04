@@ -1,0 +1,253 @@
+[project]
+name = "graphrag-monorepo"
+classifiers = ["Private :: Do Not Upload"]
+version = "0.0.0"
+description = "GraphRAG: A graph-based retrieval-augmented generation (RAG) system."
+authors = [
+    {name = "Alonso Guevara Fernández", email = "alonsog@microsoft.com"},
+    {name = "Andrés Morales Esquivel", email = "andresmor@microsoft.com"},
+    {name = "Chris Trevino", email = "chtrevin@microsoft.com"},
+    {name = "David Tittsworth", email = "datittsw@microsoft.com"},
+    {name = "Dayenne de Souza", email = "ddesouza@microsoft.com"},
+    {name = "Derek Worthen", email = "deworthe@microsoft.com"},
+    {name = "Gaudy Blanco Meneses", email = "gaudyb@microsoft.com"},
+    {name = "Ha Trinh", email = "trinhha@microsoft.com"},
+    {name = "Jonathan Larson", email = "jolarso@microsoft.com"},
+    {name = "Josh Bradley", email = "joshbradley@microsoft.com"},
+    {name = "Kate Lytvynets", email = "kalytv@microsoft.com"},
+    {name = "Kenny Zhang", email = "zhangken@microsoft.com"},
+    {name = "Mónica Carvajal"},
+    {name = "Nathan Evans", email = "naevans@microsoft.com"},
+    {name = "Rodrigo Racanicci", email = "rracanicci@microsoft.com"},
+    {name = "Sarah Smith", email = "smithsarah@microsoft.com"},
+]
+requires-python = ">=3.11,<3.14"
+
+[dependency-groups]
+dev = [
+    "coverage~=7.6",
+    "deptry~=0.21",
+    "ipykernel~=6.29",
+    "jupyter~=1.1",
+    "mkdocs-material~=9.5",
+    "mkdocs-jupyter~=0.25",
+    "mkdocs-exclude-search~=0.6",
+    "mkdocs-typer~=0.0.3",
+    "nbconvert~=7.16",
+    "pandas-stubs~=2.3",
+    "poethepoet~=0.31",
+    "pyright~=1.1",
+    "pytest~=8.3",
+    "pytest-asyncio~=0.24",
+    "pytest-dotenv~=0.5",
+    "pytest-timeout~=2.3",
+    "ruff~=0.8",
+    "semversioner~=2.0",
+    "update-toml~=0.2",
+    "pytest-xdist[psutil]~=3.8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+graphrag-chunking = { workspace = true }
+graphrag-common = { workspace = true }
+graphrag-input = { workspace = true }
+graphrag-storage = { workspace = true }
+graphrag-cache = { workspace = true }
+graphrag-vectors = { workspace = true }
+graphrag-llm = { workspace = true }
+
+# Keep poethepoet for task management to minimize changes
+[tool.poe.tasks]
+_sort_imports = "ruff check --select I --fix ."
+_format_code = "ruff format  ."
+_ruff_check = 'ruff check .'
+_pyright = "pyright"
+_convert_local_search_nb = 'jupyter nbconvert --output-dir=docsite/posts/query/notebooks/ --output="{notebook_name}_nb" --template=docsite/nbdocsite_template --to markdown examples_notebooks/local_search.ipynb'
+_convert_global_search_nb = 'jupyter nbconvert --output-dir=docsite/posts/query/notebooks/ --output="{notebook_name}_nb" --template=docsite/nbdocsite_template --to markdown examples_notebooks/global_search.ipynb'
+_copy_build_assets = "python -m scripts.copy_build_assets"
+_semversioner_release = "semversioner release"
+_semversioner_changelog = "semversioner changelog > CHANGELOG.md"
+# Add more update toml tasks as packages are added
+_semversioner_update_graphrag_toml_version = "update-toml update --file packages/graphrag/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_chunking_toml_version = "update-toml update --file packages/graphrag-chunking/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_common_toml_version = "update-toml update --file packages/graphrag-common/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_storage_toml_version = "update-toml update --file packages/graphrag-storage/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_cache_toml_version = "update-toml update --file packages/graphrag-cache/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_input_toml_version = "update-toml update --file packages/graphrag-input/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_vectors_toml_version = "update-toml update --file packages/graphrag-vectors/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_graphrag_llm_toml_version = "update-toml update --file packages/graphrag-llm/pyproject.toml --path project.version --value $(uv run semversioner current-version)"
+_semversioner_update_workspace_dependency_versions = "python -m scripts.update_workspace_dependency_versions"
+semversioner_add = "semversioner add-change"
+coverage_report = 'coverage report --omit "**/tests/**" --show-missing'
+check_format = 'ruff format . --check'
+fix = "ruff check --fix ."
+fix_unsafe = "ruff check --fix --unsafe-fixes ."
+_test_all = "coverage run -m pytest ./tests"
+test_unit = "pytest ./tests/unit"
+test_integration = "pytest ./tests/integration"
+test_smoke = "pytest ./tests/smoke"
+test_notebook = "pytest -n auto ./tests/notebook"
+test_verbs = "pytest ./tests/verbs"
+index = "python -m graphrag index"
+update = "python -m graphrag update"
+init = "python -m graphrag init"
+query = "python -m graphrag query"
+prompt_tune = "python -m graphrag prompt-tune"
+# Pass in a test pattern
+test_only = "pytest -s -k"
+serve_docs = "mkdocs serve"
+build_docs = "mkdocs build"
+_build_packages = "uv build --all-packages"
+_sync = "uv sync --all-packages"
+
+[[tool.poe.tasks.build]]
+sequence = ['_copy_build_assets', '_build_packages']
+
+[[tool.poe.tasks.release]]
+sequence = [
+    '_semversioner_release',
+    '_semversioner_changelog',
+    # Add more update toml tasks as packages are added
+    '_semversioner_update_graphrag_toml_version',
+    '_semversioner_update_graphrag_common_toml_version',
+    '_semversioner_update_graphrag_chunking_toml_version',
+    '_semversioner_update_graphrag_input_toml_version',
+    '_semversioner_update_graphrag_storage_toml_version',
+    '_semversioner_update_graphrag_cache_toml_version',
+    "_semversioner_update_graphrag_vectors_toml_version",
+    '_semversioner_update_graphrag_llm_toml_version',
+    '_semversioner_update_workspace_dependency_versions',
+    '_sync',
+]
+ignore_fail = 'return_non_zero'
+
+[[tool.poe.tasks.convert_docsite_notebooks]]
+sequence = ['_convert_local_search_nb', '_convert_global_search_nb']
+ignore_fail = 'return_non_zero'
+
+[[tool.poe.tasks.format]]
+sequence = ['_sort_imports', '_format_code']
+ignore_fail = 'return_non_zero'
+
+[[tool.poe.tasks.check]]
+sequence = ['check_format', '_ruff_check', '_pyright']
+ignore_fail = 'return_non_zero'
+
+[[tool.poe.tasks.test]]
+sequence = ['_test_all', 'coverage_report']
+ignore_fail = 'return_non_zero'
+
+# Keep all existing tool configurations
+[tool.ruff]
+target-version = "py310"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.format]
+preview = true
+docstring-code-format = true
+docstring-code-line-length = 20
+
+[tool.ruff.lint]
+preview = true
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "W291",
+    "YTT",
+    "T10",
+    "ICN",
+    "INP",
+    "Q",
+    "RSE",
+    "SLOT",
+    "INT",
+    "FLY",
+    "LOG",
+    "C90",
+    "T20",
+    "D",
+    "RET",
+    "PD",
+    "N",
+    "PIE",
+    "SIM",
+    "S",
+    "G",
+    "ERA",
+    "ASYNC",
+    "TID",
+    "UP",
+    "SLF",
+    "BLE",
+    "C4",
+    "I",
+    "F",
+    "A",
+    "ARG",
+    "PTH",
+    "RUF",
+    "B",
+    "TCH",
+    "DTZ",
+    "PYI",
+    "PT",
+    "EM",
+    "TRY",
+    "PERF",
+    "CPY",
+    # "FBT", # use named arguments for boolean flags
+    # "TD", # todos
+    # "FIX", # fixme
+    # "FURB" # preview rules
+    # ANN # Type annotations, re-enable when we get bandwidth
+]
+ignore = [
+    # Ignore module names shadowing Python builtins
+    "A005",
+    # Conflicts with interface argument checking
+    "ARG002",
+    "ANN204",
+    # TODO: Inspect these pandas rules for validity
+    "PD002", # prevents inplace=True
+    # TODO RE-Enable when we get bandwidth
+    "PERF203", # Needs restructuring of errors, we should bail-out on first error
+    "C901",    # needs refactoring to remove cyclomatic complexity
+    "B008", # Needs to restructure our cli params with Typer into constants
+    "ASYNC240"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "D", "ANN", "T201", "ASYNC", "ARG", "PTH", "TRY"]
+"graphrag/index/config/*" = ["TCH"]
+"*.ipynb" = ["T201", "S101", "PT015", "B011", "CPY001", "SLF001", "DTZ005"]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["input", "id", "bytes"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+# https://github.com/microsoft/pyright/blob/9f81564a4685ff5c55edd3959f9b39030f590b2f/docs/configuration.md#sample-pyprojecttoml-file
+[tool.pyright]
+include = [
+    "packages/graphrag/graphrag", 
+    "packages/graphrag-common/graphrag_common", 
+    "packages/graphrag-storage/graphrag_storage", 
+    "packages/graphrag-cache/graphrag_cache",
+    "packages/graphrag-llm/graphrag_llm",
+    "tests"
+]
+exclude = ["**/node_modules", "**/__pycache__"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+timeout = 1000
+env_files = [".env"]
