@@ -77,6 +77,7 @@ const videoPlatforms: Platform[] = [
 
 // Code platforms (IDEs + code generation tools)
 const codePlatforms: Platform[] = [
+  { id: "commandcode", name: "Command Code", baseUrl: "https://commandcode.ai/?utm_source=prompts.chat", supportsQuerystring: false, sponsor: true },
   { id: "windsurf", name: "Windsurf", baseUrl: "windsurf://", isDeeplink: true, supportsQuerystring: false, sponsor: true },
   { id: "vscode", name: "VS Code", baseUrl: "vscode://", isDeeplink: true, supportsQuerystring: false },
   { id: "vscode-insiders", name: "VS Code Insiders", baseUrl: "vscode-insiders://", isDeeplink: true, supportsQuerystring: false },

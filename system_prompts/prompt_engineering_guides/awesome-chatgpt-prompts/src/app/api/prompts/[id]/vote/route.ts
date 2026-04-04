@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkPromptAccess } from "@/lib/prompt-access";
 
 // POST - Upvote a prompt
 export async function POST(
@@ -21,14 +22,11 @@ export async function POST(
     // Check if prompt exists
     const prompt = await db.prompt.findUnique({
       where: { id: promptId },
+      select: { isPrivate: true, authorId: true },
     });
 
-    if (!prompt) {
-      return NextResponse.json(
-        { error: "not_found", message: "Prompt not found" },
-        { status: 404 }
-      );
-    }
+    const denied = await checkPromptAccess(prompt);
+    if (denied) return denied;
 
     // Check if already voted
     const existing = await db.promptVote.findUnique({
@@ -85,6 +83,14 @@ export async function DELETE(
     }
 
     const { id: promptId } = await params;
+
+    const prompt = await db.prompt.findUnique({
+      where: { id: promptId },
+      select: { isPrivate: true, authorId: true },
+    });
+
+    const denied = await checkPromptAccess(prompt);
+    if (denied) return denied;
 
     // Delete vote
     await db.promptVote.deleteMany({
