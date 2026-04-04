@@ -11,6 +11,7 @@ const LINE_HEIGHT = 19
 type LayoutModule = typeof import('./layout.ts')
 type LineBreakModule = typeof import('./line-break.ts')
 type InlineFlowModule = typeof import('./inline-flow.ts')
+type AnalysisModule = typeof import('./analysis.ts')
 
 let prepare: LayoutModule['prepare']
 let prepareWithSegments: LayoutModule['prepareWithSegments']
@@ -31,9 +32,11 @@ let measureInlineFlowGeometry: InlineFlowModule['measureInlineFlowGeometry']
 let walkInlineFlowLineRanges: InlineFlowModule['walkInlineFlowLineRanges']
 let walkInlineFlowLines: InlineFlowModule['walkInlineFlowLines']
 let measureInlineFlow: InlineFlowModule['measureInlineFlow']
+let isCJK: AnalysisModule['isCJK']
 
 const emojiPresentationRe = /\p{Emoji_Presentation}/u
 const punctuationRe = /[.,!?;:%)\]}'"”’»›…—-]/u
+const decimalDigitRe = /\p{Nd}/u
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
 type TestLayoutCursor = {
@@ -43,6 +46,7 @@ type TestLayoutCursor = {
 
 type TestPreparedTextWithSegments = {
   segments: string[]
+  segLevels?: Int8Array | null
 }
 
 type TestLayoutLine = {
@@ -69,7 +73,10 @@ function isWideCharacter(ch: string): boolean {
     (code >= 0x2B740 && code <= 0x2B81F) ||
     (code >= 0x2B820 && code <= 0x2CEAF) ||
     (code >= 0x2CEB0 && code <= 0x2EBEF) ||
+    (code >= 0x2EBF0 && code <= 0x2EE5D) ||
     (code >= 0x30000 && code <= 0x3134F) ||
+    (code >= 0x31350 && code <= 0x323AF) ||
+    (code >= 0x323B0 && code <= 0x33479) ||
     (code >= 0x3000 && code <= 0x303F) ||
     (code >= 0x3040 && code <= 0x309F) ||
     (code >= 0x30A0 && code <= 0x30FF) ||
@@ -81,20 +88,30 @@ function isWideCharacter(ch: string): boolean {
 function measureWidth(text: string, font: string): number {
   const fontSize = parseFontSize(font)
   let width = 0
+  let previousWasDecimalDigit = false
 
   for (const ch of text) {
     if (ch === ' ') {
       width += fontSize * 0.33
+      previousWasDecimalDigit = false
     } else if (ch === '\t') {
       width += fontSize * 1.32
+      previousWasDecimalDigit = false
     } else if (emojiPresentationRe.test(ch) || ch === '\uFE0F') {
       width += fontSize
+      previousWasDecimalDigit = false
+    } else if (decimalDigitRe.test(ch)) {
+      width += fontSize * (previousWasDecimalDigit ? 0.48 : 0.52)
+      previousWasDecimalDigit = true
     } else if (isWideCharacter(ch)) {
       width += fontSize
+      previousWasDecimalDigit = false
     } else if (punctuationRe.test(ch)) {
       width += fontSize * 0.4
+      previousWasDecimalDigit = false
     } else {
       width += fontSize * 0.6
+      previousWasDecimalDigit = false
     }
   }
 
@@ -213,6 +230,20 @@ function terminalCursor(prepared: TestPreparedTextWithSegments): TestLayoutCurso
   return { segmentIndex: prepared.segments.length, graphemeIndex: 0 }
 }
 
+function getNonSpaceSegmentLevels(
+  prepared: TestPreparedTextWithSegments,
+): Array<{ level: number, text: string }> {
+  if (prepared.segLevels === null || prepared.segLevels === undefined) return []
+
+  const levels: Array<{ level: number, text: string }> = []
+  for (let i = 0; i < prepared.segments.length; i++) {
+    const text = prepared.segments[i]!
+    if (text.trim().length === 0) continue
+    levels.push({ level: prepared.segLevels[i]!, text })
+  }
+  return levels
+}
+
 class TestCanvasRenderingContext2D {
   font = ''
 
@@ -231,9 +262,13 @@ class TestOffscreenCanvas {
 
 beforeAll(async () => {
   Reflect.set(globalThis, 'OffscreenCanvas', TestOffscreenCanvas)
-  const mod = await import('./layout.ts')
-  const lineBreakMod = await import('./line-break.ts')
-  const inlineFlowMod = await import('./inline-flow.ts')
+  const [analysisMod, mod, lineBreakMod, inlineFlowMod] = await Promise.all([
+    import('./analysis.ts'),
+    import('./layout.ts'),
+    import('./line-break.ts'),
+    import('./inline-flow.ts'),
+  ])
+  ;({ isCJK } = analysisMod)
   ;({
     prepare,
     prepareWithSegments,
@@ -501,6 +536,23 @@ describe('prepare invariants', () => {
     expect(prepareWithSegments('테스트입니다.', FONT).segments.at(-1)).toBe('다.')
   })
 
+  test('keeps non-CJK glue-connected runs intact before CJK text', () => {
+    const prepared = prepareWithSegments('foo\u00A0世界', FONT)
+    expect(prepared.segments).toEqual(['foo\u00A0', '世', '界'])
+  })
+
+  test('keep-all keeps CJK-leading no-space runs cohesive without swallowing preceding latin runs', () => {
+    expect(prepareWithSegments('中文，测试。', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['中文，', '测试。'])
+    expect(prepareWithSegments('한국어테스트', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['한국어테스트'])
+
+    for (const text of ['日本語foo-bar', '日本語foo.bar', '日本語foo—bar']) {
+      expect(prepareWithSegments(text, FONT, { wordBreak: 'keep-all' }).segments).toEqual([text])
+    }
+
+    expect(prepareWithSegments('foo-bar日本語', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo-', 'bar', '日本語'])
+    expect(prepareWithSegments('foo\u00A0世界', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo\u00A0', '世界'])
+  })
+
   test('adjacent CJK text units stay breakable after visible text, not only after spaces', () => {
     const prepared = prepareWithSegments('foo 世界 bar', FONT)
     expect(prepared.segments).toEqual(['foo', ' ', '世', '界', ' ', 'bar'])
@@ -522,8 +574,27 @@ describe('prepare invariants', () => {
   })
 
   test('treats astral CJK ideographs as CJK break units', () => {
-    expect(prepareWithSegments('𠀀𠀁', FONT).segments).toEqual(['𠀀', '𠀁'])
-    expect(prepareWithSegments('𠀀。', FONT).segments).toEqual(['𠀀。'])
+    const samples = ['𠀀', '\u{2EBF0}', '\u{31350}', '\u{323B0}']
+
+    for (let i = 0; i < samples.length; i++) {
+      const sample = samples[i]!
+      expect(prepareWithSegments(`${sample}${sample}`, FONT).segments).toEqual([sample, sample])
+      expect(prepareWithSegments(`${sample}。`, FONT).segments).toEqual([`${sample}。`])
+    }
+  })
+
+  test('isCJK covers the newer CJK extension blocks', () => {
+    expect(isCJK('\u{2EBF0}')).toBe(true)
+    expect(isCJK('\u{31350}')).toBe(true)
+    expect(isCJK('\u{323B0}')).toBe(true)
+    expect(isCJK('hello')).toBe(false)
+  })
+
+  test('isCJK covers the newer CJK extension blocks', () => {
+    expect(isCJK('\u{2EBF0}')).toBe(true)
+    expect(isCJK('\u{31350}')).toBe(true)
+    expect(isCJK('\u{323B0}')).toBe(true)
+    expect(isCJK('hello')).toBe(false)
   })
 
   test('prepare and prepareWithSegments agree on layout behavior', () => {
@@ -542,6 +613,38 @@ describe('prepare invariants', () => {
     setLocale(undefined)
     const latin = prepare('hello world', FONT)
     expect(layout(latin, 200, LINE_HEIGHT)).toEqual({ lineCount: 1, height: LINE_HEIGHT })
+  })
+
+  test('pure LTR text skips rich bidi metadata', () => {
+    expect(prepareWithSegments('hello world', FONT).segLevels).toBeNull()
+  })
+
+  test('rich bidi metadata uses the first strong character for paragraph direction', () => {
+    const ltrFirst = prepareWithSegments('one اثنان three', FONT)
+    expect(ltrFirst.segLevels).not.toBeNull()
+    expect(ltrFirst.segLevels).toHaveLength(ltrFirst.segments.length)
+    expect(getNonSpaceSegmentLevels(ltrFirst)).toEqual([
+      { text: 'one', level: 0 },
+      { text: 'اثنان', level: 1 },
+      { text: 'three', level: 0 },
+    ])
+
+    const rtlFirst = prepareWithSegments('123 واحد three', FONT)
+    expect(rtlFirst.segLevels).not.toBeNull()
+    expect(rtlFirst.segLevels).toHaveLength(rtlFirst.segments.length)
+    expect(getNonSpaceSegmentLevels(rtlFirst)).toEqual([
+      { text: '123', level: 2 },
+      { text: 'واحد', level: 1 },
+      { text: 'three', level: 2 },
+    ])
+
+    const astralRtlFirst = prepareWithSegments('𞤀𞤁 abc', FONT)
+    expect(astralRtlFirst.segLevels).not.toBeNull()
+    expect(astralRtlFirst.segLevels).toHaveLength(astralRtlFirst.segments.length)
+    expect(getNonSpaceSegmentLevels(astralRtlFirst)).toEqual([
+      { text: '𞤀𞤁', level: 1 },
+      { text: 'abc', level: 2 },
+    ])
   })
 })
 
@@ -951,6 +1054,47 @@ describe('layout invariants', () => {
     const streamed = layoutNextLine(prepared, { segmentIndex: 0, graphemeIndex: 0 }, width)
     expect(streamed?.text).toBe('foo ')
     expect(layout(prepared, width, LINE_HEIGHT).lineCount).toBe(batched.lineCount)
+  })
+
+  test('mixed CJK-plus-numeric runs use cumulative widths when breaking the numeric suffix', () => {
+    const prepared = prepareWithSegments('中文11111111111111111', FONT)
+    const width = measureWidth('11111', FONT) + 0.1
+
+    expect(prepared.segments).toEqual(['中', '文', '11111111111111111'])
+
+    const batched = layoutWithLines(prepared, width, LINE_HEIGHT)
+    expect(batched.lines.map(line => line.text)).toEqual([
+      '中文',
+      '11111',
+      '11111',
+      '11111',
+      '11',
+    ])
+
+    const streamed = collectStreamedLines(prepared, width)
+    expect(streamed).toEqual(batched.lines)
+    expect(layout(prepared, width, LINE_HEIGHT)).toEqual({ lineCount: 5, height: LINE_HEIGHT * 5 })
+  })
+
+  test('keep-all suppresses ordinary CJK intra-word breaks after existing line content', () => {
+    const text = 'A 中文测试'
+    const normal = prepareWithSegments(text, FONT)
+    const keepAll = prepareWithSegments(text, FONT, { wordBreak: 'keep-all' })
+    const width = measureWidth('A 中', FONT) + 0.1
+
+    expect(layoutWithLines(normal, width, LINE_HEIGHT).lines[0]?.text).toBe('A 中')
+    expect(layoutWithLines(keepAll, width, LINE_HEIGHT).lines[0]?.text).toBe('A ')
+    expect(layout(keepAll, width, LINE_HEIGHT).lineCount).toBeGreaterThan(layout(normal, width, LINE_HEIGHT).lineCount)
+  })
+
+  test('keep-all lets mixed no-space CJK runs break through the script boundary', () => {
+    const text = '日本語foo-bar'
+    const normal = prepareWithSegments(text, FONT)
+    const keepAll = prepareWithSegments(text, FONT, { wordBreak: 'keep-all' })
+    const width = measureWidth('日本語f', FONT) + 0.1
+
+    expect(layoutWithLines(normal, width, LINE_HEIGHT).lines[0]?.text).toBe('日本語')
+    expect(layoutWithLines(keepAll, width, LINE_HEIGHT).lines[0]?.text).toBe('日本語f')
   })
 
   test('walkLineRanges reproduces layoutWithLines geometry without materializing text', () => {

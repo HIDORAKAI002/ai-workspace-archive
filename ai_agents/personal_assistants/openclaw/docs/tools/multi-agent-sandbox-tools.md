@@ -295,6 +295,13 @@ Legacy `agent.*` configs are migrated by `openclaw doctor`; prefer `agents.defau
 }
 ```
 
+`sessions_history` in this profile still returns a bounded, sanitized recall
+view rather than a raw transcript dump. Assistant recall strips thinking tags,
+`<relevant-memories>` scaffolding, plain-text tool-call XML payloads
+(including `<tool_calls>` and truncated tool-call blocks), downgraded
+tool-call scaffolding, leaked ASCII/full-width model control tokens, and
+malformed MiniMax tool-call XML before redaction/truncation.
+
 ---
 
 ## Common Pitfall: "non-main"

@@ -432,6 +432,7 @@ class LiteLLMRoutes(enum.Enum):
         "/mcp-rest/tools/list",
         "/mcp-rest/tools/call",
         "/v1/mcp/server",
+        "/v1/mcp/server/{path:path}",
     ]
 
     agent_routes = [
@@ -3809,6 +3810,10 @@ class OrganizationMemberUpdateResponse(MemberUpdateResponse):
 
 class TeamInfoResponseObjectTeamTable(LiteLLM_TeamTable):
     team_member_budget_table: Optional[LiteLLM_BudgetTable] = None
+    # Resources inherited from access groups (separate from direct assignments)
+    access_group_models: Optional[List[str]] = None
+    access_group_mcp_server_ids: Optional[List[str]] = None
+    access_group_agent_ids: Optional[List[str]] = None
 
 
 class TeamInfoResponseObject(TypedDict):

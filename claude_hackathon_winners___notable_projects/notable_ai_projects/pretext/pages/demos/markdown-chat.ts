@@ -6,6 +6,7 @@ import {
   createPreparedChatTemplates,
   findVisibleRange,
   getMaxChatWidth,
+  getOcclusionBannerHeight,
   materializeTemplateBlocks,
   MESSAGE_SIDE_PADDING,
   OCCLUSION_BANNER_HEIGHT,
@@ -25,9 +26,8 @@ type State = {
 }
 
 type CachedRow = {
-  inner: HTMLDivElement
+  bubble: HTMLDivElement
   row: HTMLElement
-  stack: HTMLDivElement
 }
 
 const domCache = {
@@ -53,7 +53,6 @@ const st: State = {
 let scheduledRaf: number | null = null
 
 domCache.root.style.setProperty('--message-side-padding', `${MESSAGE_SIDE_PADDING}px`)
-domCache.root.style.setProperty('--occlusion-banner-height', `${OCCLUSION_BANNER_HEIGHT}px`)
 
 domCache.toggleButton.addEventListener('click', () => {
   st.events.toggleVisualization = true
@@ -96,24 +95,29 @@ function render(): void {
   const viewportWidth = domCache.viewport.clientWidth
   const viewportHeight = domCache.viewport.clientHeight
   const scrollTop = domCache.viewport.scrollTop
+  const occlusionBannerHeight = getOcclusionBannerHeight(viewportHeight)
+  const isCompactOcclusionChrome = occlusionBannerHeight < OCCLUSION_BANNER_HEIGHT
 
   let isVisualizationOn = st.isVisualizationOn
   if (st.events.toggleVisualization) isVisualizationOn = !isVisualizationOn
 
   const chatWidth = getMaxChatWidth(viewportWidth)
   const previousFrame = st.frame
-  const canReuseFrame = previousFrame !== null && previousFrame.chatWidth === chatWidth
+  const canReuseFrame =
+    previousFrame !== null
+    && previousFrame.chatWidth === chatWidth
+    && previousFrame.occlusionBannerHeight === occlusionBannerHeight
   const frame = canReuseFrame
     ? previousFrame
-    : buildConversationFrame(templates, chatWidth)
+    : buildConversationFrame(templates, chatWidth, occlusionBannerHeight)
   const needsRelayout = !canReuseFrame
 
   const { start, end } = findVisibleRange(
     frame,
     scrollTop,
     viewportHeight,
-    OCCLUSION_BANNER_HEIGHT,
-    OCCLUSION_BANNER_HEIGHT,
+    occlusionBannerHeight,
+    occlusionBannerHeight,
   )
 
   st.frame = frame
@@ -121,6 +125,11 @@ function render(): void {
   st.events.toggleVisualization = false
 
   domCache.root.style.setProperty('--chat-width', `${frame.chatWidth}px`)
+  domCache.root.style.setProperty('--occlusion-banner-height', `${occlusionBannerHeight}px`)
+  domCache.root.style.setProperty('--occlusion-banner-padding-block', isCompactOcclusionChrome ? '10px' : '18px')
+  domCache.root.style.setProperty('--virtualization-toggle-padding-block', isCompactOcclusionChrome ? '8px' : '10px')
+  domCache.root.style.setProperty('--virtualization-toggle-padding-inline', isCompactOcclusionChrome ? '12px' : '14px')
+  domCache.root.style.setProperty('--virtualization-toggle-font-size', isCompactOcclusionChrome ? '11px' : '12px')
   domCache.shell.dataset['visualization'] = isVisualizationOn ? 'on' : 'off'
   domCache.canvas.style.height = `${frame.totalHeight}px`
   domCache.toggleButton.textContent = isVisualizationOn
@@ -200,10 +209,10 @@ function prepareRow(
   if (cachedRow === undefined) {
     cachedRow = createMessageShell(message.frame.role)
     domCache.rows[index] = cachedRow
-    renderMessageContents(cachedRow.inner, message)
+    renderMessageContents(cachedRow.bubble, message)
     return cachedRow
   }
-  if (needsRelayout) renderMessageContents(cachedRow.inner, message)
+  if (needsRelayout) renderMessageContents(cachedRow.bubble, message)
   return cachedRow
 }
 
@@ -211,23 +220,15 @@ function createMessageShell(role: ChatMessageInstance['frame']['role']): CachedR
   const row = document.createElement('article')
   row.className = `msg msg--${role}`
 
-  const stack = document.createElement('div')
-  stack.className = 'msg-stack'
-
   const bubble = document.createElement('div')
   bubble.className = 'msg-bubble'
 
-  const inner = document.createElement('div')
-  inner.className = 'msg-bubble-inner'
-
-  bubble.append(inner)
-  stack.append(bubble)
-  row.append(stack)
-  return { inner, row, stack }
+  row.append(bubble)
+  return { bubble, row }
 }
 
 function renderMessageContents(
-  inner: HTMLDivElement,
+  bubble: HTMLDivElement,
   message: ChatMessageInstance,
 ): void {
   const blocks = materializeTemplateBlocks(message)
@@ -235,7 +236,7 @@ function renderMessageContents(
   for (let index = 0; index < blocks.length; index++) {
     fragment.append(renderBlock(blocks[index]!, message.frame.contentInsetX))
   }
-  inner.replaceChildren(fragment)
+  bubble.replaceChildren(fragment)
 }
 
 function projectMessageNode(
@@ -245,8 +246,8 @@ function projectMessageNode(
 ): void {
   cachedRow.row.style.top = `${top}px`
   cachedRow.row.style.height = `${frame.totalHeight}px`
-  cachedRow.stack.style.width = `${frame.frameWidth}px`
-  cachedRow.inner.style.height = `${frame.bubbleHeight}px`
+  cachedRow.bubble.style.width = `${frame.frameWidth}px`
+  cachedRow.bubble.style.height = `${frame.bubbleHeight}px`
 }
 
 function renderBlock(block: BlockLayout, contentInsetX: number): HTMLElement {
