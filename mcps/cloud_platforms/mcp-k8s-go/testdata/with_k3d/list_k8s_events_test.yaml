@@ -1,0 +1,61 @@
+case: List k8s events with missing required property
+
+in:
+  {
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "id": 2,
+    "params":
+      {
+        "name": "list-k8s-events",
+        "arguments": { "context": "k3d-mcp-k8s-integration-test" },
+      },
+  }
+out:
+  {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result":
+      {
+        "content": [{ "type": "text", "text": "missing required property" }],
+        "isError": true,
+      },
+  }
+
+---
+
+case: List k8s events
+
+in:
+  {
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "id": 2,
+    "params":
+      {
+        "name": "list-k8s-events",
+        "arguments":
+          {
+            "context": "k3d-mcp-k8s-integration-test",
+            "namespace": "test",
+            "limit": 1,
+          },
+      },
+  }
+
+out:
+  {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result":
+      {
+        "content":
+          [
+            {
+              "type": "text",
+              "text": '{"action":"Binding","message":"Successfully assigned test/busybox to k3d-mcp-k8s-integration-test-server-0","type":"Normal","reason":"Scheduled","involvedObject":{"kind":"Pod","name":"busybox"}}',
+            },
+          ],
+        "isError": false,
+      },
+  }
