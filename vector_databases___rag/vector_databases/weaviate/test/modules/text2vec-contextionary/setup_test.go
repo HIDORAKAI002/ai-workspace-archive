@@ -1,0 +1,48 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package test
+
+import (
+	"context"
+	"os"
+	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/weaviate/weaviate/test/docker"
+)
+
+const (
+	weaviateNode1Endpoint = "WEAVIATE1_ENDPOINT"
+	weaviateNode2Endpoint = "WEAVIATE2_ENDPOINT"
+	weaviateNode3Endpoint = "WEAVIATE3_ENDPOINT"
+)
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+	compose, err := docker.New().
+		WithWeaviateCluster(3).WithText2VecContextionary().
+		Start(ctx)
+	if err != nil {
+		panic(errors.Wrapf(err, "cannot start"))
+	}
+
+	os.Setenv(weaviateNode1Endpoint, compose.GetWeaviate().URI())
+	os.Setenv(weaviateNode2Endpoint, compose.GetWeaviateNode2().URI())
+	os.Setenv(weaviateNode3Endpoint, compose.GetWeaviateNode3().URI())
+	code := m.Run()
+
+	if err := compose.Terminate(ctx); err != nil {
+		panic(errors.Wrapf(err, "cannot terminate"))
+	}
+
+	os.Exit(code)
+}

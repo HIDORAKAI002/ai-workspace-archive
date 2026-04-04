@@ -1,0 +1,37 @@
+vector_index:
+  enabled: true
+  url: http://localhost:9201
+  denormalizationDepth: 2
+authentication:
+  anonymous_access:
+    enabled: false
+  oidc:
+    enabled: true
+    issuer: http://localhost:9090/auth/realms/weaviate
+    username_claim: email
+    groups_claim: groups
+    client_id: demo
+    skip_client_id_check: false
+authorization:
+  admin_list:
+    enabled: true
+    users:
+    read_only_users:
+      - john@doe.com
+    groups:
+    read_only_groups:
+      generic
+configuration_storage:
+  type: etcd
+  url: http://localhost:2379
+contextionary:
+  url: localhost:9999
+query_defaults:
+  limit: 20
+debug: true
+logging:
+  interval: 1
+  enabled: false
+  url: http://telemetry_mock_api:8087/mock/new
+telemetry:
+  disabled: true

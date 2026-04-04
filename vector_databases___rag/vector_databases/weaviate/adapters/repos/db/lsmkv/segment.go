@@ -1,0 +1,789 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package lsmkv
+
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/weaviate/weaviate/adapters/repos/db/helpers"
+	"github.com/weaviate/weaviate/adapters/repos/db/roaringset"
+	"github.com/weaviate/weaviate/adapters/repos/db/roaringsetrange"
+
+	"github.com/pkg/errors"
+
+	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+	"github.com/weaviate/sroar"
+	"github.com/weaviate/weaviate/adapters/repos/db/lsmkv/segmentindex"
+	"github.com/weaviate/weaviate/entities/diskio"
+	"github.com/weaviate/weaviate/entities/lsmkv"
+	"github.com/weaviate/weaviate/entities/schema"
+	entsentry "github.com/weaviate/weaviate/entities/sentry"
+	"github.com/weaviate/weaviate/usecases/memwatch"
+	"github.com/weaviate/weaviate/usecases/mmap"
+	"github.com/weaviate/weaviate/usecases/monitoring"
+)
+
+type Segment interface {
+	getPath() string
+	setPath(path string)
+	getStrategy() segmentindex.Strategy
+	getSecondaryIndexCount() uint16
+	getLevel() uint16
+	Size() int64
+	setSize(size int64)
+	incRef()
+	decRef()
+	getRefs() int
+
+	indexSize() int
+	payloadSize() int
+	close() error
+	dropMarked() error
+	get(key []byte) ([]byte, error)
+	exists(key []byte) error
+	getBySecondary(pos int, key []byte, buffer []byte) ([]byte, []byte, []byte, error)
+	getCollection(key []byte) ([]value, error)
+	getCollectionBytes(key []byte) ([][]byte, error)
+	getInvertedData() *segmentInvertedData
+	isLoaded() bool
+	markForDeletion() error
+	stripTmpExtensions(leftSegmentID, rightSegmentID string) error
+	MergeTombstones(other *sroar.Bitmap) (*sroar.Bitmap, error)
+	newCollectionCursor() innerCursorCollection
+	newCollectionCursorReusable() *segmentCursorCollectionReusable
+	newCursor() innerCursorReplaceAllKeys
+	newReplaceCursorReusable() *segmentCursorReplaceReusable
+	newCursorWithSecondaryIndex(pos int) *segmentCursorReplace
+	newMapCursor() innerCursorMap
+	newNodeReader(offset nodeOffset, operation string) (*nodeReader, error)
+	newRoaringSetCursor() roaringset.SegmentCursor
+	newRoaringSetRangeCursor() roaringsetrange.SegmentCursor
+	newRoaringSetRangeReader() roaringsetrange.InnerReader
+	quantileKeys(q int) [][]byte
+	ReadOnlyTombstones() (*sroar.Bitmap, error)
+	replaceStratParseData(in []byte) ([]byte, []byte, error)
+	roaringSetGet(key []byte, bitmapBufPool roaringset.BitmapBufPool) (roaringset.BitmapLayer, func(), error)
+	roaringSetMergeWith(key []byte, input roaringset.BitmapLayer, bitmapBufPool roaringset.BitmapBufPool) error
+
+	// map/bmw specific
+	hasKey(key []byte) bool
+	getDocCount(key []byte) uint64
+	getPropertyLengths() (map[uint64]uint32, error)
+	newInvertedCursorReusable() *segmentCursorInvertedReusable
+	newSegmentBlockMax(key []byte, queryTermIndex int, idf float64, propertyBoost float32, tombstones, memTombstones *sroar.Bitmap, filterDocIds helpers.AllowList, averagePropLength float64, config schema.BM25Config) *SegmentBlockMax
+
+	// replace specific
+	getCountNetAdditions() int
+	existsKey(key []byte) (bool, error)
+}
+
+type segment struct {
+	path                string
+	metaPaths           []string
+	level               uint16
+	secondaryIndexCount uint16
+	version             uint16
+	segmentStartPos     uint64
+	segmentEndPos       uint64
+	dataStartPos        uint64
+	dataEndPos          uint64
+	contents            []byte
+	contentFile         *os.File
+	strategy            segmentindex.Strategy
+	index               diskIndex
+	secondaryIndices    []diskIndex
+	logger              logrus.FieldLogger
+	metrics             *Metrics
+	size                int64
+	readFromMemory      bool
+	unMapContents       bool
+
+	useBloomFilter        bool // see bucket for more datails
+	bloomFilter           *bloom.BloomFilter
+	secondaryBloomFilters []*bloom.BloomFilter
+
+	// the net addition this segment adds with respect to all previous segments
+	calcCountNetAdditions bool // see bucket for more datails
+	countNetAdditions     int
+
+	invertedHeader *segmentindex.HeaderInverted
+	invertedData   *segmentInvertedData
+
+	observeMetaWrite diskio.MeteredWriterCallback // used for precomputing meta (cna + bloom)
+	refCount         int
+
+	deleteMarkerSuffix string
+}
+
+type diskIndex interface {
+	// Get return lsmkv.NotFound in case no node can be found
+	Get(key []byte) (segmentindex.Node, error)
+
+	// Seek returns lsmkv.NotFound in case the seek value is larger than
+	// the highest value in the collection, otherwise it returns the next highest
+	// value (or the exact value if present)
+	Seek(key []byte) (segmentindex.Node, error)
+
+	Next(key []byte) (segmentindex.Node, error)
+
+	// AllKeys in no specific order, e.g. for building a bloom filter
+	AllKeys() ([][]byte, error)
+
+	// Size of the index in bytes
+	Size() int
+
+	QuantileKeys(q int) [][]byte
+
+	// KeyCount returns the number of keys without allocating
+	KeyCount() int
+
+	// ForEachKey iterates over all keys without allocating a slice.
+	// The key passed to fn is a subslice of the underlying data and must not
+	// be retained or modified by the caller.
+	ForEachKey(fn func(key []byte))
+}
+
+type segmentConfig struct {
+	mmapContents                 bool
+	useBloomFilter               bool
+	calcCountNetAdditions        bool
+	overwriteDerived             bool
+	enableChecksumValidation     bool
+	MinMMapSize                  int64
+	allocChecker                 memwatch.AllocChecker
+	fileList                     map[string]int64
+	precomputedCountNetAdditions *int
+	writeMetadata                bool
+	deleteMarkerCounter          int64
+}
+
+// newSegment creates a new segment structure, representing an LSM disk segment.
+//
+// This function is partially copied by a function called preComputeSegmentMeta.
+// Any changes made here should likely be made in preComputeSegmentMeta as well,
+// and vice versa. This is absolutely not ideal, but in the short time I was able
+// to consider this, I wasn't able to find a way to unify the two -- there are
+// subtle differences.
+func newSegment(path string, logger logrus.FieldLogger, metrics *Metrics,
+	existsLower existsOnLowerSegmentsFn, cfg segmentConfig,
+) (_ *segment, rerr error) {
+	defer func() {
+		p := recover()
+		if p == nil {
+			return
+		}
+		entsentry.Recover(p)
+		rerr = fmt.Errorf("unexpected error loading segment %q: %v", path, p)
+	}()
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("open file: %w", err)
+	}
+
+	// The lifetime of the `file` exceeds this constructor as we store the open file for later use in `contentFile`.
+	// invariant: We close **only** if any error happened after successfully opening the file. To avoid leaking open file descriptor.
+	// NOTE: This `defer` works even with `err` being shadowed in the whole function because defer checks for named `rerr` return value.
+	defer func() {
+		if rerr != nil {
+			file.Close()
+		}
+	}()
+
+	var size int64
+	if cfg.fileList != nil {
+		if fileSize, ok := cfg.fileList[file.Name()]; ok {
+			size = fileSize
+		}
+	}
+
+	// fallback to getting the filesize from disk in case it wasn't prefetched (for example, for new segments after compaction)
+	if size == 0 {
+		fileInfo, err := file.Stat()
+		if err != nil {
+			return nil, fmt.Errorf("stat file: %w", err)
+		}
+		size = fileInfo.Size()
+	}
+
+	// mmap has some overhead, we can read small files directly to memory
+	var contents []byte
+	var unMapContents bool
+	var allocCheckerErr error
+
+	if size <= cfg.MinMMapSize { // check if it is a candidate for full reading
+		if cfg.allocChecker == nil {
+			logger.WithFields(logrus.Fields{
+				"path":        path,
+				"size":        size,
+				"minMMapSize": cfg.MinMMapSize,
+			}).Info("allocChecker is nil, skipping memory pressure check for new segment")
+		} else {
+			allocCheckerErr = cfg.allocChecker.CheckAlloc(size) // check if we have enough memory
+			if allocCheckerErr != nil {
+				logger.Debugf("memory pressure: cannot fully read segment")
+			}
+		}
+	}
+
+	useBloomFilter := cfg.useBloomFilter
+	readFromMemory := cfg.mmapContents
+	if size > cfg.MinMMapSize || cfg.allocChecker == nil || allocCheckerErr != nil { // mmap the file if it's too large or if we have memory pressure
+		contents2, err := mmap.MapRegion(file, int(size), mmap.RDONLY, 0, 0)
+		if err != nil {
+			return nil, fmt.Errorf("mmap file: %w", err)
+		}
+		contents = contents2
+		unMapContents = true
+	} else { // read the file into memory if it's small enough and we have enough memory
+		meteredF := diskio.NewMeteredReader(file, diskio.MeteredReaderCallback(metrics.ReadObserver("readSegmentFile")))
+		bufio.NewReader(meteredF)
+		contents, err = io.ReadAll(meteredF)
+		if err != nil {
+			return nil, fmt.Errorf("read file: %w", err)
+		}
+		unMapContents = false
+		readFromMemory = true
+		useBloomFilter = false
+	}
+	header, err := segmentindex.ParseHeader(contents[:segmentindex.HeaderSize])
+	if err != nil {
+		return nil, fmt.Errorf("parse header: %w", err)
+	}
+
+	if err := segmentindex.CheckExpectedStrategy(header.Strategy); err != nil {
+		return nil, fmt.Errorf("unsupported strategy in segment: %w", err)
+	}
+
+	if header.Version >= segmentindex.SegmentV1 && cfg.enableChecksumValidation {
+		file.Seek(0, io.SeekStart)
+		headerSize := int64(segmentindex.HeaderSize)
+		if header.Strategy == segmentindex.StrategyInverted {
+			headerSize += int64(segmentindex.HeaderInvertedSize)
+		}
+		segmentFile := segmentindex.NewSegmentFile(segmentindex.WithReader(file))
+		if err := segmentFile.ValidateChecksum(size, headerSize); err != nil {
+			return nil, fmt.Errorf("validate segment %q: %w", path, err)
+		}
+	}
+
+	primaryIndex, err := header.PrimaryIndex(contents)
+	if err != nil {
+		return nil, fmt.Errorf("extract primary index position: %w", err)
+	}
+
+	// if there are no secondary indices and checksum validation is enabled,
+	// we need to remove the checksum bytes from the primary index
+	// See below for the same logic if there are secondary indices
+	if header.Version >= segmentindex.SegmentV1 && cfg.enableChecksumValidation && header.SecondaryIndices == 0 {
+		primaryIndex = primaryIndex[:len(primaryIndex)-segmentindex.ChecksumSize]
+	}
+
+	primaryDiskIndex := segmentindex.NewDiskTree(primaryIndex)
+
+	dataStartPos := uint64(segmentindex.HeaderSize)
+	dataEndPos := header.IndexStart
+
+	var invertedHeader *segmentindex.HeaderInverted
+	if header.Strategy == segmentindex.StrategyInverted {
+		invertedHeader, err = segmentindex.LoadHeaderInverted(contents[segmentindex.HeaderSize : segmentindex.HeaderSize+segmentindex.HeaderInvertedSize])
+		if err != nil {
+			return nil, errors.Wrap(err, "load inverted header")
+		}
+		dataStartPos = invertedHeader.KeysOffset
+		dataEndPos = invertedHeader.TombstoneOffset
+	}
+
+	stratLabel := header.Strategy.String()
+	observeWrite := monitoring.GetMetrics().FileIOWrites.With(prometheus.Labels{
+		"strategy":  stratLabel,
+		"operation": "segmentMetadata",
+	})
+
+	if unMapContents {
+		// a map was created, track it
+		monitoring.GetMetrics().MmapOperations.With(prometheus.Labels{
+			"operation": "mmap",
+			"strategy":  stratLabel,
+		}).Inc()
+	}
+
+	seg := &segment{
+		level:                 header.Level,
+		path:                  path,
+		contents:              contents,
+		version:               header.Version,
+		secondaryIndexCount:   header.SecondaryIndices,
+		segmentStartPos:       header.IndexStart,
+		segmentEndPos:         uint64(size),
+		strategy:              header.Strategy,
+		dataStartPos:          dataStartPos,
+		dataEndPos:            dataEndPos,
+		index:                 primaryDiskIndex,
+		logger:                logger,
+		metrics:               metrics,
+		size:                  size,
+		readFromMemory:        readFromMemory,
+		useBloomFilter:        useBloomFilter,
+		calcCountNetAdditions: cfg.calcCountNetAdditions,
+		invertedHeader:        invertedHeader,
+		invertedData: &segmentInvertedData{
+			tombstones: sroar.NewBitmap(),
+		},
+		unMapContents:      unMapContents,
+		observeMetaWrite:   func(n int64) { observeWrite.Observe(float64(n)) },
+		deleteMarkerSuffix: fmt.Sprintf(".%013d%s", cfg.deleteMarkerCounter, DeleteMarkerSuffix),
+	}
+
+	// Using pread strategy requires file to remain open for segment lifetime
+	if seg.readFromMemory {
+		defer file.Close()
+	} else {
+		seg.contentFile = file
+	}
+
+	if seg.secondaryIndexCount > 0 {
+		seg.secondaryIndices = make([]diskIndex, seg.secondaryIndexCount)
+		for i := range seg.secondaryIndices {
+			secondary, err := header.SecondaryIndex(contents, uint16(i))
+			if err != nil {
+				return nil, fmt.Errorf("get position for secondary index at %d: %w", i, err)
+			}
+			// if we are on the last secondary index and checksum validation is enabled,
+			// we need to remove the checksum bytes from the secondary index
+			if header.Version >= segmentindex.SegmentV1 && cfg.enableChecksumValidation && i == int(seg.secondaryIndexCount-1) {
+				secondary = secondary[:len(secondary)-segmentindex.ChecksumSize]
+			}
+			seg.secondaryIndices[i] = segmentindex.NewDiskTree(secondary)
+		}
+	}
+
+	metadataRead, err := seg.initMetadata(metrics, cfg.overwriteDerived, existsLower, cfg.precomputedCountNetAdditions, cfg.fileList, cfg.writeMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("init metadata: %w", err)
+	}
+
+	if !metadataRead {
+		if seg.useBloomFilter {
+			if err := seg.initBloomFilters(metrics, cfg.overwriteDerived, cfg.fileList); err != nil {
+				return nil, err
+			}
+		}
+		if seg.calcCountNetAdditions {
+			if err := seg.initCountNetAdditions(existsLower, cfg.overwriteDerived, cfg.precomputedCountNetAdditions, cfg.fileList); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if seg.strategy == segmentindex.StrategyInverted {
+		_, err := seg.loadTombstones()
+		if err != nil {
+			return nil, fmt.Errorf("load tombstones: %w", err)
+		}
+
+		_, err = seg.loadPropertyLengths()
+		if err != nil {
+			return nil, fmt.Errorf("load property lengths: %w", err)
+		}
+
+	}
+
+	return seg, nil
+}
+
+func (s *segment) close() error {
+	var munmapErr, fileCloseErr error
+	if s.unMapContents {
+		m := mmap.MMap(s.contents)
+		munmapErr = m.Unmap()
+		stratLabel := s.strategy.String()
+		monitoring.GetMetrics().MmapOperations.With(prometheus.Labels{
+			"operation": "munmap",
+			"strategy":  stratLabel,
+		}).Inc()
+	}
+	if s.contentFile != nil {
+		fileCloseErr = s.contentFile.Close()
+	}
+
+	if munmapErr != nil || fileCloseErr != nil {
+		return fmt.Errorf("close segment: munmap: %w, close contents file: %w", munmapErr, fileCloseErr)
+	}
+
+	return nil
+}
+
+func (s *segment) dropImmediately() error {
+	// support for persisting bloom filters and cnas was added in v1.17,
+	// therefore the files may not be present on segments created with previous
+	// versions. By using RemoveAll, which does not error on NotExists, these
+	// drop calls are backward-compatible:
+	if err := os.RemoveAll(s.bloomFilterPath()); err != nil {
+		return fmt.Errorf("drop bloom filter: %w", err)
+	}
+
+	for i := 0; i < int(s.secondaryIndexCount); i++ {
+		if err := os.RemoveAll(s.bloomFilterSecondaryPath(i)); err != nil {
+			return fmt.Errorf("drop bloom filter: %w", err)
+		}
+	}
+
+	if err := os.RemoveAll(s.countNetPath()); err != nil {
+		return fmt.Errorf("drop count net additions file: %w", err)
+	}
+
+	if err := os.RemoveAll(s.metadataPath()); err != nil {
+		return fmt.Errorf("drop metadata file: %w", err)
+	}
+
+	// for the segment itself, we're not using RemoveAll, but Remove. If there
+	// was a NotExists error here, something would be seriously wrong, and we
+	// don't want to ignore it.
+	if err := os.Remove(s.path); err != nil {
+		return fmt.Errorf("drop segment: %w", err)
+	}
+
+	return nil
+}
+
+func (s *segment) dropMarked() error {
+	// support for persisting bloom filters and cnas was added in v1.17,
+	// therefore the files may not be present on segments created with previous
+	// versions. By using RemoveAll, which does not error on NotExists, these
+	// drop calls are backward-compatible:
+	if err := s.removeAllMarked(s.bloomFilterPath()); err != nil {
+		return fmt.Errorf("drop previously marked bloom filter: %w", err)
+	}
+
+	for i := 0; i < int(s.secondaryIndexCount); i++ {
+		if err := s.removeAllMarked(s.bloomFilterSecondaryPath(i)); err != nil {
+			return fmt.Errorf("drop previously marked secondary bloom filter: %w", err)
+		}
+	}
+
+	if err := s.removeAllMarked(s.countNetPath()); err != nil {
+		return fmt.Errorf("drop previously marked count net additions file: %w", err)
+	}
+
+	if err := s.removeAllMarked(s.metadataPath()); err != nil {
+		return fmt.Errorf("drop previously marked metadata file: %w", err)
+	}
+
+	// for the segment itself, we're not using RemoveAll, but Remove. If there
+	// was a NotExists error here, something would be seriously wrong, and we
+	// don't want to ignore it.
+	if err := s.removeMarked(s.path); err != nil {
+		return fmt.Errorf("drop previously marked segment: %w", err)
+	}
+
+	return nil
+}
+
+const DeleteMarkerSuffix = ".deleteme"
+
+func (s *segment) markDeleted(path string) error {
+	return os.Rename(path, path+s.deleteMarkerSuffix)
+}
+
+func (s *segment) removeAllMarked(path string) error {
+	return os.RemoveAll(path + s.deleteMarkerSuffix)
+}
+
+func (s *segment) removeMarked(path string) error {
+	return os.Remove(path + s.deleteMarkerSuffix)
+}
+
+func (s *segment) markForDeletion() error {
+	// support for persisting bloom filters and cnas was added in v1.17,
+	// therefore the files may not be present on segments created with previous
+	// versions. If we get a not exist error, we ignore it.
+	if err := s.markDeleted(s.bloomFilterPath()); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("mark bloom filter deleted: %w", err)
+		}
+	}
+
+	for i := 0; i < int(s.secondaryIndexCount); i++ {
+		if err := s.markDeleted(s.bloomFilterSecondaryPath(i)); err != nil {
+			if !os.IsNotExist(err) {
+				return fmt.Errorf("mark secondary bloom filter deleted: %w", err)
+			}
+		}
+	}
+
+	if err := s.markDeleted(s.countNetPath()); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("mark count net additions file deleted: %w", err)
+		}
+	}
+
+	if err := s.markDeleted(s.metadataPath()); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("mark metadata file deleted: %w", err)
+		}
+	}
+
+	// for the segment itself, we're not accepting a NotExists error. If there
+	// was a NotExists error here, something would be seriously wrong, and we
+	// don't want to ignore it.
+	if err := s.markDeleted(s.path); err != nil {
+		return fmt.Errorf("mark segment deleted: %w", err)
+	}
+
+	return nil
+}
+
+func (s *segment) stripTmpExtensions(leftSegmentID, rightSegmentID string) error {
+	newPath, err := stripTmpExtension(s.path, leftSegmentID, rightSegmentID)
+	if err != nil {
+		return err
+	}
+	s.path = newPath
+
+	for i := range s.metaPaths {
+		newPath, err := stripTmpExtension(s.metaPaths[i], leftSegmentID, rightSegmentID)
+		if err != nil {
+			return err
+		}
+		s.metaPaths[i] = newPath
+	}
+
+	dir := filepath.Dir(s.path)
+	if err := diskio.Fsync(dir); err != nil {
+		return fmt.Errorf("fsync segment directory %s: %w", dir, err)
+	}
+
+	return nil
+}
+
+func stripTmpExtension(path, leftSegmentID, rightSegmentID string) (string, error) {
+	ext := filepath.Ext(path)
+	if ext != ".tmp" {
+		return "", errors.Errorf("path %q did not have .tmp extension", path)
+	}
+
+	newPath := strings.ReplaceAll(path[:len(path)-len(ext)], fmt.Sprintf("%s_%s", leftSegmentID, rightSegmentID), rightSegmentID)
+	if err := os.Rename(path, newPath); err != nil {
+		return "", errors.Wrapf(err, "rename %q -> %q", path, newPath)
+	}
+
+	return newPath, nil
+}
+
+// Size returns the total size of the segment in bytes, including the header
+// and index
+func (s *segment) Size() int64 {
+	return s.size
+}
+
+func (s *segment) getPath() string {
+	return s.path
+}
+
+func (s *segment) setPath(path string) {
+	s.path = path
+}
+
+func (s *segment) getStrategy() segmentindex.Strategy {
+	return s.strategy
+}
+
+func (s *segment) getSecondaryIndexCount() uint16 {
+	return s.secondaryIndexCount
+}
+
+func (s *segment) getCountNetAdditions() int {
+	return s.countNetAdditions
+}
+
+func (s *segment) getLevel() uint16 {
+	return s.level
+}
+
+func (s *segment) setSize(size int64) {
+	s.size = size
+}
+
+func (s *segment) getInvertedData() *segmentInvertedData {
+	return s.invertedData
+}
+
+func (s *segment) isLoaded() bool {
+	return true
+}
+
+// payloadSize is only the payload of the index, excluding the index
+func (s *segment) payloadSize() int {
+	return int(s.dataEndPos)
+}
+
+func (s *segment) indexSize() int {
+	return s.index.Size()
+}
+
+type nodeReader struct {
+	r         io.Reader
+	releaseFn func()
+}
+
+func (n *nodeReader) Read(b []byte) (int, error) {
+	if n.r == nil {
+		panic("nodeReader.Read called after Release")
+	}
+	return n.r.Read(b)
+}
+
+func (n *nodeReader) Release() {
+	n.r = nil
+	n.releaseFn()
+}
+
+type nodeOffset struct {
+	start, end uint64
+}
+
+func (s *segment) newNodeReader(offset nodeOffset, operation string) (*nodeReader, error) {
+	var (
+		r       io.Reader
+		err     error
+		release = func() {} // no-op function for un-pooled readers
+	)
+
+	if s.readFromMemory {
+		contents := s.contents[offset.start:]
+		if offset.end != 0 {
+			contents = s.contents[offset.start:offset.end]
+		}
+		r, err = s.bytesReaderFrom(contents)
+	} else {
+		r, release, err = s.bufferedReaderAt(offset.start, "ReadFromSegment"+operation)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("new nodeReader: %w", err)
+	}
+	return &nodeReader{r: r, releaseFn: release}, nil
+}
+
+func (s *segment) copyNode(b []byte, offset nodeOffset) error {
+	if s.readFromMemory {
+		copy(b, s.contents[offset.start:offset.end])
+		return nil
+	}
+	n, err := s.newNodeReader(offset, "copyNode")
+	if err != nil {
+		return fmt.Errorf("copy node: %w", err)
+	}
+	defer n.Release()
+
+	_, err = io.ReadFull(n, b)
+	return err
+}
+
+func (s *segment) bytesReaderFrom(in []byte) (*bytes.Reader, error) {
+	if len(in) == 0 {
+		return nil, lsmkv.NotFound
+	}
+	return bytes.NewReader(in), nil
+}
+
+func (s *segment) bufferedReaderAt(offset uint64, operation string) (io.Reader, func(), error) {
+	if s.contentFile == nil {
+		return nil, nil, fmt.Errorf("nil contentFile for segment at %s", s.path)
+	}
+
+	meteredF := diskio.NewMeteredReader(s.contentFile, diskio.MeteredReaderCallback(readObserver.GetOrCreate(operation, s.metrics)))
+	r := io.NewSectionReader(meteredF, int64(offset), s.size)
+
+	bufioR := bufReaderPool.Get().(*bufio.Reader)
+	bufioR.Reset(r)
+
+	releaseFn := func() {
+		bufReaderPool.Put(bufioR)
+	}
+
+	return bufioR, releaseFn, nil
+}
+
+var (
+	bufReaderPool *sync.Pool
+	readObserver  *readObserverCache
+)
+
+func init() {
+	bufReaderPool = &sync.Pool{
+		New: func() interface{} {
+			return bufio.NewReader(nil)
+		},
+	}
+
+	readObserver = &readObserverCache{}
+}
+
+type readObserverCache struct {
+	sync.Map
+}
+
+// GetOrCreate returns a BytesReadObserver for the given key if it exists or
+// creates one if it doesn't.
+//
+// Note that the design is not atomic, so it is possible that a single key will
+// be initialize multiple times. This is not a problem, it only adds a slight
+// re-allocation penalty, but does not alter the behavior
+func (c *readObserverCache) GetOrCreate(key string, metrics *Metrics) BytesReadObserver {
+	if v, ok := c.Load(key); ok {
+		return v.(BytesReadObserver)
+	}
+
+	observer := metrics.ReadObserver(key)
+	c.Store(key, observer)
+	return observer
+}
+
+// WARNING: This method is NOT thread-safe on its own. The caller must ensure
+// that it is safe to read and manipulate the refs. In practice, this is done
+// using a SegmentGroup.segmentRefCounterLock which both protects against racy
+// access, as well as guarantees a consistent view across refs of ALL segments
+// in the group.
+func (s *segment) incRef() {
+	s.refCount++
+}
+
+// WARNING: This method is NOT thread-safe on its own. The caller must ensure
+// that it is safe to read and manipulate the refs. In practice, this is done
+// using a SegmentGroup.segmentRefCounterLock which both protects against racy
+// access, as well as guarantees a consistent view across refs of ALL segments
+// in the group.
+func (s *segment) decRef() {
+	if s.refCount <= 0 {
+		panic("refCount already zero")
+	}
+	s.refCount--
+}
+
+// WARNING: This method is NOT thread-safe on its own. The caller must ensure
+// that it is safe to read and manipulate the refs. In practice, this is done
+// using a SegmentGroup.segmentRefCounterLock which both protects against racy
+// access, as well as guarantees a consistent view across refs of ALL segments
+// in the group.
+func (s *segment) getRefs() int {
+	return s.refCount
+}
