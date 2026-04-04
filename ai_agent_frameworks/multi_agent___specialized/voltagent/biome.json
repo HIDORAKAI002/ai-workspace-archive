@@ -1,0 +1,99 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noConsoleLog": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 50
+          }
+        },
+        "noForEach": "off"
+      },
+      "a11y": {
+        "all": false
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "files": {
+    "ignore": [
+      "node_modules",
+      "dist",
+      "build",
+      ".next",
+      "coverage",
+      "*.template",
+      ".nx",
+      "packages/docs-mcp/examples",
+      "**/*.module.css",
+      "**/.docusaurus/**",
+      "**/generated/**",
+      "**/package.json",
+      "website/src/data/tweets.json",
+      ".wrangler",
+      "packages/server-hono/src/vendor",
+      "examples/with-nuxt",
+      "examples/with-assistant-ui"
+    ]
+  },
+  "overrides": [
+    {
+      "include": ["**/packages/core/**/*.ts", "**/packages/core/**/*.js"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsoleLog": "error"
+          }
+        }
+      }
+    },
+    {
+      "include": ["**/server/**/*.ts", "**/server/**/*.js"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsoleLog": "off"
+          }
+        }
+      }
+    },
+    {
+      "include": ["**/examples/with-nestjs/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
+      }
+    }
+  ]
+}

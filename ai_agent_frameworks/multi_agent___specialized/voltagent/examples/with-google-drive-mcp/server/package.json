@@ -1,0 +1,43 @@
+{
+  "name": "voltagent-example-with-google-drive-mcp-server",
+  "author": "",
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "@libsql/client": "^0.15.0",
+    "@voltagent/cli": "^0.1.21",
+    "@voltagent/core": "^2.6.14",
+    "@voltagent/libsql": "^2.1.2",
+    "@voltagent/logger": "^2.0.2",
+    "@voltagent/server-hono": "^2.0.8",
+    "composio-core": "^0.5.33",
+    "hono": "^4.7.7",
+    "zod": "^3.25.76",
+    "zod-from-json-schema": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "voltagent"
+  ],
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VoltAgent/voltagent.git",
+    "directory": "examples/with-google-drive-mcp/server"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env ./src",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "start": "node dist/index.js",
+    "volt": "volt"
+  },
+  "type": "module"
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Package",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Provide a name in kebab-case of the provider, this will be used to generate the package name and the directory name",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What is the name of the provider (i.e. vercel-ai)? (kebab-case)"
+    }
+  },
+  "required": ["name"]
+}

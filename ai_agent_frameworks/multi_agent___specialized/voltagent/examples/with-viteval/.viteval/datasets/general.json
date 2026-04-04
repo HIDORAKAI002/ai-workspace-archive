@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-08-20T16:16:21.504Z",
+  "data": [
+    {
+      "input": "In which year did the Battle of Hastings take place?",
+      "expected": "1066"
+    },
+    {
+      "input": "Which gas makes up about 78% of Earth's atmosphere?",
+      "expected": "Nitrogen"
+    },
+    {
+      "input": "What is the chemical symbol for gold?",
+      "expected": "Au"
+    },
+    {
+      "input": "What is the smallest country in the world by land area?",
+      "expected": "Vatican City"
+    },
+    {
+      "input": "Which element has the chemical symbol 'K'?",
+      "expected": "Potassium"
+    },
+    {
+      "input": "Which chemical element has the symbol Na?",
+      "expected": "Sodium"
+    },
+    {
+      "input": "Which gas makes up about 78% of Earth’s atmosphere?",
+      "expected": "Nitrogen"
+    },
+    {
+      "input": "Who painted the Mona Lisa?",
+      "expected": "Leonardo da Vinci"
+    },
+    {
+      "input": "Which planet is known as the Red Planet?",
+      "expected": "Mars"
+    },
+    {
+      "input": "What is the capital city of Canada?",
+      "expected": "Ottawa"
+    }
+  ]
+}

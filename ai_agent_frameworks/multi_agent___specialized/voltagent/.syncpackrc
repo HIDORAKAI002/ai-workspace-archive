@@ -1,0 +1,37 @@
+{
+  "dependencyTypes": ["prod", "dev"],
+  "semverGroups": [
+    {
+      "range": "^",
+      "dependencies": ["**"],
+      "packages": ["@voltagent/*"]
+    }
+  ],
+  "versionGroups": [
+    {
+      "dependencies": ["@voltagent/**"],
+      "packages": ["**"],
+      "isIgnored": true,
+      "label": "@voltagent dependencies are managed by changeset."
+    },
+    {
+      "dependencies": ["**"],
+      "dependencyTypes": ["peer"],
+      "packages": ["**"],
+      "isIgnored": true,
+      "label": "Peer dependencies allow flexible version ranges"
+    },
+    {
+      "dependencies": ["zod"],
+      "packages": ["@voltagent/docs-mcp"],
+      "policy": "^4.0.0",
+      "label": "docs-mcp uses Zod v4 for native JSON Schema support"
+    },
+    {
+      "dependencies": ["zod"],
+      "packages": ["!@voltagent/docs-mcp", "**"],
+      "policy": "^3.25.76",
+      "label": "All other packages use Zod v3"
+    }
+  ]
+}

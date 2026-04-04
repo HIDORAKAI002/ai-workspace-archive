@@ -1,0 +1,19 @@
+{
+  "generators": {
+    "package": {
+      "factory": "./src/generators/package/index.ts",
+      "schema": "./src/generators/package/schema.json",
+      "description": "Generate a new vanilla VoltAgent package"
+    },
+    "provider": {
+      "factory": "./src/generators/provider/index.ts",
+      "schema": "./src/generators/provider/schema.json",
+      "description": "Generate a new VoltAgent provider package with all the pre-configured defaults"
+    },
+    "example": {
+      "factory": "./src/generators/example/index.ts",
+      "schema": "./src/generators/example/schema.json",
+      "description": "Generate a new VoltAgent example project"
+    }
+  }
+}

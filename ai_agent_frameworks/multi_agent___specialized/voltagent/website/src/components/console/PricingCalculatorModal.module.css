@@ -1,0 +1,21 @@
+/* Custom range slider styles */
+.rangeSlider::-webkit-slider-thumb {
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #1a1b1e;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.rangeSlider::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #1a1b1e;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}

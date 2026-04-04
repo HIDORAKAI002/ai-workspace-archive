@@ -1,0 +1,46 @@
+{
+  "name": "voltagent-example-with-viteval",
+  "author": "VoltAgent",
+  "dependencies": {
+    "@voltagent/cli": "^0.1.21",
+    "@voltagent/core": "^2.6.14",
+    "@voltagent/libsql": "^2.1.2",
+    "@voltagent/logger": "^2.0.2",
+    "@voltagent/server-hono": "^2.0.8",
+    "ai": "^6.0.0",
+    "consola": "^3.4.2",
+    "envalid": "^8.1.0",
+    "yargs": "^18.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.1",
+    "@types/yargs": "^17.0.33",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2",
+    "viteval": "^0.5.3"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "evals",
+    "viteval",
+    "voltagent"
+  ],
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VoltAgent/voltagent.git",
+    "directory": "examples/with-viteval"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env ./src",
+    "eval": "viteval",
+    "question": "tsx ./src/cli.ts",
+    "volt": "volt"
+  },
+  "type": "module"
+}

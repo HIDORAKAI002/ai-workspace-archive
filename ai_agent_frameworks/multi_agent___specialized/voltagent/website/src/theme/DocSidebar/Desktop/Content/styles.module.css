@@ -1,0 +1,23 @@
+@media (min-width: 997px) {
+   .menu {
+    flex-grow: 1;
+    padding: 0 1rem 1rem 1rem;
+    overflow-y: auto;
+    height: 100%;
+  }
+  @supports (scrollbar-gutter: stable) {
+    .menu {
+            padding: 0 1rem 1rem 1rem;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  .menuWithAnnouncementBar {
+    margin-bottom: var(--docusaurus-announcement-bar-height);
+  }
+}
+
+/* Add top padding to sidebar menu list */
+:global(.theme-doc-sidebar-menu.menu__list) {
+  padding-top: 0.5rem;
+}
