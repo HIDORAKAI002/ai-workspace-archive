@@ -1,0 +1,9 @@
+---
+source: crates/tabby/tests/goldentests.rs
+expression: "golden_test(json!({\n                \"language\": \"python\", \"seed\": 0, \"segments\":\n                { \"prefix\": \"def char_frequencies(str):\\n  freqs = {}\\n  \", }\n            })).await"
+---
+choices:
+  - index: 0
+    text: "for c in str:\n    freqs[c] = freqs.get(c, 0) + 1\n  return freqs"
+debug_data: {}
+id: test-id

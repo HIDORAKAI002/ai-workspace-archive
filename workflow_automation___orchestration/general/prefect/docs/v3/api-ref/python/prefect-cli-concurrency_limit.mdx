@@ -1,0 +1,65 @@
+---
+title: concurrency_limit
+sidebarTitle: concurrency_limit
+---
+
+# `prefect.cli.concurrency_limit`
+
+
+
+Concurrency-limit command — native cyclopts implementation.
+
+Manage task-level concurrency limits.
+
+
+## Functions
+
+### `create` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/concurrency_limit.py#L34" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+create(tag: str, concurrency_limit: int)
+```
+
+
+Create a concurrency limit against a tag.
+
+
+### `inspect` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/concurrency_limit.py#L63" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+inspect(tag: str)
+```
+
+
+View details about a concurrency limit.
+
+
+### `ls` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/concurrency_limit.py#L124" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ls()
+```
+
+
+View all concurrency limits.
+
+
+### `reset` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/concurrency_limit.py#L193" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+reset(tag: str)
+```
+
+
+Resets the concurrency limit slots set on the specified tag.
+
+
+### `delete` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/concurrency_limit.py#L209" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+delete(tag: str)
+```
+
+
+Delete the concurrency limit set on the specified tag.
+

@@ -1,0 +1,80 @@
+module Anthropic
+  module Resources
+    class Beta
+      class Messages
+        attr_reader batches: Anthropic::Resources::Beta::Messages::Batches
+
+        def create: (
+          max_tokens: Integer,
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?container: Anthropic::Models::Beta::MessageCreateParams::container?,
+          ?context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          ?inference_geo: String?,
+          ?mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          ?metadata: Anthropic::Beta::BetaMetadata,
+          ?output_config: Anthropic::Beta::BetaOutputConfig,
+          ?output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          ?service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier,
+          ?speed: Anthropic::Models::Beta::MessageCreateParams::speed?,
+          ?stop_sequences: ::Array[String],
+          ?system_: Anthropic::Models::Beta::MessageCreateParams::system_,
+          ?temperature: Float,
+          ?thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          ?tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          ?tools: ::Array[Anthropic::Models::Beta::beta_tool_union],
+          ?top_k: Integer,
+          ?top_p: Float,
+          ?betas: ::Array[Anthropic::Models::anthropic_beta],
+          ?request_options: Anthropic::request_opts
+        ) -> Anthropic::Beta::BetaMessage
+
+        def stream_raw: (
+          max_tokens: Integer,
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?container: Anthropic::Models::Beta::MessageCreateParams::container?,
+          ?context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          ?inference_geo: String?,
+          ?mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          ?metadata: Anthropic::Beta::BetaMetadata,
+          ?output_config: Anthropic::Beta::BetaOutputConfig,
+          ?output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          ?service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier,
+          ?speed: Anthropic::Models::Beta::MessageCreateParams::speed?,
+          ?stop_sequences: ::Array[String],
+          ?system_: Anthropic::Models::Beta::MessageCreateParams::system_,
+          ?temperature: Float,
+          ?thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          ?tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          ?tools: ::Array[Anthropic::Models::Beta::beta_tool_union],
+          ?top_k: Integer,
+          ?top_p: Float,
+          ?betas: ::Array[Anthropic::Models::anthropic_beta],
+          ?request_options: Anthropic::request_opts
+        ) -> Anthropic::Internal::Stream[Anthropic::Models::Beta::beta_raw_message_stream_event]
+
+        def count_tokens: (
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          ?mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          ?output_config: Anthropic::Beta::BetaOutputConfig,
+          ?output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          ?speed: Anthropic::Models::Beta::MessageCountTokensParams::speed?,
+          ?system_: Anthropic::Models::Beta::MessageCountTokensParams::system_,
+          ?thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          ?tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          ?tools: ::Array[Anthropic::Models::Beta::MessageCountTokensParams::tool],
+          ?betas: ::Array[Anthropic::Models::anthropic_beta],
+          ?request_options: Anthropic::request_opts
+        ) -> Anthropic::Beta::BetaMessageTokensCount
+
+        def initialize: (client: Anthropic::Client) -> void
+      end
+    end
+  end
+end

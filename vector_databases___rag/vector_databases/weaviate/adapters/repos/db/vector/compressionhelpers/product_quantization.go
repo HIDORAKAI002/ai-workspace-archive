@@ -1,0 +1,473 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package compressionhelpers
+
+import (
+	"errors"
+	"fmt"
+	"math"
+	"sync"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/weaviate/weaviate/adapters/repos/db/vector/hnsw/distancer"
+	"github.com/weaviate/weaviate/entities/vectorindex/compression"
+	ent "github.com/weaviate/weaviate/entities/vectorindex/hnsw"
+)
+
+type DistanceLookUpTable struct {
+	distances  []float32
+	center     [][]float32
+	segments   int
+	centroids  int
+	flatCenter []float32
+}
+
+func NewDistanceLookUpTable(segments int, centroids int, center []float32) *DistanceLookUpTable {
+	distances := make([]float32, segments*centroids)
+	parsedCenter := make([][]float32, segments)
+	ds := len(center) / segments
+	for c := 0; c < segments; c++ {
+		parsedCenter[c] = center[c*ds : (c+1)*ds]
+	}
+
+	dlt := &DistanceLookUpTable{
+		distances:  distances,
+		center:     parsedCenter,
+		segments:   segments,
+		centroids:  centroids,
+		flatCenter: center,
+	}
+	return dlt
+}
+
+func (lut *DistanceLookUpTable) Reset(segments int, centroids int, center []float32) {
+	elems := segments * centroids
+	lut.segments = segments
+	lut.centroids = centroids
+	if len(lut.distances) != elems ||
+		len(lut.center) != segments {
+		lut.distances = make([]float32, segments*centroids)
+		lut.center = make([][]float32, segments)
+	}
+	ds := len(center) / segments
+	for c := 0; c < segments; c++ {
+		lut.center[c] = center[c*ds : (c+1)*ds]
+	}
+	lut.flatCenter = center
+}
+
+// PrecomputeTable precomputes all possible segment x centroid pairs for the
+// given query vector. Using 1536d embeddings as an example, where we might use
+// 4 dims per seg, we would end up with 384 centroids and therefore 98304
+// distance computations. That's still pretty fast and allows us to remove all
+// branches from the LookUp function on the hot path.
+func (lut *DistanceLookUpTable) PrecomputeTable(pq *ProductQuantizer, queryVec []float32) {
+	for i := range pq.kms {
+		for c := range pq.ks {
+			centroid := pq.kms[i].Centroid(byte(c))
+			dist := pq.distance.Step(lut.center[i], centroid)
+			lut.setCodeDist(i, byte(c), dist)
+		}
+	}
+}
+
+// LookUp is now branchless, it can no longer lazily compute distances on the
+// fly. It requires that distances are precalculated. PrecomputeTable is called
+// from CenterAt making sure that it's impossible to forget to precompute.
+func (lut *DistanceLookUpTable) LookUp(
+	encoded []byte,
+	pq *ProductQuantizer,
+) float32 {
+	var sum float32
+
+	if len(encoded) < len(pq.kms) {
+		// compiler hint for Bounds-Check Elimination
+		panic("LookUp: encoded length less than number of segments")
+	}
+
+	if len(lut.distances) < len(pq.kms)*lut.centroids {
+		// This branch is impossible, the prefilling would have already panicked,
+		// but it acts as a hint to the compiler for Bounds-Check Elimination.
+		panic("LookUp: LUT distances length less than required")
+	}
+
+	i := 0
+
+	// Manually unroll loop 8 times: sweet spot on M1 macbook, may vary by
+	// platform, but certainly shouldn't hurt.
+	for ; i+7 < len(pq.kms); i += 8 {
+		c0 := ExtractCode8(encoded, i)
+		c1 := ExtractCode8(encoded, i+1)
+		c2 := ExtractCode8(encoded, i+2)
+		c3 := ExtractCode8(encoded, i+3)
+		c4 := ExtractCode8(encoded, i+4)
+		c5 := ExtractCode8(encoded, i+5)
+		c6 := ExtractCode8(encoded, i+6)
+		c7 := ExtractCode8(encoded, i+7)
+		v0 := lut.codeDist(i, c0)
+		v1 := lut.codeDist(i+1, c1)
+		v2 := lut.codeDist(i+2, c2)
+		v3 := lut.codeDist(i+3, c3)
+		v4 := lut.codeDist(i+4, c4)
+		v5 := lut.codeDist(i+5, c5)
+		v6 := lut.codeDist(i+6, c6)
+		v7 := lut.codeDist(i+7, c7)
+		sum += v0 + v1 + v2 + v3 + v4 + v5 + v6 + v7
+	}
+
+	// handle tail (if any)
+	for ; i < len(pq.kms); i++ {
+		c := ExtractCode8(encoded, i)
+		sum += lut.codeDist(i, c)
+	}
+
+	return pq.distance.Wrap(sum)
+}
+
+// meant for better readability, rely on the fact that the compiler will inline this
+func (lut *DistanceLookUpTable) posForSegmentAndCode(segment int, code byte) int {
+	return segment*lut.centroids + int(code)
+}
+
+// meant for better readability, rely on the fact that the compiler will inline this
+func (lut *DistanceLookUpTable) codeDist(segment int, code byte) float32 {
+	return lut.distances[lut.posForSegmentAndCode(segment, code)]
+}
+
+// meant for better readability, rely on the fact that the compiler will inline this
+func (lut *DistanceLookUpTable) setCodeDist(segment int, code byte, dist float32) {
+	lut.distances[lut.posForSegmentAndCode(segment, code)] = dist
+}
+
+type DLUTPool struct {
+	pool sync.Pool
+}
+
+func NewDLUTPool() *DLUTPool {
+	return &DLUTPool{
+		pool: sync.Pool{
+			New: func() any {
+				return &DistanceLookUpTable{}
+			},
+		},
+	}
+}
+
+func (p *DLUTPool) Get(segments, centroids int, centers []float32) *DistanceLookUpTable {
+	dlt := p.pool.Get().(*DistanceLookUpTable)
+	dlt.Reset(segments, centroids, centers)
+	return dlt
+}
+
+func (p *DLUTPool) Return(dlt *DistanceLookUpTable) {
+	p.pool.Put(dlt)
+}
+
+type ProductQuantizer struct {
+	ks                  int // centroids
+	m                   int // segments
+	ds                  int // dimensions per segment
+	distance            distancer.Provider
+	dimensions          int
+	kms                 []ent.PQSegmentEncoder
+	encoderType         ent.Encoder
+	encoderDistribution EncoderDistribution
+	dlutPool            *DLUTPool
+	trainingLimit       int
+	globalDistances     []float32
+	logger              logrus.FieldLogger
+}
+
+type PQStats struct {
+	Ks int `json:"centroids"`
+	M  int `json:"segments"`
+}
+
+func (p PQStats) CompressionType() string {
+	return "pq"
+}
+
+func (p PQStats) CompressionRatio(dimensions int) float64 {
+	// PQ compression: original size = dimensions * 4 bytes (float32)
+	// compressed size = segments * 1 byte (one code per segment)
+	originalSize := dimensions * 4
+	compressedSize := p.M // segments
+	return float64(originalSize) / float64(compressedSize)
+}
+
+func NewProductQuantizer(cfg ent.PQConfig, distance distancer.Provider, dimensions int, logger logrus.FieldLogger) (*ProductQuantizer, error) {
+	if cfg.Segments <= 0 {
+		return nil, errors.New("segments cannot be 0 nor negative")
+	}
+	if cfg.Centroids > 256 {
+		return nil, fmt.Errorf("centroids should not be higher than 256. Attempting to use %d", cfg.Centroids)
+	}
+	if dimensions%cfg.Segments != 0 {
+		return nil, errors.New("segments should be an integer divisor of dimensions")
+	}
+	encoderType, err := parseEncoder(cfg.Encoder.Type)
+	if err != nil {
+		return nil, errors.New("invalid encoder type")
+	}
+
+	encoderDistribution, err := parseEncoderDistribution(cfg.Encoder.Distribution)
+	if err != nil {
+		return nil, errors.New("invalid encoder distribution")
+	}
+	pq := &ProductQuantizer{
+		ks:                  cfg.Centroids,
+		m:                   cfg.Segments,
+		ds:                  int(dimensions / cfg.Segments),
+		distance:            distance,
+		trainingLimit:       cfg.TrainingLimit,
+		dimensions:          dimensions,
+		encoderType:         encoderType,
+		encoderDistribution: encoderDistribution,
+		dlutPool:            NewDLUTPool(),
+		logger:              logger,
+	}
+
+	return pq, nil
+}
+
+func NewProductQuantizerWithEncoders(cfg ent.PQConfig, distance distancer.Provider, dimensions int, encoders []compression.PQSegmentEncoder, logger logrus.FieldLogger) (*ProductQuantizer, error) {
+	cfg.Segments = len(encoders)
+	pq, err := NewProductQuantizer(cfg, distance, dimensions, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	pq.kms = encoders
+	pq.buildGlobalDistances()
+	return pq, nil
+}
+
+func (pq *ProductQuantizer) buildGlobalDistances() {
+	// This hosts the partial distances between the centroids. This way we do not need
+	// to recalculate all the time when calculating full distances between compressed vecs
+	pq.globalDistances = make([]float32, pq.m*pq.ks*pq.ks)
+	for segment := 0; segment < pq.m; segment++ {
+		for i := 0; i < pq.ks; i++ {
+			cX := pq.kms[segment].Centroid(byte(i))
+			for j := 0; j <= i; j++ {
+				cY := pq.kms[segment].Centroid(byte(j))
+				pq.globalDistances[segment*pq.ks*pq.ks+i*pq.ks+j] = pq.distance.Step(cX, cY)
+				// Just copy from already calculated cell since step should be symmetric.
+				pq.globalDistances[segment*pq.ks*pq.ks+j*pq.ks+i] = pq.globalDistances[segment*pq.ks*pq.ks+i*pq.ks+j]
+			}
+		}
+	}
+}
+
+// Only made public for testing purposes... Not sure we need it outside
+func ExtractCode8(encoded []byte, index int) byte {
+	return encoded[index]
+}
+
+func parseEncoder(encoder string) (ent.Encoder, error) {
+	switch encoder {
+	case ent.PQEncoderTypeTile:
+		return ent.UseTileEncoder, nil
+	case ent.PQEncoderTypeKMeans:
+		return ent.UseKMeansEncoder, nil
+	default:
+		return 0, fmt.Errorf("invalid encoder type: %s", encoder)
+	}
+}
+
+func parseEncoderDistribution(distribution string) (EncoderDistribution, error) {
+	switch distribution {
+	case ent.PQEncoderDistributionLogNormal:
+		return LogNormalEncoderDistribution, nil
+	case ent.PQEncoderDistributionNormal:
+		return NormalEncoderDistribution, nil
+	default:
+		return 0, fmt.Errorf("invalid encoder distribution: %s", distribution)
+	}
+}
+
+// Only made public for testing purposes... Not sure we need it outside
+func PutCode8(code byte, buffer []byte, index int) {
+	buffer[index] = code
+}
+
+func (pq *ProductQuantizer) PersistCompression(logger CommitLogger) {
+	logger.AddPQCompression(ent.PQData{
+		Dimensions:          uint16(pq.dimensions),
+		EncoderType:         pq.encoderType,
+		Ks:                  uint16(pq.ks),
+		M:                   uint16(pq.m),
+		EncoderDistribution: byte(pq.encoderDistribution),
+		Encoders:            pq.kms,
+		TrainingLimit:       pq.trainingLimit,
+	})
+}
+
+func (pq *ProductQuantizer) DistanceBetweenCompressedVectors(x, y []byte) (float32, error) {
+	if len(x) != pq.m || len(y) != pq.m {
+		return 0, fmt.Errorf("ProductQuantizer.DistanceBetweenCompressedVectors: inconsistent compressed vectors lengths: got %d and %d, expected %d", len(x), len(y), pq.m)
+	}
+
+	dist := float32(0)
+	stride := pq.ks * pq.ks
+	globalDistances := pq.globalDistances
+
+	for i := 0; i < pq.m; i++ {
+		segmentBase := i * stride
+		cX := int(x[i])
+		cY := int(y[i])
+		dist += globalDistances[segmentBase+cX*pq.ks+cY]
+	}
+
+	return pq.distance.Wrap(dist), nil
+}
+
+type PQDistancer struct {
+	x          []float32
+	pq         *ProductQuantizer
+	lut        *DistanceLookUpTable
+	compressed []byte
+}
+
+func (pq *ProductQuantizer) NewDistancer(a []float32) *PQDistancer {
+	lut := pq.CenterAt(a)
+	return &PQDistancer{
+		x:          a,
+		pq:         pq,
+		lut:        lut,
+		compressed: nil,
+	}
+}
+
+func (pq *ProductQuantizer) NewCompressedQuantizerDistancer(a []byte) quantizerDistancer[byte] {
+	return &PQDistancer{
+		x:          nil,
+		pq:         pq,
+		lut:        nil,
+		compressed: a,
+	}
+}
+
+func (pq *ProductQuantizer) ReturnDistancer(d *PQDistancer) {
+	pq.dlutPool.Return(d.lut)
+}
+
+func (d *PQDistancer) Distance(x []byte) (float32, error) {
+	if d.lut == nil {
+		return d.pq.DistanceBetweenCompressedVectors(d.compressed, x)
+	}
+	if len(x) != d.pq.m {
+		return 0, fmt.Errorf("inconsistent compressed vector length: got %d, expected %d", len(x), d.pq.m)
+	}
+	return d.pq.Distance(x, d.lut), nil
+}
+
+func (d *PQDistancer) DistanceToFloat(x []float32) (float32, error) {
+	if d.lut != nil {
+		return d.pq.distance.SingleDist(x, d.lut.flatCenter)
+	}
+	xComp := d.pq.Encode(x)
+	return d.pq.DistanceBetweenCompressedVectors(d.compressed, xComp)
+}
+
+func (pq *ProductQuantizer) Fit(data [][]float32) error {
+	if pq.trainingLimit > 0 && len(data) > pq.trainingLimit {
+		data = data[:pq.trainingLimit]
+	}
+	switch pq.encoderType {
+	case ent.UseTileEncoder:
+		pq.kms = make([]ent.PQSegmentEncoder, pq.m)
+		err := ConcurrentlyWithError(pq.logger, uint64(pq.m), func(i uint64) error {
+			pq.kms[i] = NewTileEncoder(int(math.Log2(float64(pq.ks))), int(i), pq.encoderDistribution)
+			for j := 0; j < len(data); j++ {
+				pq.kms[i].Add(data[j])
+			}
+			return pq.kms[i].Fit(data)
+		})
+		if err != nil {
+			return err
+		}
+	case ent.UseKMeansEncoder:
+		mutex := sync.Mutex{}
+		var errorResult error = nil
+		pq.kms = make([]ent.PQSegmentEncoder, pq.m)
+		Concurrently(pq.logger, uint64(pq.m), func(i uint64) {
+			mutex.Lock()
+			if errorResult != nil {
+				mutex.Unlock()
+				return
+			}
+			mutex.Unlock()
+			pq.kms[i] = NewKMeansEncoder(
+				pq.ks,
+				pq.ds,
+				int(i),
+			)
+			err := pq.kms[i].Fit(data)
+			mutex.Lock()
+			if errorResult == nil && err != nil {
+				errorResult = err
+			}
+			mutex.Unlock()
+		})
+		if errorResult != nil {
+			return errorResult
+		}
+		if len(pq.kms) == 0 {
+			return fmt.Errorf("pq encoders were not initialized")
+		}
+		for i := 0; i < pq.m; i++ {
+			if pq.kms[i] == nil {
+				return fmt.Errorf("pq encoder for segment %d was not initialized", i)
+			}
+			if km, ok := pq.kms[i].(*KMeansEncoder); ok && len(km.centers) == 0 {
+				return fmt.Errorf("pq encoder for segment %d has no centroids after fitting", i)
+			}
+		}
+	}
+	pq.buildGlobalDistances()
+	return nil
+}
+
+func (pq *ProductQuantizer) Encode(vec []float32) []byte {
+	codes := make([]byte, pq.m)
+	for i := 0; i < pq.m; i++ {
+		PutCode8(pq.kms[i].Encode(vec), codes, i)
+	}
+	return codes
+}
+
+func (pq *ProductQuantizer) Decode(code []byte) []float32 {
+	vec := make([]float32, 0, pq.m)
+	for i := 0; i < pq.m; i++ {
+		vec = append(vec, pq.kms[i].Centroid(ExtractCode8(code, i))...)
+	}
+	return vec
+}
+
+func (pq *ProductQuantizer) CenterAt(vec []float32) *DistanceLookUpTable {
+	lut := pq.dlutPool.Get(int(pq.m), int(pq.ks), vec)
+	lut.PrecomputeTable(pq, vec)
+	return lut
+}
+
+func (pq *ProductQuantizer) Distance(encoded []byte, lut *DistanceLookUpTable) float32 {
+	return lut.LookUp(encoded, pq)
+}
+
+func (pq *ProductQuantizer) Stats() CompressionStats {
+	return PQStats{
+		Ks: pq.ks,
+		M:  pq.m,
+	}
+}

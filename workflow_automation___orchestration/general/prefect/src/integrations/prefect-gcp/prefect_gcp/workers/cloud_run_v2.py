@@ -1,0 +1,1156 @@
+from __future__ import annotations
+
+import re
+import shlex
+import time
+from typing import TYPE_CHECKING, Any, Dict, Final, List, Literal, Optional
+from uuid import uuid4
+
+from anyio.abc import TaskStatus
+from google.api_core.client_options import ClientOptions
+from googleapiclient import discovery
+
+# noinspection PyProtectedMember
+from googleapiclient.discovery import Resource
+from googleapiclient.errors import HttpError
+from jsonpatch import JsonPatch
+from pydantic import Field, PrivateAttr, field_validator
+from tenacity import (
+    Retrying,
+    retry_if_exception,
+    stop_after_attempt,
+    wait_exponential_jitter,
+)
+
+from prefect.exceptions import InfrastructureNotFound
+from prefect.logging.loggers import PrefectLogAdapter, flow_run_logger
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from prefect.utilities.dockerutils import get_prefect_image_name
+from prefect.workers.base import (
+    BaseJobConfiguration,
+    BaseVariables,
+    BaseWorker,
+    BaseWorkerResult,
+)
+from prefect_gcp.credentials import GcpCredentials
+from prefect_gcp.models.cloud_run_v2 import ExecutionV2, JobV2, SecretKeySelector
+from prefect_gcp.utilities import merge_labels_for_gcp, slugify_name
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from prefect.client.schemas.objects import Flow, FlowRun, WorkPool
+    from prefect.client.schemas.responses import DeploymentResponse
+
+_CLOUD_RUN_JOB_NAME_MAX_LENGTH: Final[int] = 63
+_CLOUD_RUN_JOB_NAME_UUID_LENGTH: Final[int] = 7
+
+
+def _get_default_job_body_template() -> Dict[str, Any]:
+    """
+    Returns the default job body template for the Cloud Run worker.
+
+    Returns:
+        The default job body template.
+    """
+    return {
+        "client": "prefect",
+        "launchStage": "{{ launch_stage }}",
+        "template": {
+            "template": {
+                "serviceAccount": "{{ service_account_name }}",
+                "maxRetries": "{{ max_retries }}",
+                "timeout": "{{ timeout }}",
+                "vpcAccess": {"connector": "{{ vpc_connector_name }}"},
+                "containers": [
+                    {
+                        "env": [],
+                        "image": "{{ image }}",
+                        "command": "{{ command }}",
+                        "args": "{{ args }}",
+                        "resources": {
+                            "limits": {
+                                "cpu": "{{ cpu }}",
+                                "memory": "{{ memory }}",
+                            },
+                        },
+                    },
+                ],
+            }
+        },
+    }
+
+
+def _get_base_job_body() -> Dict[str, Any]:
+    """
+    Returns the base job body for the Cloud Run worker's job body validation.
+
+    Returns:
+        The base job body.
+    """
+    return {
+        "template": {
+            "template": {
+                "containers": [],
+            },
+        },
+    }
+
+
+class CloudRunWorkerJobV2Configuration(BaseJobConfiguration):
+    """
+    The configuration for the Cloud Run worker V2.
+
+    The schema for this class is used to populate the `job_body` section of the
+    default base job template.
+    """
+
+    credentials: GcpCredentials = Field(
+        title="GCP Credentials",
+        default_factory=GcpCredentials,
+        description=(
+            "The GCP Credentials used to connect to Cloud Run. "
+            "If not provided credentials will be inferred from "
+            "the local environment."
+        ),
+    )
+    env_from_secrets: Dict[str, SecretKeySelector] = Field(
+        default_factory=dict,
+        title="Environment Variables from Secrets",
+        description="Environment variables to set from GCP secrets when starting a flow run.",
+    )
+    prefect_api_key_secret: Optional[SecretKeySelector] = Field(
+        default=None,
+        title="Prefect API Key Secret",
+        description="The GCP secret to use for the Prefect API key. When provided, the secret will be used instead of the PREFECT_API_KEY environment variable.",
+    )
+    prefect_api_auth_string_secret: Optional[SecretKeySelector] = Field(
+        default=None,
+        title="Prefect API Auth String Secret",
+        description="The GCP secret to use for the Prefect API auth string. When provided, the secret will be used instead of the PREFECT_API_AUTH_STRING environment variable.",
+    )
+    cloudsql_instances: Optional[List[str]] = Field(
+        default_factory=list,
+        title="Cloud SQL Instances",
+        description="List of Cloud SQL instance connection names to connect to. Format: {project}:{location}:{instance}",
+    )
+    job_body: Dict[str, Any] = Field(
+        json_schema_extra=dict(template=_get_default_job_body_template()),
+    )
+    keep_job: bool = Field(
+        default=False,
+        title="Keep Job After Completion",
+        description="Keep the completed Cloud run job on Google Cloud Platform.",
+    )
+    region: str = Field(
+        default="us-central1",
+        description="The region in which to run the Cloud Run job",
+    )
+    timeout: int = Field(
+        default=600,
+        gt=0,
+        le=604800,
+        description=(
+            "Max allowed duration the Job may be active before Cloud Run will "
+            "actively try to mark it failed and kill associated containers (maximum of 604800 seconds, 7 days)."
+        ),
+    )
+    _job_name: str = PrivateAttr(default=None)
+    _injected_job_label_keys: set = PrivateAttr(default_factory=set)
+    _injected_exec_label_keys: set = PrivateAttr(default_factory=set)
+
+    @property
+    def project(self) -> str:
+        """
+        Returns the GCP project associated with the credentials.
+
+        Returns:
+            str: The GCP project associated with the credentials.
+        """
+        return self.credentials.project
+
+    @property
+    def job_name(self) -> str:
+        """
+        Returns the name of the job.
+
+        Returns:
+            str: The name of the job.
+        """
+        if self._job_name is None:
+            base_job_name = slugify_name(
+                self.name,
+                max_length=_CLOUD_RUN_JOB_NAME_MAX_LENGTH
+                - 1
+                - _CLOUD_RUN_JOB_NAME_UUID_LENGTH,
+            )
+            job_name = (
+                f"{base_job_name}-{uuid4().hex[:_CLOUD_RUN_JOB_NAME_UUID_LENGTH]}"
+            )
+            self._job_name = job_name
+
+        return self._job_name
+
+    def _get_flow_run_logger(
+        self,
+        flow_run: "FlowRun",
+        work_pool: "WorkPool | None" = None,
+        worker_name: str | None = None,
+    ) -> PrefectLogAdapter:
+        extra = {
+            "work_pool_name": (work_pool.name if work_pool else "<unknown>"),
+            "worker_name": worker_name if worker_name else "<unknown>",
+            "work_pool_id": str(work_pool.id if work_pool else "unknown"),
+        }
+
+        return flow_run_logger(flow_run=flow_run).getChild(
+            "worker",
+            extra=extra,
+        )
+
+    def prepare_for_flow_run(
+        self,
+        flow_run: "FlowRun",
+        deployment: Optional["DeploymentResponse"] = None,
+        flow: Optional["Flow"] = None,
+        work_pool: Optional["WorkPool"] = None,
+        worker_name: Optional[str] = None,
+        worker_id: Optional["UUID"] = None,
+    ):
+        """
+        Prepares the job configuration for a flow run.
+
+        Ensures that necessary values are present in the job body and that the
+        job body is valid.
+
+        Args:
+            flow_run: The flow run to prepare the job configuration for
+            deployment: The deployment associated with the flow run used for
+                preparation.
+            flow: The flow associated with the flow run used for preparation.
+            work_pool: The work pool associated with the flow run used for preparation.
+            worker_name: The worker name associated with the flow run used for preparation.
+        """
+        super().prepare_for_flow_run(
+            flow_run=flow_run,
+            deployment=deployment,
+            flow=flow,
+            work_pool=work_pool,
+            worker_name=worker_name,
+            worker_id=worker_id,
+        )
+
+        self._populate_env()
+        self._populate_labels()
+        self._warn_about_plaintext_credentials(
+            flow_run=flow_run,
+            worker_name=worker_name,
+            work_pool=work_pool,
+        )
+        self._configure_cloudsql_volumes()
+        self._populate_or_format_command()
+        self._format_args_if_present()
+        self._populate_image_if_not_present()
+        self._populate_timeout()
+        self._remove_vpc_access_if_unset()
+
+    def _populate_labels(self):
+        """Injects sanitized Prefect labels into the Cloud Run V2 job body.
+
+        Labels are written to both the job level and the execution template
+        so that executions (which persist after the job is deleted when
+        `keep_job=False`) also carry the Prefect metadata.
+        """
+        # --- Job-level labels ---
+        existing = {
+            k: v
+            for k, v in self.job_body.get("labels", {}).items()
+            if k not in self._injected_job_label_keys
+        }
+        merged = merge_labels_for_gcp(self.labels, existing)
+        self._injected_job_label_keys = merged.keys() - existing.keys()
+        self.job_body["labels"] = merged
+
+        # --- Execution-template labels ---
+        exec_tpl = self.job_body.setdefault("template", {})
+        existing_exec = {
+            k: v
+            for k, v in exec_tpl.get("labels", {}).items()
+            if k not in self._injected_exec_label_keys
+        }
+        exec_merged = merge_labels_for_gcp(self.labels, existing_exec)
+        self._injected_exec_label_keys = exec_merged.keys() - existing_exec.keys()
+        exec_tpl["labels"] = exec_merged
+
+    def _populate_timeout(self):
+        """
+        Populates the job body with the timeout.
+        """
+        self.job_body["template"]["template"]["timeout"] = f"{self.timeout}s"
+
+    def _warn_about_plaintext_credentials(
+        self,
+        flow_run: "FlowRun",
+        worker_name: str | None = None,
+        work_pool: "WorkPool | None" = None,
+    ):
+        """
+        Warns about plaintext credentials when no secrets are configured.
+        """
+        if (
+            "PREFECT_API_KEY" in self.env
+            and not self.prefect_api_key_secret
+            and "PREFECT_API_KEY" not in self.env_from_secrets
+        ):
+            self._get_flow_run_logger(
+                flow_run=flow_run,
+                worker_name=worker_name,
+                work_pool=work_pool,
+            ).warning(
+                "PREFECT_API_KEY is provided as a plaintext environment variable. "
+                "For better security, consider providing it as a secret using "
+                "'prefect_api_key_secret' or 'env_from_secrets' in your base job template."
+            )
+
+        if (
+            "PREFECT_API_AUTH_STRING" in self.env
+            and not self.prefect_api_auth_string_secret
+            and "PREFECT_API_AUTH_STRING" not in self.env_from_secrets
+        ):
+            self._get_flow_run_logger(
+                flow_run=flow_run,
+                worker_name=worker_name,
+                work_pool=work_pool,
+            ).warning(
+                "PREFECT_API_AUTH_STRING is provided as a plaintext environment variable. "
+                "For better security, consider providing it as a secret using "
+                "'prefect_api_auth_string_secret' or 'env_from_secrets' in your base job template."
+            )
+
+    def _populate_env(self):
+        """
+        Populates the job body with environment variables.
+        """
+        # Filter out plaintext Prefect API key/auth string if secrets are configured
+        filtered_env = {}
+        for k, v in self.env.items():
+            if k == "PREFECT_API_KEY" and (
+                self.prefect_api_key_secret
+                or "PREFECT_API_KEY" in self.env_from_secrets
+            ):
+                continue  # Skip plaintext API key if secret is configured
+            if k == "PREFECT_API_AUTH_STRING" and (
+                self.prefect_api_auth_string_secret
+                or "PREFECT_API_AUTH_STRING" in self.env_from_secrets
+            ):
+                continue  # Skip plaintext auth string if secret is configured
+            filtered_env[k] = v
+
+        envs = [{"name": k, "value": v} for k, v in filtered_env.items()]
+        envs_from_secrets = [
+            {
+                "name": k,
+                "valueSource": {"secretKeyRef": v.model_dump()},
+            }
+            for k, v in self.env_from_secrets.items()
+        ]
+        envs.extend(envs_from_secrets)
+
+        # Add Prefect API key from secret if configured
+        if self.prefect_api_key_secret:
+            envs.append(
+                {
+                    "name": "PREFECT_API_KEY",
+                    "valueSource": {
+                        "secretKeyRef": self.prefect_api_key_secret.model_dump()
+                    },
+                }
+            )
+
+        # Add Prefect API auth string from secret if configured
+        if self.prefect_api_auth_string_secret:
+            envs.append(
+                {
+                    "name": "PREFECT_API_AUTH_STRING",
+                    "valueSource": {
+                        "secretKeyRef": self.prefect_api_auth_string_secret.model_dump()
+                    },
+                }
+            )
+
+        self.job_body["template"]["template"]["containers"][0]["env"].extend(envs)
+
+    def _configure_cloudsql_volumes(self):
+        """
+        Populates volumes and volume mounts for cloudsql instances
+        """
+
+        if not self.cloudsql_instances:
+            return
+
+        template = self.job_body["template"]["template"]
+        containers = template["containers"]
+        if "volumes" not in template:
+            template["volumes"] = []
+        template["volumes"].append(
+            {
+                "name": "cloudsql",
+                "cloudSqlInstance": {"instances": self.cloudsql_instances},
+            }
+        )
+        if "volumeMounts" not in containers[0]:
+            containers[0]["volumeMounts"] = []
+        containers[0]["volumeMounts"].append(
+            {"name": "cloudsql", "mountPath": "/cloudsql"}
+        )
+
+    def _populate_image_if_not_present(self):
+        """
+        Populates the job body with the image if not present.
+        """
+        if "image" not in self.job_body["template"]["template"]["containers"][0]:
+            self.job_body["template"]["template"]["containers"][0]["image"] = (
+                f"docker.io/{get_prefect_image_name()}"
+            )
+
+    def _populate_or_format_command(self):
+        """
+        Populates the job body with the command if not present.
+        """
+        command = self.job_body["template"]["template"]["containers"][0].get("command")
+
+        if command is None:
+            self.job_body["template"]["template"]["containers"][0]["command"] = (
+                shlex.split(self._base_flow_run_command())
+            )
+        elif isinstance(command, str):
+            self.job_body["template"]["template"]["containers"][0]["command"] = (
+                shlex.split(command)
+            )
+
+    def _format_args_if_present(self):
+        """
+        Formats the job body args if present.
+        """
+        args = self.job_body["template"]["template"]["containers"][0].get("args")
+
+        if args is not None and isinstance(args, str):
+            self.job_body["template"]["template"]["containers"][0]["args"] = (
+                shlex.split(args)
+            )
+
+    def _remove_vpc_access_if_unset(self):
+        """
+        Removes vpcAccess if unset.
+        """
+
+        if "vpcAccess" not in self.job_body["template"]["template"]:
+            return
+
+        vpc_access = self.job_body["template"]["template"]["vpcAccess"]
+
+        # if vpcAccess is unset or connector is unset, remove the entire vpcAccess block
+        # otherwise leave the user provided value.
+        if not vpc_access or (
+            len(vpc_access) == 1
+            and "connector" in vpc_access
+            and vpc_access["connector"] is None
+        ):
+            self.job_body["template"]["template"].pop("vpcAccess")
+
+    # noinspection PyMethodParameters
+    @field_validator("job_body")
+    @classmethod
+    def _ensure_job_includes_all_required_components(cls, value: Dict[str, Any]):
+        """
+        Ensures that the job body includes all required components.
+
+        Args:
+            value: The job body to validate.
+        Returns:
+            The validated job body.
+        """
+        patch = JsonPatch.from_diff(value, _get_base_job_body())
+
+        missing_paths = sorted([op["path"] for op in patch if op["op"] == "add"])
+
+        if missing_paths:
+            raise ValueError(
+                f"Job body is missing required components: {', '.join(missing_paths)}"
+            )
+
+        return value
+
+    # noinspection PyMethodParameters
+    @field_validator("job_body")
+    @classmethod
+    def _ensure_job_has_compatible_values(cls, value: Dict[str, Any]):
+        """Ensure that the job body has compatible values."""
+        patch = JsonPatch.from_diff(value, _get_base_job_body())
+        incompatible = sorted(
+            [
+                f"{op['path']} must have value {op['value']!r}"
+                for op in patch
+                if op["op"] == "replace"
+            ]
+        )
+        if incompatible:
+            raise ValueError(
+                "Job has incompatible values for the following attributes: "
+                f"{', '.join(incompatible)}"
+            )
+        return value
+
+
+class CloudRunWorkerV2Variables(BaseVariables):
+    """
+    Default variables for the v2 Cloud Run worker.
+
+    The schema for this class is used to populate the `variables` section of the
+    default base job template.
+    """
+
+    credentials: GcpCredentials = Field(
+        title="GCP Credentials",
+        default_factory=GcpCredentials,
+        description=(
+            "The GCP Credentials used to connect to Cloud Run. "
+            "If not provided credentials will be inferred from "
+            "the local environment."
+        ),
+    )
+    region: str = Field(
+        default="us-central1",
+        description="The region in which to run the Cloud Run job",
+    )
+    image: Optional[str] = Field(
+        default="prefecthq/prefect:3-latest",
+        title="Image Name",
+        description=(
+            "The image to use for the Cloud Run job. "
+            "If not provided the default Prefect image will be used."
+        ),
+    )
+    args: List[str] = Field(
+        default_factory=list,
+        description=(
+            "The arguments to pass to the Cloud Run Job V2's entrypoint command."
+        ),
+    )
+    env_from_secrets: Dict[str, SecretKeySelector] = Field(
+        default_factory=dict,
+        title="Environment Variables from Secrets",
+        description="Environment variables to set from GCP secrets when starting a flow run.",
+        examples=[
+            {
+                "ENV_VAR_NAME": {
+                    "secret": "SECRET_NAME",
+                    "version": "latest",
+                }
+            }
+        ],
+    )
+    prefect_api_key_secret: Optional[SecretKeySelector] = Field(
+        default=None,
+        title="Prefect API Key Secret",
+        description="The GCP secret to use for the Prefect API key. When provided, the secret will be used instead of the PREFECT_API_KEY environment variable.",
+        examples=[
+            {
+                "secret": "prefect-api-key",
+                "version": "latest",
+            }
+        ],
+    )
+    prefect_api_auth_string_secret: Optional[SecretKeySelector] = Field(
+        default=None,
+        title="Prefect API Auth String Secret",
+        description="The GCP secret to use for the Prefect API auth string. When provided, the secret will be used instead of the PREFECT_API_AUTH_STRING environment variable.",
+        examples=[
+            {
+                "secret": "prefect-api-auth-string",
+                "version": "latest",
+            }
+        ],
+    )
+    cloudsql_instances: Optional[List[str]] = Field(
+        default_factory=list,
+        title="Cloud SQL Instances",
+        description="List of Cloud SQL instance connection names to connect to. Format: {project}:{location}:{instance}",
+        examples=["project:region:instance-id"],
+    )
+    keep_job: bool = Field(
+        default=False,
+        title="Keep Job After Completion",
+        description="Keep the completed Cloud run job on Google Cloud Platform.",
+    )
+    launch_stage: Literal[
+        "ALPHA",
+        "BETA",
+        "GA",
+        "DEPRECATED",
+        "EARLY_ACCESS",
+        "PRELAUNCH",
+        "UNIMPLEMENTED",
+        "LAUNCH_TAG_UNSPECIFIED",
+    ] = Field(
+        "BETA",
+        description=(
+            "The launch stage of the Cloud Run Job V2. "
+            "See https://cloud.google.com/run/docs/about-features-categories "
+            "for additional details."
+        ),
+    )
+    max_retries: int = Field(
+        default=0,
+        title="Max Retries",
+        description="The number of times to retry the Cloud Run job.",
+    )
+    cpu: str = Field(
+        default="1000m",
+        title="CPU",
+        description="The CPU to allocate to the Cloud Run job.",
+    )
+    memory: str = Field(
+        default="512Mi",
+        title="Memory",
+        description=(
+            "The memory to allocate to the Cloud Run job along with the units, which"
+            "could be: G, Gi, M, Mi."
+        ),
+        examples=["512Mi"],
+        pattern=r"^\d+(?:G|Gi|M|Mi)$",
+    )
+    timeout: int = Field(
+        default=600,
+        gt=0,
+        le=604800,
+        title="Job Timeout",
+        description=(
+            "Max allowed time duration the Job may be active before Cloud Run will "
+            " actively try to mark it failed and kill associated containers (maximum of 604800 seconds, 7 days)."
+        ),
+    )
+    vpc_connector_name: Optional[str] = Field(
+        default=None,
+        title="VPC Connector Name",
+        description="The name of the VPC connector to use for the Cloud Run job.",
+    )
+    service_account_name: Optional[str] = Field(
+        default=None,
+        title="Service Account Name",
+        description=(
+            "The name of the service account to use for the task execution "
+            "of Cloud Run Job. By default Cloud Run jobs run as the default "
+            "Compute Engine Service Account."
+        ),
+        examples=["service-account@example.iam.gserviceaccount.com"],
+    )
+
+
+class CloudRunWorkerV2Result(BaseWorkerResult):
+    """
+    The result of a Cloud Run worker V2 job.
+    """
+
+
+class CloudRunWorkerV2(
+    BaseWorker[
+        CloudRunWorkerJobV2Configuration,
+        CloudRunWorkerV2Variables,
+        CloudRunWorkerV2Result,
+    ]
+):
+    """
+    The Cloud Run worker V2.
+    """
+
+    type = "cloud-run-v2"
+    job_configuration = CloudRunWorkerJobV2Configuration
+    job_configuration_variables = CloudRunWorkerV2Variables
+    _description = "Execute flow runs within containers on Google Cloud Run (V2 API). Requires a Google Cloud Platform account."  # noqa
+    _display_name = "Google Cloud Run V2"
+    _documentation_url = "https://docs.prefect.io/integrations/prefect-gcp"
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/4SpnOBvMYkHp6z939MDKP6/549a91bc1ce9afd4fb12c68db7b68106/social-icon-google-cloud-1200-630.png?h=250"  # noqa
+
+    async def run(
+        self,
+        flow_run: "FlowRun",
+        configuration: CloudRunWorkerJobV2Configuration,
+        task_status: Optional[TaskStatus] = None,
+    ) -> CloudRunWorkerV2Result:
+        """
+        Runs the flow run on Cloud Run and waits for it to complete.
+
+        Args:
+            flow_run: The flow run to run.
+            configuration: The configuration for the job.
+            task_status: The task status to update.
+
+        Returns:
+            The result of the job.
+        """
+        logger = self.get_flow_run_logger(flow_run)
+
+        with self._get_client(configuration=configuration) as cr_client:
+            await run_sync_in_worker_thread(
+                self._create_job_and_wait_for_registration,
+                configuration=configuration,
+                cr_client=cr_client,
+                logger=logger,
+            )
+
+            execution = await run_sync_in_worker_thread(
+                self._begin_job_execution,
+                configuration=configuration,
+                cr_client=cr_client,
+                logger=logger,
+            )
+
+            if task_status:
+                task_status.started(configuration.job_name)
+
+            result = await run_sync_in_worker_thread(
+                self._watch_job_execution_and_get_result,
+                configuration=configuration,
+                cr_client=cr_client,
+                execution=execution,
+                logger=logger,
+            )
+
+            return result
+
+    @staticmethod
+    def _get_client(
+        configuration: CloudRunWorkerJobV2Configuration,
+    ) -> ResourceWarning:
+        """
+        Get the base client needed for interacting with GCP Cloud Run V2 API.
+
+        Returns:
+            Resource: The base client needed for interacting with GCP Cloud Run V2 API.
+        """
+        api_endpoint = "https://run.googleapis.com"
+        gcp_creds = configuration.credentials.get_credentials_from_service_account()
+
+        options = ClientOptions(api_endpoint=api_endpoint)
+
+        return (
+            discovery.build(
+                "run",
+                "v2",
+                client_options=options,
+                credentials=gcp_creds,
+                num_retries=3,  # Set to 3 in case of intermittent/connection issues
+            )
+            .projects()
+            .locations()
+        )
+
+    def _create_job_and_wait_for_registration(
+        self,
+        configuration: CloudRunWorkerJobV2Configuration,
+        cr_client: Resource,
+        logger: PrefectLogAdapter,
+    ):
+        """
+        Creates the Cloud Run job and waits for it to register.
+        Includes retry logic for transient errors (HTTP 500, 503, 429).
+
+        Args:
+            configuration: The configuration for the job.
+            cr_client: The Cloud Run client.
+            logger: The logger to use.
+        """
+        max_attempts = 3
+        retry_statuses = {500, 503, 429}
+
+        def _is_transient_error(exc: Exception) -> bool:
+            return isinstance(exc, HttpError) and exc.status_code in retry_statuses
+
+        def _log_retry(retry_state) -> None:
+            exc = retry_state.outcome.exception()
+            if isinstance(exc, HttpError):
+                delay = retry_state.next_action.sleep
+                logger.warning(
+                    "Transient error (HTTP %s) when creating Cloud Run job. "
+                    "Retrying in %.2fs... (Attempt %s/%s)",
+                    exc.status_code,
+                    delay,
+                    retry_state.attempt_number,
+                    max_attempts,
+                )
+
+        retrying = Retrying(
+            reraise=True,
+            stop=stop_after_attempt(max_attempts),
+            wait=wait_exponential_jitter(initial=1.0, max=10.0),
+            retry=retry_if_exception(_is_transient_error),
+            before_sleep=_log_retry,
+            sleep=time.sleep,
+        )
+
+        try:
+            for attempt in retrying:
+                with attempt:
+                    logger.info(f"Creating Cloud Run JobV2 {configuration.job_name}")
+
+                    JobV2.create(
+                        cr_client=cr_client,
+                        project=configuration.project,
+                        location=configuration.region,
+                        job_id=configuration.job_name,
+                        body=configuration.job_body,
+                    )
+        except HttpError as exc:
+            self._create_job_error(
+                exc=exc,
+                configuration=configuration,
+            )
+            raise
+
+        try:
+            self._wait_for_job_creation(
+                cr_client=cr_client,
+                configuration=configuration,
+                logger=logger,
+            )
+        except Exception as exc:
+            logger.critical(
+                f"Failed to create Cloud Run JobV2 {configuration.job_name}.\n{exc}"
+            )
+
+            if not configuration.keep_job:
+                try:
+                    JobV2.delete(
+                        cr_client=cr_client,
+                        project=configuration.project,
+                        location=configuration.region,
+                        job_name=configuration.job_name,
+                    )
+                except Exception as exc2:
+                    logger.critical(
+                        f"Failed to delete Cloud Run JobV2 {configuration.job_name}."
+                        f"\n{exc2}"
+                    )
+
+            raise
+
+    @staticmethod
+    def _wait_for_job_creation(
+        cr_client: Resource,
+        configuration: CloudRunWorkerJobV2Configuration,
+        logger: PrefectLogAdapter,
+        poll_interval: int = 5,
+    ):
+        """
+        Waits for the Cloud Run job to be created.
+
+        Args:
+            cr_client: The Cloud Run client.
+            configuration: The configuration for the job.
+            logger: The logger to use.
+            poll_interval: The interval to poll the Cloud Run job, defaults to 5
+                seconds.
+        """
+        job = JobV2.get(
+            cr_client=cr_client,
+            project=configuration.project,
+            location=configuration.region,
+            job_name=configuration.job_name,
+        )
+
+        while not job.is_ready():
+            if not (ready_condition := job.get_ready_condition()):
+                ready_condition = "waiting for condition update"
+
+            logger.info(f"Current Job Condition: {ready_condition}")
+
+            job = JobV2.get(
+                cr_client=cr_client,
+                project=configuration.project,
+                location=configuration.region,
+                job_name=configuration.job_name,
+            )
+
+            time.sleep(poll_interval)
+
+    @staticmethod
+    def _create_job_error(
+        exc: HttpError,
+        configuration: CloudRunWorkerJobV2Configuration,
+    ):
+        """
+        Creates a formatted error message for the Cloud Run V2 API errors
+        """
+        # noinspection PyUnresolvedReferences
+        if exc.status_code == 404:
+            raise RuntimeError(
+                f"Failed to find resources at {exc.uri}. Confirm that region"
+                f" '{configuration.region}' is the correct region for your Cloud"
+                f" Run Job and that {configuration.project} is the correct GCP "
+                f" project. If your project ID is not correct, you are using a "
+                f"Credentials block with permissions for the wrong project."
+            ) from exc
+
+        raise exc
+
+    def _begin_job_execution(
+        self,
+        cr_client: Resource,
+        configuration: CloudRunWorkerJobV2Configuration,
+        logger: PrefectLogAdapter,
+    ) -> ExecutionV2:
+        """
+        Begins the Cloud Run job execution.
+
+        Args:
+            cr_client: The Cloud Run client.
+            configuration: The configuration for the job.
+            logger: The logger to use.
+
+        Returns:
+            The Cloud Run job execution.
+        """
+        try:
+            logger.info(
+                f"Submitting Cloud Run Job V2 {configuration.job_name} for execution..."
+            )
+
+            submission = JobV2.run(
+                cr_client=cr_client,
+                project=configuration.project,
+                location=configuration.region,
+                job_name=configuration.job_name,
+            )
+
+            job_execution = ExecutionV2.get(
+                cr_client=cr_client,
+                execution_id=submission["metadata"]["name"],
+            )
+
+            command_list = configuration.job_body["template"]["template"]["containers"][
+                0
+            ].get("command", [])
+            command = (
+                " ".join(command_list) if command_list else "default container command"
+            )
+
+            logger.info(
+                f"Cloud Run Job V2 {configuration.job_name} submitted for execution "
+                f"with command: {command}"
+            )
+
+            return job_execution
+        except Exception as exc:
+            self._job_run_submission_error(
+                exc=exc,
+                configuration=configuration,
+            )
+            raise
+
+    def _watch_job_execution_and_get_result(
+        self,
+        cr_client: Resource,
+        configuration: CloudRunWorkerJobV2Configuration,
+        execution: ExecutionV2,
+        logger: PrefectLogAdapter,
+        poll_interval: int = 5,
+    ) -> CloudRunWorkerV2Result:
+        """
+        Watch the job execution and get the result.
+
+        Args:
+            cr_client (Resource): The base client needed for interacting with GCP
+                Cloud Run V2 API.
+            configuration (CloudRunWorkerJobV2Configuration): The configuration for
+                the job.
+            execution (ExecutionV2): The execution to watch.
+            logger (PrefectLogAdapter): The logger to use.
+            poll_interval (int): The number of seconds to wait between polls.
+                Defaults to 5 seconds.
+
+        Returns:
+            The result of the job.
+        """
+        try:
+            execution = self._watch_job_execution(
+                cr_client=cr_client,
+                configuration=configuration,
+                execution=execution,
+                poll_interval=poll_interval,
+            )
+        except InfrastructureNotFound:
+            logger.info(
+                f"Cloud Run V2 Job {configuration.job_name!r} was deleted. "
+                "The flow run will be marked based on its current state."
+            )
+            return CloudRunWorkerV2Result(
+                identifier=configuration.job_name, status_code=-1
+            )
+        except Exception as exc:
+            logger.critical(
+                f"Encountered an exception while waiting for job run completion - {exc}"
+            )
+            raise
+
+        if execution.succeeded():
+            status_code = 0
+            logger.info(f"Cloud Run Job V2 {configuration.job_name} succeeded")
+        else:
+            status_code = 1
+            error_mg = execution.condition_after_completion().get("message")
+            logger.error(
+                f"Cloud Run Job V2 {configuration.job_name} failed - {error_mg}"
+            )
+
+        logger.info(f"Job run logs can be found on GCP at: {execution.logUri}")
+
+        if not configuration.keep_job:
+            logger.info(
+                f"Deleting completed Cloud Run Job {configuration.job_name!r} from "
+                "Google Cloud Run..."
+            )
+
+            try:
+                JobV2.delete(
+                    cr_client=cr_client,
+                    project=configuration.project,
+                    location=configuration.region,
+                    job_name=configuration.job_name,
+                )
+            except Exception as exc:
+                logger.critical(
+                    "Received an exception while deleting the Cloud Run Job V2 "
+                    f"- {configuration.job_name} - {exc}"
+                )
+
+        return CloudRunWorkerV2Result(
+            identifier=configuration.job_name,
+            status_code=status_code,
+        )
+
+    # noinspection DuplicatedCode
+    @staticmethod
+    def _watch_job_execution(
+        cr_client: Resource,
+        configuration: CloudRunWorkerJobV2Configuration,
+        execution: ExecutionV2,
+        poll_interval: int,
+    ) -> ExecutionV2:
+        """
+        Update execution status until it is no longer running.
+
+        Args:
+            cr_client (Resource): The base client needed for interacting with GCP
+                Cloud Run V2 API.
+            configuration (CloudRunWorkerJobV2Configuration): The configuration for
+                the job.
+            execution (ExecutionV2): The execution to watch.
+            poll_interval (int): The number of seconds to wait between polls.
+
+        Returns:
+            The execution.
+
+        Raises:
+            InfrastructureNotFound: If the execution is deleted (e.g., by kill_infrastructure).
+        """
+        while execution.is_running():
+            try:
+                execution = ExecutionV2.get(
+                    cr_client=cr_client,
+                    execution_id=execution.name,
+                )
+            except HttpError as exc:
+                if exc.status_code == 404:
+                    raise InfrastructureNotFound(
+                        f"Cloud Run V2 execution {execution.name!r} was deleted."
+                    ) from exc
+                raise
+
+            time.sleep(poll_interval)
+
+        return execution
+
+    @staticmethod
+    def _job_run_submission_error(
+        exc: Exception,
+        configuration: CloudRunWorkerJobV2Configuration,
+    ):
+        """
+        Creates a formatted error message for the Cloud Run V2 API errors
+
+        Args:
+            exc: The exception to format.
+            configuration: The configuration for the job.
+        """
+        # noinspection PyUnresolvedReferences
+        if exc.status_code == 404:
+            pat1 = r"The requested URL [^ ]+ was not found on this server"
+
+            if re.findall(pat1, str(exc)):
+                # noinspection PyUnresolvedReferences
+                raise RuntimeError(
+                    f"Failed to find resources at {exc.uri}. "
+                    f"Confirm that region '{configuration.region}' is "
+                    f"the correct region for your Cloud Run Job "
+                    f"and that '{configuration.project}' is the "
+                    f"correct GCP project. If your project ID is not "
+                    f"correct, you are using a Credentials "
+                    f"block with permissions for the wrong project."
+                ) from exc
+            else:
+                raise exc
+
+    async def kill_infrastructure(
+        self,
+        infrastructure_pid: str,
+        configuration: CloudRunWorkerJobV2Configuration,
+        grace_seconds: int = 30,
+    ) -> None:
+        """
+        Kill a Cloud Run V2 Job by deleting it.
+
+        Args:
+            infrastructure_pid: The job name.
+            configuration: The job configuration used to connect to GCP.
+            grace_seconds: Not used for Cloud Run V2 (GCP handles graceful shutdown).
+
+        Raises:
+            InfrastructureNotFound: If the job doesn't exist.
+        """
+        job_name = infrastructure_pid
+
+        await run_sync_in_worker_thread(self._delete_job, job_name, configuration)
+
+    def _delete_job(
+        self, job_name: str, configuration: CloudRunWorkerJobV2Configuration
+    ) -> None:
+        """
+        Delete a Cloud Run V2 Job.
+
+        Args:
+            job_name: The name of the job to delete.
+            configuration: The job configuration used to connect to GCP.
+
+        Raises:
+            InfrastructureNotFound: If the job doesn't exist.
+        """
+        with self._get_client(configuration) as cr_client:
+            try:
+                JobV2.delete(
+                    cr_client=cr_client,
+                    project=configuration.project,
+                    location=configuration.region,
+                    job_name=job_name,
+                )
+                self._logger.info(
+                    f"Deleted Cloud Run V2 Job {job_name!r} in project "
+                    f"{configuration.project!r} region {configuration.region!r}"
+                )
+            except HttpError as exc:
+                if exc.status_code == 404:
+                    raise InfrastructureNotFound(
+                        f"Cloud Run V2 Job {job_name!r} not found in project "
+                        f"{configuration.project!r} region {configuration.region!r}"
+                    )
+                raise

@@ -1,0 +1,26 @@
+omeraplak:
+  name: Omer Aplak
+  title: CEO @VoltAgent
+  bio: "Let's build together! ⚡"
+  image_url: https://avatars.githubusercontent.com/u/1110414?v=4
+  twitter: https://twitter.com/omerfarukaplak
+  linkedin: https://www.linkedin.com/in/omer-aplak-14b87099/
+  github: https://github.com/omeraplak
+
+necatiozmen:
+  name: Necati Ozmen
+  title: CMO @VoltAgent
+  bio: "Feeling Irie ⚡"
+  image_url: https://avatars.githubusercontent.com/u/18739364?v=4
+  twitter: https://twitter.com/necatiozmen3
+  linkedin: https://www.linkedin.com/in/necatiozmen/
+  github: https://github.com/necatiozmen
+
+voltagentteam:
+  name: VoltAgent
+  title: "Team"
+  bio: "About building the future of AI development."
+  image_url: https://avatars.githubusercontent.com/u/201282378?s=200&v=4
+  twitter: https://twitter.com/voltagent_dev
+  linkedin: https://www.linkedin.com/company/voltagent/
+  github: https://github.com/voltagent

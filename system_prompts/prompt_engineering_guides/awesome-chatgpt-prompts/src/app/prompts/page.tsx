@@ -16,6 +16,8 @@ import { isAISearchEnabled, semanticSearch } from "@/lib/ai/embeddings";
 import { isAIGenerationEnabled } from "@/lib/ai/generation";
 import config from "@/../prompts.config";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Prompts",
   description: "Browse and discover AI prompts",

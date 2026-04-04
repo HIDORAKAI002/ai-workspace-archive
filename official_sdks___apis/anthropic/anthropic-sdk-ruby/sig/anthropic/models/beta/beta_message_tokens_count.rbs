@@ -1,0 +1,29 @@
+module Anthropic
+  module Models
+    class BetaMessageTokensCount = Beta::BetaMessageTokensCount
+
+    module Beta
+      type beta_message_tokens_count =
+        {
+          context_management: Anthropic::Beta::BetaCountTokensContextManagementResponse?,
+          input_tokens: Integer
+        }
+
+      class BetaMessageTokensCount < Anthropic::Internal::Type::BaseModel
+        attr_accessor context_management: Anthropic::Beta::BetaCountTokensContextManagementResponse?
+
+        attr_accessor input_tokens: Integer
+
+        def initialize: (
+          context_management: Anthropic::Beta::BetaCountTokensContextManagementResponse?,
+          input_tokens: Integer
+        ) -> void
+
+        def to_hash: -> {
+          context_management: Anthropic::Beta::BetaCountTokensContextManagementResponse?,
+          input_tokens: Integer
+        }
+      end
+    end
+  end
+end

@@ -1,0 +1,339 @@
+import type { ClientScoreRowData } from '@mastra/client-js';
+import type { ScoreRowData } from '@mastra/core/evals';
+import {
+  Breadcrumb,
+  Crumb,
+  ScoresList,
+  Header,
+  MainContentLayout,
+  PageHeader,
+  ScoresTools,
+  ScoreDialog,
+  KeyValueList,
+  useScorer,
+  useScoresByScorerId,
+  Icon,
+  HeaderAction,
+  Button,
+  DocsIcon,
+  getToNextEntryFn,
+  getToPreviousEntryFn,
+  useAgents,
+  useWorkflows,
+  ScorerCombobox,
+  toast,
+  Spinner,
+  PermissionDenied,
+  is403ForbiddenError,
+} from '@mastra/playground-ui';
+import type { ScoreEntityOption as EntityOptions } from '@mastra/playground-ui';
+import { GaugeIcon, PencilIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router';
+import { cn } from '@/lib/utils';
+
+export default function Scorer() {
+  const { scorerId } = useParams()! as { scorerId: string };
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedScoreId, setSelectedScoreId] = useState<string | undefined>();
+  const [scoresPage, setScoresPage] = useState<number>(0);
+  const [dialogIsOpen, setDialogIsOpen] = useState<boolean>(false);
+
+  const [selectedEntityOption, setSelectedEntityOption] = useState<EntityOptions | undefined>({
+    value: 'all',
+    label: 'All Entities',
+    type: 'ALL' as const,
+  });
+
+  const { scorer, isLoading: isScorerLoading, error: scorerError } = useScorer(scorerId!);
+  const { data: agents = {}, isLoading: isLoadingAgents, error: agentsError } = useAgents();
+  const { data: workflows, isLoading: isLoadingWorkflows, error: workflowsError } = useWorkflows();
+  const {
+    data: scoresData,
+    isLoading: isLoadingScores,
+    error: scoresError,
+  } = useScoresByScorerId({
+    scorerId,
+    page: scoresPage,
+    entityId: selectedEntityOption?.value === 'all' ? undefined : selectedEntityOption?.value,
+    entityType: selectedEntityOption?.type === 'ALL' ? undefined : selectedEntityOption?.type,
+  });
+
+  const agentOptions: EntityOptions[] = useMemo(
+    () =>
+      scorer?.agentIds
+        ?.filter(agentId => agents[agentId])
+        .map(agentId => {
+          return { value: agentId, label: agents[agentId].name, type: 'AGENT' as const };
+        }) || [],
+    [scorer?.agentIds, agents],
+  );
+
+  const workflowOptions: EntityOptions[] = useMemo(
+    () =>
+      scorer?.workflowIds?.map(workflowId => {
+        return { value: workflowId, label: workflowId, type: 'WORKFLOW' as const };
+      }) || [],
+    [scorer?.workflowIds],
+  );
+
+  const entityOptions: EntityOptions[] = useMemo(
+    () => [{ value: 'all', label: 'All Entities', type: 'ALL' as const }, ...agentOptions, ...workflowOptions],
+    [agentOptions, workflowOptions],
+  );
+
+  // Sync URL entity to state
+  const entityName = searchParams.get('entity');
+  const matchedEntityOption = entityOptions.find(option => option.value === entityName);
+  if (matchedEntityOption && matchedEntityOption.value !== selectedEntityOption?.value) {
+    setSelectedEntityOption(matchedEntityOption);
+  }
+
+  useEffect(() => {
+    if (scorerError) {
+      const errorMessage = scorerError instanceof Error ? scorerError.message : 'Failed to load scorer';
+      toast.error(`Error loading scorer: ${errorMessage}`);
+    }
+  }, [scorerError]);
+
+  useEffect(() => {
+    if (agentsError) {
+      const errorMessage = agentsError instanceof Error ? agentsError.message : 'Failed to load agents';
+      toast.error(`Error loading agents: ${errorMessage}`);
+    }
+  }, [agentsError]);
+
+  useEffect(() => {
+    if (workflowsError) {
+      const errorMessage = workflowsError instanceof Error ? workflowsError.message : 'Failed to load workflows';
+      toast.error(`Error loading workflows: ${errorMessage}`);
+    }
+  }, [workflowsError]);
+
+  const scores = useMemo(() => scoresData?.scores || [], [scoresData?.scores]);
+  const pagination = scoresData?.pagination;
+
+  const scorerAgents =
+    scorer?.agentIds?.map(agentId => {
+      return {
+        name: agentId,
+        id: Object.entries(agents).find(([, value]) => value.name === agentId)?.[0],
+      };
+    }) || [];
+
+  const scorerWorkflows =
+    scorer?.workflowIds?.map(workflowId => {
+      return {
+        name: workflowId,
+        id: Object.entries(workflows || {}).find(([, value]) => value.name === workflowId)?.[0],
+      };
+    }) || [];
+
+  const scorerEntities = [
+    ...scorerAgents.map(agent => ({ id: agent.id, name: agent.name, type: 'AGENT' })),
+    ...scorerWorkflows.map(workflow => ({ id: workflow.id, name: workflow.name, type: 'WORKFLOW' })),
+  ];
+
+  const scoreInfo = [
+    {
+      key: 'entities',
+      label: 'Entities',
+      value: (scorerEntities || []).map(entity => ({
+        id: entity.id,
+        name: entity.name || entity.id,
+        path: `${entity.type === 'AGENT' ? '/agents' : '/workflows'}/${entity.name}`,
+      })),
+    },
+  ];
+
+  const handleSelectedEntityChange = (option: EntityOptions | undefined) => {
+    if (!option?.value) return;
+
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('entity', option.value);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const scoreIdFromUrl = searchParams.get('scoreId');
+
+    if (!scoreIdFromUrl) {
+      if (selectedScoreId) {
+        setSelectedScoreId(undefined);
+      }
+      if (dialogIsOpen) {
+        setDialogIsOpen(false);
+      }
+      return;
+    }
+
+    const matchingScore = scores.find(score => score.id === scoreIdFromUrl);
+    if (!matchingScore) return;
+
+    if (selectedScoreId !== scoreIdFromUrl) {
+      setSelectedScoreId(scoreIdFromUrl);
+    }
+
+    if (!dialogIsOpen) {
+      setDialogIsOpen(true);
+    }
+  }, [dialogIsOpen, scores, searchParams, selectedScoreId]);
+
+  useEffect(() => {
+    const currentScoreId = searchParams.get('scoreId');
+
+    if (selectedScoreId ? currentScoreId === selectedScoreId : !currentScoreId) {
+      return;
+    }
+
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+
+      if (selectedScoreId) {
+        next.set('scoreId', selectedScoreId);
+      } else {
+        next.delete('scoreId');
+      }
+
+      return next;
+    });
+  }, [searchParams, selectedScoreId, setSearchParams]);
+
+  if (scorerError && is403ForbiddenError(scorerError)) {
+    return (
+      <MainContentLayout>
+        <Header>
+          <Breadcrumb>
+            <Crumb as={Link} to={`/evaluation?tab=scorers`}>
+              <Icon>
+                <GaugeIcon />
+              </Icon>
+              Scorers
+            </Crumb>
+            <Crumb as="span" to="" isCurrent>
+              {scorerId}
+            </Crumb>
+          </Breadcrumb>
+        </Header>
+
+        <div className="flex h-full items-center justify-center">
+          <PermissionDenied resource="scorers" />
+        </div>
+      </MainContentLayout>
+    );
+  }
+
+  if (isScorerLoading || scorerError || agentsError || workflowsError) return null;
+
+  const handleScoreClick = (id: string) => {
+    setSelectedScoreId(id);
+    setDialogIsOpen(true);
+  };
+
+  const toNextScore = getToNextEntryFn({ entries: scores, id: selectedScoreId, update: setSelectedScoreId });
+  const toPreviousScore = getToPreviousEntryFn({ entries: scores, id: selectedScoreId, update: setSelectedScoreId });
+
+  return (
+    <>
+      <MainContentLayout>
+        <Header>
+          <Breadcrumb>
+            <Crumb as={Link} to={`/evaluation?tab=scorers`}>
+              <Icon>
+                <GaugeIcon />
+              </Icon>
+              Scorers
+            </Crumb>
+            <Crumb as="span" to="" isCurrent>
+              <ScorerCombobox value={scorerId} variant="ghost" />
+            </Crumb>
+          </Breadcrumb>
+
+          <HeaderAction>
+            {scorer?.scorer?.source === 'stored' && (
+              <Button variant="light" as={Link} to={`/cms/scorers/${scorerId}/edit`}>
+                <Icon>
+                  <PencilIcon />
+                </Icon>
+                Edit
+              </Button>
+            )}
+            <Button as={Link} to="https://mastra.ai/en/docs/evals/overview" target="_blank" variant="ghost" size="md">
+              <DocsIcon />
+              Scorers documentation
+            </Button>
+          </HeaderAction>
+        </Header>
+
+        <div className={cn(`grid overflow-y-auto h-full`)}>
+          <div className={cn('max-w-[100rem] w-full px-12 mx-auto grid content-start gap-8 h-full')}>
+            <PageHeader
+              title={scorer?.scorer?.config?.name || 'loading'}
+              description={scorer?.scorer?.config?.description || 'loading'}
+              icon={<GaugeIcon />}
+            />
+
+            <KeyValueList data={scoreInfo} LinkComponent={Link} isLoading={isLoadingAgents || isLoadingWorkflows} />
+
+            <ScoresTools
+              selectedEntity={selectedEntityOption}
+              entityOptions={entityOptions}
+              onEntityChange={handleSelectedEntityChange}
+              onReset={() => {
+                setSearchParams(prev => {
+                  const next = new URLSearchParams(prev);
+                  next.set('entity', 'all');
+                  return next;
+                });
+              }}
+              isLoading={isLoadingScores || isLoadingAgents || isLoadingWorkflows}
+            />
+
+            {isLoadingScores ? (
+              <div className="h-full w-full flex items-center justify-center">
+                <Spinner />
+              </div>
+            ) : (
+              <ScoresList
+                scores={scores}
+                selectedScoreId={selectedScoreId}
+                pagination={{
+                  total: pagination?.total || 0,
+                  hasMore: pagination?.hasMore || false,
+                  perPage: pagination?.perPage || 0,
+                  page: pagination?.page || 0,
+                }}
+                onScoreClick={handleScoreClick}
+                onPageChange={setScoresPage}
+                errorMsg={scoresError?.message}
+              />
+            )}
+          </div>
+        </div>
+      </MainContentLayout>
+      <ScoreDialog
+        scorerName={scorer?.scorer?.config?.name}
+        score={mapScore(scores.find(s => s.id === selectedScoreId))}
+        isOpen={dialogIsOpen}
+        onClose={() => {
+          setDialogIsOpen(false);
+          setSelectedScoreId(undefined);
+        }}
+        onNext={toNextScore}
+        onPrevious={toPreviousScore}
+        computeTraceLink={(traceId, spanId) => `/observability?traceId=${traceId}${spanId ? `&spanId=${spanId}` : ''}`}
+      />
+    </>
+  );
+}
+
+const mapScore = (score?: ClientScoreRowData): ScoreRowData | undefined => {
+  if (!score) return undefined;
+  return {
+    ...score,
+    createdAt: new Date(score.createdAt),
+    updatedAt: new Date(score.updatedAt),
+  };
+};

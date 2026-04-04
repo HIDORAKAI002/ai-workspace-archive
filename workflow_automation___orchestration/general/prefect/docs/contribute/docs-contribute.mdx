@@ -1,0 +1,117 @@
+---
+title: Contribute to documentation
+description: Learn how to contribute to the Prefect docs.
+---
+
+import fork from '/snippets/fork.mdx'
+
+
+We use [Mintlify](https://mintlify.com/) to host and build the Prefect documentation.
+
+The main branch of the [prefecthq/prefect](https://github.com/PrefectHQ/prefect) GitHub repository is used to build the Prefect 3.0 docs at [docs.prefect.io](https://docs.prefect.io).
+
+The 2.x docs are hosted at [docs-2.prefect.io](https://docs-2.prefect.io) and built from the 2.x branch of the repository.
+
+## Fork the repository
+
+<fork />
+
+## Set up your local environment
+
+We provide a `justfile` with common commands to simplify development. We recommend using [just](https://just.systems/) to run these commands.
+
+<Note>
+**Installing just**
+
+To install just:
+- **macOS**: `brew install just` or `cargo install just`
+- **Linux**: `cargo install just` or check your package manager
+- **Windows**: `scoop install just` or `cargo install just`
+
+For more installation options, see the [just documentation](https://github.com/casey/just#installation).
+</Note>
+
+### Using just (recommended)
+
+1. Clone this repository.
+2. Run `just docs` to start the documentation server.
+
+Your docs should now be available at `http://localhost:3000`.
+
+### Manual setup
+
+If you prefer not to use just, you can set up manually:
+
+1. Clone this repository.
+2. Make sure you have a recent version of Node.js installed. We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions.
+3. Run `cd docs` to navigate to the docs directory.
+4. Run `nvm use node` to use the correct Node.js version.
+5. Run `npm i -g mintlify` to install Mintlify.
+6. Run `mintlify dev` to start the development server.
+
+Your docs should now be available at `http://localhost:3000`.
+
+See the [Mintlify documentation](https://mintlify.com/docs/development) for more information on how to install Mintlify, build previews, and use Mintlify's features while writing docs.
+
+<Info>All documentation is written in `.mdx` files, which are Markdown files that can contain JavaScript and React components. </Info>
+
+## Contributing examples
+
+Examples are Python files that demonstrate Prefect concepts and patterns and how they work together with other tools to solve real-world problems. They live in the `examples/` directory and are used to automatically generate documentation pages.
+
+### Example structure
+
+Each example should be a standalone Python file with:
+
+1. **YAML frontmatter** (in Python comments) at the top with metadata:
+   ```python
+   # ---
+   # title: Your Example Title
+   # description: Brief description of what this example demonstrates
+   # icon: play  # Choose from available icons (play, database, globe, etc.)
+   # dependencies: ["prefect", "pandas", "requests"]  # Required packages
+   # cmd: ["python", "path/to/your_example.py"]  # How to run it
+   # keywords: ["getting_started", "etl", "api"]  # Keywords to help with search and filtering
+   # draft: false  # Set to true to hide from docs
+   # ---
+   ```
+
+2. **Explanatory comments** throughout the code which will be used to generate the body of the documentation page.
+
+3. **Runnable code** that works out of the box with the specified dependencies.
+
+See the [hello world example](https://github.com/PrefectHQ/prefect/blob/main/examples/hello_world.py) as a guide.
+
+### Adding an example
+
+To add an example, follow these steps:
+
+1. Create your Python file in the `examples/` directory
+2. Follow the structure above with frontmatter and comments
+3. Test that your example runs successfully
+4. Run `just generate-examples` to update the documentation pages
+5. Review the generated documentation to ensure it renders correctly
+
+Once it all looks good, commit your changes and open a pull request.
+
+## Considerations
+
+Keep in mind the following when writing documentation.
+
+### External references
+
+Prefect resources can be managed in several ways, including through the CLI, UI, Terraform, Helm, and API.
+
+When documenting a resource, consider including external references that describe how to manage the resource in other ways.
+Snippets are available to provide these references in a consistent format.
+
+For example, the [Deployment documentation](/v3/deploy) includes a snippet for the Terraform provider:
+
+```javascript
+import { TF } from "/snippets/resource-management/terraform.mdx"
+import { deployments } from "/snippets/resource-management/vars.mdx"
+
+<TF name="deployments" href={deployments.tf} />
+```
+
+For more information on how to use snippets, see the [Mintlify documentation](https://mintlify.com/docs/reusable-snippets).

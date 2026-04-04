@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkPromptAccess } from "@/lib/prompt-access";
 
 const createVersionSchema = z.object({
   content: z.string().min(1, "Content is required"),
@@ -115,6 +116,14 @@ export async function GET(
 ) {
   try {
     const { id: promptId } = await params;
+
+    const prompt = await db.prompt.findUnique({
+      where: { id: promptId },
+      select: { isPrivate: true, authorId: true },
+    });
+
+    const denied = await checkPromptAccess(prompt);
+    if (denied) return denied;
 
     const versions = await db.promptVersion.findMany({
       where: { promptId },

@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prefect-aws"
+description = "Prefect integrations for interacting with Amazon Web Services."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache License 2.0" }
+keywords = ["prefect"]
+authors = [{ name = "Prefect Technologies, Inc.", email = "help@prefect.io" }]
+classifiers = [
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "aiobotocore>=2.23.2",
+    "boto3>=1.24.53",
+    "botocore>=1.27.53",
+    "prefect>=3.6.24",
+    "pyparsing>=3.1.1",
+    "tenacity>=8.0.0",
+    "typer>=0.9.0",
+    "rich>=10.0.0",
+]
+dynamic = ["version"]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs[full] >= 1.24.39",
+    "types-aiobotocore[essential,ecs] >= 1.24.39",
+    "coverage",
+    "interrogate",
+    "isort",
+    "mkdocs",
+    "mkdocs-gen-files",
+    "mkdocs-material",
+    "mkdocstrings-python-legacy",
+    "moto[cloudformation]>=5",
+    "mypy",
+    "pillow",
+    "pytest >= 8.3",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-env",
+    "pytest-xdist",
+    "types-boto3 >= 1.0.2",
+    "ruff>=0.12.8",
+    "aws-cdk-lib>=2.212.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/PrefectHQ/prefect/tree/main/src/integrations/prefect-aws"
+
+[project.entry-points."prefect.collections"]
+prefect_aws = "prefect_aws"
+
+[project.entry-points."prefect.plugins"]
+aws = "prefect_aws.plugins"
+
+[project.scripts]
+prefect-aws = "prefect_aws._cli.main:app"
+
+[tool.setuptools]
+packages = ["prefect_aws"]
+
+[tool.setuptools.package-data]
+prefect_aws = ["templates/**/*.json"]
+
+[tool.setuptools_scm]
+version_file = "prefect_aws/_version.py"
+root = "../../.."
+tag_regex = "^prefect-aws-(?P<version>\\d+\\.\\d+\\.\\d+(?:[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*)?)$"
+fallback_version = "0.0.0"
+git_describe_command = 'git describe --dirty --tags --long --match "prefect-aws-*[0-9]*"'
+
+[tool.interrogate]
+ignore-init-module = true
+ignore_init_method = true
+exclude = ["prefect_aws/_version.py", "tests"]
+fail-under = 95
+omit-covered-files = true
+
+[tool.coverage.run]
+omit = ["tests/*", "prefect_aws/_version.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "infra/tests"]
+asyncio_default_fixture_loop_scope = "session"
+asyncio_mode = "auto"
+env = ["PREFECT_TEST_MODE=1"]
+
+[tool.uv.sources]
+prefect = { path = "../../../" }

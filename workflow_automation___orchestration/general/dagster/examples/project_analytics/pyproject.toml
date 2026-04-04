@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.19.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dagster_pypi"
+version = "1!0+dev"
+dependencies = [
+    "dagster",
+    "dagster-cloud",
+    "dagster-dbt",
+    "dagster-duckdb-pandas",
+    "dagster-gcp",
+    "dagster-gcp-pandas",
+    "dagster-hex",
+    "dagster-pandas",
+    "dbt-bigquery",
+    "dbt-duckdb",
+    "google-cloud-bigquery",
+    "psycopg2-binary",
+]
+
+[project.optional-dependencies]
+dev = ["dagster-webserver", "pytest"]
+
+[tool.dagster]
+module_name = "dagster_pypi.definitions"
+code_location_name = "dagster_pypi"
+
+[tool.ruff]
+
+src = ["dagster_pypi"]
+
+# Extend root configuration.
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+# Use extend-ignore so that we ignore all the same codes ignored in root.
+extend-ignore = [
+  # (print found): Allow prints for demo purposes.
+  "T201",
+
+  # (relative imports): relative imports are acceptable in examples & docs
+  "TID252"
+
+]

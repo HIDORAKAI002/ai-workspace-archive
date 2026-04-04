@@ -1,0 +1,228 @@
+import {
+  consolidateTextFields,
+  consolidateResponsesAPIFields,
+} from "../../../utils/streamParser";
+import { PromiseGenericResult, err, ok } from "../../../packages/common/result";
+import { IBodyProcessor, ParseInput, ParseOutput } from "./IBodyProcessor";
+import { isParseInputJson } from "./helpers";
+
+export const NON_DATA_LINES = [
+  "event: content_block_delta",
+  "event: content_block_stop",
+  "event: message_delta",
+  "event: message_stop",
+  "event: message_start",
+  "event: content_block_start",
+  "event: ping",
+  "event: completion",
+  "event: error",
+  "event: thread.message.delta",
+  "event: thread.message.completed",
+  "event: thread.run.step.completed",
+  "event: thread.run.step.created",
+  "event: thread.run.step.in_progress",
+  "event: thread.run.step.delta",
+  "event: thread.run.requires_action",
+  "event: done",
+  "event: thread.run.queued",
+  "event: thread.run.in_progress",
+  "event: thread.message.created",
+  "event: thread.message.in_progress",
+  // OpenAI /responses SSE events
+  "event: response.created",
+  "event: response.in_progress",
+  "event: response.output_item.added",
+  "event: response.content_part.added",
+  "event: response.output_text.delta",
+  "event: response.output_text.done",
+  "event: response.content_part.done",
+  "event: response.output_item.done",
+  "event: response.completed",
+  "event: response.reasoning_summary_part.added",
+  "event: response.reasoning_summary_text.delta",
+  "event: response.reasoning_summary_text.done",
+  "event: response.reasoning_summary_part.done",
+  "event: response.function_call_arguments.delta",
+  "event: response.function_call_arguments.done",
+];
+
+function tryModel(requestData: string) {
+  try {
+    const parsed = JSON.parse(requestData);
+    return parsed.model;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+export class OpenAIStreamProcessor implements IBodyProcessor {
+  async parse(parseInput: ParseInput): PromiseGenericResult<ParseOutput> {
+    if (isParseInputJson(parseInput)) {
+      return ok({
+        processedBody: JSON.parse(parseInput.responseBody),
+      });
+    }
+
+    const { responseBody, requestBody } = parseInput;
+    const lines = responseBody
+      .split("\n")
+      .filter((line) => !line.includes("OPENROUTER PROCESSING"))
+      .filter((line) => !NON_DATA_LINES.includes(line))
+      .filter((line) => line !== "");
+
+    const data = lines.map((line, i) => {
+      try {
+        return JSON.parse(line.replace("data:", ""));
+      } catch (e) {
+        // This line was filling up the logs
+        if (
+          !line.includes("[DONE]") &&
+          line !== "" &&
+          !line.startsWith("event:") // we do not parse event lines
+        ) {
+          console.log("Error parsing line OpenAI", line);
+        }
+        return err({ msg: `Error parsing line`, line });
+      }
+    });
+
+    try {
+      // Detect if this is OpenAI Responses API format
+      const isResponsesAPI = data.some(
+        (item) =>
+          item?.type === "response.created" ||
+          item?.type === "response.completed"
+      );
+
+      if (isResponsesAPI) {
+        // Handle Responses API format
+        const consolidatedData = consolidateResponsesAPIFields(data);
+        const usageData = consolidatedData?.usage;
+
+        let usage;
+        if (usageData) {
+          // Responses API uses input_tokens/output_tokens
+          // Guard: if cached > input_tokens, data is already non-cached (Anthropic convention)
+          const rInputToks = usageData.input_tokens ?? 0;
+          const rCachedToks = usageData.input_tokens_details?.cached_tokens ?? 0;
+          const effectivePromptTokens = rCachedToks > rInputToks
+            ? rInputToks
+            : Math.max(0, rInputToks - rCachedToks);
+
+          const effectiveCompletionTokens = Math.max(
+            0,
+            (usageData.output_tokens ?? 0) -
+              (usageData.output_tokens_details?.reasoning_tokens ?? 0)
+          );
+
+          usage = {
+            totalTokens: usageData.total_tokens,
+            completionTokens: effectiveCompletionTokens,
+            promptTokens: effectivePromptTokens,
+            promptCacheReadTokens:
+              usageData.input_tokens_details?.cached_tokens ?? 0,
+            heliconeCalculated: false,
+          };
+        } else {
+          usage = {
+            totalTokens: -1,
+            completionTokens: -1,
+            promptTokens: -1,
+            heliconeCalculated: true,
+            helicone_error:
+              "counting tokens not supported, please see https://docs.helicone.ai/use-cases/enable-stream-usage",
+          };
+        }
+
+        return ok({
+          processedBody: {
+            ...consolidatedData,
+            streamed_data: data,
+          },
+          usage: usage,
+        });
+      }
+
+      // Handle Chat Completions API format (existing logic)
+      const consolidatedData = consolidateTextFields(data);
+      // since we have pricing rates that are separate for audio, input, output, and cached tokens,
+      // we need to separate those components out here so that we can correctly calculate the cost.
+      const usageData =
+        consolidatedData.usage || consolidatedData.response?.usage;
+
+      let usage;
+      if (usageData) {
+        // Guard: if cached > prompt_tokens, data is already non-cached (Anthropic convention)
+        const promptToks = usageData.prompt_tokens ?? usageData.input_tokens ?? 0;
+        const cachedToks = usageData.prompt_tokens_details?.cached_tokens
+          ?? usageData.input_tokens_details?.cached_tokens ?? 0;
+        const audioToks = usageData.prompt_tokens_details?.audio_tokens ?? 0;
+        const effectivePromptTokens = cachedToks > promptToks
+          ? Math.max(0, promptToks - audioToks)
+          : Math.max(0, promptToks - cachedToks - audioToks);
+
+        const effectiveCompletionTokens =
+          usageData?.completion_tokens !== undefined
+            ? Math.max(
+                0,
+                (usageData.completion_tokens ?? 0) -
+                  (usageData.completion_tokens_details?.reasoning_tokens ?? 0) -
+                  (usageData.completion_tokens_details?.audio_tokens ?? 0)
+              )
+            : Math.max(
+                0,
+                (usageData.output_tokens ?? 0) -
+                  (usageData.output_tokens_details?.reasoning_tokens ?? 0)
+              );
+
+        usage = {
+          totalTokens: usageData?.total_tokens,
+          completionTokens: effectiveCompletionTokens,
+          promptTokens: effectivePromptTokens,
+          promptCacheReadTokens:
+            usageData?.prompt_tokens_details?.cached_tokens ??
+            usageData?.input_tokens_details?.cached_tokens ??
+            0,
+          promptCacheWriteTokens:
+            usageData?.prompt_tokens_details?.cache_write_tokens ?? 0,
+          heliconeCalculated: usageData?.helicone_calculated ?? false,
+
+          // OpenRouter may contain these fields based on wallet/BYOK setup
+          cost: usageData.cost,
+        };
+      } else if (consolidatedData.response?.usage) {
+        usage = {
+          totalTokens: consolidatedData.response?.usage?.total_tokens,
+          completionTokens: consolidatedData.response?.usage?.output_tokens,
+          promptTokens: consolidatedData.response?.usage?.input_tokens,
+          heliconeCalculated: true,
+        };
+      } else {
+        usage = {
+          totalTokens: -1,
+          completionTokens: -1,
+          promptTokens: -1,
+          heliconeCalculated: true,
+          helicone_error:
+            "counting tokens not supported, please see https://docs.helicone.ai/use-cases/enable-stream-usage",
+        };
+      }
+
+      return ok({
+        processedBody: {
+          ...consolidatedData,
+          streamed_data: data,
+        },
+        usage: usage,
+      });
+    } catch (e) {
+      console.error(`Error parsing OpenAI stream response: ${e}`);
+      return ok({
+        processedBody: {
+          streamed_data: data,
+        },
+        usage: undefined,
+      });
+    }
+  }
+}

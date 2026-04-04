@@ -1,0 +1,42 @@
+module Anthropic
+  module Models
+    class BetaCitationsDelta = Beta::BetaCitationsDelta
+
+    module Beta
+      type beta_citations_delta =
+        {
+          citation: Anthropic::Models::Beta::BetaCitationsDelta::citation,
+          type: :citations_delta
+        }
+
+      class BetaCitationsDelta < Anthropic::Internal::Type::BaseModel
+        attr_accessor citation: Anthropic::Models::Beta::BetaCitationsDelta::citation
+
+        attr_accessor type: :citations_delta
+
+        def initialize: (
+          citation: Anthropic::Models::Beta::BetaCitationsDelta::citation,
+          ?type: :citations_delta
+        ) -> void
+
+        def to_hash: -> {
+          citation: Anthropic::Models::Beta::BetaCitationsDelta::citation,
+          type: :citations_delta
+        }
+
+        type citation =
+          Anthropic::Beta::BetaCitationCharLocation
+          | Anthropic::Beta::BetaCitationPageLocation
+          | Anthropic::Beta::BetaCitationContentBlockLocation
+          | Anthropic::Beta::BetaCitationsWebSearchResultLocation
+          | Anthropic::Beta::BetaCitationSearchResultLocation
+
+        module Citation
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaCitationsDelta::citation]
+        end
+      end
+    end
+  end
+end

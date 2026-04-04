@@ -1,0 +1,21 @@
+module Anthropic
+  module Resources
+    class Models
+      def retrieve: (
+        String model_id,
+        ?betas: ::Array[Anthropic::Models::anthropic_beta],
+        ?request_options: Anthropic::request_opts
+      ) -> Anthropic::ModelInfo
+
+      def list: (
+        ?after_id: String,
+        ?before_id: String,
+        ?limit: Integer,
+        ?betas: ::Array[Anthropic::Models::anthropic_beta],
+        ?request_options: Anthropic::request_opts
+      ) -> Anthropic::Internal::Page[Anthropic::ModelInfo]
+
+      def initialize: (client: Anthropic::Client) -> void
+    end
+  end
+end

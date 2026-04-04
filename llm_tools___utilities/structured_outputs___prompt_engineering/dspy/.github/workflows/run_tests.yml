@@ -1,0 +1,170 @@
+name: Lint, Test, and Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  fix:
+    name: Check Ruff Fix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+      - name: Install uv with caching
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - name: Create and activate virtual environment
+        run: |
+          uv venv .venv
+          echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: uv sync --dev -p .venv --extra dev
+      - name: Ruff Check
+        run: |
+          ruff check --fix-only --diff --exit-non-zero-on-fix || (
+            echo ""
+            echo "❌ Ruff found issues that can be fixed automatically."
+            echo "💡 To fix them locally, run:"
+            echo ""
+            echo "    pre-commit run --all-files"
+            echo ""
+            echo "Then commit and push the changes."
+            exit 1
+          )
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Deno
+        uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
+        with:
+          deno-version: v2.7.7
+      - name: Verify Deno installation
+        run: deno --version
+      - name: Install uv with caching
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - name: Create and activate virtual environment
+        run: |
+          uv venv .venv
+          echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: |
+          uv sync --dev -p .venv --extra dev
+          uv pip list
+      - name: Run lint with tests
+        uses: chartboost/ruff-action@e18ae971ccee1b2d7bbef113930f00c670b78da4 # v1
+        with:
+          args: check --fix-only
+      - name: Run tests with pytest
+        run: uv run -p .venv pytest -vv tests/
+      - name: Install optional dependencies
+        run: uv sync -p .venv --extra dev --extra test_extras
+      - name: Run extra and deno tests
+        run: uv run -p .venv pytest tests/ -m 'extra or deno' --extra --deno
+  
+  llm_call_test:
+    name: Run Tests with Real LM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: 3.11
+      - name: Install uv with caching
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - name: Create and activate virtual environment
+        run: |
+          uv venv .venv
+          echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: |
+          uv sync --dev -p .venv --extra dev
+          uv pip list
+      - name: Cache Ollama models
+        id: cache-ollama
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ollama-data
+          key: ollama-llama3.2-3b-${{ runner.os }}-v1
+      - name: Start Ollama service
+        run: |
+          mkdir -p ollama-data
+          docker run -d --name ollama \
+            -p 11434:11434 \
+            -v ${{ github.workspace }}/ollama-data:/root/.ollama \
+            ollama/ollama:latest
+          timeout 60 bash -c 'until curl -f http://localhost:11434/api/version; do sleep 2; done'
+      - name: Pull LLM
+        if: steps.cache-ollama.outputs.cache-hit != 'true'
+        run: docker exec ollama ollama pull llama3.2:3b
+      - name: Set LM environment variable
+        run: echo "LM_FOR_TEST=ollama/llama3.2:3b" >> $GITHUB_ENV
+      - name: Run tests
+        run: uv run -p .venv pytest -m llm_call --llm_call -vv --durations=5 tests/
+      - name: Fix permissions for cache
+        if: always()
+        run: sudo chown -R $USER:$USER ollama-data || true
+      - name: Stop Ollama service
+        if: always()
+        run: docker stop ollama && docker rm ollama
+
+  build_package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv with caching
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - name: Create and activate virtual environment
+        run: |
+          uv venv .venv
+          echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: uv sync --dev -p .venv --extra dev
+      - name: Build
+        run: uv run -p .venv python -m build
+      - name: Install built package
+        run: uv pip install dist/*.whl -p .venv
+      - name: Test import dspy
+        run: uv run -p .venv python -c "import dspy"

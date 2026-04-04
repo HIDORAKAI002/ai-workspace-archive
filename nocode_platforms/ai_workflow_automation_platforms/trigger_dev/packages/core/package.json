@@ -1,0 +1,586 @@
+{
+  "name": "@trigger.dev/core",
+  "version": "4.4.3",
+  "description": "Core code used across the Trigger.dev SDK and platform",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/triggerdotdev/trigger.dev",
+    "directory": "packages/core"
+  },
+  "files": [
+    "dist"
+  ],
+  "tshy": {
+    "selfLink": false,
+    "main": true,
+    "module": true,
+    "project": "./tsconfig.src.json",
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./src/index.ts",
+      "./logger": "./src/logger.ts",
+      "./utils": "./src/utils.ts",
+      "./schemas": "./src/schemas/index.ts",
+      "./types": "./src/types.ts",
+      "./v3": "./src/v3/index.ts",
+      "./v3/tracer": "./src/v3/tracer.ts",
+      "./v3/build": "./src/v3/build/index.ts",
+      "./v3/apps": "./src/v3/apps/index.ts",
+      "./v3/jwt": "./src/v3/jwt.ts",
+      "./v3/errors": "./src/v3/errors.ts",
+      "./v3/logger-api": "./src/v3/logger-api.ts",
+      "./v3/otel": "./src/v3/otel/index.ts",
+      "./v3/semanticInternalAttributes": "./src/v3/semanticInternalAttributes.ts",
+      "./v3/utils/durations": "./src/v3/utils/durations.ts",
+      "./v3/utils/flattenAttributes": "./src/v3/utils/flattenAttributes.ts",
+      "./v3/utils/ioSerialization": "./src/v3/utils/ioSerialization.ts",
+      "./v3/utils/omit": "./src/v3/utils/omit.ts",
+      "./v3/utils/retries": "./src/v3/utils/retries.ts",
+      "./v3/utils/structuredLogger": "./src/v3/utils/structuredLogger.ts",
+      "./v3/zodfetch": "./src/v3/zodfetch.ts",
+      "./v3/zodMessageHandler": "./src/v3/zodMessageHandler.ts",
+      "./v3/zodNamespace": "./src/v3/zodNamespace.ts",
+      "./v3/zodSocket": "./src/v3/zodSocket.ts",
+      "./v3/zodIpc": "./src/v3/zodIpc.ts",
+      "./v3/utils/timers": "./src/v3/utils/timers.ts",
+      "./v3/workers": "./src/v3/workers/index.ts",
+      "./v3/schemas": "./src/v3/schemas/index.ts",
+      "./v3/runEngineWorker": "./src/v3/runEngineWorker/index.ts",
+      "./v3/machines": "./src/v3/machines/index.ts",
+      "./v3/serverOnly": "./src/v3/serverOnly/index.ts",
+      "./v3/isomorphic": "./src/v3/isomorphic/index.ts"
+    },
+    "sourceDialects": [
+      "@triggerdotdev/source"
+    ]
+  },
+  "typesVersions": {
+    "*": {
+      "logger": [
+        "dist/commonjs/logger.d.ts"
+      ],
+      "utils": [
+        "dist/commonjs/utils.d.ts"
+      ],
+      "schemas": [
+        "dist/commonjs/schemas/index.d.ts"
+      ],
+      "types": [
+        "dist/commonjs/types.d.ts"
+      ],
+      "v3": [
+        "dist/commonjs/v3/index.d.ts"
+      ],
+      "v3/tracer": [
+        "dist/commonjs/v3/tracer.d.ts"
+      ],
+      "v3/build": [
+        "dist/commonjs/v3/build/index.d.ts"
+      ],
+      "v3/apps": [
+        "dist/commonjs/v3/apps/index.d.ts"
+      ],
+      "v3/errors": [
+        "dist/commonjs/v3/errors.d.ts"
+      ],
+      "v3/logger-api": [
+        "dist/commonjs/v3/logger-api.d.ts"
+      ],
+      "v3/otel": [
+        "dist/commonjs/v3/otel/index.d.ts"
+      ],
+      "v3/semanticInternalAttributes": [
+        "dist/commonjs/v3/semanticInternalAttributes.d.ts"
+      ],
+      "v3/utils/durations": [
+        "dist/commonjs/v3/utils/durations.d.ts"
+      ],
+      "v3/utils/flattenAttributes": [
+        "dist/commonjs/v3/utils/flattenAttributes.d.ts"
+      ],
+      "v3/utils/ioSerialization": [
+        "dist/commonjs/v3/utils/ioSerialization.d.ts"
+      ],
+      "v3/utils/omit": [
+        "dist/commonjs/v3/utils/omit.d.ts"
+      ],
+      "v3/utils/retries": [
+        "dist/commonjs/v3/utils/retries.d.ts"
+      ],
+      "v3/utils/structuredLogger": [
+        "dist/commonjs/v3/utils/structuredLogger.d.ts"
+      ],
+      "v3/zodfetch": [
+        "dist/commonjs/v3/zodfetch.d.ts"
+      ],
+      "v3/zodMessageHandler": [
+        "dist/commonjs/v3/zodMessageHandler.d.ts"
+      ],
+      "v3/zodNamespace": [
+        "dist/commonjs/v3/zodNamespace.d.ts"
+      ],
+      "v3/zodSocket": [
+        "dist/commonjs/v3/zodSocket.d.ts"
+      ],
+      "v3/zodIpc": [
+        "dist/commonjs/v3/zodIpc.d.ts"
+      ],
+      "v3/utils/timers": [
+        "dist/commonjs/v3/utils/timers.d.ts"
+      ],
+      "v3/workers": [
+        "dist/commonjs/v3/workers/index.d.ts"
+      ],
+      "v3/schemas": [
+        "dist/commonjs/v3/schemas/index.d.ts"
+      ],
+      "v3/jwt": [
+        "dist/commonjs/v3/jwt.d.ts"
+      ],
+      "v3/runEngineWorker": [
+        "dist/commonjs/v3/runEngineWorker/index.d.ts"
+      ],
+      "v3/machines": [
+        "dist/commonjs/v3/machines/index.d.ts"
+      ],
+      "v3/serverOnly": [
+        "dist/commonjs/v3/serverOnly/index.d.ts"
+      ],
+      "v3/isomorphic": [
+        "dist/commonjs/v3/isomorphic/index.d.ts"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf dist .tshy .tshy-build .turbo src/v3/vendor",
+    "update-version": "tsx ../../scripts/updateVersion.ts",
+    "bundle-vendor": "node scripts/bundle-superjson.mjs",
+    "build": "pnpm run bundle-vendor && tshy && node scripts/bundle-superjson.mjs --copy && pnpm run update-version",
+    "dev": "pnpm run bundle-vendor && tshy --watch",
+    "typecheck": "pnpm run bundle-vendor && tsc --noEmit -p tsconfig.src.json",
+    "pretest": "pnpm run bundle-vendor",
+    "test": "vitest",
+    "check-exports": "attw --pack ."
+  },
+  "dependencies": {
+    "@bugsnag/cuid": "^3.1.1",
+    "@electric-sql/client": "1.0.14",
+    "@google-cloud/precise-date": "^4.0.0",
+    "@jsonhero/path": "^1.0.21",
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/api-logs": "0.203.0",
+    "@opentelemetry/core": "2.0.1",
+    "@opentelemetry/exporter-logs-otlp-http": "0.203.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "0.203.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.203.0",
+    "@opentelemetry/host-metrics": "^0.37.0",
+    "@opentelemetry/instrumentation": "0.203.0",
+    "@opentelemetry/resources": "2.0.1",
+    "@opentelemetry/sdk-logs": "0.203.0",
+    "@opentelemetry/sdk-metrics": "2.0.1",
+    "@opentelemetry/sdk-trace-base": "2.0.1",
+    "@opentelemetry/sdk-trace-node": "2.0.1",
+    "@opentelemetry/semantic-conventions": "1.36.0",
+    "@s2-dev/streamstore": "0.22.5",
+    "dequal": "^2.0.3",
+    "eventsource": "^3.0.5",
+    "eventsource-parser": "^3.0.0",
+    "execa": "^8.0.1",
+    "humanize-duration": "^3.27.3",
+    "jose": "^5.4.0",
+    "nanoid": "3.3.8",
+    "prom-client": "^15.1.0",
+    "socket.io": "4.7.4",
+    "socket.io-client": "4.7.5",
+    "std-env": "^3.8.1",
+    "tinyexec": "^0.3.2",
+    "uncrypto": "^0.1.3",
+    "zod": "3.25.76",
+    "zod-error": "1.5.0",
+    "zod-validation-error": "^1.5.0"
+  },
+  "devDependencies": {
+    "@ai-sdk/provider-utils": "^1.0.22",
+    "@arethetypeswrong/cli": "^0.15.4",
+    "@epic-web/test-server": "^0.1.0",
+    "@trigger.dev/database": "workspace:*",
+    "@types/humanize-duration": "^3.27.1",
+    "@types/lodash.get": "^4.4.9",
+    "@types/readable-stream": "^4.0.14",
+    "ai": "^6.0.0",
+    "defu": "^6.1.4",
+    "esbuild": "^0.23.0",
+    "rimraf": "^3.0.2",
+    "superjson": "^2.2.1",
+    "ts-essentials": "10.0.1",
+    "tshy": "^3.0.2",
+    "tsx": "4.17.0"
+  },
+  "engines": {
+    "node": ">=18.20.0"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@triggerdotdev/source": "./src/index.ts",
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    },
+    "./logger": {
+      "import": {
+        "@triggerdotdev/source": "./src/logger.ts",
+        "types": "./dist/esm/logger.d.ts",
+        "default": "./dist/esm/logger.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/logger.d.ts",
+        "default": "./dist/commonjs/logger.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "@triggerdotdev/source": "./src/utils.ts",
+        "types": "./dist/esm/utils.d.ts",
+        "default": "./dist/esm/utils.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/utils.d.ts",
+        "default": "./dist/commonjs/utils.js"
+      }
+    },
+    "./schemas": {
+      "import": {
+        "@triggerdotdev/source": "./src/schemas/index.ts",
+        "types": "./dist/esm/schemas/index.d.ts",
+        "default": "./dist/esm/schemas/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/schemas/index.d.ts",
+        "default": "./dist/commonjs/schemas/index.js"
+      }
+    },
+    "./types": {
+      "import": {
+        "@triggerdotdev/source": "./src/types.ts",
+        "types": "./dist/esm/types.d.ts",
+        "default": "./dist/esm/types.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/types.d.ts",
+        "default": "./dist/commonjs/types.js"
+      }
+    },
+    "./v3": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/index.ts",
+        "types": "./dist/esm/v3/index.d.ts",
+        "default": "./dist/esm/v3/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/index.d.ts",
+        "default": "./dist/commonjs/v3/index.js"
+      }
+    },
+    "./v3/tracer": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/tracer.ts",
+        "types": "./dist/esm/v3/tracer.d.ts",
+        "default": "./dist/esm/v3/tracer.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/tracer.d.ts",
+        "default": "./dist/commonjs/v3/tracer.js"
+      }
+    },
+    "./v3/build": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/build/index.ts",
+        "types": "./dist/esm/v3/build/index.d.ts",
+        "default": "./dist/esm/v3/build/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/build/index.d.ts",
+        "default": "./dist/commonjs/v3/build/index.js"
+      }
+    },
+    "./v3/apps": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/apps/index.ts",
+        "types": "./dist/esm/v3/apps/index.d.ts",
+        "default": "./dist/esm/v3/apps/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/apps/index.d.ts",
+        "default": "./dist/commonjs/v3/apps/index.js"
+      }
+    },
+    "./v3/jwt": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/jwt.ts",
+        "types": "./dist/esm/v3/jwt.d.ts",
+        "default": "./dist/esm/v3/jwt.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/jwt.d.ts",
+        "default": "./dist/commonjs/v3/jwt.js"
+      }
+    },
+    "./v3/errors": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/errors.ts",
+        "types": "./dist/esm/v3/errors.d.ts",
+        "default": "./dist/esm/v3/errors.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/errors.d.ts",
+        "default": "./dist/commonjs/v3/errors.js"
+      }
+    },
+    "./v3/logger-api": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/logger-api.ts",
+        "types": "./dist/esm/v3/logger-api.d.ts",
+        "default": "./dist/esm/v3/logger-api.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/logger-api.d.ts",
+        "default": "./dist/commonjs/v3/logger-api.js"
+      }
+    },
+    "./v3/otel": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/otel/index.ts",
+        "types": "./dist/esm/v3/otel/index.d.ts",
+        "default": "./dist/esm/v3/otel/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/otel/index.d.ts",
+        "default": "./dist/commonjs/v3/otel/index.js"
+      }
+    },
+    "./v3/semanticInternalAttributes": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/semanticInternalAttributes.ts",
+        "types": "./dist/esm/v3/semanticInternalAttributes.d.ts",
+        "default": "./dist/esm/v3/semanticInternalAttributes.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/semanticInternalAttributes.d.ts",
+        "default": "./dist/commonjs/v3/semanticInternalAttributes.js"
+      }
+    },
+    "./v3/utils/durations": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/durations.ts",
+        "types": "./dist/esm/v3/utils/durations.d.ts",
+        "default": "./dist/esm/v3/utils/durations.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/durations.d.ts",
+        "default": "./dist/commonjs/v3/utils/durations.js"
+      }
+    },
+    "./v3/utils/flattenAttributes": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/flattenAttributes.ts",
+        "types": "./dist/esm/v3/utils/flattenAttributes.d.ts",
+        "default": "./dist/esm/v3/utils/flattenAttributes.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/flattenAttributes.d.ts",
+        "default": "./dist/commonjs/v3/utils/flattenAttributes.js"
+      }
+    },
+    "./v3/utils/ioSerialization": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/ioSerialization.ts",
+        "types": "./dist/esm/v3/utils/ioSerialization.d.ts",
+        "default": "./dist/esm/v3/utils/ioSerialization.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/ioSerialization.d.ts",
+        "default": "./dist/commonjs/v3/utils/ioSerialization.js"
+      }
+    },
+    "./v3/utils/omit": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/omit.ts",
+        "types": "./dist/esm/v3/utils/omit.d.ts",
+        "default": "./dist/esm/v3/utils/omit.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/omit.d.ts",
+        "default": "./dist/commonjs/v3/utils/omit.js"
+      }
+    },
+    "./v3/utils/retries": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/retries.ts",
+        "types": "./dist/esm/v3/utils/retries.d.ts",
+        "default": "./dist/esm/v3/utils/retries.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/retries.d.ts",
+        "default": "./dist/commonjs/v3/utils/retries.js"
+      }
+    },
+    "./v3/utils/structuredLogger": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/structuredLogger.ts",
+        "types": "./dist/esm/v3/utils/structuredLogger.d.ts",
+        "default": "./dist/esm/v3/utils/structuredLogger.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/structuredLogger.d.ts",
+        "default": "./dist/commonjs/v3/utils/structuredLogger.js"
+      }
+    },
+    "./v3/zodfetch": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/zodfetch.ts",
+        "types": "./dist/esm/v3/zodfetch.d.ts",
+        "default": "./dist/esm/v3/zodfetch.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/zodfetch.d.ts",
+        "default": "./dist/commonjs/v3/zodfetch.js"
+      }
+    },
+    "./v3/zodMessageHandler": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/zodMessageHandler.ts",
+        "types": "./dist/esm/v3/zodMessageHandler.d.ts",
+        "default": "./dist/esm/v3/zodMessageHandler.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/zodMessageHandler.d.ts",
+        "default": "./dist/commonjs/v3/zodMessageHandler.js"
+      }
+    },
+    "./v3/zodNamespace": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/zodNamespace.ts",
+        "types": "./dist/esm/v3/zodNamespace.d.ts",
+        "default": "./dist/esm/v3/zodNamespace.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/zodNamespace.d.ts",
+        "default": "./dist/commonjs/v3/zodNamespace.js"
+      }
+    },
+    "./v3/zodSocket": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/zodSocket.ts",
+        "types": "./dist/esm/v3/zodSocket.d.ts",
+        "default": "./dist/esm/v3/zodSocket.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/zodSocket.d.ts",
+        "default": "./dist/commonjs/v3/zodSocket.js"
+      }
+    },
+    "./v3/zodIpc": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/zodIpc.ts",
+        "types": "./dist/esm/v3/zodIpc.d.ts",
+        "default": "./dist/esm/v3/zodIpc.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/zodIpc.d.ts",
+        "default": "./dist/commonjs/v3/zodIpc.js"
+      }
+    },
+    "./v3/utils/timers": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/utils/timers.ts",
+        "types": "./dist/esm/v3/utils/timers.d.ts",
+        "default": "./dist/esm/v3/utils/timers.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/utils/timers.d.ts",
+        "default": "./dist/commonjs/v3/utils/timers.js"
+      }
+    },
+    "./v3/workers": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/workers/index.ts",
+        "types": "./dist/esm/v3/workers/index.d.ts",
+        "default": "./dist/esm/v3/workers/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/workers/index.d.ts",
+        "default": "./dist/commonjs/v3/workers/index.js"
+      }
+    },
+    "./v3/schemas": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/schemas/index.ts",
+        "types": "./dist/esm/v3/schemas/index.d.ts",
+        "default": "./dist/esm/v3/schemas/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/schemas/index.d.ts",
+        "default": "./dist/commonjs/v3/schemas/index.js"
+      }
+    },
+    "./v3/runEngineWorker": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/runEngineWorker/index.ts",
+        "types": "./dist/esm/v3/runEngineWorker/index.d.ts",
+        "default": "./dist/esm/v3/runEngineWorker/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/runEngineWorker/index.d.ts",
+        "default": "./dist/commonjs/v3/runEngineWorker/index.js"
+      }
+    },
+    "./v3/machines": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/machines/index.ts",
+        "types": "./dist/esm/v3/machines/index.d.ts",
+        "default": "./dist/esm/v3/machines/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/machines/index.d.ts",
+        "default": "./dist/commonjs/v3/machines/index.js"
+      }
+    },
+    "./v3/serverOnly": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/serverOnly/index.ts",
+        "types": "./dist/esm/v3/serverOnly/index.d.ts",
+        "default": "./dist/esm/v3/serverOnly/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/serverOnly/index.d.ts",
+        "default": "./dist/commonjs/v3/serverOnly/index.js"
+      }
+    },
+    "./v3/isomorphic": {
+      "import": {
+        "@triggerdotdev/source": "./src/v3/isomorphic/index.ts",
+        "types": "./dist/esm/v3/isomorphic/index.d.ts",
+        "default": "./dist/esm/v3/isomorphic/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/v3/isomorphic/index.d.ts",
+        "default": "./dist/commonjs/v3/isomorphic/index.js"
+      }
+    }
+  },
+  "type": "module",
+  "main": "./dist/commonjs/index.js",
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.js"
+}

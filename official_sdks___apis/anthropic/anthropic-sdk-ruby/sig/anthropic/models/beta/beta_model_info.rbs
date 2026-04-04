@@ -1,0 +1,54 @@
+module Anthropic
+  module Models
+    class BetaModelInfo = Beta::BetaModelInfo
+
+    module Beta
+      type beta_model_info =
+        {
+          id: String,
+          capabilities: Anthropic::Beta::BetaModelCapabilities?,
+          created_at: Time,
+          display_name: String,
+          max_input_tokens: Integer?,
+          max_tokens: Integer?,
+          type: :model
+        }
+
+      class BetaModelInfo < Anthropic::Internal::Type::BaseModel
+        attr_accessor id: String
+
+        attr_accessor capabilities: Anthropic::Beta::BetaModelCapabilities?
+
+        attr_accessor created_at: Time
+
+        attr_accessor display_name: String
+
+        attr_accessor max_input_tokens: Integer?
+
+        attr_accessor max_tokens: Integer?
+
+        attr_accessor type: :model
+
+        def initialize: (
+          id: String,
+          capabilities: Anthropic::Beta::BetaModelCapabilities?,
+          created_at: Time,
+          display_name: String,
+          max_input_tokens: Integer?,
+          max_tokens: Integer?,
+          ?type: :model
+        ) -> void
+
+        def to_hash: -> {
+          id: String,
+          capabilities: Anthropic::Beta::BetaModelCapabilities?,
+          created_at: Time,
+          display_name: String,
+          max_input_tokens: Integer?,
+          max_tokens: Integer?,
+          type: :model
+        }
+      end
+    end
+  end
+end

@@ -1,0 +1,218 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package inverted
+
+import (
+	"runtime"
+	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/weaviate/weaviate/adapters/repos/db/inverted/stopwords"
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/entities/schema"
+	"github.com/weaviate/weaviate/usecases/config"
+)
+
+var _NUMCPU = runtime.NumCPU()
+
+func ValidateConfig(conf *models.InvertedIndexConfig) error {
+	if conf.CleanupIntervalSeconds < 0 {
+		return errors.Errorf("cleanup interval seconds must be > 0")
+	}
+
+	err := validateBM25Config(conf.Bm25)
+	if err != nil {
+		return err
+	}
+
+	err = validateStopwordConfig(conf.Stopwords)
+	if err != nil {
+		return err
+	}
+
+	err = validateTokenizerUserDictConfig(conf.TokenizerUserDict)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ConfigFromModel(iicm *models.InvertedIndexConfig) schema.InvertedIndexConfig {
+	var conf schema.InvertedIndexConfig
+
+	conf.IndexTimestamps = iicm.IndexTimestamps
+	conf.IndexNullState = iicm.IndexNullState
+	conf.IndexPropertyLength = iicm.IndexPropertyLength
+
+	if iicm.Bm25 == nil {
+		conf.BM25.K1 = float64(config.DefaultBM25k1)
+		conf.BM25.B = float64(config.DefaultBM25b)
+	} else {
+		conf.BM25.K1 = float64(iicm.Bm25.K1)
+		conf.BM25.B = float64(iicm.Bm25.B)
+	}
+
+	if iicm.Stopwords == nil {
+		conf.Stopwords = models.StopwordConfig{
+			Preset: stopwords.EnglishPreset,
+		}
+	} else {
+		conf.Stopwords.Preset = iicm.Stopwords.Preset
+		conf.Stopwords.Additions = iicm.Stopwords.Additions
+		conf.Stopwords.Removals = iicm.Stopwords.Removals
+	}
+
+	if iicm.TokenizerUserDict != nil {
+		conf.TokenizerUserDict = make([]*models.TokenizerUserDictConfig, len(iicm.TokenizerUserDict))
+		for i, tudc := range iicm.TokenizerUserDict {
+			conf.TokenizerUserDict[i] = &models.TokenizerUserDictConfig{
+				Replacements: tudc.Replacements,
+				Tokenizer:    tudc.Tokenizer,
+			}
+		}
+	}
+
+	conf.UsingBlockMaxWAND = iicm.UsingBlockMaxWAND
+
+	return conf
+}
+
+func validateBM25Config(conf *models.BM25Config) error {
+	if conf == nil {
+		return nil
+	}
+
+	if conf.K1 < 0 {
+		return errors.Errorf("BM25.k1 must be >= 0")
+	}
+	if conf.B < 0 || conf.B > 1 {
+		return errors.Errorf("BM25.b must be >= 0 and <= 1")
+	}
+
+	return nil
+}
+
+func validateStopwordConfig(conf *models.StopwordConfig) error {
+	if conf == nil {
+		conf = &models.StopwordConfig{}
+	}
+
+	if conf.Preset == "" {
+		conf.Preset = stopwords.EnglishPreset
+	}
+
+	if _, ok := stopwords.Presets[conf.Preset]; !ok {
+		return errors.Errorf("stopwordPreset '%s' does not exist", conf.Preset)
+	}
+
+	err := validateStopwordAdditionsRemovals(conf)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateStopwordAdditionsRemovals(conf *models.StopwordConfig) error {
+	// the same stopword cannot exist
+	// in both additions and removals
+	foundAdditions := make(map[string]int)
+
+	for idx, add := range conf.Additions {
+		if strings.TrimSpace(add) == "" {
+			return errors.Errorf("cannot use whitespace in stopword.additions")
+		}
+
+		// save the index of the addition since it
+		// is readily available here. we will need
+		// this below when trimming additions that
+		// already exist in the selected preset
+		foundAdditions[add] = idx
+	}
+
+	for _, rem := range conf.Removals {
+		if strings.TrimSpace(rem) == "" {
+			return errors.Errorf("cannot use whitespace in stopword.removals")
+		}
+
+		if _, ok := foundAdditions[rem]; ok {
+			return errors.Errorf(
+				"found '%s' in both stopwords.additions and stopwords.removals", rem)
+		}
+	}
+
+	removeStopwordAdditionsIfInPreset(conf, foundAdditions)
+	return nil
+}
+
+func removeStopwordAdditionsIfInPreset(conf *models.StopwordConfig, foundAdditions map[string]int) {
+	presets := stopwords.Presets[conf.Preset]
+
+	// if any of the elements in stopwords.additions
+	// already exist in the preset, mark it as to
+	// be removed
+	indicesToRemove := make(map[int]bool)
+	for _, preset := range presets {
+		if idx, ok := foundAdditions[preset]; ok {
+			indicesToRemove[idx] = true
+		}
+	}
+
+	if len(indicesToRemove) == 0 {
+		return
+	}
+
+	// take remaining additions, build new list
+	var trimmedAdditions []string
+	for idx, add := range conf.Additions {
+		if _, ok := indicesToRemove[idx]; !ok {
+			trimmedAdditions = append(trimmedAdditions, add)
+		}
+	}
+	conf.Additions = trimmedAdditions
+}
+
+func validateTokenizerUserDictConfig(conf []*models.TokenizerUserDictConfig) error {
+	if conf == nil {
+		return nil
+	}
+	// find duplicate from and to entries
+	seenTokenizers := make(map[string]struct{})
+	for _, c := range conf {
+		seen := make(map[string]struct{})
+		if c.Tokenizer != models.PropertyTokenizationKagomeKr && c.Tokenizer != models.PropertyTokenizationKagomeJa {
+			return errors.Errorf("tokenizer '%s' in tokenizer user dict config is not supported", c.Tokenizer)
+		}
+		if _, ok := seenTokenizers[c.Tokenizer]; !ok {
+			seenTokenizers[c.Tokenizer] = struct{}{}
+		} else {
+			return errors.Errorf("found duplicate tokenizer '%s' in tokenizer user dict config", c.Tokenizer)
+		}
+		for _, repl := range c.Replacements {
+			if repl.Source == nil || repl.Target == nil {
+				return errors.Errorf("both source and target must be set")
+			}
+			if strings.TrimSpace(*repl.Source) == "" {
+				return errors.Errorf("source cannot be empty or whitespace")
+			}
+			if _, ok := seen[*repl.Source]; !ok {
+				seen[*repl.Source] = struct{}{}
+			} else {
+				return errors.Errorf("found duplicate replacement source '%s'", *repl.Source)
+			}
+
+			seen[*repl.Source] = struct{}{}
+		}
+	}
+	return nil
+}

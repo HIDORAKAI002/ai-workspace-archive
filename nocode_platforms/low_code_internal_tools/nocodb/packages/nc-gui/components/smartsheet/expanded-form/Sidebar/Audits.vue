@@ -132,8 +132,42 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2 my-2">
-          You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
+        <div v-if="isCeRetentionLimited" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            {{ $t('upgrade.ceAuditRetentionNotice') }}
+          </div>
+          <a
+            v-e="['c:audit:retention:upgrade']"
+            href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=audit_retention"
+            target="_blank"
+            rel="noopener"
+            class="!no-underline"
+          >
+            <NcButton type="secondary" size="xs">
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+                {{ $t('general.upgrade') }}
+              </div>
+            </NcButton>
+          </a>
+        </div>
+        <div v-else-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
+            history.
+          </div>
+          <NcButton
+            v-if="isPaymentEnabled"
+            v-e="['c:audit:retention:upgrade']"
+            type="secondary"
+            size="xs"
+            @click="showAuditUpgradeModal"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+              {{ $t('general.upgrade') }}
+            </div>
+          </NcButton>
         </div>
         <div v-if="hasMoreAudits" class="p-3 text-center">
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>

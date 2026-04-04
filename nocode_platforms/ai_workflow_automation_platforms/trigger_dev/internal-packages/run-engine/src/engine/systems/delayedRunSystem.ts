@@ -1,0 +1,213 @@
+import { startSpan } from "@internal/tracing";
+import { SystemResources } from "./systems.js";
+import { PrismaClientOrTransaction, TaskRun } from "@trigger.dev/database";
+import { getLatestExecutionSnapshot } from "./executionSnapshotSystem.js";
+import { parseNaturalLanguageDuration } from "@trigger.dev/core/v3/isomorphic";
+import { EnqueueSystem } from "./enqueueSystem.js";
+import { ServiceValidationError } from "../errors.js";
+
+export type DelayedRunSystemOptions = {
+  resources: SystemResources;
+  enqueueSystem: EnqueueSystem;
+};
+
+export class DelayedRunSystem {
+  private readonly $: SystemResources;
+  private readonly enqueueSystem: EnqueueSystem;
+
+  constructor(private readonly options: DelayedRunSystemOptions) {
+    this.$ = options.resources;
+    this.enqueueSystem = options.enqueueSystem;
+  }
+
+  /**
+   * Reschedules a delayed run where the run hasn't been queued yet
+   */
+  async rescheduleDelayedRun({
+    runId,
+    delayUntil,
+    tx,
+  }: {
+    runId: string;
+    delayUntil: Date;
+    tx?: PrismaClientOrTransaction;
+  }): Promise<TaskRun> {
+    const prisma = tx ?? this.$.prisma;
+    return startSpan(
+      this.$.tracer,
+      "rescheduleDelayedRun",
+      async () => {
+        return await this.$.runLock.lock("rescheduleDelayedRun", [runId], async () => {
+          const snapshot = await getLatestExecutionSnapshot(prisma, runId);
+
+          // Check if the run is still in DELAYED status (or legacy RUN_CREATED for older runs)
+          if (
+            snapshot.executionStatus !== "DELAYED" &&
+            snapshot.executionStatus !== "RUN_CREATED"
+          ) {
+            throw new ServiceValidationError("Cannot reschedule a run that is not delayed");
+          }
+
+          const updatedRun = await prisma.taskRun.update({
+            where: {
+              id: runId,
+            },
+            data: {
+              delayUntil: delayUntil,
+              executionSnapshots: {
+                create: {
+                  engine: "V2",
+                  executionStatus: "DELAYED",
+                  description: "Delayed run was rescheduled to a future date",
+                  runStatus: "DELAYED",
+                  environmentId: snapshot.environmentId,
+                  environmentType: snapshot.environmentType,
+                  projectId: snapshot.projectId,
+                  organizationId: snapshot.organizationId,
+                },
+              },
+            },
+          });
+
+          await this.$.worker.reschedule(`enqueueDelayedRun:${updatedRun.id}`, delayUntil);
+
+          this.$.eventBus.emit("runDelayRescheduled", {
+            time: new Date(),
+            run: {
+              id: updatedRun.id,
+              status: updatedRun.status,
+              delayUntil: delayUntil,
+              updatedAt: updatedRun.updatedAt,
+              createdAt: updatedRun.createdAt,
+            },
+            organization: {
+              id: snapshot.organizationId,
+            },
+            project: {
+              id: updatedRun.projectId,
+            },
+            environment: {
+              id: updatedRun.runtimeEnvironmentId,
+            },
+          });
+
+          return updatedRun;
+        });
+      },
+      {
+        attributes: { runId },
+      }
+    );
+  }
+
+  async enqueueDelayedRun({ runId }: { runId: string }) {
+    // Use lock to prevent race with debounce rescheduling
+    return await this.$.runLock.lock("enqueueDelayedRun", [runId], async () => {
+      // Check if run is still in DELAYED status before enqueuing
+      // This prevents a race where debounce reschedules the run while we're about to enqueue it
+      const snapshot = await getLatestExecutionSnapshot(this.$.prisma, runId);
+
+      if (snapshot.executionStatus !== "DELAYED" && snapshot.executionStatus !== "RUN_CREATED") {
+        this.$.logger.debug("enqueueDelayedRun: run is no longer delayed, skipping enqueue", {
+          runId,
+          executionStatus: snapshot.executionStatus,
+        });
+        return;
+      }
+
+      const run = await this.$.prisma.taskRun.findFirst({
+        where: { id: runId },
+        include: {
+          runtimeEnvironment: {
+            include: {
+              project: true,
+              organization: true,
+            },
+          },
+        },
+      });
+
+      if (!run) {
+        throw new Error(`#enqueueDelayedRun: run not found: ${runId}`);
+      }
+
+      // Check if delayUntil has been rescheduled to the future (e.g., by debounce)
+      // If so, don't enqueue - the rescheduled worker job will handle it
+      if (run.delayUntil && run.delayUntil > new Date()) {
+        this.$.logger.debug(
+          "enqueueDelayedRun: delay was rescheduled to the future, skipping enqueue",
+          {
+            runId,
+            delayUntil: run.delayUntil,
+          }
+        );
+        return;
+      }
+
+      // Now we need to enqueue the run into the RunQueue
+      // Skip the lock in enqueueRun since we already hold it
+      await this.enqueueSystem.enqueueRun({
+        run,
+        env: run.runtimeEnvironment,
+        batchId: run.batchId ?? undefined,
+        skipRunLock: true,
+      });
+
+      const queuedAt = new Date();
+
+      const updatedRun = await this.$.prisma.taskRun.update({
+        where: { id: runId },
+        data: {
+          status: "PENDING",
+          queuedAt,
+        },
+      });
+
+      this.$.eventBus.emit("runEnqueuedAfterDelay", {
+        time: new Date(),
+        run: {
+          id: runId,
+          status: "PENDING",
+          queuedAt,
+          updatedAt: updatedRun.updatedAt,
+          createdAt: updatedRun.createdAt,
+        },
+        organization: {
+          id: run.runtimeEnvironment.organizationId,
+        },
+        project: {
+          id: run.runtimeEnvironment.projectId,
+        },
+        environment: {
+          id: run.runtimeEnvironmentId,
+        },
+      });
+
+      if (run.ttl) {
+        const expireAt = parseNaturalLanguageDuration(run.ttl);
+
+        if (expireAt) {
+          await this.$.worker.enqueue({
+            id: `expireRun:${runId}`,
+            job: "expireRun",
+            payload: { runId },
+            availableAt: expireAt,
+          });
+        }
+      }
+    });
+  }
+
+  async scheduleDelayedRunEnqueuing({ runId, delayUntil }: { runId: string; delayUntil: Date }) {
+    await this.$.worker.enqueue({
+      id: `enqueueDelayedRun:${runId}`,
+      job: "enqueueDelayedRun",
+      payload: { runId },
+      availableAt: delayUntil,
+    });
+  }
+
+  async preventDelayedRunFromBeingEnqueued({ runId }: { runId: string }) {
+    await this.$.worker.ack(`enqueueDelayedRun:${runId}`);
+  }
+}

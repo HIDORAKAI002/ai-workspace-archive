@@ -87,6 +87,8 @@ const isAuditsTabVisible = computed(
   () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
+const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
+
 const isWorkflowsTabVisible = computed(
   () =>
     isEeUI &&
@@ -163,6 +165,8 @@ watch(
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
+      } else if (newVal === 'integrations' && isIntegrationsTabVisible.value) {
+        projectPageTab.value = 'integrations'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
       } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
@@ -205,6 +209,7 @@ const settingsPageTitle = computed(() => {
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'data-source': t('labels.addDataSource'),
+    'integrations': t('labels.baseIntegrations'),
     'base-settings': t('general.general'),
     'audits': t('title.audits'),
     'workflows': t('objects.workflows'),
@@ -271,6 +276,7 @@ watch(
      */
     integrations.value = []
   },
+  { immediate: true },
 )
 
 const isSettingsSidebar = computed(() => !!props.tab)
@@ -498,6 +504,15 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isIntegrationsTabVisible && base.id" key="integrations">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__integrations">
+              <GeneralIcon icon="integration" />
+              <div>{{ $t('labels.baseIntegrations') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBaseIntegrations :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>

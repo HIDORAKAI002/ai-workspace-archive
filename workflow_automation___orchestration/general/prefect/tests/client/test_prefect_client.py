@@ -1,0 +1,3665 @@
+import inspect
+import json
+import logging
+import os
+import ssl
+from contextlib import asynccontextmanager
+from datetime import timedelta
+from typing import Any, Generator, List
+from unittest import mock
+from unittest.mock import AsyncMock, MagicMock, Mock
+from uuid import UUID, uuid4
+
+import anyio
+import certifi
+import httpcore
+import httpx
+import pydantic
+import pytest
+import respx
+from fastapi import Depends, FastAPI, status
+from fastapi.security import HTTPBasic, HTTPBearer
+from packaging import version
+
+import prefect.client.schemas as client_schemas
+import prefect.context
+import prefect.exceptions
+import prefect.server.api
+from prefect import flow, tags
+from prefect.client._version_checking import check_server_version
+from prefect.client.constants import SERVER_API_VERSION
+from prefect.client.orchestration import (
+    PrefectClient,
+    ServerType,
+    SyncPrefectClient,
+    _clear_api_version_check_cache,
+    get_client,
+)
+from prefect.client.schemas.actions import (
+    ArtifactCreate,
+    DeploymentScheduleCreate,
+    GlobalConcurrencyLimitCreate,
+    GlobalConcurrencyLimitUpdate,
+    LogCreate,
+    VariableCreate,
+    WorkPoolCreate,
+    WorkPoolUpdate,
+)
+from prefect.client.schemas.filters import (
+    ArtifactFilter,
+    ArtifactFilterKey,
+    DeploymentFilter,
+    DeploymentFilterId,
+    DeploymentFilterTags,
+    FlowFilter,
+    FlowRunFilter,
+    FlowRunFilterTags,
+    LogFilter,
+    LogFilterFlowRunId,
+    TaskRunFilter,
+    TaskRunFilterFlowRunId,
+)
+from prefect.client.schemas.objects import (
+    Flow,
+    FlowRunPolicy,
+    Integration,
+    StateType,
+    TaskRun,
+    Variable,
+    WorkerMetadata,
+    WorkPoolStorageConfiguration,
+    WorkQueue,
+)
+from prefect.client.schemas.responses import (
+    DeploymentResponse,
+    OrchestrationResult,
+    SetStateStatus,
+)
+from prefect.client.schemas.schedules import CronSchedule, IntervalSchedule
+from prefect.client.utilities import inject_client
+from prefect.events import AutomationCore, EventTrigger, Posture
+from prefect.server.api.server import create_app
+from prefect.server.database.orm_models import WorkPool
+from prefect.settings import (
+    PREFECT_API_AUTH_STRING,
+    PREFECT_API_DATABASE_MIGRATE_ON_START,
+    PREFECT_API_KEY,
+    PREFECT_API_SSL_CERT_FILE,
+    PREFECT_API_TLS_INSECURE_SKIP_VERIFY,
+    PREFECT_API_URL,
+    PREFECT_CLIENT_CSRF_SUPPORT_ENABLED,
+    PREFECT_CLIENT_CUSTOM_HEADERS,
+    PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED,
+    PREFECT_CLOUD_API_URL,
+    PREFECT_SERVER_DOCKET_NAME,
+    PREFECT_TESTING_UNIT_TEST_MODE,
+    temporary_settings,
+)
+from prefect.states import Completed, Pending, Running, Scheduled, State
+from prefect.tasks import task
+from prefect.testing.utilities import exceptions_equal
+from prefect.types._datetime import DateTime, now
+from prefect.utilities.pydantic import parse_obj_as
+
+
+@pytest.fixture(autouse=True)
+def clear_api_version_check_cache():
+    _clear_api_version_check_cache()
+    yield
+    _clear_api_version_check_cache()
+
+
+class TestGetClient:
+    def test_get_client_returns_client(self):
+        assert isinstance(get_client(), PrefectClient)
+
+    def test_get_client_does_not_cache_client(self):
+        assert get_client() is not get_client()
+
+    def test_get_client_cache_uses_profile_settings(self):
+        client = get_client()
+        with temporary_settings(updates={PREFECT_API_KEY: "FOO"}):
+            new_client = get_client()
+            assert isinstance(new_client, PrefectClient)
+            assert new_client is not client
+
+    @pytest.mark.usefixtures("enable_ephemeral_server")
+    def test_get_client_starts_subprocess_server_when_enabled(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        subprocess_server_mock = MagicMock()
+
+        monkeypatch.setattr(
+            prefect.server.api.server, "SubprocessASGIServer", subprocess_server_mock
+        )
+
+        get_client()
+        assert subprocess_server_mock.call_count == 1
+        assert subprocess_server_mock.return_value.start.call_count == 1
+
+    @pytest.mark.usefixtures("disable_hosted_api_server")
+    def test_get_client_rasises_error_when_no_api_url_and_no_ephemeral_mode(self):
+        with pytest.raises(ValueError, match="API URL"):
+            get_client()
+
+
+class TestClientProxyAwareness:
+    """Regression test for https://github.com/PrefectHQ/nebula/issues/2356, where
+    a customer reported that the Cloud client supported proxies, but the client
+    did not.  This test suite is implementation-specific to httpx/httpcore, as there are
+    no other inexpensive ways to confirm both the proxy-awareness and preserving the
+    retry behavior without probing into the implementation details of the libraries."""
+
+    @pytest.fixture()
+    def remote_https_api(self) -> Generator[httpx.URL, None, None]:
+        api_url = "https://127.0.0.1:4242/"
+        with temporary_settings(updates={PREFECT_API_URL: api_url}):
+            yield httpx.URL(api_url)
+
+    def test_unproxied_remote_client_will_retry(self, remote_https_api: httpx.URL):
+        """The original issue here was that we were overriding the `transport` in
+        order to set the retries to 3; this is what circumvented the proxy support.
+        This test (and those below) should confirm that we are setting the retries on
+        the transport's pool in all cases."""
+        httpx_client = get_client()._client
+        assert isinstance(httpx_client, httpx.AsyncClient)
+
+        transport_for_api = httpx_client._transport_for_url(remote_https_api)
+        assert isinstance(transport_for_api, httpx.AsyncHTTPTransport)
+
+        pool = transport_for_api._pool
+        assert isinstance(pool, httpcore.AsyncConnectionPool)
+        assert pool._retries == 3  # set in prefect.client.orchestration.get_client()
+
+    def test_users_can_still_provide_transport(self, remote_https_api: httpx.URL):
+        """If users want to supply an alternative transport, they still can and
+        we will not alter it"""
+        httpx_settings = {"transport": httpx.AsyncHTTPTransport(retries=11)}
+        httpx_client = get_client(httpx_settings)._client
+        assert isinstance(httpx_client, httpx.AsyncClient)
+
+        transport_for_api = httpx_client._transport_for_url(remote_https_api)
+        assert isinstance(transport_for_api, httpx.AsyncHTTPTransport)
+
+        pool = transport_for_api._pool
+        assert isinstance(pool, httpcore.AsyncConnectionPool)
+        assert pool._retries == 11  # not overridden by get_client() in this case
+
+    @pytest.fixture
+    def https_proxy(self) -> Generator[httpcore.URL, None, None]:
+        original = os.environ.get("HTTPS_PROXY")
+        try:
+            os.environ["HTTPS_PROXY"] = "https://127.0.0.1:6666"
+            yield httpcore.URL(os.environ["HTTPS_PROXY"])
+        finally:
+            if original is None:
+                del os.environ["HTTPS_PROXY"]
+            else:
+                os.environ["HTTPS_PROXY"] = original
+
+    async def test_client_is_aware_of_https_proxy(
+        self, remote_https_api: httpx.URL, https_proxy: httpcore.URL
+    ):
+        httpx_client = get_client()._client
+        assert isinstance(httpx_client, httpx.AsyncClient)
+
+        transport_for_api = httpx_client._transport_for_url(remote_https_api)
+        assert isinstance(transport_for_api, httpx.AsyncHTTPTransport)
+
+        pool = transport_for_api._pool
+        assert isinstance(pool, httpcore.AsyncHTTPProxy)
+        assert pool._proxy_url == https_proxy
+        assert pool._retries == 3  # set in prefect.client.orchestration.get_client()
+
+    @pytest.fixture()
+    def remote_http_api(self) -> Generator[httpx.URL, None, None]:
+        api_url = "http://127.0.0.1:4242/"
+        with temporary_settings(updates={PREFECT_API_URL: api_url}):
+            yield httpx.URL(api_url)
+
+    @pytest.fixture
+    def http_proxy(self) -> Generator[httpcore.URL, None, None]:
+        original = os.environ.get("HTTP_PROXY")
+        try:
+            os.environ["HTTP_PROXY"] = "http://127.0.0.1:6666"
+            yield httpcore.URL(os.environ["HTTP_PROXY"])
+        finally:
+            if original is None:
+                del os.environ["HTTP_PROXY"]
+            else:
+                os.environ["HTTP_PROXY"] = original
+
+    async def test_client_is_aware_of_http_proxy(
+        self, remote_http_api: httpx.URL, http_proxy: httpcore.URL
+    ):
+        httpx_client = get_client()._client
+        assert isinstance(httpx_client, httpx.AsyncClient)
+
+        transport_for_api = httpx_client._transport_for_url(remote_http_api)
+        assert isinstance(transport_for_api, httpx.AsyncHTTPTransport)
+
+        pool = transport_for_api._pool
+        assert isinstance(pool, httpcore.AsyncHTTPProxy)
+        assert pool._proxy_url == http_proxy
+        assert pool._retries == 3  # set in prefect.client.orchestration.get_client()
+
+
+class TestInjectClient:
+    @staticmethod
+    @inject_client
+    async def injected_func(client: PrefectClient):
+        assert client._started, "Client should be started during function"
+        assert not client._closed, "Client should be closed during function"
+        # Client should be usable during function
+        await client.api_healthcheck()
+        return client
+
+    async def test_get_new_client(self):
+        client = await TestInjectClient.injected_func()
+        assert isinstance(client, PrefectClient)
+        assert client._closed, "Client should be closed after function returns"
+
+    async def test_get_new_client_with_explicit_none(self):
+        client = await TestInjectClient.injected_func(client=None)
+        assert isinstance(client, PrefectClient)
+        assert client._closed, "Client should be closed after function returns"
+
+    async def test_use_existing_client(self, prefect_client):
+        client = await TestInjectClient.injected_func(client=prefect_client)
+        assert client is prefect_client, "Client should be the same object"
+        assert not client._closed, "Client should not be closed after function returns"
+
+    async def test_use_existing_client_from_flow_run_ctx(self, prefect_client):
+        with prefect.context.FlowRunContext.model_construct(client=prefect_client):
+            client = await TestInjectClient.injected_func()
+        assert client is prefect_client, "Client should be the same object"
+        assert not client._closed, "Client should not be closed after function returns"
+
+    async def test_use_existing_client_from_task_run_ctx(self, prefect_client):
+        with prefect.context.FlowRunContext.model_construct(client=prefect_client):
+            client = await TestInjectClient.injected_func()
+        assert client is prefect_client, "Client should be the same object"
+        assert not client._closed, "Client should not be closed after function returns"
+
+    async def test_use_existing_client_from_flow_run_ctx_with_null_kwarg(
+        self, prefect_client
+    ):
+        with prefect.context.FlowRunContext.model_construct(client=prefect_client):
+            client = await TestInjectClient.injected_func(client=None)
+        assert client is prefect_client, "Client should be the same object"
+        assert not client._closed, "Client should not be closed after function returns"
+
+
+def not_enough_open_files() -> bool:
+    """
+    The current process does not currently allow enough open files for this test.
+    You can increase the number of open files with `ulimit -n 512`.
+    """
+    try:
+        import resource
+    except ImportError:
+        # resource limits is not a concept on all systems, notably Windows
+        return False
+
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    return soft_limit < 512 or hard_limit < 512
+
+
+def make_lifespan(startup, shutdown) -> callable:
+    async def lifespan(app):
+        try:
+            startup()
+            yield
+        finally:
+            shutdown()
+
+    return asynccontextmanager(lifespan)
+
+
+class TestClientContextManager:
+    async def test_client_context_can_be_reentered(self):
+        client = PrefectClient("http://foo.test")
+        client._exit_stack.__aenter__ = AsyncMock()
+        client._exit_stack.__aexit__ = AsyncMock()
+
+        assert client._exit_stack.__aenter__.call_count == 0
+        assert client._exit_stack.__aexit__.call_count == 0
+        async with client as c1:
+            async with client as c2:
+                assert c1 is c2
+
+        # despite entering the context twice, we only ran its major logic once
+        assert client._exit_stack.__aenter__.call_count == 1
+        assert client._exit_stack.__aexit__.call_count == 1
+
+    async def test_client_context_cannot_be_reused(self):
+        client = PrefectClient("http://foo.test")
+        async with client:
+            pass
+
+        with pytest.raises(RuntimeError, match="cannot be started again after closing"):
+            async with client:
+                pass
+
+    async def test_client_context_manages_app_lifespan(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        client = PrefectClient(app)
+        startup.assert_not_called()
+        shutdown.assert_not_called()
+
+        async with client:
+            startup.assert_called_once()
+            shutdown.assert_not_called()
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_calls_app_lifespan_once_despite_nesting(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        startup.assert_not_called()
+        shutdown.assert_not_called()
+
+        async with PrefectClient(app):
+            async with PrefectClient(app):
+                async with PrefectClient(app):
+                    startup.assert_called_once()
+            shutdown.assert_not_called()
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_manages_app_lifespan_on_sequential_usage(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        async with PrefectClient(app):
+            pass
+
+        assert startup.call_count == 1
+        assert shutdown.call_count == 1
+
+        async with PrefectClient(app):
+            assert startup.call_count == 2
+            assert shutdown.call_count == 1
+
+        assert startup.call_count == 2
+        assert shutdown.call_count == 2
+
+    async def test_client_context_lifespan_is_robust_to_async_concurrency(self):
+        startup = MagicMock(side_effect=lambda: print("Startup called!"))
+        shutdown = MagicMock(side_effect=lambda: print("Shutdown called!!"))
+
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        one_started = anyio.Event()
+        one_exited = anyio.Event()
+        two_started = anyio.Event()
+
+        async def one():
+            async with PrefectClient(app):
+                print("Started one")
+                one_started.set()
+                startup.assert_called_once()
+                shutdown.assert_not_called()
+                print("Waiting for two to start...")
+                await two_started.wait()
+                # Exit after two has started
+                print("Exiting one...")
+            one_exited.set()
+
+        async def two():
+            await one_started.wait()
+            # Enter after one has started but before one has exited
+            async with PrefectClient(app):
+                print("Started two")
+                two_started.set()
+                # Give time for one to try to exit
+                # If were to wait on the `one_exited` event, this test would timeout
+                # as we'd create a deadlock where one refuses to exit until the clients
+                # depending on its lifespan are done
+                await anyio.sleep(1)
+                startup.assert_called_once()
+                shutdown.assert_not_called()
+                print("Exiting two...")
+
+        # Run concurrently
+        with anyio.fail_after(5):  # Kill if a deadlock occurs
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(one)
+                tg.start_soon(two)
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_lifespan_is_robust_to_dependency_deadlocks(self):
+        """
+        If you have two concurrrent contexts which are used as follows:
+
+        --> Context A is entered (manages a new lifespan)
+        -----> Context B is entered (uses the lifespan from A)
+        -----> Context A exits
+        -----> Context B exits
+
+        We must ensure that the lifespan shutdown hooks are not called on exit of A and
+        wait for all clients to be done consuming them (e.g. after B exits). We must
+        also ensure that we do not deadlock by having dependent waits during this
+        interleaved case.
+        """
+        startup = MagicMock(side_effect=lambda: print("Startup called!"))
+        shutdown = MagicMock(side_effect=lambda: print("Shutdown called!!"))
+
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        one_started = anyio.Event()
+        one_exited = anyio.Event()
+        two_started = anyio.Event()
+
+        async def one():
+            async with PrefectClient(app):
+                print("Started one")
+                one_started.set()
+                startup.assert_called_once()
+                shutdown.assert_not_called()
+                print("Waiting for two to start...")
+                await two_started.wait()
+                # Exit after two has started
+                print("Exiting one...")
+            one_exited.set()
+
+        async def two():
+            await one_started.wait()
+            # Enter after one has started but before one has exited
+            async with PrefectClient(app):
+                print("Started two")
+                two_started.set()
+                # Wait for one to exit, this creates an interleaved dependency
+                await one_exited.wait()
+                startup.assert_called_once()
+                shutdown.assert_not_called()
+                print("Exiting two...")
+
+        # Run concurrently
+        with anyio.fail_after(5):  # Kill if a deadlock occurs
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(one)
+                tg.start_soon(two)
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_manages_app_lifespan_on_exception(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        client = PrefectClient(app)
+
+        with pytest.raises(ValueError):
+            async with client:
+                raise ValueError()
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_manages_app_lifespan_on_anyio_cancellation(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        async def enter_client(task_status):
+            async with PrefectClient(app):
+                task_status.started()
+                await anyio.sleep_forever()
+
+        async with anyio.create_task_group() as tg:
+            await tg.start(enter_client)
+            await tg.start(enter_client)
+            await tg.start(enter_client)
+
+            tg.cancel_scope.cancel()
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_client_context_manages_app_lifespan_on_exception_when_nested(self):
+        startup, shutdown = MagicMock(), MagicMock()
+        app = FastAPI(lifespan=make_lifespan(startup, shutdown))
+
+        with pytest.raises(ValueError):
+            async with PrefectClient(app):
+                try:
+                    async with PrefectClient(app):
+                        raise ValueError()
+                finally:
+                    # Shutdown not called yet, will be handled by the outermost ctx
+                    shutdown.assert_not_called()
+
+        startup.assert_called_once()
+        shutdown.assert_called_once()
+
+    async def test_with_without_async_raises_helpful_error(self):
+        with pytest.raises(RuntimeError, match="must be entered with an async context"):
+            with PrefectClient("http://foo.test"):
+                pass
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+async def test_client_runs_migrations_for_ephemeral_app_only_once(enabled, monkeypatch):
+    unique_docket = f"test-docket-{uuid4().hex[:8]}"
+    with temporary_settings(
+        updates={
+            PREFECT_API_DATABASE_MIGRATE_ON_START: enabled,
+            PREFECT_SERVER_DOCKET_NAME: unique_docket,
+        }
+    ):
+        # turn on lifespan for this test; it turns off after its run once per process
+        monkeypatch.setattr(prefect.server.api.server, "LIFESPAN_RAN_FOR_APP", set())
+
+        app = create_app(ephemeral=True, ignore_cache=True)
+        mock = AsyncMock()
+        monkeypatch.setattr(
+            "prefect.server.database.interface.PrefectDBInterface.create_db", mock
+        )
+        async with PrefectClient(app):
+            if enabled:
+                mock.assert_awaited_once_with()
+
+        # run a second time, but the mock should not be called again
+        async with PrefectClient(app):
+            if enabled:
+                mock.assert_awaited_once_with()
+
+        if not enabled:
+            mock.assert_not_awaited()
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+async def test_client_runs_migrations_for_two_different_ephemeral_apps(
+    enabled, monkeypatch
+):
+    unique_docket_1 = f"test-docket-{uuid4().hex[:8]}"
+    unique_docket_2 = f"test-docket-{uuid4().hex[:8]}"
+
+    with temporary_settings(
+        updates={
+            PREFECT_API_DATABASE_MIGRATE_ON_START: enabled,
+            PREFECT_SERVER_DOCKET_NAME: unique_docket_1,
+        }
+    ):
+        # turn on lifespan for this test; it turns off after its run once per process
+        monkeypatch.setattr(prefect.server.api.server, "LIFESPAN_RAN_FOR_APP", set())
+
+        app = create_app(ephemeral=True, ignore_cache=True)
+
+    with temporary_settings(
+        updates={
+            PREFECT_API_DATABASE_MIGRATE_ON_START: enabled,
+            PREFECT_SERVER_DOCKET_NAME: unique_docket_2,
+        }
+    ):
+        app2 = create_app(ephemeral=True, ignore_cache=True)
+
+        mock = AsyncMock()
+        monkeypatch.setattr(
+            "prefect.server.database.interface.PrefectDBInterface.create_db", mock
+        )
+        async with PrefectClient(app):
+            if enabled:
+                mock.assert_awaited_once_with()
+
+        # run a second time, and mock should be called again because it's a different app
+        async with PrefectClient(app2):
+            if enabled:
+                assert mock.await_count == 2
+
+        if not enabled:
+            mock.assert_not_awaited()
+
+
+async def test_client_does_not_run_migrations_for_hosted_app(
+    hosted_api_server, monkeypatch
+):
+    with temporary_settings(updates={PREFECT_API_DATABASE_MIGRATE_ON_START: True}):
+        mock = AsyncMock()
+        monkeypatch.setattr(
+            "prefect.server.database.interface.PrefectDBInterface.create_db", mock
+        )
+        async with PrefectClient(hosted_api_server):
+            pass
+
+    mock.assert_not_awaited()
+
+
+async def test_client_api_url():
+    url = PrefectClient("http://foo.test/bar").api_url
+    assert isinstance(url, httpx.URL)
+    assert str(url) == "http://foo.test/bar/"
+    assert PrefectClient(FastAPI()).api_url is not None
+
+
+async def test_hello(prefect_client):
+    response = await prefect_client.hello()
+    assert response.json() == "👋"
+
+
+async def test_healthcheck(prefect_client):
+    assert await prefect_client.api_healthcheck() is None
+
+
+async def test_healthcheck_failure(prefect_client, monkeypatch):
+    monkeypatch.setattr(
+        prefect_client._client, "get", AsyncMock(side_effect=ValueError("test"))
+    )
+    assert exceptions_equal(await prefect_client.api_healthcheck(), ValueError("test"))
+
+
+async def test_create_then_read_flow(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+    assert isinstance(flow_id, UUID)
+
+    lookup = await prefect_client.read_flow(flow_id)
+    assert isinstance(lookup, Flow)
+    assert lookup.name == foo.name
+
+
+async def test_create_then_delete_flow(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+    assert isinstance(flow_id, UUID)
+
+    await prefect_client.delete_flow(flow_id)
+    with pytest.raises(prefect.exceptions.PrefectHTTPStatusError, match="404"):
+        await prefect_client.read_flow(flow_id)
+
+
+async def test_create_then_read_deployment(prefect_client, storage_document_id):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+    schedule = DeploymentScheduleCreate(
+        schedule=IntervalSchedule(interval=timedelta(days=1))
+    )
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+        version="git-commit-hash",
+        schedules=[schedule],
+        concurrency_limit=42,
+        parameters={"foo": "bar"},
+        tags=["foo", "bar"],
+        storage_document_id=storage_document_id,
+        parameter_openapi_schema={"type": "object", "properties": {}},
+    )
+
+    lookup = await prefect_client.read_deployment(deployment_id)
+    assert isinstance(lookup, DeploymentResponse)
+    assert lookup.name == "test-deployment"
+    assert lookup.version == "git-commit-hash"
+    assert len(lookup.schedules) == 1
+    assert lookup.schedules[0].schedule == schedule.schedule
+    assert lookup.schedules[0].active == schedule.active
+    assert lookup.schedules[0].deployment_id == deployment_id
+    assert lookup.global_concurrency_limit.limit == 42
+    assert lookup.parameters == {"foo": "bar"}
+    assert lookup.tags == ["foo", "bar"]
+    assert lookup.storage_document_id == storage_document_id
+    assert lookup.parameter_openapi_schema == {"type": "object", "properties": {}}
+
+
+async def test_create_deployment_with_empty_schema_normalizes(prefect_client):
+    """Test that passing an empty dict for parameter_openapi_schema gets normalized server-side."""
+
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+        parameter_openapi_schema={},
+    )
+
+    # Verify it was normalized to valid schema by the server
+    lookup = await prefect_client.read_deployment(deployment_id)
+    assert lookup.parameter_openapi_schema == {"type": "object", "properties": {}}
+
+
+async def test_read_deployment_errors_on_invalid_uuid(prefect_client):
+    with pytest.raises(
+        ValueError, match="Invalid deployment ID: not-a-real-deployment"
+    ):
+        await prefect_client.read_deployment("not-a-real-deployment")
+
+
+async def test_update_deployment(prefect_client, storage_document_id):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+        version="git-commit-hash",
+        parameters={"foo": "bar"},
+        tags=["foo", "bar"],
+        paused=True,
+        storage_document_id=storage_document_id,
+        parameter_openapi_schema={"type": "object", "properties": {}},
+    )
+
+    deployment = await prefect_client.read_deployment(deployment_id)
+
+    await prefect_client.update_deployment(
+        deployment_id=deployment_id,
+        deployment=client_schemas.actions.DeploymentUpdate(
+            tags=["new", "tags"], concurrency_limit=42
+        ),
+    )
+
+    updated_deployment = await prefect_client.read_deployment(deployment_id)
+    # tags and concurrency should be updated
+    assert updated_deployment.tags == ["new", "tags"]
+    assert updated_deployment.global_concurrency_limit.limit == 42
+    # everything else should be the same
+    assert updated_deployment.id == deployment.id
+    assert updated_deployment.name == deployment.name
+    assert updated_deployment.version == deployment.version
+    assert updated_deployment.parameters == deployment.parameters
+    assert updated_deployment.paused == deployment.paused
+    assert updated_deployment.storage_document_id == deployment.storage_document_id
+    assert (
+        updated_deployment.parameter_openapi_schema
+        == deployment.parameter_openapi_schema
+    )
+
+
+async def test_update_deployment_to_remove_schedules(
+    prefect_client, storage_document_id
+):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+    schedule = DeploymentScheduleCreate(
+        schedule=IntervalSchedule(interval=timedelta(days=1))
+    )
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+        version="git-commit-hash",
+        schedules=[schedule],
+        parameters={"foo": "bar"},
+        tags=["foo", "bar"],
+        storage_document_id=storage_document_id,
+        parameter_openapi_schema={"type": "object", "properties": {}},
+    )
+
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert len(deployment.schedules) == 1
+
+    await prefect_client.update_deployment(
+        deployment_id=deployment_id,
+        deployment=client_schemas.actions.DeploymentUpdate(schedules=[]),
+    )
+
+    updated_deployment = await prefect_client.read_deployment(deployment_id)
+    assert len(updated_deployment.schedules) == 0
+
+
+async def test_read_deployment_by_name(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+    )
+
+    lookup = await prefect_client.read_deployment_by_name("foo/test-deployment")
+    assert isinstance(lookup, DeploymentResponse)
+    assert lookup.id == deployment_id
+    assert lookup.name == "test-deployment"
+
+
+@pytest.mark.parametrize(
+    "deployment_tags,filter_tags,expected_match",
+    [
+        # Basic single tag matching
+        (["tag-1"], ["tag-1"], True),
+        (["tag-2"], ["tag-1"], False),
+        # Any matching - should match if ANY tag in filter matches
+        (["tag-1", "tag-2"], ["tag-1", "tag-3"], True),
+        (["tag-1"], ["tag-1", "tag-2"], True),
+        (["tag-2"], ["tag-1", "tag-2"], True),
+        # No matches
+        (["tag-1"], ["tag-2", "tag-3"], False),
+        (["tag-1"], ["get-real"], False),
+        # Empty cases
+        ([], ["tag-1"], False),
+        (["tag-1"], [], False),
+    ],
+    ids=[
+        "single_tag_match",
+        "single_tag_no_match",
+        "multiple_tags_partial_match",
+        "subset_match_1",
+        "subset_match_2",
+        "no_matching_tags",
+        "nonexistent_tag",
+        "empty_run_tags",
+        "empty_filter_tags",
+    ],
+)
+async def test_read_deployment_by_any_tag(
+    prefect_client, deployment_tags, filter_tags, expected_match
+):
+    @flow
+    def moo_deng():
+        pass
+
+    flow_id = await prefect_client.create_flow(moo_deng)
+
+    await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="moisturized-deployment",
+        tags=deployment_tags,
+    )
+    deployment_responses = await prefect_client.read_deployments(
+        deployment_filter=DeploymentFilter(tags=DeploymentFilterTags(any_=filter_tags))
+    )
+    if expected_match:
+        assert len(deployment_responses) == 1
+        assert deployment_responses[0].name == "moisturized-deployment"
+    else:
+        assert len(deployment_responses) == 0
+
+
+async def test_read_deployments_with_id_not_any_filter(prefect_client):
+    """Test the DeploymentFilterId.not_any_ filter for pagination use case."""
+
+    @flow
+    def test_flow():
+        pass
+
+    flow_id = await prefect_client.create_flow(test_flow)
+
+    # Create multiple deployments
+    deployment_ids = []
+    for i in range(5):
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name=f"deployment-{i}",
+        )
+        deployment_ids.append(deployment_id)
+
+    # Test excluding specific deployments
+    deployments = await prefect_client.read_deployments(
+        deployment_filter=DeploymentFilter(
+            id=DeploymentFilterId(not_any_=[deployment_ids[0], deployment_ids[1]])
+        )
+    )
+    result_ids = {d.id for d in deployments}
+    assert deployment_ids[0] not in result_ids
+    assert deployment_ids[1] not in result_ids
+    assert all(deployment_ids[i] in result_ids for i in range(2, 5))
+
+    # Test pagination use case - fetch deployments iteratively
+    found_deployments = []
+    while True:
+        exclude_ids = [d.id for d in found_deployments]
+        new_deployments = await prefect_client.read_deployments(
+            deployment_filter=DeploymentFilter(
+                id=DeploymentFilterId(not_any_=exclude_ids) if exclude_ids else None
+            ),
+            limit=2,
+        )
+        if not new_deployments:
+            break
+        found_deployments.extend(new_deployments)
+        if len(new_deployments) < 2:
+            break
+
+    # Verify we got all deployments through pagination
+    assert len(found_deployments) >= 5
+    found_ids = {d.id for d in found_deployments}
+    assert all(dep_id in found_ids for dep_id in deployment_ids)
+
+
+async def test_create_then_delete_deployment(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_id = await prefect_client.create_flow(foo)
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="test-deployment",
+    )
+
+    await prefect_client.delete_deployment(deployment_id)
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_deployment(deployment_id)
+
+
+async def test_read_nonexistent_deployment_by_name(prefect_client):
+    with pytest.raises((prefect.exceptions.ObjectNotFound, ValueError)):
+        await prefect_client.read_deployment_by_name("not-a-real-deployment")
+
+
+async def test_create_then_read_concurrency_limit(prefect_client):
+    cl_id = await prefect_client.create_concurrency_limit(
+        tag="client-created", concurrency_limit=12345
+    )
+
+    lookup = await prefect_client.read_concurrency_limit_by_tag("client-created")
+    assert lookup.id == cl_id
+    assert lookup.concurrency_limit == 12345
+
+
+async def test_read_nonexistent_concurrency_limit_by_tag(prefect_client):
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_concurrency_limit_by_tag("not-a-real-tag")
+
+
+async def test_resetting_concurrency_limits(prefect_client):
+    await prefect_client.create_concurrency_limit(
+        tag="an-unimportant-limit", concurrency_limit=100
+    )
+
+    await prefect_client.reset_concurrency_limit_by_tag(
+        "an-unimportant-limit", slot_override=[uuid4(), uuid4(), uuid4()]
+    )
+    first_lookup = await prefect_client.read_concurrency_limit_by_tag(
+        "an-unimportant-limit"
+    )
+    assert len(first_lookup.active_slots) == 3
+
+    await prefect_client.reset_concurrency_limit_by_tag("an-unimportant-limit")
+    reset_lookup = await prefect_client.read_concurrency_limit_by_tag(
+        "an-unimportant-limit"
+    )
+    assert len(reset_lookup.active_slots) == 0
+
+
+async def test_deleting_concurrency_limits(prefect_client):
+    await prefect_client.create_concurrency_limit(
+        tag="dead-limit-walking", concurrency_limit=10
+    )
+
+    assert await prefect_client.read_concurrency_limit_by_tag("dead-limit-walking")
+    await prefect_client.delete_concurrency_limit_by_tag("dead-limit-walking")
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_concurrency_limit_by_tag("dead-limit-walking")
+
+
+async def test_create_then_read_flow_run(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_run = await prefect_client.create_flow_run(
+        foo,
+        name="zachs-flow-run",
+    )
+    assert isinstance(flow_run, client_schemas.FlowRun)
+
+    lookup = await prefect_client.read_flow_run(flow_run.id)
+    # Estimates will not be equal since time has passed
+    lookup.estimated_start_time_delta = flow_run.estimated_start_time_delta
+    lookup.estimated_run_time = flow_run.estimated_run_time
+    assert lookup == flow_run
+
+
+async def test_create_flow_run_retains_parameters(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    parameters = {"x": 1, "y": [1, 2, 3]}
+
+    flow_run = await prefect_client.create_flow_run(
+        foo, name="zachs-flow-run", parameters=parameters
+    )
+    assert parameters == flow_run.parameters, "Parameter contents are equal"
+    assert id(flow_run.parameters) == id(parameters), "Original objects retained"
+
+
+async def test_create_flow_run_with_state(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo, state=Running())
+    assert flow_run.state.is_running()
+
+
+async def test_set_then_read_flow_run_state(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    flow_run_id = (await prefect_client.create_flow_run(foo)).id
+    response = await prefect_client.set_flow_run_state(
+        flow_run_id,
+        state=Completed(message="Test!"),
+    )
+    assert isinstance(response, OrchestrationResult)
+    assert response.status == SetStateStatus.ACCEPT
+
+    states = await prefect_client.read_flow_run_states(flow_run_id)
+    assert len(states) == 2
+
+    assert states[0].is_pending()
+
+    assert states[1].is_completed()
+    assert states[1].message == "Test!"
+
+
+async def test_set_flow_run_state_404_is_object_not_found(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    await prefect_client.create_flow_run(foo)
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.set_flow_run_state(
+            uuid4(),
+            state=Completed(message="Test!"),
+        )
+
+
+async def test_read_flow_runs_without_filter(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    fr_id_1 = (await prefect_client.create_flow_run(foo)).id
+    fr_id_2 = (await prefect_client.create_flow_run(foo)).id
+
+    flow_runs = await prefect_client.read_flow_runs()
+    assert len(flow_runs) == 2
+    assert all(isinstance(flow_run, client_schemas.FlowRun) for flow_run in flow_runs)
+    assert {flow_run.id for flow_run in flow_runs} == {fr_id_1, fr_id_2}
+
+
+async def test_read_flow_runs_with_filtering(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    @flow
+    def bar():
+        pass
+
+    (await prefect_client.create_flow_run(foo, state=Pending())).id
+    (await prefect_client.create_flow_run(foo, state=Scheduled())).id
+    (await prefect_client.create_flow_run(bar, state=Pending())).id
+    # Only below should match the filter
+    fr_id_4 = (await prefect_client.create_flow_run(bar, state=Scheduled())).id
+    fr_id_5 = (await prefect_client.create_flow_run(bar, state=Running())).id
+
+    flow_runs = await prefect_client.read_flow_runs(
+        flow_filter=FlowFilter(name=dict(any_=["bar"])),
+        flow_run_filter=FlowRunFilter(
+            state=dict(
+                type=dict(
+                    any_=[
+                        StateType.SCHEDULED,
+                        StateType.RUNNING,
+                    ]
+                )
+            )
+        ),
+    )
+    assert len(flow_runs) == 2
+    assert all(isinstance(flow, client_schemas.FlowRun) for flow in flow_runs)
+    assert {flow_run.id for flow_run in flow_runs} == {fr_id_4, fr_id_5}
+
+
+@pytest.mark.parametrize(
+    "run_tags,filter_tags,expected_match",
+    [
+        # Basic single tag matching
+        (["tag-1"], ["tag-1"], True),
+        (["tag-2"], ["tag-1"], False),
+        # Any matching - should match if ANY tag in filter matches
+        (["tag-1", "tag-2"], ["tag-1", "tag-3"], True),
+        (["tag-1"], ["tag-1", "tag-2"], True),
+        (["tag-2"], ["tag-1", "tag-2"], True),
+        # No matches
+        (["tag-1"], ["tag-2", "tag-3"], False),
+        (["tag-1"], ["get-real"], False),
+        # Empty cases
+        ([], ["tag-1"], False),
+        (["tag-1"], [], False),
+    ],
+    ids=[
+        "single_tag_match",
+        "single_tag_no_match",
+        "multiple_tags_partial_match",
+        "subset_match_1",
+        "subset_match_2",
+        "no_matching_tags",
+        "nonexistent_tag",
+        "empty_run_tags",
+        "empty_filter_tags",
+    ],
+)
+async def test_read_flow_runs_with_tags(
+    prefect_client, run_tags, filter_tags, expected_match
+):
+    @flow
+    def foo():
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo, tags=run_tags)
+
+    flow_runs = await prefect_client.read_flow_runs(
+        flow_run_filter=FlowRunFilter(tags=FlowRunFilterTags(any_=filter_tags))
+    )
+
+    if expected_match:
+        assert len(flow_runs) == 1
+        assert flow_runs[0].id == flow_run.id
+    else:
+        assert len(flow_runs) == 0
+
+
+async def test_read_flows_without_filter(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    @flow
+    def bar():
+        pass
+
+    flow_id_1 = await prefect_client.create_flow(foo)
+    flow_id_2 = await prefect_client.create_flow(bar)
+
+    flows = await prefect_client.read_flows()
+    assert len(flows) == 2
+    assert all(isinstance(flow, Flow) for flow in flows)
+    assert {flow.id for flow in flows} == {flow_id_1, flow_id_2}
+
+
+async def test_read_flows_with_filter(prefect_client):
+    @flow
+    def foo():
+        pass
+
+    @flow
+    def bar():
+        pass
+
+    @flow
+    def foobar():
+        pass
+
+    flow_id_1 = await prefect_client.create_flow(foo)
+    flow_id_2 = await prefect_client.create_flow(bar)
+    await prefect_client.create_flow(foobar)
+
+    flows = await prefect_client.read_flows(
+        flow_filter=FlowFilter(name=dict(any_=["foo", "bar"]))
+    )
+    assert len(flows) == 2
+    assert all(isinstance(flow, Flow) for flow in flows)
+    assert {flow.id for flow in flows} == {flow_id_1, flow_id_2}
+
+
+async def test_read_flow_by_name(prefect_client):
+    @flow(name="null-flow")
+    def do_nothing():
+        pass
+
+    flow_id = await prefect_client.create_flow(do_nothing)
+    the_flow = await prefect_client.read_flow_by_name("null-flow")
+
+    assert the_flow.id == flow_id
+
+
+async def test_create_flow_run_from_deployment(
+    prefect_client: PrefectClient, deployment
+):
+    start_time = now("UTC")
+    flow_run = await prefect_client.create_flow_run_from_deployment(deployment.id)
+    # Deployment details attached
+    assert flow_run.deployment_id == deployment.id
+    assert flow_run.flow_id == deployment.flow_id
+    assert flow_run.work_queue_name == deployment.work_queue_name
+    assert flow_run.work_queue_name  # not empty
+
+    # Flow version is not populated yet
+    assert flow_run.flow_version is None
+    # State is scheduled for now
+    assert flow_run.state.type == StateType.SCHEDULED
+    assert flow_run.state.state_details.scheduled_time is not None
+    assert start_time <= flow_run.state.state_details.scheduled_time <= now("UTC")
+
+
+async def test_create_flow_run_from_deployment_with_base_model_parameters(
+    prefect_client: PrefectClient, deployment: DeploymentResponse
+):
+    class MyBaseModel(pydantic.BaseModel):
+        x: int
+        y: str
+
+    @flow
+    def my_flow(param: MyBaseModel):
+        pass
+
+    flow_id = await prefect_client.create_flow(my_flow)
+
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_id,
+        name="my-deployment",
+    )
+
+    param_model_instance = MyBaseModel(x=1, y="hello")
+    param_model_instance.x = 42
+
+    flow_run = await prefect_client.create_flow_run_from_deployment(
+        deployment_id, parameters={"param": param_model_instance}
+    )
+    assert flow_run.parameters == {"param": {"x": 42, "y": "hello"}}
+
+
+async def test_create_flow_run_from_deployment_idempotency(
+    prefect_client: PrefectClient, deployment: DeploymentResponse
+):
+    flow_run_1 = await prefect_client.create_flow_run_from_deployment(
+        deployment.id, idempotency_key="foo"
+    )
+    flow_run_2 = await prefect_client.create_flow_run_from_deployment(
+        deployment.id, idempotency_key="foo"
+    )
+
+    assert flow_run_2.id == flow_run_1.id
+
+    flow_run_3 = await prefect_client.create_flow_run_from_deployment(
+        deployment.id, idempotency_key="bar"
+    )
+    assert flow_run_3.id != flow_run_1.id
+
+
+async def test_create_flow_run_from_deployment_with_options(
+    prefect_client: PrefectClient, deployment: DeploymentResponse
+):
+    job_variables = {"foo": "bar"}
+    flow_run = await prefect_client.create_flow_run_from_deployment(
+        deployment.id,
+        name="test-run-name",
+        tags={"foo", "bar"},
+        state=Pending(message="test"),
+        parameters={"foo": "bar"},
+        job_variables=job_variables,
+    )
+    assert flow_run.name == "test-run-name"
+    assert set(flow_run.tags) == {"foo", "bar"}.union(deployment.tags)
+    assert flow_run.state.type == StateType.PENDING
+    assert flow_run.state.message == "test"
+    assert flow_run.parameters == {"foo": "bar"}
+    assert flow_run.job_variables == job_variables
+
+
+async def test_update_flow_run(prefect_client: PrefectClient):
+    @flow
+    def foo():
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo)
+
+    exclude = {"updated", "lateness_estimate", "estimated_start_time_delta"}
+
+    # No mutation for unset fields
+    await prefect_client.update_flow_run(flow_run.id)
+    unchanged_flow_run = await prefect_client.read_flow_run(flow_run.id)
+    assert unchanged_flow_run.model_dump(exclude=exclude) == flow_run.model_dump(
+        exclude=exclude
+    )
+
+    # Fields updated when set
+    await prefect_client.update_flow_run(
+        flow_run.id,
+        flow_version="foo",
+        parameters={"foo": "bar"},
+        name="test",
+        tags=["hello", "world"],
+        empirical_policy=FlowRunPolicy(
+            retries=1,
+            retry_delay=2,
+        ),
+        infrastructure_pid="infrastructure-123:1029",
+    )
+    updated_flow_run = await prefect_client.read_flow_run(flow_run.id)
+    assert updated_flow_run.flow_version == "foo"
+    assert updated_flow_run.parameters == {"foo": "bar"}
+    assert updated_flow_run.name == "test"
+    assert updated_flow_run.tags == ["hello", "world"]
+    assert updated_flow_run.empirical_policy == FlowRunPolicy(
+        retries=1,
+        retry_delay=2,
+    )
+    assert updated_flow_run.infrastructure_pid == "infrastructure-123:1029"
+
+
+async def test_update_flow_run_overrides_tags(prefect_client: PrefectClient):
+    @flow(name="test_update_flow_run_tags__flow")
+    def hello(name):
+        return f"Hello {name}"
+
+    with tags("goodbye", "cruel", "world"):
+        state = hello("Marvin", return_state=True)
+
+    flow_run = await prefect_client.read_flow_run(state.state_details.flow_run_id)
+
+    await prefect_client.update_flow_run(
+        flow_run.id,
+        tags=["hello", "world"],
+    )
+    updated_flow_run = await prefect_client.read_flow_run(flow_run.id)
+    assert updated_flow_run.tags == ["hello", "world"]
+
+
+async def test_create_then_read_task_run(prefect_client: PrefectClient):
+    @flow
+    def foo():
+        pass
+
+    @task(tags=["a", "b"], retries=3)
+    def bar(prefect_client: PrefectClient):
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo)
+    task_run = await prefect_client.create_task_run(
+        bar, flow_run_id=flow_run.id, dynamic_key="0"
+    )
+    assert isinstance(task_run, TaskRun)
+
+    lookup = await prefect_client.read_task_run(task_run.id)
+    # Estimates will not be equal since time has passed
+    lookup.estimated_start_time_delta = task_run.estimated_start_time_delta
+    lookup.estimated_run_time = task_run.estimated_run_time
+    assert lookup == task_run
+
+
+async def test_delete_task_run(prefect_client: PrefectClient):
+    @task
+    def bar():
+        pass
+
+    task_run = await prefect_client.create_task_run(
+        bar, flow_run_id=None, dynamic_key="0"
+    )
+
+    await prefect_client.delete_task_run(task_run.id)
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_task_run(task_run.id)
+
+
+async def test_create_then_read_task_run_with_state(prefect_client: PrefectClient):
+    @flow
+    def foo():
+        pass
+
+    @task(tags=["a", "b"], retries=3)
+    def bar(prefect_client: PrefectClient):
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo)
+    task_run = await prefect_client.create_task_run(
+        bar, flow_run_id=flow_run.id, state=Running(), dynamic_key="0"
+    )
+    assert task_run.state.is_running()
+
+
+async def test_set_then_read_task_run_state(prefect_client: PrefectClient):
+    @flow
+    def foo():
+        pass
+
+    @task
+    def bar(prefect_client: PrefectClient):
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo)
+    task_run = await prefect_client.create_task_run(
+        bar, flow_run_id=flow_run.id, dynamic_key="0"
+    )
+
+    response = await prefect_client.set_task_run_state(
+        task_run.id,
+        Completed(message="Test!"),
+    )
+
+    assert isinstance(response, OrchestrationResult)
+    assert response.status == SetStateStatus.ACCEPT
+
+    run = await prefect_client.read_task_run(task_run.id)
+    assert isinstance(run.state, State)
+    assert run.state.type == StateType.COMPLETED
+    assert run.state.message == "Test!"
+
+
+async def test_create_then_read_autonomous_task_runs(prefect_client: PrefectClient):
+    @task
+    def foo():
+        pass
+
+    flow_run = await prefect_client.create_flow_run(foo)
+
+    task_run_1 = await prefect_client.create_task_run(
+        foo, flow_run_id=None, dynamic_key="0"
+    )
+    task_run_2 = await prefect_client.create_task_run(
+        foo, flow_run_id=None, dynamic_key="1"
+    )
+    task_run_3 = await prefect_client.create_task_run(
+        foo, flow_run_id=flow_run.id, dynamic_key="2"
+    )
+    assert all(
+        isinstance(task_run, TaskRun)
+        for task_run in [task_run_1, task_run_2, task_run_3]
+    )
+
+    autonotask_runs = await prefect_client.read_task_runs(
+        task_run_filter=TaskRunFilter(flow_run_id=TaskRunFilterFlowRunId(is_null_=True))
+    )
+
+    assert len(autonotask_runs) == 2
+
+    assert {task_run.id for task_run in autonotask_runs} == {
+        task_run_1.id,
+        task_run_2.id,
+    }
+
+
+async def test_read_filtered_logs(session, prefect_client, deployment):
+    flow_runs = [uuid4() for i in range(5)]
+    logs = [
+        LogCreate(
+            name="prefect.flow_runs",
+            level=20,
+            message=f"Log from flow_run {id}.",
+            timestamp=now(),
+            flow_run_id=id,
+        )
+        for id in flow_runs
+    ]
+
+    await prefect_client.create_logs(logs)
+
+    logs = await prefect_client.read_logs(
+        log_filter=LogFilter(flow_run_id=LogFilterFlowRunId(any_=flow_runs[:3]))
+    )
+    for log in logs:
+        assert log.flow_run_id in flow_runs[:3]
+        assert log.flow_run_id not in flow_runs[3:]
+
+
+async def test_prefect_api_tls_insecure_skip_verify_setting_set_to_true(monkeypatch):
+    with temporary_settings(updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: True}):
+        mock = Mock()
+        monkeypatch.setattr(
+            "prefect.client.orchestration.PrefectHttpxAsyncClient", mock
+        )
+        get_client()
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify it's an SSL context with the correct insecure settings
+    assert isinstance(verify_ctx, ssl.SSLContext)
+    assert verify_ctx.verify_mode == ssl.CERT_NONE
+    assert verify_ctx.check_hostname is False
+
+
+async def test_prefect_api_tls_insecure_skip_verify_setting_set_to_false(monkeypatch):
+    with temporary_settings(updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False}):
+        mock = Mock()
+        monkeypatch.setattr(
+            "prefect.client.orchestration.PrefectHttpxAsyncClient", mock
+        )
+        get_client()
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify it's an SSL context with secure settings
+    assert isinstance(verify_ctx, ssl.SSLContext)
+    assert verify_ctx.verify_mode == ssl.CERT_REQUIRED
+    assert verify_ctx.check_hostname is True
+
+
+async def test_prefect_api_tls_insecure_skip_verify_default_setting(monkeypatch):
+    mock = Mock()
+    monkeypatch.setattr("prefect.client.orchestration.PrefectHttpxAsyncClient", mock)
+    get_client()
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify it's an SSL context with secure settings (default)
+    assert isinstance(verify_ctx, ssl.SSLContext)
+    assert verify_ctx.verify_mode == ssl.CERT_REQUIRED
+    assert verify_ctx.check_hostname is True
+
+
+async def test_prefect_api_ssl_cert_file_setting_explicitly_set(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    cert_path = "my_cert.pem"
+
+    # Mock the SSL context creation
+    mock_context = Mock()
+    mock_create_default_context = Mock(return_value=mock_context)
+    monkeypatch.setattr("ssl.create_default_context", mock_create_default_context)
+
+    with temporary_settings(
+        updates={
+            PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False,
+            PREFECT_API_SSL_CERT_FILE: cert_path,
+        }
+    ):
+        mock_client = Mock()
+        monkeypatch.setattr(
+            "prefect.client.orchestration.PrefectHttpxAsyncClient", mock_client
+        )
+        get_client()
+
+    # Verify SSL context was created with correct cert file
+    mock_create_default_context.assert_called_once_with(cafile=cert_path)
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock_client.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify the context was passed to the client
+    assert verify_ctx == mock_context
+
+
+async def test_prefect_api_ssl_cert_file_default_setting(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    os.environ["SSL_CERT_FILE"] = "my_cert.pem"
+
+    # Mock the SSL context creation
+    mock_context = Mock()
+    mock_create_default_context = Mock(return_value=mock_context)
+    monkeypatch.setattr("ssl.create_default_context", mock_create_default_context)
+
+    with temporary_settings(
+        updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False},
+        set_defaults={PREFECT_API_SSL_CERT_FILE: os.environ.get("SSL_CERT_FILE")},
+    ):
+        mock_client = Mock()
+        monkeypatch.setattr(
+            "prefect.client.orchestration.PrefectHttpxAsyncClient", mock_client
+        )
+        get_client()
+
+    # Verify SSL context was created with correct cert file
+    mock_create_default_context.assert_called_once_with(cafile="my_cert.pem")
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock_client.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify the context was passed to the client
+    assert verify_ctx == mock_context
+
+
+async def test_prefect_api_ssl_cert_file_default_setting_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    os.environ["SSL_CERT_FILE"] = ""
+
+    # Mock the SSL context creation
+    mock_context = Mock()
+    mock_create_default_context = Mock(return_value=mock_context)
+    monkeypatch.setattr("ssl.create_default_context", mock_create_default_context)
+
+    with temporary_settings(
+        updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False},
+        set_defaults={PREFECT_API_SSL_CERT_FILE: os.environ.get("SSL_CERT_FILE")},
+    ):
+        mock_client = Mock()
+        monkeypatch.setattr(
+            "prefect.client.orchestration.PrefectHttpxAsyncClient", mock_client
+        )
+        get_client()
+
+    # Verify SSL context was created with certifi's default cert
+    mock_create_default_context.assert_called_once_with(cafile=certifi.where())
+
+    # Get the verify argument from the mock call
+    call_kwargs = mock_client.call_args[1]
+    verify_ctx = call_kwargs["verify"]
+
+    # Verify the context was passed to the client
+    assert verify_ctx == mock_context
+
+
+async def test_prefect_client_preserves_custom_ssl_context(monkeypatch):
+    custom_context = ssl.create_default_context()
+
+    monkeypatch.setattr(
+        "ssl.create_default_context",
+        Mock(side_effect=AssertionError("should not create a new SSL context")),
+    )
+
+    httpx_client_mock = Mock()
+    monkeypatch.setattr(
+        "prefect.client.orchestration.PrefectHttpxAsyncClient", httpx_client_mock
+    )
+
+    with temporary_settings(updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False}):
+        get_client(httpx_settings={"verify": custom_context})
+
+    call_kwargs = httpx_client_mock.call_args[1]
+    assert call_kwargs["verify"] is custom_context
+
+
+def test_sync_prefect_client_preserves_custom_ssl_context(monkeypatch):
+    custom_context = ssl.create_default_context()
+
+    monkeypatch.setattr(
+        "ssl.create_default_context",
+        Mock(side_effect=AssertionError("should not create a new SSL context")),
+    )
+
+    httpx_client_mock = Mock()
+    monkeypatch.setattr(
+        "prefect.client.orchestration.PrefectHttpxSyncClient", httpx_client_mock
+    )
+
+    with temporary_settings(updates={PREFECT_API_TLS_INSECURE_SKIP_VERIFY: False}):
+        get_client(sync_client=True, httpx_settings={"verify": custom_context})
+
+    call_kwargs = httpx_client_mock.call_args[1]
+    assert call_kwargs["verify"] is custom_context
+
+
+class TestClientAPIVersionRequests:
+    @pytest.fixture
+    def versions(self):
+        return SERVER_API_VERSION.split(".")
+
+    @pytest.fixture
+    def major_version(self, versions: list[str]) -> int:
+        return int(versions[0])
+
+    @pytest.fixture
+    def minor_version(self, versions: list[str]) -> int:
+        return int(versions[1])
+
+    @pytest.fixture
+    def patch_version(self, versions: list[str]) -> int:
+        return int(versions[2])
+
+    async def test_default_requests_succeeds(self):
+        async with get_client() as client:
+            res = await client.hello()
+            assert res.status_code == status.HTTP_200_OK
+
+    async def test_no_api_version_header_succeeds(self):
+        async with get_client() as client:
+            # remove default header X-PREFECT-API-VERSION
+            client._client.headers = {}
+            res = await client.hello()
+            assert res.status_code == status.HTTP_200_OK
+
+    async def test_major_version(
+        self, app, major_version, minor_version, patch_version
+    ):
+        # higher client major version works
+        api_version = f"{major_version + 1}.{minor_version}.{patch_version}"
+        async with PrefectClient(app, api_version=api_version) as client:
+            res = await client.hello()
+            assert res.status_code == status.HTTP_200_OK
+
+        # lower client major version fails
+        api_version = f"{major_version - 1}.{minor_version}.{patch_version}"
+        async with PrefectClient(app, api_version=api_version) as client:
+            with pytest.raises(
+                httpx.HTTPStatusError, match=str(status.HTTP_400_BAD_REQUEST)
+            ):
+                await client.hello()
+
+    @pytest.mark.skip(
+        reason=(
+            "This test is no longer compatible with the current API version checking"
+            " logic"
+        )
+    )
+    async def test_minor_version(
+        self, app, major_version, minor_version, patch_version
+    ):
+        # higher client minor version succeeds
+        api_version = f"{major_version}.{minor_version + 1}.{patch_version}"
+        async with PrefectClient(app, api_version=api_version) as client:
+            res = await client.hello()
+            assert res.status_code == status.HTTP_200_OK
+
+        # lower client minor version fails
+        api_version = f"{major_version}.{minor_version - 1}.{patch_version}"
+        async with PrefectClient(app, api_version=api_version) as client:
+            with pytest.raises(
+                httpx.HTTPStatusError, match=str(status.HTTP_400_BAD_REQUEST)
+            ):
+                await client.hello()
+
+    @pytest.mark.skip(
+        reason=(
+            "This test is no longer compatible with the current API version checking"
+            " logic"
+        )
+    )
+    async def test_patch_version(
+        self, app: FastAPI, major_version: int, minor_version: int, patch_version: int
+    ):
+        # higher client patch version succeeds
+        api_version = f"{major_version}.{minor_version}.{patch_version + 1}"
+        async with PrefectClient(app, api_version=api_version) as client:
+            res = await client.hello()
+            assert res.status_code == status.HTTP_200_OK
+
+        # lower client patch version fails
+        api_version = f"{major_version}.{minor_version}.{patch_version - 1}"
+        res = await client.hello()
+        async with PrefectClient(app, api_version=api_version) as client:
+            with pytest.raises(
+                httpx.HTTPStatusError, match=str(status.HTTP_400_BAD_REQUEST)
+            ):
+                await client.hello()
+
+    async def test_invalid_header(self, app: FastAPI):
+        # Invalid header is rejected
+        api_version = "not a real version header"
+        async with PrefectClient(app, api_version=api_version) as client:
+            with pytest.raises(
+                httpx.HTTPStatusError, match=str(status.HTTP_400_BAD_REQUEST)
+            ) as e:
+                await client.hello()
+            assert (
+                "Invalid X-PREFECT-API-VERSION header format."
+                in e.value.response.json()["detail"]
+            )
+
+
+class TestClientAPIKey:
+    @pytest.fixture
+    async def test_app(self):
+        app = FastAPI()
+        bearer = HTTPBearer()
+
+        # Returns given credentials if an Authorization
+        # header is passed, otherwise raises 403
+        @app.get("/api/check_for_auth_header")
+        async def check_for_auth_header(credentials=Depends(bearer)):
+            return credentials.credentials
+
+        return app
+
+    async def test_client_passes_api_key_as_auth_header(self, test_app: FastAPI):
+        api_key = "validAPIkey"
+        async with PrefectClient(test_app, api_key=api_key) as client:
+            res = await client._client.get("/check_for_auth_header")
+        assert res.status_code == status.HTTP_200_OK
+        assert res.json() == api_key
+
+    async def test_client_no_auth_header_without_api_key(self, test_app: FastAPI):
+        async with PrefectClient(test_app) as client:
+            with pytest.raises(
+                httpx.HTTPStatusError, match=str(status.HTTP_401_UNAUTHORIZED)
+            ):
+                await client._client.get("/check_for_auth_header")
+
+    async def test_get_client_includes_api_key_from_context(self):
+        with temporary_settings(updates={PREFECT_API_KEY: "test"}):
+            client = get_client()
+
+        assert client._client.headers["Authorization"] == "Bearer test"
+
+
+class TestClientAuthString:
+    @pytest.fixture
+    async def test_app(self):
+        app = FastAPI()
+        basic = HTTPBasic()
+
+        # Returns given credentials if an Authorization
+        # header is passed, otherwise raises 403
+        @app.get("/api/check_for_auth_header")
+        async def check_for_auth_header(credentials=Depends(basic)):
+            return {"username": credentials.username, "password": credentials.password}
+
+        return app
+
+    async def test_client_passes_auth_string_as_auth_header(self, test_app):
+        auth_string = "admin:admin"
+        async with PrefectClient(test_app, auth_string=auth_string) as client:
+            res = await client._client.get("/check_for_auth_header")
+        assert res.status_code == status.HTTP_200_OK
+        assert res.json() == {"username": "admin", "password": "admin"}
+
+    async def test_client_no_auth_header_without_auth_string(self, test_app):
+        async with PrefectClient(test_app) as client:
+            with pytest.raises(httpx.HTTPStatusError, match="401"):
+                await client._client.get("/check_for_auth_header")
+
+    async def test_get_client_includes_auth_string_from_context(self):
+        with temporary_settings(updates={PREFECT_API_AUTH_STRING: "admin:test"}):
+            client = get_client()
+
+        assert client._client.headers["Authorization"].startswith("Basic")
+
+
+class TestClientWorkQueues:
+    @pytest.fixture
+    async def deployment(self, prefect_client: PrefectClient):
+        foo = flow(lambda: None, name="foo")
+        flow_id = await prefect_client.create_flow(foo)
+        schedule = IntervalSchedule(
+            interval=timedelta(days=1), anchor_date=DateTime(2020, 1, 1)
+        )
+
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment",
+            schedules=[DeploymentScheduleCreate(schedule=schedule)],
+            parameters={"foo": "bar"},
+            work_queue_name="wq",
+        )
+        return deployment_id
+
+    async def test_create_then_read_work_queue(self, prefect_client: PrefectClient):
+        queue = await prefect_client.create_work_queue(name="foo")
+        assert isinstance(queue.id, UUID)
+
+        lookup = await prefect_client.read_work_queue(queue.id)
+        assert isinstance(lookup, WorkQueue)
+        assert lookup.name == "foo"
+
+    async def test_create_and_read_includes_status(self, prefect_client: PrefectClient):
+        queue = await prefect_client.create_work_queue(name="foo")
+        assert hasattr(queue, "status")
+        assert queue.status == "NOT_READY"
+
+        lookup = await prefect_client.read_work_queue(queue.id)
+        assert hasattr(lookup, "status")
+        assert lookup.status == "NOT_READY"
+
+    async def test_create_then_read_work_queue_by_name(
+        self, prefect_client: PrefectClient
+    ):
+        queue = await prefect_client.create_work_queue(name="foo")
+        assert isinstance(queue.id, UUID)
+
+        lookup = await prefect_client.read_work_queue_by_name("foo")
+        assert lookup.name == "foo"
+
+    async def test_create_queue_with_settings(self, prefect_client: PrefectClient):
+        queue = await prefect_client.create_work_queue(
+            name="foo",
+            concurrency_limit=1,
+            is_paused=True,
+            priority=2,
+            description="such queue",
+        )
+        assert queue.concurrency_limit == 1
+        assert queue.is_paused is True
+        assert queue.priority == 2
+        assert queue.description == "such queue"
+
+    async def test_create_then_match_work_queues(self, prefect_client):
+        await prefect_client.create_work_queue(
+            name="one of these things is not like the other"
+        )
+        await prefect_client.create_work_queue(
+            name="one of these things just doesn't belong"
+        )
+        await prefect_client.create_work_queue(
+            name="can you tell which thing is not like the others"
+        )
+        matched_queues = await prefect_client.match_work_queues(["one of these things"])
+        assert len(matched_queues) == 2
+
+    async def test_read_nonexistant_work_queue(self, prefect_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.read_work_queue_by_name("foo")
+
+    async def test_get_runs_from_queue_includes(self, prefect_client, deployment):
+        wq_1 = await prefect_client.read_work_queue_by_name(name="wq")
+        wq_2 = await prefect_client.create_work_queue(name="wq2")
+
+        run = await prefect_client.create_flow_run_from_deployment(deployment)
+        assert run.id
+
+        runs_1 = await prefect_client.get_runs_in_work_queue(wq_1.id)
+        assert runs_1[0].id == run.id
+
+        runs_2 = await prefect_client.get_runs_in_work_queue(wq_2.id)
+        assert runs_2 == []
+
+    async def test_get_runs_from_queue_respects_limit(self, prefect_client, deployment):
+        queue = await prefect_client.read_work_queue_by_name(name="wq")
+
+        runs = []
+        for _ in range(10):
+            run = await prefect_client.create_flow_run_from_deployment(deployment)
+            runs.append(run)
+
+        output = await prefect_client.get_runs_in_work_queue(queue.id, limit=1)
+        assert len(output) == 1
+        assert output[0].id in [r.id for r in runs]
+
+        output = await prefect_client.get_runs_in_work_queue(queue.id, limit=8)
+        assert len(output) == 8
+        assert {o.id for o in output} < {r.id for r in runs}
+
+        output = await prefect_client.get_runs_in_work_queue(queue.id, limit=20)
+        assert len(output) == 10
+        assert {o.id for o in output} == {r.id for r in runs}
+
+
+async def test_delete_flow_run(prefect_client, flow_run):
+    # Note - the flow_run provided by the fixture is not of type `FlowRun`
+    print(f"Type: {type(flow_run)}")
+
+    # Make sure our flow exists (the read flow is of type `s.c.FlowRun`)
+    lookup = await prefect_client.read_flow_run(flow_run.id)
+    assert isinstance(lookup, client_schemas.FlowRun)
+
+    # Check delete works
+    await prefect_client.delete_flow_run(flow_run.id)
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_flow_run(flow_run.id)
+
+    # Check that trying to delete the deleted flow run raises an error
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.delete_flow_run(flow_run.id)
+
+
+def test_server_type_ephemeral(enable_ephemeral_server):
+    prefect_client = get_client()
+    assert prefect_client.server_type == ServerType.EPHEMERAL
+
+
+async def test_server_type_server(hosted_api_server):
+    async with PrefectClient(hosted_api_server) as prefect_client:
+        assert prefect_client.server_type == ServerType.SERVER
+
+
+async def test_server_type_cloud():
+    async with PrefectClient(PREFECT_CLOUD_API_URL.value()) as prefect_client:
+        assert prefect_client.server_type == ServerType.CLOUD
+
+
+@pytest.mark.parametrize(
+    "on_create, expected_value", [(True, True), (False, False), (None, False)]
+)
+async def test_update_deployment_does_not_overwrite_paused_when_not_provided(
+    prefect_client, flow_run, on_create, expected_value
+):
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_run.flow_id,
+        name="test-deployment",
+        parameters={"foo": "bar"},
+        work_queue_name="wq",
+        paused=on_create,
+    )
+    # Check that paused is created as expected
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused == expected_value
+
+    # Only updating tags should not effect paused
+    await prefect_client.update_deployment(
+        deployment_id, client_schemas.actions.DeploymentUpdate(tags=["new-tag"])
+    )
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused == expected_value
+
+
+@pytest.mark.parametrize(
+    "on_create, after_create, on_update, after_update",
+    [
+        (False, False, True, True),
+        (True, True, False, False),
+        (None, False, True, True),
+    ],
+)
+async def test_update_deployment_paused(
+    prefect_client,
+    flow_run,
+    on_create,
+    after_create,
+    on_update,
+    after_update,
+):
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_run.flow_id,
+        name="test-deployment",
+        parameters={"foo": "bar"},
+        work_queue_name="wq",
+        paused=on_create,
+    )
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused == after_create
+
+    await prefect_client.update_deployment(
+        deployment_id, client_schemas.actions.DeploymentUpdate(paused=on_update)
+    )
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused == after_update
+
+
+async def test_pause_and_resume_deployment(prefect_client, flow_run):
+    # Create deployment in unpaused state
+    deployment_id = await prefect_client.create_deployment(
+        flow_id=flow_run.flow_id,
+        name="test-deployment",
+        paused=False,
+    )
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused is False
+
+    # Test pause with UUID
+    await prefect_client.pause_deployment(deployment_id)
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused is True
+
+    # Test resume with string ID
+    await prefect_client.resume_deployment(str(deployment_id))
+    deployment = await prefect_client.read_deployment(deployment_id)
+    assert deployment.paused is False
+
+    # Test error cases
+    with pytest.raises(ValueError, match="Invalid deployment ID"):
+        await prefect_client.pause_deployment("not-a-uuid")
+
+    fake_id = "00000000-0000-0000-0000-000000000000"
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.pause_deployment(fake_id)
+
+
+class TestWorkPools:
+    async def test_read_work_pools(self, prefect_client):
+        # default pool shows up when running the test class or individuals, but not when running
+        # test as a module
+        pools = await prefect_client.read_work_pools()
+        existing_name = set([p.name for p in pools])
+        existing_ids = set([p.id for p in pools])
+        work_pool_1 = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(name="test-pool-1")
+        )
+        work_pool_2 = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(name="test-pool-2")
+        )
+        pools = await prefect_client.read_work_pools()
+        names_after_adding = set([p.name for p in pools])
+        ids_after_adding = set([p.id for p in pools])
+        assert names_after_adding.symmetric_difference(existing_name) == {
+            work_pool_1.name,
+            work_pool_2.name,
+        }
+        assert ids_after_adding.symmetric_difference(existing_ids) == {
+            work_pool_1.id,
+            work_pool_2.id,
+        }
+
+    async def test_create_work_pool_overwriting_existing_work_pool(
+        self, prefect_client: PrefectClient, work_pool: WorkPool
+    ):
+        await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(
+                name=work_pool.name,
+                type=work_pool.type,
+                description="new description",
+            ),
+            overwrite=True,
+        )
+
+        updated_work_pool = await prefect_client.read_work_pool(work_pool.name)
+        assert updated_work_pool.description == "new description"
+
+    async def test_create_work_pool_with_attempt_to_overwrite_type(
+        self, prefect_client, work_pool
+    ):
+        with pytest.warns(
+            UserWarning, match="Overwriting work pool type is not supported"
+        ):
+            await prefect_client.create_work_pool(
+                work_pool=WorkPoolCreate(
+                    name=work_pool.name,
+                    type="kubernetes",
+                    description=work_pool.description,
+                ),
+                overwrite=True,
+            )
+
+        updated_work_pool = await prefect_client.read_work_pool(work_pool.name)
+        assert updated_work_pool.type == work_pool.type
+
+    async def test_update_work_pool(self, prefect_client):
+        work_pool = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(name="test-pool-1")
+        )
+        assert work_pool.description is None
+
+        await prefect_client.update_work_pool(
+            work_pool_name=work_pool.name,
+            work_pool=WorkPoolUpdate(
+                description="Foo description",
+            ),
+        )
+
+        result = await prefect_client.read_work_pool(work_pool_name=work_pool.name)
+        assert result.description == "Foo description"
+
+    async def test_update_missing_work_pool(self, prefect_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.update_work_pool(
+                work_pool_name="abcdefg",
+                work_pool=WorkPoolUpdate(),
+            )
+
+    async def test_delete_work_pool(self, prefect_client, work_pool):
+        await prefect_client.delete_work_pool(work_pool.name)
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.read_work_pool(work_pool.id)
+
+    @pytest.fixture
+    def sample_bundle_upload_step(self) -> dict[str, Any]:
+        return {
+            "prefect_aws.experimental.bundles.upload": {
+                "requires": "prefect-aws",
+                "bucket": "MY_BUCKET_NAME",
+                "aws_credentials_block_name": "MY_CREDS_BLOCK_NAME",
+            },
+        }
+
+    @pytest.fixture
+    def sample_bundle_execution_step(self) -> dict[str, Any]:
+        return {
+            "prefect_aws.experimental.bundles.execute": {
+                "requires": "prefect-aws",
+                "bucket": "MY_BUCKET_NAME",
+                "aws_credentials_block_name": "MY_CREDS_BLOCK_NAME",
+            },
+        }
+
+    async def test_create_work_pool_with_storage_configuration(
+        self,
+        prefect_client: PrefectClient,
+        sample_bundle_upload_step: dict[str, Any],
+        sample_bundle_execution_step: dict[str, Any],
+    ):
+        default_result_storage_block_id = uuid4()
+        work_pool = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate.model_validate(
+                {
+                    "name": "test-pool-1",
+                    "storage_configuration": {
+                        "bundle_upload_step": sample_bundle_upload_step,
+                        "bundle_execution_step": sample_bundle_execution_step,
+                        "default_result_storage_block_id": default_result_storage_block_id,
+                    },
+                }
+            ),
+        )
+        assert work_pool.storage_configuration == WorkPoolStorageConfiguration(
+            bundle_upload_step=sample_bundle_upload_step,
+            bundle_execution_step=sample_bundle_execution_step,
+            default_result_storage_block_id=default_result_storage_block_id,
+        )
+
+    async def test_update_work_pool_with_storage_configuration(
+        self,
+        prefect_client: PrefectClient,
+        sample_bundle_upload_step: dict[str, Any],
+        sample_bundle_execution_step: dict[str, Any],
+    ):
+        work_pool = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(name="test-pool-1")
+        )
+        await prefect_client.update_work_pool(
+            work_pool_name=work_pool.name,
+            work_pool=WorkPoolUpdate.model_validate(
+                {
+                    "storage_configuration": {
+                        "bundle_upload_step": sample_bundle_upload_step,
+                        "bundle_execution_step": {"step": "not a real step"},
+                    },
+                }
+            ),
+        )
+        result = await prefect_client.read_work_pool(work_pool.name)
+        assert result.storage_configuration == WorkPoolStorageConfiguration(
+            bundle_upload_step=sample_bundle_upload_step,
+            bundle_execution_step={"step": "not a real step"},
+        )
+
+
+class TestArtifacts:
+    @pytest.fixture(params=[True, False], ids=["async", "sync"])
+    def artifact_client(self, request, prefect_client, sync_prefect_client):
+        return prefect_client if request.param else sync_prefect_client
+
+    @pytest.fixture
+    async def artifacts(self, artifact_client, reset_worker_events):
+        create1 = artifact_client.create_artifact(
+            artifact=ArtifactCreate(
+                key="voltaic",
+                data=1,
+                type="table",
+                description="# This is a markdown description title",
+            )
+        )
+        artifact1 = await create1 if inspect.isawaitable(create1) else create1
+
+        create2 = artifact_client.create_artifact(
+            artifact=ArtifactCreate(
+                key="voltaic",
+                data=2,
+                type="table",
+                description="# This is a markdown description title",
+            )
+        )
+        artifact2 = await create2 if inspect.isawaitable(create2) else create2
+
+        create3 = artifact_client.create_artifact(
+            artifact=ArtifactCreate(
+                key="lotus",
+                data=3,
+                type="markdown",
+                description="# This is a markdown description title",
+            )
+        )
+        artifact3 = await create3 if inspect.isawaitable(create3) else create3
+
+        return [artifact1, artifact2, artifact3]
+
+    async def test_create_then_read_artifact(
+        self,
+        artifact_client,
+        client,
+        sync_client,
+        asserting_events_worker,
+        reset_worker_events,
+    ):
+        artifact_schema = ArtifactCreate(
+            key="voltaic",
+            data=1,
+            description="# This is a markdown description title",
+            metadata_={"data": "opens many doors"},
+        )
+        create_call = artifact_client.create_artifact(artifact=artifact_schema)
+        artifact = (
+            await create_call if inspect.isawaitable(create_call) else create_call
+        )
+
+        # Verify via API
+        if inspect.isawaitable(create_call):
+            response = await client.get(f"/artifacts/{artifact.id}")
+        else:
+            response = sync_client.get(f"/artifacts/{artifact.id}")
+        assert response.status_code == 200
+        assert response.json()["key"] == artifact.key
+        assert response.json()["description"] == artifact.description
+
+        # Events: creation should emit a client-side event
+        await asserting_events_worker.drain()
+        evt = next(
+            (
+                e
+                for e in asserting_events_worker._client.events
+                if e.event == "prefect.artifact.created"
+            ),
+            None,
+        )
+        assert evt is not None
+        assert evt.resource.id == f"prefect.artifact.{artifact.id}"
+        assert evt.resource.get("prefect.resource.name") == artifact.key
+
+    async def test_read_artifacts(self, artifact_client, artifacts):
+        read_call = artifact_client.read_artifacts()
+        artifact_list = await read_call if inspect.isawaitable(read_call) else read_call
+        assert len(artifact_list) == 3
+        keyed_data = {(r.key, r.data) for r in artifact_list}
+        assert keyed_data == {
+            ("voltaic", 1),
+            ("voltaic", 2),
+            ("lotus", 3),
+        }
+
+    async def test_update_artifact_emits_event(
+        self,
+        artifact_client,
+        artifacts,
+        asserting_events_worker,
+        reset_worker_events,
+    ):
+        from prefect.client.schemas.actions import ArtifactUpdate
+
+        update_call = artifact_client.update_artifact(
+            artifact_id=artifacts[0].id,
+            artifact=ArtifactUpdate(description="updated desc"),
+        )
+        _ = await update_call if inspect.isawaitable(update_call) else update_call
+
+        await asserting_events_worker.drain()
+        evt = next(
+            (
+                e
+                for e in asserting_events_worker._client.events
+                if e.event == "prefect.artifact.updated"
+            ),
+            None,
+        )
+        assert evt is not None
+        assert evt.resource.id == f"prefect.artifact.{artifacts[0].id}"
+
+    async def test_read_artifacts_with_latest_filter(self, artifact_client, artifacts):
+        call = artifact_client.read_latest_artifacts()
+        artifact_list = await call if inspect.isawaitable(call) else call
+
+        assert len(artifact_list) == 2
+        keyed_data = {(r.key, r.data) for r in artifact_list}
+        assert keyed_data == {
+            ("voltaic", 2),
+            ("lotus", 3),
+        }
+
+    async def test_read_artifacts_with_key_filter(self, artifact_client, artifacts):
+        key_artifact_filter = ArtifactFilter(key=ArtifactFilterKey(any_=["voltaic"]))
+        call = artifact_client.read_artifacts(artifact_filter=key_artifact_filter)
+        artifact_list = await call if inspect.isawaitable(call) else call
+
+        assert len(artifact_list) == 2
+        keyed_data = {(r.key, r.data) for r in artifact_list}
+        assert keyed_data == {
+            ("voltaic", 1),
+            ("voltaic", 2),
+        }
+
+    async def test_delete_artifact_succeeds(self, artifact_client, artifacts):
+        delete_call = artifact_client.delete_artifact(artifacts[1].id)
+        _ = await delete_call if inspect.isawaitable(delete_call) else delete_call
+        read_call = artifact_client.read_artifacts()
+        artifact_list = await read_call if inspect.isawaitable(read_call) else read_call
+        assert len(artifact_list) == 2
+        keyed_data = {(r.key, r.data) for r in artifact_list}
+        assert keyed_data == {
+            ("voltaic", 1),
+            ("lotus", 3),
+        }
+
+    async def test_delete_nonexistent_artifact_raises(self, artifact_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            call = artifact_client.delete_artifact(uuid4())
+            if inspect.isawaitable(call):
+                await call
+            else:
+                call
+
+
+class TestConcurrencyStatus:
+    async def test_read_work_pool_concurrency_status(self, prefect_client):
+        from prefect.client.schemas.responses import WorkPoolConcurrencyStatus
+
+        wp = await prefect_client.create_work_pool(
+            work_pool=WorkPoolCreate(name="conc-status-pool")
+        )
+        result = await prefect_client.read_work_pool_concurrency_status(wp.name)
+        assert isinstance(result, WorkPoolConcurrencyStatus)
+        assert result.active_slots == 0
+        assert result.concurrency_limit is None
+        assert isinstance(result.queues, list)
+        assert result.page == 1
+        assert result.count >= 0
+
+    async def test_read_work_pool_concurrency_status_not_found(self, prefect_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.read_work_pool_concurrency_status("nonexistent")
+
+    async def test_read_work_queue_concurrency_status(self, prefect_client):
+        from prefect.client.schemas.responses import WorkQueueConcurrencyStatus
+
+        wq = await prefect_client.create_work_queue(name="conc-status-queue")
+        result = await prefect_client.read_work_queue_concurrency_status(wq.id)
+        assert isinstance(result, WorkQueueConcurrencyStatus)
+        assert result.active_slots == 0
+        assert isinstance(result.flow_runs, list)
+        assert result.page == 1
+        assert result.count == 0
+
+    async def test_read_work_queue_concurrency_status_not_found(self, prefect_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.read_work_queue_concurrency_status(uuid4())
+
+
+class TestVariables:
+    @pytest.fixture
+    async def variable(
+        self,
+        client,
+    ):
+        res = await client.post(
+            "/variables/",
+            json=VariableCreate(
+                name="my_variable", value="my-value", tags=["123", "456"]
+            ).model_dump(mode="json"),
+        )
+        assert res.status_code == 201
+        return parse_obj_as(Variable, res.json())
+
+    @pytest.fixture
+    async def variables(
+        self,
+        client,
+    ):
+        variables = [
+            VariableCreate(name="my_variable1", value="my-value1", tags=["1"]),
+            VariableCreate(name="my_variable2", value="my-value2", tags=["2"]),
+            VariableCreate(name="my_variable3", value="my-value3", tags=["3"]),
+        ]
+        results = []
+        for variable in variables:
+            res = await client.post(
+                "/variables/", json=variable.model_dump(mode="json")
+            )
+            assert res.status_code == 201
+            results.append(res.json())
+        return parse_obj_as(List[Variable], results)
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "string-value",
+            '"string-value"',
+            123,
+            12.3,
+            True,
+            False,
+            None,
+            {"key": "value"},
+            ["value1", "value2"],
+            {"key": ["value1", "value2"]},
+        ],
+    )
+    async def test_create_variable(self, prefect_client, value):
+        created_variable = await prefect_client.create_variable(
+            variable=VariableCreate(name="my_variable", value=value)
+        )
+        assert created_variable
+        assert created_variable.name == "my_variable"
+        assert created_variable.value == value
+
+        res = await prefect_client.read_variable_by_name(created_variable.name)
+        assert res.name == created_variable.name
+        assert res.value == value
+
+    async def test_read_variable_by_name(self, prefect_client, variable):
+        res = await prefect_client.read_variable_by_name(variable.name)
+        assert res.name == variable.name
+        assert res.value == variable.value
+        assert res.tags == variable.tags
+
+    async def test_read_variable_by_name_doesnt_exist(self, prefect_client):
+        res = await prefect_client.read_variable_by_name("doesnt_exist")
+        assert res is None
+
+    async def test_delete_variable_by_name(self, prefect_client, variable):
+        await prefect_client.delete_variable_by_name(variable.name)
+        res = await prefect_client.read_variable_by_name(variable.name)
+        assert not res
+
+    async def test_delete_variable_by_name_doesnt_exist(self, prefect_client):
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.delete_variable_by_name("doesnt_exist")
+
+    async def test_read_variables(self, prefect_client, variables):
+        res = await prefect_client.read_variables()
+        assert len(res) == len(variables)
+        assert {r.name for r in res} == {v.name for v in variables}
+
+    async def test_read_variables_with_limit(self, prefect_client, variables):
+        res = await prefect_client.read_variables(limit=1)
+        assert len(res) == 1
+        assert res[0].name == variables[0].name
+
+
+class TestAutomations:
+    @pytest.fixture
+    def automation(self):
+        return AutomationCore(
+            name="test-automation",
+            trigger=EventTrigger(
+                match={"flow_run_id": "123"},
+                posture=Posture.Reactive,
+                threshold=1,
+                within=0,
+            ),
+            actions=[],
+        )
+
+    async def test_create_automation(self, cloud_client, automation: AutomationCore):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+            create_route = router.post("/automations/").mock(
+                return_value=httpx.Response(200, json=created_automation)
+            )
+
+            automation_id = await cloud_client.create_automation(automation)
+
+            assert create_route.called
+            assert json.loads(
+                create_route.calls[0].request.content
+            ) == automation.model_dump(mode="json")
+            assert automation_id == UUID(created_automation["id"])
+
+    async def test_read_automation(self, cloud_client, automation: AutomationCore):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+
+            created_automation_id = created_automation["id"]
+
+            read_route = router.get(f"/automations/{created_automation_id}").mock(
+                return_value=httpx.Response(200, json=created_automation)
+            )
+
+            read_automation = await cloud_client.read_automation(created_automation_id)
+
+            assert read_route.called
+            assert read_automation.id == UUID(created_automation["id"])
+
+    async def test_read_automation_not_found(
+        self, cloud_client, automation: AutomationCore
+    ):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+
+            created_automation_id = created_automation["id"]
+
+            read_route = router.get(f"/automations/{created_automation_id}").mock(
+                return_value=httpx.Response(404)
+            )
+
+            with pytest.raises(prefect.exceptions.PrefectHTTPStatusError, match="404"):
+                await cloud_client.read_automation(created_automation_id)
+
+            assert read_route.called
+
+    async def test_read_automations_by_name(
+        self, cloud_client, automation: AutomationCore
+    ):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+            read_route = router.post("/automations/filter").mock(
+                return_value=httpx.Response(200, json=[created_automation])
+            )
+            read_automation = await cloud_client.read_automations_by_name(
+                automation.name
+            )
+
+            assert read_route.called
+            assert len(read_automation) == 1
+            assert read_automation[0].id == UUID(created_automation["id"])
+            assert (
+                read_automation[0].name == automation.name == created_automation["name"]
+            )
+
+    @pytest.fixture
+    def automation2(self):
+        return AutomationCore(
+            name="test-automation",
+            trigger=EventTrigger(
+                match={"flow_run_id": "234"},
+                posture=Posture.Reactive,
+                threshold=1,
+                within=0,
+            ),
+            actions=[],
+        )
+
+    async def test_read_automations_by_name_multiple_same_name(
+        self, cloud_client, automation: AutomationCore, automation2: AutomationCore
+    ):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+
+            created_automation2 = automation2.model_dump(mode="json")
+            created_automation2["id"] = str(uuid4())
+
+            read_route = router.post("/automations/filter").mock(
+                return_value=httpx.Response(
+                    200, json=[created_automation, created_automation2]
+                )
+            )
+            read_automation = await cloud_client.read_automations_by_name(
+                automation.name
+            )
+
+            assert read_route.called
+            assert len(read_automation) == 2, (
+                "Expected two automations with the same name"
+            )
+            assert all(
+                [
+                    automation.name == created_automation["name"]
+                    for automation in read_automation
+                ]
+            ), "Expected all automations to have the same name"
+
+    async def test_read_automations_by_name_not_found(
+        self, cloud_client, automation: AutomationCore
+    ):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            created_automation = automation.model_dump(mode="json")
+            created_automation["id"] = str(uuid4())
+            created_automation["name"] = "nonexistent"
+            read_route = router.post("/automations/filter").mock(
+                return_value=httpx.Response(200, json=[])
+            )
+
+            nonexistent_automation = await cloud_client.read_automations_by_name(
+                name="nonexistent"
+            )
+
+            assert read_route.called
+
+            assert nonexistent_automation == []
+
+    async def test_delete_owned_automations(self, cloud_client):
+        with respx.mock(
+            base_url=PREFECT_CLOUD_API_URL.value(), using="httpx"
+        ) as router:
+            resource_id = f"prefect.deployment.{uuid4()}"
+            delete_route = router.delete(f"/automations/owned-by/{resource_id}").mock(
+                return_value=httpx.Response(204)
+            )
+            await cloud_client.delete_resource_owned_automations(resource_id)
+            assert delete_route.called
+
+
+async def test_server_error_does_not_raise_on_client():
+    async def raise_error():
+        raise ValueError("test")
+
+    with temporary_settings(
+        {PREFECT_SERVER_DOCKET_NAME: f"test-docket-{uuid4().hex[:8]}"}
+    ):
+        app = create_app(ephemeral=True)
+    app.api_app.add_api_route("/raise_error", raise_error)
+
+    async with PrefectClient(
+        api=app,
+    ) as client:
+        with pytest.raises(prefect.exceptions.HTTPStatusError, match="500"):
+            await client._client.get("/raise_error")
+
+
+async def test_prefect_client_follow_redirects():
+    with temporary_settings(
+        {PREFECT_SERVER_DOCKET_NAME: f"test-docket-{uuid4().hex[:8]}"}
+    ):
+        app = create_app(ephemeral=True)
+
+    httpx_settings = {"follow_redirects": True}
+    async with PrefectClient(api=app, httpx_settings=httpx_settings) as client:
+        assert client._client.follow_redirects is True
+
+    httpx_settings = {"follow_redirects": False}
+    async with PrefectClient(api=app, httpx_settings=httpx_settings) as client:
+        assert client._client.follow_redirects is False
+
+    # follow redirects by default
+    with temporary_settings({PREFECT_TESTING_UNIT_TEST_MODE: False}):
+        async with PrefectClient(api=app) as client:
+            assert client._client.follow_redirects is True
+
+    # do not follow redirects by default during unit tests
+    async with PrefectClient(api=app) as client:
+        assert client._client.follow_redirects is False
+
+
+async def test_global_concurrency_limit_create(prefect_client):
+    # Test for both `integer` and `float` slot_delay_per_second
+    for slot_decay_per_second in [1, 1.2]:
+        global_concurrency_limit_name = f"global-create-test-{slot_decay_per_second}"
+        response_uuid = await prefect_client.create_global_concurrency_limit(
+            GlobalConcurrencyLimitCreate(
+                name=global_concurrency_limit_name,
+                limit=42,
+                slot_decay_per_second=slot_decay_per_second,
+            )
+        )
+        concurrency_limit = await prefect_client.read_global_concurrency_limit_by_name(
+            name=global_concurrency_limit_name
+        )
+        assert concurrency_limit.id == response_uuid
+        assert concurrency_limit.slot_decay_per_second == slot_decay_per_second
+
+
+async def test_global_concurrency_limit_delete(prefect_client):
+    await prefect_client.create_global_concurrency_limit(
+        GlobalConcurrencyLimitCreate(name="global-delete-test", limit=42)
+    )
+    assert len(await prefect_client.read_global_concurrency_limits()) == 1
+    await prefect_client.delete_global_concurrency_limit_by_name(
+        name="global-delete-test"
+    )
+    assert len(await prefect_client.read_global_concurrency_limits()) == 0
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.delete_global_concurrency_limit_by_name(
+            name="global-delete-test"
+        )
+
+
+async def test_global_concurrency_limit_update_with_integer(prefect_client):
+    # Test for both `integer` and `float` slot_delay_per_second
+    for index, slot_decay_per_second in enumerate([1, 1.2]):
+        created_global_concurrency_limit_name = (
+            f"global-update-test-{slot_decay_per_second}"
+        )
+        updated_global_concurrency_limit_name = (
+            f"global-create-test-{slot_decay_per_second}-new"
+        )
+        await prefect_client.create_global_concurrency_limit(
+            GlobalConcurrencyLimitCreate(
+                name=created_global_concurrency_limit_name,
+                limit=42,
+                slot_decay_per_second=slot_decay_per_second,
+            )
+        )
+        await prefect_client.update_global_concurrency_limit(
+            name=created_global_concurrency_limit_name,
+            concurrency_limit=GlobalConcurrencyLimitUpdate(
+                limit=1, name=updated_global_concurrency_limit_name
+            ),
+        )
+        assert len(await prefect_client.read_global_concurrency_limits()) == index + 1
+
+        assert (
+            await prefect_client.read_global_concurrency_limit_by_name(
+                name=updated_global_concurrency_limit_name
+            )
+        ).limit == 1
+
+        assert (
+            await prefect_client.read_global_concurrency_limit_by_name(
+                name=updated_global_concurrency_limit_name
+            )
+        ).slot_decay_per_second == slot_decay_per_second
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.update_global_concurrency_limit(
+                name=created_global_concurrency_limit_name,
+                concurrency_limit=GlobalConcurrencyLimitUpdate(limit=1),
+            )
+
+
+async def test_global_concurrency_limit_read_nonexistent_by_name(prefect_client):
+    with pytest.raises(prefect.exceptions.ObjectNotFound):
+        await prefect_client.read_global_concurrency_limit_by_name(name="not-here")
+
+
+async def test_upsert_global_concurrency_limit_by_name_without_slot_decay(
+    prefect_client,
+):
+    """Test that upsert works without providing slot_decay_per_second.
+
+    This verifies the fix for the bug where passing None for slot_decay_per_second
+    would cause a 422 error because None was explicitly passed to the Pydantic model,
+    overriding its default value of 0.0.
+    """
+    # Test creating a new limit without slot_decay_per_second
+    await prefect_client.upsert_global_concurrency_limit_by_name(
+        name="upsert-test-no-decay",
+        limit=5,
+    )
+    created_limit = await prefect_client.read_global_concurrency_limit_by_name(
+        name="upsert-test-no-decay"
+    )
+    assert created_limit.limit == 5
+    assert created_limit.slot_decay_per_second == 0.0  # Default value
+
+    # Test updating the limit without slot_decay_per_second
+    await prefect_client.upsert_global_concurrency_limit_by_name(
+        name="upsert-test-no-decay",
+        limit=10,
+    )
+    updated_limit = await prefect_client.read_global_concurrency_limit_by_name(
+        name="upsert-test-no-decay"
+    )
+    assert updated_limit.limit == 10
+    assert updated_limit.slot_decay_per_second == 0.0  # Should remain unchanged
+
+
+async def test_upsert_global_concurrency_limit_by_name_with_slot_decay(prefect_client):
+    """Test that upsert works when explicitly providing slot_decay_per_second."""
+    # Test creating with explicit slot_decay_per_second
+    await prefect_client.upsert_global_concurrency_limit_by_name(
+        name="upsert-test-with-decay",
+        limit=3,
+        slot_decay_per_second=1.5,
+    )
+    created_limit = await prefect_client.read_global_concurrency_limit_by_name(
+        name="upsert-test-with-decay"
+    )
+    assert created_limit.limit == 3
+    assert created_limit.slot_decay_per_second == 1.5
+
+    # Test updating with explicit slot_decay_per_second
+    await prefect_client.upsert_global_concurrency_limit_by_name(
+        name="upsert-test-with-decay",
+        limit=6,
+        slot_decay_per_second=2.5,
+    )
+    updated_limit = await prefect_client.read_global_concurrency_limit_by_name(
+        name="upsert-test-with-decay"
+    )
+    assert updated_limit.limit == 6
+    assert updated_limit.slot_decay_per_second == 2.5
+
+
+class TestPrefectClientDeploymentSchedules:
+    @pytest.fixture
+    async def deployment(self, prefect_client):
+        foo = flow(lambda: None, name="foo")
+        flow_id = await prefect_client.create_flow(foo)
+        schedule = IntervalSchedule(
+            interval=timedelta(days=1), anchor_date=DateTime(2020, 1, 1)
+        )
+
+        deployment_id = await prefect_client.create_deployment(
+            flow_id=flow_id,
+            name="test-deployment",
+            schedules=[DeploymentScheduleCreate(schedule=schedule)],
+            parameters={"foo": "bar"},
+            work_queue_name="wq",
+        )
+        deployment = await prefect_client.read_deployment(deployment_id)
+        return deployment
+
+    async def test_create_deployment_schedule(self, prefect_client, deployment):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedules = [(cron_schedule, True)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id, schedules
+        )
+
+        assert len(result) == 1
+        assert result[0].id
+        assert result[0].schedule == cron_schedule
+        assert result[0].active is True
+
+    async def test_create_multiple_deployment_schedules_success(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="0 12 * * *")
+        interval_schedule = IntervalSchedule(interval=timedelta(hours=1))
+        schedules = [(cron_schedule, True), (interval_schedule, False)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id, schedules
+        )
+
+        assert len(result) == 2
+        # Assuming the order of results matches the order of input schedules
+        assert result[0].schedule == cron_schedule
+        assert result[0].active is True
+        assert result[1].schedule == interval_schedule
+        assert result[1].active is False
+
+    async def test_read_deployment_schedules_success(self, prefect_client, deployment):
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].schedule == IntervalSchedule(
+            interval=timedelta(days=1), anchor_date=DateTime(2020, 1, 1)
+        )
+        assert result[0].active is True
+
+    async def test_update_deployment_schedule_only_active(
+        self, deployment, prefect_client
+    ):
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert result[0].active is True
+
+        await prefect_client.update_deployment_schedule(
+            deployment.id, deployment.schedules[0].id, active=False
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].active is False
+
+    async def test_update_deployment_schedule_only_schedule(
+        self, deployment, prefect_client
+    ):
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert result[0].schedule == IntervalSchedule(
+            interval=timedelta(days=1), anchor_date=DateTime(2020, 1, 1)
+        )
+
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            schedule=IntervalSchedule(interval=timedelta(minutes=15)),
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].schedule.interval == timedelta(minutes=15)
+
+    async def test_update_deployment_schedule_all_fields(
+        self, deployment, prefect_client
+    ):
+        """
+        A regression test for #13243
+        """
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert result[0].schedule == IntervalSchedule(
+            interval=timedelta(days=1), anchor_date=DateTime(2020, 1, 1)
+        )
+        assert result[0].active is True
+
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            schedule=IntervalSchedule(interval=timedelta(minutes=15)),
+            active=False,
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].schedule.interval == timedelta(minutes=15)
+        assert result[0].active is False
+
+    async def test_delete_deployment_schedule_success(self, deployment, prefect_client):
+        await prefect_client.delete_deployment_schedule(
+            deployment.id, deployment.schedules[0].id
+        )
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 0
+
+    async def test_create_deployment_schedules_with_invalid_schedule(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        invalid_schedule = (
+            "not a valid schedule"  # Assuming the client validates the schedule format
+        )
+        schedules = [(invalid_schedule, True)]
+        with pytest.raises(pydantic.ValidationError):
+            await prefect_client.create_deployment_schedules(deployment_id, schedules)
+
+    async def test_read_deployment_schedule_nonexistent(self, prefect_client):
+        nonexistent_deployment_id = str(uuid4())
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.read_deployment_schedules(nonexistent_deployment_id)
+
+    async def test_update_deployment_schedule_nonexistent(
+        self, prefect_client, deployment
+    ):
+        nonexistent_schedule_id = str(uuid4())
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.update_deployment_schedule(
+                deployment.id, nonexistent_schedule_id, active=False
+            )
+
+    async def test_delete_deployment_schedule_nonexistent(
+        self, prefect_client, deployment
+    ):
+        nonexistent_schedule_id = str(uuid4())
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            await prefect_client.delete_deployment_schedule(
+                deployment.id, nonexistent_schedule_id
+            )
+
+    async def test_create_deployment_schedule_with_parameters(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedules = [(cron_schedule, True)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id,
+            schedules,
+            parameters={"object_id": "12345"},
+        )
+
+        assert len(result) == 1
+        assert result[0].schedule == cron_schedule
+        assert result[0].active is True
+        assert result[0].parameters == {"object_id": "12345"}
+
+    async def test_create_deployment_schedule_with_slug(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedules = [(cron_schedule, True)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id,
+            schedules,
+            slug="my-custom-schedule",
+        )
+
+        assert len(result) == 1
+        assert result[0].schedule == cron_schedule
+        assert result[0].slug == "my-custom-schedule"
+
+    async def test_create_deployment_schedule_with_max_scheduled_runs(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedules = [(cron_schedule, True)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id,
+            schedules,
+            max_scheduled_runs=5,
+        )
+
+        assert len(result) == 1
+        assert result[0].schedule == cron_schedule
+        assert result[0].max_scheduled_runs == 5
+
+    async def test_create_deployment_schedule_with_all_new_fields(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedules = [(cron_schedule, True)]
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id,
+            schedules,
+            parameters={"key": "value"},
+            slug="full-schedule",
+            max_scheduled_runs=10,
+        )
+
+        assert len(result) == 1
+        assert result[0].schedule == cron_schedule
+        assert result[0].parameters == {"key": "value"}
+        assert result[0].slug == "full-schedule"
+        assert result[0].max_scheduled_runs == 10
+
+    async def test_create_deployment_schedule_with_deployment_schedule_create_objects(
+        self, prefect_client, deployment
+    ):
+        deployment_id = str(deployment.id)
+        cron_schedule = CronSchedule(cron="* * * * *")
+        schedule_create = DeploymentScheduleCreate(
+            schedule=cron_schedule,
+            active=True,
+            parameters={"from_object": "yes"},
+            slug="object-schedule",
+            max_scheduled_runs=3,
+        )
+        result = await prefect_client.create_deployment_schedules(
+            deployment_id,
+            [schedule_create],
+        )
+
+        assert len(result) == 1
+        assert result[0].schedule == cron_schedule
+        assert result[0].parameters == {"from_object": "yes"}
+        assert result[0].slug == "object-schedule"
+        assert result[0].max_scheduled_runs == 3
+
+    async def test_update_deployment_schedule_with_parameters(
+        self, deployment, prefect_client
+    ):
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            parameters={"updated_key": "updated_value"},
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].parameters == {"updated_key": "updated_value"}
+
+    async def test_update_deployment_schedule_with_slug(
+        self, deployment, prefect_client
+    ):
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            slug="updated-slug",
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].slug == "updated-slug"
+
+    async def test_update_deployment_schedule_with_max_scheduled_runs(
+        self, deployment, prefect_client
+    ):
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            max_scheduled_runs=7,
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].max_scheduled_runs == 7
+
+    async def test_update_deployment_schedule_with_all_new_fields(
+        self, deployment, prefect_client
+    ):
+        await prefect_client.update_deployment_schedule(
+            deployment.id,
+            deployment.schedules[0].id,
+            parameters={"new_param": "new_value"},
+            slug="new-slug",
+            max_scheduled_runs=15,
+        )
+
+        result = await prefect_client.read_deployment_schedules(deployment.id)
+        assert len(result) == 1
+        assert result[0].parameters == {"new_param": "new_value"}
+        assert result[0].slug == "new-slug"
+        assert result[0].max_scheduled_runs == 15
+
+
+class TestPrefectClientCsrfSupport:
+    def test_enabled_ephemeral(self, enable_ephemeral_server):
+        prefect_client = get_client()
+        assert prefect_client.server_type == ServerType.EPHEMERAL
+        assert prefect_client._client.enable_csrf_support
+
+    async def test_enabled_server_type(self, hosted_api_server):
+        async with PrefectClient(hosted_api_server) as prefect_client:
+            assert prefect_client.server_type == ServerType.SERVER
+            assert prefect_client._client.enable_csrf_support
+
+    async def test_not_enabled_server_type_cloud(self):
+        async with PrefectClient(PREFECT_CLOUD_API_URL.value()) as prefect_client:
+            assert prefect_client.server_type == ServerType.CLOUD
+            assert not prefect_client._client.enable_csrf_support
+
+    async def test_disabled_setting_disabled(self, hosted_api_server):
+        with temporary_settings({PREFECT_CLIENT_CSRF_SUPPORT_ENABLED: False}):
+            async with PrefectClient(hosted_api_server) as prefect_client:
+                assert prefect_client.server_type == ServerType.SERVER
+                assert not prefect_client._client.enable_csrf_support
+
+
+class TestPrefectClientRaiseForAPIVersionMismatch:
+    async def test_raise_for_api_version_mismatch(self, prefect_client):
+        await prefect_client.raise_for_api_version_mismatch()
+
+    async def test_raise_for_api_version_mismatch_when_api_unreachable(
+        self, prefect_client, monkeypatch
+    ):
+        async def something_went_wrong(*args, **kwargs):
+            raise httpx.ConnectError
+
+        monkeypatch.setattr(prefect_client, "api_version", something_went_wrong)
+        with pytest.raises(RuntimeError) as e:
+            await prefect_client.raise_for_api_version_mismatch()
+
+        assert "Failed to reach API" in str(e.value)
+
+    async def test_raise_for_api_version_mismatch_against_cloud(
+        self, prefect_client, monkeypatch
+    ):
+        # manually set the server type to cloud
+        monkeypatch.setattr(prefect_client, "server_type", ServerType.CLOUD)
+
+        api_version_mock = AsyncMock()
+        monkeypatch.setattr(prefect_client, "api_version", api_version_mock)
+
+        await prefect_client.raise_for_api_version_mismatch()
+
+        api_version_mock.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "client_version, api_version", [("3.0.0", "2.0.0"), ("2.0.0", "3.0.0")]
+    )
+    async def test_raise_for_api_version_mismatch_with_incompatible_versions(
+        self, prefect_client, monkeypatch, client_version, api_version
+    ):
+        monkeypatch.setattr(
+            prefect_client, "api_version", AsyncMock(return_value=api_version)
+        )
+        monkeypatch.setattr(
+            prefect_client, "client_version", Mock(return_value=client_version)
+        )
+
+        with pytest.raises(RuntimeError) as e:
+            await prefect_client.raise_for_api_version_mismatch()
+
+        assert (
+            f"Found incompatible versions: client: {client_version}, server: {api_version}. "
+            in str(e.value)
+        )
+
+    async def test_warn_on_server_incompatibility(
+        self, prefect_client, monkeypatch, caplog
+    ):
+        mock_version = "3.0.0"
+        assert version.parse(mock_version) < version.parse(prefect.__version__)
+        monkeypatch.setattr(
+            prefect_client, "api_version", AsyncMock(return_value=mock_version)
+        )
+        await prefect_client.raise_for_api_version_mismatch()
+
+        assert (
+            "Your Prefect server is running an older version of Prefect than your client which may result in unexpected behavior."
+            in caplog.text
+        )
+
+    async def test_raise_for_api_version_mismatch_once_caches_success(
+        self, prefect_client, monkeypatch
+    ):
+        api_version_mock = AsyncMock(return_value=prefect.__version__)
+        monkeypatch.setattr(prefect_client, "api_version", api_version_mock)
+
+        await prefect_client.raise_for_api_version_mismatch_once()
+        await prefect_client.raise_for_api_version_mismatch_once()
+
+        assert api_version_mock.await_count == 1
+
+    async def test_raise_for_api_version_mismatch_once_does_not_cache_failures(
+        self, prefect_client, monkeypatch
+    ):
+        api_version_mock = AsyncMock(side_effect=Exception("boom"))
+        monkeypatch.setattr(prefect_client, "api_version", api_version_mock)
+
+        with pytest.raises(RuntimeError):
+            await prefect_client.raise_for_api_version_mismatch_once()
+        with pytest.raises(RuntimeError):
+            await prefect_client.raise_for_api_version_mismatch_once()
+
+        assert api_version_mock.await_count == 2
+
+
+class TestSyncClient:
+    def test_get_sync_client(self):
+        client = get_client(sync_client=True)
+        assert isinstance(client, SyncPrefectClient)
+
+    def test_fixture_is_sync(self, sync_prefect_client):
+        assert isinstance(sync_prefect_client, SyncPrefectClient)
+
+    def test_hello(self, sync_prefect_client):
+        response = sync_prefect_client.hello()
+        assert response.json() == "👋"
+
+    def test_api_version(self, sync_prefect_client):
+        version = sync_prefect_client.api_version()
+        assert prefect.__version__
+        assert version == prefect.__version__
+
+    def test_pause_and_resume_deployment(self, sync_prefect_client, flow):
+        # Create deployment in unpaused state
+        deployment_id = sync_prefect_client.create_deployment(
+            flow_id=flow.id,
+            name="test-deployment",
+            paused=False,
+        )
+        deployment = sync_prefect_client.read_deployment(deployment_id)
+        assert deployment.paused is False
+
+        # Test pause with UUID
+        sync_prefect_client.pause_deployment(deployment_id)
+        deployment = sync_prefect_client.read_deployment(deployment_id)
+        assert deployment.paused is True
+
+        # Test resume with string ID
+        sync_prefect_client.resume_deployment(str(deployment_id))
+        deployment = sync_prefect_client.read_deployment(deployment_id)
+        assert deployment.paused is False
+
+        # Test error cases
+        with pytest.raises(ValueError, match="Invalid deployment ID"):
+            sync_prefect_client.pause_deployment("not-a-uuid")
+
+        fake_id = "00000000-0000-0000-0000-000000000000"
+        with pytest.raises(prefect.exceptions.ObjectNotFound):
+            sync_prefect_client.pause_deployment(fake_id)
+
+
+class TestSyncClientRaiseForAPIVersionMismatch:
+    def test_raise_for_api_version_mismatch(self, sync_prefect_client):
+        sync_prefect_client.raise_for_api_version_mismatch()
+
+    def test_raise_for_api_version_mismatch_when_api_unreachable(
+        self, sync_prefect_client, monkeypatch
+    ):
+        def something_went_wrong(*args, **kwargs):
+            raise httpx.ConnectError
+
+        monkeypatch.setattr(sync_prefect_client, "api_version", something_went_wrong)
+        with pytest.raises(RuntimeError) as e:
+            sync_prefect_client.raise_for_api_version_mismatch()
+
+        assert "Failed to reach API" in str(e.value)
+
+    def test_raise_for_api_version_mismatch_against_cloud(
+        self, sync_prefect_client, monkeypatch
+    ):
+        # manually set the server type to cloud
+        monkeypatch.setattr(sync_prefect_client, "server_type", ServerType.CLOUD)
+
+        api_version_mock = Mock()
+        monkeypatch.setattr(sync_prefect_client, "api_version", api_version_mock)
+
+        sync_prefect_client.raise_for_api_version_mismatch()
+
+        api_version_mock.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "client_version, api_version", [("3.0.0", "2.0.0"), ("2.0.0", "3.0.0")]
+    )
+    def test_raise_for_api_version_mismatch_with_incompatible_versions(
+        self, sync_prefect_client, monkeypatch, client_version, api_version
+    ):
+        monkeypatch.setattr(
+            sync_prefect_client, "api_version", Mock(return_value=api_version)
+        )
+        monkeypatch.setattr(
+            sync_prefect_client, "client_version", Mock(return_value=client_version)
+        )
+
+        with pytest.raises(RuntimeError) as e:
+            sync_prefect_client.raise_for_api_version_mismatch()
+
+        assert (
+            f"Found incompatible versions: client: {client_version}, server: {api_version}. "
+            in str(e.value)
+        )
+
+    async def test_warn_on_server_incompatibility(
+        self, sync_prefect_client, monkeypatch, caplog
+    ):
+        mock_version = "3.0.0"
+        assert version.parse(mock_version) < version.parse(prefect.__version__)
+        monkeypatch.setattr(
+            sync_prefect_client, "api_version", Mock(return_value=mock_version)
+        )
+        sync_prefect_client.raise_for_api_version_mismatch()
+        assert (
+            "Your Prefect server is running an older version of Prefect than your client which may result in unexpected behavior."
+            in caplog.text
+        )
+
+    def test_raise_for_api_version_mismatch_once_caches_success(
+        self, sync_prefect_client, monkeypatch
+    ):
+        api_version_mock = Mock(return_value=prefect.__version__)
+        monkeypatch.setattr(sync_prefect_client, "api_version", api_version_mock)
+
+        sync_prefect_client.raise_for_api_version_mismatch_once()
+        sync_prefect_client.raise_for_api_version_mismatch_once()
+
+        assert api_version_mock.call_count == 1
+
+    def test_raise_for_api_version_mismatch_once_does_not_cache_failures(
+        self, sync_prefect_client, monkeypatch
+    ):
+        api_version_mock = Mock(side_effect=Exception("boom"))
+        monkeypatch.setattr(sync_prefect_client, "api_version", api_version_mock)
+
+        with pytest.raises(RuntimeError):
+            sync_prefect_client.raise_for_api_version_mismatch_once()
+        with pytest.raises(RuntimeError):
+            sync_prefect_client.raise_for_api_version_mismatch_once()
+
+        assert api_version_mock.call_count == 2
+
+
+class TestServerVersionCheckEnabledSetting:
+    """Tests for the PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED setting."""
+
+    async def test_version_check_skipped_when_setting_is_false(self, monkeypatch):
+        """When the setting is False, version check should not be called."""
+        from prefect.context import AsyncClientContext
+
+        with temporary_settings({PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: False}):
+            async with AsyncClientContext() as ctx:
+                api_version_mock = AsyncMock(return_value=prefect.__version__)
+                monkeypatch.setattr(ctx.client, "api_version", api_version_mock)
+                # The version check should have been skipped during __aenter__
+                # so api_version should not have been called
+                # We verify by checking that a fresh context entry skips the call
+                pass
+
+        # More direct test: mock raise_for_api_version_mismatch_once and verify
+        # it is NOT called when the setting is disabled
+        with temporary_settings({PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: False}):
+            with mock.patch.object(
+                PrefectClient,
+                "raise_for_api_version_mismatch_once",
+                new_callable=AsyncMock,
+            ) as mocked:
+                async with AsyncClientContext():
+                    pass
+                mocked.assert_not_called()
+
+    async def test_version_check_runs_when_setting_is_true(self):
+        """When the setting is True (default), version check should be called."""
+        from prefect.context import AsyncClientContext
+
+        with temporary_settings({PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: True}):
+            with mock.patch.object(
+                PrefectClient,
+                "raise_for_api_version_mismatch_once",
+                new_callable=AsyncMock,
+            ) as mocked:
+                async with AsyncClientContext():
+                    pass
+                mocked.assert_called_once()
+
+    def test_sync_version_check_skipped_when_setting_is_false(self):
+        """When the setting is False, sync version check should not be called."""
+        from prefect.context import SyncClientContext
+
+        with temporary_settings({PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: False}):
+            with mock.patch.object(
+                SyncPrefectClient,
+                "raise_for_api_version_mismatch_once",
+            ) as mocked:
+                with SyncClientContext():
+                    pass
+                mocked.assert_not_called()
+
+    def test_sync_version_check_runs_when_setting_is_true(self):
+        """When the setting is True (default), sync version check should be called."""
+        from prefect.context import SyncClientContext
+
+        with temporary_settings({PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: True}):
+            with mock.patch.object(
+                SyncPrefectClient,
+                "raise_for_api_version_mismatch_once",
+            ) as mocked:
+                with SyncClientContext():
+                    pass
+                mocked.assert_called_once()
+
+
+class TestCheckServerVersionCustomHeaders:
+    """Tests that the standalone check_server_version() includes custom headers."""
+
+    async def test_custom_headers_included_in_version_check(self):
+        """Custom headers from PREFECT_CLIENT_CUSTOM_HEADERS should be sent
+        with the standalone version check request."""
+        custom_headers = {"apikey": "my-secret-key", "X-Custom": "value"}
+
+        with temporary_settings(
+            {
+                PREFECT_API_URL: "http://fake-server:4200/api",
+                PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: True,
+                PREFECT_CLIENT_CUSTOM_HEADERS: custom_headers,
+            }
+        ):
+            with respx.mock:
+                route = respx.get("http://fake-server:4200/api/admin/version").mock(
+                    return_value=httpx.Response(200, json=prefect.__version__)
+                )
+
+                await check_server_version(
+                    "http://fake-server:4200/api",
+                    logging.getLogger("test"),
+                )
+
+                assert route.called
+                request = route.calls[0].request
+                assert request.headers["apikey"] == "my-secret-key"
+                assert request.headers["X-Custom"] == "value"
+
+    async def test_auth_headers_override_custom_headers(self):
+        """PREFECT_API_KEY auth should take precedence over a custom
+        Authorization header from PREFECT_CLIENT_CUSTOM_HEADERS."""
+        with temporary_settings(
+            {
+                PREFECT_API_URL: "http://fake-server:4200/api",
+                PREFECT_API_KEY: "my-api-key",
+                PREFECT_CLIENT_SERVER_VERSION_CHECK_ENABLED: True,
+                PREFECT_CLIENT_CUSTOM_HEADERS: {
+                    "Authorization": "Basic should-be-overridden"
+                },
+            }
+        ):
+            with respx.mock:
+                route = respx.get("http://fake-server:4200/api/admin/version").mock(
+                    return_value=httpx.Response(200, json=prefect.__version__)
+                )
+
+                await check_server_version(
+                    "http://fake-server:4200/api",
+                    logging.getLogger("test"),
+                )
+
+                assert route.called
+                request = route.calls[0].request
+                # PREFECT_API_KEY should win because it's applied after
+                # custom headers
+                assert request.headers["Authorization"] == "Bearer my-api-key"
+
+
+class TestPrefectClientWorkerHeartbeat:
+    async def test_worker_heartbeat(
+        self, prefect_client: PrefectClient, work_pool: WorkPool
+    ):
+        work_pool_name = str(work_pool.name)
+        await prefect_client.send_worker_heartbeat(
+            work_pool_name=work_pool_name,
+            worker_name="test-worker",
+            heartbeat_interval_seconds=10,
+        )
+        workers = await prefect_client.read_workers_for_work_pool(work_pool_name)
+        assert len(workers) == 1
+        assert workers[0].name == "test-worker"
+        assert workers[0].heartbeat_interval_seconds == 10
+
+    async def test_worker_heartbeat_sends_metadata_if_passed(
+        self, prefect_client: PrefectClient
+    ):
+        with mock.patch(
+            "prefect.client.orchestration.base.BaseAsyncClient.request",
+            return_value=httpx.Response(status_code=204),
+        ) as mock_post:
+            await prefect_client.send_worker_heartbeat(
+                work_pool_name="work-pool",
+                worker_name="test-worker",
+                heartbeat_interval_seconds=10,
+                worker_metadata=WorkerMetadata(
+                    integrations=[Integration(name="prefect-aws", version="1.0.0")]
+                ),
+            )
+            assert mock_post.call_args[1]["json"] == {
+                "name": "test-worker",
+                "heartbeat_interval_seconds": 10,
+                "metadata": {
+                    "integrations": [{"name": "prefect-aws", "version": "1.0.0"}]
+                },
+            }
+
+    async def test_worker_heartbeat_does_not_send_metadata_if_not_passed(
+        self, prefect_client: PrefectClient
+    ):
+        with mock.patch(
+            "prefect.client.orchestration.base.BaseAsyncClient.request",
+            return_value=httpx.Response(status_code=204),
+        ) as mock_post:
+            await prefect_client.send_worker_heartbeat(
+                work_pool_name="work-pool",
+                worker_name="test-worker",
+                heartbeat_interval_seconds=10,
+            )
+            assert mock_post.call_args[1]["json"] == {
+                "name": "test-worker",
+                "heartbeat_interval_seconds": 10,
+            }
+
+
+class TestPrefectClientMethods:
+    """Tests that the sync and async clients contains the same methods"""
+
+    def test_methods(self):
+        sync_client_methods = set(dir(get_client(sync_client=True)))
+        async_client_methods = set(dir(get_client(sync_client=False)))
+
+        exclude_methods = {
+            "__aenter__",
+            "__aexit__",
+            "_ephemeral_lifespan",
+            "_exit_stack",
+            "_loop",
+            "loop",
+        }
+
+        assert (
+            async_client_methods - exclude_methods
+            == sync_client_methods - exclude_methods
+        )

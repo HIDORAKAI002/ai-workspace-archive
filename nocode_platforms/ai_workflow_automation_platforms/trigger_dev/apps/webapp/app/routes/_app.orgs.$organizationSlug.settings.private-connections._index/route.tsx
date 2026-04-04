@@ -13,7 +13,7 @@ import { Header2 } from "~/components/primitives/Headers";
 import { NavBar, PageAccessories, PageTitle } from "~/components/primitives/PageHeader";
 import { Paragraph } from "~/components/primitives/Paragraph";
 import { prisma } from "~/db.server";
-import { featuresForRequest } from "~/features.server";
+import { canAccessPrivateConnections } from "~/v3/canAccessPrivateConnections.server";
 import { logger } from "~/services/logger.server";
 import { getPrivateLinks } from "~/services/platform.v3.server";
 import { requireUserId } from "~/services/session.server";
@@ -44,8 +44,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
   const { organizationSlug } = OrganizationParamsSchema.parse(params);
 
-  const { hasPrivateConnections } = featuresForRequest(request);
-  if (!hasPrivateConnections) {
+  const canAccess = await canAccessPrivateConnections({ organizationSlug, userId });
+  if (!canAccess) {
     return redirect(organizationPath({ slug: organizationSlug }));
   }
 
@@ -265,13 +265,13 @@ export default function Page() {
                           <span className="w-24 shrink-0">Region:</span>
                           <span>{connection.targetRegion}</span>
                         </div>
-                        {connection.endpointDnsName && (
+                        {connection.endpointIps && connection.endpointIps.length > 0 && (
                           <div className="flex items-center text-xs text-text-dimmed">
-                            <span className="w-24 shrink-0">DNS:</span>
+                            <span className="w-24 shrink-0">IPs:</span>
                             <code className="truncate font-mono text-emerald-400">
-                              {connection.endpointDnsName}
+                              {connection.endpointIps.join(", ")}
                             </code>
-                            <CopyButton value={connection.endpointDnsName} />
+                            <CopyButton value={connection.endpointIps.join(", ")} />
                           </div>
                         )}
                         {connection.statusMessage && (

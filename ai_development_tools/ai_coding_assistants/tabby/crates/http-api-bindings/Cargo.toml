@@ -1,0 +1,27 @@
+[package]
+name = "http-api-bindings"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-stream.workspace = true
+async-trait.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+reqwest-eventsource.workspace = true
+serde.workspace = true
+serde_json = { workspace = true }
+tabby-common = { path = "../tabby-common" }
+tabby-inference = { path = "../tabby-inference" }
+ollama-api-bindings = { path = "../ollama-api-bindings" }
+async-openai-alt.workspace = true
+tokio.workspace = true
+tokio-retry.workspace = true
+tracing.workspace = true
+leaky-bucket = "1.1.2"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

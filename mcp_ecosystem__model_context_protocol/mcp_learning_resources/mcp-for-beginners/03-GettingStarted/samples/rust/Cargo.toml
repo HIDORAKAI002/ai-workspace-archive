@@ -1,0 +1,12 @@
+[package]
+name = "calculator"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+rmcp = { version = "0.5.0", features = ["server", "transport-io"] }
+serde = "1.0.219"
+tokio = { version = "1.46.0", features = ["rt-multi-thread"] }
+
+[dev-dependencies]
+slab = "0.4.11"

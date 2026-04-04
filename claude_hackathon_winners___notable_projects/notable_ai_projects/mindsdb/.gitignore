@@ -1,0 +1,69 @@
+**/*.pyc
+*__pycache__*
+var
+etc
+.idea
+mindsdb/logs
+.hypothesis/
+logs
+tests/temp
+tests/integration/flows/config/*
+my_model.zip
+model.py
+tests/integration/flows/model.py
+tests/integration/flows/my_model.zip
+distributions/docker-compose/*/storage
+venv/*
+env/*
+.envrc
+*.env
+mindsdb-venv/*
+root
+static
+tmp
+.pytest_cache
+tests/prediction_latency_test/*.csv
+storage_dir
+docker/dist/*
+.directory
+MindsDB.egg-info/*
+/build
+train_finetune.lock
+parser_tests
+
+# Autokeras generated files
+auto_model
+autokeras
+structured_data_classifier
+structured_data_regressor
+mindsdb/integrations/handlers/autokeras_handler/structured_data_classifier
+
+# AutoGluon generated files
+AutogluonModels
+
+# VisualStudioCode
+.vscode
+.vscode/*
+.history
+doc/lib/
+run.csh
+
+# Virtualenv
+mindsdb/bin
+mindsdb/lib
+mindsdb/lib64
+pyvenv.cfg
+.python-version
+.DS_Store
+mindsdb/Scripts
+mindsdb/Include
+xgboost
+
+# Docs
+node_modules
+
+mindsdb/**/pyproject.toml
+mindsdb/**/uv.lock
+
+# dsi tests
+reports/

@@ -1,0 +1,21 @@
+module Anthropic
+  module Models
+    module BetaRawMessageStreamEvent = Beta::BetaRawMessageStreamEvent
+
+    module Beta
+      type beta_raw_message_stream_event =
+        Anthropic::Beta::BetaRawMessageStartEvent
+        | Anthropic::Beta::BetaRawMessageDeltaEvent
+        | Anthropic::Beta::BetaRawMessageStopEvent
+        | Anthropic::Beta::BetaRawContentBlockStartEvent
+        | Anthropic::Beta::BetaRawContentBlockDeltaEvent
+        | Anthropic::Beta::BetaRawContentBlockStopEvent
+
+      module BetaRawMessageStreamEvent
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Beta::beta_raw_message_stream_event]
+      end
+    end
+  end
+end

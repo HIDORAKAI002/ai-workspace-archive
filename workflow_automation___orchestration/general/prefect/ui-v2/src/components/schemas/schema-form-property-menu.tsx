@@ -1,0 +1,109 @@
+import type { ReferenceObject, SchemaObject } from "openapi-typescript";
+import { type ReactNode, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Icon } from "@/components/ui/icons";
+import {
+	getPrefectKindLabel,
+	type PrefectKind,
+	prefectKinds,
+} from "./types/prefect-kind";
+import { getPrefectKindFromValue } from "./types/prefect-kind-value";
+import { useSchemaFormContext } from "./use-schema-form-context";
+import { convertValueToPrefectKind } from "./utilities/convertValueToPrefectKind";
+
+export type SchemaFormPropertyMenuProps = {
+	value: unknown;
+	onValueChange: (value: unknown) => void;
+	property: SchemaObject | ReferenceObject | (SchemaObject | ReferenceObject)[];
+	disableKinds?: boolean;
+	children?: ReactNode;
+	defaultValue?: unknown;
+	hasDefaultValue?: boolean;
+};
+
+export const SchemaFormPropertyMenu = ({
+	value,
+	onValueChange,
+	property,
+	children,
+	disableKinds,
+	defaultValue,
+	hasDefaultValue,
+}: SchemaFormPropertyMenuProps) => {
+	const { schema, kinds } = useSchemaFormContext();
+	const [open, setOpen] = useState(false);
+
+	const isDefaultValueDisabled =
+		!hasDefaultValue || JSON.stringify(value) === JSON.stringify(defaultValue);
+
+	function handleUseDefaultValue() {
+		if (hasDefaultValue) {
+			onValueChange(defaultValue);
+		}
+	}
+
+	function convertValueKind(kind: PrefectKind) {
+		const newValue = convertValueToPrefectKind({
+			value,
+			property,
+			schema,
+			to: kind,
+		});
+
+		onValueChange(newValue);
+	}
+
+	const kindOptions = useMemo(() => {
+		const current = getPrefectKindFromValue(value);
+
+		return prefectKinds.filter(
+			(kind) =>
+				kind !== current &&
+				(kinds.includes(kind) || kind === null) &&
+				!disableKinds,
+		);
+	}, [value, kinds, disableKinds]);
+
+	return (
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" size="icon" data-open={open}>
+					<span className="sr-only">Open menu</span>
+					<Icon id="MoreVertical" className="size-4" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				{kindOptions.map((kind) => (
+					<DropdownMenuItem key={kind} onClick={() => convertValueKind(kind)}>
+						{getPrefectKindLabel(kind)}
+					</DropdownMenuItem>
+				))}
+
+				{hasDefaultValue && (
+					<DropdownMenuItem
+						onClick={handleUseDefaultValue}
+						disabled={isDefaultValueDisabled}
+						title={
+							isDefaultValueDisabled
+								? "Default value already applied"
+								: undefined
+						}
+					>
+						Use default value
+					</DropdownMenuItem>
+				)}
+
+				<DropdownMenuSeparator />
+
+				{children}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+};

@@ -12,6 +12,7 @@ use sqlx::{Postgres, Transaction};
 
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::LazyLock;
 use std::time::Duration;
 
 use windmill_api_auth::ApiAuthed;
@@ -59,6 +60,43 @@ use windmill_common::{BASE_URL, HUB_BASE_URL};
 use windmill_git_sync::handle_deployment_metadata;
 
 pub const COOKIE_PATH: &str = "/";
+
+const TOKEN_CREATE_LIMIT_PER_MINUTE: i32 = 10;
+
+struct TokenRateLimitEntry {
+    count: i32,
+    minute_bucket: i64,
+}
+
+static TOKEN_CREATE_RATE_LIMIT: LazyLock<dashmap::DashMap<String, TokenRateLimitEntry>> =
+    LazyLock::new(dashmap::DashMap::new);
+
+fn check_token_create_rate_limit(username: &str) -> Result<()> {
+    if !*CLOUD_HOSTED {
+        return Ok(());
+    }
+
+    let current_minute = chrono::Utc::now().timestamp() / 60;
+
+    let mut entry = TOKEN_CREATE_RATE_LIMIT
+        .entry(username.to_string())
+        .or_insert(TokenRateLimitEntry { count: 0, minute_bucket: current_minute });
+
+    if entry.minute_bucket != current_minute {
+        entry.count = 0;
+        entry.minute_bucket = current_minute;
+    }
+
+    if entry.count >= TOKEN_CREATE_LIMIT_PER_MINUTE {
+        return Err(Error::Generic(
+            StatusCode::TOO_MANY_REQUESTS,
+            "Too many token creation requests. Please try again later.".to_string(),
+        ));
+    }
+
+    entry.count += 1;
+    Ok(())
+}
 
 pub fn workspaced_service() -> Router {
     Router::new()
@@ -1746,6 +1784,7 @@ async fn set_login_type(
 
 #[allow(unreachable_code, unused_variables)]
 async fn login(
+    headers: axum::http::HeaderMap,
     cookies: Cookies,
     Extension(db): Extension<DB>,
     Extension(argon2): Extension<Arc<Argon2<'_>>>,
@@ -1756,8 +1795,10 @@ async fn login(
         return Ok("no_auth".to_string());
     }
 
-    let mut tx = db.begin().await?;
     let email = email.to_lowercase();
+    windmill_common::login_rate_limit::check_and_increment_login_attempt(&headers, &email)?;
+
+    let mut tx = db.begin().await?;
     let audit_author = AuditAuthor {
         email: email.clone(),
         username: email.clone(),
@@ -1789,6 +1830,7 @@ async fn login(
                 None,
             )
             .await?;
+            windmill_common::login_rate_limit::record_login_failure(&email);
             Err(Error::BadRequest("Invalid login".to_string()))
         } else {
             let token = create_session_token(&email, super_admin, &mut tx, cookies).await?;
@@ -1825,6 +1867,7 @@ async fn login(
             None,
         )
         .await?;
+        windmill_common::login_rate_limit::record_login_failure(&email);
         Err(Error::BadRequest("Invalid login".to_string()))
     }
 }
@@ -1970,6 +2013,8 @@ async fn create_token(
     authed: ApiAuthed,
     Json(token_config): Json<NewToken>,
 ) -> Result<(StatusCode, String)> {
+    check_token_create_rate_limit(&authed.username)?;
+
     let mut tx = db.begin().await?;
 
     let token = create_token_internal(&mut *tx, &db, &authed, token_config).await?;

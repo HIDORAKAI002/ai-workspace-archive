@@ -1,0 +1,578 @@
+from contextlib import ExitStack, asynccontextmanager, contextmanager
+from unittest.mock import MagicMock
+
+import pytest
+from prefect_sqlalchemy.credentials import (
+    AsyncDriver,
+    ConnectionComponents,
+    SyncDriver,
+)
+from prefect_sqlalchemy.database import (
+    AsyncSqlAlchemyConnector,
+    SqlAlchemyConnector,
+)
+from sqlalchemy import URL
+from sqlalchemy import __version__ as SQLALCHEMY_VERSION
+from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.engine.cursor import CursorResult
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
+
+from prefect import flow, task
+
+
+class SQLAlchemyAsyncEngineMock:
+    async def dispose(self):
+        return True
+
+    @asynccontextmanager
+    async def connect(self):
+        try:
+            yield SQLAlchemyAsyncConnectionMock()
+        finally:
+            pass
+
+
+class SQLAlchemyAsyncConnectionMock:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def execute(self, query, params):
+        cursor_result = MagicMock()
+        cursor_result.fetchall.side_effect = lambda: [
+            (query, params),
+        ]
+        cursor_result.fetchmany.side_effect = lambda size: (
+            [
+                (query, params),
+            ]
+            * size
+        )
+        return cursor_result
+
+    async def commit(self):
+        pass
+
+
+class SQLAlchemyEngineMock:
+    def dispose(self):
+        return True
+
+    @contextmanager
+    def connect(self):
+        try:
+            yield SQLAlchemyConnectionMock()
+        finally:
+            pass
+
+
+class SQLAlchemyConnectionMock:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, query, params):
+        cursor_result = MagicMock()
+        cursor_result.fetchall.side_effect = lambda: [
+            (query, params),
+        ]
+        cursor_result.fetchmany.side_effect = lambda size: (
+            [
+                (query, params),
+            ]
+            * size
+        )
+        return cursor_result
+
+    def commit(self):
+        pass
+
+
+@pytest.fixture()
+def sqlalchemy_credentials_async():
+    sqlalchemy_credentials_mock = MagicMock()
+    sqlalchemy_credentials_mock._driver_is_async = True
+    sqlalchemy_credentials_mock.get_engine.return_value = SQLAlchemyAsyncEngineMock()
+    return sqlalchemy_credentials_mock
+
+
+@pytest.fixture()
+def sqlalchemy_credentials_sync():
+    sqlalchemy_credentials_mock = MagicMock()
+    sqlalchemy_credentials_mock._driver_is_async = False
+    sqlalchemy_credentials_mock.get_engine.return_value = SQLAlchemyEngineMock()
+    return sqlalchemy_credentials_mock
+
+
+class TestSqlAlchemyConnector:
+    async def test_connector_init(self):
+        credentials_components = SqlAlchemyConnector(
+            connection_info=ConnectionComponents(
+                driver=SyncDriver.POSTGRESQL_PSYCOPG2,
+                username="myusername",
+                password="mypass",
+                database="my.db",
+                host="localhost",
+                port=1234,
+            ),
+        )
+
+        connection_url = "postgresql+psycopg2://myusername:mypass@localhost:1234/my.db"
+        credentials_url = SqlAlchemyConnector(connection_info=connection_url)
+        assert credentials_components._rendered_url == credentials_url._rendered_url
+
+    def test_connector_init_with_oracle_url(self):
+        connection_url = "oracle+cx_oracle://myusername:mypass@localhost:1234/my.db"
+        connector = SqlAlchemyConnector(connection_info=connection_url)
+        assert isinstance(connector._rendered_url, URL)
+        assert str(connector._rendered_url).startswith("oracle+cx_oracle://")
+
+    def test_connector_init_fails_with_invalid_url(self):
+        with pytest.raises(ValueError, match="Invalid URL"):
+            SqlAlchemyConnector(connection_info="plskeepmydata")
+
+    @pytest.mark.parametrize("method", ["fetch_all", "execute"])
+    def test_delay_start(self, caplog, method):
+        with SqlAlchemyConnector(
+            connection_info=ConnectionComponents(
+                driver=SyncDriver.SQLITE_PYSQLITE,
+                database=":memory:",
+            ),
+        ) as connector:
+            assert connector._unique_results == {}
+            assert isinstance(connector._exit_stack, ExitStack)
+            connector.reset_connections()
+            assert (
+                caplog.records[0].msg == "Reset opened connections and their results."
+            )
+            assert connector._engine is None
+            assert connector._unique_results == {}
+            assert isinstance(connector._exit_stack, ExitStack)
+            getattr(connector, method)("SELECT 1")
+            assert isinstance(connector._engine, Engine)
+            if method == "execute":
+                assert connector._unique_results == {}
+            else:
+                assert len(connector._unique_results) == 1
+            assert isinstance(connector._exit_stack, ExitStack)
+
+    @pytest.fixture(params=[SyncDriver.SQLITE_PYSQLITE, AsyncDriver.SQLITE_AIOSQLITE])
+    async def connector_with_data(self, tmp_path, request):
+        driver = request.param
+        is_async = driver == AsyncDriver.SQLITE_AIOSQLITE
+
+        if is_async:
+            connector = AsyncSqlAlchemyConnector(
+                connection_info=ConnectionComponents(
+                    driver=driver,
+                    database=str(tmp_path / "test.db"),
+                ),
+                fetch_size=2,
+            )
+            create_result = await connector.execute(
+                "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"
+            )
+            insert_result = await connector.execute(
+                "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                parameters={"name": "Marvin", "address": "Highway 42"},
+            )
+            many_result = await connector.execute_many(
+                "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                seq_of_parameters=[
+                    {"name": "Ford", "address": "Highway 42"},
+                    {"name": "Unknown", "address": "Space"},
+                    {"name": "Me", "address": "Myway 88"},
+                ],
+            )
+        else:
+            connector = SqlAlchemyConnector(
+                connection_info=ConnectionComponents(
+                    driver=driver,
+                    database=str(tmp_path / "test.db"),
+                ),
+                fetch_size=2,
+            )
+            create_result = connector.execute(
+                "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);",
+            )
+            insert_result = connector.execute(
+                "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                parameters={"name": "Marvin", "address": "Highway 42"},
+            )
+            many_result = connector.execute_many(
+                "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                seq_of_parameters=[
+                    {"name": "Ford", "address": "Highway 42"},
+                    {"name": "Unknown", "address": "Space"},
+                    {"name": "Me", "address": "Myway 88"},
+                ],
+            )
+        assert isinstance(many_result, CursorResult)
+        assert isinstance(insert_result, CursorResult)
+        assert isinstance(create_result, CursorResult)
+        connector._is_async = is_async  # Add flag for tests to check
+        yield connector
+
+    @pytest.fixture(params=[True, False])
+    async def managed_connector_with_data(self, connector_with_data, request):
+        if request.param:
+            # managed
+            if connector_with_data._is_async:
+                async with connector_with_data:
+                    yield connector_with_data
+            else:
+                with connector_with_data:
+                    yield connector_with_data
+                # need to reset manually because
+                # the test is an async function but the connector is sync
+                connector_with_data._reset_cursor_results()
+        else:
+            yield connector_with_data
+            if connector_with_data._is_async:
+                await connector_with_data.close()
+            else:
+                connector_with_data._reset_cursor_results()
+                connector_with_data._exit_stack.close()
+                connector_with_data._engine = None
+        assert connector_with_data._unique_results == {}
+        assert connector_with_data._engine is None
+
+    @pytest.mark.parametrize("begin", [True, False])
+    async def test_get_connection(self, begin, managed_connector_with_data):
+        connection = managed_connector_with_data.get_connection(begin=begin)
+        if begin:
+            engine_type = (
+                AsyncEngine if managed_connector_with_data._is_async else Engine
+            )
+
+            if SQLALCHEMY_VERSION.startswith("1."):
+                assert isinstance(connection, engine_type._trans_ctx)
+            elif managed_connector_with_data._is_async:
+                async with connection as conn:
+                    assert isinstance(conn, engine_type._connection_cls)
+            else:
+                with connection as conn:
+                    assert isinstance(conn, engine_type._connection_cls)
+        else:
+            engine_type = (
+                AsyncConnection if managed_connector_with_data._is_async else Connection
+            )
+            assert isinstance(connection, engine_type)
+
+    @pytest.mark.parametrize("begin", [True, False])
+    async def test_get_client(self, begin, managed_connector_with_data):
+        connection = managed_connector_with_data.get_client(
+            client_type="connection", begin=begin
+        )
+        if begin:
+            engine_type = (
+                AsyncEngine if managed_connector_with_data._is_async else Engine
+            )
+            if SQLALCHEMY_VERSION.startswith("1."):
+                assert isinstance(connection, engine_type._trans_ctx)
+            elif managed_connector_with_data._is_async:
+                async with connection as conn:
+                    assert isinstance(conn, engine_type._connection_cls)
+            else:
+                with connection as conn:
+                    assert isinstance(conn, engine_type._connection_cls)
+        else:
+            engine_type = (
+                AsyncConnection if managed_connector_with_data._is_async else Connection
+            )
+            assert isinstance(connection, engine_type)
+
+    async def test_fetch_one(self, managed_connector_with_data):
+        if managed_connector_with_data._is_async:
+            results = await managed_connector_with_data.fetch_one(
+                "SELECT * FROM customers"
+            )
+            assert results == ("Marvin", "Highway 42")
+            results = await managed_connector_with_data.fetch_one(
+                "SELECT * FROM customers"
+            )
+            assert results == ("Ford", "Highway 42")
+
+            # test with parameters
+            results = await managed_connector_with_data.fetch_one(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Myway 88"},
+            )
+            assert results == ("Me", "Myway 88")
+            assert len(managed_connector_with_data._unique_results) == 2
+
+            # now reset so fetch starts at the first value again
+            await managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = await managed_connector_with_data.fetch_one(
+                "SELECT * FROM customers"
+            )
+            assert results == ("Marvin", "Highway 42")
+            assert len(managed_connector_with_data._unique_results) == 1
+        else:
+            results = managed_connector_with_data.fetch_one("SELECT * FROM customers")
+            assert results == ("Marvin", "Highway 42")
+            results = managed_connector_with_data.fetch_one("SELECT * FROM customers")
+            assert results == ("Ford", "Highway 42")
+
+            # test with parameters
+            results = managed_connector_with_data.fetch_one(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Myway 88"},
+            )
+            assert results == ("Me", "Myway 88")
+            assert len(managed_connector_with_data._unique_results) == 2
+
+            # now reset so fetch starts at the first value again
+            managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = managed_connector_with_data.fetch_one("SELECT * FROM customers")
+            assert results == ("Marvin", "Highway 42")
+            assert len(managed_connector_with_data._unique_results) == 1
+
+    @pytest.mark.parametrize("size", [None, 1, 2])
+    async def test_fetch_many(self, managed_connector_with_data, size):
+        if managed_connector_with_data._is_async:
+            results = await managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers", size=size
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")][
+                : (size or managed_connector_with_data.fetch_size)
+            ]
+            assert results == expected
+
+            # test with parameters
+            results = await managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Myway 88"},
+            )
+            assert results == [("Me", "Myway 88")]
+            assert len(managed_connector_with_data._unique_results) == 2
+
+            # now reset so fetch starts at the first value again
+            await managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = await managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers", size=3
+            )
+            assert results == [
+                ("Marvin", "Highway 42"),
+                ("Ford", "Highway 42"),
+                ("Unknown", "Space"),
+            ]
+            assert len(managed_connector_with_data._unique_results) == 1
+        else:
+            results = managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers", size=size
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")][
+                : (size or managed_connector_with_data.fetch_size)
+            ]
+            assert results == expected
+
+            # test with parameters
+            results = managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Myway 88"},
+            )
+            assert results == [("Me", "Myway 88")]
+            assert len(managed_connector_with_data._unique_results) == 2
+
+            # now reset so fetch starts at the first value again
+            managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = managed_connector_with_data.fetch_many(
+                "SELECT * FROM customers", size=3
+            )
+            assert results == [
+                ("Marvin", "Highway 42"),
+                ("Ford", "Highway 42"),
+                ("Unknown", "Space"),
+            ]
+            assert len(managed_connector_with_data._unique_results) == 1
+
+    async def test_fetch_all(self, managed_connector_with_data):
+        if managed_connector_with_data._is_async:
+            # test with parameters
+            results = await managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")]
+            assert results == expected
+
+            # there should be no more results
+            results = await managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            assert results == []
+            assert len(managed_connector_with_data._unique_results) == 1
+
+            # now reset so fetch one starts at the first value again
+            await managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = await managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")]
+            assert results == expected
+            assert len(managed_connector_with_data._unique_results) == 1
+        else:
+            # test with parameters
+            results = managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")]
+            assert results == expected
+
+            # there should be no more results
+            results = managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            assert results == []
+            assert len(managed_connector_with_data._unique_results) == 1
+
+            # now reset so fetch one starts at the first value again
+            managed_connector_with_data.reset_connections()
+            assert len(managed_connector_with_data._unique_results) == 0
+
+            # ensure it's really reset
+            results = managed_connector_with_data.fetch_all(
+                "SELECT * FROM customers WHERE address = :address",
+                parameters={"address": "Highway 42"},
+            )
+            expected = [("Marvin", "Highway 42"), ("Ford", "Highway 42")]
+            assert results == expected
+            assert len(managed_connector_with_data._unique_results) == 1
+
+    def test_close(self, managed_connector_with_data):
+        if not managed_connector_with_data._is_async:
+            managed_connector_with_data.close()  # test calling it twice
+
+    async def test_aclose(self, managed_connector_with_data):
+        if managed_connector_with_data._is_async:
+            await managed_connector_with_data.close()  # test calling it twice
+
+    def test_enter(self, managed_connector_with_data):
+        if not managed_connector_with_data._is_async:
+            with managed_connector_with_data:
+                pass
+
+    async def test_aenter(self, managed_connector_with_data):
+        if managed_connector_with_data._is_async:
+            async with managed_connector_with_data:
+                pass
+
+    def test_sync_sqlite_in_flow(self, tmp_path):
+        @flow
+        def a_flow():
+            with SqlAlchemyConnector(
+                connection_info=ConnectionComponents(
+                    driver=SyncDriver.SQLITE_PYSQLITE,
+                    database=str(tmp_path / "test.db"),
+                )
+            ) as conn:
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"  # noqa
+                )
+                conn.execute(
+                    "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                    parameters={"name": "Marvin", "address": "Highway 42"},
+                )
+                conn.execute_many(
+                    "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                    seq_of_parameters=[
+                        {"name": "Ford", "address": "Highway 42"},
+                        {"name": "Unknown", "address": "Space"},
+                        {"name": "Me", "address": "Myway 88"},
+                    ],
+                )
+                return conn.fetch_one("SELECT * FROM customers")
+
+        assert a_flow() == ("Marvin", "Highway 42")
+
+    def test_sync_compatible_reset_connections(self, tmp_path):
+        conn = SqlAlchemyConnector(
+            connection_info=ConnectionComponents(
+                driver=SyncDriver.SQLITE_PYSQLITE,
+                database=str(tmp_path / "test.db"),
+            )
+        )
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"  # noqa
+        )
+        conn.execute(
+            "INSERT INTO customers (name, address) VALUES (:name, :address);",
+            parameters={"name": "Marvin", "address": "Highway 42"},
+        )
+        conn.fetch_one("SELECT * FROM customers")
+        assert len(conn._unique_results) == 1
+        conn.reset_connections()
+        assert len(conn._unique_results) == 0
+
+    def test_flow_without_initialized_engine(self, tmp_path):
+        @task
+        def setup_table(block_name: str) -> None:
+            with SqlAlchemyConnector.load(block_name) as connector:
+                connector.execute(
+                    "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"  # noqa
+                )
+                connector.execute(
+                    "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                    parameters={"name": "Marvin", "address": "Highway 42"},
+                )
+                connector.execute_many(
+                    "INSERT INTO customers (name, address) VALUES (:name, :address);",
+                    seq_of_parameters=[
+                        {"name": "Ford", "address": "Highway 42"},
+                        {"name": "Unknown", "address": "Highway 42"},
+                    ],
+                )
+
+        @task
+        def fetch_data(block_name: str) -> list:
+            all_rows = []
+            with SqlAlchemyConnector.load(block_name) as connector:
+                while True:
+                    # Repeated fetch* calls using the same operation will
+                    # skip re-executing and instead return the next set of results
+                    new_rows = connector.fetch_many("SELECT * FROM customers", size=2)
+                    if len(new_rows) == 0:
+                        break
+                    all_rows.append(new_rows)
+            return all_rows
+
+        @flow
+        def sqlalchemy_flow(block_name: str) -> list:
+            SqlAlchemyConnector(
+                connection_info=ConnectionComponents(
+                    driver=SyncDriver.SQLITE_PYSQLITE,
+                    database=str(tmp_path / "test.db"),
+                )
+            ).save(block_name)
+            setup_table(block_name)
+            all_rows = fetch_data(block_name)
+            return all_rows
+
+        assert sqlalchemy_flow("connector") == [
+            [("Marvin", "Highway 42"), ("Ford", "Highway 42")],
+            [("Unknown", "Highway 42")],
+        ]

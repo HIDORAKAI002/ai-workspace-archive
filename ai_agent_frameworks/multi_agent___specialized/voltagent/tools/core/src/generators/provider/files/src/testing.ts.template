@@ -1,0 +1,15 @@
+import type { BaseMessage } from "@voltagent/core";
+import type { <%= classify(name) %>Provider } from "./provider";
+
+/**
+ * Creates a mock model that can be used to test the provider.
+ * @param output - The output to return from the model.
+ * @returns A mock model that can be used to test the provider.
+ */
+export function createMockModel(
+  output: Error | BaseMessage[] | Record<string, any>,
+): ProviderModel {
+  // TODO: add a mock model for reuse in testing 
+}
+
+type ProviderModel = Parameters<<%= classify(name) %>Provider["generateText"]>[0]["model"];

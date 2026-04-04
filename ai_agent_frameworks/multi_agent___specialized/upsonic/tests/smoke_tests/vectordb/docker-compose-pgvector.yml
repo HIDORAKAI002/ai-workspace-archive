@@ -1,0 +1,20 @@
+services:
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: upsonic_test_pgvector
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-upsonic_test}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test_password}
+      POSTGRES_DB: ${POSTGRES_DB:-upsonic_test}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-upsonic_test}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgvector_data:

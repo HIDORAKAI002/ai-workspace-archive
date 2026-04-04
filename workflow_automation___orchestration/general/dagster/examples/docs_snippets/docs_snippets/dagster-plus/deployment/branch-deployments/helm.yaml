@@ -1,0 +1,7 @@
+
+dagsterCloud:
+  branchDeployments: true
+  workspace:
+    serverTTL:
+      enabled: true
+      ttlSeconds: 7200

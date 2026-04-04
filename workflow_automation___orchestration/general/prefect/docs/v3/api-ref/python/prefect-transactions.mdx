@@ -1,0 +1,659 @@
+---
+title: transactions
+sidebarTitle: transactions
+---
+
+# `prefect.transactions`
+
+## Functions
+
+### `get_transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L657" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_transaction() -> BaseTransaction | None
+```
+
+### `transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L662" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+transaction(key: str | None = None, store: ResultStore | None = None, commit_mode: CommitMode | None = None, isolation_level: IsolationLevel | None = None, overwrite: bool = False, write_on_commit: bool = True, logger: logging.Logger | LoggingAdapter | None = None) -> Generator[Transaction, None, None]
+```
+
+
+A context manager for opening and managing a transaction.
+
+**Args:**
+- `- key`: An identifier to use for the transaction
+- `- store`: The store to use for persisting the transaction result. If not provided,
+a default store will be used based on the current run context.
+- `- commit_mode`: The commit mode controlling when the transaction and
+child transactions are committed
+- `- overwrite`: Whether to overwrite an existing transaction record in the store
+- `- write_on_commit`: Whether to write the result to the store on commit. If not provided,
+will default will be determined by the current run context. If no run context is
+available, the value of `PREFECT_RESULTS_PERSIST_BY_DEFAULT` will be used.
+
+
+### `atransaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L714" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+atransaction(key: str | None = None, store: ResultStore | None = None, commit_mode: CommitMode | None = None, isolation_level: IsolationLevel | None = None, overwrite: bool = False, write_on_commit: bool = True, logger: logging.Logger | LoggingAdapter | None = None) -> AsyncGenerator[AsyncTransaction, None]
+```
+
+
+An asynchronous context manager for opening and managing an asynchronous transaction.
+
+**Args:**
+- `- key`: An identifier to use for the transaction
+- `- store`: The store to use for persisting the transaction result. If not provided,
+a default store will be used based on the current run context.
+- `- commit_mode`: The commit mode controlling when the transaction and
+child transactions are committed
+- `- overwrite`: Whether to overwrite an existing transaction record in the store
+- `- write_on_commit`: Whether to write the result to the store on commit. If not provided,
+the default will be determined by the current run context. If no run context is
+available, the value of `PREFECT_RESULTS_PERSIST_BY_DEFAULT` will be used.
+
+
+## Classes
+
+### `IsolationLevel` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L48" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `auto` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/utilities/collections.py#L70" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+auto() -> str
+```
+
+Exposes `enum.auto()` to avoid requiring a second import to use `AutoEnum`
+
+
+### `CommitMode` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L53" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `auto` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/utilities/collections.py#L70" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+auto() -> str
+```
+
+Exposes `enum.auto()` to avoid requiring a second import to use `AutoEnum`
+
+
+### `TransactionState` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L59" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `auto` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/utilities/collections.py#L70" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+auto() -> str
+```
+
+Exposes `enum.auto()` to avoid requiring a second import to use `AutoEnum`
+
+
+### `BaseTransaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L67" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+A base model for transaction state.
+
+
+**Methods:**
+
+#### `add_child` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L217" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+add_child(self, transaction: Self) -> None
+```
+
+#### `get` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L109" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get(self, name: str, default: Any = NotSet) -> Any
+```
+
+Get a stored value from the transaction.
+
+Child transactions will return values from their parents unless a value with
+the same name is set in the child transaction.
+
+Direct changes to returned values will not update the stored value. To update the
+stored value, use the `set` method.
+
+**Args:**
+- `name`: The name of the value to get
+- `default`: The default value to return if the value is not found
+
+**Returns:**
+- The value from the transaction
+
+**Examples:**
+
+Get a value from the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+Get a value from a parent transaction:
+```python
+with transaction() as parent:
+    parent.set("key", "parent_value")
+    with transaction() as child:
+        assert child.get("key") == "parent_value"
+```
+
+Update a stored value:
+```python
+with transaction() as txn:
+    txn.set("key", [1, 2, 3])
+    value = txn.get("key")
+    value.append(4)
+    # Stored value is not updated until `.set` is called
+    assert value == [1, 2, 3, 4]
+    assert txn.get("key") == [1, 2, 3]
+
+    txn.set("key", value)
+    assert txn.get("key") == [1, 2, 3, 4]
+```
+
+
+#### `get` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/context.py#L244" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get(cls: type[Self]) -> Optional[Self]
+```
+
+Get the current context instance
+
+
+#### `get_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L250" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_active(cls: Type[Self]) -> Optional[Self]
+```
+
+#### `get_parent` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L220" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_parent(self) -> Self | None
+```
+
+#### `is_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L183" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_active(self) -> bool
+```
+
+#### `is_committed` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L171" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_committed(self) -> bool
+```
+
+#### `is_pending` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L180" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_pending(self) -> bool
+```
+
+#### `is_rolled_back` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L174" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_rolled_back(self) -> bool
+```
+
+#### `is_staged` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L177" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_staged(self) -> bool
+```
+
+#### `model_copy` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/context.py#L248" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+model_copy(self: Self) -> Self
+```
+
+Duplicate the context model, optionally choosing which fields to include, exclude, or change.
+
+**Attributes:**
+- `include`: Fields to include in new model.
+- `exclude`: Fields to exclude from new model, as with values this takes precedence over include.
+- `update`: Values to change/add in the new model. Note\: the data is not validated before creating
+the new model - you should trust this data.
+- `deep`: Set to `True` to make a deep copy of the model.
+
+**Returns:**
+- A new model instance.
+
+
+#### `prepare_transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L186" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+prepare_transaction(self) -> None
+```
+
+Helper method to prepare transaction state and validate configuration.
+
+
+#### `serialize` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/context.py#L269" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+serialize(self, include_secrets: bool = True) -> dict[str, Any]
+```
+
+Serialize the context model to a dictionary that can be pickled with cloudpickle.
+
+
+#### `set` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L90" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set(self, name: str, value: Any) -> None
+```
+
+Set a stored value in the transaction.
+
+**Args:**
+- `name`: The name of the value to set
+- `value`: The value to set
+
+**Examples:**
+
+Set a value for use later in the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+
+#### `stage` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L231" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stage(self, value: Any, on_rollback_hooks: Optional[list[Callable[..., Any]]] = None, on_commit_hooks: Optional[list[Callable[..., Any]]] = None) -> None
+```
+
+Stage a value to be committed later.
+
+
+### `Transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L259" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+A model representing the state of a transaction.
+
+
+**Methods:**
+
+#### `add_child` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L217" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+add_child(self, transaction: Self) -> None
+```
+
+#### `begin` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L299" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+begin(self) -> None
+```
+
+#### `commit` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L335" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+commit(self) -> bool
+```
+
+#### `get` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L109" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get(self, name: str, default: Any = NotSet) -> Any
+```
+
+Get a stored value from the transaction.
+
+Child transactions will return values from their parents unless a value with
+the same name is set in the child transaction.
+
+Direct changes to returned values will not update the stored value. To update the
+stored value, use the `set` method.
+
+**Args:**
+- `name`: The name of the value to get
+- `default`: The default value to return if the value is not found
+
+**Returns:**
+- The value from the transaction
+
+**Examples:**
+
+Get a value from the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+Get a value from a parent transaction:
+```python
+with transaction() as parent:
+    parent.set("key", "parent_value")
+    with transaction() as child:
+        assert child.get("key") == "parent_value"
+```
+
+Update a stored value:
+```python
+with transaction() as txn:
+    txn.set("key", [1, 2, 3])
+    value = txn.get("key")
+    value.append(4)
+    # Stored value is not updated until `.set` is called
+    assert value == [1, 2, 3, 4]
+    assert txn.get("key") == [1, 2, 3]
+
+    txn.set("key", value)
+    assert txn.get("key") == [1, 2, 3, 4]
+```
+
+
+#### `get_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L250" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_active(cls: Type[Self]) -> Optional[Self]
+```
+
+#### `get_parent` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L220" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_parent(self) -> Self | None
+```
+
+#### `is_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L183" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_active(self) -> bool
+```
+
+#### `is_committed` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L171" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_committed(self) -> bool
+```
+
+#### `is_pending` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L180" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_pending(self) -> bool
+```
+
+#### `is_rolled_back` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L174" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_rolled_back(self) -> bool
+```
+
+#### `is_staged` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L177" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_staged(self) -> bool
+```
+
+#### `prepare_transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L186" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+prepare_transaction(self) -> None
+```
+
+Helper method to prepare transaction state and validate configuration.
+
+
+#### `read` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L315" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+read(self) -> ResultRecord[Any] | None
+```
+
+#### `reset` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L320" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+reset(self) -> None
+```
+
+#### `rollback` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L418" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+rollback(self) -> bool
+```
+
+#### `run_hook` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L393" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+run_hook(self, hook: Callable[..., Any], hook_type: str) -> None
+```
+
+#### `set` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L90" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set(self, name: str, value: Any) -> None
+```
+
+Set a stored value in the transaction.
+
+**Args:**
+- `name`: The name of the value to set
+- `value`: The value to set
+
+**Examples:**
+
+Set a value for use later in the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+
+#### `stage` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L231" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stage(self, value: Any, on_rollback_hooks: Optional[list[Callable[..., Any]]] = None, on_commit_hooks: Optional[list[Callable[..., Any]]] = None) -> None
+```
+
+Stage a value to be committed later.
+
+
+### `AsyncTransaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L452" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+A model representing the state of an asynchronous transaction.
+
+
+**Methods:**
+
+#### `add_child` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L217" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+add_child(self, transaction: Self) -> None
+```
+
+#### `begin` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L457" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+begin(self) -> None
+```
+
+#### `commit` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L495" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+commit(self) -> bool
+```
+
+#### `get` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L109" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get(self, name: str, default: Any = NotSet) -> Any
+```
+
+Get a stored value from the transaction.
+
+Child transactions will return values from their parents unless a value with
+the same name is set in the child transaction.
+
+Direct changes to returned values will not update the stored value. To update the
+stored value, use the `set` method.
+
+**Args:**
+- `name`: The name of the value to get
+- `default`: The default value to return if the value is not found
+
+**Returns:**
+- The value from the transaction
+
+**Examples:**
+
+Get a value from the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+Get a value from a parent transaction:
+```python
+with transaction() as parent:
+    parent.set("key", "parent_value")
+    with transaction() as child:
+        assert child.get("key") == "parent_value"
+```
+
+Update a stored value:
+```python
+with transaction() as txn:
+    txn.set("key", [1, 2, 3])
+    value = txn.get("key")
+    value.append(4)
+    # Stored value is not updated until `.set` is called
+    assert value == [1, 2, 3, 4]
+    assert txn.get("key") == [1, 2, 3]
+
+    txn.set("key", value)
+    assert txn.get("key") == [1, 2, 3, 4]
+```
+
+
+#### `get_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L250" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_active(cls: Type[Self]) -> Optional[Self]
+```
+
+#### `get_parent` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L220" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+get_parent(self) -> Self | None
+```
+
+#### `is_active` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L183" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_active(self) -> bool
+```
+
+#### `is_committed` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L171" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_committed(self) -> bool
+```
+
+#### `is_pending` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L180" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_pending(self) -> bool
+```
+
+#### `is_rolled_back` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L174" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_rolled_back(self) -> bool
+```
+
+#### `is_staged` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L177" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+is_staged(self) -> bool
+```
+
+#### `prepare_transaction` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L186" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+prepare_transaction(self) -> None
+```
+
+Helper method to prepare transaction state and validate configuration.
+
+
+#### `read` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L473" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+read(self) -> ResultRecord[Any] | None
+```
+
+#### `reset` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L478" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+reset(self) -> None
+```
+
+#### `rollback` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L578" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+rollback(self) -> bool
+```
+
+#### `run_hook` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L553" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+run_hook(self, hook: Callable[..., Any], hook_type: str) -> None
+```
+
+#### `set` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L90" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+set(self, name: str, value: Any) -> None
+```
+
+Set a stored value in the transaction.
+
+**Args:**
+- `name`: The name of the value to set
+- `value`: The value to set
+
+**Examples:**
+
+Set a value for use later in the transaction:
+```python
+with transaction() as txn:
+    txn.set("key", "value")
+    ...
+    assert txn.get("key") == "value"
+```
+
+
+#### `stage` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/transactions.py#L231" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stage(self, value: Any, on_rollback_hooks: Optional[list[Callable[..., Any]]] = None, on_commit_hooks: Optional[list[Callable[..., Any]]] = None) -> None
+```
+
+Stage a value to be committed later.
+

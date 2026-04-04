@@ -29,6 +29,10 @@ describe("GET /api/prompts/[id]/versions", () => {
   });
 
   it("should return empty array for prompt with no versions", async () => {
+    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+      isPrivate: false,
+      authorId: "user1",
+    } as never);
     vi.mocked(db.promptVersion.findMany).mockResolvedValue([]);
 
     const request = new Request("http://localhost:3000/api/prompts/123/versions");
@@ -42,6 +46,10 @@ describe("GET /api/prompts/[id]/versions", () => {
   });
 
   it("should return versions ordered by version desc", async () => {
+    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+      isPrivate: false,
+      authorId: "user1",
+    } as never);
     vi.mocked(db.promptVersion.findMany).mockResolvedValue([
       {
         id: "v3",
@@ -83,6 +91,10 @@ describe("GET /api/prompts/[id]/versions", () => {
   });
 
   it("should include author info in response", async () => {
+    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+      isPrivate: false,
+      authorId: "user1",
+    } as never);
     vi.mocked(db.promptVersion.findMany).mockResolvedValue([
       {
         id: "v1",
@@ -106,6 +118,10 @@ describe("GET /api/prompts/[id]/versions", () => {
   });
 
   it("should call findMany with correct parameters", async () => {
+    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+      isPrivate: false,
+      authorId: "user1",
+    } as never);
     vi.mocked(db.promptVersion.findMany).mockResolvedValue([]);
 
     const request = new Request("http://localhost:3000/api/prompts/123/versions");

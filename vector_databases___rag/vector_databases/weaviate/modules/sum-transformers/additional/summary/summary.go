@@ -1,0 +1,59 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package summary
+
+import (
+	"context"
+	"errors"
+
+	"github.com/weaviate/weaviate/entities/models"
+
+	"github.com/tailor-platform/graphql"
+	"github.com/tailor-platform/graphql/language/ast"
+	"github.com/weaviate/weaviate/entities/moduletools"
+	"github.com/weaviate/weaviate/entities/search"
+	"github.com/weaviate/weaviate/modules/sum-transformers/ent"
+)
+
+type sumClient interface {
+	GetSummary(ctx context.Context, property, text string) ([]ent.SummaryResult, error)
+}
+
+type SummaryProvider struct {
+	sum sumClient
+}
+
+func New(sum sumClient) *SummaryProvider {
+	return &SummaryProvider{sum}
+}
+
+func (p *SummaryProvider) AdditionalPropertyDefaultValue() interface{} {
+	return &Params{}
+}
+
+func (p *SummaryProvider) ExtractAdditionalFn(param []*ast.Argument, class *models.Class) interface{} {
+	return p.parseSummaryArguments(param)
+}
+
+func (p *SummaryProvider) AdditionalFieldFn(classname string) *graphql.Field {
+	return p.additionalSummaryField(classname)
+}
+
+func (p *SummaryProvider) AdditionalPropertyFn(ctx context.Context,
+	in []search.Result, params interface{}, limit *int,
+	argumentModuleParams map[string]interface{}, cfg moduletools.ClassConfig,
+) ([]search.Result, error) {
+	if parameters, ok := params.(*Params); ok {
+		return p.findSummary(ctx, in, parameters)
+	}
+	return nil, errors.New("wrong parameters")
+}

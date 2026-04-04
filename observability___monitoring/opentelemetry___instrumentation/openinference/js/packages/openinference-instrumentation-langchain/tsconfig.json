@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "types": ["node", "vitest/globals"],
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext"
+  },
+  "files": [],
+  "include": ["src/**/*.ts", "examples/**/*.ts", "test/**/*.ts"],
+  "references": []
+}

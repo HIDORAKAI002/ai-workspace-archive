@@ -1,0 +1,454 @@
+# MCP सुरक्षा नियंत्रण - फेब्रुवारी 2026 अद्यतन
+
+> **सध्याचा मानक**: हे दस्तऐवज [MCP स्पेसिफिकेशन 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) सुरक्षा गरजा आणि अधिकृत [MCP सुरक्षा सर्वोत्तम प्रॅक्टिसेस](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) दर्शविते.
+
+Model Context Protocol (MCP) पारंपारिक सॉफ्टवेअर सुरक्षा आणि AI-विशिष्ट धोक्यांना सामोरे जाण्याऱ्या सुधारित सुरक्षा नियंत्रणांसह लक्षणीयरीत्या प्रगल्भ झाले आहे. हे दस्तऐवज OWASP MCP Top 10 फ्रेमवर्कशी संरेखित सुरक्षित MCP अंमलबजावणीसाठी व्यापक सुरक्षा नियंत्रण प्रदान करतो.
+
+## 🏔️ व्यावहारिक सुरक्षा प्रशिक्षण
+
+व्यावहारिक, प्रत्यक्ष सुरक्षा अंमलबजावणीचा अनुभव घेण्यासाठी, आम्ही **[MCP सुरक्षा शिखर कार्यशाळा (शेर्पा)](https://azure-samples.github.io/sherpa/)** याचा सल्ला देतो - Azure मध्ये MCP सर्व्हर्स सुरक्षित करण्यासाठी "असुरक्षित → शोषण → दुरुस्ती → प्रमाणीकरण" पद्धतीने एक व्यापक मार्गदर्शित मोहिम.
+
+या दस्तऐवजात सर्व सुरक्षा नियंत्रण **[OWASP MCP Azure सुरक्षा मार्गदर्शक](https://microsoft.github.io/mcp-azure-security-guide/)** शी संरेखित आहेत, जे OWASP MCP Top 10 जोखमींसाठी संदर्भ आर्किटेक्चर आणि Azure-विशिष्ट अंमलबजावणी मार्गदर्शन प्रदान करतो.
+
+## **अनिवार्य सुरक्षा गरजा**
+
+### **MCP स्पेसिफिकेशनमधील गंभीर प्रतिबंधे:**
+
+> **मर्जित**: MCP सर्व्हर्सना असे कुठलेही टोकन स्वीकारू **नये** जे स्पष्टपणे MCP सर्व्हरसाठी जारी केलेले नाहीत  
+>
+> **प्रतिबंधित**: MCP सर्व्हर्सना प्रमाणीकरणासाठी सेशन्स वापरू **नये**  
+>
+> **आवश्यक**: अधिकार अमलबजावणी करणाऱ्या MCP सर्व्हर्सना सर्व इनबाउंड विनंत्यांची सत्यता तपासणे **आवेगाचे आहे**  
+>
+> **अनिवार्य**: स्थिर क्लायंट आयडी वापरणाऱ्या MCP प्रॉक्सी सर्व्हर्सना प्रत्येक डायनॅमिक नोंदणीकृत क्लायंटसाठी वापरकर्त्याची संमती घेणे **आवेगाचे आहे**
+
+---
+
+## 1. **प्रमाणीकरण आणि अधिकरण नियंत्रण**
+
+### **बाह्य ओळख पुरवठादार समाकलन**
+
+**सध्याचा MCP मानक (2025-11-25)** MCP सर्व्हर्सना प्रमाणीकरण बाह्य ओळख पुरवठादारांकडे सोपवण्याची परवानगी देतो, जे एक महत्त्वपूर्ण सुरक्षा सुधारणा आहे:
+
+**OWASP MCP जोखीम जसा संबोधित केला:** [MCP07 - अपुरी प्रमाणीकरण व अधिकरण](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+
+**सुरक्षा फायदे:**
+1. **सानुकूल प्रमाणीकरणाच्या जोखमी कमी करतो**: सानुकूल प्रमाणीकरण अंमलबजावणी टाळून जोखीम कमी होते  
+2. **उद्योग-पति सुरक्षा**: Microsoft Entra ID सारख्या स्थापित ओळख पुरवठादारांचा वापर करून प्रगत सुरक्षा वैशिष्ट्ये प्राप्त  
+3. **केंद्रीकृत ओळख व्यवस्थापन**: वापरकर्ता जीवनचक्र व्यवस्थापन, प्रवेश नियंत्रण आणि अनुपालन ऑडिट सुलभ   
+4. **मल्टी-फॅक्टर प्रमाणीकरण**: उद्योग-पति ओळख पुरवठादारांकडून MFA क्षमता मिळते  
+5. **अटीगत प्रवेश धोरणे**: जोखमी-आधारित प्रवेश नियंत्रण आणि अनुकुलित प्रमाणीकरणाचा लाभ
+
+**अंमलबजावणी आवश्यकता:**
+- **टोकन प्रेक्षक सत्यापन**: सर्व टोकन स्पष्टपणे MCP सर्व्हरसाठी जारी केल्याची खात्री करा  
+- **जारी करणारे सत्यापन**: टोकन जारी करणारा अपेक्षित ओळख पुरवठादाराशी जुळतो का ते तपासा  
+- **सही हस्ताक्षर सत्यापन**: टोकन अखंडतेचे क्रिप्टोग्राफिक सत्यापन  
+- **कालबाह्यता अंमलबजावणी**: टोकनच्या आयुष्याच्या मर्यादांचे काटेकोर पालन करा  
+- **स्कोप पडताळणी**: टोकनमध्ये विनंती केलेल्या ऑपरेशन्ससाठी योग्य परवानग्या आहेत का ते सुनिश्चित करा
+
+### **अधिकरण लॉजिक सुरक्षा**
+
+**गंभीर नियंत्रण:**
+- **सर्वसमावेशक अधिकरण ऑडिट्स**: सर्व अधिकरण निर्णय बिंदूंवर नियमित सुरक्षा पुनरावलोकने  
+- **अपयशी-रक्त डीफॉल्ट्स**: अधिकरण लॉजिक निश्चित निर्णय देऊ शकत नसल्यास प्रवेश नाकारणे  
+- **परवानगीसीमा**: वेगवेगळ्या अधिकार स्तर आणि संसाधन प्रवेश यांच्यात स्पष्ट विभाजन  
+- **ऑडिट लॉगिंग**: सुरक्षा निरीक्षणासाठी सर्व अधिकरण निर्णयांचे संपूर्ण लॉगिंग  
+- **नियमित प्रवेश पुनरावलोकने**: वापरकर्ता परवानग्या आणि अधिकार असाइनमेंटची कालावधीची पडताळणी
+
+## 2. **टोकन सुरक्षा व विरोधी पासथ्रू नियंत्रण**
+
+**OWASP MCP जोखीम जसा संबोधित केला:** [MCP01 - टोकन व्यवस्थापन त्रुटी व गुप्तता उघडकी](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+
+### **टोकन पासथ्रू प्रतिबंध**
+
+MCP अधिकरण स्पेसिफिकेशनमध्ये टोकन पासथ्रू स्पष्टपणे मनाई आहे कारण यामध्ये गंभीर सुरक्षा जोखीम आहेत:
+
+**संदर्भातील सुरक्षा जोखीम:**
+- **नियंत्रण फोडणे**: दरमर्यादितीकरण, विनंती पडताळणी, व वाहतूक निरीक्षण यांसारखे महत्त्वाचे नियंत्रण वगळले जातात  
+- **जवाबदारी फाटलेली**: क्लायंट ओळख ही अशक्य करून ऑडिट ट्रेल आणि घटना तपासणी भ्रष्ट होते  
+- **प्रॉक्सी-आधारित चोरी**: दुष्ट घटकांना अनधिकृत डेटा ऍक्सेससाठी सर्व्हर प्रॉक्सी म्हणून वापरण्याची अनुमती  
+- **विश्वास सीमा भंग**: टोकन उत्पत्तीबाबत डाउनस्ट्रीम सेवा विश्वास गमावतात  
+- **सडसडीत हालचाल**: अनेक सेवांमध्ये समर्पित टोकनचा दुरुपयोग करून व्यापक हल्ला समर्थ
+
+**अंमलबजावणी नियंत्रण:**
+```yaml
+Token Validation Requirements:
+  audience_validation: MANDATORY
+  issuer_verification: MANDATORY  
+  signature_check: MANDATORY
+  expiration_enforcement: MANDATORY
+  scope_validation: MANDATORY
+  
+Token Lifecycle Management:
+  rotation_frequency: "Short-lived tokens preferred"
+  secure_storage: "Azure Key Vault or equivalent"
+  transmission_security: "TLS 1.3 minimum"
+  replay_protection: "Implemented via nonce/timestamp"
+```
+
+### **सुरक्षित टोकन व्यवस्थापन पद्धती**
+
+**सर्वोत्तम प्रॅक्टिसेस:**
+- **लघुकालीन टोकन्स**: वारंवार टोकन रोटेशनने उघडकीचे खिडकी कमी करा  
+- **फक्त-वेळेत जारी करणे**: केवळ आवश्यक वेळेस टोकन जारी करा  
+- **सुरक्षित साठवण**: हार्डवेअर सुरक्षा मॉड्यूल्स (HSMs) किंवा सुरक्षित की वॉल्ट वापरा  
+- **टोकन बाइंडिंग**: शक्य असल्यास टोकन्स विशिष्ट क्लायंट, सेशन किंवा ऑपरेशनशी बांधा  
+- **निगराणी व अलर्टिंग**: टोकन गैरवापर किंवा अनधिकृत ऍक्सेस नमुन्यांचे तत्काळ शोध
+
+## 3. **सेशन सुरक्षा नियंत्रण**
+
+### **सेशन हाईजॅकिंग प्रतिबंध**
+
+**आक्रमण मार्ग:**
+- **सेशन हाईजॅक प्रॉम्प्ट इंजेक्शन**: सामायिक सेशन स्टेटमध्ये दुष्ट घटनांची इंजेक्शन  
+- **सेशन प्रतिरूपण**: चोरलेले सेशन आयडी वापरून प्रमाणीकरण बायपास  
+- **रिसुमेबल स्ट्रीम हल्ले**: मालिकीय विषय इंजेक्शनसाठी सर्व्हर-सेंड इवेंट रिसम्प्शनचा दुरुपयोग
+
+**बांधील सेशन नियंत्रण:**
+```yaml
+Session ID Generation:
+  randomness_source: "Cryptographically secure RNG"
+  entropy_bits: 128 # Minimum recommended
+  format: "Base64url encoded"
+  predictability: "MUST be non-deterministic"
+
+Session Binding:
+  user_binding: "REQUIRED - <user_id>:<session_id>"
+  additional_identifiers: "Device fingerprint, IP validation"
+  context_binding: "Request origin, user agent validation"
+  
+Session Lifecycle:
+  expiration: "Configurable timeout policies"
+  rotation: "After privilege escalation events"
+  invalidation: "Immediate on security events"
+  cleanup: "Automated expired session removal"
+```
+
+**परिवहन सुरक्षा:**
+- **HTTPS कडक अंमलबजावणी**: सर्व सेशन संवाद TLS 1.3 वर  
+- **सुरक्षित कुकी गुणधर्म**: HttpOnly, Secure, SameSite=Strict  
+- **प्रमाणपत्र पिनिंग**: MITM हल्ल्यांना प्रतिबंध करण्यासाठी महत्त्वाच्या कनेक्शनसाठी
+
+### **स्टेटफुल विरुद्ध स्टेटलेस विचार**
+
+**स्टेटफुल अंमलबजावणीसाठी:**
+- सामायिक सेशन स्टेटवर इन्जेक्शन हल्ल्यांपासून अतिरिक्त संरक्षण आवश्यक  
+- क्यू-आधारित सेशन व्यवस्थापनासाठी अखंडता पडताळणी आवश्यक  
+- अनेक सर्व्हर उदाहरणांसाठी सुरक्षित सेशन स्टेट सिंक्रोनायझेशन गरजेचे
+
+**स्टेटलेस अंमलबजावणीसाठी:**
+- JWT किंवा तत्सम टोकन-आधारित सेशन व्यवस्थापन  
+- सेशन स्टेट अखंडतेचे क्रिप्टोग्राफिक पडताळणी  
+- जोखीम कमी पण मजबूत टोकन पडताळणी आवश्यक
+
+## 4. **AI-विशिष्ट सुरक्षा नियंत्रण**
+
+**OWASP MCP जोखीम जसा संबोधित केला:**
+- [MCP06 - संदर्भात्मक पेलोड्सद्वारे प्रॉम्प्ट इंजेक्शन](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+- [MCP03 - टूल विषबाधा](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
+- [MCP05 - आदेश इंजेक्शन व अंमलबजावणी](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+
+### **प्रॉम्प्ट इंजेक्शन संरक्षण**
+
+**Microsoft Prompt Shields समाकलन:**
+```yaml
+Detection Mechanisms:
+  - "Advanced ML-based instruction detection"
+  - "Contextual analysis of external content"
+  - "Real-time threat pattern recognition"
+  
+Protection Techniques:
+  - "Spotlighting trusted vs untrusted content"
+  - "Delimiter systems for content boundaries"  
+  - "Data marking for content source identification"
+  
+Integration Points:
+  - "Azure Content Safety service"
+  - "Real-time content filtering"
+  - "Threat intelligence updates"
+```
+
+**अंमलबजावणी नियंत्रण:**
+- **इनपुट स्वच्छता**: सर्व वापरकर्त्यांच्या इनपुटची व्यापक पडताळणी व फिल्टरिंग  
+- **सामग्री सीमा व्याख्या**: प्रणाली सूचना व वापरकर्ता सामग्री यांच्यात स्पष्ट फरक  
+- **सूचना अनुक्रम**: विरोधी सूचनांसाठी योग्य महत्त्व क्रम  
+- **आउटपुट निरीक्षण**: संभाव्य धोकादायक किंवा भ्रामक आउटपुट शोध
+
+### **टूल विषबाधा प्रतिबंध**
+
+**टूल सुरक्षा फ्रेमवर्क:**
+```yaml
+Tool Definition Protection:
+  validation:
+    - "Schema validation against expected formats"
+    - "Content analysis for malicious instructions" 
+    - "Parameter injection detection"
+    - "Hidden instruction identification"
+  
+  integrity_verification:
+    - "Cryptographic hashing of tool definitions"
+    - "Digital signatures for tool packages"
+    - "Version control with change auditing"
+    - "Tamper detection mechanisms"
+  
+  monitoring:
+    - "Real-time change detection"
+    - "Behavioral analysis of tool usage"
+    - "Anomaly detection for execution patterns"
+    - "Automated alerting for suspicious modifications"
+```
+
+**डायनॅमिक टूल व्यवस्थापन:**
+- **मंजुरी कार्यप्रवाह**: टूल बदलांसाठी स्पष्ट वापरकर्ता संमती  
+- **रोलबॅक क्षमता**: आधीच्या टूल आवृत्त्यांकडे परत जाण्याची क्षमता  
+- **बदल ऑडिटिंग**: टूल व्याख्यान बदलांचा संपूर्ण इतिहास  
+- **जोखीम मूल्यांकन**: टूल सुरक्षा स्थितीचे स्वयंचलित मूल्यमापन
+
+## 5. **कन्फ्युज्ड डिप्टी हल्ला प्रतिबंध**
+
+### **OAuth प्रॉक्सी सुरक्षा**
+
+**हल्ला प्रतिबंध नियंत्रण:**
+```yaml
+Client Registration:
+  static_client_protection:
+    - "Explicit user consent for dynamic registration"
+    - "Consent bypass prevention mechanisms"  
+    - "Cookie-based consent validation"
+    - "Redirect URI strict validation"
+    
+  authorization_flow:
+    - "PKCE implementation (OAuth 2.1)"
+    - "State parameter validation"
+    - "Authorization code binding"
+    - "Nonce verification for ID tokens"
+```
+
+**अंमलबजावणी आवश्यकता:**
+- **वापरकर्ता संमती पडताळणी**: डायनॅमिक क्लायंट नोंदणीसाठी कधीही संमती स्क्रीन वगळू नका  
+- **रिडायरेक्ट URI पडताळणी**: कडक श्वेतसूची-आधारित निर्धारित रिडायरेक्ट स्थळे  
+- **प्राधिकरण कोड सुरक्षा**: लघुकालीन आणि एकदाच वापरासाठी कोड  
+- **क्लायंट ओळख पडताळणी**: क्लायंट प्रमाणपत्रे व मेटाडेटाचा मजबूत सत्यापन
+
+## 6. **टूल अंमलबजावणी सुरक्षा**
+
+### **सँडबॉक्सिंग व पृथक्करण**
+
+**कंटेनर-आधारित पृथक्करण:**
+```yaml
+Execution Environment:
+  containerization: "Docker/Podman with security profiles"
+  resource_limits:
+    cpu: "Configurable CPU quotas"
+    memory: "Memory usage restrictions"
+    disk: "Storage access limitations"
+    network: "Network policy enforcement"
+  
+  privilege_restrictions:
+    user_context: "Non-root execution mandatory"
+    capability_dropping: "Remove unnecessary Linux capabilities"
+    syscall_filtering: "Seccomp profiles for syscall restriction"
+    filesystem: "Read-only root with minimal writable areas"
+```
+
+**प्रक्रिया पृथक्करण:**
+- **वेगळे प्रक्रिया संदर्भ**: प्रत्येक टूल अंमलबजावणी स्वतंत्र प्रक्रिया क्षेत्रात  
+- **आंतर-प्रक्रिया संवाद**: पडताळणीसह सुरक्षित IPC यंत्रणा  
+- **प्रक्रिया निरीक्षण**: रनटाइम वर्तन विश्लेषण व असामान्य शोध  
+- **संसाधन अंमलबजावणी**: CPU, मेमरी व I/O ऑपरेशन्सवर कठोर मर्यादा
+
+### **किमान परवानग्या अंमलबजावणी**
+
+**परवानगी व्यवस्थापन:**
+```yaml
+Access Control:
+  file_system:
+    - "Minimal required directory access"
+    - "Read-only access where possible"
+    - "Temporary file cleanup automation"
+    
+  network_access:
+    - "Explicit allowlist for external connections"
+    - "DNS resolution restrictions" 
+    - "Port access limitations"
+    - "SSL/TLS certificate validation"
+  
+  system_resources:
+    - "No administrative privilege elevation"
+    - "Limited system call access"
+    - "No hardware device access"
+    - "Restricted environment variable access"
+```
+
+## 7. **पुरवठा साखळी सुरक्षा नियंत्रण**
+
+**OWASP MCP जोखीम जसा संबोधित केला:** [MCP04 - पुरवठा साखळी हल्ले](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+
+### **आश्रितता पडताळणी**
+
+**सर्वसमावेशक घटक सुरक्षा:**
+```yaml
+Software Dependencies:
+  scanning: 
+    - "Automated vulnerability scanning (GitHub Advanced Security)"
+    - "License compliance verification"
+    - "Known vulnerability database checks"
+    - "Malware detection and analysis"
+  
+  verification:
+    - "Package signature verification"
+    - "Checksum validation"
+    - "Provenance attestation"
+    - "Software Bill of Materials (SBOM)"
+
+AI Components:
+  model_verification:
+    - "Model provenance validation"
+    - "Training data source verification" 
+    - "Model behavior testing"
+    - "Adversarial robustness assessment"
+  
+  service_validation:
+    - "Third-party API security assessment"
+    - "Service level agreement review"
+    - "Data handling compliance verification"
+    - "Incident response capability evaluation"
+```
+
+### **सतत निरीक्षण**
+
+**पुरवठा साखळी धोका शोध:**
+- **आश्रितता स्वास्थ्य निरीक्षण**: सर्व आश्रिततांच्या सुरक्षा समस्यांचे सतत मूल्यमापन  
+- **धोका बुद्धिमत्ता समाकलन**: उदयोन्मुख पुरवठा साखळी जोखमीवरील प्रत्यक्ष अपडेट  
+- **वर्तणूक विश्लेषण**: बाह्य घटकांतील असामान्य वर्तन शोध  
+- **स्वयंचलित प्रतिसाद**: बाधित घटकांचे त्वरित नियंत्रण
+
+## 8. **निरीक्षण व शोध नियंत्रण**
+
+**OWASP MCP जोखीम जसा संबोधित केला:** [MCP08 - ऑडिट व टेलिमेट्रीची कमतरता](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **सुरक्षा माहिती व घटना व्यवस्थापन (SIEM)**
+
+**सर्वसमावेशक लॉगिंग धोरण:**
+```yaml
+Authentication Events:
+  - "All authentication attempts (success/failure)"
+  - "Token issuance and validation events"
+  - "Session creation, modification, termination"
+  - "Authorization decisions and policy evaluations"
+
+Tool Execution:
+  - "Tool invocation details and parameters"
+  - "Execution duration and resource usage"
+  - "Output generation and content analysis"
+  - "Error conditions and exception handling"
+
+Security Events:
+  - "Potential prompt injection attempts"
+  - "Tool poisoning detection events"
+  - "Session hijacking indicators"
+  - "Unusual access patterns and anomalies"
+```
+
+### **प्रत्यक्षकालीन धोका शोध**
+
+**वर्तणूक विश्लेषण:**
+- **वापरकर्ता वर्तन विश्लेषण (UBA)**: असामान्य वापरकर्ता प्रवेश नमुने शोध  
+- **संस्था वर्तन विश्लेषण (EBA)**: MCP सर्व्हर व टूल वर्तन निरीक्षण  
+- **मशीन लर्निंग अनोमली शोध**: AI-चालित सुरक्षा धोक्यांची ओळख  
+- **धोका बुद्धिमत्ता सहसंबंध**: ज्ञात हल्ल्याच्या नमुन्यांशी निरीक्षित क्रियांचा जुळवून तुलना
+
+## 9. **घटना प्रतिसाद व पुनर्प्राप्ति**
+
+### **स्वयंचलित प्रतिसाद क्षमता**
+
+**तत्काळ प्रतिसाद क्रिया:**
+```yaml
+Threat Containment:
+  session_management:
+    - "Immediate session termination"
+    - "Account lockout procedures"
+    - "Access privilege revocation"
+  
+  system_isolation:
+    - "Network segmentation activation"
+    - "Service isolation protocols"
+    - "Communication channel restriction"
+
+Recovery Procedures:
+  credential_rotation:
+    - "Automated token refresh"
+    - "API key regeneration"
+    - "Certificate renewal"
+  
+  system_restoration:
+    - "Clean state restoration"
+    - "Configuration rollback"
+    - "Service restart procedures"
+```
+
+### **फॉरेन्सिक क्षमता**
+
+**तपास समर्थन:**
+- **ऑडिट ट्रेल संरक्षण**: क्रिप्टोग्राफिक अखंडतेसह अपरिवर्तनीय लॉगिंग  
+- **पुरावे संकलन**: संबंधित सुरक्षा पुरावे स्वयंचलित गोळा करणे  
+- **घटनाक्रम पुनर्रचना**: सुरक्षा घटनांपर्यंत पोहोचणाऱ्या घटनांची सविस्तर क्रमवारी  
+- **प्रभाव मूल्यांकन**: संपूर्ण नुकसानाच्या व्यापाचा आणि डेटाच्या उघडकीचा आढावा
+
+## **महत्त्वाचे सुरक्षा आर्किटेक्चर तत्त्वे**
+
+### **गहन संरक्षण**
+- **अनेक सुरक्षा स्तर**: सुरक्षा आर्किटेक्चरमधील एकही बिंदू अपयशी होऊ शकत नाही  
+- **पुनरावृत्ती नियंत्रण**: महत्त्वाच्या कार्यांसाठी ओव्हरलॅपिंग सुरक्षा उपाय  
+- **अपयशी-रक्त यंत्रणा**: प्रणाली त्रुटी किंवा हल्ल्यांवर सुरक्षित डीफॉल्ट्स
+
+### **शून्य विश्वास अंमलबजावणी**
+- **कधीही विश्वास ठेऊ नका, सतत पडताळा करा**: सर्व घटक व विनंत्यांची सतत पडताळणी  
+- **किमान परवानगीचा सिद्धांत**: सर्व घटकांसाठी किमान प्रवेश अधिकार  
+- **माइक्रो-सेगमेंटेशन**: सूक्ष्म नेटवर्क व प्रवेश नियंत्रण
+
+### **सतत सुरक्षा विकास**
+- **धोक्यांच्या लँडस्केपला जुळवून घेणे**: उदयोन्मुख धोक्यांना संबोधण्यासाठी नियमित अद्यतने  
+- **सुरक्षा नियंत्रण प्रभावीपणा**: नियंत्रणांचे चालू मूल्यमापन व सुधारणा  
+- **स्पेसिफिकेशन पालन**: विकसित होणाऱ्या MCP सुरक्षा मानकांसह संरेखित
+
+---
+
+## **अंमलबजावणी स्रोत**
+
+### **अधिकृत MCP दस्तऐवज**
+- [MCP स्पेसिफिकेशन (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP सुरक्षा सर्वोत्तम प्रॅक्टिसेस](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP अधिकरण स्पेसिफिकेशन](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+
+### **OWASP MCP सुरक्षा स्रोत**
+- [OWASP MCP Azure सुरक्षा मार्गदर्शक](https://microsoft.github.io/mcp-azure-security-guide/) - Azure अंमलबजावणीसह व्यापक OWASP MCP Top 10  
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - अधिकृत OWASP MCP सुरक्षा जोखीम  
+- [MCP सुरक्षा शिखर कार्यशाळा (शेर्पा)](https://azure-samples.github.io/sherpa/) - Azure वरील MCP साठी प्रत्यक्ष सुरक्षा प्रशिक्षण
+
+### **Microsoft सुरक्षा उपाय**
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure कंटेंट सुरक्षा](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [GitHub प्रगत सुरक्षा](https://github.com/security/advanced-security)
+- [Azure की वॉल्ट](https://learn.microsoft.com/azure/key-vault/)
+
+### **सुरक्षा मानके**
+- [OAuth 2.0 सुरक्षा सर्वोत्तम प्रॅक्टिसेस (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [मोठ्या भाषा मॉडेलसाठी OWASP Top 10](https://genai.owasp.org/)
+- [NIST सायबरसुरक्षा फ्रेमवर्क](https://www.nist.gov/cyberframework)
+
+---
+
+> **महत्त्वाचे**: हे सुरक्षा नियंत्रण सध्याच्या MCP स्पेसिफिकेशन (2025-11-25) चे प्रतिबिंब आहेत. मानके लवकर विकसित होत असल्याने नेहमीच नवीनतम [अधिकृत दस्तऐवज](https://spec.modelcontextprotocol.io/) शी तपासणी करा.
+
+## पुढे काय
+
+- परत जा: [सुरक्षा मॉड्यूल आढावा](./README.md)
+- पुढे जा: [Module 3: Getting Started](../03-GettingStarted/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+हा दस्तऐवज AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) चा वापर करून अनुवादित केला आहे. आम्ही अचूकतेसाठी प्रयत्न करतो, परंतु कृपया लक्षात ठेवा की स्वयंचलित अनुवादांमध्ये चुका किंवा अचूकतेचा अभाव असू शकतो. मूळ दस्तऐवज त्याच्या मूळ भाषेत अधिकृत स्रोत मानला पाहिजे. महत्त्वाच्या माहितीसाठी व्यावसायिक मानवी अनुवाद करण्याची शिफारस केली जाते. या अनुवादाच्या वापरामुळे झालेल्या कोणत्याही गैरसमजुतींबद्दल किंवा चुकीच्या समजुतींबद्दल आम्ही जबाबदार नाही.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

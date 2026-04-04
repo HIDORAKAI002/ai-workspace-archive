@@ -1,0 +1,233 @@
+mod commit;
+mod file_search;
+mod grep;
+mod serve_git;
+
+use std::{fs, path::Path, process::Command};
+
+use anyhow::bail;
+use axum::{
+    body::Body,
+    http::{Response, StatusCode},
+};
+pub use commit::{stream_commits, Commit};
+use file_search::GitFileSearch;
+use futures::Stream;
+pub use grep::{GrepFile, GrepLine, GrepSubMatch, GrepTextOrBase64};
+use tracing::warn;
+
+pub async fn search_files(
+    root: &Path,
+    rev: Option<&str>,
+    pattern: &str,
+    limit: usize,
+) -> anyhow::Result<Vec<GitFileSearch>> {
+    file_search::search(git2::Repository::open(root)?, rev, pattern, limit).await
+}
+
+pub struct ListFile {
+    pub files: Vec<GitFileSearch>,
+    pub truncated: bool,
+}
+
+pub async fn list_files(
+    root: &Path,
+    rev: Option<&str>,
+    limit: Option<usize>,
+) -> anyhow::Result<ListFile> {
+    let (files, truncated) = file_search::list(git2::Repository::open(root)?, rev, limit).await?;
+    Ok(ListFile { files, truncated })
+}
+
+pub async fn grep(
+    root: &Path,
+    rev: Option<&str>,
+    query: &str,
+) -> anyhow::Result<impl Stream<Item = GrepFile>> {
+    let repository = git2::Repository::open(root)?;
+    let query: grep::GrepQuery = query.parse()?;
+    grep::grep(repository, rev, &query)
+}
+
+pub fn serve_file(
+    root: &Path,
+    commit: Option<&str>,
+    path: Option<&str>,
+) -> std::result::Result<Response<Body>, StatusCode> {
+    let repository = git2::Repository::open(root).map_err(|_| StatusCode::NOT_FOUND)?;
+    serve_git::serve(&repository, commit, path)
+}
+
+#[derive(Debug)]
+pub struct GitReference {
+    pub name: String,
+    pub commit: String,
+}
+
+pub fn list_refs(root: &Path) -> anyhow::Result<Vec<GitReference>> {
+    let repository = git2::Repository::open(root)?;
+    let refs = repository.references()?;
+    Ok(refs
+        .filter_map(|r| r.ok())
+        .filter_map(|r| {
+            let name = r.name()?.to_string();
+            let commit = r.target()?.to_string();
+            Some(GitReference { name, commit })
+        })
+        // Filter out remote refs
+        .filter(|r| !r.name.starts_with("refs/remotes/"))
+        .collect())
+}
+
+pub fn get_head_name(root: &Path) -> anyhow::Result<String> {
+    let repository = git2::Repository::open(root)?;
+    let head = repository.head()?;
+    let name = head.name().ok_or(anyhow::anyhow!("HEAD has no name"))?;
+    Ok(name.to_string())
+}
+
+pub fn sync_refs(root: &Path, url: &str, refs: &Vec<String>) -> anyhow::Result<()> {
+    if !root.exists() {
+        fs::create_dir_all(root)?;
+        let status = Command::new("git")
+            .current_dir(root.parent().expect("Must not be in root directory"))
+            .arg("clone")
+            .arg(url)
+            .arg(root)
+            .status()?;
+
+        if let Some(code) = status.code() {
+            if code != 0 {
+                warn!(
+                    "Failed to clone `{}`. Please check your repository configuration.",
+                    url
+                );
+                fs::remove_dir_all(root).expect("Failed to remove directory");
+
+                bail!("Failed to clone `{}`", url);
+            }
+        }
+    }
+
+    for ref_name in refs {
+        let branch = if let Some(branch) = ref_name.strip_prefix("refs/heads/") {
+            branch
+        } else if let Some(tag) = ref_name.strip_prefix("refs/tags/") {
+            tag
+        } else {
+            ref_name
+        };
+
+        // get the current branch name without refs/ prefix
+
+        let output = Command::new("git")
+            .current_dir(root)
+            .arg("symbolic-ref")
+            .arg("--short")
+            .arg("HEAD")
+            .output()
+            .ok();
+
+        let current_branch = output
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .map(|s| s.trim().to_string());
+
+        let status = if current_branch.as_deref() == Some(branch) {
+            Command::new("git")
+                .current_dir(root)
+                .arg("pull")
+                .arg("origin")
+                .arg(branch)
+                .status()?
+        } else {
+            // Use `git fetch origin +ref:ref` to create or update the local branch from the remote.
+            // The + ensures that the local branch is updated (forced) even if it's not a fast-forward,
+            //   and it creates the branch if it doesn't exist locally.
+            Command::new("git")
+                .current_dir(root)
+                .arg("fetch")
+                .arg("origin")
+                .arg(format!("+{branch}:{branch}"))
+                .status()?
+        };
+        if !status.success() {
+            return Err(anyhow::anyhow!("Failed to fetch origin {}", branch));
+        }
+    }
+
+    Ok(())
+}
+
+fn rev_to_commit<'a>(
+    repository: &'a git2::Repository,
+    rev: Option<&str>,
+) -> anyhow::Result<git2::Commit<'a>> {
+    let commit = match rev {
+        Some(rev) => repository.revparse_single(rev)?.peel_to_commit()?,
+        None => repository.head()?.peel_to_commit()?,
+    };
+    Ok(commit)
+}
+
+#[cfg(unix)]
+pub fn bytes2path(b: &[u8]) -> &Path {
+    use std::os::unix::prelude::*;
+    Path::new(std::ffi::OsStr::from_bytes(b))
+}
+#[cfg(windows)]
+pub fn bytes2path(b: &[u8]) -> &Path {
+    use std::str;
+    Path::new(str::from_utf8(b).unwrap())
+}
+
+#[cfg(test)]
+mod testutils {
+    use std::process::{Command, Stdio};
+
+    use temp_testdir::TempDir;
+
+    pub struct TempGitRepository {
+        tempdir: TempDir,
+    }
+
+    impl TempGitRepository {
+        pub fn repository(&self) -> git2::Repository {
+            git2::Repository::open(self.path()).unwrap()
+        }
+
+        pub fn path(&self) -> std::path::PathBuf {
+            self.tempdir.join("interview-questions")
+        }
+    }
+
+    impl Default for TempGitRepository {
+        fn default() -> Self {
+            let tempdir = TempDir::default();
+
+            Command::new("git")
+                .current_dir(&tempdir)
+                .arg("clone")
+                .args(["--depth", "1"])
+                .arg("https://github.com/TabbyML/interview-questions")
+                .stderr(Stdio::null())
+                .stdout(Stdio::null())
+                .status()
+                .unwrap();
+
+            Self { tempdir }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{list_refs, testutils::TempGitRepository};
+
+    #[test]
+    fn test_list_refs() {
+        let root = TempGitRepository::default();
+        let refs = list_refs(&root.path()).unwrap();
+        assert_eq!(refs.len(), 1);
+    }
+}

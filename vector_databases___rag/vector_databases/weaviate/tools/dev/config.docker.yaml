@@ -1,0 +1,26 @@
+authentication:
+  anonymous_access:
+    enabled: true
+configuration_storage:
+  type: etcd
+  url: http://etcd:2379
+vector_index:
+  enabled: true
+  url: http://esvector:9200
+  denormalizationDepth: 3
+contextionary:
+  url: contextionary:9999
+network:
+  genesis_url: http://genesis_fake:8090
+  public_url: http://localhost:8080
+  peer_name: bestWeaviate
+query_defaults:
+  limit: 100
+logging:
+  interval: 1
+  enabled: true
+  url: http://telemetry_mock_api:8087/mock/new
+telemetry:
+  interval: 1
+  disabled: false
+  remote_url: http://telemetry_mock_api:8087/mock/new

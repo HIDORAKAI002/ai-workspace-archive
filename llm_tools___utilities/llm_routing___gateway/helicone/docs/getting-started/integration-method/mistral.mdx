@@ -1,0 +1,96 @@
+---
+title: "Mistral AI Integration"
+sidebarTitle: "Mistral AI"
+description: "Connect Helicone with Mistral AI, a platform that provides state-of-the-art language models including Mistral-Large and Mistral-Medium for various AI applications."
+"twitter:title": "Mistral AI Integration - Helicone OSS LLM Observability"
+---
+
+import LegacyWarning from "/snippets/legacy-provider-warning.mdx";
+
+<LegacyWarning />
+
+You can follow their documentation here: [https://docs.mistral.ai/](https://docs.mistral.ai/)
+
+# Gateway Integration
+
+<Steps>
+  <Step title="Create a Helicone account">
+    Log into [helicone](https://www.helicone.ai) or create an account. Once you have an account, you
+    can generate an [API key](https://helicone.ai/developer).
+  </Step>
+  <Step title="Create a Mistral AI account">
+    Log into console.mistral.ai or create an account. Once you have an account, you
+    can generate an API key from your dashboard.
+  </Step>
+  <Step title="Set HELICONE_API_KEY and MISTRAL_API_KEY as environment variable">
+```javascript
+HELICONE_API_KEY=<your API key>
+MISTRAL_API_KEY=<your API key>
+```
+  </Step>
+  <Step title="Modify the base URL and add Auth headers">
+
+Replace the following Mistral AI URL with the Helicone Gateway URL:
+
+`https://api.mistral.ai/v1/chat/completions` -> `https://mistral.helicone.ai/v1/chat/completions`
+
+and then add the following authentication headers:
+
+```javascript
+Authorization: Bearer <your API key>
+```
+
+</Step>
+</Steps>
+
+Now you can access all the models on Mistral AI with a simple fetch call:
+
+## Example
+
+```bash
+curl \
+  --header "Authorization: Bearer $MISTRAL_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "mistral-large-latest",
+    "messages": [{"role": "user", "content": "Say this is a test"}]
+}' \
+  --url https://mistral.helicone.ai/chat/completions
+```
+
+### TypeScript Example
+
+```typescript
+const httpClient = new HTTPClient();
+httpClient.addHook("beforeRequest", async (req) => {
+  req.headers.set("Helicone-Auth", `Bearer ${process.env.HELICONE_API_KEY}`);
+});
+
+const mistral = new Mistral({
+  apiKey: process.env.MISTRAL_API_KEY,
+  serverURL: "https://mistral.helicone.ai",
+  httpClient,
+});
+
+async function run() {
+  const result = await mistral.chat.complete({
+    model: "mistral-small-latest",
+    stream: false,
+    messages: [
+      {
+        content:
+          "Who is the best French painter? Answer in one short sentence.",
+        role: "user",
+      },
+    ],
+  });
+
+  // Handle the result
+  console.log(result);
+}
+
+run();
+```
+
+For more information on how to use headers, see [Helicone Headers](https://docs.helicone.ai/helicone-headers/header-directory#utilizing-headers) docs.
+And for more information on how to use Mistral AI, see [Mistral AI Docs](https://docs.mistral.ai/).

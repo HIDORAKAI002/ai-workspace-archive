@@ -1,0 +1,640 @@
+.navbar {
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  padding-top: 0;
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    padding-top: 48px;
+  }
+
+  .navbar__toggle svg {
+    width: 24px;
+    height: 24px;
+    color: #94a3b8; /* Lighter gray for text */
+  }
+
+  /* Mobile Sidebar Menu */
+  .navbar-sidebar {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    padding-top: 0;
+  }
+
+  .navbar-sidebar__back {
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #1a2533; /* Darker border */
+    color: #94a3b8; /* Lighter gray for text */
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.navbar__inner {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.navbar__items {
+  gap: 32px;
+  align-items: flex-end;
+}
+
+.navbar__items--right {
+  display: flex;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 100%;
+}
+
+/* Logo */
+.navbar__brand {
+  margin-right: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo {
+  width: 140px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slack-icon-btn {
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  margin-right: 0;
+}
+
+.slack-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.login-btn {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #1a2533;
+  color: #94a3b8;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  background-color: transparent;
+}
+
+.signup-btn {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #00d992;
+  color: #ffffff;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  border: none;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+[data-theme="dark"] .navbar {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .navbar {
+  background: transparent;
+  border-bottom-color: #e5e7eb;
+}
+
+.navbar a {
+  text-decoration: none;
+}
+
+/* Existing styles from new CSS */
+.navbar__inner {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.navbar__items {
+  gap: 32px;
+  align-items: flex-end;
+}
+
+.navbar__link {
+  font-size: 16px;
+  font-weight: 500;
+  color: #94a3b8;
+  padding: 8px 0;
+  transition: all 0.2s;
+  text-decoration: none !important;
+}
+
+.navbar__link:hover {
+  color: #ffffff;
+}
+
+.navbar__link--active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .navbar__link:hover,
+[data-theme="dark"] .navbar__link--active {
+  border-bottom: 4px solid #00d992;
+}
+
+/* Logo */
+.navbar__brand {
+  margin-right: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo {
+  width: 140px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar__logo:hover,
+.navbar__logo:focus {
+  transform: scale(1.05);
+}
+
+/* Mobile sidebar structure */
+.navbar-sidebar {
+  width: 100%;
+  overflow: hidden;
+  background: #0a1017;
+  top: 45px !important;
+  min-height: 26rem;
+  transition-duration: 0ms;
+  transition-property: none;
+  z-index: 200;
+}
+
+.navbar-sidebar__brand {
+  border-bottom: 1px solid #1a2533;
+  padding: 16px 24px;
+  box-shadow: none;
+}
+
+.navbar-sidebar__item {
+  padding: 12px 16px;
+  padding-left: 2px;
+  color: #94a3b8;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-sidebar__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.navbar-sidebar__item.menu {
+  width: 100%;
+  margin-bottom: 100px;
+}
+
+.navbar-sidebar__items {
+  padding: 2.875rem 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Secondary Menu Structure */
+.navbar-sidebar .navbar-sidebar__item:first-child .menu__list {
+  gap: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar-sidebar .navbar-sidebar__item:first-child .menu__link--active::before {
+  content: url("/static/img/selected-arrow.svg");
+  position: relative;
+  top: 2px;
+  margin-right: 0.375rem;
+}
+
+.navbar-sidebar .navbar-sidebar__item:first-child .menu__link {
+  font-size: var(--typography-links-m-font-size) !important;
+  line-height: var(--typography-links-m-line-height) !important;
+  font-weight: var(--typography-links-m-font-weight) !important;
+  padding: 0rem;
+  color: var(--ifm-color-primary);
+}
+
+/* Secondary Menu Styles */
+.navbar-sidebar .navbar-sidebar__item:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__link,
+.navbar-sidebar .navbar-sidebar__item:last-child .clean-btn {
+  font-size: var(--typography-links-m-font-size) !important;
+  line-height: var(--typography-links-m-line-height) !important;
+  font-weight: var(--typography-links-m-font-weight) !important;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .clean-btn.navbar-sidebar__back {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .clean-btn.navbar-sidebar__back::after {
+  content: "Back to main menu";
+  font-size: var(--typography-links-m-font-size) !important;
+  line-height: var(--typography-links-m-line-height) !important;
+  font-weight: var(--typography-links-m-font-weight) !important;
+  position: relative;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .clean-btn.navbar-sidebar__back::before {
+  display: inline-block;
+  content: url("/static/img/arrow-yellow.svg");
+  position: relative;
+  left: -13px;
+  top: -6px;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__list-item:not(:first-child) {
+  margin-top: 1.5rem;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__caret {
+  padding-right: 0px !important;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__link {
+  padding-left: 0px !important;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__caret:before {
+  content: url("/static/img/arrow-yellow.svg") !important;
+  top: 3px !important;
+  position: relative;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__list-item--collapsed .menu__caret:before {
+  content: url("/static/img/arrow-yellow.svg") !important;
+  top: -1px !important;
+  position: relative;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__list-item-collapsible {
+  justify-content: space-evenly;
+}
+
+.navbar-sidebar
+  .navbar-sidebar__item:last-child
+  .menu__list
+  .menu__list
+  .menu__link.menu__link--active::before {
+  content: url("/static/img/selected-arrow-yellow.svg");
+  top: 5px;
+  position: relative;
+  margin-right: -1.5rem;
+  left: -1.75rem;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child .menu__list .menu__list {
+  padding-left: 1.6875rem;
+  margin-top: 1.125rem !important;
+}
+
+.navbar-sidebar .navbar-sidebar__item:last-child > .clean-btn {
+  font-size: 0px !important;
+}
+
+/* Buttons */
+.login-btn {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #1a2533;
+  color: #94a3b8;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.login-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.signup-btn {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #00d992;
+  color: #ffffff;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  border: none;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.signup-btn:hover {
+  background: #facc15;
+}
+
+/* Mobile styles */
+@media (max-width: 996px) {
+  .navbar__items--right .login-btn,
+  .navbar__items--right .signup-btn,
+  .navbar__items--right .slack-icon-btn {
+    display: none !important;
+  }
+
+  .navbar {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .navbar__brand {
+    margin-right: 0;
+  }
+
+  .navbar__logo {
+    width: 120px;
+    margin-right: 0;
+  }
+
+  .navbar__items {
+    justify-content: space-between !important;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    align-items: center !important;
+    padding: 0;
+  }
+
+  .navbar__items--left {
+    display: none !important;
+  }
+
+  .navbar__items--right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  .navbar__toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 8px;
+  }
+
+  .navbar__toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .navbar__toggle svg {
+    width: 24px;
+    height: 24px;
+    color: #00d992; /* Updated green color */
+  }
+
+  /* Mobile Sidebar Menu */
+  .navbar-sidebar {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    padding-top: 0;
+  }
+
+  .navbar-sidebar__items {
+    padding: 1rem 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the left */
+  }
+
+  .navbar-sidebar__item {
+    width: 100%; /* Make items take full width */
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    color: #94a3b8;
+  }
+
+  .navbar-sidebar__item:hover {
+    background: transparent;
+  }
+
+  .navbar-sidebar__back {
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .navbar-sidebar .login-btn,
+  .navbar-sidebar .signup-btn {
+    margin: 0.75rem 0;
+    width: calc(100% - 2px);
+    justify-content: center;
+    padding: 0.75rem;
+    margin-left: 1px;
+  }
+
+  .navbar-sidebar .menu__link {
+    padding: 0.75rem 0;
+    color: #374151;
+    font-weight: 500;
+    margin-left: 0;
+  }
+
+  .navbar-sidebar .menu__link:hover {
+    color: #111827;
+  }
+
+  .navbar-sidebar .menu__link--active {
+    color: #000;
+    font-weight: 600;
+  }
+}
+
+/* Tablet and desktop styles */
+@media (min-width: 996px) and (max-width: 1270px) {
+  .navbar {
+    padding-top: 0;
+  }
+
+  .navbar__items--right .login-btn,
+  .navbar__items--right .signup-btn,
+  .navbar__items--right .slack-icon-btn {
+    display: none;
+  }
+
+  .navbar__brand {
+    margin-right: 0;
+  }
+
+  .navbar__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .navbar__logo {
+    width: 120px;
+    margin-right: 0;
+  }
+
+  .navbar__items {
+    gap: 32px;
+    justify-content: space-between;
+  }
+}
+
+/* Utility classes */
+.navbar-sidebar__backdrop {
+  background-color: white;
+}
+
+.slack-icon-btn {
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  margin-right: 0;
+}
+
+.slack-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.navbar-sidebar__back {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown__link {
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #4b5563;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+/* Mobile menu icons */
+.navbar__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 996px) {
+  .navbar__toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .navbar__toggle svg {
+    width: 20px;
+    height: 20px;
+    color: #000;
+  }
+}
+
+/* Secondary Menu Structure */
+.navbar-sidebar__items {
+  padding-top: 2.875rem;
+}
+
+.navbar-sidebar__item.menu {
+  width: 100%;
+}
+
+/* Remove all custom transform and positioning styles */
+.navbar-sidebar__items--show-secondary .navbar-sidebar__item.menu:first-child,
+.navbar-sidebar__items--show-secondary .navbar-sidebar__item.menu:last-child,
+.navbar-sidebar__item.menu:last-child {
+  position: static;
+  transform: none;
+  left: auto;
+  z-index: auto;
+}
+
+@media (max-width: 1270px) {
+  .clean-btn.navbar-sidebar__back,
+  .navbar-sidebar__back {
+    display: none !important;
+  }
+}

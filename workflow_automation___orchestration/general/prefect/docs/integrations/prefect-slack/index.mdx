@@ -1,0 +1,113 @@
+---
+title: prefect-slack
+keywords: ["Slack", "notification", "message", "webhook", "alert"]
+---
+
+## Welcome!
+
+`prefect-slack` is a collection of prebuilt Prefect tasks and blocks that can be used to quickly send Slack messages in your Prefect flows.
+
+## Getting started
+
+### Prerequisites
+
+A Slack account with permissions to create a Slack app and install it in your workspace.
+
+### Installation
+
+The following command will install a version of `prefect-slack` compatible with your installed version of `prefect`. 
+If you don't already have `prefect` installed, it will install the newest version of `prefect` as well.
+
+```bash
+pip install "prefect[slack]"
+```
+
+Upgrade to the latest versions of `prefect` and `prefect-slack`:
+
+```bash
+pip install -U "prefect[slack]"
+```
+
+### Slack setup
+
+To use tasks in the package, create a Slack app and install it in your Slack workspace. You can create a Slack app by navigating to the [apps page](https://api.slack.com/apps) for your Slack account and selecting 'Create New App'.
+
+For tasks that require a Bot user OAuth token, you can get a token for your app by navigating to your app's __OAuth & Permissions__ page.
+
+For tasks that require a Webhook URL, you can generate a new Webhook URL by navigating to you apps __Incoming Webhooks__ page.
+
+Slack's [Basic app setup](https://api.slack.com/authentication/basics) guide provides additional details on setting up a Slack app.
+
+### Write and run a flow
+
+<CodeGroup>
+
+```python sync
+import asyncio
+from prefect import flow
+from prefect.context import get_run_context
+from prefect_slack import SlackCredentials
+from prefect_slack.messages import send_chat_message
+
+@flow
+def example_send_message_flow():
+   context = get_run_context()
+
+   # Run other tasks or flows here
+
+   token = "xoxb-your-bot-token-here"
+   asyncio.run(
+        send_chat_message(
+            slack_credentials=SlackCredentials(token),
+            channel="#prefect",
+            text=f"Flow run {context.flow_run.name} completed :tada:"
+        )
+    )
+
+if __name__ == "__main__":
+    example_send_message_flow()
+```
+
+
+```python async
+from prefect import flow
+from prefect.context import get_run_context
+from prefect_slack import SlackCredentials
+from prefect_slack.messages import send_chat_message
+
+
+@flow
+async def example_send_message_flow():
+   context = get_run_context()
+
+   # Run other tasks or flows here
+
+   token = "xoxb-your-bot-token-here"
+   await send_chat_message(
+        slack_credentials=SlackCredentials(token),
+        channel="#prefect",
+        text=f"Flow run {context.flow_run.name} completed :tada:"
+   )
+
+if __name__ == "__main__":
+    asyncio.run(example_send_message_flow())
+```
+
+</CodeGroup>
+
+## Resources
+
+Refer to the `prefect-slack` [SDK documentation](/integrations/prefect-slack/api-ref/prefect_slack-credentials) to explore all the capabilities of the `prefect-slack` library.
+
+For further assistance developing with Slack, consult the [Slack documentation](https://api.slack.com/).
+
+### Comparing SlackWebhook blocks
+
+Prefect includes a built-in `SlackWebhook` block in `prefect.blocks.notifications` that requires no extra dependencies. The two blocks have different capabilities:
+
+| Block | Block type slug | Backend | Features |
+|-------|-----------------|---------|----------|
+| `prefect.blocks.notifications.SlackWebhook` | `slack-webhook` | Apprise | `notify_type`, `allow_private_urls`, Slack GovCloud support |
+| `prefect_slack.SlackWebhook` | `slack-incoming-webhook` | Slack SDK | `get_client()` for advanced SDK access |
+
+These are separate block types with different slugs, so a block created with one class cannot be loaded with the other.

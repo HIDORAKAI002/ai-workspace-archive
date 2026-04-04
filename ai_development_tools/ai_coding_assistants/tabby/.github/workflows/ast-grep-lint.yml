@@ -1,0 +1,15 @@
+name: ast-grep lint
+on: [push]
+
+jobs:
+  sg-lint:
+    runs-on: ubuntu-latest
+    name: ast-grep-lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ast-grep lint step
+        uses: ast-grep/action@v1.4
+        with:
+          version: 0.20.1

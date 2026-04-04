@@ -1,0 +1,38 @@
+name: Push to Docker Hub
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Triggers on version tags like v1.0.0, v2.1.3, etc.
+  release:
+    types: [published] # Also triggers when a GitHub release is published
+
+jobs:
+  docker-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Build Cloud
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        env:
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_BUILD_CLOUD_TOKEN }}
+          DOCKER_ACCOUNT: ${{ vars.DOCKER_USERNAME }}
+        with:
+          driver: cloud
+          endpoint: helicone/heli
+
+      - name: Push images to Docker Hub
+        env:
+          BUILDX_BUILDER: ${{ steps.buildx.outputs.name }}
+        run: |
+          cd docker
+          ./push_docker.sh --mode dockerhub

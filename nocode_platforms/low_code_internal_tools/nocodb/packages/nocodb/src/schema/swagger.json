@@ -22311,6 +22311,10 @@
           "copy_from_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of integration to be copied from. Used in Copy Integration."
+          },
+          "is_restricted": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the integration is restricted to specific bases"
           }
         },
         "title": "Source Request",
@@ -22791,7 +22795,7 @@
           {
             "properties": {
               "column_name": {
-                "type": "string"
+                "$ref": "#/components/schemas/StringOrNull"
               },
               "description": {
                 "$ref": "#/components/schemas/TextOrNull"
@@ -26747,7 +26751,7 @@
             "type": "number"
           },
           "pageSize": {
-            "description": "The number of pages",
+            "description": "The number of records per page",
             "example": 10,
             "type": "number"
           },

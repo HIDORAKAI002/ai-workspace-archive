@@ -1,0 +1,83 @@
+# frozen_string_literal: true
+
+module Anthropic
+  module Internal
+    module Type
+      # @api private
+      #
+      # @generic Elem
+      #
+      # This module provides a base implementation for streaming responses in the SDK.
+      #
+      # @see https://rubyapi.org/3.2/o/enumerable
+      module BaseStream
+        include Enumerable
+
+        # @return [Integer]
+        attr_reader :status
+
+        # @return [Hash{String=>String}]
+        attr_reader :headers
+
+        # @api public
+        #
+        # @return [void]
+        def close = Anthropic::Internal::Util.close_fused!(@iterator)
+
+        # @api private
+        #
+        # @return [Enumerable<generic<Elem>>]
+        private def iterator = (raise NotImplementedError)
+
+        # @api public
+        #
+        # @param blk [Proc]
+        #
+        # @yieldparam [generic<Elem>]
+        # @return [void]
+        def each(&blk)
+          unless block_given?
+            raise ArgumentError.new("A block must be given to ##{__method__}")
+          end
+          @iterator.each(&blk)
+        end
+
+        # @api public
+        #
+        # @return [Enumerator<generic<Elem>>]
+        def to_enum = @iterator
+
+        alias_method :enum_for, :to_enum
+
+        # @api private
+        #
+        # @param model [Class, Anthropic::Internal::Type::Converter]
+        # @param url [URI::Generic]
+        # @param status [Integer]
+        # @param headers [Hash{String=>String}]
+        # @param response [Net::HTTPResponse]
+        # @param unwrap [Symbol, Integer, Array<Symbol, Integer>, Proc]
+        # @param stream [Enumerable<Object>]
+        def initialize(model:, url:, status:, headers:, response:, unwrap:, stream:)
+          @model = model
+          @url = url
+          @status = status
+          @headers = headers
+          @response = response
+          @unwrap = unwrap
+          @stream = stream
+          @iterator = iterator
+        end
+
+        # @api private
+        #
+        # @return [String]
+        def inspect
+          model = Anthropic::Internal::Type::Converter.inspect(@model, depth: 1)
+
+          "#<#{self.class}[#{model}]:0x#{object_id.to_s(16)}>"
+        end
+      end
+    end
+  end
+end

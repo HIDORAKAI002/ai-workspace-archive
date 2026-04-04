@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prompts
+      # Change this for production — see Security Considerations in DOCKER.md
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-prompts}"
+      POSTGRES_DB: prompts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prompts -d prompts"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    # To use a pre-built image instead of building locally, comment out
+    # the 'build' block above and uncomment the line below:
+    # image: ghcr.io/f/prompts.chat:latest
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4444}:3000"
+    environment:
+      DATABASE_URL: "postgresql://prompts:${POSTGRES_PASSWORD:-prompts}@db:5432/prompts?schema=public"
+      DIRECT_URL: "postgresql://prompts:${POSTGRES_PASSWORD:-prompts}@db:5432/prompts?schema=public"
+      AUTH_SECRET: "${AUTH_SECRET:-}"
+      NODE_ENV: production
+      # Branding (all optional — set any PCHAT_* variable to customize at runtime)
+      # PCHAT_NAME: "My Prompt Library"
+      # PCHAT_DESCRIPTION: "Our team's AI prompt collection"
+      # PCHAT_COLOR: "#6366f1"
+      # PCHAT_AUTH_PROVIDERS: "credentials"
+      # PCHAT_LOCALES: "en"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

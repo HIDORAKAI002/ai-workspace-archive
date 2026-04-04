@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "types": ["vitest/globals"],
+    "lib": ["ES2020", "DOM"]
+  },
+  "files": [],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "references": []
+}

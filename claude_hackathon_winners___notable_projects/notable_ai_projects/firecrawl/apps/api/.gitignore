@@ -1,0 +1,21 @@
+/node_modules/
+/dist/
+.env
+*.csv
+dump.rdb
+/mongo-data
+
+/.next/
+
+.rdb
+.sentryclirc
+
+.env.*
+
+firecrawl.log
+
+test-results/
+
+# Branding script build artifacts (dev-only, generated at runtime)
+branding-script.pasteable.js
+bundle.generated.ts

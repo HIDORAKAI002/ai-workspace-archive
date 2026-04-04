@@ -1,0 +1,95 @@
+---
+title: flow_run
+sidebarTitle: flow_run
+---
+
+# `prefect.cli.flow_run`
+
+
+
+Flow run command — native cyclopts implementation.
+
+Interact with flow runs.
+
+
+## Functions
+
+### `inspect` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L107" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+inspect(id: UUID)
+```
+
+
+View details about a flow run.
+
+
+### `ls` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L158" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ls()
+```
+
+
+View recent flow runs or flow runs for specific flows.
+
+
+### `delete` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L285" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+delete(id: UUID)
+```
+
+
+Delete a flow run by ID.
+
+
+### `cancel` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L305" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+cancel(id: UUID)
+```
+
+
+Cancel a flow run by ID.
+
+
+### `retry` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L327" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+retry(id_or_name: str)
+```
+
+
+Retry a failed or completed flow run.
+
+
+### `logs` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L486" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+logs(id: UUID)
+```
+
+
+View logs for a flow run.
+
+
+### `watch` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L633" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+watch(id: UUID)
+```
+
+
+Watch a flow run until it reaches a terminal state.
+
+
+### `execute` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py#L665" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+execute(id: Optional[UUID] = None)
+```
+
+
+Execute a flow run by ID.
+

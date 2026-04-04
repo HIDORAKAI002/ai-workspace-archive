@@ -1,0 +1,454 @@
+# تحديث ضوابط أمان MCP - فبراير 2026
+
+> **المعيار الحالي**: يعكس هذا المستند متطلبات الأمان في [مواصفة MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) وممارسات الأمان الرسمية لـ [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+
+لقد نضج بروتوكول سياق النموذج (MCP) بشكل كبير مع ضوابط أمان محسنة تتناول كل من أمان البرامج التقليدية والتهديدات الخاصة بالذكاء الاصطناعي. يقدم هذا المستند ضوابط أمان شاملة لتنفيذات MCP آمنة تتماشى مع إطار OWASP MCP Top 10.
+
+## 🏔️ تدريب أمني عملي
+
+للحصول على تجربة تطبيقية عملية، نوصي بـ **[ورشة عمل قمة أمان MCP (شيربا)](https://azure-samples.github.io/sherpa/)** - رحلة شاملة موجهة لتأمين خوادم MCP في Azure باستخدام منهجية "ضعف → استغلال → إصلاح → تحقق".
+
+جميع ضوابط الأمان في هذا المستند تتوافق مع **[دليل أمان OWASP MCP Azure](https://microsoft.github.io/mcp-azure-security-guide/)**، الذي يوفر هياكل مرجعية وإرشادات تنفيذ خاصة بـ Azure لمخاطر OWASP MCP Top 10.
+
+## **متطلبات الأمان الإلزامية**
+
+### **القيود الحرجة من مواصفة MCP:**
+
+> **ممنوع**: يجب ألا تقبل خوادم MCP أي رموز لم تصدر صراحة لخادم MCP  
+>
+> **محظور**: يجب ألا تستخدم خوادم MCP الجلسات للمصادقة  
+>
+> **مطلوب**: يجب على خوادم MCP التي تنفذ التفويض التحقق من جميع الطلبات الواردة  
+>
+> **الزامي**: يجب على خوادم البروكسي MCP التي تستخدم معرفات عميل ثابتة الحصول على موافقة المستخدم لكل عميل مسجل ديناميكيًا
+
+---
+
+## 1. **ضوابط المصادقة والتفويض**
+
+### **التكامل مع مزود الهوية الخارجي**
+
+يسمح **المعيار الحالي لـ MCP (2025-11-25)** لخوادم MCP بتفويض المصادقة إلى مزودي الهوية الخارجية، مما يمثل تحسينًا أمنيًا كبيرًا:
+
+**مخاطر OWASP MCP المعالجة**: [MCP07 - ضعف المصادقة والتفويض](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+
+**فوائد الأمان:**
+1. **إلغاء مخاطر المصادقة المخصصة**: يقلل من سطح التعرض بالابتعاد عن تنفيذات المصادقة المخصصة  
+2. **أمان على مستوى المؤسسات**: يستفيد من مزودي هوية معروفين مثل Microsoft Entra ID مع ميزات أمان متقدمة  
+3. **إدارة هوية مركزة**: يبسط إدارة دورة حياة المستخدم، التحكم في الوصول، والتدقيق على الامتثال  
+4. **المصادقة متعددة العوامل**: يرث قدرات MFA من مزودي الهوية على مستوى المؤسسات  
+5. **سياسات الوصول المشروط**: يستفيد من ضوابط الوصول القائمة على المخاطر والمصادقة التكيفية
+
+**متطلبات التنفيذ:**
+- **التحقق من جمهور الرمز**: تحقق من أن جميع الرموز صادرة صراحة لخادم MCP  
+- **التحقق من المُصدر**: تحقق من مطابقة مصدر الرمز لمزود الهوية المتوقع  
+- **التحقق من التوقيع**: تحقق تشفيرياً من سلامة الرمز  
+- **إنفاذ انتهاء الصلاحية**: فرض صارم لحدود عمر الرمز  
+- **التحقق من الصلاحيات**: تأكد من أن الرموز تحتوي على الأذونات المناسبة للعملية المطلوبة
+
+### **أمان منطق التفويض**
+
+**الضوابط الحرجة:**
+- **مراجعات تفويض شاملة**: مراجعات أمنية منتظمة لجميع نقاط اتخاذ قرار التفويض  
+- **الإفتراض الافتراضي الآمن**: رفض الوصول عند عجز منطق التفويض عن اتخاذ قرار حاسم  
+- **حدود الأذونات**: فصل واضح بين مستويات الامتياز المختلفة والوصول إلى الموارد  
+- **تسجيل التدقيق**: تسجيل كامل لجميع قرارات التفويض لمراقبة الأمان  
+- **مراجعات وصول دورية**: تحقق دوري من أذونات المستخدم وتعيينات الامتياز
+
+## 2. **أمان الرموز وضوابط منع تمرير الرموز**
+
+**مخاطر OWASP MCP المعالجة**: [MCP01 - سوء إدارة الرموز وكشف الأسرار](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+
+### **منع تمرير الرموز**
+
+**يُحظر صراحة تمرير الرموز** في مواصفة تفويض MCP بسبب المخاطر الأمنية الحرجة:
+
+**المخاطر الأمنية المعالجة:**
+- **التحايل على الضوابط**: يتجاوز ضوابط الأمان الأساسية مثل تحديد معدل الطلبات والتحقق من الطلبات ورصد الحركة  
+- **انهيار المساءلة**: يجعل تحديد هوية العميل مستحيلاً، ما يفسد سجلات التدقيق وتحقيقات الحوادث  
+- **استخراج بيانات عبر البروكسي**: يمكن الجهات الخبيثة من استخدام الخوادم كوسطاء للوصول غير المصرح به للبيانات  
+- **انتهاكات حدود الثقة**: يكسر افتراضات الثقة الخاصة بخدمات الطرف الخادم حول أصل الرموز  
+- **الحركة الأفقية**: تمكين توسيع الهجمات بفعل رموز مخترقة عبر خدمات متعددة
+
+**ضوابط التنفيذ:**  
+```yaml
+Token Validation Requirements:
+  audience_validation: MANDATORY
+  issuer_verification: MANDATORY  
+  signature_check: MANDATORY
+  expiration_enforcement: MANDATORY
+  scope_validation: MANDATORY
+  
+Token Lifecycle Management:
+  rotation_frequency: "Short-lived tokens preferred"
+  secure_storage: "Azure Key Vault or equivalent"
+  transmission_security: "TLS 1.3 minimum"
+  replay_protection: "Implemented via nonce/timestamp"
+```
+  
+### **أنماط إدارة الرموز الآمنة**
+
+**أفضل الممارسات:**
+- **رموز قصيرة العمر**: تقليل فترة التعرض عبر تدوير الرموز بشكل متكرر  
+- **الإصدار عند الطلب**: إصدار الرموز فقط عند الحاجة لعمليات محددة  
+- **التخزين الآمن**: استخدام وحدات أمان أجهزة (HSM) أو خزائن مفاتيح مؤمنة  
+- **ربط الرموز**: ربط الرموز بعملاء أو جلسات أو عمليات محددة حيثما أمكن  
+- **المراقبة والتنبيه**: كشف في الوقت الحقيقي لسوء استخدام الرموز أو أنماط الوصول غير المصرح بها
+
+## 3. **ضوابط أمان الجلسات**
+
+### **منع اختطاف الجلسات**
+
+**نواقل الهجوم المعالجة:**
+- **حقن مطالبات اختطاف الجلسة**: أحداث خبيثة تُحقن في حالة الجلسة المشتركة  
+- **انتحال الجلسة**: استخدام غير مصرح به لأرقام جلسة مسروقة لتجاوز المصادقة  
+- **هجمات استئناف التدفق**: استغلال استئناف أحداث الخادم لإدخال محتوى ضار
+
+**ضوابط الجلسة الإلزامية:**  
+```yaml
+Session ID Generation:
+  randomness_source: "Cryptographically secure RNG"
+  entropy_bits: 128 # Minimum recommended
+  format: "Base64url encoded"
+  predictability: "MUST be non-deterministic"
+
+Session Binding:
+  user_binding: "REQUIRED - <user_id>:<session_id>"
+  additional_identifiers: "Device fingerprint, IP validation"
+  context_binding: "Request origin, user agent validation"
+  
+Session Lifecycle:
+  expiration: "Configurable timeout policies"
+  rotation: "After privilege escalation events"
+  invalidation: "Immediate on security events"
+  cleanup: "Automated expired session removal"
+```
+  
+**أمان النقل:**
+- **إنفاذ HTTPS**: جميع اتصالات الجلسة عبر بروتوكول TLS 1.3  
+- **سمات الكوكيز الآمنة**: HttpOnly، Secure، SameSite=Strict  
+- **تثبيت الشهادة**: للاتصالات الحرجة لمنع هجمات MITM
+
+### **الاعتبارات للحالة الحالة مقابل الحالة غير الحالة**
+
+**للتنفيذات ذات الحالة:**
+- تتطلب الحالة المشتركة للح Sitzung حماية إضافية ضد هجمات الحقن  
+- إدارة الجلسة القائمة على الطابور تحتاج تحقق السلامة  
+- يتطلب مزامنة آمنة لحالة الجلسة بين مثيلات متعددة للخادم
+
+**للتنفيذات لا حالة:**
+- إدارة الجلسة المعتمدة على JWT أو رموز مماثلة  
+- تحقق تشفير من سلامة حالة الجلسة  
+- سطح هجوم أقل لكن يتطلب تحققًا قويًا من الرموز
+
+## 4. **ضوابط أمان خاصة بالذكاء الاصطناعي**
+
+**مخاطر OWASP MCP المعالجة**:  
+- [MCP06 - حقن مطالبات عبر حمولات سياقية](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - تسمم الأدوات](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - حقن وتنفيذ الأوامر](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+
+### **الدفاع ضد حقن المطالبات**
+
+**تكامل Microsoft Prompt Shields:**  
+```yaml
+Detection Mechanisms:
+  - "Advanced ML-based instruction detection"
+  - "Contextual analysis of external content"
+  - "Real-time threat pattern recognition"
+  
+Protection Techniques:
+  - "Spotlighting trusted vs untrusted content"
+  - "Delimiter systems for content boundaries"  
+  - "Data marking for content source identification"
+  
+Integration Points:
+  - "Azure Content Safety service"
+  - "Real-time content filtering"
+  - "Threat intelligence updates"
+```
+  
+**ضوابط التنفيذ:**
+- **تنقية الإدخال**: تحقق وفحص شامل لجميع مدخلات المستخدم  
+- **تعريف حدود المحتوى**: فصل واضح بين تعليمات النظام ومحتوى المستخدم  
+- **تسلسل التعليمات**: قواعد أسبقية مناسبة للتعليمات المتضاربة  
+- **مراقبة المخرجات**: كشف المخرجات المحتملة الضارة أو المعدلة
+
+### **منع تسمم الأدوات**
+
+**إطار أمان الأدوات:**  
+```yaml
+Tool Definition Protection:
+  validation:
+    - "Schema validation against expected formats"
+    - "Content analysis for malicious instructions" 
+    - "Parameter injection detection"
+    - "Hidden instruction identification"
+  
+  integrity_verification:
+    - "Cryptographic hashing of tool definitions"
+    - "Digital signatures for tool packages"
+    - "Version control with change auditing"
+    - "Tamper detection mechanisms"
+  
+  monitoring:
+    - "Real-time change detection"
+    - "Behavioral analysis of tool usage"
+    - "Anomaly detection for execution patterns"
+    - "Automated alerting for suspicious modifications"
+```
+  
+**إدارة الأدوات الديناميكية:**
+- **سير عمل الموافقة**: موافقة صريحة من المستخدم لتعديلات الأدوات  
+- **قدرات التراجع**: القدرة على الرجوع إلى إصدارات الأدوات السابقة  
+- **تدقيق التغييرات**: سجل كامل لتعديلات تعريف الأدوات  
+- **تقييم المخاطر**: تقييم تلقائي لوضع الأمان للأدوات
+
+## 5. **منع هجوم الوكيل المربك**
+
+### **أمان بروكسي OAuth**
+
+**ضوابط منع الهجوم:**  
+```yaml
+Client Registration:
+  static_client_protection:
+    - "Explicit user consent for dynamic registration"
+    - "Consent bypass prevention mechanisms"  
+    - "Cookie-based consent validation"
+    - "Redirect URI strict validation"
+    
+  authorization_flow:
+    - "PKCE implementation (OAuth 2.1)"
+    - "State parameter validation"
+    - "Authorization code binding"
+    - "Nonce verification for ID tokens"
+```
+  
+**متطلبات التنفيذ:**
+- **التحقق من موافقة المستخدم**: عدم تخطي شاشات الموافقة للتسجيل الديناميكي للعميل  
+- **التحقق من URI إعادة التوجيه**: تحقق صارم يستند لقائمة بيضاء لوجهات إعادة التوجيه  
+- **حماية رمز التفويض**: رموز قصيرة العمر مع فرض استخدام مرة واحدة فقط  
+- **التحقق من هوية العميل**: تحقق قوي من بيانات اعتماد العميل وبيانات التعريف
+
+## 6. **أمان تنفيذ الأدوات**
+
+### **العزل والتشغيل في صندوق الحماية**
+
+**العزل القائم على الحاويات:**  
+```yaml
+Execution Environment:
+  containerization: "Docker/Podman with security profiles"
+  resource_limits:
+    cpu: "Configurable CPU quotas"
+    memory: "Memory usage restrictions"
+    disk: "Storage access limitations"
+    network: "Network policy enforcement"
+  
+  privilege_restrictions:
+    user_context: "Non-root execution mandatory"
+    capability_dropping: "Remove unnecessary Linux capabilities"
+    syscall_filtering: "Seccomp profiles for syscall restriction"
+    filesystem: "Read-only root with minimal writable areas"
+```
+  
+**عزل العمليات:**
+- **سياقات عملية منفصلة**: تنفيذ كل أداة في مساحة عملية معزولة  
+- **الاتصال بين العمليات**: آليات اتصال بين العمليات آمنة مع تحقق  
+- **مراقبة العمليات**: تحليل سلوك التشغيل واكتشاف الشذوذ  
+- **فرض الموارد**: حدود صارمة على وحدة المعالجة المركزية، الذاكرة، وعمليات الإدخال/الإخراج
+
+### **تنفيذ مبدأ أقل الامتيازات**
+
+**إدارة الأذونات:**  
+```yaml
+Access Control:
+  file_system:
+    - "Minimal required directory access"
+    - "Read-only access where possible"
+    - "Temporary file cleanup automation"
+    
+  network_access:
+    - "Explicit allowlist for external connections"
+    - "DNS resolution restrictions" 
+    - "Port access limitations"
+    - "SSL/TLS certificate validation"
+  
+  system_resources:
+    - "No administrative privilege elevation"
+    - "Limited system call access"
+    - "No hardware device access"
+    - "Restricted environment variable access"
+```
+  
+## 7. **ضوابط أمان سلسلة التوريد**
+
+**مخاطر OWASP MCP المعالجة**: [MCP04 - هجمات سلسلة التوريد](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+
+### **التحقق من الاعتمادات**
+
+**أمان مكونات شامل:**  
+```yaml
+Software Dependencies:
+  scanning: 
+    - "Automated vulnerability scanning (GitHub Advanced Security)"
+    - "License compliance verification"
+    - "Known vulnerability database checks"
+    - "Malware detection and analysis"
+  
+  verification:
+    - "Package signature verification"
+    - "Checksum validation"
+    - "Provenance attestation"
+    - "Software Bill of Materials (SBOM)"
+
+AI Components:
+  model_verification:
+    - "Model provenance validation"
+    - "Training data source verification" 
+    - "Model behavior testing"
+    - "Adversarial robustness assessment"
+  
+  service_validation:
+    - "Third-party API security assessment"
+    - "Service level agreement review"
+    - "Data handling compliance verification"
+    - "Incident response capability evaluation"
+```
+  
+### **المراقبة المستمرة**
+
+**كشف تهديدات سلسلة التوريد:**
+- **مراقبة صحة الاعتمادات**: تقييم مستمر لجميع الاعتمادات لمشكلات الأمان  
+- **تكامل استخبارات التهديدات**: تحديثات في الوقت الحقيقي لتهديدات سلسلة التوريد الناشئة  
+- **تحليل السلوك**: كشف سلوكيات غير معتادة في المكونات الخارجية  
+- **الاستجابة الآلية**: احتواء فوري للمكونات المخترقة
+
+## 8. **ضوابط المراقبة والكشف**
+
+**مخاطر OWASP MCP المعالجة**: [MCP08 - نقص التدقيق والقياس](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **إدارة معلومات الأمان والأحداث (SIEM)**
+
+**استراتيجية تسجيل شاملة:**  
+```yaml
+Authentication Events:
+  - "All authentication attempts (success/failure)"
+  - "Token issuance and validation events"
+  - "Session creation, modification, termination"
+  - "Authorization decisions and policy evaluations"
+
+Tool Execution:
+  - "Tool invocation details and parameters"
+  - "Execution duration and resource usage"
+  - "Output generation and content analysis"
+  - "Error conditions and exception handling"
+
+Security Events:
+  - "Potential prompt injection attempts"
+  - "Tool poisoning detection events"
+  - "Session hijacking indicators"
+  - "Unusual access patterns and anomalies"
+```
+  
+### **الكشف الفوري عن التهديدات**
+
+**تحليلات السلوك:**
+- **تحليلات سلوك المستخدم (UBA)**: كشف أنماط الوصول غير الطبيعية للمستخدم  
+- **تحليلات سلوك الكيان (EBA)**: مراقبة سلوك خادم MCP والأدوات  
+- **الكشف عن الشذوذ بتعلم الآلة**: تحديد ذكي مدعوم بالذكاء الاصطناعي للتهديدات الأمنية  
+- **ترابط استخبارات التهديدات**: مطابقة الأنشطة الملاحظة مع أنماط الهجوم المعروفة
+
+## 9. **استجابة الحوادث والتعافي**
+
+### **قدرات الاستجابة الآلية**
+
+**إجراءات الاستجابة الفورية:**  
+```yaml
+Threat Containment:
+  session_management:
+    - "Immediate session termination"
+    - "Account lockout procedures"
+    - "Access privilege revocation"
+  
+  system_isolation:
+    - "Network segmentation activation"
+    - "Service isolation protocols"
+    - "Communication channel restriction"
+
+Recovery Procedures:
+  credential_rotation:
+    - "Automated token refresh"
+    - "API key regeneration"
+    - "Certificate renewal"
+  
+  system_restoration:
+    - "Clean state restoration"
+    - "Configuration rollback"
+    - "Service restart procedures"
+```
+  
+### **قدرات التحقيق الجنائي**
+
+**دعم التحقيق:**
+- **حفظ مسار التدقيق**: تسجيل غير قابل للتغيير مع حفظ سلامة تشفيرية  
+- **جمع الأدلة**: جمع تلقائي للقطع المتعلقة بالأمان  
+- **إعادة بناء الجدول الزمني**: تسلسل مفصل للأحداث التي أدت إلى الحوادث الأمنية  
+- **تقييم التأثير**: تقدير نطاق الاختراق وكشف البيانات
+
+## **مبادئ رئيسية لهندسة الأمان**
+
+### **الدفاع المتعمق**
+- **طبقات أمن متعددة**: لا يوجد نقطة فشل واحدة في هندسة الأمان  
+- **الضوابط المتكررة**: إجراءات أمنية متداخلة للوظائف الحرجة  
+- **آليات الأمان الافتراضي**: إعدادات آمنة عند حدوث أخطاء أو هجمات
+
+### **تنفيذ الثقة الصفرية**
+- **عدم الثقة الدائمة، والتحقق المستمر**: تحقق مستمر من جميع الكيانات والطلبات  
+- **مبدأ أقل الامتيازات**: منح حقوق وصول دنيا لجميع المكونات  
+- **التقسيم الدقيق**: ضوابط شبكية ووصول دقيقة للغاية
+
+### **تطور أمني مستمر**
+- **التكيف مع مشهد التهديدات**: تحديثات دورية لمعالجة التهديدات الناشئة  
+- **فعالية ضوابط الأمان**: تقييم وتحسين مستمر للضوابط  
+- **الامتثال للمواصفة**: التوافق مع معايير أمان MCP المتطورة
+
+---
+
+## **موارد التنفيذ**
+
+### **التوثيق الرسمي لـ MCP**
+- [مواصفة MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
+- [أفضل ممارسات أمان MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
+- [مواصفة تفويض MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+
+### **موارد أمان OWASP MCP**
+- [دليل أمان OWASP MCP Azure](https://microsoft.github.io/mcp-azure-security-guide/) - OWASP MCP Top 10 شامل مع تنفيذ Azure  
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - مخاطر الأمان الرسمية لـ OWASP MCP  
+- [ورشة عمل قمة أمان MCP (شيربا)](https://azure-samples.github.io/sherpa/) - تدريب أمني عملي لـ MCP على Azure
+
+### **حلول أمان Microsoft**
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
+- [GitHub Advanced Security](https://github.com/security/advanced-security)  
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
+
+### **معايير الأمان**
+- [أفضل ممارسات أمان OAuth 2.0 (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
+- [OWASP Top 10 لنماذج اللغة الكبيرة](https://genai.owasp.org/)  
+- [إطار عمل الأمان السيبراني NIST](https://www.nist.gov/cyberframework)
+
+---
+
+> **مهم**: تعكس ضوابط الأمان هذه المواصفة الحالية لـ MCP (2025-11-25). تحقق دائمًا بالمراجعة مقابل أحدث [التوثيق الرسمي](https://spec.modelcontextprotocol.io/) لأن المعايير تستمر في التطور بسرعة.
+
+## ما التالي
+
+- العودة إلى: [نظرة عامة على وحدة الأمان](./README.md)
+- المتابعة إلى: [الوحدة 3: الشروع في العمل](../03-GettingStarted/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**تنويه**:
+تم ترجمة هذا المستند باستخدام خدمة الترجمة الآلية [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يُرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الحساسة أو الهامة، يُنصح بالاعتماد على ترجمة بشرية مهنية. نحن غير مسؤولين عن أي سوء فهم أو تفسير خاطئ ناتج عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nuq-worker
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: nuq-worker
+  template:
+    metadata:
+      labels:
+        app: nuq-worker
+    spec:
+      imagePullSecrets:
+        - name: docker-registry-secret
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: nuq-worker
+          image: ghcr.io/firecrawl/firecrawl:latest
+          imagePullPolicy: Always
+          command: [ "node" ]
+          args: [ "--max-old-space-size=3072", "dist/src/services/worker/nuq-worker.js" ]
+          env:
+            - name: FLY_PROCESS_GROUP
+              value: "nuq-worker"
+            - name: NUQ_WORKER_PORT
+              value: "3006"
+          envFrom:
+            - configMapRef:
+                name: firecrawl-config
+            - secretRef:
+                name: firecrawl-secret
+          resources:
+            requests:
+              memory: "3G"
+              cpu: "1000m"
+            limits:
+              memory: "4G"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3

@@ -1,0 +1,38 @@
+---
+title: Metrics Dashboard
+description: Each project comes with a pre-defined metrics dashboard
+---
+
+<Frame>
+<video src="https://storage.googleapis.com/arize-phoenix-assets/assets/videos/project_metrics_overview.mp4" width="100%" height="100%" style={{ display: 'block', objectFit: 'fill', backgroundColor: 'transparent' }} controls autoPlay muted loop />
+</Frame>
+
+Traces that are sent to a project are automatically indexed for metrics. This lets you quickly identify areas of poor performance. The project metrics dashboard includes:
+
+- Trace latency and errors
+- Latency Quantiles
+- Annotation Scores Timeseries
+- Cost over Time by token type
+- Top Models by Cost
+- Token Usage by token type
+- Top Models by Tokens
+- LLM Invocation and Errors
+- Tool calls and Errors
+
+<Info>
+  For custom alerting and dashboards on top of your trace data, including metrics tailored for non-developer stakeholders, see [Arize AX's Dashboard features](https://arize.com/docs/ax/observe/dashboards).
+</Info>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Setup Projects" icon="folder" href="/docs/phoenix/tracing/how-to-tracing/setup-tracing/setup-projects">
+    Organize traces into separate projects
+  </Card>
+  <Card title="Cost Tracking" icon="dollar-sign" href="/docs/phoenix/tracing/how-to-tracing/cost-tracking">
+    Monitor token usage and LLM costs
+  </Card>
+  <Card title="Log Annotations" icon="code" href="/docs/phoenix/tracing/how-to-tracing/feedback-and-annotations/capture-feedback">
+    Add scores, labels, and LLM evals to your traces
+  </Card>
+</CardGroup>

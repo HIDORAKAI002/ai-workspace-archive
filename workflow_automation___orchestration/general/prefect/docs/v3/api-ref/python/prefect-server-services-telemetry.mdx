@@ -1,0 +1,25 @@
+---
+title: telemetry
+sidebarTitle: telemetry
+---
+
+# `prefect.server.services.telemetry`
+
+
+
+The Telemetry service. Sends anonymous data to Prefect to help us improve.
+
+
+## Functions
+
+### `send_telemetry_heartbeat` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/services/telemetry.py#L69" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+send_telemetry_heartbeat(perpetual: Perpetual = Perpetual(automatic=True, every=timedelta(seconds=600))) -> None
+```
+
+
+Sends anonymous telemetry data to Prefect to help us improve.
+
+It can be toggled off with the PREFECT_SERVER_ANALYTICS_ENABLED setting.
+

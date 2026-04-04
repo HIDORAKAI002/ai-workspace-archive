@@ -1,0 +1,68 @@
+---
+title: Rate limits and data retention
+description: Understand Prefect Cloud's API rate limits, how they apply to your account, and how to stay within them.
+keywords: [rate limits, data retention, prefect cloud, api rate limits, 429, throttling]
+---
+
+## API rate limits
+
+<Note>
+**Rate limits are subject to change.**
+
+Contact Prefect support at [help@prefect.io](mailto:help@prefect.io) with questions about rate limits.
+</Note>
+
+Prefect Cloud applies rate limits at the account level to ensure system stability. When limits are exceeded, endpoints return a `429` response with a `Retry-After` header.
+
+Rate limits are organized into two buckets:
+
+- **API Requests** — All calls to the orchestration API, including creating, reading, and updating flows, flow runs, task runs, deployments, work pools, and other resources.
+- **Logs + Events** — All log writes and event submissions, including task run events.
+
+### Limits by plan
+
+| Plan | API Requests (per minute) | Logs + Events (per minute) |
+|------|---------------------------|----------------------------|
+| Hobby | 625 | 2,000 |
+| Starter | 1,250 | 2,800 |
+| Team | 2,500 | 8,000 |
+| Pro | 5,000 | 40,000 |
+| Enterprise | Custom | Custom |
+
+For Enterprise limits, [contact Prefect's sales team](https://www.prefect.io/pricing).
+
+### Monitor your usage
+
+View your account's rate limit usage in the Prefect Cloud UI under **Account Settings > Rate Limits**. The dashboard shows current usage against your limits and highlights the top contributors to request volume, such as specific API keys, workspaces, or API routes.
+
+### Reduce request volume
+
+If you're approaching your rate limits, consider the following:
+
+- **Reduce flow run volume** by batching work into fewer runs or using task runs within a single flow instead of launching many small flows.
+- **Optimize logging** by adjusting log levels or reducing the volume of log output from your flows.
+- **Use webhooks and automations** instead of polling the API for state changes.
+- **Upgrade your plan** if your workload consistently exceeds your current limits.
+
+### SDK retry behavior
+
+The Prefect SDK automatically retries rate-limited requests up to 5 times, using the delay specified in the `Retry-After` header. You can customize this behavior through [client settings](/v3/develop/settings-ref#clientsettings).
+
+## Query limits
+
+Event queries are limited to a 14-day window per request. You can query any 14-day period within your retention period, but each individual query cannot span more than 14 days. If your plan's retention period is shorter than 14 days, the query window is limited to your retention period.
+
+## Metadata retention
+
+Prefect Cloud retains flow run, task run, and artifact metadata for a limited time based on your plan. This applies to all workspaces in your account.
+
+### Retention periods by plan
+
+- **Hobby and Starter**: 7 days
+- **Team**: 14 days  
+- **Pro**: 30 days
+- **Enterprise**: Custom retention periods
+
+Metadata is retained from creation until the specified period expires. For flow and task runs, retention is calculated from when the run reaches a [terminal state](/v3/develop/manage-states/#state-types). Subflow runs are retained independently from their parent flows.
+
+For custom retention periods, [contact Prefect's sales team](https://www.prefect.io/pricing).

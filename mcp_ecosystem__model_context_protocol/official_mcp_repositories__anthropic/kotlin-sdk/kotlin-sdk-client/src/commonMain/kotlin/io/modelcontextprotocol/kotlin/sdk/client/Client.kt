@@ -1,0 +1,717 @@
+package io.modelcontextprotocol.kotlin.sdk.client
+
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.modelcontextprotocol.kotlin.sdk.ExperimentalMcpApi
+import io.modelcontextprotocol.kotlin.sdk.shared.Protocol
+import io.modelcontextprotocol.kotlin.sdk.shared.ProtocolOptions
+import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
+import io.modelcontextprotocol.kotlin.sdk.shared.Transport
+import io.modelcontextprotocol.kotlin.sdk.types.BooleanSchema
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolRequest
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolRequestParams
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
+import io.modelcontextprotocol.kotlin.sdk.types.ClientCapabilities
+import io.modelcontextprotocol.kotlin.sdk.types.CompleteRequest
+import io.modelcontextprotocol.kotlin.sdk.types.CompleteResult
+import io.modelcontextprotocol.kotlin.sdk.types.DoubleSchema
+import io.modelcontextprotocol.kotlin.sdk.types.ElicitRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ElicitRequestFormParams
+import io.modelcontextprotocol.kotlin.sdk.types.ElicitResult
+import io.modelcontextprotocol.kotlin.sdk.types.EmptyResult
+import io.modelcontextprotocol.kotlin.sdk.types.GetPromptRequest
+import io.modelcontextprotocol.kotlin.sdk.types.GetPromptResult
+import io.modelcontextprotocol.kotlin.sdk.types.Implementation
+import io.modelcontextprotocol.kotlin.sdk.types.InitializeRequest
+import io.modelcontextprotocol.kotlin.sdk.types.InitializeRequestParams
+import io.modelcontextprotocol.kotlin.sdk.types.InitializeResult
+import io.modelcontextprotocol.kotlin.sdk.types.InitializedNotification
+import io.modelcontextprotocol.kotlin.sdk.types.IntegerSchema
+import io.modelcontextprotocol.kotlin.sdk.types.LATEST_PROTOCOL_VERSION
+import io.modelcontextprotocol.kotlin.sdk.types.LegacyTitledEnumSchema
+import io.modelcontextprotocol.kotlin.sdk.types.ListPromptsRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ListPromptsResult
+import io.modelcontextprotocol.kotlin.sdk.types.ListResourceTemplatesRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ListResourceTemplatesResult
+import io.modelcontextprotocol.kotlin.sdk.types.ListResourcesRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ListResourcesResult
+import io.modelcontextprotocol.kotlin.sdk.types.ListRootsRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ListRootsResult
+import io.modelcontextprotocol.kotlin.sdk.types.ListToolsRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ListToolsResult
+import io.modelcontextprotocol.kotlin.sdk.types.LoggingLevel
+import io.modelcontextprotocol.kotlin.sdk.types.McpException
+import io.modelcontextprotocol.kotlin.sdk.types.Method
+import io.modelcontextprotocol.kotlin.sdk.types.PingRequest
+import io.modelcontextprotocol.kotlin.sdk.types.PrimitiveSchemaDefinition
+import io.modelcontextprotocol.kotlin.sdk.types.ReadResourceRequest
+import io.modelcontextprotocol.kotlin.sdk.types.ReadResourceResult
+import io.modelcontextprotocol.kotlin.sdk.types.RequestMeta
+import io.modelcontextprotocol.kotlin.sdk.types.Root
+import io.modelcontextprotocol.kotlin.sdk.types.RootsListChangedNotification
+import io.modelcontextprotocol.kotlin.sdk.types.SUPPORTED_PROTOCOL_VERSIONS
+import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
+import io.modelcontextprotocol.kotlin.sdk.types.SetLevelRequest
+import io.modelcontextprotocol.kotlin.sdk.types.SetLevelRequestParams
+import io.modelcontextprotocol.kotlin.sdk.types.StringSchema
+import io.modelcontextprotocol.kotlin.sdk.types.SubscribeRequest
+import io.modelcontextprotocol.kotlin.sdk.types.TitledMultiSelectEnumSchema
+import io.modelcontextprotocol.kotlin.sdk.types.TitledSingleSelectEnumSchema
+import io.modelcontextprotocol.kotlin.sdk.types.UnsubscribeRequest
+import io.modelcontextprotocol.kotlin.sdk.types.UntitledMultiSelectEnumSchema
+import io.modelcontextprotocol.kotlin.sdk.types.UntitledSingleSelectEnumSchema
+import io.modelcontextprotocol.kotlin.sdk.types.toJson
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
+import kotlinx.atomicfu.update
+import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentSet
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlin.coroutines.cancellation.CancellationException
+
+private val logger = KotlinLogging.logger {}
+
+/**
+ * Options for configuring the MCP client.
+ *
+ * @property capabilities The capabilities this client supports.
+ * @property enforceStrictCapabilities Whether to strictly enforce capabilities when interacting with the server.
+ */
+public class ClientOptions(
+    public val capabilities: ClientCapabilities = ClientCapabilities(),
+    enforceStrictCapabilities: Boolean = true,
+) : ProtocolOptions(enforceStrictCapabilities = enforceStrictCapabilities)
+
+/**
+ * Initializes and connects an MCP client using the provided clientInfo [Implementation], client options,
+ * and transport mechanism.
+ *
+ * @param clientInfo The implementation details of the MCP client, including its name, version, and other metadata.
+ * @param clientOptions Optional client configuration settings, such as supported capabilities
+ *      and strict enforcement options. Defaults to a new instance of [ClientOptions].
+ * @param transport The transport mechanism used for communication.
+ * @return An instance of [Client] that is connected and ready for use with the specified transport.
+ */
+@ExperimentalMcpApi
+public suspend fun mcpClient(
+    clientInfo: Implementation,
+    clientOptions: ClientOptions = ClientOptions(),
+    transport: Transport,
+): Client {
+    val client = Client(
+        clientInfo = clientInfo,
+        options = clientOptions,
+    )
+    client.connect(transport)
+    return client
+}
+
+/**
+ * An MCP client on top of a pluggable transport.
+ *
+ * The client automatically performs the initialization handshake with the server when [connect] is called.
+ * After initialization, [serverCapabilities] and [serverVersion] provide details about the connected server.
+ *
+ * You can extend this class with custom request/notification/result types if needed.
+ *
+ * @param clientInfo Information about the client implementation (name, version).
+ * @param options Configuration options for this client.
+ */
+@Suppress("TooManyFunctions")
+public open class Client(private val clientInfo: Implementation, options: ClientOptions = ClientOptions()) :
+    Protocol(options) {
+
+    /**
+     * Retrieves the server's reported capabilities after the initialization process completes.
+     *
+     * @return The server's capabilities, or `null` if initialization is not yet complete.
+     */
+    public var serverCapabilities: ServerCapabilities? = null
+        private set
+
+    /**
+     * Optional human-readable instructions or description from the server.
+     *
+     * @return Instructions provided by the server, or `null` if none were given or initialization is not yet complete.
+     */
+    public var serverInstructions: String? = null
+        private set
+
+    /**
+     * Retrieves the server's reported version information after initialization.
+     *
+     * @return Information about the server's implementation, or `null` if initialization is not yet complete.
+     */
+    public var serverVersion: Implementation? = null
+        private set
+
+    private val capabilities: ClientCapabilities = options.capabilities
+
+    private val roots = atomic(persistentMapOf<String, Root>())
+
+    init {
+        logger.debug { "Initializing MCP client with capabilities: $capabilities" }
+
+        // Internal handlers for roots
+        if (capabilities.roots != null) {
+            setRequestHandler<ListRootsRequest>(Method.Defined.RootsList) { _, _ ->
+                handleListRoots()
+            }
+        }
+    }
+
+    protected fun assertCapability(capability: String, method: String) {
+        val caps = serverCapabilities
+        val hasCapability = when (capability) {
+            "logging" -> caps?.logging != null
+            "prompts" -> caps?.prompts != null
+            "resources" -> caps?.resources != null
+            "tools" -> caps?.tools != null
+            else -> true
+        }
+
+        check(hasCapability) {
+            "Server does not support $capability (required for $method)"
+        }
+    }
+
+    /**
+     * Connects the client to the given [transport], performing the initialization handshake with the server.
+     *
+     * @param transport The transport to use for communication with the server.
+     * @throws IllegalStateException If the server's protocol version is not supported.
+     */
+    override suspend fun connect(transport: Transport) {
+        super.connect(transport)
+
+        try {
+            val message = InitializeRequest(
+                InitializeRequestParams(
+                    protocolVersion = LATEST_PROTOCOL_VERSION,
+                    capabilities = capabilities,
+                    clientInfo = clientInfo,
+                ),
+            )
+            val result = request<InitializeResult>(message)
+
+            if (!SUPPORTED_PROTOCOL_VERSIONS.contains(result.protocolVersion)) {
+                error(
+                    "Server's protocol version is not supported: ${result.protocolVersion}",
+                )
+            }
+
+            serverCapabilities = result.capabilities
+            serverVersion = result.serverInfo
+            serverInstructions = result.instructions
+
+            notification(InitializedNotification())
+        } catch (error: Throwable) {
+            logger.error(error) { "Failed to initialize client: ${error.message}" }
+            close()
+
+            when (error) {
+                is CancellationException,
+                is McpException,
+                is StreamableHttpError,
+                is SerializationException,
+                -> throw error
+
+                else -> throw IllegalStateException("Error connecting to transport: ${error.message}", error)
+            }
+        }
+    }
+
+    override fun assertCapabilityForMethod(method: Method) {
+        when (method) {
+            Method.Defined.LoggingSetLevel -> {
+                checkNotNull(serverCapabilities?.logging) {
+                    "Server does not support logging (required for $method)"
+                }
+            }
+
+            Method.Defined.PromptsGet,
+            Method.Defined.PromptsList,
+            Method.Defined.CompletionComplete,
+            -> {
+                checkNotNull(serverCapabilities?.prompts) {
+                    throw IllegalStateException("Server does not support prompts (required for $method)")
+                }
+            }
+
+            Method.Defined.ResourcesList,
+            Method.Defined.ResourcesTemplatesList,
+            Method.Defined.ResourcesRead,
+            Method.Defined.ResourcesSubscribe,
+            Method.Defined.ResourcesUnsubscribe,
+            -> {
+                val resCaps = serverCapabilities?.resources
+                    ?: error("Server does not support resources (required for $method)")
+
+                if (method == Method.Defined.ResourcesSubscribe && resCaps.subscribe != true) {
+                    throw IllegalStateException(
+                        "Server does not support resource subscriptions (required for $method)",
+                    )
+                }
+            }
+
+            Method.Defined.ToolsCall, Method.Defined.ToolsList -> {
+                checkNotNull(serverCapabilities?.tools) {
+                    "Server does not support tools (required for $method)"
+                }
+            }
+
+            Method.Defined.Initialize, Method.Defined.Ping -> {
+                // No specific capability required
+            }
+
+            else -> {
+                // For unknown or future methods, no assertion by default
+            }
+        }
+    }
+
+    override fun assertNotificationCapability(method: Method) {
+        when (method) {
+            Method.Defined.NotificationsRootsListChanged -> {
+                check(capabilities.roots?.listChanged == true) {
+                    "Client does not support roots list changed notifications (required for $method)"
+                }
+            }
+
+            Method.Defined.NotificationsInitialized,
+            Method.Defined.NotificationsCancelled,
+            Method.Defined.NotificationsProgress,
+            -> {
+                // Always allowed
+            }
+
+            else -> {
+                // For notifications not specifically listed, no assertion by default
+            }
+        }
+    }
+
+    override fun assertRequestHandlerCapability(method: Method) {
+        when (method) {
+            Method.Defined.SamplingCreateMessage -> {
+                checkNotNull(capabilities.sampling) {
+                    "Client does not support sampling capability (required for $method)"
+                }
+            }
+
+            Method.Defined.RootsList -> {
+                checkNotNull(capabilities.roots) {
+                    "Client does not support roots capability (required for $method)"
+                }
+            }
+
+            Method.Defined.ElicitationCreate -> {
+                checkNotNull(capabilities.elicitation) {
+                    "Client does not support elicitation capability (required for $method)"
+                }
+            }
+
+            Method.Defined.Ping -> {
+                // No capability required
+            }
+
+            else -> {}
+        }
+    }
+
+    /**
+     * Sends a ping request to the server to check connectivity.
+     *
+     * @param options Optional request options.
+     * @throws IllegalStateException If the server does not support the ping method (unlikely).
+     */
+    public suspend fun ping(options: RequestOptions? = null): EmptyResult = request(PingRequest(), options)
+
+    /**
+     * Sends a completion request to the server, typically to generate or complete some content.
+     *
+     * @param params The completion request parameters.
+     * @param options Optional request options.
+     * @return The completion result returned by the server, or `null` if none.
+     * @throws IllegalStateException If the server does not support prompts or completion.
+     */
+    public suspend fun complete(params: CompleteRequest, options: RequestOptions? = null): CompleteResult =
+        request(params, options)
+
+    /**
+     * Sets the logging level on the server.
+     *
+     * @param level The desired logging level.
+     * @param options Optional request options.
+     * @throws IllegalStateException If the server does not support logging.
+     */
+    public suspend fun setLoggingLevel(level: LoggingLevel, options: RequestOptions? = null): EmptyResult =
+        request(SetLevelRequest(SetLevelRequestParams(level)), options)
+
+    /**
+     * Retrieves a prompt by name from the server.
+     *
+     * @param request The prompt request containing the prompt name.
+     * @param options Optional request options.
+     * @return The requested prompt details, or `null` if not found.
+     * @throws IllegalStateException If the server does not support prompts.
+     */
+    public suspend fun getPrompt(request: GetPromptRequest, options: RequestOptions? = null): GetPromptResult =
+        request(request, options)
+
+    /**
+     * Lists all available prompts from the server.
+     *
+     * @param request A request object for listing prompts (usually empty).
+     * @param options Optional request options.
+     * @return The list of available prompts, or `null` if none.
+     * @throws IllegalStateException If the server does not support prompts.
+     */
+    public suspend fun listPrompts(
+        request: ListPromptsRequest = ListPromptsRequest(),
+        options: RequestOptions? = null,
+    ): ListPromptsResult = request(request, options)
+
+    /**
+     * Lists all available resources from the server.
+     *
+     * @param request A request object for listing resources (usually empty).
+     * @param options Optional request options.
+     * @return The list of resources, or `null` if none.
+     * @throws IllegalStateException If the server does not support resources.
+     */
+    public suspend fun listResources(
+        request: ListResourcesRequest = ListResourcesRequest(),
+        options: RequestOptions? = null,
+    ): ListResourcesResult = request(request, options)
+
+    /**
+     * Lists resource templates available on the server.
+     *
+     * @param request The request object for listing resource templates.
+     * @param options Optional request options.
+     * @return The list of resource templates, or `null` if none.
+     * @throws IllegalStateException If the server does not support resources.
+     */
+    public suspend fun listResourceTemplates(
+        request: ListResourceTemplatesRequest,
+        options: RequestOptions? = null,
+    ): ListResourceTemplatesResult = request(request, options)
+
+    /**
+     * Reads a resource from the server by its URI.
+     *
+     * @param request The request object containing the resource URI.
+     * @param options Optional request options.
+     * @return The resource content, or `null` if the resource is not found.
+     * @throws IllegalStateException If the server does not support resources.
+     */
+    public suspend fun readResource(
+        request: ReadResourceRequest,
+        options: RequestOptions? = null,
+    ): ReadResourceResult = request(request, options)
+
+    /**
+     * Subscribes to resource changes on the server.
+     *
+     * @param request The subscription request containing resource details.
+     * @param options Optional request options.
+     * @throws IllegalStateException If the server does not support resource subscriptions.
+     */
+    public suspend fun subscribeResource(request: SubscribeRequest, options: RequestOptions? = null): EmptyResult =
+        request(request, options)
+
+    /**
+     * Unsubscribes from resource changes on the server.
+     *
+     * @param request The unsubscribe request containing resource details.
+     * @param options Optional request options.
+     * @throws IllegalStateException If the server does not support resource subscriptions.
+     */
+    public suspend fun unsubscribeResource(request: UnsubscribeRequest, options: RequestOptions? = null): EmptyResult =
+        request(request, options)
+
+    /**
+     * Calls a tool on the server by name, passing the specified arguments and metadata.
+     *
+     * @param name The name of the tool to call.
+     * @param arguments A map of argument names to values for the tool.
+     * @param meta A map of metadata key-value pairs. Keys must follow MCP specification format.
+     *             - Optional prefix: dot-separated labels followed by slash (e.g., "api.example.com/")
+     *             - Name: alphanumeric start/end, may contain hyphens, underscores, dots, alphanumerics
+     *             - Reserved prefixes starting with "mcp" or "modelcontextprotocol" are forbidden
+     * @param options Optional request options.
+     * @return The result of the tool call, or `null` if none.
+     * @throws IllegalStateException If the server does not support tools.
+     */
+    public suspend fun callTool(
+        name: String,
+        arguments: Map<String, Any?>,
+        meta: Map<String, Any?> = emptyMap(),
+        options: RequestOptions? = null,
+    ): CallToolResult {
+        validateMetaKeys(meta.keys)
+
+        val jsonArguments = arguments.toJson()
+        val jsonMeta = meta.toJson()
+
+        val request = CallToolRequest(
+            CallToolRequestParams(
+                name = name,
+                arguments = JsonObject(jsonArguments),
+                meta = RequestMeta(JsonObject(jsonMeta)),
+            ),
+        )
+        return callTool(request, options)
+    }
+
+    /**
+     * Calls a tool on the server using a [CallToolRequest] object.
+     *
+     * @param request The request object containing the tool name and arguments.
+     * @param options Optional request options.
+     * @return The result of the tool call, or `null` if none.
+     * @throws IllegalStateException If the server does not support tools.
+     */
+    public suspend fun callTool(request: CallToolRequest, options: RequestOptions? = null): CallToolResult =
+        request(request, options)
+
+    /**
+     * Lists all available tools on the server.
+     *
+     * @param request A request object for listing tools (usually empty).
+     * @param options Optional request options.
+     * @return The list of available tools, or `null` if none.
+     * @throws IllegalStateException If the server does not support tools.
+     */
+    public suspend fun listTools(
+        request: ListToolsRequest = ListToolsRequest(),
+        options: RequestOptions? = null,
+    ): ListToolsResult = request(request, options)
+
+    /**
+     * Registers a single root.
+     *
+     * @param uri The URI of the root.
+     * @param name A human-readable name for the root.
+     * @throws IllegalStateException If the client does not support roots.
+     */
+    public fun addRoot(uri: String, name: String) {
+        checkNotNull(capabilities.roots) {
+            logger.error { "Failed to add root '$name': Client does not support roots capability" }
+            "Client does not support roots capability."
+        }
+        logger.info { "Adding root: $name ($uri)" }
+        roots.update { current -> current.put(uri, Root(uri, name)) }
+    }
+
+    /**
+     * Registers multiple roots at once.
+     *
+     * @param rootsToAdd A list of [Root] objects to register.
+     * @throws IllegalStateException If the client does not support roots.
+     */
+    public fun addRoots(rootsToAdd: List<Root>) {
+        checkNotNull(capabilities.roots) {
+            logger.error { "Failed to add roots: Client does not support roots capability" }
+            "Client does not support roots capability."
+        }
+        logger.info { "Adding ${rootsToAdd.size} roots" }
+        roots.update { current -> current.putAll(rootsToAdd.associateBy { it.uri }) }
+    }
+
+    /**
+     * Removes a single root by URI.
+     *
+     * @param uri The URI of the root to remove.
+     * @return True if the root was removed, false if it wasn't found.
+     * @throws IllegalStateException If the client does not support roots.
+     */
+    public fun removeRoot(uri: String): Boolean {
+        if (capabilities.roots == null) {
+            logger.error { "Failed to remove root '$uri': Client does not support roots capability" }
+            throw IllegalStateException("Client does not support roots capability.")
+        }
+        logger.info { "Removing root: $uri" }
+        val oldMap = roots.getAndUpdate { current -> current.remove(uri) }
+        val removed = uri in oldMap
+        logger.debug {
+            if (removed) {
+                "Root removed: $uri"
+            } else {
+                "Root not found: $uri"
+            }
+        }
+        return removed
+    }
+
+    /**
+     * Removes multiple roots at once.
+     *
+     * @param uris A list of root URIs to remove.
+     * @return The number of roots that were successfully removed.
+     * @throws IllegalStateException If the client does not support roots.
+     */
+    public fun removeRoots(uris: List<String>): Int {
+        checkNotNull(capabilities.roots) {
+            logger.error { "Failed to remove roots: Client does not support roots capability" }
+            "Client does not support roots capability."
+        }
+        logger.info { "Removing ${uris.size} roots" }
+
+        val oldMap = roots.getAndUpdate { current -> current - uris.toPersistentSet() }
+
+        val removedCount = uris.count { it in oldMap }
+
+        logger.info {
+            if (removedCount > 0) {
+                "Removed $removedCount roots"
+            } else {
+                "No roots were removed"
+            }
+        }
+        return removedCount
+    }
+
+    /**
+     * Notifies the server that the list of roots has changed.
+     * Typically used if the client is managing some form of hierarchical structure.
+     *
+     * @throws IllegalStateException If the client or server does not support roots.
+     */
+    public suspend fun sendRootsListChanged() {
+        notification(RootsListChangedNotification())
+    }
+
+    /**
+     * Sets the elicitation handler.
+     *
+     * When the handler returns [ElicitResult.Action.Accept], any properties missing from
+     * [ElicitResult.content] are automatically populated with default values defined in the
+     * elicitation schema.
+     *
+     * @param handler The elicitation handler.
+     * @throws IllegalStateException if the client does not support elicitation.
+     */
+    public fun setElicitationHandler(handler: (ElicitRequest) -> ElicitResult) {
+        checkNotNull(capabilities.elicitation) {
+            logger.error { "Failed to set elicitation handler: Client does not support elicitation" }
+            "Client does not support elicitation."
+        }
+        logger.info { "Setting the elicitation handler" }
+
+        setRequestHandler<ElicitRequest>(Method.Defined.ElicitationCreate) { request, _ ->
+            val result = handler(request)
+            applyElicitationDefaults(request, result)
+        }
+    }
+
+    // --- Internal Handlers ---
+
+    @Suppress("ReturnCount")
+    private fun applyElicitationDefaults(request: ElicitRequest, result: ElicitResult): ElicitResult {
+        if (result.action != ElicitResult.Action.Accept) return result
+        val formParams = request.params as? ElicitRequestFormParams ?: return result
+        val content = result.content ?: return result
+
+        val merged = buildMap {
+            putAll(content)
+            for ((key, schemaDef) in formParams.requestedSchema.properties) {
+                if (key !in content) {
+                    schemaDef.defaultJsonValue()?.let { put(key, it) }
+                }
+            }
+        }
+
+        return if (merged.size == content.size) {
+            result
+        } else {
+            result.copy(content = JsonObject(merged))
+        }
+    }
+
+    @Suppress("DEPRECATION", "CyclomaticComplexMethod")
+    private fun PrimitiveSchemaDefinition.defaultJsonValue(): JsonElement? = when (this) {
+        is StringSchema -> default?.let { JsonPrimitive(it) }
+
+        is IntegerSchema -> default?.let { JsonPrimitive(it) }
+
+        is DoubleSchema -> default?.let { JsonPrimitive(it) }
+
+        is BooleanSchema -> default?.let { JsonPrimitive(it) }
+
+        is UntitledSingleSelectEnumSchema -> default?.let { JsonPrimitive(it) }
+
+        is TitledSingleSelectEnumSchema -> default?.let { JsonPrimitive(it) }
+
+        is LegacyTitledEnumSchema -> default?.let { JsonPrimitive(it) }
+
+        is UntitledMultiSelectEnumSchema -> default?.let { list ->
+            buildJsonArray { list.forEach { add(JsonPrimitive(it)) } }
+        }
+
+        is TitledMultiSelectEnumSchema -> default?.let { list ->
+            buildJsonArray { list.forEach { add(JsonPrimitive(it)) } }
+        }
+    }
+
+    private fun handleListRoots(): ListRootsResult {
+        val rootList = roots.value.values.toList()
+        return ListRootsResult(rootList)
+    }
+
+    /**
+     * Validates meta keys according to MCP specification.
+     *
+     * Key format: [prefix/]name
+     * - Prefix (optional): dot-separated labels + slash
+     * - Reserved prefixes contain "modelcontextprotocol" or "mcp" as complete labels
+     * - Name: alphanumeric start/end, may contain hyphens, underscores, dots (empty allowed)
+     */
+    private fun validateMetaKeys(keys: Set<String>) {
+        val labelPattern = Regex("[a-zA-Z]([a-zA-Z0-9-]*[a-zA-Z0-9])?")
+        val namePattern = Regex("[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?")
+
+        keys.forEach { key ->
+            require(key.isNotEmpty()) { "Meta key cannot be empty" }
+
+            val (prefix, name) = key.split('/', limit = 2).let { parts ->
+                when (parts.size) {
+                    1 -> null to parts[0]
+                    2 -> parts[0] to parts[1]
+                    else -> throw IllegalArgumentException("Unexpected split result for key: $key")
+                }
+            }
+
+            // Validate prefix if present
+            prefix?.let {
+                require(it.isNotEmpty()) { "Invalid _meta key '$key': prefix cannot be empty" }
+
+                val labels = it.split('.')
+                require(labels.all { label -> label.matches(labelPattern) }) {
+                    "Invalid _meta key '$key': prefix labels must start with a letter, end with letter/digit, " +
+                        "and contain only letters, digits, or hyphens"
+                }
+
+                require(
+                    labels.none { label ->
+                        label.equals("modelcontextprotocol", ignoreCase = true) ||
+                            label.equals("mcp", ignoreCase = true)
+                    },
+                ) {
+                    "Invalid _meta key '$key': prefix cannot contain reserved labels 'modelcontextprotocol' or 'mcp'"
+                }
+            }
+
+            // Validate name (empty allowed)
+            require(name.isEmpty() || name.matches(namePattern)) {
+                "Invalid _meta key '$key': name must start and end with alphanumeric characters, " +
+                    "and contain only alphanumerics, hyphens, underscores, or dots"
+            }
+        }
+    }
+}

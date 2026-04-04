@@ -1,0 +1,16 @@
+module Anthropic
+  module Models
+    type text_citation_param =
+      Anthropic::CitationCharLocationParam
+      | Anthropic::CitationPageLocationParam
+      | Anthropic::CitationContentBlockLocationParam
+      | Anthropic::CitationWebSearchResultLocationParam
+      | Anthropic::CitationSearchResultLocationParam
+
+    module TextCitationParam
+      extend Anthropic::Internal::Type::Union
+
+      def self?.variants: -> ::Array[Anthropic::Models::text_citation_param]
+    end
+  end
+end

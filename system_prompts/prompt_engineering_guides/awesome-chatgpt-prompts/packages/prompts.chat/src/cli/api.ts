@@ -2,7 +2,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 
-const PROMPTS_URL = 'https://prompts.chat/prompts.json';
+const PROMPTS_URL = 'https://prompts.chat/prompts.json?full_content=true';
 const CACHE_DIR = join(homedir(), '.prompts-chat');
 const CACHE_FILE = join(CACHE_DIR, 'prompts.json');
 

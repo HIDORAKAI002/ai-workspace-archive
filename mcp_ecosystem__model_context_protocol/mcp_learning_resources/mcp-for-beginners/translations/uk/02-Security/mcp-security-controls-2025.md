@@ -1,0 +1,454 @@
+# Контроль Безпеки MCP - Оновлення Лютий 2026
+
+> **Поточний стандарт**: Цей документ відображає вимоги безпеки [Специфікації MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) та офіційні [Кращі Практики Безпеки MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+
+Протокол Контексту Моделі (MCP) значно розвинувся з посиленими контролями безпеки, що охоплюють як традиційну безпеку програмного забезпечення, так і специфічні загрози штучного інтелекту. Цей документ надає всебічні контроли безпеки для безпечних реалізацій MCP, узгоджених із каркасом OWASP MCP Top 10.
+
+## 🏔️ Практичне навчання з безпеки
+
+Для практичного, реального досвіду впровадження безпеки рекомендуємо **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** — комплексну керовану експедицію з захисту серверів MCP в Azure за методологією «вразливість → експлуатація → виправлення → перевірка».
+
+Всі контроли безпеки в цьому документі відповідають **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, що забезпечує референтні архітектури та конкретні рекомендації для впровадження в Azure для ризиків OWASP MCP Top 10.
+
+## **ОБОВ’ЯЗКОВІ Вимоги Безпеки**
+
+### **Критичні заборони за Специфікацією MCP:**
+
+> **ЗАБОРОНЕНО**: Сервери MCP **НЕ ПОВИННІ** приймати будь-які токени, які не були явно видані для сервера MCP  
+>  
+> **ЗАБОРОНЕНО**: Сервери MCP **НЕ ПОВИННІ** використовувати сесії для автентифікації  
+>  
+> **ПОТРІБНО**: Сервери MCP, що реалізують авторизацію, **МАЮТЬ** перевіряти ВСІ вхідні запити  
+>  
+> **ОБОВ’ЯЗКОВО**: Проксі-сервери MCP з використанням статичних ідентифікаторів клієнтів **МАЮТЬ** отримувати згоду користувача для кожного динамічно зареєстрованого клієнта
+
+---
+
+## 1. **Контроли автентифікації та авторизації**
+
+### **Інтеграція з зовнішнім провайдером ідентичності**
+
+**Поточний стандарт MCP (2025-11-25)** дозволяє серверам MCP делегувати автентифікацію зовнішнім провайдерам ідентичності, що є суттєвим покращенням безпеки:
+
+**Вирішуваний ризик OWASP MCP**: [MCP07 - Недостатня автентифікація та авторизація](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+
+**Переваги безпеки:**  
+1. **Усунення ризиків власної автентифікації**: зменшення площі вразливостей, уникаючи власних реалізацій автентифікації  
+2. **Безпека корпоративного рівня**: використання перевірених провайдерів ідентичності, таких як Microsoft Entra ID з розширеними функціями безпеки  
+3. **Централізоване управління ідентичностями**: спрощене управління життєвим циклом користувачів, контролем доступу та аудитом відповідності  
+4. **Багатофакторна автентифікація**: підтримка MFA від провайдерів корпоративної ідентичності  
+5. **Політики умовного доступу**: використання контролю доступу на основі ризиків і адаптивної автентифікації
+
+**Вимоги до реалізації:**  
+- **Валідація аудиторії токена**: перевірка, що всі токени були явно видані для сервера MCP  
+- **Перевірка видавця**: підтвердження, що видавець токена співпадає з очікуваним провайдером ідентичності  
+- **Перевірка підпису**: криптографічна валідація цілісності токена  
+- **Дотримання терміну дії**: суворе дотримання обмежень терміну придатності токена  
+- **Перевірка обсягів (scope)**: забезпечення, що токени містять відповідні права для запитуваних операцій
+
+### **Безпека логіки авторизації**
+
+**Критичні контролі:**  
+- **Повні аудити авторизації**: регулярні перевірки безпеки всіх точок прийняття авторизаційних рішень  
+- **Безпечні за замовчуванням налаштування**: відмова у доступі, якщо логіка авторизації не може надати однозначне рішення  
+- **Обмеження прав**: чітке розмежування між різними рівнями привілеїв та доступу до ресурсів  
+- **Логування аудиту**: повне ведення журналу всіх авторизаційних рішень для моніторингу безпеки  
+- **Регулярні перегляди доступу**: періодична перевірка прав користувачів та призначень привілеїв
+
+## 2. **Безпека токенів та контроли запобігання пасстру**
+
+**Вирішуваний ризик OWASP MCP**: [MCP01 - Некоректне управління токенами та витік секретів](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+
+### **Запобігання пропусканню токенів**
+
+**Пропускання токенів суворо заборонено** в Специфікації авторизації MCP через критичні ризики безпеки:
+
+**Ризики безпеки:**  
+- **Обхід контролів**: обходить необхідні контролі безпеки, такі як обмеження швидкості, валідація запитів та моніторинг трафіку  
+- **Відсутність відповідальності**: робить ідентифікацію клієнта неможливою, порушуючи записи журналів та розслідування інцидентів  
+- **Екфільтрація через проксі**: дозволяє зловмисним акторам використовувати сервери як проксі для несанкціонованого доступу до даних  
+- **Порушення меж довіри**: порушує припущення про джерело токенів у подальших сервісах  
+- **Латеральне переміщення**: компрометовані токени через кілька сервісів розширюють площу атаки
+
+**Контроли реалізації:**  
+```yaml
+Token Validation Requirements:
+  audience_validation: MANDATORY
+  issuer_verification: MANDATORY  
+  signature_check: MANDATORY
+  expiration_enforcement: MANDATORY
+  scope_validation: MANDATORY
+  
+Token Lifecycle Management:
+  rotation_frequency: "Short-lived tokens preferred"
+  secure_storage: "Azure Key Vault or equivalent"
+  transmission_security: "TLS 1.3 minimum"
+  replay_protection: "Implemented via nonce/timestamp"
+```
+  
+### **Патерни безпечного управління токенами**
+
+**Кращі практики:**  
+- **Короткотривалі токени**: зменшення часу експозиції за рахунок частої ротації токенів  
+- **Видача тільки за потребою (Just-in-Time)**: видача токенів лише коли це необхідно для конкретних операцій  
+- **Безпечне зберігання**: використання апаратних модулів безпеки (HSM) або захищених сховищ ключів  
+- **Прив’язка токена**: по можливості прив’язка токенів до конкретних клієнтів, сесій чи операцій  
+- **Моніторинг і оповіщення**: виявлення в реальному часі зловживань токенами або несанкціонованих доступів
+
+## 3. **Контроли безпеки сесій**
+
+### **Запобігання викраденню сесій**
+
+**Вектори атак:**  
+- **Ін’єкція запиту викрадення сесії**: шкідливі події, ін’єктовані у спільний стан сесії  
+- **Імітація сесії**: несанкціоноване використання викрадених ідентифікаторів сесій для обходу автентифікації  
+- **Атаки на відновлення стрімів**: експлуатація відновлення подій, що надсилаються сервером, для ін’єкції шкідливого контенту
+
+**Обов’язкові контролі сесій:**  
+```yaml
+Session ID Generation:
+  randomness_source: "Cryptographically secure RNG"
+  entropy_bits: 128 # Minimum recommended
+  format: "Base64url encoded"
+  predictability: "MUST be non-deterministic"
+
+Session Binding:
+  user_binding: "REQUIRED - <user_id>:<session_id>"
+  additional_identifiers: "Device fingerprint, IP validation"
+  context_binding: "Request origin, user agent validation"
+  
+Session Lifecycle:
+  expiration: "Configurable timeout policies"
+  rotation: "After privilege escalation events"
+  invalidation: "Immediate on security events"
+  cleanup: "Automated expired session removal"
+```
+  
+**Безпека транспорту:**  
+- **Вимога HTTPS**: вся сесійна комунікація по TLS 1.3  
+- **Безпечні атрибути cookie**: HttpOnly, Secure, SameSite=Strict  
+- **Закріплення сертифікату (Pinning)**: для критичних підключень задля запобігання атакам MITM
+
+### **Розгляд стану сесій: станова проти безстанова**
+
+**Для станового впровадження:**  
+- Спільний стан сесії вимагає додаткового захисту від ін’єкційних атак  
+- Керування сесією на основі черг потребує валідації цілісності  
+- Багатоекземплярність серверів вимагає безпечної синхронізації стану сесії
+
+**Для безстанового впровадження:**  
+- Керування сесіями на основі JWT або подібних токенів  
+- Криптографічна перевірка цілісності стану сесії  
+- Менша площа атаки, але потребує надійної валідації токенів
+
+## 4. **Специфічні контроли безпеки для ШІ**
+
+**Вирішувані ризики OWASP MCP**:  
+- [MCP06 - Ін’єкція промптів через контекстні навантаження](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - Отруєння інструментів](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - Ін’єкція команд і виконання](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+
+### **Захист від ін’єкції промптів**
+
+**Інтеграція Microsoft Prompt Shields:**  
+```yaml
+Detection Mechanisms:
+  - "Advanced ML-based instruction detection"
+  - "Contextual analysis of external content"
+  - "Real-time threat pattern recognition"
+  
+Protection Techniques:
+  - "Spotlighting trusted vs untrusted content"
+  - "Delimiter systems for content boundaries"  
+  - "Data marking for content source identification"
+  
+Integration Points:
+  - "Azure Content Safety service"
+  - "Real-time content filtering"
+  - "Threat intelligence updates"
+```
+  
+**Контроли реалізації:**  
+- **Санітизація введення**: комплексна валідація та фільтрація всіх ввідних даних користувача  
+- **Визначення меж контенту**: чітке розмежування між системними інструкціями та контентом користувача  
+- **Ієрархія інструкцій**: правильні правила пріоритету при конфліктуючих командах  
+- **Моніторинг виводу**: виявлення потенційно шкідливих або маніпульованих результатів
+
+### **Запобігання отруєння інструментів**
+
+**Рамки безпеки інструментів:**  
+```yaml
+Tool Definition Protection:
+  validation:
+    - "Schema validation against expected formats"
+    - "Content analysis for malicious instructions" 
+    - "Parameter injection detection"
+    - "Hidden instruction identification"
+  
+  integrity_verification:
+    - "Cryptographic hashing of tool definitions"
+    - "Digital signatures for tool packages"
+    - "Version control with change auditing"
+    - "Tamper detection mechanisms"
+  
+  monitoring:
+    - "Real-time change detection"
+    - "Behavioral analysis of tool usage"
+    - "Anomaly detection for execution patterns"
+    - "Automated alerting for suspicious modifications"
+```
+  
+**Динамічне керування інструментами:**  
+- **Процеси затвердження**: явна згода користувача на зміни інструментів  
+- **Можливість відкату**: повернення до попередніх версій інструментів  
+- **Аудит змін**: повна історія змін визначень інструментів  
+- **Оцінка ризиків**: автоматизована оцінка безпеки інструментів
+
+## 5. **Запобігання атакам «заплутаного посередника»**
+
+### **Безпека проксі OAuth**
+
+**Контроли запобігання атак:**  
+```yaml
+Client Registration:
+  static_client_protection:
+    - "Explicit user consent for dynamic registration"
+    - "Consent bypass prevention mechanisms"  
+    - "Cookie-based consent validation"
+    - "Redirect URI strict validation"
+    
+  authorization_flow:
+    - "PKCE implementation (OAuth 2.1)"
+    - "State parameter validation"
+    - "Authorization code binding"
+    - "Nonce verification for ID tokens"
+```
+  
+**Вимоги до реалізації:**  
+- **Перевірка згоди користувача**: ніколи не пропускати екрани згоди при динамічній реєстрації клієнтів  
+- **Валідація redirect URI**: суворий перелік дозволених цілей переадресації  
+- **Захист авторизаційних кодів**: короткочасні коди з примусовим одноразовим використанням  
+- **Перевірка ідентичності клієнта**: надійна валідація облікових даних і метаданих клієнтів
+
+## 6. **Безпека виконання інструментів**
+
+### **Пісочниця та ізоляція**
+
+**Ізоляція на базі контейнерів:**  
+```yaml
+Execution Environment:
+  containerization: "Docker/Podman with security profiles"
+  resource_limits:
+    cpu: "Configurable CPU quotas"
+    memory: "Memory usage restrictions"
+    disk: "Storage access limitations"
+    network: "Network policy enforcement"
+  
+  privilege_restrictions:
+    user_context: "Non-root execution mandatory"
+    capability_dropping: "Remove unnecessary Linux capabilities"
+    syscall_filtering: "Seccomp profiles for syscall restriction"
+    filesystem: "Read-only root with minimal writable areas"
+```
+  
+**Ізоляція процесів:**  
+- **Окремі контексти процесів**: кожне виконання інструменту в ізольованому процесі  
+- **Міжпроцесна комунікація**: безпечні механізми IPC з валідацією  
+- **Моніторинг процесів**: аналіз поведінки в реальному часі та виявлення аномалій  
+- **Обмеження ресурсів**: жорсткі ліміти CPU, пам’яті та операцій вводу/виводу
+
+### **Принцип найменших привілеїв**
+
+**Керування дозволами:**  
+```yaml
+Access Control:
+  file_system:
+    - "Minimal required directory access"
+    - "Read-only access where possible"
+    - "Temporary file cleanup automation"
+    
+  network_access:
+    - "Explicit allowlist for external connections"
+    - "DNS resolution restrictions" 
+    - "Port access limitations"
+    - "SSL/TLS certificate validation"
+  
+  system_resources:
+    - "No administrative privilege elevation"
+    - "Limited system call access"
+    - "No hardware device access"
+    - "Restricted environment variable access"
+```
+  
+## 7. **Контроли безпеки ланцюга постачання**
+
+**Вирішуваний ризик OWASP MCP**: [MCP04 - Атаки на ланцюг постачання](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+
+### **Перевірка залежностей**
+
+**Комплексна безпека компонентів:**  
+```yaml
+Software Dependencies:
+  scanning: 
+    - "Automated vulnerability scanning (GitHub Advanced Security)"
+    - "License compliance verification"
+    - "Known vulnerability database checks"
+    - "Malware detection and analysis"
+  
+  verification:
+    - "Package signature verification"
+    - "Checksum validation"
+    - "Provenance attestation"
+    - "Software Bill of Materials (SBOM)"
+
+AI Components:
+  model_verification:
+    - "Model provenance validation"
+    - "Training data source verification" 
+    - "Model behavior testing"
+    - "Adversarial robustness assessment"
+  
+  service_validation:
+    - "Third-party API security assessment"
+    - "Service level agreement review"
+    - "Data handling compliance verification"
+    - "Incident response capability evaluation"
+```
+  
+### **Безперервний моніторинг**
+
+**Виявлення загроз ланцюга постачання:**  
+- **Моніторинг стану залежностей**: безперервна оцінка всіх залежностей на предмет безпекових проблем  
+- **Інтеграція розвідки про загрози**: оновлення в реальному часі про нові загрози ланцюга постачання  
+- **Аналіз поведінки**: виявлення аномалій у зовнішніх компонентах  
+- **Автоматична реакція**: миттєве локалізування скомпрометованих компонентів
+
+## 8. **Контроли моніторингу та виявлення**
+
+**Вирішуваний ризик OWASP MCP**: [MCP08 - Відсутність аудиту та телеметрії](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **Система управління інформацією про безпеку та події (SIEM)**
+
+**Всебічна стратегія ведення журналів:**  
+```yaml
+Authentication Events:
+  - "All authentication attempts (success/failure)"
+  - "Token issuance and validation events"
+  - "Session creation, modification, termination"
+  - "Authorization decisions and policy evaluations"
+
+Tool Execution:
+  - "Tool invocation details and parameters"
+  - "Execution duration and resource usage"
+  - "Output generation and content analysis"
+  - "Error conditions and exception handling"
+
+Security Events:
+  - "Potential prompt injection attempts"
+  - "Tool poisoning detection events"
+  - "Session hijacking indicators"
+  - "Unusual access patterns and anomalies"
+```
+  
+### **Виявлення загроз у реальному часі**
+
+**Аналітика поведінки:**  
+- **Аналіз поведінки користувачів (UBA)**: виявлення аномальних патернів доступу  
+- **Аналіз поведінки об’єктів (EBA)**: моніторинг поведінки серверів MCP та інструментів  
+- **Виявлення аномалій з ML**: AI-підсилене виявлення загроз безпеці  
+- **Кореляція розвідки про загрози**: зіставлення активностей із відомими патернами атак
+
+## 9. **Реагування на інциденти та відновлення**
+
+### **Автоматизовані можливості реагування**
+
+**Миттєві заходи реагування:**  
+```yaml
+Threat Containment:
+  session_management:
+    - "Immediate session termination"
+    - "Account lockout procedures"
+    - "Access privilege revocation"
+  
+  system_isolation:
+    - "Network segmentation activation"
+    - "Service isolation protocols"
+    - "Communication channel restriction"
+
+Recovery Procedures:
+  credential_rotation:
+    - "Automated token refresh"
+    - "API key regeneration"
+    - "Certificate renewal"
+  
+  system_restoration:
+    - "Clean state restoration"
+    - "Configuration rollback"
+    - "Service restart procedures"
+```
+  
+### **Можливості судово-експертного розслідування**
+
+**Підтримка розслідувань:**  
+- **Збереження аудиторського сліду**: незмінне логування з криптографічною цілісністю  
+- **Збір доказів**: автоматизований збір релевантних артефактів безпеки  
+- **Відтворення хронології подій**: детальна послідовність подій, що призвели до інцидентів  
+- **Оцінка впливу**: аналіз масштабу компрометації та витоку даних
+
+## **Ключові принципи архітектури безпеки**
+
+### **Глибокий захист (Defense in Depth)**  
+- **Багатошаровий захист**: відсутність єдиної точки відмови в архітектурі безпеки  
+- **Резервні контроли**: накладення заходів безпеки для критичних функцій  
+- **Механізми безпечних відмов**: безпечні налаштування за замовчуванням при помилках або атаках
+
+### **Реалізація Zero Trust**  
+- **Ніколи не довіряй, завжди перевіряй**: безперервна валідація всіх суб’єктів і запитів  
+- **Принцип найменших привілеїв**: мінімальний доступ для всіх компонентів  
+- **Мікросегментація**: детальні мережеві та контроль доступу
+
+### **Постійний розвиток безпеки**  
+- **Адаптація до загроз**: регулярні оновлення для вирішення нових загроз  
+- **Оцінка ефективності контролів**: постійна перевірка та покращення заходів безпеки  
+- **Відповідність специфікації**: узгодження з оновленнями стандартів безпеки MCP
+
+---
+
+## **Ресурси для впровадження**
+
+### **Офіційна документація MCP**  
+- [Специфікація MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
+- [Кращі практики безпеки MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
+- [Специфікація авторизації MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+
+### **Ресурси OWASP MCP Security**  
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Комплексна реалізація OWASP MCP Top 10 для Azure  
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Офіційні ризики безпеки MCP від OWASP  
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Практичне навчання безпеці MCP в Azure
+
+### **Рішення безпеки Microsoft**  
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
+- [GitHub Advanced Security](https://github.com/security/advanced-security)  
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
+
+### **Стандарти безпеки**  
+- [Кращі практики безпеки OAuth 2.0 (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
+- [OWASP Top 10 for Large Language Models](https://genai.owasp.org/)  
+- [Кібербезпекова рамка NIST](https://www.nist.gov/cyberframework)
+
+---
+
+> **Важливо**: Ці контроли безпеки відображають поточну специфікацію MCP (2025-11-25). Завжди перевіряйте актуальність на основі останньої [офіційної документації](https://spec.modelcontextprotocol.io/), оскільки стандарти швидко оновлюються.
+
+## Що далі
+
+- Повернутись до: [Огляд модуля безпеки](./README.md)
+- Продовжити до: [Модуль 3: Початок роботи](../03-GettingStarted/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Відмова від відповідальності**:  
+Цей документ було перекладено за допомогою сервісу автоматичного перекладу [Co-op Translator](https://github.com/Azure/co-op-translator). Хоча ми прагнемо до точності, просимо враховувати, що автоматичні переклади можуть містити помилки або неточності. Оригінальний документ рідною мовою слід вважати авторитетним джерелом. Для критично важливої інформації рекомендується скористатися професійним перекладом, виконаним людиною. Ми не несемо відповідальності за будь-які непорозуміння чи неправильне тлумачення, що виникли внаслідок використання цього перекладу.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

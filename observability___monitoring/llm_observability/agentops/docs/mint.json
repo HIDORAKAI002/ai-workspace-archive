@@ -1,0 +1,214 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "AgentOps",
+  "logo": {
+    "dark": "/images/external/logo/banner-badge-docs-resized-white.png",
+    "light": "/images/external/logo/banner-badge-docs-resized-black.png"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#a9bed4",
+    "light": "#D1E5F7",
+    "dark": "#2b3033",
+    "background": {
+      "light": "#f5faff",
+      "dark": "#18191a"
+    },
+    "anchors": {
+      "from": "#D1E5F7",
+      "to": "#a9bed4"
+    }
+  },
+  "topbarCtaButton": {
+    "name": "Your Dashboard",
+    "url": "https://app.agentops.ai"
+  },
+  "topAnchor": {
+    "name": "Docs",
+    "icon": "lines-leaning"
+  },
+  "anchors": [],
+  "versions": [
+    "v2",
+    "v1",
+    "v0"
+  ],
+  "navigation": [
+    {
+      "group": "",
+      "pages": [
+        "v1/introduction"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "Getting Started",
+      "pages": [
+        "v1/quickstart",
+        "v1/examples/examples"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "v1/concepts/core-concepts",
+        "v1/concepts/decorators",
+        "v1/concepts/sessions",
+        "v1/concepts/events",
+        "v1/concepts/tags"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "v1/integrations/agents_sdk",
+        "v1/integrations/ai21",
+        "v1/integrations/anthropic",
+        "v1/integrations/autogen",
+        "v1/integrations/camel",
+        "v1/integrations/cohere",
+        "v1/integrations/crewai",
+        "v1/integrations/gemini",
+        "v1/integrations/groq",
+        "v1/integrations/haystack",
+        "v1/integrations/langchain",
+        "v1/integrations/llamaindex",
+        "v1/integrations/llama_stack",
+        "v1/integrations/litellm",
+        "v1/integrations/mistral",
+        "v1/integrations/multion",
+        "v1/integrations/ollama",
+        "v1/integrations/openai",
+        "v1/integrations/rest",
+        "v1/integrations/smolagents",
+        "v1/integrations/swarmzero",
+        "v1/integrations/taskweaver",
+        "v1/integrations/xai"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "Usage",
+      "pages": [
+        "v1/usage/dashboard-info",
+        "v1/usage/sdk-reference",
+        "v1/usage/advanced-configuration",
+        "v1/usage/tracking-llm-calls",
+        "v1/usage/tracking-agents",
+        "v1/usage/recording-operations"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "Other Info",
+      "pages": [
+        "v1/concepts/host-env"
+      ],
+      "version": "v1"
+    },
+    {
+      "group": "",
+      "pages": [
+        "v2/introduction"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Getting Started",
+      "pages": [
+        "v2/quickstart",
+        "v2/examples/examples",
+        "v2/usage/mcp-docs",
+        "v2/usage/mcp-server"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "v2/concepts/core-concepts",
+        "v2/concepts/decorators",
+        "v2/concepts/traces",
+        "v2/concepts/spans",
+        "v2/concepts/tags"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "v2/integrations/ag2",
+        "v2/integrations/agno",
+        "v2/integrations/anthropic",
+        "v2/integrations/autogen",
+        "v2/integrations/crewai",
+        "v2/integrations/haystack",
+        "v2/integrations/google_adk",
+        "v2/integrations/google_generative_ai",
+        "v2/integrations/langchain",
+        "v2/integrations/langgraph",
+        "v2/integrations/llamaindex",
+        "v2/integrations/litellm",
+        "v2/integrations/mem0",
+        "v2/integrations/memori",
+        "v2/integrations/openai",
+        "v2/integrations/openai_agents_python",
+        "v2/integrations/openai_agents_js",
+        "v2/integrations/smolagents",
+        "v2/integrations/ibm_watsonx_ai",
+        "v2/integrations/xai",
+        "v2/integrations/xpander"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Usage",
+      "pages": [
+        "v2/usage/dashboard-info",
+        "v2/usage/sdk-reference",
+        "v2/usage/typescript-sdk",
+        "v2/usage/advanced-configuration",
+        "v2/usage/context-managers",
+        "v2/usage/tracking-llm-calls",
+        "v2/usage/tracking-agents",
+        "v2/usage/recording-operations",
+        "v2/usage/trace-decorator",
+        "v2/usage/track-endpoint-decorator",
+        "v2/usage/manual-trace-control",
+        "v2/usage/public-api"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Self-Hosting",
+      "pages": [
+        "v2/self-hosting/overview",
+        "v2/self-hosting/backend-setup",
+        "v2/self-hosting/docker-guide",
+        "v2/self-hosting/native-development",
+        "v2/self-hosting/just-commands"
+      ],
+      "version": "v2"
+    },
+    {
+      "group": "Other Info",
+      "pages": [
+        "v2/concepts/host-env"
+      ],
+      "version": "v2"
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/agentopsai",
+    "discord": "https://discord.gg/UgJyyxx7uc",
+    "github": "https://github.com/AgentOps-AI"
+  },
+  "analytics": {
+    "posthog": {
+      "apiKey": "phc_BrY3H11IViWSoUJ0QFfjBx7kEwIJMT0PjBEXZQmddW",
+      "apiHost": "https://us.i.posthog.com"
+    }
+  }
+}

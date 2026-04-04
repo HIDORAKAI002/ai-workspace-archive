@@ -1,0 +1,1 @@
+export { <%= classify(name) %>Provider } from "./provider";

@@ -1,0 +1,1607 @@
+import copy
+import uuid
+from unittest.mock import MagicMock, call, patch
+
+import anyio.abc
+import docker
+import docker.errors
+import docker.models.containers
+import pytest
+from docker import DockerClient
+from docker.models.containers import Container
+from prefect_docker.credentials import DockerRegistryCredentials
+from prefect_docker.types import VolumeStr
+from prefect_docker.worker import (
+    CONTAINER_LABELS,
+    DockerWorker,
+    DockerWorkerJobConfiguration,
+)
+from pydantic import TypeAdapter, ValidationError
+
+import prefect.main  # noqa
+from prefect import get_client
+from prefect.client.schemas import FlowRun
+from prefect.client.schemas.actions import WorkPoolCreate
+from prefect.events import RelatedResource
+from prefect.settings import (
+    PREFECT_API_URL,
+    PREFECT_SERVER_ALLOW_EPHEMERAL_MODE,
+    get_current_settings,
+    temporary_settings,
+)
+from prefect.testing.utilities import assert_does_not_warn
+from prefect.utilities.dockerutils import get_prefect_image_name
+
+FAKE_CONTAINER_ID = "fake-id"
+FAKE_BASE_URL = "my-url"
+
+
+@pytest.fixture(autouse=True)
+def bypass_api_check(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PREFECT_DOCKER_TEST_MODE", "True")
+
+
+@pytest.fixture
+def mock_docker_client(monkeypatch: pytest.MonkeyPatch):
+    mock = MagicMock(name="DockerClient", spec=docker.DockerClient)
+    mock.version.return_value = {"Version": "20.10"}
+
+    # Build a fake container object to return
+
+    fake_container = docker.models.containers.Container()
+    fake_container.client = MagicMock(name="Container.client")
+    fake_container.collection = MagicMock(name="Container.collection")
+    attrs = {
+        "Id": FAKE_CONTAINER_ID,
+        "Name": "fake-name",
+        "State": {
+            "Status": "running",
+            "Running": False,
+            "Paused": False,
+            "Restarting": False,
+            "OOMKilled": False,
+            "Dead": True,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2022-08-31T18:01:32.645851548Z",
+            "FinishedAt": "2022-08-31T18:01:32.657076632Z",
+        },
+    }
+    fake_container.collection.get().attrs = attrs
+    fake_container.attrs = attrs
+    fake_container.stop = MagicMock()
+
+    def fake_reload():
+        nonlocal fake_container
+        fake_container.attrs["State"]["Status"] = "exited"
+
+    fake_container.reload = MagicMock(side_effect=fake_reload)
+
+    created_container = copy.deepcopy(fake_container)
+    created_container.attrs["State"]["Status"] = "created"
+
+    # Return the fake container on lookups and creation
+    mock.containers.get.return_value = fake_container
+    mock.containers.create.return_value = created_container
+
+    # Set attributes for infrastructure PID lookup
+    fake_api = MagicMock(name="APIClient")
+    fake_api.base_url = FAKE_BASE_URL
+    # Default to a successful pull stream (no errors)
+    fake_api.pull.return_value = []
+    mock.api = fake_api
+
+    monkeypatch.setattr("docker.from_env", MagicMock(return_value=mock))
+    return mock
+
+
+@pytest.fixture
+def default_docker_worker_job_configuration():
+    return DockerWorkerJobConfiguration()
+
+
+@pytest.fixture
+def flow_run():
+    return FlowRun(flow_id=uuid.uuid4())
+
+
+@pytest.fixture
+async def registry_credentials():
+    block = DockerRegistryCredentials(
+        username="my_username",
+        password="my_password",
+        registry_url="registry.hub.docker.com",
+    )
+    await block.save(name="test", overwrite=True)
+    return block
+
+
+async def test_initiate_run_does_not_wait_for_container_completion(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker._initiate_run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+        mock_docker_client.containers.create.assert_called_once()
+        mock_docker_client.containers.get.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "requested_name,container_name",
+    [
+        ("_flow_run", "flow_run"),
+        ("...flow_run", "flow_run"),
+        ("._-flow_run", "flow_run"),
+        ("9flow-run", "9flow-run"),
+        ("-flow.run", "flow.run"),
+        ("flow*run", "flow-run"),
+        ("flow9.-foo_bar^x", "flow9.-foo_bar-x"),
+    ],
+)
+async def test_name_cast_to_valid_container_name(
+    mock_docker_client,
+    requested_name,
+    container_name,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    default_docker_worker_job_configuration.name = requested_name
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_name = mock_docker_client.containers.create.call_args[1].get("name")
+    assert call_name == container_name
+
+
+async def test_container_name_falls_back_to_null(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.name = "--__...."
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_name = mock_docker_client.containers.create.call_args[1].get("name")
+    assert call_name is None
+
+
+@pytest.mark.parametrize("collision_count", (0, 1, 5))
+async def test_container_name_includes_index_on_conflict(
+    mock_docker_client,
+    collision_count,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    import docker.errors
+
+    if collision_count:
+        # Add the basic name first
+        existing_names = ["test-name"]
+        for i in range(1, collision_count):
+            existing_names.append(f"test-name-{i}")
+    else:
+        existing_names = []
+
+    def fail_if_name_exists(*args, **kwargs):
+        if kwargs.get("name") in existing_names:
+            raise docker.errors.APIError(
+                "Conflict. The container name 'foobar' is already in use"
+            )
+        container = MagicMock()
+        container.name = kwargs.get("name")
+        return container
+
+    mock_docker_client.containers.create.side_effect = fail_if_name_exists
+
+    default_docker_worker_job_configuration.name = "test-name"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    assert mock_docker_client.containers.create.call_count == collision_count + 1
+    call_name = mock_docker_client.containers.create.call_args[1].get("name")
+    expected_name = (
+        "test-name" if not collision_count else f"test-name-{collision_count}"
+    )
+    assert call_name == expected_name
+
+
+async def test_container_creation_failure_reraises_if_not_name_conflict(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    import docker.errors
+
+    mock_docker_client.containers.create.side_effect = docker.errors.APIError(
+        "test error"
+    )
+
+    with pytest.raises(docker.errors.APIError, match="test error"):
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run, configuration=default_docker_worker_job_configuration
+            )
+
+
+async def test_uses_image_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.image = "foo"
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_image = mock_docker_client.containers.create.call_args[1].get("image")
+    assert call_image == "foo"
+
+
+async def test_uses_credentials_when_pulling_image(
+    mock_docker_client,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    """Test that credentials are used when an image pull is required."""
+    credentials = DockerRegistryCredentials(
+        username="my_username",
+        password="my_password",
+        registry_url="registry.hub.docker.com",
+    )
+    # Use "latest" tag which triggers a pull by default
+    default_docker_worker_job_configuration.image = "prefect:latest"
+    default_docker_worker_job_configuration.registry_credentials = credentials
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.login.assert_called_once_with(
+        username="my_username",
+        password="my_password",
+        registry="registry.hub.docker.com",
+        reauth=True,
+    )
+    mock_docker_client.api.pull.assert_called_once()
+
+
+async def test_does_not_login_when_image_exists_locally(
+    mock_docker_client,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    """Test that login is skipped when image already exists locally.
+
+    This improves resilience when registries are unavailable, as flows
+    can still run using cached images without requiring authentication.
+    See: https://github.com/PrefectHQ/prefect/issues/19865
+    """
+    from docker.models.images import Image
+
+    credentials = DockerRegistryCredentials(
+        username="my_username",
+        password="my_password",
+        registry_url="registry.hub.docker.com",
+    )
+
+    # Image exists locally
+    mock_docker_client.images.get.return_value = Image()
+
+    # Use a non-latest tag with IF_NOT_PRESENT policy (the default for non-latest tags)
+    default_docker_worker_job_configuration.image = "prefect:omega"
+    default_docker_worker_job_configuration.registry_credentials = credentials
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    # Login should NOT be called since the image exists locally
+    mock_docker_client.login.assert_not_called()
+    # Image should NOT be pulled
+    mock_docker_client.api.pull.assert_not_called()
+
+
+async def test_does_not_login_when_pull_policy_is_never(
+    mock_docker_client,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    """Test that login is skipped when pull policy is NEVER."""
+    credentials = DockerRegistryCredentials(
+        username="my_username",
+        password="my_password",
+        registry_url="registry.hub.docker.com",
+    )
+    default_docker_worker_job_configuration.image_pull_policy = "Never"
+    default_docker_worker_job_configuration.registry_credentials = credentials
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    # Login should NOT be called since we never pull
+    mock_docker_client.login.assert_not_called()
+    mock_docker_client.api.pull.assert_not_called()
+
+
+async def test_uses_credentials_with_always_pull_policy(
+    mock_docker_client,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    """Test that credentials are used when pull policy is ALWAYS."""
+    from docker.models.images import Image
+
+    credentials = DockerRegistryCredentials(
+        username="my_username",
+        password="my_password",
+        registry_url="registry.hub.docker.com",
+    )
+
+    # Even if image exists locally
+    mock_docker_client.images.get.return_value = Image()
+
+    default_docker_worker_job_configuration.image = "prefect:omega"
+    default_docker_worker_job_configuration.image_pull_policy = "Always"
+    default_docker_worker_job_configuration.registry_credentials = credentials
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    # Login SHOULD be called because we always pull
+    mock_docker_client.login.assert_called_once_with(
+        username="my_username",
+        password="my_password",
+        registry="registry.hub.docker.com",
+        reauth=True,
+    )
+    mock_docker_client.api.pull.assert_called_once()
+
+
+async def test_uses_volumes_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.volumes = ["a:b", "c:d"]
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_volumes = mock_docker_client.containers.create.call_args[1].get("volumes")
+    assert "a:b" in call_volumes
+    assert "c:d" in call_volumes
+
+
+@pytest.mark.parametrize(
+    "volume_str",
+    [
+        "a:b",
+        "/host/path:/container/path",
+        "named_volume:/app/data",
+        "/home/user:/home/docker:ro",
+        "/home/user:/home/docker:rw",
+        "C:\\path\\on\\windows:/path/in/container",
+        "\\\\host\\share:/path/in/container",
+        "/data",  # anonymous volume
+    ],
+)
+def test_valid_volume_strings(volume_str: str):
+    assert TypeAdapter(VolumeStr).validate_python(volume_str) == volume_str
+
+
+@pytest.mark.parametrize(
+    "volume_str",
+    [
+        "invalid_volume",
+        ":missing_host",
+        "missing_container:",
+        "/double:/colon:/path",
+        "/path:/path:invalid_mode",
+        ":/:",
+        " : : ",
+        "/host:/container:rw:extra",
+        "",  # empty string
+    ],
+)
+def test_invalid_volume_strings(volume_str: str):
+    with pytest.raises(ValidationError, match="Invalid volume"):
+        TypeAdapter(VolumeStr).validate_python(volume_str)
+
+
+async def test_uses_privileged_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.privileged = True
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    assert mock_docker_client.containers.create.call_args[1].get("privileged") is True
+
+
+async def test_uses_memswap_limit_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.mem_limit = "500m"
+    default_docker_worker_job_configuration.memswap_limit = "1g"
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    assert (
+        mock_docker_client.containers.create.call_args[1].get("memswap_limit") == "1g"
+    )
+
+
+async def test_uses_mem_limit_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.mem_limit = "1g"
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    assert mock_docker_client.containers.create.call_args[1].get("mem_limit") == "1g"
+
+
+@pytest.mark.parametrize("networks", [[], ["a"], ["a", "b"]])
+async def test_uses_network_setting(
+    mock_docker_client, networks, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.networks = networks
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_network = mock_docker_client.containers.create.call_args[1].get("network")
+
+    if not networks:
+        assert not call_network
+    else:
+        assert call_network == networks[0]
+
+    # Additional networks must be added after
+    if len(networks) <= 1:
+        mock_docker_client.networks.get.assert_not_called()
+    else:
+        for network_name in networks[1:]:
+            mock_docker_client.networks.get.assert_called_with(network_name)
+
+        # network.connect called with the created container
+        mock_docker_client.networks.get().connect.assert_called_with(
+            mock_docker_client.containers.create()
+        )
+
+
+async def test_uses_label_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.labels = {"foo": "FOO", "bar": "BAR"}
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_labels = mock_docker_client.containers.create.call_args[1].get("labels")
+    assert call_labels == {
+        **CONTAINER_LABELS,
+        "io.prefect.flow-run-id": str(flow_run.id),
+        "io.prefect.flow-run-name": flow_run.name,
+        "foo": "FOO",
+        "bar": "BAR",
+    }
+
+
+async def test_uses_network_mode_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.network_mode = "bridge"
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode == "bridge"
+
+
+async def test_uses_env_setting(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.env = {"foo": "FOO", "bar": "BAR"}
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_env = mock_docker_client.containers.create.call_args[1].get("environment")
+
+    assert call_env == {
+        **get_current_settings().to_environment_variables(exclude_unset=True),
+        "PREFECT__FLOW_RUN_ID": str(flow_run.id),
+        "PREFECT__FLOW_ID": str(flow_run.flow_id),
+        "foo": "FOO",
+        "bar": "BAR",
+    }
+
+
+async def test_allows_unsetting_environment_variables(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.env = {"PREFECT_TEST_MODE": None}
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_env = mock_docker_client.containers.create.call_args[1].get("environment")
+    assert "PREFECT_TEST_MODE" not in call_env
+
+
+@pytest.mark.parametrize("localhost", ["localhost", "127.0.0.1"])
+async def test_network_mode_defaults_to_host_if_using_localhost_api_on_linux(
+    mock_docker_client,
+    localhost,
+    monkeypatch,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    monkeypatch.setattr("sys.platform", "linux")
+
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL=f"http://{localhost}/test"
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode == "host"
+
+
+async def test_network_mode_defaults_to_none_if_using_networks(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    # Despite using localhost for the API, we will set the network mode to `None`
+    # because `networks` and `network_mode` cannot both be set.
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL="http://localhost/test"
+    )
+    default_docker_worker_job_configuration.networks = ["test"]
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode is None
+
+
+async def test_network_mode_defaults_to_none_if_using_nonlocal_api(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL="http://foo/test"
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode is None
+
+
+async def test_network_mode_defaults_to_none_if_not_on_linux(
+    mock_docker_client, monkeypatch, flow_run, default_docker_worker_job_configuration
+):
+    monkeypatch.setattr("sys.platform", "darwin")
+
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL="http://localhost/test"
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode is None
+
+
+async def test_network_mode_defaults_to_none_if_api_url_cannot_be_parsed(
+    mock_docker_client, monkeypatch, flow_run, default_docker_worker_job_configuration
+):
+    monkeypatch.setattr("sys.platform", "darwin")
+
+    # It is hard to actually get urlparse to fail, so we'll just raise an error
+    # manually
+    monkeypatch.setattr(
+        "urllib.parse.urlparse", MagicMock(side_effect=ValueError("test"))
+    )
+
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL="http://localhost/test"
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    with pytest.warns(UserWarning, match="Failed to parse host"):
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run, configuration=default_docker_worker_job_configuration
+            )
+
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode is None
+
+
+@pytest.mark.usefixtures("use_hosted_api_server")
+async def test_replaces_localhost_api_with_dockerhost_when_not_using_host_network(
+    mock_docker_client,
+    hosted_api_server,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    default_docker_worker_job_configuration.network_mode = "bridge"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_env = mock_docker_client.containers.create.call_args[1].get("environment")
+    assert "PREFECT_API_URL" in call_env
+    assert call_env["PREFECT_API_URL"] == hosted_api_server.replace(
+        "localhost", "host.docker.internal"
+    )
+
+
+@pytest.mark.usefixtures("use_hosted_api_server")
+async def test_does_not_replace_localhost_api_when_using_host_network(
+    mock_docker_client,
+    hosted_api_server,
+    monkeypatch,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    # We will warn if setting 'host' network mode on non-linux platforms
+    monkeypatch.setattr("sys.platform", "linux")
+
+    default_docker_worker_job_configuration.network_mode = "host"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_env = mock_docker_client.containers.create.call_args[1].get("environment")
+    assert "PREFECT_API_URL" in call_env
+    assert call_env["PREFECT_API_URL"] == hosted_api_server
+
+
+@pytest.mark.usefixtures("use_hosted_api_server")
+async def test_warns_at_runtime_when_using_host_network_mode_on_non_linux_platform(
+    mock_docker_client, monkeypatch, flow_run, default_docker_worker_job_configuration
+):
+    monkeypatch.setattr("sys.platform", "darwin")
+
+    default_docker_worker_job_configuration.network_mode = "host"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+
+    with pytest.warns(
+        UserWarning,
+        match="'host' network mode is not supported on platform 'darwin'",
+    ):
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run, configuration=default_docker_worker_job_configuration
+            )
+
+    mock_docker_client.containers.create.assert_called_once()
+    network_mode = mock_docker_client.containers.create.call_args[1].get("network_mode")
+    assert network_mode == "host", "The setting is passed to dockerpy still"
+
+
+async def test_does_not_override_user_provided_api_host(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.env = dict(
+        PREFECT_API_URL="http://localhost/api"
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    call_env = mock_docker_client.containers.create.call_args[1].get("environment")
+    assert call_env.get("PREFECT_API_URL") == "http://localhost/api"
+
+
+async def test_adds_docker_host_gateway_on_linux(
+    mock_docker_client, monkeypatch, flow_run, default_docker_worker_job_configuration
+):
+    monkeypatch.setattr("sys.platform", "linux")
+
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert call_extra_hosts == {"host.docker.internal": "host-gateway"}
+
+
+async def test_user_provided_extra_hosts_merge_with_auto_generated(
+    mock_docker_client: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
+    flow_run: FlowRun,
+    default_docker_worker_job_configuration: DockerWorkerJobConfiguration,
+):
+    """Test that user-provided extra_hosts are merged with auto-generated ones without error.
+
+    this is a regression test for https://github.com/PrefectHQ/prefect/issues/18187
+    """
+    monkeypatch.setattr("sys.platform", "linux")
+
+    default_docker_worker_job_configuration.container_create_kwargs = {
+        "extra_hosts": ["host.docker.internal:host-gateway"]
+    }
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert call_extra_hosts == {"host.docker.internal": "host-gateway"}
+
+
+async def test_default_image_pull_policy_pulls_image_with_latest_tag(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.image = "prefect:latest"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_called_once()
+    mock_docker_client.api.pull.assert_called_with(
+        "prefect", tag="latest", stream=True, decode=True
+    )
+
+
+async def test_default_image_pull_policy_pulls_image_with_no_tag(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.image = "prefect"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_called_once()
+    mock_docker_client.api.pull.assert_called_with(
+        "prefect", tag=None, stream=True, decode=True
+    )
+
+
+async def test_default_image_pull_policy_pulls_image_with_tag_other_than_latest_if_not_present(  # noqa
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    from docker.errors import ImageNotFound
+    from docker.models.images import Image
+
+    # First call (in _should_pull_image) raises; second call (in _pull_image) succeeds
+    mock_docker_client.images.get.side_effect = [ImageNotFound("No way, bub"), Image()]
+
+    default_docker_worker_job_configuration.image = "prefect:omega"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_called_once()
+    mock_docker_client.api.pull.assert_called_with(
+        "prefect", tag="omega", stream=True, decode=True
+    )
+
+
+async def test_default_image_pull_policy_does_not_pull_image_with_tag_other_than_latest_if_present(  # noqa
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    from docker.models.images import Image
+
+    mock_docker_client.images.get.return_value = Image()
+
+    default_docker_worker_job_configuration.image = "prefect:omega"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_not_called()
+
+
+async def test_image_pull_policy_always_pulls(
+    mock_docker_client,
+    flow_run,
+    default_docker_worker_job_configuration: DockerWorkerJobConfiguration,
+):
+    default_docker_worker_job_configuration.image_pull_policy = "Always"
+    default_docker_worker_job_configuration.image = "prefect"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_called_once()
+    mock_docker_client.api.pull.assert_called_with(
+        "prefect", tag=None, stream=True, decode=True
+    )
+
+
+async def test_image_pull_policy_never_does_not_pull(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.image_pull_policy = "Never"
+    default_docker_worker_job_configuration.image = "prefect"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_not_called()
+
+
+async def test_image_pull_policy_if_not_present_pulls_image_if_not_present(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    from docker.errors import ImageNotFound
+    from docker.models.images import Image
+
+    # First call (in _should_pull_image) raises; second call (in _pull_image) succeeds
+    mock_docker_client.images.get.side_effect = [ImageNotFound("No way, bub"), Image()]
+
+    default_docker_worker_job_configuration.image_pull_policy = "IfNotPresent"
+    default_docker_worker_job_configuration.image = "prefect"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.api.pull.assert_called_once()
+    mock_docker_client.api.pull.assert_called_with(
+        "prefect", tag=None, stream=True, decode=True
+    )
+
+
+async def test_image_pull_policy_if_not_present_does_not_pull_image_if_present(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    from docker.models.images import Image
+
+    mock_docker_client.images.get.return_value = Image()
+
+    default_docker_worker_job_configuration.image_pull_policy = "IfNotPresent"
+    default_docker_worker_job_configuration.image = "prefect"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.api.pull.assert_not_called()
+
+
+async def test_pull_image_raises_on_stream_error(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    """Test that _pull_image raises RuntimeError when the pull stream contains an error.
+
+    This guards against a docker-py bug where images.pull() silently swallows
+    stream errors (e.g. disk-full) and returns a stale local image.
+    See: https://github.com/docker/docker-py/issues/2286
+    """
+    mock_docker_client.api.pull.return_value = [
+        {"status": "Pulling from library/prefect"},
+        {"error": "write /var/lib/docker/...: no space left on device"},
+    ]
+
+    default_docker_worker_job_configuration.image = "prefect:latest"
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    with pytest.raises(RuntimeError, match="no space left on device"):
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run,
+                configuration=default_docker_worker_job_configuration,
+            )
+
+
+@pytest.mark.parametrize("platform", ["win32", "darwin"])
+async def test_does_not_add_docker_host_gateway_on_other_platforms(
+    mock_docker_client,
+    monkeypatch,
+    platform,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    monkeypatch.setattr("sys.platform", platform)
+
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert not call_extra_hosts
+
+
+@pytest.mark.parametrize(
+    "explicit_api_url",
+    [
+        None,
+        "http://localhost/api",
+        "http://127.0.0.1:2222/api",
+        "http://host.docker.internal:10/foo/api",
+    ],
+)
+@pytest.mark.usefixtures("use_hosted_api_server")
+async def test_warns_if_docker_version_does_not_support_host_gateway_on_linux(
+    mock_docker_client,
+    explicit_api_url,
+    monkeypatch,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    monkeypatch.setattr("sys.platform", "linux")
+
+    mock_docker_client.version.return_value = {"Version": "19.1.1"}
+
+    default_docker_worker_job_configuration.env = (
+        {"PREFECT_API_URL": explicit_api_url} if explicit_api_url else {}
+    )
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    with pytest.warns(
+        UserWarning,
+        match=(
+            "`host.docker.internal` could not be automatically resolved.*"
+            "feature is not supported on Docker Engine v19.1.1"
+        ),
+    ):
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run,
+                configuration=default_docker_worker_job_configuration,
+            )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert not call_extra_hosts
+
+
+async def test_does_not_warn_about_gateway_if_user_has_provided_nonlocal_api_url(
+    mock_docker_client,
+    monkeypatch,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    monkeypatch.setattr("sys.platform", "linux")
+    mock_docker_client.version.return_value = {"Version": "19.1.1"}
+
+    default_docker_worker_job_configuration.env = {
+        "PREFECT_API_URL": "http://my-domain.test/api"
+    }
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    with assert_does_not_warn():
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run,
+                configuration=default_docker_worker_job_configuration,
+            )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert not call_extra_hosts
+
+
+async def test_task_infra_pid_includes_host_and_container_id(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    assert result.identifier == f"{FAKE_BASE_URL}:{FAKE_CONTAINER_ID}"
+
+
+async def test_container_create_kwargs(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.container_create_kwargs = {
+        "hostname": "custom_name"
+    }
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    hostname = mock_docker_client.containers.create.call_args[1].get("hostname")
+    assert hostname == "custom_name"
+
+
+async def test_container_create_kwargs_excludes_job_variables(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.name = "job_config_name"
+    default_docker_worker_job_configuration.container_create_kwargs = {
+        "name": "create_kwarg_name"
+    }
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+    mock_docker_client.containers.create.assert_called_once()
+    name = mock_docker_client.containers.create.call_args[1].get("name")
+    assert name == "job_config_name"
+
+
+async def test_task_status_receives_result_identifier(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    fake_status = MagicMock(spec=anyio.abc.TaskStatus)
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run,
+            configuration=default_docker_worker_job_configuration,
+            task_status=fake_status,
+        )
+    fake_status.started.assert_called_once_with(result.identifier)
+
+
+@pytest.mark.usefixtures("use_hosted_api_server")
+@pytest.mark.parametrize("platform", ["win32", "darwin"])
+async def test_does_not_warn_about_gateway_if_not_using_linux(
+    mock_docker_client,
+    platform,
+    monkeypatch,
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    monkeypatch.setattr("sys.platform", platform)
+    mock_docker_client.version.return_value = {"Version": "19.1.1"}
+
+    with assert_does_not_warn():
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run, configuration=default_docker_worker_job_configuration
+            )
+
+    mock_docker_client.containers.create.assert_called_once()
+    call_extra_hosts = mock_docker_client.containers.create.call_args[1].get(
+        "extra_hosts"
+    )
+    assert not call_extra_hosts
+
+
+async def test_container_result(
+    docker_client_with_cleanup: "DockerClient",
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+        assert bool(result)
+        assert result.status_code == 0
+        assert result.identifier
+        _, container_id = worker._parse_infrastructure_pid(result.identifier)
+        container = docker_client_with_cleanup.containers.get(container_id)
+        assert container is not None
+
+
+async def test_container_auto_remove(
+    docker_client_with_cleanup: "DockerClient",
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    from docker.errors import NotFound
+
+    default_docker_worker_job_configuration.auto_remove = True
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+        assert bool(result)
+        assert result.status_code == 0
+        assert result.identifier
+        with pytest.raises(NotFound):
+            _, container_id = worker._parse_infrastructure_pid(result.identifier)
+            docker_client_with_cleanup.containers.get(container_id)
+
+
+async def test_container_metadata(
+    docker_client_with_cleanup: "DockerClient",
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    default_docker_worker_job_configuration.name = "test-container-name"
+    default_docker_worker_job_configuration.labels = {"test.foo": "a", "test.bar": "b"}
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run=flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+        _, container_id = worker._parse_infrastructure_pid(result.identifier)
+    container: "Container" = docker_client_with_cleanup.containers.get(container_id)
+    assert container.name == "test-container-name"
+    assert container.labels["test.foo"] == "a"
+    assert container.labels["test.bar"] == "b"
+    assert container.image.tags[0] == get_prefect_image_name()
+
+    for key, value in CONTAINER_LABELS.items():
+        assert container.labels[key] == value
+
+
+async def test_container_name_collision(
+    docker_client_with_cleanup: "DockerClient",
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    # Generate a unique base name to avoid collisions with existing images
+    base_name = uuid.uuid4().hex
+
+    default_docker_worker_job_configuration.name = base_name
+    default_docker_worker_job_configuration.auto_remove = False
+    default_docker_worker_job_configuration.prepare_for_flow_run(flow_run)
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+        _, container_id = worker._parse_infrastructure_pid(result.identifier)
+        created_container: "Container" = docker_client_with_cleanup.containers.get(
+            container_id
+        )
+        assert created_container.name == base_name
+
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+        _, container_id = worker._parse_infrastructure_pid(result.identifier)
+        created_container: "Container" = docker_client_with_cleanup.containers.get(
+            container_id
+        )
+        assert created_container.name == base_name + "-1"
+
+
+async def test_container_result_async(
+    docker_client_with_cleanup: "DockerClient",
+    flow_run,
+    default_docker_worker_job_configuration,
+):
+    async with DockerWorker(work_pool_name="test") as worker:
+        result = await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+        assert bool(result)
+        assert result.status_code == 0
+        assert result.identifier
+        _, container_id = worker._parse_infrastructure_pid(result.identifier)
+        container = docker_client_with_cleanup.containers.get(container_id)
+        assert container is not None
+
+
+async def test_stream_container_logs(
+    capsys, mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    mock_container = mock_docker_client.containers.get.return_value
+    mock_container.logs = MagicMock(return_value=[b"hello", b"world"])
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    captured = capsys.readouterr()
+    assert "hello\nworld\n" in captured.out
+
+
+async def test_logs_warning_when_container_marked_for_removal(
+    caplog, mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    warning = (
+        "Docker container fake-name was marked for removal before logs "
+        "could be retrieved. Output will not be streamed"
+    )
+    mock_container = mock_docker_client.containers.get.return_value
+    mock_container.logs = MagicMock(side_effect=docker.errors.APIError(warning))
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    assert "Docker container fake-name was marked for removal" in caplog.text
+
+
+async def test_logs_when_unexpected_docker_error(
+    caplog, mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    mock_container = mock_docker_client.containers.get.return_value
+    mock_container.logs = MagicMock(side_effect=docker.errors.APIError("..."))
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    assert (
+        "An unexpected Docker API error occurred while streaming output from container"
+        " fake-name." in caplog.text
+    )
+
+
+async def test_stream_container_logs_on_real_container(
+    capsys, flow_run, default_docker_worker_job_configuration
+):
+    default_docker_worker_job_configuration.command = "echo hello"
+    async with DockerWorker(work_pool_name="test") as worker:
+        await worker.run(
+            flow_run=flow_run, configuration=default_docker_worker_job_configuration
+        )
+
+    captured = capsys.readouterr()
+    assert "hello" in captured.out
+
+
+async def test_worker_errors_out_on_ephemeral_apis():
+    with temporary_settings(
+        {PREFECT_API_URL: None, PREFECT_SERVER_ALLOW_EPHEMERAL_MODE: True}
+    ):
+        with pytest.raises(RuntimeError, match="ephemeral"):
+            async with DockerWorker(work_pool_name="test", test_mode=False) as worker:
+                await worker.run()
+
+
+async def test_emits_events(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    event_count = 0
+
+    def event(*args, **kwargs):
+        nonlocal event_count
+        event_count += 1
+        return event_count
+
+    with patch("prefect_docker.worker.emit_event", side_effect=event) as mock_emit:
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.run(
+                flow_run=flow_run, configuration=default_docker_worker_job_configuration
+            )
+
+    worker_resource = worker._event_resource()
+    worker_resource["prefect.resource.role"] = "worker"
+    related_resources = worker._event_related_resources() + [
+        RelatedResource(worker_resource)
+    ]
+
+    mock_emit.assert_has_calls(
+        [
+            call(
+                event="prefect.docker.container.created",
+                resource={
+                    "prefect.resource.id": "prefect.docker.container.fake-id",
+                    "prefect.resource.name": "fake-name",
+                },
+                related=related_resources,
+                follows=None,
+            ),
+            call(
+                event="prefect.docker.container.running",
+                resource={
+                    "prefect.resource.id": "prefect.docker.container.fake-id",
+                    "prefect.resource.name": "fake-name",
+                },
+                related=related_resources,
+                follows=1,
+            ),
+            call(
+                event="prefect.docker.container.exited",
+                resource={
+                    "prefect.resource.id": "prefect.docker.container.fake-id",
+                    "prefect.resource.name": "fake-name",
+                },
+                related=related_resources,
+                follows=2,
+            ),
+        ]
+    )
+
+
+async def test_emits_event_container_creation_failure(
+    mock_docker_client, flow_run, default_docker_worker_job_configuration
+):
+    import docker.errors
+
+    mock_docker_client.containers.create.side_effect = docker.errors.APIError(
+        "test error"
+    )
+
+    worker_resource = None
+    with patch("prefect_docker.worker.emit_event") as mock_emit:
+        with pytest.raises(docker.errors.APIError, match="test error"):
+            async with DockerWorker(work_pool_name="test") as worker:
+                worker_resource = worker._event_resource()
+                await worker.run(
+                    flow_run=flow_run,
+                    configuration=default_docker_worker_job_configuration,
+                )
+
+        mock_emit.assert_called_once_with(
+            event="prefect.docker.container.creation-failed",
+            resource=worker_resource,
+            related=worker._event_related_resources(),
+        )
+
+
+@patch("docker.from_env")
+async def test_docker_client_default_timeout_configuration(
+    mocked_from_env: MagicMock,
+) -> None:
+    """Validate we can pass a timeout via environment variables to the underlying docker client."""
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        _ = worker._get_client()
+
+        default_timeout_duration = 60
+        mocked_from_env.assert_called_once_with(timeout=default_timeout_duration)
+
+
+@patch("docker.from_env")
+async def test_docker_client_overwrite_timeout_configuration(
+    mocked_from_env: MagicMock, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Validate we can pass a timeout via environment variables to the underlying docker client."""
+
+    monkeypatch.setenv("DOCKER_CLIENT_TIMEOUT", "30")
+
+    async with DockerWorker(work_pool_name="test") as worker:
+        _ = worker._get_client()
+
+        mocked_from_env.assert_called_once_with(timeout=30)
+
+
+class TestSubmitAdhocRunWithFlowRunParameter:
+    """Tests for _submit_adhoc_run with the flow_run parameter for retry functionality."""
+
+    @pytest.fixture
+    async def work_pool(self):
+        """Create a Docker work pool for testing."""
+        async with get_client() as client:
+            work_pool = await client.create_work_pool(
+                work_pool=WorkPoolCreate(
+                    name=f"test-docker-pool-{uuid.uuid4().hex[:8]}",
+                    type="docker",
+                ),
+            )
+            yield work_pool
+            try:
+                await client.delete_work_pool(work_pool.name)
+            except Exception:
+                pass
+
+    @pytest.fixture
+    def test_flow(self):
+        """Create a test flow for use in tests."""
+        from prefect import flow
+
+        @flow
+        def my_test_flow():
+            return "success"
+
+        return my_test_flow
+
+    async def test_submit_adhoc_run_with_existing_flow_run_reuses_id(
+        self, mock_docker_client, work_pool, test_flow
+    ):
+        """Test that _submit_adhoc_run with flow_run parameter reuses the flow run ID."""
+        from prefect.client.schemas.objects import StateType
+        from prefect.states import Failed
+
+        async with get_client() as client:
+            # Create an initial flow run in a failed state
+            initial_flow_run = await client.create_flow_run(
+                test_flow,
+                parameters={},
+                state=Failed(),
+            )
+
+            async with DockerWorker(work_pool_name=work_pool.name) as worker:
+                # Submit with the existing flow run (retry scenario)
+                await worker._submit_adhoc_run(
+                    flow=test_flow,
+                    parameters={},
+                    flow_run=initial_flow_run,
+                )
+
+            # The flow run should have been reused (same ID) and state set to Pending
+            retried_flow_run = await client.read_flow_run(initial_flow_run.id)
+            assert retried_flow_run.state is not None
+            assert retried_flow_run.state.type == StateType.PENDING
+
+    async def test_submit_adhoc_run_with_existing_flow_run_sets_pending_state(
+        self, mock_docker_client, work_pool, test_flow
+    ):
+        """Test that _submit_adhoc_run sets the state to Pending when retrying."""
+        from prefect.client.schemas.objects import StateType
+        from prefect.states import Failed
+
+        async with get_client() as client:
+            # Create an initial flow run in a failed state
+            initial_flow_run = await client.create_flow_run(
+                test_flow,
+                parameters={},
+                state=Failed(),
+            )
+            assert initial_flow_run.state.type == StateType.FAILED
+
+            # Track the state that was set
+            original_set_flow_run_state = client.set_flow_run_state
+            set_state_calls = []
+
+            async def tracking_set_flow_run_state(flow_run_id, state, **kwargs):
+                set_state_calls.append((flow_run_id, state))
+                return await original_set_flow_run_state(flow_run_id, state, **kwargs)
+
+            client.set_flow_run_state = tracking_set_flow_run_state
+
+            async with DockerWorker(work_pool_name=work_pool.name) as worker:
+                # Override the client in the worker
+                worker._client = client
+
+                await worker._submit_adhoc_run(
+                    flow=test_flow,
+                    parameters={},
+                    flow_run=initial_flow_run,
+                )
+
+            # Verify set_flow_run_state was called with a Pending state
+            assert len(set_state_calls) >= 1
+            flow_run_id, state = set_state_calls[0]
+            assert flow_run_id == initial_flow_run.id
+            assert state.type == StateType.PENDING
+
+    async def test_submit_adhoc_run_without_flow_run_creates_new_run(
+        self, mock_docker_client, work_pool, test_flow
+    ):
+        """Test that _submit_adhoc_run creates a new flow run when flow_run is None."""
+        async with get_client() as client:
+            # Count flow runs before
+            initial_flow_runs = await client.read_flow_runs()
+            initial_count = len(initial_flow_runs)
+
+            async with DockerWorker(work_pool_name=work_pool.name) as worker:
+                await worker._submit_adhoc_run(
+                    flow=test_flow,
+                    parameters={},
+                    # flow_run is None - should create a new one
+                )
+
+            # Verify a new flow run was created
+            final_flow_runs = await client.read_flow_runs()
+            assert len(final_flow_runs) > initial_count
+
+    async def test_submit_adhoc_run_passes_worker_id_for_attribution(
+        self, mock_docker_client, work_pool, test_flow
+    ):
+        """_submit_adhoc_run should pass worker_id to prepare_for_flow_run for attribution."""
+        async with DockerWorker(work_pool_name=work_pool.name) as worker:
+            worker.backend_id = uuid.uuid4()
+
+            original_prepare = DockerWorkerJobConfiguration.prepare_for_flow_run
+            prepare_calls: list[dict] = []
+
+            def tracking_prepare(self, flow_run, **kwargs):
+                prepare_calls.append(kwargs)
+                return original_prepare(self, flow_run, **kwargs)
+
+            with patch.object(
+                DockerWorkerJobConfiguration,
+                "prepare_for_flow_run",
+                tracking_prepare,
+            ):
+                await worker._submit_adhoc_run(
+                    flow=test_flow,
+                    parameters={},
+                )
+
+        assert len(prepare_calls) == 1
+        assert prepare_calls[0]["worker_id"] == worker.backend_id
+        assert prepare_calls[0]["worker_name"] == worker.name
+
+
+class TestDockerWorkerKillInfrastructure:
+    """Tests for DockerWorker.kill_infrastructure method."""
+
+    async def test_kill_infrastructure_stops_container(
+        self, mock_docker_client, default_docker_worker_job_configuration
+    ):
+        """Test that kill_infrastructure successfully stops a Docker container."""
+        container_id = "test-container-id"
+        infrastructure_pid = f"{FAKE_BASE_URL}:{container_id}"
+
+        async with DockerWorker(work_pool_name="test") as worker:
+            await worker.kill_infrastructure(
+                infrastructure_pid=infrastructure_pid,
+                configuration=default_docker_worker_job_configuration,
+                grace_seconds=30,
+            )
+
+        mock_docker_client.containers.get.assert_called_with(container_id)
+        mock_docker_client.containers.get.return_value.stop.assert_called_once_with(
+            timeout=30
+        )
+
+    async def test_kill_infrastructure_raises_not_found(
+        self, mock_docker_client, default_docker_worker_job_configuration
+    ):
+        """Test that kill_infrastructure raises InfrastructureNotFound for missing container."""
+        from prefect.exceptions import InfrastructureNotFound
+
+        container_id = "nonexistent-container"
+        infrastructure_pid = f"{FAKE_BASE_URL}:{container_id}"
+
+        mock_docker_client.containers.get.side_effect = docker.errors.NotFound(
+            "Container not found"
+        )
+
+        async with DockerWorker(work_pool_name="test") as worker:
+            with pytest.raises(InfrastructureNotFound):
+                await worker.kill_infrastructure(
+                    infrastructure_pid=infrastructure_pid,
+                    configuration=default_docker_worker_job_configuration,
+                    grace_seconds=30,
+                )

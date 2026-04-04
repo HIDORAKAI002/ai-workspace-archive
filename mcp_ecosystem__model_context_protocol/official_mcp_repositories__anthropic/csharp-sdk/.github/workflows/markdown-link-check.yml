@@ -1,0 +1,33 @@
+name: Check Markdown links
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: "**.md"
+  pull_request:
+    branches: [ "main" ]
+    paths: "**.md"
+
+permissions:
+  contents: read
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Markup Link Checker (mlc)
+        uses: becheran/mlc@7ec24825cefe0c9c8c6bac48430e1f69e3ec356e # v1.2.0
+        with:
+          # Ignore DocFX cross-reference links (xref:) that mlc cannot check.
+          # Ignore DocFX snippet inclusion links.
+          # Do not warn for learn.microsoft.com locale redirects.
+          # Do not warn for modelcontextprotocol.io homepage/spec redirects.
+          args: >-
+            --ignore-links "xref:*"
+            --ignore-links "*samples/*?name=snippet_*"
+            --do-not-warn-for-redirect-to "https://learn.microsoft.com/en-us/*"
+            --do-not-warn-for-redirect-to "https://modelcontextprotocol.io/*"
+            ./docs

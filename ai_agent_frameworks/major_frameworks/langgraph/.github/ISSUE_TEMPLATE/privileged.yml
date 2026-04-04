@@ -1,0 +1,28 @@
+name: "\U0001F512 Privileged"
+description: You are a LangGraph maintainer. If not, check the other options.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **All contributions must be in English.** See the [language policy](https://docs.langchain.com/oss/python/contributing/overview#language-policy).
+
+        If you are not a LangGraph maintainer, employee, or were not asked directly by a maintainer to create an issue, then please start the conversation on the [LangChain Forum](https://forum.langchain.com/) instead.
+
+        **Note:** Do not begin work on a PR unless explicitly assigned to this issue by a maintainer.
+  - type: checkboxes
+    id: privileged
+    attributes:
+      label: Privileged issue
+      description: Confirm that you are allowed to create an issue here.
+      options:
+        - label: I am a LangGraph maintainer.
+          required: true
+  - type: textarea
+    id: content
+    attributes:
+      label: Issue Content
+      description: Add the content of the issue here.
+  - type: markdown
+    attributes:
+      value: |
+        Please do not begin work on a PR unless explicitly assigned to this issue by a maintainer.

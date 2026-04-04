@@ -1,0 +1,50 @@
+
+.docMainContainer {
+  flex: 1 0 auto;
+}
+
+.docMainContainerEnhanced {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.docItemWrapper {
+  position: relative;
+  width: 100%;
+  padding: 1.5rem var(--docs-content-horizontal-padding, 3.6rem) 2rem;
+}
+
+.docItemWrapperEnhanced {
+}
+
+/* eyebrow section shown inside content */
+.eyebrowSection {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #10b981 !important;
+  margin-top: 30px;
+}
+
+@media (max-width: 1160px) {
+  .docItemWrapper {
+    max-width: 100%;
+    padding: 1.5rem var(--docs-content-horizontal-padding-mobile, 1.5rem) 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide eyebrow section on mobile */
+  .eyebrowSection {
+    display: none;
+  }
+
+  .docItemWrapper {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+}
+
+.docItemContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocItem-Layout-styles-module article > *:first-child {
+  margin-top: 6px !important;
+}

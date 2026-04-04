@@ -1,0 +1,58 @@
+.chunkText() {
+  em {
+    color: red;
+    font-style: normal;
+  }
+  table {
+    width: 100%;
+  }
+
+  caption {
+    color: @blurBackground;
+    font-size: 14px;
+    height: 20px;
+    line-height: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  th {
+    color: #fff;
+    background-color: @blurBackground;
+  }
+
+  td:hover {
+    background: @blurBackgroundHover;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+}
+
+.pointerCursor() {
+  cursor: pointer;
+}
+
+.clearCardBody() {
+  :global {
+    .ant-card-body {
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+.textEllipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multipleLineEllipsis(@line) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @line;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

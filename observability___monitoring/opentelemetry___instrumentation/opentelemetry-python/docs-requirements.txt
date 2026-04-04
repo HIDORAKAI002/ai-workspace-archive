@@ -1,0 +1,29 @@
+sphinx==7.1.2
+sphinx-rtd-theme==2.0.0rc4
+sphinx-autodoc-typehints==1.25.2
+# used to generate docs for the website
+sphinx-jekyll-builder==0.3.0
+
+# Need to install the api/sdk in the venv for autodoc. Modifying sys.path
+# doesn't work for pkg_resources.
+./opentelemetry-api
+./opentelemetry-semantic-conventions
+./opentelemetry-sdk
+./opentelemetry-proto
+./shim/opentelemetry-opencensus-shim
+./shim/opentelemetry-opentracing-shim
+./exporter/opentelemetry-exporter-otlp-proto-common
+./exporter/opentelemetry-exporter-otlp-proto-http
+./exporter/opentelemetry-exporter-otlp-proto-grpc
+
+# Required by instrumentation and exporter packages
+grpcio~=1.27
+Deprecated~=1.2
+django~=4.2
+flask~=2.3
+opentracing~=2.2.0
+thrift~=0.10
+wrapt>=1.0.0,<2.0.0
+markupsafe~=2.0
+protobuf==5.29.6
+prometheus-client~=0.22.1

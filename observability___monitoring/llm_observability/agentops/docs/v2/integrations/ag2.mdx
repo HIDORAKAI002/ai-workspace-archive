@@ -1,0 +1,135 @@
+---
+title: AG2
+description: "Track and analyze your AG2 agents with AgentOps"
+---
+
+[AG2](https://ag2.ai/) (formerly AutoGen) is a framework for building multi-agent conversational AI systems. AgentOps provides seamless, automatic instrumentation for AG2 — just call `agentops.init()` and all agent interactions are tracked.
+
+## Installation
+
+<CodeGroup>
+  ```bash pip
+  pip install agentops pyautogen
+  ```
+  ```bash poetry
+  poetry add agentops pyautogen
+  ```
+  ```bash uv
+  uv pip install agentops pyautogen
+  ```
+</CodeGroup>
+
+## Setting Up API Keys
+
+Before using AG2 with AgentOps, you need to set up your API keys. You can obtain:
+- **OPENAI_API_KEY**: From the [OpenAI Platform](https://platform.openai.com/api-keys)
+- **AGENTOPS_API_KEY**: From your [AgentOps Dashboard](https://app.agentops.ai/)
+
+Then to set them up, you can either export them as environment variables or set them in a `.env` file.
+
+<CodeGroup>
+    ```bash Export to CLI
+    export OPENAI_API_KEY="your_openai_api_key_here"
+    export AGENTOPS_API_KEY="your_agentops_api_key_here"
+    ```
+    ```txt Set in .env file
+    OPENAI_API_KEY="your_openai_api_key_here"
+    AGENTOPS_API_KEY="your_agentops_api_key_here"
+    ```
+</CodeGroup>
+
+Then load the environment variables in your Python code:
+
+```python
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set up environment variables with fallback values
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+os.environ["AGENTOPS_API_KEY"] = os.getenv("AGENTOPS_API_KEY")
+```
+
+## Usage
+
+Initialize AgentOps at the beginning of your application to automatically track all AG2 agent interactions:
+
+<CodeGroup> 
+```python Single Agent Conversation
+import agentops
+import autogen
+import os
+
+# Initialize AgentOps
+agentops.init()
+
+# Configure your AG2 agents
+config_list = [
+    {
+        "model": "gpt-4",
+        "api_key": os.getenv("OPENAI_API_KEY"),
+    }
+]
+
+llm_config = {
+    "config_list": config_list,
+    "timeout": 60,
+}
+
+# Create a single agent
+assistant = autogen.AssistantAgent(
+    name="assistant",
+    llm_config=llm_config,
+    system_message="You are a helpful AI assistant."
+)
+
+user_proxy = autogen.UserProxyAgent(
+    name="user_proxy",
+    human_input_mode="TERMINATE",
+    max_consecutive_auto_reply=10,
+    is_termination_msg=lambda x: x.get("content", "").rstrip().endswith("TERMINATE"),
+    code_execution_config={"last_n_messages": 3, "work_dir": "coding"},
+)
+
+# Initiate a conversation
+user_proxy.initiate_chat(
+    assistant,
+    message="How can I implement a basic web scraper in Python?"
+)
+```
+</CodeGroup>
+
+## Examples
+
+<CardGroup cols={2}>
+  <Card title="AG2 Async Agent Chat" icon="notebook" href="/v2/examples/ag2">
+   AG2 Async Agent Chat with Automated Responses
+  </Card>
+  <Card title="Async Human Input" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/ag2/ag2_async_agent.ipynb" newTab={true}>
+    Demonstrates asynchronous human input with AG2 agents.
+  </Card>
+  <Card title="Wikipedia Search Tool" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/ag2/tools_wikipedia_search.ipynb" newTab={true}>
+    Example of AG2 agents using a Wikipedia search tool.
+  </Card>
+  <Card title="Multi-Agent Group Chat" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/ag2/groupchat.py" newTab={true}>
+    Orchestrate a team of specialized agents (researcher, coder, critic) with full AgentOps tracing.
+  </Card>
+</CardGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="AG2 - AgentOps Ecosystem Docs" icon="book" href="https://docs.ag2.ai/latest/docs/ecosystem/agentops/" newTab={true}>
+    Official AG2 documentation on integrating with AgentOps.
+  </Card>
+  <Card title="AG2 OpenTelemetry Tracing" icon="blog" href="https://docs.ag2.ai/latest/docs/blog/2026/02/08/AG2-OpenTelemetry-Tracing/" newTab={true}>
+    Full observability for multi-agent systems with AG2's built-in tracing.
+  </Card>
+</CardGroup>
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="css" src="/styles/styles.css"></script>

@@ -1,0 +1,34 @@
+module Anthropic
+  module Models
+    class BetaRawContentBlockDeltaEvent = Beta::BetaRawContentBlockDeltaEvent
+
+    module Beta
+      type beta_raw_content_block_delta_event =
+        {
+          delta: Anthropic::Models::Beta::beta_raw_content_block_delta,
+          index: Integer,
+          type: :content_block_delta
+        }
+
+      class BetaRawContentBlockDeltaEvent < Anthropic::Internal::Type::BaseModel
+        attr_accessor delta: Anthropic::Models::Beta::beta_raw_content_block_delta
+
+        attr_accessor index: Integer
+
+        attr_accessor type: :content_block_delta
+
+        def initialize: (
+          delta: Anthropic::Models::Beta::beta_raw_content_block_delta,
+          index: Integer,
+          ?type: :content_block_delta
+        ) -> void
+
+        def to_hash: -> {
+          delta: Anthropic::Models::Beta::beta_raw_content_block_delta,
+          index: Integer,
+          type: :content_block_delta
+        }
+      end
+    end
+  end
+end

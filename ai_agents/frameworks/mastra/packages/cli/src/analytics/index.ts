@@ -1,0 +1,264 @@
+import { randomUUID } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PostHog } from 'posthog-node';
+import { getPackageManager } from '../commands/utils.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+interface CommandData {
+  command: string;
+  args?: Record<string, unknown>;
+  durationMs?: number;
+  status: 'success' | 'error';
+  error?: string;
+}
+
+export type CLI_ORIGIN = 'mastra-cloud' | 'oss';
+
+let analyticsInstance: PosthogAnalytics | null = null;
+
+export function getAnalytics(): PosthogAnalytics | null {
+  return analyticsInstance;
+}
+
+export function setAnalytics(instance: PosthogAnalytics): void {
+  analyticsInstance = instance;
+}
+
+export class PosthogAnalytics {
+  private sessionId: string;
+  private client?: PostHog;
+  private distinctId: string;
+  private version: string;
+  private packageManager: string;
+
+  constructor({
+    version,
+    apiKey,
+    host = 'https://app.posthog.com',
+  }: {
+    version: string;
+    apiKey: string;
+    host: string;
+  }) {
+    this.version = version;
+    this.packageManager = getPackageManager();
+    const cliConfigPath = path.join(__dirname, 'mastra-cli.json');
+    if (existsSync(cliConfigPath)) {
+      try {
+        const { distinctId, sessionId } = JSON.parse(readFileSync(cliConfigPath, 'utf-8'));
+        this.distinctId = distinctId;
+        this.sessionId = sessionId;
+      } catch {
+        this.sessionId = randomUUID();
+        this.distinctId = this.getDistinctId();
+      }
+
+      this.writeCliConfig({
+        distinctId: this.distinctId,
+        sessionId: this.sessionId,
+      });
+    } else {
+      this.sessionId = randomUUID();
+      this.distinctId = this.getDistinctId();
+      this.writeCliConfig({
+        distinctId: this.distinctId,
+        sessionId: this.sessionId,
+      });
+    }
+
+    if (this.isTelemetryEnabled()) {
+      this.initializePostHog(apiKey, host);
+    }
+  }
+
+  private writeCliConfig({ distinctId, sessionId }: { distinctId: string; sessionId: string }): void {
+    try {
+      writeFileSync(path.join(__dirname, 'mastra-cli.json'), JSON.stringify({ distinctId, sessionId }));
+    } catch {
+      //swallow
+    }
+  }
+
+  private initializePostHog(apiKey: string, host: string): void {
+    this.client = new PostHog(apiKey, {
+      host,
+      flushAt: 1,
+      flushInterval: 0,
+      disableGeoip: false,
+    });
+
+    this.captureSessionStart();
+
+    process.on('exit', () => {
+      this.client?.flush().catch(() => {});
+    });
+  }
+
+  private isTelemetryEnabled(): boolean {
+    // Check environment variable first
+    if (process.env.MASTRA_TELEMETRY_DISABLED) {
+      return false;
+    }
+    // Default to enabled
+    return true;
+  }
+
+  private getDistinctId(): string {
+    // Use machine-id or generate a persistent ID
+    // This helps track unique CLI installations
+    const machineId = os.hostname();
+    return `mastra-${machineId}`;
+  }
+
+  private getSystemProperties(): Record<string, any> {
+    return {
+      os: process.platform,
+      os_version: os.release(),
+      node_version: process.version,
+      platform: process.arch,
+      session_id: this.sessionId,
+      cli_version: this.version || 'unknown',
+      machine_id: os.hostname(),
+      package_manager: this.packageManager,
+    };
+  }
+  private getDurationMs(startTime: [number, number]): number {
+    const [seconds, nanoseconds] = process.hrtime(startTime);
+    return seconds * 1000 + nanoseconds / 1_000_000;
+  }
+
+  private captureSessionStart(): void {
+    if (!this.client) {
+      return;
+    }
+
+    this.client.capture({
+      distinctId: this.distinctId,
+      event: 'cli_session_start',
+      properties: {
+        ...this.getSystemProperties(),
+      },
+    });
+  }
+
+  trackEvent(eventName: string, properties?: Record<string, any>): void {
+    try {
+      if (!this.client) {
+        return;
+      }
+
+      this.client.capture({
+        distinctId: this.distinctId,
+        event: eventName,
+        properties: {
+          ...this.getSystemProperties(),
+          ...properties,
+        },
+      });
+    } catch {
+      //swallow
+    }
+  }
+
+  trackCommand(options: {
+    command: string;
+    args?: Record<string, unknown>;
+    durationMs?: number;
+    status?: 'success' | 'error';
+    error?: string;
+    origin?: CLI_ORIGIN;
+  }): void {
+    try {
+      if (!this.client) {
+        return;
+      }
+
+      const commandData: CommandData = {
+        command: options.command,
+        status: options.status || 'success',
+      };
+
+      if (options.args) {
+        commandData.args = options.args;
+      }
+
+      if (options.durationMs) {
+        commandData.durationMs = options.durationMs;
+      }
+
+      if (options.error) {
+        commandData.error = options.error;
+      }
+
+      this.client.capture({
+        distinctId: this.distinctId,
+        event: 'cli_command',
+        properties: {
+          ...this.getSystemProperties(),
+          ...commandData,
+          origin: options?.origin || 'oss',
+        },
+      });
+    } catch {
+      //swallow
+    }
+  }
+
+  // Helper method to wrap command execution with timing
+  async trackCommandExecution<T>({
+    command,
+    args,
+    execution,
+    origin,
+  }: {
+    command: string;
+    args: Record<string, unknown>;
+    execution: () => Promise<T>;
+    origin?: CLI_ORIGIN;
+  }): Promise<T> {
+    const startTime = process.hrtime();
+
+    try {
+      const result = await execution();
+      const durationMs = this.getDurationMs(startTime);
+      this.trackCommand({
+        command,
+        args,
+        durationMs,
+        status: 'success',
+        origin,
+      });
+
+      return result;
+    } catch (error) {
+      const durationMs = this.getDurationMs(startTime);
+      this.trackCommand({
+        command,
+        args,
+        durationMs,
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        origin,
+      });
+
+      throw error;
+    }
+  }
+
+  // Ensure PostHog client is shutdown properly
+  async shutdown(): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+    try {
+      await this.client.shutdown();
+    } catch {
+      //swallow
+    }
+  }
+}

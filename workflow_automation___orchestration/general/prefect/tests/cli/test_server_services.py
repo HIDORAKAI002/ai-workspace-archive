@@ -1,0 +1,181 @@
+import json
+from pathlib import Path
+
+import pytest
+
+from prefect import settings
+from prefect.server.services.base import Service
+from prefect.settings import PREFECT_HOME
+from prefect.settings.context import temporary_settings
+from prefect.testing.cli import invoke_and_assert
+
+
+@pytest.fixture(autouse=True)
+def enable_all_services():
+    with temporary_settings(
+        {
+            getattr(settings, enable_service.environment_variable_name()): True
+            for enable_service in Service.all_services()
+        }
+    ):
+        yield
+
+
+@pytest.fixture
+def pid_file(monkeypatch: pytest.MonkeyPatch) -> Path:
+    pid_file = Path(PREFECT_HOME.value()) / "services.pid"
+    monkeypatch.setattr("prefect.cli._server_utils.SERVICES_PID_FILE", pid_file)
+    return pid_file
+
+
+@pytest.fixture(autouse=True)
+def cleanup_pid_file(pid_file: Path):
+    if pid_file.exists():
+        pid_file.unlink()
+    yield
+    if pid_file.exists():
+        pid_file.unlink()
+
+
+class TestBackgroundServices:
+    def test_start_and_stop_services(self, pid_file: Path):
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "start",
+                "--background",
+            ],
+            expected_output_contains="Services are running in the background.",
+            expected_code=0,
+        )
+
+        assert pid_file.exists(), "Services PID file does not exist"
+
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "stop",
+            ],
+            expected_output_contains="All services stopped.",
+            expected_code=0,
+        )
+
+        assert not pid_file.exists(), "Services PID file still exists"
+
+    def test_start_duplicate_services(self, pid_file: Path):
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "start",
+                "--background",
+            ],
+            expected_output_contains="Services are running in the background.",
+            expected_code=0,
+        )
+
+        assert pid_file.exists(), "PID file should exist before duplicate test"
+
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "start",
+                "--background",
+            ],
+            expected_output_contains="Services are already running in the background.",
+            expected_code=1,
+        )
+
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "stop",
+            ],
+            expected_output_contains="All services stopped.",
+            expected_code=0,
+        )
+
+    def test_stop_stale_pid_file(self, pid_file: Path):
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+        pid_file.write_text("99999")  # Use a likely unused PID
+
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "stop",
+            ],
+            expected_output_contains="Services were not running",
+            expected_output_does_not_contain="All services stopped.",
+            expected_code=0,
+        )
+
+        assert not pid_file.exists(), "Services PID file still exists"
+
+    def test_list_services(self):
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "ls",
+            ],
+            expected_output_contains=[
+                "Available Services",
+                "TaskRunRecorder",
+                # May be truncated in table display
+                "PREFECT_SERVER_SERVICES_TASK_RUN_RECORDER",
+            ],
+            expected_code=0,
+        )
+
+    def test_list_services_json_output(self):
+        result = invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "ls",
+                "--output",
+                "json",
+            ],
+            expected_code=0,
+        )
+
+        payload = json.loads(result.stdout)
+        assert isinstance(payload, list)
+        assert payload, "Expected non-empty JSON list"
+
+        required_keys = {"name", "enabled", "environment_variable", "description"}
+        for item in payload:
+            assert required_keys.issubset(item.keys())
+
+    def test_list_services_json_output_short_flag(self):
+        result = invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "ls",
+                "-o",
+                "json",
+            ],
+            expected_code=0,
+        )
+
+        payload = json.loads(result.stdout)
+        assert isinstance(payload, list)
+
+    def test_list_services_invalid_output_format(self):
+        invoke_and_assert(
+            command=[
+                "server",
+                "services",
+                "ls",
+                "--output",
+                "xml",
+            ],
+            expected_code=1,
+            expected_output_contains="Only 'json' output format is supported.",
+        )

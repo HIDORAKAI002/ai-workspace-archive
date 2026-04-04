@@ -1,0 +1,201 @@
+{
+    "bump-patch-for-minor-pre-major": true,
+    "separate-pull-requests": false,
+    "sequential-calls": true,
+    "packages": {
+        "python/openinference-semantic-conventions": {
+            "package-name": "python-openinference-semantic-conventions",
+            "release-type": "python"
+        },
+        "python/openinference-instrumentation": {
+            "package-name": "python-openinference-instrumentation",
+            "release-type": "python",
+            "exclude-paths": [
+                ".gitignore"
+            ]
+        },
+        "python/instrumentation/openinference-instrumentation-agentspec": {
+            "package-name": "python-openinference-instrumentation-agentspec",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-agno": {
+            "package-name": "python-openinference-instrumentation-agno",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-mistralai": {
+            "package-name": "python-openinference-instrumentation-mistralai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-openai": {
+            "package-name": "python-openinference-instrumentation-openai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-openai-agents": {
+            "package-name": "python-openinference-instrumentation-openai-agents",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-vertexai": {
+            "package-name": "python-openinference-instrumentation-vertexai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-llama-index": {
+            "package-name": "python-openinference-instrumentation-llama-index",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-dspy": {
+            "package-name": "python-openinference-instrumentation-dspy",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-bedrock": {
+            "package-name": "python-openinference-instrumentation-bedrock",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-langchain": {
+            "package-name": "python-openinference-instrumentation-langchain",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-guardrails": {
+            "package-name": "python-openinference-instrumentation-guardrails",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-crewai": {
+            "package-name": "python-openinference-instrumentation-crewai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-haystack": {
+            "package-name": "python-openinference-instrumentation-haystack",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-litellm": {
+            "package-name": "python-openinference-instrumentation-litellm",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-groq": {
+            "package-name": "python-openinference-instrumentation-groq",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-instructor": {
+            "package-name": "python-openinference-instrumentation-instructor",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-anthropic": {
+            "package-name": "python-openinference-instrumentation-anthropic",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-claude-agent-sdk": {
+            "package-name": "python-openinference-instrumentation-claude-agent-sdk",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-smolagents": {
+            "package-name": "python-openinference-instrumentation-smolagents",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-autogen": {
+            "package-name": "python-openinference-instrumentation-autogen",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-beeai": {
+            "package-name": "python-openinference-instrumentation-beeai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-portkey": {
+            "package-name": "python-openinference-instrumentation-portkey",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-mcp": {
+            "package-name": "python-openinference-instrumentation-mcp",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-google-genai": {
+            "package-name": "python-openinference-instrumentation-google-genai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-autogen-agentchat": {
+            "package-name": "python-openinference-instrumentation-autogen-agentchat",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-pydantic-ai": {
+            "package-name": "python-openinference-instrumentation-pydantic-ai",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-google-adk": {
+            "package-name": "python-openinference-instrumentation-google-adk",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-openlit": {
+            "package-name": "python-openinference-instrumentation-openlit",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-openllmetry": {
+            "package-name": "python-openinference-instrumentation-openllmetry",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-pipecat": {
+            "package-name": "python-openinference-instrumentation-pipecat",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-strands-agents": {
+            "package-name": "python-openinference-instrumentation-strands-agents",
+            "release-type": "python"
+        },
+        "python/instrumentation/openinference-instrumentation-agent-framework": {
+            "package-name": "python-openinference-instrumentation-agent-framework",
+            "release-type": "python"
+        },
+        "java/openinference-semantic-conventions": {
+            "package-name": "java-openinference-semantic-conventions",
+            "release-type": "simple",
+            "version-file": "java/openinference-semantic-conventions/gradle.properties",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "java/openinference-semantic-conventions/gradle.properties"
+                }
+            ]
+        },
+        "java/openinference-instrumentation": {
+            "package-name": "java-openinference-instrumentation",
+            "release-type": "simple",
+            "version-file": "java/openinference-instrumentation/gradle.properties",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "java/openinference-instrumentation/gradle.properties"
+                }
+            ]
+        },
+        "java/instrumentation/openinference-instrumentation-langchain4j": {
+            "package-name": "java-openinference-instrumentation-langchain4j",
+            "release-type": "simple",
+            "version-file": "java/instrumentation/openinference-instrumentation-langchain4j/gradle.properties",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "java/instrumentation/openinference-instrumentation-langchain4j/gradle.properties"
+                }
+            ]
+        },
+        "java/instrumentation/openinference-instrumentation-springAI": {
+            "package-name": "java-openinference-instrumentation-springAI",
+            "release-type": "simple",
+            "version-file": "java/instrumentation/openinference-instrumentation-springAI/gradle.properties",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "java/instrumentation/openinference-instrumentation-springAI/gradle.properties"
+                }
+            ]
+        },
+        "java/instrumentation/openinference-instrumentation-annotation": {
+            "package-name": "java-openinference-instrumentation-annotation",
+            "release-type": "simple",
+            "version-file": "java/instrumentation/openinference-instrumentation-annotation/gradle.properties",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "java/instrumentation/openinference-instrumentation-annotation/gradle.properties"
+                }
+            ]
+        }
+    }
+}

@@ -464,10 +464,7 @@ export function SideMenu({
                 title="AI"
                 isSideMenuCollapsed={isCollapsed}
                 itemSpacingClassName="space-y-0"
-                initialCollapsed={getSectionCollapsed(
-                  user.dashboardPreferences.sideMenu,
-                  "ai"
-                )}
+                initialCollapsed={getSectionCollapsed(user.dashboardPreferences.sideMenu, "ai")}
                 onCollapseToggle={handleSectionToggle("ai")}
               >
                 <SideMenuItem
@@ -480,7 +477,7 @@ export function SideMenu({
                   data-action="prompts"
                   isCollapsed={isCollapsed}
                 />
-                {(user.admin || user.isImpersonating || featureFlags.hasAiModelsAccess) && (
+                {(user.admin || user.isImpersonating || featureFlags.hasAiAccess) && (
                   <SideMenuItem
                     name="Models"
                     icon={CubeIcon}
@@ -531,8 +528,8 @@ export function SideMenu({
                   <SideMenuItem
                     name="Errors"
                     icon={IconBugFilled}
-                    activeIconColor="text-amber-500"
-                    inactiveIconColor="text-amber-500"
+                    activeIconColor="text-errors"
+                    inactiveIconColor="text-errors"
                     to={v3ErrorsPath(organization, project, environment)}
                     data-action="errors"
                     isCollapsed={isCollapsed}
@@ -1006,6 +1003,7 @@ function ProjectSelector({
             title="Logout"
             icon={ArrowRightOnRectangleIcon}
             leadingIconClassName="text-text-dimmed"
+            danger
           />
         </div>
       </PopoverContent>

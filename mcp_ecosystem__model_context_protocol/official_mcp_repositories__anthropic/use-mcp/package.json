@@ -1,0 +1,69 @@
+{
+  "name": "use-mcp",
+  "repository": "https://github.com/modelcontextprotocol/use-mcp",
+  "version": "0.0.21",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "require": "./dist/react/index.js",
+      "import": "./dist/react/index.js"
+    }
+  },
+  "scripts": {
+    "install:all": "concurrently 'pnpm install' 'cd examples/chat-ui && pnpm install' 'cd examples/inspector && pnpm install' 'cd examples/servers/hono-mcp && pnpm install' 'cd examples/servers/cf-agents && pnpm install'",
+    "dev": "concurrently 'pnpm:build:watch' 'cd examples/chat-ui && pnpm dev' 'cd examples/inspector && pnpm dev' 'sleep 1 && cd examples/servers/hono-mcp && pnpm dev' 'sleep 2 && cd examples/servers/cf-agents && pnpm dev'",
+    "deploy:all": "concurrently 'pnpm build:site && pnpm deploy:site' 'cd examples/chat-ui && pnpm run deploy' 'cd examples/inspector && pnpm run deploy'",
+    "build:watch": "tsup --watch",
+    "build": "tsup",
+    "check": "prettier --check . && tsc",
+    "prettier:fix": "prettier --write .",
+    "fix:oranda": "sed -i 's/```tsx/```ts/g' README.md",
+    "build:site": "npx @axodotdev/oranda build",
+    "deploy:site": "npx wrangler deploy",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.3",
+    "strict-url-sanitise": "^0.0.1"
+  },
+  "devDependencies": {
+    "@axodotdev/oranda": "^0.6.5",
+    "@types/react": "^19.0.12",
+    "concurrently": "^9.2.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "react": "^19.0.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.20.2"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts",
+      "src/react/index.ts"
+    ],
+    "format": [
+      "esm"
+    ],
+    "dts": true,
+    "clean": true,
+    "outDir": "dist",
+    "external": [
+      "react",
+      "@modelcontextprotocol/sdk"
+    ]
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+}

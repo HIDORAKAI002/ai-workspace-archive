@@ -1,0 +1,188 @@
+---
+title: Develop on Prefect
+description: Learn how to set up Prefect for development, experimentation and code contributions.
+---
+
+import fork from '/snippets/fork.mdx'
+
+
+## Make a code contribution
+
+We welcome all forms of contributions to Prefect, whether it's small typo fixes in [our documentation](/contribute/docs-contribute), bug fixes or feature enhancements!
+If this is your first time making an open source contribution we will be glad to work with you and help you get up to speed.
+
+<Note>
+For small changes such as typo fixes you can simply open a pull request - we typically review small changes like these within the day.
+For larger changes including all bug fixes, we ask that you first open [an issue](https://github.com/PrefectHQ/prefect/issues) or comment on the issue that you are planning to work on.
+</Note>
+
+## Fork the repository
+<fork />
+
+## Install Prefect for development
+
+Once you have cloned your fork of the repo you can install [an editable version](https://setuptools.pypa.io/en/latest/userguide/development_mode.html) of Prefect for quick iteration.
+
+
+We recommend using `uv` for dependency management when developing. Refer to the [`uv` docs for installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+
+To set up a virtual environment and install a development version of `prefect`:
+<CodeGroup>
+```bash uv
+uv sync
+```
+```bash pip and venv
+python -m venv .venv
+source .venv/bin/activate
+
+# Installs the package with development dependencies
+pip install --group dev -e .
+```
+</CodeGroup>
+
+To verify `prefect` was installed correctly:
+
+<CodeGroup>
+```bash uv
+uv run prefect --version
+```
+```bash pip and venv
+prefect --version
+```
+</CodeGroup>
+
+To ensure your changes comply with our linting policies, set up `pre-commit` and `pre-push` hooks to run with every commit:
+
+```bash
+uv run pre-commit install
+```
+
+To manually run the `pre-commit` hooks against all files:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+To manually run the pre-push hooks:
+
+```bash
+uv run pre-commit run --hook-stage pre-push --all-files
+```
+
+<Tip>
+  If you're using `uv`, you can run commands with the project's dependencies by prefixing the command with `uv run`.
+</Tip>
+
+## Write tests
+
+Prefect relies on unit testing to ensure proposed changes don't negatively impact any functionality.
+For all code changes, including bug fixes, we ask that you write at least one corresponding test.
+One rule of thumb - especially for bug fixes - is that you should write a test that fails prior to your changes and passes with your changes.
+This ensures the test will fail and prevent the bug from resurfacing if other changes are made in the future.
+All tests can be found in the `tests/` directory of the repository.
+
+You can run the test suite with `pytest`:
+
+```bash
+# run all tests
+pytest tests
+
+# run a specific file
+pytest tests/test_flows.py
+
+# run all tests that match a pattern
+pytest tests/test_tasks.py -k cache_policy
+```
+
+## Working with a development UI
+
+If you plan to use the UI during development, you will need to build a development version of the UI first.
+
+Using the Prefect UI in development requires installation of [npm](https://github.com/npm/cli).
+We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions.
+Once installed, run `nvm use` from the root of the Prefect repository to initialize the proper version of `npm` and `node`.
+
+Start a development UI that reloads on code changes:
+
+```bash
+prefect dev ui
+```
+
+This command is most useful if you are working directly on the UI codebase.
+
+Alternatively, you can build a static UI that will be served when running `prefect server start`:
+
+```bash
+prefect dev build-ui
+```
+
+## Working with a development server
+
+The Prefect CLI provides several helpful commands to aid development of server-side changes.
+
+You can start all services with hot-reloading on code changes (note that this requires installation of UI dependencies):
+
+```bash
+prefect dev start
+```
+
+Start a Prefect API that reloads on code changes:
+
+```bash
+prefect dev api
+```
+
+## Add database migrations
+
+If your code changes necessitate modifications to a database table, first update the SQLAlchemy model in `src/prefect/server/database/orm_models.py`.
+
+For example, to add a new column to the `flow_run` table, add a new column to the `FlowRun` model:
+
+```python
+# src/prefect/server/database/orm_models.py
+
+class FlowRun(Run):
+    """SQLAlchemy model of a flow run."""
+    ...
+    new_column: Mapped[Union[str, None]] = mapped_column(sa.String, nullable=True) # <-- add this line
+```
+
+Next, generate new migration files.
+Generate a new migration file for each database type.
+
+Migrations are generated for whichever database type `PREFECT_API_DATABASE_CONNECTION_URL` is set to.
+See [how to set the database connection URL](/v3/api-ref/settings-ref#connection-url) for each database type.
+
+To generate a new migration file, run:
+
+```bash
+prefect server database revision --autogenerate -m "<migration name>"
+```
+
+Make the migration name brief but descriptive.
+For example:
+
+*   `add_flow_run_new_column`
+*   `add_flow_run_new_column_idx`
+*   `rename_flow_run_old_column_to_new_column`
+
+The `--autogenerate` flag automatically generates a migration file based on the changes to the models.
+
+<Warning>
+**Always inspect the output of `--autogenerate`**
+
+`--autogenerate` generates a migration file based on the changes to the models.
+However, it is not perfect. Check the file to ensure it only includes the desired changes.
+</Warning>
+
+The new migration is in the `src/prefect/server/database/migrations/versions/` directory. Each database type has its
+own subdirectory. For example, the SQLite migrations are stored in `src/prefect/server/database/migrations/versions/sqlite/`.
+
+After inspecting the migration file, apply the migration to the database by running:
+
+```bash
+prefect server database upgrade -y
+```
+
+After successfully creating migrations for all database types, update `MIGRATION-NOTES.md` to
+document the changes.

@@ -1,0 +1,111 @@
+[package]
+name = "mcp-server-examples"
+version = "0.1.5"
+edition = "2024"
+publish = false
+
+[dependencies]
+rmcp = { workspace = true, features = [
+    "server",
+    "macros",
+    "client",
+    "transport-io",
+    "transport-streamable-http-server",
+    "auth",
+    "elicitation",
+    "schemars",
+] }
+tokio = { version = "1", features = [
+    "macros",
+    "rt",
+    "rt-multi-thread",
+    "io-std",
+    "signal",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+    "std",
+    "fmt",
+] }
+futures = "0.3"
+rand = { version = "0.10", features = ["std"] }
+axum = { version = "0.8", features = ["macros"] }
+schemars = "1.0"
+reqwest = { version = "0.13.2", features = ["json"] }
+chrono = "0.4"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+serde_urlencoded = "0.7"
+askama = { version = "0.15" }
+tower-http = { version = "0.6", features = ["cors"] }
+hyper = { version = "1" }
+hyper-util = { version = "0", features = ["server"] }
+tokio-util = { version = "0.7" }
+url = "2.5"
+
+[dev-dependencies]
+tokio-stream = { version = "0.1" }
+tokio-util = { version = "0.7", features = ["codec"] }
+
+[[example]]
+name = "servers_counter_stdio"
+path = "src/counter_stdio.rs"
+
+[[example]]
+name = "servers_memory_stdio"
+path = "src/memory_stdio.rs"
+
+[[example]]
+name = "servers_counter_streamhttp"
+path = "src/counter_streamhttp.rs"
+
+[[example]]
+name = "servers_prompt_stdio"
+path = "src/prompt_stdio.rs"
+
+[[example]]
+name = "counter_hyper_streamable_http"
+path = "src/counter_hyper_streamable_http.rs"
+
+[[example]]
+name = "servers_sampling_stdio"
+path = "src/sampling_stdio.rs"
+
+[[example]]
+name = "servers_structured_output"
+path = "src/structured_output.rs"
+
+[[example]]
+name = "servers_elicitation_stdio"
+path = "src/elicitation_stdio.rs"
+
+[[example]]
+name = "servers_completion_stdio"
+path = "src/completion_stdio.rs"
+
+[[example]]
+name = "servers_progress_demo"
+path = "src/progress_demo.rs"
+
+[[example]]
+name = "servers_simple_auth_streamhttp"
+path = "src/simple_auth_streamhttp.rs"
+
+[[example]]
+name = "servers_complex_auth_streamhttp"
+path = "src/complex_auth_streamhttp.rs"
+
+[[example]]
+name = "servers_cimd_auth_streamhttp"
+path = "src/cimd_auth_streamhttp.rs"
+
+[[example]]
+name = "servers_calculator_stdio"
+path = "src/calculator_stdio.rs"
+
+[[example]]
+name = "elicitation_enum_select"
+path = "src/elicitation_enum_inference.rs"

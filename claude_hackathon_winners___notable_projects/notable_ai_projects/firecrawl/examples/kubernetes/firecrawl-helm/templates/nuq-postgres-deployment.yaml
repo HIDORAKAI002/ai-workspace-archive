@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "firecrawl.fullname" . }}-nuq-postgres
+  labels:
+    app: {{ include "firecrawl.name" . }}-nuq-postgres
+spec:
+  replicas: {{ .Values.nuqPostgres.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "firecrawl.name" . }}-nuq-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ include "firecrawl.name" . }}-nuq-postgres
+    spec:
+      {{- if .Values.image.dockerSecretEnabled }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nuq-postgres
+          image: "{{ .Values.nuqPostgres.image.repository }}:{{ .Values.nuqPostgres.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.nuqPostgres.image.pullPolicy | default "Always" }}
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.nuqPostgres.auth.username | default "postgres" }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.nuqPostgres.auth.password | default "password" }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.nuqPostgres.auth.database | default "postgres" }}"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+          {{- if .Values.resources.enabled }}
+            {{- if .Values.nuqPostgres.resources }}
+          resources:
+              {{- toYaml .Values.nuqPostgres.resources | nindent 12 }}
+            {{- else }}
+          resources:
+              requests:
+                memory: "512Mi"
+                cpu: "250m"
+              limits:
+                memory: "1Gi"
+                cpu: "500m"
+            {{- end }}
+          {{- end }}
+      volumes:
+        - name: postgres-storage
+          {{- if .Values.nuqPostgres.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "firecrawl.fullname" . }}-nuq-postgres-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "firecrawl.fullname" . }}-nuq-postgres
+  labels:
+    app: {{ include "firecrawl.name" . }}-nuq-postgres
+spec:
+  selector:
+    app: {{ include "firecrawl.name" . }}-nuq-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

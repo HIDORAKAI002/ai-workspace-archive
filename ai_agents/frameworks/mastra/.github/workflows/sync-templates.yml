@@ -1,0 +1,49 @@
+name: Sync Template Repositories
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+    paths:
+      - 'templates/**' # Only trigger when templates change
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  sync-templates:
+    name: Sync Template Repositories
+    if: ${{ github.repository == 'mastra-ai/mastra' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Initial checkout
+        uses: actions/checkout@v5
+        with:
+          # Use default GITHUB_TOKEN for initial checkout
+          # This is needed to access the .github/actions/app-auth action
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Dane App Auth
+        id: app-auth
+        uses: ./.github/actions/app-auth
+        with:
+          app-id: ${{ vars.DANE_APP_ID }}
+          private-key: ${{ secrets.DANE_APP_PRIVATE_KEY }}
+          owner: mastra-ai
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/setup-pnpm-node
+
+      - name: Install dependencies
+        run: pnpm add -w --no-lockfile @octokit/rest fs-extra dotenv --no-lockfile
+
+      - name: Run Template Sync Script
+        env:
+          GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+          ORGANIZATION: 'mastra-ai'
+          USERNAME: '${{ steps.app-auth.outputs.app-slug }}[bot]'
+          EMAIL: '${{ steps.app-auth.outputs.user-id }}+${{ steps.app-auth.outputs.app-slug }}[bot]@users.noreply.github.com'
+        run: node .github/scripts/sync-templates.js

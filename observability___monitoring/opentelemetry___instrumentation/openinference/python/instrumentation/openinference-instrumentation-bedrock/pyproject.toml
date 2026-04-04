@@ -1,0 +1,117 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openinference-instrumentation-bedrock"
+dynamic = ["version"]
+description = "OpenInference Bedrock Instrumentation"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10, <3.15"
+authors = [
+  { name = "OpenInference Authors", email = "oss@arize.com" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+  "opentelemetry-api",
+  "opentelemetry-instrumentation",
+  "opentelemetry-semantic-conventions",
+  "openinference-instrumentation>=0.1.27",
+  "openinference-semantic-conventions>=0.1.17",
+  "wrapt",
+  "typing-extensions",
+  "dacite>=1.8.1",
+]
+
+[project.optional-dependencies]
+instruments = [
+  "boto3 >= 1.40.46",
+]
+test = [
+  "boto3 == 1.40.46",
+  "aioboto3 == 15.5.0",
+  "aioresponses",
+  "opentelemetry-sdk",
+  "opentelemetry-instrumentation-httpx",
+  "anthropic>=0.47.0",
+  "pytest-asyncio",
+  "pytest-order",
+  "pydantic>=2.10.6",
+  "pytest-vcr>=1.0.2",
+  "types-requests",
+  "requests",
+  "mypy_boto3_bedrock_runtime",
+  "mypy_boto3_bedrock_agent_runtime",
+]
+
+[project.entry-points.opentelemetry_instrumentor]
+bedrock = "openinference.instrumentation.bedrock:BedrockInstrumentor"
+
+[project.entry-points.openinference_instrumentor]
+bedrock = "openinference.instrumentation.bedrock:BedrockInstrumentor"
+
+[project.urls]
+Homepage = "https://github.com/Arize-ai/openinference/tree/main/python/instrumentation/openinference-instrumentation-bedrock"
+
+[tool.hatch.version]
+path = "src/openinference/instrumentation/bedrock/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openinference"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = [
+  "tests",
+]
+
+[tool.mypy]
+strict = true
+explicit_package_bases = true
+exclude = [
+  "examples",
+  "dist",
+  "sdist",
+]
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "wrapt",
+  "boto3",
+  "botocore.*",
+  "aioboto3",
+  "aioresponses",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402", "E501"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+force-single-line = false

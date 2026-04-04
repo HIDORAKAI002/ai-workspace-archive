@@ -1,0 +1,52 @@
+# frozen_string_literal: true
+
+require_relative "../test_helper"
+
+class Anthropic::Test::Resources::ModelsTest < Anthropic::Test::ResourceTest
+  def test_retrieve
+    response = @anthropic.models.retrieve("model_id")
+
+    assert_pattern do
+      response => Anthropic::ModelInfo
+    end
+
+    assert_pattern do
+      response => {
+        id: String,
+        capabilities: Anthropic::ModelCapabilities | nil,
+        created_at: Time,
+        display_name: String,
+        max_input_tokens: Integer | nil,
+        max_tokens: Integer | nil,
+        type: Symbol
+      }
+    end
+  end
+
+  def test_list
+    response = @anthropic.models.list
+
+    assert_pattern do
+      response => Anthropic::Internal::Page
+    end
+
+    row = response.to_enum.first
+    return if row.nil?
+
+    assert_pattern do
+      row => Anthropic::ModelInfo
+    end
+
+    assert_pattern do
+      row => {
+        id: String,
+        capabilities: Anthropic::ModelCapabilities | nil,
+        created_at: Time,
+        display_name: String,
+        max_input_tokens: Integer | nil,
+        max_tokens: Integer | nil,
+        type: Symbol
+      }
+    end
+  end
+end

@@ -1,0 +1,154 @@
+---
+title: "Concurrent Traces"
+description: "Managing multiple concurrent traces and sessions"
+---
+
+# Session Management in AgentOps
+
+AgentOps supports running multiple concurrent traces (sessions) without any special mode switching or restrictions. The modern approach uses the trace-based API with `start_trace()` and `end_trace()`, while legacy session functions remain available for backwards compatibility.
+
+## Modern Trace-Based Approach
+
+The recommended way to manage sessions is using the trace-based API:
+
+<CodeGroup>
+```python single trace
+import agentops
+
+agentops.init()
+trace_context = agentops.start_trace("my_workflow")
+# Your agent logic here
+agentops.end_trace(trace_context, "Success")
+```
+
+```python multiple concurrent traces
+import agentops
+
+agentops.init(auto_start_session=False)
+trace_1 = agentops.start_trace("workflow_1", tags=["experiment_a"])
+trace_2 = agentops.start_trace("workflow_2", tags=["experiment_b"])
+
+# Work with both traces concurrently
+agentops.end_trace(trace_1, "Success")
+agentops.end_trace(trace_2, "Success")
+```
+
+```python context manager
+import agentops
+
+agentops.init(auto_start_session=False)
+with agentops.start_trace("my_workflow") as trace:
+    # Your agent logic here
+    # Trace automatically ends when exiting the context
+    pass
+```
+</CodeGroup>
+
+## Legacy Session API
+
+For backwards compatibility, the legacy session functions are still available:
+
+<CodeGroup>
+```python legacy single session
+import agentops
+agentops.init()
+agentops.end_session(end_state='Success')
+```
+
+```python legacy multiple sessions
+import agentops
+agentops.init(auto_start_session=False)
+session_1 = agentops.start_session(tags=["session_1"])
+session_2 = agentops.start_session(tags=["session_2"])
+
+session_1.end_session(end_state='Success')
+session_2.end_session(end_state='Success')
+```
+</CodeGroup>
+
+## Managing Multiple Traces
+
+### Starting Traces
+You can start multiple traces concurrently without any restrictions:
+
+```python
+agentops.init(auto_start_session=False)
+trace_1 = agentops.start_trace("user_query_1")
+trace_2 = agentops.start_trace("user_query_2")
+trace_3 = agentops.start_trace("background_task")
+```
+
+### Ending Traces
+End traces individually or all at once:
+
+```python
+# End specific trace
+agentops.end_trace(trace_1, "Success")
+
+# End all active traces
+agentops.end_trace(end_state="Success")
+```
+
+### Using Decorators
+The modern approach also supports decorators for automatic trace management:
+
+```python
+import agentops
+
+@agentops.trace
+def my_workflow():
+    # Your agent logic here
+    return "result"
+
+@agentops.agent
+class MyAgent:
+    def run(self):
+        # Agent logic here
+        pass
+```
+
+## LLM Call Tracking
+
+LLM calls are automatically tracked when using the modern instrumentation. No special handling is needed for multiple concurrent traces:
+
+```python
+import agentops
+import openai
+
+agentops.init()
+client = openai.OpenAI()
+
+trace_1 = agentops.start_trace("query_1")
+response_1 = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "Hello from trace 1"}]
+)
+
+trace_2 = agentops.start_trace("query_2")
+response_2 = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "Hello from trace 2"}]
+)
+
+agentops.end_trace(trace_1, "Success")
+agentops.end_trace(trace_2, "Success")
+```
+
+## Migration from Legacy Multi-Session Mode
+
+If you're migrating from older AgentOps versions that had multi-session mode restrictions:
+
+1. **Remove multi-session mode checks** - These are no longer needed
+2. **Update to trace-based API** - Use `start_trace()` and `end_trace()` for new code
+3. **Simplify LLM tracking** - Automatic instrumentation handles LLM calls without special session assignment
+4. **Use decorators** - Consider using `@trace`, `@agent`, and `@tool` decorators for cleaner code
+
+### Examples
+<CardGroup cols={2}>
+	<Card title="Concurrent Traces Example" icon="scroll" iconType="solid" color="green" href="/v1/examples/multi_session">
+        Create multiple concurrent traces and manage them independently
+	</Card>
+	<Card title="REST API" icon="computer" iconType="regular" color="purple" href="/v1/examples/fastapi">
+        Create a REST server with FastAPI and manage traces per request
+	</Card>
+</CardGroup>

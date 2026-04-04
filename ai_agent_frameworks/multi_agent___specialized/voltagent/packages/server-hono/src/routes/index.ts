@@ -1,0 +1,561 @@
+import type { ServerProviderDeps } from "@voltagent/core";
+import type { Logger } from "@voltagent/internal";
+import {
+  UPDATE_ROUTES,
+  handleAttachWorkflowStream,
+  handleCancelWorkflow,
+  handleChatStream,
+  handleCheckUpdates,
+  handleExecuteWorkflow,
+  handleGenerateObject,
+  handleGenerateText,
+  handleGetAgent,
+  handleGetAgentHistory,
+  handleGetAgentWorkspaceInfo,
+  handleGetAgentWorkspaceSkill,
+  handleGetAgents,
+  handleGetLogs,
+  handleGetWorkflow,
+  handleGetWorkflowState,
+  handleGetWorkflows,
+  handleInstallUpdates,
+  handleListAgentWorkspaceFiles,
+  handleListAgentWorkspaceSkills,
+  handleListWorkflowRuns,
+  handleReadAgentWorkspaceFile,
+  handleReplayWorkflow,
+  handleResumeChatStream,
+  handleResumeWorkflow,
+  handleStreamObject,
+  handleStreamText,
+  handleStreamWorkflow,
+  handleSuspendWorkflow,
+  isErrorResponse,
+  mapLogResponse,
+} from "@voltagent/server-core";
+import type { OpenAPIHonoType } from "../zod-openapi-compat";
+import {
+  attachWorkflowStreamRoute,
+  cancelWorkflowRoute,
+  chatRoute,
+  executeWorkflowRoute,
+  getAgentsRoute,
+  getWorkflowsRoute,
+  objectRoute,
+  replayWorkflowRoute,
+  resumeChatStreamRoute,
+  resumeWorkflowRoute,
+  streamObjectRoute,
+  streamRoute,
+  streamWorkflowRoute,
+  suspendWorkflowRoute,
+  textRoute,
+  workspaceGetSkillRoute,
+  workspaceInfoRoute,
+  workspaceListFilesRoute,
+  workspaceListSkillsRoute,
+  workspaceReadFileRoute,
+} from "./agent.routes";
+import { getLogsRoute } from "./log.routes";
+import { registerTriggerRoutes } from "./trigger.routes";
+export { registerMcpRoutes } from "./mcp.routes";
+export { registerA2ARoutes } from "./a2a.routes";
+export { registerToolRoutes } from "./tool.routes";
+export { registerTriggerRoutes } from "./trigger.routes";
+export { registerMemoryRoutes } from "./memory.routes";
+
+/**
+ * Register agent routes
+ */
+export function registerAgentRoutes(
+  app: OpenAPIHonoType,
+  deps: ServerProviderDeps,
+  logger: Logger,
+) {
+  // GET /agents - List all agents
+  app.openapi(getAgentsRoute, async (c) => {
+    const response = await handleGetAgents(deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // GET /agents/:id - Get agent by ID
+  app.get("/agents/:id", async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const response = await handleGetAgent(agentId, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // POST /agents/:id/text - Generate text (AI SDK compatible)
+  app.openapi(textRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const body = await c.req.json();
+
+    const signal = c.req.raw.signal;
+    const response = await handleGenerateText(agentId, body, deps, logger, signal);
+    if (!response.success) {
+      const { httpStatus, ...details } = response;
+      return c.json(details, httpStatus || 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // POST /agents/:id/stream - Stream text (raw fullStream SSE)
+  app.openapi(streamRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const body = await c.req.json();
+    const signal = c.req.raw.signal;
+    const response = await handleStreamText(agentId, body, deps, logger, signal);
+
+    // Handler now always returns a Response object
+    return response;
+  });
+
+  // POST /agents/:id/chat - Stream chat messages (UI message stream SSE)
+  app.openapi(chatRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const body = await c.req.json();
+    const signal = c.req.raw.signal;
+    const response = await handleChatStream(agentId, body, deps, logger, signal);
+
+    // Handler now always returns a Response object
+    return response;
+  });
+
+  // GET /agents/:id/chat/:conversationId/stream - Resume chat stream (UI message stream SSE)
+  app.openapi(resumeChatStreamRoute, async (c) => {
+    const agentId = c.req.param("id");
+    const conversationId = c.req.param("conversationId");
+    const userId = c.req.query("userId");
+    if (!agentId || !conversationId) {
+      throw new Error("Missing agent or conversation id parameter");
+    }
+
+    return handleResumeChatStream(agentId, conversationId, deps, logger, userId);
+  });
+
+  // POST /agents/:id/object - Generate object
+  app.openapi(objectRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const body = await c.req.json();
+    const signal = c.req.raw.signal;
+    const response = await handleGenerateObject(agentId, body, deps, logger, signal);
+    if (!response.success) {
+      const { httpStatus, ...details } = response;
+      return c.json(details, httpStatus || 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // POST /agents/:id/stream-object - Stream object
+  app.openapi(streamObjectRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      throw new Error("Missing agent id parameter");
+    }
+    const body = await c.req.json();
+    const signal = c.req.raw.signal;
+    const response = await handleStreamObject(agentId, body, deps, logger, signal);
+
+    // Handler now always returns a Response object
+    return response;
+  });
+
+  // GET /agents/:id/history - Get agent history with pagination
+  app.get("/agents/:id/history", async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    const page = Number.parseInt(c.req.query("page") || "0", 10);
+    const limit = Number.parseInt(c.req.query("limit") || "10", 10);
+    const response = await handleGetAgentHistory(agentId, page, limit, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // GET /agents/:id/workspace - Workspace info
+  app.openapi(workspaceInfoRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    const response = await handleGetAgentWorkspaceInfo(agentId, deps, logger);
+    const status = response.success ? 200 : response.httpStatus || 500;
+    return c.json(response, status);
+  });
+
+  // GET /agents/:id/workspace/ls - List workspace files
+  app.openapi(workspaceListFilesRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    const path = c.req.query("path") || undefined;
+    const response = await handleListAgentWorkspaceFiles(agentId, { path }, deps, logger);
+    const status = response.success ? 200 : response.httpStatus || 500;
+    return c.json(response, status);
+  });
+
+  // GET /agents/:id/workspace/read - Read workspace file
+  app.openapi(workspaceReadFileRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    const path = c.req.query("path") || undefined;
+    const offset = c.req.query("offset");
+    const limit = c.req.query("limit");
+    const response = await handleReadAgentWorkspaceFile(
+      agentId,
+      { path, offset, limit },
+      deps,
+      logger,
+    );
+    const status = response.success ? 200 : response.httpStatus || 500;
+    return c.json(response, status);
+  });
+
+  // GET /agents/:id/workspace/skills - List workspace skills
+  app.openapi(workspaceListSkillsRoute, async (c) => {
+    const agentId = c.req.param("id");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    const refresh = c.req.query("refresh");
+    const response = await handleListAgentWorkspaceSkills(agentId, { refresh }, deps, logger);
+    const status = response.success ? 200 : response.httpStatus || 500;
+    return c.json(response, status);
+  });
+
+  // GET /agents/:id/workspace/skills/:skillId - Get workspace skill
+  app.openapi(workspaceGetSkillRoute, async (c) => {
+    const agentId = c.req.param("id");
+    const skillId = c.req.param("skillId");
+    if (!agentId) {
+      return c.json({ success: false, error: "Missing agent id parameter" }, 400);
+    }
+    if (!skillId) {
+      return c.json({ success: false, error: "Missing skillId parameter" }, 400);
+    }
+    const response = await handleGetAgentWorkspaceSkill(agentId, skillId, deps, logger);
+    const status = response.success ? 200 : response.httpStatus || 500;
+    return c.json(response, status);
+  });
+
+  // More agent routes can be added here...
+}
+
+/**
+ * Register workflow routes
+ */
+export function registerWorkflowRoutes(
+  app: OpenAPIHonoType,
+  deps: ServerProviderDeps,
+  logger: Logger,
+) {
+  // GET /workflows - List all workflows
+  app.openapi(getWorkflowsRoute, async (c) => {
+    const response = await handleGetWorkflows(deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // GET /workflows/executions - List workflow executions (query-driven)
+  app.get("/workflows/executions", async (c) => {
+    const query = c.req.query();
+    const response = await handleListWorkflowRuns(undefined, query, deps, logger);
+    if (!response.success) {
+      return c.json(response, response.error?.includes("not found") ? 404 : 500);
+    }
+
+    return c.json(response, 200);
+  });
+
+  // GET /workflows/:id - Get workflow by ID
+  app.get("/workflows/:id", async (c) => {
+    const workflowId = c.req.param("id");
+    if (!workflowId) {
+      throw new Error("Missing workflow id parameter");
+    }
+    const response = await handleGetWorkflow(workflowId, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // Execute workflow
+  app.openapi(executeWorkflowRoute, async (c) => {
+    const workflowId = c.req.param("id");
+    if (!workflowId) {
+      throw new Error("Missing workflow id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleExecuteWorkflow(workflowId, body, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // Stream workflow execution
+  app.openapi(streamWorkflowRoute, async (c) => {
+    const workflowId = c.req.param("id");
+    if (!workflowId) {
+      throw new Error("Missing workflow id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleStreamWorkflow(workflowId, body, deps, logger);
+
+    // Check if it's an error response
+    if (isErrorResponse(response)) {
+      return c.json(response, 500);
+    }
+
+    // It's a ReadableStream for custom SSE
+    return c.body(response, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  });
+
+  // Attach to existing workflow stream execution
+  app.openapi(attachWorkflowStreamRoute, async (c) => {
+    const workflowId = c.req.param("id");
+    const executionId = c.req.param("executionId");
+    if (!workflowId || !executionId) {
+      throw new Error("Missing workflow or execution id parameter");
+    }
+
+    const query = c.req.query();
+    const lastEventId = c.req.header("last-event-id");
+    const response = await handleAttachWorkflowStream(
+      workflowId,
+      executionId,
+      {
+        fromSequence: query.fromSequence,
+        lastEventId,
+      },
+      deps,
+      logger,
+    );
+
+    if (isErrorResponse(response)) {
+      const status: 404 | 409 | 500 =
+        response.httpStatus === 404 || response.httpStatus === 409 ? response.httpStatus : 500;
+      return c.json(response, status);
+    }
+
+    return c.body(response, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  });
+
+  // Suspend workflow execution
+  app.openapi(suspendWorkflowRoute, async (c) => {
+    const executionId = c.req.param("executionId");
+    if (!executionId) {
+      throw new Error("Missing execution id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleSuspendWorkflow(executionId, body, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // Cancel workflow execution
+  app.openapi(cancelWorkflowRoute, async (c) => {
+    const executionId = c.req.param("executionId");
+    if (!executionId) {
+      throw new Error("Missing execution id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleCancelWorkflow(executionId, body, deps, logger);
+    if (!response.success) {
+      const errorMessage = response.error || "";
+      const status = errorMessage.includes("not found")
+        ? 404
+        : errorMessage.includes("not cancellable")
+          ? 409
+          : 500;
+      return c.json(response, status);
+    }
+    return c.json(response, 200);
+  });
+
+  // Resume workflow execution
+  app.openapi(resumeWorkflowRoute, async (c) => {
+    const workflowId = c.req.param("id");
+    const executionId = c.req.param("executionId");
+    if (!workflowId || !executionId) {
+      throw new Error("Missing workflow or execution id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleResumeWorkflow(workflowId, executionId, body, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // Replay workflow execution from a historical step
+  app.openapi(replayWorkflowRoute, async (c) => {
+    const workflowId = c.req.param("id");
+    const executionId = c.req.param("executionId");
+    if (!workflowId || !executionId) {
+      throw new Error("Missing workflow or execution id parameter");
+    }
+    const body = await c.req.json();
+    const response = await handleReplayWorkflow(workflowId, executionId, body, deps, logger);
+    if (!response.success) {
+      const status = response.httpStatus || 500;
+      return c.json(response, status);
+    }
+    return c.json(response, 200);
+  });
+
+  app.get("/workflows/executions", async (c) => {
+    const query = c.req.query();
+    const response = await handleListWorkflowRuns(undefined, query, deps, logger);
+    if (!response.success) {
+      return c.json(response, response.error?.includes("not found") ? 404 : 500);
+    }
+
+    return c.json(response, 200);
+  });
+
+  // Get workflow execution state
+  app.get("/workflows/:id/executions/:executionId/state", async (c) => {
+    const workflowId = c.req.param("id");
+    const executionId = c.req.param("executionId");
+    if (!workflowId || !executionId) {
+      throw new Error("Missing workflow or execution id parameter");
+    }
+    const response = await handleGetWorkflowState(workflowId, executionId, deps, logger);
+    if (!response.success) {
+      return c.json(response, response.error?.includes("not found") ? 404 : 500);
+    }
+    return c.json(response, 200);
+  });
+}
+
+/**
+ * Register log routes
+ */
+export function registerLogRoutes(app: OpenAPIHonoType, deps: ServerProviderDeps, logger: Logger) {
+  // GET /api/logs - Get logs with filters
+  app.openapi(getLogsRoute, async (c) => {
+    const query = c.req.query();
+    const options = {
+      limit: query.limit ? Number(query.limit) : undefined,
+      level: query.level as any,
+      agentId: query.agentId,
+      workflowId: query.workflowId,
+      conversationId: query.conversationId,
+      executionId: query.executionId,
+      since: query.since,
+      until: query.until,
+    };
+
+    const response = await handleGetLogs(options, deps, logger);
+
+    if (!response.success) {
+      return c.json(response as any, 500);
+    }
+
+    // Map the response to match the OpenAPI schema
+    const mappedResponse = mapLogResponse(response);
+    return c.json(mappedResponse as any, 200);
+  });
+}
+
+/**
+ * Register update routes
+ */
+export function registerUpdateRoutes(
+  app: OpenAPIHonoType,
+  deps: ServerProviderDeps,
+  logger: Logger,
+) {
+  // GET /updates - Check for updates
+  app.get(UPDATE_ROUTES.checkUpdates.path, async (c) => {
+    const response = await handleCheckUpdates(deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // POST /updates - Install updates
+  app.post(UPDATE_ROUTES.installUpdates.path, async (c) => {
+    let packageName: string | undefined;
+
+    try {
+      const body = (await c.req.json()) as { packageName?: unknown };
+      if (typeof body?.packageName === "string") {
+        packageName = body.packageName;
+      }
+    } catch (error) {
+      logger.warn("Failed to parse update install request body", { error });
+    }
+
+    const response = await handleInstallUpdates(packageName, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+
+  // POST /updates/:packageName - Install single package update
+  app.post("/updates/:packageName", async (c) => {
+    const packageName = c.req.param("packageName");
+
+    if (!packageName) {
+      return c.json({ success: false, error: "Package name is required" }, 400);
+    }
+
+    const response = await handleInstallUpdates(packageName, deps, logger);
+    if (!response.success) {
+      return c.json(response, 500);
+    }
+    return c.json(response, 200);
+  });
+}
+
+export { registerObservabilityRoutes } from "./observability";

@@ -1,0 +1,29 @@
+name: ty
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  WORKING_DIRECTORY: "."
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Set up Python
+        run: uv python install 3.11
+      - name: Install the project
+        run: uv sync --all-extras
+      - name: Run type check with ty
+        run: uv run ty check instructor/
+      - name: Run type check with ty (tests)
+        run: uv run ty check --config-file ty-tests.toml tests

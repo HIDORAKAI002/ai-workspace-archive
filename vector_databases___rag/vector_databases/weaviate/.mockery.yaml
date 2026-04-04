@@ -1,0 +1,123 @@
+with-expecter: True
+recursive: true
+inpackage: true
+dir: "{{ .InterfaceDir }}"
+outpkg: "{{ .PackageName }}"
+filename: "mock_{{ snakecase .InterfaceName }}.go"
+packages:
+  github.com/weaviate/weaviate/cluster/schema:
+    interfaces:
+      Parser:
+      replicationFSM:
+  github.com/weaviate/weaviate/usecases/replica:
+   interfaces:
+      RClient:
+      WClient:
+  github.com/weaviate/weaviate/usecases/replica/types:
+    interfaces:
+      Replicator:
+  github.com/weaviate/weaviate/adapters/repos/db/lsmkv:
+    interfaces:
+      BucketCreator:
+  github.com/weaviate/weaviate/entities/modulecapabilities:
+    interfaces:
+      BackupBackend:
+  github.com/weaviate/weaviate/usecases/backup:
+    interfaces:
+      BackupBackendProvider:
+      NodeResolver:
+      Selector:
+  github.com/weaviate/weaviate/usecases/cluster:
+    interfaces:
+      NodeSelector:
+      NodeResolver:
+  github.com/weaviate/weaviate/entities/schema/config:
+    interfaces:
+      VectorIndexConfig:
+  github.com/weaviate/weaviate/usecases/schema:
+    interfaces:
+      SchemaGetter:
+      SchemaReader:
+  github.com/weaviate/weaviate/usecases/auth/authorization:
+    interfaces:
+      Controller:
+      Authorizer:
+  github.com/weaviate/weaviate/adapters/handlers/rest/authz:
+    interfaces:
+      ControllerAndGetUsers:
+  github.com/weaviate/weaviate/adapters/handlers/rest/db_users:
+    interfaces:
+      DbUserAndRolesGetter:
+  github.com/weaviate/weaviate/cluster/replication:
+    interfaces:
+      OpProducer:
+      OpConsumer:
+      Timer:
+  github.com/weaviate/weaviate/cluster/replication/types:
+    interfaces:
+      ReplicationFSMReader:
+      Manager:
+      FSMUpdater:
+      ReplicaCopier:
+  github.com/weaviate/weaviate/cluster/distributedtask:
+    interfaces:
+      TaskCleaner:
+      TaskCompletionRecorder:
+  github.com/weaviate/weaviate/cluster/replication/copier:
+    interfaces:
+      FileReplicationServiceClient:
+      FileMetadataStream:
+      FileChunkStream:
+  github.com/weaviate/weaviate/cluster/replication/copier/types:
+    interfaces:
+      RemoteIndex:
+  github.com/weaviate/weaviate/cluster/router/types:
+    interfaces:
+      Router:
+  github.com/weaviate/weaviate/entities/moduletools:
+    interfaces:
+      ModuleInitParams:
+  github.com/weaviate/weaviate/cluster/usage:
+    interfaces:
+      Service:
+  github.com/weaviate/weaviate/adapters/repos/db:
+    interfaces:
+      ShardLike:
+      IndexGetter:
+      IndexLike:
+      VectorIndex:
+  github.com/weaviate/weaviate/adapters/repos/db/vector/dynamic:
+    interfaces:
+      Index:
+      VectorIndex:
+  github.com/weaviate/weaviate/adapters/repos/db/vector/compressionhelpers:
+    interfaces:
+      CompressionStats:
+  github.com/weaviate/weaviate/usecases/modulecomponents/usage:
+    interfaces:
+      StorageBackend:
+  github.com/weaviate/weaviate/adapters/handlers/grpc/v1/batch:
+    interfaces:
+      batcher:
+        config:
+          dir: "adapters/handlers/grpc/v1/batch/mocks"
+          outpkg: "mocks"
+          inpackage: false
+      authenticator:
+        config:
+          dir: "adapters/handlers/grpc/v1/batch/mocks"
+          outpkg: "mocks"
+          inpackage: false
+      schemaManager:
+        config:
+          dir: "adapters/handlers/grpc/v1/batch/mocks"
+          outpkg: "mocks"
+          inpackage: false
+  github.com/weaviate/weaviate/grpc/generated/protocol/v1:
+    interfaces:
+      Weaviate_BatchStreamServer:
+        config:
+          dir: "adapters/handlers/grpc/v1/batch/mocks"
+          outpkg: "mocks"
+          inpackage: false
+  

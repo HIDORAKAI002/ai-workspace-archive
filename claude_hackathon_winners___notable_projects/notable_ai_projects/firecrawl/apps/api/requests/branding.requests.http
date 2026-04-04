@@ -1,0 +1,38 @@
+### Test 1: Firecrawl, SVG logo, bright colors, light theme
+# @name brandingTest1
+POST http://localhost:3002/v2/scrape
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+Content-Type: application/json
+
+{
+  "url": "https://firecrawl.dev",
+  "formats": [
+    { "type": "branding" }
+  ]
+}
+
+### Test 2: Supabase, dark mode, dark colors, png logo
+# @name brandingTest2
+POST http://localhost:3002/v2/scrape
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+Content-Type: application/json
+
+{
+  "url": "https://supabase.com",
+  "formats": [
+    { "type": "branding" }
+  ]
+}
+
+### Test 3: Vercel, light mode, light colors, svg logo
+# @name brandingTest3
+POST http://localhost:3002/v2/scrape
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+Content-Type: application/json
+
+{
+  "url": "https://vercel.com",
+  "formats": [
+    { "type": "branding" }
+  ]
+}

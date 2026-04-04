@@ -1,0 +1,146 @@
+import { FeatureId, FEATURE_DISPLAY_NAMES, SubfeatureId } from "./features";
+
+export interface LimitConfig {
+  getLimit: () => number;
+  description: (limit: number) => string;
+  upgradeFeatureName: string;
+  upgradeMessage?: (limit: number, used: number) => string;
+}
+
+export interface FeatureConfig {
+  main: LimitConfig;
+  subfeatures?: Partial<Record<SubfeatureId, LimitConfig>>;
+}
+
+export type FreeTierConfig = {
+  features: Partial<Record<FeatureId, FeatureConfig>>;
+};
+
+export const FREE_TIER_CONFIG: FreeTierConfig = {
+  features: {
+    prompts: {
+      main: {
+        getLimit: () => Infinity, // Unlimited prompts for free tier
+        description: () => `Unlimited prompts`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.prompts,
+      },
+      subfeatures: {
+        versions: {
+          getLimit: () => Infinity, // Unlimited versions for free tier
+          description: () => `Unlimited prompt versions`,
+          upgradeFeatureName: FEATURE_DISPLAY_NAMES.prompts,
+        },
+        runs: {
+          getLimit: () => 10,
+          description: (limit) =>
+            `You can perform up to ${limit} prompt runs with the free tier`,
+          upgradeMessage: (limit, used) =>
+            `You've used ${used}/${limit} prompt runs. Add credits for unlimited access.`,
+          upgradeFeatureName: FEATURE_DISPLAY_NAMES.prompts,
+        },
+        playground_runs: {
+          getLimit: () => 10,
+          description: (limit) =>
+            `You can perform up to ${limit} playground runs with the free tier`,
+          upgradeMessage: (limit, used) =>
+            `You've used ${used}/${limit} playground runs. Add credits for unlimited access.`,
+          upgradeFeatureName: "Playground",
+        },
+      },
+    },
+    experiments: {
+      main: {
+        getLimit: () => 3,
+        description: (limit) =>
+          `You can create up to ${limit} experiments with the free tier`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.experiments,
+      },
+      subfeatures: {
+        test_cases: {
+          getLimit: () => 5,
+          description: (limit) =>
+            `You can create up to ${limit} test cases per experiment`,
+          upgradeFeatureName: FEATURE_DISPLAY_NAMES.experiments,
+        },
+        variants: {
+          getLimit: () => 3,
+          description: (limit) =>
+            `You can create up to ${limit} variants per experiment`,
+          upgradeFeatureName: FEATURE_DISPLAY_NAMES.experiments,
+          upgradeMessage: (limit, used) =>
+            `You've used ${used}/${limit} variants. Upgrade for unlimited access.`,
+        },
+      },
+    },
+    evals: {
+      main: {
+        getLimit: () => 1,
+        description: (limit) =>
+          `You can create up to ${limit} evaluators with the free tier`,
+        upgradeFeatureName: "evals",
+        upgradeMessage: (limit, used) =>
+          `You've used ${used}/${limit} evaluators. Upgrade for unlimited access.`,
+      },
+      subfeatures: {
+        runs: {
+          getLimit: () => 10,
+          description: (limit) =>
+            `You can perform up to ${limit} evaluation runs per evaluator`,
+          upgradeFeatureName: "evals",
+        },
+      },
+    },
+    datasets: {
+      main: {
+        getLimit: () => Infinity, // Unlimited datasets for free tier
+        description: () => `Unlimited datasets`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.datasets,
+      },
+      subfeatures: {
+        requests: {
+          getLimit: () => Infinity, // Unlimited requests per dataset for free tier
+          description: () => `Unlimited requests per dataset`,
+          upgradeFeatureName: FEATURE_DISPLAY_NAMES.datasets,
+        },
+      },
+    },
+    alerts: {
+      main: {
+        getLimit: () => 1,
+        description: (limit) =>
+          `You can create up to ${limit} alert with the free tier`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.alerts,
+        upgradeMessage: (limit, used) =>
+          `You've used ${used}/${limit} alert. Upgrade for unlimited alerts.`,
+      },
+    },
+    sessions: {
+      main: {
+        getLimit: () => Infinity, // Unlimited sessions for free tier
+        description: () => `Unlimited sessions`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.sessions,
+      },
+    },
+    properties: {
+      main: {
+        getLimit: () => Infinity, // Unlimited properties for free tier
+        description: () => `Unlimited properties`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.properties,
+      },
+    },
+    users: {
+      main: {
+        getLimit: () => Infinity, // Unlimited users for free tier
+        description: () => `Unlimited users`,
+        upgradeFeatureName: FEATURE_DISPLAY_NAMES.users,
+      },
+    },
+  },
+};
+
+// Utility function to get all features with free tier limits
+export function getAllFeaturesWithLimits(): FeatureId[] {
+  return Object.entries(FREE_TIER_CONFIG.features)
+    .filter(([_, config]) => config.main.getLimit() > 0)
+    .map(([key]) => key as FeatureId);
+}

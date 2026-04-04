@@ -1,0 +1,243 @@
+import {
+  calculateNextRetryDelay,
+  isOOMRunError,
+  RetryOptions,
+  sanitizeError,
+  shouldLookupRetrySettings,
+  shouldRetryError,
+  TaskRunError,
+  taskRunErrorEnhancer,
+  TaskRunExecutionRetry,
+} from "@trigger.dev/core/v3";
+import { PrismaClientOrTransaction } from "@trigger.dev/database";
+import { MAX_TASK_RUN_ATTEMPTS } from "./consts.js";
+import { ServiceValidationError } from "./errors.js";
+
+type Params = {
+  runId: string;
+  attemptNumber: number | null;
+  error: TaskRunError;
+  retryUsingQueue: boolean;
+  retrySettings: TaskRunExecutionRetry | undefined;
+};
+
+export type RetryOutcome =
+  | {
+      outcome: "cancel_run";
+      reason?: string;
+    }
+  | {
+      outcome: "fail_run";
+      sanitizedError: TaskRunError;
+      wasOOMError?: boolean;
+    }
+  | {
+      outcome: "retry";
+      method: "queue" | "immediate";
+      settings: TaskRunExecutionRetry;
+      machine?: string;
+      wasOOMError?: boolean;
+      // Current usage values for calculating updated totals
+      usageDurationMs: number;
+      costInCents: number;
+      machinePreset: string | null;
+    };
+
+export async function retryOutcomeFromCompletion(
+  prisma: PrismaClientOrTransaction,
+  { runId, attemptNumber, error, retryUsingQueue, retrySettings }: Params
+): Promise<RetryOutcome> {
+  // Canceled
+  if (error.type === "INTERNAL_ERROR" && error.code === "TASK_RUN_CANCELLED") {
+    return { outcome: "cancel_run", reason: error.message };
+  }
+
+  const sanitizedError = sanitizeError(error);
+
+  // OOM error (retry on a larger machine or fail)
+  if (isOOMRunError(error)) {
+    const oomResult = await retryOOMOnMachine(prisma, runId);
+    if (!oomResult) {
+      return { outcome: "fail_run", sanitizedError, wasOOMError: true };
+    }
+
+    const delay = calculateNextRetryDelay(oomResult.retrySettings, attemptNumber ?? 1);
+
+    if (!delay) {
+      //no more retries left
+      return { outcome: "fail_run", sanitizedError, wasOOMError: true };
+    }
+
+    return {
+      outcome: "retry",
+      method: "queue",
+      machine: oomResult.machine,
+      settings: { timestamp: Date.now() + delay, delay },
+      wasOOMError: true,
+      usageDurationMs: oomResult.usageDurationMs,
+      costInCents: oomResult.costInCents,
+      machinePreset: oomResult.machinePreset,
+    };
+  }
+
+  const enhancedError = taskRunErrorEnhancer(error);
+
+  // Not a retriable error: fail
+  const retriableError = shouldRetryError(enhancedError);
+
+  if (!retriableError) {
+    return { outcome: "fail_run", sanitizedError };
+  }
+
+  // Exceeded global max attempts
+  if (attemptNumber !== null && attemptNumber > MAX_TASK_RUN_ATTEMPTS) {
+    return { outcome: "fail_run", sanitizedError };
+  }
+
+  // Get the run settings and current usage values
+  const run = await prisma.taskRun.findFirst({
+    where: {
+      id: runId,
+    },
+    select: {
+      maxAttempts: true,
+      lockedRetryConfig: true,
+      usageDurationMs: true,
+      costInCents: true,
+      machinePreset: true,
+    },
+  });
+
+  if (!run) {
+    throw new ServiceValidationError("Run not found", 404);
+  }
+
+  // No max attempts set
+  if (!run.maxAttempts) {
+    return { outcome: "fail_run", sanitizedError };
+  }
+
+  // No attempts left
+  if (attemptNumber !== null && attemptNumber >= run.maxAttempts) {
+    return { outcome: "fail_run", sanitizedError };
+  }
+
+  // No retry settings
+  if (!retrySettings) {
+    const shouldLookup = shouldLookupRetrySettings(enhancedError);
+
+    if (!shouldLookup) {
+      return { outcome: "fail_run", sanitizedError };
+    }
+
+    const retryConfig = run.lockedRetryConfig;
+
+    if (!retryConfig) {
+      return { outcome: "fail_run", sanitizedError };
+    }
+
+    const parsedRetryConfig = RetryOptions.nullish().safeParse(retryConfig);
+
+    if (!parsedRetryConfig.success) {
+      return { outcome: "fail_run", sanitizedError };
+    }
+
+    if (!parsedRetryConfig.data) {
+      return { outcome: "fail_run", sanitizedError };
+    }
+
+    const nextDelay = calculateNextRetryDelay(parsedRetryConfig.data, attemptNumber ?? 1);
+
+    if (!nextDelay) {
+      return { outcome: "fail_run", sanitizedError };
+    }
+
+    const retrySettings = {
+      timestamp: Date.now() + nextDelay,
+      delay: nextDelay,
+    };
+
+    return {
+      outcome: "retry",
+      method: "queue", // we'll always retry on the queue because usually having no settings means something bad happened
+      settings: retrySettings,
+      usageDurationMs: run.usageDurationMs,
+      costInCents: run.costInCents,
+      machinePreset: run.machinePreset,
+    };
+  }
+
+  return {
+    outcome: "retry",
+    method: retryUsingQueue ? "queue" : "immediate",
+    settings: retrySettings,
+    usageDurationMs: run.usageDurationMs,
+    costInCents: run.costInCents,
+    machinePreset: run.machinePreset,
+  };
+}
+
+async function retryOOMOnMachine(
+  prisma: PrismaClientOrTransaction,
+  runId: string
+): Promise<{
+  machine: string;
+  retrySettings: RetryOptions;
+  usageDurationMs: number;
+  costInCents: number;
+  machinePreset: string | null;
+} | undefined> {
+  try {
+    const run = await prisma.taskRun.findFirst({
+      where: {
+        id: runId,
+      },
+      select: {
+        machinePreset: true,
+        lockedRetryConfig: true,
+        usageDurationMs: true,
+        costInCents: true,
+      },
+    });
+
+    if (!run || !run.lockedRetryConfig || !run.machinePreset) {
+      return;
+    }
+
+    const retryConfig = run.lockedRetryConfig;
+    const parsedRetryConfig = RetryOptions.nullish().safeParse(retryConfig);
+
+    if (!parsedRetryConfig.success) {
+      return;
+    }
+
+    if (!parsedRetryConfig.data) {
+      return;
+    }
+
+    const retryMachine = parsedRetryConfig.data.outOfMemory?.machine;
+
+    if (!retryMachine) {
+      return;
+    }
+
+    if (run.machinePreset === retryMachine) {
+      return;
+    }
+
+    return {
+      machine: retryMachine,
+      retrySettings: parsedRetryConfig.data,
+      usageDurationMs: run.usageDurationMs,
+      costInCents: run.costInCents,
+      machinePreset: run.machinePreset,
+    };
+  } catch (error) {
+    console.error("[FailedTaskRunRetryHelper] Failed to get execution retry", {
+      runId,
+      error,
+    });
+
+    return;
+  }
+}

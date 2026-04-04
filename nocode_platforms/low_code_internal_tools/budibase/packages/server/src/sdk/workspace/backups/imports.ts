@@ -34,6 +34,7 @@ import {
   ATTACHMENT_DIRECTORY,
   DB_EXPORT_FILE,
   GLOBAL_DB_EXPORT_FILE,
+  IMPORT_PENDING_LITELLM_MODEL_ID,
 } from "./constants"
 
 type TemplateType = {
@@ -196,9 +197,6 @@ export interface ImportAppOpts {
   objectStoreAppId?: string
   preserveLiteLLMConfig?: boolean
 }
-
-export const IMPORT_PENDING_LITELLM_MODEL_ID =
-  "__bb_import_pending_litellm_model__"
 
 async function sanitizeLiteLLMImportData(db: Database) {
   console.log("Starting LiteLLM import sanitization", {

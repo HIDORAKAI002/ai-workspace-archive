@@ -7,6 +7,7 @@
  */
 
 use std::collections::HashMap;
+use std::net::IpAddr;
 
 use windmill_api_auth::{
     check_scopes, maybe_refresh_folders, require_owner_of_path, require_super_admin, ApiAuthed,
@@ -124,6 +125,8 @@ pub struct Resource {
     pub extra_perms: serde_json::Value,
     pub created_by: Option<String>,
     pub edited_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
 }
 
 #[derive(FromRow, Serialize, Deserialize)]
@@ -142,6 +145,8 @@ pub struct ListableResource {
     pub is_expired: Option<bool>,
     pub refresh_error: Option<String>,
     pub account: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -150,12 +155,15 @@ pub struct CreateResource {
     pub value: Option<Box<RawValue>>,
     pub description: Option<String>,
     pub resource_type: String,
+    #[serde(default)]
+    pub labels: Option<Vec<String>>,
 }
 #[derive(Deserialize)]
 struct EditResource {
     path: Option<String>,
     description: Option<String>,
     value: Option<Box<RawValue>>,
+    labels: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -168,6 +176,7 @@ pub struct ListResourceQuery {
     // filter by matching a subset of the value using base64 encoded json subset
     pub value: Option<String>,
     pub broad_filter: Option<String>,
+    pub label: Option<String>,
 }
 
 #[derive(Serialize, FromRow)]
@@ -251,6 +260,7 @@ async fn list_resources(
             "account.refresh_error",
             "resource.created_by",
             "resource.edited_at",
+            "resource.labels",
         ])
         .left()
         .join("variable")
@@ -297,7 +307,11 @@ async fn list_resources(
     }
 
     if let Some(value) = &lq.value {
-        sqlb.and_where("resource.value @> ?".bind(&value.replace("'", "''")));
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(value) {
+            sqlb.and_where("resource.value @> ?".bind(&v.to_string()));
+        } else {
+            sqlb.and_where("FALSE");
+        }
     }
 
     if let Some(broad_filter) = &lq.broad_filter {
@@ -306,6 +320,12 @@ async fn list_resources(
             "(resource.path ILIKE ? OR resource.description ILIKE ? OR resource_type ILIKE ? OR resource.value::text ILIKE ?)"
                 .bind(&pat).bind(&pat).bind(&pat).bind(&pat)
         );
+    }
+
+    if let Some(label) = &lq.label {
+        for l in label.split(',') {
+            sqlb.and_where("resource.labels @> ARRAY[?]".bind(&l.trim()));
+        }
     }
 
     let sql = sqlb.sql().map_err(|e| Error::internal_err(e.to_string()))?;
@@ -570,6 +590,16 @@ pub async fn transform_json_value(
                     .await?;
             Ok(Value::String(v))
         }
+        Value::String(y) if y.starts_with("$jsonvar:") => {
+            let path = y.strip_prefix("$jsonvar:").unwrap();
+
+            let v =
+                crate::variables::get_value_internal(&db_with_opt_authed, workspace, path, false)
+                    .await?;
+            serde_json::from_str::<Value>(&v).map_err(|e| {
+                Error::internal_err(format!("Failed to parse $jsonvar value as JSON: {e}"))
+            })
+        }
         Value::String(y) if y.starts_with("$res:") => {
             let path = y.strip_prefix("$res:").unwrap();
             if path.split("/").count() < 2 {
@@ -806,15 +836,16 @@ async fn create_resource(
     }
     sqlx::query!(
         "INSERT INTO resource
-            (workspace_id, path, value, description, resource_type, created_by, edited_at)
-            VALUES ($1, $2, $3, $4, $5, $6, now()) ON CONFLICT (workspace_id, path)
-            DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description, resource_type = EXCLUDED.resource_type, edited_at = now()",
+            (workspace_id, path, value, description, resource_type, created_by, edited_at, labels)
+            VALUES ($1, $2, $3, $4, $5, $6, now(), $7) ON CONFLICT (workspace_id, path)
+            DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description, resource_type = EXCLUDED.resource_type, edited_at = now(), labels = EXCLUDED.labels",
         w_id,
         resource.path,
         raw_json as sqlx::types::Json<&RawValue>,
         resource.description,
         resource.resource_type,
-        authed.username
+        authed.username,
+        resource.labels.as_deref() as Option<&[String]>
     )
     .execute(&mut *tx)
     .await?;
@@ -1181,7 +1212,6 @@ async fn update_resource(
     if let Some(ndesc) = ns.description {
         sqlb.set_str("description", ndesc);
     }
-
     sqlb.set_str("edited_at", "now()");
 
     sqlb.returning("path");
@@ -1247,6 +1277,17 @@ async fn update_resource(
     let npath_o: Option<String> = sqlx::query_scalar(&sql).fetch_optional(&mut *tx).await?;
 
     let npath = not_found_if_none(npath_o, "Resource", path)?;
+
+    if let Some(nlabels) = &ns.labels {
+        sqlx::query!(
+            "UPDATE resource SET labels = $1 WHERE path = $2 AND workspace_id = $3",
+            nlabels as &[String],
+            &npath,
+            &w_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
 
     audit_log(
         &mut *tx,
@@ -1767,9 +1808,74 @@ struct GitRepositoryResource {
     branch: Option<String>,
 }
 
-/// Validates a git URL to prevent git option injection attacks.
-/// Git URLs starting with '-' could be interpreted as command-line options.
-fn validate_git_url(url: &str) -> Result<()> {
+/// Checks whether an IP address belongs to a private, loopback, link-local, or
+/// otherwise reserved range that should not be reachable from git operations.
+fn is_private_or_reserved_ip(ip: &IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(v4) => {
+            v4.is_loopback()
+                || v4.is_private()
+                || v4.is_link_local()
+                || v4.is_unspecified()
+                || v4.is_broadcast()
+                // 100.64.0.0/10 (Carrier-grade NAT / CGNAT)
+                || (v4.octets()[0] == 100 && (v4.octets()[1] & 0xC0) == 64)
+        }
+        IpAddr::V6(v6) => {
+            v6.is_loopback()
+                || v6.is_unspecified()
+                // IPv4-mapped IPv6 (::ffff:x.x.x.x) — check the inner v4
+                || v6.to_ipv4_mapped().map_or(false, |v4| {
+                    is_private_or_reserved_ip(&IpAddr::V4(v4))
+                })
+        }
+    }
+}
+
+/// Extracts the hostname from a git URL.
+///
+/// Handles standard URLs (`https://host/path`, `ssh://user@host/path`) and
+/// SCP-style (`user@host:path`).
+fn extract_host_from_git_url(url: &str) -> Option<String> {
+    if let Some(after_scheme) = url.split("://").nth(1) {
+        // Standard URL with scheme
+        let host_part = match after_scheme.find('@') {
+            Some(pos) => &after_scheme[pos + 1..],
+            None => after_scheme,
+        };
+        // Handle IPv6 in brackets: [::1]
+        if host_part.starts_with('[') {
+            let end = host_part.find(']')?;
+            let host = &host_part[1..end];
+            return if host.is_empty() {
+                None
+            } else {
+                Some(host.to_lowercase())
+            };
+        }
+        let host_port = host_part.split('/').next()?;
+        let host = host_port.rsplit_once(':').map_or(host_port, |(h, _)| h);
+        if host.is_empty() {
+            return None;
+        }
+        return Some(host.to_lowercase());
+    }
+
+    // SCP-style: user@host:path
+    if let Some(at_pos) = url.find('@') {
+        let after_at = &url[at_pos + 1..];
+        let host = after_at.split(':').next()?;
+        if host.is_empty() {
+            return None;
+        }
+        return Some(host.to_lowercase());
+    }
+
+    None
+}
+
+/// Validates a git URL to prevent option injection, SSRF, and local file read.
+async fn validate_git_url(url: &str) -> Result<()> {
     let url = url.trim();
     if url.is_empty() {
         return Err(Error::BadRequest("Git URL cannot be empty".to_string()));
@@ -1779,12 +1885,59 @@ fn validate_git_url(url: &str) -> Result<()> {
             "Git URL cannot start with '-' (potential option injection)".to_string(),
         ));
     }
-    // Block other potentially dangerous patterns
     if url.contains('\0') || url.contains('\n') || url.contains('\r') {
         return Err(Error::BadRequest(
             "Git URL contains invalid characters".to_string(),
         ));
     }
+
+    let lower = url.to_lowercase();
+
+    // Allowlist of URL formats — blocks file://, ftp://, local paths, etc.
+    let has_valid_scheme = lower.starts_with("https://")
+        || lower.starts_with("http://")
+        || lower.starts_with("git://")
+        || lower.starts_with("ssh://");
+
+    // SCP-style: user@host:path (no scheme, has @ before :)
+    let is_scp_style = !url.contains("://") && url.contains('@') && url.contains(':');
+
+    if !has_valid_scheme && !is_scp_style {
+        return Err(Error::BadRequest(
+            "Git URL must use https://, http://, git://, ssh://, or user@host:path format"
+                .to_string(),
+        ));
+    }
+
+    let host = extract_host_from_git_url(url)
+        .ok_or_else(|| Error::BadRequest("Could not parse hostname from git URL".to_string()))?;
+
+    if host == "localhost" || host.ends_with(".local") || host == "[::1]" {
+        return Err(Error::BadRequest(
+            "Git URLs targeting localhost or local network are not allowed".to_string(),
+        ));
+    }
+
+    // Check literal IP addresses
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        if is_private_or_reserved_ip(&ip) {
+            return Err(Error::BadRequest(
+                "Git URLs targeting private or reserved IP addresses are not allowed".to_string(),
+            ));
+        }
+    } else {
+        // Hostname — resolve via DNS and reject if any address is private
+        if let Ok(addrs) = tokio::net::lookup_host(format!("{}:443", host)).await {
+            for addr in addrs {
+                if is_private_or_reserved_ip(&addr.ip()) {
+                    return Err(Error::BadRequest(
+                        "Git URL hostname resolves to a private or reserved IP address".to_string(),
+                    ));
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -1976,8 +2129,8 @@ async fn get_repo_latest_commit_hash(
     git_resource: &GitRepositoryResource,
     git_ssh_command: Option<String>,
 ) -> Result<String> {
-    // Validate URL and branch to prevent option injection attacks
-    validate_git_url(&git_resource.url)?;
+    // Validate URL and branch to prevent option injection and SSRF attacks
+    validate_git_url(&git_resource.url).await?;
 
     let ref_spec = git_resource
         .branch
@@ -2140,5 +2293,150 @@ mod tests {
         let result = transform_json_value(&dba, "test", input, &None, None, 0).await;
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_host_from_git_url() {
+        // Standard HTTPS
+        assert_eq!(
+            extract_host_from_git_url("https://github.com/user/repo.git"),
+            Some("github.com".to_string())
+        );
+        // HTTPS with port
+        assert_eq!(
+            extract_host_from_git_url("https://git.example.com:8443/repo.git"),
+            Some("git.example.com".to_string())
+        );
+        // SSH with scheme
+        assert_eq!(
+            extract_host_from_git_url("ssh://git@github.com/user/repo.git"),
+            Some("github.com".to_string())
+        );
+        // SCP-style
+        assert_eq!(
+            extract_host_from_git_url("git@github.com:user/repo.git"),
+            Some("github.com".to_string())
+        );
+        // Git protocol
+        assert_eq!(
+            extract_host_from_git_url("git://example.com/repo.git"),
+            Some("example.com".to_string())
+        );
+        // IPv6 in brackets
+        assert_eq!(
+            extract_host_from_git_url("http://[::1]:8080/repo.git"),
+            Some("::1".to_string())
+        );
+        // No host extractable
+        assert_eq!(extract_host_from_git_url("/local/path"), None);
+        assert_eq!(
+            extract_host_from_git_url("file:///etc/passwd"),
+            Some("".to_string()).filter(|s| !s.is_empty())
+        );
+    }
+
+    #[test]
+    fn test_is_private_or_reserved_ip() {
+        use std::net::IpAddr;
+        // Loopback
+        assert!(is_private_or_reserved_ip(
+            &"127.0.0.1".parse::<IpAddr>().unwrap()
+        ));
+        assert!(is_private_or_reserved_ip(
+            &"127.0.0.2".parse::<IpAddr>().unwrap()
+        ));
+        // Private ranges
+        assert!(is_private_or_reserved_ip(
+            &"10.0.0.1".parse::<IpAddr>().unwrap()
+        ));
+        assert!(is_private_or_reserved_ip(
+            &"172.16.0.1".parse::<IpAddr>().unwrap()
+        ));
+        assert!(is_private_or_reserved_ip(
+            &"192.168.1.1".parse::<IpAddr>().unwrap()
+        ));
+        // Link-local / cloud metadata
+        assert!(is_private_or_reserved_ip(
+            &"169.254.169.254".parse::<IpAddr>().unwrap()
+        ));
+        // CGNAT
+        assert!(is_private_or_reserved_ip(
+            &"100.64.0.1".parse::<IpAddr>().unwrap()
+        ));
+        // Unspecified
+        assert!(is_private_or_reserved_ip(
+            &"0.0.0.0".parse::<IpAddr>().unwrap()
+        ));
+        // IPv6 loopback
+        assert!(is_private_or_reserved_ip(&"::1".parse::<IpAddr>().unwrap()));
+        // IPv4-mapped IPv6
+        assert!(is_private_or_reserved_ip(
+            &"::ffff:127.0.0.1".parse::<IpAddr>().unwrap()
+        ));
+        // Public IPs should pass
+        assert!(!is_private_or_reserved_ip(
+            &"8.8.8.8".parse::<IpAddr>().unwrap()
+        ));
+        assert!(!is_private_or_reserved_ip(
+            &"140.82.121.4".parse::<IpAddr>().unwrap()
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_blocks_file_scheme() {
+        let result = validate_git_url("file:///etc/passwd").await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("https://"));
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_blocks_private_ips() {
+        assert!(validate_git_url("http://127.0.0.1/repo.git").await.is_err());
+        assert!(validate_git_url("http://169.254.169.254/latest/meta-data/")
+            .await
+            .is_err());
+        assert!(validate_git_url("http://10.0.0.1/repo.git").await.is_err());
+        assert!(validate_git_url("http://172.16.0.1/repo.git")
+            .await
+            .is_err());
+        assert!(validate_git_url("http://192.168.1.1/repo.git")
+            .await
+            .is_err());
+        assert!(validate_git_url("git://0.0.0.0/repo.git").await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_blocks_localhost() {
+        assert!(validate_git_url("http://localhost/repo.git").await.is_err());
+        assert!(validate_git_url("http://myhost.local/repo.git")
+            .await
+            .is_err());
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_blocks_local_paths() {
+        assert!(validate_git_url("/etc/passwd").await.is_err());
+        assert!(validate_git_url("../relative/path").await.is_err());
+        assert!(validate_git_url("./local/repo").await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_allows_valid_urls() {
+        // These should succeed (host resolution may fail but validation passes)
+        assert!(validate_git_url("https://github.com/user/repo.git")
+            .await
+            .is_ok());
+        assert!(validate_git_url("git@github.com:user/repo.git")
+            .await
+            .is_ok());
+        assert!(validate_git_url("ssh://git@github.com/user/repo.git")
+            .await
+            .is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_validate_git_url_blocks_option_injection() {
+        assert!(validate_git_url("-evil").await.is_err());
+        assert!(validate_git_url("--upload-pack=evil").await.is_err());
     }
 }

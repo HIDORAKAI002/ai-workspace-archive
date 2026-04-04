@@ -1,0 +1,723 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Helicone OSS LLM Observability",
+  "colors": {
+    "primary": "#0CA5E9",
+    "light": "#0CA5E9",
+    "dark": "#0CA5E9"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "anchors": [
+      {
+        "anchor": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "getting-started/quick-start",
+              "getting-started/platform-overview"
+            ]
+          },
+          {
+            "group": "AI Gateway",
+            "pages": [
+              "gateway/overview",
+              "gateway/provider-routing",
+              "gateway/prompt-integration",
+              "features/advanced-usage/caching",
+              "features/advanced-usage/custom-rate-limits",
+              "features/advanced-usage/llm-security",
+              "features/advanced-usage/token-limit-exception-handlers",
+              {
+                "group": "Provider Concepts",
+                "pages": [
+                  "gateway/concepts/prompt-caching",
+                  "gateway/concepts/reasoning",
+                  "gateway/concepts/image-generation",
+                  "gateway/concepts/context-editing",
+                  "gateway/web-search",
+                  "gateway/concepts/error-handling",
+                  "gateway/concepts/responses-api"
+                ]
+              },
+              {
+                "group": "Integrations",
+                "pages": [
+                  "gateway/integrations/overview",
+                  "gateway/integrations/claude-agent-sdk",
+                  "gateway/integrations/codex",
+                  "gateway/integrations/dpsy",
+                  "gateway/integrations/llamaindex",
+                  "gateway/integrations/langchain",
+                  "gateway/integrations/langfuse",
+                  "gateway/integrations/langgraph",
+                  "gateway/integrations/litellm",
+                  "gateway/integrations/llamaindex",
+                  "gateway/integrations/openai-agents",
+                  "gateway/integrations/n8n",
+                  "gateway/integrations/posthog",
+                  "gateway/integrations/semantic-kernel",
+                  "gateway/integrations/vercel-ai-sdk",
+                  "gateway/integrations/zapier"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Observability & Analytics",
+            "pages": [
+              "features/advanced-usage/custom-properties",
+              "features/sessions",
+              "features/advanced-usage/user-metrics",
+              "guides/cookbooks/cost-tracking",
+              "features/datasets",
+              "features/alerts",
+              "features/reports",
+              "features/hql",
+              "features/advanced-usage/scores",
+              "features/advanced-usage/feedback",
+              {
+                "group": "Webhooks",
+                "pages": ["features/webhooks", "features/webhooks-testing"]
+              },
+              {
+                "group": "Tools",
+                "pages": [
+                  "integrations/tools/curl",
+                  "integrations/tools/logger-sdk",
+                  "integrations/tools/mcp",
+                  "integrations/tools/xcode"
+                ]
+              },
+              {
+                "group": "Vector DB",
+                "pages": [
+                  "integrations/vectordb/curl",
+                  "integrations/vectordb/logger-sdk"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Prompt Management",
+            "pages": [
+              "features/advanced-usage/prompts/overview",
+              "features/advanced-usage/prompts/assembly",
+              "features/advanced-usage/prompts/sdk"
+            ]
+          },
+          {
+            "group": "Legacy Integrations",
+            "pages": [
+              "integrations/overview",
+              {
+                "group": "Provider-Specific",
+                "pages": [
+                  {
+                    "group": "Anthropic",
+                    "pages": [
+                      "integrations/anthropic/curl",
+                      "integrations/anthropic/javascript",
+                      "integrations/anthropic/langchain",
+                      "integrations/anthropic/python",
+                      "integrations/anthropic/claude-code"
+                    ]
+                  },
+                  "getting-started/integration-method/anyscale",
+                  {
+                    "group": "AWS Bedrock",
+                    "pages": [
+                      "integrations/bedrock/javascript",
+                      "integrations/bedrock/python"
+                    ]
+                  },
+                  {
+                    "group": "Azure OpenAI",
+                    "pages": [
+                      "integrations/azure/curl",
+                      "integrations/azure/javascript",
+                      "integrations/azure/langchain",
+                      "integrations/azure/python"
+                    ]
+                  },
+                  "getting-started/integration-method/deepinfra",
+                  "getting-started/integration-method/deepseek",
+                  {
+                    "group": "Gemini",
+                    "pages": [
+                      {
+                        "group": "API",
+                        "pages": [
+                          "integrations/gemini/api/curl",
+                          "integrations/gemini/api/javascript",
+                          "integrations/gemini/api/python"
+                        ]
+                      },
+                      {
+                        "group": "Vertex AI (Enterprise)",
+                        "pages": [
+                          "integrations/gemini/vertex/curl",
+                          "integrations/gemini/vertex/javascript",
+                          "integrations/gemini/vertex/python"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Groq",
+                    "pages": [
+                      "integrations/groq/curl",
+                      "integrations/groq/javascript",
+                      "integrations/groq/python"
+                    ]
+                  },
+                  {
+                    "group": "Instructor",
+                    "pages": [
+                      "integrations/instructor/javascript",
+                      "integrations/instructor/python"
+                    ]
+                  },
+                  {
+                    "group": "Llama",
+                    "pages": [
+                      "integrations/llama/curl",
+                      "integrations/llama/javascript",
+                      "integrations/llama/python"
+                    ]
+                  },
+                  "getting-started/integration-method/hyperbolic",
+                  "getting-started/integration-method/mistral",
+                  "getting-started/integration-method/nebius",
+                  "getting-started/integration-method/novita",
+                  {
+                    "group": "Nvidia",
+                    "pages": [
+                      "integrations/nvidia/curl",
+                      "integrations/nvidia/javascript",
+                      "integrations/nvidia/python",
+                      "integrations/nvidia/dynamo"
+                    ]
+                  },
+                  {
+                    "group": "Ollama",
+                    "pages": ["integrations/ollama/javascript"]
+                  },
+                  {
+                    "group": "OpenAI",
+                    "pages": [
+                      "integrations/openai/curl",
+                      "integrations/openai/javascript",
+                      "integrations/openai/langchain",
+                      "integrations/openai/llamaindex",
+                      "integrations/openai/python",
+                      "integrations/openai/realtime",
+                      "integrations/openai/responses"
+                    ]
+                  },
+                  "getting-started/integration-method/openrouter",
+                  "getting-started/integration-method/perplexity",
+                  "getting-started/integration-method/together",
+                  {
+                    "group": "xAI",
+                    "pages": [
+                      "integrations/xai/curl",
+                      "integrations/xai/javascript",
+                      "integrations/xai/python"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Frameworks",
+                "pages": [
+                  "other-integrations/langgraph",
+                  "getting-started/integration-method/litellm",
+                  "getting-started/integration-method/vercelai",
+                  "getting-started/integration-method/crewai",
+                  "other-integrations/dify",
+                  "gateway/integrations/llamaindex",
+                  "other-integrations/ragas"
+                ]
+              },
+              {
+                "group": "Async Logging",
+                "pages": [
+                  "getting-started/integration-method/openllmetry",
+                  {
+                    "group": "Manual Logger",
+                    "pages": [
+                      "getting-started/integration-method/manual-logger-curl",
+                      "getting-started/integration-method/manual-logger-typescript",
+                      "getting-started/integration-method/manual-logger-python",
+                      "getting-started/integration-method/manual-logger-go"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Custom Logs",
+                "pages": [
+                  "integrations/data/logger-sdk",
+                  "integrations/data/curl"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "References",
+            "pages": [
+              {
+                "group": "Self-Hosting",
+                "pages": [
+                  "getting-started/self-host/overview",
+                  "getting-started/self-host/docker",
+                  "getting-started/self-host/kubernetes"
+                ]
+              },
+              "references/provider-integration",
+              "getting-started/integration-method/posthog",
+              "references/how-we-calculate-cost",
+              "references/data-autonomy",
+              "helicone-headers/header-directory",
+              "references/latency-affect",
+              "references/open-source",
+              "references/proxy-vs-async",
+              "references/availability",
+              {
+                "group": "Legacy Features",
+                "pages": [
+                  "features/prompts-legacy/editor",
+                  "features/prompts-legacy/generate",
+                  "features/advanced-usage/moderations"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "anchor": "API Reference",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "AI Gateway",
+            "pages": [
+              "rest/ai-gateway/post-v1-chat-completions",
+              "rest/ai-gateway/post-v1-responses"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "rest/ai-gateway/get-v1models",
+              "rest/ai-gateway/get-v1models-multimodal",
+              "rest/models/get-v1public-model-registry-models"
+            ]
+          },
+          {
+            "group": "Request",
+            "pages": [
+              "rest/request/post-v1requestquery-clickhouse",
+              "rest/request/post-v1requestquery",
+              "rest/request/get-v1request",
+              "rest/request/get-v1request-inputs",
+              "rest/request/post-v1requestquery-ids",
+              "rest/request/post-v1request-feedback",
+              "rest/request/put-v1request-property",
+              "rest/request/post-v1request-assets",
+              "rest/request/post-v1request-score"
+            ]
+          },
+          {
+            "group": "Session",
+            "pages": [
+              "rest/session/post-v1sessionquery",
+              "rest/session/post-v1sessionmetricsquery",
+              "rest/session/post-v1session-feedback"
+            ]
+          },
+          {
+            "group": "Prompts",
+            "pages": [
+              "rest/prompts/post-v1prompt-2025",
+              "rest/prompts/get-v1prompt-2025-id-promptid",
+              "rest/prompts/post-v1prompt-2025-id-promptid-rename",
+              "rest/prompts/patch-v1prompt-2025-id-promptid-tags",
+              "rest/prompts/delete-v1prompt-2025-promptid",
+              "rest/prompts/post-v1prompt-2025-update",
+              "rest/prompts/post-v1prompt-2025-update-environment",
+              "rest/prompts/delete-v1prompt-2025-promptid-versionid",
+              "rest/prompts/post-v1prompt-2025-query",
+              "rest/prompts/post-v1prompt-2025-query-version",
+              "rest/prompts/post-v1prompt-2025-query-environment-version",
+              "rest/prompts/post-v1prompt-2025-query-versions",
+              "rest/prompts/post-v1prompt-2025-query-production-version",
+              "rest/prompts/post-v1prompt-2025-query-total-versions",
+              "rest/prompts/get-v1prompt-2025-id-promptid-versionid-inputs",
+              "rest/prompts/get-v1prompt-2025-promptversionid-prompt-body",
+              "rest/prompts/get-v1prompt-2025-tags",
+              "rest/prompts/get-v1prompt-2025-environments",
+              "rest/prompts/get-v1prompt-2025-count"
+            ]
+          },
+          {
+            "group": "User",
+            "pages": [
+              "rest/user/post-v1usermetrics-overviewquery",
+              "rest/user/post-v1usermetricsquery",
+              "rest/user/post-v1userquery"
+            ]
+          },
+          {
+            "group": "Evals",
+            "pages": [
+              "rest/evals/post-v1evalsquery",
+              "rest/evals/get-v1evalsscores",
+              "rest/evals/post-v1evals",
+              "rest/evals/post-v1evalsscore-distributionsquery"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "rest/webhooks/get-v1webhooks",
+              "rest/webhooks/post-v1webhooks",
+              "rest/webhooks/delete-v1webhooks"
+            ]
+          },
+          {
+            "group": "Trace",
+            "pages": ["rest/trace/post-v1tracelog"]
+          },
+          {
+            "group": "Property",
+            "pages": ["rest/property/post-v1propertyquery"]
+          },
+          {
+            "group": "Dashboard",
+            "pages": ["rest/dashboard/post-v1dashboardscoresquery"]
+          }
+        ]
+      },
+      {
+        "anchor": "Guides",
+        "icon": "file-lines",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/overview",
+              {
+                "group": "Tutorials",
+                "pages": [
+                  "guides/cookbooks/ai-agents",
+                  "guides/cookbooks/vercel-ai-gateway",
+                  "guides/cookbooks/vercel-ai-gateway-demo",
+                  "guides/cookbooks/helicone-evals-with-ragas",
+                  "guides/cookbooks/openai-structured-outputs",
+                  "guides/cookbooks/prompt-thinking-models"
+                ]
+              },
+              {
+                "group": "How-to Guides",
+                "pages": [
+                  "guides/cookbooks/debugging",
+                  "guides/cookbooks/environment-tracking",
+                  "guides/cookbooks/etl",
+                  "guides/cookbooks/experiments",
+                  "guides/cookbooks/fine-tune",
+                  "guides/cookbooks/getting-sessions",
+                  "guides/cookbooks/getting-user-requests",
+                  "guides/cookbooks/github-actions",
+                  "guides/cookbooks/labeling-request-data",
+                  "guides/cookbooks/manual-logger-streaming",
+                  "guides/cookbooks/openai-batch-api",
+                  "guides/cookbooks/openai-structured-outputs",
+                  "guides/cookbooks/predefining-request-id",
+                  "guides/cookbooks/replay-session",
+                  "guides/cookbooks/segmentation"
+                ]
+              },
+              {
+                "group": "Knowledge Base",
+                "pages": [
+                  {
+                    "group": "Prompt Engineering",
+                    "pages": [
+                      "guides/prompt-engineering/overview",
+                      "guides/prompt-engineering/be-specific-and-clear",
+                      "guides/prompt-engineering/implement-few-shot-learning",
+                      "guides/prompt-engineering/leverage-role-playing",
+                      "guides/prompt-engineering/use-chain-of-thought-prompting",
+                      "guides/prompt-engineering/use-constrained-outputs",
+                      "guides/prompt-engineering/use-least-to-most-prompting",
+                      "guides/prompt-engineering/use-meta-prompting",
+                      "guides/prompt-engineering/use-structured-formats",
+                      "guides/prompt-engineering/use-thread-of-thought-prompting"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "anchor": "FAQ",
+        "icon": "lightbulb",
+        "groups": [
+          {
+            "group": "FAQ",
+            "pages": [
+              "faq/overview",
+              {
+                "group": "Categories",
+                "pages": [
+                  "faq/tag/concepts",
+                  "faq/tag/fine-tuning",
+                  "faq/tag/platform",
+                  "faq/tag/security"
+                ]
+              },
+              {
+                "group": "",
+                "pages": [
+                  "faq/compliance",
+                  "faq/enable-stream-usage",
+                  "faq/how-encryption-works",
+                  "faq/llm-fine-tuning-time",
+                  "faq/openai-fine-tuning-api",
+                  "faq/rag-vs-fine-tuning",
+                  "faq/secret-vs-public-key",
+                  "faq/soc2"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.svg"
+  },
+  "api": {
+    "openapi": ["swagger.json", "ai-gateway.openapi.json"]
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Models",
+        "href": "https://helicone.ai/models"
+      },
+      {
+        "label": "Discord",
+        "href": "https://discord.com/invite/zsSTcH2qhG"
+      },
+      {
+        "label": "Github",
+        "href": "https://github.com/Helicone/helicone"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://us.helicone.ai/#:~:text=Discord-,Sign,-In"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Helicone OSS LLM Observability",
+      "og:image": "/favicon.svg",
+      "twitter:site": "@helicone_ai",
+      "twitter:image": "/favicon.svg"
+    },
+    "indexing": "navigable"
+  },
+  "footer": {
+    "socials": {
+      "twitter": "https://twitter.com/helicone_ai",
+      "linkedin": "https://www.linkedin.com/company/helicone/about/",
+      "github": "https://github.com/Helicone/helicone",
+      "discord": "https://discord.com/invite/zsSTcH2qhG"
+    }
+  },
+  "integrations": {
+    "koala": {
+      "publicApiKey": "pk_28dd6b0bb95629a42e92bd526a1234a9fc79"
+    },
+    "posthog": {
+      "apiKey": "phc_jeluwNoJNpc7zEzkQrPbjyMOqdnJQjFAVr849LaEaPG"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/integrations/openai/crewai",
+      "destination": "/getting-started/integration-method/crewai"
+    },
+    {
+      "source": "/getting-started/proxy-vs-async",
+      "destination": "/references/proxy-vs-async"
+    },
+    {
+      "source": "/faq/availability",
+      "destination": "/references/availability"
+    },
+    {
+      "source": "/faq/how-encryption-works",
+      "destination": "/references/how-encryption-works"
+    },
+    {
+      "source": "/faq/how-we-calculate-cost",
+      "destination": "/references/how-we-calculate-cost"
+    },
+    {
+      "source": "/observability/custom-rate-limits",
+      "destination": "/features/advanced-usage/custom-rate-limits"
+    },
+    {
+      "source": "/observability/custom-properties",
+      "destination": "/features/advanced-usage/custom-properties"
+    },
+    {
+      "source": "/features/advanced-usage/custom-rate-limit",
+      "destination": "/features/advanced-usage/custom-rate-limits"
+    },
+    {
+      "source": "/faq/latency-affect",
+      "destination": "/references/latency-affect"
+    },
+    {
+      "source": "/use-cases/data-autonomy",
+      "destination": "/references/data-autonomy"
+    },
+    {
+      "source": "/use-cases/debugging",
+      "destination": "/guides/cookbooks/debugging"
+    },
+    {
+      "source": "/use-cases/environment-tracking",
+      "destination": "/guides/cookbooks/environment-tracking"
+    },
+    {
+      "source": "/use-cases/etl",
+      "destination": "/guides/cookbooks/etl"
+    },
+    {
+      "source": "/use-cases/experiments",
+      "destination": "/guides/cookbooks/experiments"
+    },
+    {
+      "source": "/use-cases/getting-user-requests",
+      "destination": "/guides/cookbooks/getting-user-requests"
+    },
+    {
+      "source": "/use-cases/github-actions",
+      "destination": "/guides/cookbooks/github-actions"
+    },
+    {
+      "source": "/use-cases/labeling-request-data",
+      "destination": "/guides/cookbooks/labeling-request-data"
+    },
+    {
+      "source": "/use-cases/predefining-request-id",
+      "destination": "/guides/cookbooks/predefining-request-id"
+    },
+    {
+      "source": "/use-cases/replay-session",
+      "destination": "/guides/cookbooks/replay-session"
+    },
+    {
+      "source": "/use-cases/segmentation",
+      "destination": "/guides/cookbooks/segmentation"
+    },
+    {
+      "source": "/use-cases/enable-stream-usage",
+      "destination": "/faq/enable-stream-usage"
+    },
+    {
+      "source": "/use-cases/secret-vs-public-key",
+      "destination": "/faq/secret-vs-public-key"
+    },
+    {
+      "source": "/getting-started/self-deploy-cloud",
+      "destination": "/getting-started/self-host/cloud"
+    },
+    {
+      "source": "/getting-started/self-deploy-docker",
+      "destination": "/getting-started/self-host/docker"
+    },
+    {
+      "source": "/getting-started/self-deploy",
+      "destination": "/getting-started/self-host/manual"
+    },
+    {
+      "source": "/ai-gateway/quickstart",
+      "destination": "/ai-gateway/self-hosted-quickstart"
+    },
+    {
+      "source": "/ai-gateway/router-quickstart",
+      "destination": "/ai-gateway/self-hosted/router-quickstart"
+    },
+    {
+      "source": "/ai-gateway/authentication",
+      "destination": "/ai-gateway/self-hosted/authentication"
+    },
+    {
+      "source": "/ai-gateway/observability",
+      "destination": "/ai-gateway/self-hosted/observability"
+    },
+    {
+      "source": "/ai-gateway/deployment/overview",
+      "destination": "/ai-gateway/self-hosted/deployment/overview"
+    },
+    {
+      "source": "/ai-gateway/deployment/docker",
+      "destination": "/ai-gateway/self-hosted/deployment/docker"
+    },
+    {
+      "source": "/ai-gateway/deployment/fly",
+      "destination": "/ai-gateway/self-hosted/deployment/fly"
+    },
+    {
+      "source": "/ai-gateway/deployment/porter",
+      "destination": "/ai-gateway/self-hosted/deployment/porter"
+    },
+    {
+      "source": "/ai-gateway/deployment/ecs",
+      "destination": "/ai-gateway/self-hosted/deployment/ecs"
+    },
+    {
+      "source": "/ai-gateway/deployment/k8s",
+      "destination": "/ai-gateway/self-hosted/deployment/k8s"
+    },
+    {
+      "source": "/ai-gateway/debugging/telemetry",
+      "destination": "/ai-gateway/self-hosted/debugging/telemetry"
+    },
+    {
+      "source": "/ai-gateway/overview",
+      "destination": "/gateway/overview"
+    },
+    {
+      "source": "/ai-gateway/fallbacks",
+      "destination": "/gateway/fallbacks"
+    },
+    {
+      "source": "/ai-gateway/prompt-integration",
+      "destination": "/gateway/prompt-integration"
+    },
+    {
+      "source": "/features/advanced-usage/prompts",
+      "destination": "/features/advanced-usage/prompts/overview"
+    }
+  ]
+}

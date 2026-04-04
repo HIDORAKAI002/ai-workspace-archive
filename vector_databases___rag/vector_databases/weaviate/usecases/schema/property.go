@@ -1,0 +1,271 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package schema
+
+import (
+	"context"
+	"fmt"
+	"maps"
+	"strings"
+
+	clusterSchema "github.com/weaviate/weaviate/cluster/schema"
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/entities/modelsext"
+	"github.com/weaviate/weaviate/entities/schema"
+	"github.com/weaviate/weaviate/usecases/auth/authorization"
+)
+
+// AddClassProperty it is upsert operation. it adds properties to a class and updates
+// existing properties if the merge bool passed true.
+func (h *Handler) AddClassProperty(ctx context.Context, principal *models.Principal,
+	class *models.Class, className string, merge bool, newProps ...*models.Property,
+) (*models.Class, uint64, error) {
+	if err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(className)...); err != nil {
+		return nil, 0, err
+	}
+
+	if err := h.Authorizer.Authorize(ctx, principal, authorization.READ, authorization.CollectionsMetadata(className)...); err != nil {
+		return nil, 0, err
+	}
+	classGetterWithAuth := func(name string) (*models.Class, error) {
+		if err := h.Authorizer.Authorize(ctx, principal, authorization.READ, authorization.CollectionsMetadata(name)...); err != nil {
+			return nil, err
+		}
+		return h.schemaReader.ReadOnlyClass(name), nil
+	}
+
+	if class == nil {
+		return nil, 0, fmt.Errorf("class is nil: %w", ErrNotFound)
+	}
+
+	if len(newProps) == 0 {
+		return nil, 0, nil
+	}
+
+	// validate new props
+	for _, prop := range newProps {
+		if prop.Name == "" {
+			return nil, 0, fmt.Errorf("property must contain name")
+		}
+		prop.Name = schema.LowercaseFirstLetter(prop.Name)
+		if prop.DataType == nil {
+			return nil, 0, fmt.Errorf("property must contain dataType")
+		}
+	}
+
+	if err := h.setNewPropDefaults(class, newProps...); err != nil {
+		return nil, 0, err
+	}
+
+	existingNames := make(map[string]bool, len(class.Properties))
+	if !merge {
+		for _, prop := range class.Properties {
+			existingNames[strings.ToLower(prop.Name)] = true
+		}
+	}
+
+	if err := h.validateProperty(class, existingNames, false, classGetterWithAuth, newProps...); err != nil {
+		return nil, 0, err
+	}
+
+	// TODO-RAFT use UpdateProperty() for adding/merging property when index idempotence exists
+	// revisit when index idempotence exists and/or allowing merging properties on index.
+	props := schema.DedupProperties(class.Properties, newProps)
+	if len(props) == 0 {
+		return class, 0, nil
+	}
+
+	migratePropertySettings(props...)
+
+	class.Properties = clusterSchema.MergeProps(class.Properties, props)
+	version, err := h.schemaManager.AddProperty(ctx, class.Class, props...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return class, version, err
+}
+
+// DeleteClassPropertyIndex deletes collection's property index
+func (h *Handler) DeleteClassPropertyIndex(ctx context.Context, principal *models.Principal,
+	class *models.Class, className, propertyName, indexName string,
+) error {
+	if err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(className)...); err != nil {
+		return err
+	}
+
+	if class == nil {
+		return fmt.Errorf("class is nil: %w", ErrNotFound)
+	}
+
+	if propertyName == "" {
+		return fmt.Errorf("property name cannot be empty")
+	}
+	var prop *models.Property
+	for i := range class.Properties {
+		if class.Properties[i].Name == propertyName {
+			prop = class.Properties[i]
+			break
+		}
+	}
+	if prop == nil {
+		return fmt.Errorf("property name %s: %w", propertyName, ErrNotFound)
+	}
+
+	switch indexName {
+	case "filterable":
+		if prop.IndexFilterable != nil && *prop.IndexFilterable {
+			notExists := false
+			prop.IndexFilterable = &notExists
+		} else {
+			// nothing to do
+			return nil
+		}
+	case "searchable":
+		if prop.IndexSearchable != nil && *prop.IndexSearchable {
+			notExists := false
+			prop.IndexSearchable = &notExists
+		} else {
+			// nothing to do
+			return nil
+		}
+	case "rangeFilters":
+		if prop.IndexRangeFilters != nil && *prop.IndexRangeFilters {
+			notExists := false
+			prop.IndexRangeFilters = &notExists
+		} else {
+			// nothing to do
+			return nil
+		}
+	default:
+		return fmt.Errorf("invalid property index type: %s", indexName)
+	}
+
+	if err := h.validatePropertyIndexing(prop); err != nil {
+		return err
+	}
+	_, err := h.schemaManager.UpdateProperty(ctx, class.Class, prop)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) DeleteClassVectorIndex(ctx context.Context, principal *models.Principal,
+	class *models.Class, className, vectorIndexName string,
+) error {
+	if err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(className)...); err != nil {
+		return err
+	}
+
+	if class == nil {
+		return fmt.Errorf("%w: class is nil", ErrNotFound)
+	}
+
+	if vectorIndexName == "" {
+		return fmt.Errorf("%w: vector index name cannot be empty", ErrValidation)
+	}
+
+	if len(class.VectorConfig) == 0 {
+		return fmt.Errorf("%w: class %q has no named vector configurations", ErrValidation, className)
+	}
+
+	cfg, exists := class.VectorConfig[vectorIndexName]
+	if !exists {
+		return fmt.Errorf("%w: vector index %q not found in class %q", ErrNotFound, vectorIndexName, className)
+	}
+
+	if modelsext.IsVectorIndexDropped(cfg) {
+		// Already dropped, nothing to do.
+		return nil
+	}
+
+	// Deep-copy the VectorConfig map before mutating to avoid corrupting the
+	// live schema state visible to concurrent readers. ReadOnlyClass returns a
+	// shallow copy, so class.VectorConfig still points to the live map.
+	newVectorConfig := make(map[string]models.VectorConfig, len(class.VectorConfig))
+	maps.Copy(newVectorConfig, class.VectorConfig)
+	// Keep the vector entry in the schema but clear the index configuration.
+	// This signals that the vector data still exists in the objects bucket but
+	// the search index has been removed. The executor's UpdateClass will detect
+	// the cleared config and call the migrator to drop the index from disk.
+	newVectorConfig[vectorIndexName] = models.VectorConfig{
+		Vectorizer: cfg.Vectorizer,
+	}
+	class.VectorConfig = newVectorConfig
+
+	_, err := h.schemaManager.UpdateClass(ctx, class, nil)
+	return err
+}
+
+// DeleteClassProperty from existing Schema
+func (h *Handler) DeleteClassProperty(ctx context.Context, principal *models.Principal,
+	class string, property string,
+) error {
+	err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(class)...)
+	if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("deleting a property is currently not supported, see " +
+		"https://github.com/weaviate/weaviate/issues/973 for details")
+	// return h.deleteClassProperty(ctx, class, property, kind.Action)
+}
+
+func (h *Handler) setNewPropDefaults(class *models.Class, props ...*models.Property) error {
+	setPropertyDefaults(props...)
+	h.moduleConfig.SetSinglePropertyDefaults(class, props...)
+	return nil
+}
+
+func (h *Handler) validatePropModuleConfig(class *models.Class, props ...*models.Property) error {
+	configuredVectorizers := map[string]struct{}{}
+	if class.Vectorizer != "" {
+		configuredVectorizers[class.Vectorizer] = struct{}{}
+	}
+
+	for targetVector, cfg := range class.VectorConfig {
+		if vm, ok := cfg.Vectorizer.(map[string]interface{}); ok && len(vm) == 1 {
+			for vectorizer := range vm {
+				configuredVectorizers[vectorizer] = struct{}{}
+			}
+		} else if len(vm) > 1 {
+			return fmt.Errorf("vector index %q has multiple vectorizers", targetVector)
+		}
+	}
+
+	for _, prop := range props {
+		if prop.ModuleConfig == nil {
+			continue
+		}
+
+		modconfig, ok := prop.ModuleConfig.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("%v property config invalid", prop.Name)
+		}
+
+		for vectorizer, cfg := range modconfig {
+			if err := h.vectorizerValidator.ValidateVectorizer(vectorizer); err != nil {
+				continue
+			}
+
+			if _, ok := configuredVectorizers[vectorizer]; !ok {
+				return fmt.Errorf("vectorizer %q not configured for any of target vectors", vectorizer)
+			}
+
+			if _, ok := cfg.(map[string]interface{}); !ok {
+				return fmt.Errorf("vectorizer config for vectorizer %q not of type map[string]interface{}", vectorizer)
+			}
+		}
+	}
+
+	return nil
+}

@@ -1,0 +1,9 @@
+module Anthropic
+  module Internal
+    extend Anthropic::Internal::Util::SorbetRuntimeSupport
+
+    type file_input = Pathname | StringIO | IO | String | Anthropic::FilePart
+
+    OMIT: Object
+  end
+end

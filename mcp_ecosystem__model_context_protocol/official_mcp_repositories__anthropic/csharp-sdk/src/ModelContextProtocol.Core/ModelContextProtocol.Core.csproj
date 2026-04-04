@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net9.0;net8.0;netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>ModelContextProtocol.Core</PackageId>
+    <Description>Core .NET SDK for the Model Context Protocol (MCP)</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Suppress the experimental tasks warning -->
+    <NoWarn>$(NoWarn);MCPEXP001</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- CS0436: Allow ObsoleteAttribute to be redefined internally -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Common\Throw.cs" Link="Throw.cs" />
+    <Compile Include="..\Common\Obsoletions.cs" Link="Obsoletions.cs" />
+    <Compile Include="..\Common\Experimentals.cs" Link="Experimentals.cs" />
+    <Compile Include="..\Common\EncodingUtilities.cs" Link="EncodingUtilities.cs" />
+    <Compile Include="..\Common\HttpResponseMessageExtensions.cs" Link="HttpResponseMessageExtensions.cs" />
+    <Compile Include="..\Common\ServerSentEvents\**\*.cs" Link="ServerSentEvents\%(RecursiveDir)%(FileName)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Dependencies only needed by netstandard2.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Include="..\Common\CancellableStreamReader\**\*.cs" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Threading.Channels" />
+  </ItemGroup>
+
+  <!-- Dependencies only needed by pre-net9.0 -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+  
+  <!-- Dependencies only needed pre-net10.0 -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <PackageReference Include="System.Net.ServerSentEvents" />
+  </ItemGroup>
+
+  <!-- Dependencies needed by all -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <!-- Reference analyzers -->
+  <ItemGroup>
+    <ProjectReference Include="..\ModelContextProtocol.Analyzers\ModelContextProtocol.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Package the analyzer/source generator assembly in the NuGet package -->
+  <ItemGroup>
+    <!-- Include the analyzer DLL directly in the package. The ProjectReference with OutputItemType="Analyzer" ensures it's built before packing. -->
+    <None Include="$(ArtifactsBinDir)ModelContextProtocol.Analyzers\$(Configuration)\netstandard2.0\ModelContextProtocol.Analyzers.dll" 
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\PACKAGE.md" Pack="true" PackagePath="\README.md" />
+  </ItemGroup>
+
+</Project>

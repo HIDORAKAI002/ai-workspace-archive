@@ -1,0 +1,687 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { client } from "@/lib/api";
+import { useBank } from "@/lib/bank-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  X,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Pencil,
+  Check,
+} from "lucide-react";
+
+const ITEMS_PER_PAGE = 50;
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const seconds = Math.floor((now - then) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function MetadataBadges({ metadata }: { metadata: Record<string, any> }) {
+  const entries = Object.entries(metadata);
+  if (entries.length === 0) return <span>-</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {entries.slice(0, 3).map(([k, v]) => (
+        <span
+          key={k}
+          className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
+        >
+          {k}={String(v)}
+        </span>
+      ))}
+      {entries.length > 3 && (
+        <span className="text-xs px-2 py-0.5 text-muted-foreground">+{entries.length - 3}</span>
+      )}
+    </div>
+  );
+}
+
+export function DocumentsView() {
+  const { currentBank } = useBank();
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [total, setTotal] = useState(0);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  // Document view panel state
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [loadingDocument, setLoadingDocument] = useState(false);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+
+  // Tag editing state
+  const [editingTags, setEditingTags] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [savingTags, setSavingTags] = useState(false);
+
+  // Delete confirmation dialog state
+  const [documentToDelete, setDocumentToDelete] = useState<{
+    id: string;
+    memoryCount?: number;
+  } | null>(null);
+  const [deleteResult, setDeleteResult] = useState<{ success: boolean; message: string } | null>(
+    null
+  );
+
+  const loadDocuments = async (page: number = 1) => {
+    if (!currentBank) return;
+
+    setLoading(true);
+    try {
+      const pageOffset = (page - 1) * ITEMS_PER_PAGE;
+      const data: any = await client.listDocuments({
+        bank_id: currentBank,
+        q: searchQuery,
+        limit: ITEMS_PER_PAGE,
+        offset: pageOffset,
+      });
+      setDocuments(data.items || []);
+      setTotal(data.total || 0);
+    } catch (error) {
+      // Error toast is shown automatically by the API client interceptor
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    loadDocuments(newPage);
+  };
+
+  const viewDocumentText = async (documentId: string) => {
+    if (!currentBank) return;
+
+    setLoadingDocument(true);
+    setSelectedDocument({ id: documentId }); // Set placeholder to show loading
+    setEditingTags(false);
+    setTagInput("");
+
+    try {
+      const doc: any = await client.getDocument(documentId, currentBank);
+      setSelectedDocument(doc);
+    } catch (error) {
+      // Error toast is shown automatically by the API client interceptor
+      setSelectedDocument(null);
+    } finally {
+      setLoadingDocument(false);
+    }
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!currentBank || !documentToDelete) return;
+
+    const documentId = documentToDelete.id;
+    setDeletingDocumentId(documentId);
+    setDocumentToDelete(null);
+
+    try {
+      const result = await client.deleteDocument(documentId, currentBank);
+      setDeleteResult({
+        success: true,
+        message: `Deleted document and ${result.memory_units_deleted} memory units.`,
+      });
+
+      // Close panel if this document was selected
+      if (selectedDocument?.id === documentId) {
+        setSelectedDocument(null);
+      }
+
+      // Reload documents list at current page
+      loadDocuments(currentPage);
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      setDeleteResult({
+        success: false,
+        message: "Error deleting document: " + (error as Error).message,
+      });
+    } finally {
+      setDeletingDocumentId(null);
+    }
+  };
+
+  const requestDeleteDocument = (documentId: string, memoryCount?: number) => {
+    setDocumentToDelete({ id: documentId, memoryCount });
+  };
+
+  const startEditTags = () => {
+    setTagInput((selectedDocument?.tags ?? []).join(", "));
+    setEditingTags(true);
+  };
+
+  const cancelEditTags = () => {
+    setEditingTags(false);
+    setTagInput("");
+  };
+
+  const saveDocumentTags = async () => {
+    if (!currentBank || !selectedDocument) return;
+
+    const newTags = tagInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    setSavingTags(true);
+    try {
+      await client.updateDocument(selectedDocument.id, currentBank, newTags);
+      setSelectedDocument({ ...selectedDocument, tags: newTags });
+      // Update tags in the documents list too
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === selectedDocument.id ? { ...d, tags: newTags } : d))
+      );
+      setEditingTags(false);
+      setTagInput("");
+    } catch (error) {
+      console.error("Error updating document tags:", error);
+    } finally {
+      setSavingTags(false);
+    }
+  };
+
+  // Auto-load documents when component mounts or bank changes
+  useEffect(() => {
+    if (currentBank) {
+      setCurrentPage(1);
+      loadDocuments(1);
+    }
+  }, [currentBank]);
+
+  // Reload when search query changes (with debounce)
+  useEffect(() => {
+    if (!currentBank) return;
+
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      loadDocuments(1);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  return (
+    <div>
+      {/* Documents List Section */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="text-4xl mb-2">⏳</div>
+            <div className="text-sm text-muted-foreground">Loading documents...</div>
+          </div>
+        </div>
+      ) : documents.length > 0 ? (
+        <>
+          <div className="mb-4 text-sm text-muted-foreground">
+            {total} {total === 1 ? "document" : "documents"}
+          </div>
+          {/* Documents Table */}
+          <div className="w-full">
+            <div className="px-5 mb-4">
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search documents (ID)..."
+                className="max-w-2xl"
+              />
+            </div>
+
+            <div className="overflow-x-auto px-5 pb-5">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Document ID</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead>Metadata</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Memory Units</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {documents.length > 0 ? (
+                    documents.map((doc) => (
+                      <TableRow
+                        key={doc.id}
+                        className={`cursor-pointer hover:bg-muted/50 ${selectedDocument?.id === doc.id ? "bg-primary/10" : ""}`}
+                        onClick={() => viewDocumentText(doc.id)}
+                      >
+                        <TableCell className="text-card-foreground font-mono text-xs break-all">
+                          {doc.id}
+                        </TableCell>
+                        <TableCell
+                          className="text-card-foreground"
+                          title={doc.created_at ? new Date(doc.created_at).toLocaleString() : ""}
+                        >
+                          {doc.created_at ? formatRelativeTime(doc.created_at) : "N/A"}
+                        </TableCell>
+                        <TableCell className="text-card-foreground">
+                          {doc.tags && doc.tags.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {doc.tags.slice(0, 3).map((tag: string, i: number) => (
+                                <span
+                                  key={i}
+                                  className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                              {doc.tags.length > 3 && (
+                                <span className="text-xs px-2 py-0.5 text-muted-foreground">
+                                  +{doc.tags.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-card-foreground">
+                          {doc.document_metadata &&
+                          Object.keys(doc.document_metadata).length > 0 ? (
+                            <MetadataBadges metadata={doc.document_metadata} />
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-card-foreground">
+                          {formatBytes(doc.text_length || 0)}
+                        </TableCell>
+                        <TableCell className="text-card-foreground">
+                          {doc.memory_unit_count}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center">
+                        Click "Load Documents" to view data
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-3 pt-3 border-t px-5">
+                <div className="text-xs text-muted-foreground">
+                  {offset + 1}-{Math.min(offset + ITEMS_PER_PAGE, total)} of {total}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1 || loading}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronsLeft className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs px-2">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || loading}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages || loading}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronsRight className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="text-4xl mb-2">📄</div>
+            <div className="text-sm text-muted-foreground">No documents found</div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Detail Panel - Fixed on Right */}
+      {documents.length > 0 && selectedDocument && (
+        <div className="fixed right-0 top-0 h-screen w-[560px] bg-card border-l-2 border-primary shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300 ease-out">
+          <div className="p-5">
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
+              <div>
+                <h3 className="text-xl font-bold text-foreground">Document Details</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Original document text and metadata
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedDocument(null)}
+                className="h-9 px-3 gap-2"
+              >
+                <X className="h-4 w-4" />
+                Close
+              </Button>
+            </div>
+
+            {loadingDocument ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">⏳</div>
+                  <div className="text-sm text-muted-foreground">Loading document...</div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {/* Document ID */}
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                    Document ID
+                  </div>
+                  <div className="text-sm font-mono break-all text-card-foreground">
+                    {selectedDocument.id}
+                  </div>
+                </div>
+
+                {/* Created & Memory Units */}
+                {selectedDocument.created_at && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                        Created
+                      </div>
+                      <div className="text-sm font-medium text-card-foreground">
+                        {new Date(selectedDocument.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                        Memory Units
+                      </div>
+                      <div className="text-sm font-medium text-card-foreground">
+                        {selectedDocument.memory_unit_count}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Text Size */}
+                {selectedDocument.original_text && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                      Size
+                    </div>
+                    <div className="text-sm font-medium text-card-foreground">
+                      {formatBytes(new Blob([selectedDocument.original_text]).size)}
+                    </div>
+                  </div>
+                )}
+
+                {/* Retain Parameters */}
+                {selectedDocument.retain_params && (
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div className="text-xs font-bold text-muted-foreground uppercase">
+                      Retain Parameters
+                    </div>
+                    {selectedDocument.retain_params.context && (
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Context</div>
+                        <div className="text-sm text-card-foreground">
+                          {selectedDocument.retain_params.context}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDocument.retain_params.event_date && (
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Event Date</div>
+                        <div className="text-sm text-card-foreground">
+                          {new Date(selectedDocument.retain_params.event_date).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDocument.retain_params.metadata &&
+                      Object.keys(selectedDocument.retain_params.metadata).length > 0 && (
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Metadata</div>
+                          <MetadataBadges metadata={selectedDocument.retain_params.metadata} />
+                        </div>
+                      )}
+                  </div>
+                )}
+
+                {/* Tags */}
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-bold text-muted-foreground uppercase">Tags</div>
+                    {!editingTags && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={startEditTags}
+                        className="h-6 px-2 gap-1 text-xs"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                  {editingTags ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        placeholder="tag1, tag2, tag3"
+                        className="text-sm h-8"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveDocumentTags();
+                          if (e.key === "Escape") cancelEditTags();
+                        }}
+                        autoFocus
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Comma-separated. Leave empty to remove all tags.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={saveDocumentTags}
+                          disabled={savingTags}
+                          className="h-7 px-3 gap-1 text-xs"
+                        >
+                          {savingTags ? (
+                            <span className="animate-spin">⏳</span>
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={cancelEditTags}
+                          disabled={savingTags}
+                          className="h-7 px-3 gap-1 text-xs"
+                        >
+                          <X className="h-3 w-3" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : selectedDocument.tags && selectedDocument.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDocument.tags.map((tag: string, i: number) => (
+                        <span
+                          key={i}
+                          className="text-sm px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No tags</div>
+                  )}
+                </div>
+
+                {/* Delete Button */}
+                <div className="pt-2 border-t border-border">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() =>
+                      requestDeleteDocument(selectedDocument.id, selectedDocument.memory_unit_count)
+                    }
+                    className="w-full gap-2"
+                    disabled={deletingDocumentId === selectedDocument.id}
+                  >
+                    {deletingDocumentId === selectedDocument.id ? (
+                      <span className="animate-spin">⏳</span>
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                    Delete Document
+                  </Button>
+                </div>
+
+                {/* Original Text */}
+                {selectedDocument.original_text && (
+                  <div>
+                    <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                      Original Text
+                    </div>
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border max-h-[400px] overflow-y-auto">
+                      <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed text-card-foreground">
+                        {selectedDocument.original_text}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!documentToDelete}
+        onOpenChange={(open) => !open && setDocumentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete document{" "}
+              <span className="font-mono font-semibold">&quot;{documentToDelete?.id}&quot;</span>?
+              <br />
+              <br />
+              This will also delete{" "}
+              {documentToDelete?.memoryCount !== undefined ? (
+                <span className="font-semibold">{documentToDelete.memoryCount} memory units</span>
+              ) : (
+                "all memory units"
+              )}{" "}
+              extracted from this document.
+              <br />
+              <br />
+              <span className="text-destructive font-semibold">This action cannot be undone.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteDocument}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Result Dialog */}
+      <AlertDialog open={!!deleteResult} onOpenChange={(open) => !open && setDeleteResult(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteResult?.success ? "Document Deleted" : "Error"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{deleteResult?.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setDeleteResult(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

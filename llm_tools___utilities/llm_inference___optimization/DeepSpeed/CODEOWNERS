@@ -1,0 +1,59 @@
+# This file is used to subscribe for notifications for PRs
+# related to specific file paths, does not necessarily mean
+# approval is required from these people before merging.
+#
+# Learn more about CODEOWNERS syntax here:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+
+# top-level repo folders
+/.github/ @loadams
+/azure/ @loadams
+/benchmarks/ @guanhuawang @tjruwase
+/bin/ @loadams
+/csrc/ @tjruwase
+/deepspeed/ @loadams @tjruwase
+/docker/ @loadams @guanhuawang
+/docs/ @loadams @tjruwase
+/examples/ @jomayeri @tohtana
+/op_builder/ @loadams @tjruwase @jomayeri
+/release/ @loadams @jomayeri
+/requirements/ @loadams
+/scripts/ @loadams @tjruwase
+/tests/ @tjruwase @loadams @tohtana
+
+# deepspeed
+/deepspeed/autotuning/ @loadams
+/deepspeed/checkpoint/ @tjruwase
+/deepspeed/comm/ @guanhuawang
+/deepspeed/compression/ @tjruwase
+/deepspeed/elasticity/ @tjruwase
+/deepspeed/launcher/ @loadams
+/deepspeed/module_inject/ @hwchen2017 @loadams
+/deepspeed/moe/ @tohtana
+/deepspeed/monitor/ @tjruwase
+/deepspeed/nebula/ @tjruwase
+/deepspeed/nvme/ @tjruwase @jomayeri
+/deepspeed/ops/ @tohtana
+/deepspeed/pipe/ @tohtana @loadams
+/deepspeed/profiling/ @loadams
+/deepspeed/sequence/ @tohtana
+/deepspeed/utils/ @tjruwase @tohtana
+
+# inference
+/deepspeed/inference/ @hwchen2017 @tohtana
+/deepspeed/model_implementations/@tohtana @loadams
+
+# training
+/deepspeed/runtime/ @tjruwase @tohtana
+/deepspeed/runtime/activation_checkpointing/ @tjruwase
+/deepspeed/runtime/checkpoint_engine/ @tjruwase
+/deepspeed/runtime/comm/ @guanhuawang
+/deepspeed/runtime/compression/ @tjruwase
+/deepspeed/runtime/data_pipeline/ @tjruwase
+/deepspeed/runtime/domino/ @guanhuawang @hwchen2017
+/deepspeed/runtime/fp16/ @tjruwase @tohtana
+/deepspeed/runtime/fp16/onebit/ @tjruwase
+/deepspeed/runtime/pipe/ @loadams @tohtana
+/deepspeed/runtime/swap_tensor/ @tjruwase @jomayeri
+/deepspeed/runtime/zero/ @tjruwase @tohtana

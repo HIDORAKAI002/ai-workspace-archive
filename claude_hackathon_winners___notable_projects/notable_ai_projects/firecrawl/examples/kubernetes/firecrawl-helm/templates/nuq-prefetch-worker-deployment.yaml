@@ -1,0 +1,69 @@
+{{- if .Values.nuqPrefetchWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "firecrawl.fullname" . }}-nuq-prefetch-worker
+  labels:
+    app: {{ include "firecrawl.name" . }}-nuq-prefetch-worker
+spec:
+  replicas: {{ .Values.nuqPrefetchWorker.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "firecrawl.name" . }}-nuq-prefetch-worker
+  template:
+    metadata:
+      labels:
+        app: {{ include "firecrawl.name" . }}-nuq-prefetch-worker
+    spec:
+      {{- if .Values.image.dockerSecretEnabled }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: nuq-prefetch-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "node" ]
+          args: [ "--max-old-space-size=2048", "dist/src/services/worker/nuq-prefetch-worker.js" ]
+          ports:
+            - containerPort: {{ .Values.nuqPrefetchWorker.port | int }}
+          env:
+            - name: FLY_PROCESS_GROUP
+              value: "nuq-prefetch-worker"
+            - name: NUQ_PREFETCH_WORKER_PORT
+              value: {{ .Values.nuqPrefetchWorker.port | quote }}
+            - name: NUQ_PREFETCH_REPLICAS
+              value: {{ .Values.nuqPrefetchWorker.replicaCount | quote }}
+            - name: NUQ_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          envFrom:
+            - configMapRef:
+                name: {{ include "firecrawl.fullname" . }}-config
+            - secretRef:
+                name: {{ include "firecrawl.fullname" . }}-secret
+          {{- if and .Values.resources.enabled .Values.nuqPrefetchWorker.resources }}
+          resources:
+            {{- toYaml .Values.nuqPrefetchWorker.resources | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.nuqPrefetchWorker.port | int }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.nuqPrefetchWorker.port | int }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+{{- end }}

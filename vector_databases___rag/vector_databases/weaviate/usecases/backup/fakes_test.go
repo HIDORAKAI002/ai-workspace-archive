@@ -1,0 +1,224 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package backup
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+	"os"
+	"sync"
+
+	"github.com/stretchr/testify/mock"
+
+	"github.com/weaviate/weaviate/entities/backup"
+	"github.com/weaviate/weaviate/entities/modulecapabilities"
+)
+
+var chunks map[string][]byte
+
+func init() {
+	path := "test_data/chunk-1.tar.gz"
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic("missing test file: " + path)
+	}
+
+	chunks = map[string][]byte{
+		chunkKey("Article", 1): data,
+	}
+}
+
+type fakeBackupBackendProvider struct {
+	backend modulecapabilities.BackupBackend
+	err     error
+}
+
+func (bsp *fakeBackupBackendProvider) BackupBackend(backend string) (modulecapabilities.BackupBackend, error) {
+	return bsp.backend, bsp.err
+}
+
+func (bsp *fakeBackupBackendProvider) EnabledBackupBackends() []modulecapabilities.BackupBackend {
+	return []modulecapabilities.BackupBackend{bsp.backend}
+}
+
+type fakeSourcer struct {
+	mock.Mock
+}
+
+func (s *fakeSourcer) ReleaseBackup(ctx context.Context, id, class string) error {
+	args := s.Called(ctx, id, class)
+	return args.Error(0)
+}
+
+func (s *fakeSourcer) Backupable(ctx context.Context, classes []string) error {
+	args := s.Called(ctx, classes)
+	return args.Error(0)
+}
+
+func (s *fakeSourcer) BackupDescriptors(ctx context.Context, bakid string, classes []string, baseDescr []*backup.BackupDescriptor,
+) <-chan backup.ClassDescriptor {
+	args := s.Called(ctx, bakid, classes, baseDescr)
+	return args.Get(0).(<-chan backup.ClassDescriptor)
+}
+
+type fakeBackend struct {
+	mock.Mock
+	sync.RWMutex
+	meta     backup.BackupDescriptor
+	glMeta   backup.DistributedBackupDescriptor
+	files    map[string][]byte
+	chunks   map[string][]byte
+	doneChan chan bool
+}
+
+func (fb *fakeBackend) getMetaStatus() (backup.Status, string) {
+	fb.RLock()
+	defer fb.RUnlock()
+	return fb.meta.Status, fb.meta.Error
+}
+
+func newFakeBackend() *fakeBackend {
+	return &fakeBackend{
+		doneChan: make(chan bool),
+		files:    map[string][]byte{},
+		chunks:   chunks,
+	}
+}
+
+func (fb *fakeBackend) HomeDir(backupID, overrideBucket, overridePath string) string {
+	fb.RLock()
+	defer fb.RUnlock()
+	args := fb.Called(overrideBucket, overridePath, backupID)
+	return args.String(0)
+}
+
+func (fb *fakeBackend) AllBackups(ctx context.Context) ([]*backup.DistributedBackupDescriptor, error) {
+	fb.RLock()
+	defer fb.RUnlock()
+	args := fb.Called(ctx)
+	if args.Get(0) != nil {
+		return args.Get(0).([]*backup.DistributedBackupDescriptor), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (fb *fakeBackend) PutFile(ctx context.Context, backupID, key, srcPath, overrideBucket, overridePath string) error {
+	fb.Lock()
+	defer fb.Unlock()
+	args := fb.Called(ctx, backupID, key, srcPath)
+	return args.Error(0)
+}
+
+func (fb *fakeBackend) PutObject(ctx context.Context, backupID, key, overrideBucket, overridePath string, bytes []byte) error {
+	fb.Lock()
+	defer fb.Unlock()
+	args := fb.Called(ctx, backupID, key, bytes)
+	switch key {
+	case BackupFile:
+		json.Unmarshal(bytes, &fb.meta)
+	case GlobalBackupFile, GlobalRestoreFile:
+		json.Unmarshal(bytes, &fb.glMeta)
+		if fb.glMeta.Status == backup.Success || fb.glMeta.Status == backup.Failed {
+			close(fb.doneChan)
+		}
+	default:
+		// do nothing
+	}
+	return args.Error(0)
+}
+
+func (fb *fakeBackend) GetObject(ctx context.Context, backupID, key, overrideBucket, overridePath string) ([]byte, error) {
+	fb.RLock()
+	defer fb.RUnlock()
+
+	// For GlobalRestoreFile, dynamically return current glMeta state if it has been set
+	// by PutObject during an active restore. This allows coordinator code to read the
+	// current status (e.g., to check for cancellation) without requiring explicit mock
+	// expectations for each read. Falls back to mock expectations for tests that
+	// explicitly set them (like status check tests).
+	if key == GlobalRestoreFile && fb.glMeta.ID != "" {
+		bytes, err := json.Marshal(fb.glMeta)
+		if err != nil {
+			return nil, err
+		}
+		return bytes, nil
+	}
+
+	args := fb.Called(ctx, backupID, key)
+	if args.Get(0) != nil {
+		return args.Get(0).([]byte), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (fb *fakeBackend) Initialize(ctx context.Context, backupID, overrideBucket, overridePath string) error {
+	fb.Lock()
+	defer fb.Unlock()
+	args := fb.Called(ctx, backupID)
+	return args.Error(0)
+}
+
+func (fb *fakeBackend) SourceDataPath() string {
+	fb.RLock()
+	defer fb.RUnlock()
+	args := fb.Called()
+	return args.String(0)
+}
+
+func (fb *fakeBackend) IsExternal() bool {
+	return true
+}
+
+func (fb *fakeBackend) Name() string {
+	return "fakeBackend"
+}
+
+func (fb *fakeBackend) WriteToFile(ctx context.Context, backupID, key, destPath, overrideBucket, overridePath string) error {
+	fb.Lock()
+	defer fb.Unlock()
+	args := fb.Called(ctx, backupID, key, destPath)
+	return args.Error(0)
+}
+
+func (fb *fakeBackend) Read(ctx context.Context, backupID, key, overrideBucket, overridePath string, w io.WriteCloser) (int64, error) {
+	fb.Lock()
+	defer fb.Unlock()
+	defer w.Close()
+
+	args := fb.Called(ctx, backupID, key, w)
+	if err := args.Error(1); err != nil {
+		return 0, err
+	}
+
+	if data := fb.chunks[key]; data != nil {
+		io.Copy(w, bytes.NewReader(data))
+	}
+	return 0, args.Error(1)
+}
+
+func (fb *fakeBackend) Write(ctx context.Context, backupID, key, overrideBucket, overridePath string, r backup.ReadCloserWithError) (int64, error) {
+	fb.Lock()
+	defer fb.Unlock()
+	defer r.Close()
+
+	args := fb.Called(ctx, backupID, key, r)
+	if err := args.Error(1); err != nil {
+		return 0, err
+	}
+	buf := bytes.Buffer{}
+	n, err := io.Copy(&buf, r)
+	fb.files[backupID+"/"+key] = buf.Bytes()
+
+	return n, err
+}

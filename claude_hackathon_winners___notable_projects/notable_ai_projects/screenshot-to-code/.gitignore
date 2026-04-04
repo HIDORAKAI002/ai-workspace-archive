@@ -1,0 +1,20 @@
+.aider*
+node_modules
+
+# Project-related files
+
+# Run logs
+backend/run_logs/*
+
+# Weird Docker setup related files
+backend/backend/*
+
+# Env vars
+frontend/.env.local
+.env
+
+# Mac files
+.DS_Store
+
+#Rodney
+.rodney

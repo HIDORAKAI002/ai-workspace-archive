@@ -1,0 +1,287 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package config
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/entities/moduletools"
+	basesettings "github.com/weaviate/weaviate/usecases/modulecomponents/settings"
+)
+
+const (
+	modelProperty            = "model"
+	temperatureProperty      = "temperature"
+	maxTokensProperty        = "maxTokens"
+	frequencyPenaltyProperty = "frequencyPenalty"
+	presencePenaltyProperty  = "presencePenalty"
+	topPProperty             = "topP"
+	baseURLProperty          = "baseURL"
+	apiVersionProperty       = "apiVersion"
+	reasoningEffortProperty  = "reasoningEffort"
+	verbosityProperty        = "verbosity"
+)
+
+var availableOpenAILegacyModels = []string{
+	"text-davinci-002",
+	"text-davinci-003",
+}
+
+var availableReasoningEffortValues = []string{
+	"minimal", "low", "medium", "high",
+}
+
+var availableVerbosityValues = []string{
+	"low", "medium", "high",
+}
+
+var (
+	DefaultOpenAIModel            = "gpt-5-mini"
+	DefaultOpenAIMaxTokens        = float64(8192)
+	DefaultOpenAIFrequencyPenalty = 0.0
+	DefaultOpenAIPresencePenalty  = 0.0
+	DefaultOpenAITopP             = 1.0
+	DefaultOpenAIBaseURL          = "https://api.openai.com"
+	DefaultApiVersion             = "2024-06-01"
+)
+
+// todo Need to parse the tokenLimits in a smarter way, as the prompt defines the max length
+var defaultMaxTokens = map[string]float64{
+	"text-davinci-002":   4097,
+	"text-davinci-003":   4097,
+	"gpt-3.5-turbo":      4096,
+	"gpt-3.5-turbo-16k":  16384,
+	"gpt-3.5-turbo-1106": 16385,
+	"gpt-4":              8192,
+	"gpt-4-32k":          32768,
+	"gpt-4-1106-preview": 128000,
+	"gpt-4o":             128000,
+	"gpt-4o-mini":        16384,
+	"gpt-5":              128000,
+	"gpt-5-mini":         128000,
+	"gpt-5-nano":         128000,
+}
+
+var availableApiVersions = []string{
+	"2022-12-01",
+	"2023-03-15-preview",
+	"2023-05-15",
+	"2023-06-01-preview",
+	"2023-07-01-preview",
+	"2023-08-01-preview",
+	"2023-09-01-preview",
+	"2023-12-01-preview",
+	"2024-02-15-preview",
+	"2024-03-01-preview",
+	"2024-02-01",
+	"2024-06-01",
+}
+
+func GetMaxTokensForModel(model string) *float64 {
+	if maxTokens, ok := defaultMaxTokens[model]; ok {
+		return &maxTokens
+	}
+	return nil
+}
+
+func IsLegacy(model string) bool {
+	return contains(availableOpenAILegacyModels, model)
+}
+
+func IsThirdPartyProvider(baseURL string, isAzure bool, resourceName, deploymentID string) bool {
+	return !(strings.Contains(baseURL, "api.openai.com") || IsAzure(isAzure, resourceName, deploymentID))
+}
+
+func IsAzure(isAzure bool, resourceName, deploymentID string) bool {
+	return isAzure || (resourceName != "" && deploymentID != "")
+}
+
+type ClassSettings interface {
+	Model() string
+	MaxTokens() *float64
+	Temperature() *float64
+	FrequencyPenalty() float64
+	PresencePenalty() float64
+	TopP() float64
+	ResourceName() string
+	DeploymentID() string
+	IsAzure() bool
+	Validate(class *models.Class) error
+	BaseURL() string
+	ApiVersion() string
+	ReasoningEffort() *string
+	Verbosity() *string
+}
+
+type classSettings struct {
+	cfg                  moduletools.ClassConfig
+	propertyValuesHelper basesettings.PropertyValuesHelper
+}
+
+func NewClassSettings(cfg moduletools.ClassConfig) ClassSettings {
+	return &classSettings{cfg: cfg, propertyValuesHelper: basesettings.NewPropertyValuesHelper("generative-openai")}
+}
+
+func (ic *classSettings) Validate(class *models.Class) error {
+	if ic.cfg == nil {
+		// we would receive a nil-config on cross-class requests, such as Explore{}
+		return errors.New("empty config")
+	}
+
+	temperature := ic.Temperature()
+	if temperature != nil && (*temperature < 0 || *temperature > 1) {
+		return errors.Errorf("Wrong temperature configuration, values are between 0.0 and 1.0")
+	}
+
+	model := ic.getStringProperty(modelProperty, DefaultOpenAIModel)
+	maxTokens := ic.MaxTokens()
+	maxTokensForModel := GetMaxTokensForModel(*model)
+	if maxTokens != nil && (*maxTokens < 0 || (maxTokensForModel != nil && *maxTokens > *maxTokensForModel)) {
+		return errors.Errorf("Wrong maxTokens configuration, values are should have a minimal value of 1 and max is dependant on the model used")
+	}
+
+	frequencyPenalty := ic.getFloatProperty(frequencyPenaltyProperty, &DefaultOpenAIFrequencyPenalty)
+	if frequencyPenalty == nil || (*frequencyPenalty < 0 || *frequencyPenalty > 1) {
+		return errors.Errorf("Wrong frequencyPenalty configuration, values are between 0.0 and 1.0")
+	}
+
+	presencePenalty := ic.getFloatProperty(presencePenaltyProperty, &DefaultOpenAIPresencePenalty)
+	if presencePenalty == nil || (*presencePenalty < 0 || *presencePenalty > 1) {
+		return errors.Errorf("Wrong presencePenalty configuration, values are between 0.0 and 1.0")
+	}
+
+	topP := ic.getFloatProperty(topPProperty, &DefaultOpenAITopP)
+	if topP == nil || (*topP < 0 || *topP > 5) {
+		return errors.Errorf("Wrong topP configuration, values are should have a minimal value of 1 and max of 5")
+	}
+
+	apiVersion := ic.ApiVersion()
+	if !ic.validateApiVersion(apiVersion) {
+		return errors.Errorf("wrong Azure OpenAI apiVersion, available api versions are: %v", availableApiVersions)
+	}
+
+	reasoningEffort := ic.ReasoningEffort()
+	if reasoningEffort != nil && !slices.Contains(availableReasoningEffortValues, *reasoningEffort) {
+		return errors.Errorf("wrong %s value, allowed values are: %v", reasoningEffortProperty, availableReasoningEffortValues)
+	}
+
+	verbosity := ic.Verbosity()
+	if verbosity != nil && !slices.Contains(availableVerbosityValues, *verbosity) {
+		return errors.Errorf("wrong %s value, allowed values are: %v", verbosityProperty, availableVerbosityValues)
+	}
+
+	if ic.IsAzure() {
+		err := ic.validateAzureConfig(ic.ResourceName(), ic.DeploymentID())
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := ic.propertyValuesHelper.ValidateBaseURL(ic.BaseURL()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ic *classSettings) getStringProperty(name, defaultValue string) *string {
+	asString := ic.propertyValuesHelper.GetPropertyAsStringWithNotExists(ic.cfg, name, "", defaultValue)
+	return &asString
+}
+
+func (ic *classSettings) getStringPropertyOrNil(name string) *string {
+	if asString := ic.propertyValuesHelper.GetPropertyAsStringWithNotExists(ic.cfg, name, "", ""); asString != "" {
+		return &asString
+	}
+	return nil
+}
+
+func (ic *classSettings) getBoolProperty(name string, defaultValue bool) *bool {
+	asBool := ic.propertyValuesHelper.GetPropertyAsBool(ic.cfg, name, false)
+	return &asBool
+}
+
+func (ic *classSettings) getFloatProperty(name string, defaultValue *float64) *float64 {
+	wrongVal := float64(-1.0)
+	return ic.propertyValuesHelper.GetPropertyAsFloat64WithNotExists(ic.cfg, name, &wrongVal, defaultValue)
+}
+
+func (ic *classSettings) validateApiVersion(apiVersion string) bool {
+	return contains(availableApiVersions, apiVersion)
+}
+
+func (ic *classSettings) Model() string {
+	return *ic.getStringProperty(modelProperty, DefaultOpenAIModel)
+}
+
+func (ic *classSettings) MaxTokens() *float64 {
+	return ic.getFloatProperty(maxTokensProperty, nil)
+}
+
+func (ic *classSettings) BaseURL() string {
+	return *ic.getStringProperty(baseURLProperty, DefaultOpenAIBaseURL)
+}
+
+func (ic *classSettings) ApiVersion() string {
+	return *ic.getStringProperty(apiVersionProperty, DefaultApiVersion)
+}
+
+func (ic *classSettings) Temperature() *float64 {
+	return ic.getFloatProperty(temperatureProperty, nil)
+}
+
+func (ic *classSettings) FrequencyPenalty() float64 {
+	return *ic.getFloatProperty(frequencyPenaltyProperty, &DefaultOpenAIFrequencyPenalty)
+}
+
+func (ic *classSettings) PresencePenalty() float64 {
+	return *ic.getFloatProperty(presencePenaltyProperty, &DefaultOpenAIPresencePenalty)
+}
+
+func (ic *classSettings) TopP() float64 {
+	return *ic.getFloatProperty(topPProperty, &DefaultOpenAITopP)
+}
+
+func (ic *classSettings) ResourceName() string {
+	return *ic.getStringProperty("resourceName", "")
+}
+
+func (ic *classSettings) DeploymentID() string {
+	return *ic.getStringProperty("deploymentId", "")
+}
+
+func (ic *classSettings) IsAzure() bool {
+	return IsAzure(*ic.getBoolProperty("isAzure", false), ic.ResourceName(), ic.DeploymentID())
+}
+
+func (ic *classSettings) ReasoningEffort() *string {
+	return ic.getStringPropertyOrNil(reasoningEffortProperty)
+}
+
+func (ic *classSettings) Verbosity() *string {
+	return ic.getStringPropertyOrNil(verbosityProperty)
+}
+
+func (ic *classSettings) validateAzureConfig(resourceName string, deploymentId string) error {
+	if (resourceName == "" && deploymentId != "") || (resourceName != "" && deploymentId == "") {
+		return fmt.Errorf("both resourceName and deploymentId must be provided")
+	}
+	return nil
+}
+
+func contains[T comparable](s []T, e T) bool {
+	return slices.Contains(s, e)
+}

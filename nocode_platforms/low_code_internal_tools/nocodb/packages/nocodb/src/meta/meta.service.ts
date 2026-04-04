@@ -120,6 +120,7 @@ export class MetaService {
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
       [MetaTable.INTEGRATIONS]: 'int',
+      [MetaTable.INTEGRATION_LINKS]: 'il',
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
@@ -149,6 +150,7 @@ export class MetaService {
       [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
       [MetaTable.DOCS]: 'doc',
       [MetaTable.DATE_DEPENDENCY]: 'dd',
+      [MetaTable.API_TOKEN_SCOPES]: 'ats',
     };
 
     const prefix = prefixMap[target] || 'nc';

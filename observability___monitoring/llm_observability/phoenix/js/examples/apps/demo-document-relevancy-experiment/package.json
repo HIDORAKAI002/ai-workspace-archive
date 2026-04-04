@@ -1,0 +1,21 @@
+{
+  "name": "demo-document-relevancy-experiment",
+  "version": "1.0.11",
+  "private": true,
+  "keywords": [],
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx experiment.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.29",
+    "@arizeai/openinference-instrumentation-openai": "^3.2.3",
+    "@arizeai/phoenix-client": "workspace:*",
+    "@arizeai/phoenix-evals": "workspace:*",
+    "dotenv": "^16.4.7",
+    "openai": "^6.9.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}

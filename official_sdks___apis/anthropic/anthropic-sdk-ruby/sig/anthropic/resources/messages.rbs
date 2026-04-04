@@ -1,0 +1,63 @@
+module Anthropic
+  module Resources
+    class Messages
+      attr_reader batches: Anthropic::Resources::Messages::Batches
+
+      def create: (
+        max_tokens: Integer,
+        messages: ::Array[Anthropic::MessageParam],
+        model: Anthropic::Models::model,
+        ?cache_control: Anthropic::CacheControlEphemeral?,
+        ?container: String?,
+        ?inference_geo: String?,
+        ?metadata: Anthropic::Metadata,
+        ?output_config: Anthropic::OutputConfig,
+        ?service_tier: Anthropic::Models::MessageCreateParams::service_tier,
+        ?stop_sequences: ::Array[String],
+        ?system_: Anthropic::Models::MessageCreateParams::system_,
+        ?temperature: Float,
+        ?thinking: Anthropic::Models::thinking_config_param,
+        ?tool_choice: Anthropic::Models::tool_choice,
+        ?tools: ::Array[Anthropic::Models::tool_union],
+        ?top_k: Integer,
+        ?top_p: Float,
+        ?request_options: Anthropic::request_opts
+      ) -> Anthropic::Message
+
+      def stream_raw: (
+        max_tokens: Integer,
+        messages: ::Array[Anthropic::MessageParam],
+        model: Anthropic::Models::model,
+        ?cache_control: Anthropic::CacheControlEphemeral?,
+        ?container: String?,
+        ?inference_geo: String?,
+        ?metadata: Anthropic::Metadata,
+        ?output_config: Anthropic::OutputConfig,
+        ?service_tier: Anthropic::Models::MessageCreateParams::service_tier,
+        ?stop_sequences: ::Array[String],
+        ?system_: Anthropic::Models::MessageCreateParams::system_,
+        ?temperature: Float,
+        ?thinking: Anthropic::Models::thinking_config_param,
+        ?tool_choice: Anthropic::Models::tool_choice,
+        ?tools: ::Array[Anthropic::Models::tool_union],
+        ?top_k: Integer,
+        ?top_p: Float,
+        ?request_options: Anthropic::request_opts
+      ) -> Anthropic::Internal::Stream[Anthropic::Models::raw_message_stream_event]
+
+      def count_tokens: (
+        messages: ::Array[Anthropic::MessageParam],
+        model: Anthropic::Models::model,
+        ?cache_control: Anthropic::CacheControlEphemeral?,
+        ?output_config: Anthropic::OutputConfig,
+        ?system_: Anthropic::Models::MessageCountTokensParams::system_,
+        ?thinking: Anthropic::Models::thinking_config_param,
+        ?tool_choice: Anthropic::Models::tool_choice,
+        ?tools: ::Array[Anthropic::Models::message_count_tokens_tool],
+        ?request_options: Anthropic::request_opts
+      ) -> Anthropic::MessageTokensCount
+
+      def initialize: (client: Anthropic::Client) -> void
+    end
+  end
+end

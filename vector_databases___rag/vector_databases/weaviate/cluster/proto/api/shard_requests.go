@@ -1,0 +1,286 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package api
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/go-openapi/strfmt"
+)
+
+const (
+	ReplicationCommandVersionV0 = iota
+)
+
+type ShardReplicationState string
+
+func (s ShardReplicationState) String() string {
+	return string(s)
+}
+
+const (
+	REGISTERED  ShardReplicationState = "REGISTERED"
+	HYDRATING   ShardReplicationState = "HYDRATING"
+	FINALIZING  ShardReplicationState = "FINALIZING"
+	READY       ShardReplicationState = "READY"
+	DEHYDRATING ShardReplicationState = "DEHYDRATING"
+	CANCELLED   ShardReplicationState = "CANCELLED" // The operation has been cancelled. It cannot be resumed.
+)
+
+type ShardReplicationTransferType string
+
+func (s ShardReplicationTransferType) String() string {
+	return string(s)
+}
+
+const (
+	COPY ShardReplicationTransferType = "COPY"
+	MOVE ShardReplicationTransferType = "MOVE"
+)
+
+type ReplicationReplicateShardRequest struct {
+	// Version is the version with which this command was generated
+	Version int
+
+	Uuid strfmt.UUID
+
+	SourceNode       string
+	SourceCollection string
+	SourceShard      string
+	TargetNode       string
+
+	TransferType string
+}
+
+type ReplicationReplicateShardReponse struct{}
+
+type ReplicationUpdateOpStateRequest struct {
+	Version int
+
+	Id    uint64
+	State ShardReplicationState
+}
+
+type ReplicationUpdateOpStateResponse struct{}
+
+type ReplicationRegisterErrorRequest struct {
+	Version int
+
+	Id         uint64
+	Error      string
+	TimeUnixMs int64
+}
+
+type ReplicationRegisterErrorResponse struct{}
+
+type ReplicationRemoveOpRequest struct {
+	Version int
+
+	Id uint64
+}
+
+type ReplicationDeleteOpResponse struct{}
+
+type ReplicationDetailsRequest struct {
+	Uuid strfmt.UUID
+}
+
+type ReplicationDetailsRequestByCollection struct {
+	Collection string
+}
+
+type ReplicationDetailsRequestByCollectionAndShard struct {
+	Collection string
+	Shard      string
+}
+
+type ReplicationDetailsRequestByTargetNode struct {
+	Node string
+}
+
+type ReplicationDetailsError struct {
+	Message           string
+	ErroredTimeUnixMs int64 // Unix timestamp in milliseconds when the error occurred
+}
+
+type ReplicationDetailsState struct {
+	State           string
+	Errors          []ReplicationDetailsError
+	StartTimeUnixMs int64 // Unix timestamp in milliseconds when the state was first entered
+}
+
+func (r *ReplicationDetailsState) UnmarshalJSON(data []byte) error {
+	type rawReplicationDetailsState struct {
+		State           string
+		Errors          json.RawMessage
+		StartTimeUnixMs int64
+	}
+	var raw rawReplicationDetailsState
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.State = raw.State
+	r.StartTimeUnixMs = raw.StartTimeUnixMs
+	// no errors in the message
+	if len(raw.Errors) == 0 || string(raw.Errors) == "null" || string(raw.Errors) == "[]" {
+		r.Errors = nil
+		return nil
+	}
+
+	// try to unmarshal as []ReplicationDetailsError
+	var replicationDetailsErrors []ReplicationDetailsError
+	if err := json.Unmarshal(raw.Errors, &replicationDetailsErrors); err == nil {
+		r.Errors = replicationDetailsErrors
+		return nil
+	}
+
+	// try to unmarshal as []string (legacy format)
+	var errors []string
+	if err := json.Unmarshal(raw.Errors, &errors); err == nil {
+		if len(errors) > 0 {
+			r.Errors = make([]ReplicationDetailsError, len(errors))
+			for i, msg := range errors {
+				r.Errors[i] = ReplicationDetailsError{Message: msg}
+			}
+		}
+		return nil
+	}
+
+	return fmt.Errorf("cannot unmarshal ReplicationDetailsState.Errors field neither to []ReplicationDetailsError or []string: %v", string(raw.Errors))
+}
+
+type ReplicationDetailsResponse struct {
+	Uuid         strfmt.UUID
+	Id           uint64
+	ShardId      string
+	Collection   string
+	SourceNodeId string
+	TargetNodeId string
+
+	Uncancelable       bool
+	ScheduledForCancel bool
+	ScheduledForDelete bool
+
+	Status          ReplicationDetailsState
+	StatusHistory   []ReplicationDetailsState
+	TransferType    string
+	StartTimeUnixMs int64
+}
+
+type ReplicationCancelRequest struct {
+	Version int
+	Uuid    strfmt.UUID
+}
+
+type ReplicationDeleteRequest struct {
+	Version int
+	Uuid    strfmt.UUID
+}
+
+type ReplicationCancellationCompleteRequest struct {
+	Version int
+	Id      uint64
+}
+
+type ReplicationsDeleteByCollectionRequest struct {
+	Version    int
+	Collection string
+}
+
+type ReplicationsDeleteByTenantsRequest struct {
+	Version    int
+	Collection string
+	Tenants    []string
+}
+
+type ShardingState struct {
+	Collection string
+	Shards     map[string][]string
+}
+
+type ReplicationScalePlan struct {
+	PlanID                       strfmt.UUID
+	Collection                   string
+	ShardReplicationScaleActions map[string]ShardReplicationScaleActions
+}
+
+type ShardReplicationScaleActions struct {
+	RemoveNodes map[string]struct{}
+	AddNodes    map[string]string
+}
+
+type ReplicationQueryShardingStateByCollectionRequest struct {
+	Collection string
+}
+
+type ReplicationQueryShardingStateByCollectionAndShardRequest struct {
+	Collection string
+	Shard      string
+}
+
+type ReplicationScalePlanRequest struct {
+	Collection        string
+	ReplicationFactor int
+}
+
+type ReplicationScalePlanResponse struct {
+	ReplicationScalePlan ReplicationScalePlan
+}
+
+type ReplicationDeleteAllRequest struct {
+	Version int
+}
+
+type ReplicationPurgeRequest struct {
+	Version int
+}
+
+type ReplicationOperationStateRequest struct {
+	Id uint64
+}
+
+type ReplicationOperationStateResponse struct {
+	State ShardReplicationState
+}
+
+type ReplicationStoreSchemaVersionRequest struct {
+	Version       int
+	SchemaVersion uint64
+	Id            uint64
+}
+
+type ReplicationAddReplicaToShard struct {
+	OpId                     uint64
+	Class, Shard, TargetNode string
+	SchemaVersion            uint64
+}
+
+type ReplicationForceDeleteAllRequest struct{}
+
+type ReplicationForceDeleteByCollectionRequest struct {
+	Collection string
+}
+
+type ReplicationForceDeleteByCollectionAndShardRequest struct {
+	Collection string
+	Shard      string
+}
+
+type ReplicationForceDeleteByTargetNodeRequest struct {
+	Node string
+}
+
+type ReplicationForceDeleteByUuidRequest struct {
+	Uuid strfmt.UUID
+}

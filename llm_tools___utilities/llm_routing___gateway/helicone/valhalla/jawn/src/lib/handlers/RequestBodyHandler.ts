@@ -1,0 +1,137 @@
+import { PromiseGenericResult, err } from "../../packages/common/result";
+import { tryParse } from "../../utils/helpers";
+import { getModelFromRequest } from "../../utils/modelMapper";
+import { AbstractLogHandler } from "./AbstractLogHandler";
+import { HandlerContext } from "./HandlerContext";
+
+export class RequestBodyHandler extends AbstractLogHandler {
+  async handle(context: HandlerContext): PromiseGenericResult<string> {
+    const start = performance.now();
+    context.timingMetrics.push({
+      constructor: this.constructor.name,
+      start,
+    });
+    try {
+      const { body: requestBodyFinal, model: requestModel } =
+        this.processRequestBody(context);
+
+      context.processedLog.request.body = requestBodyFinal;
+      context.processedLog.request.model = requestModel;
+
+      if (
+        this.isAssistantRequest(requestBodyFinal) &&
+        !context.processedLog.request.model
+      ) {
+        context.processedLog.request.model = "assistant-call";
+      }
+
+      if (this.isVectorDBRequest(requestBodyFinal)) {
+        context.processedLog.request.model = "vector_db";
+      } else if (this.isToolRequest(requestBodyFinal)) {
+        context.processedLog.request.model = `tool:${requestBodyFinal.toolName}`;
+      } else if (this.isDataRequest(requestBodyFinal)) {
+        context.processedLog.request.model = `data:${requestBodyFinal.name}`;
+      }
+
+      try {
+        context.processedLog.request.properties = Object.entries(
+          context.message.log.request.properties
+        ).reduce(
+          (acc, [key, value]) => {
+            acc[key] = this.cleanRequestBody(value);
+            return acc;
+          },
+          {} as Record<string, string>
+        );
+      } catch (error: any) {
+        context.processedLog.request.properties =
+          context.message.log.request.properties;
+      }
+
+      return await super.handle(context);
+    } catch (error: any) {
+      return err(
+        `Error processing request body: ${error}, Context: ${this.constructor.name}`
+      );
+    }
+  }
+
+  private isAssistantRequest(requestBody: any): boolean {
+    if (typeof requestBody !== "object" || requestBody === null) {
+      return false;
+    }
+    return (
+      (!requestBody.hasOwnProperty("messages") &&
+        requestBody.hasOwnProperty("instructions") &&
+        requestBody.hasOwnProperty("name")) ||
+      requestBody.hasOwnProperty("assistant_id") ||
+      requestBody.hasOwnProperty("metadata")
+    );
+  }
+
+  private isVectorDBRequest(requestBody: any): boolean {
+    if (typeof requestBody !== "object" || requestBody === null) {
+      return false;
+    }
+    return (
+      requestBody.hasOwnProperty("_type") && requestBody._type === "vector_db"
+    );
+  }
+
+  private isToolRequest(requestBody: any): boolean {
+    if (typeof requestBody !== "object" || requestBody === null) {
+      return false;
+    }
+    return requestBody.hasOwnProperty("_type") && requestBody._type === "tool";
+  }
+
+  private isDataRequest(requestBody: any): boolean {
+    if (typeof requestBody !== "object" || requestBody === null) {
+      return false;
+    }
+    return requestBody.hasOwnProperty("_type") && requestBody._type === "data";
+  }
+
+  processRequestBody(context: HandlerContext): {
+    body: any;
+    model: string | undefined;
+  } {
+    const log = context.message.log;
+    let rawRequestBody = context.rawLog.rawRequestBody;
+
+    if (!rawRequestBody) {
+      console.log("No request body found");
+      return {
+        body: {},
+        model: getModelFromRequest(
+          "{}",
+          log.request.path,
+          log.request.targetUrl
+        ),
+      };
+    }
+
+    let parsedRequestBody = tryParse(rawRequestBody, "request body");
+
+    const requestModel = getModelFromRequest(
+      parsedRequestBody,
+      log.request.path,
+      log.request.targetUrl
+    );
+
+    parsedRequestBody = context.message.heliconeMeta.omitRequestLog
+      ? {
+          model: requestModel, // Put request model here, not calculated model
+        }
+      : parsedRequestBody;
+
+    return {
+      body: parsedRequestBody,
+      model: requestModel,
+    };
+  }
+
+  cleanRequestBody(requestBodyStr: string): string {
+    return requestBodyStr.replace(/\\u0000/g, "");
+  }
+}

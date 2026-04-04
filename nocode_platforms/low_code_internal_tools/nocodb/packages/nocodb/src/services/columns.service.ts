@@ -455,7 +455,8 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
-    const isSyncedColumn = table.synced && column.readonly;
+    const isSyncedColumn =
+      table.synced && column.readonly && column.uidt !== UITypes.AutoNumber;
 
     const payloadHasNonMetaProps = Object.keys(param.column).some(
       (k) => !META_ONLY_COLUMN_PROPS.has(k),
@@ -3620,7 +3621,12 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
-    if (table.synced && column.readonly && !param.forceDeleteSystem) {
+    if (
+      table.synced &&
+      column.readonly &&
+      column.uidt !== UITypes.AutoNumber &&
+      !param.forceDeleteSystem
+    ) {
       NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HTTP Streaming Demo</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+            .description {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-left: 4px solid #3498db;
+                margin-bottom: 20px;
+            }
+            .endpoints {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: space-between;
+            }
+            .endpoint-card {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 20px;
+                width: calc(50% - 30px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                transition: transform 0.3s, box-shadow 0.3s;
+            }
+            .endpoint-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            }
+            .endpoint-card h2 {
+                margin-top: 0;
+                color: #3498db;
+            }
+            .btn {
+                display: inline-block;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 15px;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: bold;
+                margin-top: 15px;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #2980b9;
+            }
+            .code {
+                background-color: #f8f9fa;
+                padding: 8px;
+                border-radius: 4px;
+                font-family: monospace;
+                margin: 10px 0;
+                overflow-x: auto;
+            }
+            footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 0.9em;
+                color: #7f8c8d;
+            }
+            @media (max-width: 768px) {
+                .endpoint-card {
+                    width: 100%;
+                }
+                .endpoints {
+                    flex-direction: column;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>HTTP Streaming Demo</h1>
+            
+            <div class="description">
+                <p>This demo showcases two different approaches to HTTP streaming:</p>
+                <ul>
+                    <li>Classic HTTP Streaming: Using chunked transfer encoding</li>
+                    <li>MCP Streaming: Using structured notifications with JSON-RPC</li>
+                </ul>
+            </div>
+            
+            <div class="endpoints">
+                <div class="endpoint-card">
+                    <h2>Classic HTTP Streaming</h2>
+                    <p>Simple chunked transfer encoding to send data in chunks with plain text format.</p>
+                    <p>Perfect for simple streaming needs like progress updates.</p>
+                    <div class="code">GET /stream</div>
+                    <a href="/stream" class="btn">Try it now</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h2>MCP Streaming</h2>
+                    <p>Structured notification system with rich metadata and JSON-RPC protocol.</p>
+                    <p>Ideal for complex applications requiring detailed progress information.</p>
+                    <div class="code">Connect to /mcp with an MCP client</div>
+                    <div class="code">python client.py mcp</div>
+                </div>
+            </div>
+            
+            <footer>
+                <p>Model Context Protocol (MCP) for Beginners &copy; 2025</p>
+            </footer>
+        </div>
+    </body>
+</html>
