@@ -77,7 +77,7 @@ export function PromptDetail({ prompt, onBack, onCopy }: PromptDetailProps) {
   const contentHeight = Math.max(terminalHeight - headerLines - footerLines, 5);
 
   useEffect(() => {
-    const vars = extractVariables(prompt.content);
+    const vars = extractVariables(prompt.content ?? '');
     setVariables(vars);
     
     const defaults: Record<string, string> = {};
@@ -90,7 +90,7 @@ export function PromptDetail({ prompt, onBack, onCopy }: PromptDetailProps) {
   const contentLines = useMemo(() => {
     if (!prompt) return [];
     // Parse escape sequences like \n
-    const parsedContent = prompt.content.replace(/\\n/g, '\n');
+    const parsedContent = (prompt.content ?? '').replace(/\\n/g, '\n');
     return wrapText(parsedContent, terminalWidth - 6);
   }, [prompt, terminalWidth]);
 
@@ -200,12 +200,12 @@ export function PromptDetail({ prompt, onBack, onCopy }: PromptDetailProps) {
         setCurrentVarIndex(0);
         setCurrentInput(variableValues[variables[0].name] || '');
       } else {
-        handleCopy(prompt.content);
+        handleCopy(prompt.content ?? '');
       }
     }
 
     if (input === 'C' && prompt) {
-      handleCopy(prompt.content);
+      handleCopy(prompt.content ?? '');
     }
 
     if (input === 'o' && prompt) {

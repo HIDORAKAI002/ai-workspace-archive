@@ -1,0 +1,55 @@
+module Anthropic
+  module Models
+    type web_search_tool_result_block_param =
+      {
+        content: Anthropic::Models::web_search_tool_result_block_param_content,
+        tool_use_id: String,
+        type: :web_search_tool_result,
+        cache_control: Anthropic::CacheControlEphemeral?,
+        caller_: Anthropic::Models::WebSearchToolResultBlockParam::caller_
+      }
+
+    class WebSearchToolResultBlockParam < Anthropic::Internal::Type::BaseModel
+      attr_accessor content: Anthropic::Models::web_search_tool_result_block_param_content
+
+      attr_accessor tool_use_id: String
+
+      attr_accessor type: :web_search_tool_result
+
+      attr_accessor cache_control: Anthropic::CacheControlEphemeral?
+
+      attr_reader caller_: Anthropic::Models::WebSearchToolResultBlockParam::caller_?
+
+      def caller_=: (
+        Anthropic::Models::WebSearchToolResultBlockParam::caller_
+      ) -> Anthropic::Models::WebSearchToolResultBlockParam::caller_
+
+      def initialize: (
+        content: Anthropic::Models::web_search_tool_result_block_param_content,
+        tool_use_id: String,
+        ?cache_control: Anthropic::CacheControlEphemeral?,
+        ?caller_: Anthropic::Models::WebSearchToolResultBlockParam::caller_,
+        ?type: :web_search_tool_result
+      ) -> void
+
+      def to_hash: -> {
+        content: Anthropic::Models::web_search_tool_result_block_param_content,
+        tool_use_id: String,
+        type: :web_search_tool_result,
+        cache_control: Anthropic::CacheControlEphemeral?,
+        caller_: Anthropic::Models::WebSearchToolResultBlockParam::caller_
+      }
+
+      type caller_ =
+        Anthropic::DirectCaller
+        | Anthropic::ServerToolCaller
+        | Anthropic::ServerToolCaller20260120
+
+      module Caller
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::WebSearchToolResultBlockParam::caller_]
+      end
+    end
+  end
+end

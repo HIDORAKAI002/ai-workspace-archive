@@ -1,0 +1,386 @@
+---
+title: 'Google ADK'
+description: 'Build a human approval workflow with Google ADK and AgentOps tracking'
+---
+{/*  SOURCE_FILE: examples/google_adk/human_approval.ipynb  */}
+
+_View Notebook on <a href={'https://github.com/AgentOps-AI/agentops/blob/main/examples/google_adk/human_approval.ipynb'} target={'_blank'}>Github</a>_
+
+# Google ADK Human Approval Workflow with AgentOps
+
+This example shows you how to build a complete human approval workflow using Google's Agent Development Kit (ADK) with comprehensive tracking via AgentOps.
+
+## What We're Building
+
+A **3-agent sequential workflow** for processing approval requests:
+- 🔍 **Prepare Agent**: Extracts and validates approval request details
+- 👤 **Approval Agent**: Handles human approval via external tool
+- ✅ **Decision Agent**: Processes approval decisions and provides final response
+
+**With AgentOps**, you'll get complete visibility into agent conversations, tool usage, costs, and performance.
+
+## Step-by-Step Implementation
+
+
+
+### Step 1: Install Dependencies
+
+Install Google ADK with required packages and AgentOps for tracking:
+
+<CodeGroup>
+  ```bash pip
+  pip install google-adk agentops nest_asyncio python-dotenv
+  ```
+  ```bash poetry
+  poetry add google-adk agentops nest_asyncio python-dotenv
+  ```
+  ```bash uv
+  uv pip install google-adk agentops nest_asyncio python-dotenv
+  ```
+</CodeGroup>
+
+**What AgentOps adds:**
+- 🔍 **Automatic tracking** of all LLM calls and agent interactions
+- 💰 **Cost monitoring** with token usage breakdown
+- 🛠️ **Tool usage analytics** for approval workflow steps
+- 📊 **Performance metrics** and execution timelines
+- 🐛 **Session replay** for debugging and optimization
+
+
+### Step 2: Create Google ADK Project
+
+Create the proper project structure for your approval workflow:
+
+```bash
+# Create project directory
+mkdir human_approval_workflow
+cd human_approval_workflow
+
+# Create agent module
+mkdir approval_agent
+touch approval_agent/__init__.py
+touch approval_agent/agent.py
+touch approval_agent/.env
+```
+
+**This creates the standard Google ADK structure:**
+```
+human_approval_workflow/
+└── approval_agent/
+    ├── __init__.py          # Module initialization
+    ├── agent.py             # Agent definitions
+    └── .env                 # API keys
+```
+
+### Step 3: Set Up Environment Variables
+
+Create the `.env` file in `approval_agent/` directory:
+
+```bash
+# approval_agent/.env
+GOOGLE_GENAI_USE_VERTEXAI=FALSE
+GOOGLE_API_KEY=your_google_api_key_here
+AGENTOPS_API_KEY=your_agentops_api_key_here
+```
+
+**Get your API keys:**
+- **Google API Key**: [Google AI Studio](https://aistudio.google.com/app/apikey)
+- **AgentOps API Key**: [AgentOps Settings](https://agentops.ai/settings/projects)
+
+**Note**: For Vertex AI, set `GOOGLE_GENAI_USE_VERTEXAI=TRUE` and run `gcloud auth application-default login`
+
+### Step 4: Create Module Initialization
+
+Edit `approval_agent/__init__.py`:
+
+```python
+# approval_agent/__init__.py
+from . import agent
+```
+
+### Step 5: Define the Agent Workflow
+
+Edit `approval_agent/agent.py` to create your approval workflow:
+
+```python
+# approval_agent/agent.py
+import json
+import os
+import asyncio
+from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.tools import FunctionTool
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types
+from pydantic import BaseModel, Field
+import nest_asyncio
+import agentops
+from dotenv import load_dotenv
+
+# Load environment and initialize AgentOps
+load_dotenv()
+nest_asyncio.apply()
+agentops.init(auto_start_session=False)
+
+# Constants
+APP_NAME = "human_approval_workflow"
+USER_ID = "approval_user"
+MODEL_NAME = "gemini-2.0-flash"
+
+# Data models
+class ApprovalRequest(BaseModel):
+    amount: float = Field(description="The amount requiring approval")
+    reason: str = Field(description="The reason for the request")
+
+class ApprovalDecision(BaseModel):
+    decision: str = Field(description="The approval decision: 'approved' or 'rejected'")
+    comments: str = Field(description="Additional comments from the approver")
+```
+
+Add the approval tool function:
+
+```python
+# External approval tool with human interaction
+async def external_approval_tool(amount: float, reason: str) -> str:
+    """
+    Prompts for human approval and returns the decision as a JSON string.
+    """
+    print("🔔 HUMAN APPROVAL REQUIRED:")
+    print(f"   Amount: ${amount:,.2f}")
+    print(f"   Reason: {reason}")
+    decision = ""
+    while decision.lower() not in ["approved", "rejected"]:
+        decision = input("   Enter decision (approved/rejected): ").strip().lower()
+        if decision.lower() not in ["approved", "rejected"]:
+            print("   Invalid input. Please enter 'approved' or 'rejected'.")
+    comments = input("   Enter comments (optional): ").strip()
+    print(f"   Decision: {decision.upper()}")
+    print(f"   Comments: {comments if comments else 'N/A'}")
+    return json.dumps({"decision": decision, "comments": comments, "amount": amount, "reason": reason})
+
+# Create the approval tool instance
+approval_tool = FunctionTool(func=external_approval_tool)
+```
+
+### Step 6: Define the Three-Agent Workflow
+
+Add the agent definitions to create your sequential workflow:
+
+```python
+# Agent 1: Prepare the approval request
+prepare_request = LlmAgent(
+    model=MODEL_NAME,
+    name="PrepareApprovalAgent",
+    description="Extracts and prepares approval request details from user input",
+    instruction="""You are an approval request preparation agent.
+        Your task:
+        1. Extract the amount and reason from the user's request
+        2. Store these values in the session state with keys 'approval_amount' and 'approval_reason'
+        3. Validate that both amount and reason are provided
+        4. Respond with a summary of what will be submitted for approval
+    If the user input is missing amount or reason, ask for clarification.
+    """,
+    output_key="request_prepared",
+)
+
+# Agent 2: Request human approval using the tool
+request_approval = LlmAgent(
+    model=MODEL_NAME,
+    name="RequestHumanApprovalAgent",
+    description="Calls the external approval system with prepared request details",
+    instruction="""You are a human approval request agent.
+        Your task:
+        1. Get the 'approval_amount' and 'approval_reason' from the session state
+        2. Use the external_approval_tool with these values
+        3. Store the approval decision in session state with key 'human_decision'
+        4. Respond with the approval status
+    Always use the exact values from the session state for the tool call.
+    """,
+    tools=[approval_tool],
+    output_key="approval_requested",
+)
+
+# Agent 3: Process the approval decision
+process_decision = LlmAgent(
+    model=MODEL_NAME,
+    name="ProcessDecisionAgent",
+    description="Processes the human approval decision and provides final response",
+    instruction="""You are a decision processing agent.
+        Your task:
+        1. Check the 'human_decision' from session state
+        2. Parse the approval decision JSON
+        3. If approved: congratulate and provide next steps
+        4. If rejected: explain the rejection and suggest alternatives
+        5. Provide a clear, helpful final response to the user
+
+    Be professional and helpful in your response.
+    """,
+    output_key="final_decision",
+)
+```
+
+### Step 7: Create the Sequential Workflow and Runner
+
+Combine agents into a workflow with session management:
+
+```python
+# Create sequential workflow
+approval_workflow = SequentialAgent(
+    name="HumanApprovalWorkflow",
+    description="Complete workflow for processing approval requests with human oversight",
+    sub_agents=[prepare_request, request_approval, process_decision],
+)
+
+# Set up session service and runner
+session_service = InMemorySessionService()
+workflow_runner = Runner(agent=approval_workflow, app_name=APP_NAME, session_service=session_service)
+```
+
+### Step 8: Add the Main Execution Function
+
+Create the function to run the approval workflow with AgentOps tracking:
+
+```python
+async def run_approval_workflow(user_request: str, session_id: str):
+    """Run the complete approval workflow with AgentOps tracking"""
+    # Start AgentOps session
+    session = agentops.start_session(tags=["google-adk", "approval-workflow"])
+    
+    try:
+        print(f"{'=' * 60}")
+        print(f" Starting Approval Workflow for Session: {session_id}")
+        print(f"{'=' * 60}")
+        print(f"User Request: {user_request}")
+        
+        # Create user message
+        user_content = types.Content(role="user", parts=[types.Part(text=user_request)])
+        step_count = 0
+        final_response = "No response received"
+        
+        # Run the workflow
+        async for event in workflow_runner.run_async(
+            user_id=USER_ID,
+            session_id=session_id,
+            new_message=user_content,
+        ):
+            if event.author and event.content:
+                step_count += 1
+                print(f"📋 Step {step_count} - {event.author}:")
+                if event.content.parts:
+                    response_text = event.content.parts[0].text
+                    print(f"   {response_text}")
+                    if event.is_final_response():
+                        final_response = response_text
+        
+        # Display session state
+        session_data = await session_service.get_session(
+            app_name=APP_NAME,
+            user_id=USER_ID,
+            session_id=session_id,
+        )
+        print(f"{'=' * 60}")
+        print(f"📊 Workflow Complete - Session State ({session_id}):")
+        print(f"{'=' * 60}")
+        for key, value in session_data.state.items():
+            print(f"   {key}: {value}")
+        print(f"🎯 Final Response: {final_response}")
+        
+        # End AgentOps session successfully
+        agentops.end_session("Success")
+        return final_response
+        
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        agentops.end_session("Failed", end_state_reason=str(e))
+        raise
+```
+
+Finally, add the main execution logic:
+
+```python
+# Main execution function
+async def main():
+    test_requests = [
+        "I need approval for $750 for team lunch and celebrations",
+        "Please approve $3,000 for a conference ticket and travel expenses",
+        "I need $12,000 approved for critical software licenses renewal",
+    ]
+    
+    for i, request in enumerate(test_requests, 1):
+        current_session_id = f"approval_session_{456 + i - 1}"
+        # Create the session before running the workflow
+        await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=current_session_id)
+        print(f"Created session: {current_session_id}")
+        await run_approval_workflow(request, current_session_id)
+
+# Export the workflow for ADK
+root_agent = approval_workflow
+```
+
+### Step 9: Run Your Approval Workflow
+
+Navigate to your project directory and run the workflow:
+
+**Option 1: Interactive Development UI**
+```bash
+cd human_approval_workflow
+adk web
+```
+Then open http://localhost:8000, select "approval_agent" from the dropdown, and interact with your workflow.
+
+**Option 2: Terminal Interface**
+```bash
+cd human_approval_workflow
+adk run approval_agent
+```
+
+**Option 3: Run Programmatically**
+```python
+# Run this in a separate script or notebook
+import asyncio
+from approval_agent.agent import main
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"Error: {e}")
+```
+
+**What happens:**
+1. AgentOps session starts automatically
+2. Prepare agent extracts amount and reason from requests
+3. Approval agent prompts for human input via terminal
+4. Decision agent processes the approval and provides final response
+5. AgentOps captures all interactions, tool usage, and costs
+6. Session ends with success/failure status
+## View Results in AgentOps Dashboard
+
+After running your approval workflow, visit your [AgentOps Dashboard](https://app.agentops.ai) to see:
+
+1. **Session Overview**: Complete timeline of the 3-agent workflow
+2. **Agent Conversations**: Every LLM call with prompts and responses
+3. **Tool Execution**: Human approval interactions and decisions
+4. **Cost Breakdown**: Token usage and costs per agent and step
+5. **Performance Analytics**: Execution times and success rates
+6. **Session Replay**: Step-by-step playback for debugging
+
+## Key Files Created
+
+**Project structure you built:**
+- `approval_agent/__init__.py` - Module initialization with agent import
+- `approval_agent/agent.py` - Complete workflow with 3 agents and AgentOps integration
+- `approval_agent/.env` - API keys for Google AI and AgentOps
+
+**AgentOps Integration Points:**
+- `agentops.init()` - Enables automatic instrumentation
+- `agentops.start_session()` - Begins tracking each workflow run
+- `agentops.end_session()` - Completes the session with status
+
+## Next Steps
+
+- Customize approval thresholds and business logic
+- Add more sophisticated approval routing
+- Integrate with external approval systems (Slack, email, etc.)
+- Use Google ADK's web UI for better user experience
+- Use AgentOps analytics to optimize approval times

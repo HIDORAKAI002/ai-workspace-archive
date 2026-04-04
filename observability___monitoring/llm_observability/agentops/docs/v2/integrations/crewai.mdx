@@ -1,0 +1,129 @@
+---
+title: 'CrewAI'
+description: 'AgentOps and CrewAI teamed up to make monitoring Crew agents dead simple.'
+---
+
+## Video Tutorial
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/t9YRRd2-wus"
+  title="AgentOps + CrewAI Integration Tutorial"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen
+></iframe>
+
+[CrewAI](https://www.crewai.com/) is a framework for easily building multi-agent applications. AgentOps integrates with CrewAI to provide observability into your agent workflows. Crew has comprehensive [documentation](https://docs.crewai.com) available as well as a great [quickstart](https://docs.crewai.com/how-to/Creating-a-Crew-and-kick-it-off/) guide.
+
+## Installation
+Install AgentOps and CrewAI, along with `python-dotenv` for managing API keys:
+
+<CodeGroup>
+  ```bash pip
+  pip install agentops crewai python-dotenv
+  ```
+  ```bash poetry
+  poetry add agentops crewai python-dotenv
+  ```
+  ```bash uv
+  uv pip install agentops crewai python-dotenv
+  ```
+</CodeGroup>
+
+## Setting Up API Keys
+
+You'll need API keys for AgentOps and OpenAI (since CrewAI's built-in `LLM` uses OpenAI models by default):
+- **OPENAI_API_KEY**: From the [OpenAI Platform](https://platform.openai.com/api-keys)
+- **AGENTOPS_API_KEY**: From your [AgentOps Dashboard](https://app.agentops.ai/)
+
+Set these as environment variables or in a `.env` file.
+
+<CodeGroup>
+  ```bash Export to CLI
+  export OPENAI_API_KEY="your_openai_api_key_here"
+  export AGENTOPS_API_KEY="your_agentops_api_key_here"
+  ```
+  ```txt Set in .env file
+  OPENAI_API_KEY="your_openai_api_key_here"
+  AGENTOPS_API_KEY="your_agentops_api_key_here"
+  ```
+</CodeGroup>
+
+Then load them in your Python code:
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+AGENTOPS_API_KEY = os.getenv("AGENTOPS_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+```
+
+## Usage
+
+Simply initialize AgentOps at the beginning of your CrewAI application. AgentOps automatically instruments CrewAI components—including its `LLM`—to track your agent interactions.
+
+Here's how to set up a basic CrewAI application with AgentOps:
+
+```python
+import agentops
+from crewai import Agent, Task, Crew, LLM
+
+# Initialize AgentOps client
+agentops.init()
+
+# Define the LLM to use with CrewAI
+llm = LLM(
+    model="openai/gpt-4o",  # Or your preferred model
+    temperature=0.7,
+)
+
+# Create an agent
+researcher = Agent(
+    role='Researcher',
+    goal='Research and provide accurate information about cities and their history',
+    backstory='You are an expert researcher with vast knowledge of world geography and history.',
+    llm=llm,
+    verbose=True
+)
+
+# Create a task
+research_task = Task(
+    description='What is the capital of France? Provide a detailed answer about its history, culture, and significance.',
+    expected_output='A comprehensive response about Paris, including its status as the capital of France, historical significance, cultural importance, and key landmarks.',
+    agent=researcher
+)
+
+# Create a crew with the researcher
+crew = Crew(
+    agents=[researcher],
+    tasks=[research_task],
+    verbose=True
+)
+
+# Execute the task
+result = crew.kickoff()
+
+print("\nCrew Research Results:")
+print(result)
+```
+
+## Examples
+
+<CardGroup cols={2}>
+  <Card title="Job Posting" icon="notebook" href="/v2/examples/crewai" newTab={true}>
+    Create job postings with a crew of specialized agents
+  </Card>
+  <Card title="Markdown Validator" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/crewai/markdown_validator.ipynb" newTab={true}>
+    Validate and improve markdown content using CrewAI agents
+  </Card>
+</CardGroup>
+
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="css" src="/styles/styles.css"></script>

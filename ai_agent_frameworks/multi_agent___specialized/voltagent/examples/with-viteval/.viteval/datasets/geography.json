@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-08-20T16:20:21.007Z",
+  "data": [
+    {
+      "input": "What is the highest mountain in North America, and in which U.S. state is it located?",
+      "expected": "Denali (Mount McKinley), Alaska"
+    },
+    {
+      "input": "What is the only landlocked country in Southeast Asia?",
+      "expected": "Laos"
+    },
+    {
+      "input": "Which country has the most pyramids in the world?",
+      "expected": "Sudan"
+    },
+    {
+      "input": "What is the only sea in the world with no coastline?",
+      "expected": "Sargasso Sea"
+    },
+    {
+      "input": "Which countries border the Black Sea?",
+      "expected": "Turkey, Bulgaria, Romania, Ukraine, Russia, and Georgia."
+    },
+    {
+      "input": "Which country is entirely surrounded by South Africa?",
+      "expected": "Lesotho"
+    },
+    {
+      "input": "Which European river flows through Vienna, Bratislava, Budapest, and Belgrade?",
+      "expected": "The Danube River"
+    },
+    {
+      "input": "Name the three Baltic states and their capitals.",
+      "expected": "Estonia — Tallinn; Latvia — Riga; Lithuania — Vilnius."
+    },
+    {
+      "input": "What is the world’s highest navigable lake, and on which two countries’ border is it located?",
+      "expected": "Lake Titicaca, on the border of Peru and Bolivia."
+    },
+    {
+      "input": "Which country has the longest coastline in the world?",
+      "expected": "Canada"
+    }
+  ]
+}

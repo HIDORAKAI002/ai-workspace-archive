@@ -1,0 +1,104 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: test-python-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  UV_EXCLUDE_NEWER: "3 days"
+
+jobs:
+  changes:
+    name: Filter Changes
+    runs-on: ubuntu-latest
+    outputs:
+      diff: ${{ steps.filter.outputs.diff }}
+      diff_files: ${{ steps.filter.outputs.diff_files }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          list-files: json
+          filters: |
+            diff:
+              - "python/instrumentation/**/*.py"
+              - "python/instrumentation/**/*.pyi"
+              - "python/instrumentation/**/*.toml"
+              - "python/instrumentation/**/*.yaml"
+              - "python/openinference-*/**/*.py"
+              - "python/openinference-*/**/*.pyi"
+              - "python/openinference-*/**/*.toml"
+              - "python/openinference-*/**/*.yaml"
+
+  find-tox-testenv:
+    name: Find Tox Testenv
+    needs: changes
+    if: ${{ needs.changes.outputs.diff == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.testenv.outputs.list }}
+    steps:
+      - name: Find tox environments to run
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: python
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          version: 0.11.2
+          enable-cache: false
+      - run: |
+          DIFF_FILES='${{ needs.changes.outputs.diff_files }}'
+          TOX_ENVIRONMENTS=$(uvx --with tox-uv tox list | grep ^py | awk '{print $1}' | jq -R . | jq -sc .)
+          SELECTED_TOX_ENVIRONMENTS=$(python3 scripts/select_tox_environments.py "$DIFF_FILES" "$TOX_ENVIRONMENTS")
+          echo "list=$SELECTED_TOX_ENVIRONMENTS" >> $GITHUB_OUTPUT
+        working-directory: python
+        id: testenv
+      - name: Fail if no testenv is found
+        if: ${{ steps.testenv.outputs.list == '[]' }}
+        run: exit 1
+
+  run-tox-testenv:
+    name: ${{ matrix.testenv }}
+    needs: find-tox-testenv
+    if: ${{ needs.find-tox-testenv.outputs.list != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testenv: ${{ fromJSON(needs.find-tox-testenv.outputs.list) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: python
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          version: 0.11.2
+          enable-cache: false
+      - run: uvx --with tox-uv tox run -e ${{ matrix.testenv }}
+        working-directory: python
+        timeout-minutes: 15
+
+  ci-required:
+    name: Python CI Required
+    needs: [changes, find-tox-testenv, run-tox-testenv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more CI jobs were cancelled"
+            exit 1
+          fi
+          echo "All CI jobs passed or were skipped"

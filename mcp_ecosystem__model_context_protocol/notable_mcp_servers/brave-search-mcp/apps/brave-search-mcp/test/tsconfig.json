@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "rootDir": "..",
+    "paths": {
+      "@tool-catalog": [
+        "../src/tool-catalog.ts"
+      ]
+    },
+    "types": ["vitest/globals", "node"],
+    "noEmit": true
+  },
+  "include": ["**/*", "../src/**/*"],
+  "exclude": ["../node_modules"]
+}

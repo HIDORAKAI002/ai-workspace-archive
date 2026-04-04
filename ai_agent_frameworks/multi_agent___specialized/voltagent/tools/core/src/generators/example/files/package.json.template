@@ -1,0 +1,32 @@
+{
+  "name": "voltagent-example-<%= name %>",
+  "author": "",
+  "dependencies": {
+    "ai": "^5.0.0",
+    "@ai-sdk/openai": "^2.0.2",
+    "@voltagent/cli": "^0.1.11",
+    "@voltagent/core": "^1.1.23",
+    "@voltagent/logger": "^1.0.2",
+    "@voltagent/server-hono": "^1.0.15",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "voltagent"
+  ],
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env ./src",
+    "start": "node dist/index.js",
+    "volt": "volt"
+  },
+  "type": "module"
+}

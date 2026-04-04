@@ -1,0 +1,6 @@
+# Supabase
+.branches
+.temp
+
+
+seeds/*.private.sql

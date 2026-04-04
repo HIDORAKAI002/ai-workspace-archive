@@ -1,0 +1,59 @@
+name: Sync Renovate changeset
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sync_renovate-changesets.yml'
+      - '**/pnpm-lock.yaml'
+      - 'examples/**/package.json'
+      - 'e2e-tests/**/package.json'
+
+jobs:
+  changeset:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'renovate/') && github.repository == 'mastra-ai/mastra'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Re-checkout with app token
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RENOVATE_PAT  }}
+          persist-credentials: true
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/setup-pnpm-node
+        with:
+          install-dependencies: 'false'
+          package-manager-cache: 'false'
+
+      - name: Check for package.json changes in examples and e2e-tests
+        id: check-examples
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q -E "(examples|e2e-tests)/.*package.json"; then
+            echo "examples_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "examples_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure git
+        shell: bash
+        run: |
+          git config --global user.name 'Dane - AI (Mastra)'
+          git config --global user.email '199639756+daneatmastra@users.noreply.github.com'
+
+      - name: Create/Update Changesets
+        uses: 'wardpeet/changesets-dependencies-action@1ac684b9885a8e9bb1d24f09fd2c253b36b3700d'
+        env:
+          GITHUB_TOKEN: ${{ secrets.RENOVATE_PAT  }}
+          SKIP_CREDENTIALS: '1'
+          INCLUDE_DEV_DEPS: '1'
+
+      - name: Install dependencies
+        if: steps.check-examples.outputs.examples_changed == 'true'
+        run: bash ./.github/scripts/install-deps.bash ${{ github.event.pull_request.base.sha }}
+
+      - name: Approve PR
+        run: gh pr review ${{ github.event.pull_request.number }} --approve
+        env:
+          GH_TOKEN: ${{ github.token }}

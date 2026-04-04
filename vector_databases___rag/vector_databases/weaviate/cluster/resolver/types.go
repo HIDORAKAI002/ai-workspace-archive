@@ -1,0 +1,34 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package resolver
+
+// ClusterStateReader allows the resolver to compute node-id to ip addresses.
+type ClusterStateReader interface {
+	// NodeAddress resolves node id into an ip address without the port.
+	NodeAddress(id string) string
+	// NodeHostname resolves a node id into an ip address with internal cluster api port
+	NodeHostname(nodeName string) (string, bool)
+	// LocalName returns the local node name
+	LocalName() string
+	// AllOtherClusterMembers returns all cluster members discovered via memberlist with their addresses
+	// This is useful for bootstrap when the join config is incomplete
+	AllOtherClusterMembers(port int) map[string]string
+}
+
+type RaftConfig struct {
+	ClusterStateReader ClusterStateReader
+	RaftPort           int
+	IsLocalHost        bool
+	NodeNameToPortMap  map[string]int
+	LocalName          string
+	LocalAddress       string
+}

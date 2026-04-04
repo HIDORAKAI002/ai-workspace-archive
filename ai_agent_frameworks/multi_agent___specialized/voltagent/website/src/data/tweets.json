@@ -1,0 +1,706 @@
+{
+  "1916955895709503681": {
+    "__typename": "Tweet",
+    "id_str": "1916955895709503681",
+    "text": "VoltAgent = IKEA instructions for AI agents…",
+    "created_at": "2025-04-28T20:41:15.000Z",
+    "lang": "ca",
+    "display_text_range": [
+      0,
+      44
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "791392986",
+      "name": "Siim Haugas",
+      "screen_name": "siimh",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1949718040532090880/DosiN28C_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "quoted_tweet": {
+      "id_str": "1914216071734894795",
+      "text": "🚨🚨🚨 VoltAgent is now live. 🚨🚨🚨\n\nAn open-source AI Agent Framework. \n\n🔍 Built-in observability\n🧠 Multi-agent architecture\n⚡ Supervisor-based coordination\n🪄 Native tool support &amp; memory\n🧩 First-class TypeScript DX\n\nForget no-code lock-ins.\nEverything you need is in one https://t.co/5wcCP91jGA",
+      "created_at": "2025-04-21T07:14:10.000Z",
+      "lang": "en",
+      "display_text_range": [
+        0,
+        281
+      ],
+      "entities": {
+        "hashtags": [],
+        "urls": [],
+        "user_mentions": [],
+        "symbols": [],
+        "media": [
+          {
+            "indices": [
+              272,
+              295
+            ],
+            "url": "https://t.co/5wcCP91jGA",
+            "display_url": "pic.x.com/5wcCP91jGA",
+            "expanded_url": "https://x.com/voltagent_dev/status/1914216071734894795/photo/1"
+          }
+        ]
+      },
+      "user": {
+        "id_str": "1912724805406863360",
+        "name": "voltagent",
+        "screen_name": "voltagent_dev",
+        "profile_image_url_https": "https://pbs.twimg.com/profile_images/2009993881627078656/poVm6WdD_normal.jpg",
+        "profile_image_shape": "Circle",
+        "verified": false,
+        "is_blue_verified": true
+      },
+      "video": {
+        "poster": "https://pbs.twimg.com/tweet_video_thumb/GpCoysFaIAAc52l.jpg",
+        "variants": [
+          {
+            "src": "https://video.twimg.com/tweet_video/GpCoysFaIAAc52l.mp4",
+            "type": "video/mp4"
+          }
+        ]
+      }
+    }
+  },
+  "1929706642851193172": {
+    "__typename": "Tweet",
+    "id_str": "1929706642851193172",
+    "text": "Such a beautiful architecture diagram, Claude, ty 🥹\n\nCurrently assembling some AI agents\n\nIt's agent volt⚡️ time! \n\nRemember, @voltagent_dev  = IKEA instructions for AI agents… https://t.co/rpBP28d4ei",
+    "created_at": "2025-06-03T01:08:10.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      177
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [
+        {
+          "indices": [
+            126,
+            140
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        }
+      ],
+      "symbols": [],
+      "media": [
+        {
+          "indices": [
+            177,
+            200
+          ],
+          "url": "https://t.co/rpBP28d4ei",
+          "display_url": "pic.x.com/rpBP28d4ei",
+          "expanded_url": "https://x.com/siimh/status/1929706642851193172/photo/1"
+        }
+      ]
+    },
+    "user": {
+      "id_str": "791392986",
+      "name": "Siim Haugas",
+      "screen_name": "siimh",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1949718040532090880/DosiN28C_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "photos": [
+      {
+        "url": "https://pbs.twimg.com/media/GsevTHhWMAA5Mhd.jpg",
+        "width": 888,
+        "height": 1692,
+        "expandedUrl": "https://x.com/siimh/status/1929706642851193172/photo/1",
+        "backgroundColor": {
+          "red": 204,
+          "green": 214,
+          "blue": 221
+        }
+      }
+    ]
+  },
+  "1917264060225044707": {
+    "__typename": "Tweet",
+    "id_str": "1917264060225044707",
+    "text": "🤔 What happens when real-time data meets AI?\n\n💪 The team at @voltagent_dev integrated @peakacom  into their chatbot, enabling it to access live data and making it smarter as a result.\n\n✍️ Check out the blog post for the details👇\n🔗 https://t.co/RoNXr7Y9ZP",
+    "created_at": "2025-04-29T17:05:47.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      258
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [
+        {
+          "indices": [
+            231,
+            254
+          ],
+          "url": "https://t.co/RoNXr7Y9ZP",
+          "display_url": "voltagent.dev/blog/data-awar…",
+          "expanded_url": "https://voltagent.dev/blog/data-aware-chatbot-voltagent-peaka"
+        }
+      ],
+      "user_mentions": [
+        {
+          "indices": [
+            60,
+            74
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        },
+        {
+          "indices": [
+            86,
+            95
+          ],
+          "id_str": "1301806903308189696",
+          "name": "Peaka",
+          "screen_name": "peakacom"
+        }
+      ],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "1301806903308189696",
+      "name": "Peaka",
+      "screen_name": "peakacom",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1745350860522037248/nD2Ir70Z_normal.png",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    }
+  },
+  "1927072927213596780": {
+    "__typename": "Tweet",
+    "id_str": "1927072927213596780",
+    "text": "Gonna try use @voltagent_dev in SupaPM -  Nuxt project. I had planned rolling my own agents for now but voltagent looks promising. I’ll let you know how I get on https://t.co/4ltNgHGEhn",
+    "created_at": "2025-05-26T18:42:43.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      161
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [
+        {
+          "indices": [
+            14,
+            28
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        }
+      ],
+      "symbols": [],
+      "media": [
+        {
+          "indices": [
+            162,
+            185
+          ],
+          "url": "https://t.co/4ltNgHGEhn",
+          "display_url": "pic.x.com/4ltNgHGEhn",
+          "expanded_url": "https://x.com/cderm/status/1927072927213596780/video/1"
+        }
+      ]
+    },
+    "user": {
+      "id_str": "129362820",
+      "name": "Chris Dermody",
+      "screen_name": "cderm",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1604168426355834883/FtRjS7Ic_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": false
+    },
+    "video": {
+      "poster": "https://pbs.twimg.com/amplify_video_thumb/1927072797869678593/img/ewpGr2Y6xfCGrEsq.jpg",
+      "variants": [
+        {
+          "src": "https://video.twimg.com/amplify_video/1927072797869678593/pl/9xsg4cyAFPL7hhDv.m3u8",
+          "type": "application/x-mpegURL"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1927072797869678593/vid/avc1/320x570/WHkXMZWvQ90yj4sz.mp4",
+          "type": "video/mp4"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1927072797869678593/vid/avc1/480x854/5FamBZjqio_U2JFD.mp4",
+          "type": "video/mp4"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1927072797869678593/vid/avc1/718x1280/JVDRtGVv3cfHjvt5.mp4",
+          "type": "video/mp4"
+        }
+      ]
+    }
+  },
+  "1927054751666999592": {
+    "__typename": "Tweet",
+    "id_str": "1927054751666999592",
+    "text": "It's great to see more agentic tools looking at @tursodatabase for their database needs. Today we have a guest post from @voltagent_dev CEO @omerfarukaplak.\n\nWhat makes Turso Cloud great for their use case? You can easily create individual databases per project that are then",
+    "created_at": "2025-05-26T17:30:30.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      275
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [
+        {
+          "indices": [
+            48,
+            62
+          ],
+          "id_str": "1432739296008671245",
+          "name": "Turso",
+          "screen_name": "tursodatabase"
+        },
+        {
+          "indices": [
+            121,
+            135
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        },
+        {
+          "indices": [
+            140,
+            155
+          ],
+          "id_str": "1151088688148955136",
+          "name": "Omer Aplak",
+          "screen_name": "omerfarukaplak"
+        }
+      ],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "71525162",
+      "name": "Glauber Costa",
+      "screen_name": "glcst",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1986909545273155584/V08BerFl_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    }
+  },
+  "1924486274448306320": {
+    "__typename": "Tweet",
+    "id_str": "1924486274448306320",
+    "text": "#VoltAgent を試した手順・内容を記事に書いた\n（ I wrote an article detailing the steps I took to try out VoltAgent ）\n\n●VoltAgent（TypeScript の AIエージェントフレームワーク）を軽く試してみる - #Qiita\nhttps://t.co/Udxy7OyUFi",
+    "created_at": "2025-05-19T15:24:17.000Z",
+    "lang": "ja",
+    "display_text_range": [
+      0,
+      181
+    ],
+    "entities": {
+      "hashtags": [
+        {
+          "indices": [
+            0,
+            10
+          ],
+          "text": "VoltAgent"
+        },
+        {
+          "indices": [
+            151,
+            157
+          ],
+          "text": "Qiita"
+        }
+      ],
+      "urls": [
+        {
+          "indices": [
+            158,
+            181
+          ],
+          "url": "https://t.co/Udxy7OyUFi",
+          "display_url": "qiita.com/youtoy/items/6…",
+          "expanded_url": "https://qiita.com/youtoy/items/6990e175e92c54265580"
+        }
+      ],
+      "user_mentions": [],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "62238122",
+      "name": "you",
+      "screen_name": "youtoy",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/512100374816124929/Scsxt-2G_normal.jpeg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": false
+    }
+  },
+  "1924303206794059823": {
+    "__typename": "Tweet",
+    "id_str": "1924303206794059823",
+    "text": "voltagent、早速解説動画出しました！⚡️\n\n本当は言いたくない解説もしたので、絶対にみないでください！！！(見てください)\n\nhttps://t.co/eyIvYupNtV",
+    "created_at": "2025-05-19T03:16:50.000Z",
+    "lang": "ja",
+    "display_text_range": [
+      0,
+      90
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [
+        {
+          "indices": [
+            67,
+            90
+          ],
+          "url": "https://t.co/eyIvYupNtV",
+          "display_url": "youtu.be/5WARn6C9ITM?si…",
+          "expanded_url": "https://youtu.be/5WARn6C9ITM?si=rBDflUMGFNeyrorH"
+        }
+      ],
+      "user_mentions": [],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "1865265023335182337",
+      "name": "まさお@AI駆動開発",
+      "screen_name": "AI_masaou",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1872252920986828800/4S3mcVl9_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    }
+  },
+  "1923352273452671399": {
+    "__typename": "Tweet",
+    "id_str": "1923352273452671399",
+    "text": "@Arindam_1729 @voltagent_dev It’s super easy to use! I imported the repo and used the docs for context with Windsurf and I made 3 agents yesterday.",
+    "created_at": "2025-05-16T12:18:10.000Z",
+    "lang": "en",
+    "display_text_range": [
+      29,
+      147
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [
+        {
+          "indices": [
+            0,
+            13
+          ],
+          "id_str": "1533666605279891457",
+          "name": "Arindam Majumder 𝕏",
+          "screen_name": "Arindam_1729"
+        },
+        {
+          "indices": [
+            14,
+            28
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        }
+      ],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "691253",
+      "name": "Seth Rose",
+      "screen_name": "sethrose",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1980430209074581504/MRTJmflB_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "in_reply_to_screen_name": "Arindam_1729",
+    "in_reply_to_status_id_str": "1923295965391327302"
+  },
+  "1920502438215250259": {
+    "__typename": "Tweet",
+    "id_str": "1920502438215250259",
+    "text": "Build powerful AI agents without the boilerplate. Just TypeScript, logic, and control. https://t.co/SHO0Jbui4m",
+    "created_at": "2025-05-08T15:33:57.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      86
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [],
+      "symbols": [],
+      "media": [
+        {
+          "indices": [
+            87,
+            110
+          ],
+          "url": "https://t.co/SHO0Jbui4m",
+          "display_url": "pic.x.com/SHO0Jbui4m",
+          "expanded_url": "https://x.com/GithubProjects/status/1920502438215250259/photo/1"
+        }
+      ]
+    },
+    "user": {
+      "id_str": "1315639147248246785",
+      "name": "GitHub Projects Community",
+      "screen_name": "GithubProjects",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1679831765744259073/hoVtsOZ9_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "photos": [
+      {
+        "url": "https://pbs.twimg.com/media/Gqb-yHKXsAATKas.jpg",
+        "width": 1080,
+        "height": 1349,
+        "expandedUrl": "https://x.com/GithubProjects/status/1920502438215250259/photo/1",
+        "backgroundColor": {
+          "red": 204,
+          "green": 214,
+          "blue": 221
+        }
+      }
+    ]
+  },
+  "1924058575485403362": {
+    "__typename": "Tweet",
+    "id_str": "1924058575485403362",
+    "text": "明日はこれを触るか……。\n\nAIエージェント系、どんどん発展してますね。\n\n最終的にはOpenAI、Google、あるいは中国系AIが総取りなんだろうけど。\n\nVoltAgent - Open Source TypeScript AI Agent Framework https://t.co/CiddI3z4yw",
+    "created_at": "2025-05-18T11:04:46.000Z",
+    "lang": "ja",
+    "display_text_range": [
+      0,
+      157
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [
+        {
+          "indices": [
+            134,
+            157
+          ],
+          "url": "https://t.co/CiddI3z4yw",
+          "display_url": "voltagent.dev",
+          "expanded_url": "https://voltagent.dev/"
+        }
+      ],
+      "user_mentions": [],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "79119874",
+      "name": "🍺 イケハヤ@アニメ作る人",
+      "screen_name": "IHayato",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1613769723065532416/FMH_NlQh_normal.png",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    }
+  },
+  "1916757463426302247": {
+    "__typename": "Tweet",
+    "id_str": "1916757463426302247",
+    "text": "JavaScript devs working in AI, this is worth a look...\n\nJust came across @voltagent_dev. They’re bridging the gap → code-first flexibility meets visual intuition, built specifically for JavaScript.\n\n👉 https://t.co/LtTAdsk9qW https://t.co/6Y5ymA9SxO",
+    "created_at": "2025-04-28T07:32:45.000Z",
+    "lang": "en",
+    "display_text_range": [
+      0,
+      225
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [
+        {
+          "indices": [
+            201,
+            224
+          ],
+          "url": "https://t.co/LtTAdsk9qW",
+          "display_url": "voltagent.dev",
+          "expanded_url": "https://voltagent.dev/"
+        }
+      ],
+      "user_mentions": [
+        {
+          "indices": [
+            73,
+            87
+          ],
+          "id_str": "1912724805406863360",
+          "name": "voltagent",
+          "screen_name": "voltagent_dev"
+        }
+      ],
+      "symbols": [],
+      "media": [
+        {
+          "indices": [
+            225,
+            248
+          ],
+          "url": "https://t.co/6Y5ymA9SxO",
+          "display_url": "pic.x.com/6Y5ymA9SxO",
+          "expanded_url": "https://x.com/jsmasterypro/status/1916757463426302247/video/1"
+        }
+      ]
+    },
+    "user": {
+      "id_str": "1081110908116631552",
+      "name": "Adrian | JavaScript Mastery",
+      "screen_name": "jsmasterypro",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/2021307607957327872/qsS9-rAr_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "video": {
+      "poster": "https://pbs.twimg.com/amplify_video_thumb/1916753752469680128/img/EJBNAz6liG55s3vV.jpg",
+      "variants": [
+        {
+          "src": "https://video.twimg.com/amplify_video/1916753752469680128/pl/ct6qYKBgeW5u8zZD.m3u8?tag=16",
+          "type": "application/x-mpegURL"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1916753752469680128/vid/avc1/492x270/NdIAPWWqv_iRYvG_.mp4?tag=16",
+          "type": "video/mp4"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1916753752469680128/vid/avc1/656x360/BjH8o8Mk340CUj6I.mp4?tag=16",
+          "type": "video/mp4"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1916753752469680128/vid/avc1/1312x720/YSHW95yBrxXbUltN.mp4?tag=16",
+          "type": "video/mp4"
+        },
+        {
+          "src": "https://video.twimg.com/amplify_video/1916753752469680128/vid/avc1/1968x1080/akiRgZWd2hdd7baG.mp4?tag=16",
+          "type": "video/mp4"
+        }
+      ]
+    }
+  },
+  "1915200495461028321": {
+    "__typename": "Tweet",
+    "id_str": "1915200495461028321",
+    "text": "像拼乐高一样组合 AI 功能\nVoltAgent  一个开源的 TypeScript 框架，专为快速构建AI智能体应用设计。它通过提供现成模块和工具包，让开发者无需从零写代码就能创建由大语言模型驱动的智能系统。\n🧩https://t.co/MaiM9xMKxU https://t.co/yzFhuynSo6",
+    "created_at": "2025-04-24T00:25:55.000Z",
+    "lang": "zh",
+    "display_text_range": [
+      0,
+      131
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [
+        {
+          "indices": [
+            107,
+            130
+          ],
+          "url": "https://t.co/MaiM9xMKxU",
+          "display_url": "github.com/VoltAgent/volt…",
+          "expanded_url": "https://github.com/VoltAgent/voltagent"
+        }
+      ],
+      "user_mentions": [],
+      "symbols": [],
+      "media": [
+        {
+          "indices": [
+            131,
+            154
+          ],
+          "url": "https://t.co/yzFhuynSo6",
+          "display_url": "pic.x.com/yzFhuynSo6",
+          "expanded_url": "https://x.com/geekbb/status/1915200495461028321/photo/1"
+        }
+      ]
+    },
+    "user": {
+      "id_str": "168139512",
+      "name": "Geek",
+      "screen_name": "geekbb",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1644898947272671233/7959WGOK_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    },
+    "photos": [
+      {
+        "url": "https://pbs.twimg.com/media/GpQoc6uaAAAAXOM.jpg",
+        "width": 1792,
+        "height": 1290,
+        "expandedUrl": "https://x.com/geekbb/status/1915200495461028321/photo/1",
+        "backgroundColor": {
+          "red": 204,
+          "green": 214,
+          "blue": 221
+        }
+      }
+    ]
+  },
+  "1924262217924653243": {
+    "__typename": "Tweet",
+    "id_str": "1924262217924653243",
+    "text": "朝活でVoltAgentをちゃんと使ってみている\n直感的で良い\n\nこれは流行るかもしれない",
+    "created_at": "2025-05-19T00:33:58.000Z",
+    "lang": "ja",
+    "display_text_range": [
+      0,
+      45
+    ],
+    "entities": {
+      "hashtags": [],
+      "urls": [],
+      "user_mentions": [],
+      "symbols": [],
+      "media": []
+    },
+    "user": {
+      "id_str": "1865265023335182337",
+      "name": "まさお@AI駆動開発",
+      "screen_name": "AI_masaou",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/1872252920986828800/4S3mcVl9_normal.jpg",
+      "profile_image_shape": "Circle",
+      "verified": false,
+      "is_blue_verified": true
+    }
+  }
+}

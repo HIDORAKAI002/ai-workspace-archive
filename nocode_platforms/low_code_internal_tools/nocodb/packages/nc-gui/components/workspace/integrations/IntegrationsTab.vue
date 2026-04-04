@@ -307,13 +307,10 @@ watch(activeViewTab, (value) => {
         >
           <div v-if="integrationListContainerWidth" class="px-6 pt-6">
             <div
-              class="flex justify-end flex-wrap gap-3 m-auto"
+              class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
               :class="{
                 'items-start': showTitle,
                 'items-end': !showTitle,
-              }"
-              :style="{
-                maxWidth: listWrapperMaxWidth,
               }"
             >
               <div class="flex-1">
@@ -414,12 +411,7 @@ watch(activeViewTab, (value) => {
                 'flex-1': isEmptyList,
               }"
             >
-              <div
-                class="flex flex-col space-y-6 w-full"
-                :style="{
-                  maxWidth: listWrapperMaxWidth,
-                }"
-              >
+              <div class="flex flex-col space-y-6 w-full nc-content-max-w">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
                     v-if="

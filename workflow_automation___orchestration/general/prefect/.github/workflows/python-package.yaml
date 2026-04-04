@@ -1,0 +1,98 @@
+name: Publish Python package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit to build from"
+        required: true
+        default: "main"
+
+jobs:
+  build-pypi-dists:
+    name: Build Python package
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.commit }}
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.10"
+          cache-dependency-glob: "pyproject.toml"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install python packages
+        run: |
+          uv sync --only-dev --locked
+
+      - name: Build UI
+        run: |
+          uv run prefect dev build-ui
+
+      - name: Build UI v2
+        working-directory: ui-v2
+        env:
+          VITE_AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        run: |
+          npm ci
+          npm run build
+          cp -r dist ../src/prefect/server/ui-v2
+
+      - name: Check git diff
+        run: |
+          git diff --exit-code
+
+      - name: Build a binary wheel and a source tarball
+        env:
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        run: |
+          uv build --sdist --wheel --out-dir dist
+
+      - name: Publish build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: pypi-dists
+          path: "./dist"
+
+  publish-pypi-dists:
+    name: Publish to PyPI
+    environment: ${{ github.event.release.prerelease && 'pre-release' || 'prod' }}
+    needs: [build-pypi-dists]
+    runs-on: ubuntu-latest
+    permissions:
+      # this permission is mandatory for trusted publishing
+      id-token: write
+
+    steps:
+      - name: Validate Prerelease Tag
+        if: ${{ github.event_name == 'release' && github.event.release.prerelease == true }}
+        run: |
+          TAG_NAME=${{ github.ref }}
+          if [[ ! "$TAG_NAME" =~ ^refs/tags/[0-9]+\.[0-9]+\.[0-9]+([a-zA-Z0-9]+|\.dev[0-9]+)$ ]]; then
+            echo "Error: Tag $TAG_NAME does not match prerelease version pattern."
+            exit 1
+          fi
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: pypi-dists
+          path: "./dist"
+
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

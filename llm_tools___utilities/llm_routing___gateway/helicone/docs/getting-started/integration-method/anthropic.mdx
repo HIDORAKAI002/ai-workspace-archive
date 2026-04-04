@@ -1,0 +1,126 @@
+---
+title: "Anthropic"
+sidebarTitle: "Anthropic"
+description: "Connect Helicone with Anthropic, a platform for running open-source language models. Monitor and optimize your AI applications using Anthropic's powerful models through a simple base_url configuration."
+"twitter:title": "Anthropic Integration - Helicone OSS LLM Observability"
+---
+import LegacyWarning from "/snippets/legacy-provider-warning.mdx";
+
+<LegacyWarning />
+
+<Tabs>
+  <Tab title="Python">
+    **Change the api url and add a Helicone-Auth header**
+    ```python
+    import anthropic
+    client = anthropic.Client(
+        api_key="<Anthropic API Key>",
+        base_url="https://anthropic.helicone.ai/v1"
+    )
+    res = client._request_as_json(
+        "post",
+        "v1/complete",
+        params={
+            "prompt": f"{anthropic.HUMAN_PROMPT} How many toes do dogs have?{anthropic.AI_PROMPT}",
+            "stop_sequences": [anthropic.HUMAN_PROMPT],
+            "model": "claude-v1",
+            "max_tokens_to_sample": 300,
+        },
+        headers={
+            "Helicone-Auth": "Bearer <HELICONE_API_KEY>"
+        }
+    )
+    ```
+  </Tab>
+
+   <Tab title="Node (TS)">
+    **Node (TS)**
+
+    Change the api base and add a Helicone-Auth header
+    ```typescript
+  const anthropic = new Anthropic({
+    baseURL: "https://anthropic.helicone.ai/v1",
+    apiKey: "my api key",
+    defaultHeaders: {
+      "Helicone-Auth": "Bearer <HELICONE_API_KEY>",
+    },
+  });
+
+const stream = await anthropic.completions.create({
+prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here${Anthropic.AI_PROMPT}`,
+model: "claude-2",
+stream: true,
+max_tokens_to_sample: 300,
+});
+
+```
+
+</Tab>
+<Tab title="cURL">
+
+Example cURL command
+
+<Note>Please make sure to set environment variables for your API keys</Note>
+
+```
+
+curl --request POST \
+      --url https://anthropic.helicone.ai/v1/messages \
+      --header 'Content-Type: application/json' \
+      --header "Helicone-Auth: Bearer $HELICONE_API_KEY" \
+      --header 'anthropic-version: 2023-06-01' \
+      --header "x-api-key: $ANTHROPIC_API_KEY" \
+      --data '{
+        "model": "claude-3-opus-20240229",
+        "max_tokens": 50,
+        "system": "Respond only in Spanish.",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Test"
+                    }
+                ]
+            }
+        ]
+}'
+```
+
+   </Tab>
+
+   <Tab title="Langchain">
+    **Python**
+
+    Change the api base and add a Helicone-Auth header
+    ```python
+    anthropic = ChatAnthropic(
+      temperature=0.9,
+      model="claude-2",
+      anthropic_api_url="https://anthropic.helicone.ai/v1",
+      anthropic_api_key="ANTHROPIC_API_KEY",
+      model_kwargs={
+          "extra_headers":{
+              "Helicone-Auth": f"Bearer {HELICONE_API_KEY}"
+          }
+      }
+    )
+    ```
+    **Typescript**
+
+    ```typescript
+    const llm = new ChatAnthropic({
+      modelName: "claude-2",
+      anthropicApiKey: "ANTHROPIC_API_KEY",
+      clientOptions: {
+        baseURL: "https://anthropic.helicone.ai/v1",
+        defaultHeaders: {
+          "Helicone-Auth": `Bearer HELICONE_API_KEY`,
+        }
+      }
+    });
+    ```
+  </Tab>
+</Tabs>
+````

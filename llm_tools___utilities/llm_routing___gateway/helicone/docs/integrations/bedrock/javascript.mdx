@@ -1,0 +1,224 @@
+---
+title: "AWS Bedrock JavaScript SDK Integration"
+sidebarTitle: "JavaScript"
+description: "Learn how to integrate AWS Bedrock with Helicone using JavaScript."
+icon: "js"
+iconType: "solid"
+---
+
+import LegacyWarning from "/snippets/legacy-provider-warning.mdx";
+
+<LegacyWarning />
+
+# Proxy Integration
+
+<Steps>
+  <Step title="Create an account + Generate an API Key">
+    Log into [helicone](https://www.helicone.ai) or create an account. Once you have an account, you
+    can generate an [API key](https://us.helicone.ai/settings/api-keys).
+  </Step>
+  <Step title="Set HELICONE_API_KEY as an environment variable">
+```javascript
+HELICONE_API_KEY=<your API key>
+```
+  </Step>
+  <Step title="Run the Bedrock command with the Helicone Proxy">
+```javascript 
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
+
+const REGION = "ap-south-1"; // or any other region
+const client = new BedrockRuntimeClient({
+  region: REGION,
+  endpoint: `https://bedrock.helicone.ai/v1/${REGION}`,
+});
+
+// Add middleware to inject custom headers
+client.middlewareStack.add(
+  (next, context) => async (args: any) => {
+    if (!args.request.headers) {
+      args.request.headers = {};
+    }
+
+    // Add your custom headers here
+    args.request.headers["Helicone-Auth"] = `Bearer ${process.env.HELICONE_API_KEY}`;
+    args.request.headers["aws-access-key"] = "<AWS ACCESS KEY>";
+    args.request.headers["aws-secret-key"] = "<AWS SECRET KEY>";
+    // optionally, you can pass the aws-session-token instead of access and secret key if you are using temporary credentials
+    args.request.headers["aws-session-token"] = "<AWS SESSION TOKEN>";
+
+    return next(args);
+  },
+  {
+    step: "build",
+    name: "addCustomHeaders",
+  }
+);
+
+const model_id = "meta.llama3-8b-instruct-v1:0";
+
+export const main = async () => {
+  const command = new InvokeModelCommand({
+    modelId: model_id,
+    body: JSON.stringify({
+      prompt: "Hello, world!",
+      max_gen_len: 512,
+      temperature: 0.5,
+      top_p: 0.9,
+    }),
+    accept: "application/json",
+    contentType: "application/json",
+  });
+
+  const response = await client.send(command);
+  console.log(response.body?.transformToString());
+};
+
+main();
+```
+
+  </Step>
+</Steps>
+
+# Async Integration
+
+<Steps>
+  <Step title="Create an account + Generate an API Key">
+    Log into [Helicone](https://www.helicone.ai) or create an account. Once you have an account, you
+    can generate an [API key](https://us.helicone.ai/settings/api-keys).
+  </Step>
+  <Step title="Set API keys as environment variables">
+    ```bash
+    export HELICONE_API_KEY=<your Helicone API key>
+    export AWS_ACCESS_KEY_ID=<your AWS access key ID>
+    export AWS_SECRET_ACCESS_KEY=<your AWS secret access key>
+    export AWS_REGION=<your AWS region>
+    ```
+  </Step>
+  <Step title="Install necessary packages">
+    Ensure you have the necessary packages installed in your JavaScript project:
+    ```bash
+    npm install @helicone/async @aws-sdk/client-bedrock-runtime
+    ```
+  </Step>
+  <Step title="Import required modules and initialize Helicone Logger">
+    ```javascript
+    import { HeliconeAsyncLogger } from "@helicone/async";
+    import * as bedrock from "@aws-sdk/client-bedrock-runtime";
+    import util from "util";
+
+    const logger = new HeliconeAsyncLogger({
+      apiKey: process.env.HELICONE_API_KEY,
+      providers: {
+        bedrock: bedrock,
+      },
+      baseUrl: "https://api.helicone.ai/v1/trace/log",
+    });
+    logger.init();
+    ```
+
+  </Step>
+  <Step title="Configure AWS Bedrock client">
+    ```javascript
+    const client = new bedrock.BedrockRuntimeClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+    ```
+  </Step>
+  <Step title="Create a command for the Bedrock model">
+    ```javascript
+    const command = new bedrock.ConverseCommand({
+      messages: [
+        {
+          role: "user",
+          content: [{ text: "Why is the unix epoch measured from 1970?" }],
+        },
+      ],
+      modelId: "meta.llama2-13b-chat-v1",
+    });
+    ```
+  </Step>
+  <Step title="Send the request and handle the response">
+    ```javascript
+    async function sendRequest() {
+      try {
+        const data = await client.send(command);
+        console.log(
+          "Response:\n",
+          util.inspect(data, { showHidden: false, depth: null, colors: true })
+        );
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+
+    sendRequest();
+    ```
+
+  </Step>
+</Steps>
+
+### Complete Async Example
+
+Here's a complete example that puts all the steps together:
+
+```javascript
+import { HeliconeAsyncLogger } from "@helicone/async";
+import * as bedrock from "@aws-sdk/client-bedrock-runtime";
+import util from "util";
+
+// Initialize Helicone Logger
+const logger = new HeliconeAsyncLogger({
+  apiKey: process.env.HELICONE_API_KEY,
+  providers: {
+    bedrock: bedrock,
+  },
+  baseUrl: "https://api.helicone.ai/v1/trace/log",
+});
+logger.init();
+
+// Configure AWS Bedrock client
+const client = new bedrock.BedrockRuntimeClient({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// Create a command for the Bedrock model
+const command = new bedrock.ConverseCommand({
+  messages: [
+    {
+      role: "user",
+      content: [{ text: "Why is the unix epoch measured from 1970?" }],
+    },
+  ],
+  modelId: "meta.llama2-13b-chat-v1",
+});
+
+// Send the request and handle the response
+async function sendRequest() {
+  try {
+    const data = await client.send(command);
+    console.log(
+      "Response:\n",
+      util.inspect(data, { showHidden: false, depth: null, colors: true })
+    );
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+sendRequest();
+```
+
+This integration allows you to use AWS Bedrock with Helicone's async logging. The Helicone logger will automatically capture traces of your AWS Bedrock API calls, providing you with valuable insights and analytics through the Helicone dashboard.
+
+For more information on using async logging, visit the [Async Logging documentation](/getting-started/integration-method/).

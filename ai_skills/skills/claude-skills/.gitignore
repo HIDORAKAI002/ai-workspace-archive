@@ -1,0 +1,45 @@
+# IDE and OS
+.vscode
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Specific archive exclusions (NOT all .zip - skill packages are intentional)
+medium-content-pro.zip
+v1-10-2025-medium-content-pro.zip
+
+# Project-specific exclusions
+AGENTS.md
+PROMPTS.md
+medium-content-pro/*
+medium-content-pro 2/*
+documentation/GIST_CONTENT.md
+documentation/implementation/*__pycache__/
+ARTICLE-FEEDBACK-AND-OPTIMIZED-VERSION.md
+CLAUDE-CODE-LOCAL-MAC-PROMPT.md
+CLAUDE-CODE-SEO-FIX-COPYPASTE.md
+GITHUB_ISSUE_RESPONSES.md
+AUDIT_REPORT.md
+# Archive folder (historical/backup files)
+archive/
+
+# Custom GPT configurations (private — instructions not publicly exposed)
+custom-gpt/*-gpt.md
+
+# MkDocs build output
+site/
+.playwright-mcp/
+# Generated integration files (regenerate with ./scripts/convert.sh)
+integrations/

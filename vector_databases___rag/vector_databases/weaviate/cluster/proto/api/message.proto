@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+// NOTE run `buf generate` from `cluster/proto` to regenerate code
+package weaviate.internal.cluster;
+
+service ClusterService {
+  rpc RemovePeer(RemovePeerRequest) returns (RemovePeerResponse) {}
+  rpc JoinPeer(JoinPeerRequest) returns (JoinPeerResponse) {}
+  rpc NotifyPeer(NotifyPeerRequest) returns (NotifyPeerResponse) {}
+  rpc Apply(ApplyRequest) returns (ApplyResponse) {}
+  rpc Query(QueryRequest) returns (QueryResponse) {}
+}
+
+message JoinPeerRequest {
+  string id = 1;
+  string address = 2;
+  bool voter = 3;
+}
+
+message JoinPeerResponse {
+  string leader = 1;
+}
+
+message RemovePeerRequest {
+  string id = 1;
+}
+message RemovePeerResponse {
+  string leader = 1;
+}
+
+message NotifyPeerRequest {
+  string id = 1;
+  string address = 2;
+}
+
+message NotifyPeerResponse {
+}
+
+message ApplyRequest {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_ADD_CLASS = 1;
+    TYPE_UPDATE_CLASS = 2;
+    TYPE_DELETE_CLASS = 3;
+    TYPE_RESTORE_CLASS = 4;
+    TYPE_ADD_PROPERTY = 5;
+    TYPE_UPDATE_PROPERTY = 6;
+
+    TYPE_UPDATE_SHARD_STATUS = 10;
+    TYPE_ADD_REPLICA_TO_SHARD = 11;
+    TYPE_DELETE_REPLICA_FROM_SHARD = 12;
+
+    TYPE_ADD_TENANT = 16;
+    TYPE_UPDATE_TENANT = 17;
+    TYPE_DELETE_TENANT = 18;
+    TYPE_TENANT_PROCESS = 19;
+
+    TYPE_CREATE_ALIAS = 40;
+    TYPE_REPLACE_ALIAS = 41;
+    TYPE_DELETE_ALIAS = 42;
+
+    TYPE_UPSERT_ROLES_PERMISSIONS = 60;
+    TYPE_DELETE_ROLES = 61;
+    TYPE_REMOVE_PERMISSIONS = 62;
+    TYPE_ADD_ROLES_FOR_USER = 63;
+    TYPE_REVOKE_ROLES_FOR_USER = 64;
+
+    TYPE_UPSERT_USER = 80;
+    TYPE_DELETE_USER = 81;
+    TYPE_ROTATE_USER_API_KEY = 82;
+    TYPE_SUSPEND_USER = 83;
+    TYPE_ACTIVATE_USER = 84;
+    TYPE_CREATE_USER_WITH_KEY = 85;
+
+    // originally was rolling back schema before raft
+    reserved 99;
+
+    TYPE_REPLICATION_REPLICATE = 200;
+    TYPE_REPLICATION_REPLICATE_UPDATE_STATE = 201;
+    TYPE_REPLICATION_REPLICATE_REGISTER_ERROR = 202;
+    TYPE_REPLICATION_REPLICATE_CANCEL = 203;
+    TYPE_REPLICATION_REPLICATE_DELETE = 204;
+    TYPE_REPLICATION_REPLICATE_REMOVE = 205;
+    TYPE_REPLICATION_REPLICATE_CANCELLATION_COMPLETE = 206;
+    TYPE_REPLICATION_REPLICATE_DELETE_ALL = 207;
+    TYPE_REPLICATION_REPLICATE_DELETE_BY_COLLECTION = 208;
+    TYPE_REPLICATION_REPLICATE_DELETE_BY_TENANTS = 209;
+    TYPE_REPLICATION_REPLICATE_SYNC_SHARD = 210;
+    TYPE_REPLICATION_REGISTER_SCHEMA_VERSION = 211;
+    TYPE_REPLICATION_REPLICATE_ADD_REPLICA_TO_SHARD = 212;
+
+    TYPE_REPLICATION_REPLICATE_FORCE_DELETE_ALL = 220;
+    TYPE_REPLICATION_REPLICATE_FORCE_DELETE_BY_COLLECTION = 221;
+    TYPE_REPLICATION_REPLICATE_FORCE_DELETE_BY_COLLECTION_AND_SHARD = 222;
+    TYPE_REPLICATION_REPLICATE_FORCE_DELETE_BY_TARGET_NODE = 223;
+    TYPE_REPLICATION_REPLICATE_FORCE_DELETE_BY_UUID = 224;
+
+    TYPE_DISTRIBUTED_TASK_ADD = 300;
+    TYPE_DISTRIBUTED_TASK_CANCEL = 301;
+    // Deprecated: kept for backward compat with existing Raft logs.
+    TYPE_DISTRIBUTED_TASK_RECORD_NODE_COMPLETED = 302;
+    TYPE_DISTRIBUTED_TASK_CLEAN_UP = 303;
+    TYPE_DISTRIBUTED_TASK_RECORD_UNIT_COMPLETED = 304;
+    TYPE_DISTRIBUTED_TASK_UPDATE_UNIT_PROGRESS = 305;
+  }
+  Type type = 1;
+  string class = 2;
+  uint64 version = 3;
+  bytes sub_command = 4;
+}
+
+message ApplyResponse {
+  uint64 version = 1;
+  string leader = 2;
+}
+
+message QueryRequest {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_GET_CLASSES = 1;
+    TYPE_GET_SCHEMA = 2;
+    TYPE_GET_TENANTS = 3;
+    TYPE_GET_SHARD_OWNER = 4;
+    TYPE_GET_TENANTS_SHARDS = 5;
+    TYPE_GET_SHARDING_STATE = 6;
+    TYPE_GET_CLASS_VERSIONS = 7;
+    TYPE_GET_COLLECTIONS_COUNT = 8;
+
+    TYPE_HAS_PERMISSION = 30;
+    TYPE_GET_ROLES = 31;
+    TYPE_GET_ROLES_FOR_USER = 32;
+    TYPE_GET_USERS_FOR_ROLE= 33;
+    TYPE_GET_USERS_OR_GROUPS_WITH_ROLES = 34;
+    
+    TYPE_GET_USERS = 61;
+    TYPE_USER_IDENTIFIER_EXISTS = 62;
+
+    TYPE_RESOLVE_ALIAS = 100;
+    TYPE_GET_ALIASES = 101;
+
+    TYPE_GET_REPLICATION_DETAILS = 200;
+    TYPE_GET_REPLICATION_DETAILS_BY_COLLECTION = 201;
+    TYPE_GET_REPLICATION_DETAILS_BY_COLLECTION_AND_SHARD = 202;
+    TYPE_GET_REPLICATION_DETAILS_BY_TARGET_NODE = 203;
+    TYPE_GET_SHARDING_STATE_BY_COLLECTION = 204;
+    TYPE_GET_SHARDING_STATE_BY_COLLECTION_AND_SHARD = 205;
+    TYPE_GET_ALL_REPLICATION_DETAILS = 206;
+    TYPE_GET_REPLICATION_OPERATION_STATE = 207;
+    TYPE_GET_REPLICATION_SCALE_PLAN = 208;
+
+    TYPE_DISTRIBUTED_TASK_LIST = 300;
+  }
+
+  Type type = 1;
+  bytes sub_command = 2;
+}
+
+message QueryResponse {
+  bytes payload = 1;
+}
+
+message AddTenantsRequest {
+  repeated string cluster_nodes = 1;
+  repeated Tenant tenants = 2;
+}
+
+message UpdateTenantsRequest {
+  repeated Tenant tenants = 1;
+  repeated string cluster_nodes = 2;
+  bool implicit_update_request = 3;
+}
+
+message TenantsProcess {
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    OP_START = 1;
+    OP_DONE = 2;
+    OP_ABORT = 3;
+  }
+
+  Op op = 1;  
+  Tenant tenant =2;
+}
+
+message TenantProcessRequest {
+  enum Action {
+    ACTION_UNSPECIFIED = 0;
+    ACTION_FREEZING = 1;
+    ACTION_UNFREEZING = 2;
+  }
+  string node = 1;
+  Action action = 2;
+  repeated TenantsProcess tenants_processes = 3;
+}
+
+message DeleteTenantsRequest {
+  repeated string tenants = 1;
+}
+
+message Tenant {
+  string name = 1;
+  string status = 2;
+}
+
+message UnitSpec {
+  string id = 1;
+  string group_id = 2;
+}
+
+message AddDistributedTaskRequest {
+  string namespace = 1;
+  string id = 2;
+  bytes payload = 4;
+  int64 submitted_at_unix_millis = 5;
+  repeated string unit_ids = 6;
+  repeated UnitSpec unit_specs = 7;
+}
+
+// Deprecated: legacy node-level tracking removed. Kept for backward compat with existing Raft logs/snapshots.
+message RecordDistributedTaskNodeCompletionRequest {
+  string namespace = 1;
+  string id = 2;
+  uint64 version = 3;
+  string node_id = 4;
+  optional string error = 5;
+  int64 finished_at_unix_millis = 6;
+}
+
+message CancelDistributedTaskRequest {
+  string namespace = 1;
+  string id = 2;
+  uint64 version = 3;
+  int64 cancelled_at_unix_millis = 6;
+}
+
+message CleanUpDistributedTaskRequest {
+  string namespace = 1;
+  string id = 2;
+  uint64 version = 3;
+}
+
+message SyncShardRequest {
+  string collection = 1;
+  string shard = 2;
+  string node_id = 3;
+}
+
+message CreateAliasRequest {
+  string collection = 1;
+  string alias = 2;
+}
+
+message ReplaceAliasRequest {
+  string collection = 1;
+  string alias = 2;
+}
+
+message DeleteAliasRequest {
+  string alias = 1;
+}
+
+message RecordDistributedTaskUnitCompletionRequest {
+  string namespace = 1;
+  string id = 2;
+  uint64 version = 3;
+  string node_id = 4;
+  string unit_id = 5;
+  string error = 6;
+  int64 finished_at_unix_millis = 7;
+}
+
+message UpdateDistributedTaskUnitProgressRequest {
+  string namespace = 1;
+  string id = 2;
+  uint64 version = 3;
+  string node_id = 4;
+  string unit_id = 5;
+  float progress = 6;
+  int64 updated_at_unix_millis = 7;
+}

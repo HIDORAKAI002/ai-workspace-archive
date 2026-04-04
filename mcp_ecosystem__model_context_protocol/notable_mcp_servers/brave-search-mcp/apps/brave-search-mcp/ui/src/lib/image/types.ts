@@ -1,0 +1,30 @@
+/**
+ * Type definitions for Image Search Widget
+ */
+
+export interface ImageItem {
+  title: string;
+  pageUrl: string;
+  imageUrl: string;
+  source: string;
+  confidence?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface ContextImage {
+  title: string;
+  source: string;
+  pageUrl: string;
+  imageUrl: string;
+  confidence?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface ImageSearchData {
+  query: string;
+  count: number;
+  items: ImageItem[];
+  error?: string;
+}

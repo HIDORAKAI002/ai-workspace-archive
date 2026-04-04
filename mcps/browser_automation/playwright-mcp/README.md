@@ -372,6 +372,7 @@ Playwright MCP server supports following arguments. They can be provided in the 
 | --device <device> | device to emulate, for example: "iPhone 15"<br>*env* `PLAYWRIGHT_MCP_DEVICE` |
 | --executable-path <path> | path to the browser executable.<br>*env* `PLAYWRIGHT_MCP_EXECUTABLE_PATH` |
 | --extension | Connect to a running browser instance (Edge/Chrome only). Requires the "Playwright MCP Bridge" browser extension to be installed.<br>*env* `PLAYWRIGHT_MCP_EXTENSION` |
+| --endpoint <endpoint> | Bound browser endpoint to connect to.<br>*env* `PLAYWRIGHT_MCP_ENDPOINT` |
 | --grant-permissions <permissions...> | List of permissions to grant to the browser context, for example "geolocation", "clipboard-read", "clipboard-write".<br>*env* `PLAYWRIGHT_MCP_GRANT_PERMISSIONS` |
 | --headless | run browser in headless mode, headed by default<br>*env* `PLAYWRIGHT_MCP_HEADLESS` |
 | --host <host> | host to bind server to. Default is localhost. Use 0.0.0.0 to bind to all interfaces.<br>*env* `PLAYWRIGHT_MCP_HOST` |
@@ -390,7 +391,7 @@ Playwright MCP server supports following arguments. They can be provided in the 
 | --save-session | Whether to save the Playwright MCP session into the output directory.<br>*env* `PLAYWRIGHT_MCP_SAVE_SESSION` |
 | --secrets <path> | path to a file containing secrets in the dotenv format<br>*env* `PLAYWRIGHT_MCP_SECRETS` |
 | --shared-browser-context | reuse the same browser context between all connected HTTP clients.<br>*env* `PLAYWRIGHT_MCP_SHARED_BROWSER_CONTEXT` |
-| --snapshot-mode <mode> | when taking snapshots for responses, specifies the mode to use. Can be "incremental", "full", or "none". Default is incremental.<br>*env* `PLAYWRIGHT_MCP_SNAPSHOT_MODE` |
+| --snapshot-mode <mode> | when taking snapshots for responses, specifies the mode to use. Can be "full" or "none". Default is "full".<br>*env* `PLAYWRIGHT_MCP_SNAPSHOT_MODE` |
 | --storage-state <path> | path to the storage state file for isolated sessions.<br>*env* `PLAYWRIGHT_MCP_STORAGE_STATE` |
 | --test-id-attribute <attribute> | specify the attribute to use for test ids, defaults to "data-testid"<br>*env* `PLAYWRIGHT_MCP_TEST_ID_ATTRIBUTE` |
 | --timeout-action <timeout> | specify action timeout in milliseconds, defaults to 5000ms<br>*env* `PLAYWRIGHT_MCP_TIMEOUT_ACTION` |
@@ -412,14 +413,16 @@ Persistent profile is located at the following locations and you can override it
 
 ```bash
 # Windows
-%USERPROFILE%\AppData\Local\ms-playwright\mcp-{channel}-profile
+%USERPROFILE%\AppData\Local\ms-playwright\mcp-{channel}-{workspace-hash}
 
 # macOS
-- ~/Library/Caches/ms-playwright/mcp-{channel}-profile
+- ~/Library/Caches/ms-playwright/mcp-{channel}-{workspace-hash}
 
 # Linux
-- ~/.cache/ms-playwright/mcp-{channel}-profile
+- ~/.cache/ms-playwright/mcp-{channel}-{workspace-hash}
 ```
+
+`{workspace-hash}` is derived from the MCP client's workspace root, so different projects get separate profiles automatically.
 
 **Isolated**
 
@@ -604,9 +607,9 @@ npx @playwright/mcp@latest --config path/to/config.json
   sharedBrowserContext?: boolean;
 
   /**
-   * Secrets are used to prevent LLM from getting sensitive data while
-   * automating scenarios such as authentication.
-   * Prefer the browser.contextOptions.storageState over secrets file as a more secure alternative.
+   * Secrets are used to replace matching plain text in the tool responses to prevent the LLM
+   * from accidentally getting sensitive data. It is a convenience and not a security feature,
+   * make sure to always examine information coming in and from the tool on the client.
    */
   secrets?: Record<string, string>;
 
@@ -614,11 +617,6 @@ npx @playwright/mcp@latest --config path/to/config.json
    * The directory to save output files.
    */
   outputDir?: string;
-
-  /**
-   * Whether to save snapshots, console messages, network logs and other session logs to a file or to the standard output. Defaults to "stdout".
-   */
-  outputMode?: 'file' | 'stdout';
 
   console?: {
     /**
@@ -678,12 +676,14 @@ npx @playwright/mcp@latest --config path/to/config.json
     /**
      * When taking snapshots for responses, specifies the mode to use.
      */
-    mode?: 'incremental' | 'full' | 'none';
+    mode?: 'full' | 'none';
   };
 
   /**
-   * Whether to allow file uploads from anywhere on the file system.
-   * By default (false), file uploads are restricted to paths within the MCP roots only.
+   * allowUnrestrictedFileAccess acts as a guardrail to prevent the LLM from accidentally
+   * wandering outside its intended workspace. It is a convenience defense to catch unintended
+   * file access, not a secure boundary; a deliberate attempt to reach other directories can be
+   * easily worked around, so always rely on client-level permissions for true security.
    */
   allowUnrestrictedFileAccess?: boolean;
 
@@ -845,6 +845,7 @@ http.createServer(async (req, res) => {
     - `element` (string, optional): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string, optional): Exact target element reference from the page snapshot
     - `selector` (string, optional): CSS or role selector for the target element, when "ref" is not available.
+    - `filename` (string, optional): Filename to save the result to. If not provided, result is returned as text.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -909,7 +910,10 @@ http.createServer(async (req, res) => {
   - Title: List network requests
   - Description: Returns all network requests since loading the page
   - Parameters:
-    - `includeStatic` (boolean): Whether to include successful static resources like images, fonts, scripts, etc. Defaults to false.
+    - `static` (boolean): Whether to include successful static resources like images, fonts, scripts, etc. Defaults to false.
+    - `requestBody` (boolean): Whether to include request body. Defaults to false.
+    - `requestHeaders` (boolean): Whether to include request headers. Defaults to false.
+    - `filter` (string, optional): Only return requests whose URL matches this regexp (e.g. "/api/.*user").
     - `filename` (string, optional): Filename to save the network requests to. If not provided, requests are returned as text.
   - Read-only: **true**
 
@@ -938,7 +942,8 @@ http.createServer(async (req, res) => {
   - Title: Run Playwright code
   - Description: Run Playwright code snippet
   - Parameters:
-    - `code` (string): A JavaScript function containing Playwright code to execute. It will be invoked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`
+    - `code` (string, optional): A JavaScript function containing Playwright code to execute. It will be invoked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`
+    - `filename` (string, optional): Load code from the specified file. If both code and filename are provided, code will be ignored.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -961,6 +966,7 @@ http.createServer(async (req, res) => {
   - Parameters:
     - `filename` (string, optional): Save snapshot to markdown file instead of returning it in the response.
     - `selector` (string, optional): Element selector of the root element to capture a partial snapshot instead of the whole page
+    - `depth` (number, optional): Limit the depth of the snapshot tree
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -1015,6 +1021,7 @@ http.createServer(async (req, res) => {
   - Parameters:
     - `action` (string): Operation to perform
     - `index` (number, optional): Tab index, used for close/select. If omitted for close, current tab is closed.
+    - `url` (string, optional): URL to navigate to in the new tab, used for new.
   - Read-only: **false**
 
 </details>
@@ -1250,6 +1257,16 @@ http.createServer(async (req, res) => {
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
+- **browser_resume**
+  - Title: Resume paused script execution
+  - Description: Resume script execution after it was paused. When called with step set to true, execution will pause again before the next action.
+  - Parameters:
+    - `step` (boolean, optional): When true, execution will pause again before the next action, allowing step-by-step debugging.
+    - `location` (string, optional): Pause execution at a specific <file>:<line>, e.g. "example.spec.ts:42".
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
 - **browser_start_tracing**
   - Title: Start tracing
   - Description: Start trace recording
@@ -1262,6 +1279,7 @@ http.createServer(async (req, res) => {
   - Title: Start video
   - Description: Start video recording
   - Parameters:
+    - `filename` (string, optional): Filename to save the video.
     - `size` (object, optional): Video size
   - Read-only: **true**
 
@@ -1278,8 +1296,18 @@ http.createServer(async (req, res) => {
 - **browser_stop_video**
   - Title: Stop video
   - Description: Stop video recording
+  - Parameters: None
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_video_chapter**
+  - Title: Video chapter
+  - Description: Add a chapter marker to the video recording. Shows a full-screen chapter card with blurred backdrop.
   - Parameters:
-    - `filename` (string, optional): Filename to save the video
+    - `title` (string): Chapter title
+    - `description` (string, optional): Chapter description
+    - `duration` (number, optional): Duration in milliseconds to show the chapter card
   - Read-only: **true**
 
 </details>

@@ -1,0 +1,320 @@
+---
+title: How to run flows in a long-lived Docker container
+sidebarTitle: Run flows in a static container
+description: Learn how to serve a flow in a long-lived Docker container
+keywords: ["Docker", "long-lived container", "serve", "static container"]
+---
+
+The `.serve` method allows you to easily elevate a flow to a deployment, listening for scheduled work to execute [as a local process](/v3/how-to-guides/deployment_infra/run-flows-in-local-processes).
+
+However, this _"local"_ process does not need to be on your local machine. In this example we show how to run a flow in Docker container on your local machine, but you could use a Docker container on any machine that has [Docker installed](https://docs.docker.com/engine/install/).
+
+## Overview
+In this example, you will set up:
+
+- a simple flow that retrieves the number of stars for some GitHub repositories
+- a `Dockerfile` that packages up your flow code and dependencies into a container image
+
+## Writing the flow
+
+Say we have a flow that retrieves the number of stars for a GitHub repository:
+
+```python serve_retrieve_github_stars.py {19-23}
+import httpx
+from prefect import flow, task
+
+
+@task(log_prints=True)
+def get_stars_for_repo(repo: str) -> int:
+    response = httpx.Client().get(f"https://api.github.com/repos/{repo}")
+    stargazer_count = response.json()["stargazers_count"]
+    print(f"{repo} has {stargazer_count} stars")
+    return stargazer_count
+
+
+@flow
+def retrieve_github_stars(repos: list[str]) -> list[int]:
+    return get_stars_for_repo.map(repos).wait()
+
+
+if __name__ == "__main__":
+    retrieve_github_stars.serve(
+        parameters={
+            "repos": ["python/cpython", "prefectHQ/prefect"],
+        }
+    )
+```
+
+We can serve this flow on our local machine using:
+
+```bash
+python serve_retrieve_github_stars.py
+```
+
+... but how can we package this up so we can run it on other machines?
+
+## Writing the Dockerfile
+
+Assuming we have our Python requirements defined in a file:
+
+```txt requirements.txt
+prefect
+```
+
+and this directory structure:
+
+```
+├── Dockerfile
+├── requirements.txt
+└── serve_retrieve_github_stars.py
+```
+
+We can package up our flow into a Docker container using a `Dockerfile`.
+
+<CodeGroup>
+
+```dockerfile Using pip
+# Use an official Python runtime as the base image
+FROM python:3.12-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the requirements file into the container
+COPY requirements.txt .
+
+# Install the required packages
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code
+COPY serve_retrieve_github_stars.py .
+
+# Set the command to run your application
+CMD ["python", "serve_retrieve_github_stars.py"]
+```
+
+```dockerfile Using uv
+# Use the official Python image with uv pre-installed
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Set environment variables
+ENV UV_SYSTEM_PYTHON=1
+ENV PATH="/root/.local/bin:$PATH"
+
+# Copy only the requirements file first to leverage Docker cache
+COPY requirements.txt .
+
+# Install dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r requirements.txt
+
+# Copy the rest of the application code
+COPY serve_retrieve_github_stars.py .
+
+# Set the entrypoint
+ENTRYPOINT ["python", "serve_retrieve_github_stars.py"]
+```
+
+</CodeGroup>
+
+<Note>
+Using `pip`, the image is built in about 20 seconds, and using `uv`, the image is built in about 3 seconds.
+
+You can learn more about using `uv` in the [Astral documentation](https://docs.astral.sh/uv/guides/integration/docker/).
+</Note>
+
+## Build and run the container
+
+Now that we have a flow and a Dockerfile, we can build the image from the Dockerfile and run a container from this image.
+
+### Build (and push) the image
+
+We can build the image with the `docker build` command and the `-t` flag to specify a name for the image.
+
+```bash
+docker build -t my-flow-image .
+```
+
+At this point, you may also want to push the image to a container registry such as [Docker Hub](https://hub.docker.com/) or [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Please refer to each registry's respective documentation for details on authentication and registry naming conventions.
+
+### Run the container
+
+You'll likely want to inject some environment variables into your container, so let's define a `.env` file:
+
+```bash .env
+PREFECT_API_URL=<YOUR-API-URL>
+PREFECT_API_KEY=<YOUR-API-KEY-IF-USING-PREFECT-CLOUD>
+```
+
+Then, run the container in [detached mode](https://docs.docker.com/engine/reference/commandline/run/#detached-d) (in other words, in the background):
+
+```bash
+docker run -d --env-file .env my-flow-image
+```
+
+#### Verify the container is running
+
+```bash
+docker ps | grep my-flow-image
+```
+
+You should see your container in the list of running containers, note the `CONTAINER ID` as we'll need it to view logs.
+
+#### View logs
+```bash
+docker logs <CONTAINER-ID>
+```
+
+You should see logs from your newly served process, with the link to your deployment in the UI.
+
+### Stop the container
+
+```bash
+docker stop <CONTAINER-ID>
+```
+
+## Health checks for production deployments
+
+When deploying to production environments like Google Cloud Run, AWS ECS, or Kubernetes, you may need to configure health checks to ensure your container is running properly. The `.serve()` method supports an optional webserver that exposes a health endpoint.
+
+### Enabling the health check webserver
+
+You can enable the health check webserver in two ways:
+
+1. **Pass `webserver=True` to `.serve()`:**
+
+```python
+if __name__ == "__main__":
+    retrieve_github_stars.serve(
+        parameters={
+            "repos": ["python/cpython", "prefectHQ/prefect"],
+        },
+        webserver=True  # Enable health check webserver
+    )
+```
+
+2. **Set the environment variable:**
+
+```bash
+PREFECT_RUNNER_SERVER_ENABLE=true
+```
+
+When enabled, the webserver exposes a health endpoint at `http://localhost:8080/health` by default.
+
+### Configuring the health check port
+
+You can customize the host and port using environment variables:
+
+```bash
+PREFECT_RUNNER_SERVER_HOST=0.0.0.0  # Allow external connections
+PREFECT_RUNNER_SERVER_PORT=8080      # Port for health checks
+```
+
+### Docker with health checks
+
+Add a health check to your Dockerfile:
+
+```dockerfile
+# ... your existing Dockerfile content ...
+
+# Health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD python -c "import urllib.request as u; u.urlopen('http://localhost:8080/health', timeout=1)"
+
+# Set the command to run your application with webserver enabled
+CMD ["python", "serve_retrieve_github_stars.py"]
+```
+
+Or if you prefer to use environment variables:
+
+```dockerfile
+# ... your existing Dockerfile content ...
+
+# Enable the health check webserver
+ENV PREFECT_RUNNER_SERVER_ENABLE=true
+ENV PREFECT_RUNNER_SERVER_HOST=0.0.0.0
+ENV PREFECT_RUNNER_SERVER_PORT=8080
+
+# Health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD python -c "import urllib.request as u; u.urlopen('http://localhost:8080/health', timeout=1)"
+
+CMD ["python", "serve_retrieve_github_stars.py"]
+```
+
+### Platform-specific configurations
+
+<Tabs>
+<Tab title="Google Cloud Run">
+Cloud Run requires containers to listen on a port. Configure your container to expose the health check port:
+
+```yaml
+# In your Cloud Run configuration
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 30
+```
+
+Make sure to set the container port to 8080 in Cloud Run settings.
+</Tab>
+
+<Tab title="AWS ECS/Fargate">
+Configure health checks in your task definition:
+
+```json
+{
+  "healthCheck": {
+    "command": ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:8080/health', timeout=1)\""],
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3,
+    "startPeriod": 60
+  }
+}
+```
+</Tab>
+
+<Tab title="Kubernetes">
+Add liveness and readiness probes to your deployment:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+```
+</Tab>
+</Tabs>
+
+The health endpoint returns:
+- **200 OK** with `{"message": "OK"}` when the runner is healthy and polling for work
+- **503 Service Unavailable** when the runner hasn't polled recently (indicating it may be unresponsive)
+
+## Next steps
+
+Congratulations! You have packaged and served a flow on a long-lived Docker container.
+
+You may now easily deploy this container to other infrastructures, such as:
+- [Modal](https://modal.com/)
+- [Google Cloud Run](https://cloud.google.com/run)
+- [AWS Fargate / ECS](https://aws.amazon.com/fargate/)
+- Managed Kubernetes (For example: GKE, EKS, or AKS)
+
+or anywhere else you can run a Docker container!

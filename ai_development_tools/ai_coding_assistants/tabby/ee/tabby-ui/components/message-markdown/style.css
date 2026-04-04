@@ -1,0 +1,16 @@
+.message-markdown li > * {
+  vertical-align: top;
+}
+
+.message-markdown .symbol {
+  @apply rounded-md font-normal mx-1 px-1;
+}
+
+.message-markdown .symbol::before,
+.message-markdown .symbol::after {
+  content: none;
+}
+
+.source-mention {
+  @apply inline-flex items-baseline space-x-1;
+}

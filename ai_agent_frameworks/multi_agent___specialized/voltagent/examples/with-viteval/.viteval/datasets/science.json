@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-08-20T16:20:35.061Z",
+  "data": [
+    {
+      "input": "A rigid 5.0 L cylinder contains an ideal gas at 2.0 atm and 300 K. The gas is heated to 450 K with no change in volume or moles. What is the final pressure?",
+      "expected": "3.0 atm. With volume and moles constant, pressure is proportional to temperature (in Kelvin): P2 = P1 × (T2/T1) = 2.0 atm × (450/300) = 3.0 atm."
+    },
+    {
+      "input": "A 1.00 L buffer solution is prepared by dissolving 0.20 mol acetic acid (CH3COOH) and 0.10 mol sodium acetate (CH3COONa) to a final volume of 1.00 L at 25°C. Given pKa(acetic acid) = 4.76, what is the pH? Assume ideal behavior.",
+      "expected": "Using the Henderson–Hasselbalch equation: pH = pKa + log([A−]/[HA]) = 4.76 + log(0.10/0.20) = 4.76 + log(0.5) = 4.76 − 0.301 = 4.46. So pH ≈ 4.46."
+    },
+    {
+      "input": "An ideal gas initially at 1.0 atm and 300 K undergoes a reversible isothermal compression to half its initial volume. What is the final pressure, and how much work is done on the gas per mole?",
+      "expected": "Final pressure: 2.0 atm. Work done on the gas per mole: W_on = nRT ln(V1/V2) = (8.314 J·mol⁻¹·K⁻¹)(300 K) ln(2) ≈ 1.73×10^3 J·mol⁻¹ (positive, on the gas)."
+    },
+    {
+      "input": "How many grams of NaCl are needed to prepare 500.0 mL of a 0.250 M NaCl solution?",
+      "expected": "Moles = 0.250 mol/L × 0.5000 L = 0.125 mol; mass = 0.125 mol × 58.44 g/mol = 7.305 g (≈7.31 g)."
+    },
+    {
+      "input": "An ideal aqueous solution is prepared at 1.50 m NaCl. Assuming complete dissociation (van ’t Hoff factor i = 2) and using water’s cryoscopic constant Kf = 1.86 °C·kg·mol⁻¹, what is the solution’s freezing point?",
+      "expected": "ΔTf = i·Kf·m = 2 × 1.86 × 1.50 = 5.58 °C. Freezing point = 0.00 °C − 5.58 °C = −5.58 °C."
+    },
+    {
+      "input": "A 2.0 kg block is pushed across a horizontal surface with a kinetic friction coefficient of 0.20 by a constant horizontal force of 15 N. What is the block’s acceleration? (Use g = 9.8 m/s^2.)",
+      "expected": "5.54 m/s^2 (in the direction of the push)"
+    },
+    {
+      "input": "Why does adding table salt (NaCl) to ice lower its melting/freezing point? Using colligative properties, estimate the freezing point of a 1.0 molal NaCl(aq) solution assuming ideal behavior and complete dissociation.",
+      "expected": "Dissolved solute lowers the chemical potential of liquid water, so a lower temperature is required for equilibrium with ice. The colligative relation is ΔTf = i·Kf·m. For water, Kf = 1.86 C·kg/mol and NaCl has i ≈ 2 (ideal). Thus ΔTf = 2 × 1.86 × 1.0 = 3.72 C, so the solution’s freezing point is approximately −3.72 C."
+    },
+    {
+      "input": "A 5.0 kg block is pulled across a horizontal surface by a horizontal force of 30 N. The coefficient of kinetic friction is 0.20. Assume g = 10 m/s^2. What is the block's acceleration?",
+      "expected": "4.0 m/s^2"
+    },
+    {
+      "input": "In Michaelis–Menten enzyme kinetics, what does Km represent, and how are Km and Vmax affected by a competitive inhibitor versus a pure noncompetitive inhibitor?",
+      "expected": "Km is the substrate concentration at which the reaction rate is half of Vmax (an inverse measure of apparent substrate affinity). Competitive inhibition increases the apparent Km but does not change Vmax. Pure noncompetitive inhibition decreases Vmax but does not change Km."
+    },
+    {
+      "input": "An ideal gas (n = 0.500 mol) at 300 K expands isothermally and reversibly from 1.00 L to 3.00 L. What is the work done by the gas?",
+      "expected": "For isothermal reversible expansion: w = nRT ln(Vf/Vi). With n = 0.500 mol, R = 8.314 J·mol^-1·K^-1, T = 300 K, and Vf/Vi = 3.00, w ≈ 0.500×8.314×300×ln(3) ≈ 1.37×10^3 J = 1.37 kJ (done by the gas)."
+    }
+  ]
+}

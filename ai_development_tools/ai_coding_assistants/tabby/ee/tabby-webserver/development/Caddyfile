@@ -1,0 +1,32 @@
+:8080 {
+	rewrite /files/* /files
+	rewrite /search/* /search
+	rewrite /pages/* /pages
+
+	@backend {
+		path /graphql
+		path /graphiql
+		path /subscriptions
+
+		path /v1/*
+		path /v1beta/*
+		path /hub
+		path /repositories/*
+		path /oauth/*
+		path /avatar/*
+		path /integrations/github/*
+		path /background-jobs/*
+
+		path /swagger-ui
+		path /swagger-ui/*
+		path /api-docs/*
+	}
+
+	handle @backend {
+		reverse_proxy localhost:8081
+	}
+
+	handle /* {
+		reverse_proxy localhost:3000
+	}
+}

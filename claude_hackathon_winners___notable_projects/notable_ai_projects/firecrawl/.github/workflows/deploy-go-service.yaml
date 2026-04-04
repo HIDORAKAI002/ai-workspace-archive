@@ -1,0 +1,40 @@
+name: Deploy Go Service to GHCR
+
+env:
+  DOTNET_VERSION: "6.0.x"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/go-html-to-md-service/**
+      - .github/workflows/deploy-go-service.yaml
+  workflow_dispatch:
+
+jobs:
+  push-app-image:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: "./apps/go-html-to-md-service"
+    steps:
+      - name: "Checkout GitHub Action"
+        uses: actions/checkout@main
+
+      - name: Setup Blacksmith Builder
+        uses: useblacksmith/setup-docker-builder@v1
+
+      - name: "Login to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: "Build and Push Image"
+        uses: useblacksmith/build-push-action@v2
+        with:
+          context: ./apps/go-html-to-md-service
+          push: true
+          tags: ghcr.io/firecrawl/go-html-to-md-service:latest

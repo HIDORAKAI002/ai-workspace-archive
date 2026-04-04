@@ -1,0 +1,80 @@
+{
+  "name": "tabby-chat-panel",
+  "type": "module",
+  "version": "0.10.0",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm build:unbuild & pnpm build:rollup",
+    "build:unbuild": "unbuild",
+    "build:rollup": "rollup -c rollup.config.js",
+    "dev": "unbuild --stub",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepack": "nr build",
+    "preview": "node --watch bin/index.js",
+    "release": "bumpp && npm publish",
+    "start": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "semver": "^7.6.0",
+    "tabby-threads": "workspace:*"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.16.0",
+    "@antfu/ni": "^0.21.12",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@types/node": "^20.12.7",
+    "@types/react": "18.2.23",
+    "@types/semver": "^7.5.8",
+    "bumpp": "^9.4.0",
+    "eslint": "^9.1.1",
+    "eslint-formatter-mo": "^1.2.0",
+    "lint-staged": "^15.2.2",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.27.3",
+    "tsx": "^4.7.3",
+    "typescript": "^5.4.5",
+    "unbuild": "^2.0.0",
+    "vitest": "^1.5.2"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

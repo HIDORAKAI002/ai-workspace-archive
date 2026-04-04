@@ -1,0 +1,13 @@
+llama-index-embeddings-huggingface
+
+# NumPy 2.x adds Python 3.14 wheels, but dropped Python 3.10.
+numpy<2; python_version < "3.11"
+numpy>=2.3,<2.5; python_version >= "3.11"
+
+# Torch 2.3+ works with NumPy 2 on the supported Python versions.
+torch>=2.3.0
+
+# Later versions break test_help in GitHub Actions on Windows and Ubuntu
+# due to llama-index-core==0.12.26
+scikit-learn==1.7.2 ; python_version < "3.11"
+scikit-learn==1.8.0 ; python_version >= "3.11"

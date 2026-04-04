@@ -1,0 +1,146 @@
+---
+title: services
+sidebarTitle: services
+---
+
+# `prefect.settings.models.server.services`
+
+## Classes
+
+### `ServicesBaseSetting` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L11" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+**Methods:**
+
+#### `settings_customise_sources` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/base.py#L33" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+settings_customise_sources(cls, settings_cls: type[BaseSettings], init_settings: PydanticBaseSettingsSource, env_settings: PydanticBaseSettingsSource, dotenv_settings: PydanticBaseSettingsSource, file_secret_settings: PydanticBaseSettingsSource) -> tuple[PydanticBaseSettingsSource, ...]
+```
+
+Define an order for Prefect settings sources.
+
+The order of the returned callables decides the priority of inputs; first item is the highest priority.
+
+See https://docs.pydantic.dev/latest/concepts/pydantic_settings/#customise-settings-sources
+
+
+#### `to_environment_variables` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/base.py#L124" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+to_environment_variables(self, exclude_unset: bool = False, include_secrets: bool = True, include_aliases: bool = False) -> dict[str, str]
+```
+
+Convert the settings object to a dictionary of environment variables.
+
+
+### `ServerServicesCancellationCleanupSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L18" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the cancellation cleanup service
+
+
+### `ServerServicesDBVacuumSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L81" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the database vacuum service
+
+
+**Methods:**
+
+#### `enabled_vacuum_types` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L99" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+enabled_vacuum_types(self) -> set[str]
+```
+
+Resolve `enabled` to a concrete set of vacuum type strings.
+
+Handles legacy boolean values:
+* `True`  → `{"events", "flow_runs"}`
+* `False` → `{"events"}` (preserves old default)
+* `None`  → `set()`
+
+
+### `ServerServicesEventPersisterSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L147" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the event persister service
+
+
+### `ServerServicesEventLoggerSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L212" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the event logger service
+
+
+### `ServerServicesForemanSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L232" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the foreman service
+
+
+### `ServerServicesLateRunsSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L313" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the late runs service
+
+
+### `ServerServicesSchedulerSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L357" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the scheduler service
+
+
+### `ServerServicesPauseExpirationsSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L489" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the pause expiration service
+
+
+### `ServerServicesRepossessorSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L525" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the repossessor service
+
+
+### `ServerServicesTaskRunRecorderSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L545" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the task run recorder service
+
+
+### `ServerServicesTriggersSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L583" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling the triggers service
+
+
+### `ServerServicesSettings` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/models/server/services.py#L635" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Settings for controlling server services
+
+
+**Methods:**
+
+#### `settings_customise_sources` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/base.py#L33" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+settings_customise_sources(cls, settings_cls: type[BaseSettings], init_settings: PydanticBaseSettingsSource, env_settings: PydanticBaseSettingsSource, dotenv_settings: PydanticBaseSettingsSource, file_secret_settings: PydanticBaseSettingsSource) -> tuple[PydanticBaseSettingsSource, ...]
+```
+
+Define an order for Prefect settings sources.
+
+The order of the returned callables decides the priority of inputs; first item is the highest priority.
+
+See https://docs.pydantic.dev/latest/concepts/pydantic_settings/#customise-settings-sources
+
+
+#### `to_environment_variables` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/settings/base.py#L124" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+to_environment_variables(self, exclude_unset: bool = False, include_secrets: bool = True, include_aliases: bool = False) -> dict[str, str]
+```
+
+Convert the settings object to a dictionary of environment variables.
+

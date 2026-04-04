@@ -1,0 +1,84 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package errors
+
+import (
+	"fmt"
+)
+
+type ErrOpenHttpRequest struct {
+	err error
+}
+
+func (e ErrOpenHttpRequest) Error() string {
+	return e.err.Error()
+}
+
+func NewErrOpenHttpRequest(err error) ErrOpenHttpRequest {
+	return ErrOpenHttpRequest{fmt.Errorf("open http request: %w", err)}
+}
+
+type ErrSendHttpRequest struct {
+	err error
+}
+
+func (e ErrSendHttpRequest) Error() string {
+	return e.err.Error()
+}
+
+// Unwrap returns the original inner error, so it can be
+// used with errors.Is and errors.As
+func (e ErrSendHttpRequest) Unwrap() error {
+	return e.err
+}
+
+func NewErrSendHttpRequest(err error) ErrSendHttpRequest {
+	return ErrSendHttpRequest{fmt.Errorf("send http request: %w", err)}
+}
+
+type ErrUnexpectedStatusCode struct {
+	err error
+}
+
+func (e ErrUnexpectedStatusCode) Error() string {
+	return e.err.Error()
+}
+
+func NewErrUnexpectedStatusCode(statusCode int, body []byte) ErrUnexpectedStatusCode {
+	return ErrUnexpectedStatusCode{
+		err: fmt.Errorf("unexpected status code %d (%s)", statusCode, body),
+	}
+}
+
+type ErrUnmarshalBody struct {
+	err error
+}
+
+func (e ErrUnmarshalBody) Error() string {
+	return e.err.Error()
+}
+
+func NewErrUnmarshalBody(err error) ErrUnmarshalBody {
+	return ErrUnmarshalBody{fmt.Errorf("unmarshal body: %w", err)}
+}
+
+type ErrUnexpectedContentType struct {
+	err error
+}
+
+func (e ErrUnexpectedContentType) Error() string {
+	return e.err.Error()
+}
+
+func NewErrUnexpectedContentType(ct string) ErrUnexpectedContentType {
+	return ErrUnexpectedContentType{fmt.Errorf("unexpected content type: %s", ct)}
+}

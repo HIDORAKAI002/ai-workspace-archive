@@ -1,0 +1,119 @@
+name: Claude Docs Check
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "src/**/*.py"
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Analyze PR for documentation needs
+        id: analyze
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_non_write_users: "*"
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR TITLE: ${{ github.event.pull_request.title }}
+
+            You are a documentation analyst for the Ragas project. Analyze this PR to determine if documentation updates are needed.
+
+            ## Quick Decision Rules
+
+            **needs_update: false** (most common):
+            - Docstrings already updated in code → no action needed (API docs are auto-generated)
+            - Internal refactoring with no API changes → no action needed
+            - Bug fixes with no user-facing changes → no action needed
+            - Infrastructure/build changes → no action needed
+
+            **needs_update: true** (only when necessary):
+            - New user-facing features WITHOUT docstrings → need docs
+            - Changed usage patterns in how-to guides → need updates
+            - New core concepts without explanation → need concept docs
+            - Modified getting started flow → need tutorial updates
+
+            ## Your Task
+
+            1. Run `gh pr diff` to review code changes
+            2. Check if docstrings are present for API changes
+            3. Return JSON immediately with your decision
+
+            Return format:
+            - `needs_update`: boolean
+            - `reason`: brief explanation (1-2 sentences max)
+
+            ## Documentation Structure Reference
+            - `docs/howtos/` - Step-by-step guides
+            - `docs/concepts/` - Conceptual explanations
+            - `docs/getstarted/` - Tutorials
+            - `docs/references/` - AUTO-GENERATED (never edit directly)
+
+            IMPORTANT: Be decisive. Default to needs_update: false if docstrings are present. Return JSON within 3 turns.
+
+          claude_args: |
+            --max-turns 20
+            --json-schema '{"type":"object","properties":{"needs_update":{"type":"boolean"},"reason":{"type":"string"}},"required":["needs_update","reason"]}'
+            --allowedTools "Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Grep"
+
+      - name: Parse analysis result
+        id: parse
+        run: |
+          # Use heredoc to safely handle JSON with special characters
+          cat <<'EOF' > /tmp/output.json
+          ${{ steps.analyze.outputs.structured_output }}
+          EOF
+
+          echo "structured_output=$(cat /tmp/output.json)"
+          NEEDS_UPDATE=$(jq -r '.needs_update' /tmp/output.json)
+          REASON=$(jq -r '.reason' /tmp/output.json)
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+          # Use multiline string format for reason to handle special characters
+          {
+            echo 'reason<<EOF'
+            jq -r '.reason' /tmp/output.json
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Add label and comment if docs needed
+        if: steps.parse.outputs.needs_update == 'true'
+        run: |
+          # Add the needs-doc-update label
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-doc-update"
+
+          # Comment with instructions
+          gh pr comment ${{ github.event.pull_request.number }} --body "📝 **Documentation update may be needed**
+
+          ${{ steps.parse.outputs.reason }}
+
+          **To apply documentation updates:** Add the \`update-docs\` label to this PR."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment if no docs needed
+        if: steps.parse.outputs.needs_update == 'false'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "✅ No documentation update needed — ${{ steps.parse.outputs.reason }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

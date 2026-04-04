@@ -1,0 +1,29 @@
+module Anthropic
+  module Models
+    module Beta
+      module Messages
+        type beta_message_batch_individual_response =
+          {
+            custom_id: String,
+            result: Anthropic::Models::Beta::Messages::beta_message_batch_result
+          }
+
+        class BetaMessageBatchIndividualResponse < Anthropic::Internal::Type::BaseModel
+          attr_accessor custom_id: String
+
+          attr_accessor result: Anthropic::Models::Beta::Messages::beta_message_batch_result
+
+          def initialize: (
+            custom_id: String,
+            result: Anthropic::Models::Beta::Messages::beta_message_batch_result
+          ) -> void
+
+          def to_hash: -> {
+            custom_id: String,
+            result: Anthropic::Models::Beta::Messages::beta_message_batch_result
+          }
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,24 @@
+{
+  "name": "example-with-viteval",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "examples/with-viteval/src",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "examples/with-viteval/dist",
+        "main": "examples/with-viteval/src/index.ts",
+        "tsConfig": "examples/with-viteval/tsconfig.json"
+      }
+    },
+    "dev": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "example-with-viteval:build",
+        "watch": true
+      }
+    }
+  }
+}

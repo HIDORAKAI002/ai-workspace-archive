@@ -67,7 +67,6 @@ export interface AgentMessageRagSource {
   sourceId: string
   fileId?: string
   filename?: string
-  chunkCount: number
 }
 
 export interface AgentMessageMetadata {

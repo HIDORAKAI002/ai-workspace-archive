@@ -6,6 +6,7 @@ import type {
   UpdateAgentRequest,
 } from "@budibase/types"
 import { helpers } from "@budibase/shared-core"
+import * as knowledgeBaseSdk from "../knowledgeBase"
 
 const SECRET_MASK = "********"
 const SECRET_ENCODING_PREFIX = "bbai_enc::"
@@ -345,6 +346,43 @@ export async function update(agent: UpdateAgentRequest): Promise<Agent> {
 export async function remove(agentId: string) {
   const db = context.getWorkspaceDB()
   const agent = await getOrThrow(agentId)
+
+  if (agent.knowledgeBases) {
+    for (const knowledgeBaseId of agent.knowledgeBases) {
+      const knowledgeBase = await knowledgeBaseSdk.find(knowledgeBaseId)
+      if (!knowledgeBase) {
+        continue
+      }
+
+      const files =
+        await knowledgeBaseSdk.listKnowledgeBaseFiles(knowledgeBaseId)
+      for (const file of files) {
+        try {
+          await knowledgeBaseSdk.removeKnowledgeBaseFile(knowledgeBase, file)
+        } catch (error) {
+          console.log(
+            "Failed to remove knowledge base file for agent deletion",
+            {
+              agentId,
+              knowledgeBaseId,
+              fileId: file._id,
+              error,
+            }
+          )
+        }
+      }
+
+      try {
+        await knowledgeBaseSdk.remove(knowledgeBaseId)
+      } catch (error) {
+        console.log("Failed to remove knowledge base for agent deletion", {
+          agentId,
+          knowledgeBaseId,
+          error,
+        })
+      }
+    }
+  }
 
   await db.remove(agent)
 }

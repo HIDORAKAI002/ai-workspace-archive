@@ -1,0 +1,39 @@
+module Anthropic
+  module Models
+    class BetaContextManagementConfig = Beta::BetaContextManagementConfig
+
+    module Beta
+      type beta_context_management_config =
+        {
+          edits: ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+        }
+
+      class BetaContextManagementConfig < Anthropic::Internal::Type::BaseModel
+        attr_reader edits: ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]?
+
+        def edits=: (
+          ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+        ) -> ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+
+        def initialize: (
+          ?edits: ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+        ) -> void
+
+        def to_hash: -> {
+          edits: ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+        }
+
+        type edit =
+          Anthropic::Beta::BetaClearToolUses20250919Edit
+          | Anthropic::Beta::BetaClearThinking20251015Edit
+          | Anthropic::Beta::BetaCompact20260112Edit
+
+        module Edit
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaContextManagementConfig::edit]
+        end
+      end
+    end
+  end
+end

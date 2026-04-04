@@ -1,0 +1,206 @@
+---
+title: Anthropic
+description: "Track and analyze your Anthropic API calls with AgentOps"
+---
+
+AgentOps provides seamless integration with [Anthropic's Python SDK](https://github.com/anthropics/anthropic-sdk-python), allowing you to track and analyze all your Claude model interactions automatically.
+
+## Installation
+
+
+
+<CodeGroup>
+  ```bash pip
+  pip install agentops anthropic
+  ```
+  ```bash poetry
+  poetry add agentops anthropic
+  ```
+  ```bash uv
+  uv pip install agentops anthropic
+  ```
+</CodeGroup>
+
+## Setting Up API Keys
+
+Before using Anthropic with AgentOps, you need to set up your API keys. You can obtain:
+- **ANTHROPIC_API_KEY**: From the [Anthropic Console](https://console.anthropic.com/)
+- **AGENTOPS_API_KEY**: From your [AgentOps Dashboard](https://app.agentops.ai/)
+
+Then to set them up, you can either export them as environment variables or set them in a `.env` file.
+
+<CodeGroup>
+    ```bash Export to CLI
+    export ANTHROPIC_API_KEY="your_anthropic_api_key_here"
+    export AGENTOPS_API_KEY="your_agentops_api_key_here"
+    ```
+    ```txt Set in .env file
+    ANTHROPIC_API_KEY="your_anthropic_api_key_here"
+    AGENTOPS_API_KEY="your_agentops_api_key_here"
+    ```
+</CodeGroup>
+
+Then load the environment variables in your Python code:
+
+```python
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set up environment variables with fallback values
+os.environ["ANTHROPIC_API_KEY"] = os.getenv("ANTHROPIC_API_KEY")
+os.environ["AGENTOPS_API_KEY"] = os.getenv("AGENTOPS_API_KEY")
+```
+
+## Usage
+
+Initialize AgentOps at the beginning of your application to automatically track all Anthropic API calls:
+
+```python
+import agentops
+import anthropic
+
+# Initialize AgentOps
+agentops.init()
+
+# Create Anthropic client
+client = anthropic.Anthropic()
+
+# Make a completion request - AgentOps will track it automatically
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    messages=[
+        {"role": "user", "content": "What is artificial intelligence?"}
+    ]
+)
+
+# Print the response received
+print(message.content[0].text)
+```
+
+
+## Examples
+
+<CodeGroup>
+```python Streaming
+import agentops
+import anthropic
+      
+# Initialize AgentOps
+agentops.init()
+
+# Create Anthropic client
+client = anthropic.Anthropic()
+
+# Make a streaming request
+with client.messages.stream(
+    model="claude-sonnet-4-20250514",
+    messages=[
+        {"role": "user", "content": "Write a short poem about artificial intelligence."}
+    ]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+    print()
+```
+
+```python Tool Use
+import agentops
+import anthropic
+import json
+from datetime import datetime
+
+# Initialize AgentOps
+agentops.init()
+
+# Create Anthropic client
+client = anthropic.Anthropic()
+
+# Define tools
+tools = [
+    {
+        "type": "custom",
+        "name": "get_current_time",
+        "description": "Get the current date and time",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    }
+]
+
+def get_current_time():
+    return {"current_time": datetime.now().isoformat()}
+
+# Make a request with tools
+  message = client.messages.create(
+    model="claude-opus-4-20250514",
+    tools=tools,
+    messages=[
+        {"role": "user", "content": "What time is it now?"}
+    ]
+  )
+
+# Handle tool use
+if message.content[0].type == "tool_calls":
+    tool_call = message.content[0].tool_calls[0]
+    tool_name = tool_call.name
+    
+    if tool_name == "get_current_time":
+        tool_response = get_current_time()
+        
+        # Continue the conversation with the tool response
+        second_message = client.messages.create(
+          model="claude-opus-4-20250514",
+            messages=[
+                {"role": "user", "content": "What time is it now?"},
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "tool_calls",
+                            "tool_calls": [
+                                {
+                                    "type": "custom",
+                                    "name": "get_current_time",
+                                    "input": {}
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "role": "tool",
+                    "content": json.dumps(tool_response),
+                    "tool_call_id": tool_call.id
+                }
+            ]
+      )
+
+        print(second_message.content[0].text)
+else:
+    print(message.content[0].text)
+```
+</CodeGroup>
+
+## More Examples
+
+<CardGroup cols={2}>
+  <Card title="Understanding Tools" icon="notebook" href="/v2/examples/anthropic">
+    Claude integration with tool usage and advanced features
+  </Card>
+  <Card title="Sync Example" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/anthropic/anthropic-example-sync.ipynb" newTab={true}>
+    Shows synchronous calls with the Anthropic SDK.
+  </Card>
+  <Card title="Async Example" icon="notebook" href="https://github.com/AgentOps-AI/agentops/blob/main/examples/anthropic/anthropic-example-async.ipynb" newTab={true}>
+    Demonstrates asynchronous calls with the Anthropic SDK.
+  </Card>
+</CardGroup>
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="css" src="/styles/styles.css"></script>

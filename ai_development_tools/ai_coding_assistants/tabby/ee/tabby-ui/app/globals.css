@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 38 96.55% 98.5%;
+    --foreground: 38 3.1% 1%;
+
+    --muted: 40 9.5% 91%;
+    --muted-foreground: 38 1.55% 42.5%;
+
+    --popover: 38 65.2% 92.5%;
+    --popover-foreground: 38 3.1% 1.25%;
+
+    --card: 38 65.2% 92.5%;
+    --card-foreground: 38 3.1% 1.25%;
+
+    --border: 38 8.1% 90%;
+    --input: 38 8.1% 90%;
+    --input-border: 38 8.1% 90%;
+
+    --primary: 38 31% 25%;
+    --primary-foreground: 38 0.62% 92.5%;
+
+    --secondary: 38 1.55% 96.25%;
+    --secondary-foreground: 38 2.86% 12.5%;
+
+    --accent: 40 19% 91%;
+    --accent-foreground: 38 2.86% 12.5%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --successful: 140.62 84.21% 92.55%;
+    --successful-foreground: 142.78 64.23% 24.12%;
+
+    --ring: 38 31% 25%;
+
+    --radius: 0.5rem;
+
+    --selection: 200, 100%, 90%;
+
+    --link: 38, 44%, 41%;
+  }
+
+  .dark {
+    --background: 0 0 12%;
+    --foreground: 39 3.2% 99.35%;
+
+    --muted: 39 13% 21%;
+    --muted-foreground: 39 3.2% 58.7%;
+
+    --popover: 39 15% 27%;
+    --popover-foreground: 39 3.2% 99.35%;
+
+    --card: 39 15% 27%;
+    --card-foreground: 39 3.2% 99.35%;
+
+    --border: 39 9% 17%;
+    --input: 39 16% 26.1%;
+    --input-border: 39 16% 26.1%;
+
+    --primary: 39 32% 87%;
+    --primary-foreground: 39 3.2% 8.7%;
+
+    --secondary: 39 13% 21%;
+    --secondary-foreground: 39 3.2% 99.35%;
+
+    --accent: 39 13% 21%;
+    --accent-foreground: 39 3.2% 99.35%;
+
+    --destructive: 3.2 36.95% 60.2%;
+    --destructive-foreground: 39 3.2% 99.35%;
+
+    --successful: 143.81 61.17% 20.2%;
+    --successful-foreground: 141.71 76.64% 73.14%;
+
+    --ring: 39 32% 87%;
+
+    --selection: 221, 13%, 28%;
+
+    --link: 37, 34%, 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground; 
+  }
+}
+
+.prose-full-width {
+  max-width: none !important;
+}
+
+.prose {
+  overflow-wrap: anywhere;
+}
+
+.dialog-without-close-btn > button {
+  display: none;
+}
+
+.unread-notification::before {
+  @apply content-[''] float-left w-2 h-2 mr-1.5 mt-2 rounded-full bg-red-400;
+}
+
+/* Tiptap editor */
+.tiptap:first-child {
+  @apply mt-0;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-muted-foreground cursor-text h-0 float-left;
+}
+/* Tiptap editor */

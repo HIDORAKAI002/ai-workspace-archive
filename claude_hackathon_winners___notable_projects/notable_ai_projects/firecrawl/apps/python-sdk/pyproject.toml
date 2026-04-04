@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+name = "firecrawl-py"
+description = "Python SDK for Firecrawl API"
+readme = {file="README.md", content-type = "text/markdown"}
+requires-python = ">=3.8"
+dependencies = [
+    "requests",
+    "httpx",
+    "python-dotenv",
+    "websockets",
+    "nest-asyncio",
+    "pydantic>=2.0",
+    "aiohttp"
+]
+authors = [{name = "Mendable.ai",email = "nick@mendable.ai"}]
+maintainers = [{name = "Mendable.ai",email = "nick@mendable.ai"}]
+license = {text = "MIT License"}
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Internet",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Indexing",
+]
+
+keywords = ["SDK", "API", "firecrawl"]
+
+[project.urls]
+"Documentation" = "https://docs.firecrawl.dev"
+"Source" = "https://github.com/firecrawl/firecrawl"
+"Tracker" = "https://github.com/firecrawl/firecrawl/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]

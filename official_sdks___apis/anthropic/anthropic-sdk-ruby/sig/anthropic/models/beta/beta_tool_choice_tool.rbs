@@ -1,0 +1,32 @@
+module Anthropic
+  module Models
+    class BetaToolChoiceTool = Beta::BetaToolChoiceTool
+
+    module Beta
+      type beta_tool_choice_tool =
+        { name: String, type: :tool, disable_parallel_tool_use: bool }
+
+      class BetaToolChoiceTool < Anthropic::Internal::Type::BaseModel
+        attr_accessor name: String
+
+        attr_accessor type: :tool
+
+        attr_reader disable_parallel_tool_use: bool?
+
+        def disable_parallel_tool_use=: (bool) -> bool
+
+        def initialize: (
+          name: String,
+          ?disable_parallel_tool_use: bool,
+          ?type: :tool
+        ) -> void
+
+        def to_hash: -> {
+          name: String,
+          type: :tool,
+          disable_parallel_tool_use: bool
+        }
+      end
+    end
+  end
+end

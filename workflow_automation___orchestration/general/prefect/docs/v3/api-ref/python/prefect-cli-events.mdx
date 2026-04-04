@@ -1,0 +1,35 @@
+---
+title: events
+sidebarTitle: events
+---
+
+# `prefect.cli.events`
+
+
+
+Events command — native cyclopts implementation.
+
+Stream and emit events.
+
+
+## Functions
+
+### `stream` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/events.py#L30" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stream()
+```
+
+
+Subscribe to the event stream, printing each event as it is received.
+
+
+### `emit` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/events.py#L112" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+emit(event: str)
+```
+
+
+Emit a single event to Prefect.
+

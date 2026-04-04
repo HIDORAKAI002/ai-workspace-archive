@@ -1,0 +1,362 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package commitlog
+
+import (
+	"bytes"
+	"encoding/binary"
+	"math"
+
+	"github.com/pkg/errors"
+	"github.com/weaviate/weaviate/adapters/repos/db/vector/common"
+	"github.com/weaviate/weaviate/adapters/repos/db/vector/multivector"
+	"github.com/weaviate/weaviate/entities/vectorindex/compression"
+)
+
+type Logger struct {
+	file common.File
+	bufw *bufWriter
+}
+
+// TODO: these are duplicates with the hnsw package, unify them
+type HnswCommitType uint8 // 256 options, plenty of room for future extensions
+
+// TODO: these are duplicates with the hnsw package, unify them
+const (
+	AddNode HnswCommitType = iota
+	SetEntryPointMaxLevel
+	AddLinkAtLevel
+	ReplaceLinksAtLevel
+	AddTombstone
+	RemoveTombstone
+	ClearLinks
+	DeleteNode
+	ResetIndex
+	ClearLinksAtLevel // added in v1.8.0-rc.1, see https://github.com/weaviate/weaviate/issues/1701
+	AddLinksAtLevel   // added in v1.8.0-rc.1, see https://github.com/weaviate/weaviate/issues/1705
+	AddPQ
+	AddSQ
+	AddMuvera
+	AddRQ
+	AddBRQ
+)
+
+func NewLogger(fileName string, fs common.FS) *Logger {
+	file, err := fs.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	return &Logger{file: file, bufw: NewWriter(file)}
+}
+
+func NewLoggerWithFile(file common.File) *Logger {
+	return &Logger{file: file, bufw: NewWriterSize(file, 32*1024)}
+}
+
+func (l *Logger) SetEntryPointWithMaxLayer(id uint64, level int) error {
+	toWrite := make([]byte, 11)
+	toWrite[0] = byte(SetEntryPointMaxLevel)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	binary.LittleEndian.PutUint16(toWrite[9:11], uint16(level))
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) AddNode(id uint64, level int) error {
+	toWrite := make([]byte, 11)
+	toWrite[0] = byte(AddNode)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	binary.LittleEndian.PutUint16(toWrite[9:11], uint16(level))
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) AddPQCompression(data compression.PQData) error {
+	toWrite := make([]byte, 10)
+	toWrite[0] = byte(AddPQ)
+	binary.LittleEndian.PutUint16(toWrite[1:3], data.Dimensions)
+	toWrite[3] = byte(data.EncoderType)
+	binary.LittleEndian.PutUint16(toWrite[4:6], data.Ks)
+	binary.LittleEndian.PutUint16(toWrite[6:8], data.M)
+	toWrite[8] = data.EncoderDistribution
+	if data.UseBitsEncoding {
+		toWrite[9] = 1
+	} else {
+		toWrite[9] = 0
+	}
+
+	for _, encoder := range data.Encoders {
+		toWrite = append(toWrite, encoder.ExposeDataForRestore()...)
+	}
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) AddSQCompression(data compression.SQData) error {
+	toWrite := make([]byte, 11)
+	toWrite[0] = byte(AddSQ)
+	binary.LittleEndian.PutUint32(toWrite[1:], math.Float32bits(data.A))
+	binary.LittleEndian.PutUint32(toWrite[5:], math.Float32bits(data.B))
+	binary.LittleEndian.PutUint16(toWrite[9:], data.Dimensions)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) AddRQCompression(data compression.RQData) error {
+	swapSize := 2 * data.Rotation.Rounds * (data.Rotation.OutputDim / 2) * 2
+	signSize := 4 * data.Rotation.Rounds * data.Rotation.OutputDim
+	var buf bytes.Buffer
+	buf.Grow(17 + int(swapSize) + int(signSize))
+
+	buf.WriteByte(byte(AddRQ))                                       // 1
+	binary.Write(&buf, binary.LittleEndian, data.InputDim)           // 4 input dim
+	binary.Write(&buf, binary.LittleEndian, data.Bits)               // 4 bits
+	binary.Write(&buf, binary.LittleEndian, data.Rotation.OutputDim) // 4 rotation - output dim
+	binary.Write(&buf, binary.LittleEndian, data.Rotation.Rounds)    // 4 rotation - rounds
+
+	for _, swap := range data.Rotation.Swaps {
+		for _, dim := range swap {
+			binary.Write(&buf, binary.LittleEndian, dim.I)
+			binary.Write(&buf, binary.LittleEndian, dim.J)
+		}
+	}
+
+	for _, sign := range data.Rotation.Signs {
+		for _, dim := range sign {
+			binary.Write(&buf, binary.LittleEndian, dim)
+		}
+	}
+
+	_, err := l.bufw.Write(buf.Bytes())
+	return err
+}
+
+func (l *Logger) AddMuvera(data multivector.MuveraData) error {
+	gSize := 4 * data.Repetitions * data.KSim * data.Dimensions
+	dSize := 4 * data.Repetitions * data.DProjections * data.Dimensions
+	var buf bytes.Buffer
+	buf.Grow(21 + int(gSize) + int(dSize))
+
+	buf.WriteByte(byte(AddMuvera))                             // 1
+	binary.Write(&buf, binary.LittleEndian, data.KSim)         // 4
+	binary.Write(&buf, binary.LittleEndian, data.NumClusters)  // 4
+	binary.Write(&buf, binary.LittleEndian, data.Dimensions)   // 4
+	binary.Write(&buf, binary.LittleEndian, data.DProjections) // 4
+	binary.Write(&buf, binary.LittleEndian, data.Repetitions)  // 4
+
+	for _, gaussian := range data.Gaussians {
+		for _, cluster := range gaussian {
+			for _, el := range cluster {
+				binary.Write(&buf, binary.LittleEndian, math.Float32bits(el))
+			}
+		}
+	}
+
+	for _, matrix := range data.S {
+		for _, vector := range matrix {
+			for _, el := range vector {
+				binary.Write(&buf, binary.LittleEndian, math.Float32bits(el))
+			}
+		}
+	}
+
+	_, err := l.bufw.Write(buf.Bytes())
+	return err
+}
+
+func (l *Logger) AddBRQCompression(data compression.BRQData) error {
+	swapSize := 2 * data.Rotation.Rounds * (data.Rotation.OutputDim / 2) * 2
+	signSize := 4 * data.Rotation.Rounds * data.Rotation.OutputDim
+	roundingSize := 4 * data.Rotation.OutputDim
+	var buf bytes.Buffer
+	buf.Grow(13 + int(swapSize) + int(signSize) + int(roundingSize))
+
+	buf.WriteByte(byte(AddBRQ))                                      // 1
+	binary.Write(&buf, binary.LittleEndian, data.InputDim)           // 4 input dim
+	binary.Write(&buf, binary.LittleEndian, data.Rotation.OutputDim) // 4 rotation - output dim
+	binary.Write(&buf, binary.LittleEndian, data.Rotation.Rounds)    // 4 rotation - rounds
+
+	for _, swap := range data.Rotation.Swaps {
+		for _, dim := range swap {
+			binary.Write(&buf, binary.LittleEndian, dim.I)
+			binary.Write(&buf, binary.LittleEndian, dim.J)
+		}
+	}
+
+	for _, sign := range data.Rotation.Signs {
+		for _, dim := range sign {
+			binary.Write(&buf, binary.LittleEndian, dim)
+		}
+	}
+
+	for _, rounding := range data.Rounding {
+		binary.Write(&buf, binary.LittleEndian, rounding)
+	}
+
+	_, err := l.bufw.Write(buf.Bytes())
+	return err
+}
+
+func (l *Logger) AddLinkAtLevel(id uint64, level int, target uint64) error {
+	toWrite := make([]byte, 19)
+	toWrite[0] = byte(AddLinkAtLevel)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	binary.LittleEndian.PutUint16(toWrite[9:11], uint16(level))
+	binary.LittleEndian.PutUint64(toWrite[11:19], target)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) AddLinksAtLevel(id uint64, level int, targets []uint64) error {
+	toWrite := make([]byte, 13+len(targets)*8)
+	toWrite[0] = byte(AddLinksAtLevel)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	binary.LittleEndian.PutUint16(toWrite[9:11], uint16(level))
+	binary.LittleEndian.PutUint16(toWrite[11:13], uint16(len(targets)))
+	for i, target := range targets {
+		offsetStart := 13 + i*8
+		offsetEnd := offsetStart + 8
+		binary.LittleEndian.PutUint64(toWrite[offsetStart:offsetEnd], target)
+	}
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+// chunks links in increments of 8, so that we never have to allocate a dynamic
+// []byte size which would be guaranteed to escape to the heap
+func (l *Logger) ReplaceLinksAtLevel(id uint64, level int, targets []uint64) error {
+	headers := make([]byte, 13)
+	headers[0] = byte(ReplaceLinksAtLevel)
+	binary.LittleEndian.PutUint64(headers[1:9], id)
+	binary.LittleEndian.PutUint16(headers[9:11], uint16(level))
+	binary.LittleEndian.PutUint16(headers[11:13], uint16(len(targets)))
+	_, err := l.bufw.Write(headers)
+	if err != nil {
+		return errors.Wrap(err, "write headers")
+	}
+
+	i := 0
+	// chunks of 8
+	buf := make([]byte, 64)
+	for i < len(targets) {
+		if i != 0 && i%8 == 0 {
+			if _, err := l.bufw.Write(buf); err != nil {
+				return errors.Wrap(err, "write link chunk")
+			}
+		}
+
+		pos := i % 8
+		start := pos * 8
+		end := start + 8
+		binary.LittleEndian.PutUint64(buf[start:end], targets[i])
+
+		i++
+	}
+
+	// remainder
+	if i != 0 {
+		start := 0
+		end := i % 8 * 8
+		if end == 0 {
+			end = 64
+		}
+
+		if _, err := l.bufw.Write(buf[start:end]); err != nil {
+			return errors.Wrap(err, "write link remainder")
+		}
+	}
+
+	return nil
+}
+
+func (l *Logger) AddTombstone(id uint64) error {
+	toWrite := make([]byte, 9)
+	toWrite[0] = byte(AddTombstone)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) RemoveTombstone(id uint64) error {
+	toWrite := make([]byte, 9)
+	toWrite[0] = byte(RemoveTombstone)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) ClearLinks(id uint64) error {
+	toWrite := make([]byte, 9)
+	toWrite[0] = byte(ClearLinks)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) ClearLinksAtLevel(id uint64, level uint16) error {
+	toWrite := make([]byte, 11)
+	toWrite[0] = byte(ClearLinksAtLevel)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	binary.LittleEndian.PutUint16(toWrite[9:11], level)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) DeleteNode(id uint64) error {
+	toWrite := make([]byte, 9)
+	toWrite[0] = byte(DeleteNode)
+	binary.LittleEndian.PutUint64(toWrite[1:9], id)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) Reset() error {
+	toWrite := make([]byte, 1)
+	toWrite[0] = byte(ResetIndex)
+	_, err := l.bufw.Write(toWrite)
+	return err
+}
+
+func (l *Logger) FileSize() (int64, error) {
+	i, err := l.file.Stat()
+	if err != nil {
+		return -1, err
+	}
+
+	return i.Size(), nil
+}
+
+func (l *Logger) FileName() (string, error) {
+	i, err := l.file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	return i.Name(), nil
+}
+
+func (l *Logger) Flush() error {
+	return l.bufw.Flush()
+}
+
+func (l *Logger) Close() error {
+	if err := l.bufw.Flush(); err != nil {
+		return err
+	}
+
+	if err := l.file.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -1,0 +1,43 @@
+.git
+Dockerfile.*
+docker-compose.yml
+data*
+logs/
+snapshots/
+snapshots-fs/
+snapshots-node2/
+snapshots-s3/
+snapshots-gcs/
+backups/
+backups-fs/
+backups-node2/
+backups-s3/
+backups-gcs/
+test/
+tools/
+**/*.fvecs  # sift data
+**/*.png  # profiling
+**/*.out
+**/*.csv
+**/*.md
+**/*_test.go
+**/.DS_Store
+**/testdata/
+**/test_data/
+coverage-integration.txt
+coverage-unit.txt
+
+# wikipedia dataset when downloaded according to docs
+weaviate-wikipedia-*
+# the local path when extracting the wiki dataset
+var/weaviate/
+
+# IDE files
+.idea
+.vscode/
+
+# Local files
+_local
+
+# ignore archives, they are most likely part of some debugging and never part of actual code
+*.tar.gz

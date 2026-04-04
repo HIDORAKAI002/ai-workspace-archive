@@ -1,0 +1,20 @@
+module Anthropic
+  module Models
+    type beta_error =
+      Anthropic::BetaInvalidRequestError
+      | Anthropic::BetaAuthenticationError
+      | Anthropic::BetaBillingError
+      | Anthropic::BetaPermissionError
+      | Anthropic::BetaNotFoundError
+      | Anthropic::BetaRateLimitError
+      | Anthropic::BetaGatewayTimeoutError
+      | Anthropic::BetaAPIError
+      | Anthropic::BetaOverloadedError
+
+    module BetaError
+      extend Anthropic::Internal::Type::Union
+
+      def self?.variants: -> ::Array[Anthropic::Models::beta_error]
+    end
+  end
+end

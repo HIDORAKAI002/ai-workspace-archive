@@ -1,0 +1,96 @@
+# Copyright (c) Microsoft. All rights reserved.
+
+import asyncio
+import logging
+
+from samples.concepts.realtime.utils import AudioPlayerWebRTC, AudioRecorderWebRTC, check_audio_devices
+from semantic_kernel.connectors.ai.open_ai import (
+    AzureRealtimeExecutionSettings,
+    ListenEvents,
+)
+from semantic_kernel.connectors.ai.open_ai.services.azure_realtime import AzureRealtimeWebRTC
+from semantic_kernel.contents import RealtimeTextEvent
+
+logging.basicConfig(level=logging.WARNING)
+utils_log = logging.getLogger("samples.concepts.realtime.utils")
+utils_log.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+"""
+This simple sample demonstrates how to use the OpenAI Realtime API to create
+a chat bot that can listen and respond directly through audio.
+It requires installing:
+- semantic-kernel[realtime]
+- pyaudio
+- sounddevice
+- pydub
+e.g. pip install pyaudio sounddevice pydub semantic-kernel[realtime]
+
+For more details of the exact setup, see the README.md in the realtime folder.
+"""
+
+# The characteristics of your speaker and microphone are a big factor in a smooth conversation
+# so you may need to try out different devices for each.
+# you can also play around with the turn_detection settings to get the best results.
+# It has device id's set in the AudioRecorderStream and AudioPlayerAsync classes,
+# so you may need to adjust these for your system.
+# you can disable the check for available devices by commenting the line below
+check_audio_devices()
+
+
+async def main() -> None:
+    # create the realtime client and optionally add the audio output function, this is optional
+    # you can define the protocol to use, either "websocket" or "webrtc"
+    # they will behave the same way, even though the underlying protocol is quite different
+    settings = AzureRealtimeExecutionSettings(
+        instructions="""
+    You are a chat bot. Your name is Mosscap and
+    you have one goal: figure out what people need.
+    Your full name, should you need to know it, is
+    Splendid Speckled Mosscap. You communicate
+    effectively, but you tend to answer with long
+    flowery prose.
+    """,
+        # there are different voices to choose from, since that list is bound to change, it is not checked beforehand,
+        # see https://platform.openai.com/docs/api-reference/realtime-sessions/create#realtime-sessions-create-voice
+        # for more details.
+        voice="alloy",
+        # Enable both text and audio output to get transcripts
+        output_modalities=["text", "audio"],
+    )
+    # Note: api_version (either through settings or directly in the client) must be set to "2025-08-28"
+    # for Azure OpenAI deployments realtime deployments.
+    realtime_client = AzureRealtimeWebRTC(
+        audio_track=AudioRecorderWebRTC(),
+        settings=settings,
+    )
+    # Create the settings for the session
+    audio_player = AudioPlayerWebRTC()
+    # the context manager calls the create_session method on the client and starts listening to the audio stream
+    async with audio_player, realtime_client:
+        async for event in realtime_client.receive(audio_output_callback=audio_player.client_callback):
+            match event:
+                case RealtimeTextEvent():
+                    # Only process delta events for streaming, skip done events to avoid duplication
+                    if event.service_type and "delta" in event.service_type and event.text.text:
+                        print(event.text.text, end="", flush=True)
+                    # Add newline when transcript is complete (done event)
+                    elif event.service_type and "done" in event.service_type:
+                        print()  # Add newline for readability
+                case _:
+                    # Handle service events
+                    if event.event_type == "service" and event.service_type:
+                        if event.service_type == ListenEvents.SESSION_UPDATED:
+                            print("Session updated")
+                        elif event.service_type == ListenEvents.RESPONSE_CREATED:
+                            print("\nMosscap (transcript): ", end="")
+
+
+if __name__ == "__main__":
+    print(
+        "Instructions: start speaking when you see 'Session updated.' "
+        "The model will detect when you stop and automatically start responding. "
+        "Press ctrl + c to stop the program."
+    )
+    asyncio.run(main())

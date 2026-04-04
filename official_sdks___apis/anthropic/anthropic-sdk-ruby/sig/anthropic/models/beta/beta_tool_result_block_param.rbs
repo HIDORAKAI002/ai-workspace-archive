@@ -1,0 +1,75 @@
+module Anthropic
+  module Models
+    class BetaToolResultBlockParam = Beta::BetaToolResultBlockParam
+
+    module Beta
+      type beta_tool_result_block_param =
+        {
+          tool_use_id: String,
+          type: :tool_result,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          content: Anthropic::Models::Beta::BetaToolResultBlockParam::content,
+          is_error: bool
+        }
+
+      class BetaToolResultBlockParam < Anthropic::Internal::Type::BaseModel
+        attr_accessor tool_use_id: String
+
+        attr_accessor type: :tool_result
+
+        attr_accessor cache_control: Anthropic::Beta::BetaCacheControlEphemeral?
+
+        attr_reader content: Anthropic::Models::Beta::BetaToolResultBlockParam::content?
+
+        def content=: (
+          Anthropic::Models::Beta::BetaToolResultBlockParam::content
+        ) -> Anthropic::Models::Beta::BetaToolResultBlockParam::content
+
+        attr_reader is_error: bool?
+
+        def is_error=: (bool) -> bool
+
+        def initialize: (
+          tool_use_id: String,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?content: Anthropic::Models::Beta::BetaToolResultBlockParam::content,
+          ?is_error: bool,
+          ?type: :tool_result
+        ) -> void
+
+        def to_hash: -> {
+          tool_use_id: String,
+          type: :tool_result,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          content: Anthropic::Models::Beta::BetaToolResultBlockParam::content,
+          is_error: bool
+        }
+
+        type content =
+          String
+          | ::Array[Anthropic::Models::Beta::BetaToolResultBlockParam::Content::content]
+
+        module Content
+          extend Anthropic::Internal::Type::Union
+
+          type content =
+            Anthropic::Beta::BetaTextBlockParam
+            | Anthropic::Beta::BetaImageBlockParam
+            | Anthropic::Beta::BetaSearchResultBlockParam
+            | Anthropic::Beta::BetaRequestDocumentBlock
+            | Anthropic::Beta::BetaToolReferenceBlockParam
+
+          module Content
+            extend Anthropic::Internal::Type::Union
+
+            def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaToolResultBlockParam::Content::content]
+          end
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaToolResultBlockParam::content]
+
+          ContentArray: Anthropic::Internal::Type::Converter
+        end
+      end
+    end
+  end
+end

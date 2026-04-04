@@ -1,0 +1,25 @@
+{
+    "name": "mcp-stdio-server-example",
+    "version": "1.0.0",
+    "description": "Example MCP server using stdio transport (updated for MCP 2025-06-18)",
+    "type": "module",
+    "bin": {
+        "mcp-stdio-server": "./build/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "start": "node build/index.js",
+        "inspector": "npx @modelcontextprotocol/inspector node build/index.js"
+    },
+    "files": [
+        "build"
+    ],
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.8.0",
+        "zod": "^3.24.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.24",
+        "typescript": "^5.3.3"
+    }
+}

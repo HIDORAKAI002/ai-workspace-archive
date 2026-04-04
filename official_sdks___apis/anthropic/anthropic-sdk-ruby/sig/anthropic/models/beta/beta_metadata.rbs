@@ -1,0 +1,17 @@
+module Anthropic
+  module Models
+    class BetaMetadata = Beta::BetaMetadata
+
+    module Beta
+      type beta_metadata = { user_id: String? }
+
+      class BetaMetadata < Anthropic::Internal::Type::BaseModel
+        attr_accessor user_id: String?
+
+        def initialize: (?user_id: String?) -> void
+
+        def to_hash: -> { user_id: String? }
+      end
+    end
+  end
+end

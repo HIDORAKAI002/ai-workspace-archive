@@ -1,0 +1,19 @@
+module Anthropic
+  module Models
+    type raw_message_start_event =
+      { message: Anthropic::Message, type: :message_start }
+
+    class RawMessageStartEvent < Anthropic::Internal::Type::BaseModel
+      attr_accessor message: Anthropic::Message
+
+      attr_accessor type: :message_start
+
+      def initialize: (
+        message: Anthropic::Message,
+        ?type: :message_start
+      ) -> void
+
+      def to_hash: -> { message: Anthropic::Message, type: :message_start }
+    end
+  end
+end

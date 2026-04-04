@@ -1,0 +1,116 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Inline Code Backticks Test" description="Test page for inline code with backticks" />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Inline Code Backticks Test</h1>
+			<p>
+				This page tests the conversion of inline code elements that contain backticks.
+				The HTML <code>&lt;code&gt;</code> tag should be converted to markdown without
+				escaping backticks, relying on longer fences instead.
+			</p>
+			<p>
+				Here are some examples:
+			</p>
+			<ul>
+				<li>Command: <code>ls</code> - should render as <code>ls</code> in markdown</li>
+				<li>Template literal: <code>`template`</code> - should render without escaped backticks</li>
+				<li>Nested backticks: <code>``double``</code> - should use longer fence</li>
+				<li>HTML entity: <code>&lt;code&gt;</code> - should handle entity decoding</li>
+			</ul>
+			<p>
+				The key test case is that <code>&lt;code&gt;ls&lt;/code&gt;</code> should
+				render as markdown without literal backslashes before backticks. Specifically,
+				the HTML entity sequence <code>&lt;code&gt;ls&lt;/code&gt;</code> should render
+				as <code>ls</code> in markdown (using longer fences if needed), not as
+				<code>\`ls\`</code> with escaped backticks.
+			</p>
+			<code class="code-block text-sm">
+				<div class="code-block-inner">
+					<table class="code-block-line-group">
+					<colgroup>
+						<col class="w-fit">
+						<col>
+					</colgroup>
+					<tbody>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>1</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line">client&lt;llm&gt; MyCustomClient {</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>2</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> provider "openai"</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>3</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> options {</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>4</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> model "gpt-5-mini"</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>5</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> // Set the API key using an environment variable</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>6</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> api_key env.MY_SUPER_SECRET_API_KEY</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>7</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line"> }</span>
+						</td>
+						</tr>
+						<tr class="code-block-line">
+						<td class="code-block-line-gutter">
+							<span>8</span>
+						</td>
+						<td class="code-block-line-content">
+							<span class="line">}</span>
+						</td>
+						</tr>
+					</tbody>
+					</table>
+				</div>
+			</code>
+		</main>
+		<Footer />
+	</body>
+</html>

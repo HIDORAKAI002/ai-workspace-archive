@@ -1,0 +1,266 @@
+from __future__ import annotations
+
+import re
+from typing import Optional
+
+from googleapiclient.discovery import Resource
+from pydantic import BaseModel
+from slugify import slugify
+
+_GCP_LABEL_MAX_LENGTH = 63
+_GCP_LABEL_MAX_COUNT = 64
+_GCP_LABEL_SAFE_RE = re.compile(r"[^a-z0-9_-]")
+_GCP_LABEL_LEADING_RE = re.compile(r"^[^a-z]+")
+
+
+def sanitize_labels_for_gcp(labels: dict[str, str]) -> dict[str, str]:
+    """Sanitize Prefect labels for use as GCP resource labels.
+
+    GCP labels must have keys that start with a lowercase letter and contain
+    only lowercase letters, digits, underscores, and hyphens, with a max
+    length of 63 characters. Values follow the same character rules but may
+    start with any allowed character, and may also be empty.
+
+    Dots and slashes in keys (e.g. `prefect.io/flow-run-id`) are replaced
+    with hyphens. Leading non-letter characters are stripped from keys.
+    Labels whose keys are empty after sanitization are dropped.
+    """
+    sanitized: dict[str, str] = {}
+    for key, value in labels.items():
+        safe_key = _GCP_LABEL_SAFE_RE.sub("-", key.lower())
+        safe_key = _GCP_LABEL_LEADING_RE.sub("", safe_key)[:_GCP_LABEL_MAX_LENGTH]
+        if not safe_key:
+            continue
+        safe_value = _GCP_LABEL_SAFE_RE.sub("-", value.lower())[:_GCP_LABEL_MAX_LENGTH]
+        sanitized[safe_key] = safe_value
+    return sanitized
+
+
+def merge_labels_for_gcp(
+    prefect_labels: dict[str, str],
+    existing_labels: dict[str, str],
+) -> dict[str, str]:
+    """Sanitize Prefect labels and merge them with existing job body labels.
+
+    Existing labels (from the job body template) always take precedence.
+    The merged result is capped at :data:`_GCP_LABEL_MAX_COUNT` (64) labels
+    to stay within the Cloud Run limit.  When trimming is needed, the
+    lowest-priority Prefect labels (last in insertion order — e.g.
+    deployment-updated, worker-name) are dropped first so that core
+    identifiers like flow-run-id and flow-run-name are preserved.
+    """
+    sanitized = sanitize_labels_for_gcp(prefect_labels)
+    # Existing labels win on key collisions and are never dropped.
+    merged = {**sanitized, **existing_labels}
+    if len(merged) > _GCP_LABEL_MAX_COUNT:
+        # Drop lowest-priority (last-inserted) Prefect keys first.
+        prefect_only_keys = [k for k in sanitized if k not in existing_labels]
+        excess = len(merged) - _GCP_LABEL_MAX_COUNT
+        for key in reversed(prefect_only_keys[-excess:]):
+            del merged[key]
+    return merged
+
+
+def slugify_name(name: str, max_length: int = 30) -> Optional[str]:
+    """
+    Slugify text for use as a name.
+
+    Keeps only alphanumeric characters and dashes, and caps the length
+    of the slug at 30 chars.
+
+    The 30 character length allows room to add a uuid for generating a unique
+    name for the job while keeping the total length of a name below 63 characters,
+    which is the limit for Cloud Run job names.
+
+    Args:
+        name: The name of the job
+
+    Returns:
+        The slugified job name or None if the slugified name is empty
+    """
+    slug = slugify(
+        name,
+        max_length=max_length,
+        regex_pattern=r"[^a-zA-Z0-9-]+",
+    )
+
+    return slug if slug else None
+
+
+"""
+DEPRECATION WARNING:
+
+This module is deprecated as of March 2024 and will not be available after September 2024.
+It has been replaced by the Cloud Run and Cloud Run V2 workers, which offer enhanced functionality and better performance.
+
+For upgrade instructions, see https://docs.prefect.io/latest/resources/upgrade-agents-to-workers.
+
+Integrations with Google Cloud Run Job.
+
+Examples:
+
+    Run a job using Google Cloud Run Jobs:
+    ```python
+    CloudRunJob(
+        image="gcr.io/my-project/my-image",
+        region="us-east1",
+        credentials=my_gcp_credentials
+    ).run()
+    ```
+
+    Run a job that runs the command `echo hello world` using Google Cloud Run Jobs:
+    ```python
+    CloudRunJob(
+        image="gcr.io/my-project/my-image",
+        region="us-east1",
+        credentials=my_gcp_credentials
+        command=["echo", "hello world"]
+    ).run()
+    ```
+
+"""  # noqa
+
+
+class Job(BaseModel):
+    """
+    Utility class to call GCP `jobs` API and
+    interact with the returned objects.
+    """
+
+    metadata: dict
+    spec: dict
+    status: dict
+    name: str
+    ready_condition: dict
+    execution_status: dict
+
+    def _is_missing_container(self):
+        """
+        Check if Job status is not ready because
+        the specified container cannot be found.
+        """
+        if (
+            self.ready_condition.get("status") == "False"
+            and self.ready_condition.get("reason") == "ContainerMissing"
+        ):
+            return True
+        return False
+
+    def is_ready(self) -> bool:
+        """Whether a job is finished registering and ready to be executed"""
+        if self._is_missing_container():
+            raise Exception(f"{self.ready_condition['message']}")
+        return self.ready_condition.get("status") == "True"
+
+    def has_execution_in_progress(self) -> bool:
+        """See if job has a run in progress."""
+        return (
+            self.execution_status == {}
+            or self.execution_status.get("completionTimestamp") is None
+        )
+
+    @staticmethod
+    def _get_ready_condition(job: dict) -> dict:
+        """Utility to access JSON field containing ready condition."""
+        if job["status"].get("conditions"):
+            for condition in job["status"]["conditions"]:
+                if condition["type"] == "Ready":
+                    return condition
+
+        return {}
+
+    @staticmethod
+    def _get_execution_status(job: dict):
+        """Utility to access JSON field containing execution status."""
+        if job["status"].get("latestCreatedExecution"):
+            return job["status"]["latestCreatedExecution"]
+
+        return {}
+
+    @classmethod
+    def get(cls, client: Resource, namespace: str, job_name: str):
+        """Make a get request to the GCP jobs API and return a Job instance."""
+        request = client.jobs().get(name=f"namespaces/{namespace}/jobs/{job_name}")
+        response = request.execute()
+
+        return cls(
+            metadata=response["metadata"],
+            spec=response["spec"],
+            status=response["status"],
+            name=response["metadata"]["name"],
+            ready_condition=cls._get_ready_condition(response),
+            execution_status=cls._get_execution_status(response),
+        )
+
+    @staticmethod
+    def create(client: Resource, namespace: str, body: dict):
+        """Make a create request to the GCP jobs API."""
+        request = client.jobs().create(parent=f"namespaces/{namespace}", body=body)
+        response = request.execute()
+        return response
+
+    @staticmethod
+    def delete(client: Resource, namespace: str, job_name: str):
+        """Make a delete request to the GCP jobs API."""
+        request = client.jobs().delete(name=f"namespaces/{namespace}/jobs/{job_name}")
+        response = request.execute()
+        return response
+
+    @staticmethod
+    def run(client: Resource, namespace: str, job_name: str):
+        """Make a run request to the GCP jobs API."""
+        request = client.jobs().run(name=f"namespaces/{namespace}/jobs/{job_name}")
+        response = request.execute()
+        return response
+
+
+class Execution(BaseModel):
+    """
+    Utility class to call GCP `executions` API and
+    interact with the returned objects.
+    """
+
+    name: str
+    namespace: str
+    metadata: dict
+    spec: dict
+    status: dict
+    log_uri: str
+
+    def is_running(self) -> bool:
+        """Returns True if Execution is not completed."""
+        return self.status.get("completionTime") is None
+
+    def condition_after_completion(self):
+        """Returns Execution condition if Execution has completed."""
+        for condition in self.status["conditions"]:
+            if condition["type"] == "Completed":
+                return condition
+
+    def succeeded(self):
+        """Whether or not the Execution completed is a successful state."""
+        completed_condition = self.condition_after_completion()
+        if completed_condition and completed_condition["status"] == "True":
+            return True
+
+        return False
+
+    @classmethod
+    def get(cls, client: Resource, namespace: str, execution_name: str):
+        """
+        Make a get request to the GCP executions API
+        and return an Execution instance.
+        """
+        request = client.executions().get(
+            name=f"namespaces/{namespace}/executions/{execution_name}"
+        )
+        response = request.execute()
+
+        return cls(
+            name=response["metadata"]["name"],
+            namespace=response["metadata"]["namespace"],
+            metadata=response["metadata"],
+            spec=response["spec"],
+            status=response["status"],
+            log_uri=response["status"]["logUri"],
+        )

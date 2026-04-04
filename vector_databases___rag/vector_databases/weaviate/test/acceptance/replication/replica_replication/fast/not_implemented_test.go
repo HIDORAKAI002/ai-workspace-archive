@@ -1,0 +1,141 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package replication
+
+import (
+	"context"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"github.com/weaviate/weaviate/client/replication"
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/test/docker"
+	"github.com/weaviate/weaviate/test/helper"
+)
+
+const UUID = strfmt.UUID("73f2eb5f-5abf-447a-81ca-74b1dd168242")
+
+type ReplicationNotImplementedTestSuite struct {
+	suite.Suite
+	compose *docker.DockerCompose
+	down    func()
+}
+
+func (suite *ReplicationNotImplementedTestSuite) SetupSuite() {
+	t := suite.T()
+	t.Setenv("TEST_WEAVIATE_IMAGE", "weaviate/test-server")
+
+	mainCtx := context.Background()
+	ctx, cancel := context.WithTimeout(mainCtx, 10*time.Minute)
+
+	compose, err := docker.New().
+		WithWeaviateCluster(3).
+		WithWeaviateEnv("REPLICA_MOVEMENT_MINIMUM_ASYNC_WAIT", "5s").
+		Start(ctx)
+	require.Nil(t, err)
+	if cancel != nil {
+		cancel()
+	}
+	suite.compose = compose
+	suite.down = func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer cancel()
+		if err := compose.Terminate(ctx); err != nil {
+			t.Fatalf("failed to terminate test containers: %s", err.Error())
+		}
+	}
+}
+
+func (suite *ReplicationNotImplementedTestSuite) TearDownSuite() {
+	if suite.down != nil {
+		suite.down()
+	}
+}
+
+func TestReplicationNotImplementedTestSuite(t *testing.T) {
+	suite.Run(t, new(ReplicationNotImplementedTestSuite))
+}
+
+func (suite *ReplicationNotImplementedTestSuite) TestReplicationNotImplemented() {
+	t := suite.T()
+
+	helper.SetupClient(suite.compose.GetWeaviate().URI())
+
+	t.Run("POST /replication/replicate", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.Replicate(replication.NewReplicateParams().WithBody(&models.ReplicationReplicateReplicaRequest{
+			Collection: string_("test-collection"),
+			TargetNode: string_("tgt-node"),
+			Shard:      string_("test-shard"),
+			SourceNode: string_("src-node"),
+		}), nil)
+		require.IsType(t, &replication.ReplicateNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for replicate but got %v", err))
+	})
+
+	t.Run("DELETE /replication/replicate", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.DeleteAllReplications(replication.NewDeleteAllReplicationsParams(), nil)
+		require.IsType(t, &replication.DeleteAllReplicationsNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for delete all replications but got %v", err))
+	})
+
+	t.Run("GET /replication/replicate/{id}", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.ReplicationDetails(replication.NewReplicationDetailsParams().WithID(UUID), nil)
+		require.IsType(t, &replication.ReplicationDetailsNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for replication details but got %v", err))
+	})
+
+	t.Run("DELETE /replication/replicate/{id}", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.DeleteReplication(replication.NewDeleteReplicationParams().WithID(UUID), nil)
+		require.IsType(t, &replication.DeleteReplicationNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for delete replication but got %v", err))
+	})
+
+	t.Run("GET /replication/replicate/list", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.ListReplication(replication.NewListReplicationParams(), nil)
+		require.IsType(t, &replication.ListReplicationNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for list replication but got %v", err))
+	})
+
+	t.Run("POST /replication/replicate/{id}/cancel", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.CancelReplication(replication.NewCancelReplicationParams().WithID(UUID), nil)
+		require.IsType(t, &replication.CancelReplicationNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for cancel replication but got %v", err))
+	})
+
+	t.Run("GET /replication/sharding-state", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.GetCollectionShardingState(replication.NewGetCollectionShardingStateParams(), nil)
+		require.IsType(t, &replication.GetCollectionShardingStateNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for get collection sharding state but got %v", err))
+	})
+
+	t.Run("GET /replication/scale", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.GetReplicationScalePlan(
+			replication.NewGetReplicationScalePlanParams().
+				WithCollection("test-collection").
+				WithReplicationFactor(3),
+			nil)
+		require.IsType(t, &replication.GetReplicationScalePlanNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for get replication scale plan but got %v", err))
+	})
+
+	t.Run("POST /replication/scale", func(t *testing.T) {
+		_, err := helper.Client(t).Replication.ApplyReplicationScalePlan(
+			replication.NewApplyReplicationScalePlanParams().
+				WithBody(&models.ReplicationScalePlan{
+					Collection:        "test-collection",
+					PlanID:            strfmt.UUID("123e4567-e89b-12d3-a456-426614174000"),
+					ShardScaleActions: map[string]models.ReplicationScalePlanShardScaleActionsAnon{},
+				}),
+			nil)
+		require.IsType(t, &replication.ApplyReplicationScalePlanNotImplemented{}, err, fmt.Sprintf("Expected NotImplemented error for replication scale apply but got %v", err))
+	})
+}
+
+func string_(s string) *string {
+	return &s
+}

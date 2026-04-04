@@ -1,0 +1,155 @@
+name: Integrations Packages Tests
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/integration-package-tests.yaml
+      - "src/**/*.py"
+      - "src/integrations/**/*"
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+  push:
+    branches:
+      - main
+    paths:
+      - "src/integrations/**/*"
+
+jobs:
+  prepare-matrix:
+    # These tests will only run if the integration paths are affected, or someone has
+    # added the `integrations` label to the PR
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'test-all-integrations') }}" == 'true' ]]; then
+            # All of the integration packages were changed since 2.19.2, so this is a
+            # standin for saying "all integrations"
+            COMMIT_RANGE="2.19.2..${{ github.event.pull_request.head.sha }}"
+          elif [[ $GITHUB_EVENT_NAME == 'pull_request' ]]; then
+            COMMIT_RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          else
+            COMMIT_RANGE="${{ github.event.before }}..${{ github.event.after }}"
+          fi
+          python scripts/generate_integration_package_tests_matrix.py "$COMMIT_RANGE" > matrix.json
+          cat matrix.json
+          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+
+  run-tests:
+    timeout-minutes: 20
+
+    name: Run Tests for ${{ matrix.package }} on Python ${{ matrix.python-version }}
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.prepare-matrix.outputs.matrix)}}
+      fail-fast: false
+    steps:
+      - name: Display current test matrix
+        run: echo '${{ toJSON(matrix) }}'
+
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+          cache-dependency-glob: " src/integrations/${{ matrix.package }}/pyproject.toml"
+
+      - name: Build dev docker image
+        if: matrix.package == 'prefect-docker'
+        run: uv run prefect dev build-image
+
+      - name: Start redis
+        if: matrix.package == 'prefect-redis'
+        run: >
+          docker run
+          --name "redis"
+          --detach
+          --publish 6379:6379
+          redis:latest
+
+      - name: Run tests
+        if: matrix.package != 'prefect-ray'
+        env:
+          PREFECT_API_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./orion-tests.db"
+        working-directory: src/integrations/${{ matrix.package }}
+        run: >
+          uv run pytest
+          -m "not integration"
+          --numprocesses auto
+          --maxprocesses 4
+          --dist worksteal
+
+      # Run prefect-ray tests sequentially to avoid Ray cluster issues
+      - name: Run tests for prefect-ray
+        if: matrix.package == 'prefect-ray'
+        env:
+          PREFECT_API_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./orion-tests.db"
+        working-directory: src/integrations/${{ matrix.package }}
+        run: >
+          uv run pytest tests
+
+  run-prefect-dbt-integration-tests:
+    timeout-minutes: 20
+
+    name: Run prefect-dbt integration tests (Python ${{ matrix.python-version }})
+    needs: prepare-matrix
+    if: contains(toJSON(needs.prepare-matrix.outputs.matrix), 'prefect-dbt')
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: prefect
+          POSTGRES_PASSWORD: prefect
+          POSTGRES_DB: dbt_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U prefect -d dbt_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+          cache-dependency-glob: "src/integrations/prefect-dbt/pyproject.toml"
+
+      - name: Run integration tests
+        env:
+          PREFECT_API_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./orion-tests.db"
+        working-directory: src/integrations/prefect-dbt
+        run: >
+          uv run --group integration pytest
+          -m integration
+          --verbose

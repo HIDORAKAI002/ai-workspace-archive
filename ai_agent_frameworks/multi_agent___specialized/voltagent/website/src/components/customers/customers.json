@@ -1,0 +1,420 @@
+[
+  {
+    "id": 1,
+    "slug": "joggr",
+    "published": true,
+    "customer": {
+      "name": "Joggr",
+      "logo_url": "https://www.joggr.ai/images/joggr-guy.png",
+      "website": "https://www.linkedin.com/company/joggr/",
+      "industry": "Developer Tooling / Documentation"
+    },
+    "case_study": {
+      "title": "How Joggr Built Documentation Agents with VoltAgent + VoltOps",
+      "use_case": "AI-first documentation assistant that automatically generates, updates, and syncs Markdown docs",
+      "challenge": [
+        "Joggr needed a TypeScript-native framework but found everything in the LLM ecosystem was Python-first",
+        "The team was managing a tangle of custom tooling built on top of Vercel's AI libraries",
+        "Debugging flows and understanding what the agents were doing was painful and hard to scale",
+        "They needed to offload memory and orchestration management from their custom solution"
+      ],
+      "challenge_paragraph": "Joggr is building an AI-first documentation assistant that keeps developer docs up to date, automatically generating, updating, and syncing Markdown docs every time your code changes. But early on, Zac and the team faced a challenge: \"Everything in the LLM ecosystem is Python-first. We're a TypeScript shop. We needed a framework that spoke our language and helped us offload memory and orchestration.\" On top of that, they were managing a tangle of custom tooling built on top of Vercel's AI libraries. Debugging flows and understanding what the agents were doing was painful and hard to scale.",
+      "solution": [
+        "Joggr adopted VoltAgent as a flexible, TypeScript-native AI agent framework",
+        "They paired it with VoltOps, VoltAgent's visual observability console for complete visibility",
+        "Built agents that generate and maintain dev docs in clean, composable flows",
+        "Offloaded memory management with VoltAgent's built-in memory modules",
+        "Gained visibility into every step of their Supervisor agent architecture using VoltOps"
+      ],
+      "solution_paragraph": "Zac discovered VoltAgent while searching for a flexible, TypeScript-native AI agent framework and paired it with VoltOps, VoltAgent's visual observability console. With this stack, the Joggr team was able to: Build agents that generate and maintain dev docs in clean, composable flows; Offload memory management with VoltAgent's built-in memory modules; Gain visibility into every step of their Supervisor agent architecture using VoltOps. \"Without Volt, it would almost be impossible to understand what the hell is going on and what the agents are doing.\"",
+      "results": [
+        "Streamlined architecture by switching from custom glue code to VoltAgent",
+        "Gained complete visibility into agent operations, eliminating black boxes",
+        "Improved debugging capabilities with VoltOps visual console",
+        "Faster development cycles with TypeScript-native framework",
+        "Enhanced confidence in deployments with full observability"
+      ],
+      "results_paragraph": "By switching to VoltAgent and VoltOps, Joggr streamlined their architecture, ditched custom glue code, and unlocked better visibility into how their agents operate. \"Every time we need help, the founders are there. The responsiveness is unreal.\" With a fast-moving product and an AI-first mindset, Joggr now ships with full confidence. No black boxes, no guesswork. Just dev-friendly documentation, powered by agents they can see, debug, and trust.",
+      "quote": {
+        "text": "Without Volt, it would almost be impossible to understand what the hell is going on and what the agents are doing. Every time we need help, the founders are there. The responsiveness is unreal.",
+        "author": "Zac Rosenbauer",
+        "position": "Co-founder",
+        "company": "Joggr"
+      },
+      "links": {
+        "github": "https://github.com/voltagent/voltagent",
+        "discord": "https://s.voltagent.dev/discord"
+      }
+    }
+  },
+  {
+    "id": 2,
+    "slug": "magicschool-ai",
+    "published": true,
+    "customer": {
+      "name": "MagicSchool AI",
+      "website": "https://www.linkedin.com/company/magicschool-ai/",
+      "logo_url": "https://cdn.prod.website-files.com/67501fa3be497dbeef30e0e6/675021da4d781be205266a6b_6526f4f8a0ab0271982b08bf_Group%20108-p-500.png",
+      "industry": "Education Technology / AI Learning"
+    },
+    "case_study": {
+      "title": "How MagicSchool AI Built Structured Agent Logic with VoltAgent",
+      "use_case": "LLMs and agents that translate educator intent into highly personalized, standards-aligned instructional materials in seconds",
+      "challenge": [
+        "Needed to plug existing TypeScript modules into agentic frameworks for better reusability",
+        "Lacked a cohesive way to manage agent behavior across different tasks",
+        "Slow iteration cycles when reusing TypeScript functions across agent workflows",
+        "Brittleness in agent systems was affecting development speed and reliability"
+      ],
+      "challenge_paragraph": "MagicSchool AI is building the future of teaching and learning with AI, serving over 4 million educators as the fastest growing technology platform for schools. But as Austin Howe, Staff Engineer at MagicSchool, explains: \"We are looking for a way to plug our existing TypeScript modules into agentic frameworks to promote reusability, composability, and speed.\" The team had built substantial TypeScript infrastructure but struggled with a fundamental problem: \"We lacked a cohesive way to manage agent behavior and reuse TypeScript functions across tasks, which slowed iteration and introduced brittleness.\"",
+      "solution": [
+        "Adopted VoltAgent to create structured agent logic that integrates with existing TypeScript modules",
+        "Improved reusability and composability of their existing codebase within agent workflows",
+        "Used VoltOps for better visibility and trust in agent behavior and decision-making",
+        "Built more reliable agent systems that translate educator intent into instructional materials",
+        "Achieved faster iteration cycles with better agent orchestration"
+      ],
+      "solution_paragraph": "Austin and the MagicSchool team found VoltAgent to be a natural fit for their needs. With VoltAgent, they were able to: Integrate their existing TypeScript modules seamlessly into agentic frameworks; Create structured agent logic that promotes reusability and composability; Build more reliable systems for translating educator intent into personalized materials; Use VoltOps to gain better visibility into agent behavior and build trust in their systems. \"VoltAgent made it easier to define agent logic; VoltOps made it easier to trust and refine it.\"",
+      "results": [
+        "Successfully integrated existing TypeScript infrastructure with agent frameworks",
+        "Improved development speed through better reusability and composability",
+        "Reduced system brittleness with more structured agent management",
+        "Enhanced trust and reliability in agent-generated educational content",
+        "Faster iteration cycles for serving 4+ million educators worldwide"
+      ],
+      "results_paragraph": "With VoltAgent and VoltOps, MagicSchool AI transformed their approach to building AI-powered educational tools. The structured agent framework eliminated the brittleness they experienced before, while enabling them to leverage their existing TypeScript investments more effectively. \"Structured agents without the headache,\" Austin summarizes. Now MagicSchool can continue scaling their platform to serve millions of educators with confidence, knowing their agent systems are both powerful and reliable.",
+      "quote": {
+        "text": "VoltAgent made it easier to define agent logic; VoltOps made it easier to trust and refine it. Structured agents without the headache.",
+        "author": "Austin Howe",
+        "position": "Staff Engineer",
+        "company": "MagicSchool AI"
+      }
+    }
+  },
+  {
+    "id": 3,
+    "slug": "service-hero-marketing",
+    "published": true,
+    "customer": {
+      "name": "Service Hero Marketing",
+      "website": "https://gowithhero.com/",
+      "industry": "Digital Marketing / Home Services",
+      "logo_url": "https://gowithhero.com/wp-content/uploads/2024/02/unnamed-2.gif"
+    },
+    "case_study": {
+      "title": "How Service Hero Marketing Scaled Client Operations with AI Agents Using VoltAgent",
+      "use_case": "Marketing agency automation for client onboarding, campaign optimization, and lead qualification across 450+ HVAC, plumbing, and electrical businesses",
+      "challenge": [
+        "Managing personalized campaigns for 450+ home service clients manually was becoming unsustainable",
+        "Client onboarding processes were time-intensive and prone to human error",
+        "Lead qualification and routing required constant manual intervention across multiple client accounts",
+        "Scaling operations while maintaining personalized service quality was a major bottleneck"
+      ],
+      "challenge_paragraph": "Service Hero Marketing has built a reputation as the go-to digital marketing agency for HVAC, plumbing, and electrical businesses, serving over 450 client. But as founder Garrett and his team continued to grow, they hit a scaling wall. \"We were drowning in manual processes. Every client needed personalized campaign management, custom lead qualification, and constant optimization. Our team was working around the clock just to keep up with existing clients, let alone onboard new ones.\" The manual nature of client onboarding, campaign monitoring, and lead routing was preventing them from scaling their proven 5X ROI methodology to serve more home service businesses effectively.",
+      "solution": [
+        "Adopted VoltAgent to build custom agents for client onboarding automation",
+        "Created intelligent campaign monitoring agents that track performance across multiple platforms",
+        "Built lead qualification agents that route high-quality prospects to the right clients instantly",
+        "Implemented automated reporting agents that generate personalized client insights",
+        "Used VoltOps for complete visibility into all agent operations across client accounts"
+      ],
+      "solution_paragraph": "Garrett discovered VoltAgent while searching for a way to automate their proven processes without losing the personal touch that made Service Hero successful. With VoltAgent, the team was able to: Build custom onboarding agents that guide new HVAC, plumbing, and electrical clients through setup; Create intelligent campaign monitoring agents that track PPC, SEO, and social media performance; Develop lead qualification agents that instantly route qualified prospects to the right clients; Implement automated reporting agents that generate personalized insights for each business owner. \"VoltAgent gave us the power to scale our expertise, not just our workload. We could finally automate the repetitive tasks while keeping the strategic thinking that drives results.\"",
+      "results": [
+        "Reduced client onboarding time from 2 weeks to 3 days with automated workflows",
+        "Improved lead qualification accuracy by 40% with consistent AI-driven processes",
+        "Scaled to serve 100+ additional clients without proportional staff increases",
+        "Enhanced client satisfaction with faster response times and personalized reporting",
+        "Maintained their signature 5X ROI while dramatically improving operational efficiency"
+      ],
+      "results_paragraph": "With VoltAgent and VoltOps, Service Hero Marketing transformed from a bottlenecked agency to a scalable operation that delivers consistent results. They reduced client onboarding from 2 weeks to 3 days, improved lead qualification accuracy by 40%, and successfully scaled to serve over 100 additional home service businesses without proportional increases in manual work. \"Now we can focus on what we do best - crafting strategies that make HVAC, plumbing, and electrical businesses dominate their local markets. The agents handle the repetitive work, and we handle the growth strategies.\" Service Hero continues to help home service businesses achieve their signature 5X ROI, now powered by AI agents they can trust and monitor every step of the way.",
+      "quote": {
+        "text": "VoltAgent gave us the power to scale our expertise, not just our workload. We could finally automate the repetitive tasks while keeping the strategic thinking that drives results.",
+        "author": "Garrett Elmore",
+        "position": "Founder",
+        "company": "Service Hero Marketing"
+      }
+    }
+  },
+  {
+    "id": 4,
+    "slug": "devpotenciados",
+    "published": true,
+    "customer": {
+      "name": "DEVPotenciados LATAM",
+      "website": "https://www.linkedin.com/company/alify-ai/",
+      "industry": "Developer Community / AI Education"
+    },
+    "case_study": {
+      "title": "How DEVPotenciados LATAM Empowers Developers with AI Agents Using VoltAgent",
+      "use_case": "Community platform that helps LATAM developers integrate AI into their applications and daily work",
+      "challenge": [
+        "Solutions like LangChain or LLM APIs directly were often quite complex for community developers",
+        "Shifting from traditional software to AI agents represented a major paradigm shift",
+        "The complexity of orchestrating agents prevented effective AI adoption",
+        "Steep learning curve was blocking developers from building AI solutions"
+      ],
+      "challenge_paragraph": "Francisco leads DEVPotenciados LATAM, a community of developers in Latin America passionate about AI. The mission is to empower developers to integrate AI into their applications and daily work to enhance their potential and create truly powerful solutions. However, Francisco realized that existing solutions posed significant challenges: \"Solutions like LangChain or using LLM model APIs directly can often be quite complex. Additionally, it frequently becomes very complicated because shifting from building traditional software to creating AI agents is a major paradigm shift.\" The complexity of orchestrating agents and the steep learning curve were preventing developers in the community from effectively adopting AI solutions.",
+      "solution": [
+        "Francisco discovered VoltAgent as a simple and easy-to-understand framework",
+        "VoltAgent provided simplified agent orchestration without traditional complexity",
+        "Offered customizable tools and memory systems for the community",
+        "Delivered real-time observability and monitoring through VoltOps",
+        "Enhanced developer experience and productivity across the LATAM community"
+      ],
+      "solution_paragraph": "Francisco discovered VoltAgent while looking for a simple and easy-to-understand framework to build truly powerful AI solutions for the DEVPotenciados community. VoltAgent provided exactly what the community needed: Simplified agent orchestration without the complexity of traditional solutions; Customizable tools and memory systems; Real-time observability and monitoring through VoltOps; Developer-friendly experience that enhances productivity. \"It helps me see in real time how my agent is behaving, as well as identify which steps are failing, retry them, etc. It's very developer-friendly and enhances the development experience.\"",
+      "results": [
+        "Empowered LATAM developers to effectively adopt AI solutions",
+        "Enabled creation of fast products with full agent visibility",
+        "Made AI development accessible to more community developers",
+        "Enhanced productivity and learning across the developer community",
+        "Continued growth in AI solution implementation across Latin America"
+      ],
+      "results_paragraph": "With VoltAgent, Francisco and the DEVPotenciados LATAM community can now focus on what matters most: empowering developers across Latin America to build AI-powered solutions. The platform has enabled Francisco to create truly fast products while maintaining full visibility into agent behavior. The ease of use and monitoring capabilities have made AI development accessible to more developers in the community. \"The ease of creating truly fast products, and even the options it offers to monitor the agent.\" Francisco continues to lead the DEVPotenciados LATAM community in discovering and implementing AI solutions that enhance developer productivity and create powerful applications across the region.",
+      "quote": {
+        "text": "What I really like is that VoltAgent allows us to customize our own tools, our own memory, and the most amazing part is the observability and monitoring.",
+        "author": "Francisco Carranza",
+        "position": "Software Engineer & Community Leader",
+        "company": "DEVPotenciados LATAM"
+      },
+      "useCases": [
+        "Employees in physical stores or warehouses can quickly check product availability and location",
+        "eCommerce platforms can track product inventory before launching promotions or managing stock",
+        "Integration with customer service chatbots to automatically answer product availability questions",
+        "Generate inventory reports without manual intervention",
+        "Internal dashboards for logistics, purchasing, or sales teams"
+      ],
+      "video": "https://www.youtube.com/embed/HW_cqz_3Q38?si=r1gNB13mZ3B0TLYm&start=822",
+      "tech": ["VoltAgent", "TypeScript"]
+    }
+  },
+  {
+    "id": 5,
+    "slug": "different",
+    "published": false,
+    "customer": {
+      "name": "Different",
+      "logo": "different",
+      "website": "https://www.linkedin.com/company/different/",
+      "industry": "Property Management / Real Estate"
+    },
+    "case_study": {
+      "title": "How Different Built Reliable Property Management Agents with VoltAgent + VoltOps",
+      "use_case": "Digital twin technology for homes with LLM-powered internal tools for property communications, task routing, and expert assistance",
+      "challenge": [
+        "Black-box behavior in tools that impact real customer operations was unacceptable",
+        "Multiple tools, prompts, and logic paths made debugging complex",
+        "Understanding agent decisions became a growing challenge",
+        "Needed a framework that provided both structure and visibility"
+      ],
+      "challenge_paragraph": "Different is building a digital twin for your home, revolutionizing property management through advanced technology. As the team at Different began integrating LLMs into their internal operations such as summarizing property communications, routing tasks, and assisting their property experts they quickly ran into the classic problem: \"We couldn't afford black-box behavior in tools that impact real customer operations.\" With multiple tools, prompts, and logic paths involved, debugging and understanding agent decisions became a growing challenge. They needed a framework that gave them both structure and visibility.",
+      "solution": [
+        "Adopted VoltAgent to define custom agents in TypeScript",
+        "Handled tool orchestration and memory in a clean, modular way",
+        "Built reliable flows for tasks like support summarization and workflow triage",
+        "Paired with VoltOps for real-time observability into each agent's reasoning steps",
+        "Gained visibility into tool calls, memory usage, and intermediate decisions"
+      ],
+      "solution_paragraph": "By adopting VoltAgent, the team was able to: Define custom agents in TypeScript; Handle tool orchestration and memory in a clean, modular way; Build reliable flows for tasks like support summarization and workflow triage. They paired this with VoltOps, which gave them: Real-time observability into each agent's reasoning steps; Visibility into tool calls, memory usage, and intermediate decisions; Faster debugging when something broke or behaved unexpectedly. \"VoltOps gave us the visibility we desperately needed - we could finally see exactly what our agents were thinking and doing at every step.\"",
+      "results": [
+        "Runs LLM-powered internal tools with confidence",
+        "Accelerated development while maintaining full control",
+        "Enhanced ability to build with confidence and catch problems early",
+        "Delivers smarter, faster property management experiences",
+        "Achieved full visibility into AI-powered operations"
+      ],
+      "results_paragraph": "With VoltAgent and VoltOps, Different now runs LLM-powered internal tools with confidence, accelerating development while maintaining full control. \"Having insight into how our agents think and act has helped us build with more confidence and catch problems early.\" This lets the team at Different continue delivering smarter, faster property management experiences powered by AI, backed by full visibility.",
+      "quote": {
+        "text": "We couldn't afford black-box behavior in tools that impact real customer operations. Having insight into how our agents think and act has helped us build with more confidence and catch problems early.",
+        "author": "Michael Klevansky",
+        "position": "CEO",
+        "company": "Different"
+      }
+    }
+  },
+  {
+    "id": 6,
+    "slug": "content-pipeline",
+    "published": true,
+    "customer": {
+      "name": "4-Agent",
+      "website": "https://www.linkedin.com/in/emretezisci/",
+      "industry": "Product Marketing / Content Creation / Tech Strategy"
+    },
+    "case_study": {
+      "title": "How Emre Tezisci Built a 4-Agent Content Creation Pipeline with VoltAgent",
+      "use_case": "4-agent mini-team that turns raw Reddit & Hacker News chatter into insight reports and blog drafts in minutes",
+      "challenge": [
+        "Early content research was a major time sink, taking 3+ hours of manual work",
+        "Needed to coordinate specialized AIs for different parts of the content workflow",
+        "Manual process of trawling communities and synthesizing patterns was inefficient",
+        "Required a way to prevent prompt chaos and token bloat in multi-step workflows"
+      ],
+      "challenge_paragraph": "Emre Tezisci, a seasoned Product Marketing Expert with 7+ years of experience, faced a common content creator challenge: \"The early, 'boring' stage of content work was a time sink: trawling communities, synthesising patterns, then staring at a blank page could swallow three-plus hours.\" As someone who regularly creates content based on community discussions and tech trends, Emre needed a more efficient approach. \"I needed a way to split that workflow across specialised AIs, coordinate their hand-offs, and keep the whole chain from collapsing under prompt-chaos or token bloat.\"",
+      "solution": [
+        "Built a 4-agent mini-team using VoltAgent with specialized roles for each step",
+        "Used Composio's MCP tools to pull threads and comments from Reddit & Hacker News",
+        "Created GPT-4o-based personas for planning, scraping, clustering, and drafting",
+        "Leveraged VoltAgent's TypeScript-native orchestration with built-in tool routing",
+        "Used VoltOps' real-time timeline for crystal-clear debugging and monitoring"
+      ],
+      "solution_paragraph": "Emre discovered VoltAgent as the perfect solution for his content pipeline needs. He built a sophisticated system where: VoltAgent orchestrates the entire flow from data collection to final draft; Composio's pre-built MCP tools pull threads and comments from communities; Four specialized GPT-4o-based personas handle planning, scraping, clustering, and drafting in sequence; The entire process moves from raw data to readable first draft before he even opens his editor. \"VoltAgent promised lightweight, TypeScript-native agent orchestration with tool routing baked in - exactly the glue I was missing.\"",
+      "results": [
+        "Reduced content creation time from 3+ hours to just 6 minutes",
+        "Achieved crystal-clear debugging with VoltOps' real-time timeline visualization",
+        "Eliminated prompt chaos and token bloat through better orchestration",
+        "Created a reliable pipeline from community data to publishable content",
+        "Faster iteration cycles with selective tool filtering and lean context management"
+      ],
+      "results_paragraph": "With his 4-agent VoltAgent system, Emre transformed his content creation process from a time-consuming manual workflow to an efficient automated pipeline. The biggest breakthrough came from VoltOps' observability: \"When a multi-step prompt failed I had no idea which agent, which tool call, or which chunk of context blew up. Debugging felt like spelunking in the dark.\" Now, VoltOps' real-time timeline lets him watch each agent and tool hop live, making fixes take minutes instead of hours. \"Six-minute insight pipeline – crystal-clear, painless debugging,\" Emre summarizes his experience.",
+      "quote": {
+        "text": "VoltOps' real-time timeline let me watch each agent/tool/LLM hop live. One glance shows where a call stalls or loops, so fixes take minutes instead of digging through console spam.",
+        "author": "Emre Tezisci",
+        "position": "Product Marketing Expert",
+        "company": "Content Creator & Tech Strategist"
+      },
+      "useCases": [
+        "Content marketing teams producing research-based content pieces",
+        "Digital agencies managing multiple client content needs",
+        "Solo creators generating more content",
+        "Market research and competitive intelligence gathering",
+        "Trend tracking for content strategy planning",
+        "Automated fact checking and citation management"
+      ],
+      "video": "https://www.youtube.com/embed/My6FFxtwqIA/",
+      "tech": ["VoltAgent", "OpenAI", "Composio MCP"],
+      "links": {
+        "github": "https://github.com/voltagent/voltagent",
+        "discord": "https://s.voltagent.dev/discord"
+      }
+    }
+  },
+  {
+    "id": 7,
+    "slug": "ai-twins-singularity",
+    "published": false,
+    "customer": {
+      "name": "Singularity",
+      "website": "https://www.linkedin.com/in/robertveloso/",
+      "industry": "AI Technology / Creator Economy"
+    },
+    "case_study": {
+      "title": "How Singularity Built AI Twins for Creators Using VoltAgent",
+      "use_case": "AI twin platform that helps creators engage with fans through personality-driven AI agents",
+      "challenge": [
+        "Building AI twins that could represent creators' personalities consistently was technically complex",
+        "Managing multiple conversations simultaneously required proper orchestration",
+        "Maintaining authentic voice and personality across different conversation types",
+        "Scaling creator-fan interactions without losing quality or breaking character"
+      ],
+      "challenge_paragraph": "Robert Veloso, Co-founder and Technical Lead at Singularity, wanted to help creators engage with their growing fanbase more effectively. \"We had this idea of creating AI twins that could represent creators and chat with fans, but the technical side was more complex than we initially thought,\" explains Robert. With his background as a software engineer, Robert knew they needed more than basic chatbot technology - they needed proper memory systems, personality modeling, and conversation management that could handle multiple interactions while keeping each creator's unique voice.",
+      "solution": [
+        "Used VoltAgent to build AI twin agents with memory and personality features",
+        "Created conversation agents that maintain each creator's specific voice patterns",
+        "Built systems that handle different types of fan interactions at the same time",
+        "Used VoltOps to monitor AI twin performance and conversation quality",
+        "Built architecture that lets creators customize their AI twin's behavior"
+      ],
+      "solution_paragraph": "Robert used VoltAgent's framework to build Singularity's AI twin platform. The solution includes: AI twin agents with memory that learns from each creator; Conversation systems that keep authentic voice patterns; Multi-agent setup that handles fan questions and personal chats simultaneously; Tools that let creators adjust their AI twin's personality. \"VoltAgent gave us the foundation we needed to build something that actually works well. The memory and agent coordination features were exactly what we were looking for.\"",
+      "results": [
+        "Launched AI twins for creators with good fan feedback",
+        "Enabled 24/7 fan engagement with quick response times",
+        "Scaled to handle many conversations per creator without quality issues",
+        "Helped creators engage with fans while maintaining personal connections",
+        "Built a working platform for persistent AI personalities"
+      ],
+      "results_paragraph": "With VoltAgent, Robert and his team built a platform that works well for both creators and fans. They've launched AI twins that fans genuinely like, with 24/7 availability and fast responses. \"It's great seeing fans actually connect with these AI twins. They feel more natural than typical chatbots.\" The platform handles multiple conversations while keeping each creator's personality intact. Singularity has shown that with good AI agent architecture, creators can maintain meaningful relationships with their communities around the clock.",
+      "quote": {
+        "text": "VoltAgent gave us the foundation we needed to build something that actually works well. The memory and agent coordination features were exactly what we were looking for.",
+        "author": "Robert Veloso",
+        "position": "Co-founder & Technical Lead",
+        "company": "Singularity"
+      }
+    }
+  },
+  {
+    "id": 8,
+    "slug": "dupont-homebuyer",
+    "published": true,
+    "customer": {
+      "name": "Home Buyer",
+      "website": "https://www.linkedin.com/in/davedupont/",
+      "industry": "Real Estate Technology / AI Valuations"
+    },
+    "case_study": {
+      "title": "How DuPont Built a Homebuyer Cognition Model with VoltAgent",
+      "use_case": "Model homebuyer cognition with swarm of lite market agents within micro housing markets",
+      "challenge": [
+        "Needed an AI-native backend infrastructure to handle complex homebuyer behavior modeling",
+        "Traditional real estate technology wasn't designed for cognitive modeling of buyer decisions",
+        "Required sophisticated agent coordination to model market behavior at micro-level",
+        "Building from scratch without proper AI agent framework was becoming a bottleneck"
+      ],
+      "challenge_paragraph": "Dave DuPont, a Redfin Premier Agent and CFP, was working on modeling homebuyer cognition with a swarm of lite market agents within micro housing markets. But as he dove deeper into the technical implementation, he hit a fundamental challenge: \"I needed an AI-native backend infrastructure.\" The complexity of coordinating multiple agents to understand and model how buyers think and make decisions in specific micro markets required more than traditional real estate tech could provide. Dave needed a framework built specifically for AI agent orchestration.",
+      "solution": [
+        "Adopted VoltAgent as the AI-native backend infrastructure for his homebuyer cognition project",
+        "Built a swarm of lite market agents to model homebuyer cognition",
+        "Created micro housing market analysis through coordinated agent workflows",
+        "Leveraged VoltOps for visual learning and understanding of agent interactions",
+        "Gained clear visibility into how each agent contributes to the cognition model"
+      ],
+      "solution_paragraph": "Dave discovered VoltAgent as the AI-native backend infrastructure he needed for his homebuyer cognition project. With VoltAgent, he was able to: Build a swarm of lite market agents that model homebuyer cognition; Coordinate these agents to analyze micro housing markets; Create workflows that understand buyer decision-making patterns; Use VoltOps for visual learning and debugging of agent interactions. \"VoltAgent provided the visual learning experience I needed to understand how each agent was contributing to the overall cognition model.\"",
+      "results": [
+        "Successfully built AI-native infrastructure for homebuyer cognition modeling",
+        "Improved understanding of agent coordination through visual learning",
+        "Created working swarm of market agents for micro housing market analysis",
+        "Gained insights into AI agent orchestration and behavior",
+        "Built a solid foundation for his real estate technology project"
+      ],
+      "results_paragraph": "With VoltAgent as his AI-native backend, Dave successfully built his homebuyer cognition model using a swarm of lite market agents. The visual learning capabilities of VoltOps were particularly helpful, giving him better insight into how his agents coordinate to model buyer behavior. \"It's been a massive learning experience,\" Dave reflects. The combination of VoltAgent's infrastructure and VoltOps' visual debugging has enabled Dave to better understand homebuyer behavior at the micro market level.",
+      "quote": {
+        "text": "VoltAgent provided the AI-native backend infrastructure I needed. The visual learning experience has been massive - I can finally see how each agent contributes to modeling homebuyer cognition.",
+        "author": "Dave DuPont",
+        "position": "Creator of Homebuyer Cognition Model",
+        "company": "Redfin Premier Agent & CFP"
+      }
+    }
+  },
+  {
+    "id": 9,
+    "slug": "mo-elkhidir",
+    "published": true,
+    "customer": {
+      "name": "Marketing Agency",
+      "website": "https://www.epiminds.com/",
+      "industry": "Marketing Technology / Agency Automation"
+    },
+    "case_study": {
+      "title": "How Epiminds Built Agentic Teams for Marketing Agencies with VoltAgent",
+      "use_case": "Building agentic teams for marketing agencies to streamline operations and enhance productivity",
+      "challenge": [
+        "Needed a reliable and fast supervisor-based agentic framework",
+        "Existing solutions had issues with speed and traceability",
+        "Faced difficulties understanding why agents failed or gave wrong answers",
+        "Tool calls across agents were hard to coordinate and debug"
+      ],
+      "challenge_paragraph": "Epiminds set out to build agentic teams for marketing agencies, aiming to transform how agencies operate through AI-powered automation. However, he quickly encountered significant technical challenges: \"We had no way to trace why an agent failed or gave the wrong answer, or tool calls across agents were hard to coordinate.\" The lack of visibility into agent behavior and the inability to debug complex multi-agent workflows was becoming a major bottleneck. Mo needed a reliable and fast supervisor-based agentic framework that could provide both speed and traceability.",
+      "solution": [
+        "Adopted VoltAgent for prototyping and new agents with quick deployment to production",
+        "Used VoltOps for debugging and understanding agent behavior in real-time",
+        "Leveraged the visual non-style observability console to track agent workflows",
+        "Built reliable supervisor-based agentic teams with full traceability",
+        "Gained visibility into how agents, tools, and LLM responses flow together"
+      ],
+      "solution_paragraph": "Epiminds discovered VoltAgent and VoltOps as the perfect combination for his needs. With VoltAgent, he could quickly prototype and deploy new agents to production, while VoltOps provided the crucial visibility he was missing: \"VoltOps is the visual non-style observability console. It shows how agents, tools, and LLM responses flow in real time.\" This combination gave Mo the speed and traceability he needed to build reliable agentic teams for marketing agencies, with faster debugging and a clearer understanding of what each agent was doing.",
+      "results": [
+        "Achieved fast prototyping and deployment of new agents to production",
+        "Gained complete visibility into agent behavior and decision-making",
+        "Improved debugging speed with visual understanding of agent workflows",
+        "Built reliable agentic teams that marketing agencies can trust",
+        "Created a simple, fast, and modern solution for agency automation"
+      ],
+      "results_paragraph": "With VoltAgent and VoltOps, Mo successfully built agentic teams that transform how marketing agencies operate. The combination of fast prototyping capabilities and comprehensive debugging tools enabled him to move quickly from concept to production. \"Simple, fast, and modern\" is how Mo summarizes his experience. Marketing agencies now have access to reliable AI-powered teams that enhance their productivity while maintaining full transparency into how decisions are made and tasks are completed.",
+      "quote": {
+        "text": "VoltAgent for prototyping and new agents and prepare them for production. VoltOps for debugging and understanding agent behavior.",
+        "author": "Mo Elkhidir",
+        "position": "Founder",
+        "company": "Agentic Teams for Marketing Agencies"
+      }
+    }
+  }
+]

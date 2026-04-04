@@ -1,0 +1,268 @@
+---
+title: "SDK Reference"
+description: "All functions and classes exposed in the top layer of the SDK"
+---
+
+# SDK Reference
+
+This reference documents the functions and classes available with `import agentops` for the Python SDK. The AgentOps SDK is designed for easy integration with your agent applications, offering both simple auto-instrumentation and more detailed manual tracing capabilities.
+
+<Note>
+This documentation covers the Python SDK. A TypeScript/JavaScript SDK is also available - see our [TypeScript SDK guide](/v2/usage/typescript-sdk) for details.
+</Note>
+
+## Core Functions
+
+These are the primary functions you'll use to initialize and configure AgentOps in your application.
+
+### `init()`
+
+Initializes the AgentOps SDK and automatically starts tracking your application.
+
+**Parameters**:
+
+- `api_key` (str, optional): API Key for AgentOps services. If not provided, the key will be read from the `AGENTOPS_API_KEY` environment variable.
+- `endpoint` (str, optional): The endpoint for the AgentOps service. If not provided, will be read from the `AGENTOPS_API_ENDPOINT` environment variable. Defaults to 'https://api.agentops.ai'.
+- `app_url` (str, optional): The dashboard URL for the AgentOps app. If not provided, will be read from the `AGENTOPS_APP_URL` environment variable. Defaults to 'https://app.agentops.ai'.
+- `max_wait_time` (int, optional): The maximum time to wait in milliseconds before flushing the queue. Defaults to 5,000 (5 seconds).
+- `max_queue_size` (int, optional): The maximum size of the event queue. Defaults to 512.
+- `default_tags` (List[str], optional): Default tags for the sessions that can be used for grouping or sorting later (e.g. ["GPT-4"]).
+- `tags` (List[str], optional): **[Deprecated]** Use `default_tags` instead. Will be removed in v4.0.
+- `instrument_llm_calls` (bool, optional): Whether to instrument LLM calls automatically. Defaults to True.
+- `auto_start_session` (bool, optional): Whether to start a session automatically when the client is created. Set to False if running in a Jupyter Notebook. Defaults to True.
+- `auto_init` (bool, optional): Whether to automatically initialize the client on import. Defaults to True.
+- `skip_auto_end_session` (bool, optional): Don't automatically end session based on your framework's decision-making. Defaults to False.
+- `env_data_opt_out` (bool, optional): Whether to opt out of collecting environment data. Defaults to False.
+- `log_level` (str, int, optional): The log level to use for the client. Defaults to 'INFO'.
+- `fail_safe` (bool, optional): Whether to suppress errors and continue execution when possible. Defaults to False.
+- `exporter_endpoint` (str, optional): Endpoint for the exporter. If not provided, will be read from the `AGENTOPS_EXPORTER_ENDPOINT` environment variable. Defaults to 'https://otlp.agentops.ai/v1/traces'.
+- `export_flush_interval` (int, optional): Time interval in milliseconds between automatic exports of telemetry data. Defaults to 1000.
+- `trace_name` (str, optional): Custom name for the automatically created trace. If not provided, a default name will be used.
+
+**Returns**:
+
+- If `auto_start_session=True`, returns the created Session object. Otherwise, returns None.
+
+**Example**:
+
+```python
+import agentops
+
+# Basic initialization with automatic session creation
+agentops.init("your-api-key")
+
+# Initialize with custom trace name
+agentops.init("your-api-key", trace_name="my-workflow")
+```
+
+### `configure()`
+
+Updates client configuration after initialization. Supports the same parameters as `init()`.
+
+**Parameters**:
+
+- `api_key` (str, optional): API Key for AgentOps services.
+- `endpoint` (str, optional): The endpoint for the AgentOps service.
+- `app_url` (str, optional): The dashboard URL for the AgentOps app.
+- `max_wait_time` (int, optional): Maximum time to wait in milliseconds before flushing the queue.
+- `max_queue_size` (int, optional): Maximum size of the event queue.
+- `default_tags` (List[str], optional): Default tags for the sessions.
+- `instrument_llm_calls` (bool, optional): Whether to instrument LLM calls.
+- `auto_start_session` (bool, optional): Whether to start a session automatically.
+- `auto_init` (bool, optional): Whether to automatically initialize the client on import.
+- `skip_auto_end_session` (bool, optional): Don't automatically end session.
+- `env_data_opt_out` (bool, optional): Whether to opt out of collecting environment data.
+- `log_level` (str, int, optional): The log level to use for the client.
+- `fail_safe` (bool, optional): Whether to suppress errors and continue execution.
+- `exporter` (object, optional): Custom span exporter for OpenTelemetry trace data.
+- `processor` (object, optional): Custom span processor for OpenTelemetry trace data.
+- `exporter_endpoint` (str, optional): Endpoint for the exporter.
+- `export_flush_interval` (int, optional): Time interval in milliseconds between automatic exports of telemetry data.
+- `trace_name` (str, optional): Custom name for traces.
+
+**Example**:
+
+```python
+import agentops
+
+# Initialize first
+agentops.init()
+
+# Later, update configuration
+agentops.configure(
+    max_wait_time=10000,
+    max_queue_size=200,
+    default_tags=["production", "gpt-4"],
+    trace_name="production-workflow"
+)
+```
+
+### `get_client()`
+
+Gets the singleton client instance. Most users won't need to use this function directly.
+
+**Returns**:
+
+- The AgentOps client instance.
+
+## Trace Management
+
+These functions help you manage the lifecycle of tracking traces.
+
+### `start_trace()`
+
+Starts a new AgentOps trace manually. This is useful when you've disabled automatic session creation or need multiple separate traces.
+
+**Parameters**:
+
+- `trace_name` (str, optional): Name for the trace. If not provided, a default name will be used.
+- `tags` (Union[Dict[str, Any], List[str]], optional): Optional tags to attach to the trace, useful for filtering in the dashboard. Can be a list of strings or a dict of key-value pairs.
+
+**Returns**:
+
+- TraceContext object representing the started trace.
+
+**Example**:
+
+```python
+import agentops
+
+# Initialize without auto-starting a session
+agentops.init("your-api-key", auto_start_session=False)
+
+# Start a trace manually
+trace = agentops.start_trace("customer-service-workflow", tags=["customer-query"])
+```
+
+### `end_trace()`
+
+Ends a specific trace or all active traces.
+
+**Parameters**:
+
+- `trace` (TraceContext, optional): The specific trace to end. If not provided, all active traces will be ended.
+- `end_state` (str, optional): The end state for the trace(s). You can use any descriptive string that makes sense for your application (e.g., "Success", "Indeterminate", "Error", "Timeout", etc.).
+
+**Example**:
+
+```python
+import agentops
+
+# End a specific trace
+trace = agentops.start_trace("my-workflow")
+# ... your code ...
+agentops.end_trace(trace, "Success")
+
+# End all active traces
+agentops.end_trace(end_state="Emergency_Shutdown")
+```
+
+### `update_trace_metadata()`
+
+Updates metadata on the currently running trace. This is useful for adding context, tracking progress, or storing intermediate results during trace execution.
+
+**Parameters**:
+
+- `metadata` (Dict[str, Any]): Dictionary of key-value pairs to set as trace metadata. Values must be strings, numbers, booleans, or lists of these types. Lists are automatically converted to JSON string representation.
+- `prefix` (str, optional): Prefix for metadata attributes. Defaults to "trace.metadata". Ignored for semantic convention attributes.
+
+**Returns**:
+
+- `bool`: True if metadata was successfully updated, False otherwise.
+
+**Features**:
+
+- **Semantic Convention Support**: User-friendly keys like "tags", "agent_name", "workflow_name" are automatically mapped to OpenTelemetry semantic conventions.
+- **Custom Attributes**: Non-semantic keys are prefixed with the specified prefix (default: "trace.metadata").
+- **Type Safety**: Validates input types and converts lists to JSON strings for OpenTelemetry compatibility.
+- **Error Handling**: Returns boolean success indicator and logs warnings for invalid data.
+
+**Example**:
+
+```python
+import agentops
+from agentops import update_trace_metadata
+
+# Initialize and start trace with initial tags
+agentops.init(auto_start_session=False)
+trace = agentops.start_trace("ai-workflow", tags=["startup", "initialization"])
+
+# Your code here...
+
+# Update metadata mid-run with new tags and operation info
+update_trace_metadata({
+    "operation_name": "OpenAI GPT-4o-mini",
+    "tags": ["ai-agent", "processing", "gpt-4"],  # Updates tags
+    "status": "processing"
+})
+
+# End the trace
+agentops.end_trace(trace, "Success")
+```
+
+For detailed examples and use cases, see [Manual Trace Control](/v2/usage/manual-trace-control#updating-trace-metadata-during-execution).
+
+## Decorators for Detailed Instrumentation
+
+For more granular control, AgentOps provides decorators that explicitly track different components of your application. **The `@trace` decorator is the recommended approach for creating custom traces**, especially in multi-threaded environments. These decorators are imported from `agentops.sdk.decorators`.
+
+```python
+import agentops
+from agentops.sdk.decorators import trace, agent, operation, tool
+
+# Initialize without automatic session creation
+agentops.init("your-api-key", auto_start_session=False)
+
+# Create and run a trace using the decorator
+@trace
+def my_workflow():
+    # Your workflow code here
+    pass
+
+# Run the workflow, which creates and manages the trace
+my_workflow()
+```
+
+### Available Decorators
+
+- `@trace`: Creates a trace span for grouping related operations
+- `@agent`: Creates an agent span for tracking agent operations
+- `@operation` / `@task`: Creates operation/task spans for tracking specific operations (these are aliases)
+- `@workflow`: Creates workflow spans for organizing related operations
+- `@tool`: Creates tool spans for tracking tool usage and cost in agent operations. Supports cost parameter for tracking tool usage costs.
+
+**Tool Decorator Example**:
+
+```python
+from agentops.sdk.decorators import tool
+
+@tool(cost=0.05)
+def web_search(query):
+    # Tool implementation with cost tracking
+    return f"Search results for: {query}"
+
+@tool
+def calculator(expression):
+    # Tool without cost tracking
+    return eval(expression)
+```
+
+See [Decorators](/v2/concepts/decorators) for more detailed documentation on using these decorators.
+
+## Legacy Functions
+
+<Warning>
+The following functions are **deprecated** and will be removed in v4.0. They are maintained for backward compatibility with older versions of the SDK and integrations. New code should use the functions and decorators described above instead. When used, these functions will log deprecation warnings.
+</Warning>
+
+- `start_session()`: **Deprecated.** Legacy function for starting sessions. Use `@trace` decorator or `start_trace()` instead.
+- `end_session()`: **Deprecated.** Legacy function for ending sessions. Use `end_trace()` instead.
+- `record(event)`: **Deprecated.** Legacy function to record an event. Replaced by decorator-based tracing.
+- `track_agent()`: **Deprecated.** Legacy decorator for marking agents. Replaced by the `@agent` decorator.
+- `track_tool()`: **Deprecated.** Legacy decorator for marking tools. Replaced by the `@tool` decorator.
+- `ToolEvent()`, `ErrorEvent()`, `ActionEvent()`, `LLMEvent()`: **Deprecated.** Legacy event types. Replaced by automatic instrumentation and decorators.
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/scroll-img-fadein-animation.js"></script>
+<script type="module" src="/scripts/button_heartbeat_animation.js"></script>
+<script type="module" src="/scripts/adjust_api_dynamically.js"></script>

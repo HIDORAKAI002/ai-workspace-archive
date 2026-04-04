@@ -1,0 +1,80 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in Prefect
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        If you are new to Prefect bug reports, please review our many examples of [well written bug reports](https://github.com/PrefectHQ/prefect/issues?q=is%3Aissue+label%3A%22great+writeup%22). 
+        Each of these reports include the following features:
+
+        1. A succinct description of the problem. 
+
+        2. A succinct code example which reproduces the problem, otherwise known as a [minimal reproducible example](https://stackoverflow.com/help/mcve).
+
+        3. The complete stack traces for errors - please avoid screenshots, and use markdown formatted text inside issues.
+
+        4. Additional details that may help us reproduce your issue.
+
+
+        For usage questions, please open a [discussion](https://github.com/PrefectHQ/prefect/discussions).
+
+  - type: textarea
+    attributes:
+      label: Bug summary
+      description: A clear and concise description of what the bug is, ideally including [a minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example).
+      placeholder: >
+        An explanation of the behavior, along with code that will help others reproduce the issue:
+
+          ```python
+          from prefect import flow
+
+          @flow
+          def my_flow():
+            raise ValueError("This flow misbehaves every time it's run and I don't know why!")
+          ```
+
+          Please include tracebacks, console output, etc. with code formatting.
+
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Version info
+      description: |
+        Provide information about your Prefect version and environment. 
+        
+        Please run `prefect version` and paste the output below.
+      placeholder: |
+        Provide the output of `prefect version` here.
+
+        Should look something like this:
+
+          Version:             3.0.10
+          API version:         0.8.4
+          Python version:      3.12.5
+          Git commit:          3aa2d893
+          Built:               Tue, Oct 15, 2024 1:31 PM
+          OS/Arch:             darwin/arm64
+          Profile:             local
+          Server type:         server
+          Pydantic version:    2.9.2
+          Integrations:
+            prefect-kubernetes: 0.5.2
+
+      render: Text
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here, including screenshots for UI issues.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: >
+        Thank you for taking the time to submit a bug report!

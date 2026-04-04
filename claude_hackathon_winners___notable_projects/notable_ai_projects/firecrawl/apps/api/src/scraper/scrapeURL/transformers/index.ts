@@ -1,0 +1,561 @@
+import { parseMarkdown } from "../../../lib/html-to-markdown";
+import { Meta } from "..";
+import { Document } from "../../../controllers/v2/types";
+import { htmlTransform } from "../lib/removeUnwantedElements";
+import { extractLinks } from "../lib/extractLinks";
+import { extractImages } from "../lib/extractImages";
+import { extractMetadata } from "../lib/extractMetadata";
+import {
+  performLLMExtract,
+  performSummary,
+  performQuery,
+  performCleanContent,
+} from "./llmExtract";
+import { uploadScreenshot } from "./uploadScreenshot";
+import { removeBase64Images } from "./removeBase64Images";
+import { performAgent } from "./agent";
+import { performAttributes } from "./performAttributes";
+
+import { deriveDiff } from "./diff";
+import { fetchAudio } from "./audio";
+import { useIndex, useSearchIndex } from "../../../services/index";
+import { sendDocumentToIndex } from "../engines/index/index";
+import { sendDocumentToSearchIndex } from "./sendToSearchIndex";
+import { hasFormatOfType } from "../../../lib/format-utils";
+import { brandingTransformer } from "../../../lib/branding/transformer";
+import { indexerQueue } from "../../../services/indexing/indexer-queue";
+import { config } from "../../../config";
+
+type Transformer = (
+  meta: Meta,
+  document: Document,
+) => Document | Promise<Document>;
+
+async function deriveMetadataFromRawHTML(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  if (document.rawHtml === undefined) {
+    throw new Error(
+      "rawHtml is undefined -- this transformer is being called out of order",
+    );
+  }
+
+  document.metadata = {
+    ...(await extractMetadata(meta, document.rawHtml)),
+    ...document.metadata,
+  };
+  return document;
+}
+
+async function deriveHTMLFromRawHTML(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  if (document.rawHtml === undefined) {
+    throw new Error(
+      "rawHtml is undefined -- this transformer is being called out of order",
+    );
+  }
+
+  document.html = await htmlTransform(
+    document.rawHtml,
+    document.metadata.url ??
+      document.metadata.sourceURL ??
+      meta.rewrittenUrl ??
+      meta.url,
+    meta.options,
+  );
+  return document;
+}
+
+async function deriveMarkdownFromHTML(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  if (document.html === undefined) {
+    throw new Error(
+      "html is undefined -- this transformer is being called out of order",
+    );
+  }
+
+  // Only derive markdown if markdown format is requested or if formats that require markdown are requested:
+  // - changeTracking requires markdown
+  // - json format requires markdown (for LLM extraction)
+  // - summary format requires markdown (for summarization)
+  // - query format requires markdown (for page-level answers)
+  const hasMarkdown = hasFormatOfType(meta.options.formats, "markdown");
+  const hasChangeTracking = hasFormatOfType(
+    meta.options.formats,
+    "changeTracking",
+  );
+  const hasJson = hasFormatOfType(meta.options.formats, "json");
+  const hasSummary = hasFormatOfType(meta.options.formats, "summary");
+  const hasQuery = hasFormatOfType(meta.options.formats, "query");
+  if (
+    !hasMarkdown &&
+    !hasChangeTracking &&
+    !hasJson &&
+    !hasSummary &&
+    !hasQuery &&
+    !meta.options.onlyCleanContent
+  ) {
+    return document;
+  }
+
+  // Skip markdown derivation if a postprocessor already set it
+  if (document.metadata.postprocessorsUsed?.length && document.markdown) {
+    meta.logger.debug(
+      "Skipping markdown derivation - postprocessor already set markdown",
+      { postprocessorsUsed: document.metadata.postprocessorsUsed },
+    );
+    return document;
+  }
+
+  if (document.metadata.contentType?.includes("application/json")) {
+    if (document.rawHtml === undefined) {
+      throw new Error(
+        "rawHtml is undefined -- this transformer is being called out of order",
+      );
+    }
+
+    document.markdown = "```json\n" + document.rawHtml + "\n```";
+    return document;
+  }
+
+  // Use scrape ID or crawl ID as request_id for tracing
+  const requestId = meta.id || meta.internalOptions.crawlId;
+  document.markdown = await parseMarkdown(document.html, {
+    logger: meta.logger,
+    requestId,
+  });
+
+  if (
+    meta.options.onlyMainContent === true &&
+    (!document.markdown || document.markdown.trim().length === 0)
+  ) {
+    meta.logger.info(
+      "Main content extraction resulted in empty markdown, falling back to full content extraction",
+    );
+
+    const fallbackMeta = {
+      ...meta,
+      options: {
+        ...meta.options,
+        onlyMainContent: false,
+      },
+    };
+
+    document = await deriveHTMLFromRawHTML(fallbackMeta, document);
+    document.markdown = await parseMarkdown(document.html, {
+      logger: meta.logger,
+      requestId,
+    });
+
+    meta.logger.info("Fallback to full content extraction completed", {
+      markdownLength: document.markdown?.length || 0,
+    });
+  }
+
+  return document;
+}
+
+async function deriveLinksFromHTML(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  if (document.html === undefined) {
+    throw new Error(
+      "html is undefined -- this transformer is being called out of order",
+    );
+  }
+
+  const rate = config.INDEXER_TRAFFIC_SHARE
+    ? Math.max(0, Math.min(1, Number(config.INDEXER_TRAFFIC_SHARE)))
+    : 0;
+
+  const shouldForwardTraffic =
+    rate > 0 && Math.random() <= rate && !!config.INDEXER_RABBITMQ_URL;
+
+  const forwardToIndexer =
+    !!meta.internalOptions.teamId &&
+    !meta.internalOptions.teamId?.includes("robots-txt") &&
+    !meta.internalOptions.teamId?.includes("sitemap") &&
+    shouldForwardTraffic;
+
+  const requiresLinks = !!hasFormatOfType(meta.options.formats, "links");
+
+  if (!forwardToIndexer && !requiresLinks) {
+    return document;
+  }
+
+  document.links = await extractLinks(
+    document.html,
+    document.metadata.url ??
+      document.metadata.sourceURL ??
+      meta.rewrittenUrl ??
+      meta.url,
+  );
+
+  if (forwardToIndexer) {
+    try {
+      let linksDeduped: Set<string> = new Set();
+      if (!!document.links) {
+        linksDeduped = new Set([...document.links]);
+      }
+
+      indexerQueue
+        .sendToWorker({
+          id: meta.id,
+          type: "links",
+          discovery_url:
+            document.metadata.url ??
+            document.metadata.sourceURL ??
+            meta.rewrittenUrl ??
+            meta.url,
+          urls: [...linksDeduped],
+        })
+        .catch(error => {
+          meta.logger.error("Failed to queue links for indexing", {
+            error: (error as Error)?.message,
+            url: meta.url,
+          });
+        });
+    } catch (error) {
+      meta.logger.error("Failed to queue links for indexing", {
+        error: (error as Error)?.message,
+        url: meta.url,
+      });
+    }
+  }
+
+  if (!requiresLinks) {
+    delete document.links;
+  }
+
+  return document;
+}
+
+async function deriveImagesFromHTML(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  // Only derive if the formats has images
+  if (hasFormatOfType(meta.options.formats, "images")) {
+    if (document.html === undefined) {
+      throw new Error(
+        "html is undefined -- this transformer is being called out of order",
+      );
+    }
+
+    document.images = await extractImages(
+      document.html,
+      document.metadata.url ??
+        document.metadata.sourceURL ??
+        meta.rewrittenUrl ??
+        meta.url,
+    );
+  }
+
+  return document;
+}
+
+async function deriveBrandingFromActions(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  const hasBranding = hasFormatOfType(meta.options.formats, "branding");
+
+  if (!hasBranding) {
+    return document;
+  }
+
+  if (document.branding !== undefined) {
+    return document;
+  }
+
+  /**
+   * Find the branding return in the actions javascript returns
+   * @see src/scraper/scrapeURL/engines/fire-engine/scripts/branding.js
+   */
+  const brandingReturnIndex = document.actions?.javascriptReturns?.findIndex(
+    x => x.type === "object" && "branding" in (x.value as any),
+  );
+
+  if (brandingReturnIndex === -1 || brandingReturnIndex === undefined) {
+    return document;
+  }
+
+  // cast as any since this is js return, we might need to validate this
+  const javascriptReturn = document.actions!.javascriptReturns![
+    brandingReturnIndex
+  ].value as any;
+
+  const rawBranding = javascriptReturn?.branding;
+
+  document.actions!.javascriptReturns!.splice(brandingReturnIndex, 1);
+
+  document.branding = await brandingTransformer(meta, document, rawBranding);
+
+  return document;
+}
+
+function coerceFieldsToFormats(meta: Meta, document: Document): Document {
+  const hasMarkdown = hasFormatOfType(meta.options.formats, "markdown");
+  const hasRawHtml = hasFormatOfType(meta.options.formats, "rawHtml");
+  const hasHtml = hasFormatOfType(meta.options.formats, "html");
+  const hasLinks = hasFormatOfType(meta.options.formats, "links");
+  const hasImages = hasFormatOfType(meta.options.formats, "images");
+  const hasChangeTracking = hasFormatOfType(
+    meta.options.formats,
+    "changeTracking",
+  );
+  const hasJson = hasFormatOfType(meta.options.formats, "json");
+  const hasScreenshot = hasFormatOfType(meta.options.formats, "screenshot");
+  const hasSummary = hasFormatOfType(meta.options.formats, "summary");
+  const hasBranding = hasFormatOfType(meta.options.formats, "branding");
+  const hasQueryFormat = hasFormatOfType(meta.options.formats, "query");
+
+  if (!hasMarkdown && document.markdown !== undefined) {
+    delete document.markdown;
+  } else if (hasMarkdown && document.markdown === undefined) {
+    meta.logger.warn(
+      "Request had format: markdown, but there was no markdown field in the result.",
+    );
+  }
+
+  if (!hasRawHtml && document.rawHtml !== undefined) {
+    delete document.rawHtml;
+  } else if (hasRawHtml && document.rawHtml === undefined) {
+    meta.logger.warn(
+      "Request had format: rawHtml, but there was no rawHtml field in the result.",
+    );
+  }
+
+  if (!hasHtml && document.html !== undefined) {
+    delete document.html;
+  } else if (hasHtml && document.html === undefined) {
+    meta.logger.warn(
+      "Request had format: html, but there was no html field in the result.",
+    );
+  }
+
+  if (!hasScreenshot && document.screenshot !== undefined) {
+    meta.logger.warn(
+      "Removed screenshot from Document because it wasn't in formats -- this is very wasteful and indicates a bug.",
+    );
+    delete document.screenshot;
+  } else if (hasScreenshot && document.screenshot === undefined) {
+    meta.logger.warn(
+      "Request had format: screenshot / screenshot@fullPage, but there was no screenshot field in the result.",
+    );
+  }
+
+  if (!hasLinks && document.links !== undefined) {
+    meta.logger.warn(
+      "Removed links from Document because it wasn't in formats -- this is wasteful and indicates a bug.",
+    );
+    delete document.links;
+  } else if (hasLinks && document.links === undefined) {
+    meta.logger.warn(
+      "Request had format: links, but there was no links field in the result.",
+    );
+  }
+
+  if (!hasImages && document.images !== undefined) {
+    meta.logger.warn(
+      "Removed images from Document because it wasn't in formats -- this is wasteful and indicates a bug.",
+      { hasImages, hasImagesField: document.images !== undefined },
+    );
+    delete document.images;
+  } else if (hasImages && document.images === undefined) {
+    meta.logger.warn(
+      "Request had format: images, but there was no images field in the result.",
+      { hasImages, hasImagesField: document.images !== undefined },
+    );
+  }
+
+  // Handle v1 backward compatibility - don't delete fields based on v1OriginalFormat
+  const shouldKeepExtract = meta.internalOptions.v1OriginalFormat === "extract";
+  const shouldKeepJson = meta.internalOptions.v1OriginalFormat === "json";
+
+  // Debug logging for v1 format investigation
+  if (meta.internalOptions.v1OriginalFormat) {
+    meta.logger.debug("coerceFieldsToFormats v1 format debug", {
+      v1OriginalFormat: meta.internalOptions.v1OriginalFormat,
+      hasJson: !!hasJson,
+      shouldKeepExtract,
+      shouldKeepJson,
+      hasExtractField: document.extract !== undefined,
+      hasJsonField: document.json !== undefined,
+    });
+  }
+
+  if (
+    !hasJson &&
+    (document.extract !== undefined || document.json !== undefined)
+  ) {
+    // For v1 API, keep the field specified by v1OriginalFormat
+    if (!shouldKeepExtract && document.extract !== undefined) {
+      meta.logger.warn(
+        "Removed extract from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",
+      );
+      delete document.extract;
+    }
+    if (!shouldKeepJson && document.json !== undefined) {
+      meta.logger.warn(
+        "Removed json from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",
+      );
+      delete document.json;
+    }
+  } else if (
+    hasJson &&
+    document.extract === undefined &&
+    document.json === undefined
+  ) {
+    meta.logger.warn(
+      "Request had format json, but there was no json field in the result.",
+    );
+  }
+
+  if (!hasSummary && document.summary !== undefined) {
+    meta.logger.warn(
+      "Removed summary from Document because it wasn't in formats -- this is wasteful and indicates a bug.",
+    );
+    delete document.summary;
+  } else if (hasSummary && document.summary === undefined) {
+    meta.logger.warn(
+      "Request had format summary, but there was no summary field in the result.",
+    );
+  }
+
+  if (!hasQueryFormat && document.answer !== undefined) {
+    meta.logger.warn(
+      "Removed answer from Document because query wasn't in formats -- this is wasteful and indicates a bug.",
+    );
+    delete document.answer;
+  } else if (hasQueryFormat && document.answer === undefined) {
+    meta.logger.warn(
+      "Request had format query, but there was no answer field in the result.",
+    );
+  }
+
+  if (!hasBranding && document.branding !== undefined) {
+    meta.logger.warn(
+      "Removed branding from Document because it wasn't in formats -- this indicates the engine returned unexpected data.",
+    );
+    delete document.branding;
+  } else if (hasBranding && document.branding === undefined) {
+    meta.logger.warn(
+      "Request had format branding, but there was no branding field in the result.",
+    );
+  }
+
+  const hasAudio = hasFormatOfType(meta.options.formats, "audio");
+  if (!hasAudio && document.audio !== undefined) {
+    delete document.audio;
+  } else if (hasAudio && document.audio === undefined) {
+    meta.logger.warn(
+      "Request had format: audio, but there was no audio field in the result.",
+    );
+  }
+
+  if (!hasChangeTracking && document.changeTracking !== undefined) {
+    meta.logger.warn(
+      "Removed changeTracking from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",
+    );
+    delete document.changeTracking;
+  } else if (hasChangeTracking && document.changeTracking === undefined) {
+    meta.logger.warn(
+      "Request had format changeTracking, but there was no changeTracking field in the result.",
+    );
+  }
+
+  if (
+    document.changeTracking &&
+    !hasChangeTracking?.modes?.includes("git-diff") &&
+    document.changeTracking.diff !== undefined
+  ) {
+    meta.logger.warn(
+      "Removed diff from changeTracking because git-diff mode wasn't specified in changeTrackingOptions.modes.",
+    );
+    delete document.changeTracking.diff;
+  }
+
+  if (
+    document.changeTracking &&
+    !hasChangeTracking?.modes?.includes("json") &&
+    document.changeTracking.json !== undefined
+  ) {
+    meta.logger.warn(
+      "Removed structured from changeTracking because structured mode wasn't specified in changeTrackingOptions.modes.",
+    );
+    delete document.changeTracking.json;
+  }
+
+  if (meta.options.actions === undefined || meta.options.actions.length === 0) {
+    delete document.actions;
+  } else if (document.actions) {
+    // Check if all action arrays are empty
+    const hasScreenshots =
+      document.actions.screenshots && document.actions.screenshots.length > 0;
+    const hasScrapes =
+      document.actions.scrapes && document.actions.scrapes.length > 0;
+    const hasJsReturns =
+      document.actions.javascriptReturns &&
+      document.actions.javascriptReturns.length > 0;
+    const hasPdfs = document.actions.pdfs && document.actions.pdfs.length > 0;
+
+    if (!hasScreenshots && !hasScrapes && !hasJsReturns && !hasPdfs) {
+      delete document.actions;
+    }
+  }
+
+  return document;
+}
+
+// TODO: allow some of these to run in parallel
+const transformerStack: Transformer[] = [
+  deriveHTMLFromRawHTML,
+  deriveMarkdownFromHTML,
+  performCleanContent,
+  deriveLinksFromHTML,
+  deriveImagesFromHTML,
+  deriveBrandingFromActions,
+  deriveMetadataFromRawHTML,
+  uploadScreenshot,
+  ...(useIndex ? [sendDocumentToIndex] : []),
+  ...(useSearchIndex ? [sendDocumentToSearchIndex] : []), // Add to search index for real-time search
+  performLLMExtract,
+  performSummary,
+  performQuery,
+  performAttributes,
+  performAgent,
+  removeBase64Images,
+  deriveDiff,
+  fetchAudio,
+  coerceFieldsToFormats,
+];
+
+export async function executeTransformers(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  const executions: [string, number][] = [];
+
+  for (const transformer of transformerStack) {
+    const _meta = {
+      ...meta,
+      logger: meta.logger.child({
+        method: "executeTransformers/" + transformer.name,
+      }),
+    };
+    const start = Date.now();
+    document = await transformer(_meta, document);
+    executions.push([transformer.name, Date.now() - start]);
+  }
+
+  meta.logger.debug("Executed transformers.", { executions });
+
+  return document;
+}

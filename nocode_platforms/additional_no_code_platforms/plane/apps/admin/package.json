@@ -1,6 +1,6 @@
 {
   "name": "admin",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "private": true,
   "description": "Admin UI for Plane",
   "license": "AGPL-3.0",
@@ -49,7 +49,6 @@
     "uuid": "catalog:"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "catalog:",
     "@plane/tailwind-config": "workspace:*",
     "@plane/typescript-config": "workspace:*",
     "@react-router/dev": "catalog:",
@@ -57,6 +56,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "dotenv": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-tsconfig-paths": "^5.1.4"

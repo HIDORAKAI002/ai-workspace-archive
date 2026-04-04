@@ -123,6 +123,14 @@ const test = base.extend<TestFixtures>({
   },
 });
 
+function cliEnv() {
+  return {
+    PLAYWRIGHT_SERVER_REGISTRY: test.info().outputPath('registry'),
+    PLAYWRIGHT_DAEMON_SESSION_DIR: test.info().outputPath('daemon'),
+    PLAYWRIGHT_SOCKETS_DIR: path.join(test.info().project.outputDir, 'ds', String(test.info().parallelIndex)),
+  };
+}
+
 async function runCli(
   args: string[],
   options: { mcpBrowser?: string, testInfo: any },
@@ -133,7 +141,7 @@ async function runCli(
     const testInfo = options.testInfo;
 
     // Path to the terminal CLI
-    const cliPath = path.join(__dirname, '../../../node_modules/playwright/lib/cli/client/program.js');
+    const cliPath = path.join(__dirname, '../../../node_modules/playwright-core/lib/tools/cli-client/cli.js');
 
     return new Promise<CliResult>((resolve, reject) => {
       let stdout = '';
@@ -143,9 +151,7 @@ async function runCli(
         cwd: testInfo.outputPath(),
         env: {
           ...process.env,
-          PLAYWRIGHT_DAEMON_INSTALL_DIR: testInfo.outputPath(),
-          PLAYWRIGHT_DAEMON_SESSION_DIR: testInfo.outputPath('daemon'),
-          PLAYWRIGHT_DAEMON_SOCKETS_DIR: path.join(testInfo.project.outputDir, 'daemon-sockets'),
+          ...cliEnv(),
           PLAYWRIGHT_MCP_BROWSER: options.mcpBrowser,
           PLAYWRIGHT_MCP_HEADLESS: 'false',
         },
@@ -213,8 +219,7 @@ test(`navigate with extension`, async ({ browserWithExtension, startClient, serv
   });
 
   const selectorPage = await confirmationPagePromise;
-  // For browser_navigate command, the UI shows Allow/Reject buttons instead of tab selector
-  await selectorPage.getByRole('button', { name: 'Allow' }).click();
+  await selectorPage.locator('.tab-item', { hasText: 'Playwright MCP extension' }).getByRole('button', { name: 'Connect' }).click();
 
   expect(await navigateResponse).toHaveResponse({
     snapshot: expect.stringContaining(`- generic [active] [ref=e1]: Hello, world!`),
@@ -295,8 +300,7 @@ testWithOldExtensionVersion(`works with old extension version`, async ({ browser
   });
 
   const selectorPage = await confirmationPagePromise;
-  // For browser_navigate command, the UI shows Allow/Reject buttons instead of tab selector
-  await selectorPage.getByRole('button', { name: 'Allow' }).click();
+  await selectorPage.locator('.tab-item', { hasText: 'Playwright MCP extension' }).getByRole('button', { name: 'Connect' }).click();
 
   expect(await navigateResponse).toHaveResponse({
     snapshot: expect.stringContaining(`- generic [active] [ref=e1]: Hello, world!`),
@@ -386,11 +390,104 @@ test(`bypass connection dialog with token`, async ({ browserWithExtension, start
   });
 });
 
-test.describe('CLI with extension', () => {
-  test('open <url> --extension', async ({ browserWithExtension, cli, server }, testInfo) => {
+test.describe('tab grouping', () => {
+  test('connect page is added to green Playwright group on relay connect', async ({ browserWithExtension, startClient, server }) => {
+    const browserContext = await browserWithExtension.launch();
+    const client = await startWithExtensionFlag(browserWithExtension, startClient);
+
+    const connectPagePromise = browserContext.waitForEvent('page', page =>
+      page.url().startsWith(`chrome-extension://${extensionId}/connect.html`)
+    );
+
+    const navigatePromise = client.callTool({ name: 'browser_navigate', arguments: { url: server.HELLO_WORLD } });
+    const connectPage = await connectPagePromise;
+
+    // Wait for the tab list to appear — this means connectToMCPRelay was processed
+    // by the background and _addTabToGroup has been called.
+    await expect(connectPage.locator('.tab-item').first()).toBeVisible();
+
+    const group = await connectPage.evaluate(async () => {
+      const chrome = (window as any).chrome;
+      const tab = await chrome.tabs.getCurrent();
+      if (!tab || tab.groupId === -1)
+        return null;
+      const g = await chrome.tabGroups.get(tab.groupId);
+      return { color: g.color, title: g.title };
+    });
+
+    expect(group).toEqual({ color: 'green', title: 'Playwright' });
+
+    await connectPage.locator('.tab-item', { hasText: 'Playwright MCP extension' }).getByRole('button', { name: 'Connect' }).click();
+    await navigatePromise;
+  });
+
+  test('connected tab is added to same Playwright group', async ({ browserWithExtension, startClient, server }) => {
     const browserContext = await browserWithExtension.launch();
 
-    // Write config file with userDataDir 
+    const page = await browserContext.newPage();
+    await page.goto(server.HELLO_WORLD);
+
+    const client = await startWithExtensionFlag(browserWithExtension, startClient);
+
+    const connectPagePromise = browserContext.waitForEvent('page', page =>
+      page.url().startsWith(`chrome-extension://${extensionId}/connect.html`)
+    );
+
+    const navigatePromise = client.callTool({ name: 'browser_navigate', arguments: { url: server.HELLO_WORLD } });
+    const connectPage = await connectPagePromise;
+
+    await connectPage.locator('.tab-item', { hasText: 'Title' }).getByRole('button', { name: 'Connect' }).click();
+    await navigatePromise;
+
+    const { connectGroupId, connectedGroupId } = await connectPage.evaluate(async () => {
+      const chrome = (window as any).chrome;
+      const connectTab = await chrome.tabs.getCurrent();
+      const [connectedTab] = await chrome.tabs.query({ title: 'Title' });
+      return {
+        connectGroupId: connectTab?.groupId,
+        connectedGroupId: connectedTab?.groupId,
+      };
+    });
+
+    expect(connectGroupId).not.toBe(-1);
+    expect(connectedGroupId).toBe(connectGroupId);
+  });
+
+  test('connected tab is removed from group on disconnect', async ({ browserWithExtension, startClient, server }) => {
+    const browserContext = await browserWithExtension.launch();
+
+    const page = await browserContext.newPage();
+    await page.goto(server.HELLO_WORLD);
+
+    const client = await startWithExtensionFlag(browserWithExtension, startClient);
+
+    const connectPagePromise = browserContext.waitForEvent('page', page =>
+      page.url().startsWith(`chrome-extension://${extensionId}/connect.html`)
+    );
+
+    const navigatePromise = client.callTool({ name: 'browser_navigate', arguments: { url: server.HELLO_WORLD } });
+    const connectPage = await connectPagePromise;
+
+    await connectPage.locator('.tab-item', { hasText: 'Title' }).getByRole('button', { name: 'Connect' }).click();
+    await navigatePromise;
+
+    await client.close();
+
+    await expect.poll(async () => {
+      return connectPage.evaluate(async () => {
+        const chrome = (window as any).chrome;
+        const [tab] = await chrome.tabs.query({ title: 'Title' });
+        return tab?.groupId ?? -1;
+      });
+    }).toBe(-1);
+  });
+});
+
+test.describe('CLI with extension', () => {
+  test('attach <url> --extension', async ({ browserWithExtension, cli, server }, testInfo) => {
+    const browserContext = await browserWithExtension.launch();
+
+    // Write config file with userDataDir
     const configPath = testInfo.outputPath('cli-config.json');
     await fs.writeFile(configPath, JSON.stringify({
       browser: {
@@ -403,7 +500,7 @@ test.describe('CLI with extension', () => {
     });
 
     // Start the CLI command in the background
-    const cliPromise = cli('open', server.HELLO_WORLD, '--extension', `--config=cli-config.json`);
+    const cliPromise = cli('attach', '--extension', `--config=cli-config.json`);
 
     // Wait for the confirmation page to appear
     const confirmationPage = await confirmationPagePromise;
@@ -411,12 +508,21 @@ test.describe('CLI with extension', () => {
     // Click the Connect button
     await confirmationPage.locator('.tab-item', { hasText: 'Playwright MCP extension' }).getByRole('button', { name: 'Connect' }).click();
 
-    // Wait for the CLI command to complete
-    const { output } = await cliPromise;
+    {
+      // Wait for the CLI command to complete
+      const { output } = await cliPromise;
+      // Verify the output
+      expect(output).toContain(`### Page`);
+      expect(output).toContain(`- Page URL: chrome-extension://${extensionId}/connect.html?`);
+      expect(output).toContain(`- Page Title: Playwright MCP extension`);
+    }
 
-    // Verify the output
-    expect(output).toContain(`### Page`);
-    expect(output).toContain(`- Page URL: ${server.HELLO_WORLD}`);
-    expect(output).toContain(`- Page Title: Title`);
+    {
+      const { output } = await cli('goto', server.HELLO_WORLD);
+      // Verify the output
+      expect(output).toContain(`### Page`);
+      expect(output).toContain(`- Page URL: ${server.HELLO_WORLD}`);
+      expect(output).toContain(`- Page Title: Title`);
+    }
   });
 });

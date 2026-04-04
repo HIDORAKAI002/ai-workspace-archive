@@ -1,0 +1,32 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gofumpt
+        name: gofumpt
+        entry: gofumpt -w
+        language: system
+        types: [ go ]
+      - id: error groups
+        name: error groups
+        entry: ./tools/linter_error_groups.sh
+        language: system
+        types: [ go ]
+      - id: go routines
+        name: go routines
+        entry: ./tools/linter_go_routines.sh
+        language: system
+        types: [ go ]
+      - id: wait groups
+        name: wait groups
+        entry: ./tools/linter_waitgroups_done.sh
+        language: system
+        types: [ go ]
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.11.3
+    hooks:
+      - id: golangci-lint
+        args: [--new-from-rev=HEAD]
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black

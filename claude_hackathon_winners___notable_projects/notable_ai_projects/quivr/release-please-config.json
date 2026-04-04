@@ -1,0 +1,12 @@
+{
+    "packages": {
+        "core": {
+            "release-type": "python",
+            "package-name": "core",
+            "bump-patch-for-minor-pre-major": true,
+            "include-v-in-tag": false,
+            "tag-separator": "-",
+            "component": "core"
+        }
+    }
+}

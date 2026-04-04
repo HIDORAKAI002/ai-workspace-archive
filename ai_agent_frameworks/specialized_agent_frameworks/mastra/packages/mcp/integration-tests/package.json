@@ -1,0 +1,34 @@
+{
+  "name": "mcp-server-integration-tests",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test:mcp": "vitest run ./src/server.test.ts",
+    "dev": "mastra dev"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^1.2.12",
+    "@mastra/client-js": "*",
+    "@mastra/mcp": "*",
+    "dotenv": "^17.2.3",
+    "vite": "^7.3.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@mastra/core": "*",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "22.19.15",
+    "get-port": "^7.1.0",
+    "mastra": "*",
+    "typescript": "catalog:",
+    "vitest": "^4.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mastra/core": "link:../../core",
+      "@mastra/mcp": "link:../",
+      "@mastra/client-js": "link:../../../client-sdks/client-js",
+      "mastra": "link:../../cli"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "@trigger.dev/otlp-importer",
+  "version": "3.0.0",
+  "description": "OpenTelemetry OTLP Importer for Node.js written in TypeScript",
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "module": "./src/index.ts",
+  "private": true,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./src/index.ts",
+        "default": "./src/index.ts"
+      },
+      "require": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "generate:code": "npm run protos",
+    "protos": "npm run submodule && npm run protos:generate",
+    "protos:generate": "node ./scripts/generate-protos.mjs",
+    "submodule": "node ./scripts/submodule.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "rimraf": "^3.0.2",
+    "ts-proto": "^1.167.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "long": "^5.2.3",
+    "protobufjs": "^7.2.6"
+  }
+}

@@ -1,0 +1,135 @@
+---
+title: server
+sidebarTitle: server
+---
+
+# `prefect.cli.server`
+
+
+
+Server command — native cyclopts implementation.
+
+Start and manage the Prefect server.
+
+
+## Functions
+
+### `start` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L47" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+start()
+```
+
+
+Start a Prefect server instance.
+
+
+### `status` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L247" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+status()
+```
+
+
+Check the status of the Prefect server.
+
+
+### `stop` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L360" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stop()
+```
+
+
+Stop a Prefect server instance running in the background.
+
+
+### `reset` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L386" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+reset()
+```
+
+
+Drop and recreate all Prefect database tables.
+
+
+### `upgrade` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L417" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+upgrade()
+```
+
+
+Upgrade the Prefect database.
+
+
+### `downgrade` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L458" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+downgrade()
+```
+
+
+Downgrade the Prefect database.
+
+
+### `revision` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L502" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+revision()
+```
+
+
+Create a new migration for the Prefect database.
+
+
+### `stamp` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L526" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stamp(revision: str)
+```
+
+
+Stamp the revision table with the given revision; don't run any migrations.
+
+
+### `list_services` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L541" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+list_services()
+```
+
+
+List all available services and their status.
+
+
+### `start_services` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L599" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+start_services()
+```
+
+
+Start all enabled Prefect services in one process.
+
+
+### `stop_services` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L667" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+stop_services()
+```
+
+
+Stop any background Prefect services that were started.
+
+
+### `run_manager_process` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py#L718" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+run_manager_process()
+```
+
+
+Internal entrypoint for background services.
+

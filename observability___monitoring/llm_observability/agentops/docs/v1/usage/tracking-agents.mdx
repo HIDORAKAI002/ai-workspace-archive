@@ -1,0 +1,76 @@
+---
+title: "Tracking Agents"
+description: "Use the `@agent` decorator to create agent spans"
+---
+
+All operations are automatically associated with the agent that originated them. Agents are given a name which is what you will see in the dashboard.
+
+<Frame type="glass" caption="This operation is labeled with the name of the Agent that originated it">
+  <img height="200" src="/images/agent-name.png" />
+</Frame>
+
+The example below creates an agent class with a custom name:
+
+```python
+from agentops.sdk.decorators import agent
+
+@agent(name='ResearchAgent')
+class MyAgent:
+    def __init__(self):
+        # Agent initialization
+        pass
+        
+    # Agent methods
+```
+
+If you don't specify a name, the agent will use the class name by default:
+
+```python
+@agent
+class ResearchAgent:
+    # This agent will have the name "ResearchAgent"
+    pass
+```
+
+## Nesting Operations Under Agents
+
+Operations performed by an agent should be decorated with the `@operation` decorator to ensure they're properly nested under the agent:
+
+```python
+from agentops.sdk.decorators import agent, operation
+
+@agent
+class ResearchAgent:
+    @operation
+    def search_web(self, query):
+        # Search implementation
+        return results
+        
+    @operation
+    def analyze_data(self, data):
+        # Analysis implementation
+        return analysis
+```
+
+## Session Context
+
+Agents should be created within a session context to ensure proper tracing:
+
+```python
+from agentops.sdk.decorators import session, agent, operation
+
+@agent
+class ResearchAgent:
+    @operation
+    def perform_research(self, topic):
+        # Research implementation
+        return results
+
+@session
+def research_workflow(topic):
+    agent = ResearchAgent()
+    return agent.perform_research(topic)
+    
+# Run the session
+result = research_workflow("quantum computing")
+```

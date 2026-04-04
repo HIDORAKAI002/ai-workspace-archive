@@ -1,0 +1,75 @@
+import { Database } from "../../lib/db/database.types";
+import { AuthParams } from "../../packages/common/auth/types";
+import { Result } from "../../packages/common/result";
+import { AlertStore } from "../../lib/stores/AlertStore";
+import { BaseManager } from "../BaseManager";
+import { FilterExpression } from "@helicone-package/filters/types";
+import {
+  AlertMetric,
+  AlertAggregation,
+  AlertGrouping,
+} from "@helicone-package/filters/alerts";
+
+export interface AlertRequest {
+  name: string;
+  metric: AlertMetric;
+  threshold: number;
+  aggregation: AlertAggregation | null;
+  percentile: number | null;
+  grouping: AlertGrouping | null;
+  grouping_is_property: boolean | null;
+  time_window: string;
+  emails: string[];
+  slack_channels: string[];
+  minimum_request_count: number | undefined;
+  filter: FilterExpression | null;
+}
+
+export interface AlertHistory {
+  alert_end_time: string | null;
+  alert_id: string;
+  alert_metric: string;
+  alert_name: string;
+  alert_start_time: string;
+  created_at: string | null;
+  id: string;
+  org_id: string;
+  soft_delete: boolean;
+  status: string;
+  triggered_value: string;
+  updated_at: string | null;
+}
+
+export interface AlertResponse {
+  alerts: Database["public"]["Tables"]["alert"]["Row"][];
+  history: Database["public"]["Tables"]["alert_history"]["Row"][];
+  historyTotalCount: number;
+}
+
+export interface GetAlertsOptions {
+  historyPage: number;
+  historyPageSize: number;
+}
+
+export class AlertManager extends BaseManager {
+  private alertStore: AlertStore;
+
+  constructor(authParams: AuthParams) {
+    super(authParams);
+    this.alertStore = new AlertStore(authParams.organizationId);
+  }
+
+  async getAlerts(
+    options?: GetAlertsOptions
+  ): Promise<Result<AlertResponse, string>> {
+    return this.alertStore.getAlerts(options);
+  }
+
+  async createAlert(alert: AlertRequest): Promise<Result<string, string>> {
+    return this.alertStore.createAlert(alert);
+  }
+
+  async deleteAlert(alertId: string): Promise<Result<null, string>> {
+    return this.alertStore.deleteAlert(alertId);
+  }
+}

@@ -1,0 +1,24 @@
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit]
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        name: ruff (lint)
+        types_or: [python, pyi]
+        files: ^(dspy|tests)/.*\.py$
+        exclude: ^(dspy/__metadata__\.py|tests/reliability/.*\.py)$
+        args: [--fix-only]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: ["--allow-multiple-documents", "--unsafe"]
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: debug-statements

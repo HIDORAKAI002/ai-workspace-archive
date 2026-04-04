@@ -1,0 +1,147 @@
+# Pick your baseUrl here:
+# @baseUrl = http://localhost:3002
+@baseUrl = https://api.firecrawl.dev
+
+### Scrape Website
+# @name scrape
+POST {{baseUrl}}/v2/scrape HTTP/1.1
+Authorization: Bearer {{TEST_API_KEY}}
+content-type: application/json
+
+{
+  "url": "https://www.a-pdf.com/ocr/demo.pdf",
+  "parsers": [{ "type": "pdf" }],
+  "maxAge": 0
+}
+
+### Crawl Website
+# @name crawl
+POST {{baseUrl}}/v2/crawl HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "url":"https://firecrawl.dev"
+}
+
+### Check Crawl Status
+@crawlId = {{crawl.response.body.$.id}}
+# @name crawlStatus
+GET {{baseUrl}}/v2/crawl/{{crawlId}} HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Cancel Crawl
+@crawlId = {{crawl.response.body.$.id}}
+# @name cancelCrawl
+DELETE {{baseUrl}}/v2/crawl/{{crawlId}} HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Extract website
+# @name extract
+POST {{baseUrl}}/v2/extract HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "urls": ["https://firecrawl.dev"],
+  "schema": {
+    "type": "object",
+    "properties": {
+      "companyName": {
+        "type": "string"
+      },
+      "companyDescription": {
+        "type": "string"
+      }
+    }
+  },
+  "agent": {
+    "model": "fire-1"
+  },
+  "origin": "api-sdk"
+}
+
+### Check Extract Status
+@extractId = {{extract.response.body.$.id}}
+# @name extractStatus
+GET {{baseUrl}}/v2/extract/{{extractId}} HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Batch Scrape Websites
+# @name batchScrape
+POST {{baseUrl}}/v2/batch/scrape HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "urls": [
+    "firecrawl.dev",
+    "mendable.ai"
+  ]
+}
+
+### Check Batch Scrape Status
+@batchScrapeId = {{batchScrape.response.body.$.id}}
+# @name batchScrapeStatus
+GET {{baseUrl}}/v2/batch/scrape/{{batchScrapeId}} HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Map Website
+# @name map
+POST {{baseUrl}}/v2/map HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "url": "firecrawl.dev",
+  "sitemapOnly": true
+}
+
+### Search
+# @name search
+POST {{baseUrl}}/v2/search HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "query": "firecrawl",
+  "limit": 50
+}
+
+### Get Active Crawls
+# @name activeCrawls
+GET {{baseUrl}}/v2/crawl/active HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Generate LLMs TXT
+# @name generateLlmsTxt
+POST {{baseUrl}}/v1/llmstxt HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "url": "https://firecrawl.dev",
+  "maxUrls": 1,
+  "showFullText": false,
+  "cache": true
+}
+
+
+### Check Generate LLMs TXT Status
+@generateLlmsTxtId = {{generateLlmsTxt.response.body.$.id}}
+# @name generateLlmsTxtStatus
+GET {{baseUrl}}/v1/llmstxt/{{generateLlmsTxtId}} HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Search with Wallet
+@paymentHeaderSearch = 'EXAMPLE-PAYMENT-HEADER'
+# @name searchWithWallet
+POST {{baseUrl}}/v1/x402/search HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+X-Payment: {{paymentHeaderSearch}}
+
+{
+  "query": "Premier League fixtures for the 2025/26 season",
+  "limit": 2
+}

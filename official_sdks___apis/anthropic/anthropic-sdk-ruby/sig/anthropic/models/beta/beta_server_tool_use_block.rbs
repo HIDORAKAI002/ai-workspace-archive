@@ -1,0 +1,82 @@
+module Anthropic
+  module Models
+    class BetaServerToolUseBlock = Beta::BetaServerToolUseBlock
+
+    module Beta
+      type beta_server_tool_use_block =
+        {
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: Anthropic::Models::Beta::BetaServerToolUseBlock::name_,
+          type: :server_tool_use,
+          caller_: Anthropic::Models::Beta::BetaServerToolUseBlock::caller_
+        }
+
+      class BetaServerToolUseBlock < Anthropic::Internal::Type::BaseModel
+        attr_accessor id: String
+
+        attr_accessor input: ::Hash[Symbol, top]
+
+        attr_accessor name: Anthropic::Models::Beta::BetaServerToolUseBlock::name_
+
+        attr_accessor type: :server_tool_use
+
+        attr_reader caller_: Anthropic::Models::Beta::BetaServerToolUseBlock::caller_?
+
+        def caller_=: (
+          Anthropic::Models::Beta::BetaServerToolUseBlock::caller_
+        ) -> Anthropic::Models::Beta::BetaServerToolUseBlock::caller_
+
+        def initialize: (
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: Anthropic::Models::Beta::BetaServerToolUseBlock::name_,
+          ?caller_: Anthropic::Models::Beta::BetaServerToolUseBlock::caller_,
+          ?type: :server_tool_use
+        ) -> void
+
+        def to_hash: -> {
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: Anthropic::Models::Beta::BetaServerToolUseBlock::name_,
+          type: :server_tool_use,
+          caller_: Anthropic::Models::Beta::BetaServerToolUseBlock::caller_
+        }
+
+        type name_ =
+          :web_search
+          | :web_fetch
+          | :code_execution
+          | :bash_code_execution
+          | :text_editor_code_execution
+          | :tool_search_tool_regex
+          | :tool_search_tool_bm25
+
+        module Name
+          extend Anthropic::Internal::Type::Enum
+
+          WEB_SEARCH: :web_search
+          WEB_FETCH: :web_fetch
+          CODE_EXECUTION: :code_execution
+          BASH_CODE_EXECUTION: :bash_code_execution
+          TEXT_EDITOR_CODE_EXECUTION: :text_editor_code_execution
+          TOOL_SEARCH_TOOL_REGEX: :tool_search_tool_regex
+          TOOL_SEARCH_TOOL_BM25: :tool_search_tool_bm25
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::BetaServerToolUseBlock::name_]
+        end
+
+        type caller_ =
+          Anthropic::Beta::BetaDirectCaller
+          | Anthropic::Beta::BetaServerToolCaller
+          | Anthropic::Beta::BetaServerToolCaller20260120
+
+        module Caller
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaServerToolUseBlock::caller_]
+        end
+      end
+    end
+  end
+end

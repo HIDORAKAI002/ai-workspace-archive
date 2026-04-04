@@ -3,7 +3,7 @@
   import { clickOutside, Icon, ActionMenu, MenuItem } from "@budibase/bbui"
   import APIEndpointVerbBadge from "./APIEndpointVerbBadge.svelte"
   import { customQueryIconColor } from "@/helpers/data/utils"
-  import { applyBaseUrl } from "./query"
+  import { applyBaseUrl } from "@budibase/shared-core"
 
   export let verb: string = "read"
   export let url: string = ""

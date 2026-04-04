@@ -1,0 +1,324 @@
+/* ========================================
+   Video Search Widget Styles
+   ======================================== */
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fullscreen mode - fill available space */
+.video-app[data-display-mode='fullscreen'] .video-grid {
+  max-height: none;
+}
+
+.video-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  animation: fadeInUp 0.3s ease both;
+  width: 100%;
+}
+
+.video-card-shell {
+  position: relative;
+}
+
+html[data-theme='dark'] .video-card {
+  box-shadow: var(--card-shadow);
+}
+
+.video-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent);
+}
+
+html[data-theme='dark'] .video-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+.video-card--embeddable:hover {
+  border-color: #ff0000;
+}
+
+/* In-context card state */
+.video-card--in-context {
+  border-color: var(--accent);
+}
+
+.video-card--in-context:hover {
+  border-color: var(--accent);
+}
+
+/* Position context button at the top-right of the card */
+.video-card-shell .context-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 10;
+  width: 26px;
+  height: 26px;
+}
+
+.video-thumbnail {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-ink-soft);
+  overflow: hidden;
+}
+
+.video-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.video-duration {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: color-mix(in oklab, var(--color-text) 80%, transparent);
+  color: var(--color-text-inverse);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.video-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.2s ease;
+  opacity: 0;
+}
+
+.video-card:hover .video-play-overlay {
+  background: color-mix(in oklab, var(--color-text) 30%, transparent);
+  opacity: 1;
+}
+
+.video-play-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--color-surface) 90%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-ink);
+  transition: transform 0.2s ease;
+}
+
+.video-play-button--youtube {
+  background: #ff0000;
+  color: var(--color-text-inverse);
+}
+
+.video-card:hover .video-play-button {
+  transform: scale(1.1);
+}
+
+.video-embed-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #ff0000;
+  color: var(--color-text-inverse);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.video-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.video-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-ink);
+  line-height: 1.3;
+  min-height: calc(1.3em * 2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.video-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 16px;
+}
+
+.video-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.video-creator {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.video-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  min-height: calc(11px * 1.3);
+}
+
+.video-stats-dot {
+  opacity: 0.5;
+}
+
+/* Video Modal */
+.video-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--color-text) 85%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.video-modal {
+  position: relative;
+  width: 90vw;
+  max-width: 900px;
+  background: var(--bg-ink);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: scaleIn 0.2s ease;
+}
+
+.video-modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  padding: 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.video-modal-close:hover {
+  opacity: 1;
+}
+
+.video-modal-content {
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+
+.video-modal-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-modal-title {
+  padding: 12px 16px;
+  color: var(--color-text-inverse);
+  font-size: 14px;
+  font-weight: 500;
+  background: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .video-title {
+    font-size: 13px;
+  }
+
+  .video-modal {
+    width: 95vw;
+  }
+}
+
+/* ========================================
+   Picture-in-Picture Mode
+   ======================================== */
+
+.video-pip-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-pip-iframe {
+  /* Maintain 16:9 aspect ratio while fitting within container */
+  width: 100%;
+  height: 100%;
+  max-width: calc(100vh * 16 / 9);
+  max-height: calc(100vw * 9 / 16);
+  aspect-ratio: 16 / 9;
+  border: none;
+}

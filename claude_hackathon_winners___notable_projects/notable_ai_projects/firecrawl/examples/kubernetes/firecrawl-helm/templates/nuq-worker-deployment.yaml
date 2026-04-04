@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "firecrawl.fullname" . }}-nuq-worker
+  labels:
+    app: {{ include "firecrawl.name" . }}-nuq-worker
+spec:
+  replicas: {{ .Values.nuqWorker.replicaCount | default 5 }}
+  selector:
+    matchLabels:
+      app: {{ include "firecrawl.name" . }}-nuq-worker
+  template:
+    metadata:
+      labels:
+        app: {{ include "firecrawl.name" . }}-nuq-worker
+    spec:
+      {{- if .Values.image.dockerSecretEnabled }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: nuq-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "node" ]
+          args: [ "--max-old-space-size=3072", "dist/src/services/worker/nuq-worker.js" ]
+          ports:
+            - containerPort: {{ .Values.nuqWorker.port | int }}
+          env:
+            - name: FLY_PROCESS_GROUP
+              value: "nuq-worker"
+            - name: NUQ_WORKER_PORT
+              value: {{ .Values.nuqWorker.port | quote }}
+            - name: NUQ_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          envFrom:
+            - configMapRef:
+                name: {{ include "firecrawl.fullname" . }}-config
+            - secretRef:
+                name: {{ include "firecrawl.fullname" . }}-secret
+          {{- if .Values.resources.enabled }}
+            {{- if .Values.nuqWorker.resources }}
+          resources:
+              {{- toYaml .Values.nuqWorker.resources | nindent 12 }}
+            {{- else }}
+          resources:
+              requests:
+                memory: "3G"
+                cpu: "1000m"
+              limits:
+                memory: "4G"
+                cpu: "1000m"
+            {{- end }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.nuqWorker.port | int }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.nuqWorker.port | int }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3

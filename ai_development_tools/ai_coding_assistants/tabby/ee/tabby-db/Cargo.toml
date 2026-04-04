@@ -1,0 +1,34 @@
+[package]
+name = "tabby-db"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+
+[features]
+testutils = []
+
+[dependencies]
+tabby-db-macros = { path = "../tabby-db-macros" }
+anyhow.workspace = true
+chrono = { workspace = true, features = ["serde"] }
+hash-ids.workspace = true
+lazy_static.workspace = true
+sql_query_builder = { version = "2.1.0", features = ["sqlite"] }
+tokio = { workspace = true, features = ["fs"] }
+uuid.workspace = true
+cached = { workspace = true, features = ["async"] }
+serde.workspace = true
+serde_json.workspace = true
+sqlx = { workspace = true, features = [
+    "sqlite",
+    "chrono",
+    "runtime-tokio",
+    "macros",
+    "json",
+] }
+sqlx-migrate-validate = { path = "../../crates/sqlx-migrate-validate" }
+
+[dev-dependencies]
+assert_matches.workspace = true
+tokio = { workspace = true, features = ["macros", "process"] }

@@ -1,0 +1,71 @@
+---
+title: ip_allowlist
+sidebarTitle: ip_allowlist
+---
+
+# `prefect.cli.cloud.ip_allowlist`
+
+
+Manage Prefect Cloud IP Allowlists.
+
+## Functions
+
+### `ip_allowlist_enable` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L123" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_enable()
+```
+
+
+Enable the IP allowlist for your account. When enabled, if the allowlist is non-empty, then access to your Prefect Cloud account will be restricted to only those IP addresses on the allowlist.
+
+
+### `ip_allowlist_disable` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L155" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_disable()
+```
+
+
+Disable the IP allowlist for your account. When disabled, all IP addresses will be allowed to access your Prefect Cloud account.
+
+
+### `ip_allowlist_ls` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L169" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_ls()
+```
+
+
+Fetch and list all IP allowlist entries in your account.
+
+
+### `ip_allowlist_add` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L182" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_add(ip_address_or_range: Annotated[str, cyclopts.Parameter(help='An IP address or range in CIDR notation. E.g. 192.168.1.0 or 192.168.1.0/24')])
+```
+
+
+Add a new IP entry to your account IP allowlist.
+
+
+### `ip_allowlist_remove` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L242" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_remove(ip_address_or_range: Annotated[str, cyclopts.Parameter(help='An IP address or range in CIDR notation. E.g. 192.168.1.0 or 192.168.1.0/24')])
+```
+
+
+Remove an IP entry from your account IP allowlist.
+
+
+### `ip_allowlist_toggle` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/ip_allowlist.py#L274" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+ip_allowlist_toggle(ip_address_or_range: Annotated[str, cyclopts.Parameter(help='An IP address or range in CIDR notation. E.g. 192.168.1.0 or 192.168.1.0/24')])
+```
+
+
+Toggle the enabled status of an individual IP entry in your account IP allowlist.
+

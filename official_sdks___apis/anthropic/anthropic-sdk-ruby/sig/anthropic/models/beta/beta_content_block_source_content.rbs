@@ -1,0 +1,17 @@
+module Anthropic
+  module Models
+    module BetaContentBlockSourceContent = Beta::BetaContentBlockSourceContent
+
+    module Beta
+      type beta_content_block_source_content =
+        Anthropic::Beta::BetaTextBlockParam
+        | Anthropic::Beta::BetaImageBlockParam
+
+      module BetaContentBlockSourceContent
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Beta::beta_content_block_source_content]
+      end
+    end
+  end
+end

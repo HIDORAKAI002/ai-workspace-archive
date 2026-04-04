@@ -1,0 +1,302 @@
+"use client";
+
+import { cn, ISLAND_WIDTH } from "@/lib/utils";
+import { CircleStackIcon, TableCellsIcon } from "@heroicons/react/24/outline";
+import {
+  BellIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  DatabaseIcon,
+  HomeIcon,
+  ListTreeIcon,
+  RocketIcon,
+  ScrollTextIcon,
+  ShieldIcon,
+  TagIcon,
+  UsersIcon,
+  WandIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { Button, buttonVariants } from "../ui/button";
+import Image from "next/image";
+
+const IMG_PATH = {
+  dashboard: "/static/home/dashboard.webp",
+  requests: "/static/home/requests.webp",
+  sessions: "/static/home/sessions.webp",
+};
+
+const Prototype = () => {
+  const [openedPage, setOpenedPage] = useState<
+    "dashboard" | "requests" | "sessions"
+  >("dashboard");
+
+  return (
+    <div className=" bg-gradient-to-b from-white from-50% via-[#f2f9fc80] via-[61%] to-[#f2f9fc]">
+      <div className={cn(ISLAND_WIDTH, "pt-6 pb-12")}>
+        <div className="bg-white rounded-[20px] p-1 lg:p-3 border border-[#D1D5DC] aspect-[2/1] shadow-md">
+          <div className="hidden lg:grid w-full h-full bg-[#f8fafc] border border-[#f0f0f0] rounded-xl grid-cols-6">
+            <PrototypeSidebar
+              openedPage={openedPage}
+              setOpenedPage={setOpenedPage}
+            />
+            <div className="col-span-5">
+              <Image
+                src={IMG_PATH[openedPage]}
+                alt={openedPage}
+                width={1000}
+                height={500}
+                quality={100}
+                className="w-full h-full object-contain"
+                priority
+              />
+            </div>
+          </div>
+          <div className="block lg:hidden">
+            <Image
+              src="/static/home/mobile/dashboard_with_sidebar.webp"
+              alt="dashboard"
+              width={1200}
+              height={600}
+              quality={90}
+              className="w-full h-full object-contain"
+              priority
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PrototypeSidebar = ({
+  openedPage,
+  setOpenedPage,
+}: {
+  openedPage: "dashboard" | "requests" | "sessions";
+  setOpenedPage: (page: "dashboard" | "requests" | "sessions") => void;
+}) => {
+  return (
+    <div className="bg-white border-r border-[#e5e7eb] h-full flex-1 rounded-l-xl overflow-y-hidden">
+      <div className="w-full flex flex-col h-full border-r dark:border-slate-800 px-2">
+        <div className="flex-grow overflow-y-hidden pb-14">
+          <div className="flex items-center justify-between gap-2 h-14 border-b dark:border-slate-800 mx-1">
+            <Button
+              variant="ghost"
+              className="flex items-center justify-start w-full p-2 truncate"
+            >
+              <RocketIcon className="mr-2 flex-shrink-0 h-4 w-4 text-[#5592F8]" />
+              <p className="text-xs text-black font-semibold w-fit text-left">
+                Xpedia AI
+              </p>
+            </Button>
+            <Button variant="ghost" size="icon">
+              <ChevronLeftIcon className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex flex-col justify-between h-[calc(100%-16px)] ">
+            {/* Navigation items */}
+            <div className="flex flex-col justify-between">
+              <div className="group flex flex-col py-2 data-[collapsed=true]:py-2 ">
+                <nav className="grid gap-y-1 flex-grow overflow-y-hidden px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant:
+                          openedPage === "dashboard" ? "secondary" : "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2 cursor-pointer"
+                    )}
+                    onClick={() => setOpenedPage("dashboard")}
+                  >
+                    <div className="flex items-center">
+                      <HomeIcon className="mr-2 h-4 w-4" />
+                      <div className="relative">
+                        Dashboard
+                        {openedPage !== "dashboard" && (
+                          <>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px]"></div>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px] animate-ping"></div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant:
+                          openedPage === "requests" ? "secondary" : "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2 cursor-pointer"
+                    )}
+                    onClick={() => setOpenedPage("requests")}
+                  >
+                    <div className="flex items-center">
+                      <TableCellsIcon className="mr-2 h-4 w-4" />
+                      <div className="relative">
+                        Requests
+                        {openedPage !== "requests" && (
+                          <>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px]"></div>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px] animate-ping"></div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 font-normal text-slate-400 mt-[10px] text-[11px]">
+                    <div className="flex items-center">
+                      Segments
+                      <ChevronDownIcon className="h-3 w-3 transition-transform" />
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant:
+                          openedPage === "sessions" ? "secondary" : "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2 cursor-pointer"
+                    )}
+                    onClick={() => setOpenedPage("sessions")}
+                  >
+                    <div className="flex items-center">
+                      <ListTreeIcon className="mr-2 h-4 w-4" />
+                      <div className="relative">
+                        Sessions
+                        {openedPage !== "sessions" && (
+                          <>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px]"></div>
+                            <div className="absolute w-1.5 h-1.5 bg-[#32ACEB] rounded-full top-[1px] right-[-9px] animate-ping"></div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <UsersIcon className="mr-2 h-4 w-4" />
+                      Users
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <CodeIcon className="mr-2 h-4 w-4" />
+                      HQL
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 font-normal text-slate-400 mt-[10px] text-[11px]">
+                    <div className="flex items-center">
+                      Improve
+                      <ChevronDownIcon className="h-3 w-3 transition-transform" />
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <ScrollTextIcon className="mr-2 h-4 w-4" />
+                      Prompts
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <CircleStackIcon className="mr-2 h-4 w-4" />
+                      Datasets
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <WandIcon className="mr-2 h-4 w-4" />
+                      Playground
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 font-normal text-slate-400 mt-[10px] text-[11px]">
+                    <div className="flex items-center">
+                      Monitor
+                      <ChevronDownIcon className="h-3 w-3 transition-transform" />
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <ShieldIcon className="mr-2 h-4 w-4" />
+                      Rate Limits
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                      }),
+                      "justify-start w-full text-[12px] h-8 px-2"
+                    )}
+                  >
+                    <div className="flex items-center">
+                      <BellIcon className="mr-2 h-4 w-4" />
+                      Alerts
+                    </div>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Prototype;

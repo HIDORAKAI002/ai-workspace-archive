@@ -1,0 +1,26 @@
+# Provider: `<%= name %>`
+
+<%= name %> provider integration for VoltAgent.
+
+## 🚀 Quick Start
+
+```bash
+npm install @voltagent/<%= name %>
+```
+
+```typescript
+import { Agent } from '@voltagent/core';
+import { <%= classify(name) %>Provider } from '@voltagent/<%= name %>';
+
+const agent = new Agent<BaseProvider>({
+  id: 'my-agent'
+  purpose: 'Do agentic-things',
+  instructions: 'You are an AI Agent...',
+  llm: new <%= classify(name) %>Provider,
+  ...opts,
+});
+```
+
+## 📄 License
+
+MIT License - see LICENSE file for details.

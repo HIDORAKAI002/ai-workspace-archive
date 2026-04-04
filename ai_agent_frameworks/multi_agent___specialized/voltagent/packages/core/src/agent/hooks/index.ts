@@ -1,0 +1,270 @@
+import type { ModelMessage } from "@ai-sdk/provider-utils";
+import type { UIMessage } from "ai";
+import type { AgentTool } from "../../tool";
+import type { Agent } from "../agent";
+import type { AbortError, CancellationError, VoltAgentError } from "../errors";
+import type { ToolExecuteOptions, UsageInfo } from "../providers/base/types";
+import type { AgentEvalOperationType, AgentOperationOutput, OperationContext } from "../types";
+
+// Argument Object Interfaces (old API restored, adapted for AI SDK types)
+export interface OnStartHookArgs {
+  agent: Agent;
+  context: OperationContext;
+}
+
+export interface OnEndHookArgs {
+  /** The conversation ID. */
+  conversationId: string;
+  /** The agent that generated the output. */
+  agent: Agent;
+  /** The standardized successful output object. Undefined on error. */
+  output: AgentOperationOutput | undefined;
+  /** The error object if the operation failed. */
+  error: VoltAgentError | CancellationError | undefined;
+  /** The operation context. */
+  context: OperationContext;
+}
+
+export interface OnHandoffHookArgs {
+  agent: Agent;
+  sourceAgent: Agent;
+}
+
+export interface OnHandoffCompleteHookArgs {
+  /** The target agent (subagent) that completed the task. */
+  agent: Agent;
+  /** The source agent (supervisor) that delegated the task. */
+  sourceAgent: Agent;
+  /** The result produced by the subagent. */
+  result: string;
+  /** The full conversation messages including the task and response. */
+  messages: UIMessage[];
+  /** Token usage information from the subagent execution. */
+  usage?: UsageInfo;
+  /** The operation context containing metadata about the operation. */
+  context: OperationContext;
+  /**
+   * Call this function to bail (skip supervisor processing) and return result directly.
+   * Optionally provide a transformed result to use instead of the original.
+   * @param transformedResult - Optional transformed result to return instead of original
+   */
+  bail: (transformedResult?: string) => void;
+}
+
+export interface OnToolStartHookArgs {
+  agent: Agent;
+  tool: AgentTool;
+  context: OperationContext;
+  args: any;
+  options?: ToolExecuteOptions;
+}
+
+export interface OnToolEndHookArgs {
+  agent: Agent;
+  tool: AgentTool;
+  /** The successful output from the tool. Undefined on error. */
+  output: unknown | undefined;
+  /** The error if the tool execution failed. */
+  error: VoltAgentError | AbortError | undefined;
+  context: OperationContext;
+  options?: ToolExecuteOptions;
+}
+
+export interface OnToolEndHookResult {
+  output?: unknown;
+}
+
+export interface OnToolErrorHookArgs {
+  agent: Agent;
+  tool: AgentTool;
+  args: any;
+  /** Structured VoltAgentError for this failure. */
+  error: VoltAgentError | AbortError;
+  /** Original thrown value normalized to an Error instance. */
+  originalError: Error;
+  context: OperationContext;
+  options?: ToolExecuteOptions;
+}
+
+export interface OnToolErrorHookResult {
+  /**
+   * Optional replacement payload returned to the model for this tool error.
+   * When omitted, VoltAgent returns its default serialized error payload.
+   */
+  output?: unknown;
+}
+
+export interface OnPrepareMessagesHookArgs {
+  /** The messages that will be sent to the LLM (AI SDK UIMessage). */
+  messages: UIMessage[];
+  /** The raw messages before sanitization (for advanced transformations). */
+  rawMessages?: UIMessage[];
+  /** The agent instance making the LLM call. */
+  agent: Agent;
+  /** The operation context containing metadata about the current operation. */
+  context: OperationContext;
+}
+
+export interface OnPrepareMessagesHookResult {
+  /** The transformed messages to send to the LLM. */
+  messages?: UIMessage[];
+}
+
+export interface OnPrepareModelMessagesHookArgs {
+  /** The finalized model messages that will be sent to the provider. */
+  modelMessages: ModelMessage[];
+  /** The sanitized UI messages that produced the model messages. */
+  uiMessages: UIMessage[];
+  /** The agent instance making the LLM call. */
+  agent: Agent;
+  /** The operation context containing metadata about the current operation. */
+  context: OperationContext;
+}
+
+export interface OnPrepareModelMessagesHookResult {
+  /** The transformed model messages to send to the provider. */
+  modelMessages?: ModelMessage[];
+}
+
+export interface OnErrorHookArgs {
+  agent: Agent;
+  error: VoltAgentError | AbortError | Error;
+  context: OperationContext;
+}
+
+export interface OnStepFinishHookArgs {
+  agent: Agent;
+  step: any;
+  context: OperationContext;
+}
+
+export type RetrySource = "llm" | "middleware";
+
+export interface OnRetryHookArgsBase {
+  agent: Agent;
+  context: OperationContext;
+  operation: AgentEvalOperationType;
+  source: RetrySource;
+}
+
+export interface OnRetryLLMHookArgs extends OnRetryHookArgsBase {
+  source: "llm";
+  modelName: string;
+  modelIndex: number;
+  attempt: number;
+  nextAttempt: number;
+  maxRetries: number;
+  error: unknown;
+  isRetryable?: boolean;
+  statusCode?: number;
+}
+
+export interface OnRetryMiddlewareHookArgs extends OnRetryHookArgsBase {
+  source: "middleware";
+  middlewareId?: string | null;
+  retryCount: number;
+  maxRetries: number;
+  reason?: string;
+  metadata?: unknown;
+}
+
+export type OnRetryHookArgs = OnRetryLLMHookArgs | OnRetryMiddlewareHookArgs;
+
+export type FallbackStage = "resolve" | "execute";
+
+export interface OnFallbackHookArgs {
+  agent: Agent;
+  context: OperationContext;
+  operation: AgentEvalOperationType;
+  stage: FallbackStage;
+  fromModel: string;
+  fromModelIndex: number;
+  maxRetries: number;
+  attempt?: number;
+  error: unknown;
+  nextModel?: string | null;
+  nextModelIndex?: number;
+}
+
+// Hook Type Aliases (object-arg style)
+export type AgentHookOnStart = (args: OnStartHookArgs) => Promise<void> | void;
+export type AgentHookOnEnd = (args: OnEndHookArgs) => Promise<void> | void;
+export type AgentHookOnHandoff = (args: OnHandoffHookArgs) => Promise<void> | void;
+export type AgentHookOnHandoffComplete = (args: OnHandoffCompleteHookArgs) => Promise<void> | void;
+export type AgentHookOnToolStart = (args: OnToolStartHookArgs) => Promise<void> | void;
+export type AgentHookOnToolEnd = (
+  args: OnToolEndHookArgs,
+) => Promise<OnToolEndHookResult | undefined> | Promise<void> | OnToolEndHookResult | undefined;
+export type AgentHookOnToolError = (
+  args: OnToolErrorHookArgs,
+) => Promise<OnToolErrorHookResult | undefined> | Promise<void> | OnToolErrorHookResult | undefined;
+export type AgentHookOnPrepareMessages = (
+  args: OnPrepareMessagesHookArgs,
+) => Promise<OnPrepareMessagesHookResult> | OnPrepareMessagesHookResult;
+export type AgentHookOnPrepareModelMessages = (
+  args: OnPrepareModelMessagesHookArgs,
+) => Promise<OnPrepareModelMessagesHookResult> | OnPrepareModelMessagesHookResult;
+export type AgentHookOnError = (args: OnErrorHookArgs) => Promise<void> | void;
+export type AgentHookOnStepFinish = (args: OnStepFinishHookArgs) => Promise<void> | void;
+export type AgentHookOnRetry = (args: OnRetryHookArgs) => Promise<void> | void;
+export type AgentHookOnFallback = (args: OnFallbackHookArgs) => Promise<void> | void;
+
+/**
+ * Type definition for agent hooks using single argument objects.
+ */
+export type AgentHooks = {
+  onStart?: AgentHookOnStart;
+  onEnd?: AgentHookOnEnd;
+  onHandoff?: AgentHookOnHandoff;
+  onHandoffComplete?: AgentHookOnHandoffComplete;
+  onToolStart?: AgentHookOnToolStart;
+  onToolEnd?: AgentHookOnToolEnd;
+  onToolError?: AgentHookOnToolError;
+  onPrepareMessages?: AgentHookOnPrepareMessages;
+  onPrepareModelMessages?: AgentHookOnPrepareModelMessages;
+  // Additional (kept for convenience)
+  onError?: AgentHookOnError;
+  onStepFinish?: AgentHookOnStepFinish;
+  onRetry?: AgentHookOnRetry;
+  onFallback?: AgentHookOnFallback;
+};
+
+/**
+ * Default empty implementation of hook methods.
+ */
+const defaultHooks: Required<AgentHooks> = {
+  onStart: async (_args: OnStartHookArgs) => {},
+  onEnd: async (_args: OnEndHookArgs) => {},
+  onHandoff: async (_args: OnHandoffHookArgs) => {},
+  onHandoffComplete: async (_args: OnHandoffCompleteHookArgs) => {},
+  onToolStart: async (_args: OnToolStartHookArgs) => {},
+  onToolEnd: async (_args: OnToolEndHookArgs) => undefined,
+  onToolError: async (_args: OnToolErrorHookArgs) => undefined,
+  onPrepareMessages: async (_args: OnPrepareMessagesHookArgs) => ({}),
+  onPrepareModelMessages: async (_args: OnPrepareModelMessagesHookArgs) => ({}),
+  onError: async (_args: OnErrorHookArgs) => {},
+  onStepFinish: async (_args: OnStepFinishHookArgs) => {},
+  onRetry: async (_args: OnRetryHookArgs) => {},
+  onFallback: async (_args: OnFallbackHookArgs) => {},
+};
+
+/**
+ * Create hooks from an object literal.
+ */
+export function createHooks(hooks: Partial<AgentHooks> = {}): AgentHooks {
+  return {
+    onStart: hooks.onStart || defaultHooks.onStart,
+    onEnd: hooks.onEnd || defaultHooks.onEnd,
+    onHandoff: hooks.onHandoff || defaultHooks.onHandoff,
+    onHandoffComplete: hooks.onHandoffComplete || defaultHooks.onHandoffComplete,
+    onToolStart: hooks.onToolStart || defaultHooks.onToolStart,
+    onToolEnd: hooks.onToolEnd || defaultHooks.onToolEnd,
+    onToolError: hooks.onToolError || defaultHooks.onToolError,
+    onPrepareMessages: hooks.onPrepareMessages || defaultHooks.onPrepareMessages,
+    onPrepareModelMessages: hooks.onPrepareModelMessages || defaultHooks.onPrepareModelMessages,
+    onError: hooks.onError || defaultHooks.onError,
+    onStepFinish: hooks.onStepFinish || defaultHooks.onStepFinish,
+    onRetry: hooks.onRetry || defaultHooks.onRetry,
+    onFallback: hooks.onFallback || defaultHooks.onFallback,
+  };
+}

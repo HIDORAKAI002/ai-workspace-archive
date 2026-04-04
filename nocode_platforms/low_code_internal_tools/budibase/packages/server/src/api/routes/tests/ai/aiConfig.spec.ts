@@ -10,7 +10,6 @@ import {
   CreateAIConfigRequest,
   FeatureFlag,
   LiteLLMKeyConfig,
-  VectorDbProvider,
 } from "@budibase/types"
 import { context } from "@budibase/backend-core"
 import environment from "../../../../environment"
@@ -966,7 +965,7 @@ describe("BudibaseAI", () => {
       ).toHaveLength(0)
     })
 
-    it("rejects deleting an embedding config used by a knowledge base", async () => {
+    it("allows deleting an embedding config when RAG is enabled", async () => {
       await features.testutils.withFeatureFlags(
         config.getTenantId(),
         { [FeatureFlag.AI_RAG]: true },
@@ -993,30 +992,23 @@ describe("BudibaseAI", () => {
           expect(creationScope.isDone()).toBe(true)
           expect(creationValidationScope.isDone()).toBe(true)
 
-          const vectorDb = await config.api.vectorDb.create({
-            name: "Primary Vector DB",
-            provider: VectorDbProvider.PGVECTOR,
-            host: "localhost",
-            port: 5432,
-            database: "budibase",
-            user: "bb_user",
-            password: "secret",
-          })
+          const deleteScope = nock(environment.LITELLM_URL)
+            .post("/key/update", body => {
+              expect(body).toMatchObject({ models: [] })
+              return true
+            })
+            .reply(200, { status: "success" })
 
-          await config.api.knowledgeBase.create({
-            name: "Support Docs",
-            embeddingModel: created._id!,
-            vectorDb: vectorDb._id!,
-          })
-
-          await config.api.ai.deleteConfig(created._id!, { status: 400 })
+          const { deleted } = await config.api.ai.deleteConfig(created._id!)
+          expect(deleted).toBe(true)
+          expect(deleteScope.isDone()).toBe(true)
 
           const configsResponse = await config.api.ai.fetchConfigs()
           expect(
             configsResponse.filter(
               c => c.configType === AIConfigType.EMBEDDINGS
             )
-          ).toHaveLength(1)
+          ).toHaveLength(0)
         }
       )
     })

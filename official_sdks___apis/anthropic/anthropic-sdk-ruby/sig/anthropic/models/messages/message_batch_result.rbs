@@ -1,0 +1,19 @@
+module Anthropic
+  module Models
+    module MessageBatchResult = Messages::MessageBatchResult
+
+    module Messages
+      type message_batch_result =
+        Anthropic::Messages::MessageBatchSucceededResult
+        | Anthropic::Messages::MessageBatchErroredResult
+        | Anthropic::Messages::MessageBatchCanceledResult
+        | Anthropic::Messages::MessageBatchExpiredResult
+
+      module MessageBatchResult
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::Messages::message_batch_result]
+      end
+    end
+  end
+end

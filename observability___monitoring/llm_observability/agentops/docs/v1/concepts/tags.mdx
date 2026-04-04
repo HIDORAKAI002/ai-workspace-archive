@@ -1,0 +1,43 @@
+---
+title: Tags
+description: 'Tags are a fantastic way to organize your Sessions based on data known by the developer but not by AgentOps.
+Ex: `paid-user`, `v3`, `recruiter-agent`'
+---
+
+
+
+# How to use Tags
+
+Tags belong to [Sessions](/v1/concepts/sessions) and are a fantastic way to organize your Sessions.
+## On `init()`
+
+Passing `tags` into the `init` function will assign these tags to the all subsequent Sessions.
+
+<CodeGroup>
+```python python
+agentops.init(tags=['test tag'])
+```
+</CodeGroup>
+
+`tags` can also be passed into the `start_session` function for better organization.
+
+<CodeGroup>
+```python python
+agentops.start_session(tags=['test tag'])
+```
+</CodeGroup>
+
+# Sorting by tags
+
+## Overview
+1. Select the filter selector in the top bar
+2. Choose "Tags"
+3. Select the tag(s) to filter by
+
+## Session Drill-down
+1. Click the session selector button
+2. In the session selector, click "Tags"
+3. Choose what tags to search by
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/adjust_api_dynamically.js"></script>

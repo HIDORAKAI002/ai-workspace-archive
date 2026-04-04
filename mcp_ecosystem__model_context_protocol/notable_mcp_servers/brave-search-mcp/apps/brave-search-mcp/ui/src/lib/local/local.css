@@ -1,0 +1,501 @@
+/* ========================================
+   Local Search Widget Styles (Split View)
+   ======================================== */
+
+.local-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+}
+
+.local-split-view {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+
+/* Fullscreen mode - fill available space */
+.local-app[data-display-mode='fullscreen'] {
+  max-height: none;
+  height: 100vh;
+}
+
+.local-app[data-display-mode='fullscreen'] .local-split-view {
+  max-height: none;
+  flex: 1;
+}
+
+/* Left panel: Business list */
+.local-list {
+  flex: 0 0 340px;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-surface);
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Right panel: Map */
+.local-map-wrapper {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.local-map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* pigeon-maps creates its own inner div — make it fill the wrapper */
+.local-map-container > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.local-map-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: var(--bg-muted);
+  color: var(--muted);
+}
+
+/* Business Card */
+.local-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: default;
+  transition: all 0.15s ease;
+  animation: fadeInUp 0.3s ease both;
+  text-align: left;
+}
+
+html[data-theme='dark'] .local-card {
+  box-shadow: var(--card-shadow);
+}
+
+.local-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+html[data-theme='dark'] .local-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+.local-card--selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+html[data-theme='dark'] .local-card--selected {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--card-shadow-hover);
+}
+
+.local-card-number {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 50%;
+}
+
+.local-card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.local-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-ink);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.local-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.local-star {
+  color: var(--color-text-caution);
+}
+
+.local-rating-value {
+  font-weight: 600;
+  color: var(--bg-ink);
+}
+
+.local-review-count {
+  color: var(--muted);
+}
+
+.local-price {
+  color: var(--muted);
+}
+
+.local-cuisine {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.local-card-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.local-card-address svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.local-card-phone {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.local-card-hours {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.local-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.local-card-trigger {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.local-card-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.local-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.local-action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.local-action-btn:hover {
+  background: var(--accent);
+  color: var(--color-text-inverse);
+  border-color: var(--accent);
+}
+
+.local-expand-btn {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Expanded Details */
+.local-card-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.local-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.local-detail-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.local-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.local-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.local-weekly-hours {
+  font-size: 11px;
+  color: var(--bg-ink);
+  line-height: 1.5;
+  margin: 0;
+  padding: 8px;
+  background: var(--bg-muted);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.local-description {
+  font-size: 12px;
+  color: var(--bg-ink);
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.local-description p {
+  margin: 0 0 8px 0;
+}
+
+.local-description p:last-child {
+  margin-bottom: 0;
+}
+
+.local-description h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 12px 0 6px 0;
+  color: var(--accent);
+}
+
+.local-description h3:first-child {
+  margin-top: 0;
+}
+
+.local-description ul {
+  margin: 4px 0 8px 0;
+  padding-left: 16px;
+}
+
+.local-description li {
+  margin-bottom: 4px;
+}
+
+.local-description strong {
+  font-weight: 600;
+  color: var(--bg-ink);
+}
+
+.local-description em {
+  font-style: italic;
+}
+
+/* Map Markers */
+.local-map-marker {
+  background: transparent;
+  border: none;
+}
+
+.local-map-marker-inner {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-200);
+  transition: transform 0.15s ease;
+}
+
+.local-map-marker--selected .local-map-marker-inner {
+  transform: scale(1.3);
+  background: var(--color-background-danger-solid);
+}
+
+/* Context marker styles - for items on current page that are in context */
+.local-map-marker--context .local-map-marker-inner {
+  border-color: var(--color-border-success-outline);
+  box-shadow:
+    0 0 0 2px var(--color-border-success-outline),
+    var(--shadow-200);
+}
+
+/* Context-only markers - for items NOT on current page but in context */
+.local-map-marker--context-only .local-map-marker-inner {
+  background: var(--color-background-success-solid);
+  font-size: 14px;
+}
+
+.local-map-popup {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Popup rendered as a pigeon-maps Overlay - float above the anchor point */
+.local-map-popup--overlay {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-width: 140px;
+  max-width: 220px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, calc(-100% - 14px));
+  pointer-events: none;
+  white-space: normal;
+  z-index: 10;
+}
+
+.local-map-popup strong {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.local-map-popup-context {
+  color: var(--color-text-success);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Info banner */
+.info-banner {
+  background: var(--color-background-info-soft);
+  color: var(--color-text-info);
+  padding: 10px 16px;
+  font-size: 13px;
+  border-radius: 8px;
+  margin: 8px 16px;
+}
+
+/* Context button on cards */
+.local-context-btn {
+  background: var(--bg-muted) !important;
+  color: var(--muted) !important;
+}
+
+.local-context-btn:hover {
+  background: var(--color-background-success-solid) !important;
+  color: var(--color-text-success-solid) !important;
+  border-color: var(--color-border-success-outline) !important;
+}
+
+.local-context-btn--active {
+  background: var(--color-background-success-solid) !important;
+  color: var(--color-text-success-solid) !important;
+  border-color: var(--color-border-success-outline) !important;
+}
+
+/* Card in context state */
+.local-card--in-context {
+  border-color: var(--color-border-success-outline);
+}
+
+.local-card--in-context:hover {
+  border-color: var(--color-border-success-outline);
+}
+
+/* Header actions and Add All button styles in global.css */
+
+/* Pagination responsive styles handled in global.css */
+
+/* Responsive */
+@media (max-width: 700px) {
+  .local-split-view {
+    flex-direction: column;
+  }
+
+  .local-list {
+    flex: 0 0 auto;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .local-map-wrapper {
+    min-height: 300px;
+  }
+
+  .app-footer {
+    padding: 2px 0;
+    min-height: 40px;
+  }
+
+  .pagination {
+    gap: 6px;
+  }
+}

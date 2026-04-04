@@ -1,0 +1,18 @@
+export const Sizes = {
+  'icon-default': '16px',
+  'icon-lg': '20px',
+  'icon-sm': '12px',
+  'form-sm': '1.75rem',
+  'form-md': '2rem',
+  'form-default': '2.25rem',
+  'form-lg': '2.5rem',
+  'header-default': '48px',
+  'table-header': '28px',
+  'table-row': '56px',
+  'table-row-small': '40px',
+  'badge-default': '28px',
+  'avatar-sm': '24px',
+  'avatar-md': '32px',
+  'avatar-lg': '40px',
+  'dropdown-max-height': '300px',
+};

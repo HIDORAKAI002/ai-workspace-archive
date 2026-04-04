@@ -1,0 +1,861 @@
+from unittest import mock
+from unittest.mock import MagicMock
+
+import pytest
+from googleapiclient.errors import HttpError
+from prefect_gcp.credentials import GcpCredentials
+from prefect_gcp.models.cloud_run_v2 import ExecutionV2, SecretKeySelector
+from prefect_gcp.utilities import slugify_name
+from prefect_gcp.workers.cloud_run_v2 import (
+    CloudRunWorkerJobV2Configuration,
+    CloudRunWorkerV2,
+    CloudRunWorkerV2Result,
+)
+
+from prefect.exceptions import InfrastructureNotFound
+from prefect.logging.loggers import PrefectLogAdapter
+from prefect.utilities.dockerutils import get_prefect_image_name
+
+
+@pytest.fixture
+def job_body():
+    return {
+        "client": "prefect",
+        "launchStage": None,
+        "template": {
+            "template": {
+                "maxRetries": None,
+                "timeout": None,
+                "vpcAccess": {
+                    "connector": None,
+                },
+                "containers": [
+                    {
+                        "env": [],
+                        "command": None,
+                        "args": "-m prefect.engine",
+                        "resources": {
+                            "limits": {
+                                "cpu": None,
+                                "memory": None,
+                            },
+                        },
+                    },
+                ],
+            }
+        },
+    }
+
+
+@pytest.fixture
+def cloud_run_worker_v2_job_config(service_account_info, job_body):
+    return CloudRunWorkerJobV2Configuration(
+        name="my-job-name",
+        job_body=job_body,
+        credentials=GcpCredentials(service_account_info=service_account_info),
+        region="us-central1",
+        timeout=604800,
+        env={"ENV1": "VALUE1", "ENV2": "VALUE2"},
+    )
+
+
+@pytest.fixture
+def cloud_run_worker_v2_job_config_noncompliant_name(service_account_info, job_body):
+    return CloudRunWorkerJobV2Configuration(
+        name="MY_JOB_NAME",
+        job_body=job_body,
+        credentials=GcpCredentials(service_account_info=service_account_info),
+        region="us-central1",
+        timeout=604800,
+        env={"ENV1": "VALUE1", "ENV2": "VALUE2"},
+    )
+
+
+class TestCloudRunWorkerJobV2Configuration:
+    def test_project(self, cloud_run_worker_v2_job_config):
+        assert cloud_run_worker_v2_job_config.project == "my_project"
+
+    def test_job_name(self, cloud_run_worker_v2_job_config):
+        assert cloud_run_worker_v2_job_config.job_name[:-8] == "my-job-name"
+
+    def test_job_name_is_slug(self, cloud_run_worker_v2_job_config_noncompliant_name):
+        assert cloud_run_worker_v2_job_config_noncompliant_name.job_name[
+            :-8
+        ] == slugify_name("MY_JOB_NAME")
+
+    def test_job_name_different_after_retry(self, cloud_run_worker_v2_job_config):
+        job_name_1 = cloud_run_worker_v2_job_config.job_name
+
+        cloud_run_worker_v2_job_config._job_name = None
+
+        job_name_2 = cloud_run_worker_v2_job_config.job_name
+
+        assert job_name_1[:-8] == job_name_2[:-8]
+        assert job_name_1 != job_name_2
+
+    def test_job_name_preserves_long_base_name(self, service_account_info, job_body):
+        long_name = "a" * 60
+        config = CloudRunWorkerJobV2Configuration(
+            name=long_name,
+            job_body=job_body,
+            credentials=GcpCredentials(service_account_info=service_account_info),
+            region="us-central1",
+            timeout=604800,
+        )
+        job_name = config.job_name
+        assert len(job_name) <= 63
+        base_part = job_name[:-8]  # 7 UUID + 1 hyphen
+        assert len(base_part) == 55  # 63 - 1 - 7
+
+    def test_populate_timeout(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config._populate_timeout()
+
+        assert (
+            cloud_run_worker_v2_job_config.job_body["template"]["template"]["timeout"]
+            == "604800s"
+        )
+
+    def test_populate_env(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config._populate_env()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"] == [
+            {"name": "ENV1", "value": "VALUE1"},
+            {"name": "ENV2", "value": "VALUE2"},
+        ]
+
+    def test_populate_env_with_secrets(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config.env_from_secrets = {
+            "SECRET_ENV1": SecretKeySelector(secret="SECRET1", version="latest")
+        }
+        cloud_run_worker_v2_job_config._populate_env()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"] == [
+            {"name": "ENV1", "value": "VALUE1"},
+            {"name": "ENV2", "value": "VALUE2"},
+            {
+                "name": "SECRET_ENV1",
+                "valueSource": {
+                    "secretKeyRef": {"secret": "SECRET1", "version": "latest"}
+                },
+            },
+        ]
+
+    def test_populate_env_with_existing_envs(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config.job_body["template"]["template"]["containers"][
+            0
+        ]["env"] = [{"name": "ENV0", "value": "VALUE0"}]
+        cloud_run_worker_v2_job_config.env_from_secrets = {
+            "SECRET_ENV1": SecretKeySelector(secret="SECRET1", version="latest")
+        }
+        cloud_run_worker_v2_job_config._populate_env()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"] == [
+            {"name": "ENV0", "value": "VALUE0"},
+            {"name": "ENV1", "value": "VALUE1"},
+            {"name": "ENV2", "value": "VALUE2"},
+            {
+                "name": "SECRET_ENV1",
+                "valueSource": {
+                    "secretKeyRef": {"secret": "SECRET1", "version": "latest"}
+                },
+            },
+        ]
+
+    def test_populate_image_if_not_present(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config._populate_image_if_not_present()
+
+        assert (
+            cloud_run_worker_v2_job_config.job_body["template"]["template"][
+                "containers"
+            ][0]["image"]
+            == f"docker.io/{get_prefect_image_name()}"
+        )
+
+    def test_populate_or_format_command(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config._populate_or_format_command()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["command"] == ["prefect", "flow-run", "execute"]
+
+    def test_command_formats_correctly_for_logging(
+        self, cloud_run_worker_v2_job_config
+    ):
+        """
+        Regression test for command formatting in log messages.
+
+        Previously, the code used `" ".join(configuration.command)` where
+        `configuration.command` was a string. This caused each character to be
+        joined with spaces, producing "p r e f e c t   f l o w - r u n   e x e c u t e"
+        instead of "prefect flow-run execute".
+
+        The fix uses the command list from job_body which is properly formatted.
+        """
+        cloud_run_worker_v2_job_config._populate_or_format_command()
+
+        command_list = cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0].get("command", [])
+        command_str = (
+            " ".join(command_list) if command_list else "default container command"
+        )
+
+        assert command_str == "prefect flow-run execute"
+        assert "p r e f e c t" not in command_str
+
+    def test_format_args_if_present(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config._format_args_if_present()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["args"] == ["-m", "prefect.engine"]
+
+    @pytest.mark.parametrize("vpc_access", [{"connector": None}, {}, None])
+    def test_remove_vpc_access_if_connector_unset(
+        self, cloud_run_worker_v2_job_config, vpc_access
+    ):
+        cloud_run_worker_v2_job_config.job_body["template"]["template"]["vpcAccess"] = (
+            vpc_access
+        )
+
+        cloud_run_worker_v2_job_config._remove_vpc_access_if_unset()
+
+        assert (
+            "vpcAccess"
+            not in cloud_run_worker_v2_job_config.job_body["template"]["template"]
+        )
+
+    def test_remove_vpc_access_originally_not_present(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.job_body["template"]["template"].pop("vpcAccess")
+
+        cloud_run_worker_v2_job_config._remove_vpc_access_if_unset()
+
+        assert (
+            "vpcAccess"
+            not in cloud_run_worker_v2_job_config.job_body["template"]["template"]
+        )
+
+    def test_vpc_access_left_alone_if_connector_set(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.job_body["template"]["template"]["vpcAccess"][
+            "connector"
+        ] = "projects/my_project/locations/us-central1/connectors/my-connector"
+
+        cloud_run_worker_v2_job_config._remove_vpc_access_if_unset()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "vpcAccess"
+        ] == {
+            "connector": "projects/my_project/locations/us-central1/connectors/my-connector"  # noqa E501
+        }
+
+    def test_vpc_access_left_alone_if_network_config_set(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.job_body["template"]["template"]["vpcAccess"][
+            "networkInterfaces"
+        ] = [{"network": "projects/my_project/global/networks/my-network"}]
+
+        cloud_run_worker_v2_job_config._remove_vpc_access_if_unset()
+
+        assert cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "vpcAccess"
+        ] == {
+            "connector": None,
+            "networkInterfaces": [
+                {"network": "projects/my_project/global/networks/my-network"}
+            ],
+        }
+
+    def test_configure_cloudsql_volumes_no_instances(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.cloudsql_instances = []
+        cloud_run_worker_v2_job_config._configure_cloudsql_volumes()
+
+        template = cloud_run_worker_v2_job_config.job_body["template"]["template"]
+
+        assert "volumes" not in template
+        assert "volumeMounts" not in template["containers"][0]
+
+    def test_configure_cloudsql_volumes_preserves_existing_volumes(
+        self, cloud_run_worker_v2_job_config
+    ):
+        template = cloud_run_worker_v2_job_config.job_body["template"]["template"]
+        template["volumes"] = [{"name": "existing-volume", "emptyDir": {}}]
+        template["containers"][0]["volumeMounts"] = [
+            {"name": "existing-volume", "mountPath": "/existing"}
+        ]
+
+        cloud_run_worker_v2_job_config.cloudsql_instances = ["project:region:instance1"]
+        cloud_run_worker_v2_job_config._configure_cloudsql_volumes()
+
+        assert len(template["volumes"]) == 2
+        assert template["volumes"][0] == {"name": "existing-volume", "emptyDir": {}}
+        assert template["volumes"][1] == {
+            "name": "cloudsql",
+            "cloudSqlInstance": {"instances": ["project:region:instance1"]},
+        }
+
+        assert len(template["containers"][0]["volumeMounts"]) == 2
+        assert template["containers"][0]["volumeMounts"][0] == {
+            "name": "existing-volume",
+            "mountPath": "/existing",
+        }
+        assert template["containers"][0]["volumeMounts"][1] == {
+            "name": "cloudsql",
+            "mountPath": "/cloudsql",
+        }
+
+    def test_prepare_for_flow_run_configures_cloudsql(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.cloudsql_instances = ["project:region:instance1"]
+
+        class MockFlowRun:
+            id = "test-id"
+            name = "test-run"
+
+            def model_dump(self, mode: str = "python") -> dict:
+                return {"id": self.id, "name": self.name}
+
+        cloud_run_worker_v2_job_config.prepare_for_flow_run(
+            flow_run=MockFlowRun(), deployment=None, flow=None
+        )
+
+        template = cloud_run_worker_v2_job_config.job_body["template"]["template"]
+
+        assert any(
+            vol["name"] == "cloudsql"
+            and vol["cloudSqlInstance"]["instances"] == ["project:region:instance1"]
+            for vol in template["volumes"]
+        )
+        assert any(
+            mount["name"] == "cloudsql" and mount["mountPath"] == "/cloudsql"
+            for mount in template["containers"][0]["volumeMounts"]
+        )
+
+    def test_populate_env_with_prefect_api_key_secret(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.prefect_api_key_secret = SecretKeySelector(
+            secret="prefect-api-key", version="latest"
+        )
+        cloud_run_worker_v2_job_config._populate_env()
+
+        env_vars = cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"]
+
+        assert {"name": "ENV1", "value": "VALUE1"} in env_vars
+        assert {"name": "ENV2", "value": "VALUE2"} in env_vars
+        assert {
+            "name": "PREFECT_API_KEY",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-api-key", "version": "latest"}
+            },
+        } in env_vars
+
+    def test_populate_env_with_prefect_api_auth_string_secret(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.prefect_api_auth_string_secret = (
+            SecretKeySelector(secret="prefect-auth-string", version="latest")
+        )
+        cloud_run_worker_v2_job_config._populate_env()
+
+        env_vars = cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"]
+
+        assert {"name": "ENV1", "value": "VALUE1"} in env_vars
+        assert {"name": "ENV2", "value": "VALUE2"} in env_vars
+        assert {
+            "name": "PREFECT_API_AUTH_STRING",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-auth-string", "version": "latest"}
+            },
+        } in env_vars
+
+    def test_populate_env_with_both_prefect_secrets(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.prefect_api_key_secret = SecretKeySelector(
+            secret="prefect-api-key", version="latest"
+        )
+        cloud_run_worker_v2_job_config.prefect_api_auth_string_secret = (
+            SecretKeySelector(secret="prefect-auth-string", version="latest")
+        )
+        cloud_run_worker_v2_job_config._populate_env()
+
+        env_vars = cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"]
+
+        assert {"name": "ENV1", "value": "VALUE1"} in env_vars
+        assert {"name": "ENV2", "value": "VALUE2"} in env_vars
+        assert {
+            "name": "PREFECT_API_KEY",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-api-key", "version": "latest"}
+            },
+        } in env_vars
+        assert {
+            "name": "PREFECT_API_AUTH_STRING",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-auth-string", "version": "latest"}
+            },
+        } in env_vars
+
+    def test_populate_env_with_all_secret_types(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config.env_from_secrets = {
+            "SECRET_ENV1": SecretKeySelector(secret="SECRET1", version="latest")
+        }
+        cloud_run_worker_v2_job_config.prefect_api_key_secret = SecretKeySelector(
+            secret="prefect-api-key", version="latest"
+        )
+        cloud_run_worker_v2_job_config.prefect_api_auth_string_secret = (
+            SecretKeySelector(secret="prefect-auth-string", version="latest")
+        )
+        cloud_run_worker_v2_job_config._populate_env()
+
+        env_vars = cloud_run_worker_v2_job_config.job_body["template"]["template"][
+            "containers"
+        ][0]["env"]
+
+        assert {"name": "ENV1", "value": "VALUE1"} in env_vars
+        assert {"name": "ENV2", "value": "VALUE2"} in env_vars
+        assert {
+            "name": "SECRET_ENV1",
+            "valueSource": {"secretKeyRef": {"secret": "SECRET1", "version": "latest"}},
+        } in env_vars
+        assert {
+            "name": "PREFECT_API_KEY",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-api-key", "version": "latest"}
+            },
+        } in env_vars
+        assert {
+            "name": "PREFECT_API_AUTH_STRING",
+            "valueSource": {
+                "secretKeyRef": {"secret": "prefect-auth-string", "version": "latest"}
+            },
+        } in env_vars
+
+    def test_prepare_for_flow_run_populates_labels(
+        self, cloud_run_worker_v2_job_config
+    ):
+        class MockFlowRun:
+            id = "test-id"
+            name = "test-run"
+
+            def model_dump(self, mode: str = "python") -> dict:
+                return {"id": self.id, "name": self.name}
+
+        cloud_run_worker_v2_job_config.prepare_for_flow_run(
+            flow_run=MockFlowRun(), deployment=None, flow=None
+        )
+
+        labels = cloud_run_worker_v2_job_config.job_body["labels"]
+        assert "prefect-io-flow-run-id" in labels
+        assert labels["prefect-io-flow-run-id"] == "test-id"
+        assert "prefect-io-flow-run-name" in labels
+        assert labels["prefect-io-flow-run-name"] == "test-run"
+        assert "prefect-io-version" in labels
+        # Execution template also gets labels
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert exec_labels == labels
+
+    def test_populate_labels_preserves_existing(self, cloud_run_worker_v2_job_config):
+        cloud_run_worker_v2_job_config.job_body["labels"] = {
+            "my-custom-label": "my-value"
+        }
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "abc-123",
+        }
+
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        labels = cloud_run_worker_v2_job_config.job_body["labels"]
+        assert labels["my-custom-label"] == "my-value"
+        assert labels["prefect-io-flow-run-id"] == "abc-123"
+
+    def test_populate_labels_existing_take_precedence(
+        self, cloud_run_worker_v2_job_config
+    ):
+        cloud_run_worker_v2_job_config.job_body["labels"] = {
+            "prefect-io-flow-run-id": "override"
+        }
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "from-prefect",
+        }
+
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        labels = cloud_run_worker_v2_job_config.job_body["labels"]
+        assert labels["prefect-io-flow-run-id"] == "override"
+
+    def test_populate_labels_replaces_stale_on_re_prepare(
+        self, cloud_run_worker_v2_job_config
+    ):
+        """Labels from a previous prepare call should be replaced, not preserved."""
+        cloud_run_worker_v2_job_config.job_body["labels"] = {
+            "my-custom-label": "keep-me"
+        }
+
+        # First prepare
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-1",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+        assert (
+            cloud_run_worker_v2_job_config.job_body["labels"]["prefect-io-flow-run-id"]
+            == "run-1"
+        )
+
+        # Second prepare with new run
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-2",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        labels = cloud_run_worker_v2_job_config.job_body["labels"]
+        assert labels["prefect-io-flow-run-id"] == "run-2"
+        assert labels["my-custom-label"] == "keep-me"
+
+    def test_populate_labels_preserves_existing_exec_template_labels(
+        self, cloud_run_worker_v2_job_config
+    ):
+        """Labels already on the execution template are not overwritten."""
+        cloud_run_worker_v2_job_config.job_body.setdefault("template", {})["labels"] = {
+            "exec-only-label": "keep-me"
+        }
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "abc-123",
+        }
+
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert exec_labels["exec-only-label"] == "keep-me"
+        assert exec_labels["prefect-io-flow-run-id"] == "abc-123"
+
+    def test_exec_template_labels_capped_at_64(self, cloud_run_worker_v2_job_config):
+        """Execution-template labels must not exceed the 64-label limit."""
+        cloud_run_worker_v2_job_config.job_body.setdefault("template", {})["labels"] = {
+            f"exec-{i}": "v" for i in range(60)
+        }
+        cloud_run_worker_v2_job_config.labels = {
+            f"prefect.io/label-{i}": "v" for i in range(10)
+        }
+
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert len(exec_labels) <= 64
+        # All 60 existing exec labels are preserved
+        for i in range(60):
+            assert f"exec-{i}" in exec_labels
+
+    def test_exec_template_stale_labels_replaced_on_re_prepare(
+        self, cloud_run_worker_v2_job_config
+    ):
+        """Stale Prefect labels on the exec template are replaced on re-prepare."""
+        cloud_run_worker_v2_job_config.job_body.setdefault("template", {})["labels"] = {
+            "exec-only": "keep"
+        }
+
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-1",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-2",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert exec_labels["prefect-io-flow-run-id"] == "run-2"
+        assert exec_labels["exec-only"] == "keep"
+
+    def test_user_exec_label_colliding_with_prefect_key_survives_re_prepare(
+        self, cloud_run_worker_v2_job_config
+    ):
+        """A user-defined exec-template label whose key collides with a
+        Prefect label must not be dropped on subsequent prepares."""
+        # User has a custom exec-template label that happens to use
+        # a key that Prefect also injects.
+        cloud_run_worker_v2_job_config.job_body.setdefault("template", {})["labels"] = {
+            "prefect-io-flow-run-id": "user-override"
+        }
+
+        # First prepare — user value should win on exec template
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-1",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert exec_labels["prefect-io-flow-run-id"] == "user-override"
+
+        # Second prepare — user value should still win
+        cloud_run_worker_v2_job_config.labels = {
+            "prefect.io/flow-run-id": "run-2",
+        }
+        cloud_run_worker_v2_job_config._populate_labels()
+        exec_labels = cloud_run_worker_v2_job_config.job_body["template"]["labels"]
+        assert exec_labels["prefect-io-flow-run-id"] == "user-override"
+
+
+class TestCloudRunWorkerV2KillInfrastructure:
+    """Tests for CloudRunWorkerV2.kill_infrastructure method."""
+
+    async def test_kill_infrastructure_deletes_job(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        """Test that kill_infrastructure successfully deletes a Cloud Run V2 job."""
+        job_name = "test-job-name"
+
+        mock_client = MagicMock()
+        mock_client.__enter__ = lambda self: mock_client
+        mock_client.__exit__ = lambda self, *args: None
+
+        with mock.patch.object(
+            CloudRunWorkerV2, "_get_client", return_value=mock_client
+        ):
+            with mock.patch(
+                "prefect_gcp.workers.cloud_run_v2.JobV2.delete"
+            ) as mock_delete:
+                async with CloudRunWorkerV2("my-work-pool") as worker:
+                    await worker.kill_infrastructure(
+                        infrastructure_pid=job_name,
+                        configuration=cloud_run_worker_v2_job_config,
+                        grace_seconds=30,
+                    )
+
+                mock_delete.assert_called_once_with(
+                    cr_client=mock_client,
+                    project=cloud_run_worker_v2_job_config.project,
+                    location=cloud_run_worker_v2_job_config.region,
+                    job_name=job_name,
+                )
+
+    async def test_kill_infrastructure_raises_not_found(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        """Test that kill_infrastructure raises InfrastructureNotFound for missing job."""
+        job_name = "nonexistent-job"
+
+        mock_client = MagicMock()
+        mock_client.__enter__ = lambda self: mock_client
+        mock_client.__exit__ = lambda self, *args: None
+
+        # Create a proper mock response with status attribute
+        mock_resp = MagicMock()
+        mock_resp.status = 404
+        mock_http_error = HttpError(resp=mock_resp, content=b"Not found")
+
+        with mock.patch.object(
+            CloudRunWorkerV2, "_get_client", return_value=mock_client
+        ):
+            with mock.patch(
+                "prefect_gcp.workers.cloud_run_v2.JobV2.delete",
+                side_effect=mock_http_error,
+            ):
+                async with CloudRunWorkerV2("my-work-pool") as worker:
+                    with pytest.raises(InfrastructureNotFound):
+                        await worker.kill_infrastructure(
+                            infrastructure_pid=job_name,
+                            configuration=cloud_run_worker_v2_job_config,
+                            grace_seconds=30,
+                        )
+
+    def test_watch_job_execution_raises_not_found_on_404(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        """Test that _watch_job_execution raises InfrastructureNotFound when execution is deleted."""
+        mock_client = MagicMock()
+
+        # Create a mock execution that is initially running
+        mock_execution = MagicMock(spec=ExecutionV2)
+        mock_execution.is_running.return_value = True
+        mock_execution.name = "projects/test/locations/us-central1/jobs/test-job/executions/test-execution"
+
+        # Create a 404 error for when we try to get the execution
+        mock_resp = MagicMock()
+        mock_resp.status = 404
+        mock_http_error = HttpError(resp=mock_resp, content=b"Execution not found")
+
+        with mock.patch.object(ExecutionV2, "get", side_effect=mock_http_error):
+            with pytest.raises(InfrastructureNotFound) as exc_info:
+                CloudRunWorkerV2._watch_job_execution(
+                    cr_client=mock_client,
+                    configuration=cloud_run_worker_v2_job_config,
+                    execution=mock_execution,
+                    poll_interval=0,
+                )
+
+            assert "was deleted" in str(exc_info.value)
+
+    def test_watch_job_execution_and_get_result_handles_deleted_execution(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        """Test that _watch_job_execution_and_get_result handles InfrastructureNotFound gracefully."""
+        mock_client = MagicMock()
+
+        # Create a mock execution
+        mock_execution = MagicMock(spec=ExecutionV2)
+        mock_execution.is_running.return_value = True
+        mock_execution.name = "projects/test/locations/us-central1/jobs/test-job/executions/test-execution"
+
+        # Create a mock logger
+        mock_logger = MagicMock(spec=PrefectLogAdapter)
+
+        worker = CloudRunWorkerV2("my-work-pool")
+
+        # Mock _watch_job_execution on the instance to raise InfrastructureNotFound
+        with mock.patch.object(
+            worker,
+            "_watch_job_execution",
+            side_effect=InfrastructureNotFound("Execution was deleted"),
+        ):
+            result = worker._watch_job_execution_and_get_result(
+                cr_client=mock_client,
+                configuration=cloud_run_worker_v2_job_config,
+                execution=mock_execution,
+                logger=mock_logger,
+                poll_interval=0,
+            )
+
+            # Should return a result with status_code=-1, not raise an exception
+            assert isinstance(result, CloudRunWorkerV2Result)
+            assert result.status_code == -1
+
+            # Should log an info message, not an error/critical
+            mock_logger.info.assert_called_once()
+            assert "was deleted" in mock_logger.info.call_args[0][0]
+
+    def test_watch_job_execution_reraises_non_404_errors(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        """Test that _watch_job_execution re-raises non-404 HTTP errors."""
+        mock_client = MagicMock()
+
+        # Create a mock execution that is initially running
+        mock_execution = MagicMock(spec=ExecutionV2)
+        mock_execution.is_running.return_value = True
+        mock_execution.name = "projects/test/locations/us-central1/jobs/test-job/executions/test-execution"
+
+        # Create a 500 error (not 404)
+        mock_resp = MagicMock()
+        mock_resp.status = 500
+        mock_http_error = HttpError(resp=mock_resp, content=b"Internal server error")
+
+        with mock.patch.object(ExecutionV2, "get", side_effect=mock_http_error):
+            with pytest.raises(HttpError) as exc_info:
+                CloudRunWorkerV2._watch_job_execution(
+                    cr_client=mock_client,
+                    configuration=cloud_run_worker_v2_job_config,
+                    execution=mock_execution,
+                    poll_interval=0,
+                )
+
+            assert exc_info.value.status_code == 500
+
+
+class TestCloudRunWorkerV2CreateJobRetries:
+    def test_create_job_retries_on_transient_error_then_succeeds(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        worker = CloudRunWorkerV2("my-work-pool")
+        mock_client = MagicMock()
+        mock_logger = MagicMock(spec=PrefectLogAdapter)
+
+        mock_resp = MagicMock()
+        mock_resp.status = 503
+        transient_error = HttpError(resp=mock_resp, content=b"Service unavailable")
+
+        with mock.patch(
+            "prefect_gcp.workers.cloud_run_v2.JobV2.create",
+            side_effect=[transient_error, None],
+        ) as mock_create:
+            with mock.patch.object(worker, "_wait_for_job_creation"):
+                with mock.patch(
+                    "prefect_gcp.workers.cloud_run_v2.time.sleep"
+                ) as mock_sleep:
+                    worker._create_job_and_wait_for_registration(
+                        configuration=cloud_run_worker_v2_job_config,
+                        cr_client=mock_client,
+                        logger=mock_logger,
+                    )
+
+        assert mock_create.call_count == 2
+        mock_sleep.assert_called_once()
+        mock_logger.warning.assert_called_once()
+
+    def test_create_job_does_not_retry_on_non_transient_error(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        worker = CloudRunWorkerV2("my-work-pool")
+        mock_client = MagicMock()
+        mock_logger = MagicMock(spec=PrefectLogAdapter)
+
+        mock_resp = MagicMock()
+        mock_resp.status = 400
+        non_transient_error = HttpError(resp=mock_resp, content=b"Bad request")
+
+        with mock.patch(
+            "prefect_gcp.workers.cloud_run_v2.JobV2.create",
+            side_effect=non_transient_error,
+        ) as mock_create:
+            with mock.patch.object(worker, "_wait_for_job_creation"):
+                with mock.patch(
+                    "prefect_gcp.workers.cloud_run_v2.time.sleep"
+                ) as mock_sleep:
+                    with pytest.raises(HttpError):
+                        worker._create_job_and_wait_for_registration(
+                            configuration=cloud_run_worker_v2_job_config,
+                            cr_client=mock_client,
+                            logger=mock_logger,
+                        )
+
+        assert mock_create.call_count == 1
+        mock_sleep.assert_not_called()
+
+    def test_create_job_retries_until_max_attempts_then_raises(
+        self, cloud_run_worker_v2_job_config, mock_credentials
+    ):
+        worker = CloudRunWorkerV2("my-work-pool")
+        mock_client = MagicMock()
+        mock_logger = MagicMock(spec=PrefectLogAdapter)
+
+        mock_resp = MagicMock()
+        mock_resp.status = 503
+        transient_error = HttpError(resp=mock_resp, content=b"Service unavailable")
+
+        with mock.patch(
+            "prefect_gcp.workers.cloud_run_v2.JobV2.create",
+            side_effect=[transient_error, transient_error, transient_error],
+        ) as mock_create:
+            with mock.patch.object(worker, "_wait_for_job_creation"):
+                with mock.patch(
+                    "prefect_gcp.workers.cloud_run_v2.time.sleep"
+                ) as mock_sleep:
+                    with pytest.raises(HttpError):
+                        worker._create_job_and_wait_for_registration(
+                            configuration=cloud_run_worker_v2_job_config,
+                            cr_client=mock_client,
+                            logger=mock_logger,
+                        )
+
+        assert mock_create.call_count == 3
+        assert mock_sleep.call_count == 2

@@ -1,0 +1,9 @@
+.env
+
+# ignore all nodemodules and all sub node_modules folders
+node_modules
+**/node_modules
+
+dockerfile
+dockerfile_eu
+prompt-guard-86m/

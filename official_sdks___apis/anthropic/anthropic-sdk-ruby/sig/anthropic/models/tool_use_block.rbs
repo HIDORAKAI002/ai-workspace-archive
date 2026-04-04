@@ -1,0 +1,51 @@
+module Anthropic
+  module Models
+    type tool_use_block =
+      {
+        id: String,
+        caller_: Anthropic::Models::ToolUseBlock::caller_,
+        input: ::Hash[Symbol, top],
+        name: String,
+        type: :tool_use
+      }
+
+    class ToolUseBlock < Anthropic::Internal::Type::BaseModel
+      attr_accessor id: String
+
+      attr_accessor caller_: Anthropic::Models::ToolUseBlock::caller_
+
+      attr_accessor input: ::Hash[Symbol, top]
+
+      attr_accessor name: String
+
+      attr_accessor type: :tool_use
+
+      def initialize: (
+        id: String,
+        caller_: Anthropic::Models::ToolUseBlock::caller_,
+        input: ::Hash[Symbol, top],
+        name: String,
+        ?type: :tool_use
+      ) -> void
+
+      def to_hash: -> {
+        id: String,
+        caller_: Anthropic::Models::ToolUseBlock::caller_,
+        input: ::Hash[Symbol, top],
+        name: String,
+        type: :tool_use
+      }
+
+      type caller_ =
+        Anthropic::DirectCaller
+        | Anthropic::ServerToolCaller
+        | Anthropic::ServerToolCaller20260120
+
+      module Caller
+        extend Anthropic::Internal::Type::Union
+
+        def self?.variants: -> ::Array[Anthropic::Models::ToolUseBlock::caller_]
+      end
+    end
+  end
+end

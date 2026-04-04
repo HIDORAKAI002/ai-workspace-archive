@@ -1,0 +1,25 @@
+# Azure AI & Identity
+azure-ai-inference
+azure-ai-projects
+azure-identity
+azure-search-documents
+
+# Microsoft Agent Framework
+agent-framework
+a2a-sdk
+
+# Model Context Protocol
+mcp[cli]
+
+# OpenAI
+openai
+
+# Data & Utilities
+httpx
+ipykernel
+nest-asyncio
+numpy
+pandas
+pillow
+python-dotenv
+uvicorn

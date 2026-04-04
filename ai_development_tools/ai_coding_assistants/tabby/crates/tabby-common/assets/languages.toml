@@ -1,0 +1,473 @@
+[[config]]
+languages = ["python"]
+exts = ["py"]
+line_comment = "#"
+top_level_keywords = ["def", "from", "class", "import"]
+
+[[config]]
+languages = ["rust"]
+exts = ["rs"]
+line_comment = "//"
+top_level_keywords = [
+    "fn",
+    "trait",
+    "impl",
+    "enum",
+    "pub",
+    "extern",
+    "static",
+    "trait",
+    "unsafe",
+    "use",
+]
+
+[[config]]
+languages = ["java"]
+exts = ["java"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "public",
+    "private",
+    "class",
+    "const",
+    "exports",
+    "extends",
+    "implements",
+    "static",
+    "import",
+    "interface",
+    "module",
+    "package",
+    "var",
+    "enum",
+    "return",
+]
+
+[[config]]
+languages = ["kotlin"]
+exts = ["kt", "kts"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "public",
+    "private",
+    "companion",
+    "class",
+    "data",
+    "const",
+    "actual",
+    "expect",
+    "sealed",
+    "suspend",
+    "fun",
+    "import",
+    "interface",
+    "package",
+    "var",
+    "val",
+    "enum",
+]
+
+[[config]]
+languages = ["javascript-typescript", "javascript", "typescript", "javascriptreact", "typescriptreact"]
+exts = ["js", "ts", "jsx", "tsx", "mjs", "mts"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "async",
+    "class",
+    "const",
+    "export",
+    "function",
+    "interface",
+    "module",
+    "package",
+    "type",
+    "var",
+    "enum",
+    "let",
+]
+
+[[config]]
+languages = ["go"]
+exts = ["go"]
+line_comment = "//"
+top_level_keywords = [
+    "func",
+    "interface",
+    "struct",
+    "package",
+    "type",
+    "import",
+    "var",
+    "const",
+]
+
+[[config]]
+languages = ["ruby"]
+exts = ["rb"]
+line_comment = "#"
+top_level_keywords = [
+    "begin",
+    "class",
+    "def",
+    "end",
+    "ensure",
+    "include",
+    "module",
+    "require",
+    "rescue",
+    "self",
+]
+
+[[config]]
+languages = ["c"]
+exts = ["c", "h"]
+line_comment = "//"
+top_level_keywords = [
+    "const",
+    "enum",
+    "extern",
+    "inline",
+    "register",
+    "static",
+    "struct",
+    "typedef",
+    "union",
+    "volatile",
+]
+
+[[config]]
+languages = ["cpp"]
+exts= ["cpp", "hpp", "c++", "h++", "cc", "hh", "C", "H", "tcc"]
+line_comment = "//"
+top_level_keywords = [
+    "auto",
+    "class",
+    "const",
+    "concept",
+    "enum",
+    "extern",
+    "inline",
+    "namespace",
+    "register",
+    "static",
+    "struct",
+    "template",
+    "typedef",
+    "union",
+    "volatile",
+]
+
+[[config]]
+languages = ["csharp"]
+exts = ["cs"]
+line_comment = "//"
+top_level_keywords = [
+    "class",
+    "struct",
+    "enum",
+    "interface",
+    "abstract",
+    "static",
+    "extern",
+    "namespace",
+    "using",
+    "var",
+    "dynamic",
+    "async",
+]
+
+[[config]]
+languages = ["php"]
+exts = ["php", "php3", "php4", "php5", "phps", "phpt"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "class",
+    "const",
+    "declare",
+    "extends",
+    "final",
+    "finally",
+    "function",
+    "global",
+    "implements",
+    "include_once",
+    "include",
+    "interface",
+    "namespace",
+    "private",
+    "protected",
+    "public",
+    "require_once",
+    "require",
+    "static",
+    "trait",
+    "use",
+]
+
+[[config]]
+languages = ["solidity"]
+exts = ["sol"]
+line_comment = "//"
+top_level_keywords = [
+    "contract",
+    "interface",
+    "error",
+    "library",
+    "struct",
+    "enum",
+    "function",
+    "type",
+]
+
+[[config]]
+languages = ["dart"]
+exts = ["dart"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "class",
+    "late",
+    "var",
+    "final",
+    "const",
+    "export",
+    "interface",
+    "type",
+    "enum",
+    "int",
+    "String",
+    "double",
+    "DateTime",
+    "typedef",
+]
+
+[[config]]
+languages = ["elixir"]
+exts = ["ex", "exs"]
+line_comment = "#"
+top_level_keywords = [
+    "def",
+    "defp",
+    "defmacro",
+    "defmacrop",
+    "module",
+    "use",
+    "import",
+    "alias",
+    "require",
+    "if",
+    "unless",
+    "case",
+    "cond",
+    "with",
+    "try",
+    "catch",
+    "throw",
+    "receive",
+    "after",
+    "do",
+    "end",
+]
+
+[[config]]
+languages = ["r"]
+exts = ["R", "r"]
+line_comment = "#"
+top_level_keywords = ["function", "library", "install.packages"]
+
+[[config]]
+languages = ["css"]
+exts = ["css"]
+
+[[config]]
+languages = ["dockerfile"]
+exts = ["Dockerfile"]
+
+[[config]]
+languages = ["haskell"]
+exts = ["hs"]
+
+[[config]]
+languages = ["html"]
+exts = ["html"]
+
+[[config]]
+languages = ["julia"]
+exts = ["jl"]
+
+[[config]]
+languages = ["lua"]
+exts = ["lua"]
+line_comment = "--"
+top_level_keywords = [
+    "and",
+    "break",
+    "do",
+    "else",
+    "elseif",
+    "end",
+    "false",
+    "for",
+    "function",
+    "if",
+    "in",
+    "local",
+    "nil",
+    "not",
+    "or",
+    "repeat",
+    "return",
+    "then",
+    "true",
+    "until",
+    "while"
+]
+
+[[config]]
+languages = ["makefile"]
+exts = ["Makefile"]
+
+[[config]]
+languages = ["markdown"]
+exts = ["md", "markdown"]
+chunk_size = 1536
+
+[[config]]
+languages = ["txt"]
+exts = ["txt"]
+chunk_size = 1536
+
+[[config]]
+languages = ["perl"]
+exts = ["pl", "pm", "pod", "perl"]
+
+[[config]]
+languages = ["powershell"]
+exts = ["ps1", "psd1", "psm1"]
+
+[[config]]
+languages = ["sql"]
+exts = ["sql"]
+
+[[config]]
+languages = ["scala"]
+exts = ["scala", "sbt"]
+line_comment = "//"
+top_level_keywords = [
+    "abstract",
+    "case",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "extends",
+    "final",
+    "for",
+    "given",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "match",
+    "new",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "then",
+    "throw",
+    "trait",
+    "try",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+]
+
+[[config]]
+languages = ["shellscript"]
+exts = ["sh", "bash", "command", "zsh"]
+
+[[config]]
+languages = ["tex"]
+exts = ["tex"]
+
+[[config]]
+languages = ["vb"]
+exts = ["vb"]
+
+[[config]]
+languages = ["ocaml"]
+exts = ["ml", "mli"]
+top_level_keywords = [
+  "and",
+  "as",
+  "assert",
+  "begin",
+  "class",
+  "constraint",
+  "do",
+  "done",
+  "downto",
+  "else",
+  "end",
+  "exception",
+  "external",
+  "for",
+  "fun",
+  "function",
+  "functor",
+  "if",
+  "in",
+  "include",
+  "inherit",
+  "initializer",
+  "lazy",
+  "let",
+  "match",
+  "method",
+  "module",
+  "mutable",
+  "new",
+  "nonrec",
+  "object",
+  "of",
+  "open",
+  "private",
+  "rec",
+  "sig",
+  "struct",
+  "then",
+  "to",
+  "try",
+  "type",
+  "val",
+  "virtual",
+  "when",
+  "while",
+  "with",
+]
+
+[[config]]
+languages = ["gdscript"]
+exts = ["gd", "tscn", "tres"]
+line_comment = "#"
+top_level_keywords = [
+    "var",
+    "const",
+    "enum",
+    "func",
+    "class",
+    "class_name",
+    "extends",
+]

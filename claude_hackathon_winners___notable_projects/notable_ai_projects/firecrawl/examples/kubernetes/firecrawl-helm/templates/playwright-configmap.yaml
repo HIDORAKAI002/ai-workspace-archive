@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "firecrawl.fullname" . }}-playwright-config
+data:
+  PORT: {{ default (printf "%v" .Values.service.playwright.port) .Values.playwrightConfig.PORT | quote }}
+  ALLOW_LOCAL_WEBHOOKS: {{ .Values.playwrightConfig.ALLOW_LOCAL_WEBHOOKS | quote }}
+  BLOCK_MEDIA: {{ .Values.playwrightConfig.BLOCK_MEDIA | quote }}
+  MAX_CONCURRENT_PAGES: {{ .Values.playwrightConfig.MAX_CONCURRENT_PAGES | quote }}

@@ -1,0 +1,118 @@
+---
+title: "Spans"
+description: "AgentOps uses spans to track different types of operations in your agent workflows."
+---
+
+## Spans Overview
+
+In AgentOps v0.4, the concept of "Events" has been replaced with "Spans" for all operation tracking. Spans represent different types of operations and are organized hierarchically.
+
+A span is a unit of work or operation in your agent workflow. Spans are created using decorators and are automatically nested to create a hierarchical trace of your agent's execution.
+
+## Span Types
+
+AgentOps supports several types of spans, each representing a different kind of operation:
+
+### Session Spans
+
+Session spans serve as the root for all other spans. They represent a complete execution of your agent workflow.
+
+```python
+from agentops.sdk.decorators import session
+
+@session
+def my_workflow():
+    # Your session code here
+    return result
+```
+
+### Agent Spans
+
+Agent spans represent operations performed by a specific agent. They are typically children of session spans.
+
+```python
+from agentops.sdk.decorators import agent
+
+@agent
+class MyAgent:
+    def __init__(self, name):
+        self.name = name
+```
+
+### Operation/Task Spans
+
+Operation spans represent specific tasks or operations performed by an agent. They are typically children of agent spans.
+
+```python
+from agentops.sdk.decorators import operation
+
+@operation
+def process_data(data):
+    # Process the data
+    return result
+```
+
+### Workflow Spans
+
+Workflow spans represent a sequence of operations that form a workflow. They can contain multiple operations.
+
+```python
+from agentops.sdk.decorators import workflow
+
+@workflow
+def my_workflow(data):
+    # Workflow implementation
+    return result
+```
+
+### LLM Spans
+
+LLM spans are automatically created when you make calls to supported LLM providers. They represent interactions with language models.
+
+## Span Attributes
+
+All spans share a set of common attributes:
+
+| Attribute | Description |
+|-----------|-------------|
+| span_id | A unique identifier for the span |
+| trace_id | The ID of the trace this span belongs to |
+| parent_id | The ID of the parent span |
+| name | The name of the span |
+| kind | The kind of span (session, agent, operation, etc.) |
+| start_time | When the span started |
+| end_time | When the span ended |
+| attributes | Custom attributes for the span |
+
+Additionally, spans automatically capture:
+
+- Input parameters to the decorated function
+- Return values from the decorated function
+- Exceptions that occur during execution
+
+## Span Hierarchy
+
+Spans are organized hierarchically to create a trace of your agent's execution. The typical hierarchy is:
+
+1. Session (root)
+2. Agent
+3. Operation/Task
+4. Nested Operations
+
+This hierarchy allows you to visualize the flow of your agent's execution and understand how different operations relate to each other.
+
+## Error Handling
+
+When an exception occurs within a decorated function, it's automatically recorded in the span. This allows you to easily identify and debug errors in your agent workflow.
+
+```python
+from agentops.sdk.decorators import operation
+
+@operation
+def risky_operation():
+    # This exception will be recorded in the span
+    raise ValueError("Something went wrong")
+```
+
+<script type="module" src="/scripts/github_stars.js"></script>
+<script type="module" src="/scripts/adjust_api_dynamically.js"></script>

@@ -1,0 +1,59 @@
+module Anthropic
+  module Models
+    class BetaToolUseBlock = Beta::BetaToolUseBlock
+
+    module Beta
+      type beta_tool_use_block =
+        {
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: String,
+          type: :tool_use,
+          caller_: Anthropic::Models::Beta::BetaToolUseBlock::caller_
+        }
+
+      class BetaToolUseBlock < Anthropic::Internal::Type::BaseModel
+        attr_accessor id: String
+
+        attr_accessor input: ::Hash[Symbol, top]
+
+        attr_accessor name: String
+
+        attr_accessor type: :tool_use
+
+        attr_reader caller_: Anthropic::Models::Beta::BetaToolUseBlock::caller_?
+
+        def caller_=: (
+          Anthropic::Models::Beta::BetaToolUseBlock::caller_
+        ) -> Anthropic::Models::Beta::BetaToolUseBlock::caller_
+
+        def initialize: (
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: String,
+          ?caller_: Anthropic::Models::Beta::BetaToolUseBlock::caller_,
+          ?type: :tool_use
+        ) -> void
+
+        def to_hash: -> {
+          id: String,
+          input: ::Hash[Symbol, top],
+          name: String,
+          type: :tool_use,
+          caller_: Anthropic::Models::Beta::BetaToolUseBlock::caller_
+        }
+
+        type caller_ =
+          Anthropic::Beta::BetaDirectCaller
+          | Anthropic::Beta::BetaServerToolCaller
+          | Anthropic::Beta::BetaServerToolCaller20260120
+
+        module Caller
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::BetaToolUseBlock::caller_]
+        end
+      end
+    end
+  end
+end

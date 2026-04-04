@@ -1,0 +1,353 @@
+import type { BraveSearch } from 'brave-search';
+import { describe, expect, it, vi } from 'vitest';
+import { BraveLLMContextSearchTool } from '../../src/tools/BraveLLMContextSearchTool.js';
+import { createMockBraveSearch } from '../mocks/index.js';
+import { getFirstTextContent } from './tool-result-helpers.js';
+
+function createLogStub() {
+  return vi.fn();
+}
+
+describe('braveLLMContextSearchTool', () => {
+  it('uses compact mode by default and clamps request limits', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Banana science',
+            url: 'https://example.com/banana',
+            snippets: ['Bananas turn yellow as chlorophyll breaks down.'],
+          },
+        ],
+      },
+      sources: {
+        'https://example.com/banana': {
+          title: 'Banana science',
+          hostname: 'example.com',
+          age: ['Monday, January 01, 2024'],
+        },
+      },
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'why are bananas yellow',
+      count: 30,
+      maximumNumberOfUrls: 30,
+      maximumNumberOfTokens: 12000,
+      maximumNumberOfSnippets: 80,
+      maximumNumberOfTokensPerUrl: 4096,
+      maximumNumberOfSnippetsPerUrl: 10,
+    });
+
+    expect(mockBraveSearch.llmContextSearch).toHaveBeenCalledWith('why are bananas yellow', {
+      count: 8,
+      maximum_number_of_urls: 8,
+      maximum_number_of_tokens: 2048,
+      maximum_number_of_snippets: 16,
+      maximum_number_of_tokens_per_url: 512,
+      maximum_number_of_snippets_per_url: 2,
+      context_threshold_mode: 'balanced',
+    });
+
+    const text = getFirstTextContent(result);
+    const parsedLine = JSON.parse(text);
+    expect(parsedLine).toEqual({
+      title: 'Banana science',
+      url: 'https://example.com/banana',
+      age: 'Monday, January 01, 2024',
+      snippets: ['Bananas turn yellow as chlorophyll breaks down.'],
+    });
+  });
+
+  it('filters noisy snippets, deduplicates, and truncates in compact mode', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Banana ripening',
+            url: 'https://example.com/ripening',
+            snippets: [
+              '{"@graph": [{"@type":"Organization","name":"Example"}]}',
+              'Table of Contents (click to expand)',
+              '*[Image: Banana ripeness]* Bananas turn yellow when chlorophyll degrades and yellow pigments become visible.',
+              'Bananas turn yellow when chlorophyll degrades and yellow pigments become visible.',
+              'Bananas turn yellow when chlorophyll degrades and yellow pigments become visible as ethylene changes fruit chemistry over time and starches convert to sugars.',
+            ],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'why bananas turn yellow',
+      maxSnippetChars: 90,
+      maximumNumberOfSnippetsPerUrl: 8,
+    });
+
+    const text = getFirstTextContent(result);
+    const parsed = JSON.parse(text);
+    expect(parsed.snippets.length).toBeGreaterThan(0);
+    expect(parsed.snippets.length).toBeLessThanOrEqual(2);
+    for (const snippet of parsed.snippets as string[]) {
+      expect(snippet.length).toBeLessThanOrEqual(90);
+      expect(snippet.toLowerCase()).not.toContain('@graph');
+      expect(snippet.toLowerCase()).not.toContain('table of contents');
+    }
+  });
+
+  it('enforces compact output budget', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'A',
+            url: 'https://example.com/a',
+            snippets: ['Bananas become yellow as chlorophyll breaks down.'],
+          },
+          {
+            title: 'B',
+            url: 'https://example.com/b',
+            snippets: ['Ethylene helps drive ripening and color transition in bananas.'],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+      maxOutputChars: 140,
+    });
+
+    const text = getFirstTextContent(result);
+    expect(text.length).toBeLessThanOrEqual(140);
+    expect(text.split('\n')).toHaveLength(1);
+  });
+
+  it('supports full mode with raw snippet payloads', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Raw source',
+            url: 'https://example.com/raw',
+            snippets: ['{"foo":"bar"}', 'plain text snippet'],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana',
+      responseMode: 'full',
+    });
+
+    expect(mockBraveSearch.llmContextSearch).toHaveBeenCalledWith('banana', {
+      count: undefined,
+      maximum_number_of_urls: undefined,
+      maximum_number_of_tokens: undefined,
+      maximum_number_of_snippets: undefined,
+      maximum_number_of_tokens_per_url: undefined,
+      maximum_number_of_snippets_per_url: undefined,
+      context_threshold_mode: 'disabled',
+    });
+
+    const text = getFirstTextContent(result);
+    const parsed = JSON.parse(text);
+    expect(parsed.snippets[0]).toEqual({ foo: 'bar' });
+    expect(parsed.snippets[1]).toBe('plain text snippet');
+  });
+
+  it('uses the url itself for retrieval and filters to exact URL matches', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Target page',
+            url: 'https://example.com/target',
+            snippets: ['Target snippet one.'],
+          },
+          {
+            title: 'Other page',
+            url: 'https://example.com/other',
+            snippets: ['Other snippet one.'],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+      url: 'https://example.com/target',
+    });
+
+    expect(mockBraveSearch.llmContextSearch).toHaveBeenCalledWith('https://example.com/target', {
+      count: 8,
+      maximum_number_of_urls: 8,
+      maximum_number_of_tokens: 2048,
+      maximum_number_of_snippets: 16,
+      maximum_number_of_tokens_per_url: 512,
+      maximum_number_of_snippets_per_url: 2,
+      context_threshold_mode: 'balanced',
+    });
+
+    const text = getFirstTextContent(result);
+    const lines = text.split('\n');
+    expect(lines).toHaveLength(1);
+    const parsed = JSON.parse(lines[0]);
+    expect(parsed.url).toBe('https://example.com/target');
+    expect(parsed.title).toBe('Target page');
+    expect(parsed.snippets).toEqual(['Target snippet one.']);
+  });
+
+  it('returns explicit message when url filter has no matches', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Other page',
+            url: 'https://example.com/other',
+            snippets: ['Other snippet one.'],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+      url: 'https://example.com/target',
+    });
+
+    expect(getFirstTextContent(result)).toBe('No context snippets found for URL "https://example.com/target" with query "banana ripening"');
+  });
+
+  it('returns explicit message when compact mode filters away every snippet', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Noisy page',
+            url: 'https://example.com/noisy',
+            snippets: [
+              '{"@graph":[{"@type":"Organization","name":"Example"}]}',
+              'Table of Contents',
+              'Privacy Policy',
+            ],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+    });
+
+    expect(getFirstTextContent(result)).toBe('No context results found for "banana ripening"');
+    expect(log).toHaveBeenCalledWith(
+      'No LLM context results found for "banana ripening"',
+      'info',
+    );
+  });
+
+  it('returns explicit message when compact mode filters away every snippet for a targeted url', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'Target page',
+            url: 'https://example.com/target',
+            snippets: [
+              '{"@graph":[{"@type":"Organization","name":"Example"}]}',
+              'Table of Contents',
+              'Privacy Policy',
+            ],
+          },
+          {
+            title: 'Other page',
+            url: 'https://example.com/other',
+            snippets: ['Useful snippet that should be ignored because the URL does not match.'],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+      url: 'https://example.com/target',
+    });
+
+    expect(getFirstTextContent(result)).toBe('No context snippets found for URL "https://example.com/target" with query "banana ripening"');
+    expect(log).toHaveBeenCalledWith(
+      'No LLM context snippets found for URL "https://example.com/target" with query "banana ripening"',
+      'info',
+    );
+  });
+
+  it('returns explicit message when compact output budget cannot fit the first line', async () => {
+    const mockBraveSearch = createMockBraveSearch();
+    const log = createLogStub();
+    const tool = new BraveLLMContextSearchTool(log, mockBraveSearch as unknown as BraveSearch, false);
+
+    mockBraveSearch.llmContextSearch.mockResolvedValue({
+      grounding: {
+        generic: [
+          {
+            title: 'T'.repeat(750),
+            url: 'https://example.com/huge',
+            snippets: ['Banana ripening details '.repeat(40)],
+          },
+        ],
+      },
+      sources: {},
+    } as Awaited<ReturnType<BraveSearch['llmContextSearch']>>);
+
+    const result = await tool.executeCore({
+      query: 'banana ripening',
+      maxOutputChars: 1000,
+    });
+
+    expect(getFirstTextContent(result)).toBe('No context results found for "banana ripening"');
+    expect(log).toHaveBeenCalledWith(
+      'No LLM context results found for "banana ripening"',
+      'info',
+    );
+  });
+});

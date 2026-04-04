@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Emoji Width: Canvas vs DOM</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui; background: #0a0a0a; color: #e0e0e0; padding: 24px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+  #output { font: 13px "SF Mono", monospace; white-space: pre-wrap; background: #111; border: 1px solid #222; border-radius: 8px; padding: 16px; }
+  .match { color: #81c784; }
+  .mismatch { color: #ef5350; }
+  .heading { color: #4fc3f7; font-weight: bold; }
+  .dim { color: #666; }
+  .key { color: #ffcc80; }
+</style>
+</head>
+<body>
+<h1>Emoji Width: Canvas vs DOM — Multi-Font Sweep</h1>
+<p class="sub">Tests whether emoji canvas/DOM diff is constant across fonts (font-independent) or varies per font.</p>
+<div id="output">Running...</div>
+<script>
+const emoji = [
+  // Basic smileys
+  '\u{1F600}','\u{1F602}','\u{1F972}','\u{1F60D}','\u{1F914}','\u{1F634}','\u{1F92F}','\u{1F973}',
+  // Hand gestures
+  '\u{1F44D}','\u{1F44E}','\u{1F44F}','\u{1F91D}','\u270C\uFE0F','\u{1F91E}','\u{1FAF6}',
+  // People
+  '\u{1F476}','\u{1F466}','\u{1F469}','\u{1F474}',
+  // Animals
+  '\u{1F98A}','\u{1F415}','\u{1F431}','\u{1F981}','\u{1F418}','\u{1F98B}','\u{1F40D}',
+  // Nature
+  '\u{1F338}','\u{1F30D}','\u2B50','\u{1F525}','\u{1F4A7}','\u2744\uFE0F','\u{1F308}',
+  // Food
+  '\u{1F34E}','\u{1F355}','\u{1F363}','\u{1F9C1}','\u2615','\u{1F37A}',
+  // Objects
+  '\u{1F3E0}','\u{1F680}','\u{1F3AF}','\u{1F4A1}','\u{1F4F1}','\u{1F511}','\u{1F48E}',
+  // Flags
+  '\u{1F1FA}\u{1F1F8}','\u{1F1EF}\u{1F1F5}','\u{1F1EB}\u{1F1F7}','\u{1F1E9}\u{1F1EA}','\u{1F1E8}\u{1F1F3}','\u{1F1E7}\u{1F1F7}',
+  // Skin tone variants
+  '\u{1F44D}\u{1F3FB}','\u{1F44D}\u{1F3FD}','\u{1F44D}\u{1F3FF}',
+  // Misc
+  '\u274C','\u2705','\u2764\uFE0F','\u{1F494}',
+];
+
+const fonts = [
+  '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  'Georgia, "Times New Roman", serif',
+  'Arial, sans-serif',
+  '"Times New Roman", Times, serif',
+  'Verdana, Geneva, sans-serif',
+  '"Courier New", Courier, monospace',
+  '"Trebuchet MS", Helvetica, sans-serif',
+];
+
+const sizes = [10, 12, 14, 15, 16, 18, 20, 22, 24, 28, 32];
+
+const canvas = new OffscreenCanvas(1, 1);
+const ctx = canvas.getContext('2d');
+
+const container = document.createElement('div');
+container.style.cssText = 'position:absolute;top:-9999px;visibility:hidden;white-space:nowrap';
+document.body.appendChild(container);
+
+// Collect all data: diffsBySize[size] = Map<diffValue, count across all fonts>
+// Also track per-font to see if there's variance
+const diffsBySizeFont = new Map(); // size → Map<font, diff[]>
+const allDiffs = [];
+
+let out = '';
+
+for (const fontFamily of fonts) {
+  out += `<span class="heading">${fontFamily}</span>\n`;
+
+  for (const sz of sizes) {
+    ctx.font = `${sz}px ${fontFamily}`;
+    let mismatches = 0;
+    const diffs = [];
+
+    // Batch: create all spans
+    const spans = [];
+    for (const e of emoji) {
+      const span = document.createElement('span');
+      span.style.font = `${sz}px ${fontFamily}`;
+      span.style.display = 'inline-block';
+      span.textContent = e;
+      container.appendChild(span);
+      spans.push(span);
+    }
+
+    // Read all
+    for (let i = 0; i < emoji.length; i++) {
+      const canvasW = ctx.measureText(emoji[i]).width;
+      const domW = spans[i].getBoundingClientRect().width;
+      const diff = canvasW - domW;
+
+      if (Math.abs(diff) >= 0.5) {
+        mismatches++;
+        diffs.push({ emoji: emoji[i], canvasW, domW, diff });
+        allDiffs.push({ font: fontFamily, size: sz, emoji: emoji[i], canvasW, domW, diff });
+      }
+
+      // Track per size+font
+      if (!diffsBySizeFont.has(sz)) diffsBySizeFont.set(sz, new Map());
+      const fontMap = diffsBySizeFont.get(sz);
+      if (!fontMap.has(fontFamily)) fontMap.set(fontFamily, []);
+      fontMap.get(fontFamily).push({ emoji: emoji[i], diff });
+    }
+
+    container.innerHTML = '';
+
+    const cls = mismatches === 0 ? 'match' : 'mismatch';
+    out += `  <span class="${cls}">${sz}px: ${emoji.length - mismatches}/${emoji.length} match</span>`;
+    if (mismatches > 0) {
+      const uniqueDiffs = [...new Set(diffs.map(d => d.diff.toFixed(2)))];
+      out += ` <span class="dim">diffs: ${uniqueDiffs.map(d => (parseFloat(d) > 0 ? '+' : '') + d).join(', ')}</span>`;
+    }
+    out += '\n';
+  }
+  out += '\n';
+}
+
+// === KEY ANALYSIS: Are diffs constant across fonts for same size? ===
+out += '<span class="heading">========== ANALYSIS: Font independence ==========</span>\n\n';
+
+// For each size, compare the diff pattern across fonts
+for (const sz of sizes) {
+  const fontMap = diffsBySizeFont.get(sz);
+  if (!fontMap) continue;
+
+  // For each emoji, collect the diff from each font
+  const emojiDiffsByFont = new Map(); // emoji → Map<font, diff>
+  for (const [font, entries] of fontMap) {
+    for (const { emoji: e, diff } of entries) {
+      if (!emojiDiffsByFont.has(e)) emojiDiffsByFont.set(e, new Map());
+      emojiDiffsByFont.get(e).set(font, diff);
+    }
+  }
+
+  // Check: for each emoji, are all font diffs the same?
+  let allSame = true;
+  let maxVariance = 0;
+  let worstEmoji = '';
+  for (const [e, fontDiffs] of emojiDiffsByFont) {
+    const vals = [...fontDiffs.values()];
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const variance = max - min;
+    if (variance > 0.01) {
+      allSame = false;
+      if (variance > maxVariance) {
+        maxVariance = variance;
+        worstEmoji = e;
+      }
+    }
+  }
+
+  const cls = allSame ? 'match' : 'mismatch';
+  const sampleDiffs = [];
+  for (const [e, fontDiffs] of emojiDiffsByFont) {
+    const vals = [...fontDiffs.values()];
+    if (Math.abs(vals[0]) >= 0.5) {
+      sampleDiffs.push(`${e} ${vals[0] > 0 ? '+' : ''}${vals[0].toFixed(2)}`);
+    }
+    if (sampleDiffs.length >= 5) break;
+  }
+
+  out += `<span class="${cls}">${sz}px: ${allSame ? 'CONSTANT across fonts' : `VARIES (max variance: ${maxVariance.toFixed(2)}px on ${worstEmoji})`}</span>`;
+  if (sampleDiffs.length > 0) {
+    out += `  <span class="dim">${sampleDiffs.join(', ')}</span>`;
+  }
+  out += '\n';
+}
+
+// === Summary table: size → diff value (if constant) ===
+out += '\n<span class="heading">========== CORRECTION TABLE (if constant) ==========</span>\n\n';
+out += '<span class="key">size → canvas_width - dom_width (for emoji that mismatch)</span>\n\n';
+
+for (const sz of sizes) {
+  const fontMap = diffsBySizeFont.get(sz);
+  if (!fontMap) continue;
+
+  // Get diffs from first font (they should all be the same)
+  const firstFont = fonts[0];
+  const entries = fontMap.get(firstFont) || [];
+  const mismatchDiffs = entries.filter(e => Math.abs(e.diff) >= 0.5);
+
+  if (mismatchDiffs.length === 0) {
+    out += `  ${sz}px: <span class="match">no correction needed</span>\n`;
+  } else {
+    const uniqueRounded = [...new Set(mismatchDiffs.map(d => d.diff.toFixed(2)))];
+    out += `  ${sz}px: ${uniqueRounded.map(d => (parseFloat(d) > 0 ? '+' : '') + d + 'px').join(', ')} <span class="dim">(${mismatchDiffs.length}/${emoji.length} emoji)</span>\n`;
+  }
+}
+
+// === Per-emoji detail at one size to show which emoji are affected ===
+out += '\n<span class="heading">========== DETAIL: Which emoji mismatch at 16px ==========</span>\n\n';
+
+const sz16 = diffsBySizeFont.get(16);
+if (sz16) {
+  const firstEntries = sz16.get(fonts[0]) || [];
+  const matched = [];
+  const mismatched = [];
+  for (const { emoji: e, diff } of firstEntries) {
+    if (Math.abs(diff) >= 0.5) {
+      mismatched.push({ emoji: e, diff });
+    } else {
+      matched.push(e);
+    }
+  }
+  out += `  Mismatched (${mismatched.length}): ${mismatched.map(m => `${m.emoji}(${m.diff > 0 ? '+' : ''}${m.diff.toFixed(1)})`).join(' ')}\n`;
+  out += `  Matched (${matched.length}): ${matched.join(' ')}\n`;
+}
+
+document.body.removeChild(container);
+document.getElementById('output').innerHTML = out;
+</script>
+</body>
+</html>

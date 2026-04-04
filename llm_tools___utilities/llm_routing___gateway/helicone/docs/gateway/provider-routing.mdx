@@ -1,0 +1,211 @@
+---
+title: "Provider Routing"
+sidebarTitle: "Provider Routing"
+description: "Automatic model routing across 100+ providers for reliability and performance"
+---
+
+Never worry about provider outages again. The AI Gateway automatically routes your requests to the best available provider, with instant failover when things go wrong.
+
+## The Problem
+
+<CardGroup cols={2}>
+  <Card title="Provider Outages" icon="circle-exclamation">
+    Provider downtime breaks your app and frustrates users
+  </Card>
+  <Card title="Rate Limits" icon="gauge-high">
+    Hit provider quotas and block your users from accessing your service
+  </Card>
+  <Card title="Regional Restrictions" icon="globe">
+    Limited availability in certain regions reduces your global reach
+  </Card>
+  <Card title="Vendor Lock-in" icon="lock">
+    Tied to one provider prevents cost optimization and flexibility
+  </Card>
+</CardGroup>
+
+## The Solution
+
+Provider routing gives you access to the same model across multiple providers. When OpenAI goes down, your app automatically switches to Azure or AWS Bedrock using Helicone's managed keys. When you hit rate limits, traffic flows to another provider. All without setup or code changes.
+
+
+## Using Provider Routing
+
+Zero configuration required. Just request a model:
+
+```typescript
+const response = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello!" }]
+});
+```
+
+That's it. The gateway automatically:
+- Finds all providers offering this model
+- Routes to the cheapest available provider
+- Fails over instantly if a provider has issues
+
+Your request succeeds even when providers fail.
+
+## How It Works
+
+The gateway uses the [Model Registry](https://helicone.ai/models) to find all providers supporting your requested model, then applies smart routing:
+
+**Routing Priority:**
+1. Your provider keys (BYOK) if configured
+2. Helicone's managed keys (credits) - automatic fallback at 0% markup
+
+**Selection:** Routes to the cheapest provider first. Equal-cost providers are load balanced.
+
+**Failover:** Instantly tries the next provider on errors (rate limits, timeouts, server errors, etc.)
+
+<Accordion title="What are credits?">
+  Credits let you access 100+ LLM providers without signing up for each one. Add funds to your Helicone account and we manage all the provider API keys for you. You pay exactly what providers charge (0% markup) and avoid provider rate limits. [Learn more about credits](https://helicone.ai/credits).
+</Accordion>
+
+## Advanced: Customizing Routing
+
+The default routing handles most use cases. Customize only if you need specific control:
+
+### Lock to Specific Provider
+
+Force requests to only use one provider by adding the provider name after a slash:
+
+```typescript
+model: "gpt-4o-mini/openai"  // Only route through OpenAI
+```
+
+**When to use:** Compliance requirements mandate a specific provider, or you're testing provider-specific features.
+
+**What happens:** The gateway only attempts this provider. No automatic failover to other providers.
+
+### Use Your Own Deployment
+
+Target a specific deployment you've configured in [Provider Settings](https://us.helicone.ai/providers):
+
+```typescript
+model: "gpt-4o-mini/azure/clm1a2b3c"  // Your Azure deployment ID
+```
+
+**When to use:** Regional data residency (e.g., EU GDPR compliance requires data to stay in EU regions), or you want to use provider credits.
+
+**What happens:** Requests only go through your configured deployment. The deployment ID (CUID) is shown in your Provider Settings.
+
+### Manual Fallback Chain
+
+Specify exactly which providers to try, in order:
+
+```typescript
+model: "gpt-4o-mini/azure,gpt-4o-mini/openai,gpt-4o-mini"
+```
+
+**When to use:** You want to prioritize your Azure credits, fall back to OpenAI if Azure fails, then try all other providers.
+
+**What happens:** Gateway tries each provider in the exact order you specify.
+
+### Bring Your Own Keys (BYOK)
+
+Add your provider API keys in [Provider Settings](https://us.helicone.ai/providers):
+
+**What happens:** Your keys are always tried first, then Helicone's managed keys as fallback. This gives you control over provider accounts while maintaining reliability.
+
+**Benefits:** Use provider credits, meet compliance requirements, or maintain direct provider relationships while still getting automatic failover.
+
+<Note>
+The gateway forwards **any** model/provider combination, even models not yet in our registry. Unknown models only route through your BYOK deployments.
+</Note>
+
+### Exclude Specific Providers
+
+Prevent automatic routing from using specific providers:
+
+```typescript
+model: "!openai,gpt-4o-mini"  // Use any provider EXCEPT OpenAI
+```
+
+**When to use:** Known provider issues, compliance restrictions, or testing without certain providers.
+
+**What happens:** The gateway tries all available providers except those you've excluded. Exclude multiple providers with commas: `"!openai,!anthropic,gpt-4o-mini"`.
+
+## Failover Triggers
+
+The gateway automatically tries the next provider when encountering these errors:
+
+| Error | Description |
+|-------|-------------|
+| 429 | Rate limit errors |
+| 401 | Authentication errors |
+| 400 | Context length errors |
+| 408 | Timeout errors |
+| 500+ | Server errors |
+
+## Real World Examples
+
+### Scenario: OpenAI Outage
+
+Your production app uses GPT-4. OpenAI goes down at 3am.
+
+```typescript
+// Your code doesn't change
+const response = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Process this customer request" }]
+});
+```
+
+**What happens:** Gateway automatically fails over to Azure OpenAI, then AWS Bedrock if needed. Your app stays online, customers never notice.
+
+### Scenario: Using Azure Credits
+
+Your company has $100k in Azure credits to burn before year-end.
+
+```typescript
+// Prioritize Azure but keep fallback for reliability
+const response = await client.chat.completions.create({
+  model: "gpt-4o-mini/azure,gpt-4o-mini",  
+  messages: messages
+});
+```
+
+**What happens:** Tries your Azure deployment first (using credits), but falls back to other providers if Azure fails. Balances credit usage with reliability.
+
+### Scenario: EU Compliance Requirements
+
+GDPR requires EU customer data to stay in EU regions.
+
+```typescript
+// Use your custom EU deployment
+await client.chat.completions.create({
+  model: "gpt-4o/azure/eu-frankfurt-deployment",  // Your CUID
+  messages: messages
+});
+```
+
+**What happens:** Requests ONLY go through your Frankfurt deployment. No data leaves the EU.
+
+### Scenario: Avoiding Provider Issues
+
+You notice one provider is experiencing higher latency or errors today.
+
+```typescript
+// Exclude the problematic provider from automatic routing
+const response = await client.chat.completions.create({
+  model: "!openai,gpt-4o-mini",
+  messages: [{ role: "user", content: "Analyze this data" }]
+});
+```
+
+**What happens:** Gateway automatically routes to all available providers except OpenAI. If you also want to exclude another provider, use `"!openai,!anthropic,gpt-4o-mini"`.
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Browse Models" icon="grid" href="https://helicone.ai/models">
+  Explore all available models and providers
+</Card>
+<Card title="Add Provider Keys" icon="key" href="https://us.helicone.ai/providers">
+  Connect your provider accounts
+</Card>
+<Card title="Prompt Management" icon="wand-magic-sparkles" href="/gateway/prompt-integration">
+  Combine routing with managed prompts
+</Card>
+</CardGroup>

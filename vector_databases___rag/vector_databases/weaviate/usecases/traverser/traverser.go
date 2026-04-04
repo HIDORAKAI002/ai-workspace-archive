@@ -1,0 +1,94 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package traverser
+
+import (
+	"context"
+
+	"github.com/go-openapi/strfmt"
+	"github.com/sirupsen/logrus"
+	"github.com/weaviate/weaviate/entities/additional"
+	"github.com/weaviate/weaviate/entities/aggregation"
+	"github.com/weaviate/weaviate/entities/dto"
+	"github.com/weaviate/weaviate/entities/search"
+	"github.com/weaviate/weaviate/usecases/auth/authorization"
+	"github.com/weaviate/weaviate/usecases/config"
+	"github.com/weaviate/weaviate/usecases/modules"
+	"github.com/weaviate/weaviate/usecases/ratelimiter"
+	"github.com/weaviate/weaviate/usecases/schema"
+)
+
+// Traverser can be used to dynamically traverse the knowledge graph
+type Traverser struct {
+	config                  *config.WeaviateConfig
+	logger                  logrus.FieldLogger
+	authorizer              authorization.Authorizer
+	vectorSearcher          VectorSearcher
+	explorer                explorer
+	schemaGetter            schema.SchemaGetter
+	nearParamsVector        *nearParamsVector
+	targetVectorParamHelper *TargetVectorParamHelper
+	metrics                 *Metrics
+	ratelimiter             *ratelimiter.Limiter
+}
+
+type VectorSearcher interface {
+	Aggregate(ctx context.Context, params aggregation.Params, modules *modules.Provider) (*aggregation.Result, error)
+	Object(ctx context.Context, className string, id strfmt.UUID,
+		props search.SelectProperties, additional additional.Properties,
+		properties *additional.ReplicationProperties, tenant string) (*search.Result, error)
+	ObjectsByID(ctx context.Context, id strfmt.UUID, props search.SelectProperties,
+		additional additional.Properties, tenant string) (search.Results, error)
+}
+
+type explorer interface {
+	GetClass(ctx context.Context, params dto.GetParams) ([]interface{}, error)
+	CrossClassVectorSearch(ctx context.Context, params ExploreParams) ([]search.Result, error)
+}
+
+// NewTraverser to traverse the knowledge graph
+func NewTraverser(config *config.WeaviateConfig, logger logrus.FieldLogger, authorizer authorization.Authorizer,
+	vectorSearcher VectorSearcher,
+	explorer explorer, schemaGetter schema.SchemaGetter,
+	modulesProvider ModulesProvider,
+	metrics *Metrics, maxGetRequests int,
+) *Traverser {
+	return &Traverser{
+		config:                  config,
+		logger:                  logger,
+		authorizer:              authorizer,
+		vectorSearcher:          vectorSearcher,
+		explorer:                explorer,
+		schemaGetter:            schemaGetter,
+		nearParamsVector:        newNearParamsVector(modulesProvider, vectorSearcher),
+		targetVectorParamHelper: NewTargetParamHelper(),
+		metrics:                 metrics,
+		ratelimiter:             ratelimiter.New(maxGetRequests),
+	}
+}
+
+// SearchResult is a single search result. See wrapping Search Results for the Type
+type SearchResult struct {
+	Name      string
+	Certainty float32
+}
+
+// SearchResults is grouping of SearchResults for a SchemaSearch
+type SearchResults struct {
+	Type    SearchType
+	Results []SearchResult
+}
+
+// Len of the result set
+func (r SearchResults) Len() int {
+	return len(r.Results)
+}

@@ -1,0 +1,103 @@
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.resizer:hover,
+.resizer.isResizing {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.hide {
+  opacity: 0;
+}
+
+.truncate-text {
+  position: relative;
+  overflow: hidden;
+}
+
+.truncate-text::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #f9fafb
+  ); /* Fades from transparent to gray-50 */
+}
+
+.dark .truncate-text::after {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #030712 /* Dark mode background color */
+  );
+}
+
+@media (hover: hover) {
+  .hide {
+    opacity: 0;
+  }
+
+  *:hover > .hide {
+    opacity: 1;
+  }
+}
+
+@media (hover: hover) {
+  .resizer {
+    opacity: 0;
+  }
+
+  *:hover > .resizer {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpButton1 {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50vh);
+  } /* Adjust as needed */
+}
+
+@keyframes slideUpButton2 {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Hide the arrows for Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide the arrows for Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+#sessions-trace-span .recharts-xAxis .recharts-label {
+  font-size: 12px;
+}

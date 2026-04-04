@@ -1,0 +1,201 @@
+/**
+ * Brave Web Search Widget - Main App Component with pagination and context selection
+ */
+import type { WidgetProps } from '../../widget-props';
+import type { ContextResult, WebResultItem, WebSearchData } from './types';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { SearchAppLayout } from '../shared/SearchAppLayout';
+import { WebResultCard } from './WebResultCard';
+
+const EMPTY_CONTEXT_RESULTS: ContextResult[] = [];
+const EMPTY_WEB_ITEMS: WebResultItem[] = [];
+
+export interface WebSearchAppProps extends WidgetProps {
+  /** Callback to load a different page of results */
+  onLoadPage?: (offset: number) => Promise<void>;
+  /** Whether a page load is in progress */
+  isLoading?: boolean;
+  /** Whether the initial search is in progress (tool invoked but no result yet) */
+  isInitialLoading?: boolean;
+  /** Query being searched during initial loading */
+  loadingQuery?: string;
+  /** Results currently in context */
+  contextResults?: ContextResult[];
+  /** Callback when user adds/removes result from context */
+  onContextChange?: (results: ContextResult[]) => void;
+}
+
+export default function WebSearchApp({
+  toolResult,
+  hostContext,
+  openLink,
+  sendLog,
+  displayMode,
+  requestDisplayMode,
+  onLoadPage,
+  isLoading: externalIsLoading,
+  isInitialLoading,
+  loadingQuery,
+  contextResults = EMPTY_CONTEXT_RESULTS,
+  onContextChange,
+}: WebSearchAppProps) {
+  const [internalLoading, setInternalLoading] = useState(false);
+  const isLoading = externalIsLoading ?? internalLoading;
+  const contextResultsRef = useRef(contextResults);
+  contextResultsRef.current = contextResults;
+
+  // Access structured content from _meta (new location) or top-level (legacy)
+  const data = (toolResult?._meta?.structuredContent ?? toolResult?.structuredContent) as WebSearchData | undefined;
+
+  const items = data?.items ?? EMPTY_WEB_ITEMS;
+  const error = data?.error;
+  const hasData = Boolean(data);
+  const currentOffset = data?.offset ?? 0;
+  const returnedCount = data?.returnedCount ?? items.length;
+  const pageSize = data?.pageSize ?? data?.count ?? items.length;
+
+  // Pagination logic - Brave Web API has max offset of 9
+  const MAX_OFFSET = 9;
+  const hasPrevious = currentOffset > 0;
+  const hasNext = currentOffset < MAX_OFFSET && (data?.moreResultsAvailable ?? items.length > 0);
+  const canPaginate = Boolean(onLoadPage) && hasData && !error;
+
+  // Context selection helpers
+  const contextUrls = useMemo(() => new Set(contextResults.map(r => r.url)), [contextResults]);
+  const hasContextSupport = Boolean(onContextChange);
+
+  const handleOpenLink = useCallback(async (url: string) => {
+    try {
+      const { isError } = await openLink({ url });
+      if (isError) {
+        await sendLog({ level: 'warning', data: `Open link rejected: ${url}` });
+      }
+    }
+    catch (e) {
+      await sendLog({
+        level: 'error',
+        data: `Open link failed: ${e instanceof Error ? e.message : String(e)}`,
+      });
+    }
+  }, [openLink, sendLog]);
+
+  const handlePrevious = useCallback(async () => {
+    if (!onLoadPage || isLoading || !hasPrevious)
+      return;
+    setInternalLoading(true);
+    try {
+      await onLoadPage(currentOffset - 1);
+    }
+    finally {
+      setInternalLoading(false);
+    }
+  }, [hasPrevious, isLoading, onLoadPage, currentOffset]);
+
+  const handleNext = useCallback(async () => {
+    if (!onLoadPage || isLoading || !hasNext)
+      return;
+    setInternalLoading(true);
+    try {
+      await onLoadPage(currentOffset + 1);
+    }
+    finally {
+      setInternalLoading(false);
+    }
+  }, [hasNext, isLoading, onLoadPage, currentOffset]);
+
+  const handleToggleContext = useCallback((item: WebResultItem) => {
+    if (!onContextChange)
+      return;
+    const latestContextResults = contextResultsRef.current;
+    const isAlreadyInContext = latestContextResults.some(result => result.url === item.url);
+
+    if (isAlreadyInContext) {
+      // Remove from context
+      onContextChange(latestContextResults.filter(r => r.url !== item.url));
+    }
+    else {
+      // Add to context
+      const result: ContextResult = {
+        title: item.title,
+        url: item.url,
+        description: item.description,
+        domain: item.domain,
+      };
+      onContextChange([...latestContextResults, result]);
+    }
+  }, [onContextChange]);
+
+  const handleAddAllToContext = useCallback(() => {
+    if (!onContextChange)
+      return;
+    const latestContextResults = contextResultsRef.current;
+    const latestContextUrls = new Set(latestContextResults.map(r => r.url));
+
+    const newResults: ContextResult[] = items
+      .filter(item => !latestContextUrls.has(item.url))
+      .map(item => ({
+        title: item.title,
+        url: item.url,
+        description: item.description,
+        domain: item.domain,
+      }));
+
+    if (newResults.length === 0)
+      return;
+
+    onContextChange([...latestContextResults, ...newResults]);
+  }, [items, onContextChange]);
+
+  const pageNumber = currentOffset + 1;
+
+  return (
+    <SearchAppLayout
+      variant="web"
+      brandSub="Web Search"
+      query={data?.query}
+      countLabel={`${returnedCount}/${pageSize} results`}
+      error={error}
+      isInitialLoading={isInitialLoading}
+      loadingQuery={loadingQuery}
+      hasData={hasData}
+      isEmpty={items.length === 0}
+      emptyTitle="Web Search"
+      emptyDescription="Ask to search the web for any topic."
+      noResultsTitle="No results"
+      noResultsDescription="Try a different query or adjust the parameters."
+      hostContext={hostContext}
+      displayMode={displayMode}
+      requestDisplayMode={requestDisplayMode}
+      pagination={canPaginate
+        ? {
+            pageNumber,
+            hasPrevious,
+            hasNext,
+            isLoading,
+            onPrevious: handlePrevious,
+            onNext: handleNext,
+          }
+        : undefined}
+      context={hasContextSupport && items.length > 0
+        ? {
+            count: contextResults.length,
+            onAddAll: handleAddAllToContext,
+            addAllDisabled: items.every(item => contextUrls.has(item.url)),
+          }
+        : undefined}
+    >
+      <section className="web-results-list">
+        {items.map((item, index) => (
+          <WebResultCard
+            key={item.url}
+            item={item}
+            index={index}
+            onOpenLink={handleOpenLink}
+            isInContext={contextUrls.has(item.url)}
+            onToggleContext={hasContextSupport ? handleToggleContext : undefined}
+          />
+        ))}
+      </section>
+    </SearchAppLayout>
+  );
+}

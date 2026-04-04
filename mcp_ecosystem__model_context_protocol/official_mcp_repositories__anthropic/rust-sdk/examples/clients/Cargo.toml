@@ -1,0 +1,63 @@
+
+
+[package]
+name = "mcp-client-examples"
+version = "0.1.5"
+edition = "2024"
+publish = false
+
+[dependencies]
+rmcp = { workspace = true, features = [
+    "client",
+    "reqwest",
+    "transport-streamable-http-client-reqwest",
+    "transport-child-process",
+    "tower",
+    "auth"
+] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rand = "0.10"
+futures = "0.3"
+anyhow = "1.0"
+url = "2.4"
+tower = "0.5"
+axum = "0.8"
+reqwest = "0.13.2"
+clap = { version = "4.0", features = ["derive"] }
+
+[[example]]
+name = "clients_git_stdio"
+path = "src/git_stdio.rs"
+
+[[example]]
+name = "clients_streamable_http"
+path = "src/streamable_http.rs"
+
+[[example]]
+name = "clients_everything_stdio"
+path = "src/everything_stdio.rs"
+
+[[example]]
+name = "clients_collection"
+path = "src/collection.rs"
+
+[[example]]
+name = "clients_oauth_client"
+path = "src/auth/oauth_client.rs"
+
+[[example]]
+name = "clients_sampling_stdio"
+path = "src/sampling_stdio.rs"
+
+
+[[example]]
+name = "clients_progress_client"
+path = "src/progress_client.rs"
+
+[[example]]
+name = "clients_client_credentials"
+path = "src/auth/client_credentials.rs"

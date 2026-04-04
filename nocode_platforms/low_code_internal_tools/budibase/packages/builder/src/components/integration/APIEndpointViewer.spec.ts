@@ -833,6 +833,61 @@ describe("API Endpoint Viewer", () => {
       })
     })
 
+    it("persists form-data body parameters when switching tabs", async () => {
+      queries.store.update(s => ({
+        ...s,
+        list: [
+          {
+            ...SAVED_QUERY,
+            queryVerb: "create",
+            fields: {
+              ...SAVED_QUERY.fields,
+              bodyType: "form" as any,
+              requestBody: {},
+            },
+          },
+        ],
+      }))
+      const { container } = setupDOM({ queryId: QUERY_ID })
+      const getBodyTextInputs = () =>
+        Array.from(
+          container.querySelectorAll(".spectrum-Tabs-content input")
+        ).filter(
+          input => (input as HTMLInputElement).type !== "radio"
+        ) as HTMLInputElement[]
+
+      await waitFor(() => expect(getTab(container, "Body")).not.toBeUndefined())
+      await fireEvent.click(getTab(container, "Body")!)
+
+      const addParamButton = await waitFor(() => {
+        const button = Array.from(container.querySelectorAll("button")).find(
+          btn => btn.textContent?.trim().includes("Add param")
+        )
+        expect(button).not.toBeUndefined()
+        return button as HTMLButtonElement
+      })
+      await fireEvent.click(addParamButton)
+
+      await waitFor(() => {
+        expect(getBodyTextInputs().length).toBeGreaterThanOrEqual(2)
+      })
+      const [keyInput, valueInput] = getBodyTextInputs()
+
+      await fireEvent.input(keyInput, { target: { value: "username" } })
+      await fireEvent.blur(keyInput)
+      await fireEvent.input(valueInput, { target: { value: "alice" } })
+      await fireEvent.blur(valueInput)
+
+      await fireEvent.click(getTab(container, "Bindings")!)
+      await fireEvent.click(getTab(container, "Body")!)
+
+      await waitFor(() => {
+        const values = getBodyTextInputs().map(input => input.value)
+        expect(values).toContain("username")
+        expect(values).toContain("alice")
+      })
+    })
+
     it("clicking the Transformer tab shows a code editor", async () => {
       const { container } = setupDOM({ datasourceId: REST_DS_ID })
       await waitFor(() =>

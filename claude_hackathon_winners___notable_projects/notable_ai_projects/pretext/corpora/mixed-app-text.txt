@@ -1,0 +1,9 @@
+Release checklist (v2.3.1): ship the 8:30-4:30 coverage panel, keep the backup URL https://example.com/reports/q3?lang=ar&mode=full readable, and do not let the “primary CTA” jump when the card shrinks from 420px to 300px.
+
+Nora wrote "please keep 10 000 rows visible", Mina replied "trans­atlantic labels are still weird", and Kenji answered 「了解です」 before pasting 価格は¥12,800です and the Korean note "다음 배포는 7:00-9:00 사이예요."
+
+The Arabic support thread said: "هذا جيد، ولكن لا تكسر العبارة «فيقول: وعليك السلام» داخل البطاقة." A second comment mixed Hebrew and English: "בדיקה אחת נוספת: keep (RTL) punctuation stable, even when numbers like 2026/03/10 show up."
+
+Hindi note: "कृपया बताओ! यह २४×७ सपोर्ट है।" Thai note: "ทูลว่า \"พระองค์พร้อมหรือยัง\" แล้วส่งลิงก์ใหม่ทันที" and the Japanese QA follow-up was 「“quote clusters” も確認してください」.
+
+Status emoji stayed consistent: 👩‍💻, 👨🏽‍🔬, and family 👨‍👩‍👧‍👦 should not distort line counts. We also have hard spaces like 50 kg, word joiners in foo⁠bar, and a zero-width break in alpha​beta for very narrow mobile cards.

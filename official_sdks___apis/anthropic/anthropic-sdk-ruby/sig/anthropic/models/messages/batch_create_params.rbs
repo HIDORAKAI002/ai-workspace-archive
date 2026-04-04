@@ -1,0 +1,207 @@
+module Anthropic
+  module Models
+    module Messages
+      type batch_create_params =
+        { requests: ::Array[Anthropic::Messages::BatchCreateParams::Request] }
+        & Anthropic::Internal::Type::request_parameters
+
+      class BatchCreateParams < Anthropic::Internal::Type::BaseModel
+        extend Anthropic::Internal::Type::RequestParameters::Converter
+        include Anthropic::Internal::Type::RequestParameters
+
+        attr_accessor requests: ::Array[Anthropic::Messages::BatchCreateParams::Request]
+
+        def initialize: (
+          requests: ::Array[Anthropic::Messages::BatchCreateParams::Request],
+          ?request_options: Anthropic::request_opts
+        ) -> void
+
+        def to_hash: -> {
+          requests: ::Array[Anthropic::Messages::BatchCreateParams::Request],
+          request_options: Anthropic::RequestOptions
+        }
+
+        type request =
+          {
+            custom_id: String,
+            params: Anthropic::Messages::BatchCreateParams::Request::Params
+          }
+
+        class Request < Anthropic::Internal::Type::BaseModel
+          attr_accessor custom_id: String
+
+          attr_accessor params: Anthropic::Messages::BatchCreateParams::Request::Params
+
+          def initialize: (
+            custom_id: String,
+            params: Anthropic::Messages::BatchCreateParams::Request::Params
+          ) -> void
+
+          def to_hash: -> {
+            custom_id: String,
+            params: Anthropic::Messages::BatchCreateParams::Request::Params
+          }
+
+          type params =
+            {
+              max_tokens: Integer,
+              messages: ::Array[Anthropic::MessageParam],
+              model: Anthropic::Models::model,
+              cache_control: Anthropic::CacheControlEphemeral?,
+              container: String?,
+              inference_geo: String?,
+              metadata: Anthropic::Metadata,
+              output_config: Anthropic::OutputConfig,
+              service_tier: Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier,
+              stop_sequences: ::Array[String],
+              stream: bool,
+              system_: Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_,
+              temperature: Float,
+              thinking: Anthropic::Models::thinking_config_param,
+              tool_choice: Anthropic::Models::tool_choice,
+              tools: ::Array[Anthropic::Models::tool_union],
+              top_k: Integer,
+              top_p: Float
+            }
+
+          class Params < Anthropic::Internal::Type::BaseModel
+            attr_accessor max_tokens: Integer
+
+            attr_accessor messages: ::Array[Anthropic::MessageParam]
+
+            attr_accessor model: Anthropic::Models::model
+
+            attr_accessor cache_control: Anthropic::CacheControlEphemeral?
+
+            attr_accessor container: String?
+
+            attr_accessor inference_geo: String?
+
+            attr_reader metadata: Anthropic::Metadata?
+
+            def metadata=: (Anthropic::Metadata) -> Anthropic::Metadata
+
+            attr_reader output_config: Anthropic::OutputConfig?
+
+            def output_config=: (
+              Anthropic::OutputConfig
+            ) -> Anthropic::OutputConfig
+
+            attr_reader service_tier: Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier?
+
+            def service_tier=: (
+              Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier
+            ) -> Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier
+
+            attr_reader stop_sequences: ::Array[String]?
+
+            def stop_sequences=: (::Array[String]) -> ::Array[String]
+
+            attr_reader stream: bool?
+
+            def stream=: (bool) -> bool
+
+            attr_reader system_: Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_?
+
+            def system_=: (
+              Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_
+            ) -> Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_
+
+            attr_reader temperature: Float?
+
+            def temperature=: (Float) -> Float
+
+            attr_reader thinking: Anthropic::Models::thinking_config_param?
+
+            def thinking=: (
+              Anthropic::Models::thinking_config_param
+            ) -> Anthropic::Models::thinking_config_param
+
+            attr_reader tool_choice: Anthropic::Models::tool_choice?
+
+            def tool_choice=: (
+              Anthropic::Models::tool_choice
+            ) -> Anthropic::Models::tool_choice
+
+            attr_reader tools: ::Array[Anthropic::Models::tool_union]?
+
+            def tools=: (
+              ::Array[Anthropic::Models::tool_union]
+            ) -> ::Array[Anthropic::Models::tool_union]
+
+            attr_reader top_k: Integer?
+
+            def top_k=: (Integer) -> Integer
+
+            attr_reader top_p: Float?
+
+            def top_p=: (Float) -> Float
+
+            def initialize: (
+              max_tokens: Integer,
+              messages: ::Array[Anthropic::MessageParam],
+              model: Anthropic::Models::model,
+              ?cache_control: Anthropic::CacheControlEphemeral?,
+              ?container: String?,
+              ?inference_geo: String?,
+              ?metadata: Anthropic::Metadata,
+              ?output_config: Anthropic::OutputConfig,
+              ?service_tier: Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier,
+              ?stop_sequences: ::Array[String],
+              ?stream: bool,
+              ?system_: Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_,
+              ?temperature: Float,
+              ?thinking: Anthropic::Models::thinking_config_param,
+              ?tool_choice: Anthropic::Models::tool_choice,
+              ?tools: ::Array[Anthropic::Models::tool_union],
+              ?top_k: Integer,
+              ?top_p: Float
+            ) -> void
+
+            def to_hash: -> {
+              max_tokens: Integer,
+              messages: ::Array[Anthropic::MessageParam],
+              model: Anthropic::Models::model,
+              cache_control: Anthropic::CacheControlEphemeral?,
+              container: String?,
+              inference_geo: String?,
+              metadata: Anthropic::Metadata,
+              output_config: Anthropic::OutputConfig,
+              service_tier: Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier,
+              stop_sequences: ::Array[String],
+              stream: bool,
+              system_: Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_,
+              temperature: Float,
+              thinking: Anthropic::Models::thinking_config_param,
+              tool_choice: Anthropic::Models::tool_choice,
+              tools: ::Array[Anthropic::Models::tool_union],
+              top_k: Integer,
+              top_p: Float
+            }
+
+            type service_tier = :auto | :standard_only
+
+            module ServiceTier
+              extend Anthropic::Internal::Type::Enum
+
+              AUTO: :auto
+              STANDARD_ONLY: :standard_only
+
+              def self?.values: -> ::Array[Anthropic::Models::Messages::BatchCreateParams::Request::Params::service_tier]
+            end
+
+            type system_ = String | ::Array[Anthropic::TextBlockParam]
+
+            module System
+              extend Anthropic::Internal::Type::Union
+
+              def self?.variants: -> ::Array[Anthropic::Models::Messages::BatchCreateParams::Request::Params::system_]
+
+              TextBlockParamArray: Anthropic::Internal::Type::Converter
+            end
+          end
+        end
+      end
+    end
+  end
+end

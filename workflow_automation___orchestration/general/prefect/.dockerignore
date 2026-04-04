@@ -1,0 +1,52 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+sdist/
+.python-version
+
+# Test artifacts
+.coverage*
+.pytest_cache/
+
+# Type checking artifacts
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environments
+.python-version
+.env
+.venv
+**/.venv/
+env/
+venv/
+**/venv/
+
+# Documentation artifacts
+site/
+
+# UI artifacts
+src/prefect/server/ui/*
+ui/node_modules
+
+# Databases
+*.db
+
+# MacOS
+.DS_Store
+
+# Dask
+dask-worker-space/
+
+# Editors
+.idea/
+.vscode/

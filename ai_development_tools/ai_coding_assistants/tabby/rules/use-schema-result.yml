@@ -1,0 +1,17 @@
+id: use-schema-result
+message: Use schema::Result as API interface
+severity: error
+language: rust
+files:
+- ./ee/tabby-schema/src/**
+ignores:
+- ./ee/tabby-schema/src/lib.rs
+- ./ee/tabby-schema/src/dao.rs
+rule:
+  any:
+    - pattern: anyhow
+      not:
+        inside:
+          kind: enum_variant
+          stopBy: end
+    - pattern: FieldResult

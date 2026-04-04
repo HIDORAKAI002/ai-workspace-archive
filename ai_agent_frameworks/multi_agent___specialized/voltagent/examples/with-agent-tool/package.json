@@ -1,0 +1,36 @@
+{
+  "name": "voltagent-example-with-agent-tool",
+  "description": "Example showing how to use agents as tools in a supervisor pattern",
+  "version": "1.0.0",
+  "author": "",
+  "dependencies": {
+    "@voltagent/core": "^2.6.14",
+    "ai": "^6.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "multi-agent",
+    "supervisor",
+    "voltagent"
+  ],
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VoltAgent/voltagent.git",
+    "directory": "examples/with-agent-tool"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env ./src/index.ts",
+    "start": "tsx --env-file=.env ./src/index.ts"
+  },
+  "type": "module"
+}

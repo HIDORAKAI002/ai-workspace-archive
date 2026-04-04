@@ -1,0 +1,20 @@
+module Anthropic
+  module Models
+    class BetaInputJSONDelta = Beta::BetaInputJSONDelta
+
+    module Beta
+      type beta_input_json_delta =
+        { partial_json: String, type: :input_json_delta }
+
+      class BetaInputJSONDelta < Anthropic::Internal::Type::BaseModel
+        attr_accessor partial_json: String
+
+        attr_accessor type: :input_json_delta
+
+        def initialize: (partial_json: String, ?type: :input_json_delta) -> void
+
+        def to_hash: -> { partial_json: String, type: :input_json_delta }
+      end
+    end
+  end
+end

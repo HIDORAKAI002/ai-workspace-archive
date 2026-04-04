@@ -1,0 +1,71 @@
+*.py[cod]
+*.sw[op]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+include
+var
+sdist
+develop-eggs
+.installed.cfg
+pyvenv.cfg
+lib
+share/
+lib64
+__pycache__
+venv*/
+.venv*/
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+coverage.xml
+.coverage
+.nox
+.tox
+.cache
+htmlcov
+
+# Translations
+*.mo
+
+# Mac
+.DS_Store
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# JetBrains
+.idea
+
+# VSCode
+.vscode
+
+# Sphinx
+_build/
+
+# mypy
+.mypy_cache/
+target
+
+# Django example
+
+docs/examples/django/db.sqlite3
+
+# Semantic conventions
+scripts/semconv/semantic-conventions
+
+# Benchmark result files
+*-benchmark.json

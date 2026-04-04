@@ -1,0 +1,98 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package tests
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"github.com/weaviate/weaviate/entities/models"
+	"github.com/weaviate/weaviate/test/helper"
+	"github.com/weaviate/weaviate/test/helper/sample-schema/multimodal"
+)
+
+func testMulti2VecCohere(host string) func(t *testing.T) {
+	return func(t *testing.T) {
+		helper.SetupClient(host)
+		// Define path to test/helper/sample-schema/multimodal/data folder
+		dataFolderPath := "../../../test/helper/sample-schema/multimodal/data"
+		// Define class
+		vectorizerName := "multi2vec-cohere"
+		className := "CohereClipTest"
+		class := multimodal.BaseClass(className, false, false)
+		class.VectorConfig = map[string]models.VectorConfig{
+			"clip": {
+				Vectorizer: map[string]any{
+					vectorizerName: map[string]any{
+						"imageFields":        []any{multimodal.PropertyImage},
+						"vectorizeClassName": false,
+					},
+				},
+				VectorIndexType: "flat",
+			},
+			"clip_weights": {
+				Vectorizer: map[string]any{
+					vectorizerName: map[string]any{
+						"model":       "embed-english-light-v3.0",
+						"textFields":  []any{multimodal.PropertyImageTitle, multimodal.PropertyImageDescription},
+						"imageFields": []any{multimodal.PropertyImage},
+						"weights": map[string]any{
+							"textFields":  []any{0.05, 0.05},
+							"imageFields": []any{0.9},
+						},
+						"vectorizeClassName": false,
+					},
+				},
+				VectorIndexType: "flat",
+			},
+			"clip_v4_with_256_dimensions": {
+				Vectorizer: map[string]any{
+					vectorizerName: map[string]any{
+						"model":              "embed-v4.0",
+						"dimensions":         256,
+						"imageFields":        []any{multimodal.PropertyImage},
+						"vectorizeClassName": false,
+					},
+				},
+				VectorIndexType: "flat",
+			},
+		}
+		// create schema
+		helper.CreateClass(t, class)
+		defer helper.DeleteClass(t, class.Class)
+
+		t.Run("import data", func(t *testing.T) {
+			multimodal.InsertObjects(t, dataFolderPath, class.Class, false, false)
+		})
+
+		t.Run("nearImage", func(t *testing.T) {
+			blob, err := multimodal.GetImageBlob(dataFolderPath, 2)
+			require.NoError(t, err)
+			targetVector := "clip"
+			nearMediaArgument := fmt.Sprintf(`
+				nearImage: {
+					image: "%s"
+					targetVectors: ["%s"]
+				}
+			`, blob, targetVector)
+			titleProperty := multimodal.PropertyImageTitle
+			titlePropertyValue := "waterfalls"
+			targetVectors := map[string]int{
+				"clip":                        1024,
+				"clip_weights":                384,
+				"clip_v4_with_256_dimensions": 256,
+			}
+			multimodal.TestQuery(t, class.Class, nearMediaArgument, titleProperty, titlePropertyValue, targetVectors)
+		})
+	}
+}

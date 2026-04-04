@@ -1,0 +1,92 @@
+module Anthropic
+  module Models
+    class BetaUsage = Beta::BetaUsage
+
+    module Beta
+      type beta_usage =
+        {
+          cache_creation: Anthropic::Beta::BetaCacheCreation?,
+          cache_creation_input_tokens: Integer?,
+          cache_read_input_tokens: Integer?,
+          inference_geo: String?,
+          input_tokens: Integer,
+          iterations: Anthropic::Models::Beta::beta_iterations_usage?,
+          output_tokens: Integer,
+          server_tool_use: Anthropic::Beta::BetaServerToolUsage?,
+          service_tier: Anthropic::Models::Beta::BetaUsage::service_tier?,
+          speed: Anthropic::Models::Beta::BetaUsage::speed?
+        }
+
+      class BetaUsage < Anthropic::Internal::Type::BaseModel
+        attr_accessor cache_creation: Anthropic::Beta::BetaCacheCreation?
+
+        attr_accessor cache_creation_input_tokens: Integer?
+
+        attr_accessor cache_read_input_tokens: Integer?
+
+        attr_accessor inference_geo: String?
+
+        attr_accessor input_tokens: Integer
+
+        attr_accessor iterations: Anthropic::Models::Beta::beta_iterations_usage?
+
+        attr_accessor output_tokens: Integer
+
+        attr_accessor server_tool_use: Anthropic::Beta::BetaServerToolUsage?
+
+        attr_accessor service_tier: Anthropic::Models::Beta::BetaUsage::service_tier?
+
+        attr_accessor speed: Anthropic::Models::Beta::BetaUsage::speed?
+
+        def initialize: (
+          cache_creation: Anthropic::Beta::BetaCacheCreation?,
+          cache_creation_input_tokens: Integer?,
+          cache_read_input_tokens: Integer?,
+          inference_geo: String?,
+          input_tokens: Integer,
+          iterations: Anthropic::Models::Beta::beta_iterations_usage?,
+          output_tokens: Integer,
+          server_tool_use: Anthropic::Beta::BetaServerToolUsage?,
+          service_tier: Anthropic::Models::Beta::BetaUsage::service_tier?,
+          speed: Anthropic::Models::Beta::BetaUsage::speed?
+        ) -> void
+
+        def to_hash: -> {
+          cache_creation: Anthropic::Beta::BetaCacheCreation?,
+          cache_creation_input_tokens: Integer?,
+          cache_read_input_tokens: Integer?,
+          inference_geo: String?,
+          input_tokens: Integer,
+          iterations: Anthropic::Models::Beta::beta_iterations_usage?,
+          output_tokens: Integer,
+          server_tool_use: Anthropic::Beta::BetaServerToolUsage?,
+          service_tier: Anthropic::Models::Beta::BetaUsage::service_tier?,
+          speed: Anthropic::Models::Beta::BetaUsage::speed?
+        }
+
+        type service_tier = :standard | :priority | :batch
+
+        module ServiceTier
+          extend Anthropic::Internal::Type::Enum
+
+          STANDARD: :standard
+          PRIORITY: :priority
+          BATCH: :batch
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::BetaUsage::service_tier]
+        end
+
+        type speed = :standard | :fast
+
+        module Speed
+          extend Anthropic::Internal::Type::Enum
+
+          STANDARD: :standard
+          FAST: :fast
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::BetaUsage::speed]
+        end
+      end
+    end
+  end
+end

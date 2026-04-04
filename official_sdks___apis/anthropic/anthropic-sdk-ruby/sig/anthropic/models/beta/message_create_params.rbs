@@ -1,0 +1,217 @@
+module Anthropic
+  module Models
+    module Beta
+      type message_create_params =
+        {
+          max_tokens: Integer,
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          container: Anthropic::Models::Beta::MessageCreateParams::container?,
+          context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          inference_geo: String?,
+          mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          metadata: Anthropic::Beta::BetaMetadata,
+          output_config: Anthropic::Beta::BetaOutputConfig,
+          output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier,
+          speed: Anthropic::Models::Beta::MessageCreateParams::speed?,
+          stop_sequences: ::Array[String],
+          system_: Anthropic::Models::Beta::MessageCreateParams::system_,
+          temperature: Float,
+          thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          tools: ::Array[Anthropic::Models::Beta::beta_tool_union],
+          top_k: Integer,
+          top_p: Float,
+          betas: ::Array[Anthropic::Models::anthropic_beta]
+        }
+        & Anthropic::Internal::Type::request_parameters
+
+      class MessageCreateParams < Anthropic::Internal::Type::BaseModel
+        extend Anthropic::Internal::Type::RequestParameters::Converter
+        include Anthropic::Internal::Type::RequestParameters
+
+        attr_accessor max_tokens: Integer
+
+        attr_accessor messages: ::Array[Anthropic::Beta::BetaMessageParam]
+
+        attr_accessor model: Anthropic::Models::model
+
+        attr_accessor cache_control: Anthropic::Beta::BetaCacheControlEphemeral?
+
+        attr_accessor container: Anthropic::Models::Beta::MessageCreateParams::container?
+
+        attr_accessor context_management: Anthropic::Beta::BetaContextManagementConfig?
+
+        attr_accessor inference_geo: String?
+
+        attr_reader mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]?
+
+        def mcp_servers=: (
+          ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]
+        ) -> ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition]
+
+        attr_reader metadata: Anthropic::Beta::BetaMetadata?
+
+        def metadata=: (
+          Anthropic::Beta::BetaMetadata
+        ) -> Anthropic::Beta::BetaMetadata
+
+        attr_reader output_config: Anthropic::Beta::BetaOutputConfig?
+
+        def output_config=: (
+          Anthropic::Beta::BetaOutputConfig
+        ) -> Anthropic::Beta::BetaOutputConfig
+
+        attr_accessor output_format: Anthropic::Beta::BetaJSONOutputFormat?
+
+        attr_reader service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier?
+
+        def service_tier=: (
+          Anthropic::Models::Beta::MessageCreateParams::service_tier
+        ) -> Anthropic::Models::Beta::MessageCreateParams::service_tier
+
+        attr_accessor speed: Anthropic::Models::Beta::MessageCreateParams::speed?
+
+        attr_reader stop_sequences: ::Array[String]?
+
+        def stop_sequences=: (::Array[String]) -> ::Array[String]
+
+        attr_reader system_: Anthropic::Models::Beta::MessageCreateParams::system_?
+
+        def system_=: (
+          Anthropic::Models::Beta::MessageCreateParams::system_
+        ) -> Anthropic::Models::Beta::MessageCreateParams::system_
+
+        attr_reader temperature: Float?
+
+        def temperature=: (Float) -> Float
+
+        attr_reader thinking: Anthropic::Models::Beta::beta_thinking_config_param?
+
+        def thinking=: (
+          Anthropic::Models::Beta::beta_thinking_config_param
+        ) -> Anthropic::Models::Beta::beta_thinking_config_param
+
+        attr_reader tool_choice: Anthropic::Models::Beta::beta_tool_choice?
+
+        def tool_choice=: (
+          Anthropic::Models::Beta::beta_tool_choice
+        ) -> Anthropic::Models::Beta::beta_tool_choice
+
+        attr_reader tools: ::Array[Anthropic::Models::Beta::beta_tool_union]?
+
+        def tools=: (
+          ::Array[Anthropic::Models::Beta::beta_tool_union]
+        ) -> ::Array[Anthropic::Models::Beta::beta_tool_union]
+
+        attr_reader top_k: Integer?
+
+        def top_k=: (Integer) -> Integer
+
+        attr_reader top_p: Float?
+
+        def top_p=: (Float) -> Float
+
+        attr_reader betas: ::Array[Anthropic::Models::anthropic_beta]?
+
+        def betas=: (
+          ::Array[Anthropic::Models::anthropic_beta]
+        ) -> ::Array[Anthropic::Models::anthropic_beta]
+
+        def initialize: (
+          max_tokens: Integer,
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          ?cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          ?container: Anthropic::Models::Beta::MessageCreateParams::container?,
+          ?context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          ?inference_geo: String?,
+          ?mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          ?metadata: Anthropic::Beta::BetaMetadata,
+          ?output_config: Anthropic::Beta::BetaOutputConfig,
+          ?output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          ?service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier,
+          ?speed: Anthropic::Models::Beta::MessageCreateParams::speed?,
+          ?stop_sequences: ::Array[String],
+          ?system_: Anthropic::Models::Beta::MessageCreateParams::system_,
+          ?temperature: Float,
+          ?thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          ?tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          ?tools: ::Array[Anthropic::Models::Beta::beta_tool_union],
+          ?top_k: Integer,
+          ?top_p: Float,
+          ?betas: ::Array[Anthropic::Models::anthropic_beta],
+          ?request_options: Anthropic::request_opts
+        ) -> void
+
+        def to_hash: -> {
+          max_tokens: Integer,
+          messages: ::Array[Anthropic::Beta::BetaMessageParam],
+          model: Anthropic::Models::model,
+          cache_control: Anthropic::Beta::BetaCacheControlEphemeral?,
+          container: Anthropic::Models::Beta::MessageCreateParams::container?,
+          context_management: Anthropic::Beta::BetaContextManagementConfig?,
+          inference_geo: String?,
+          mcp_servers: ::Array[Anthropic::Beta::BetaRequestMCPServerURLDefinition],
+          metadata: Anthropic::Beta::BetaMetadata,
+          output_config: Anthropic::Beta::BetaOutputConfig,
+          output_format: Anthropic::Beta::BetaJSONOutputFormat?,
+          service_tier: Anthropic::Models::Beta::MessageCreateParams::service_tier,
+          speed: Anthropic::Models::Beta::MessageCreateParams::speed?,
+          stop_sequences: ::Array[String],
+          system_: Anthropic::Models::Beta::MessageCreateParams::system_,
+          temperature: Float,
+          thinking: Anthropic::Models::Beta::beta_thinking_config_param,
+          tool_choice: Anthropic::Models::Beta::beta_tool_choice,
+          tools: ::Array[Anthropic::Models::Beta::beta_tool_union],
+          top_k: Integer,
+          top_p: Float,
+          betas: ::Array[Anthropic::Models::anthropic_beta],
+          request_options: Anthropic::RequestOptions
+        }
+
+        type container = Anthropic::Beta::BetaContainerParams | String
+
+        module Container
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::MessageCreateParams::container]
+        end
+
+        type service_tier = :auto | :standard_only
+
+        module ServiceTier
+          extend Anthropic::Internal::Type::Enum
+
+          AUTO: :auto
+          STANDARD_ONLY: :standard_only
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::MessageCreateParams::service_tier]
+        end
+
+        type speed = :standard | :fast
+
+        module Speed
+          extend Anthropic::Internal::Type::Enum
+
+          STANDARD: :standard
+          FAST: :fast
+
+          def self?.values: -> ::Array[Anthropic::Models::Beta::MessageCreateParams::speed]
+        end
+
+        type system_ = String | ::Array[Anthropic::Beta::BetaTextBlockParam]
+
+        module System
+          extend Anthropic::Internal::Type::Union
+
+          def self?.variants: -> ::Array[Anthropic::Models::Beta::MessageCreateParams::system_]
+
+          BetaTextBlockParamArray: Anthropic::Internal::Type::Converter
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-08-20T16:19:50.409Z",
+  "data": [
+    {
+      "input": "A baker made 48 chocolate muffins, 36 blueberry muffins, and 24 banana muffins. He packs them into boxes that hold 12 muffins each. After packing all the muffins, he gives 3 full boxes to a neighbor and keeps the rest. How many muffins does he keep?",
+      "expected": "72"
+    },
+    {
+      "input": "A school orders 7 boxes of pencils, each containing 24 pencils. They give 48 pencils to Grade 1 and 36 pencils to Grade 2. The remaining pencils are divided equally among 3 teachers. How many pencils does each teacher receive?",
+      "expected": "28"
+    },
+    {
+      "input": "A class rents a bus for $180. Each of the 24 students buys a museum ticket for $7.50. A $30 grant reduces the total cost. The remaining cost is split equally among 6 chaperones. How much does each chaperone pay?",
+      "expected": "55"
+    },
+    {
+      "input": "A farmer had 120 apples. He sold 35 apples in the morning and picked 48 more in the afternoon. He then packed the apples equally into 11 baskets. How many apples are in each basket, and how many apples are left over?",
+      "expected": "Each basket has 12 apples, with 1 apple left over."
+    },
+    {
+      "input": "A school sets up 6 rows of 18 chairs for an event. After the event, they bring in 24 extra chairs and remove 17 broken chairs. They then divide the remaining chairs equally among 7 classrooms. How many chairs does each classroom get, and how many are left over?",
+      "expected": "Each classroom gets 16 chairs, with 3 left over."
+    },
+    {
+      "input": "A farmer harvested 24 baskets of apples. Each basket holds 18 apples. He gave 75 apples to neighbors and used 3 baskets of apples to make cider. How many apples are left?",
+      "expected": "303"
+    },
+    {
+      "input": "At a fruit stand, apples are sold at 3 for $2 and oranges at 4 for $3. If Maya buys 9 apples and 8 oranges and pays with a $20 bill, how much change does she receive?",
+      "expected": "8"
+    },
+    {
+      "input": "A store sells apples for $3 each and oranges for $2 each. You buy 4 apples and 7 oranges, then use a $5 coupon. How much do you pay?",
+      "expected": "21"
+    },
+    {
+      "input": "A farmer packs 15 boxes with 8 apples in each box. He gives 26 apples to a neighbor, then buys 3 more boxes with 10 apples each. How many apples does he have now?",
+      "expected": "124"
+    },
+    {
+      "input": "A box contains 48 candies. You give 15 to your friend and split the rest equally among 11 people. How many candies does each person get?",
+      "expected": "3"
+    }
+  ]
+}

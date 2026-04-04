@@ -1,0 +1,423 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { ModelsDevGateway } from './models-dev.js';
+
+// Mock fetch globally
+const mockFetch = vi.fn();
+global.fetch = mockFetch as any;
+
+describe('ModelsDevGateway', () => {
+  let gateway: ModelsDevGateway;
+
+  beforeEach(() => {
+    gateway = new ModelsDevGateway();
+    mockFetch.mockClear();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+  });
+
+  describe('fetchProviders', () => {
+    const mockApiResponse = {
+      openai: {
+        id: 'openai',
+        name: 'OpenAI',
+        models: {
+          'gpt-4': { name: 'GPT-4' },
+          'gpt-3.5-turbo': { name: 'GPT-3.5 Turbo' },
+        },
+        env: ['OPENAI_API_KEY'],
+        api: 'https://api.openai.com/v1',
+        npm: '@ai-sdk/openai',
+      },
+      anthropic: {
+        id: 'anthropic',
+        name: 'Anthropic',
+        models: {
+          'claude-3-opus': { name: 'Claude 3 Opus' },
+          'claude-3-sonnet': { name: 'Claude 3 Sonnet' },
+        },
+        env: ['ANTHROPIC_API_KEY'],
+        api: 'https://api.anthropic.com/v1',
+        npm: '@ai-sdk/anthropic',
+      },
+      cerebras: {
+        id: 'cerebras',
+        name: 'Cerebras',
+        models: {
+          'llama3.1-8b': { name: 'Llama 3.1 8B' },
+        },
+        env: ['CEREBRAS_API_KEY'],
+        // No API URL - uses native @ai-sdk/cerebras package
+        npm: '@ai-sdk/cerebras',
+      },
+      'fireworks-ai': {
+        id: 'fireworks-ai',
+        name: 'Fireworks AI',
+        models: {
+          'llama-v3-70b': { name: 'Llama v3 70B' },
+        },
+        env: ['FIREWORKS_API_KEY'],
+        api: 'https://api.fireworks.ai/inference/v1',
+        npm: '@ai-sdk/openai-compatible',
+      },
+      'cloudflare-workers-ai': {
+        id: 'cloudflare-workers-ai',
+        name: 'Cloudflare Workers AI',
+        models: {
+          '@cf/meta/llama-3.1-8b-instruct': { name: 'Llama 3.1 8B Instruct' },
+        },
+        env: ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_KEY'],
+        api: 'https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1',
+        npm: '@ai-sdk/openai-compatible',
+      },
+      'unknown-provider': {
+        id: 'unknown-provider',
+        name: 'Unknown',
+        models: {
+          'model-1': { name: 'Model 1' },
+        },
+        // No env, no api, not OpenAI-compatible
+        npm: '@some-other/package',
+      },
+    };
+
+    it('should fetch and parse providers from models.dev API', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(mockFetch).toHaveBeenCalledWith('https://models.dev/api.json');
+      expect(providers).toBeDefined();
+      expect(Object.keys(providers).length).toBeGreaterThan(0);
+    });
+
+    it('should identify OpenAI-compatible providers by npm package', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // cerebras uses native SDK, fireworks-ai uses @ai-sdk/openai-compatible
+      expect(providers.cerebras).toBeDefined();
+      expect(providers['fireworks-ai']).toBeDefined(); // Provider IDs keep hyphens
+      expect(providers.cerebras.url).toBeUndefined(); // No URL needed - uses native @ai-sdk/cerebras
+    });
+
+    it('should apply PROVIDER_OVERRIDES', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // OpenAI should be included even though it uses @ai-sdk/openai
+      expect(providers.openai).toBeDefined();
+      expect(providers.openai.url).toBe('https://api.openai.com/v1');
+    });
+
+    it('should keep hyphens in provider IDs', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // fireworks-ai should keep its hyphen
+      expect(providers['fireworks-ai']).toBeDefined();
+      expect(providers['fireworks-ai'].name).toBe('Fireworks AI');
+      // But env var should use underscores
+      expect(providers['fireworks-ai'].apiKeyEnvVar).toBe('FIREWORKS_API_KEY');
+    });
+
+    it('should ignore URL placeholder env vars when selecting the auth env var', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(providers['cloudflare-workers-ai']).toBeDefined();
+      expect(providers['cloudflare-workers-ai'].url).toBe(
+        'https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1',
+      );
+      expect(providers['cloudflare-workers-ai'].apiKeyEnvVar).toBe('CLOUDFLARE_API_KEY');
+    });
+
+    it('should prefer token-like env vars over other auth candidates', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          'example-provider': {
+            id: 'example-provider',
+            name: 'Example Provider',
+            models: {
+              'example-model': { name: 'Example Model' },
+            },
+            env: ['EXAMPLE_ACCOUNT_ID', 'EXAMPLE_API_KEY', 'EXAMPLE_API_TOKEN'],
+            api: 'https://api.example.com/accounts/${EXAMPLE_ACCOUNT_ID}/v1',
+            npm: '@ai-sdk/openai-compatible',
+          },
+        }),
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(providers['example-provider']).toBeDefined();
+      expect(providers['example-provider'].apiKeyEnvVar).toBe('EXAMPLE_API_TOKEN');
+    });
+
+    it('should filter out deprecated models', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          groq: {
+            id: 'groq',
+            name: 'Groq',
+            models: {
+              'llama-3.1-8b': { name: 'Llama 3.1 8B' },
+              'deepseek-r1-distill-llama-70b': {
+                name: 'DeepSeek R1 Distill LLaMA 70B',
+                status: 'deprecated',
+              },
+            },
+            env: ['GROQ_API_KEY'],
+            api: 'https://api.groq.com/openai/v1',
+            npm: '@ai-sdk/openai-compatible',
+          },
+        }),
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(providers.groq).toBeDefined();
+      expect(providers.groq.models).toEqual(['llama-3.1-8b']);
+      expect(providers.groq.models).not.toContain('deepseek-r1-distill-llama-70b');
+    });
+
+    it('should return empty models array when all models are deprecated', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          groq: {
+            id: 'groq',
+            name: 'Groq',
+            models: {
+              'model-1': { name: 'Model 1', status: 'deprecated' },
+              'model-2': { name: 'Model 2', status: 'deprecated' },
+            },
+            env: ['GROQ_API_KEY'],
+            api: 'https://api.groq.com/openai/v1',
+            npm: '@ai-sdk/openai-compatible',
+          },
+        }),
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(providers.groq).toBeDefined();
+      expect(providers.groq.models).toEqual([]);
+    });
+
+    it('should extract model IDs from each provider', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      expect(providers.openai.models).toEqual(['gpt-3.5-turbo', 'gpt-4']);
+      expect(providers.anthropic.models).toEqual(['claude-3-opus', 'claude-3-sonnet']);
+    });
+
+    it('should handle API fetch errors gracefully', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Internal Server Error',
+      });
+
+      await expect(gateway.fetchProviders()).rejects.toThrow('Failed to fetch from models.dev: Internal Server Error');
+    });
+
+    it('should skip providers without API URLs or OpenAI compatibility', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // unknown-provider has no env, no api, and not OpenAI-compatible
+      expect(providers['unknown-provider']).toBeUndefined();
+      expect(providers.unknown_provider).toBeUndefined();
+    });
+
+    it('should ensure URLs do not end with /chat/completions', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockApiResponse,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // Except for directly supported providers
+      expect(providers.anthropic.url).not.toMatch(/\/chat\/completions$/);
+      expect(providers.openai.url).not.toMatch(/\/chat\/completions$/);
+    });
+  });
+
+  describe('buildUrl', () => {
+    beforeEach(async () => {
+      // Set up gateway with mock data
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          openai: {
+            id: 'openai',
+            name: 'OpenAI',
+            models: { 'gpt-4': {} },
+            env: ['OPENAI_API_KEY'],
+            api: 'https://api.openai.com/v1',
+          },
+          'cloudflare-workers-ai': {
+            id: 'cloudflare-workers-ai',
+            name: 'Cloudflare Workers AI',
+            models: { '@cf/meta/llama-3.1-8b-instruct': {} },
+            env: ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_KEY'],
+            api: 'https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1',
+          },
+        }),
+      });
+      await gateway.fetchProviders();
+    });
+
+    it('should return URL even when API key is missing', () => {
+      const url = gateway.buildUrl('openai/gpt-4');
+      expect(url).toBe('https://api.openai.com/v1');
+    });
+
+    it('should use custom base URL from env vars', () => {
+      const url = gateway.buildUrl('openai/gpt-4', {
+        OPENAI_API_KEY: 'sk-test',
+        OPENAI_BASE_URL: 'https://custom.openai.proxy/v1',
+      });
+      expect(url).toBe('https://custom.openai.proxy/v1');
+    });
+
+    it('should interpolate URL template variables from env vars', () => {
+      const url = gateway.buildUrl('cloudflare-workers-ai/@cf/meta/llama-3.1-8b-instruct', {
+        CLOUDFLARE_ACCOUNT_ID: 'account-123',
+      });
+
+      expect(url).toBe('https://api.cloudflare.com/client/v4/accounts/account-123/ai/v1');
+    });
+
+    it('should not fall back to process.env when env vars explicitly provide an empty string', () => {
+      vi.stubEnv('CLOUDFLARE_ACCOUNT_ID', 'account-123');
+
+      const url = gateway.buildUrl('cloudflare-workers-ai/@cf/meta/llama-3.1-8b-instruct', {
+        CLOUDFLARE_ACCOUNT_ID: '',
+      });
+
+      expect(url).toBe('https://api.cloudflare.com/client/v4/accounts//ai/v1');
+    });
+
+    it('should throw when a required URL template variable is missing', () => {
+      const previous = process.env.CLOUDFLARE_ACCOUNT_ID;
+      delete process.env.CLOUDFLARE_ACCOUNT_ID;
+      try {
+        expect(() => gateway.buildUrl('cloudflare-workers-ai/@cf/meta/llama-3.1-8b-instruct', {})).toThrow(
+          'Missing environment variable CLOUDFLARE_ACCOUNT_ID required to build provider URL',
+        );
+      } finally {
+        if (previous !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = previous;
+      }
+    });
+
+    it('should return false for invalid model ID format', () => {
+      expect(() => gateway.buildUrl('invalid-format', { OPENAI_API_KEY: 'sk-test' })).toThrow();
+    });
+  });
+
+  describe('integration', () => {
+    it('should handle full flow: fetch, buildUrl, buildHeaders', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          groq: {
+            id: 'groq',
+            name: 'Groq',
+            models: {
+              'llama-3.1-70b': { name: 'Llama 3.1 70B' },
+              'mixtral-8x7b': { name: 'Mixtral 8x7B' },
+            },
+            env: ['GROQ_API_KEY'],
+            api: 'https://api.groq.com/openai/v1',
+            npm: '@ai-sdk/openai-compatible',
+          },
+        }),
+      });
+
+      const providers = await gateway.fetchProviders();
+      expect(providers.groq).toBeDefined();
+
+      const url = gateway.buildUrl('groq/llama-3.1-70b', { GROQ_API_KEY: 'gsk-test' });
+      expect(url).toBe('https://api.groq.com/openai/v1');
+    });
+
+    it('should correctly identify all major providers', async () => {
+      const majorProviders = {
+        openai: { npm: '@ai-sdk/openai', api: 'https://api.openai.com/v1' },
+        anthropic: { npm: '@ai-sdk/anthropic', api: 'https://api.anthropic.com/v1' },
+        groq: { npm: '@ai-sdk/openai-compatible', api: 'https://api.groq.com/openai/v1' },
+        cerebras: { npm: '@ai-sdk/cerebras' },
+        xai: { npm: '@ai-sdk/openai-compatible' },
+        mistral: { npm: '@ai-sdk/mistral', api: 'https://api.mistral.ai/v1' },
+        google: { npm: '@ai-sdk/google' },
+        togetherai: { npm: '@ai-sdk/togetherai' },
+        deepinfra: { npm: '@ai-sdk/deepinfra' },
+        perplexity: { npm: '@ai-sdk/openai-compatible', api: 'https://api.perplexity.ai' },
+      };
+
+      const mockData: Record<string, any> = {};
+      for (const [id, info] of Object.entries(majorProviders)) {
+        mockData[id] = {
+          id,
+          name: id.charAt(0).toUpperCase() + id.slice(1),
+          models: { 'test-model': {} },
+          env: [`${id.toUpperCase()}_API_KEY`],
+          ...info,
+        };
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      });
+
+      const providers = await gateway.fetchProviders();
+
+      // All these providers should be identified as OpenAI-compatible
+      expect(providers.openai).toBeDefined();
+      expect(providers.anthropic).toBeDefined();
+      expect(providers.groq).toBeDefined();
+      expect(providers.cerebras).toBeDefined();
+      expect(providers.xai).toBeDefined();
+      expect(providers.mistral).toBeDefined();
+      expect(providers.google).toBeDefined();
+      expect(providers.togetherai).toBeDefined();
+      expect(providers.deepinfra).toBeDefined();
+      expect(providers.perplexity).toBeDefined();
+    });
+  });
+});

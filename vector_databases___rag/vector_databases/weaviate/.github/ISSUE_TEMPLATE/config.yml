@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Need Help? Go to the community forum
+    url: https://forum.weaviate.io
+    about: "Community-powered knowledge repository: search, ask questions, give feedback"

@@ -1,0 +1,25 @@
+{
+  "name": "experiments-quickstart",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Phoenix Datasets & Experiments Tutorial - TypeScript",
+  "type": "module",
+  "scripts": {
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.29",
+    "@arizeai/openinference-semantic-conventions": "^1.1.0",
+    "@arizeai/phoenix-client": "workspace:*",
+    "@arizeai/phoenix-evals": "workspace:*",
+    "@arizeai/phoenix-otel": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
+    "ai": "^6.0.90",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

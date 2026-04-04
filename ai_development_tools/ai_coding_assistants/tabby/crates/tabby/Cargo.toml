@@ -1,0 +1,82 @@
+[package]
+name = "tabby"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+default-run = "tabby"
+
+[features]
+default = ["ee", "llama-cpp-server/binary"]
+ee = ["dep:tabby-webserver"]
+cuda = ["llama-cpp-server/cuda"]
+rocm = ["llama-cpp-server/rocm"]
+vulkan = ["llama-cpp-server/vulkan"]
+# If compiling on a system without OpenSSL installed, or cross-compiling for a different
+# architecture, enable this feature to compile OpenSSL as part of the build.
+# See https://docs.rs/openssl/#vendored for more.
+static-ssl = ['openssl/vendored']
+prod = ["ee", 'tabby-webserver/prod']
+
+[dependencies]
+tabby-common = { path = "../tabby-common" }
+tabby-download = { path = "../tabby-download" }
+tabby-inference = { path = "../tabby-inference" }
+axum.workspace = true
+axum-extra = {workspace = true, features = ["typed-header"]}
+hyper = { workspace = true }
+tokio = { workspace = true }
+utoipa = { workspace = true, features = ["axum_extras", "preserve_order"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+serde = { workspace = true }
+serdeconv = { workspace = true }
+serde_json = { workspace = true }
+tower-http = { workspace = true, features = ["cors", "timeout"] }
+clap = { workspace = true, features = ["derive"] }
+lazy_static = { workspace = true }
+strum = { workspace = true }
+strfmt = "0.2.4"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-opentelemetry.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry-semantic-conventions.workspace = true
+tantivy = { workspace = true }
+anyhow = { workspace = true }
+sysinfo = "0.33.0"
+nvml-wrapper = "0.9.0"
+http-api-bindings = { path = "../http-api-bindings" }
+async-stream = { workspace = true }
+llama-cpp-server = { path = "../llama-cpp-server" }
+futures.workspace = true
+async-trait.workspace = true
+tabby-webserver = { path = "../../ee/tabby-webserver", optional = true }
+thiserror.workspace = true
+chrono.workspace = true
+axum-prometheus = "0.6"
+uuid.workspace = true
+color-eyre = { version = "0.6.3" }
+reqwest.workspace = true
+async-openai-alt.workspace = true
+spinners = "4.1.1"
+regex.workspace = true
+
+[dependencies.openssl]
+optional = true
+version = "*"
+
+[build-dependencies]
+vergen = { version = "8.0.0", features = ["build", "git", "gitcl"] }
+
+[dev-dependencies]
+assert-json-diff = "2.0.2"
+insta = { workspace = true, features = ["yaml", "redactions"] }
+reqwest.workspace = true
+serde-jsonlines = "0.5.0"
+reqwest-eventsource = { workspace = true }
+serial_test = { workspace = true }
+
+[package.metadata.cargo-machete]
+ignored = ["openssl"]

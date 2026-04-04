@@ -1,0 +1,77 @@
+import type {
+  BaseMessage,
+  GenerateObjectOptions,
+  GenerateTextOptions,
+  LLMProvider,
+  ProviderObjectResponse,
+  ProviderObjectStreamResponse,
+  ProviderTextResponse,
+  ProviderTextStreamResponse,
+  StreamObjectOptions,
+  StreamTextOptions,
+} from "@voltagent/core";
+import type { z } from "zod";
+
+// TODO: Replace all `any` with the correct type from the provider
+
+export class <%= classify(name) %>Provider implements LLMProvider<any> {
+  /**
+   * Provider `generateText` implementation
+   * @param options - The options for the generate text operation
+   * @returns A standardized response for VoltAgent
+   */
+  public async generateText(options: GenerateTextOptions<any>): Promise<ProviderTextResponse<any>> {
+    // TODO: implement
+  }
+
+  /**
+   * Provider `streamText` implementation
+   * @param options - The options for the stream text operation
+   * @returns A standardized response for VoltAgent
+   */
+  public async streamText(
+    options: StreamTextOptions<any>,
+  ): Promise<ProviderTextStreamResponse<any>> {
+    // TODO: implement
+  }
+
+  /**
+   * Provider `generateObject` implementation
+   * @param options - The options for the generate object operation
+   * @returns A standardized response for VoltAgent
+   */
+  public async generateObject<TSchema extends z.ZodType>(
+    options: GenerateObjectOptions<any, TSchema>,
+  ): Promise<ProviderObjectResponse<any, any>> {
+    // TODO: implement
+  }
+
+  /**
+   * Provider `streamObject` implementation
+   * @param options - The options for the stream object operation
+   * @returns A standardized response for VoltAgent
+   */
+  public async streamObject<TSchema extends z.ZodType>(
+    options: StreamObjectOptions<any, TSchema>,
+  ): Promise<ProviderObjectStreamResponse<any, any>> {
+    // TODO: implement
+  }
+
+  /**
+   * Get the model identifier
+   * @param model - The model to get the identifier for
+   * @returns The model identifier
+   */
+  public getModelIdentifier(model: any): string {
+    // TODO: implement
+  }
+
+  /**
+   * Convert a VoltAgent message to a <%= name %> message
+   * @param message - The VoltAgent message to convert
+   * @returns The <%= name %> message
+   */
+  public toMessage(message: BaseMessage): any {
+    // TODO: implement
+  }
+}

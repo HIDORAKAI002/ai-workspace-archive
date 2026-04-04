@@ -1,0 +1,47 @@
+{
+  "name": "voltagent-example-cloudflare-workers",
+  "description": "VoltAgent example for Cloudflare Workers deployment with in-memory storage",
+  "version": "1.0.0",
+  "dependencies": {
+    "@voltagent/core": "^2.6.14",
+    "@voltagent/serverless-hono": "^2.0.9",
+    "ai": "^6.0.0",
+    "hono": "^4.7.7",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250408.0",
+    "@types/node": "^24.2.1",
+    "typescript": "^5.8.2",
+    "wrangler": "^3.38.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "cloudflare",
+    "edge",
+    "serverless",
+    "voltagent",
+    "workers"
+  ],
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VoltAgent/voltagent.git",
+    "directory": "examples/with-cloudflare-workers"
+  },
+  "scripts": {
+    "build": "tsc",
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler deploy --env production",
+    "dev": "tsc && wrangler dev",
+    "preview": "tsc && wrangler dev --local",
+    "tail": "wrangler tail",
+    "volt": "volt"
+  },
+  "type": "module"
+}

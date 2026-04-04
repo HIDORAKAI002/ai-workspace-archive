@@ -1,0 +1,462 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package clients
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+
+	"github.com/weaviate/weaviate/entities/moduletools"
+	"github.com/weaviate/weaviate/usecases/modulecomponents"
+	"github.com/weaviate/weaviate/usecases/modulecomponents/apikey"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/weaviate/weaviate/modules/text2vec-google/vectorizer"
+)
+
+type taskType string
+
+// Retrieval Use cases
+var (
+	// Document Task Type:
+	// Specifies the given text is a query in a search/retrieval setting
+	retrievalDocument taskType = "RETRIEVAL_DOCUMENT"
+	// Query Task Types:
+	// Standard search query where you want to find relevant documents
+	retrievalQuery taskType = "RETRIEVAL_QUERY"
+	// Queries are expected to be proper questions
+	questionAnswering taskType = "QUESTION_ANSWERING"
+	// Retrieve a document from your corpus that proves or disproves a statement
+	factVerification taskType = "FACT_VERIFICATION"
+	// Retrieve relevant code blocks using plain text queries
+	retrievalCode taskType = "CODE_RETRIEVAL_QUERY"
+)
+
+// Single-input Use Cases
+var (
+	classification     taskType = "CLASSIFICATION"
+	clustering         taskType = "CLUSTERING"
+	semanticSimilarity taskType = "SEMANTIC_SIMILARITY"
+)
+
+func buildURL(useGenerativeAI bool, apiEndpoint, projectID, modelID string) string {
+	if useGenerativeAI {
+		if isLegacyModel(modelID) {
+			// legacy PaLM API
+			return "https://generativelanguage.googleapis.com/v1beta3/models/embedding-gecko-001:batchEmbedText"
+		}
+		return fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:batchEmbedContents", modelID)
+	}
+	urlTemplate := "https://%s/v1/projects/%s/locations/us-central1/publishers/google/models/%s:predict"
+	return fmt.Sprintf(urlTemplate, apiEndpoint, projectID, modelID)
+}
+
+type settings struct {
+	ApiEndpoint string
+	ProjectID   string
+	Model       string
+	Dimensions  *int64
+	TaskType    string
+}
+
+type google struct {
+	apiKey        string
+	googleApiKey  *apikey.GoogleApiKey
+	useGoogleAuth bool
+	httpClient    *http.Client
+	urlBuilderFn  func(useGenerativeAI bool, apiEndpoint, projectID, modelID string) string
+	logger        logrus.FieldLogger
+}
+
+func New(apiKey string, useGoogleAuth bool, timeout time.Duration, logger logrus.FieldLogger) *google {
+	return &google{
+		apiKey:        apiKey,
+		useGoogleAuth: useGoogleAuth,
+		googleApiKey:  apikey.NewGoogleApiKey(),
+		httpClient:    modulecomponents.NewBaseHttpClient(timeout),
+		urlBuilderFn:  buildURL,
+		logger:        logger,
+	}
+}
+
+func (v *google) VectorizeWithTitleProperty(ctx context.Context,
+	input []string, titlePropertyValue string, cfg moduletools.ClassConfig,
+) (*modulecomponents.VectorizationResult[[]float32], error) {
+	settings := v.getSettings(cfg)
+	return v.vectorize(ctx, input, v.getDocumentTaskType(settings.TaskType), titlePropertyValue, settings)
+}
+
+func (v *google) Vectorize(ctx context.Context,
+	input []string, cfg moduletools.ClassConfig,
+) (*modulecomponents.VectorizationResult[[]float32], *modulecomponents.RateLimits, int, error) {
+	settings := v.getSettings(cfg)
+	res, err := v.vectorize(ctx, input, v.getDocumentTaskType(settings.TaskType), "", settings)
+	return res, nil, 0, err
+}
+
+func (v *google) VectorizeQuery(ctx context.Context,
+	input []string, cfg moduletools.ClassConfig,
+) (*modulecomponents.VectorizationResult[[]float32], error) {
+	settings := v.getSettings(cfg)
+	return v.vectorize(ctx, input, v.getQueryTaskType(settings.TaskType), "", settings)
+}
+
+func (v *google) GetVectorizerRateLimit(ctx context.Context, config moduletools.ClassConfig) *modulecomponents.RateLimits {
+	execAfterRequestFunction := func(limits *modulecomponents.RateLimits, tokensUsed int, deductRequest bool) {
+		// refresh is after 60 seconds but leave a bit of room for errors. Otherwise, we only deduct the request that just happened
+		if limits.LastOverwrite.Add(61 * time.Second).After(time.Now()) {
+			if deductRequest {
+				limits.RemainingRequests -= 1
+			}
+			limits.RemainingTokens -= tokensUsed
+			return
+		}
+
+		limits.LimitRequests = 30000
+		limits.LimitTokens = 1000000
+		limits.RemainingRequests = 30000
+		limits.RemainingTokens = 1000000
+		limits.ResetRequests = time.Now().Add(time.Duration(61) * time.Second)
+		limits.ResetTokens = time.Now().Add(time.Duration(61) * time.Second)
+	}
+
+	initialRL := &modulecomponents.RateLimits{AfterRequestFunction: execAfterRequestFunction, LastOverwrite: time.Now().Add(-61 * time.Minute)}
+	initialRL.ResetAfterRequestFunction(0) // set initial values
+
+	return initialRL
+}
+
+func (v *google) GetApiKeyHash(ctx context.Context, config moduletools.ClassConfig) [32]byte {
+	return sha256.Sum256([]byte("google"))
+}
+
+func (v *google) vectorize(ctx context.Context, input []string, taskType taskType,
+	titlePropertyValue string, config settings,
+) (*modulecomponents.VectorizationResult[[]float32], error) {
+	useGenerativeAIEndpoint := v.useGenerativeAIEndpoint(config)
+
+	payload := v.getPayload(useGenerativeAIEndpoint, input, taskType, titlePropertyValue, config)
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, errors.Wrapf(err, "marshal body")
+	}
+
+	endpointURL := v.urlBuilderFn(useGenerativeAIEndpoint,
+		v.getApiEndpoint(config), v.getProjectID(config), v.getModel(config))
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpointURL,
+		bytes.NewReader(body))
+	if err != nil {
+		return nil, errors.Wrap(err, "create POST request")
+	}
+
+	apiKey, err := v.getApiKey(ctx, useGenerativeAIEndpoint)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Google API Key")
+	}
+	req.Header.Add("Content-Type", "application/json")
+	if useGenerativeAIEndpoint {
+		req.Header.Add("x-goog-api-key", apiKey)
+	} else {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+	}
+
+	res, err := v.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "send POST request")
+	}
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "read response body")
+	}
+
+	if useGenerativeAIEndpoint {
+		return v.parseGenerativeAIApiResponse(res.StatusCode, bodyBytes, input, config)
+	}
+	return v.parseEmbeddingsResponse(res.StatusCode, bodyBytes, input)
+}
+
+func (v *google) useGenerativeAIEndpoint(config settings) bool {
+	return v.getApiEndpoint(config) == "generativelanguage.googleapis.com"
+}
+
+func (v *google) getPayload(useGenerativeAI bool, input []string,
+	taskType taskType, title string, config settings,
+) any {
+	if useGenerativeAI {
+		if v.isLegacy(config) {
+			return batchEmbedTextRequestLegacy{Texts: input}
+		}
+		requests := make([]embedContentRequest, len(input))
+		for i := range input {
+			requests[i] = embedContentRequest{
+				Model: fmt.Sprintf("models/%s", config.Model),
+				Content: content{
+					Parts: []part{{Text: input[i]}},
+				},
+				TaskType:             taskType,
+				Title:                title,
+				OutputDimensionality: config.Dimensions,
+			}
+		}
+		req := batchEmbedContents{
+			Requests: requests,
+		}
+		return req
+	}
+	instances := make([]instance, len(input))
+	for i := range input {
+		instances[i] = instance{Content: input[i], TaskType: taskType, Title: title}
+	}
+	if config.Dimensions != nil {
+		return embeddingsRequest{Instances: instances, Parameters: &parameters{OutputDimensionality: config.Dimensions}}
+	}
+	return embeddingsRequest{Instances: instances}
+}
+
+func (v *google) checkResponse(statusCode int, googleApiError *googleApiError) error {
+	if statusCode != 200 || googleApiError != nil {
+		if googleApiError != nil {
+			return fmt.Errorf("connection to Google failed with status: %v error: %v",
+				statusCode, googleApiError.Message)
+		}
+		return fmt.Errorf("connection to Google failed with status: %d", statusCode)
+	}
+	return nil
+}
+
+func (v *google) getApiKey(ctx context.Context, useGenerativeAIEndpoint bool) (string, error) {
+	return v.googleApiKey.GetApiKey(ctx, v.apiKey, useGenerativeAIEndpoint, v.useGoogleAuth)
+}
+
+func (v *google) parseGenerativeAIApiResponse(statusCode int,
+	bodyBytes []byte, input []string, config settings,
+) (*modulecomponents.VectorizationResult[[]float32], error) {
+	var resBody batchEmbedTextResponse
+	if err := json.Unmarshal(bodyBytes, &resBody); err != nil {
+		return nil, fmt.Errorf("failed to parse vectorization response (status %d): %w", statusCode, err)
+	}
+
+	if err := v.checkResponse(statusCode, resBody.Error); err != nil {
+		return nil, err
+	}
+
+	if len(resBody.Embeddings) == 0 {
+		return nil, errors.Errorf("empty embeddings response")
+	}
+
+	vectors := make([][]float32, len(resBody.Embeddings))
+	for i := range resBody.Embeddings {
+		if v.isLegacy(config) {
+			vectors[i] = resBody.Embeddings[i].Value
+		} else {
+			vectors[i] = resBody.Embeddings[i].Values
+		}
+	}
+	dimensions := len(resBody.Embeddings[0].Values)
+	if v.isLegacy(config) {
+		dimensions = len(resBody.Embeddings[0].Value)
+	}
+
+	return v.getResponse(input, dimensions, vectors)
+}
+
+func (v *google) parseEmbeddingsResponse(statusCode int,
+	bodyBytes []byte, input []string,
+) (*modulecomponents.VectorizationResult[[]float32], error) {
+	var resBody embeddingsResponse
+	if err := json.Unmarshal(bodyBytes, &resBody); err != nil {
+		return nil, fmt.Errorf("failed to parse vectorization response (status %d): %w", statusCode, err)
+	}
+
+	if err := v.checkResponse(statusCode, resBody.Error); err != nil {
+		return nil, err
+	}
+
+	if len(resBody.Predictions) == 0 {
+		return nil, errors.Errorf("empty embeddings response")
+	}
+
+	vectors := make([][]float32, len(resBody.Predictions))
+	for i := range resBody.Predictions {
+		vectors[i] = resBody.Predictions[i].Embeddings.Values
+	}
+	dimensions := len(resBody.Predictions[0].Embeddings.Values)
+
+	return v.getResponse(input, dimensions, vectors)
+}
+
+func (v *google) getResponse(input []string, dimensions int, vectors [][]float32) (*modulecomponents.VectorizationResult[[]float32], error) {
+	return &modulecomponents.VectorizationResult[[]float32]{
+		Text:       input,
+		Dimensions: dimensions,
+		Vector:     vectors,
+	}, nil
+}
+
+func (v *google) getApiEndpoint(config settings) string {
+	return config.ApiEndpoint
+}
+
+func (v *google) getProjectID(config settings) string {
+	return config.ProjectID
+}
+
+func (v *google) getModel(config settings) string {
+	return config.Model
+}
+
+func (v *google) isLegacy(config settings) bool {
+	return isLegacyModel(config.Model)
+}
+
+func (v *google) getSettings(config moduletools.ClassConfig) settings {
+	icheck := vectorizer.NewClassSettings(config)
+	return settings{
+		ApiEndpoint: icheck.ApiEndpoint(),
+		ProjectID:   icheck.ProjectID(),
+		Model:       icheck.Model(),
+		Dimensions:  icheck.Dimensions(),
+		TaskType:    icheck.TaskType(),
+	}
+}
+
+func (v *google) getQueryTaskType(in string) taskType {
+	switch taskType(in) {
+	// Retrieval Use cases
+	case retrievalCode:
+		return retrievalCode
+	case questionAnswering:
+		return questionAnswering
+	case factVerification:
+		return factVerification
+	// Single-input Use Cases
+	case classification:
+		return classification
+	case clustering:
+		return clustering
+	case semanticSimilarity:
+		return semanticSimilarity
+	default:
+		return retrievalQuery
+	}
+}
+
+func (v *google) getDocumentTaskType(in string) taskType {
+	switch taskType(in) {
+	case classification:
+		return classification
+	case clustering:
+		return clustering
+	case semanticSimilarity:
+		return semanticSimilarity
+	default:
+		// default are retrieval use cases
+		return retrievalDocument
+	}
+}
+
+func isLegacyModel(model string) bool {
+	// Check if we are using legacy model which runs on deprecated PaLM API
+	return model == "embedding-gecko-001"
+}
+
+type embeddingsRequest struct {
+	Instances  []instance  `json:"instances,omitempty"`
+	Parameters *parameters `json:"parameters,omitempty"`
+}
+
+type parameters struct {
+	OutputDimensionality *int64 `json:"outputDimensionality,omitempty"`
+}
+
+type instance struct {
+	Content  string   `json:"content"`
+	TaskType taskType `json:"task_type,omitempty"`
+	Title    string   `json:"title,omitempty"`
+}
+
+type embeddingsResponse struct {
+	Predictions      []prediction    `json:"predictions,omitempty"`
+	Error            *googleApiError `json:"error,omitempty"`
+	DeployedModelId  string          `json:"deployedModelId,omitempty"`
+	Model            string          `json:"model,omitempty"`
+	ModelDisplayName string          `json:"modelDisplayName,omitempty"`
+	ModelVersionId   string          `json:"modelVersionId,omitempty"`
+}
+
+type prediction struct {
+	Embeddings       embeddings        `json:"embeddings,omitempty"`
+	SafetyAttributes *safetyAttributes `json:"safetyAttributes,omitempty"`
+}
+
+type embeddings struct {
+	Values []float32 `json:"values,omitempty"`
+}
+
+type safetyAttributes struct {
+	Scores     []float64 `json:"scores,omitempty"`
+	Blocked    *bool     `json:"blocked,omitempty"`
+	Categories []string  `json:"categories,omitempty"`
+}
+
+type googleApiError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Status  string `json:"status"`
+}
+
+type batchEmbedTextResponse struct {
+	Embeddings []embedding     `json:"embeddings,omitempty"`
+	Error      *googleApiError `json:"error,omitempty"`
+}
+
+type embedding struct {
+	Values []float32 `json:"values,omitempty"`
+	// Legacy PaLM API
+	Value []float32 `json:"value,omitempty"`
+}
+
+type batchEmbedContents struct {
+	Requests []embedContentRequest `json:"requests,omitempty"`
+}
+
+type embedContentRequest struct {
+	Model                string   `json:"model"`
+	Content              content  `json:"content"`
+	TaskType             taskType `json:"taskType,omitempty"`
+	Title                string   `json:"title,omitempty"`
+	OutputDimensionality *int64   `json:"outputDimensionality,omitempty"`
+}
+
+type content struct {
+	Parts []part `json:"parts,omitempty"`
+	Role  string `json:"role,omitempty"`
+}
+
+type part struct {
+	Text string `json:"text,omitempty"`
+}
+
+// Legacy PaLM API
+type batchEmbedTextRequestLegacy struct {
+	Texts []string `json:"texts,omitempty"`
+}

@@ -1,0 +1,266 @@
+// Licensed to the LF AI & Data foundation under one
+// or more contributor license agreements. See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership. The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
+
+#include <boost/dynamic_bitset.hpp>
+#include <map>
+#include <memory>
+#include <string>
+
+#include "common/Types.h"
+#include "common/EasyAssert.h"
+#include "index/Index.h"
+#include "fmt/format.h"
+#include "index/Meta.h"
+
+namespace milvus::storage {
+class IndexEntryWriter;
+class IndexEntryReader;
+class MemFileManagerImpl;
+using MemFileManagerImplPtr = std::shared_ptr<MemFileManagerImpl>;
+}  // namespace milvus::storage
+
+namespace milvus::index {
+
+enum class ScalarIndexType {
+    NONE = 0,
+    BITMAP,
+    STLSORT,
+    MARISA,
+    INVERTED,
+    HYBRID,
+    JSONSTATS,
+    RTREE,
+    NGRAM,
+};
+
+inline std::string
+ToString(ScalarIndexType type) {
+    switch (type) {
+        case ScalarIndexType::NONE:
+            return "NONE";
+        case ScalarIndexType::BITMAP:
+            return "BITMAP";
+        case ScalarIndexType::STLSORT:
+            return "STLSORT";
+        case ScalarIndexType::MARISA:
+            return "MARISA";
+        case ScalarIndexType::INVERTED:
+            return "INVERTED";
+        case ScalarIndexType::HYBRID:
+            return "HYBRID";
+        case ScalarIndexType::RTREE:
+            return "RTREE";
+        case ScalarIndexType::NGRAM:
+            return "NGRAM";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+inline ScalarIndexType
+FromString(const std::string& type) {
+    if (type == "BITMAP") {
+        return ScalarIndexType::BITMAP;
+    } else if (type == "STLSORT" || type == "STL_SORT") {
+        return ScalarIndexType::STLSORT;
+    } else if (type == "MARISA" || type == "Trie" || type == "TRIE") {
+        return ScalarIndexType::MARISA;
+    } else if (type == "INVERTED") {
+        return ScalarIndexType::INVERTED;
+    } else if (type == "HYBRID") {
+        return ScalarIndexType::HYBRID;
+    } else if (type == "RTREE") {
+        return ScalarIndexType::RTREE;
+    } else if (type == "NGRAM") {
+        return ScalarIndexType::NGRAM;
+    } else {
+        return ScalarIndexType::NONE;
+    }
+}
+
+template <typename T>
+class ScalarIndex : public IndexBase {
+ public:
+    ScalarIndex(const std::string& index_type) : IndexBase(index_type) {
+    }
+
+    void
+    BuildWithRawDataForUT(size_t n,
+                          const void* values,
+                          const Config& config = {}) override;
+
+    void
+    BuildWithDataset(const DatasetPtr& dataset,
+                     const Config& config = {}) override {
+        ThrowInfo(Unsupported,
+                  "scalar index don't support build index with dataset");
+    };
+
+ public:
+    using IndexBase::Build;
+
+    virtual ScalarIndexType
+    GetIndexType() const = 0;
+
+    virtual void
+    Build(size_t n, const T* values, const bool* valid_data = nullptr) = 0;
+
+    virtual const TargetBitmap
+    In(size_t n, const T* values) = 0;
+
+    virtual const TargetBitmap
+    IsNull() = 0;
+
+    virtual TargetBitmap
+    IsNotNull() = 0;
+
+    virtual const TargetBitmap
+    InApplyFilter(size_t n,
+                  const T* values,
+                  const std::function<bool(size_t /* offset */)>& filter) {
+        ThrowInfo(ErrorCode::Unsupported, "InApplyFilter is not implemented");
+    }
+
+    virtual void
+    InApplyCallback(size_t n,
+                    const T* values,
+                    const std::function<void(size_t /* offset */)>& callback) {
+        ThrowInfo(ErrorCode::Unsupported, "InApplyCallback is not implemented");
+    }
+
+    virtual const TargetBitmap
+    NotIn(size_t n, const T* values) = 0;
+
+    virtual const TargetBitmap
+    Range(const T& value, OpType op) = 0;
+
+    virtual const TargetBitmap
+    Range(const T& lower_bound_value,
+          bool lb_inclusive,
+          const T& upper_bound_value,
+          bool ub_inclusive) = 0;
+
+    virtual std::optional<T>
+    Reverse_Lookup(size_t offset) const = 0;
+
+    virtual const TargetBitmap
+    Query(const DatasetPtr& dataset);
+
+    virtual bool
+    SupportPatternMatch() const {
+        return false;
+    }
+
+    // Execute a pattern match operation on the index.
+    // @param pattern: a raw SQL LIKE pattern (e.g. "%hello%", "abc_def"),
+    //   NOT a regex. Implementations must convert internally if needed.
+    // @param op: Match (LIKE), PrefixMatch, PostfixMatch, or InnerMatch.
+    virtual const TargetBitmap
+    PatternMatch(const std::string& pattern, proto::plan::OpType op) {
+        ThrowInfo(Unsupported, "pattern match is not supported");
+    }
+
+    virtual bool
+    IsMmapSupported() const override {
+        return index_type_ == milvus::index::BITMAP_INDEX_TYPE ||
+               index_type_ == milvus::index::HYBRID_INDEX_TYPE ||
+               index_type_ == milvus::index::INVERTED_INDEX_TYPE ||
+               index_type_ == milvus::index::MARISA_TRIE ||
+               index_type_ == milvus::index::MARISA_TRIE_UPPER ||
+               index_type_ == milvus::index::ASCENDING_SORT;
+    }
+
+    bool
+    IsNestedIndex() const override {
+        return false;
+    }
+
+    virtual int64_t
+    Size() = 0;
+
+    // Whether this index can execute a LIKE-pattern query internally.
+    // When true, the framework calls PatternQuery() directly instead of
+    // falling back to brute-force scan.
+    // NOTE: PatternQuery() always accepts a raw SQL LIKE pattern (e.g. "%hello%").
+    // Each index implementation is responsible for converting it to whatever
+    // internal format it needs (e.g., regex for tantivy).
+    virtual bool
+    SupportPatternQuery() const {
+        return false;
+    }
+
+    // Whether the framework should *attempt* to use PatternQuery() for
+    // Match operations. Inverted indexes return false here because they
+    // handle Match via PatternMatch() dispatch instead.
+    virtual bool
+    TryUsePatternQuery() const {
+        return true;
+    }
+
+    // Execute a LIKE-pattern query on the index.
+    // @param pattern: a raw SQL LIKE pattern (e.g. "%hello%", "abc_def"),
+    //   NOT a regex. Implementations must convert internally if needed
+    //   (e.g., tantivy converts to regex via PatternMatchTranslator).
+    virtual const TargetBitmap
+    PatternQuery(const std::string& pattern) {
+        ThrowInfo(Unsupported, "pattern query is not supported");
+    }
+
+    virtual void
+    BuildWithFieldData(const std::vector<FieldDataPtr>& field_datas) {
+        ThrowInfo(Unsupported, "BuildwithFieldData is not supported");
+    }
+
+    virtual void
+    LoadWithoutAssemble(const BinarySet& binary_set, const Config& config) {
+        ThrowInfo(Unsupported, "LoadWithoutAssemble is not supported");
+    }
+
+    // V3 streaming upload - subclasses must implement WriteEntries() instead
+    IndexStatsPtr
+    UploadV3(const Config& config) override;
+
+    // V3 streaming load - loads index from a packed V3 format file
+    // Opens the file and calls LoadEntries() for subclass-specific loading
+    void
+    LoadV3(const Config& config) override;
+
+    virtual void
+    WriteEntries(storage::IndexEntryWriter* writer) {
+        ThrowInfo(Unsupported, "WriteEntries is not implemented");
+    }
+
+    virtual void
+    LoadEntries(storage::IndexEntryReader& reader, const Config& config) {
+        ThrowInfo(Unsupported, "LoadEntries is not implemented");
+    }
+
+ protected:
+    // File manager for V3 upload/load operations
+    storage::MemFileManagerImplPtr file_manager_;
+
+    // Controls the remote path prefix for V3 upload/load.
+    // true  → index_files/...  (default, for normal scalar indexes)
+    // false → text_log/...     (for TextMatchIndex)
+    bool is_index_file_ = true;
+};
+
+template <typename T>
+using ScalarIndexPtr = std::unique_ptr<ScalarIndex<T>>;
+
+}  // namespace milvus::index

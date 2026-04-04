@@ -1,0 +1,205 @@
+/* TODO: Refactor with scss to simplify/match other docs styling, merge with card styling in custom.scss */
+/* TODO: This duplicates/conflicts with .card styles set in custom.scss. Try to create a more cohesive card styling system */
+
+.cardContainer {
+  --ifm-link-color: var(--ifm-color-emphasis-800);
+  --ifm-link-hover-color: var(--ifm-color-emphasis-700);
+  --ifm-link-hover-decoration: none;
+  transition: all var(--ifm-transition-fast) ease;
+  padding: 1rem !important;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  height: 100%;
+  justify-self: stretch;
+}
+
+.examplesCard {
+  --examples-card-border: var(--theme-color-keyline);
+  --examples-card-border-hover: var(--theme-color-border-hover);
+  --examples-card-background: var(--ifm-card-background-color);
+  --examples-card-background-hover: var(--theme-color-background-light);
+  --examples-card-shadow: 0 14px 26px var(--dagster-blue-translucent-15);
+  --examples-pill-border: var(--theme-color-accent-lavendar);
+  --examples-pill-text: var(--theme-color-text-blue);
+  --examples-pill-background: var(--theme-color-background-default);
+  --examples-footer-text: var(--theme-color-text-blue);
+  --examples-footer-border: var(--theme-color-keyline);
+  --examples-logo-background: var(--theme-color-background-default);
+  --examples-logo-border: var(--theme-color-keyline);
+  --examples-card-inset-x: 0.85rem;
+  --examples-card-inset-bottom: 0.7rem;
+  position: relative;
+  overflow: hidden;
+  border-color: var(--examples-card-border) !important;
+  background: var(--examples-card-background);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  padding: 0.75rem var(--examples-card-inset-x) 0 !important;
+  min-height: 176px;
+}
+
+.examplesCard:hover {
+  border-color: var(--examples-card-border-hover) !important;
+  background: var(--examples-card-background-hover);
+  box-shadow: var(--examples-card-shadow);
+  transform: translateY(-4px);
+}
+
+[data-theme='dark'] .examplesCard {
+  --examples-card-border: var(--theme-color-border-default);
+  --examples-card-border-hover: var(--theme-color-border-hover);
+  --examples-card-background: var(--theme-color-background-light);
+  --examples-card-background-hover: var(--theme-color-background-lighter);
+  --examples-card-shadow: 0 14px 26px rgba(0, 0, 0, 0.35);
+  --examples-pill-border: var(--theme-color-accent-blue);
+  --examples-pill-background: var(--theme-color-background-lighter);
+  --examples-logo-background: var(--theme-color-background-lighter);
+  --examples-logo-border: var(--theme-color-border-default);
+}
+
+.examplesMetaRow {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.12rem;
+}
+
+.examplesPill {
+  display: inline-flex;
+  border-radius: 999px;
+  border: 1px solid var(--examples-pill-border);
+  padding: 0.1rem 0.42rem;
+  font-size: 0.62rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--examples-pill-text);
+  background: var(--examples-pill-background);
+}
+
+.examplesBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.examplesBody .cardLogo {
+  width: 3rem;
+  height: 3rem;
+  background: var(--examples-logo-background);
+  padding: 0.3rem;
+  border-radius: 10px !important;
+  border: 1px solid var(--examples-logo-border);
+  backdrop-filter: blur(4px);
+}
+
+.examplesFooter {
+  margin-top: auto;
+  margin-left: calc(-1 * var(--examples-card-inset-x));
+  margin-right: calc(-1 * var(--examples-card-inset-x));
+}
+
+.examplesDivider {
+  display: block;
+  border: 0;
+  border-top: 1px solid var(--examples-footer-border);
+  margin: 0;
+  max-width: none;
+  width: 100% !important;
+}
+
+.examplesFooterRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  padding: 0.48rem var(--examples-card-inset-x) var(--examples-card-inset-bottom);
+}
+
+.examplesFooterText {
+  color: var(--examples-footer-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.examplesArrow {
+  display: inline-block;
+  color: var(--examples-footer-text);
+  font-size: 0.82rem;
+  line-height: 1;
+  vertical-align: middle;
+  position: relative;
+  top: 1px;
+  transition: transform 120ms ease;
+}
+
+.examplesCard:hover .examplesArrow {
+  transform: translate(2px, 0);
+}
+
+.cardContainer *:last-child {
+  margin-bottom: 0;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 !important;
+  padding: 0px !important;
+  line-height: 1.25rem;
+}
+
+.cardSubtitle {
+  font-size: 1rem;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+  color: var(--theme-color-text-blue) !important;
+}
+
+.cardTags {
+  padding: 4px 8px;
+  background: var(--theme-color-background-gray);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 400;
+  color: var(--theme-color-text-light);
+}
+
+.cardDescription {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.25rem !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--theme-color-text-light);
+}
+
+.cardLogo {
+  width: 4rem;
+  height: 4rem;
+  background: var(--dagster-white);
+  padding: 0.25rem;
+  flex-shrink: 0;
+  border-radius: 4px !important;
+}
+
+.cardTitleWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  padding: 0.125rem 0rem;
+}
+
+.cardTitleWrapper .cardTags {
+  margin-left: 8px;
+}

@@ -1,0 +1,104 @@
+//                           _       _
+// __      _____  __ ___   ___  __ _| |_ ___
+// \ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+//  \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+//   \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+//
+//  Copyright © 2016 - 2026 Weaviate B.V. All rights reserved.
+//
+//  CONTACT: hello@weaviate.io
+//
+
+package modsum
+
+import (
+	"context"
+	"os"
+	"time"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	entcfg "github.com/weaviate/weaviate/entities/config"
+	"github.com/weaviate/weaviate/entities/modulecapabilities"
+	"github.com/weaviate/weaviate/entities/moduletools"
+	sumadditional "github.com/weaviate/weaviate/modules/sum-transformers/additional"
+	sumadditionalsummary "github.com/weaviate/weaviate/modules/sum-transformers/additional/summary"
+	"github.com/weaviate/weaviate/modules/sum-transformers/client"
+	"github.com/weaviate/weaviate/modules/sum-transformers/ent"
+)
+
+const Name = "sum-transformers"
+
+func New() *SUMModule {
+	return &SUMModule{}
+}
+
+type SUMModule struct {
+	sum                          sumClient
+	additionalPropertiesProvider modulecapabilities.AdditionalProperties
+}
+
+type sumClient interface {
+	GetSummary(ctx context.Context, property, text string) ([]ent.SummaryResult, error)
+	MetaInfo() (map[string]interface{}, error)
+}
+
+func (m *SUMModule) Name() string {
+	return Name
+}
+
+func (m *SUMModule) Type() modulecapabilities.ModuleType {
+	return modulecapabilities.Text2TextSummarize
+}
+
+func (m *SUMModule) Init(ctx context.Context,
+	params moduletools.ModuleInitParams,
+) error {
+	if err := m.initAdditional(ctx, params.GetConfig().ModuleHttpClientTimeout, params.GetLogger()); err != nil {
+		return errors.Wrap(err, "init additional")
+	}
+	return nil
+}
+
+func (m *SUMModule) initAdditional(ctx context.Context, timeout time.Duration,
+	logger logrus.FieldLogger,
+) error {
+	uri := os.Getenv("SUM_INFERENCE_API")
+	if uri == "" {
+		return errors.Errorf("required variable SUM_INFERENCE_API is not set")
+	}
+
+	waitForStartup := true
+	if envWaitForStartup := os.Getenv("SUM_WAIT_FOR_STARTUP"); envWaitForStartup != "" {
+		waitForStartup = entcfg.Enabled(envWaitForStartup)
+	}
+
+	client := client.New(uri, timeout, logger)
+	if waitForStartup {
+		if err := client.WaitForStartup(ctx, 1*time.Second); err != nil {
+			return errors.Wrap(err, "init remote sum module")
+		}
+	}
+
+	m.sum = client
+
+	tokenProvider := sumadditionalsummary.New(m.sum)
+	m.additionalPropertiesProvider = sumadditional.New(tokenProvider)
+
+	return nil
+}
+
+func (m *SUMModule) MetaInfo() (map[string]interface{}, error) {
+	return m.sum.MetaInfo()
+}
+
+func (m *SUMModule) AdditionalProperties() map[string]modulecapabilities.AdditionalProperty {
+	return m.additionalPropertiesProvider.AdditionalProperties()
+}
+
+// verify we implement the modules.Module interface
+var (
+	_ = modulecapabilities.Module(New())
+	_ = modulecapabilities.AdditionalProperties(New())
+	_ = modulecapabilities.MetaProvider(New())
+)

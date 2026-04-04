@@ -1,0 +1,57 @@
+name: Docker Build
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/docker-build.yml
+      - .dockerignore
+      - apps/brave-search-mcp/Dockerfile
+      - apps/brave-search-mcp/**
+      - packages/brave-search/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.30.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: apps/brave-search-mcp
+      - name: Verify Dockerfile pnpm pin
+        run: pnpm exec vitest run test/unit/dockerfile.test.ts
+        working-directory: apps/brave-search-mcp
+      - name: Build Docker image
+        run: docker build -t brave-search-mcp:test -f apps/brave-search-mcp/Dockerfile .
+      - name: Simulate pre-fix failure without .dockerignore
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          tar -cf - . | tar -xf - -C "$tmpdir"
+          rm -f "$tmpdir/.dockerignore"
+          mkdir -p "$tmpdir/node_modules"
+          printf 'layoutVersion: 5\n' > "$tmpdir/node_modules/.modules.yaml"
+
+          if docker build -t brave-search-mcp:expect-fail -f "$tmpdir/apps/brave-search-mcp/Dockerfile" "$tmpdir"; then
+            echo "Expected docker build to fail without .dockerignore"
+            exit 1
+          fi
+      - name: Verify .dockerignore fixes synthetic node_modules context
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          tar -cf - . | tar -xf - -C "$tmpdir"
+          mkdir -p "$tmpdir/node_modules"
+          printf 'layoutVersion: 5\n' > "$tmpdir/node_modules/.modules.yaml"
+          docker build -t brave-search-mcp:test-synthetic -f "$tmpdir/apps/brave-search-mcp/Dockerfile" "$tmpdir"
