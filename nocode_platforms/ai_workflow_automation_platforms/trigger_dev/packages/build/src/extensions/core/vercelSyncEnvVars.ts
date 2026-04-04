@@ -1,0 +1,119 @@
+import { BuildExtension } from "@trigger.dev/core/v3/build";
+import { syncEnvVars } from "../core.js";
+
+type EnvVar = { name: string; value: string; isParentEnv?: boolean };
+
+type VercelEnvVar = {
+  key: string;
+  value: string;
+  type: string;
+  target: string[];
+  gitBranch?: string;
+};
+
+export function syncVercelEnvVars(options?: {
+  projectId?: string;
+  /**
+   * Vercel API access token for authentication.
+   * It's recommended to use the VERCEL_ACCESS_TOKEN environment variable instead of hardcoding this value.
+   */
+  vercelAccessToken?: string;
+  vercelTeamId?: string;
+  branch?: string;
+}): BuildExtension {
+  const sync = syncEnvVars(async (ctx) => {
+    const projectId =
+      options?.projectId ?? process.env.VERCEL_PROJECT_ID ?? ctx.env.VERCEL_PROJECT_ID;
+    const vercelAccessToken =
+      options?.vercelAccessToken ??
+      process.env.VERCEL_ACCESS_TOKEN ??
+      ctx.env.VERCEL_ACCESS_TOKEN ??
+      process.env.VERCEL_TOKEN;
+    const vercelTeamId =
+      options?.vercelTeamId ?? process.env.VERCEL_TEAM_ID ?? ctx.env.VERCEL_TEAM_ID;
+    const branch =
+      options?.branch ??
+      process.env.VERCEL_PREVIEW_BRANCH ??
+      ctx.env.VERCEL_PREVIEW_BRANCH ??
+      ctx.branch;
+    const isVercelEnv = !!(ctx.env.VERCEL);
+
+    if (!projectId) {
+      throw new Error(
+        "syncVercelEnvVars: you did not pass in a projectId or set the VERCEL_PROJECT_ID env var."
+      );
+    }
+
+    if (!vercelAccessToken) {
+      throw new Error(
+        "syncVercelEnvVars: you did not pass in a vercelAccessToken or set the VERCEL_ACCESS_TOKEN env var."
+      );
+    }
+
+    const environmentMap = {
+      prod: "production",
+      staging: "preview",
+      dev: "development",
+      preview: "preview",
+    } as const;
+
+    const vercelEnvironment = environmentMap[ctx.environment as keyof typeof environmentMap];
+
+    if (!vercelEnvironment) {
+      throw new Error(
+        `Invalid environment '${ctx.environment}'. Expected 'prod', 'staging', or 'dev'.`
+      );
+    }
+    const params = new URLSearchParams({ decrypt: "true" });
+    if (vercelTeamId) params.set("teamId", vercelTeamId);
+    params.set("target", vercelEnvironment);
+    const vercelApiUrl = `https://api.vercel.com/v8/projects/${projectId}/env?${params}`;
+
+    try {
+      const response = await fetch(vercelApiUrl, {
+        headers: {
+          Authorization: `Bearer ${vercelAccessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const isBranchable = ctx.environment === "preview";
+
+      const filteredEnvs: EnvVar[] = data.envs
+        .filter((env: VercelEnvVar) => {
+          if (!env.target.includes(vercelEnvironment)) return false;
+          if (isBranchable && env.gitBranch && env.gitBranch !== branch) return false;
+          // When running in Vercel, prefer process.env but fall back to API value
+          const value = isVercelEnv ? (process.env[env.key] ?? env.value) : env.value;
+          if (!value) return false;
+          return true;
+        })
+        .map((env: VercelEnvVar) => {
+          // When running in Vercel, prefer process.env but fall back to API value
+          const value = isVercelEnv ? (process.env[env.key] ?? env.value) : env.value;
+          return {
+            name: env.key,
+            value,
+            isParentEnv: isBranchable && !env.gitBranch,
+          };
+        });
+
+      return filteredEnvs;
+    } catch (error) {
+      console.error("Error fetching or processing Vercel environment variables:", error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
+  });
+
+  return {
+    name: "SyncVercelEnvVarsExtension",
+    async onBuildComplete(context, manifest) {
+      await sync.onBuildComplete?.(context, manifest);
+    },
+  };
+}

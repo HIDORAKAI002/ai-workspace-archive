@@ -1,0 +1,11 @@
+{
+  "name": "@repo/trigger",
+  "private": true,
+  "dependencies": {
+    "@repo/email": "workspace:*",
+    "@trigger.dev/sdk": "0.0.0-prerelease-20250321122618"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4"
+  }
+}
