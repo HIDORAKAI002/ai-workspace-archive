@@ -1,0 +1,32 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+build
+.turbo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDEs and Editors
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+Thumbs.db
+notes.txt
+
+.agent/
