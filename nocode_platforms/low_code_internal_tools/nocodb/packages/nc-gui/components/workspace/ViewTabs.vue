@@ -31,6 +31,7 @@ interface TabItem {
   icon: string
   label: string
   upgradeBadge?: { feature: string }
+  hidden?: boolean
 }
 
 const tabItems = computed<TabItem[]>(() => {
@@ -38,51 +39,42 @@ const tabItems = computed<TabItem[]>(() => {
   // eslint-disable-next-line no-unused-expressions
   isBaseRolesLoaded.value
 
-  const items: TabItem[] = [{ key: 'bases', icon: 'ncDatabase', label: t('objects.projects') }]
-
-  if (isUIAllowed('workspaceCollaborators')) {
-    items.push({ key: 'collaborators', icon: 'users', label: t('labels.members') })
-  }
-
-  if (isEeUI && hasTeamsEditPermission.value && showEEFeatures.value) {
-    items.push({
+  return [
+    { key: 'bases', icon: 'ncDatabase', label: t('objects.projects') },
+    { key: 'collaborators', icon: 'users', label: t('labels.members'), hidden: !isUIAllowed('workspaceCollaborators') },
+    {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      upgradeBadge: {
-        feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
-      },
-    })
-  }
-
-  if (!isMobileMode.value) {
-    if (isUIAllowed('workspaceIntegrations')) {
-      items.push({ key: 'integrations', icon: 'integration', label: t('general.integrations') })
-    }
-
-    if (isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling') && showEEFeatures.value) {
-      items.push({ key: 'billing', icon: 'ncDollarSign', label: t('general.billing') })
-    }
-
-    if (isEeUI && isUIAllowed('workspaceAuditList') && showEEFeatures.value) {
-      items.push({
-        key: 'audits',
-        icon: 'audit',
-        label: t('title.audits'),
-        upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE },
-      })
-    }
-
-    if (isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value) {
-      items.push({ key: 'sso', icon: 'sso', label: t('title.sso') })
-    }
-  }
-
-  if (showEEFeatures.value) {
-    items.push({ key: 'settings', icon: 'ncSettings', label: t('labels.settings') })
-  }
-
-  return items
+      hidden: !(isEeUI && hasTeamsEditPermission.value && showEEFeatures.value),
+    },
+    {
+      key: 'integrations',
+      icon: 'integration',
+      label: t('general.integrations'),
+      hidden: isMobileMode.value || !isUIAllowed('workspaceIntegrations'),
+    },
+    {
+      key: 'billing',
+      icon: 'ncDollarSign',
+      label: t('general.billing'),
+      hidden:
+        isMobileMode.value || !(isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling') && showEEFeatures.value),
+    },
+    {
+      key: 'audits',
+      icon: 'audit',
+      label: t('title.audits'),
+      hidden: isMobileMode.value || !(isEeUI && isUIAllowed('workspaceAuditList') && showEEFeatures.value),
+    },
+    {
+      key: 'sso',
+      icon: 'sso',
+      label: t('title.sso'),
+      hidden: isMobileMode.value || !(isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value),
+    },
+    { key: 'settings', icon: 'ncSettings', label: t('labels.settings'), hidden: !showEEFeatures.value },
+  ].filter((item) => !item.hidden)
 })
 
 const activeTab = computed({
@@ -114,7 +106,7 @@ const activeTab = computed({
 <template>
   <NcTabs :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-view-tabs">
     <template #leftExtra>
-      <div class="w-3"></div>
+      <div class="w-2 sm:w-4"></div>
     </template>
 
     <a-tab-pane v-for="item in tabItems" :key="item.key">
