@@ -1,0 +1,157 @@
+import { useSuspenseQueries } from "@tanstack/react-query";
+import type { ErrorComponentProps } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
+import { useCallback, useMemo } from "react";
+import { z } from "zod";
+import {
+	type ArtifactCollectionsFilter,
+	buildCountLatestArtifactsQuery,
+	buildListLatestArtifactsQuery,
+} from "@/api/artifacts";
+import { categorizeError } from "@/api/error-utils";
+import { ArtifactsPage } from "@/components/artifacts/artifacts-page";
+import type { filterType } from "@/components/artifacts/types";
+import { PrefectLoading } from "@/components/ui/loading";
+import { RouteErrorState } from "@/components/ui/route-error-state";
+import useDebounceCallback from "@/hooks/use-debounce-callback";
+
+/**
+ * Schema for validating URL search parameters for the artifacts page.
+ * @property {number} page - The page number to display. Must be positive. Defaults to 1.
+ * @property {number} limit - The maximum number of items to return. Must be positive. Defaults to 10.
+ */
+const searchParams = z.object({
+	type: z.string().optional().catch(""),
+	name: z.string().optional().catch(""),
+});
+
+/**
+ * Builds filter parameters for artifacts query from search params
+ *
+ * @param search - Optional validated search parameters containing page and limit
+ * @returns ArtifactsFilter with type and name
+ *
+ * @example
+ * ```ts
+ * const filter = buildFilterBody({ type: "markdown", name: "my-dataset" })
+ * // Returns {
+ * //		artifacts: {
+ * //			operator: "and_",
+ * //			type: { any_: ["markdown"] },
+ * //			key: { exists_: true, like_: "my-dataset" }
+ * //		},
+ * //		offset: 0
+ * //}
+ * ```
+ */
+const buildFilterBody = (
+	search?: z.infer<typeof searchParams>,
+): ArtifactCollectionsFilter => ({
+	artifacts: {
+		operator: "and_",
+		type: {
+			any_: search?.type && search?.type !== "all" ? [search.type] : undefined,
+		},
+		key: {
+			exists_: true,
+			like_: search?.name ?? "",
+		},
+	},
+	sort: "ID_DESC",
+	offset: 0,
+});
+
+export const Route = createFileRoute("/artifacts/")({
+	validateSearch: zodValidator(searchParams),
+	component: function RouteComponent() {
+		const search = Route.useSearch();
+		const { filters, onFilterChange } = useFilter();
+
+		const [{ data: artifactsCount }, { data: artifactsList }] =
+			useSuspenseQueries({
+				queries: [
+					buildCountLatestArtifactsQuery(buildFilterBody(search)),
+					buildListLatestArtifactsQuery(buildFilterBody(search)),
+				],
+			});
+
+		return (
+			<ArtifactsPage
+				filters={filters}
+				onFilterChange={onFilterChange}
+				artifactsCount={artifactsCount}
+				artifactsList={artifactsList}
+			/>
+		);
+	},
+	loaderDeps: ({ search }) => buildFilterBody(search),
+	loader: ({ deps, context }) => {
+		void context.queryClient.prefetchQuery(
+			buildCountLatestArtifactsQuery(deps),
+		);
+		void context.queryClient.prefetchQuery(buildListLatestArtifactsQuery(deps));
+	},
+	errorComponent: function ArtifactsErrorComponent({
+		error,
+		reset,
+	}: ErrorComponentProps) {
+		const serverError = categorizeError(error, "Failed to load artifacts");
+		if (
+			serverError.type !== "server-error" &&
+			serverError.type !== "client-error"
+		) {
+			throw error;
+		}
+		return (
+			<div className="flex flex-col gap-4">
+				<div>
+					<h1 className="text-2xl font-semibold">Artifacts</h1>
+				</div>
+				<RouteErrorState error={serverError} onRetry={reset} />
+			</div>
+		);
+	},
+	wrapInSuspense: true,
+	pendingComponent: PrefectLoading,
+});
+
+const useFilter = () => {
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
+
+	const filters = useMemo(
+		() => [
+			{ id: "type", label: "Type", value: search.type ?? "all" },
+			{ id: "name", label: "Name", value: search.name },
+		],
+		[search.type, search.name],
+	);
+
+	const onFilterChange = useDebounceCallback(
+		useCallback(
+			(newFilters: filterType[]) => {
+				if (!newFilters) return;
+				void navigate({
+					to: ".",
+					search: () =>
+						newFilters
+							.filter((filter) => filter.value)
+							.reduce(
+								(prev, curr) => {
+									if (!curr.value) return prev;
+									prev[curr.id] = curr.value;
+									return prev;
+								},
+								{} as Record<string, string>,
+							),
+					replace: true,
+				});
+			},
+			[navigate],
+		),
+		400,
+	);
+
+	return { filters, onFilterChange };
+};

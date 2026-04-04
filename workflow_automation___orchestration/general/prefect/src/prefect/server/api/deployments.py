@@ -1,0 +1,1359 @@
+"""
+Routes for interacting with Deployment objects.
+"""
+
+import datetime
+import logging
+from typing import List, Optional
+from uuid import UUID
+
+import jsonschema.exceptions
+import sqlalchemy as sa
+from fastapi import Body, Depends, HTTPException, Path, Response
+
+import prefect.server.api.dependencies as dependencies
+import prefect.server.models as models
+import prefect.server.schemas as schemas
+from prefect._internal.compatibility.starlette import status
+from prefect.logging import get_logger
+from prefect.server.api.validation import (
+    validate_job_variables_for_deployment,
+    validate_job_variables_for_deployment_flow_run,
+)
+from prefect.server.api.workers import WorkerLookups
+from prefect.server.database import PrefectDBInterface, provide_database_interface
+from prefect.server.exceptions import MissingVariableError, ObjectNotFoundError
+from prefect.server.models.deployments import mark_deployments_ready
+from prefect.server.models.workers import DEFAULT_AGENT_WORK_POOL_NAME
+from prefect.server.schemas.responses import (
+    DeploymentBulkDeleteResponse,
+    DeploymentPaginationResponse,
+    FlowRunBulkCreateResponse,
+    FlowRunCreateResult,
+)
+from prefect.server.utilities.server import PrefectRouter
+from prefect.types import DateTime
+from prefect.types._datetime import now
+from prefect.utilities.schema_tools.hydration import (
+    HydrationContext,
+    HydrationError,
+    hydrate,
+)
+from prefect.utilities.schema_tools.validation import (
+    CircularSchemaRefError,
+    ValidationError,
+    validate,
+)
+
+logger: logging.Logger = get_logger(__name__)
+
+router: PrefectRouter = PrefectRouter(prefix="/deployments", tags=["Deployments"])
+
+
+def _multiple_schedules_error(deployment_id) -> HTTPException:
+    return HTTPException(
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail=(
+            "Error updating deployment: "
+            f"Deployment {deployment_id!r} has multiple schedules. "
+            "Please use the UI or update your client to adjust this "
+            "deployment's schedules.",
+        ),
+    )
+
+
+@router.post("/")
+async def create_deployment(
+    deployment: schemas.actions.DeploymentCreate,
+    response: Response,
+    worker_lookups: WorkerLookups = Depends(WorkerLookups),
+    created_by: Optional[schemas.core.CreatedBy] = Depends(dependencies.get_created_by),
+    updated_by: Optional[schemas.core.UpdatedBy] = Depends(dependencies.get_updated_by),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> schemas.responses.DeploymentResponse:
+    """
+    Creates a new deployment from the provided schema. If a deployment with
+    the same name and flow_id already exists, the deployment is updated.
+
+    If the deployment has an active schedule, flow runs will be scheduled.
+    When upserting, any scheduled runs from the existing deployment will be deleted.
+
+    For more information, see https://docs.prefect.io/v3/concepts/deployments.
+    """
+
+    data = deployment.model_dump(exclude_unset=True)
+    data["created_by"] = created_by.model_dump() if created_by else None
+    data["updated_by"] = updated_by.model_dump() if created_by else None
+
+    async with db.session_context(begin_transaction=True) as session:
+        if (
+            deployment.work_pool_name
+            and deployment.work_pool_name != DEFAULT_AGENT_WORK_POOL_NAME
+        ):
+            # Make sure that deployment is valid before beginning creation process
+            work_pool = await models.workers.read_work_pool_by_name(
+                session=session, work_pool_name=deployment.work_pool_name
+            )
+            if work_pool is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f'Work pool "{deployment.work_pool_name}" not found.',
+                )
+
+            await validate_job_variables_for_deployment(
+                session,
+                work_pool,
+                deployment,
+            )
+
+        # hydrate the input model into a full model
+        deployment_dict: dict = deployment.model_dump(
+            exclude={"work_pool_name"},
+            exclude_unset=True,
+        )
+
+        requested_concurrency_limit = deployment_dict.pop(
+            "global_concurrency_limit_id", "unset"
+        )
+        if requested_concurrency_limit != "unset":
+            if requested_concurrency_limit:
+                concurrency_limit = (
+                    await models.concurrency_limits_v2.read_concurrency_limit(
+                        session=session,
+                        concurrency_limit_id=requested_concurrency_limit,
+                    )
+                )
+
+                if not concurrency_limit:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Concurrency limit not found",
+                    )
+
+            deployment_dict["concurrency_limit_id"] = requested_concurrency_limit
+
+        if deployment.work_pool_name and deployment.work_queue_name:
+            # If a specific pool name/queue name combination was provided, get the
+            # ID for that work pool queue.
+            deployment_dict[
+                "work_queue_id"
+            ] = await worker_lookups._get_work_queue_id_from_name(
+                session=session,
+                work_pool_name=deployment.work_pool_name,
+                work_queue_name=deployment.work_queue_name,
+                create_queue_if_not_found=True,
+            )
+        elif deployment.work_pool_name:
+            # If just a pool name was provided, get the ID for its default
+            # work pool queue.
+            deployment_dict[
+                "work_queue_id"
+            ] = await worker_lookups._get_default_work_queue_id_from_work_pool_name(
+                session=session,
+                work_pool_name=deployment.work_pool_name,
+            )
+        elif deployment.work_queue_name:
+            # If just a queue name was provided, ensure that the queue exists and
+            # get its ID.
+            work_queue = await models.work_queues.ensure_work_queue_exists(
+                session=session, name=deployment.work_queue_name
+            )
+            deployment_dict["work_queue_id"] = work_queue.id
+
+        deployment = schemas.core.Deployment(**deployment_dict)
+        # check to see if relevant blocks exist, allowing us throw a useful error message
+        # for debugging
+        if deployment.infrastructure_document_id is not None:
+            infrastructure_block = (
+                await models.block_documents.read_block_document_by_id(
+                    session=session,
+                    block_document_id=deployment.infrastructure_document_id,
+                )
+            )
+            if not infrastructure_block:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "Error creating deployment. Could not find infrastructure"
+                        f" block with id: {deployment.infrastructure_document_id}. This"
+                        " usually occurs when applying a deployment specification that"
+                        " was built against a different Prefect database / workspace."
+                    ),
+                )
+
+        if deployment.storage_document_id is not None:
+            storage_block = await models.block_documents.read_block_document_by_id(
+                session=session,
+                block_document_id=deployment.storage_document_id,
+            )
+            if not storage_block:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "Error creating deployment. Could not find storage block with"
+                        f" id: {deployment.storage_document_id}. This usually occurs"
+                        " when applying a deployment specification that was built"
+                        " against a different Prefect database / workspace."
+                    ),
+                )
+
+        right_now = now("UTC")
+        model = await models.deployments.create_deployment(
+            session=session, deployment=deployment
+        )
+
+        if model.created >= right_now:
+            response.status_code = status.HTTP_201_CREATED
+
+        return schemas.responses.DeploymentResponse.model_validate(
+            model, from_attributes=True
+        )
+
+
+@router.patch("/{id:uuid}", status_code=status.HTTP_204_NO_CONTENT)
+async def update_deployment(
+    deployment: schemas.actions.DeploymentUpdate,
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    async with db.session_context(begin_transaction=True) as session:
+        existing_deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+        if not existing_deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found."
+            )
+
+        # Checking how we should handle schedule updates
+        # If not all existing schedules have slugs then we'll fall back to the existing logic where are schedules are recreated to match the request.
+        # If the existing schedules have slugs, but not all provided schedules have slugs, then we'll return a 422 to avoid accidentally blowing away schedules.
+        # Otherwise, we'll use the existing slugs and the provided slugs to make targeted updates to the deployment's schedules.
+        schedules_to_patch: list[schemas.actions.DeploymentScheduleUpdate] = []
+        schedules_to_create: list[schemas.actions.DeploymentScheduleUpdate] = []
+        all_provided_have_slugs = all(
+            schedule.slug is not None for schedule in deployment.schedules or []
+        )
+        all_existing_have_slugs = existing_deployment.schedules and all(
+            schedule.slug is not None for schedule in existing_deployment.schedules
+        )
+        if all_provided_have_slugs and all_existing_have_slugs:
+            current_slugs = [
+                schedule.slug for schedule in existing_deployment.schedules
+            ]
+
+            # Check for duplicate replaces targets
+            replaces_targets: dict[str, str] = {}  # old_slug -> new_slug
+            for schedule in deployment.schedules or []:
+                if schedule.replaces:
+                    if schedule.replaces in replaces_targets:
+                        raise HTTPException(
+                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail=f"Multiple schedules have 'replaces' targeting the same slug: {schedule.replaces}",
+                        )
+                    replaces_targets[schedule.replaces] = schedule.slug or ""
+
+            # Check for slug collisions: if a schedule's new slug already
+            # exists and that existing slug is not being replaced, it's a
+            # collision
+            slugs_being_replaced = set(replaces_targets.keys())
+            for schedule in deployment.schedules:
+                if (
+                    schedule.slug
+                    and schedule.slug in current_slugs
+                    and schedule.slug not in slugs_being_replaced
+                    and schedule.replaces
+                ):
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Cannot rename schedule from '{schedule.replaces}' to '{schedule.slug}': "
+                        f"a schedule with slug '{schedule.slug}' already exists.",
+                    )
+
+            for schedule in deployment.schedules:
+                # Check if this schedule replaces an existing one
+                target_slug = schedule.replaces if schedule.replaces else schedule.slug
+
+                if target_slug in current_slugs:
+                    schedules_to_patch.append(schedule)
+                elif schedule.replaces:
+                    # replaces points to a non-existent slug - warn and create new
+                    logger.warning(
+                        f"Schedule with slug '{schedule.slug}' has 'replaces: {schedule.replaces}' "
+                        f"but no schedule with slug '{schedule.replaces}' exists. Creating new schedule."
+                    )
+                    if schedule.schedule:
+                        schedules_to_create.append(schedule)
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Unable to create new deployment schedules without a schedule configuration.",
+                        )
+                elif schedule.schedule:
+                    schedules_to_create.append(schedule)
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Unable to create new deployment schedules without a schedule configuration.",
+                    )
+            # Clear schedules to handle their update/creation separately
+            deployment.schedules = None
+        elif not all_provided_have_slugs and all_existing_have_slugs:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Please provide a slug for each schedule in your request to ensure schedules are updated correctly.",
+            )
+
+        if deployment.work_pool_name:
+            # Make sure that deployment is valid before beginning creation process
+            work_pool = await models.workers.read_work_pool_by_name(
+                session=session, work_pool_name=deployment.work_pool_name
+            )
+            try:
+                deployment.check_valid_configuration(work_pool.base_job_template)
+            except (MissingVariableError, jsonschema.exceptions.ValidationError) as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Error creating deployment: {exc!r}",
+                )
+
+        if deployment.parameters is not None:
+            try:
+                dehydrated_params = deployment.parameters
+                ctx = await HydrationContext.build(
+                    session=session,
+                    raise_on_error=True,
+                    render_jinja=True,
+                    render_workspace_variables=True,
+                )
+                parameters = hydrate(dehydrated_params, ctx)
+                deployment.parameters = parameters
+            except HydrationError as exc:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error hydrating deployment parameters: {exc}",
+                )
+        else:
+            parameters = existing_deployment.parameters
+
+        enforce_parameter_schema = (
+            deployment.enforce_parameter_schema
+            if deployment.enforce_parameter_schema is not None
+            else existing_deployment.enforce_parameter_schema
+        )
+        if enforce_parameter_schema:
+            # ensure that the new parameters conform to the proposed schema
+            if deployment.parameter_openapi_schema:
+                openapi_schema = deployment.parameter_openapi_schema
+            else:
+                openapi_schema = existing_deployment.parameter_openapi_schema
+
+            if not isinstance(openapi_schema, dict):
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    detail=(
+                        "Error updating deployment: Cannot update parameters because"
+                        " parameter schema enforcement is enabled and the deployment"
+                        " does not have a valid parameter schema."
+                    ),
+                )
+            try:
+                validate(
+                    parameters,
+                    openapi_schema,
+                    raise_on_error=True,
+                    ignore_required=True,
+                )
+            except ValidationError as exc:
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    detail=f"Error updating deployment: {exc}",
+                )
+            except CircularSchemaRefError:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Invalid schema: Unable to validate schema with circular references.",
+                )
+
+        if deployment.global_concurrency_limit_id:
+            concurrency_limit = (
+                await models.concurrency_limits_v2.read_concurrency_limit(
+                    session=session,
+                    concurrency_limit_id=deployment.global_concurrency_limit_id,
+                )
+            )
+
+            if not concurrency_limit:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Concurrency limit not found",
+                )
+
+        result = await models.deployments.update_deployment(
+            session=session,
+            deployment_id=deployment_id,
+            deployment=deployment,
+        )
+
+        # Phase 1: For schedules with `replaces`, look up the row ID by
+        # old slug, then NULL out those slugs so the unique index on
+        # (deployment_id, slug) won't block the renames.
+        renamed_schedule_ids: dict[str, UUID] = {}
+        renamed_old_slugs: list[str] = []
+        for schedule in schedules_to_patch:
+            if schedule.replaces:
+                row = (
+                    await session.execute(
+                        sa.select(db.DeploymentSchedule.id).where(
+                            sa.and_(
+                                db.DeploymentSchedule.deployment_id == deployment_id,
+                                db.DeploymentSchedule.slug == schedule.replaces,
+                            )
+                        )
+                    )
+                ).scalar_one_or_none()
+                if row is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Schedule with slug '{schedule.replaces}' no longer exists.",
+                    )
+                renamed_schedule_ids[schedule.replaces] = row
+                renamed_old_slugs.append(schedule.replaces)
+
+        if renamed_old_slugs:
+            await session.execute(
+                sa.update(db.DeploymentSchedule)
+                .where(
+                    sa.and_(
+                        db.DeploymentSchedule.deployment_id == deployment_id,
+                        db.DeploymentSchedule.slug.in_(renamed_old_slugs),
+                    )
+                )
+                .values(slug=None)
+            )
+            await session.flush()
+
+        # Phase 2: Apply the actual updates. Renamed schedules use
+        # their row ID (slug is now NULL); others use slug as before.
+        for schedule in schedules_to_patch:
+            if schedule.replaces:
+                await models.deployments.update_deployment_schedule(
+                    session=session,
+                    deployment_id=deployment_id,
+                    schedule=schedule,
+                    deployment_schedule_id=renamed_schedule_ids[schedule.replaces],
+                )
+            else:
+                await models.deployments.update_deployment_schedule(
+                    session=session,
+                    deployment_id=deployment_id,
+                    schedule=schedule,
+                    deployment_schedule_slug=schedule.slug,
+                )
+        if schedules_to_create:
+            await models.deployments.create_deployment_schedules(
+                session=session,
+                deployment_id=deployment_id,
+                schedules=[
+                    schemas.actions.DeploymentScheduleCreate(
+                        schedule=schedule.schedule,  # type: ignore We will raise above if schedule is not provided
+                        active=schedule.active if schedule.active is not None else True,
+                        slug=schedule.slug,
+                        parameters=schedule.parameters,
+                    )
+                    for schedule in schedules_to_create
+                ],
+            )
+    if not result:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Deployment not found.")
+
+
+@router.get("/name/{flow_name}/{deployment_name}")
+async def read_deployment_by_name(
+    flow_name: str = Path(..., description="The name of the flow"),
+    deployment_name: str = Path(..., description="The name of the deployment"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> schemas.responses.DeploymentResponse:
+    """
+    Get a deployment using the name of the flow and the deployment.
+    """
+    async with db.session_context() as session:
+        deployment = await models.deployments.read_deployment_by_name(
+            session=session, name=deployment_name, flow_name=flow_name
+        )
+        if not deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+        return schemas.responses.DeploymentResponse.model_validate(
+            deployment, from_attributes=True
+        )
+
+
+@router.get("/{id:uuid}")
+async def read_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> schemas.responses.DeploymentResponse:
+    """
+    Get a deployment by id.
+    """
+    async with db.session_context() as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+        if not deployment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+        return schemas.responses.DeploymentResponse.model_validate(
+            deployment, from_attributes=True
+        )
+
+
+@router.post("/filter")
+async def read_deployments(
+    limit: int = dependencies.LimitBody(),
+    offset: int = Body(0, ge=0),
+    flows: Optional[schemas.filters.FlowFilter] = None,
+    flow_runs: Optional[schemas.filters.FlowRunFilter] = None,
+    task_runs: Optional[schemas.filters.TaskRunFilter] = None,
+    deployments: Optional[schemas.filters.DeploymentFilter] = None,
+    work_pools: Optional[schemas.filters.WorkPoolFilter] = None,
+    work_pool_queues: Optional[schemas.filters.WorkQueueFilter] = None,
+    sort: schemas.sorting.DeploymentSort = Body(
+        schemas.sorting.DeploymentSort.NAME_ASC
+    ),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> List[schemas.responses.DeploymentResponse]:
+    """
+    Query for deployments.
+    """
+    async with db.session_context() as session:
+        response = await models.deployments.read_deployments(
+            session=session,
+            offset=offset,
+            sort=sort,
+            limit=limit,
+            flow_filter=flows,
+            flow_run_filter=flow_runs,
+            task_run_filter=task_runs,
+            deployment_filter=deployments,
+            work_pool_filter=work_pools,
+            work_queue_filter=work_pool_queues,
+        )
+        return [
+            schemas.responses.DeploymentResponse.model_validate(
+                deployment, from_attributes=True
+            )
+            for deployment in response
+        ]
+
+
+@router.post("/paginate")
+async def paginate_deployments(
+    limit: int = dependencies.LimitBody(),
+    page: int = Body(1, ge=1),
+    flows: Optional[schemas.filters.FlowFilter] = None,
+    flow_runs: Optional[schemas.filters.FlowRunFilter] = None,
+    task_runs: Optional[schemas.filters.TaskRunFilter] = None,
+    deployments: Optional[schemas.filters.DeploymentFilter] = None,
+    work_pools: Optional[schemas.filters.WorkPoolFilter] = None,
+    work_pool_queues: Optional[schemas.filters.WorkQueueFilter] = None,
+    sort: schemas.sorting.DeploymentSort = Body(
+        schemas.sorting.DeploymentSort.NAME_ASC
+    ),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> DeploymentPaginationResponse:
+    """
+    Pagination query for flow runs.
+    """
+    offset = (page - 1) * limit
+
+    async with db.session_context() as session:
+        response = await models.deployments.read_deployments(
+            session=session,
+            offset=offset,
+            sort=sort,
+            limit=limit,
+            flow_filter=flows,
+            flow_run_filter=flow_runs,
+            task_run_filter=task_runs,
+            deployment_filter=deployments,
+            work_pool_filter=work_pools,
+            work_queue_filter=work_pool_queues,
+        )
+
+        count = await models.deployments.count_deployments(
+            session=session,
+            flow_filter=flows,
+            flow_run_filter=flow_runs,
+            task_run_filter=task_runs,
+            deployment_filter=deployments,
+            work_pool_filter=work_pools,
+            work_queue_filter=work_pool_queues,
+        )
+
+    results = [
+        schemas.responses.DeploymentResponse.model_validate(
+            deployment, from_attributes=True
+        )
+        for deployment in response
+    ]
+
+    return DeploymentPaginationResponse(
+        results=results,
+        count=count,
+        limit=limit,
+        pages=(count + limit - 1) // limit,
+        page=page,
+    )
+
+
+@router.post("/get_scheduled_flow_runs")
+async def get_scheduled_flow_runs_for_deployments(
+    docket: dependencies.Docket,
+    deployment_ids: list[UUID] = Body(
+        default=..., description="The deployment IDs to get scheduled runs for"
+    ),
+    scheduled_before: DateTime = Body(
+        None, description="The maximum time to look for scheduled flow runs"
+    ),
+    limit: int = dependencies.LimitBody(),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> list[schemas.responses.FlowRunResponse]:
+    """
+    Get scheduled runs for a set of deployments. Used by a runner to poll for work.
+    """
+    async with db.session_context() as session:
+        orm_flow_runs = await models.flow_runs.read_flow_runs(
+            session=session,
+            limit=limit,
+            deployment_filter=schemas.filters.DeploymentFilter(
+                id=schemas.filters.DeploymentFilterId(any_=deployment_ids),
+            ),
+            flow_run_filter=schemas.filters.FlowRunFilter(
+                next_scheduled_start_time=schemas.filters.FlowRunFilterNextScheduledStartTime(
+                    before_=scheduled_before
+                ),
+                state=schemas.filters.FlowRunFilterState(
+                    type=schemas.filters.FlowRunFilterStateType(
+                        any_=[schemas.states.StateType.SCHEDULED]
+                    )
+                ),
+            ),
+            sort=schemas.sorting.FlowRunSort.NEXT_SCHEDULED_START_TIME_ASC,
+        )
+
+        flow_run_responses = [
+            schemas.responses.FlowRunResponse.model_validate(
+                orm_flow_run, from_attributes=True
+            )
+            for orm_flow_run in orm_flow_runs
+        ]
+
+    sorted_deployment_ids = ",".join(str(d) for d in sorted(deployment_ids))
+    await docket.add(
+        mark_deployments_ready,
+        key=f"mark_deployments_ready:deployments:{sorted_deployment_ids}",
+    )(
+        deployment_ids=deployment_ids,
+    )
+
+    return flow_run_responses
+
+
+@router.post("/count")
+async def count_deployments(
+    flows: Optional[schemas.filters.FlowFilter] = None,
+    flow_runs: Optional[schemas.filters.FlowRunFilter] = None,
+    task_runs: Optional[schemas.filters.TaskRunFilter] = None,
+    deployments: Optional[schemas.filters.DeploymentFilter] = None,
+    work_pools: Optional[schemas.filters.WorkPoolFilter] = None,
+    work_pool_queues: Optional[schemas.filters.WorkQueueFilter] = None,
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> int:
+    """
+    Count deployments.
+    """
+    async with db.session_context() as session:
+        return await models.deployments.count_deployments(
+            session=session,
+            flow_filter=flows,
+            flow_run_filter=flow_runs,
+            task_run_filter=task_runs,
+            deployment_filter=deployments,
+            work_pool_filter=work_pools,
+            work_queue_filter=work_pool_queues,
+        )
+
+
+@router.delete("/{id:uuid}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    """
+    Delete a deployment by id.
+    """
+    async with db.session_context(begin_transaction=True) as session:
+        result = await models.deployments.delete_deployment(
+            session=session, deployment_id=deployment_id
+        )
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+        )
+
+
+BULK_OPERATION_LIMIT = 50
+
+
+@router.post("/bulk_delete")
+async def bulk_delete_deployments(
+    deployments: Optional[schemas.filters.DeploymentFilter] = Body(
+        None, description="Filter criteria for deployments to delete"
+    ),
+    limit: int = Body(
+        BULK_OPERATION_LIMIT,
+        ge=1,
+        le=BULK_OPERATION_LIMIT,
+        description=f"Maximum number of deployments to delete. Defaults to {BULK_OPERATION_LIMIT}.",
+    ),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> DeploymentBulkDeleteResponse:
+    """
+    Bulk delete deployments matching the specified filter criteria.
+
+    Returns the IDs of deployments that were deleted.
+    """
+    async with db.session_context(begin_transaction=True) as session:
+        # Query matching deployments
+        db_deployments = await models.deployments.read_deployments(
+            session=session,
+            deployment_filter=deployments,
+            limit=limit,
+        )
+
+        if not db_deployments:
+            return DeploymentBulkDeleteResponse(deleted=[])
+
+        deployment_ids = [d.id for d in db_deployments]
+
+        # Delete deployments
+        deleted_ids = await models.deployments.delete_deployments(
+            session=session,
+            deployment_ids=deployment_ids,
+        )
+
+    return DeploymentBulkDeleteResponse(deleted=deleted_ids)
+
+
+@router.post("/{id:uuid}/schedule")
+async def schedule_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    start_time: datetime.datetime = Body(
+        None, description="The earliest date to schedule"
+    ),
+    end_time: datetime.datetime = Body(None, description="The latest date to schedule"),
+    # Workaround for the fact that FastAPI does not let us configure ser_json_timedelta
+    # to represent timedeltas as floats in JSON.
+    min_time: float = Body(
+        None,
+        description=(
+            "Runs will be scheduled until at least this long after the `start_time`"
+        ),
+        json_schema_extra={"format": "time-delta"},
+    ),
+    min_runs: int = Body(None, description="The minimum number of runs to schedule"),
+    max_runs: int = Body(None, description="The maximum number of runs to schedule"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    """
+    Schedule runs for a deployment. For backfills, provide start/end times in the past.
+
+    This function will generate the minimum number of runs that satisfy the min
+    and max times, and the min and max counts. Specifically, the following order
+    will be respected.
+
+        - Runs will be generated starting on or after the `start_time`
+        - No more than `max_runs` runs will be generated
+        - No runs will be generated after `end_time` is reached
+        - At least `min_runs` runs will be generated
+        - Runs will be generated until at least `start_time + min_time` is reached
+    """
+    if isinstance(min_time, float):
+        min_time = datetime.timedelta(seconds=min_time)
+
+    async with db.session_context(begin_transaction=True) as session:
+        await models.deployments.schedule_runs(
+            session=session,
+            deployment_id=deployment_id,
+            start_time=start_time,
+            min_time=min_time,
+            end_time=end_time,
+            min_runs=min_runs,
+            max_runs=max_runs,
+        )
+
+
+@router.post("/{id:uuid}/resume_deployment")
+async def resume_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    """
+    Set a deployment schedule to active. Runs will be scheduled immediately.
+    """
+    async with db.session_context(begin_transaction=True) as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+        if not deployment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+        deployment.paused = False
+
+
+@router.post("/{id:uuid}/pause_deployment")
+async def pause_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    """
+    Set a deployment schedule to inactive. Any auto-scheduled runs still in a Scheduled
+    state will be deleted.
+    """
+    async with db.session_context(begin_transaction=False) as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+        if not deployment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+        deployment.paused = True
+
+        # commit here to make the inactive schedule "visible" to the scheduler service
+        await session.commit()
+
+        # delete any auto scheduled runs
+        await models.deployments._delete_scheduled_runs(
+            session=session,
+            deployment_id=deployment_id,
+            auto_scheduled_only=True,
+        )
+
+        await session.commit()
+
+
+@router.post("/{id:uuid}/create_flow_run")
+async def create_flow_run_from_deployment(
+    flow_run: schemas.actions.DeploymentFlowRunCreate,
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    created_by: Optional[schemas.core.CreatedBy] = Depends(dependencies.get_created_by),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+    worker_lookups: WorkerLookups = Depends(WorkerLookups),
+    response: Response = None,
+) -> schemas.responses.FlowRunResponse:
+    """
+    Create a flow run from a deployment.
+
+    Any parameters not provided will be inferred from the deployment's parameters.
+    If tags are not provided, the deployment's tags will be used.
+
+    If no state is provided, the flow run will be created in a SCHEDULED state.
+    """
+    async with db.session_context(begin_transaction=True) as session:
+        # get relevant info from the deployment
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+
+        try:
+            dehydrated_params = deployment.parameters
+            dehydrated_params.update(flow_run.parameters or {})
+            ctx = await HydrationContext.build(
+                session=session,
+                raise_on_error=True,
+                render_jinja=True,
+                render_workspace_variables=True,
+            )
+            parameters = hydrate(dehydrated_params, ctx)
+        except HydrationError as exc:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=f"Error hydrating flow run parameters: {exc}",
+            )
+
+        # default
+        enforce_parameter_schema = deployment.enforce_parameter_schema
+
+        # run override
+        if flow_run.enforce_parameter_schema is not None:
+            enforce_parameter_schema = flow_run.enforce_parameter_schema
+
+        if enforce_parameter_schema:
+            if not isinstance(deployment.parameter_openapi_schema, dict):
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    detail=(
+                        "Error updating deployment: Cannot update parameters because"
+                        " parameter schema enforcement is enabled and the deployment"
+                        " does not have a valid parameter schema."
+                    ),
+                )
+            try:
+                validate(
+                    parameters, deployment.parameter_openapi_schema, raise_on_error=True
+                )
+            except ValidationError as exc:
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    detail=f"Error creating flow run: {exc}",
+                )
+            except CircularSchemaRefError:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Invalid schema: Unable to validate schema with circular references.",
+                )
+
+        await validate_job_variables_for_deployment_flow_run(
+            session, deployment, flow_run
+        )
+
+        work_queue_name = deployment.work_queue_name
+        work_queue_id = deployment.work_queue_id
+
+        if flow_run.work_queue_name:
+            # can't mutate the ORM model or else it will commit the changes back
+            if deployment.work_queue is None or deployment.work_queue.work_pool is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot create flow run in work queue {flow_run.work_queue_name} because deployment {deployment_id} is not associated with a work pool. Please remove work_pool_name and try again.",
+                )
+
+            work_queue_id = await worker_lookups._get_work_queue_id_from_name(
+                session=session,
+                work_pool_name=deployment.work_queue.work_pool.name,
+                work_queue_name=flow_run.work_queue_name,
+                create_queue_if_not_found=True,
+            )
+            work_queue_name = flow_run.work_queue_name
+
+        # hydrate the input model into a full flow run / state model
+        flow_run = schemas.core.FlowRun(
+            **flow_run.model_dump(
+                exclude={
+                    "parameters",
+                    "tags",
+                    "infrastructure_document_id",
+                    "work_queue_name",
+                    "enforce_parameter_schema",
+                }
+            ),
+            flow_id=deployment.flow_id,
+            deployment_id=deployment.id,
+            deployment_version=deployment.version,
+            parameters=parameters,
+            tags=set(deployment.tags).union(flow_run.tags),
+            infrastructure_document_id=(
+                flow_run.infrastructure_document_id
+                or deployment.infrastructure_document_id
+            ),
+            work_queue_name=work_queue_name,
+            work_queue_id=work_queue_id,
+            created_by=created_by,
+        )
+
+        if not flow_run.state:
+            flow_run.state = schemas.states.Scheduled()
+
+        right_now = now("UTC")
+        model = await models.flow_runs.create_flow_run(
+            session=session, flow_run=flow_run
+        )
+        if model.created >= right_now:
+            response.status_code = status.HTTP_201_CREATED
+        return schemas.responses.FlowRunResponse.model_validate(
+            model, from_attributes=True
+        )
+
+
+BULK_CREATE_LIMIT = 100
+
+
+@router.post("/{id:uuid}/create_flow_run/bulk")
+async def bulk_create_flow_runs_from_deployment(
+    flow_runs: List[schemas.actions.DeploymentFlowRunCreate] = Body(
+        ..., description="List of flow run configurations to create"
+    ),
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    created_by: Optional[schemas.core.CreatedBy] = Depends(dependencies.get_created_by),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+    worker_lookups: WorkerLookups = Depends(WorkerLookups),
+) -> FlowRunBulkCreateResponse:
+    """
+    Create multiple flow runs from a deployment.
+
+    Any parameters not provided will be inferred from the deployment's parameters.
+    If tags are not provided, the deployment's tags will be used.
+
+    If no state is provided, the flow runs will be created in a SCHEDULED state.
+    """
+    if len(flow_runs) > BULK_CREATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot create more than {BULK_CREATE_LIMIT} flow runs at once.",
+        )
+
+    results: List[FlowRunCreateResult] = []
+
+    async with db.session_context(begin_transaction=True) as session:
+        # Get the deployment once - do this before the empty check so we
+        # return 404 for non-existent deployments even with an empty list
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+            )
+
+        # Return early for empty list, but only after verifying deployment exists
+        if not flow_runs:
+            return FlowRunBulkCreateResponse(results=[])
+
+        # Pre-create unique work queues to avoid race conditions
+        # Collect unique work queue names that differ from the deployment's default
+        unique_work_queue_names = {
+            fr.work_queue_name
+            for fr in flow_runs
+            if fr.work_queue_name and fr.work_queue_name != deployment.work_queue_name
+        }
+
+        # Pre-create work queues if needed
+        if (
+            unique_work_queue_names
+            and deployment.work_queue
+            and deployment.work_queue.work_pool
+        ):
+            work_pool_name = deployment.work_queue.work_pool.name
+            for work_queue_name in unique_work_queue_names:
+                await worker_lookups._get_work_queue_id_from_name(
+                    session=session,
+                    work_pool_name=work_pool_name,
+                    work_queue_name=work_queue_name,
+                    create_queue_if_not_found=True,
+                )
+
+        # Build hydration context once
+        try:
+            ctx = await HydrationContext.build(
+                session=session,
+                raise_on_error=True,
+                render_jinja=True,
+                render_workspace_variables=True,
+            )
+        except HydrationError as exc:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=f"Error building hydration context: {exc}",
+            )
+
+        # Process flow runs sequentially within the transaction
+        # (SQLAlchemy sessions are not safe for concurrent operations)
+        for flow_run_request in flow_runs:
+            try:
+                # Hydrate parameters
+                dehydrated_params = deployment.parameters.copy()
+                dehydrated_params.update(flow_run_request.parameters or {})
+                parameters = hydrate(dehydrated_params, ctx)
+
+                # Default and override for enforce_parameter_schema
+                enforce_parameter_schema = deployment.enforce_parameter_schema
+                if flow_run_request.enforce_parameter_schema is not None:
+                    enforce_parameter_schema = flow_run_request.enforce_parameter_schema
+
+                # Validate parameters if schema enforcement is enabled
+                if enforce_parameter_schema:
+                    if not isinstance(deployment.parameter_openapi_schema, dict):
+                        results.append(
+                            FlowRunCreateResult(
+                                status="FAILED",
+                                error="Parameter schema enforcement is enabled but deployment has no valid schema.",
+                            )
+                        )
+                        continue
+                    try:
+                        validate(
+                            parameters,
+                            deployment.parameter_openapi_schema,
+                            raise_on_error=True,
+                        )
+                    except ValidationError as exc:
+                        results.append(
+                            FlowRunCreateResult(
+                                status="FAILED",
+                                error=f"Parameter validation failed: {exc}",
+                            )
+                        )
+                        continue
+                    except CircularSchemaRefError:
+                        results.append(
+                            FlowRunCreateResult(
+                                status="FAILED",
+                                error="Invalid schema: circular references detected.",
+                            )
+                        )
+                        continue
+
+                # Validate job variables
+                try:
+                    await validate_job_variables_for_deployment_flow_run(
+                        session, deployment, flow_run_request
+                    )
+                except HTTPException as exc:
+                    results.append(
+                        FlowRunCreateResult(
+                            status="FAILED",
+                            error=str(exc.detail),
+                        )
+                    )
+                    continue
+
+                # Determine work queue
+                work_queue_name = deployment.work_queue_name
+                work_queue_id = deployment.work_queue_id
+
+                if flow_run_request.work_queue_name:
+                    if (
+                        deployment.work_queue is None
+                        or deployment.work_queue.work_pool is None
+                    ):
+                        results.append(
+                            FlowRunCreateResult(
+                                status="FAILED",
+                                error=f"Cannot create flow run in work queue {flow_run_request.work_queue_name} because deployment is not associated with a work pool.",
+                            )
+                        )
+                        continue
+
+                    work_queue_id = await worker_lookups._get_work_queue_id_from_name(
+                        session=session,
+                        work_pool_name=deployment.work_queue.work_pool.name,
+                        work_queue_name=flow_run_request.work_queue_name,
+                        create_queue_if_not_found=True,
+                    )
+                    work_queue_name = flow_run_request.work_queue_name
+
+                # Create the flow run model
+                flow_run_model = schemas.core.FlowRun(
+                    **flow_run_request.model_dump(
+                        exclude={
+                            "parameters",
+                            "tags",
+                            "infrastructure_document_id",
+                            "work_queue_name",
+                            "enforce_parameter_schema",
+                        }
+                    ),
+                    flow_id=deployment.flow_id,
+                    deployment_id=deployment.id,
+                    deployment_version=deployment.version,
+                    parameters=parameters,
+                    tags=set(deployment.tags).union(flow_run_request.tags),
+                    infrastructure_document_id=(
+                        flow_run_request.infrastructure_document_id
+                        or deployment.infrastructure_document_id
+                    ),
+                    work_queue_name=work_queue_name,
+                    work_queue_id=work_queue_id,
+                    created_by=created_by,
+                )
+
+                if not flow_run_model.state:
+                    flow_run_model.state = schemas.states.Scheduled()
+
+                model = await models.flow_runs.create_flow_run(
+                    session=session, flow_run=flow_run_model
+                )
+
+                results.append(
+                    FlowRunCreateResult(
+                        flow_run_id=model.id,
+                        status="CREATED",
+                    )
+                )
+
+            except Exception as exc:
+                results.append(
+                    FlowRunCreateResult(
+                        status="FAILED",
+                        error=str(exc),
+                    )
+                )
+
+    return FlowRunBulkCreateResponse(results=results)
+
+
+# DEPRECATED
+@router.get("/{id:uuid}/work_queue_check", deprecated=True)
+async def work_queue_check_for_deployment(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> List[schemas.core.WorkQueue]:
+    """
+    Get list of work-queues that are able to pick up the specified deployment.
+
+    This endpoint is intended to be used by the UI to provide users warnings
+    about deployments that are unable to be executed because there are no work
+    queues that will pick up their runs, based on existing filter criteria. It
+    may be deprecated in the future because there is not a strict relationship
+    between work queues and deployments.
+    """
+    try:
+        async with db.session_context() as session:
+            work_queues = await models.deployments.check_work_queues_for_deployment(
+                session=session, deployment_id=deployment_id
+            )
+    except ObjectNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Deployment not found"
+        )
+    return work_queues
+
+
+@router.get("/{id:uuid}/schedules")
+async def read_deployment_schedules(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> List[schemas.core.DeploymentSchedule]:
+    async with db.session_context() as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found."
+            )
+
+        return await models.deployments.read_deployment_schedules(
+            session=session,
+            deployment_id=deployment.id,
+        )
+
+
+@router.post("/{id:uuid}/schedules", status_code=status.HTTP_201_CREATED)
+async def create_deployment_schedules(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    schedules: List[schemas.actions.DeploymentScheduleCreate] = Body(
+        default=..., description="The schedules to create"
+    ),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> List[schemas.core.DeploymentSchedule]:
+    async with db.session_context(begin_transaction=True) as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found."
+            )
+
+        try:
+            created = await models.deployments.create_deployment_schedules(
+                session=session,
+                deployment_id=deployment.id,
+                schedules=schedules,
+            )
+        except sa.exc.IntegrityError as e:
+            if "duplicate key value violates unique constraint" in str(e):
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    detail="Schedule slugs must be unique within a deployment.",
+                )
+            raise
+        return created
+
+
+@router.patch(
+    "/{id:uuid}/schedules/{schedule_id:uuid}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def update_deployment_schedule(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    schedule_id: UUID = Path(..., description="The schedule id", alias="schedule_id"),
+    schedule: schemas.actions.DeploymentScheduleUpdate = Body(
+        default=..., description="The updated schedule"
+    ),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    async with db.session_context(begin_transaction=True) as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found."
+            )
+
+        updated = await models.deployments.update_deployment_schedule(
+            session=session,
+            deployment_id=deployment_id,
+            deployment_schedule_id=schedule_id,
+            schedule=schedule,
+        )
+
+        if not updated:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Schedule not found.")
+
+        await models.deployments._delete_scheduled_runs(
+            session=session,
+            deployment_id=deployment_id,
+            auto_scheduled_only=True,
+            future_only=True,
+        )
+
+
+@router.delete(
+    "/{id:uuid}/schedules/{schedule_id:uuid}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_deployment_schedule(
+    deployment_id: UUID = Path(..., description="The deployment id", alias="id"),
+    schedule_id: UUID = Path(..., description="The schedule id", alias="schedule_id"),
+    db: PrefectDBInterface = Depends(provide_database_interface),
+) -> None:
+    async with db.session_context(begin_transaction=True) as session:
+        deployment = await models.deployments.read_deployment(
+            session=session, deployment_id=deployment_id
+        )
+
+        if not deployment:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail="Deployment not found."
+            )
+
+        deleted = await models.deployments.delete_deployment_schedule(
+            session=session,
+            deployment_id=deployment_id,
+            deployment_schedule_id=schedule_id,
+        )
+
+        if not deleted:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Schedule not found.")
+
+        await models.deployments._delete_scheduled_runs(
+            session=session,
+            deployment_id=deployment_id,
+            auto_scheduled_only=True,
+        )

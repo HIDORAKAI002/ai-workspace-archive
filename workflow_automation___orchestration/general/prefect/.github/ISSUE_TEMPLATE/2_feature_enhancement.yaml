@@ -1,0 +1,48 @@
+name: 🚀 Enhancement
+description: Suggest an idea or improvement for Prefect
+labels: ["needs:triage", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        ## Please review these steps before proceeding.
+
+        1. I added a descriptive title to this issue.
+
+        2. I used the GitHub search to find a similar request and didn't find it.
+
+        3. I searched the Prefect documentation for this feature.
+
+        **Note:** Enhancements are only considered for Prefect 3.x. Prefect 2.x only receives bug fixes.
+
+  - type: textarea
+    attributes:
+      label: Describe the current behavior
+      description: A clear and concise description of what Prefect currently does
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Describe the proposed behavior
+      description: A clear and concise description of what new feature or behavior you would like to see
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Example Use
+      description: Provide an example of how end users could leverage that functionality
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Provide additional context about the use case here.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to help us improve Prefect!

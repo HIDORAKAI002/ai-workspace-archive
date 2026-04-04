@@ -1,0 +1,97 @@
+name: Static analysis
+
+# on PR and push to main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+# Limit concurrency by workflow/branch combination.
+#
+# For pull request builds, pushing additional changes to the
+# branch will cancel prior in-progress and pending builds.
+#
+# For builds triggered on a branch push, additional changes
+# will wait for prior builds to complete before starting.
+#
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pre-commit-checks:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install the project
+        run: uv sync --compile-bytecode --no-editable --locked
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install mintlify-scrape
+        run: npm install -g @mintlify/scraping
+
+      - name: Run pre-commit
+        run: |
+          # Create a no-op nvm.sh so the check-ui-v2 hook's `. $NVM_DIR/nvm.sh`
+          # succeeds harmlessly instead of sourcing the real nvm, which clobbers
+          # the node PATH set by setup-node.
+          mkdir -p /tmp/fake-nvm && touch /tmp/fake-nvm/nvm.sh
+          uv run pre-commit run --show-diff-on-failure --color=always --all-files
+        env:
+          # Skip no-commit-to-branch check when running on main after merge
+          SKIP: ${{ github.ref == 'refs/heads/main' && 'no-commit-to-branch' || '' }}
+          NVM_DIR: /tmp/fake-nvm
+
+  type-checks:
+    name: Type Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+      
+      - name: Install the project
+        run: uv sync --compile-bytecode --no-editable --group type-checking --no-dev --locked
+
+      - name: Run type completeness check
+        run: >-
+          uv run pyright --ignoreexternal --verifytypes prefect
+
+      - name: Run pyright check
+        run: >-
+          uv run pyright -p .github/pyrightconfig-ci.json --level error
+
+

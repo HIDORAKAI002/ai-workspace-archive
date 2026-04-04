@@ -1,0 +1,54 @@
+---
+title: scheduler
+sidebarTitle: scheduler
+---
+
+# `prefect.server.services.scheduler`
+
+
+
+The Scheduler service.
+
+This service schedules flow runs from deployments with active schedules.
+
+
+## Functions
+
+### `schedule_deployments` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/services/scheduler.py#L210" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+schedule_deployments(perpetual: Perpetual = Perpetual(automatic=False, every=timedelta(seconds=get_current_settings().server.services.scheduler.loop_seconds))) -> None
+```
+
+
+Main scheduler - schedules flow runs from deployments with active schedules.
+
+Schedule flow runs by:
+- Querying for deployments with active schedules
+- Generating the next set of flow runs based on each deployment's schedule
+- Inserting all scheduled flow runs into the database
+
+
+### `schedule_recent_deployments` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/services/scheduler.py#L286" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+schedule_recent_deployments(perpetual: Perpetual = Perpetual(automatic=False, every=timedelta(seconds=get_current_settings().server.services.scheduler.recent_deployments_loop_seconds))) -> None
+```
+
+
+Recent deployments scheduler - schedules deployments that were updated very recently.
+
+This scheduler runs on a tight loop and ensures that runs from newly-created or
+updated deployments are rapidly scheduled without waiting for the main scheduler.
+
+Note that scheduling is idempotent, so it's okay for this scheduler to attempt
+to schedule the same deployments as the main scheduler.
+
+
+## Classes
+
+### `TryAgain` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/services/scheduler.py#L31" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+
+Internal control-flow exception used to retry the Scheduler's main loop
+

@@ -1,0 +1,29 @@
+---
+title: foreman
+sidebarTitle: foreman
+---
+
+# `prefect.server.services.foreman`
+
+
+
+The Foreman service. Monitors workers and marks stale resources as offline/not ready.
+
+
+## Functions
+
+### `monitor_worker_health` <sup><a href="https://github.com/PrefectHQ/prefect/blob/main/src/prefect/server/services/foreman.py#L35" target="_blank"><Icon icon="github" style="width: 14px; height: 14px;" /></a></sup>
+
+```python
+monitor_worker_health(perpetual: Perpetual = Perpetual(automatic=False, every=timedelta(seconds=get_current_settings().server.services.foreman.loop_seconds))) -> None
+```
+
+
+Monitor workers and mark stale resources as offline/not ready.
+
+Iterates over workers currently marked as online. Marks workers as offline
+if they have an old last_heartbeat_time. Marks work pools as not ready
+if they do not have any online workers and are currently marked as ready.
+Marks deployments as not ready if they have a last_polled time that is
+older than the configured deployment last polled timeout.
+

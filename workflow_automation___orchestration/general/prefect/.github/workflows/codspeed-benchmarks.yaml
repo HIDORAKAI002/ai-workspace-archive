@@ -1,0 +1,72 @@
+name: CodSpeed Benchmarks
+
+env:
+  PY_COLORS: 1
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/codspeed-benchmarks.yaml
+      - .github/workflows/python-tests.yaml
+      - "src/prefect/**/*.py"
+      - pyproject.toml
+      - Dockerfile
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  run-benchmarks:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          
+      - name: Install the project
+        run:  uv sync --group benchmark --compile-bytecode --locked
+
+      - name: Start server
+        run: |
+          PREFECT_HOME=$(pwd) uv run prefect server start&
+          PREFECT_API_URL="http://127.0.0.1:4200/api" uv run ./scripts/wait-for-server.py
+
+          # TODO: Replace `wait-for-server` with dedicated command
+          #       https://github.com/PrefectHQ/prefect/issues/6990
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v3
+        env:
+          PREFECT_API_URL: "http://127.0.0.1:4200/api"
+        with:
+          run: >
+            uv run pytest 
+            benches/bench_import.py 
+            benches/bench_tasks.py 
+            benches/bench_flows.py::bench_flow_decorator
+            benches/bench_flows.py::bench_flow_call
+            --codspeed
+            --numprocesses auto
+            --dist worksteal
+            -vv
+          token: ${{ secrets.CODSPEED_TOKEN }}
