@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling>=1.19.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "assets_dynamic_partitions"
+version = "1!0+dev"
+dependencies = [
+    "dagster",
+    "dagster-duckdb-pandas",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = ["dagster-webserver", "pytest"]
+
+[tool.dagster]
+module_name = "assets_dynamic_partitions.definitions"
+code_location_name = "assets_dynamic_partitions"
