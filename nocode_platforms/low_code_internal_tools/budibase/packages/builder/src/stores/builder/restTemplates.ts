@@ -34,6 +34,7 @@ import CleverLogo from "assets/rest-template-icons/clever.svg"
 import ClickupLogo from "assets/rest-template-icons/clickup.svg"
 import DeelLogo from "assets/rest-template-icons/deel.svg"
 import DixaLogo from "assets/rest-template-icons/dixa.svg"
+import DodoPaymentsLogo from "assets/rest-template-icons/dodo-payments.svg"
 import DotsLogo from "assets/rest-template-icons/dots.svg"
 import FactorialLogo from "assets/rest-template-icons/factorial.svg"
 import FastspringLogo from "assets/rest-template-icons/fastspring.svg"
@@ -2305,6 +2306,20 @@ const INITIAL_REST_TEMPLATES_STATE: RestTemplatesState = {
       ],
       operationsCount: 84,
       icon: DixaLogo,
+    },
+    {
+      id: "dodo-payments",
+      name: "Dodo Payments",
+      description:
+        "Payments API for products, customers, subscriptions, invoices, and billing workflows.",
+      specs: [
+        {
+          version: "1.92.3",
+          url: "https://raw.githubusercontent.com/Budibase/openapi-rest-templates/main/dodo-payments/openapi.yaml",
+        },
+      ],
+      operationsCount: 116,
+      icon: DodoPaymentsLogo,
     },
     {
       id: "dots",
