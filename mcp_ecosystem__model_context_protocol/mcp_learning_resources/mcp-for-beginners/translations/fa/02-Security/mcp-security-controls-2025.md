@@ -1,0 +1,454 @@
+# کنترل‌های امنیتی MCP - به‌روزرسانی فوریه ۲۰۲۶
+
+> **استاندارد فعلی**: این سند الزامات امنیتی [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) و [بهترین شیوه‌های امنیتی رسمی MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) را منعکس می‌کند.
+
+پروتکل مدل زمینه‌ای (MCP) با کنترل‌های امنیتی پیشرفته که هم تهدیدات سنتی نرم‌افزاری و هم تهدیدات خاص هوش مصنوعی را پوشش می‌دهد، به طور قابل توجهی تکامل یافته است. این سند کنترل‌های امنیتی جامعی برای پیاده‌سازی‌های امن MCP ارائه می‌دهد که با چارچوب OWASP MCP Top 10 همسو است.
+
+## 🏔️ آموزش عملی امنیت
+
+برای کسب تجربه عملی در پیاده‌سازی امنیت، ما کارگاه **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** را توصیه می‌کنیم - یک اکسپدیشن راهنمای جامع برای امن‌سازی سرورهای MCP در Azure با روش‌شناسی «آسیب‌پذیر → بهره‌برداری → برطرف‌سازی → اعتبارسنجی».
+
+تمام کنترل‌های امنیتی در این سند با **[راهنمای امنیت Azure MCP OWASP](https://microsoft.github.io/mcp-azure-security-guide/)** همسو هستند که معماری‌های مرجع و راهنمایی‌های پیاده‌سازی خاص Azure برای ریسک‌های OWASP MCP Top 10 را ارائه می‌دهد.
+
+## **الزامات اجباری امنیتی**
+
+### **ممنوعیت‌های حیاتی از مشخصات MCP:**
+
+> **ممنوع**: سرورهای MCP **نباید** هیچ توکنی را که به‌طور صریح برای سرور MCP صادر نشده‌اند بپذیرند  
+>  
+> **ممنوع**: سرورهای MCP **نباید** از سشن‌ها برای احراز هویت استفاده کنند  
+>  
+> **الزامی**: سرورهای MCP که مجوزدهی را پیاده می‌کنند، **باید** تمام درخواست‌های ورودی را تأیید کنند  
+>  
+> **اجباری**: سرورهای پراکسی MCP که از شناسه‌های ثابت کلاینت استفاده می‌کنند، **باید** برای هر کلاینت ثبت‌شده داینامیک رضایت کاربر را دریافت کنند
+
+---
+
+## ۱. **کنترل‌های احراز هویت و مجوزدهی**
+
+### **یکپارچه‌سازی تأمین‌کننده هویت خارجی**
+
+**استاندارد فعلی MCP (۲۰۲۵-۱۱-۲۵)** به سرورهای MCP اجازه می‌دهد احراز هویت را به تأمین‌کنندگان هویت خارجی واگذار کنند که بهبود قابل توجهی در امنیت است:
+
+**ریسک OWASP MCP مربوطه**: [MCP07 - احراز هویت و مجوزدهی ناکافی](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+
+**مزایای امنیتی:**
+۱. **حذف ریسک‌های احراز هویت سفارشی**: کاهش سطح آسیب‌پذیری با پرهیز از پیاده‌سازی‌های احراز هویت سفارشی  
+۲. **امنیت در سطح سازمانی**: استفاده از تأمین‌کنندگان هویت شناخته‌شده مانند Microsoft Entra ID با ویژگی‌های پیشرفته امنیتی  
+۳. **مدیریت هویت متمرکز**: ساده‌سازی مدیریت چرخه عمر کاربر، کنترل دسترسی و حسابرسی انطباق  
+۴. **احراز هویت چندمرحله‌ای**: بهره‌مندی از قابلیت‌های MFA تأمین‌کنندگان هویت سازمانی  
+۵. **سیاست‌های دسترسی شرطی**: بهره‌مندی از کنترل‌های دسترسی مبتنی بر ریسک و احراز هویت تطبیقی
+
+**الزامات پیاده‌سازی:**
+- **اعتبارسنجی مخاطب توکن**: اطمینان از اینکه تمام توکن‌ها صریحاً برای سرور MCP صادر شده‌اند  
+- **اعتبارسنجی صادرکننده**: تأیید اینکه صادرکننده توکن همان تأمین‌کننده هویت مورد انتظار است  
+- **اعتبارسنجی امضا**: بررسی رمزنگاری یکپارچگی توکن  
+- **اجرای انقضا**: اجرای سختگیرانه محدودیت‌های عمر توکن  
+- **اعتبارسنجی حوزه**: اطمینان از اینکه توکن‌ها مجوزهای مناسب برای عملیات درخواست‌شده را دارند
+
+### **امنیت منطق مجوزدهی**
+
+**کنترل‌های حیاتی:**
+- **حسابرسی جامع مجوزدهی**: بازبینی‌های منظم امنیتی تمام نقطه‌های تصمیم‌گیری مجوزدهی  
+- **حالت پیش‌فرض امن**: رد دسترسی زمانی که منطق مجوزدهی نمی‌تواند تصمیم قطعی بگیرد  
+- **مرزهای مجوز**: جداسازی واضح بین سطوح امتیاز و دسترسی به منابع مختلف  
+- **ثبت گزارش‌های حسابرسی**: ضبط کامل همه تصمیمات مجوزدهی برای پایش امنیت  
+- **بازبینی‌های منظم دسترسی**: اعتبارسنجی دوره‌ای مجوزهای کاربران و تخصیص امتیازات ضروری
+
+## ۲. **امنیت توکن و کنترل‌های ضد عبور توکن**
+
+**ریسک OWASP MCP مربوطه**: [MCP01 - مدیریت نادرست توکن و افشای راز](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+
+### **جلوگیری از عبور توکن**
+
+**عبور توکن به صراحت در مشخصات مجوز MCP ممنوع است** به دلیل ریسک‌های امنیتی بحرانی:
+
+**ریسک‌های امنیتی پوشش داده شده:**
+- **دور زدن کنترل‌ها**: عبور توکن کنترل‌های امنیتی اساسی مانند محدودیت نرخ، اعتبارسنجی درخواست و پایش ترافیک را نادیده می‌گیرد  
+- **شکست مسئولیت‌پذیری**: امکان شناسایی کلاینت را غیرممکن می‌کند و مسیرهای حسابرسی و تحقیقات حادثه را مخدوش می‌سازد  
+- **خروج داده از طریق پراکسی**: به عاملان مخرب امکان استفاده از سرورها به عنوان پراکسی برای دسترسی غیرمجاز داده‌ها می‌دهد  
+- **نقض مرز اعتماد**: فرض‌های اعتماد خدمات پایین‌دستی نسبت به مبدا توکن‌ها را می‌شکند  
+- **حرکت جانبی**: توکن‌های به خطر افتاده در چند سرویس امکان گسترش حملات را فراهم می‌کنند
+
+**کنترل‌های پیاده‌سازی:**
+```yaml
+Token Validation Requirements:
+  audience_validation: MANDATORY
+  issuer_verification: MANDATORY  
+  signature_check: MANDATORY
+  expiration_enforcement: MANDATORY
+  scope_validation: MANDATORY
+  
+Token Lifecycle Management:
+  rotation_frequency: "Short-lived tokens preferred"
+  secure_storage: "Azure Key Vault or equivalent"
+  transmission_security: "TLS 1.3 minimum"
+  replay_protection: "Implemented via nonce/timestamp"
+```
+
+### **الگوهای مدیریت امن توکن**
+
+**بهترین شیوه‌ها:**
+- **توکن‌های کوتاه‌عمر**: کاهش پنجره افشا با چرخش مکرر توکن‌ها  
+- **صدور به هنگام**: صدور توکن‌ها فقط در مواقع نیاز برای عملیات مشخص  
+- **ذخیره‌سازی امن**: استفاده از ماژول‌های امنیت سخت‌افزاری (HSM) یا مخازن کلید امن  
+- **پیوند توکن**: اتصال توکن‌ها به کلاینت، سشن یا عملیات خاص در صورت امکان  
+- **پایش و هشدار**: شناسایی فوری سوءاستفاده یا الگوهای دسترسی غیرمجاز توکن‌ها
+
+## ۳. **کنترل‌های امنیتی سشن**
+
+### **جلوگیری از ربودن سشن**
+
+**بردارهای حمله پوشش داده شده:**
+- **تزریق رویداد ربایش سشن**: تزریق رویدادهای مخرب در حالت اشتراکی سشن  
+- **جعل سشن**: استفاده غیرمجاز از شناسه‌های سشن سرقت‌شده برای دور زدن احراز هویت  
+- **حملات جریان قابل ادامه**: سوء استفاده از ادامه ارسال رویداد سرور برای تزریق محتوای مخرب
+
+**کنترل‌های اجباری سشن:**
+```yaml
+Session ID Generation:
+  randomness_source: "Cryptographically secure RNG"
+  entropy_bits: 128 # Minimum recommended
+  format: "Base64url encoded"
+  predictability: "MUST be non-deterministic"
+
+Session Binding:
+  user_binding: "REQUIRED - <user_id>:<session_id>"
+  additional_identifiers: "Device fingerprint, IP validation"
+  context_binding: "Request origin, user agent validation"
+  
+Session Lifecycle:
+  expiration: "Configurable timeout policies"
+  rotation: "After privilege escalation events"
+  invalidation: "Immediate on security events"
+  cleanup: "Automated expired session removal"
+```
+
+**امنیت انتقال:**
+- **اجرای HTTPS**: تمام ارتباطات سشن از طریق TLS 1.3  
+- **ویژگی‌های امن کوکی**: HttpOnly, Secure, SameSite=Strict  
+- **پین کردن گواهی**: برای اتصالات حساس جهت جلوگیری از حملات MITM
+
+### **ملاحظات حالت‌دار در مقابل حالت‌ناک**
+
+**برای پیاده‌سازی‌های حالت‌دار:**
+- حالت سشن اشتراکی نیازمند حفاظت اضافی در برابر حملات تزریق است  
+- مدیریت سشن مبتنی بر صف نیازمند اعتبارسنجی یکپارچگی است  
+- نمونه‌های متعدد سرور نیازمند همگام‌سازی امن حالت سشن
+
+**برای پیاده‌سازی‌های حالت‌ناک:**
+- مدیریت سشن بر اساس JWT یا توکن‌های مشابه  
+- اعتبارسنجی رمزنگاری یکپارچگی حالت سشن  
+- کاهش سطح حمله اما نیاز به اعتبارسنجی قوی توکن
+
+## ۴. **کنترل‌های امنیتی اختصاصی هوش مصنوعی**
+
+**ریسک‌های OWASP MCP پوشش داده شده:**
+- [MCP06 - تزریق دستور از طریق داده‌های متنی](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - مسمومیت ابزار](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - تزریق و اجرای دستور](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+
+### **دفاع در برابر تزریق دستور**
+
+**ادغام Microsoft Prompt Shields:**
+```yaml
+Detection Mechanisms:
+  - "Advanced ML-based instruction detection"
+  - "Contextual analysis of external content"
+  - "Real-time threat pattern recognition"
+  
+Protection Techniques:
+  - "Spotlighting trusted vs untrusted content"
+  - "Delimiter systems for content boundaries"  
+  - "Data marking for content source identification"
+  
+Integration Points:
+  - "Azure Content Safety service"
+  - "Real-time content filtering"
+  - "Threat intelligence updates"
+```
+
+**کنترل‌های پیاده‌سازی:**
+- **بهداشت ورودی**: اعتبارسنجی و فیلترسازی جامع تمامی ورودی‌های کاربر  
+- **تعریف مرز محتوا**: تفکیک واضح بین دستورات سیستم و محتوای کاربر  
+- **سلسله مراتب دستورات**: قوانین اولویت مناسب برای دستورهای متناقض  
+- **پایش خروجی**: شناسایی خروجی‌های بالقوه آسیب‌زا یا دستکاری‌شده
+
+### **جلوگیری از مسمومیت ابزار**
+
+**چارچوب امنیت ابزار:**
+```yaml
+Tool Definition Protection:
+  validation:
+    - "Schema validation against expected formats"
+    - "Content analysis for malicious instructions" 
+    - "Parameter injection detection"
+    - "Hidden instruction identification"
+  
+  integrity_verification:
+    - "Cryptographic hashing of tool definitions"
+    - "Digital signatures for tool packages"
+    - "Version control with change auditing"
+    - "Tamper detection mechanisms"
+  
+  monitoring:
+    - "Real-time change detection"
+    - "Behavioral analysis of tool usage"
+    - "Anomaly detection for execution patterns"
+    - "Automated alerting for suspicious modifications"
+```
+
+**مدیریت دینامیک ابزار:**
+- **فرایندهای تأیید**: رضایت صریح کاربر برای تغییرات ابزار  
+- **قابلیت بازگردانی**: امکان بازگشت به نسخه‌های قبلی ابزار  
+- **حسابرسی تغییرات**: تاریخچه کامل تغییرات تعریف ابزار  
+- **ارزیابی ریسک**: ارزیابی خودکار وضعیت امنیتی ابزار
+
+## ۵. **جلوگیری از حملات نماینده گیج شده**
+
+### **امنیت پروکسی OAuth**
+
+**کنترل‌های پیشگیری حمله:**
+```yaml
+Client Registration:
+  static_client_protection:
+    - "Explicit user consent for dynamic registration"
+    - "Consent bypass prevention mechanisms"  
+    - "Cookie-based consent validation"
+    - "Redirect URI strict validation"
+    
+  authorization_flow:
+    - "PKCE implementation (OAuth 2.1)"
+    - "State parameter validation"
+    - "Authorization code binding"
+    - "Nonce verification for ID tokens"
+```
+
+**الزامات پیاده‌سازی:**
+- **تأیید رضایت کاربر**: هرگز صفحه‌های رضایت ثبت کلاینت داینامیک را رد نکنید  
+- **اعتبارسنجی URI بازگشت**: تأیید دقیق مبتنی بر لیست سفید مقاصد بازگشت  
+- **حمایت از کد مجوز**: کدهای کوتاه‌عمر با اجرای استفاده یک‌باره  
+- **اعتبارسنجی هویت کلاینت**: اعتبارسنجی قوی مدارک و متادیتای کلاینت
+
+## ۶. **امنیت اجرای ابزار**
+
+### **قرنطینه و ایزولاسیون**
+
+**ایزولاسیون مبتنی بر کانتینر:**
+```yaml
+Execution Environment:
+  containerization: "Docker/Podman with security profiles"
+  resource_limits:
+    cpu: "Configurable CPU quotas"
+    memory: "Memory usage restrictions"
+    disk: "Storage access limitations"
+    network: "Network policy enforcement"
+  
+  privilege_restrictions:
+    user_context: "Non-root execution mandatory"
+    capability_dropping: "Remove unnecessary Linux capabilities"
+    syscall_filtering: "Seccomp profiles for syscall restriction"
+    filesystem: "Read-only root with minimal writable areas"
+```
+
+**ایزولاسیون پردازش:**
+- **زمینه‌های پردازش جداشده**: اجرای هر ابزار در فضای پردازشی ایزوله  
+- **ارتباط بین‌پردازشی امن**: مکانیزم‌های IPC امن با اعتبارسنجی  
+- **پایش پردازش**: تحلیل رفتار زمان اجرا و شناسایی ناهنجاری‌ها  
+- **اجرای محدودیت منابع**: محدودیت‌های سخت بر روی CPU، حافظه و عملیاتی I/O
+
+### **اجرای اصل کمترین امتیاز**
+
+**مدیریت مجوزها:**
+```yaml
+Access Control:
+  file_system:
+    - "Minimal required directory access"
+    - "Read-only access where possible"
+    - "Temporary file cleanup automation"
+    
+  network_access:
+    - "Explicit allowlist for external connections"
+    - "DNS resolution restrictions" 
+    - "Port access limitations"
+    - "SSL/TLS certificate validation"
+  
+  system_resources:
+    - "No administrative privilege elevation"
+    - "Limited system call access"
+    - "No hardware device access"
+    - "Restricted environment variable access"
+```
+
+## ۷. **کنترل‌های امنیتی زنجیره تأمین**
+
+**ریسک OWASP MCP مرتبط**: [MCP04 - حملات زنجیره تأمین](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+
+### **اعتبارسنجی وابستگی**
+
+**امنیت جامع مؤلفه‌ها:**
+```yaml
+Software Dependencies:
+  scanning: 
+    - "Automated vulnerability scanning (GitHub Advanced Security)"
+    - "License compliance verification"
+    - "Known vulnerability database checks"
+    - "Malware detection and analysis"
+  
+  verification:
+    - "Package signature verification"
+    - "Checksum validation"
+    - "Provenance attestation"
+    - "Software Bill of Materials (SBOM)"
+
+AI Components:
+  model_verification:
+    - "Model provenance validation"
+    - "Training data source verification" 
+    - "Model behavior testing"
+    - "Adversarial robustness assessment"
+  
+  service_validation:
+    - "Third-party API security assessment"
+    - "Service level agreement review"
+    - "Data handling compliance verification"
+    - "Incident response capability evaluation"
+```
+
+### **پایش مستمر**
+
+**شناسایی تهدید زنجیره تأمین:**
+- **نظارت سلامت وابستگی‌ها**: ارزیابی مداوم تمام وابستگی‌ها برای مسائل امنیتی  
+- **ادغام اطلاعات تهدید**: به‌روزرسانی‌های زمان واقعی درباره تهدیدات زنجیره تأمین نوظهور  
+- **تحلیل رفتاری**: شناسایی رفتارهای غیرمعمول در مؤلفه‌های خارجی  
+- **واکنش خودکار**: جلوگیری فوری از مؤلفه‌های به خطر افتاده
+
+## ۸. **کنترل‌های پایش و تشخیص**
+
+**ریسک OWASP MCP مرتبط**: [MCP08 - فقدان حسابرسی و تله‌متری](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **مدیریت اطلاعات امنیتی و رویدادها (SIEM)**
+
+**راهبرد جامع ثبت لاگ:**
+```yaml
+Authentication Events:
+  - "All authentication attempts (success/failure)"
+  - "Token issuance and validation events"
+  - "Session creation, modification, termination"
+  - "Authorization decisions and policy evaluations"
+
+Tool Execution:
+  - "Tool invocation details and parameters"
+  - "Execution duration and resource usage"
+  - "Output generation and content analysis"
+  - "Error conditions and exception handling"
+
+Security Events:
+  - "Potential prompt injection attempts"
+  - "Tool poisoning detection events"
+  - "Session hijacking indicators"
+  - "Unusual access patterns and anomalies"
+```
+
+### **تشخیص تهدید زمان واقعی**
+
+**تحلیل رفتاری:**
+- **تحلیل رفتار کاربر (UBA)**: شناسایی الگوهای دسترسی غیرمعمول کاربران  
+- **تحلیل رفتار موجودیت (EBA)**: پایش رفتار سرور MCP و ابزارها  
+- **تشخیص ناهنجاری با یادگیری ماشین**: شناسایی تهدیدات امنیتی با هوش مصنوعی  
+- **همبستگی اطلاعات تهدید**: تطابق فعالیت‌های مشاهده‌شده با الگوهای حمله شناخته‌شده
+
+## ۹. **واکنش و بازیابی از حادثه**
+
+### **قابلیت‌های واکنش خودکار**
+
+**اقدامات پاسخ فوری:**
+```yaml
+Threat Containment:
+  session_management:
+    - "Immediate session termination"
+    - "Account lockout procedures"
+    - "Access privilege revocation"
+  
+  system_isolation:
+    - "Network segmentation activation"
+    - "Service isolation protocols"
+    - "Communication channel restriction"
+
+Recovery Procedures:
+  credential_rotation:
+    - "Automated token refresh"
+    - "API key regeneration"
+    - "Certificate renewal"
+  
+  system_restoration:
+    - "Clean state restoration"
+    - "Configuration rollback"
+    - "Service restart procedures"
+```
+
+### **قابلیت‌های جرم‌شناسی**
+
+**پشتیبانی از تحقیقات:**
+- **حفظ ردپا حسابرسی**: لاگ‌های غیرقابل تغییر با یکپارچگی رمزنگاری شده  
+- **جمع‌آوری شواهد**: گردآوری خودکار مدارک امنیتی مرتبط  
+- **بازسازی زمان‌بندی رخدادها**: توالی دقیق رویدادهای منتهی به حوادث امنیتی  
+- **ارزیابی تأثیر**: سنجش دامنه نفوذ و افشای داده‌ها
+
+## **اصول کلیدی معماری امنیتی**
+
+### **دفاع در عمق**
+- **چندین لایه امنیتی**: بدون نقطه شکست واحد در معماری امنیت  
+- **کنترل‌های تکراری**: استفاده از تدابیر امنیتی تلاقی‌دار برای عملکردهای حیاتی  
+- **مکانیزم‌های پیش‌فرض امن**: تنظیمات امن زمانی که سیستم با خطا یا حمله مواجه می‌شود
+
+### **اجرای اعتماد صفر**
+- **هرگز اعتماد نکن، همیشه اعتبار بده**: اعتبارسنجی مداوم همه موجودیت‌ها و درخواست‌ها  
+- **اصل کمترین امتیاز**: حداقل دسترسی لازم برای همه مؤلفه‌ها  
+- **ریز‌بخشی شبکه**: کنترل‌های شبکه و دسترسی خرد شده
+
+### **تکامل مستمر امنیت**
+- **سازگاری با چشم‌انداز تهدید**: به‌روزرسانی‌های منظم برای مقابله با تهدیدات نوظهور  
+- **اثربخشی کنترل‌های امنیتی**: ارزیابی و بهبود مستمر کنترل‌ها  
+- **انطباق با مشخصات**: هماهنگی با استانداردهای در حال توسعه MCP
+
+---
+
+## **منابع پیاده‌سازی**
+
+### **مستندات رسمی MCP**
+- [مشخصات MCP (۲۰۲۵-۱۱-۲۵)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
+- [بهترین شیوه‌های امنیتی MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
+- [مشخصات مجوز MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+
+### **منابع امنیتی OWASP MCP**
+- [راهنمای امنیت Azure MCP OWASP](https://microsoft.github.io/mcp-azure-security-guide/) - بهترین شیوه‌های OWASP MCP Top 10 با پیاده‌سازی Azure  
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - ریسک‌های رسمی امنیتی MCP OWASP  
+- [کارگاه MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/) - آموزش عملی امنیت MCP در Azure
+
+### **راهکارهای امنیتی مایکروسافت**
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
+- [GitHub Advanced Security](https://github.com/security/advanced-security)  
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
+
+### **استانداردهای امنیتی**
+- [بهترین شیوه‌های امنیت OAuth 2.0 (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
+- [OWASP Top 10 برای مدل‌های زبانی بزرگ](https://genai.owasp.org/)  
+- [چارچوب امنیت سایبری NIST](https://www.nist.gov/cyberframework)
+
+---
+
+> **مهم**: این کنترل‌های امنیتی منعکس‌کننده مشخصات فعلی MCP (۲۰۲۵-۱۱-۲۵) هستند. همواره با جدیدترین [مستندات رسمی](https://spec.modelcontextprotocol.io/) اعتبارسنجی کنید زیرا استانداردها به سرعت در حال تغییرند.
+
+## مرحله بعد
+
+- بازگشت به: [مرور ماژول امنیت](./README.md)
+- ادامه به: [ماژول 3: شروع کار](../03-GettingStarted/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**توضیح حقوقی**:
+این سند با استفاده از سرویس ترجمه ماشینی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما برای دقت تلاش می‌کنیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است حاوی اشتباهات یا نواقص باشند. سند اصلی به زبان مادری آن باید به عنوان مرجع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئول هیچ گونه سوءتفاهم یا برداشت نادرستی ناشی از استفاده از این ترجمه نیستیم.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
