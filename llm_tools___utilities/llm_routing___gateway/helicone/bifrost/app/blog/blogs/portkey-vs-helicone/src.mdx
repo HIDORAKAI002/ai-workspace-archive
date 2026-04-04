@@ -1,0 +1,248 @@
+LLM applications in production demand strong observability tools. Without them, you're flying blind on costs, performance, and usage patterns.
+
+Both **<a href="https://www.helicone.ai/" target="_blank" rel="noopener">Helicone</a>** and **<a href="https://portkey.ai/" target="_blank" rel="noopener noreferrer nofollow">Portkey</a>** offer solutions to this problem, but with different approaches and strengths. Let's dive in and help you determine which platform is the best fit for your needs.
+
+![Helicone vs Portkey: Comparing LLM Observability Platforms](/static/blog/pk-helicone/helicone-vs-portkey.webp)
+
+## How is Helicone different?
+
+### 1. Helicone offers dual logging methods
+
+Helicone provides flexibility through **both proxy-based and async logging**. While Portkey only supports proxy-based logging, Helicone lets you choose the approach that fits your architecture:
+
+- **Proxy integration**: Place Helicone between your client and LLM provider for simple one-line integration
+- **Async logging**: Use Helicone's SDK for background logging without affecting request flow
+
+This dual approach makes Helicone adaptable to different deployment scenarios.
+
+### 2. Helicone prioritizes optimization metrics
+
+Helicone's dashboard focuses on **optimization-relevant metrics** like evaluation scores, costs, completion tokens, top models, and user metrics. 
+
+Helicone's detailed metrics help teams understand LLM usage from a practical perspective, making it easier to optimize spending and track ROI.
+
+## Quick Comparison: Helicone vs Portkey
+
+### Platform 
+
+| **Feature** | **Helicone** | **Portkey** |
+| ----------- | ------------ | ----------- |
+| **Open-source** | ✅ | ✅ |
+| **Self-hosting** | ✅ | ✅ |
+| **Generous Free Tier** | ✅ | ✅ |
+| **One-line Integration** | ✅ | ❌ |
+| **Async Logging** | ✅ | ❌ |
+| **Seat-Based Pricing** | Starts at `$20/seat/month` | Starts at `$49/month` |
+| **Pricing Tiers** | Free, Pro, Teams and Enterprise <a href="https://www.helicone.ai/pricing" rel="noopener" target="_blank">tiers available</a> | Free, Team, and Enterprise tiers <a href="https://portkey.ai/pricing" rel="noopener noreferrer nofollow" target="_blank">available</a> |
+| **Intuitive UI** <br/> Tailored to developers and non-technical teams| ✅ | ⚠️ Focused on devs |
+| **Built-in Security** <br/> Detects prompt injections, jailbreak attempts, etc. Omit logs for sensitive data | ✅ | ❌ Requires extra setup |
+| **Integration Support** <br/> Supports all major LLM providers and third-party tools | ✅ | ✅ |
+| **Logging Methods** | REST API and SDK Available (JavaScript/Python) | REST API and Javascript and Python SDK available |
+
+### LLM Evaluation
+
+| **Feature** | **Helicone** | **Portkey** |
+| ----------- | ------------ | ----------- |
+| **Prompt Management** <br/> Version and track prompt changes | ✅ | ✅ |
+| **Prompt Experimentation** <br/> Iterate and improve prompts at scale | ✅ | ❌ |
+| **Evaluation** <br/> LLM evaluation via UI and API | ✅ | ❌ |
+
+### LLM Monitoring
+
+| **Feature** | **Helicone** | **Portkey** |
+| ----------- | ------------ | ----------- |
+| **Dashboard Visualization** | ✅ | ✅ |
+| **Caching** <br/>Built-in caching via headers to reduce API costs and latency | ✅ | ✅ |
+| **Rate Limits** <br/>Customizable rate limits separate from API provider limits | ✅ | ✅ |
+| **Cost & Usage Tracking** <br/>Detailed cost tracking with rich dashboards | ✅ | ✅ |
+| **Alerting & Webhooks** <br/>Automate LLM workflows, trigger actions, and get alerts for critical events | ✅ | ⚠️ <br/>Limited |
+| **API Key Security** <br/> Out-of-the-box security measures for API key management | ✅ | ✅ |
+| **User Feedback Collection** <br/> Robust user feedback tracking capabilities | ✅ | ✅ |
+
+### Security, Compliance, Privacy
+
+| **Feature** | **Helicone** | **Portkey** |
+| ----------- | ------------ | ----------- |
+| **Data Retention** | 1 month for Free<br/>3 months for Pro/Team<br/>forever for Enterprise | 3 days for Free<br/>30 days for Pro<br/>forever for Enterprise |
+| **HIPAA-compliant** | ✅ | ✅ |
+| **GDPR-compliant** | ✅ | ✅ |
+| **SOC 2** | ✅ | ✅ |
+
+## Helicone: The Complete LLM Observability
+
+> The ability to test prompt variations on production traffic without touching a line of code is magical. It feels like we're cheating; it's just that good!
+
+— Nishant Shukla, Sr. Director of AI at QA Wolf
+
+![Helicone Dashboard](/static/blog/best-langsmith-alternatives/helicone-dashboard.webp)
+
+Helicone is an <a href="https://github.com/Helicone/helicone" target="_blank" rel="noopener">open-source observability platform</a> built for teams optimizing their production LLM applications. It provides real-time analytics, cost-tracking, and performance insights that empowers developers and product teams to make data-driven decisions throughout the **entire LLM lifecycle**.
+
+### Key Strengths
+
+- **Multiple logging methods** (proxy or async)
+- **Experiment with prompts on production traffic** without code changes
+- **Highly scalable**, built to handle trillions of LLM interactions effortlessly with Kafka
+- **Built-in evaluation** for human and automated evaluations
+
+### Why Developers Choose Helicone
+
+- 1-line integration and ability to start logging within minutes
+- Focuses on data collection and cost optimization (with features like caching)
+- Usable by both technical and non-technical team members
+
+### How to integrate with Helicone
+
+**Example of Proxy integration (1-line setup):**
+
+```javascript
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://oai.helicone.ai/v1",
+  defaultHeaders: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+  },
+});
+```
+
+<CallToAction
+  title="Get Started with Helicone"
+  description="Ready to optimize your LLM applications? Start using Helicone today and see the difference for yourself."
+  primaryButtonText="Try Helicone for Free"
+  primaryButtonLink="https://helicone.ai/signup"
+  secondaryButtonText="Contact Us"
+  secondaryButtonLink="https://www.helicone.ai/contact"
+/>
+
+## Portkey: Gateway-Focused Observability
+
+> With 30 million policies a month, managing over 25 GenAI use cases became a pain. Portkey helped with prompt management, tracking costs per use case, and ensuring our keys were used correctly. 
+
+— _Portkey user_
+
+![Portkey Dashboard](/static/blog/pk-helicone/pk-dash.webp)
+
+Portkey is an LLM observability solution with strong Gateway capabilities—allowing you to integrate multiple providers via a single endpoint. It functions strictly as a proxy, however, but is also suitable cross-functional teams.
+
+### Key Strengths
+
+- **Advanced AI Gateway**: Connect to multiple AI models through a single API with load balancing and routing
+- **AI Guardrails**: Extensive options for securing and controlling LLM behavior in real-time 
+- **Robust prompt management**: Modular approach to prompt management and reuse with **Prompt Partials**
+- **Virtual Keys**: Tools for secure API key management in large teams
+
+### Why Developers Choose Portkey
+
+- Universal API: Single consistent interface for 250+ AI models
+- Highly customizable LLM behavior: Comprehensive guardrails system for controlling LLM outputs
+- Advanced prompt engineering: Modular prompt architecture with reusable components
+
+### How to Integrate with Portkey
+
+```javascript
+import Portkey from 'portkey-ai';
+
+const portkey = new Portkey({
+  apiKey: "YOUR_PORTKEY_API_KEY",
+  virtualKey: "YOUR_VIRTUAL_KEY"
+});
+
+async function createChatCompletion() {
+  const chat_complete = await portkey.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: "You are a helpful assistant." },
+      { role: "user", content: "Hello!" }
+    ]
+  });
+  console.log(chat_complete.choices[0].message.content);
+}
+
+createChatCompletion();
+```
+
+## How Helicone and Portkey Compare
+
+| Feature | Helicone | Portkey |
+|---------|----------|---------|
+| **Dashboard** | ⭐️ More comprehensive with cost metrics, user analytics, and top models | Less detailed and more technical with latency and detailed traces |
+| **Integrations** | ⭐️ Broad support for LLM providers & third-party tools with both proxy and async options | Broad support for LLM providers with proxy only |
+| **Security Features** | ⭐️ Out-of-the-box LLM security tools | Custom guardrails requiring more setup |
+| **Prompt Management** | ⭐️ Version control and experimentation with UI | Includes unique prompt partials for modular design |
+| **OpenTelemetry** | Built on OpenTelemetry | OpenTelemetry-compliant |
+| **Alerting** | Built-in alerting features | Built-in alerting features |
+
+## Which platform should you choose?
+
+Both Helicone and Portkey offer robust observability solutions for LLM applications, but they excel in different areas:
+
+### Choose <a href="https://www.helicone.ai/" target="_blank" rel="noopener">Helicone</a> if you:
+
+- **Need simple integration options** with either proxy or async logging
+- **Want highly detailed insights** like cost tracking, user analytics, latency, and more
+- **Designed for the entire LLM lifecycle** from development to production, with intuitive UI tools for experimentation, monitoring, and optimization
+- **Have cross-functional teams** that needs collaboration outside of the codebase
+- **Value out-of-the-box security** and simple third-party app integrations
+
+### Choose <a href="https://portkey.ai/" target="_blank" rel="noopener noreferrer nofollow">Portkey</a> if you:
+
+- **Need advanced gateway capabilities** with more mature load balancing and fallback systems
+- **Want more control over LLM behavior** with comprehensive guardrails system
+- **Need modular prompt components** with their prompt partials feature
+
+The right choice ultimately depends on your specific use case, team composition, and priorities. Both platforms offer free tiers. We recommend you test them in your environment before committing to either solution.
+
+### You might also like: 
+
+- <a
+    href="https://www.helicone.ai/blog/helicone-vs-comet"
+    target="_blank"
+    rel="noopener"
+  >
+    Helicone vs Comet: Best Open-Source LLM Evaluation Platform
+  </a>
+- <a
+    href="https://www.helicone.ai/blog/best-langfuse-alternatives"
+    target="_blank"
+    rel="noopener"
+  >
+    Langfuse Alternatives? Langfuse vs Helicone
+  </a>
+- <a
+    href="https://www.helicone.ai/blog/essential-helicone-features"
+    target="_blank"
+    rel="noopener"
+  >
+    A Deep Dive Into Helicone Features
+  </a>
+
+<FAQ items={[
+  {
+    question: "Which platform is easier to integrate?",
+    answer: "Both platforms offer proxy-based integration requiring minimal code changes. Helicone also provides SDK-based async logging as an alternative option."
+  },
+  {
+    question: "Which platform has better cost tracking?",
+    answer: "Both platforms track costs, but Helicone's dashboard is more detailed—offering key business metrics like cost analysis and user-based spending."
+  },
+  {
+    question: "Are there free tiers?",
+    answer: "Yes, both platforms offer generous free tiers of 10,000 API calls per month."
+  },
+  {
+    question: "Which platform is better for prompt management?",
+    answer: "Both platforms provide strong prompt management. Helicone excels in experimentation and versioning, while Portkey offers unique prompt partials for modular prompt design."
+  },
+  {
+    question: "How do these tools handle data privacy and security?",
+    answer: "Both tools prioritize data security, but Helicone's self-hosting option provides an additional layer of control for privacy-conscious users."
+  },
+  {
+    question: "Which platform is better for cross-functional teams?",
+    answer: "Helicone's detailed optimization metrics and UI make it more accessible to non-technical team members while still providing the technical depth developers need."
+  }
+]} />
+
+<Questions />

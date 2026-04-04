@@ -1,0 +1,301 @@
+---
+title: "Vercel AI SDK Integration"
+sidebarTitle: "Vercel AI SDK"
+description: "Integrate Vercel AI SDK with Helicone to monitor, debug, and improve your AI applications."
+"twitter:title": "Vercel AI SDK Integration - Helicone OSS LLM Observability"
+---
+import LegacyWarning from "/snippets/legacy-provider-warning.mdx";
+
+<LegacyWarning />
+
+import { strings } from "/snippets/strings.mdx";
+
+## {strings.howToIntegrate}
+
+<Steps>
+  <Step title={strings.generateKey}>
+    <div dangerouslySetInnerHTML={{ __html: strings.generateKeyInstructions }} />
+  </Step>
+
+  <Step title={strings.setApiKey}>
+    ```javascript
+    HELICONE_API_KEY=<your-helicone-api-key>
+    OPENAI_API_KEY=<your-openai-api-key>
+    ```
+  </Step>
+
+  <Step title={strings.modifyBasePath}>
+    <CodeGroup>
+
+    ```javascript OpenAI
+    import { createOpenAI } from "@ai-sdk/openai";
+
+    const openai = createOpenAI({
+      baseURL: "https://oai.helicone.ai/v1",
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+      },
+    });
+
+    // Use openai to make API calls
+    const response = streamText({
+      model: openai("gpt-4o"),
+      prompt: "Hello world",
+    });
+    ```
+
+    ```javascript Anthropic
+    import { createAnthropic } from "@ai-sdk/anthropic";
+
+    const anthropic = createAnthropic({
+      baseURL: "https://anthropic.helicone.ai/v1",
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+      },
+    });
+
+    // Use openai to make API calls
+    const response = streamText({
+      model: anthropic("claude-3-5-sonnet-20241022"),
+      prompt: "Hello world",
+    });
+    ```
+
+    ```javascript Groq
+    import { createOpenAI } from "@ai-sdk/openai";
+    import { generateText } from "ai";
+
+    const groq = createOpenAI({
+      baseURL: "https://groq.helicone.ai/openai/v1",
+      apiKey: process.env.GROQ_API_KEY,
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+      },
+    });
+
+    const response = await generateText({
+      model: groq("llama-3.3-70b-versatile"),
+      prompt: "Hello world",
+    });
+
+    console.log(response);
+    ```
+
+
+    ```javascript Google Gemini
+    import { createGoogleGenerativeAI } from "@ai-sdk/google";
+
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY,
+      baseURL: "https://gateway.helicone.ai/v1beta",
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        "Helicone-Target-URL": "https://generativelanguage.googleapis.com",
+      },
+    });
+
+    // Use Google AI to make API calls
+    const response = streamText({
+      model: google("gemini-1.5-pro-latest"),
+      prompt: "Hello world",
+    });
+    ```
+
+    ```javascript Google Vertex AI
+    import { createVertex } from "@ai-sdk/google-vertex";
+    import { generateText } from "ai";
+
+    const location = "us-central1";
+    const project = process.env.GOOGLE_PROJECT_ID;
+
+    const vertex = createVertex({
+      project: project,
+      location: location,
+      baseURL: `https://gateway.helicone.ai/v1/projects/${project}/locations/${location}/publishers/google/`,
+      // You can use any Google auth method: keyFilename, credentials object, ADC, etc.
+      googleAuthOptions: {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      },
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        "Helicone-Target-Url": `https://${location}-aiplatform.googleapis.com`,
+      },
+    });
+
+    // Use Vertex AI to make API calls
+    const response = generateText({
+      model: vertex("gemini-1.5-flash"),
+      prompt: "Hello world",
+    });
+    ```
+
+    ```javascript Google Vertex Anthropic
+    import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
+    import { generateText } from "ai";
+
+    const location = "us-east5";
+    const project = process.env.GOOGLE_PROJECT_ID;
+
+    const vertexAnthropic = createVertexAnthropic({
+      project: project,
+      location: location,
+      baseURL: `https://gateway.helicone.ai/v1/projects/${project}/locations/${location}/publishers/anthropic/models/`,
+      // You can use any Google auth method: keyFilename, credentials object, ADC, etc.
+      googleAuthOptions: {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      },
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        "Helicone-Target-Url": `https://${location}-aiplatform.googleapis.com`,
+      },
+    });
+
+    // Use Vertex Anthropic to make API calls
+    const response = generateText({
+      model: vertexAnthropic("claude-3-5-sonnet@20240620"),
+      prompt: "Hello world",
+    });
+    ```
+
+    ```javascript Azure OpenAI
+    import { generateText } from "ai";
+    import { createAzure } from "@ai-sdk/azure";
+
+    const azure = createAzure({
+      resourceName: process.env.AZURE_RESOURCE_NAME, // Your Azure OpenAI resource name (e.g., "your-resource")
+      apiKey: process.env.AZURE_API_KEY || "",
+      baseURL: "https://oai.helicone.ai/openai/deployments",
+      apiVersion: process.env.AZURE_API_VERSION || "2025-01-01-preview",
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        "Helicone-OpenAI-Api-Base": process.env.AZURE_API_BASE || "", // Your Azure OpenAI endpoint (e.g., https://your-resource.openai.azure.com/)
+      },
+    });
+
+    const result = await generateText({
+      model: azure(process.env.AZURE_DEPLOYMENT_NAME || "gpt-4o-mini"),
+      prompt: "Hello world",
+      maxOutputTokens: 100
+    });
+
+    console.log(result);
+    ```
+
+    ```javascript AWS Bedrock
+    // Ensure you are using version 2.0.0 or higher of @ai-sdk/amazon-bedrock
+    import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+
+    const bedrock = createAmazonBedrock({
+      region: process.env.AWS_REGION,
+      baseURL: `https://bedrock.helicone.ai/v1/${process.env.AWS_REGION}`,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN, // Optional: for temporary credentials
+      headers: {
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        "aws-access-key": process.env.AWS_ACCESS_KEY_ID,
+        "aws-secret-key": process.env.AWS_SECRET_ACCESS_KEY,
+        "aws-session-token": process.env.AWS_SESSION_TOKEN,
+      },
+    });
+
+    // Use AWS Bedrock to make API calls
+    const response = generateText({
+      model: bedrock("anthropic.claude-v2"),
+      prompt: "Hello world",
+    });
+    ```
+
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Configuring Helicone Features with Headers
+
+Enable Helicone features through headers, configurable at client initialization or individual request level.
+
+### Configure Client
+
+```javascript {3-6}
+const openai = createOpenAI({
+  baseURL: "https://oai.helicone.ai/v1",
+  headers: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+    "Helicone-Cache-Enabled": "true",
+  },
+});
+```
+
+### Generate Text
+
+```javascript {4-9}
+const response = generateText({
+  model: openai("gpt-4o"),
+  prompt: "Hello world",
+  headers: {
+    "Helicone-User-Id": "john@doe.com",
+    "Helicone-Session-Id": "uuid",
+    "Helicone-Session-Path": "/chat",
+    "Helicone-Session-Name": "Chatbot",
+  },
+});
+```
+
+### Stream Text
+
+```javascript {4-9}
+const response = streamText({
+  model: openai("gpt-4o"),
+  prompt: "Hello world",
+  headers: {
+    "Helicone-User-Id": "john@doe.com",
+    "Helicone-Session-Id": "uuid",
+    "Helicone-Session-Path": "/chat",
+    "Helicone-Session-Name": "Chatbot",
+  },
+});
+```
+
+## Using with Existing Custom Base URLs
+
+If you're already using a custom base URL for an OpenAI-compatible vendor, you can proxy your requests through Helicone by setting the `Helicone-Target-URL` header to your existing vendor's endpoint.
+
+### Example with Custom Vendor
+
+```javascript
+import { createOpenAI } from "@ai-sdk/openai";
+
+const openai = createOpenAI({
+  baseURL: "https://oai.helicone.ai/v1",
+  headers: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+    "Helicone-Target-URL": "https://your-vendor-api.com/v1", // Your existing vendor's endpoint
+  },
+});
+
+// Use openai to make API calls - requests will be proxied to your vendor
+const response = streamText({
+  model: openai("gpt-4o"),
+  prompt: "Hello world",
+});
+```
+
+### Example with Multiple Vendors
+
+You can also dynamically set the target URL per request:
+
+```javascript
+const response = streamText({
+  model: openai("gpt-4o"),
+  prompt: "Hello world",
+  headers: {
+    "Helicone-Target-URL": "https://your-vendor-api.com/v1", // Override for this request
+  },
+});
+```
+
+This approach allows you to:
+- Keep your existing vendor integrations
+- Add Helicone monitoring and features
+- Switch between vendors without changing your base URL
+- Maintain compatibility with your current setup

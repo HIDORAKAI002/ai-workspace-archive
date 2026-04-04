@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "katex": "^0.16.21",
+    "mintlify": "^4.2.64"
+  },
+  "dependencies": {
+    "sharp": "^0.33.2"
+  }
+}

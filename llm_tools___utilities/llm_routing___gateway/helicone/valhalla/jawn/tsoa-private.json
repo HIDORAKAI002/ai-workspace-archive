@@ -1,0 +1,31 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/private/**/*Controller.ts"],
+  "spec": {
+    "outputDirectory": "src/tsoa-build/private",
+    "specVersion": 3,
+    "securityDefinitions": {
+      "api_key": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Bearer token authentication. Format: 'Bearer YOUR_API_KEY'"
+      }
+    },
+    "spec": {
+      "servers": [
+        {
+          "url": "https://api.helicone.ai/"
+        },
+        {
+          "url": "http://localhost:8585/"
+        }
+      ]
+    }
+  },
+  "routes": {
+    "routesDir": "src/tsoa-build/private",
+    "authenticationModule": "./src/authentication.ts"
+  }
+}
