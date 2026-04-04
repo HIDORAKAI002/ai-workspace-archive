@@ -1,0 +1,194 @@
+{
+  "integrations": [
+    {
+      "id": "litellm",
+      "name": "LiteLLM",
+      "description": "Add long-term memory to any LLM via LiteLLM proxy callbacks. Zero code changes — configure once and every model gets memory.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/litellm",
+      "icon": "/img/icons/litellm.png"
+    },
+    {
+      "id": "crewai",
+      "name": "CrewAI",
+      "description": "Give CrewAI agents persistent, cross-session memory. Facts learned in one run are available in every future run.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/crewai",
+      "icon": "/img/icons/crewai.png"
+    },
+    {
+      "id": "pydantic-ai",
+      "name": "Pydantic AI",
+      "description": "Integrate Hindsight memory into Pydantic AI agents with a simple dependency injection pattern.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/pydantic-ai",
+      "icon": "/img/icons/pydanticai.png"
+    },
+    {
+      "id": "vercel-ai-sdk",
+      "name": "Vercel AI SDK",
+      "description": "Add persistent memory to Vercel AI SDK applications. Works with any model provider supported by the AI SDK.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/ai-sdk",
+      "icon": "/img/icons/vercel.png"
+    },
+    {
+      "id": "vercel-chat",
+      "name": "Vercel Chat",
+      "description": "Drop-in memory layer for the Vercel AI Chatbot. Remembers users across sessions out of the box.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/chat",
+      "icon": "/img/icons/vercel.png"
+    },
+    {
+      "id": "agno",
+      "name": "Agno",
+      "description": "Plug Hindsight into Agno agents for structured, long-term memory storage and retrieval.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/agno",
+      "icon": "/img/icons/agno.png"
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes",
+      "description": "Use Hindsight as the memory backend for the Hermes multi-agent messaging framework.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/hermes",
+      "icon": "/img/icons/hermes.png"
+    },
+    {
+      "id": "local-mcp",
+      "name": "MCP Server",
+      "description": "Expose Hindsight memory as a Model Context Protocol server. Compatible with Claude, Cursor, and any MCP client.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "mcp",
+      "link": "/sdks/integrations/local-mcp",
+      "icon": "/img/icons/mcp.png"
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "description": "Automatic long-term memory for Claude Code via Hindsight hooks. Captures every conversation, recalls relevant context on every prompt.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/claude-code",
+      "icon": "/img/icons/claudecode.svg"
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "description": "Automatic long-term memory for Codex CLI via Hindsight hooks. Captures every conversation, recalls relevant context on every prompt.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/codex",
+      "icon": "/img/icons/openai.png"
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "description": "Integrate Hindsight with OpenClaw to add memory capabilities to Claude-based agent workflows.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/openclaw",
+      "icon": "/img/icons/openclaw.png"
+    },
+    {
+      "id": "skills",
+      "name": "Claude Code Skills",
+      "description": "Add Hindsight memory to Claude Code agents via the Skills integration. Persistent context across coding sessions.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/skills",
+      "icon": "/img/icons/skills.png"
+    },
+    {
+      "id": "langgraph",
+      "name": "LangGraph / LangChain",
+      "description": "Add persistent memory to LangGraph and LangChain agents. Supports Memory Tools, Graph Nodes, and BaseStore adapter patterns.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/langgraph",
+      "icon": "/img/icons/langgraph.png"
+    },
+    {
+      "id": "llamaindex",
+      "name": "LlamaIndex",
+      "description": "Add persistent memory to LlamaIndex agents. Supports agent-driven tools (BaseToolSpec) and automatic memory (BaseMemory).",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/llamaindex",
+      "icon": "/img/icons/llamaindex.png"
+    },
+    {
+      "id": "nemoclaw",
+      "name": "NemoClaw",
+      "description": "Persistent memory for NemoClaw sandboxed agents. One-command setup — no code changes required.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/nemoclaw",
+      "icon": "/img/icons/nemoclaw.png"
+    },
+    {
+      "id": "strands",
+      "name": "Strands Agents",
+      "description": "Give Strands agents persistent long-term memory with Hindsight retain, recall, and reflect tools.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/strands",
+      "icon": "/img/icons/strands.png"
+    },
+    {
+      "id": "ag2",
+      "name": "AG2",
+      "description": "Persistent long-term memory for AG2 agents with retain, recall, and reflect tools across conversations.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/ag2",
+      "icon": "/img/icons/ag2.svg"
+    },
+    {
+      "id": "autogen",
+      "name": "AutoGen",
+      "description": "Give AutoGen agents persistent long-term memory with Hindsight FunctionTool instances for retain, recall, and reflect.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/autogen",
+      "icon": "/img/icons/autogen.svg"
+    },
+    {
+      "id": "hindclaw",
+      "name": "HindClaw",
+      "description": "Production memory infrastructure for AI agents — server-side access control via Hindsight extensions, Terraform provider for users/groups/banks/permissions, and an OpenClaw plugin with auto-managed embed.",
+      "type": "community",
+      "by": "mrkhachaturov",
+      "category": "framework",
+      "link": "https://github.com/mrkhachaturov/hindclaw",
+      "icon": "/img/icons/hindclaw.png"
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+.blogPage {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 2rem 6rem;
+}
+
+/* ── Section ─────────────────────────────────────── */
+.section {
+  margin-bottom: 4rem;
+}
+
+.sectionHeader {
+  margin-bottom: 2rem;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.sectionTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ifm-heading-color);
+  letter-spacing: -0.02em;
+}
+
+.sectionViewAll {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ifm-color-primary);
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.sectionViewAll:hover {
+  text-decoration: underline !important;
+}
+
+.sectionSubtitle {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-600);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Grid ────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 996px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+}
+
+/* ── Card ────────────────────────────────────────── */
+.card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none !important;
+  color: inherit;
+  border-radius: 0;
+  background: transparent;
+  transition: opacity 0.2s ease;
+}
+
+.card:hover {
+  text-decoration: none !important;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.card:hover .cardImage {
+  transform: none;
+}
+
+/* ── Card image ──────────────────────────────────── */
+.cardImageWrapper {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  width: 100%;
+  border-radius: 4px;
+  background: #111;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.cardImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0074d9 0%, #009296 100%);
+  opacity: 0.35;
+}
+
+/* ── Card body ───────────────────────────────────── */
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem 0 0;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--ifm-heading-color);
+  letter-spacing: -0.02em;
+}
+
+.cardDescription {
+  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas, monospace;
+  color: var(--ifm-color-emphasis-500);
+  line-height: 1.65;
+  margin: 0;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.cardDate {
+  font-size: 0.78rem;
+  color: var(--ifm-color-emphasis-400);
+  font-weight: 500;
+}
+
+.cardReadTime {
+  font-size: 0.78rem;
+  color: var(--ifm-color-emphasis-400);
+}
+
+.cardReadTime::before {
+  content: '·';
+  margin-right: 0.35rem;
+}
+
+/* ── Pagination ──────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.paginationButton {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ifm-color-primary);
+  text-decoration: none !important;
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.paginationButton:hover {
+  background: var(--ifm-color-primary-lightest);
+  border-color: var(--ifm-color-primary);
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-600);
+}
