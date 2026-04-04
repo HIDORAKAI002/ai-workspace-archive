@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="About Firecrawl"
+	description="Learn about the Firecrawl test website"
+	pubDate={new Date('October 20 2025')}
+>
+	<h2>About This Website</h2>
+	<p>
+		This website serves as a comprehensive test environment for <a href="https://firecrawl.dev">Firecrawl</a>, the open-source web scraping and
+		crawling API. The site is intentionally designed to be simple, static, and deterministic to
+		ensure reliable and consistent test results across different configurations and environments.
+		This website uses <a href="https://astro.build">Astro</a> to generate static content designed for our testing environment.
+	</p>
+
+	<h2>Purpose</h2>
+	<p>
+		The primary purpose of this test site is to provide a stable target for automated testing of
+		web scraping functionality. This test site maintains consistent content to enable repeatable test scenarios.
+	</p>
+
+	<h2>About Firecrawl</h2>
+	<p>
+		<a href="https://firecrawl.dev">Firecrawl</a> is a powerful API that transforms websites into clean, LLM-ready markdown or
+		structured data. It handles the complexity of web scraping, including JavaScript rendering,
+		dynamic content loading, and content cleaning, making it easy to extract information from
+		any website for use in AI applications, data analysis, or content aggregation.
+	</p>
+
+	<p><a href="https://firecrawl.dev">Learn more about Firecrawl</a></p>
+</Layout>

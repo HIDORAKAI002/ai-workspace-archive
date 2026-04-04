@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "lib": ["ES2022", "DOM"],
+
+    // or higher
+    "target": "ES2022",
+
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "outDir": "./dist/src",
+    "moduleResolution": "NodeNext",
+    "strictNullChecks": true,
+
+    "inlineSources": true,
+
+    "typeRoots": ["./src/types", "./node_modules/@types"],
+    "paths": {
+      "x402": ["./src/types/x402"],
+      "x402/*": ["./src/types/x402"],
+      "x402-express": ["./src/types/x402"]
+    }
+  },
+  "include": [
+    "src/",
+    "src/**/*",
+    "services/db/supabase.ts",
+    "utils/utils.ts",
+    "services/db/supabaseEmbeddings.ts",
+    "utils/EventEmmitter.ts",
+    "src/services/queue-service.ts",
+    "src/types/x402.d.ts"
+  ]
+}

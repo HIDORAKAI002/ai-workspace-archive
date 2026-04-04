@@ -1,0 +1,36 @@
+{
+  "name": "firecrawl-test-site",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test:prepare": "astro build && astro preview --host 127.0.0.1 --port 4321 --strictPort",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/rss": "^4.0.17",
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^5.18.1",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ],
+    "overrides": {
+      "fast-xml-parser": "^5.5.7",
+      "devalue": ">=5.6.4",
+      "h3": ">=1.15.9",
+      "picomatch@<4.0.4": ">=4.0.4",
+      "smol-toml@<1.6.1": ">=1.6.1"
+    }
+  }
+}
