@@ -22,8 +22,8 @@ can still run in OpenClaw, but Anthropic now requires **Extra Usage**
 
 If you want a clearer billing path, use an Anthropic API key instead. OpenClaw
 also supports other subscription-style options, including [OpenAI
-Codex](/providers/openai), [Alibaba Cloud Model Studio Coding
-Plan](/providers/qwen_modelstudio), [MiniMax Coding Plan](/providers/minimax),
+Codex](/providers/openai), [Qwen Cloud Coding
+Plan](/providers/qwen), [MiniMax Coding Plan](/providers/minimax),
 and [Z.AI / GLM Coding Plan](/providers/glm).
 </Warning>
 
@@ -360,6 +360,8 @@ More details: [/gateway/cli-backends](/gateway/cli-backends)
 **No available auth profile (all in cooldown/unavailable)**
 
 - Check `openclaw models status --json` for `auth.unusableProfiles`.
+- Anthropic rate-limit cooldowns can be model-scoped, so a sibling Anthropic
+  model may still be usable even when the current one is cooling down.
 - Add another Anthropic profile or wait for cooldown.
 
 More: [/gateway/troubleshooting](/gateway/troubleshooting) and [/help/faq](/help/faq).

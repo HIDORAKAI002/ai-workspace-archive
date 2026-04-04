@@ -30,6 +30,10 @@ const log = debug('lobe-server:bot:agent-bridge');
 
 const EXECUTION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
+// If the last activity in a bot topic is older than this threshold,
+// create a new topic instead of continuing in the stale one.
+const TOPIC_STALE_THRESHOLD = 4 * 60 * 60 * 1000; // 4 hours
+
 // PostgreSQL error code for foreign key constraint violations.
 // See: https://www.postgresql.org/docs/current/errcodes-appendix.html
 const PG_FOREIGN_KEY_VIOLATION = '23503';
@@ -340,13 +344,44 @@ export class AgentBridgeService {
       return this.handleMention(thread, message, opts);
     }
 
-    // Skip if there's already an active execution for this thread
+    // Skip if there's already an active execution for this thread.
+    // This must run before the stale-topic check to prevent a race where
+    // a concurrent message clears topicId (stale reset) and then no-ops
+    // in handleMention because the thread is active — dropping the message
+    // but leaving state cleared so the next message starts a fresh topic.
     if (AgentBridgeService.activeThreads.has(thread.id)) {
       log(
         'handleSubscribedMessage: skipping, thread=%s already has an active execution',
         thread.id,
       );
       return;
+    }
+
+    // Check if the topic is stale (no activity for 4+ hours).
+    // If so, clear the cached topicId and start a fresh conversation.
+    // Wrapped in try/catch so transient DB errors fall through to the
+    // existing topicId rather than rejecting before the guarded section.
+    try {
+      const topicModel = new TopicModel(this.db, this.userId);
+      const existingTopic = await topicModel.findById(topicId);
+      if (existingTopic) {
+        const elapsed = Date.now() - new Date(existingTopic.updatedAt).getTime();
+        if (elapsed > TOPIC_STALE_THRESHOLD) {
+          log(
+            'handleSubscribedMessage: topic=%s is stale (%.1fh since last activity), creating new topic',
+            topicId,
+            elapsed / (60 * 60 * 1000),
+          );
+          await thread.setState({ ...threadState, topicId: undefined });
+          return this.handleMention(thread, message, opts);
+        }
+      }
+    } catch (error) {
+      log(
+        'handleSubscribedMessage: stale-topic lookup failed, continuing with existing topicId=%s: %O',
+        topicId,
+        error,
+      );
     }
 
     AgentBridgeService.activeThreads.add(thread.id);

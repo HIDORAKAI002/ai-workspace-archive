@@ -131,7 +131,7 @@ export class AgentDocumentModel {
         accessShared: 0,
         agentId,
         createdAt,
-        policyLoad: PolicyLoad.ALWAYS,
+        policyLoad: PolicyLoad.PROGRESSIVE,
         deleteReason: null,
         deletedAt: null,
         deletedByAgentId: null,
@@ -272,7 +272,7 @@ export class AgentDocumentModel {
   ): Promise<AgentDocument | undefined> {
     const existing = await this.findById(documentId);
     if (!existing) return undefined;
-    const composedPolicy = composeToolPolicyUpdate(existing.policy, rule);
+    const composedPolicy = composeToolPolicyUpdate(existing.policy, rule, existing.policyLoad);
 
     await this.db
       .update(agentDocuments)

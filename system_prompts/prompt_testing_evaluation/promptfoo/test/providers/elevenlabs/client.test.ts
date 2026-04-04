@@ -49,6 +49,12 @@ describe('ElevenLabsClient', () => {
       });
       expect(customClient).toBeDefined();
     });
+
+    it('should preserve explicit zero retries', () => {
+      const zeroRetryClient = new ElevenLabsClient({ apiKey: 'test-key', retries: 0 });
+
+      expect((zeroRetryClient as any).retries).toBe(0);
+    });
   });
 
   describe('post', () => {
@@ -67,17 +73,37 @@ describe('ElevenLabsClient', () => {
       });
 
       expect(result).toEqual(mockResponse);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.elevenlabs.io/v1/test',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'xi-api-key': 'test-api-key',
-            'Content-Type': 'application/json',
-          }),
-          body: JSON.stringify({ foo: 'bar' }),
-        }),
+      const [url, options] = mockFetch.mock.calls[0];
+      const headers = new Headers(options?.headers);
+
+      expect(url).toBe('https://api.elevenlabs.io/v1/test');
+      expect(options?.method).toBe('POST');
+      expect(options?.body).toBe(JSON.stringify({ foo: 'bar' }));
+      expect(options?.headers).not.toBeInstanceOf(Headers);
+      expect(headers.get('xi-api-key')).toBe('test-api-key');
+      expect(headers.get('Content-Type')).toBe('application/json');
+    });
+
+    it('should normalize caller Headers to a plain object before fetchWithProxy', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ success: true }),
+      } as Response);
+
+      await client.post<{ success: boolean }>(
+        '/test',
+        { foo: 'bar' },
+        { headers: new Headers({ 'Idempotency-Key': 'request-123' }) },
       );
+
+      const [, options] = mockFetch.mock.calls[0];
+      expect(options?.headers).toEqual({
+        'idempotency-key': 'request-123',
+        'xi-api-key': 'test-api-key',
+        'content-type': 'application/json',
+      });
     });
 
     it('should handle binary response', async () => {
@@ -107,7 +133,6 @@ describe('ElevenLabsClient', () => {
     });
 
     it('should throw ElevenLabsRateLimitError on 429', async () => {
-      // Mock all retry attempts - client retries on 429 without Retry-After
       const rateLimitResponse = {
         ok: false,
         status: 429,
@@ -120,26 +145,42 @@ describe('ElevenLabsClient', () => {
       await vi.runAllTimersAsync();
       const error = await promise;
       expect(error).toBeInstanceOf(ElevenLabsRateLimitError);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
     });
 
     it('should retry on network error', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error')).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        headers: new Headers({ 'content-type': 'application/json' }),
-        json: async () => ({ success: true }),
-      } as Response);
+      mockFetch
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({ success: true }),
+        } as Response);
 
       const promise = client.post<{ success: boolean }>('/test', {});
       await vi.runAllTimersAsync();
       const result = await promise;
 
       expect(result).toEqual({ success: true });
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('should make one attempt when retries is set to 0', async () => {
+      const zeroRetryClient = new ElevenLabsClient({
+        apiKey: 'test-api-key',
+        timeout: 5000,
+        retries: 0,
+      });
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(zeroRetryClient.post('/test', {})).rejects.toThrow('Network error');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should throw ElevenLabsAPIError on 500', async () => {
-      // Mock all retry attempts (retries: 2 means 2 total attempts)
+      // Mock all retry attempts (retries: 2 means 3 total attempts)
       const errorResponse = {
         ok: false,
         status: 500,
@@ -152,6 +193,7 @@ describe('ElevenLabsClient', () => {
       await vi.runAllTimersAsync();
       const error = await promise;
       expect(error).toBeInstanceOf(ElevenLabsAPIError);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
     });
   });
 
