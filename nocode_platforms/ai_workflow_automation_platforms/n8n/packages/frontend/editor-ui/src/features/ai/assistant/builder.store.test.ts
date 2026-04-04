@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock, type MockInstance } from 'vitest';
 import { setActivePinia } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
 import { useBuilderStore } from './builder.store';
@@ -121,9 +121,9 @@ let nodeTypesStore: ReturnType<typeof mockedStore<typeof useNodeTypesStore>>;
 let credentialsStore: ReturnType<typeof mockedStore<typeof useCredentialsStore>>;
 let pinia: ReturnType<typeof createTestingPinia>;
 
-let setWorkflowNameSpy: ReturnType<typeof vi.fn>;
-let getNodeTypeSpy: ReturnType<typeof vi.fn>;
-let getCredentialsByTypeSpy: ReturnType<typeof vi.fn>;
+let setWorkflowNameSpy: Mock;
+let getNodeTypeSpy: Mock;
+let getCredentialsByTypeSpy: Mock;
 
 const apiSpy = vi.spyOn(chatAPI, 'chatWithBuilder');
 
@@ -152,7 +152,6 @@ vi.mock('vue-router', () => ({
 let workflowState: WorkflowState;
 describe('AI Builder store', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		mockDocumentState = undefined;
 		pinia = createTestingPinia({ stubActions: false });
 		setActivePinia(pinia);
@@ -2088,10 +2087,13 @@ describe('AI Builder store', () => {
 	});
 
 	describe('Version management and revert functionality', () => {
-		const mockGetAiSessions = vi.spyOn(chatAPI, 'getAiSessions');
-		const mockTruncateBuilderMessages = vi.spyOn(chatAPI, 'truncateBuilderMessages');
+		let mockGetAiSessions: MockInstance<typeof chatAPI.getAiSessions>;
+		let mockTruncateBuilderMessages: MockInstance<typeof chatAPI.truncateBuilderMessages>;
 
 		beforeEach(() => {
+			mockGetAiSessions = vi.spyOn(chatAPI, 'getAiSessions');
+			mockTruncateBuilderMessages = vi.spyOn(chatAPI, 'truncateBuilderMessages');
+
 			mockGetAiSessions.mockReset();
 			mockTruncateBuilderMessages.mockReset();
 		});
@@ -4017,6 +4019,75 @@ describe('AI Builder store', () => {
 				id: 'version-2',
 				createdAt: '2024-01-02T00:00:00Z',
 			});
+		});
+	});
+
+	describe('generated pin data', () => {
+		it('storeGeneratedPinData stores pin data without applying it', () => {
+			const builderStore = useBuilderStore();
+			const pinData = { 'Node A': [{ json: { test: true } }] };
+
+			builderStore.storeGeneratedPinData(pinData);
+
+			expect(builderStore.hasDeferredPinData).toBe(true);
+			const wfDocStore = useWorkflowDocumentStore(
+				createWorkflowDocumentId(workflowsStore.workflowId),
+			);
+			expect(wfDocStore.pinData).toEqual({});
+		});
+
+		it('storeGeneratedPinData merges multiple calls', () => {
+			const builderStore = useBuilderStore();
+
+			builderStore.storeGeneratedPinData({ 'Node A': [{ json: { a: 1 } }] });
+			builderStore.storeGeneratedPinData({ 'Node B': [{ json: { b: 2 } }] });
+
+			expect(builderStore.hasDeferredPinData).toBe(true);
+		});
+
+		it('hasDeferredPinData returns false when no data is stored', () => {
+			const builderStore = useBuilderStore();
+			expect(builderStore.hasDeferredPinData).toBe(false);
+		});
+
+		it('applyGeneratedPinData applies data and marks state dirty', () => {
+			const builderStore = useBuilderStore();
+			const uiStore = useUIStore();
+			const pinData = { 'Node A': [{ json: { test: true } }] };
+
+			builderStore.storeGeneratedPinData(pinData);
+			builderStore.applyGeneratedPinData();
+
+			const wfDocStore = useWorkflowDocumentStore(
+				createWorkflowDocumentId(workflowsStore.workflowId),
+			);
+			expect(wfDocStore.pinData).toEqual(pinData);
+			expect(uiStore.stateIsDirty).toBe(true);
+			expect(builderStore.hasDeferredPinData).toBe(false);
+			expect(builderStore.pinDataApplied).toBe(true);
+		});
+
+		it('applyGeneratedPinData is a no-op when no data is stored', () => {
+			const builderStore = useBuilderStore();
+			const uiStore = useUIStore();
+
+			builderStore.applyGeneratedPinData();
+
+			expect(uiStore.stateIsDirty).toBe(false);
+			expect(builderStore.pinDataApplied).toBe(false);
+		});
+
+		it('resetBuilderChat clears generated pin data and pinDataApplied', () => {
+			const builderStore = useBuilderStore();
+
+			builderStore.storeGeneratedPinData({ 'Node A': [{ json: { test: true } }] });
+			builderStore.applyGeneratedPinData();
+			expect(builderStore.pinDataApplied).toBe(true);
+
+			builderStore.resetBuilderChat();
+
+			expect(builderStore.hasDeferredPinData).toBe(false);
+			expect(builderStore.pinDataApplied).toBe(false);
 		});
 	});
 });
