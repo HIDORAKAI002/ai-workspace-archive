@@ -1,0 +1,418 @@
+site_name: Claude Code Skills & Agent Plugins
+site_url: https://alirezarezvani.github.io/claude-skills/
+site_description: "248 production-ready skills, 23 agents, 3 personas, and an orchestration protocol for 11 AI coding tools. Reusable expertise for engineering, product, marketing, compliance, and more."
+site_author: Alireza Rezvani
+repo_url: https://github.com/alirezarezvani/claude-skills
+repo_name: alirezarezvani/claude-skills
+edit_uri: edit/main/docs/
+copyright: "Built by Alireza Rezvani"
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.tabs.link
+    - header.autohide
+    - toc.follow
+    - announce.dismiss
+  icon:
+    repo: fontawesome/brands/github
+    annotation: material/chevron-right-circle
+
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+  - tags
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/alirezarezvani/claude-skills
+      name: GitHub
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/nginitycloud
+      name: Twitter
+    - icon: fontawesome/brands/medium
+      link: https://alirezarezvani.medium.com
+      name: Medium
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Link to this section
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Multi-Tool Integrations: integrations.md
+  - Skills:
+    - Overview: skills/index.md
+    - Engineering - Core:
+      - Overview: skills/engineering-team/index.md
+      - "A11y Audit": skills/engineering-team/a11y-audit.md
+      - "Adversarial Code Reviewer": skills/engineering-team/adversarial-reviewer.md
+      - "AI Security": skills/engineering-team/ai-security.md
+      - "AWS Solution Architect": skills/engineering-team/aws-solution-architect.md
+      - "Azure Cloud Architect": skills/engineering-team/azure-cloud-architect.md
+      - "Cloud Security": skills/engineering-team/cloud-security.md
+      - "Code Reviewer": skills/engineering-team/code-reviewer.md
+      - "Email Template Builder": skills/engineering-team/email-template-builder.md
+      - "Incident Commander": skills/engineering-team/incident-commander.md
+      - "Incident Response": skills/engineering-team/incident-response.md
+      - "GCP Cloud Architect": skills/engineering-team/gcp-cloud-architect.md
+      - "Google Workspace CLI": skills/engineering-team/google-workspace-cli.md
+      - "Microsoft 365 Tenant Manager": skills/engineering-team/ms365-tenant-manager.md
+      - Playwright Pro:
+        - "Playwright Pro": skills/engineering-team/playwright-pro.md
+        - "BrowserStack Integration": skills/engineering-team/playwright-pro-browserstack.md
+        - "Coverage Analysis": skills/engineering-team/playwright-pro-coverage.md
+        - "Fix Flaky Tests": skills/engineering-team/playwright-pro-fix.md
+        - "Generate Tests": skills/engineering-team/playwright-pro-generate.md
+        - "Initialize Project": skills/engineering-team/playwright-pro-init.md
+        - "Migrate to Playwright": skills/engineering-team/playwright-pro-migrate.md
+        - "Smart Reporting": skills/engineering-team/playwright-pro-report.md
+        - "Review Tests": skills/engineering-team/playwright-pro-review.md
+        - "TestRail Integration": skills/engineering-team/playwright-pro-testrail.md
+      - Self-Improving Agent:
+        - "Self-Improving Agent": skills/engineering-team/self-improving-agent.md
+        - "Extract Skills": skills/engineering-team/self-improving-agent-extract.md
+        - "Promote Learnings": skills/engineering-team/self-improving-agent-promote.md
+        - "Remember Knowledge": skills/engineering-team/self-improving-agent-remember.md
+        - "Review Memory": skills/engineering-team/self-improving-agent-review.md
+        - "Memory Status": skills/engineering-team/self-improving-agent-status.md
+      - "Senior Architect": skills/engineering-team/senior-architect.md
+      - "Senior Backend Engineer": skills/engineering-team/senior-backend.md
+      - "Senior Computer Vision Engineer": skills/engineering-team/senior-computer-vision.md
+      - "Senior Data Engineer": skills/engineering-team/senior-data-engineer.md
+      - "Senior Data Scientist": skills/engineering-team/senior-data-scientist.md
+      - "Senior DevOps": skills/engineering-team/senior-devops.md
+      - "Senior Frontend": skills/engineering-team/senior-frontend.md
+      - "Senior Fullstack": skills/engineering-team/senior-fullstack.md
+      - "Senior ML Engineer": skills/engineering-team/senior-ml-engineer.md
+      - "Senior Prompt Engineer": skills/engineering-team/senior-prompt-engineer.md
+      - "Senior QA Engineer": skills/engineering-team/senior-qa.md
+      - "Senior SecOps Engineer": skills/engineering-team/senior-secops.md
+      - "Senior Security Engineer": skills/engineering-team/senior-security.md
+      - "Red Team": skills/engineering-team/red-team.md
+      - "Security Pen Testing": skills/engineering-team/security-pen-testing.md
+      - "Snowflake Development": skills/engineering-team/snowflake-development.md
+      - "Stripe Integration Expert": skills/engineering-team/stripe-integration-expert.md
+      - "TDD Guide": skills/engineering-team/tdd-guide.md
+      - "Tech Stack Evaluator": skills/engineering-team/tech-stack-evaluator.md
+      - "Threat Detection": skills/engineering-team/threat-detection.md
+      - "Epic Design": skills/engineering-team/epic-design.md
+    - Engineering - POWERFUL:
+      - Overview: skills/engineering/index.md
+      - "Autoresearch Agent": skills/engineering/autoresearch-agent.md
+      - "Autoresearch /ar:setup": skills/engineering/autoresearch-agent-setup.md
+      - "Autoresearch /ar:run": skills/engineering/autoresearch-agent-run.md
+      - "Autoresearch /ar:loop": skills/engineering/autoresearch-agent-loop.md
+      - "Autoresearch /ar:status": skills/engineering/autoresearch-agent-status.md
+      - "Autoresearch /ar:resume": skills/engineering/autoresearch-agent-resume.md
+      - "Agent Designer": skills/engineering/agent-designer.md
+      - "Agent Workflow Designer": skills/engineering/agent-workflow-designer.md
+      - "API Design Reviewer": skills/engineering/api-design-reviewer.md
+      - "API Test Suite Builder": skills/engineering/api-test-suite-builder.md
+      - "BeHuman": skills/engineering/behuman.md
+      - "Browser Automation": skills/engineering/browser-automation.md
+      - "Changelog Generator": skills/engineering/changelog-generator.md
+      - "Code Tour": skills/engineering/code-tour.md
+      - "Data Quality Auditor": skills/engineering/data-quality-auditor.md
+      - "Demo Video": skills/engineering/demo-video.md
+      - "CI/CD Pipeline Builder": skills/engineering/ci-cd-pipeline-builder.md
+      - "Codebase Onboarding": skills/engineering/codebase-onboarding.md
+      - "Database Designer": skills/engineering/database-designer.md
+      - "Database Schema Designer": skills/engineering/database-schema-designer.md
+      - "Dependency Auditor": skills/engineering/dependency-auditor.md
+      - "Env & Secrets Manager": skills/engineering/env-secrets-manager.md
+      - "Focused Fix": skills/engineering/focused-fix.md
+      - "Git Worktree Manager": skills/engineering/git-worktree-manager.md
+      - "Interview System Designer": skills/engineering/interview-system-designer.md
+      - "LLM Cost Optimizer": skills/engineering/llm-cost-optimizer.md
+      - "MCP Server Builder": skills/engineering/mcp-server-builder.md
+      - "Migration Architect": skills/engineering/migration-architect.md
+      - "Monorepo Navigator": skills/engineering/monorepo-navigator.md
+      - "Observability Designer": skills/engineering/observability-designer.md
+      - "Performance Profiler": skills/engineering/performance-profiler.md
+      - "PR Review Expert": skills/engineering/pr-review-expert.md
+      - "Prompt Governance": skills/engineering/prompt-governance.md
+      - "RAG Architect": skills/engineering/rag-architect.md
+      - "Release Manager": skills/engineering/release-manager.md
+      - "Runbook Generator": skills/engineering/runbook-generator.md
+      - "Secrets Vault Manager": skills/engineering/secrets-vault-manager.md
+      - "Self-Eval": skills/engineering/self-eval.md
+      - "Skill Security Auditor": skills/engineering/skill-security-auditor.md
+      - "Skill Tester": skills/engineering/skill-tester.md
+      - "Spec-Driven Workflow": skills/engineering/spec-driven-workflow.md
+      - "SQL Database Assistant": skills/engineering/sql-database-assistant.md
+      - "Tech Debt Tracker": skills/engineering/tech-debt-tracker.md
+      - "Terraform Patterns": skills/engineering/terraform-patterns.md
+      - "Helm Chart Builder": skills/engineering/helm-chart-builder.md
+      - "Docker Development": skills/engineering/docker-development.md
+      - AgentHub:
+        - "AgentHub": skills/engineering/agenthub.md
+        - "/hub:init": skills/engineering/agenthub-init.md
+        - "/hub:spawn": skills/engineering/agenthub-spawn.md
+        - "/hub:status": skills/engineering/agenthub-status.md
+        - "/hub:eval": skills/engineering/agenthub-eval.md
+        - "/hub:merge": skills/engineering/agenthub-merge.md
+        - "/hub:board": skills/engineering/agenthub-board.md
+        - "/hub:run": skills/engineering/agenthub-run.md
+    - Product:
+      - Overview: skills/product-team/index.md
+      - "Agile Product Owner": skills/product-team/agile-product-owner.md
+      - "Competitive Teardown": skills/product-team/competitive-teardown.md
+      - "Experiment Designer": skills/product-team/experiment-designer.md
+      - "Landing Page Generator": skills/product-team/landing-page-generator.md
+      - "Product Analytics": skills/product-team/product-analytics.md
+      - "Code to PRD": skills/product-team/code-to-prd.md
+      - "Product Discovery": skills/product-team/product-discovery.md
+      - "Product Manager Toolkit": skills/product-team/product-manager-toolkit.md
+      - "Product Strategist": skills/product-team/product-strategist.md
+      - "Research Summarizer": skills/product-team/research-summarizer.md
+      - "Roadmap Communicator": skills/product-team/roadmap-communicator.md
+      - "SaaS Scaffolder": skills/product-team/saas-scaffolder.md
+      - "UI Design System": skills/product-team/ui-design-system.md
+      - "UX Researcher & Designer": skills/product-team/ux-researcher-designer.md
+    - Marketing:
+      - Overview: skills/marketing-skill/index.md
+      - "A/B Test Setup": skills/marketing-skill/ab-test-setup.md
+      - "Ad Creative": skills/marketing-skill/ad-creative.md
+      - "AI SEO": skills/marketing-skill/ai-seo.md
+      - "Analytics Tracking": skills/marketing-skill/analytics-tracking.md
+      - "App Store Optimization": skills/marketing-skill/app-store-optimization.md
+      - "Brand Guidelines": skills/marketing-skill/brand-guidelines.md
+      - "Campaign Analytics": skills/marketing-skill/campaign-analytics.md
+      - "Churn Prevention": skills/marketing-skill/churn-prevention.md
+      - "Cold Email Outreach": skills/marketing-skill/cold-email.md
+      - "Competitor Alternatives": skills/marketing-skill/competitor-alternatives.md
+      - "Content Creator": skills/marketing-skill/content-creator.md
+      - "Content Humanizer": skills/marketing-skill/content-humanizer.md
+      - "Content Production": skills/marketing-skill/content-production.md
+      - "Content Strategy": skills/marketing-skill/content-strategy.md
+      - "Copy Editing": skills/marketing-skill/copy-editing.md
+      - "Copywriting": skills/marketing-skill/copywriting.md
+      - "Email Sequence Design": skills/marketing-skill/email-sequence.md
+      - "Form CRO": skills/marketing-skill/form-cro.md
+      - "Free Tool Strategy": skills/marketing-skill/free-tool-strategy.md
+      - "Launch Strategy": skills/marketing-skill/launch-strategy.md
+      - "Marketing Context": skills/marketing-skill/marketing-context.md
+      - "Marketing Demand & Acquisition": skills/marketing-skill/marketing-demand-acquisition.md
+      - "Marketing Ideas": skills/marketing-skill/marketing-ideas.md
+      - "Marketing Ops": skills/marketing-skill/marketing-ops.md
+      - "Marketing Psychology": skills/marketing-skill/marketing-psychology.md
+      - "Marketing Division": skills/marketing-skill/marketing-skill.md
+      - "Marketing Strategy & PMM": skills/marketing-skill/marketing-strategy-pmm.md
+      - "Onboarding CRO": skills/marketing-skill/onboarding-cro.md
+      - "Page CRO": skills/marketing-skill/page-cro.md
+      - "Paid Ads": skills/marketing-skill/paid-ads.md
+      - "Paywall CRO": skills/marketing-skill/paywall-upgrade-cro.md
+      - "Popup CRO": skills/marketing-skill/popup-cro.md
+      - "Pricing Strategy": skills/marketing-skill/pricing-strategy.md
+      - "Programmatic SEO": skills/marketing-skill/programmatic-seo.md
+      - "Prompt Engineer Toolkit": skills/marketing-skill/prompt-engineer-toolkit.md
+      - "Referral Program": skills/marketing-skill/referral-program.md
+      - "Schema Markup": skills/marketing-skill/schema-markup.md
+      - "SEO Audit": skills/marketing-skill/seo-audit.md
+      - "Signup Flow CRO": skills/marketing-skill/signup-flow-cro.md
+      - "Site Architecture": skills/marketing-skill/site-architecture.md
+      - "Social Content": skills/marketing-skill/social-content.md
+      - "Social Media Analyzer": skills/marketing-skill/social-media-analyzer.md
+      - "Social Media Manager": skills/marketing-skill/social-media-manager.md
+      - "Video Content Strategist": skills/marketing-skill/video-content-strategist.md
+      - "X/Twitter Growth": skills/marketing-skill/x-twitter-growth.md
+    - Project Management:
+      - Overview: skills/project-management/index.md
+      - "Atlassian Admin": skills/project-management/atlassian-admin.md
+      - "Atlassian Templates": skills/project-management/atlassian-templates.md
+      - "Confluence Expert": skills/project-management/confluence-expert.md
+      - "Jira Expert": skills/project-management/jira-expert.md
+      - "Meeting Analyzer": skills/project-management/meeting-analyzer.md
+      - "Scrum Master": skills/project-management/scrum-master.md
+      - "Senior PM": skills/project-management/senior-pm.md
+      - "Team Communications": skills/project-management/team-communications.md
+    - C-Level Advisory:
+      - Overview: skills/c-level-advisor/index.md
+      - "Agent Protocol": skills/c-level-advisor/agent-protocol.md
+      - "Board Deck Builder": skills/c-level-advisor/board-deck-builder.md
+      - "Board Meeting": skills/c-level-advisor/board-meeting.md
+      - "C-Level Ecosystem": skills/c-level-advisor/c-level-advisor.md
+      - "CEO Advisor": skills/c-level-advisor/ceo-advisor.md
+      - "CFO Advisor": skills/c-level-advisor/cfo-advisor.md
+      - "Change Management": skills/c-level-advisor/change-management.md
+      - "Chief of Staff": skills/c-level-advisor/chief-of-staff.md
+      - "CHRO Advisor": skills/c-level-advisor/chro-advisor.md
+      - "CISO Advisor": skills/c-level-advisor/ciso-advisor.md
+      - "CMO Advisor": skills/c-level-advisor/cmo-advisor.md
+      - "Company OS": skills/c-level-advisor/company-os.md
+      - "Competitive Intel": skills/c-level-advisor/competitive-intel.md
+      - "Context Engine": skills/c-level-advisor/context-engine.md
+      - "COO Advisor": skills/c-level-advisor/coo-advisor.md
+      - "CPO Advisor": skills/c-level-advisor/cpo-advisor.md
+      - "CRO Advisor": skills/c-level-advisor/cro-advisor.md
+      - "C-Suite Onboarding": skills/c-level-advisor/cs-onboard.md
+      - "CTO Advisor": skills/c-level-advisor/cto-advisor.md
+      - "Culture Architect": skills/c-level-advisor/culture-architect.md
+      - "Decision Logger": skills/c-level-advisor/decision-logger.md
+      - Executive Mentor:
+        - "Executive Mentor": skills/c-level-advisor/executive-mentor.md
+        - "Board Prep": skills/c-level-advisor/executive-mentor-board-prep.md
+        - "Challenge": skills/c-level-advisor/executive-mentor-challenge.md
+        - "Hard Call": skills/c-level-advisor/executive-mentor-hard-call.md
+        - "Postmortem": skills/c-level-advisor/executive-mentor-postmortem.md
+        - "Stress Test": skills/c-level-advisor/executive-mentor-stress-test.md
+      - "Founder Coach": skills/c-level-advisor/founder-coach.md
+      - "Internal Narrative": skills/c-level-advisor/internal-narrative.md
+      - "International Expansion": skills/c-level-advisor/intl-expansion.md
+      - "M&A Playbook": skills/c-level-advisor/ma-playbook.md
+      - "Org Health Diagnostic": skills/c-level-advisor/org-health-diagnostic.md
+      - "Scenario War Room": skills/c-level-advisor/scenario-war-room.md
+      - "Strategic Alignment": skills/c-level-advisor/strategic-alignment.md
+    - Regulatory & Quality:
+      - Overview: skills/ra-qm-team/index.md
+      - "CAPA Officer": skills/ra-qm-team/capa-officer.md
+      - "FDA Consultant": skills/ra-qm-team/fda-consultant-specialist.md
+      - "GDPR/DSGVO Expert": skills/ra-qm-team/gdpr-dsgvo-expert.md
+      - "ISO 27001 Security Manager": skills/ra-qm-team/information-security-manager-iso27001.md
+      - "ISMS Audit Expert": skills/ra-qm-team/isms-audit-expert.md
+      - "MDR 2017/745 Specialist": skills/ra-qm-team/mdr-745-specialist.md
+      - "QMS Audit Expert": skills/ra-qm-team/qms-audit-expert.md
+      - "Quality Documentation Manager": skills/ra-qm-team/quality-documentation-manager.md
+      - "Quality Manager (QMR)": skills/ra-qm-team/quality-manager-qmr.md
+      - "Quality Manager - ISO 13485": skills/ra-qm-team/quality-manager-qms-iso13485.md
+      - "Regulatory Affairs Head": skills/ra-qm-team/regulatory-affairs-head.md
+      - "Risk Management Specialist": skills/ra-qm-team/risk-management-specialist.md
+      - "SOC 2 Compliance": skills/ra-qm-team/soc2-compliance.md
+    - Business & Growth:
+      - Overview: skills/business-growth/index.md
+      - "Contract & Proposal Writer": skills/business-growth/contract-and-proposal-writer.md
+      - "Customer Success Manager": skills/business-growth/customer-success-manager.md
+      - "Revenue Operations": skills/business-growth/revenue-operations.md
+      - "Sales Engineer": skills/business-growth/sales-engineer.md
+    - Finance:
+      - Overview: skills/finance/index.md
+      - "Business Investment Advisor": skills/finance/business-investment-advisor.md
+      - "Financial Analyst": skills/finance/financial-analyst.md
+      - "SaaS Metrics Coach": skills/finance/saas-metrics-coach.md
+  - Plugins:
+    - Overview: plugins/index.md
+  - Personas:
+    - Overview: personas/index.md
+    - "Startup CTO": personas/startup-cto.md
+    - "Growth Marketer": personas/growth-marketer.md
+    - "Solo Founder": personas/solo-founder.md
+  - Orchestration: orchestration.md
+  - Custom GPTs: custom-gpts.md
+  - Agents:
+    - Overview: agents/index.md
+    - "CS Agile Product Owner": agents/cs-agile-product-owner.md
+    - "CS CEO Advisor": agents/cs-ceo-advisor.md
+    - "CS Content Creator": agents/cs-content-creator.md
+    - "CS CTO Advisor": agents/cs-cto-advisor.md
+    - "CS Demand Gen Specialist": agents/cs-demand-gen-specialist.md
+    - "CS Engineering Lead": agents/cs-engineering-lead.md
+    - "CS Financial Analyst": agents/cs-financial-analyst.md
+    - "CS Growth Strategist": agents/cs-growth-strategist.md
+    - "CS Product Manager": agents/cs-product-manager.md
+    - "CS Workspace Admin": agents/cs-workspace-admin.md
+    - "CS Product Analyst": agents/cs-product-analyst.md
+    - "CS Product Strategist": agents/cs-product-strategist.md
+    - "CS Project Manager": agents/cs-project-manager.md
+    - "CS Quality & Regulatory": agents/cs-quality-regulatory.md
+    - "CS Senior Engineer": agents/cs-senior-engineer.md
+    - "CS UX Researcher": agents/cs-ux-researcher.md
+  - Commands:
+    - Overview: commands/index.md
+    - "/a11y-audit": commands/a11y-audit.md
+    - "/changelog": commands/changelog.md
+    - "/code-to-prd": commands/code-to-prd.md
+    - "/competitive-matrix": commands/competitive-matrix.md
+    - "/financial-health": commands/financial-health.md
+    - "/focused-fix": commands/focused-fix.md
+    - "/okr": commands/okr.md
+    - "/persona": commands/persona.md
+    - "/pipeline": commands/pipeline.md
+    - "/plugin-audit": commands/plugin-audit.md
+    - "/prd": commands/prd.md
+    - "/project-health": commands/project-health.md
+    - "/retro": commands/retro.md
+    - "/rice": commands/rice.md
+    - "/seo-auditor": commands/seo-auditor.md
+    - "/saas-health": commands/saas-health.md
+    - "/sprint-health": commands/sprint-health.md
+    - "/sprint-plan": commands/sprint-plan.md
+    - "/tdd": commands/tdd.md
+    - "/tech-debt": commands/tech-debt.md
+    - "/user-story": commands/user-story.md
+    - "/google-workspace": commands/google-workspace.md
