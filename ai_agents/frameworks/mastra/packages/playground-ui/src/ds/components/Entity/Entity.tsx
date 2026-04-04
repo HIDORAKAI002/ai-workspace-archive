@@ -1,0 +1,61 @@
+import { Txt } from '../Txt';
+import { Icon } from '@/ds/icons';
+import { cn } from '@/lib/utils';
+
+export interface EntityProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}
+
+export const Entity = ({ children, className, onClick }: EntityProps) => {
+  return (
+    <div
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={e => {
+        if (!onClick) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={cn(
+        'flex gap-3 group/entity bg-surface3 rounded-xl border border-border1 py-3 px-4',
+        onClick && 'cursor-pointer hover:bg-surface4 transition-all',
+        className,
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const EntityIcon = ({ children, className, style }: EntityProps) => {
+  return (
+    <Icon size="lg" className={cn('text-neutral3 mt-1 shrink-0', className)} style={style}>
+      {children}
+    </Icon>
+  );
+};
+
+export const EntityName = ({ children, className }: EntityProps) => {
+  return (
+    <Txt as="p" variant="ui-lg" className={cn('text-neutral6 font-medium', className)}>
+      {children}
+    </Txt>
+  );
+};
+
+export const EntityDescription = ({ children, className }: EntityProps) => {
+  return (
+    <Txt as="div" variant="ui-sm" className={cn('text-neutral3', className)}>
+      {children}
+    </Txt>
+  );
+};
+
+export const EntityContent = ({ children, className }: EntityProps) => {
+  return <div className={cn('flex-1 w-full', className)}>{children}</div>;
+};
