@@ -76,7 +76,7 @@ import {
   newRawAppPathAssigner,
   PathAssigner,
 } from "../../../windmill-utils-internal/src/path-utils/path-assigner.ts";
-import { extractInlineScripts as extractInlineScriptsForFlows } from "../../../windmill-utils-internal/src/inline-scripts/extractor.ts";
+import { extractInlineScripts as extractInlineScriptsForFlows, extractCurrentMapping } from "../../../windmill-utils-internal/src/inline-scripts/extractor.ts";
 import { generateFlowLockInternal } from "../flow/flow_metadata.ts";
 import { isExecutionModeAnonymous } from "../app/app.ts";
 import {
@@ -375,7 +375,7 @@ ${tables.length > 0 ? tables.map(t => `    - ${t}`).join('\n') : '    # Add tabl
 
 ## Quick Reference
 
-**Backend runnable:** Add \`backend/<name>.ts\` (or .py, etc.), then run \`wmill app generate-locks\`
+**Backend runnable:** Add \`backend/<name>.ts\` (or .py, etc.), then run \`wmill generate-metadata\`
 
 **Call from frontend:**
 \`\`\`typescript
@@ -638,9 +638,16 @@ function ZipFSElement(
             let inlineScripts;
             try {
               const assigner = newPathAssigner(defaultTs, { skipInlineScriptSuffix: getNonDottedPaths() });
-              inlineScripts = extractInlineScriptsForFlows(
+              // Preserve original !inline filenames from the flow to avoid phantom renames
+              const inlineMapping = extractCurrentMapping(
                 flow.value.modules as any,
                 {},
+                flow.value.failure_module,
+                flow.value.preprocessor_module,
+              );
+              inlineScripts = extractInlineScriptsForFlows(
+                flow.value.modules as any,
+                inlineMapping,
                 SEP,
                 defaultTs,
                 assigner,
@@ -649,7 +656,7 @@ function ZipFSElement(
               if (flow.value.failure_module) {
                 inlineScripts.push(...extractInlineScriptsForFlows(
                   [flow.value.failure_module],
-                  {},
+                  inlineMapping,
                   SEP,
                   defaultTs,
                   assigner,
@@ -659,7 +666,7 @@ function ZipFSElement(
               if (flow.value.preprocessor_module) {
                 inlineScripts.push(...extractInlineScriptsForFlows(
                   [flow.value.preprocessor_module],
-                  {},
+                  inlineMapping,
                   SEP,
                   defaultTs,
                   assigner,
@@ -1299,6 +1306,7 @@ export async function elementsToMap(
           "nu",
           "java",
           "rb",
+          "r",
           // for related places search: ADD_NEW_LANG
         ].includes(path.split(".").pop() ?? "")
       ) {
@@ -1518,6 +1526,10 @@ async function compareDynFSElement(
         continue;
       }
       if (k.startsWith("dependencies/")) {
+        if (!workspaceDependenciesPathToLanguageAndFilename(k)) {
+          log.warn(`Skipping unrecognized workspace dependencies file: ${k}`);
+          continue;
+        }
         log.info(`Adding workspace dependencies file: ${k}`);
       }
       changes.push({ name: "added", path: k, content: v });
@@ -2656,7 +2668,7 @@ export async function push(
       log.info("Auto-regenerated metadata for stale scripts:");
     } else {
       log.warn(
-        "Stale scripts metadata found, you may want to update them using 'wmill script generate-metadata' before pushing:",
+        "Stale scripts metadata found, you may want to update them using 'wmill generate-metadata' before pushing:",
       );
     }
     for (const stale of staleScripts) {
@@ -2689,7 +2701,7 @@ export async function push(
       log.info("Auto-regenerated locks for stale flows:");
     } else {
       log.warn(
-        "Stale flows locks found, you may want to update them using 'wmill flow generate-locks' before pushing:",
+        "Stale flows locks found, you may want to update them using 'wmill generate-metadata' before pushing:",
       );
     }
     for (const stale of staleFlows) {
@@ -2737,7 +2749,7 @@ export async function push(
       log.info("Auto-regenerated locks for stale apps:");
     } else {
       log.warn(
-        "Stale apps locks found, you may want to update them using 'wmill app generate-locks' before pushing:",
+        "Stale apps locks found, you may want to update them using 'wmill generate-metadata' before pushing:",
       );
     }
     for (const stale of staleApps) {
@@ -2789,9 +2801,32 @@ export async function push(
       }
     }
     for (const folderName of folderNames) {
-      try {
-        await stat(path.join("f", folderName, "folder.meta.yaml"));
-      } catch {
+      const basePath = path.join("f", folderName, "folder.meta.yaml");
+      const branchPath = getBranchSpecificPath(
+        `f/${folderName}/folder.meta.yaml`,
+        specificItems,
+        opts.branch,
+      );
+      let found = false;
+      // Check branch-specific variant first (e.g. folder.dev.meta.yaml)
+      if (branchPath) {
+        try {
+          await stat(branchPath);
+          found = true;
+        } catch {
+          // fall through to base path check
+        }
+      }
+      // Then check base path
+      if (!found) {
+        try {
+          await stat(basePath);
+          found = true;
+        } catch {
+          // not found
+        }
+      }
+      if (!found) {
         missingFolders.push(folderName);
       }
     }

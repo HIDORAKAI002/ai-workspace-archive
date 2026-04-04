@@ -39,7 +39,14 @@ fn deserialize_string_from_null<'de, D>(deserializer: D) -> Result<String, D::Er
 where
     D: Deserializer<'de>,
 {
-    Option::<String>::deserialize(deserializer).map(|v| v.unwrap_or_default())
+    // DuckDB may return booleans for fields that other databases return as strings
+    let v = serde_json::Value::deserialize(deserializer)?;
+    match v {
+        serde_json::Value::Null => Ok(String::new()),
+        serde_json::Value::String(s) => Ok(s),
+        serde_json::Value::Bool(b) => Ok(b.to_string()),
+        other => Ok(other.to_string()),
+    }
 }
 
 fn deserialize_column_identity_from_null<'de, D>(
@@ -49,15 +56,21 @@ where
     D: Deserializer<'de>,
 {
     // MySQL returns uppercase "YES"/"NO" while the enum expects title case.
-    let v = Option::<String>::deserialize(deserializer)?;
-    match v.as_deref() {
-        None => Ok(ColumnIdentity::default()),
-        Some(s) => match s.to_lowercase().as_str() {
+    // DuckDB returns a boolean false instead of a string.
+    let v = serde_json::Value::deserialize(deserializer)?;
+    match v {
+        serde_json::Value::Null => Ok(ColumnIdentity::default()),
+        serde_json::Value::Bool(_) => Ok(ColumnIdentity::No),
+        serde_json::Value::String(s) => match s.to_lowercase().as_str() {
             "no" => Ok(ColumnIdentity::No),
             "yes" | "always" => Ok(ColumnIdentity::Always),
             "by default" => Ok(ColumnIdentity::ByDefault),
             _ => Ok(ColumnIdentity::No),
         },
+        _ => Err(serde::de::Error::custom(format!(
+            "expected string, bool, or null for isidentity, got {}",
+            v
+        ))),
     }
 }
 
@@ -388,7 +401,7 @@ pub fn build_parameters(columns: &[SimpleColumn], db_type: DbType) -> String {
         .map(|(i, col)| {
             let base_type = col.datatype.split('(').next().unwrap_or(&col.datatype);
             match db_type {
-                DbType::Postgresql => format!("-- ${} {}", i + 1, col.field),
+                DbType::Postgresql => format!("-- ${} {} ({})", i + 1, col.field, base_type),
                 DbType::Mysql => format!("-- :{} ({})", col.field, base_type),
                 DbType::MsSqlServer => {
                     format!("-- @p{} {} ({})", i + 1, col.field, base_type)
@@ -752,7 +765,7 @@ pub fn make_select_query(
                 quicksearch
             ));
             query.push_str(&format!(" ORDER BY {}\n", order_by));
-            query.push_str(" LIMIT $1::INT OFFSET $2::INT");
+            query.push_str(" LIMIT $1 OFFSET $2");
             Ok(query)
         }
         DbType::MsSqlServer => {
@@ -1145,13 +1158,11 @@ pub fn make_delete_query(table: &str, columns: &[ColumnDef], db_type: DbType) ->
                 .map(|(i, c)| {
                     let qf = qi(&c.field, db_type);
                     format!(
-                        "(${}::text::{} IS NULL AND {} IS NULL OR {} = ${}::text::{})",
+                        "(${} IS NULL AND {} IS NULL OR {} = ${})",
                         i + 1,
-                        c.datatype,
                         qf,
                         qf,
                         i + 1,
-                        c.datatype
                     )
                 })
                 .collect::<Vec<_>>()
@@ -1267,7 +1278,7 @@ fn format_insert_values(columns: &[ColumnDef], db_type: DbType, start_index: usi
         .enumerate()
         .map(|(i, c)| match db_type {
             DbType::Mysql => format!(":{}", c.field),
-            DbType::Postgresql => format!("${}::{}", start_index + i, c.datatype),
+            DbType::Postgresql => format!("${}", start_index + i),
             DbType::MsSqlServer => format!("@p{}", start_index + i),
             DbType::Snowflake => "?".to_string(),
             DbType::Bigquery => format!("@{}", c.field),
@@ -1445,21 +1456,19 @@ pub fn make_update_query(
                 .map(|(i, c)| {
                     let qf = qi(&c.field, db_type);
                     format!(
-                        "(${}::text::{} IS NULL AND {} IS NULL OR {} = ${}::text::{})",
+                        "(${} IS NULL AND {} IS NULL OR {} = ${})",
                         i + 2,
-                        c.datatype,
                         qf,
                         qf,
                         i + 2,
-                        c.datatype
                     )
                 })
                 .collect::<Vec<_>>()
                 .join("\n    AND ");
 
             query.push_str(&format!(
-                "\nUPDATE {} SET {} = $1::text::{} \nWHERE {}\tRETURNING 1",
-                qt, qcol, column.datatype, conditions
+                "\nUPDATE {} SET {} = $1 \nWHERE {}\tRETURNING 1",
+                qt, qcol, conditions
             ));
         }
         DbType::Mysql => {
@@ -2369,7 +2378,7 @@ fn make_load_table_metadata_query(
     COLUMN_DEFAULT as DefaultValue,
     false as IsPrimaryKey,
     false as IsIdentity,
-    IS_NULLABLE as IsNullable,
+    CASE WHEN IS_NULLABLE = true THEN 'YES' ELSE 'NO' END as IsNullable,
     false as IsEnum,
     TABLE_NAME as table_name
 FROM information_schema.columns c
@@ -2693,7 +2702,7 @@ mod tests {
     fn test_build_parameters_postgresql() {
         let cols = vec![simple_col("limit", "int"), simple_col("offset", "int")];
         let result = build_parameters(&cols, DbType::Postgresql);
-        assert_eq!(result, "-- $1 limit\n-- $2 offset");
+        assert_eq!(result, "-- $1 limit (int)\n-- $2 offset (int)");
     }
 
     #[test]
@@ -2802,11 +2811,11 @@ mod tests {
             make_select_query("my_table", &cols, None, DbType::Postgresql, None, None).unwrap();
 
         assert!(result.starts_with(
-            "-- $1 limit\n-- $2 offset\n-- $3 quicksearch\n-- $4 order_by\n-- $5 is_desc\n"
+            "-- $1 limit (int)\n-- $2 offset (int)\n-- $3 quicksearch (text)\n-- $4 order_by (text)\n-- $5 is_desc (boolean)\n"
         ));
         assert!(result.contains("SELECT \"id\"::text, \"name\"::text FROM \"my_table\"\n"));
         assert!(result.contains("($3 = '' OR CONCAT(\"id\", \"name\") ILIKE '%' || $3 || '%')"));
-        assert!(result.contains("LIMIT $1::INT OFFSET $2::INT"));
+        assert!(result.contains("LIMIT $1 OFFSET $2"));
         assert!(result.contains("$4 = 'id' AND $5 IS false THEN \"id\"::text"));
         assert!(result.contains("$4 = 'name' AND $5 IS true THEN \"name\"::text END) DESC"));
     }
@@ -2998,7 +3007,7 @@ mod tests {
         let cols = vec![col("id", "int4"), col("name", "text")];
         let result = make_count_query(DbType::Postgresql, "my_table", None, &cols).unwrap();
 
-        assert!(result.contains("-- $1 quicksearch"));
+        assert!(result.contains("-- $1 quicksearch (text)"));
         assert!(result.contains("SELECT COUNT(*) as count FROM \"my_table\""));
         assert!(result.contains("($1 = '' OR CONCAT(\"id\", \"name\") ILIKE '%' || $1 || '%')"));
         // Should use WHERE not AND
@@ -3135,13 +3144,10 @@ mod tests {
         let cols = vec![col("id", "int4"), col("name", "text")];
         let result = make_delete_query("my_table", &cols, DbType::Postgresql);
 
-        assert!(result.contains("-- $1 id\n-- $2 name"));
+        assert!(result.contains("-- $1 id (int4)\n-- $2 name (text)"));
         assert!(result.contains("DELETE FROM \"my_table\""));
-        assert!(result
-            .contains("($1::text::int4 IS NULL AND \"id\" IS NULL OR \"id\" = $1::text::int4)"));
-        assert!(result.contains(
-            "($2::text::text IS NULL AND \"name\" IS NULL OR \"name\" = $2::text::text)"
-        ));
+        assert!(result.contains("($1 IS NULL AND \"id\" IS NULL OR \"id\" = $1)"));
+        assert!(result.contains("($2 IS NULL AND \"name\" IS NULL OR \"name\" = $2)"));
         assert!(result.contains("RETURNING 1;"));
     }
 
@@ -3208,9 +3214,8 @@ mod tests {
         let cols = vec![col("id", "int4"), col("name", "text")];
         let result = make_insert_query("my_table", &cols, DbType::Postgresql).unwrap();
 
-        assert!(result.contains("-- $1 id\n-- $2 name"));
-        assert!(result
-            .contains("INSERT INTO \"my_table\" (\"id\", \"name\") VALUES ($1::int4, $2::text)"));
+        assert!(result.contains("-- $1 id (int4)\n-- $2 name (text)"));
+        assert!(result.contains("INSERT INTO \"my_table\" (\"id\", \"name\") VALUES ($1, $2)"));
     }
 
     #[test]
@@ -3266,7 +3271,7 @@ mod tests {
             make_insert_query("my_table", &[id_col, name_col], DbType::Postgresql).unwrap();
 
         // id should be skipped from insert columns (has nextval default in pg)
-        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1::text)"));
+        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1)"));
     }
 
     #[test]
@@ -3280,9 +3285,7 @@ mod tests {
             make_insert_query("my_table", &[id_col, name_col], DbType::Postgresql).unwrap();
 
         // name should be in insert params, id should be in defaults
-        assert!(
-            result.contains("INSERT INTO \"my_table\" (\"name\", \"id\") VALUES ($1::text, '42')")
-        );
+        assert!(result.contains("INSERT INTO \"my_table\" (\"name\", \"id\") VALUES ($1, '42')"));
     }
 
     #[test]
@@ -3295,7 +3298,7 @@ mod tests {
         let result =
             make_insert_query("my_table", &[id_col, name_col], DbType::Postgresql).unwrap();
 
-        assert!(result.contains("VALUES ($1::text, NULL)"));
+        assert!(result.contains("VALUES ($1, NULL)"));
     }
 
     #[test]
@@ -3310,7 +3313,7 @@ mod tests {
             make_insert_query("my_table", &[id_col, name_col], DbType::Postgresql).unwrap();
 
         // Column is hidden, not nullable, has db default, no user default -> omit (use db default)
-        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1::text)"));
+        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1)"));
     }
 
     #[test]
@@ -3324,7 +3327,7 @@ mod tests {
             make_insert_query("my_table", &[id_col, name_col], DbType::Postgresql).unwrap();
 
         // Always identity should be omitted
-        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1::text)"));
+        assert!(result.contains("INSERT INTO \"my_table\" (\"name\") VALUES ($1)"));
     }
 
     #[test]
@@ -3362,13 +3365,12 @@ mod tests {
         let where_cols = vec![simple_col("id", "int4"), simple_col("email", "text")];
         let result = make_update_query("my_table", &update_col, &where_cols, DbType::Postgresql);
 
-        assert!(result.contains("-- $1 value_to_update\n-- $2 id\n-- $3 email"));
-        assert!(result.contains("UPDATE \"my_table\" SET \"name\" = $1::text::text"));
-        assert!(result
-            .contains("($2::text::int4 IS NULL AND \"id\" IS NULL OR \"id\" = $2::text::int4)"));
-        assert!(result.contains(
-            "($3::text::text IS NULL AND \"email\" IS NULL OR \"email\" = $3::text::text)"
-        ));
+        assert!(
+            result.contains("-- $1 value_to_update (text)\n-- $2 id (int4)\n-- $3 email (text)")
+        );
+        assert!(result.contains("UPDATE \"my_table\" SET \"name\" = $1"));
+        assert!(result.contains("($2 IS NULL AND \"id\" IS NULL OR \"id\" = $2)"));
+        assert!(result.contains("($3 IS NULL AND \"email\" IS NULL OR \"email\" = $3)"));
         assert!(result.contains("RETURNING 1"));
     }
 
@@ -3450,10 +3452,8 @@ mod tests {
         let cols = vec![col("a", "int4"), col("b", "text"), col("c", "bool")];
         let result = make_delete_query("t", &cols, DbType::Postgresql);
         // Check all three conditions are present and joined
-        assert!(result
-            .contains("AND ($2::text::text IS NULL AND \"b\" IS NULL OR \"b\" = $2::text::text)"));
-        assert!(result
-            .contains("AND ($3::text::bool IS NULL AND \"c\" IS NULL OR \"c\" = $3::text::bool)"));
+        assert!(result.contains("AND ($2 IS NULL AND \"b\" IS NULL OR \"b\" = $2)"));
+        assert!(result.contains("AND ($3 IS NULL AND \"c\" IS NULL OR \"c\" = $3)"));
     }
 
     #[test]
@@ -3505,7 +3505,7 @@ mod tests {
         let result = make_insert_query("my_table", &[name_col, col1], DbType::Postgresql).unwrap();
 
         // Numeric value should not be quoted
-        assert!(result.contains("VALUES ($1::text, 5)"));
+        assert!(result.contains("VALUES ($1, 5)"));
     }
 
     // -----------------------------------------------------------------------
@@ -3527,7 +3527,7 @@ mod tests {
         assert!(result.is_some());
         let sql = result.unwrap().unwrap().code;
         assert!(sql.contains("SELECT \"id\"::text, \"name\"::text FROM \"my_table\""));
-        assert!(sql.contains("LIMIT $1::INT OFFSET $2::INT"));
+        assert!(sql.contains("LIMIT $1 OFFSET $2"));
     }
 
     #[test]
@@ -3558,16 +3558,14 @@ mod tests {
     fn test_expand_insert_marker() {
         let marker = r#"-- WM_INTERNAL_DB_INSERT {"table":"my_table","columns":[{"field":"id","datatype":"int4"},{"field":"name","datatype":"text"}]}"#;
         let sql = expand_code(marker, &ScriptLang::Postgresql);
-        assert!(
-            sql.contains("INSERT INTO \"my_table\" (\"id\", \"name\") VALUES ($1::int4, $2::text)")
-        );
+        assert!(sql.contains("INSERT INTO \"my_table\" (\"id\", \"name\") VALUES ($1, $2)"));
     }
 
     #[test]
     fn test_expand_update_marker() {
         let marker = r#"-- WM_INTERNAL_DB_UPDATE {"table":"my_table","column":{"field":"name","datatype":"text"},"columns":[{"field":"id","datatype":"int4"}]}"#;
         let sql = expand_code(marker, &ScriptLang::Postgresql);
-        assert!(sql.contains("UPDATE \"my_table\" SET \"name\" = $1::text::text"));
+        assert!(sql.contains("UPDATE \"my_table\" SET \"name\" = $1"));
         assert!(sql.contains("RETURNING 1"));
     }
 
