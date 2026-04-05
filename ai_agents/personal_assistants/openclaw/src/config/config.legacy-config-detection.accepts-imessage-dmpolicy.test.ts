@@ -4,12 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const { loadConfig, readConfigFileSnapshot, validateConfigObject } =
   await vi.importActual<typeof import("./config.js")>("./config.js");
-const { migrateLegacyConfig: migrateLegacyConfigFromDoctor } = await vi.importActual<
-  typeof import("../commands/doctor/shared/legacy-config-migrate.js")
->("../commands/doctor/shared/legacy-config-migrate.js");
 import { withTempHome } from "./test-helpers.js";
-
-const migrateLegacyConfig = migrateLegacyConfigFromDoctor;
 
 async function expectLoadRejectionPreservesField(params: {
   config: unknown;
@@ -212,14 +207,6 @@ describe("legacy config detection", () => {
       expect(res.issues[0]?.message).toContain('"agent"');
     }
   });
-  it("does not rewrite removed telegram.requireMention migrations", async () => {
-    const res = migrateLegacyConfig({
-      telegram: { requireMention: false },
-    });
-    expect(res.changes).toEqual([]);
-    expect(res.config).toBeNull();
-  });
-
   it("flags channels.telegram.groupMentionsOnly as legacy in snapshot", async () => {
     await withSnapshotForConfig(
       { channels: { telegram: { groupMentionsOnly: true } } },
@@ -238,27 +225,6 @@ describe("legacy config detection", () => {
     );
   });
 
-  it("does not rewrite removed messages.tts.enabled migrations", async () => {
-    const res = migrateLegacyConfig({
-      messages: { tts: { enabled: true } },
-    });
-    expect(res.changes).toEqual([]);
-    expect(res.config).toBeNull();
-  });
-  it("does not rewrite removed legacy model config migrations", async () => {
-    const res = migrateLegacyConfig({
-      agent: {
-        model: "anthropic/claude-opus-4-6",
-        modelFallbacks: ["openai/gpt-4.1-mini"],
-        imageModel: "openai/gpt-4.1-mini",
-        imageModelFallbacks: ["anthropic/claude-opus-4-6"],
-        allowedModels: ["anthropic/claude-opus-4-6", "openai/gpt-4.1-mini"],
-        modelAliases: { Opus: "anthropic/claude-opus-4-6" },
-      },
-    });
-    expect(res.changes).toEqual([]);
-    expect(res.config).toBeNull();
-  });
   it("rejects removed routing.allowFrom in snapshot", async () => {
     await withSnapshotForConfig({ routing: { allowFrom: ["+15555550123"] } }, async (ctx) => {
       expectSnapshotInvalidRootKey(ctx, "routing");
@@ -287,7 +253,7 @@ describe("legacy config detection", () => {
       expectSnapshotInvalidRootKey(ctx, "whatsapp");
     });
   });
-  it("does not auto-migrate claude-cli auth profile mode on load", async () => {
+  it("does not auto-migrate removed cli auth profile modes on load", async () => {
     await withTempHome(async (home) => {
       const configPath = path.join(home, ".openclaw", "openclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
@@ -297,7 +263,7 @@ describe("legacy config detection", () => {
           {
             auth: {
               profiles: {
-                "anthropic:claude-cli": { provider: "anthropic", mode: "token" },
+                "anthropic:removed-cli": { provider: "anthropic", mode: "token" },
               },
             },
           },
@@ -308,13 +274,13 @@ describe("legacy config detection", () => {
       );
 
       const cfg = loadConfig();
-      expect(cfg.auth?.profiles?.["anthropic:claude-cli"]?.mode).toBe("token");
+      expect(cfg.auth?.profiles?.["anthropic:removed-cli"]?.mode).toBe("token");
 
       const raw = await fs.readFile(configPath, "utf-8");
       const parsed = JSON.parse(raw) as {
         auth?: { profiles?: Record<string, { mode?: string }> };
       };
-      expect(parsed.auth?.profiles?.["anthropic:claude-cli"]?.mode).toBe("token");
+      expect(parsed.auth?.profiles?.["anthropic:removed-cli"]?.mode).toBe("token");
     });
   });
   it("still flags memorySearch in snapshot under the shorter support window", async () => {

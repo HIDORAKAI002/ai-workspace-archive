@@ -122,7 +122,6 @@ explicitly promotes one as public.
     | `plugin-sdk/provider-entry` | `defineSingleProviderPluginEntry` |
     | `plugin-sdk/provider-setup` | Curated local/self-hosted provider setup helpers |
     | `plugin-sdk/self-hosted-provider-setup` | Focused OpenAI-compatible self-hosted provider setup helpers |
-    | `plugin-sdk/cli-backend` | CLI backend defaults + watchdog constants |
     | `plugin-sdk/provider-auth-runtime` | Runtime API-key resolution helpers for provider plugins |
     | `plugin-sdk/provider-auth-api-key` | API-key onboarding/profile-write helpers |
     | `plugin-sdk/provider-auth-result` | Standard OAuth auth-result builder |
@@ -264,7 +263,7 @@ explicitly promotes one as public.
   <Accordion title="Reserved bundled-helper subpaths">
     | Family | Current subpaths | Intended use |
     | --- | --- | --- |
-    | Browser | `plugin-sdk/browser-config-support`, `plugin-sdk/browser-support` | Bundled browser plugin support helpers |
+    | Browser | `plugin-sdk/browser-cdp`, `plugin-sdk/browser-config-support`, `plugin-sdk/browser-control-auth`, `plugin-sdk/browser-profiles`, `plugin-sdk/browser-support` | Bundled browser plugin support helpers |
     | Matrix | `plugin-sdk/matrix`, `plugin-sdk/matrix-helper`, `plugin-sdk/matrix-runtime-heavy`, `plugin-sdk/matrix-runtime-shared`, `plugin-sdk/matrix-runtime-surface`, `plugin-sdk/matrix-surface`, `plugin-sdk/matrix-thread-bindings` | Bundled Matrix helper/runtime surface |
     | Line | `plugin-sdk/line`, `plugin-sdk/line-core`, `plugin-sdk/line-runtime`, `plugin-sdk/line-surface` | Bundled LINE helper/runtime surface |
     | IRC | `plugin-sdk/irc`, `plugin-sdk/irc-surface` | Bundled IRC helper surface |
@@ -283,7 +282,6 @@ methods:
 | Method                                           | What it registers                |
 | ------------------------------------------------ | -------------------------------- |
 | `api.registerProvider(...)`                      | Text inference (LLM)             |
-| `api.registerCliBackend(...)`                    | Local CLI inference backend      |
 | `api.registerChannel(...)`                       | Messaging channel                |
 | `api.registerSpeechProvider(...)`                | Text-to-speech / STT synthesis   |
 | `api.registerRealtimeTranscriptionProvider(...)` | Streaming realtime transcription |
@@ -350,18 +348,6 @@ api.registerCli(
 Use `commands` by itself only when you do not need lazy root CLI registration.
 That eager compatibility path remains supported, but it does not install
 descriptor-backed placeholders for parse-time lazy loading.
-
-### CLI backend registration
-
-`api.registerCliBackend(...)` lets a plugin own the default config for a local
-AI CLI backend such as `claude-cli` or `codex-cli`.
-
-- The backend `id` becomes the provider prefix in model refs like `claude-cli/opus`.
-- The backend `config` uses the same shape as `agents.defaults.cliBackends.<id>`.
-- User config still wins. OpenClaw merges `agents.defaults.cliBackends.<id>` over the
-  plugin default before running the CLI.
-- Use `normalizeConfig` when a backend needs compatibility rewrites after merge
-  (for example normalizing old flag shapes).
 
 ### Exclusive slots
 
