@@ -413,6 +413,101 @@ print(text_viz)
 
 ### Serialization Methods
 
+#### `to_spec() -> Dict[str, Any]`
+
+Serializes the workflow topology to a lightweight plain-dict spec. Unlike `to_json()`, this only records each agent's `agent_name` — not the agent objects themselves — making it suitable for version control, diffing, and sharing.
+
+**Returns:**
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `name` | `str` | Workflow name |
+| `description` | `str` | Workflow description |
+| `max_loops` | `int` | Maximum loops |
+| `nodes` | `List[dict]` | List of `{"id", "agent_name", "metadata"}` dicts, sorted by node ID |
+| `edges` | `List[dict]` | List of `{"source", "target", "metadata"}` dicts, sorted by source then target |
+| `entry_points` | `List[str]` | Sorted list of entry-point node IDs |
+| `end_points` | `List[str]` | Sorted list of end-point node IDs |
+
+Output is deterministically sorted so two equivalent workflows built in different insertion orders produce identical specs.
+
+**Example:**
+
+```python
+spec = workflow.to_spec()
+import json
+print(json.dumps(spec, indent=2))
+# {
+#   "name": "Research-Workflow",
+#   "nodes": [{"id": "AnalysisAgent", "agent_name": "AnalysisAgent", ...}, ...],
+#   "edges": [{"source": "ResearchAgent", "target": "AnalysisAgent", ...}],
+#   ...
+# }
+```
+
+---
+
+#### `save_spec(path: str) -> None`
+
+Saves the topology spec from `to_spec()` to a JSON file. This is the recommended way to persist a workflow definition for version control or later reconstruction.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `path` | `str` | Filesystem path to write the JSON file to. Parent directories are created automatically. |
+
+**Example:**
+
+```python
+workflow.save_spec("workflows/research_workflow.json")
+```
+
+---
+
+#### `from_topology_spec(spec: Dict[str, Any], agent_registry: Dict[str, Agent], **kwargs) -> GraphWorkflow`
+
+Class method. Reconstructs a `GraphWorkflow` from a topology spec and an agent registry. The spec describes the structure; the registry supplies the live `Agent` objects.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `spec` | `Dict[str, Any]` | Topology spec as returned by `to_spec()` or loaded from a file written by `save_spec()` |
+| `agent_registry` | `Dict[str, Agent]` | Mapping from `agent_name` to `Agent` instance. Every agent referenced in the spec must appear here. |
+| `**kwargs` | `Any` | Additional kwargs forwarded to the `GraphWorkflow` constructor (e.g. `verbose`, `backend`) |
+
+**Returns:** `GraphWorkflow` — fully initialized with topology from the spec and agents resolved from the registry.
+
+**Raises:**
+
+| Exception | Condition |
+|-----------|-----------|
+| `ValueError` | `spec` is missing required keys |
+| `ValueError` | Any node or edge dict is malformed |
+| `ValueError` | An `agent_name` in the spec is absent from `agent_registry` |
+
+**Example:**
+
+```python
+import json
+from swarms import Agent, GraphWorkflow
+
+# Save a workflow spec
+workflow.save_spec("research_workflow.json")
+
+# Later, reconstruct it with live agents
+with open("research_workflow.json") as f:
+    spec = json.load(f)
+
+registry = {
+    "ResearchAgent": Agent(agent_name="ResearchAgent", model_name="gpt-5.4", max_loops=1),
+    "AnalysisAgent": Agent(agent_name="AnalysisAgent", model_name="gpt-5.4", max_loops=1),
+    "SynthesisAgent": Agent(agent_name="SynthesisAgent", model_name="gpt-5.4", max_loops=1),
+}
+
+workflow = GraphWorkflow.from_topology_spec(spec, registry, verbose=True)
+results = workflow.run("Analyze renewable energy trends")
+```
+
+---
+
 #### `to_json(fast: bool = True, include_conversation: bool = False, include_runtime_state: bool = False) -> str`
 
 Serializes the workflow to JSON format.
@@ -795,6 +890,69 @@ results = workflow.run(
     max_loops=2
 )
 ```
+
+### Topology Serialization (Lightweight)
+
+`to_spec()` / `save_spec()` / `from_topology_spec()` give you a minimal JSON representation of the workflow structure — just agent names and connections — with no agent implementation details embedded. Use this for version control and sharing; use `to_json()` / `save_to_file()` when you need full state including conversation history.
+
+```python
+import json
+from swarms import Agent, GraphWorkflow
+
+# Build a workflow
+research = Agent(agent_name="ResearchAgent", model_name="gpt-5.4", max_loops=1)
+analysis = Agent(agent_name="AnalysisAgent", model_name="gpt-5.4", max_loops=1)
+synthesis = Agent(agent_name="SynthesisAgent", model_name="gpt-5.4", max_loops=1)
+
+workflow = GraphWorkflow(name="Research-Pipeline")
+workflow.add_nodes([research, analysis, synthesis])
+workflow.add_edge("ResearchAgent", "AnalysisAgent")
+workflow.add_edge("AnalysisAgent", "SynthesisAgent")
+
+# Save topology only — no agent objects, safe to commit to git
+workflow.save_spec("workflows/research_pipeline.json")
+
+# Reconstruct later with fresh agents
+with open("workflows/research_pipeline.json") as f:
+    spec = json.load(f)
+
+registry = {
+    "ResearchAgent": Agent(agent_name="ResearchAgent", model_name="gpt-5.4", max_loops=1),
+    "AnalysisAgent": Agent(agent_name="AnalysisAgent", model_name="gpt-5.4", max_loops=1),
+    "SynthesisAgent": Agent(agent_name="SynthesisAgent", model_name="gpt-5.4", max_loops=1),
+}
+
+workflow = GraphWorkflow.from_topology_spec(spec, registry)
+results = workflow.run("Analyze renewable energy investment trends")
+```
+
+**Spec file format:**
+
+```json
+{
+  "name": "Research-Pipeline",
+  "description": "",
+  "max_loops": 1,
+  "nodes": [
+    {"id": "AnalysisAgent", "agent_name": "AnalysisAgent", "metadata": {}},
+    {"id": "ResearchAgent", "agent_name": "ResearchAgent", "metadata": {}},
+    {"id": "SynthesisAgent", "agent_name": "SynthesisAgent", "metadata": {}}
+  ],
+  "edges": [
+    {"source": "AnalysisAgent", "target": "SynthesisAgent", "metadata": {}},
+    {"source": "ResearchAgent", "target": "AnalysisAgent", "metadata": {}}
+  ],
+  "entry_points": [],
+  "end_points": []
+}
+```
+
+| Method | Serializes agents? | Safe to version-control? | Use for |
+|--------|--------------------|--------------------------|---------|
+| `save_spec()` | No — names only | Yes | Sharing topology, CI/CD, diffing |
+| `save_to_file()` | Yes — full objects | Depends on content | Full state persistence |
+
+---
 
 ### Workflow Serialization and Persistence
 
