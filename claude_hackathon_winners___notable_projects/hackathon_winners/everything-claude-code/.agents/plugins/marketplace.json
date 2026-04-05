@@ -1,11 +1,11 @@
 {
-  "name": "everything-claude-code",
+  "name": "ecc",
   "interface": {
     "displayName": "Everything Claude Code"
   },
   "plugins": [
     {
-      "name": "everything-claude-code",
+      "name": "ecc",
       "source": {
         "source": "local",
         "path": "../.."

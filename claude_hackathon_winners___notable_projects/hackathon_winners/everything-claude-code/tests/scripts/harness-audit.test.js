@@ -99,10 +99,10 @@ function runTests() {
     const projectRoot = createTempDir('harness-audit-project-');
 
     try {
-      fs.mkdirSync(path.join(homeDir, '.claude', 'plugins', 'everything-claude-code', '.claude-plugin'), { recursive: true });
+      fs.mkdirSync(path.join(homeDir, '.claude', 'plugins', 'ecc', '.claude-plugin'), { recursive: true });
       fs.writeFileSync(
-        path.join(homeDir, '.claude', 'plugins', 'everything-claude-code', '.claude-plugin', 'plugin.json'),
-        JSON.stringify({ name: 'everything-claude-code' }, null, 2)
+        path.join(homeDir, '.claude', 'plugins', 'ecc', '.claude-plugin', 'plugin.json'),
+        JSON.stringify({ name: 'ecc' }, null, 2)
       );
 
       fs.mkdirSync(path.join(projectRoot, '.github', 'workflows'), { recursive: true });

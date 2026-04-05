@@ -872,7 +872,6 @@ function carryTrailingForwardStickyAcrossCJKBoundary(segmentation: MergedSegment
   }
 }
 
-
 function buildMergedSegmentation(
   normalized: string,
   profile: AnalysisProfile,
@@ -889,6 +888,8 @@ function buildMergedSegmentation(
     for (const piece of splitSegmentByBreakKind(s.segment, s.isWordLike ?? false, s.index, whiteSpaceProfile)) {
       const isText = piece.kind === 'text'
 
+      // First-pass keeps: no-space script-specific joins and punctuation glue
+      // that depend on the immediately preceding text run.
       if (
         profile.carryCJKAfterClosingQuote &&
         isText &&
@@ -959,6 +960,9 @@ function buildMergedSegmentation(
     }
   }
 
+  // Later passes operate on the merged text stream itself: contextual escaped
+  // quote glue, forward-sticky carry, compaction, then the broader URL/numeric
+  // and Arabic-leading-mark fixes.
   for (let i = 1; i < mergedLen; i++) {
     if (
       mergedKinds[i] === 'text' &&

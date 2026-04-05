@@ -1,6 +1,6 @@
 {
   "name": "ecc-universal",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Complete collection of battle-tested Claude Code configs — agents, skills, hooks, rules, and legacy command shims evolved over 10+ months of intensive daily use by an Anthropic hackathon winner",
   "keywords": [
     "claude-code",
@@ -42,6 +42,7 @@
     ".codex/",
     ".cursor/",
     ".opencode/commands/",
+    ".opencode/dist/",
     ".opencode/instructions/",
     ".opencode/plugins/",
     ".opencode/prompts/",
@@ -112,7 +113,9 @@
     "orchestrate:worker": "bash scripts/orchestrate-codex-worker.sh",
     "orchestrate:tmux": "node scripts/orchestrate-worktrees.js",
     "test": "node scripts/ci/check-unicode-safety.js && node scripts/ci/validate-agents.js && node scripts/ci/validate-commands.js && node scripts/ci/validate-rules.js && node scripts/ci/validate-skills.js && node scripts/ci/validate-hooks.js && node scripts/ci/validate-install-manifests.js && node scripts/ci/validate-no-personal-paths.js && npm run catalog:check && node tests/run-all.js",
-    "coverage": "c8 --all --include=\"scripts/**/*.js\" --check-coverage --lines 80 --functions 80 --branches 80 --statements 80 --reporter=text --reporter=lcov node tests/run-all.js"
+    "coverage": "c8 --all --include=\"scripts/**/*.js\" --check-coverage --lines 80 --functions 80 --branches 80 --statements 80 --reporter=text --reporter=lcov node tests/run-all.js",
+    "build:opencode": "node scripts/build-opencode.js",
+    "prepack": "npm run build:opencode"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
@@ -121,10 +124,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@opencode-ai/plugin": "^1.0.0",
+    "@types/node": "^20.19.24",
     "c8": "^11.0.0",
     "eslint": "^9.39.2",
     "globals": "^17.1.0",
-    "markdownlint-cli": "^0.48.0"
+    "markdownlint-cli": "^0.48.0",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18"

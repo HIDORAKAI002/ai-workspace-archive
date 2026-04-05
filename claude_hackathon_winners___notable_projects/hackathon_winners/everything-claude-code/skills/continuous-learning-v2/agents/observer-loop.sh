@@ -170,17 +170,17 @@ Rules:
 PROMPT
 
   timeout_seconds="${ECC_OBSERVER_TIMEOUT_SECONDS:-120}"
-  max_turns="${ECC_OBSERVER_MAX_TURNS:-10}"
+  max_turns="${ECC_OBSERVER_MAX_TURNS:-20}"
   exit_code=0
 
   case "$max_turns" in
     ''|*[!0-9]*)
-      max_turns=10
+      max_turns=20
       ;;
   esac
 
   if [ "$max_turns" -lt 4 ]; then
-    max_turns=10
+    max_turns=20
   fi
 
   # Ensure CWD is PROJECT_DIR so the relative analysis_relpath resolves correctly

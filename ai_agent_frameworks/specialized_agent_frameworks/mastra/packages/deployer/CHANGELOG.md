@@ -1,5 +1,25 @@
 # @mastra/deployer
 
+## 1.23.0-alpha.5
+
+### Patch Changes
+
+- Fixed `mastra build` so deploy output keeps its installed dependencies, preventing `mastra start` and `wrangler dev` from failing on missing packages. ([#15077](https://github.com/mastra-ai/mastra/pull/15077))
+
+- Updated dependencies [[`1371703`](https://github.com/mastra-ai/mastra/commit/1371703835080450ef3f9aea58059a95d0da2e5a), [`98f8a8b`](https://github.com/mastra-ai/mastra/commit/98f8a8bdf5761b9982f3ad3acbe7f1cc3efa71f3)]:
+  - @mastra/core@1.23.0-alpha.5
+  - @mastra/server@1.23.0-alpha.5
+
+## 1.23.0-alpha.4
+
+### Patch Changes
+
+- Added `mastra studio deploy` command for deploying studio to the Mastra platform. Includes `deploy`, `deploy list`, `deploy status`, `deploy logs`, and `projects` subcommands. Also generates a `package-lock.json` during build for faster deploys. ([#15067](https://github.com/mastra-ai/mastra/pull/15067))
+
+- Updated dependencies [[`fff91cf`](https://github.com/mastra-ai/mastra/commit/fff91cf914de0e731578aacebffdeebef82f0440)]:
+  - @mastra/core@1.23.0-alpha.4
+  - @mastra/server@1.23.0-alpha.4
+
 ## 1.23.0-alpha.3
 
 ### Patch Changes
