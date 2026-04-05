@@ -33,7 +33,7 @@
 
 Sadece konfigürasyon dosyaları değil. Tam bir sistem: skill'ler, instinct'ler, memory optimizasyonu, sürekli öğrenme, güvenlik taraması ve araştırma odaklı geliştirme. 10+ ay boyunca gerçek ürünler inşa ederken yoğun günlük kullanımla evrimleşmiş production-ready agent'lar, hook'lar, command'lar, rule'lar ve MCP konfigürasyonları.
 
-**Claude Code**, **Codex**, **Cowork** ve diğer AI agent harness'larında çalışır.
+**Claude Code**, **Codex**, **Cursor**, **OpenCode**, **Gemini** ve diğer AI agent harness'larında çalışır.
 
 ---
 
@@ -113,10 +113,10 @@ Bu repository yalnızca ham kodu içerir. Rehberler her şeyi açıklıyor.
 
 ```bash
 # Marketplace ekle
-/plugin marketplace add affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/everything-claude-code
 
 # Plugin'i kur
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 ### Adım 2: Rule'ları Kurun (Gerekli)
@@ -155,13 +155,13 @@ Manuel kurulum talimatları için `rules/` klasöründeki README'ye bakın.
 
 ```bash
 # Bir command deneyin (plugin kurulumu namespace'li form kullanır)
-/everything-claude-code:plan "Kullanıcı kimlik doğrulaması ekle"
+/ecc:plan "Kullanıcı kimlik doğrulaması ekle"
 
 # Manuel kurulum (Seçenek 2) daha kısa formu kullanır:
 # /plan "Kullanıcı kimlik doğrulaması ekle"
 
 # Mevcut command'ları kontrol edin
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
 **Bu kadar!** Artık 28 agent, 116 skill ve 59 command'a erişiminiz var.
@@ -299,8 +299,8 @@ Nereden başlayacağınızdan emin değil misiniz? Bu hızlı referansı kullan�
 
 | Yapmak istediğim... | Bu command'ı kullan | Kullanılan agent |
 |---------------------|---------------------|------------------|
-| Yeni bir feature planla | `/everything-claude-code:plan "Auth ekle"` | planner |
-| Sistem mimarisi tasarla | `/everything-claude-code:plan` + architect agent | architect |
+| Yeni bir feature planla | `/ecc:plan "Auth ekle"` | planner |
+| Sistem mimarisi tasarla | `/ecc:plan` + architect agent | architect |
 | Önce testlerle kod yaz | `/tdd` | tdd-guide |
 | Yazdığım kodu incele | `/code-review` | code-reviewer |
 | Başarısız bir build'i düzelt | `/build-fix` | build-error-resolver |
@@ -315,7 +315,7 @@ Nereden başlayacağınızdan emin değil misiniz? Bu hızlı referansı kullan�
 
 **Yeni bir feature başlatma:**
 ```
-/everything-claude-code:plan "OAuth ile kullanıcı kimlik doğrulaması ekle"
+/ecc:plan "OAuth ile kullanıcı kimlik doğrulaması ekle"
                                               → planner implementasyon planı oluşturur
 /tdd                                          → tdd-guide önce-test-yaz'ı zorunlu kılar
 /code-review                                  → code-reviewer çalışmanızı kontrol eder
@@ -343,7 +343,7 @@ Nereden başlayacağınızdan emin değil misiniz? Bu hızlı referansı kullan�
 <summary><b>Hangi agent/command'ların kurulu olduğunu nasıl kontrol ederim?</b></summary>
 
 ```bash
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
 Bu, plugin'den mevcut tüm agent'ları, command'ları ve skill'leri gösterir.
@@ -391,8 +391,8 @@ Her component tamamen bağımsızdır.
 <summary><b>Bu Cursor / OpenCode / Codex / Antigravity ile çalışır mı?</b></summary>
 
 Evet. ECC çapraz platformdur:
-- **Cursor**: `.cursor/` içinde önceden çevrilmiş config'ler. [Cursor IDE Desteği](#cursor-ide-desteği) bölümüne bakın.
-- **OpenCode**: `.opencode/` içinde tam plugin desteği. [OpenCode Desteği](#-opencode-desteği) bölümüne bakın.
+- **Cursor**: `.cursor/` içinde önceden çevrilmiş config'ler. [Cursor IDE Desteği](../../README.md#cursor-ide-support) bölümüne bakın.
+- **OpenCode**: `.opencode/` içinde tam plugin desteği. [OpenCode Desteği](../../README.md#opencode-support) bölümüne bakın.
 - **Codex**: macOS app ve CLI için birinci sınıf destek. PR [#257](https://github.com/affaan-m/everything-claude-code/pull/257)'ye bakın.
 - **Antigravity**: İş akışları, skill'ler ve `.agent/` içinde düzleştirilmiş rule'lar için sıkı entegre kurulum.
 - **Claude Code**: Native — bu birincil hedeftir.

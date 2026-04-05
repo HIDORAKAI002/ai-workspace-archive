@@ -7,6 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { applyInstallPlan } = require('../../scripts/lib/install/apply');
 
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'install-apply.js');
 
@@ -437,6 +438,80 @@ function runTests() {
     } finally {
       cleanup(homeDir);
       cleanup(projectDir);
+    }
+  })) passed++; else failed++;
+
+  if (test('filters copied mcp config files when ECC_DISABLED_MCPS is set', () => {
+    const tempDir = createTempDir('install-apply-mcp-');
+    const sourcePath = path.join(tempDir, '.mcp.json');
+    const destinationPath = path.join(tempDir, 'installed', '.mcp.json');
+    const installStatePath = path.join(tempDir, 'installed', 'ecc-install-state.json');
+    const previousValue = process.env.ECC_DISABLED_MCPS;
+
+    try {
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, JSON.stringify({
+        mcpServers: {
+          github: { command: 'npx' },
+          exa: { url: 'https://mcp.exa.ai/mcp' },
+          memory: { command: 'npx' },
+        },
+      }, null, 2));
+
+      process.env.ECC_DISABLED_MCPS = 'github,memory';
+
+      applyInstallPlan({
+        targetRoot: path.join(tempDir, 'installed'),
+        installStatePath,
+        statePreview: {
+          schemaVersion: 'ecc.install.v1',
+          installedAt: new Date().toISOString(),
+          target: {
+            id: 'test-install',
+            kind: 'project',
+            root: path.join(tempDir, 'installed'),
+            installStatePath,
+          },
+          request: {
+            profile: null,
+            modules: ['test-mcp'],
+            includeComponents: [],
+            excludeComponents: [],
+            legacyLanguages: [],
+            legacyMode: false,
+          },
+          resolution: {
+            selectedModules: ['test-mcp'],
+            skippedModules: [],
+          },
+          source: {
+            repoVersion: null,
+            repoCommit: null,
+            manifestVersion: 1,
+          },
+          operations: [],
+        },
+        operations: [{
+          kind: 'copy-file',
+          moduleId: 'test-mcp',
+          sourcePath,
+          sourceRelativePath: '.mcp.json',
+          destinationPath,
+          strategy: 'preserve-relative-path',
+          ownership: 'managed',
+          scaffoldOnly: false,
+        }],
+      });
+
+      const installed = readJson(destinationPath);
+      assert.deepStrictEqual(Object.keys(installed.mcpServers), ['exa']);
+    } finally {
+      if (previousValue === undefined) {
+        delete process.env.ECC_DISABLED_MCPS;
+      } else {
+        process.env.ECC_DISABLED_MCPS = previousValue;
+      }
+      cleanup(tempDir);
     }
   })) passed++; else failed++;
 

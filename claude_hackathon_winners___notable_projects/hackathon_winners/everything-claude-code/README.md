@@ -17,7 +17,7 @@
 ![Perl](https://img.shields.io/badge/-Perl-39457E?logo=perl&logoColor=white)
 ![Markdown](https://img.shields.io/badge/-Markdown-000000?logo=markdown&logoColor=white)
 
-> **50K+ stars** | **6K+ forks** | **30 contributors** | **7 languages supported** | **Anthropic Hackathon Winner**
+> **140K+ stars** | **21K+ forks** | **170+ contributors** | **12+ language ecosystems** | **Anthropic Hackathon Winner**
 
 ---
 
@@ -36,7 +36,7 @@
 
 Not just configs. A complete system: skills, instincts, memory optimization, continuous learning, security scanning, and research-first development. Production-ready agents, skills, hooks, rules, MCP configurations, and legacy command shims evolved over 10+ months of intensive daily use building real products.
 
-Works across **Claude Code**, **Codex**, **Cowork**, and other AI agent harnesses.
+Works across **Claude Code**, **Codex**, **Cursor**, **OpenCode**, **Gemini**, and other AI agent harnesses.
 
 ---
 
@@ -81,6 +81,15 @@ This repo is the raw code only. The guides explain everything.
 ---
 
 ## What's New
+
+### v1.10.0 — Surface Refresh, Operator Workflows, and ECC 2.0 Alpha (Apr 2026)
+
+- **Public surface synced to the live repo** — metadata, catalog counts, plugin manifests, and install-facing docs now match the actual OSS surface: 38 agents, 156 skills, and 72 legacy command shims.
+- **Operator and outbound workflow expansion** — `brand-voice`, `social-graph-ranker`, `connections-optimizer`, `customer-billing-ops`, `google-workspace-ops`, `project-flow-ops`, and `workspace-surface-audit` round out the operator lane.
+- **Media and launch tooling** — `manim-video`, `remotion-video-creation`, and upgraded social publishing surfaces make technical explainers and launch content part of the same system.
+- **Framework and product surface growth** — `nestjs-patterns`, richer Codex/OpenCode install surfaces, and expanded cross-harness packaging keep the repo usable beyond Claude Code alone.
+- **ECC 2.0 alpha is in-tree** — the Rust control-plane prototype in `ecc2/` now builds locally and exposes `dashboard`, `start`, `sessions`, `status`, `stop`, `resume`, and `daemon` commands. It is usable as an alpha, not yet a general release.
+- **Ecosystem hardening** — AgentShield, ECC Tools cost controls, billing portal work, and website refreshes continue to ship around the core plugin instead of drifting into separate silos.
 
 ### v1.9.0 — Selective Install & Language Expansion (Mar 2026)
 
@@ -157,12 +166,14 @@ Get up and running in under 2 minutes:
 
 ### Step 1: Install the Plugin
 
+> NOTE: The plugin is convenient, but the OSS installer below is still the most reliable path if your Claude Code build has trouble resolving self-hosted marketplace entries.
+
 ```bash
 # Add marketplace
-/plugin marketplace add affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/everything-claude-code
 
 # Install plugin
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 ### Step 2: Install Rules (Required)
@@ -216,16 +227,16 @@ For manual install instructions see the README in the `rules/` folder. When copy
 # Existing slash-style command names still work while ECC migrates off commands/.
 
 # Plugin install uses the namespaced form
-/everything-claude-code:plan "Add user authentication"
+/ecc:plan "Add user authentication"
 
 # Manual install keeps the shorter slash form:
 # /plan "Add user authentication"
 
 # Check available commands
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
-**That's it!** You now have access to 38 agents, 156 skills, and 72 legacy command shims.
+**That's it!** You now have access to 38 agents, 158 skills, and 72 legacy command shims.
 
 ### Multi-model commands require additional setup
 
@@ -373,7 +384,7 @@ everything-claude-code/
 |   |-- jpa-patterns/              # JPA/Hibernate patterns (NEW)
 |   |-- postgres-patterns/         # PostgreSQL optimization patterns (NEW)
 |   |-- nutrient-document-processing/ # Document processing with Nutrient API (NEW)
-|   |-- project-guidelines-example/   # Template for project-specific skills
+|   |-- docs/examples/project-guidelines-template.md  # Template for project-specific skills
 |   |-- database-migrations/         # Migration patterns (Prisma, Drizzle, Django, Go) (NEW)
 |   |-- api-design/                  # REST API design, pagination, error responses (NEW)
 |   |-- deployment-patterns/         # CI/CD, Docker, health checks, rollbacks (NEW)
@@ -607,10 +618,10 @@ The easiest way to use this repo - install as a Claude Code plugin:
 
 ```bash
 # Add this repo as a marketplace
-/plugin marketplace add affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/everything-claude-code
 
 # Install the plugin
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 Or add directly to your `~/.claude/settings.json`:
@@ -618,7 +629,7 @@ Or add directly to your `~/.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "everything-claude-code": {
+    "ecc": {
       "source": {
         "source": "github",
         "repo": "affaan-m/everything-claude-code"
@@ -626,7 +637,7 @@ Or add directly to your `~/.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+    "ecc@ecc": true
   }
 }
 ```
@@ -696,6 +707,14 @@ Copy the hooks from `hooks/hooks.json` to your `~/.claude/settings.json`.
 #### Configure MCPs
 
 Copy desired MCP server definitions from `mcp-configs/mcp-servers.json` into your official Claude Code config in `~/.claude/settings.json`, or into a project-scoped `.mcp.json` if you want repo-local MCP access.
+
+If you already run your own copies of ECC-bundled MCPs, set:
+
+```bash
+export ECC_DISABLED_MCPS="github,context7,exa,playwright,sequential-thinking,memory"
+```
+
+ECC-managed install and Codex sync flows will skip or remove those bundled servers instead of re-adding duplicates.
 
 **Important:** Replace `YOUR_*_HERE` placeholders with your actual API keys.
 
@@ -770,8 +789,8 @@ Not sure where to start? Use this quick reference. Skills are the canonical work
 
 | I want to... | Use this command | Agent used |
 |--------------|-----------------|------------|
-| Plan a new feature | `/everything-claude-code:plan "Add auth"` | planner |
-| Design system architecture | `/everything-claude-code:plan` + architect agent | architect |
+| Plan a new feature | `/ecc:plan "Add auth"` | planner |
+| Design system architecture | `/ecc:plan` + architect agent | architect |
 | Write code with tests first | `/tdd` | tdd-guide |
 | Review code I just wrote | `/code-review` | code-reviewer |
 | Fix a failing build | `/build-fix` | build-error-resolver |
@@ -790,7 +809,7 @@ Slash forms below are shown because they are still the fastest familiar entrypoi
 
 **Starting a new feature:**
 ```
-/everything-claude-code:plan "Add user authentication with OAuth"
+/ecc:plan "Add user authentication with OAuth"
                                               → planner creates implementation blueprint
 /tdd                                          → tdd-guide enforces write-tests-first
 /code-review                                  → code-reviewer checks your work
@@ -818,7 +837,7 @@ Slash forms below are shown because they are still the fastest familiar entrypoi
 <summary><b>How do I check which agents/commands are installed?</b></summary>
 
 ```bash
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
 This shows all available agents, commands, and skills from the plugin.
@@ -894,9 +913,10 @@ Each component is fully independent.
 Yes. ECC is cross-platform:
 - **Cursor**: Pre-translated configs in `.cursor/`. See [Cursor IDE Support](#cursor-ide-support).
 - **Gemini CLI**: Experimental project-local support via `.gemini/GEMINI.md` and shared installer plumbing.
-- **OpenCode**: Full plugin support in `.opencode/`. See [OpenCode Support](#-opencode-support).
+- **OpenCode**: Full plugin support in `.opencode/`. See [OpenCode Support](#opencode-support).
 - **Codex**: First-class support for both macOS app and CLI, with adapter drift guards and SessionStart fallback. See PR [#257](https://github.com/affaan-m/everything-claude-code/pull/257).
 - **Antigravity**: Tightly integrated setup for workflows, skills, and flattened rules in `.agent/`. See [Antigravity Guide](docs/ANTIGRAVITY-GUIDE.md).
+- **Non-native harnesses**: Manual fallback path for Grok and similar interfaces. See [Manual Adaptation Guide](docs/MANUAL-ADAPTATION-GUIDE.md).
 - **Claude Code**: Native — this is the primary target.
 </details>
 
@@ -1047,8 +1067,8 @@ Codex macOS app:
 |-----------|-------|---------|
 | Config | 1 | `.codex/config.toml` — top-level approvals/sandbox/web_search, MCP servers, notifications, profiles |
 | AGENTS.md | 2 | Root (universal) + `.codex/AGENTS.md` (Codex-specific supplement) |
-| Skills | 16 | `.agents/skills/` — SKILL.md + agents/openai.yaml per skill |
-| MCP Servers | 6 | Supabase, Playwright, Context7, GitHub, Memory, Sequential Thinking (auto-merged via add-only sync) |
+| Skills | 30 | `.agents/skills/` — SKILL.md + agents/openai.yaml per skill |
+| MCP Servers | 6 | GitHub, Context7, Exa, Memory, Playwright, Sequential Thinking (7 with Supabase via `--update-mcp` sync) |
 | Profiles | 2 | `strict` (read-only sandbox) and `yolo` (full auto-approve) |
 | Agent Roles | 3 | `.codex/agents/` — explorer, reviewer, docs-researcher |
 
@@ -1058,22 +1078,36 @@ Skills at `.agents/skills/` are auto-loaded by Codex:
 
 | Skill | Description |
 |-------|-------------|
-| tdd-workflow | Test-driven development with 80%+ coverage |
-| security-review | Comprehensive security checklist |
-| coding-standards | Universal coding standards |
-| frontend-patterns | React/Next.js patterns |
-| frontend-slides | HTML presentations, PPTX conversion, visual style exploration |
+| api-design | REST API design patterns |
 | article-writing | Long-form writing from notes and voice references |
-| content-engine | Platform-native social content and repurposing |
-| market-research | Source-attributed market and competitor research |
-| investor-materials | Decks, memos, models, and one-pagers |
-| investor-outreach | Personalized outreach, follow-ups, and intro blurbs |
 | backend-patterns | API design, database, caching |
+| brand-voice | Source-derived writing style profiles from real content |
+| bun-runtime | Bun as runtime, package manager, bundler, and test runner |
+| claude-api | Anthropic Claude API patterns for Python and TypeScript |
+| coding-standards | Universal coding standards |
+| content-engine | Platform-native social content and repurposing |
+| crosspost | Multi-platform content distribution across X, LinkedIn, Threads |
+| deep-research | Multi-source research with synthesis and source attribution |
+| dmux-workflows | Multi-agent orchestration using tmux pane manager |
+| documentation-lookup | Up-to-date library and framework docs via Context7 MCP |
 | e2e-testing | Playwright E2E tests |
 | eval-harness | Eval-driven development |
+| everything-claude-code | Development conventions and patterns for the project |
+| exa-search | Neural search via Exa MCP for web, code, company research |
+| fal-ai-media | Unified media generation for images, video, and audio |
+| frontend-patterns | React/Next.js patterns |
+| frontend-slides | HTML presentations, PPTX conversion, visual style exploration |
+| investor-materials | Decks, memos, models, and one-pagers |
+| investor-outreach | Personalized outreach, follow-ups, and intro blurbs |
+| market-research | Source-attributed market and competitor research |
+| mcp-server-patterns | Build MCP servers with Node/TypeScript SDK |
+| nextjs-turbopack | Next.js 16+ and Turbopack incremental bundling |
+| security-review | Comprehensive security checklist |
 | strategic-compact | Context management |
-| api-design | REST API design patterns |
+| tdd-workflow | Test-driven development with 80%+ coverage |
 | verification-loop | Build, test, lint, typecheck, security |
+| video-editing | AI-assisted video editing workflows with FFmpeg and Remotion |
+| x-api | X/Twitter API integration for posting and analytics |
 
 ### Key Limitation
 
@@ -1081,7 +1115,7 @@ Codex does **not yet provide Claude-style hook execution parity**. ECC enforceme
 
 ### Multi-Agent Support
 
-Current Codex builds support experimental multi-agent workflows.
+Current Codex builds support stable multi-agent workflows.
 
 - Enable `features.multi_agent = true` in `.codex/config.toml`
 - Define roles under `[agents.<name>]`
@@ -1120,7 +1154,7 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 |---------|-------------|----------|--------|
 | Agents | PASS: 38 agents | PASS: 12 agents | **Claude Code leads** |
 | Commands | PASS: 72 commands | PASS: 31 commands | **Claude Code leads** |
-| Skills | PASS: 156 skills | PASS: 37 skills | **Claude Code leads** |
+| Skills | PASS: 158 skills | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers | PASS: Full | **Full parity** |
@@ -1229,7 +1263,7 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 |---------|------------|------------|-----------|----------|
 | **Agents** | 38 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
 | **Commands** | 72 | Shared | Instruction-based | 31 |
-| **Skills** | 156 | Shared | 10 (native format) | 37 |
+| **Skills** | 158 | Shared | 10 (native format) | 37 |
 | **Hook Events** | 8 types | 15 types | None yet | 11 types |
 | **Hook Scripts** | 20+ scripts | 16 scripts (DRY adapter) | N/A | Plugin hooks |
 | **Rules** | 34 (common + lang) | 34 (YAML frontmatter) | Instruction-based | 13 instructions |
@@ -1239,7 +1273,7 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 | **Context File** | CLAUDE.md + AGENTS.md | AGENTS.md | AGENTS.md | AGENTS.md |
 | **Secret Detection** | Hook-based | beforeSubmitPrompt hook | Sandbox-based | Hook-based |
 | **Auto-Format** | PostToolUse hook | afterFileEdit hook | N/A | file.edited hook |
-| **Version** | Plugin | Plugin | Reference config | 1.9.0 |
+| **Version** | Plugin | Plugin | Reference config | 1.10.0 |
 
 **Key architectural decisions:**
 - **AGENTS.md** at root is the universal cross-tool file (read by all 4 tools)

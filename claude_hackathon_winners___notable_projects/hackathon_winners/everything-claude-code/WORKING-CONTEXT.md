@@ -1,6 +1,6 @@
 # Working Context
 
-Last updated: 2026-04-02
+Last updated: 2026-04-05
 
 ## Purpose
 
@@ -9,8 +9,11 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 ## Current Truth
 
 - Default branch: `main`
-- Immediate blocker addressed: CI lockfile drift and hook validation breakage fixed in `a273c62`
-- Local full suite status after fix: `1723/1723` passing
+- Public release surface is aligned at `v1.10.0`
+- Public catalog truth is `38` agents, `72` commands, and `159` skills
+- Public plugin slug is now `ecc`; legacy `everything-claude-code` install paths remain supported for compatibility
+- Release discussion: `#1272`
+- ECC 2.0 exists in-tree and builds, but it is still alpha rather than GA
 - Main active operational work:
   - keep default branch green
   - continue issue-driven fixes from `main` now that the public PR backlog is at zero
@@ -25,6 +28,9 @@ Public ECC plugin repo for agents, skills, commands, hooks, rules, install surfa
 ## Active Queues
 
 - PR backlog: currently cleared on the public queue; new work should land through direct mainline fixes or fresh narrowly scoped PRs
+- Upstream branch backlog still needs selective mining and cleanup:
+  - `origin/feat/hermes-generated-ops-skills` still has three unique commits, but only reusable ECC-native skills should be salvaged from it
+  - multiple `origin/ecc-tools/*` automation branches are stale and should be pruned after confirming they carry no unique value
 - Product:
   - selective install cleanup
   - control plane primitives
@@ -129,3 +135,6 @@ Keep this file detailed for only the current sprint, blockers, and next actions.
 - 2026-04-02: Fixed `#1141` on `main` in `16e9b17`. The observer lifecycle is now session-aware instead of purely detached: `SessionStart` writes a project-scoped lease, `SessionEnd` removes that lease and stops the observer when the final lease disappears, `observe.sh` records project activity, and `observer-loop.sh` now exits on idle when no leases remain. Targeted validation passed with `bash -n`, `node tests/hooks/observer-memory.test.js`, `node tests/integration/hooks.test.js`, `node scripts/ci/validate-hooks.js hooks/hooks.json`, and `node scripts/ci/check-unicode-safety.js`.
 - 2026-04-02: Fixed the remaining Windows-only hook regression behind `#1070` by making `scripts/lib/utils.js#getHomeDir()` honor explicit `HOME` / `USERPROFILE` overrides before falling back to `os.homedir()`. This restores test-isolated observer state paths for hook integration runs on Windows. Added regression coverage in `tests/lib/utils.test.js`. Targeted validation passed with `node tests/lib/utils.test.js`, `node tests/integration/hooks.test.js`, `node tests/hooks/observer-memory.test.js`, and `node scripts/ci/check-unicode-safety.js`.
 - 2026-04-02: Direct-ported NestJS support for `#1022` into `main` as `skills/nestjs-patterns/SKILL.md` and wired it into the `framework-language` install module. Synced the repo catalog afterward (`38` agents, `72` commands, `156` skills) and updated the docs so NestJS is no longer listed as an unfilled framework gap.
+- 2026-04-05: Shipped `846ffb7` (`chore: ship v1.10.0 release surface refresh`). This updated README/plugin metadata/package versions, synced the explicit plugin agent inventory, bumped stale star/fork/contributor counts, created `docs/releases/1.10.0/*`, tagged and released `v1.10.0`, and posted the announcement discussion at `#1272`.
+- 2026-04-05: Salvaged the reusable Hermes-branch operator skills in `6eba30f` without replaying the full branch. Added `skills/github-ops`, `skills/knowledge-ops`, and `skills/hookify-rules`, wired them into install modules, and re-synced the repo to `159` skills. `knowledge-ops` was explicitly adapted to the current workspace model: live code in cloned repos, active truth in GitHub/Linear, broader non-code context in the KB/archive layers.
+- 2026-04-05: Fixed the remaining OpenCode npm-publish gap in `db6d52e`. The root package now builds `.opencode/dist` during `prepack`, includes the compiled OpenCode plugin assets in the published tarball, and carries a dedicated regression test (`tests/scripts/build-opencode.test.js`) so the package no longer ships only raw TypeScript source for that surface.

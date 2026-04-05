@@ -9,8 +9,7 @@ bun install
 ### Day-To-Day
 
 - `bun start` — stable local page server at <http://localhost:3000>
-- `bun run start:lan` — same server, but reachable from other devices on your LAN
-- `bun run start:watch` — same server, but with Bun watch/reload enabled
+- `bun run start:windows` — Windows-friendly fallback without automatic port cleanup
 - `bun run check` — typecheck plus lint
 - `bun test` — small durable invariant suite
 
@@ -37,6 +36,9 @@ bun install
 - `bun run keep-all-check` — compact browser oracle for `{ wordBreak: 'keep-all' }`, including mixed-script no-space canaries
 - `bun run probe-check` — smaller browser probe/diagnostic entrypoint
 - `bun run probe-check:safari`
+  On a first-break mismatch, probe output now includes a small break trace.
+  `sN:gM` means segment/grapheme position, `unit` is that unit's width, `fit` is the cumulative fitted width from the current line start, and `[ours]` / `[browser]` mark the competing break boundaries.
+  For Safari URL/query misses or other extractor-sensitive cases, cross-check `--method=span` before changing the engine.
 
 ### Corpus Tooling
 
@@ -50,10 +52,6 @@ bun install
 - `bun run corpus-representative` — rebuild `corpora/representative.json`
 - `bun run corpus-status` — rebuild `corpora/dashboard.json`
 - `bun run corpus-status:refresh` — refresh representative rows, sampled sweep, coarse sweep, then the corpus dashboard
-- `bun run gatsby-check` — compatibility alias for `corpus-check --id=en-gatsby-opening --diagnose`
-- `bun run gatsby-check:safari`
-- `bun run gatsby-sweep` — compatibility alias for `corpus-sweep --id=en-gatsby-opening`
-- `bun run gatsby-sweep:safari`
 
 ### Status Dashboards
 

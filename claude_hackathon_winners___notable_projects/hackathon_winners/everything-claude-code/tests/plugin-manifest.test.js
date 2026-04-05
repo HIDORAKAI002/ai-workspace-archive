@@ -79,6 +79,10 @@ test('claude plugin.json has version field', () => {
   assert.ok(claudePlugin.version, 'Expected version field');
 });
 
+test('claude plugin.json uses short plugin slug', () => {
+  assert.strictEqual(claudePlugin.name, 'ecc');
+});
+
 test('claude plugin.json agents is an array', () => {
   assert.ok(Array.isArray(claudePlugin.agents), 'Expected agents to be an array (not a string/directory)');
 });
@@ -144,6 +148,10 @@ const codexPlugin = loadJsonObject(codexPluginPath, '.codex-plugin/plugin.json')
 
 test('codex plugin.json has name field', () => {
   assert.ok(codexPlugin.name, 'Expected name field');
+});
+
+test('codex plugin.json uses short plugin slug', () => {
+  assert.strictEqual(codexPlugin.name, 'ecc');
 });
 
 test('codex plugin.json has version field', () => {
@@ -240,6 +248,10 @@ test('marketplace.json has name field', () => {
   assert.ok(marketplace.name, 'Expected name field');
 });
 
+test('marketplace.json uses short marketplace slug', () => {
+  assert.strictEqual(marketplace.name, 'ecc');
+});
+
 test('marketplace.json has plugins array with at least one entry', () => {
   assert.ok(Array.isArray(marketplace.plugins) && marketplace.plugins.length > 0, 'Expected plugins array');
 });
@@ -251,6 +263,10 @@ test('marketplace.json plugin entries have required fields', () => {
     assert.ok(plugin.policy && plugin.policy.installation, `Plugin "${plugin.name}" missing policy.installation`);
     assert.ok(plugin.category, `Plugin "${plugin.name}" missing category`);
   }
+});
+
+test('marketplace.json plugin entry uses short plugin slug', () => {
+  assert.strictEqual(marketplace.plugins[0].name, 'ecc');
 });
 
 test('marketplace local plugin path resolves to the repo-root Codex bundle', () => {

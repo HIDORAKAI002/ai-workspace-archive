@@ -8,9 +8,15 @@
 
 use std::{collections::HashMap, time::Duration};
 
+#[cfg(feature = "parquet")]
+mod background_task;
 #[cfg(feature = "private")]
 mod ee;
 pub mod ee_oss;
+#[cfg(feature = "parquet")]
+mod log_cleanup;
+#[cfg(feature = "parquet")]
+mod storage_usage;
 
 use windmill_api_auth::{require_devops_role, require_super_admin, ApiAuthed};
 use windmill_common::utils::HTTP_CLIENT_PERMISSIVE as HTTP_CLIENT;
@@ -129,7 +135,14 @@ pub fn global_service() -> Router {
 
     #[cfg(feature = "parquet")]
     {
-        return r.route("/test_object_storage_config", post(test_s3_bucket));
+        return r
+            .route("/test_object_storage_config", post(test_s3_bucket))
+            .route(
+                "/object_storage_usage",
+                get(get_object_storage_usage).post(compute_object_storage_usage),
+            )
+            .route("/run_log_cleanup", post(run_log_cleanup))
+            .route("/log_cleanup_status", get(log_cleanup_status));
     }
 
     #[cfg(not(feature = "parquet"))]
@@ -225,6 +238,46 @@ pub async fn test_s3_bucket(
     }
     client.delete(&path).await.map_err(to_anyhow)?;
     Ok("Tested blob storage successfully".to_string())
+}
+
+#[cfg(feature = "parquet")]
+async fn get_object_storage_usage(
+    Extension(db): Extension<DB>,
+    authed: ApiAuthed,
+) -> error::JsonResult<Option<storage_usage::StorageUsageProgress>> {
+    require_super_admin(&db, &authed.email).await?;
+    Ok(Json(storage_usage::get_status(&db).await?))
+}
+
+#[cfg(feature = "parquet")]
+async fn compute_object_storage_usage(
+    Extension(db): Extension<DB>,
+    authed: ApiAuthed,
+) -> error::Result<axum::http::StatusCode> {
+    require_super_admin(&db, &authed.email).await?;
+    storage_usage::try_start(&db).await?;
+    storage_usage::spawn_compute(db.clone());
+    Ok(axum::http::StatusCode::ACCEPTED)
+}
+
+#[cfg(feature = "parquet")]
+async fn run_log_cleanup(
+    Extension(db): Extension<DB>,
+    authed: ApiAuthed,
+) -> error::Result<axum::http::StatusCode> {
+    require_super_admin(&db, &authed.email).await?;
+    log_cleanup::try_start(&db).await?;
+    log_cleanup::spawn_cleanup(db.clone());
+    Ok(axum::http::StatusCode::ACCEPTED)
+}
+
+#[cfg(feature = "parquet")]
+async fn log_cleanup_status(
+    Extension(db): Extension<DB>,
+    authed: ApiAuthed,
+) -> error::JsonResult<Option<log_cleanup::LogCleanupProgress>> {
+    require_super_admin(&db, &authed.email).await?;
+    Ok(Json(log_cleanup::get_status(&db).await?))
 }
 
 #[derive(Deserialize)]
