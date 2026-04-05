@@ -2361,6 +2361,187 @@ class GraphWorkflow:
             )
             raise e
 
+    def to_spec(self) -> Dict[str, Any]:
+        """
+        Serialize the workflow topology to a lightweight plain-dict spec.
+
+        Unlike ``to_json()``, this method does **not** attempt to serialize the
+        Agent objects themselves — it only records each agent's ``agent_name``
+        so that the spec can be version-controlled, diffed, and shared without
+        requiring agent implementation details.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - ``name``, ``description``, ``max_loops`` — workflow metadata.
+                - ``nodes`` — list of ``{"id": ..., "agent_name": ..., "metadata": ...}`` dicts.
+                - ``edges`` — list of ``{"source": ..., "target": ..., "metadata": ...}`` dicts.
+                - ``entry_points`` — list of entry-point node IDs.
+                - ``end_points`` — list of end-point node IDs.
+
+        Example::
+
+            spec = workflow.to_spec()
+            # version-control or share `spec`
+            reconstructed = GraphWorkflow.from_topology_spec(spec, agent_registry)
+        """
+        return {
+            "name": self.name,
+            "description": self.description,
+            "max_loops": self.max_loops,
+            # Sorted for deterministic output — two equivalent workflows
+            # built in different insertion orders produce identical specs.
+            "nodes": [
+                {
+                    "id": node_id,
+                    "agent_name": getattr(
+                        node.agent, "agent_name", node_id
+                    ),
+                    "metadata": node.metadata,
+                }
+                for node_id, node in sorted(self.nodes.items())
+            ],
+            "edges": [
+                {
+                    "source": e.source,
+                    "target": e.target,
+                    "metadata": e.metadata,
+                }
+                for e in sorted(
+                    self.edges, key=lambda e: (e.source, e.target)
+                )
+            ],
+            "entry_points": sorted(self.entry_points),
+            "end_points": sorted(self.end_points),
+        }
+
+    def save_spec(self, path: str) -> None:
+        """
+        Save the workflow topology spec produced by :meth:`to_spec` to a JSON file.
+
+        This is the recommended way to persist a workflow definition for
+        version control, sharing, or later reconstruction via
+        :meth:`from_topology_spec`.
+
+        Args:
+            path (str): Filesystem path to write the JSON file to.
+
+        Example::
+
+            workflow.save_spec("my_workflow.json")
+        """
+        dir_name = os.path.dirname(path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.to_spec(), f, indent=2, default=str)
+        if self.verbose:
+            logger.info(f"Workflow spec saved to {path}")
+
+    @classmethod
+    def from_topology_spec(
+        cls,
+        spec: Dict[str, Any],
+        agent_registry: Dict[str, "Agent"],
+        **kwargs: Any,
+    ) -> "GraphWorkflow":
+        """
+        Reconstruct a :class:`GraphWorkflow` from a topology spec and an agent registry.
+
+        This is the counterpart to :meth:`to_spec` / :meth:`save_spec`.  The
+        spec describes *which* agents exist and how they are connected; the
+        registry supplies the live ``Agent`` objects that implement each node.
+
+        Args:
+            spec (Dict[str, Any]): A topology spec as returned by :meth:`to_spec`
+                or loaded from a file written by :meth:`save_spec`.
+            agent_registry (Dict[str, Agent]): Mapping from ``agent_name`` to
+                the corresponding ``Agent`` instance.  Every agent referenced in
+                ``spec["nodes"]`` must appear in the registry.
+            **kwargs: Additional keyword arguments forwarded to the
+                :class:`GraphWorkflow` constructor (e.g. ``verbose``, ``backend``).
+
+        Returns:
+            GraphWorkflow: A fully initialised workflow with the topology
+            described by *spec* and agents resolved from *agent_registry*.
+
+        Raises:
+            ValueError: If *spec* is missing required keys, any node/edge dict
+                is malformed, or an ``agent_name`` is absent from
+                *agent_registry*.
+
+        Example::
+
+            with open("my_workflow.json") as f:
+                spec = json.load(f)
+
+            registry = {"Researcher": researcher_agent, "Writer": writer_agent}
+            workflow = GraphWorkflow.from_topology_spec(spec, registry)
+            workflow.run("Write a report on AI trends")
+        """
+        if not isinstance(spec, dict):
+            raise ValueError(
+                f"spec must be a dict, got {type(spec).__name__}"
+            )
+        if "nodes" not in spec:
+            raise ValueError("spec is missing required key 'nodes'")
+
+        # Validate per-node required keys
+        for i, n in enumerate(spec.get("nodes", [])):
+            for key in ("id", "agent_name"):
+                if key not in n:
+                    raise ValueError(
+                        f"Node at index {i} is missing required key '{key}'"
+                    )
+
+        # Validate per-edge required keys
+        for i, e in enumerate(spec.get("edges", [])):
+            for key in ("source", "target"):
+                if key not in e:
+                    raise ValueError(
+                        f"Edge at index {i} is missing required key '{key}'"
+                    )
+
+        # Check all referenced agents exist in the registry
+        missing = [
+            n["agent_name"]
+            for n in spec["nodes"]
+            if n["agent_name"] not in agent_registry
+        ]
+        if missing:
+            raise ValueError(
+                f"The following agent names are referenced in the spec but not "
+                f"found in agent_registry: {missing}"
+            )
+
+        nodes = {
+            n["id"]: Node(
+                id=n["id"],
+                agent=agent_registry[n["agent_name"]],
+                metadata=n.get("metadata") or {},
+            )
+            for n in spec["nodes"]
+        }
+
+        edges = [
+            Edge(
+                source=e["source"],
+                target=e["target"],
+                metadata=e.get("metadata") or {},
+            )
+            for e in spec.get("edges", [])
+        ]
+
+        return cls(
+            name=spec.get("name", "Loaded-Workflow"),
+            description=spec.get("description", ""),
+            max_loops=spec.get("max_loops", 1),
+            nodes=nodes,
+            edges=edges,
+            entry_points=spec.get("entry_points") or [],
+            end_points=spec.get("end_points") or [],
+            **kwargs,
+        )
+
     def to_json(
         self,
         fast: bool = True,

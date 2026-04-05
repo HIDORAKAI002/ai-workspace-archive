@@ -528,6 +528,157 @@ def test_graph_workflow_rustworkx_agent_objects():
     assert result is not None
 
 
+def test_graph_workflow_to_spec_round_trip():
+    """to_spec / from_topology_spec round-trip preserves topology and metadata."""
+    a = create_test_agent("Alpha", "First agent")
+    b = create_test_agent("Beta", "Second agent")
+    c = create_test_agent("Gamma", "Third agent")
+
+    wf = GraphWorkflow(
+        name="RoundTrip", description="Test pipeline", max_loops=2
+    )
+    wf.add_nodes([a, b, c])
+    wf.add_edge("Alpha", "Beta", weight=1)
+    wf.add_edge("Beta", "Gamma", weight=2)
+    wf.compile()
+
+    spec = wf.to_spec()
+
+    # Top-level fields
+    assert spec["name"] == "RoundTrip"
+    assert spec["description"] == "Test pipeline"
+    assert spec["max_loops"] == 2
+
+    # Nodes are sorted by id
+    node_ids = [n["id"] for n in spec["nodes"]]
+    assert node_ids == sorted(node_ids)
+    assert set(node_ids) == {"Alpha", "Beta", "Gamma"}
+    for n in spec["nodes"]:
+        assert n["agent_name"] == n["id"]
+
+    # Edges are sorted by (source, target)
+    edge_pairs = [(e["source"], e["target"]) for e in spec["edges"]]
+    assert edge_pairs == sorted(edge_pairs)
+    assert ("Alpha", "Beta") in edge_pairs
+    assert ("Beta", "Gamma") in edge_pairs
+
+    # entry / end points are sorted lists
+    assert spec["entry_points"] == sorted(spec["entry_points"])
+    assert spec["end_points"] == sorted(spec["end_points"])
+
+    # Reconstruct
+    registry = {"Alpha": a, "Beta": b, "Gamma": c}
+    wf2 = GraphWorkflow.from_topology_spec(spec, registry)
+
+    assert set(wf2.nodes.keys()) == {"Alpha", "Beta", "Gamma"}
+    assert len(wf2.edges) == 2
+    assert wf2.name == "RoundTrip"
+    assert wf2.max_loops == 2
+    assert set(wf2.entry_points) == set(wf.entry_points)
+    assert set(wf2.end_points) == set(wf.end_points)
+
+    # Agent objects are resolved correctly
+    assert wf2.nodes["Alpha"].agent is a
+    assert wf2.nodes["Beta"].agent is b
+    assert wf2.nodes["Gamma"].agent is c
+
+
+def test_graph_workflow_to_spec_deterministic_order():
+    """to_spec output is identical regardless of insertion order."""
+    a = create_test_agent("Zebra")
+    b = create_test_agent("Apple")
+    c = create_test_agent("Mango")
+
+    wf1 = GraphWorkflow(name="Order-Test")
+    wf1.add_nodes([a, b, c])
+    wf1.add_edge("Apple", "Mango")
+    wf1.add_edge("Mango", "Zebra")
+    wf1.compile()
+
+    wf2 = GraphWorkflow(name="Order-Test")
+    wf2.add_nodes([c, a, b])  # different insertion order
+    wf2.add_edge("Mango", "Zebra")
+    wf2.add_edge("Apple", "Mango")
+    wf2.compile()
+
+    assert wf1.to_spec()["nodes"] == wf2.to_spec()["nodes"]
+    assert wf1.to_spec()["edges"] == wf2.to_spec()["edges"]
+
+
+def test_graph_workflow_to_spec_node_metadata():
+    """Node metadata is preserved through the spec round-trip."""
+    a = create_test_agent("Alpha")
+    b = create_test_agent("Beta")
+
+    from swarms.structs.graph_workflow import Node
+
+    wf = GraphWorkflow(name="Meta-Test")
+    wf.nodes["Alpha"] = Node(
+        id="Alpha", agent=a, metadata={"role": "lead", "priority": 1}
+    )
+    wf.nodes["Beta"] = Node(
+        id="Beta", agent=b, metadata={"role": "support"}
+    )
+    wf.add_edge("Alpha", "Beta")
+    wf.compile()
+
+    spec = wf.to_spec()
+    alpha_spec = next(n for n in spec["nodes"] if n["id"] == "Alpha")
+    assert alpha_spec["metadata"] == {"role": "lead", "priority": 1}
+
+    registry = {"Alpha": a, "Beta": b}
+    wf2 = GraphWorkflow.from_topology_spec(spec, registry)
+    assert wf2.nodes["Alpha"].metadata == {
+        "role": "lead",
+        "priority": 1,
+    }
+    assert wf2.nodes["Beta"].metadata == {"role": "support"}
+
+
+def test_graph_workflow_from_topology_spec_missing_agent():
+    """from_topology_spec raises ValueError when an agent is absent from the registry."""
+    a = create_test_agent("Alpha")
+    b = create_test_agent("Beta")
+
+    wf = GraphWorkflow(name="Missing-Agent-Test")
+    wf.add_nodes([a, b])
+    wf.add_edge("Alpha", "Beta")
+    wf.compile()
+
+    spec = wf.to_spec()
+
+    # Registry is missing "Beta"
+    with pytest.raises(ValueError, match="Beta"):
+        GraphWorkflow.from_topology_spec(spec, {"Alpha": a})
+
+
+def test_graph_workflow_from_topology_spec_malformed_node():
+    """from_topology_spec raises ValueError when a node dict is missing required keys."""
+    spec = {
+        "nodes": [{"id": "Alpha"}],  # missing "agent_name"
+        "edges": [],
+    }
+    with pytest.raises(ValueError, match="agent_name"):
+        GraphWorkflow.from_topology_spec(spec, {})
+
+
+def test_graph_workflow_from_topology_spec_malformed_edge():
+    """from_topology_spec raises ValueError when an edge dict is missing required keys."""
+    a = create_test_agent("Alpha")
+    spec = {
+        "nodes": [{"id": "Alpha", "agent_name": "Alpha"}],
+        "edges": [{"source": "Alpha"}],  # missing "target"
+    }
+    with pytest.raises(ValueError, match="target"):
+        GraphWorkflow.from_topology_spec(spec, {"Alpha": a})
+
+
+def test_graph_workflow_from_topology_spec_not_a_dict():
+    """from_topology_spec raises ValueError when spec is not a dict."""
+    with pytest.raises(ValueError, match="dict"):
+        GraphWorkflow.from_topology_spec("not-a-dict", {})
+
+
 def test_graph_workflow_backend_fallback():
     """Test backend fallback when rustworkx unavailable"""
     workflow = GraphWorkflow(
