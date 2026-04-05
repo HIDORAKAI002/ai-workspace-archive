@@ -18,7 +18,7 @@ An interactive, step-by-step installation wizard for the Everything Claude Code 
 ## Prerequisites
 
 This skill must be accessible to Claude Code before activation. Two ways to bootstrap:
-1. **Via Plugin**: `/plugin install everything-claude-code` — the plugin loads this skill automatically
+1. **Via Plugin**: `/plugin install ecc@ecc` — the plugin loads this skill automatically
 2. **Manual**: Copy only this skill to `~/.claude/skills/configure-ecc/SKILL.md`, then activate by saying "configure ecc"
 
 ---
@@ -190,7 +190,7 @@ For each selected category, print the full list of skills below and ask the user
 
 | Skill | Description |
 |-------|-------------|
-| `project-guidelines-example` | Template for creating project-specific skills |
+| `docs/examples/project-guidelines-template.md` | Template for creating project-specific skills |
 
 ### 2d: Execute Installation
 

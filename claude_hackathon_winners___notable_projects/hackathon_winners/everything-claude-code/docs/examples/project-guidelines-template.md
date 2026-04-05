@@ -1,10 +1,8 @@
----
-name: project-guidelines-example
-description: "Example project-specific skill template based on a real production application."
-origin: ECC
----
+# Project Guidelines Template
 
-# Project Guidelines Skill (Example)
+This is a project-specific skill template that was previously shipped as a live ECC skill.
+
+It now lives in `docs/examples/` because it is reference material, not a reusable cross-project skill.
 
 This is an example of a project-specific skill. Use this as a template for your own projects.
 

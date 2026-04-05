@@ -71,7 +71,7 @@
 /plugin marketplace add affaan-m/everything-claude-code
 
 # 安装插件
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 ### 第二步：安装规则（必需）
@@ -97,16 +97,16 @@ cp -r everything-claude-code/rules/perl ~/.claude/rules/
 
 ```bash
 # 尝试一个命令（插件安装使用命名空间形式）
-/everything-claude-code:plan "添加用户认证"
+/ecc:plan "添加用户认证"
 
 # 手动安装（选项2）使用简短形式：
 # /plan "添加用户认证"
 
 # 查看可用命令
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
-**完成！** 你现在可以使用 38 个代理、156 个技能和 72 个命令。
+**完成！** 你现在可以使用 38 个代理、158 个技能和 72 个命令。
 
 ### multi-* 命令需要额外配置
 
@@ -339,7 +339,7 @@ everything-claude-code/
 /plugin marketplace add affaan-m/everything-claude-code
 
 # 安装插件
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 或直接添加到你的 `~/.claude/settings.json`：
@@ -347,7 +347,7 @@ everything-claude-code/
 ```json
 {
   "extraKnownMarketplaces": {
-    "everything-claude-code": {
+    "ecc": {
       "source": {
         "source": "github",
         "repo": "affaan-m/everything-claude-code"
@@ -355,7 +355,7 @@ everything-claude-code/
     }
   },
   "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+    "ecc@ecc": true
   }
 }
 ```

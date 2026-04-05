@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { writeInstallState } = require('../install-state');
+const { filterMcpConfig, parseDisabledMcpServers } = require('../mcp-config');
 
 function readJsonObject(filePath, label) {
   let parsed;
@@ -124,6 +125,49 @@ function findHooksSourcePath(plan, hooksDestinationPath) {
   return operation ? operation.sourcePath : null;
 }
 
+function isMcpConfigPath(filePath) {
+  const basename = path.basename(String(filePath || ''));
+  return basename === '.mcp.json' || basename === 'mcp.json';
+}
+
+function buildFilteredMcpWrites(plan) {
+  const disabledServers = parseDisabledMcpServers(process.env.ECC_DISABLED_MCPS);
+  if (disabledServers.length === 0) {
+    return [];
+  }
+
+  const writes = [];
+
+  for (const operation of plan.operations) {
+    if (!isMcpConfigPath(operation.destinationPath) || !operation.sourcePath || !fs.existsSync(operation.sourcePath)) {
+      continue;
+    }
+
+    let sourceConfig;
+    try {
+      sourceConfig = readJsonObject(operation.sourcePath, 'MCP config');
+    } catch {
+      continue;
+    }
+
+    if (!sourceConfig.mcpServers || typeof sourceConfig.mcpServers !== 'object' || Array.isArray(sourceConfig.mcpServers)) {
+      continue;
+    }
+
+    const filtered = filterMcpConfig(sourceConfig, disabledServers);
+    if (filtered.removed.length === 0) {
+      continue;
+    }
+
+    writes.push({
+      destinationPath: operation.destinationPath,
+      filteredConfig: filtered.config,
+    });
+  }
+
+  return writes;
+}
+
 function buildMergedSettings(plan) {
   if (!plan.adapter || plan.adapter.target !== 'claude') {
     return null;
@@ -177,6 +221,7 @@ function buildMergedSettings(plan) {
 
 function applyInstallPlan(plan) {
   const mergedSettingsPlan = buildMergedSettings(plan);
+  const filteredMcpWrites = buildFilteredMcpWrites(plan);
 
   for (const operation of plan.operations) {
     fs.mkdirSync(path.dirname(operation.destinationPath), { recursive: true });
@@ -194,6 +239,15 @@ function applyInstallPlan(plan) {
     fs.writeFileSync(
       mergedSettingsPlan.settingsPath,
       JSON.stringify(mergedSettingsPlan.mergedSettings, null, 2) + '\n',
+      'utf8'
+    );
+  }
+
+  for (const writePlan of filteredMcpWrites) {
+    fs.mkdirSync(path.dirname(writePlan.destinationPath), { recursive: true });
+    fs.writeFileSync(
+      writePlan.destinationPath,
+      JSON.stringify(writePlan.filteredConfig, null, 2) + '\n',
       'utf8'
     );
   }

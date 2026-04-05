@@ -1,0 +1,63 @@
+/**
+ * Tests for scripts/build-opencode.js
+ */
+
+const assert = require("assert")
+const fs = require("fs")
+const path = require("path")
+const { spawnSync } = require("child_process")
+
+function runTest(name, fn) {
+  try {
+    fn()
+    console.log(`  ✓ ${name}`)
+    return true
+  } catch (error) {
+    console.log(`  ✗ ${name}`)
+    console.error(`    ${error.message}`)
+    return false
+  }
+}
+
+function main() {
+  console.log("\n=== Testing build-opencode.js ===\n")
+
+  let passed = 0
+  let failed = 0
+
+  const repoRoot = path.join(__dirname, "..", "..")
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")
+  )
+  const buildScript = path.join(repoRoot, "scripts", "build-opencode.js")
+  const distEntry = path.join(repoRoot, ".opencode", "dist", "index.js")
+  const tests = [
+    ["package.json exposes the OpenCode build and prepack hooks", () => {
+      assert.strictEqual(packageJson.scripts["build:opencode"], "node scripts/build-opencode.js")
+      assert.strictEqual(packageJson.scripts.prepack, "npm run build:opencode")
+      assert.ok(packageJson.files.includes(".opencode/dist/"))
+    }],
+    ["build script generates .opencode/dist", () => {
+      const result = spawnSync("node", [buildScript], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      })
+      assert.strictEqual(result.status, 0, result.stderr)
+      assert.ok(fs.existsSync(distEntry), ".opencode/dist/index.js should exist after build")
+    }],
+  ]
+
+  for (const [name, fn] of tests) {
+    if (runTest(name, fn)) {
+      passed += 1
+    } else {
+      failed += 1
+    }
+  }
+
+  console.log(`\nPassed: ${passed}`)
+  console.log(`Failed: ${failed}`)
+  process.exit(failed > 0 ? 1 : 0)
+}
+
+main()

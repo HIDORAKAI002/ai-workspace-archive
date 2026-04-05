@@ -33,7 +33,6 @@
         "cursor",
         "antigravity",
         "codex",
-        "opencode",
         "codebuddy"
       ],
       "dependencies": [],
@@ -205,9 +204,9 @@
         "skills/continuous-learning-v2",
         "skills/e2e-testing",
         "skills/eval-harness",
+        "skills/hookify-rules",
         "skills/iterative-retrieval",
         "skills/plankton-code-quality",
-        "skills/project-guidelines-example",
         "skills/skill-stocktake",
         "skills/strategic-compact",
         "skills/tdd-workflow",
@@ -316,8 +315,10 @@
       "paths": [
         "skills/connections-optimizer",
         "skills/customer-billing-ops",
+        "skills/github-ops",
         "skills/google-workspace-ops",
         "skills/jira-integration",
+        "skills/knowledge-ops",
         "skills/project-flow-ops",
         "skills/workspace-surface-audit"
       ],
