@@ -1,19 +1,33 @@
-import { resolveBedrockConfigApiKey } from "../../extensions/amazon-bedrock/api.js";
-import {
-  normalizeGoogleProviderConfig,
-  shouldNormalizeGoogleProviderConfig,
-} from "../../extensions/google/api.js";
+import { resolveBedrockConfigApiKey } from "../../extensions/amazon-bedrock/discovery.js";
+import { resolveAnthropicVertexConfigApiKey } from "../../extensions/anthropic-vertex/region.js";
+import { normalizeGoogleProviderConfig } from "../../extensions/google/api.js";
+import { MODEL_APIS } from "../config/types.models.js";
+import { resolveMantleBearerToken } from "../plugin-sdk/amazon-bedrock-mantle.js";
 import {
   applyProviderNativeStreamingUsageCompatWithPlugin,
   normalizeProviderConfigWithPlugin,
-  resolveProviderConfigApiKeyWithPlugin,
-  resolveProviderRuntimePlugin,
 } from "../plugins/provider-runtime.js";
 import type { ProviderConfig } from "./models-config.providers.secrets.js";
 
+const GENERIC_PROVIDER_APIS = new Set<string>([
+  "openai-completions",
+  "openai-responses",
+  "anthropic-messages",
+  "google-generative-ai",
+]);
+const PROVIDERS_WITH_RUNTIME_NORMALIZE_CONFIG = new Set<string>(["anthropic"]);
+const GOOGLE_PROVIDER_KEYS = new Set<string>(["google", "google-antigravity", "google-vertex"]);
+
 function resolveProviderPluginLookupKey(providerKey: string, provider?: ProviderConfig): string {
   const api = typeof provider?.api === "string" ? provider.api.trim() : "";
-  return api || providerKey;
+  if (
+    api &&
+    MODEL_APIS.includes(api as (typeof MODEL_APIS)[number]) &&
+    !GENERIC_PROVIDER_APIS.has(api)
+  ) {
+    return api;
+  }
+  return providerKey;
 }
 
 export function applyNativeStreamingUsageCompat(
@@ -44,6 +58,15 @@ export function normalizeProviderSpecificConfig(
   provider: ProviderConfig,
 ): ProviderConfig {
   const runtimeProviderKey = resolveProviderPluginLookupKey(providerKey, provider);
+  if (GOOGLE_PROVIDER_KEYS.has(runtimeProviderKey)) {
+    const normalized = normalizeGoogleProviderConfig(providerKey, provider);
+    if (normalized !== provider) {
+      return normalized;
+    }
+  }
+  if (!PROVIDERS_WITH_RUNTIME_NORMALIZE_CONFIG.has(runtimeProviderKey)) {
+    return provider;
+  }
   const normalized =
     normalizeProviderConfigWithPlugin({
       provider: runtimeProviderKey,
@@ -55,9 +78,6 @@ export function normalizeProviderSpecificConfig(
   if (normalized && normalized !== provider) {
     return normalized;
   }
-  if (shouldNormalizeGoogleProviderConfig(providerKey, provider)) {
-    return normalizeGoogleProviderConfig(providerKey, provider);
-  }
   return provider;
 }
 
@@ -65,25 +85,16 @@ export function resolveProviderConfigApiKeyResolver(
   providerKey: string,
   provider?: ProviderConfig,
 ): ((env: NodeJS.ProcessEnv) => string | undefined) | undefined {
-  if (providerKey.trim() === "amazon-bedrock") {
-    return (env) => {
-      const resolved = resolveBedrockConfigApiKey(env);
-      return resolved?.trim() || undefined;
-    };
+  const runtimeProviderKey = resolveProviderPluginLookupKey(providerKey, provider).trim();
+  if (runtimeProviderKey === "amazon-bedrock") {
+    return (env) => resolveBedrockConfigApiKey(env)?.trim() || undefined;
   }
-  const runtimeProviderKey = resolveProviderPluginLookupKey(providerKey, provider);
-  if (!resolveProviderRuntimePlugin({ provider: runtimeProviderKey })?.resolveConfigApiKey) {
-    return undefined;
+  if (runtimeProviderKey === "anthropic-vertex") {
+    return (env) => resolveAnthropicVertexConfigApiKey(env)?.trim() || undefined;
   }
-  return (env) => {
-    const resolved = resolveProviderConfigApiKeyWithPlugin({
-      provider: runtimeProviderKey,
-      env,
-      context: {
-        provider: providerKey,
-        env,
-      },
-    });
-    return resolved?.trim() || undefined;
-  };
+  if (runtimeProviderKey === "amazon-bedrock-mantle") {
+    return (env) =>
+      resolveMantleBearerToken(env)?.trim() ? "AWS_BEARER_TOKEN_BEDROCK" : undefined;
+  }
+  return undefined;
 }
