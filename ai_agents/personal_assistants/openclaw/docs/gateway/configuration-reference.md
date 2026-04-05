@@ -2212,6 +2212,26 @@ Notes:
 - File permissions are `0700` for directories and `0600` for files.
 - Cleanup follows the `cleanup` policy: `delete` always removes attachments; `keep` retains them only when `retainOnSessionKeep: true`.
 
+### `tools.experimental`
+
+Experimental built-in tool flags. Default off unless a runtime-specific auto-enable rule applies.
+
+```json5
+{
+  tools: {
+    experimental: {
+      planTool: true, // enable experimental update_plan
+    },
+  },
+}
+```
+
+Notes:
+
+- `planTool`: enables the structured `update_plan` tool for non-trivial multi-step work tracking.
+- Default: `false` for non-OpenAI providers. OpenAI and OpenAI Codex runs auto-enable it.
+- When enabled, the system prompt also adds usage guidance so the model only uses it for substantial work and keeps at most one step `in_progress`.
+
 ### `agents.defaults.subagents`
 
 ```json5
@@ -2621,7 +2641,7 @@ See [Local Models](/gateway/local-models). TL;DR: run a large local model via LM
 - `plugins.entries.xai.config.xSearch`: xAI X Search (Grok web search) settings.
   - `enabled`: enable the X Search provider.
   - `model`: Grok model to use for search (e.g. `"grok-4-1-fast"`).
-- `plugins.entries.memory-core.config.dreaming`: memory dreaming (experimental) settings. See [Dreaming](/concepts/memory-dreaming) for modes and thresholds.
+- `plugins.entries.memory-core.config.dreaming`: memory dreaming (experimental) settings. See [Dreaming](/concepts/dreaming) for modes and thresholds.
   - `mode`: dreaming cadence preset (`"off"`, `"core"`, `"rem"`, `"deep"`). Default: `"off"`.
   - `cron`: optional cron expression override for the dreaming schedule.
   - `timezone`: timezone for schedule evaluation (falls back to `agents.defaults.userTimezone`).
@@ -2629,6 +2649,9 @@ See [Local Models](/gateway/local-models). TL;DR: run a large local model via LM
   - `minScore`: minimum weighted score threshold for promotion.
   - `minRecallCount`: minimum recall count threshold.
   - `minUniqueQueries`: minimum distinct query count threshold.
+  - `recencyHalfLifeDays`: days for the recency score to decay by half. Default: `14`.
+  - `maxAgeDays`: optional maximum daily-note age in days allowed for promotion.
+  - `verboseLogging`: emit detailed per-run dreaming logs into the normal gateway log stream.
 - Enabled Claude bundle plugins can also contribute embedded Pi defaults from `settings.json`; OpenClaw applies those as sanitized agent settings, not as raw OpenClaw config patches.
 - `plugins.slots.memory`: pick the active memory plugin id, or `"none"` to disable memory plugins.
 - `plugins.slots.contextEngine`: pick the active context engine plugin id; defaults to `"legacy"` unless you install and select another engine.
@@ -3274,6 +3297,7 @@ Notes:
 
     cacheTrace: {
       enabled: false,
+      filePath: "~/.openclaw/logs/cache-trace.jsonl",
       includeMessages: true,
       includePrompt: true,
       includeSystem: true,
@@ -3294,6 +3318,7 @@ Notes:
 - `otel.sampleRate`: trace sampling rate `0`–`1`.
 - `otel.flushIntervalMs`: periodic telemetry flush interval in ms.
 - `cacheTrace.enabled`: log cache trace snapshots for embedded runs (default: `false`).
+- `cacheTrace.filePath`: output path for cache trace JSONL (default: `$OPENCLAW_STATE_DIR/logs/cache-trace.jsonl`).
 - `cacheTrace.includeMessages` / `includePrompt` / `includeSystem`: control what is included in cache trace output (all default: `true`).
 
 ---
@@ -3367,7 +3392,9 @@ Notes:
 - `stream.hiddenBoundarySeparator`: separator before visible text after hidden tool events (default: `"paragraph"`).
 - `stream.maxOutputChars`: maximum assistant output characters projected per ACP turn.
 - `stream.maxSessionUpdateChars`: maximum characters for projected ACP status/update lines.
+- `stream.tagVisibility`: record of tag names to boolean visibility overrides for streamed events.
 - `runtime.ttlMinutes`: idle TTL in minutes for ACP session workers before eligible cleanup.
+- `runtime.installCommand`: optional install command to run when bootstrapping an ACP runtime environment.
 
 ---
 
