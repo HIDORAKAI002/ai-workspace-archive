@@ -370,6 +370,48 @@ describe("runtime web tools resolution", () => {
     },
   );
 
+  it("resolves selected provider SecretRef even when provider config is disabled", async () => {
+    const { metadata, resolvedConfig, context } = await runRuntimeWebTools({
+      config: asConfig({
+        tools: {
+          web: {
+            search: {
+              enabled: true,
+              provider: "gemini",
+            },
+          },
+        },
+        plugins: {
+          entries: {
+            google: {
+              enabled: true,
+              config: {
+                webSearch: {
+                  enabled: false,
+                  apiKey: {
+                    source: "env",
+                    provider: "default",
+                    id: "WEB_SEARCH_GEMINI_API_KEY",
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      env: {
+        WEB_SEARCH_GEMINI_API_KEY: "web-search-gemini-ref",
+      },
+    });
+
+    expect(metadata.search.providerConfigured).toBe("gemini");
+    expect(metadata.search.selectedProvider).toBe("gemini");
+    expect(readProviderKey(resolvedConfig, "gemini")).toBe("web-search-gemini-ref");
+    expect(context.warnings.map((warning) => warning.path)).not.toContain(
+      "plugins.entries.google.config.webSearch.apiKey",
+    );
+  });
+
   it("auto-detects provider precedence across all configured providers", async () => {
     const { metadata, resolvedConfig, context } = await runRuntimeWebTools({
       config: asConfig({

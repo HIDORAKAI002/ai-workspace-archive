@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Graph database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.code-review-graph/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if any JS tooling)
+node_modules/
+
+# Claude Code
+.claude/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Medium article
+medium/
+
+# Superpowers brainstorm
+.superpowers/
+docs/superpowers/plans/
+docs/superpowers/specs/
+
+# Diagrams (PNGs + script tracked, excalidraw sources gitignored)
+diagrams/*.excalidraw
+diagrams/export_pngs.mjs
+*.excalidraw
+
+# Evaluation test repos (third-party checkouts)
+evaluate/test_repos/
+
+# Draft/duplicate files
+docs/assets/marketing-diagram*
+
+# One-off audit/design docs
+Quality-Audit-Report.docx
+accessibility-audit.md
+cross-audit-synthesis.md
+design-critique.md
+design-handoff.md
+design-system-audit.md
+research-synthesis.md

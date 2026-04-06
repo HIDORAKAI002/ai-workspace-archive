@@ -1,0 +1,28 @@
+name: gin
+url: https://github.com/gin-gonic/gin
+commit: HEAD
+language: go
+size_category: small
+
+test_commits:
+  - sha: 052d1a79aafe3f04078a2716f8e77d4340308383
+    description: "feat(render): add PDF renderer and tests"
+    changed_files: 5
+  - sha: 472d086af2acd924cb4b9d7be0525f7d790f69bc
+    description: "fix(tree): panic in findCaseInsensitivePathRec with RedirectFixedPath"
+    changed_files: 2
+  - sha: 5c00df8afadd06cc5be530dde00fe6d9fa4a2e4a
+    description: "fix(render): write content length in Data.Render"
+    changed_files: 2
+
+entry_points:
+  - "gin.go::Engine"
+  - "routergroup.go::RouterGroup"
+
+search_queries:
+  - query: "Engine ServeHTTP"
+    expected: "gin.go::Engine"
+  - query: "Context request"
+    expected: "context.go::Context"
+  - query: "node tree"
+    expected: "tree.go::node"

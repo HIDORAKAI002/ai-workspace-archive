@@ -44,14 +44,13 @@ bun install
 
 - `bun run corpus-check` — diagnose one corpus at one or a few widths
 - `bun run corpus-check:safari`
-- `bun run corpus-sweep` — coarse corpus width sweep
-- `bun run corpus-sweep:safari`
+- `bun run corpus-sweep` — maintained Chrome `step=10` corpus width sweep
+- `bun run corpus-sweep:safari` — maintained Safari `step=10` corpus width sweep
 - `bun run corpus-font-matrix` — same corpus under alternate fonts
 - `bun run corpus-font-matrix:safari`
 - `bun run corpus-taxonomy` — classify a mismatch field into steering buckets
-- `bun run corpus-representative` — rebuild `corpora/representative.json`
 - `bun run corpus-status` — rebuild `corpora/dashboard.json`
-- `bun run corpus-status:refresh` — refresh representative rows, sampled sweep, coarse sweep, then the corpus dashboard
+- `bun run corpus-status:refresh` — refresh Chrome and Safari `step=10` sweeps, then the corpus dashboard
 
 ### Status Dashboards
 
@@ -82,8 +81,7 @@ Use these for the current checked-in picture:
 - [benchmarks/chrome.json](benchmarks/chrome.json), [benchmarks/safari.json](benchmarks/safari.json) — raw benchmark snapshots
 - [corpora/STATUS.md](corpora/STATUS.md) — short pointer doc for long-form corpora
 - [corpora/dashboard.json](corpora/dashboard.json) — machine-readable corpus dashboard
-- [corpora/representative.json](corpora/representative.json) — anchor subset
-- [corpora/chrome-sampled.json](corpora/chrome-sampled.json), [corpora/chrome-step10.json](corpora/chrome-step10.json) — checked-in Chrome corpus sweep snapshots
+- [corpora/chrome-step10.json](corpora/chrome-step10.json), [corpora/safari-step10.json](corpora/safari-step10.json) — checked-in browser `step=10` corpus sweep snapshots
 - [RESEARCH.md](RESEARCH.md) — the exploration log and the durable conclusions behind the current model
 
 ## Deep Profiling

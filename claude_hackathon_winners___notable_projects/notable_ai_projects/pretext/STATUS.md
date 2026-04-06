@@ -34,9 +34,8 @@ Notes:
 
 - [corpora/STATUS.md](corpora/STATUS.md)
 - [corpora/dashboard.json](corpora/dashboard.json)
-- [corpora/representative.json](corpora/representative.json)
-- [corpora/chrome-sampled.json](corpora/chrome-sampled.json)
 - [corpora/chrome-step10.json](corpora/chrome-step10.json)
+- [corpora/safari-step10.json](corpora/safari-step10.json)
 
 ## Historical Log
 

@@ -125,7 +125,6 @@ import {
 import {
   applyExtraParamsToAgent,
   resolveAgentTransportOverride,
-  resolveExtraParams,
   resolvePreparedExtraParams,
 } from "./pi-embedded-runner/extra-params.js";
 import { createGoogleThinkingPayloadWrapper } from "./pi-embedded-runner/google-stream-wrappers.js";
@@ -311,221 +310,6 @@ beforeEach(() => {
 
 afterEach(() => {
   extraParamsTesting.resetProviderRuntimeDepsForTest();
-});
-
-describe("resolveExtraParams", () => {
-  it("returns undefined with no model config", () => {
-    const result = resolveExtraParams({
-      cfg: undefined,
-      provider: "zai",
-      modelId: "glm-4.7",
-    });
-
-    expect(result).toBeUndefined();
-  });
-
-  it("applies default runtime params for OpenAI GPT-5 models", () => {
-    const result = resolveExtraParams({
-      cfg: undefined,
-      provider: "openai",
-      modelId: "gpt-5.4",
-    });
-
-    expect(result).toEqual({
-      parallel_tool_calls: true,
-      text_verbosity: "low",
-      openaiWsWarmup: true,
-    });
-  });
-
-  it("returns params for exact provider/model key", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          defaults: {
-            models: {
-              "openai/gpt-4": {
-                params: {
-                  temperature: 0.7,
-                  maxTokens: 2048,
-                },
-              },
-            },
-          },
-        },
-      },
-      provider: "openai",
-      modelId: "gpt-4",
-    });
-
-    expect(result).toEqual({
-      temperature: 0.7,
-      maxTokens: 2048,
-    });
-  });
-
-  it("ignores unrelated model entries", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          defaults: {
-            models: {
-              "openai/gpt-4": {
-                params: {
-                  temperature: 0.7,
-                },
-              },
-            },
-          },
-        },
-      },
-      provider: "openai",
-      modelId: "gpt-4.1-mini",
-    });
-
-    expect(result).toBeUndefined();
-  });
-
-  it("returns per-agent params when agentId matches", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          list: [
-            {
-              id: "risk-reviewer",
-              params: { cacheRetention: "none" },
-            },
-          ],
-        },
-      },
-      provider: "anthropic",
-      modelId: "claude-opus-4-6",
-      agentId: "risk-reviewer",
-    });
-
-    expect(result).toEqual({ cacheRetention: "none" });
-  });
-
-  it("merges per-agent params over global model defaults", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          defaults: {
-            models: {
-              "anthropic/claude-opus-4-6": {
-                params: {
-                  temperature: 0.5,
-                  cacheRetention: "long",
-                },
-              },
-            },
-          },
-          list: [
-            {
-              id: "risk-reviewer",
-              params: { cacheRetention: "none" },
-            },
-          ],
-        },
-      },
-      provider: "anthropic",
-      modelId: "claude-opus-4-6",
-      agentId: "risk-reviewer",
-    });
-
-    expect(result).toEqual({
-      temperature: 0.5,
-      cacheRetention: "none",
-    });
-  });
-
-  it("preserves higher-precedence agent parallelToolCalls override across alias styles", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          defaults: {
-            models: {
-              "openai/gpt-4.1": {
-                params: {
-                  parallel_tool_calls: true,
-                },
-              },
-            },
-          },
-          list: [
-            {
-              id: "main",
-              params: {
-                parallelToolCalls: false,
-              },
-            },
-          ],
-        },
-      },
-      provider: "openai",
-      modelId: "gpt-4.1",
-      agentId: "main",
-    });
-
-    expect(result).toEqual({
-      parallel_tool_calls: false,
-    });
-  });
-
-  it("canonicalizes text verbosity alias styles with agent override precedence", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          defaults: {
-            models: {
-              "openai/gpt-5.4": {
-                params: {
-                  text_verbosity: "high",
-                },
-              },
-            },
-          },
-          list: [
-            {
-              id: "main",
-              params: {
-                textVerbosity: "low",
-              },
-            },
-          ],
-        },
-      },
-      provider: "openai",
-      modelId: "gpt-5.4",
-      agentId: "main",
-    });
-
-    expect(result).toEqual({
-      openaiWsWarmup: true,
-      parallel_tool_calls: true,
-      text_verbosity: "low",
-    });
-  });
-
-  it("ignores per-agent params when agentId does not match", () => {
-    const result = resolveExtraParams({
-      cfg: {
-        agents: {
-          list: [
-            {
-              id: "risk-reviewer",
-              params: { cacheRetention: "none" },
-            },
-          ],
-        },
-      },
-      provider: "anthropic",
-      modelId: "claude-opus-4-6",
-      agentId: "main",
-    });
-
-    expect(result).toBeUndefined();
-  });
 });
 
 describe("applyExtraParamsToAgent", () => {
@@ -2943,7 +2727,7 @@ describe("applyExtraParamsToAgent", () => {
     expect(payload.service_tier).toBe("standard_only");
   });
 
-  it("injects configured Anthropic service_tier into OAuth-authenticated Anthropic payloads", () => {
+  it("does not inject configured Anthropic service_tier into OAuth-authenticated Anthropic payloads", () => {
     const payload = runResponsesPayloadMutationCase({
       applyProvider: "anthropic",
       applyModelId: "claude-sonnet-4-5",
@@ -2971,7 +2755,7 @@ describe("applyExtraParamsToAgent", () => {
       },
       payload: {},
     });
-    expect(payload.service_tier).toBe("standard_only");
+    expect(payload.service_tier).toBeUndefined();
   });
 
   it("does not warn for valid Anthropic serviceTier values", () => {
@@ -3056,7 +2840,7 @@ describe("applyExtraParamsToAgent", () => {
     expect(payload.service_tier).toBe("standard_only");
   });
 
-  it("lets explicit Anthropic service_tier override OAuth fast mode defaults", () => {
+  it("does not inject explicit Anthropic service_tier for OAuth auth even when fast mode is enabled", () => {
     const payload = runResponsesPayloadMutationCase({
       applyProvider: "anthropic",
       applyModelId: "claude-sonnet-4-5",
@@ -3085,10 +2869,10 @@ describe("applyExtraParamsToAgent", () => {
       },
       payload: {},
     });
-    expect(payload.service_tier).toBe("standard_only");
+    expect(payload.service_tier).toBeUndefined();
   });
 
-  it("injects Anthropic fast mode service_tier for OAuth auth", () => {
+  it("does not inject Anthropic fast mode service_tier for OAuth auth", () => {
     const payload = runResponsesPayloadMutationCase({
       applyProvider: "anthropic",
       applyModelId: "claude-sonnet-4-5",
@@ -3104,10 +2888,10 @@ describe("applyExtraParamsToAgent", () => {
       },
       payload: {},
     });
-    expect(payload.service_tier).toBe("auto");
+    expect(payload.service_tier).toBeUndefined();
   });
 
-  it("injects Anthropic standard_only service_tier for OAuth auth when fastMode is false", () => {
+  it("does not inject Anthropic standard_only service_tier for OAuth auth when fastMode is false", () => {
     const payload = runResponsesPayloadMutationCase({
       applyProvider: "anthropic",
       applyModelId: "claude-sonnet-4-5",
@@ -3123,7 +2907,7 @@ describe("applyExtraParamsToAgent", () => {
       },
       payload: {},
     });
-    expect(payload.service_tier).toBe("standard_only");
+    expect(payload.service_tier).toBeUndefined();
   });
 
   it("does not inject Anthropic fast mode service_tier for proxied base URLs", () => {
