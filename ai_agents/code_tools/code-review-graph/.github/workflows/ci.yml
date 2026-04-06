@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Lint with ruff
+        run: ruff check code_review_graph/
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: pip install -e ".[dev]" mypy types-networkx
+      - name: Run mypy
+        run: mypy code_review_graph/ --ignore-missing-imports --no-strict-optional
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install bandit
+        run: pip install bandit[toml]
+      - name: Run bandit security scan
+        run: bandit -r code_review_graph/ -c pyproject.toml
+
+  schema-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Python/VSCode schema versions match
+        run: |
+          PY_VER=$(grep -oP 'LATEST_VERSION\s*=\s*max\(MIGRATIONS\.keys\(\)\)' code_review_graph/migrations.py > /dev/null && python3 -c "
+          import re, ast
+          src = open('code_review_graph/migrations.py').read()
+          m = re.search(r'MIGRATIONS:\s*dict\[.*?\]\s*=\s*\{([^}]+)\}', src)
+          keys = [int(k.strip().rstrip(':')) for k in re.findall(r'(\d+):', m.group(1))]
+          print(max(keys))
+          ")
+          TS_VER=$(grep -oP 'SUPPORTED_SCHEMA_VERSION\s*=\s*\K\d+' code-review-graph-vscode/src/backend/sqlite.ts)
+          echo "Python LATEST_VERSION: $PY_VER"
+          echo "VSCode SUPPORTED_SCHEMA_VERSION: $TS_VER"
+          if [ "$PY_VER" != "$TS_VER" ]; then
+            echo "::error::Schema version mismatch! Python=$PY_VER, VSCode=$TS_VER"
+            exit 1
+          fi
+          echo "Schema versions in sync."
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -e ".[dev]" pytest-cov
+      - name: Run tests with coverage
+        run: pytest --tb=short -q --cov=code_review_graph --cov-report=term-missing --cov-fail-under=65

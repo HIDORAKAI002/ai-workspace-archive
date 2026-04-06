@@ -1,0 +1,830 @@
+"""Interactive D3.js graph visualization for code knowledge graphs.
+
+Exports graph data to JSON and generates a self-contained HTML file with
+a force-directed D3.js visualization. Dark theme, zoomable, draggable,
+with collapsible file clusters, tooltips, legend, and stats bar.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from dataclasses import asdict
+from pathlib import Path
+
+from .graph import GraphStore, edge_to_dict, node_to_dict
+
+logger = logging.getLogger(__name__)
+
+
+def _build_name_index(
+    nodes: list[dict], seen_qn: set[str]
+) -> dict[str, list[str]]:
+    """Build a mapping from short/module-style names to qualified names.
+
+    Returns ``{short_name: [qualified_name, ...]}``.
+    """
+    index: dict[str, list[str]] = {}
+
+    def _add(key: str, qn: str) -> None:
+        index.setdefault(key, []).append(qn)
+
+    for n in nodes:
+        qn = n["qualified_name"]
+        _add(n["name"], qn)
+        # Index by "file::name" suffix (e.g. "cli.py::main")
+        if "::" in qn:
+            _add(qn.rsplit("/", 1)[-1], qn)
+        # Index by module-style path (e.g. "merit.cli" or "merit.cli.main")
+        fp = n.get("file_path", "")
+        if fp:
+            mod = fp.replace("/", ".").replace(".py", "")
+            if n["kind"] == "File":
+                _add(mod, qn)
+                # Index by every path suffix so C/C++ bare includes resolve.
+                # e.g. "/abs/libs/trading/Foo.hpp" is also indexed as
+                # "Foo.hpp", "trading/Foo.hpp", "libs/trading/Foo.hpp", …
+                parts = fp.replace("\\", "/").split("/")
+                for i in range(len(parts)):
+                    suffix = "/".join(parts[i:])
+                    if suffix:
+                        _add(suffix, qn)
+            else:
+                _add(mod + "." + n["name"], qn)
+    return index
+
+
+def _resolve_target(
+    target: str,
+    source: str,
+    seen_qn: set[str],
+    name_index: dict[str, list[str]],
+) -> str | None:
+    """Try to resolve an unqualified edge target to a full qualified name.
+
+    Returns the resolved qualified name, or None if unresolvable.
+    """
+    # Already fully qualified
+    if target in seen_qn:
+        return target
+
+    candidates = name_index.get(target)
+    if not candidates:
+        return None
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    # Disambiguate: prefer node in the same file as the source
+    src_file = source.split("::")[0] if "::" in source else source
+    same_file = [c for c in candidates if c.startswith(src_file)]
+    if len(same_file) == 1:
+        return same_file[0]
+
+    # Prefer node in the same top-level directory
+    src_parts = src_file.rsplit("/", 1)[0] if "/" in src_file else ""
+    same_dir = [c for c in candidates if c.startswith(src_parts)]
+    if len(same_dir) == 1:
+        return same_dir[0]
+
+    # Ambiguous — pick first match rather than dropping the edge
+    return candidates[0]
+
+
+def export_graph_data(store: GraphStore) -> dict:
+    """Export all graph nodes and edges as a JSON-serializable dict.
+
+    Returns ``{"nodes": [...], "edges": [...], "stats": {...},
+    "flows": [...], "communities": [...]}``.
+    """
+    nodes = []
+    seen_qn: set[str] = set()
+
+    # Preload community_id mapping from DB (column may not exist in old schemas)
+    community_map = store.get_all_community_ids()
+
+    for file_path in store.get_all_files():
+        for gnode in store.get_nodes_by_file(file_path):
+            if gnode.qualified_name in seen_qn:
+                continue
+            seen_qn.add(gnode.qualified_name)
+            d = node_to_dict(gnode)
+            d["params"] = gnode.params
+            d["return_type"] = gnode.return_type
+            d["community_id"] = community_map.get(gnode.qualified_name)
+            nodes.append(d)
+
+    name_index = _build_name_index(nodes, seen_qn)
+
+    all_edges = [edge_to_dict(e) for e in store.get_all_edges()]
+
+    # Resolve short/unqualified edge targets to full qualified names,
+    # then drop edges that still can't be resolved (external/stdlib calls).
+    edges = []
+    for e in all_edges:
+        src = _resolve_target(e["source"], e["source"], seen_qn, name_index)
+        tgt = _resolve_target(e["target"], e["source"], seen_qn, name_index)
+        if src and tgt:
+            e["source"] = src
+            e["target"] = tgt
+            edges.append(e)
+
+    stats = store.get_stats()
+
+    # Include flows (graceful fallback if table doesn't exist)
+    try:
+        from code_review_graph.flows import get_flows
+        flows = get_flows(store, limit=100)
+    except Exception:
+        flows = []
+
+    # Include communities (graceful fallback if table doesn't exist)
+    try:
+        from code_review_graph.communities import get_communities
+        communities = get_communities(store)
+    except Exception:
+        communities = []
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "stats": asdict(stats),
+        "flows": flows,
+        "communities": communities,
+    }
+
+
+def generate_html(store: GraphStore, output_path: str | Path) -> Path:
+    """Generate a self-contained interactive HTML visualization.
+
+    Writes the HTML file to *output_path* and returns the resolved Path.
+    """
+    output_path = Path(output_path)
+    stats = store.get_stats()
+    if stats.total_nodes > 50000:
+        logger.warning(
+            "Graph has %d nodes — visualization may be slow. "
+            "Consider filtering by file pattern.", stats.total_nodes,
+        )
+    data = export_graph_data(store)
+    # Escape </script> inside JSON to prevent premature tag closure (XSS defense)
+    data_json = json.dumps(data, default=str).replace("</", "<\\/")
+    html = _HTML_TEMPLATE.replace("__GRAPH_DATA__", data_json)
+    output_path.write_text(html, encoding="utf-8")
+    return output_path
+
+
+# ---------------------------------------------------------------------------
+# Full D3.js interactive HTML template
+# ---------------------------------------------------------------------------
+
+# Template lives in this file for zero-dependency packaging (no external files
+# to locate at runtime).  The ``# noqa: E501`` on the module is set via
+# pyproject.toml per-file-ignores for this reason.
+
+_HTML_TEMPLATE = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Review Graph</title>
+<script src="https://d3js.org/d3.v7.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0d1117; color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+  }
+  svg { display: block; width: 100%; height: 100%; }
+  #legend {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(22,27,34,0.95); border: 1px solid #30363d;
+    border-radius: 10px; padding: 16px 20px;
+    font-size: 12px; line-height: 1.8;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px); z-index: 10;
+  }
+  #legend h3 {
+    font-size: 11px; font-weight: 700; margin-bottom: 6px;
+    color: #8b949e; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .legend-section { margin-bottom: 10px; }
+  .legend-section:last-child { margin-bottom: 0; }
+  .legend-item { display: flex; align-items: center; gap: 10px; padding: 2px 0; cursor: default; }
+  .legend-item[data-edge-kind] { cursor: pointer; user-select: none; }
+  .legend-item[data-edge-kind].dimmed { opacity: 0.3; }
+  .legend-circle { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 24px; height: 0; flex-shrink: 0; border-top-width: 2px; }
+  .l-calls    { border-top: 2px solid #3fb950; }
+  .l-imports  { border-top: 2px dashed #f0883e; }
+  .l-inherits { border-top: 2.5px dotted #d2a8ff; }
+  .l-contains { border-top: 1.5px solid rgba(139,148,158,0.3); }
+  #stats-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(13,17,23,0.95); border-top: 1px solid #21262d;
+    padding: 8px 24px; display: flex; gap: 32px; justify-content: center;
+    font-size: 12px; color: #8b949e; backdrop-filter: blur(12px);
+  }
+  .stat-item { display: flex; gap: 6px; align-items: center; }
+  .stat-value { color: #e6edf3; font-weight: 600; }
+  #tooltip {
+    position: absolute; pointer-events: none;
+    background: rgba(22,27,34,0.97); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px 16px; font-size: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    max-width: 360px; line-height: 1.7;
+    opacity: 0; transition: opacity 0.15s ease;
+    z-index: 1000; backdrop-filter: blur(12px);
+  }
+  #tooltip.visible { opacity: 1; }
+  .tt-name { font-weight: 700; font-size: 14px; color: #e6edf3; }
+  .tt-kind {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tt-row { margin-top: 4px; }
+  .tt-label { color: #8b949e; }
+  .tt-file { color: #58a6ff; font-size: 11px; }
+  #controls {
+    position: absolute; top: 16px; right: 16px;
+    display: flex; gap: 8px; z-index: 10; flex-wrap: wrap;
+    max-width: 650px; justify-content: flex-end;
+  }
+  #controls button, #controls select {
+    background: rgba(22,27,34,0.95); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 8px 14px; font-size: 12px; cursor: pointer;
+    backdrop-filter: blur(12px); transition: all 0.15s;
+  }
+  #controls button:hover, #controls select:hover { background: #30363d; border-color: #8b949e; }
+  #controls button.active { background: #1f6feb; border-color: #58a6ff; color: #fff; }
+  #controls select { outline: none; max-width: 200px; }
+  #controls select option { background: #161b22; color: #c9d1d9; }
+  #search {
+    background: rgba(22,27,34,0.95); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 8px 14px; font-size: 12px; width: 220px;
+    outline: none; backdrop-filter: blur(12px);
+  }
+  #search:focus { border-color: #58a6ff; }
+  #search::placeholder { color: #484f58; }
+  #search-results {
+    position: absolute; top: 52px; right: 16px;
+    background: rgba(22,27,34,0.97); border: 1px solid #30363d;
+    border-radius: 8px; max-height: 240px; overflow-y: auto;
+    z-index: 15; display: none; min-width: 220px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .sr-item {
+    padding: 8px 14px; cursor: pointer; font-size: 12px;
+    border-bottom: 1px solid #21262d; display: flex; gap: 8px; align-items: center;
+  }
+  .sr-item:hover { background: #30363d; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-kind { font-size: 9px; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; font-weight: 700; }
+  #detail-panel {
+    position: absolute; top: 16px; right: 16px;
+    width: 320px; max-height: calc(100vh - 80px);
+    background: rgba(22,27,34,0.97); border: 1px solid #30363d;
+    border-radius: 10px; padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px); z-index: 20;
+    overflow-y: auto; display: none; font-size: 12px;
+  }
+  #detail-panel.visible { display: block; }
+  #detail-panel h2 { font-size: 16px; color: #e6edf3; margin-bottom: 4px; word-break: break-all; }
+  #detail-panel .dp-close {
+    position: absolute; top: 12px; right: 14px;
+    cursor: pointer; color: #8b949e; font-size: 18px; line-height: 1;
+    border: none; background: none;
+  }
+  #detail-panel .dp-close:hover { color: #e6edf3; }
+  .dp-section { margin-top: 14px; }
+  .dp-section h4 { color: #8b949e; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .dp-list { list-style: none; }
+  .dp-list li { padding: 3px 0; color: #c9d1d9; cursor: pointer; }
+  .dp-list li:hover { color: #58a6ff; text-decoration: underline; }
+  .dp-meta { color: #8b949e; }
+  .dp-meta span { color: #e6edf3; font-weight: 600; }
+  #filter-panel {
+    position: absolute; bottom: 50px; left: 16px;
+    background: rgba(22,27,34,0.95); border: 1px solid #30363d;
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 12px; backdrop-filter: blur(12px); z-index: 10;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #filter-panel h3 {
+    font-size: 11px; font-weight: 700; margin-bottom: 8px;
+    color: #8b949e; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .filter-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; user-select: none; }
+  .filter-item input { accent-color: #58a6ff; cursor: pointer; }
+  marker { overflow: visible; }
+</style>
+</head>
+<body>
+<div id="legend" role="complementary" aria-label="Graph legend">
+  <h3>Nodes</h3>
+  <div class="legend-section">
+    <div class="legend-item"><span class="legend-circle" style="background:#58a6ff"></span> File</div>
+    <div class="legend-item"><span class="legend-circle" style="background:#f0883e"></span> Class</div>
+    <div class="legend-item"><span class="legend-circle" style="background:#3fb950"></span> Function</div>
+    <div class="legend-item"><span class="legend-circle" style="background:#d2a8ff"></span> Test</div>
+    <div class="legend-item"><span class="legend-circle" style="background:#8b949e"></span> Type</div>
+  </div>
+  <h3>Edges</h3>
+  <div class="legend-section">
+    <div class="legend-item" data-edge-kind="CALLS"><span class="legend-line l-calls"></span> Calls</div>
+    <div class="legend-item" data-edge-kind="IMPORTS_FROM"><span class="legend-line l-imports"></span> Imports</div>
+    <div class="legend-item" data-edge-kind="INHERITS"><span class="legend-line l-inherits"></span> Inherits</div>
+    <div class="legend-item" data-edge-kind="CONTAINS"><span class="legend-line l-contains"></span> Contains</div>
+  </div>
+</div>
+<div id="filter-panel">
+  <h3>Filter by Kind</h3>
+  <label class="filter-item"><input type="checkbox" data-kind="File" checked> File</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Class" checked> Class</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Function" checked> Function</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Test" checked> Test</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Type" checked> Type</label>
+</div>
+<div id="controls">
+  <input id="search" type="text" placeholder="Search nodes&#8230;" autocomplete="off" spellcheck="false" aria-label="Search graph nodes by name">
+  <select id="flow-select" aria-label="Select execution flow to highlight"><option value="">Flows</option></select>
+  <button id="btn-community" title="Toggle community coloring" aria-label="Toggle community coloring">Communities</button>
+  <button id="btn-fit" title="Fit to screen" aria-label="Fit graph to screen">Fit</button>
+  <button id="btn-labels" title="Toggle labels" class="active" aria-label="Toggle node labels" aria-pressed="true">Labels</button>
+</div>
+<div id="search-results"></div>
+<div id="detail-panel"><button class="dp-close" aria-label="Close detail panel">&times;</button><div id="dp-content"></div></div>
+<div id="stats-bar" role="status" aria-label="Graph statistics"></div>
+<div id="tooltip"></div>
+<svg role="img" aria-label="Interactive code knowledge graph visualization. Use search to find nodes, click files to expand."></svg>
+<script>
+"use strict";
+var graphData = __GRAPH_DATA__;
+var KIND_COLOR  = { File:"#58a6ff", Class:"#f0883e", Function:"#3fb950", Test:"#d2a8ff", Type:"#8b949e" };
+var KIND_RADIUS = { File:18, Class:12, Function:6, Test:6, Type:5 };
+var EDGE_COLOR  = { CALLS:"#3fb950", IMPORTS_FROM:"#f0883e", INHERITS:"#d2a8ff", CONTAINS:"rgba(139,148,158,0.15)" };
+var communityColorScale = d3.scaleOrdinal(d3.schemeTableau10);
+var communityColoringOn = false;
+function escH(s) { return !s ? "" : s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/`/g,"&#96;"); }
+function displayName(d) {
+  if (d.kind === "File") {
+    var fp = d.file_path || d.qualified_name || d.name;
+    var parts = fp.replace(/\\/g, "/").split("/");
+    var fname = parts.pop();
+    var parent = parts.pop() || "";
+    return parent ? parent + "/" + fname : fname;
+  }
+  return d.name;
+}
+var nodes = graphData.nodes.map(function(d) { var o = Object.assign({}, d); o._id = d.qualified_name; o.label = displayName(d); return o; });
+var edges = graphData.edges.map(function(d) { var o = Object.assign({}, d); o._source = d.source; o._target = d.target; return o; });
+var stats = graphData.stats;
+var flows = graphData.flows || [];
+var communities = graphData.communities || [];
+var nodeById = new Map(nodes.map(function(n) { return [n.qualified_name, n]; }));
+var hiddenEdgeKinds = new Set();
+var hiddenNodeKinds = new Set();
+var collapsedFiles = new Set();
+var containsChildren = new Map();
+var childToParent = new Map();
+edges.forEach(function(e) {
+  if (e.kind === "CONTAINS") {
+    if (!containsChildren.has(e._source)) containsChildren.set(e._source, new Set());
+    containsChildren.get(e._source).add(e._target);
+    childToParent.set(e._target, e._source);
+  }
+});
+function allDescendants(qn) {
+  var result = new Set();
+  var stack = [qn];
+  while (stack.length) {
+    var cur = stack.pop();
+    var children = containsChildren.get(cur);
+    if (!children) continue;
+    children.forEach(function(c) { if (!result.has(c)) { result.add(c); stack.push(c); } });
+  }
+  return result;
+}
+var nodeToCommunity = new Map();
+communities.forEach(function(c) {
+  (c.members || []).forEach(function(qn) { nodeToCommunity.set(qn, c.id); });
+});
+var nodeIdToQn = new Map();
+nodes.forEach(function(n) { nodeIdToQn.set(n.id, n.qualified_name); });
+var flowSelect = document.getElementById("flow-select");
+flows.forEach(function(f, i) {
+  var opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = f.name + " (" + f.node_count + " nodes)";
+  flowSelect.appendChild(opt);
+});
+var statsBar = document.getElementById("stats-bar");
+var langList = (stats.languages || []).join(", ") || "n/a";
+function si(l, v) { return '<div class="stat-item"><span class="tt-label">' + escH(l) + '</span> <span class="stat-value">' + escH(String(v)) + '</span></div>'; }
+statsBar.textContent = "";
+statsBar.insertAdjacentHTML("beforeend", si("Nodes", stats.total_nodes) + si("Edges", stats.total_edges) + si("Files", stats.files_count) + si("Languages", langList));
+var tooltip = document.getElementById("tooltip");
+function showTooltip(ev, d) {
+  var bg = communityColoringOn && d.community_id != null ? communityColorScale(d.community_id) : (KIND_COLOR[d.kind] || "#555");
+  var relFile = d.file_path ? d.file_path.split("/").slice(-3).join("/") : "";
+  var h = '<span class="tt-name">' + escH(d.label) + '</span>';
+  h += '<span class="tt-kind" style="background:' + bg + ';color:#0d1117">' + escH(d.kind) + '</span>';
+  if (relFile) h += '<div class="tt-row tt-file">' + escH(relFile) + '</div>';
+  if (d.line_start != null) h += '<div class="tt-row"><span class="tt-label">Lines: </span>' + d.line_start + ' \u2013 ' + (d.line_end || d.line_start) + '</div>';
+  if (d.params) h += '<div class="tt-row"><span class="tt-label">Params: </span>' + escH(d.params) + '</div>';
+  if (d.return_type) h += '<div class="tt-row"><span class="tt-label">Returns: </span>' + escH(d.return_type) + '</div>';
+  if (d.community_id != null) {
+    var comm = communities.find(function(c) { return c.id === d.community_id; });
+    if (comm) h += '<div class="tt-row"><span class="tt-label">Community: </span>' + escH(comm.name) + '</div>';
+  }
+  tooltip.textContent = "";
+  tooltip.insertAdjacentHTML("beforeend", h);
+  tooltip.classList.add("visible");
+  moveTooltip(ev);
+}
+function moveTooltip(ev) {
+  var p = 14;
+  var x = ev.pageX + p, y = ev.pageY + p;
+  var r = tooltip.getBoundingClientRect();
+  if (x + r.width > innerWidth - p) x = ev.pageX - r.width - p;
+  if (y + r.height > innerHeight - p) y = ev.pageY - r.height - p;
+  tooltip.style.left = x + "px"; tooltip.style.top = y + "px";
+}
+function hideTooltip() { tooltip.classList.remove("visible"); }
+var W = innerWidth, H = innerHeight;
+var svg = d3.select("svg").attr("viewBox", [0, 0, W, H]);
+var gRoot = svg.append("g");
+var currentTransform = d3.zoomIdentity;
+var zoomBehavior = d3.zoom()
+  .scaleExtent([0.05, 8])
+  .on("zoom", function(ev) { currentTransform = ev.transform; gRoot.attr("transform", ev.transform); updateLabelVisibility(); });
+svg.call(zoomBehavior);
+var defs = svg.append("defs");
+var glow = defs.append("filter").attr("id","glow").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%");
+glow.append("feGaussianBlur").attr("stdDeviation","3").attr("result","blur");
+glow.append("feComposite").attr("in","SourceGraphic").attr("in2","blur").attr("operator","over");
+[{id:"arrow-calls",color:"#3fb950"},{id:"arrow-imports",color:"#f0883e"},{id:"arrow-inherits",color:"#d2a8ff"}].forEach(function(mk) {
+  defs.append("marker").attr("id", mk.id)
+    .attr("viewBox","0 -5 10 10").attr("refX",28).attr("refY",0)
+    .attr("markerWidth",8).attr("markerHeight",8).attr("orient","auto")
+    .append("path").attr("d","M0,-4L10,0L0,4Z").attr("fill",mk.color);
+});
+var N = nodes.length;
+var isLarge = N > 300;
+var simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(edges).id(function(d) { return d.qualified_name; })
+    .distance(function(d) { return d.kind === "CONTAINS" ? 35 : (isLarge ? 80 : 120); })
+    .strength(function(d) { return d.kind === "CONTAINS" ? 1.5 : 0.15; }))
+  .force("charge", d3.forceManyBody().strength(function(d) { return d.kind === "File" ? (isLarge ? -200 : -400) : (isLarge ? -60 : -120); }).theta(0.85).distanceMax(600))
+  .force("collide", d3.forceCollide().radius(function(d) { return (KIND_RADIUS[d.kind] || 6) + 4; }))
+  .force("center", d3.forceCenter(W / 2, H / 2))
+  .force("x", d3.forceX(W / 2).strength(0.03))
+  .force("y", d3.forceY(H / 2).strength(0.03))
+  .alphaDecay(isLarge ? 0.04 : 0.025)
+  .velocityDecay(0.4);
+var EDGE_CFG = {
+  CONTAINS:     { dash:null, width:1, opacity:0.08, marker:"" },
+  CALLS:        { dash:null, width:1.5, opacity:0.7, marker:"url(#arrow-calls)" },
+  IMPORTS_FROM: { dash:"6,3", width:1.5, opacity:0.65, marker:"url(#arrow-imports)" },
+  INHERITS:     { dash:"3,4", width:2, opacity:0.7, marker:"url(#arrow-inherits)" },
+};
+function eStyle(d) { return EDGE_CFG[d.kind] || {dash:null,width:1,opacity:0.3,marker:""}; }
+function eColor(d) { return EDGE_COLOR[d.kind] || "#484f58"; }
+function nodeColor(d) {
+  if (communityColoringOn && d.community_id != null) return communityColorScale(d.community_id);
+  return KIND_COLOR[d.kind] || "#8b949e";
+}
+var linkGroup  = gRoot.append("g").attr("class","links");
+var nodeGroup  = gRoot.append("g").attr("class","nodes");
+var labelGroup = gRoot.append("g").attr("class","labels");
+var linkSel, labelSel;
+var showLabels = true;
+function updateLinks() {
+  var vis = new Set(nodes.filter(function(n) { return !n._hidden; }).map(function(n) { return n.qualified_name; }));
+  var visEdges = edges.filter(function(e) {
+    if (hiddenEdgeKinds.has(e.kind)) return false;
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    return vis.has(s) && vis.has(t);
+  });
+  linkSel = linkGroup.selectAll("line").data(visEdges, function(d) { return d._source+"->"+d._target+":"+d.kind; });
+  linkSel.exit().remove();
+  var enter = linkSel.enter().append("line");
+  linkSel = enter.merge(linkSel);
+  linkSel
+    .attr("stroke", function(d) { return eColor(d); })
+    .attr("stroke-width", function(d) { return eStyle(d).width; })
+    .attr("stroke-dasharray", function(d) { return eStyle(d).dash; })
+    .attr("opacity", function(d) { return eStyle(d).opacity; })
+    .attr("marker-end", function(d) { return eStyle(d).marker; });
+}
+function updateNodes() {
+  var hiddenSet = new Set();
+  collapsedFiles.forEach(function(fqn) { allDescendants(fqn).forEach(function(c) { hiddenSet.add(c); }); });
+  nodes.forEach(function(n) { n._hidden = hiddenSet.has(n.qualified_name) || hiddenNodeKinds.has(n.kind); });
+  var vis = nodes.filter(function(n) { return !n._hidden; });
+  var nodeSel = nodeGroup.selectAll("g.node-g").data(vis, function(d) { return d.qualified_name; });
+  nodeSel.exit().remove();
+  var enter = nodeSel.enter().append("g").attr("class","node-g");
+  enter.filter(function(d) { return d.kind === "File"; }).append("circle")
+    .attr("class","glow-ring")
+    .attr("r", function(d) { return KIND_RADIUS[d.kind] + 5; })
+    .attr("fill","none")
+    .attr("stroke", function(d) { return nodeColor(d); })
+    .attr("stroke-width", 1.5).attr("opacity", 0.3).attr("filter","url(#glow)");
+  enter.append("circle").attr("class","node-circle")
+    .attr("r", function(d) { return KIND_RADIUS[d.kind] || 6; })
+    .attr("fill", function(d) { return nodeColor(d); })
+    .attr("stroke", function(d) { return d.kind === "File" ? "rgba(88,166,255,0.3)" : "rgba(255,255,255,0.08)"; })
+    .attr("stroke-width", function(d) { return d.kind === "File" ? 2 : 1; })
+    .attr("cursor", "pointer");
+  enter
+    .on("mouseover", function(ev, d) { highlightConnected(d, true); showTooltip(ev, d); })
+    .on("mousemove", function(ev) { moveTooltip(ev); })
+    .on("mouseout",  function(ev, d) { highlightConnected(d, false); hideTooltip(); })
+    .on("click", function(ev, d) {
+      ev.stopPropagation();
+      if (d.kind === "File" && !ev.shiftKey) toggleCollapse(d.qualified_name);
+      showDetailPanel(d);
+    })
+    .call(d3.drag().on("start", dragS).on("drag", dragD).on("end", dragE));
+  nodeSel = enter.merge(nodeSel);
+  labelSel = labelGroup.selectAll("text.node-label").data(vis, function(d) { return d.qualified_name; });
+  labelSel.exit().remove();
+  var lEnter = labelSel.enter().append("text").attr("class","node-label")
+    .attr("text-anchor","start").attr("dy","0.35em")
+    .text(function(d) { return d.label; })
+    .attr("fill", function(d) { return d.kind === "File" ? "#e6edf3" : d.kind === "Class" ? "#f0883e" : "#8b949e"; })
+    .attr("font-size", function(d) { return d.kind === "File" ? "12px" : d.kind === "Class" ? "11px" : "10px"; })
+    .attr("font-weight", function(d) { return d.kind === "File" ? 700 : d.kind === "Class" ? 600 : 400; });
+  labelSel = lEnter.merge(labelSel);
+  updateLinks();
+  updateLabelVisibility();
+}
+function updateLabelVisibility() {
+  if (!labelSel) return;
+  var s = currentTransform.k;
+  labelSel.attr("display", function(d) {
+    if (!showLabels) return "none";
+    if (d.kind === "File") return null;
+    if (d.kind === "Class") return s > 0.5 ? null : "none";
+    return s > 1.0 ? null : "none";
+  });
+}
+function highlightConnected(d, on) {
+  if (on) {
+    var connected = new Set([d.qualified_name]);
+    edges.forEach(function(e) {
+      var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+      var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+      if (s === d.qualified_name) connected.add(t);
+      if (t === d.qualified_name) connected.add(s);
+    });
+    nodeGroup.selectAll("g.node-g").select(".node-circle")
+      .transition().duration(150).attr("opacity", function(n) { return connected.has(n.qualified_name) ? 1 : 0.15; });
+    linkSel.transition().duration(150)
+      .attr("opacity", function(e) {
+        var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+        var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+        return (s === d.qualified_name || t === d.qualified_name) ? 0.9 : 0.03;
+      })
+      .attr("stroke-width", function(e) {
+        var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+        var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+        return (s === d.qualified_name || t === d.qualified_name) ? 2.5 : eStyle(e).width;
+      });
+    labelSel.transition().duration(150).attr("opacity", function(n) { return connected.has(n.qualified_name) ? 1 : 0.1; });
+  } else {
+    nodeGroup.selectAll("g.node-g").select(".node-circle").transition().duration(300).attr("opacity", 1);
+    linkSel.transition().duration(300)
+      .attr("opacity", function(e) { return eStyle(e).opacity; })
+      .attr("stroke-width", function(e) { return eStyle(e).width; });
+    labelSel.transition().duration(300).attr("opacity", 1);
+    updateLabelVisibility();
+  }
+}
+function toggleCollapse(qn) {
+  if (collapsedFiles.has(qn)) collapsedFiles.delete(qn); else collapsedFiles.add(qn);
+  nodeGroup.selectAll("g.node-g").select(".glow-ring")
+    .attr("stroke-dasharray", function(d) { return collapsedFiles.has(d.qualified_name) ? "4,3" : null; })
+    .attr("opacity", function(d) { return collapsedFiles.has(d.qualified_name) ? 0.6 : 0.3; });
+  updateNodes();
+  simulation.alpha(0.3).restart();
+}
+function dragS(ev, d) { if (!ev.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; }
+function dragD(ev, d) { d.fx = ev.x; d.fy = ev.y; }
+function dragE(ev, d) { if (!ev.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+simulation.on("tick", function() {
+  if (linkSel) linkSel
+    .attr("x1", function(d) { return d.source.x; }).attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; }).attr("y2", function(d) { return d.target.y; });
+  nodeGroup.selectAll("g.node-g").attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  if (labelSel) labelSel
+    .attr("x", function(d) { return d.x + (KIND_RADIUS[d.kind] || 6) + 5; })
+    .attr("y", function(d) { return d.y; });
+});
+nodes.forEach(function(n) { if (n.kind === "File") collapsedFiles.add(n.qualified_name); });
+updateNodes();
+function fitGraph() {
+  var b = gRoot.node().getBBox();
+  if (b.width === 0 || b.height === 0) return;
+  var pad = 0.1;
+  var fw = b.width * (1 + 2*pad), fh = b.height * (1 + 2*pad);
+  var s = Math.min(W / fw, H / fh, 2.5);
+  var tx = W/2 - (b.x + b.width/2)*s, ty = H/2 - (b.y + b.height/2)*s;
+  svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+}
+simulation.on("end", fitGraph);
+function zoomToNode(qn) {
+  var nd = nodeById.get(qn);
+  if (!nd || nd.x == null) return;
+  var s = 2.0;
+  var tx = W/2 - nd.x*s, ty = H/2 - nd.y*s;
+  svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+}
+document.getElementById("btn-fit").addEventListener("click", fitGraph);
+document.getElementById("btn-labels").addEventListener("click", function() {
+  showLabels = !showLabels;
+  this.classList.toggle("active");
+  this.setAttribute("aria-pressed", showLabels);
+  updateLabelVisibility();
+});
+document.querySelectorAll(".legend-item[data-edge-kind]").forEach(function(el) {
+  el.addEventListener("click", function() {
+    var kind = this.dataset.edgeKind;
+    if (hiddenEdgeKinds.has(kind)) { hiddenEdgeKinds.delete(kind); this.classList.remove("dimmed"); }
+    else { hiddenEdgeKinds.add(kind); this.classList.add("dimmed"); }
+    updateLinks();
+  });
+});
+document.querySelectorAll("#filter-panel input[data-kind]").forEach(function(el) {
+  el.addEventListener("change", function() {
+    var kind = this.dataset.kind;
+    if (this.checked) hiddenNodeKinds.delete(kind); else hiddenNodeKinds.add(kind);
+    updateNodes();
+    simulation.alpha(0.15).restart();
+  });
+});
+document.getElementById("btn-community").addEventListener("click", function() {
+  communityColoringOn = !communityColoringOn;
+  this.classList.toggle("active");
+  nodeGroup.selectAll("g.node-g").select(".node-circle").transition().duration(300)
+    .attr("fill", function(d) { return nodeColor(d); });
+  nodeGroup.selectAll("g.node-g").select(".glow-ring").transition().duration(300)
+    .attr("stroke", function(d) { return nodeColor(d); });
+});
+var activeFlowQns = null;
+flowSelect.addEventListener("change", function() {
+  var idx = this.value;
+  if (idx === "") { activeFlowQns = null; clearFlowHighlight(); return; }
+  var flow = flows[parseInt(idx)];
+  if (!flow) return;
+  var pathQns = new Set();
+  (flow.path || []).forEach(function(nid) { var qn = nodeIdToQn.get(nid); if (qn) pathQns.add(qn); });
+  activeFlowQns = pathQns;
+  applyFlowHighlight();
+});
+function applyFlowHighlight() {
+  if (!activeFlowQns || activeFlowQns.size === 0) { clearFlowHighlight(); return; }
+  nodeGroup.selectAll("g.node-g").select(".node-circle").transition().duration(200)
+    .attr("opacity", function(d) { return activeFlowQns.has(d.qualified_name) ? 1 : 0.2; });
+  if (labelSel) labelSel.transition().duration(200)
+    .attr("opacity", function(d) { return activeFlowQns.has(d.qualified_name) ? 1 : 0.1; });
+  if (linkSel) linkSel.transition().duration(200)
+    .attr("opacity", function(e) {
+      var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+      var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+      return (activeFlowQns.has(s) && activeFlowQns.has(t)) ? 0.9 : 0.03;
+    });
+}
+function clearFlowHighlight() {
+  nodeGroup.selectAll("g.node-g").select(".node-circle").transition().duration(300).attr("opacity", 1);
+  if (linkSel) linkSel.transition().duration(300).attr("opacity", function(e) { return eStyle(e).opacity; });
+  if (labelSel) labelSel.transition().duration(300).attr("opacity", 1);
+  updateLabelVisibility();
+}
+var detailPanel = document.getElementById("detail-panel");
+var dpContent = document.getElementById("dp-content");
+document.querySelector("#detail-panel .dp-close").addEventListener("click", function() {
+  detailPanel.classList.remove("visible");
+});
+svg.on("click", function() { detailPanel.classList.remove("visible"); });
+function showDetailPanel(d) {
+  var callers = [], callees = [];
+  edges.forEach(function(e) {
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    if (t === d.qualified_name && e.kind === "CALLS") { var sN = nodeById.get(s); if (sN) callers.push(sN); }
+    if (s === d.qualified_name && e.kind === "CALLS") { var tN = nodeById.get(t); if (tN) callees.push(tN); }
+  });
+  var relFile = d.file_path ? d.file_path.split("/").slice(-3).join("/") : "";
+  var bg = communityColoringOn && d.community_id != null ? communityColorScale(d.community_id) : (KIND_COLOR[d.kind] || "#555");
+  var h = '<h2>' + escH(d.label) + '</h2>';
+  h += '<span class="tt-kind" style="background:' + bg + ';color:#0d1117">' + escH(d.kind) + '</span>';
+  if (relFile) h += '<div class="dp-meta" style="margin-top:8px">' + escH(relFile) + (d.line_start != null ? ':' + d.line_start : '') + '</div>';
+  if (d.params) h += '<div class="dp-meta"><span class="tt-label">Params:</span> ' + escH(d.params) + '</div>';
+  if (d.return_type) h += '<div class="dp-meta"><span class="tt-label">Returns:</span> ' + escH(d.return_type) + '</div>';
+  if (d.community_id != null) {
+    var comm = communities.find(function(c) { return c.id === d.community_id; });
+    if (comm) h += '<div class="dp-meta"><span class="tt-label">Community:</span> ' + escH(comm.name) + '</div>';
+  }
+  if (callers.length) {
+    h += '<div class="dp-section"><h4>Callers (' + callers.length + ')</h4><ul class="dp-list">';
+    callers.slice(0, 20).forEach(function(c) { h += '<li data-qn="' + escH(c.qualified_name) + '">' + escH(c.label) + '</li>'; });
+    h += '</ul></div>';
+  }
+  if (callees.length) {
+    h += '<div class="dp-section"><h4>Callees (' + callees.length + ')</h4><ul class="dp-list">';
+    callees.slice(0, 20).forEach(function(c) { h += '<li data-qn="' + escH(c.qualified_name) + '">' + escH(c.label) + '</li>'; });
+    h += '</ul></div>';
+  }
+  dpContent.textContent = "";
+  dpContent.insertAdjacentHTML("beforeend", h);
+  detailPanel.classList.add("visible");
+  dpContent.querySelectorAll("li[data-qn]").forEach(function(li) {
+    li.addEventListener("click", function() {
+      var qn = li.dataset.qn;
+      zoomToNode(qn);
+      var nd = nodeById.get(qn);
+      if (nd) showDetailPanel(nd);
+    });
+  });
+}
+var searchInput = document.getElementById("search");
+var searchResults = document.getElementById("search-results");
+var searchTerm = "";
+searchInput.addEventListener("input", function() {
+  searchTerm = this.value.trim().toLowerCase();
+  applySearchFilter();
+  showSearchResults();
+});
+searchInput.addEventListener("focus", showSearchResults);
+document.addEventListener("click", function(ev) {
+  if (!searchResults.contains(ev.target) && ev.target !== searchInput) searchResults.style.display = "none";
+});
+function showSearchResults() {
+  if (!searchTerm) { searchResults.style.display = "none"; return; }
+  var matched = [];
+  nodes.forEach(function(n) {
+    if (n._hidden) return;
+    var hay = (n.label + " " + n.qualified_name).toLowerCase();
+    if (hay.indexOf(searchTerm) !== -1) matched.push(n);
+  });
+  if (!matched.length) { searchResults.style.display = "none"; return; }
+  searchResults.textContent = "";
+  matched.slice(0, 15).forEach(function(n) {
+    var bg = KIND_COLOR[n.kind] || "#555";
+    var div = document.createElement("div");
+    div.className = "sr-item";
+    var kindSpan = document.createElement("span");
+    kindSpan.className = "sr-kind";
+    kindSpan.style.background = bg;
+    kindSpan.style.color = "#0d1117";
+    kindSpan.textContent = n.kind;
+    div.appendChild(kindSpan);
+    div.appendChild(document.createTextNode(" " + n.label));
+    div.addEventListener("click", function() {
+      zoomToNode(n.qualified_name);
+      showDetailPanel(n);
+      searchResults.style.display = "none";
+    });
+    searchResults.appendChild(div);
+  });
+  searchResults.style.display = "block";
+}
+function applySearchFilter() {
+  if (!searchTerm) {
+    nodeGroup.selectAll("g.node-g").select(".node-circle").attr("opacity", 1);
+    if (labelSel) labelSel.attr("opacity", 1);
+    if (linkSel) linkSel.attr("opacity", function(e) { return eStyle(e).opacity; });
+    updateLabelVisibility();
+    return;
+  }
+  var matched = new Set();
+  nodes.forEach(function(n) {
+    if (n._hidden) return;
+    var hay = (n.label + " " + n.qualified_name).toLowerCase();
+    if (hay.indexOf(searchTerm) !== -1) matched.add(n.qualified_name);
+  });
+  nodeGroup.selectAll("g.node-g").select(".node-circle")
+    .attr("opacity", function(d) { return matched.has(d.qualified_name) ? 1 : 0.08; });
+  if (labelSel) labelSel
+    .attr("opacity", function(d) { return matched.has(d.qualified_name) ? 1 : 0.05; })
+    .attr("display", function(d) { return matched.has(d.qualified_name) ? null : "none"; });
+  if (linkSel) linkSel.attr("opacity", function(e) {
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    return (matched.has(s) || matched.has(t)) ? eStyle(e).opacity : 0.02;
+  });
+}
+</script>
+</body>
+</html>
+"""
