@@ -166,6 +166,7 @@ export async function searchController(
         apiKeyId: req.acuc?.api_key_id ?? null,
         flags: req.acuc?.flags ?? null,
         requestId: jobId,
+        jobId,
         bypassBilling: false,
         zeroDataRetention: false,
         agentIndexOnly: (req as any).agentIndexOnly ?? false,

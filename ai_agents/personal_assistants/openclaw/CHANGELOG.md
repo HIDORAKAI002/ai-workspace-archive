@@ -6,7 +6,17 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Providers/Google: recognize Gemma model ids in native Google forward-compat resolution, keep the requested provider when cloning fallback templates, and force Gemma reasoning off so Gemma 4 routes stop failing through the Google catalog fallback. (#61507) Thanks @eyjohn.
 - Providers/Anthropic: skip `service_tier` injection for OAuth-authenticated stream wrapper requests so Claude OAuth requests stop failing with HTTP 401. (#60356) thanks @openperf.
+- Agents/exec: preserve explicit `host=node` routing under elevated defaults when `tools.exec.host=auto`, and fail loud on invalid elevated cross-host overrides. (#61739) Thanks @obviyus.
+- Agents/history: suppress commentary-only visible-text leaks in streaming and chat history views, and keep sanitized SSE history sequence numbers monotonic after transcript-only refreshes. (#61829) Thanks @100yenadmin.
+- Plugins/Windows: load plugin entrypoints through `file://` import specifiers on Windows without breaking plugin SDK alias resolution, fixing `ERR_UNSUPPORTED_ESM_URL_SCHEME` for absolute plugin paths. (#61832) Thanks @Zeesejo.
+- Discord/forwarding: recover forwarded referenced message text and attachments when Discord omits snapshot payloads, so forwarded-message relays keep the original content. (#61670) Thanks @artwalker.
+- Docs/i18n: remove the zh-CN homepage redirect override so Mintlify can resolve the localized Chinese homepage without self-redirecting `/zh-CN/index`.
+- Agents/heartbeat: stop truncating live session transcripts after no-op heartbeat acks, move heartbeat cleanup to prompt assembly and compaction, and keep post-filter context-engine ingestion aligned with the real session baseline. (#60998) Thanks @nxmxbbd.
+- macOS/gateway version: strip trailing commit metadata from CLI version output before semver parsing so the Mac app recognizes installed gateway versions like `OpenClaw 2026.4.2 (d74a122)` again. (#61111) Thanks @oliviareid-svg.
+- Memory/dreaming: strip managed Light Sleep and REM blocks before daily-note ingestion so dreaming summaries stop re-ingesting their own staged output into new candidates. (#61720) Thanks @MonkeyLeeT.
+
 ## 2026.4.5
 
 ### Breaking
@@ -57,6 +67,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Control UI/chat: show `/tts` and other local audio-only slash replies in webchat by embedding local audio in the assistant message and rendering `<audio>` controls instead of dropping empty-text finals. Fixes #61564. (#61598) Thanks @neeravmakwana.
 - Security: preserve restrictive plugin-only tool allowlists, require owner access for `/allowlist add` and `/allowlist remove`, fail closed when `before_tool_call` hooks crash, block browser SSRF redirect bypasses earlier, and keep non-interactive auth-choice inference scoped to bundled and already-trusted plugins. (#58476, #59836, #59822, #58771, #59120) Thanks @eleqtrizit and @pgondhi987.
 - Providers/OpenAI: make GPT-5 and Codex runs act sooner with lower-verbosity defaults, visible progress during tool work, and a one-shot retry when a turn only narrates the plan instead of taking action.
 - Providers/OpenAI and reply delivery: preserve native `reasoning.effort: "none"` and strict schemas where supported, add GPT-5.4 assistant `phase` metadata across replay and the Gateway `/v1/responses` layer, and keep commentary buffered until `final_answer` so web chat, session previews, embedded replies, and Telegram partials stop leaking planning text. Fixes #59150, #59643, #61282.
@@ -64,6 +75,8 @@ Docs: https://docs.openclaw.ai
 - Telegram: restore DM voice-note preflight transcription so direct-message audio stops arriving as raw `<media:audio>` placeholders. (#61008) Thanks @manueltarouca.
 - Telegram/reasoning: only create a Telegram reasoning preview lane when the session is explicitly `reasoning:stream`, so hidden `<think>` traces from streamed replies stop surfacing as chat previews on normal sessions. Thanks @vincentkoc.
 - Telegram/native command menu: trim long menu descriptions before dropping commands so sub-100 command sets can still fit Telegram's payload budget and keep more `/` entries visible. (#61129) Thanks @neeravmakwana.
+- Telegram/startup: bound `deleteWebhook`, `getMe`, and `setWebhook` startup requests while keeping the longer `getUpdates` poll timeout, so wedged Telegram control-plane calls stop hanging startup indefinitely. (#61601) Thanks @neeravmakwana.
+- Agents/failover: classify Anthropic "extra usage" exhaustion as billing so same-turn model fallback still triggers when Claude blocks long-context requests on usage limits. (#61608) Thanks @neeravmakwana.
 - Discord: keep REST, webhook, and monitor traffic on the configured proxy, preserve component-only media sends, honor `@everyone` and `@here` mention gates, keep ACK reactions on the active account, and split voice connect/playback timeouts so auto-join is more reliable. (#57465, #60361, #60345) Thanks @geekhuashan.
 - Discord/reply tags: strip leaked `[[reply_to_current]]` control tags from preview text and honor explicit reply-tag threading during final delivery, so Discord replies stay attached to the triggering message instead of printing reply metadata into chat.
 - Discord/replies: replace the unshipped `replyToOnlyWhenBatched` flag with `replyToMode: "batched"` so native reply references only attach on debounced multi-message turns while explicit reply tags still work.
@@ -240,6 +253,7 @@ Docs: https://docs.openclaw.ai
 - Plugins: suppress trust-warning noise during non-activating snapshot and CLI metadata loads. (#61427) Thanks @gumadeiras.
 - Agents/video generation: accept `agents.defaults.videoGenerationModel` in strict config validation and `openclaw config set/get`, so gateways using `video_generate` no longer fail to boot after enabling a video model.
 - Matrix/streaming: add a quiet preview mode for streamed Matrix replies, keep legacy `partial` preview-first behavior, and finalize quiet media captions correctly so previews stop notifying early without dropping final text semantics. (#61450) Thanks @gumadeiras.
+- Agents/compaction: skip redundant partial summarization when no messages were oversized, so the same transcript is not summarized twice after a full summarization failure. Fixes #61465. (#61603) Thanks @neeravmakwana.
 - Gateway/shutdown: bound websocket-server shutdown even when no tracked clients remain, so gateway restarts stop hanging until the watchdog kills the process. (#61565) Thanks @mbelinky.
 - Control UI/multilingual: localize the remaining shared channel, instances, nodes, and gateway-confirmation strings so the dashboard stops mixing translated UI with hardcoded English labels. Thanks @vincentkoc.
 - Discord/media: raise the default inbound and outbound media cap to `100MB` so Discord matches Telegram more closely and larger attachments stop failing on the old low default.
