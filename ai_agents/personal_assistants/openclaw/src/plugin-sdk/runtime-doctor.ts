@@ -1,5 +1,7 @@
 export { collectProviderDangerousNameMatchingScopes } from "../config/dangerous-name-matching.js";
 export {
+  asObjectRecord,
+  hasLegacyAccountStreamingAliases,
   hasLegacyStreamingAliases,
   normalizeLegacyDmAliases,
   normalizeLegacyStreamingAliases,

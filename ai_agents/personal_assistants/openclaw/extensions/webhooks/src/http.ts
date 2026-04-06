@@ -223,93 +223,66 @@ type TaskView = {
   terminalOutcome?: string;
 };
 
-function toFlowView(flow: {
-  flowId: string;
-  syncMode: "task_mirrored" | "managed";
-  controllerId?: string;
-  revision: number;
-  status: string;
-  notifyPolicy: string;
-  goal: string;
-  currentStep?: string;
-  blockedTaskId?: string;
-  blockedSummary?: string;
-  stateJson?: JsonValue;
-  waitJson?: JsonValue;
-  cancelRequestedAt?: number;
-  createdAt: number;
-  updatedAt: number;
-  endedAt?: number;
-}): FlowView {
+function optionalField<TKey extends string, TValue>(
+  key: TKey,
+  value: TValue | undefined,
+): Partial<Record<TKey, TValue>> {
+  return value !== undefined ? ({ [key]: value } as Record<TKey, TValue>) : {};
+}
+
+function optionalTruthyStringField<TKey extends string>(
+  key: TKey,
+  value: string | undefined,
+): Partial<Record<TKey, string>> {
+  return value ? ({ [key]: value } as Record<TKey, string>) : {};
+}
+
+function toFlowView(flow: FlowView): FlowView {
   return {
     flowId: flow.flowId,
     syncMode: flow.syncMode,
-    ...(flow.controllerId ? { controllerId: flow.controllerId } : {}),
+    ...optionalTruthyStringField("controllerId", flow.controllerId),
     revision: flow.revision,
     status: flow.status,
     notifyPolicy: flow.notifyPolicy,
     goal: flow.goal,
-    ...(flow.currentStep ? { currentStep: flow.currentStep } : {}),
-    ...(flow.blockedTaskId ? { blockedTaskId: flow.blockedTaskId } : {}),
-    ...(flow.blockedSummary ? { blockedSummary: flow.blockedSummary } : {}),
-    ...(flow.stateJson !== undefined ? { stateJson: flow.stateJson } : {}),
-    ...(flow.waitJson !== undefined ? { waitJson: flow.waitJson } : {}),
-    ...(flow.cancelRequestedAt !== undefined ? { cancelRequestedAt: flow.cancelRequestedAt } : {}),
+    ...optionalTruthyStringField("currentStep", flow.currentStep),
+    ...optionalTruthyStringField("blockedTaskId", flow.blockedTaskId),
+    ...optionalTruthyStringField("blockedSummary", flow.blockedSummary),
+    ...optionalField("stateJson", flow.stateJson),
+    ...optionalField("waitJson", flow.waitJson),
+    ...optionalField("cancelRequestedAt", flow.cancelRequestedAt),
     createdAt: flow.createdAt,
     updatedAt: flow.updatedAt,
-    ...(flow.endedAt !== undefined ? { endedAt: flow.endedAt } : {}),
+    ...optionalField("endedAt", flow.endedAt),
   };
 }
 
-function toTaskView(task: {
-  taskId: string;
-  runtime: string;
-  sourceId?: string;
-  scopeKind: string;
-  childSessionKey?: string;
-  parentFlowId?: string;
-  parentTaskId?: string;
-  agentId?: string;
-  runId?: string;
-  label?: string;
-  task: string;
-  status: string;
-  deliveryStatus: string;
-  notifyPolicy: string;
-  createdAt: number;
-  startedAt?: number;
-  endedAt?: number;
-  lastEventAt?: number;
-  cleanupAfter?: number;
-  error?: string;
-  progressSummary?: string;
-  terminalSummary?: string;
-  terminalOutcome?: string;
-}): TaskView {
+function toTaskView(task: TaskView): TaskView {
   return {
     taskId: task.taskId,
     runtime: task.runtime,
-    ...(task.sourceId ? { sourceId: task.sourceId } : {}),
+    ...optionalTruthyStringField("sourceId", task.sourceId),
     scopeKind: task.scopeKind,
-    ...(task.childSessionKey ? { childSessionKey: task.childSessionKey } : {}),
-    ...(task.parentFlowId ? { parentFlowId: task.parentFlowId } : {}),
-    ...(task.parentTaskId ? { parentTaskId: task.parentTaskId } : {}),
-    ...(task.agentId ? { agentId: task.agentId } : {}),
-    ...(task.runId ? { runId: task.runId } : {}),
-    ...(task.label ? { label: task.label } : {}),
+    ...optionalTruthyStringField("childSessionKey", task.childSessionKey),
+    ...optionalTruthyStringField("parentFlowId", task.parentFlowId),
+    ...optionalTruthyStringField("parentTaskId", task.parentTaskId),
+    ...optionalTruthyStringField("agentId", task.agentId),
+    ...optionalTruthyStringField("runId", task.runId),
+    ...optionalTruthyStringField("label", task.label),
     task: task.task,
     status: task.status,
     deliveryStatus: task.deliveryStatus,
     notifyPolicy: task.notifyPolicy,
     createdAt: task.createdAt,
-    ...(task.startedAt !== undefined ? { startedAt: task.startedAt } : {}),
-    ...(task.endedAt !== undefined ? { endedAt: task.endedAt } : {}),
-    ...(task.lastEventAt !== undefined ? { lastEventAt: task.lastEventAt } : {}),
-    ...(task.cleanupAfter !== undefined ? { cleanupAfter: task.cleanupAfter } : {}),
-    ...(task.error ? { error: task.error } : {}),
-    ...(task.progressSummary ? { progressSummary: task.progressSummary } : {}),
-    ...(task.terminalSummary ? { terminalSummary: task.terminalSummary } : {}),
-    ...(task.terminalOutcome ? { terminalOutcome: task.terminalOutcome } : {}),
+    ...optionalField("startedAt", task.startedAt),
+    ...optionalField("endedAt", task.endedAt),
+    ...optionalField("lastEventAt", task.lastEventAt),
+    ...optionalField("cleanupAfter", task.cleanupAfter),
+    ...optionalTruthyStringField("error", task.error),
+    ...optionalTruthyStringField("progressSummary", task.progressSummary),
+    ...optionalTruthyStringField("terminalSummary", task.terminalSummary),
+    ...optionalTruthyStringField("terminalOutcome", task.terminalOutcome),
   };
 }
 
@@ -359,6 +332,23 @@ function mapMutationResult(
       },
 ): unknown {
   return result;
+}
+
+function mapFlowMutationResult(result: {
+  applied: boolean;
+  code: string;
+  flow?: Parameters<typeof toFlowView>[0];
+  current?: Parameters<typeof toFlowView>[0];
+}): unknown {
+  return mapMutationResult(
+    result.applied
+      ? { applied: true, flow: toFlowView(result.flow!) }
+      : {
+          applied: false,
+          code: result.code,
+          ...(result.current ? { current: toFlowView(result.current) } : {}),
+        },
+  );
 }
 
 function mapMutationStatus(result: {
@@ -565,15 +555,7 @@ async function executeWebhookAction(params: {
         blockedTaskId: action.blockedTaskId,
         blockedSummary: action.blockedSummary,
       });
-      return mapMutationResult(
-        result.applied
-          ? { applied: true, flow: toFlowView(result.flow) }
-          : {
-              applied: false,
-              code: result.code,
-              ...(result.current ? { current: toFlowView(result.current) } : {}),
-            },
-      );
+      return mapFlowMutationResult(result);
     }
     case "resume_flow": {
       const result = target.taskFlow.resume({
@@ -583,15 +565,7 @@ async function executeWebhookAction(params: {
         currentStep: action.currentStep,
         stateJson: action.stateJson,
       });
-      return mapMutationResult(
-        result.applied
-          ? { applied: true, flow: toFlowView(result.flow) }
-          : {
-              applied: false,
-              code: result.code,
-              ...(result.current ? { current: toFlowView(result.current) } : {}),
-            },
-      );
+      return mapFlowMutationResult(result);
     }
     case "finish_flow": {
       const result = target.taskFlow.finish({
@@ -599,15 +573,7 @@ async function executeWebhookAction(params: {
         expectedRevision: action.expectedRevision,
         stateJson: action.stateJson,
       });
-      return mapMutationResult(
-        result.applied
-          ? { applied: true, flow: toFlowView(result.flow) }
-          : {
-              applied: false,
-              code: result.code,
-              ...(result.current ? { current: toFlowView(result.current) } : {}),
-            },
-      );
+      return mapFlowMutationResult(result);
     }
     case "fail_flow": {
       const result = target.taskFlow.fail({
@@ -617,30 +583,14 @@ async function executeWebhookAction(params: {
         blockedTaskId: action.blockedTaskId,
         blockedSummary: action.blockedSummary,
       });
-      return mapMutationResult(
-        result.applied
-          ? { applied: true, flow: toFlowView(result.flow) }
-          : {
-              applied: false,
-              code: result.code,
-              ...(result.current ? { current: toFlowView(result.current) } : {}),
-            },
-      );
+      return mapFlowMutationResult(result);
     }
     case "request_cancel": {
       const result = target.taskFlow.requestCancel({
         flowId: action.flowId,
         expectedRevision: action.expectedRevision,
       });
-      return mapMutationResult(
-        result.applied
-          ? { applied: true, flow: toFlowView(result.flow) }
-          : {
-              applied: false,
-              code: result.code,
-              ...(result.current ? { current: toFlowView(result.current) } : {}),
-            },
-      );
+      return mapFlowMutationResult(result);
     }
     case "cancel_flow": {
       const result = await target.taskFlow.cancel({

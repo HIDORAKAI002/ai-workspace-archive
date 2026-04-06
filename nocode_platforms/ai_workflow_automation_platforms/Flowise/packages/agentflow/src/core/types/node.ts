@@ -84,7 +84,7 @@ export interface InputParam {
     type: string
     default?: unknown
     optional?: boolean
-    options?: Array<{ label: string; name: string; description?: string } | string>
+    options?: Array<{ label: string; name: string; description?: string; client?: Array<ClientType> } | string>
     placeholder?: string
     rows?: number
     description?: string
@@ -92,6 +92,7 @@ export interface InputParam {
     additionalParams?: boolean
     show?: Record<string, unknown>
     hide?: Record<string, unknown>
+    client?: Array<ClientType>
     display?: boolean
     minItems?: number
     maxItems?: number // No agentflow nodes set this today — supported for forward-compat
@@ -121,3 +122,5 @@ export interface EdgeData {
     isHumanInput?: boolean
     [key: string]: unknown
 }
+
+export type ClientType = 'agentflowv2' | 'agentflowsdk'

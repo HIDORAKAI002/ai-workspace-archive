@@ -1,37 +1,10 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { SecretRefCredentialMatrixDocument } from "./credential-matrix.js";
-
-function buildSecretRefCredentialMatrixInSubprocess(): SecretRefCredentialMatrixDocument {
-  // Building the matrix pulls in bundled channel registry state. Keep that work out of the
-  // Vitest worker so this docs-sync check does not pay the full module-graph cost in-process.
-  const childEnv = { ...process.env };
-  delete childEnv.NODE_OPTIONS;
-  delete childEnv.VITEST;
-  delete childEnv.VITEST_MODE;
-  delete childEnv.VITEST_POOL_ID;
-  delete childEnv.VITEST_WORKER_ID;
-
-  const stdout = execFileSync(
-    process.execPath,
-    [
-      "--import",
-      "tsx",
-      "--input-type=module",
-      "-e",
-      'import { buildSecretRefCredentialMatrix } from "./src/secrets/credential-matrix.ts"; process.stdout.write(JSON.stringify(buildSecretRefCredentialMatrix()));',
-    ],
-    {
-      cwd: process.cwd(),
-      encoding: "utf8",
-      env: childEnv,
-      maxBuffer: 10 * 1024 * 1024,
-    },
-  );
-  return JSON.parse(stdout) as SecretRefCredentialMatrixDocument;
-}
+import {
+  buildSecretRefCredentialMatrix,
+  type SecretRefCredentialMatrixDocument,
+} from "./credential-matrix.js";
 
 describe("secret target registry docs", () => {
   it("stays in sync with docs/reference/secretref-user-supplied-credentials-matrix.json", () => {
@@ -44,7 +17,7 @@ describe("secret target registry docs", () => {
     const raw = fs.readFileSync(pathname, "utf8");
     const parsed = JSON.parse(raw) as unknown;
 
-    expect(parsed).toEqual(buildSecretRefCredentialMatrixInSubprocess());
+    expect(parsed).toEqual(buildSecretRefCredentialMatrix());
   });
 
   it("stays in sync with docs/reference/secretref-credential-surface.md", () => {

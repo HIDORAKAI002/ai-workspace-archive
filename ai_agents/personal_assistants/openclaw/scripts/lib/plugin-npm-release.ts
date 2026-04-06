@@ -55,14 +55,61 @@ export type ParsedPluginReleaseArgs = {
   headRef?: string;
 };
 
-type PublishablePluginPackageCandidate = {
+export type PublishablePluginPackageCandidate<
+  TPackageJson extends PluginPackageJson = PluginPackageJson,
+> = {
   extensionId: string;
   packageDir: string;
-  packageJson: PluginPackageJson;
+  packageJson: TPackageJson;
 };
 
-function readPluginPackageJson(path: string): PluginPackageJson {
-  return JSON.parse(readFileSync(path, "utf8")) as PluginPackageJson;
+function readPluginPackageJson<TPackageJson extends PluginPackageJson = PluginPackageJson>(
+  path: string,
+): TPackageJson {
+  return JSON.parse(readFileSync(path, "utf8")) as TPackageJson;
+}
+
+export function collectExtensionPackageJsonCandidates<
+  TPackageJson extends PluginPackageJson = PluginPackageJson,
+>(rootDir = resolve(".")): PublishablePluginPackageCandidate<TPackageJson>[] {
+  const extensionsDir = join(rootDir, "extensions");
+  const dirs = readdirSync(extensionsDir, { withFileTypes: true }).filter((entry) =>
+    entry.isDirectory(),
+  );
+
+  const candidates: PublishablePluginPackageCandidate<TPackageJson>[] = [];
+  for (const dir of dirs) {
+    const packageDir = join("extensions", dir.name);
+    const absolutePackageDir = join(extensionsDir, dir.name);
+    const packageJsonPath = join(absolutePackageDir, "package.json");
+    try {
+      candidates.push({
+        extensionId: dir.name,
+        packageDir,
+        packageJson: readPluginPackageJson<TPackageJson>(packageJsonPath),
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  return candidates;
+}
+
+export function resolvePublishablePluginVersion(params: {
+  extensionId: string;
+  packageJson: Pick<PluginPackageJson, "version">;
+  validationErrors: string[];
+}): { version: string; parsedVersion: NonNullable<ReturnType<typeof parseReleaseVersion>> } | null {
+  const version = params.packageJson.version?.trim() ?? "";
+  const parsedVersion = parseReleaseVersion(version);
+  if (parsedVersion === null) {
+    params.validationErrors.push(
+      `${params.extensionId}: package.json version must match YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${version}".`,
+    );
+    return null;
+  }
+  return { version, parsedVersion };
 }
 
 export function normalizeGitDiffPath(path: string): string {
@@ -191,51 +238,33 @@ export function collectPublishablePluginPackageErrors(
 export function collectPublishablePluginPackages(
   rootDir = resolve("."),
 ): PublishablePluginPackage[] {
-  const extensionsDir = join(rootDir, "extensions");
-  const dirs = readdirSync(extensionsDir, { withFileTypes: true }).filter((entry) =>
-    entry.isDirectory(),
-  );
-
   const publishable: PublishablePluginPackage[] = [];
   const validationErrors: string[] = [];
 
-  for (const dir of dirs) {
-    const packageDir = join("extensions", dir.name);
-    const absolutePackageDir = join(extensionsDir, dir.name);
-    const packageJsonPath = join(absolutePackageDir, "package.json");
-    let packageJson: PluginPackageJson;
-    try {
-      packageJson = readPluginPackageJson(packageJsonPath);
-    } catch {
-      continue;
-    }
-
+  for (const candidate of collectExtensionPackageJsonCandidates(rootDir)) {
+    const { extensionId, packageDir, packageJson } = candidate;
     if (packageJson.openclaw?.release?.publishToNpm !== true) {
       continue;
     }
 
-    const candidate = {
-      extensionId: dir.name,
-      packageDir,
-      packageJson,
-    } satisfies PublishablePluginPackageCandidate;
     const errors = collectPublishablePluginPackageErrors(candidate);
     if (errors.length > 0) {
-      validationErrors.push(...errors.map((error) => `${dir.name}: ${error}`));
+      validationErrors.push(...errors.map((error) => `${extensionId}: ${error}`));
       continue;
     }
 
-    const version = packageJson.version!.trim();
-    const parsedVersion = parseReleaseVersion(version);
-    if (parsedVersion === null) {
-      validationErrors.push(
-        `${dir.name}: package.json version must match YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${version}".`,
-      );
+    const resolvedVersion = resolvePublishablePluginVersion({
+      extensionId,
+      packageJson,
+      validationErrors,
+    });
+    if (!resolvedVersion) {
       continue;
     }
+    const { version, parsedVersion } = resolvedVersion;
 
     publishable.push({
-      extensionId: dir.name,
+      extensionId,
       packageDir,
       packageName: packageJson.name!.trim(),
       version,

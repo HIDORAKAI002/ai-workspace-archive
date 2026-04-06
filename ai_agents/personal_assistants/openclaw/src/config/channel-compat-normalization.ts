@@ -3,10 +3,21 @@ type CompatMutationResult = {
   changed: boolean;
 };
 
-function asObjectRecord(value: unknown): Record<string, unknown> | null {
+export function asObjectRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
+}
+
+export function hasLegacyAccountStreamingAliases(
+  value: unknown,
+  match: (entry: unknown) => boolean,
+): boolean {
+  const accounts = asObjectRecord(value);
+  if (!accounts) {
+    return false;
+  }
+  return Object.values(accounts).some((account) => match(account));
 }
 
 function ensureNestedRecord(owner: Record<string, unknown>, key: string): Record<string, unknown> {

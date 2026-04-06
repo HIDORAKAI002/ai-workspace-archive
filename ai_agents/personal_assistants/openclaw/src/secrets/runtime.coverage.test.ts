@@ -51,6 +51,8 @@ function loadCoverageRegistryEntries(): SecretRegistryEntry[] {
 
 const COVERAGE_REGISTRY_ENTRIES = loadCoverageRegistryEntries();
 const DEBUG_COVERAGE_BATCHES = process.env.OPENCLAW_DEBUG_RUNTIME_COVERAGE === "1";
+const COVERAGE_LOADABLE_PLUGIN_ORIGINS =
+  buildCoverageLoadablePluginOrigins(COVERAGE_REGISTRY_ENTRIES);
 
 let applyResolvedAssignments: typeof import("./runtime-shared.js").applyResolvedAssignments;
 let collectAuthStoreAssignments: typeof import("./runtime-auth-collectors.js").collectAuthStoreAssignments;
@@ -134,7 +136,11 @@ function resolveCoverageBatchKey(entry: SecretRegistryEntry): string {
     if (
       field === "accessToken" ||
       field === "password" ||
-      (channelId === "slack" && field === "signingSecret")
+      (channelId === "slack" &&
+        (field === "appToken" ||
+          field === "botToken" ||
+          field === "signingSecret" ||
+          field === "userToken"))
     ) {
       return entry.id;
     }
@@ -182,6 +188,15 @@ function logCoverageBatch(label: string, batch: readonly SecretRegistryEntry[]):
   }
   process.stderr.write(
     `[runtime.coverage] ${label} batch (${batch.length}): ${batch.map((entry) => entry.id).join(", ")}\n`,
+  );
+}
+
+function batchNeedsRuntimeWebTools(batch: readonly SecretRegistryEntry[]): boolean {
+  return batch.some(
+    (entry) =>
+      entry.id.startsWith("tools.web.") ||
+      (entry.id.startsWith("plugins.entries.") &&
+        (entry.id.includes(".config.webSearch.") || entry.id.includes(".config.webFetch."))),
   );
 }
 
@@ -365,6 +380,7 @@ async function prepareCoverageSnapshot(params: {
   agentDirs: string[];
   loadAuthStore: (agentDir?: string) => AuthProfileStore;
   loadablePluginOrigins?: ReadonlyMap<string, PluginOrigin>;
+  includeRuntimeWebTools?: boolean;
 }) {
   const sourceConfig = structuredClone(params.config);
   const resolvedConfig = structuredClone(params.config);
@@ -404,11 +420,13 @@ async function prepareCoverageSnapshot(params: {
     });
   }
 
-  await resolveRuntimeWebTools({
-    sourceConfig,
-    resolvedConfig,
-    context,
-  });
+  if (params.includeRuntimeWebTools) {
+    await resolveRuntimeWebTools({
+      sourceConfig,
+      resolvedConfig,
+      context,
+    });
+  }
 
   return {
     config: resolvedConfig,
@@ -456,7 +474,8 @@ describe("secrets runtime target coverage", () => {
         env,
         agentDirs: ["/tmp/openclaw-agent-main"],
         loadAuthStore: () => ({ version: 1, profiles: {} }),
-        loadablePluginOrigins: buildCoverageLoadablePluginOrigins(batch),
+        loadablePluginOrigins: COVERAGE_LOADABLE_PLUGIN_ORIGINS,
+        includeRuntimeWebTools: batchNeedsRuntimeWebTools(batch),
       });
       for (const [index, entry] of batch.entries()) {
         const resolved = getPath(
