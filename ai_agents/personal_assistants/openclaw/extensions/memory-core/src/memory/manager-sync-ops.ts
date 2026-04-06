@@ -41,9 +41,12 @@ import {
   type EmbeddingProvider,
   type EmbeddingProviderId,
   type EmbeddingProviderRuntime,
-  resolveEmbeddingProviderFallbackModel,
 } from "./embeddings.js";
 import { openMemoryDatabaseAtPath } from "./manager-db.js";
+import {
+  applyMemoryFallbackProviderState,
+  resolveMemoryFallbackProviderRequest,
+} from "./manager-provider-state.js";
 import {
   resolveConfiguredScopeHash,
   resolveConfiguredSourcesForMeta,
@@ -1067,8 +1070,12 @@ export abstract class MemoryManagerSyncOps {
   }
 
   private async activateFallbackProvider(reason: string): Promise<boolean> {
-    const fallback = this.settings.fallback;
-    if (!fallback || fallback === "none" || !this.provider || fallback === this.provider.id) {
+    const fallbackRequest = resolveMemoryFallbackProviderRequest({
+      cfg: this.cfg,
+      settings: this.settings,
+      currentProviderId: this.provider?.id ?? null,
+    });
+    if (!fallbackRequest || !this.provider) {
       return false;
     }
     if (this.fallbackFrom) {
@@ -1076,30 +1083,33 @@ export abstract class MemoryManagerSyncOps {
     }
     const fallbackFrom = this.provider.id;
 
-    const fallbackModel = resolveEmbeddingProviderFallbackModel(
-      fallback,
-      this.settings.model,
-      this.cfg,
-    );
-
     const fallbackResult = await createEmbeddingProvider({
       config: this.cfg,
       agentDir: resolveAgentDir(this.cfg, this.agentId),
-      provider: fallback,
-      remote: this.settings.remote,
-      model: fallbackModel,
-      outputDimensionality: this.settings.outputDimensionality,
-      fallback: "none",
-      local: this.settings.local,
+      ...fallbackRequest,
     });
 
-    this.fallbackFrom = fallbackFrom;
-    this.fallbackReason = reason;
-    this.provider = fallbackResult.provider;
-    this.providerRuntime = fallbackResult.runtime;
+    const fallbackState = applyMemoryFallbackProviderState({
+      current: {
+        provider: this.provider,
+        fallbackFrom: this.fallbackFrom,
+        fallbackReason: this.fallbackReason,
+        providerUnavailableReason: undefined,
+        providerRuntime: this.providerRuntime,
+      },
+      fallbackFrom,
+      reason,
+      result: fallbackResult,
+    });
+    this.fallbackFrom = fallbackState.fallbackFrom;
+    this.fallbackReason = fallbackState.fallbackReason;
+    this.provider = fallbackState.provider;
+    this.providerRuntime = fallbackState.providerRuntime;
     this.providerKey = this.computeProviderKey();
     this.batch = this.resolveBatchConfig();
-    log.warn(`memory embeddings: switched to fallback provider (${fallback})`, { reason });
+    log.warn(`memory embeddings: switched to fallback provider (${fallbackRequest.provider})`, {
+      reason,
+    });
     return true;
   }
 

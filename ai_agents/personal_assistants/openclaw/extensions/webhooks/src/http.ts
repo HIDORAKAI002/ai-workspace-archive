@@ -334,15 +334,21 @@ function mapMutationResult(
   return result;
 }
 
-function mapFlowMutationResult(result: {
-  applied: boolean;
-  code: string;
-  flow?: Parameters<typeof toFlowView>[0];
-  current?: Parameters<typeof toFlowView>[0];
-}): unknown {
+function mapFlowMutationResult(
+  result:
+    | {
+        applied: true;
+        flow: Parameters<typeof toFlowView>[0];
+      }
+    | {
+        applied: false;
+        code: string;
+        current?: Parameters<typeof toFlowView>[0];
+      },
+): unknown {
   return mapMutationResult(
     result.applied
-      ? { applied: true, flow: toFlowView(result.flow!) }
+      ? { applied: true, flow: toFlowView(result.flow) }
       : {
           applied: false,
           code: result.code,

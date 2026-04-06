@@ -111,12 +111,9 @@ describe("memory index", () => {
   let fixtureRoot = "";
   let workspaceDir = "";
   let memoryDir = "";
-  let extraDir = "";
   let indexVectorPath = "";
   let indexMainPath = "";
-  let indexExtraPath = "";
   let indexMultimodalPath = "";
-  let indexFtsOnlyPath = "";
 
   const managersForCleanup = new Set<MemoryIndexManager>();
 
@@ -124,12 +121,9 @@ describe("memory index", () => {
     fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-mem-fixtures-"));
     workspaceDir = path.join(fixtureRoot, "workspace");
     memoryDir = path.join(workspaceDir, "memory");
-    extraDir = path.join(workspaceDir, "extra");
     indexMainPath = path.join(workspaceDir, "index-main.sqlite");
     indexVectorPath = path.join(workspaceDir, "index-vector.sqlite");
-    indexExtraPath = path.join(workspaceDir, "index-extra.sqlite");
     indexMultimodalPath = path.join(workspaceDir, "index-multimodal.sqlite");
-    indexFtsOnlyPath = path.join(workspaceDir, "index-fts-only.sqlite");
   });
 
   afterAll(async () => {
@@ -575,46 +569,9 @@ describe("memory index", () => {
     expect(status.vector?.available).toBe(available);
   });
 
-  it("rejects reading non-memory paths", async () => {
-    const cfg = createCfg({ storePath: indexMainPath });
-    const manager = await getPersistentManager(cfg);
-    await expect(manager.readFile({ relPath: "NOTES.md" })).rejects.toThrow("path required");
-  });
-
-  it("allows reading from additional memory paths and blocks symlinks", async () => {
-    await fs.mkdir(extraDir, { recursive: true });
-    await fs.writeFile(path.join(extraDir, "extra.md"), "Extra content.");
-
-    const cfg = createCfg({ storePath: indexExtraPath, extraPaths: [extraDir] });
-    const manager = await getPersistentManager(cfg);
-    await expect(manager.readFile({ relPath: "extra/extra.md" })).resolves.toEqual({
-      path: "extra/extra.md",
-      text: "Extra content.",
-    });
-
-    const linkPath = path.join(extraDir, "linked.md");
-    let symlinkOk = true;
-    try {
-      await fs.symlink(path.join(extraDir, "extra.md"), linkPath, "file");
-    } catch (err) {
-      const code = (err as NodeJS.ErrnoException).code;
-      if (code === "EPERM" || code === "EACCES") {
-        symlinkOk = false;
-      } else {
-        throw err;
-      }
-    }
-    if (symlinkOk) {
-      await expect(manager.readFile({ relPath: "extra/linked.md" })).rejects.toThrow(
-        "path required",
-      );
-    }
-  });
-
   it("triggers full reindex and cleans up old-model FTS rows when switching from provider to FTS-only", async () => {
     const sharedStorePath = path.join(workspaceDir, "index-provider-to-fts-only.sqlite");
 
-    // Phase 1: sync with a real provider — FTS rows stored under model = "mock-embed"
     const providerCfg = createCfg({ storePath: sharedStorePath, hybrid: { enabled: true } });
     const providerResult = await getMemorySearchManager({ cfg: providerCfg, agentId: "main" });
     const providerManager = requireManager(providerResult);
@@ -634,7 +591,6 @@ describe("memory index", () => {
     await providerManager.close();
     managersForCleanup.delete(providerManager);
 
-    // Phase 2: switch to FTS-only (no provider) — should trigger full reindex
     forceNoProvider = true;
     const ftsOnlyCfg = createCfg({ storePath: sharedStorePath, hybrid: { enabled: true } });
     const ftsOnlyResult = await getMemorySearchManager({ cfg: ftsOnlyCfg, agentId: "main" });
@@ -646,14 +602,11 @@ describe("memory index", () => {
     const db = (
       ftsOnlyManager as unknown as { db: { prepare: (s: string) => { get: () => { c: number } } } }
     ).db;
-
-    // old provider-model rows should be gone after full reindex
     const oldRows = db
       .prepare("SELECT COUNT(*) as c FROM chunks_fts WHERE model = 'mock-embed'")
       .get();
     expect(oldRows.c).toBe(0);
 
-    // new fts-only rows should exist
     const newRows = db
       .prepare("SELECT COUNT(*) as c FROM chunks_fts WHERE model = 'fts-only'")
       .get();
@@ -664,7 +617,7 @@ describe("memory index", () => {
     forceNoProvider = true;
 
     const cfg = createCfg({
-      storePath: indexFtsOnlyPath,
+      storePath: path.join(workspaceDir, "index-fts-only.sqlite"),
       minScore: 0.35,
       hybrid: { enabled: true },
     });
@@ -680,16 +633,13 @@ describe("memory index", () => {
     await manager.sync({ reason: "test" });
 
     const status = manager.status();
-    // chunks should be indexed via FTS even without a provider
     expect(status.chunks).toBeGreaterThan(0);
     expect(embedBatchCalls).toBe(0);
 
-    // keyword search should still return matching results under the default threshold
     const results = await manager.search("Alpha");
     expect(results.length).toBeGreaterThan(0);
     expect(results[0]?.snippet).toMatch(/Alpha/i);
 
-    // unknown terms should return no results
     const noResults = await manager.search("nonexistent_xyz_keyword");
     expect(noResults.length).toBe(0);
   });

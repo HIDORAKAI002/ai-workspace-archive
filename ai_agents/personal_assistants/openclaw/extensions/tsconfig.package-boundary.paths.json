@@ -9,8 +9,10 @@
         "../packages/plugin-sdk/dist/packages/plugin-sdk/src/*.d.ts"
       ],
       "openclaw/plugin-sdk/account-id": ["../src/plugin-sdk/account-id.ts"],
-      "@openclaw/*": ["../extensions/*"],
-      "@openclaw/plugin-sdk/*": ["../packages/plugin-sdk/dist/packages/plugin-sdk/src/*.d.ts"]
+      "@openclaw/*": ["../packages/plugin-sdk/dist/packages/plugin-sdk/src/extensions/*"],
+      "@openclaw/plugin-sdk/*": [
+        "../packages/plugin-sdk/dist/packages/plugin-sdk/src/src/plugin-sdk/*"
+      ]
     }
   }
 }

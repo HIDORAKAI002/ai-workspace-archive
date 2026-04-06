@@ -32,6 +32,7 @@ import {
   resolveSingletonManagedCache,
 } from "./manager-cache.js";
 import { MemoryManagerEmbeddingOps } from "./manager-embedding-ops.js";
+import { resolveMemoryProviderState } from "./manager-provider-state.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import {
   collectMemoryStatusAggregate,
@@ -231,11 +232,12 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   }
 
   private applyProviderResult(providerResult: EmbeddingProviderResult): void {
-    this.provider = providerResult.provider;
-    this.fallbackFrom = providerResult.fallbackFrom;
-    this.fallbackReason = providerResult.fallbackReason;
-    this.providerUnavailableReason = providerResult.providerUnavailableReason;
-    this.providerRuntime = providerResult.runtime;
+    const providerState = resolveMemoryProviderState(providerResult);
+    this.provider = providerState.provider;
+    this.fallbackFrom = providerState.fallbackFrom;
+    this.fallbackReason = providerState.fallbackReason;
+    this.providerUnavailableReason = providerState.providerUnavailableReason;
+    this.providerRuntime = providerState.providerRuntime;
     this.providerInitialized = true;
   }
 
