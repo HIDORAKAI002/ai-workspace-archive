@@ -1,15 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { validateExternalCodePluginPackageJson } from "../../packages/plugin-package-contract/src/index.ts";
-import { parseReleaseVersion } from "../openclaw-npm-release-check.ts";
 import {
+  collectExtensionPackageJsonCandidates,
   collectChangedPathsFromGitRange,
   collectChangedExtensionIdsFromPaths,
   collectPublishablePluginPackageErrors,
   parsePluginReleaseArgs,
   parsePluginReleaseSelection,
   parsePluginReleaseSelectionMode,
+  resolvePublishablePluginVersion,
   resolveGitCommitSha,
   resolveChangedPublishablePluginPackages,
   resolveSelectedPublishablePluginPackages,
@@ -90,10 +90,6 @@ const CLAWHUB_SHARED_RELEASE_INPUT_PATHS = [
   "scripts/plugin-clawhub-release-plan.ts",
 ] as const;
 
-function readPluginPackageJson(path: string): PluginPackageJson {
-  return JSON.parse(readFileSync(path, "utf8")) as PluginPackageJson;
-}
-
 function getRegistryBaseUrl(explicit?: string) {
   return (
     explicit?.trim() ||
@@ -106,63 +102,50 @@ function getRegistryBaseUrl(explicit?: string) {
 export function collectClawHubPublishablePluginPackages(
   rootDir = resolve("."),
 ): PublishablePluginPackage[] {
-  const extensionsDir = join(rootDir, "extensions");
-  const dirs = readdirSync(extensionsDir, { withFileTypes: true }).filter((entry) =>
-    entry.isDirectory(),
-  );
-
   const publishable: PublishablePluginPackage[] = [];
   const validationErrors: string[] = [];
 
-  for (const dir of dirs) {
-    const packageDir = join("extensions", dir.name);
-    const absolutePackageDir = join(extensionsDir, dir.name);
-    const packageJsonPath = join(absolutePackageDir, "package.json");
-    let packageJson: PluginPackageJson;
-    try {
-      packageJson = readPluginPackageJson(packageJsonPath);
-    } catch {
-      continue;
-    }
-
+  for (const candidate of collectExtensionPackageJsonCandidates<PluginPackageJson>(rootDir)) {
+    const { extensionId, packageDir, packageJson } = candidate;
     if (packageJson.openclaw?.release?.publishToClawHub !== true) {
       continue;
     }
-    if (!SAFE_EXTENSION_ID_RE.test(dir.name)) {
+    if (!SAFE_EXTENSION_ID_RE.test(extensionId)) {
       validationErrors.push(
-        `${dir.name}: extension directory name must match ^[a-z0-9][a-z0-9._-]*$ for ClawHub publish.`,
+        `${extensionId}: extension directory name must match ^[a-z0-9][a-z0-9._-]*$ for ClawHub publish.`,
       );
       continue;
     }
 
     const errors = collectPublishablePluginPackageErrors({
-      extensionId: dir.name,
+      extensionId,
       packageDir,
       packageJson,
     });
     if (errors.length > 0) {
-      validationErrors.push(...errors.map((error) => `${dir.name}: ${error}`));
+      validationErrors.push(...errors.map((error) => `${extensionId}: ${error}`));
       continue;
     }
     const contractValidation = validateExternalCodePluginPackageJson(packageJson);
     if (contractValidation.issues.length > 0) {
       validationErrors.push(
-        ...contractValidation.issues.map((issue) => `${dir.name}: ${issue.message}`),
+        ...contractValidation.issues.map((issue) => `${extensionId}: ${issue.message}`),
       );
       continue;
     }
 
-    const version = packageJson.version!.trim();
-    const parsedVersion = parseReleaseVersion(version);
-    if (parsedVersion === null) {
-      validationErrors.push(
-        `${dir.name}: package.json version must match YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${version}".`,
-      );
+    const resolvedVersion = resolvePublishablePluginVersion({
+      extensionId,
+      packageJson,
+      validationErrors,
+    });
+    if (!resolvedVersion) {
       continue;
     }
+    const { version, parsedVersion } = resolvedVersion;
 
     publishable.push({
-      extensionId: dir.name,
+      extensionId,
       packageDir,
       packageName: packageJson.name!.trim(),
       version,

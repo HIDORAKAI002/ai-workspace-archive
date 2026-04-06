@@ -157,7 +157,10 @@ describe("secrets runtime snapshot matrix shadowing", () => {
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
-    expect(snapshot.config.channels?.matrix?.accounts?.ops?.password).toEqual({
+    expect(
+      (snapshot.config.channels?.matrix?.accounts?.ops as { password?: unknown } | undefined)
+        ?.password,
+    ).toEqual({
       source: "env",
       provider: "default",
       id: "MATRIX_OPS_PASSWORD",
@@ -331,7 +334,10 @@ describe("secrets runtime snapshot matrix shadowing", () => {
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
-    expect(snapshot.config.channels?.matrix?.accounts?.default?.password).toEqual({
+    expect(
+      (snapshot.config.channels?.matrix?.accounts?.default as { password?: unknown } | undefined)
+        ?.password,
+    ).toEqual({
       source: "env",
       provider: "default",
       id: "MATRIX_DEFAULT_PASSWORD",

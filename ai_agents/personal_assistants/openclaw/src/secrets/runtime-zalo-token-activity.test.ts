@@ -97,9 +97,10 @@ describe("secrets runtime snapshot zalo token activity", () => {
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
-    expect(snapshot.config.channels?.zalo?.accounts?.work?.botToken).toBe(
-      "resolved-zalo-work-token",
-    );
+    expect(
+      (snapshot.config.channels?.zalo?.accounts?.work as { botToken?: unknown } | undefined)
+        ?.botToken,
+    ).toBe("resolved-zalo-work-token");
     expect(snapshot.warnings.map((warning) => warning.path)).not.toContain(
       "channels.zalo.accounts.work.botToken",
     );
@@ -153,9 +154,10 @@ describe("secrets runtime snapshot zalo token activity", () => {
       loadAuthStore: () => loadAuthStoreWithProfiles({}),
     });
 
-    expect(snapshot.config.channels?.zalo?.accounts?.default?.botToken).toBe(
-      "resolved-zalo-default-token",
-    );
+    expect(
+      (snapshot.config.channels?.zalo?.accounts?.default as { botToken?: unknown } | undefined)
+        ?.botToken,
+    ).toBe("resolved-zalo-default-token");
     expect(snapshot.warnings.map((warning) => warning.path)).not.toContain(
       "channels.zalo.accounts.default.botToken",
     );
