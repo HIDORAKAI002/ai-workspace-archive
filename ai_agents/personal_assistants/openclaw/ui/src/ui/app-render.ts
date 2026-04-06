@@ -12,6 +12,7 @@ import {
   renderTopbarThemeModeToggle,
   switchChatSession,
 } from "./app-render.helpers.ts";
+import { warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -699,7 +700,9 @@ export function renderApp(state: AppViewState) {
                           ?disabled=${dreamingLoading || state.dreamDiaryLoading}
                           @click=${refreshDreaming}
                         >
-                          ${dreamingRefreshLoading ? "Refreshing…" : "Refresh"}
+                          ${dreamingRefreshLoading
+                            ? t("dreaming.header.refreshing")
+                            : t("dreaming.header.refresh")}
                         </button>
                         <button
                           class="dreams__phase-toggle ${dreamingOn
@@ -709,9 +712,9 @@ export function renderApp(state: AppViewState) {
                           @click=${() => applyDreamingEnabled(!dreamingOn)}
                         >
                           <span class="dreams__phase-toggle-dot"></span>
-                          <span class="dreams__phase-toggle-label"
-                            >${dreamingOn ? "Dreaming On" : "Dreaming Off"}</span
-                          >
+                          <span class="dreams__phase-toggle-label">
+                            ${dreamingOn ? t("dreaming.header.on") : t("dreaming.header.off")}
+                          </span>
                         </button>
                       </div>
                     `
@@ -735,6 +738,7 @@ export function renderApp(state: AppViewState) {
               cronEnabled: state.cronStatus?.enabled ?? null,
               cronNext,
               lastChannelsRefresh: state.channelsLastSuccess,
+              warnQueryToken,
               usageResult: state.usageResult,
               sessionsResult: state.sessionsResult,
               skillsReport: state.skillsReport,
@@ -1859,7 +1863,7 @@ export function renderApp(state: AppViewState) {
               assistantName: state.assistantName,
               configPath: state.configSnapshot?.path ?? null,
               rawAvailable: typeof state.configSnapshot?.raw === "string",
-              navRootLabel: "Appearance",
+              navRootLabel: t("tabs.appearance"),
               includeSections: [...APPEARANCE_SECTION_KEYS],
               includeVirtualSections: true,
             })

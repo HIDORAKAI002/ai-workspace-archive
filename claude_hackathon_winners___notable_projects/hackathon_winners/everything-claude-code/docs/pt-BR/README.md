@@ -89,7 +89,7 @@ Este repositório contém apenas o código. Os guias explicam tudo.
 - **Revisão de orquestração** — Pontuação de auditoria de harness tornado determinístico, status de orquestração e compatibilidade de launcher reforçados, prevenção de loop de observer com guarda de 5 camadas.
 - **Confiabilidade do observer** — Correção de explosão de memória com throttling e tail sampling, correção de acesso sandbox, lógica de início preguiçoso e guarda de reentrância.
 - **12 ecossistemas de linguagem** — Novas regras para Java, PHP, Perl, Kotlin/Android/KMP, C++ e Rust se juntam ao TypeScript, Python, Go e regras comuns existentes.
-- **Contribuições da comunidade** — Traduções para coreano e chinês, hook de segurança InsAIts, otimização de hook biome, skills VideoDB, skills operacionais Evos, instalador PowerShell, suporte ao IDE Antigravity.
+- **Contribuições da comunidade** — Traduções para coreano e chinês, otimização de hook biome, skills VideoDB, skills operacionais Evos, instalador PowerShell, suporte ao IDE Antigravity.
 - **CI reforçado** — 19 correções de falhas de teste, aplicação de contagem de catálogo, validação de manifesto de instalação e suíte de testes completa no verde.
 
 ### v1.8.0 — Sistema de Desempenho de Harness (Mar 2026)

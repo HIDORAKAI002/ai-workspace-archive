@@ -200,6 +200,7 @@
       "description": "Evaluation, TDD, verification, learning, and compaction skills.",
       "paths": [
         "skills/agent-sort",
+        "skills/agent-introspection-debugging",
         "skills/ai-regression-testing",
         "skills/configure-ecc",
         "skills/code-tour",

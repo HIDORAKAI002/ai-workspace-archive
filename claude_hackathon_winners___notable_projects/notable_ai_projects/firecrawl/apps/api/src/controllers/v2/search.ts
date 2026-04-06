@@ -137,6 +137,8 @@ export async function searchController(
         apiKeyId: req.acuc?.api_key_id ?? null,
         flags: req.acuc?.flags ?? null,
         requestId: agentRequestId ?? jobId,
+        jobId,
+        apiVersion: "v2",
         bypassBilling: !shouldBill,
         zeroDataRetention: isZDROrAnon,
         billing,

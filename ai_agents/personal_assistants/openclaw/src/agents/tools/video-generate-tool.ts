@@ -7,6 +7,10 @@ import { loadWebMedia } from "../../media/web-media.js";
 import { readSnakeCaseParamRaw } from "../../param-key.js";
 import { resolveUserPath } from "../../utils.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
+import {
+  resolveVideoGenerationMode,
+  resolveVideoGenerationModeCapabilities,
+} from "../../video-generation/capabilities.js";
 import { resolveVideoGenerationSupportedDurations } from "../../video-generation/duration-support.js";
 import { parseVideoGenerationModelRef } from "../../video-generation/model-ref.js";
 import {
@@ -120,7 +124,7 @@ const VideoGenerateToolSchema = Type.Object({
   ),
   resolution: Type.Optional(
     Type.String({
-      description: "Optional resolution hint: 480P, 720P, or 1080P.",
+      description: "Optional resolution hint: 480P, 720P, 768P, or 1080P.",
     }),
   ),
   durationSeconds: Type.Optional(
@@ -171,10 +175,15 @@ function normalizeResolution(raw: string | undefined): VideoGenerationResolution
   if (!normalized) {
     return undefined;
   }
-  if (normalized === "480P" || normalized === "720P" || normalized === "1080P") {
+  if (
+    normalized === "480P" ||
+    normalized === "720P" ||
+    normalized === "768P" ||
+    normalized === "1080P"
+  ) {
     return normalized;
   }
-  throw new ToolInputError("resolution must be one of 480P, 720P, or 1080P");
+  throw new ToolInputError("resolution must be one of 480P, 720P, 768P, or 1080P");
 }
 
 function normalizeAspectRatio(raw: string | undefined): string | undefined {
@@ -268,7 +277,40 @@ function validateVideoGenerationCapabilities(params: {
   if (!provider) {
     return;
   }
-  const caps = provider.capabilities;
+  const mode = resolveVideoGenerationMode({
+    inputImageCount: params.inputImageCount,
+    inputVideoCount: params.inputVideoCount,
+  });
+  const { capabilities: caps } = resolveVideoGenerationModeCapabilities({
+    provider,
+    inputImageCount: params.inputImageCount,
+    inputVideoCount: params.inputVideoCount,
+  });
+  if (!caps && mode === "imageToVideo" && params.inputVideoCount === 0) {
+    throw new ToolInputError(`${provider.id} does not support image-to-video reference inputs.`);
+  }
+  if (!caps && mode === "videoToVideo" && params.inputImageCount === 0) {
+    throw new ToolInputError(`${provider.id} does not support video-to-video reference inputs.`);
+  }
+  if (!caps) {
+    return;
+  }
+  if (
+    mode === "imageToVideo" &&
+    "enabled" in caps &&
+    !caps.enabled &&
+    params.inputVideoCount === 0
+  ) {
+    throw new ToolInputError(`${provider.id} does not support image-to-video reference inputs.`);
+  }
+  if (
+    mode === "videoToVideo" &&
+    "enabled" in caps &&
+    !caps.enabled &&
+    params.inputImageCount === 0
+  ) {
+    throw new ToolInputError(`${provider.id} does not support video-to-video reference inputs.`);
+  }
   if (params.inputImageCount > 0) {
     const maxInputImages = caps.maxInputImages ?? MAX_INPUT_IMAGES;
     if (params.inputImageCount > maxInputImages) {
@@ -291,6 +333,8 @@ function validateVideoGenerationCapabilities(params: {
     !resolveVideoGenerationSupportedDurations({
       provider,
       model: params.model,
+      inputImageCount: params.inputImageCount,
+      inputVideoCount: params.inputVideoCount,
     }) &&
     typeof caps.maxDurationSeconds === "number" &&
     params.durationSeconds > caps.maxDurationSeconds
@@ -766,10 +810,12 @@ export function createVideoGenerateTool(options?: {
             });
             try {
               await wakeVideoGenerationTaskCompletion({
+                config: effectiveCfg,
                 handle: taskHandle,
                 status: "ok",
                 statusLabel: "completed successfully",
                 result: executed.wakeResult,
+                mediaUrls: executed.savedPaths,
               });
             } catch (error) {
               log.warn("Video generation completion wake failed after successful generation", {
@@ -784,6 +830,7 @@ export function createVideoGenerateTool(options?: {
               error,
             });
             await wakeVideoGenerationTaskCompletion({
+              config: effectiveCfg,
               handle: taskHandle,
               status: "error",
               statusLabel: "failed",

@@ -1,0 +1,25 @@
+name: fastapi
+url: https://github.com/tiangolo/fastapi
+commit: HEAD
+language: python
+size_category: medium
+
+test_commits:
+  - sha: fa3588c38c7473aca7536b12d686102de4b0f407
+    description: "Fix typo for client_secret in OAuth2 form docstrings"
+    changed_files: 1
+  - sha: 0227991a01e61bf5cdd93cc00e9e243f52b47a4a
+    description: "Exclude spam comments from statistics in scripts/people.py"
+    changed_files: 1
+
+entry_points:
+  - "fastapi/applications.py::FastAPI"
+  - "fastapi/routing.py::APIRouter"
+
+search_queries:
+  - query: "FastAPI application"
+    expected: "fastapi/applications.py::FastAPI"
+  - query: "APIRoute routing"
+    expected: "fastapi/routing.py::APIRoute"
+  - query: "Depends injection"
+    expected: "fastapi/params.py::Depends"

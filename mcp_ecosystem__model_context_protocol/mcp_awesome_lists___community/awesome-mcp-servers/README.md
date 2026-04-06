@@ -14,7 +14,7 @@
       </a>
     </td>
     <td>
-      <a href="https://get.brightdata.com/mcpservers">Access reliable, real-time or historical web data at scale with Bright Data MCP</a>
+      <a href="https://get.brightdata.com/mcpservers">Access reliable, real-time or historical web data at scale with Bright Data MCP. Enjoy 5,000 MCP requests every month - for free</a>
     </td>
   </tr>
   <tr>

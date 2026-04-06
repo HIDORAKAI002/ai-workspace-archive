@@ -122,9 +122,6 @@ describe("createMusicGenerateTool", () => {
       count: 1,
       instrumental: true,
       lyrics: ["wake the city up"],
-      task: {
-        taskId: "task-123",
-      },
       media: {
         mediaUrls: ["/tmp/generated-night-drive.mp3"],
       },
@@ -241,12 +238,14 @@ describe("createMusicGenerateTool", () => {
         defaultModel: "music-2.5+",
         models: ["music-2.5+"],
         capabilities: {
-          maxTracks: 1,
-          supportsLyrics: true,
-          supportsInstrumental: true,
-          supportsDuration: true,
-          supportsFormat: true,
-          supportedFormats: ["mp3"],
+          generate: {
+            maxTracks: 1,
+            supportsLyrics: true,
+            supportsInstrumental: true,
+            supportsDuration: true,
+            supportsFormat: true,
+            supportedFormats: ["mp3"],
+          },
         },
         generateMusic: vi.fn(async () => {
           throw new Error("not used");
@@ -280,11 +279,13 @@ describe("createMusicGenerateTool", () => {
         defaultModel: "lyria-3-clip-preview",
         models: ["lyria-3-clip-preview"],
         capabilities: {
-          supportsLyrics: true,
-          supportsInstrumental: true,
-          supportsFormat: true,
-          supportedFormatsByModel: {
-            "lyria-3-clip-preview": ["mp3"],
+          generate: {
+            supportsLyrics: true,
+            supportsInstrumental: true,
+            supportsFormat: true,
+            supportedFormatsByModel: {
+              "lyria-3-clip-preview": ["mp3"],
+            },
           },
         },
         generateMusic: vi.fn(async () => {

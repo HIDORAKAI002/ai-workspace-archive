@@ -7,7 +7,10 @@ import {
   resolveEffectivePluginActivationState,
   resolveMemorySlotDecision,
 } from "../plugins/config-state.js";
-import { listPluginDoctorLegacyConfigRules } from "../plugins/doctor-contract-registry.js";
+import {
+  collectRelevantDoctorPluginIds,
+  listPluginDoctorLegacyConfigRules,
+} from "../plugins/doctor-contract-registry.js";
 import {
   loadPluginManifestRegistry,
   resolveManifestContractPluginIds,
@@ -455,7 +458,11 @@ export function validateConfigObjectRaw(
   raw: unknown,
 ): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
   const policyIssues = collectUnsupportedSecretRefPolicyIssues(raw);
-  const legacyIssues = findLegacyConfigIssues(raw, raw, listPluginDoctorLegacyConfigRules());
+  const legacyIssues = findLegacyConfigIssues(
+    raw,
+    raw,
+    listPluginDoctorLegacyConfigRules({ pluginIds: collectRelevantDoctorPluginIds(raw) }),
+  );
   if (legacyIssues.length > 0) {
     return {
       ok: false,
@@ -766,7 +773,8 @@ function validateConfigObjectWithPluginsBase(
         schema: channelSchema,
         cacheKey: `channel:${trimmed}`,
         value: config.channels[trimmed],
-        applyDefaults: opts.applyDefaults,
+        applyDefaults: true, // Always apply defaults for AJV schema validation;
+        // writeConfigFile persists persistCandidate, not validated.config (#61841)
       });
       if (!result.ok) {
         for (const error of result.errors) {
@@ -957,7 +965,8 @@ function validateConfigObjectWithPluginsBase(
           schema: record.configSchema,
           cacheKey: record.schemaCacheKey ?? record.manifestPath ?? pluginId,
           value: entry?.config ?? {},
-          applyDefaults: opts.applyDefaults,
+          applyDefaults: true, // Always apply defaults for AJV schema validation;
+          // writeConfigFile persists persistCandidate, not validated.config (#61841)
         });
         if (!res.ok) {
           for (const error of res.errors) {

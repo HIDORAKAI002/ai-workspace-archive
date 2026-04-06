@@ -42,6 +42,13 @@ type ManagedFlowResumeParams = {
   waitingStep?: string;
 };
 
+type ManagedFlowSuccessResult = {
+  ok: true;
+  envelope: unknown;
+  flow: unknown;
+  mutation: unknown;
+};
+
 function readOptionalTrimmedString(value: unknown, fieldName: string): string | undefined {
   if (value === undefined) {
     return undefined;
@@ -59,6 +66,16 @@ function readOptionalNumber(value: unknown, fieldName: string): number | undefin
   }
   if (typeof value !== "number" || !Number.isInteger(value)) {
     throw new Error(`${fieldName} must be an integer`);
+  }
+  return value;
+}
+
+function readOptionalBoolean(value: unknown, fieldName: string): boolean | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "boolean") {
+    throw new Error(`${fieldName} must be a boolean`);
   }
   return value;
 }
@@ -119,6 +136,8 @@ function parseResumeFlowParams(params: Record<string, unknown>): ManagedFlowResu
   const expectedRevision = readOptionalNumber(params.flowExpectedRevision, "flowExpectedRevision");
   const currentStep = readOptionalTrimmedString(params.flowCurrentStep, "flowCurrentStep");
   const waitingStep = readOptionalTrimmedString(params.flowWaitingStep, "flowWaitingStep");
+  const token = readOptionalTrimmedString(params.token, "token");
+  const approve = readOptionalBoolean(params.approve, "approve");
   const runControllerId = readOptionalTrimmedString(params.flowControllerId, "flowControllerId");
   const runGoal = readOptionalTrimmedString(params.flowGoal, "flowGoal");
   const stateJson = params.flowStateJson;
@@ -141,11 +160,33 @@ function parseResumeFlowParams(params: Record<string, unknown>): ManagedFlowResu
   if (expectedRevision === undefined) {
     throw new Error("flowExpectedRevision required when using managed TaskFlow resume mode");
   }
+  if (!token) {
+    throw new Error("token required when using managed TaskFlow resume mode");
+  }
+  if (approve === undefined) {
+    throw new Error("approve required when using managed TaskFlow resume mode");
+  }
   return {
     flowId,
     expectedRevision,
     ...(currentStep ? { currentStep } : {}),
     ...(waitingStep ? { waitingStep } : {}),
+  };
+}
+
+function formatManagedFlowResult(result: ManagedFlowSuccessResult) {
+  const envelope =
+    result.envelope && typeof result.envelope === "object" && !Array.isArray(result.envelope)
+      ? result.envelope
+      : { envelope: result.envelope };
+  const details = {
+    ...envelope,
+    flow: result.flow,
+    mutation: result.mutation,
+  };
+  return {
+    content: [{ type: "text", text: JSON.stringify(details, null, 2) }],
+    details,
   };
 }
 
@@ -228,15 +269,7 @@ export function createLobsterTool(api: OpenClawPluginApi, options?: LobsterToolO
           if (!result.ok) {
             throw result.error;
           }
-          const details = {
-            ...result.envelope,
-            flow: result.flow,
-            mutation: result.mutation,
-          };
-          return {
-            content: [{ type: "text", text: JSON.stringify(details, null, 2) }],
-            details,
-          };
+          return formatManagedFlowResult(result);
         }
       } else {
         const flowParams = parseResumeFlowParams(params);
@@ -260,15 +293,7 @@ export function createLobsterTool(api: OpenClawPluginApi, options?: LobsterToolO
           if (!result.ok) {
             throw result.error;
           }
-          const details = {
-            ...result.envelope,
-            flow: result.flow,
-            mutation: result.mutation,
-          };
-          return {
-            content: [{ type: "text", text: JSON.stringify(details, null, 2) }],
-            details,
-          };
+          return formatManagedFlowResult(result);
         }
       }
 

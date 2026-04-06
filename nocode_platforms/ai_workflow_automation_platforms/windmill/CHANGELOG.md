@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.677.0](https://github.com/windmill-labs/windmill/compare/v1.676.0...v1.677.0) (2026-04-06)
+
+
+### Features
+
+* add AWS Secrets Manager as secret storage backend (Beta) ([#8734](https://github.com/windmill-labs/windmill/issues/8734)) ([09bbc18](https://github.com/windmill-labs/windmill/commit/09bbc18bb773d9ffaa5aaa4bd9d7ce296f3ac468))
+
+
+### Bug Fixes
+
+* remove stale KMS openapi/description, restore stripped doc comments ([c09a431](https://github.com/windmill-labs/windmill/commit/c09a4311fd73c58acc8f3997428f002598dacce6))
+* use runnable key for file naming in generate-metadata to prevent duplicate scripts in raw apps ([#8740](https://github.com/windmill-labs/windmill/issues/8740)) ([edfe074](https://github.com/windmill-labs/windmill/commit/edfe074e98cb3955be0768de7ed19e6ed8525916))
+
+## [1.676.0](https://github.com/windmill-labs/windmill/compare/v1.675.1...v1.676.0) (2026-04-06)
+
+
+### Features
+
+* add path name autocomplete with ghost text and folder cycling ([#8731](https://github.com/windmill-labs/windmill/issues/8731)) ([e326621](https://github.com/windmill-labs/windmill/commit/e32662169a9762605de2dbe058514ddefbe07982))
+
+
+### Bug Fixes
+
+* fix custom urls not found ([d2abc0d](https://github.com/windmill-labs/windmill/commit/d2abc0d4300bb53f4035102f214d3c05bf0976a1))
+
+
+### Performance Improvements
+
+* add partial index for expired cache resource cleanup ([#8728](https://github.com/windmill-labs/windmill/issues/8728)) ([c721fac](https://github.com/windmill-labs/windmill/commit/c721fac466524747de04e3623c8cd62de8bd4dae))
+
 ## [1.675.1](https://github.com/windmill-labs/windmill/compare/v1.675.0...v1.675.1) (2026-04-05)
 
 

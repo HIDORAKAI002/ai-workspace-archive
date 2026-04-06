@@ -13,6 +13,7 @@ import {
   mergeScrapedContent,
   calculateScrapeCredits,
 } from "./scrape";
+import { trackSearchResults, trackSearchRequest } from "../lib/tracking";
 import type { BillingMetadata } from "../services/billing/types";
 
 interface SearchOptions {
@@ -36,6 +37,8 @@ interface SearchContext {
   apiKeyId: number | null;
   flags: TeamFlags;
   requestId: string;
+  jobId: string;
+  apiVersion: string;
   bypassBilling?: boolean;
   zeroDataRetention?: boolean;
   billing?: BillingMetadata;
@@ -172,6 +175,44 @@ export async function executeSearch(
       scrapeCredits = calculateScrapeCredits(allDocsWithCostTracking);
     }
   }
+
+  const scrapeFormats = scrapeOptions?.formats
+    ? scrapeOptions.formats.map((f: any) =>
+        typeof f === "string" ? f : f.type,
+      )
+    : [];
+
+  trackSearchRequest({
+    searchId: context.jobId,
+    requestId: context.requestId,
+    teamId,
+    query,
+    origin,
+    kind: billing?.endpoint ?? "search",
+    apiVersion: context.apiVersion,
+    lang: options.lang,
+    country: options.country,
+    sources: searchTypes,
+    numResults: totalResultsCount,
+    searchCredits,
+    scrapeCredits,
+    totalCredits: searchCredits + scrapeCredits,
+    hasScrapeFormats: shouldScrape ?? false,
+    scrapeFormats,
+    isSuccessful: true,
+    timeTaken: 0, // filled by caller if needed
+    zeroDataRetention: zeroDataRetention ?? false,
+  }).catch(err =>
+    logger.warn("Search request tracking failed", { error: err }),
+  );
+
+  trackSearchResults({
+    searchId: context.jobId,
+    teamId,
+    response: searchResponse,
+    zeroDataRetention: zeroDataRetention ?? false,
+    hasScrapeFormats: shouldScrape ?? false,
+  }).catch(err => logger.warn("Search tracking failed", { error: err }));
 
   return {
     response: searchResponse,

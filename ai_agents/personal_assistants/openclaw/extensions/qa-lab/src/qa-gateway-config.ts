@@ -38,6 +38,16 @@ export function buildQaGatewayConfig(params: {
   alternateModel?: string;
   fastMode?: boolean;
 }): OpenClawConfig {
+  const splitModelRef = (ref: string) => {
+    const slash = ref.indexOf("/");
+    if (slash <= 0 || slash === ref.length - 1) {
+      return null;
+    }
+    return {
+      provider: ref.slice(0, slash),
+      model: ref.slice(slash + 1),
+    };
+  };
   const mockProviderBaseUrl = params.providerBaseUrl ?? "http://127.0.0.1:44080/v1";
   const mockOpenAiProvider: ModelProviderConfig = {
     baseUrl: mockProviderBaseUrl,
@@ -49,7 +59,7 @@ export function buildQaGatewayConfig(params: {
         name: "gpt-5.4",
         api: "openai-responses",
         reasoning: false,
-        input: ["text"],
+        input: ["text", "image"],
         cost: {
           input: 0,
           output: 0,
@@ -62,6 +72,21 @@ export function buildQaGatewayConfig(params: {
       {
         id: "gpt-5.4-alt",
         name: "gpt-5.4-alt",
+        api: "openai-responses",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: {
+          input: 0,
+          output: 0,
+          cacheRead: 0,
+          cacheWrite: 0,
+        },
+        contextWindow: 128_000,
+        maxTokens: 4096,
+      },
+      {
+        id: "gpt-image-1",
+        name: "gpt-image-1",
         api: "openai-responses",
         reasoning: false,
         input: ["text"],
@@ -77,16 +102,28 @@ export function buildQaGatewayConfig(params: {
     ],
   };
   const providerMode = params.providerMode ?? "mock-openai";
-  const allowedPlugins =
-    providerMode === "live-openai"
-      ? ["memory-core", "openai", "qa-channel"]
-      : ["memory-core", "qa-channel"];
   const primaryModel =
     params.primaryModel ??
     (providerMode === "live-openai" ? "openai/gpt-5.4" : "mock-openai/gpt-5.4");
   const alternateModel =
     params.alternateModel ??
     (providerMode === "live-openai" ? "openai/gpt-5.4" : "mock-openai/gpt-5.4-alt");
+  const imageGenerationModelRef =
+    providerMode === "live-openai" ? "openai/gpt-image-1" : "mock-openai/gpt-image-1";
+  const selectedProviderIds =
+    providerMode === "live-openai"
+      ? [
+          ...new Set(
+            [primaryModel, alternateModel, imageGenerationModelRef]
+              .map((ref) => splitModelRef(ref)?.provider)
+              .filter((provider): provider is string => Boolean(provider)),
+          ),
+        ]
+      : [];
+  const pluginEntries =
+    providerMode === "live-openai"
+      ? Object.fromEntries(selectedProviderIds.map((providerId) => [providerId, { enabled: true }]))
+      : {};
   const liveModelParams =
     providerMode === "live-openai"
       ? {
@@ -110,7 +147,7 @@ export function buildQaGatewayConfig(params: {
 
   return {
     plugins: {
-      allow: allowedPlugins,
+      ...(providerMode === "mock-openai" ? { allow: ["memory-core", "qa-channel"] } : {}),
       entries: {
         acpx: {
           enabled: false,
@@ -118,13 +155,7 @@ export function buildQaGatewayConfig(params: {
         "memory-core": {
           enabled: true,
         },
-        ...(providerMode === "live-openai"
-          ? {
-              openai: {
-                enabled: true,
-              },
-            }
-          : {}),
+        ...pluginEntries,
       },
     },
     agents: {
@@ -132,6 +163,17 @@ export function buildQaGatewayConfig(params: {
         workspace: params.workspaceDir,
         model: {
           primary: primaryModel,
+        },
+        imageGenerationModel: {
+          primary: imageGenerationModelRef,
+        },
+        memorySearch: {
+          sync: {
+            watch: true,
+            watchDebounceMs: 25,
+            onSessionStart: true,
+            onSearch: true,
+          },
         },
         models: {
           [primaryModel]: {
@@ -164,6 +206,9 @@ export function buildQaGatewayConfig(params: {
           },
         },
       ],
+    },
+    memory: {
+      backend: "builtin",
     },
     ...(providerMode === "mock-openai"
       ? {
