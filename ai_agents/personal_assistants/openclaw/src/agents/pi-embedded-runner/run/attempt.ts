@@ -153,6 +153,7 @@ import {
   buildAfterTurnRuntimeContext,
   prependSystemPromptAddition,
   resolveAttemptFsWorkspaceOnly,
+  resolveAttemptPrependSystemContext,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   shouldWarnOnOrphanedUserRepair,
@@ -208,6 +209,7 @@ export {
   buildAfterTurnRuntimeContext,
   prependSystemPromptAddition,
   resolveAttemptFsWorkspaceOnly,
+  resolveAttemptPrependSystemContext,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   shouldWarnOnOrphanedUserRepair,
@@ -1537,7 +1539,11 @@ export async function runEmbeddedAttempt(
           }
           const prependedOrAppendedSystemPrompt = composeSystemPromptWithHookContext({
             baseSystemPrompt: systemPromptText,
-            prependSystemContext: hookResult?.prependSystemContext,
+            prependSystemContext: resolveAttemptPrependSystemContext({
+              sessionKey: params.sessionKey,
+              trigger: params.trigger,
+              hookPrependSystemContext: hookResult?.prependSystemContext,
+            }),
             appendSystemContext: hookResult?.appendSystemContext,
           });
           if (prependedOrAppendedSystemPrompt) {
