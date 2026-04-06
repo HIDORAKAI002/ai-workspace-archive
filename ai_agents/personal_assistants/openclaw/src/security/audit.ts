@@ -1,6 +1,6 @@
 import { isIP } from "node:net";
 import path from "node:path";
-import { resolveSandboxConfigForAgent } from "../agents/sandbox.js";
+import { resolveSandboxConfigForAgent } from "../agents/sandbox/config.js";
 import { hasPotentialConfiguredChannels } from "../channels/config-presence.js";
 import type { listChannelPlugins } from "../channels/plugins/index.js";
 import { formatCliCommand } from "../cli/command-format.js";
@@ -128,6 +128,7 @@ let gatewayProbeDepsPromise:
   | Promise<{
       buildGatewayConnectionDetails: typeof import("../gateway/call.js").buildGatewayConnectionDetails;
       resolveGatewayProbeAuthSafe: typeof import("../gateway/probe-auth.js").resolveGatewayProbeAuthSafe;
+      resolveGatewayProbeTarget: typeof import("../gateway/probe-auth.js").resolveGatewayProbeTarget;
       probeGateway: typeof import("../gateway/probe.js").probeGateway;
     }>
   | undefined;
@@ -171,6 +172,7 @@ async function loadGatewayProbeDeps() {
   ]).then(([callModule, probeAuthModule, probeModule]) => ({
     buildGatewayConnectionDetails: callModule.buildGatewayConnectionDetails,
     resolveGatewayProbeAuthSafe: probeAuthModule.resolveGatewayProbeAuthSafe,
+    resolveGatewayProbeTarget: probeAuthModule.resolveGatewayProbeTarget,
     probeGateway: probeModule.probeGateway,
   }));
   return await gatewayProbeDepsPromise;
@@ -210,7 +212,7 @@ function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-async function collectFilesystemFindings(params: {
+export async function collectFilesystemFindings(params: {
   stateDir: string;
   configPath: string;
   env?: NodeJS.ProcessEnv;
@@ -341,7 +343,7 @@ async function collectFilesystemFindings(params: {
   return findings;
 }
 
-function collectGatewayConfigFindings(
+export function collectGatewayConfigFindings(
   cfg: OpenClawConfig,
   sourceConfig: OpenClawConfig,
   env: NodeJS.ProcessEnv,
@@ -778,7 +780,7 @@ async function collectPluginSecurityAuditFindings(
   return collectorResults.flat();
 }
 
-function collectLoggingFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+export function collectLoggingFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   const redact = cfg.logging?.redactSensitive;
   if (redact !== "off") {
     return [];
@@ -794,7 +796,7 @@ function collectLoggingFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   ];
 }
 
-function collectElevatedFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+export function collectElevatedFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const enabled = cfg.tools?.elevated?.enabled;
   const allowFrom = cfg.tools?.elevated?.allowFrom ?? {};
@@ -829,7 +831,7 @@ function collectElevatedFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   return findings;
 }
 
-function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+export function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const globalExecHost = cfg.tools?.exec?.host;
   const globalStrictInlineEval = cfg.tools?.exec?.strictInlineEval === true;
@@ -1214,29 +1216,18 @@ async function maybeProbeGateway(params: {
   deep: SecurityAuditReport["deep"];
   authWarning?: string;
 }> {
-  const { buildGatewayConnectionDetails, resolveGatewayProbeAuthSafe } =
+  const { buildGatewayConnectionDetails, resolveGatewayProbeAuthSafe, resolveGatewayProbeTarget } =
     await loadGatewayProbeDeps();
   const connection = buildGatewayConnectionDetails({ config: params.cfg });
   const url = connection.url;
-  const isRemoteMode = params.cfg.gateway?.mode === "remote";
-  const remoteUrlRaw =
-    typeof params.cfg.gateway?.remote?.url === "string" ? params.cfg.gateway.remote.url.trim() : "";
-  const remoteUrlMissing = isRemoteMode && !remoteUrlRaw;
+  const probeTarget = resolveGatewayProbeTarget(params.cfg);
 
-  const authResolution =
-    !isRemoteMode || remoteUrlMissing
-      ? resolveGatewayProbeAuthSafe({
-          cfg: params.cfg,
-          env: params.env,
-          mode: "local",
-          explicitAuth: params.explicitAuth,
-        })
-      : resolveGatewayProbeAuthSafe({
-          cfg: params.cfg,
-          env: params.env,
-          mode: "remote",
-          explicitAuth: params.explicitAuth,
-        });
+  const authResolution = resolveGatewayProbeAuthSafe({
+    cfg: params.cfg,
+    env: params.env,
+    mode: probeTarget.mode,
+    explicitAuth: params.explicitAuth,
+  });
   const res = await params
     .probe({ url, auth: authResolution.auth, timeoutMs: params.timeoutMs })
     .catch((err) => ({
@@ -1267,6 +1258,32 @@ async function maybeProbeGateway(params: {
     },
     authWarning: authResolution.warning,
   };
+}
+
+export function collectDeepProbeFindings(params: {
+  deep?: SecurityAuditReport["deep"];
+  authWarning?: string;
+}): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  if (params.deep?.gateway?.attempted && !params.deep.gateway.ok) {
+    findings.push({
+      checkId: "gateway.probe_failed",
+      severity: "warn",
+      title: "Gateway probe failed (deep)",
+      detail: params.deep.gateway.error ?? "gateway unreachable",
+      remediation: `Run "${formatCliCommand("openclaw status --all")}" to debug connectivity/auth, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
+    });
+  }
+  if (params.authWarning) {
+    findings.push({
+      checkId: "gateway.probe_auth_secretref_unavailable",
+      severity: "warn",
+      title: "Gateway probe auth SecretRef is unavailable",
+      detail: params.authWarning,
+      remediation: `Set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD in this shell or resolve the external secret provider, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
+    });
+  }
+  return findings;
 }
 
 async function createAuditExecutionContext(
@@ -1424,25 +1441,7 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
       })
     : undefined;
   const deep = deepProbeResult?.deep;
-
-  if (deep?.gateway?.attempted && !deep.gateway.ok) {
-    findings.push({
-      checkId: "gateway.probe_failed",
-      severity: "warn",
-      title: "Gateway probe failed (deep)",
-      detail: deep.gateway.error ?? "gateway unreachable",
-      remediation: `Run "${formatCliCommand("openclaw status --all")}" to debug connectivity/auth, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
-    });
-  }
-  if (deepProbeResult?.authWarning) {
-    findings.push({
-      checkId: "gateway.probe_auth_secretref_unavailable",
-      severity: "warn",
-      title: "Gateway probe auth SecretRef is unavailable",
-      detail: deepProbeResult.authWarning,
-      remediation: `Set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD in this shell or resolve the external secret provider, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
-    });
-  }
+  findings.push(...collectDeepProbeFindings({ deep, authWarning: deepProbeResult?.authWarning }));
 
   const summary = countBySeverity(findings);
   return { ts: Date.now(), summary, findings, deep };

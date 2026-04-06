@@ -44,6 +44,8 @@ const defaultOptions: Required<Omit<RequestClientOptions, "baseUrl" | "tokenHead
   timeout: 15_000,
   queueRequests: true,
   maxQueueSize: 1000,
+  runtimeProfile: "serverless",
+  scheduler: {},
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
