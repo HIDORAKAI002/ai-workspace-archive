@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-06 06:56 IST] Auto-Sync
+- **10 Repositories Updated:** Exa MCP Server, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, ggml-org/llama.cpp, vllm-project/vllm, affaan-m/everything-claude-code, sgl-project/sglang, openclaw/openclaw, bytedance/deer-flow
+
 ## [2026-04-06 03:38 IST] Auto-Sync
 - **13 Repositories Updated:** Activepieces, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, affaan-m/everything-claude-code, chenglou/pretext, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
 

@@ -232,6 +232,8 @@ explicitly promotes one as public.
     | `plugin-sdk/realtime-voice` | Realtime voice provider types and registry helpers |
     | `plugin-sdk/image-generation` | Image generation provider types |
     | `plugin-sdk/image-generation-core` | Shared image-generation types, failover, auth, and registry helpers |
+    | `plugin-sdk/music-generation` | Music generation provider/request/result types |
+    | `plugin-sdk/music-generation-core` | Shared music-generation types, failover helpers, provider lookup, and model-ref parsing |
     | `plugin-sdk/video-generation` | Video generation provider/request/result types |
     | `plugin-sdk/video-generation-core` | Shared video-generation types, failover helpers, provider lookup, and model-ref parsing |
     | `plugin-sdk/webhook-targets` | Webhook target registry and route-install helpers |
@@ -263,7 +265,7 @@ explicitly promotes one as public.
   <Accordion title="Reserved bundled-helper subpaths">
     | Family | Current subpaths | Intended use |
     | --- | --- | --- |
-    | Browser | `plugin-sdk/browser-cdp`, `plugin-sdk/browser-config-support`, `plugin-sdk/browser-control-auth`, `plugin-sdk/browser-profiles`, `plugin-sdk/browser-support` | Bundled browser plugin support helpers |
+    | Browser | `plugin-sdk/browser-cdp`, `plugin-sdk/browser-config-runtime`, `plugin-sdk/browser-config-support`, `plugin-sdk/browser-control-auth`, `plugin-sdk/browser-node-runtime`, `plugin-sdk/browser-profiles`, `plugin-sdk/browser-security-runtime`, `plugin-sdk/browser-setup-tools`, `plugin-sdk/browser-support` | Bundled browser plugin support helpers (`browser-support` remains the compatibility barrel) |
     | Matrix | `plugin-sdk/matrix`, `plugin-sdk/matrix-helper`, `plugin-sdk/matrix-runtime-heavy`, `plugin-sdk/matrix-runtime-shared`, `plugin-sdk/matrix-runtime-surface`, `plugin-sdk/matrix-surface`, `plugin-sdk/matrix-thread-bindings` | Bundled Matrix helper/runtime surface |
     | Line | `plugin-sdk/line`, `plugin-sdk/line-core`, `plugin-sdk/line-runtime`, `plugin-sdk/line-surface` | Bundled LINE helper/runtime surface |
     | IRC | `plugin-sdk/irc`, `plugin-sdk/irc-surface` | Bundled IRC helper surface |
@@ -288,6 +290,7 @@ methods:
 | `api.registerRealtimeVoiceProvider(...)`         | Duplex realtime voice sessions   |
 | `api.registerMediaUnderstandingProvider(...)`    | Image/audio/video analysis       |
 | `api.registerImageGenerationProvider(...)`       | Image generation                 |
+| `api.registerMusicGenerationProvider(...)`       | Music generation                 |
 | `api.registerVideoGenerationProvider(...)`       | Video generation                 |
 | `api.registerWebFetchProvider(...)`              | Web fetch / scrape provider      |
 | `api.registerWebSearchProvider(...)`             | Web search                       |
