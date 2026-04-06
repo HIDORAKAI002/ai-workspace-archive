@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-06 21:57 IST] Auto-Sync
+- **21 Repositories Updated:** Dify, Flowise, Activepieces, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, arize-ai/phoenix, firecrawl/firecrawl, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, tirth8205/code-review-graph
+
 ## [2026-04-06 17:57 IST] Auto-Sync
 - **18 Repositories Updated:** Promptfoo, Dify, Activepieces, Plane, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, openlit/openlit, firecrawl/firecrawl, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
