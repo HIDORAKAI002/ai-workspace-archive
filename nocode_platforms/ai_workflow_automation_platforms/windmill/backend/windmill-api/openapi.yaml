@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.675.1
+  version: 1.676.0
   title: Windmill API
 
   contact:
@@ -1847,6 +1847,66 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/AzureKeyVaultSettings"
+      responses:
+        "200":
+          description: migration report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretMigrationReport"
+
+  /settings/test_aws_sm_backend:
+    post:
+      summary: test connection to AWS Secrets Manager
+      operationId: testAwsSmBackend
+      tags:
+        - setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AwsSecretsManagerSettings"
+      responses:
+        "200":
+          description: connection test result
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /settings/migrate_secrets_to_aws_sm:
+    post:
+      summary: migrate secrets from database to AWS Secrets Manager
+      operationId: migrateSecretsToAwsSm
+      tags:
+        - setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AwsSecretsManagerSettings"
+      responses:
+        "200":
+          description: migration report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretMigrationReport"
+
+  /settings/migrate_secrets_from_aws_sm:
+    post:
+      summary: migrate secrets from AWS Secrets Manager to database
+      operationId: migrateSecretsFromAwsSm
+      tags:
+        - setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AwsSecretsManagerSettings"
       responses:
         "200":
           description: migration report
@@ -8776,6 +8836,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/FlowConversationMessage"
+
+  /w/{workspace}/path_autocomplete/list_paths:
+    get:
+      summary: list all paths in a workspace for client-side autocomplete
+      description: |
+        Returns the flat list of all item paths visible to the caller across
+        scripts, flows, apps, raw apps, variables, and resources. Intended to
+        feed an entirely client-side path autocomplete UI: the frontend fetches
+        once (server caches per workspace for 60s) and performs all prefix/segment
+        computation locally. Capped at 20,000 paths (5,000 per table).
+      operationId: listPathAutocompletePaths
+      tags:
+        - path_autocomplete
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: deduplicated path list, sorted lexicographically
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paths:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - paths
 
   /w/{workspace}/raw_apps/list:
     get:
@@ -19375,6 +19464,27 @@ components:
         token:
           type: string
           description: Static Bearer token for testing/development (optional, if provided this is used instead of OAuth2 authentication)
+
+    AwsSecretsManagerSettings:
+      type: object
+      required:
+        - region
+      properties:
+        region:
+          type: string
+          description: AWS region (e.g., us-east-1)
+        access_key_id:
+          type: string
+          description: AWS Access Key ID (optional, uses default credential chain if not provided)
+        secret_access_key:
+          type: string
+          description: AWS Secret Access Key (optional)
+        endpoint_url:
+          type: string
+          description: Custom endpoint URL for testing (e.g., LocalStack)
+        prefix:
+          type: string
+          description: Prefix for secret names (e.g., windmill/)
 
     SecretMigrationFailure:
       type: object
