@@ -45,6 +45,29 @@ function main() {
       assert.strictEqual(result.status, 0, result.stderr)
       assert.ok(fs.existsSync(distEntry), ".opencode/dist/index.js should exist after build")
     }],
+    ["npm pack includes the compiled OpenCode dist payload", () => {
+      const result = spawnSync("npm", ["pack", "--dry-run", "--json"], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      })
+      assert.strictEqual(result.status, 0, result.stderr)
+
+      const packOutput = JSON.parse(result.stdout)
+      const packagedPaths = new Set(packOutput[0]?.files?.map((file) => file.path) ?? [])
+
+      assert.ok(
+        packagedPaths.has(".opencode/dist/index.js"),
+        "npm pack should include .opencode/dist/index.js"
+      )
+      assert.ok(
+        packagedPaths.has(".opencode/dist/plugins/index.js"),
+        "npm pack should include compiled OpenCode plugin output"
+      )
+      assert.ok(
+        packagedPaths.has(".opencode/dist/tools/index.js"),
+        "npm pack should include compiled OpenCode tool output"
+      )
+    }],
   ]
 
   for (const [name, fn] of tests) {
