@@ -12,9 +12,11 @@ import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 import type { SessionInitResult } from "./session.js";
 
 const COMPLETE_REPLY_CONFIG_SYMBOL = Symbol.for("openclaw.reply.complete-config");
+const FULL_REPLY_RUNTIME_SYMBOL = Symbol.for("openclaw.reply.full-runtime");
 
 type ReplyConfigWithMarker = OpenClawConfig & {
   [COMPLETE_REPLY_CONFIG_SYMBOL]?: true;
+  [FULL_REPLY_RUNTIME_SYMBOL]?: true;
 };
 
 function isSlowReplyTestAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
@@ -33,17 +35,36 @@ function resolveFastSessionKey(ctx: MsgContext): string {
   return `agent:main:${provider}:${destination}`;
 }
 
-export function markCompleteReplyConfig<T extends OpenClawConfig>(config: T): T {
+function markReplyConfigRuntimeMode(
+  config: ReplyConfigWithMarker,
+  runtimeMode: "fast" | "full" = "fast",
+): void {
+  Object.defineProperty(config, FULL_REPLY_RUNTIME_SYMBOL, {
+    value: runtimeMode === "full" ? true : undefined,
+    configurable: true,
+    enumerable: false,
+  });
+}
+
+export function markCompleteReplyConfig<T extends OpenClawConfig>(
+  config: T,
+  options?: { runtimeMode?: "fast" | "full" },
+): T {
   Object.defineProperty(config as ReplyConfigWithMarker, COMPLETE_REPLY_CONFIG_SYMBOL, {
     value: true,
     configurable: true,
     enumerable: false,
   });
+  markReplyConfigRuntimeMode(config as ReplyConfigWithMarker, options?.runtimeMode ?? "fast");
   return config;
 }
 
 export function withFastReplyConfig<T extends OpenClawConfig>(config: T): T {
-  return markCompleteReplyConfig(config);
+  return markCompleteReplyConfig(config, { runtimeMode: "fast" });
+}
+
+export function withFullRuntimeReplyConfig<T extends OpenClawConfig>(config: T): T {
+  return markCompleteReplyConfig(config, { runtimeMode: "full" });
 }
 
 export function isCompleteReplyConfig(config: unknown): config is OpenClawConfig {
@@ -51,6 +72,14 @@ export function isCompleteReplyConfig(config: unknown): config is OpenClawConfig
     config &&
     typeof config === "object" &&
     (config as ReplyConfigWithMarker)[COMPLETE_REPLY_CONFIG_SYMBOL] === true,
+  );
+}
+
+export function usesFullReplyRuntime(config: unknown): boolean {
+  return Boolean(
+    config &&
+    typeof config === "object" &&
+    (config as ReplyConfigWithMarker)[FULL_REPLY_RUNTIME_SYMBOL] === true,
   );
 }
 
@@ -78,14 +107,20 @@ export function shouldUseReplyFastTestBootstrap(params: {
   isFastTestEnv: boolean;
   configOverride?: OpenClawConfig;
 }): boolean {
-  return params.isFastTestEnv && isCompleteReplyConfig(params.configOverride);
+  return (
+    params.isFastTestEnv &&
+    isCompleteReplyConfig(params.configOverride) &&
+    !usesFullReplyRuntime(params.configOverride)
+  );
 }
 
 export function shouldUseReplyFastTestRuntime(params: {
   cfg: OpenClawConfig;
   isFastTestEnv: boolean;
 }): boolean {
-  return params.isFastTestEnv && isCompleteReplyConfig(params.cfg);
+  return (
+    params.isFastTestEnv && isCompleteReplyConfig(params.cfg) && !usesFullReplyRuntime(params.cfg)
+  );
 }
 
 export function shouldUseReplyFastDirectiveExecution(params: {
