@@ -46,7 +46,6 @@ def observable_source_asset(
     required_resource_keys: AbstractSet[str] | None = None,
     resource_defs: Mapping[str, ResourceDefinition] | None = None,
     partitions_def: PartitionsDefinition | None = None,
-    auto_observe_interval_minutes: float | None = None,
     legacy_freshness_policy: LegacyFreshnessPolicy | None = None,
     automation_condition: AutomationCondition | None = None,
     op_tags: Mapping[str, Any] | None = None,
@@ -56,11 +55,6 @@ def observable_source_asset(
 
 @beta_param(param="io_manager_def")
 @beta_param(param="resource_defs")
-@hidden_param(
-    param="auto_observe_interval_minutes",
-    breaking_version="1.10.0",
-    additional_warn_text="use `automation_condition` instead.",
-)
 @hidden_param(
     param="legacy_freshness_policy",
     breaking_version="1.12.0",
@@ -141,7 +135,6 @@ def observable_source_asset(
         required_resource_keys,
         resource_defs,
         partitions_def,
-        kwargs.get("auto_observe_interval_minutes"),
         kwargs.get("legacy_freshness_policy"),
         automation_condition,
         op_tags,
@@ -163,7 +156,6 @@ class _ObservableSourceAsset:
         required_resource_keys: AbstractSet[str] | None = None,
         resource_defs: Mapping[str, ResourceDefinition] | None = None,
         partitions_def: PartitionsDefinition | None = None,
-        auto_observe_interval_minutes: float | None = None,
         legacy_freshness_policy: LegacyFreshnessPolicy | None = None,
         automation_condition: AutomationCondition | None = None,
         op_tags: Mapping[str, Any] | None = None,
@@ -184,7 +176,6 @@ class _ObservableSourceAsset:
         self.required_resource_keys = required_resource_keys
         self.resource_defs = resource_defs
         self.partitions_def = partitions_def
-        self.auto_observe_interval_minutes = auto_observe_interval_minutes
         self.legacy_freshness_policy = legacy_freshness_policy
         self.automation_condition = automation_condition
         self.op_tags = op_tags
@@ -221,7 +212,7 @@ class _ObservableSourceAsset:
                 observe_fn=observe_fn,
                 op_tags=self.op_tags,
                 partitions_def=self.partitions_def,
-                auto_observe_interval_minutes=self.auto_observe_interval_minutes,
+                auto_observe_interval_minutes=None,
                 legacy_freshness_policy=self.legacy_freshness_policy,
                 automation_condition=self.automation_condition,
                 tags=self.tags,
