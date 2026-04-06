@@ -23,7 +23,9 @@ import {
 } from "./lib/changed-files-store.js"
 import changedFilesTool from "../tools/changed-files.js"
 
-export const ECCHooksPlugin = async ({
+type ECCHooksPluginFn = (input: PluginInput) => Promise<Record<string, unknown>>
+
+export const ECCHooksPlugin: ECCHooksPluginFn = async ({
   client,
   $,
   directory,

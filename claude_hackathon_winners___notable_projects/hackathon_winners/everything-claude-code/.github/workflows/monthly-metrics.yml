@@ -30,6 +30,10 @@ jobs:
               return match ? Number(match[1]) : null;
             }
 
+            function escapeRegex(value) {
+              return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            }
+
             function fmt(value) {
               if (value === null || value === undefined) return "n/a";
               return Number(value).toLocaleString("en-US");
@@ -167,14 +171,17 @@ jobs:
             }
 
             const currentBody = issue.body || "";
-            if (currentBody.includes(`| ${monthKey} |`)) {
-              console.log(`Issue #${issue.number} already has snapshot row for ${monthKey}`);
-              return;
-            }
+            const rowPattern = new RegExp(`^\\| ${escapeRegex(monthKey)} \\|.*$`, "m");
 
-            const body = currentBody.includes("| Month (UTC) |")
-              ? `${currentBody.trimEnd()}\n${row}\n`
-              : `${intro}\n${row}\n`;
+            let body;
+            if (rowPattern.test(currentBody)) {
+              body = currentBody.replace(rowPattern, row);
+              console.log(`Refreshed issue #${issue.number} snapshot row for ${monthKey}`);
+            } else {
+              body = currentBody.includes("| Month (UTC) |")
+                ? `${currentBody.trimEnd()}\n${row}\n`
+                : `${intro}\n${row}\n`;
+            }
 
             await github.rest.issues.update({
               owner,

@@ -142,7 +142,7 @@ Link to complementary skills (e.g., `related-skill-1`, `related-skill-2`).
 | **Workflow** | Step-by-step processes | `tdd-workflow`, `refactoring-workflow` |
 | **Domain Knowledge** | Specialized domains | `security-review`, `api-design` |
 | **Tool Integration** | Tool/library usage | `docker-patterns`, `supabase-patterns` |
-| **Template** | Project-specific skill templates | `project-guidelines-example` |
+| **Template** | Project-specific skill templates | `docs/examples/project-guidelines-template.md` |
 
 ### Skill Checklist
 
@@ -165,7 +165,7 @@ Link to complementary skills (e.g., `related-skill-1`, `related-skill-2`).
 | `backend-patterns/` | Framework Patterns | API and database patterns |
 | `security-review/` | Domain Knowledge | Security checklist |
 | `tdd-workflow/` | Workflow | Test-driven development process |
-| `project-guidelines-example/` | Template | Project-specific skill template |
+| `docs/examples/project-guidelines-template.md` | Template | Project-specific skill template |
 
 ---
 

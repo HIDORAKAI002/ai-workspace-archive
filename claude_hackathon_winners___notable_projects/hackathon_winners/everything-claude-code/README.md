@@ -85,7 +85,7 @@ This repo is the raw code only. The guides explain everything.
 ### v1.10.0 — Surface Refresh, Operator Workflows, and ECC 2.0 Alpha (Apr 2026)
 
 - **Public surface synced to the live repo** — metadata, catalog counts, plugin manifests, and install-facing docs now match the actual OSS surface: 38 agents, 156 skills, and 72 legacy command shims.
-- **Operator and outbound workflow expansion** — `brand-voice`, `social-graph-ranker`, `connections-optimizer`, `customer-billing-ops`, `google-workspace-ops`, `project-flow-ops`, and `workspace-surface-audit` round out the operator lane.
+- **Operator and outbound workflow expansion** — `brand-voice`, `social-graph-ranker`, `connections-optimizer`, `customer-billing-ops`, `ecc-tools-cost-audit`, `google-workspace-ops`, `project-flow-ops`, and `workspace-surface-audit` round out the operator lane.
 - **Media and launch tooling** — `manim-video`, `remotion-video-creation`, and upgraded social publishing surfaces make technical explainers and launch content part of the same system.
 - **Framework and product surface growth** — `nestjs-patterns`, richer Codex/OpenCode install surfaces, and expanded cross-harness packaging keep the repo usable beyond Claude Code alone.
 - **ECC 2.0 alpha is in-tree** — the Rust control-plane prototype in `ecc2/` now builds locally and exposes `dashboard`, `start`, `sessions`, `status`, `stop`, `resume`, and `daemon` commands. It is usable as an alpha, not yet a general release.
@@ -236,7 +236,7 @@ For manual install instructions see the README in the `rules/` folder. When copy
 /plugin list ecc@ecc
 ```
 
-**That's it!** You now have access to 38 agents, 158 skills, and 72 legacy command shims.
+**That's it!** You now have access to 47 agents, 180 skills, and 79 legacy command shims.
 
 ### Multi-model commands require additional setup
 
@@ -1152,9 +1152,9 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 
 | Feature | Claude Code | OpenCode | Status |
 |---------|-------------|----------|--------|
-| Agents | PASS: 38 agents | PASS: 12 agents | **Claude Code leads** |
-| Commands | PASS: 72 commands | PASS: 31 commands | **Claude Code leads** |
-| Skills | PASS: 158 skills | PASS: 37 skills | **Claude Code leads** |
+| Agents | PASS: 47 agents | PASS: 12 agents | **Claude Code leads** |
+| Commands | PASS: 79 commands | PASS: 31 commands | **Claude Code leads** |
+| Skills | PASS: 180 skills | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers | PASS: Full | **Full parity** |
@@ -1261,9 +1261,9 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 
 | Feature | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
-| **Agents** | 38 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
-| **Commands** | 72 | Shared | Instruction-based | 31 |
-| **Skills** | 158 | Shared | 10 (native format) | 37 |
+| **Agents** | 47 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
+| **Commands** | 79 | Shared | Instruction-based | 31 |
+| **Skills** | 180 | Shared | 10 (native format) | 37 |
 | **Hook Events** | 8 types | 15 types | None yet | 11 types |
 | **Hook Scripts** | 20+ scripts | 16 scripts (DRY adapter) | N/A | Plugin hooks |
 | **Rules** | 34 (common + lang) | 34 (YAML frontmatter) | Instruction-based | 13 instructions |
@@ -1386,6 +1386,18 @@ These configs work for my workflow. You should:
 2. Modify for your stack
 3. Remove what you don't use
 4. Add your own patterns
+
+---
+
+## Community Projects
+
+Projects built on or inspired by Everything Claude Code:
+
+| Project | Description |
+|---------|-------------|
+| [EVC](https://github.com/SaigonXIII/evc) | Marketing agent workspace — 42 commands for content operators, brand governance, and multi-channel publishing. [Visual overview](https://saigonxiii.github.io/evc). |
+
+Built something with ECC? Open a PR to add it here.
 
 ---
 
