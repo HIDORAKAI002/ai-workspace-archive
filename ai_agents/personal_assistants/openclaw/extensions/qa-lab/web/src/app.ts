@@ -2,6 +2,7 @@ import {
   type Bootstrap,
   type OutcomesEnvelope,
   type ReportEnvelope,
+  type RunnerSelection,
   type Snapshot,
   type TabId,
   type UiState,
@@ -31,6 +32,25 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   return (await response.json()) as T;
 }
 
+function defaultModelsForProviderMode(
+  mode: RunnerSelection["providerMode"],
+  bootstrap?: Bootstrap | null,
+): Pick<RunnerSelection, "primaryModel" | "alternateModel" | "fastMode"> {
+  if (mode === "live-openai") {
+    const preferred = bootstrap?.runnerCatalog.real[0]?.key;
+    return {
+      primaryModel: preferred ?? "openai/gpt-5.4",
+      alternateModel: preferred ?? "openai/gpt-5.4",
+      fastMode: true,
+    };
+  }
+  return {
+    primaryModel: "mock-openai/gpt-5.4",
+    alternateModel: "mock-openai/gpt-5.4-alt",
+    fastMode: false,
+  };
+}
+
 export async function createQaLabApp(root: HTMLDivElement) {
   const state: UiState = {
     bootstrap: null,
@@ -41,6 +61,8 @@ export async function createQaLabApp(root: HTMLDivElement) {
     selectedThreadId: null,
     selectedScenarioId: null,
     activeTab: "debug",
+    runnerDraft: null,
+    runnerDraftDirty: false,
     composer: {
       conversationKind: "direct",
       conversationId: "alice",
@@ -64,6 +86,13 @@ export async function createQaLabApp(root: HTMLDivElement) {
       state.snapshot = snapshot;
       state.latestReport = report.report ?? bootstrap.latestReport;
       state.scenarioRun = outcomes.run;
+      if (!state.runnerDraft || !state.runnerDraftDirty) {
+        state.runnerDraft = {
+          ...bootstrap.runner.selection,
+          scenarioIds: [...bootstrap.runner.selection.scenarioIds],
+        };
+        state.runnerDraftDirty = false;
+      }
       if (!state.selectedConversationId) {
         state.selectedConversationId = snapshot.conversations[0]?.id ?? null;
       }
@@ -83,6 +112,22 @@ export async function createQaLabApp(root: HTMLDivElement) {
     } catch (error) {
       state.error = error instanceof Error ? error.message : String(error);
     }
+    render();
+  }
+
+  function updateRunnerDraft(mutator: (draft: RunnerSelection) => RunnerSelection) {
+    const fallback = state.bootstrap?.runner.selection;
+    if (!state.runnerDraft && fallback) {
+      state.runnerDraft = {
+        ...fallback,
+        scenarioIds: [...fallback.scenarioIds],
+      };
+    }
+    if (!state.runnerDraft) {
+      return;
+    }
+    state.runnerDraft = mutator(state.runnerDraft);
+    state.runnerDraftDirty = true;
     render();
   }
 
@@ -163,6 +208,42 @@ export async function createQaLabApp(root: HTMLDivElement) {
     }
   }
 
+  async function runSuite() {
+    if (!state.runnerDraft) {
+      state.error = "Runner selection not ready yet.";
+      render();
+      return;
+    }
+    state.busy = true;
+    state.error = null;
+    render();
+    try {
+      const result = await postJson<{ runner: { selection: RunnerSelection } }>(
+        "/api/scenario/suite",
+        {
+          providerMode: state.runnerDraft.providerMode,
+          primaryModel: state.runnerDraft.primaryModel,
+          alternateModel: state.runnerDraft.alternateModel,
+          fastMode: state.runnerDraft.fastMode,
+          scenarioIds: state.runnerDraft.scenarioIds,
+        },
+      );
+      state.runnerDraft = {
+        ...result.runner.selection,
+        scenarioIds: [...result.runner.selection.scenarioIds],
+      };
+      state.runnerDraftDirty = false;
+      state.activeTab = "debug";
+      await refresh();
+    } catch (error) {
+      state.error = error instanceof Error ? error.message : String(error);
+      render();
+    } finally {
+      state.busy = false;
+      render();
+    }
+  }
+
   function downloadReport() {
     if (!state.latestReport?.markdown) {
       return;
@@ -178,47 +259,75 @@ export async function createQaLabApp(root: HTMLDivElement) {
 
   function bindEvents() {
     root.querySelectorAll<HTMLElement>("[data-conversation-id]").forEach((node) => {
-      node.onclick = () => {
+      node.addEventListener("click", () => {
         state.selectedConversationId = node.dataset.conversationId ?? null;
         state.selectedThreadId = null;
         state.activeTab = "debug";
         render();
-      };
+      });
     });
     root.querySelectorAll<HTMLElement>("[data-thread-id]").forEach((node) => {
-      node.onclick = () => {
+      node.addEventListener("click", () => {
         state.selectedConversationId = node.dataset.conversationId ?? null;
         state.selectedThreadId = node.dataset.threadId ?? null;
         state.activeTab = "debug";
         render();
-      };
+      });
     });
     root.querySelectorAll<HTMLElement>("[data-scenario-id]").forEach((node) => {
-      node.onclick = () => {
+      node.addEventListener("click", () => {
         state.selectedScenarioId = node.dataset.scenarioId ?? null;
         state.activeTab = "scenarios";
         render();
-      };
+      });
     });
     root.querySelectorAll<HTMLElement>("[data-tab]").forEach((node) => {
-      node.onclick = () => {
+      node.addEventListener("click", () => {
         const nextTab = node.dataset.tab as TabId | undefined;
         if (nextTab) {
           state.activeTab = nextTab;
           render();
         }
-      };
+      });
     });
 
-    root.querySelector<HTMLButtonElement>("[data-action='refresh']")!.onclick = () => {
-      void refresh();
-    };
-    root.querySelector<HTMLButtonElement>("[data-action='reset']")!.onclick = () => {
-      void resetState();
-    };
-    root.querySelector<HTMLButtonElement>("[data-action='self-check']")!.onclick = () => {
-      void runSelfCheck();
-    };
+    root
+      .querySelector<HTMLButtonElement>("[data-action='refresh']")!
+      .addEventListener("click", () => {
+        void refresh();
+      });
+    root
+      .querySelector<HTMLButtonElement>("[data-action='reset']")!
+      .addEventListener("click", () => {
+        void resetState();
+      });
+    root
+      .querySelector<HTMLButtonElement>("[data-action='self-check']")
+      ?.addEventListener("click", () => {
+        void runSelfCheck();
+      });
+    root
+      .querySelector<HTMLButtonElement>("[data-action='run-suite']")
+      ?.addEventListener("click", () => {
+        void runSuite();
+      });
+    root
+      .querySelector<HTMLButtonElement>("[data-action='select-all-scenarios']")
+      ?.addEventListener("click", () => {
+        updateRunnerDraft((draft) => ({
+          ...draft,
+          scenarioIds:
+            state.bootstrap?.scenarios.map((scenario) => scenario.id) ?? draft.scenarioIds,
+        }));
+      });
+    root
+      .querySelector<HTMLButtonElement>("[data-action='clear-scenarios']")
+      ?.addEventListener("click", () => {
+        updateRunnerDraft((draft) => ({
+          ...draft,
+          scenarioIds: [],
+        }));
+      });
     root.querySelector<HTMLButtonElement>("[data-action='send']")?.addEventListener("click", () => {
       void sendInbound();
     });
@@ -227,6 +336,58 @@ export async function createQaLabApp(root: HTMLDivElement) {
       ?.addEventListener("click", () => {
         downloadReport();
       });
+    root.querySelector<HTMLSelectElement>("#provider-mode")?.addEventListener("change", (event) => {
+      const mode =
+        (event.currentTarget as HTMLSelectElement).value === "live-openai"
+          ? "live-openai"
+          : "mock-openai";
+      updateRunnerDraft((draft) => ({
+        ...draft,
+        providerMode: mode,
+        ...defaultModelsForProviderMode(mode, state.bootstrap),
+      }));
+    });
+    root.querySelector<HTMLInputElement>("#fast-mode")?.addEventListener("change", (event) => {
+      updateRunnerDraft((draft) => ({
+        ...draft,
+        fastMode: (event.currentTarget as HTMLInputElement).checked,
+      }));
+    });
+    root.querySelector<HTMLInputElement>("#primary-model")?.addEventListener("input", (event) => {
+      updateRunnerDraft((draft) => ({
+        ...draft,
+        primaryModel: (event.currentTarget as HTMLInputElement).value,
+      }));
+    });
+    root.querySelector<HTMLInputElement>("#alternate-model")?.addEventListener("input", (event) => {
+      updateRunnerDraft((draft) => ({
+        ...draft,
+        alternateModel: (event.currentTarget as HTMLInputElement).value,
+      }));
+    });
+    root.querySelectorAll<HTMLInputElement>("[data-scenario-toggle-id]").forEach((node) => {
+      node.addEventListener("change", () => {
+        const scenarioId = node.dataset.scenarioToggleId;
+        if (!scenarioId) {
+          return;
+        }
+        updateRunnerDraft((draft) => {
+          const selected = new Set(draft.scenarioIds);
+          if (node.checked) {
+            selected.add(scenarioId);
+          } else {
+            selected.delete(scenarioId);
+          }
+          const orderedIds = state.bootstrap?.scenarios
+            .map((scenario) => scenario.id)
+            .filter((id) => selected.has(id)) ?? [...selected];
+          return {
+            ...draft,
+            scenarioIds: orderedIds,
+          };
+        });
+      });
+    });
 
     root
       .querySelector<HTMLSelectElement>("#conversation-kind")

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { AssistantMessage } from "@mariozechner/pi-ai";
 import { afterEach, describe, expect, test } from "vitest";
 import {
   appendAssistantMessageToSessionTranscript,
@@ -12,6 +13,7 @@ import {
   createGatewaySuiteHarness,
   installGatewayTestHooks,
   rpcReq,
+  startServerWithClient,
   writeSessionStore,
 } from "./test-helpers.server.js";
 
@@ -32,6 +34,10 @@ async function createSessionStoreFile(): Promise<string> {
   cleanupDirs.push(dir);
   const storePath = path.join(dir, "sessions.json");
   testState.sessionStorePath = storePath;
+  await writeSessionStore({
+    entries: {},
+    storePath,
+  });
   return storePath;
 }
 
@@ -59,8 +65,8 @@ async function seedSession(params?: { text?: string }) {
 
 function makeTranscriptAssistantMessage(params: {
   text: string;
-  content?: Array<Record<string, unknown>>;
-}) {
+  content?: AssistantMessage["content"];
+}): AssistantMessage {
   return {
     role: "assistant" as const,
     content: params.content ?? [{ type: "text", text: params.text }],
@@ -88,7 +94,7 @@ function makeTranscriptAssistantMessage(params: {
 
 async function appendTranscriptMessage(params: {
   sessionKey: string;
-  message: ReturnType<typeof makeTranscriptAssistantMessage>;
+  message: AssistantMessage;
   emitInlineMessage?: boolean;
   storePath?: string;
 }): Promise<string> {
@@ -503,6 +509,51 @@ describe("session history HTTP endpoints", () => {
     });
   });
 
+  test("seeds SSE raw sequence state from startup snapshots, not only visible history", async () => {
+    const { storePath } = await seedSession({ text: "first message" });
+    await appendTranscriptMessage({
+      sessionKey: "agent:main:main",
+      storePath,
+      message: makeTranscriptAssistantMessage({ text: "NO_REPLY" }),
+      emitInlineMessage: false,
+    });
+
+    await withGatewayHarness(async (harness) => {
+      const res = await fetchSessionHistory(harness.port, "agent:main:main", {
+        headers: { Accept: "text/event-stream" },
+      });
+
+      expect(res.status).toBe(200);
+      const reader = res.body?.getReader();
+      expect(reader).toBeTruthy();
+      const streamState = { buffer: "" };
+      const historyEvent = await readSseEvent(reader!, streamState);
+      expect(historyEvent.event).toBe("history");
+      expect(
+        (
+          historyEvent.data as { messages?: Array<{ content?: Array<{ text?: string }> }> }
+        ).messages?.map((message) => message.content?.[0]?.text),
+      ).toEqual(["first message"]);
+
+      const visible = await appendAssistantMessageToSessionTranscript({
+        sessionKey: "agent:main:main",
+        text: "third visible message",
+        storePath,
+      });
+      expect(visible.ok).toBe(true);
+
+      const messageEvent = await readSseEvent(reader!, streamState);
+      expect(messageEvent.event).toBe("message");
+      expect(
+        (messageEvent.data as { message?: { content?: Array<{ text?: string }> } }).message
+          ?.content?.[0]?.text,
+      ).toBe("third visible message");
+      expect((messageEvent.data as { messageSeq?: number }).messageSeq).toBe(3);
+
+      await reader?.cancel();
+    });
+  });
+
   test("suppresses NO_REPLY-only SSE fast-path updates while preserving raw sequence numbering", async () => {
     const { storePath } = await seedSession({ text: "first message" });
 
@@ -628,8 +679,8 @@ describe("session history HTTP endpoints", () => {
   test("rejects session history when operator.read is not requested", async () => {
     await seedSession({ text: "scope-guarded history" });
 
-    const harness = await createGatewaySuiteHarness();
-    const ws = await harness.openWs();
+    const started = await startServerWithClient("test-gateway-token-1234567890");
+    const { server, ws, port, envSnapshot } = started;
     try {
       const connect = await connectReq(ws, {
         token: "test-gateway-token-1234567890",
@@ -645,7 +696,7 @@ describe("session history HTTP endpoints", () => {
       expect(wsHistory.error?.message).toBe("missing scope: operator.read");
 
       const httpHistory = await fetch(
-        `http://127.0.0.1:${harness.port}/sessions/${encodeURIComponent("agent:main:main")}/history?limit=1`,
+        `http://127.0.0.1:${port}/sessions/${encodeURIComponent("agent:main:main")}/history?limit=1`,
         {
           headers: {
             ...AUTH_HEADER,
@@ -663,7 +714,7 @@ describe("session history HTTP endpoints", () => {
       });
 
       const httpHistoryWithoutScopes = await fetch(
-        `http://127.0.0.1:${harness.port}/sessions/${encodeURIComponent("agent:main:main")}/history?limit=1`,
+        `http://127.0.0.1:${port}/sessions/${encodeURIComponent("agent:main:main")}/history?limit=1`,
         {
           headers: AUTH_HEADER,
         },
@@ -678,7 +729,8 @@ describe("session history HTTP endpoints", () => {
       });
     } finally {
       ws.close();
-      await harness.close();
+      await server.close();
+      envSnapshot.restore();
     }
   });
 });

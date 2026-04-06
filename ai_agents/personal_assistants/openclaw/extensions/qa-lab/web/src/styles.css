@@ -15,8 +15,7 @@
   --warning: #ffd36f;
   --shadow: 0 32px 90px rgba(0, 0, 0, 0.38);
   --radius: 22px;
-  font-family:
-    "Avenir Next", "Segoe UI", sans-serif;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
 * {
@@ -443,6 +442,98 @@ textarea {
   gap: 0.75rem;
 }
 
+.run-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 0.45rem;
+}
+
+.checkbox-label input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+}
+
+.panel-header.compact {
+  align-items: end;
+}
+
+.toolbar.mini button {
+  padding: 0.48rem 0.78rem;
+}
+
+.scenario-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 28vh;
+  overflow: auto;
+}
+
+.scenario-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.82rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.scenario-toggle input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.18rem;
+}
+
+.scenario-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.scenario-toggle small {
+  color: var(--muted);
+}
+
+.scenario-toggle.selected {
+  border-color: rgba(121, 224, 198, 0.34);
+  background: linear-gradient(180deg, rgba(121, 224, 198, 0.11), rgba(121, 224, 198, 0.04));
+}
+
+.artifact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.artifact-list code {
+  display: block;
+  padding: 0.62rem 0.72rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #dce6f4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.runner-error {
+  margin: 0.9rem 0 0;
+  color: var(--danger);
+  white-space: pre-wrap;
+}
+
 .meta-label {
   display: block;
   margin-bottom: 0.28rem;
@@ -586,6 +677,11 @@ label span {
 
 @media (max-width: 1180px) {
   .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .run-form-grid,
+  .composer-grid {
     grid-template-columns: 1fr;
   }
 
