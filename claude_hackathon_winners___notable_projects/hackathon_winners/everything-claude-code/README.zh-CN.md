@@ -12,9 +12,9 @@
 
 <div align="center">
 
-**Language / 语言 / 語言**
+**Language / 语言 / 語言 / Dil**
 
-[**English**](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md)
+[**English**](README.md) | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md)
 
 </div>
 
@@ -106,7 +106,7 @@ cp -r everything-claude-code/rules/perl ~/.claude/rules/
 /plugin list ecc@ecc
 ```
 
-**完成！** 你现在可以使用 38 个代理、158 个技能和 72 个命令。
+**完成！** 你现在可以使用 47 个代理、180 个技能和 79 个命令。
 
 ### multi-* 命令需要额外配置
 
