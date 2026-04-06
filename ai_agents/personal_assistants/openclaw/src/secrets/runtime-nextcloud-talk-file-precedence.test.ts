@@ -1,12 +1,11 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import * as nextcloudTalkSecrets from "../../extensions/nextcloud-talk/src/secret-contract.ts";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 
-vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
-  const nextcloudTalkSecrets =
-    await import("../../extensions/nextcloud-talk/src/secret-contract.ts");
+vi.mock("../channels/plugins/bootstrap-registry.js", () => {
   return {
     getBootstrapChannelPlugin: (id: string) =>
       id === "nextcloud-talk"
@@ -14,6 +13,12 @@ vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
             secrets: {
               collectRuntimeConfigAssignments: nextcloudTalkSecrets.collectRuntimeConfigAssignments,
             },
+          }
+        : undefined,
+    getBootstrapChannelSecrets: (id: string) =>
+      id === "nextcloud-talk"
+        ? {
+            collectRuntimeConfigAssignments: nextcloudTalkSecrets.collectRuntimeConfigAssignments,
           }
         : undefined,
   };

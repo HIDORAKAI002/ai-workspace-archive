@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import * as matrixSecrets from "../../extensions/matrix/src/secret-contract.ts";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
@@ -15,8 +16,7 @@ vi.mock("../plugins/web-search-providers.runtime.js", () => ({
   resolvePluginWebSearchProviders: resolvePluginWebSearchProvidersMock,
 }));
 
-vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
-  const matrixSecrets = await import("../../extensions/matrix/src/secret-contract.ts");
+vi.mock("../channels/plugins/bootstrap-registry.js", () => {
   return {
     getBootstrapChannelPlugin: (id: string) =>
       id === "matrix"
@@ -24,6 +24,12 @@ vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
             secrets: {
               collectRuntimeConfigAssignments: matrixSecrets.collectRuntimeConfigAssignments,
             },
+          }
+        : undefined,
+    getBootstrapChannelSecrets: (id: string) =>
+      id === "matrix"
+        ? {
+            collectRuntimeConfigAssignments: matrixSecrets.collectRuntimeConfigAssignments,
           }
         : undefined,
   };

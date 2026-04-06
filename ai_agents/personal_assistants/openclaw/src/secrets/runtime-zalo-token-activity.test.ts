@@ -1,11 +1,11 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import * as zaloSecrets from "../../extensions/zalo/src/secret-contract.ts";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 
-vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
-  const zaloSecrets = await import("../../extensions/zalo/src/secret-contract.ts");
+vi.mock("../channels/plugins/bootstrap-registry.js", () => {
   return {
     getBootstrapChannelPlugin: (id: string) =>
       id === "zalo"
@@ -13,6 +13,12 @@ vi.mock("../channels/plugins/bootstrap-registry.js", async () => {
             secrets: {
               collectRuntimeConfigAssignments: zaloSecrets.collectRuntimeConfigAssignments,
             },
+          }
+        : undefined,
+    getBootstrapChannelSecrets: (id: string) =>
+      id === "zalo"
+        ? {
+            collectRuntimeConfigAssignments: zaloSecrets.collectRuntimeConfigAssignments,
           }
         : undefined,
   };

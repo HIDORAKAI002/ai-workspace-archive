@@ -1,12 +1,13 @@
 """Tests for the incremental graph update module."""
 
 import subprocess
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch  # noqa: F401 – patch used in tests
 
 from code_review_graph.graph import GraphStore
 from code_review_graph.incremental import (
     _is_binary,
     _load_ignore_patterns,
+    _parse_single_file,
     _should_ignore,
     find_project_root,
     find_repo_root,
@@ -236,3 +237,67 @@ class TestIncrementalUpdate:
             assert len(nodes) == 0
         finally:
             store.close()
+
+
+class TestParallelParsing:
+    def test_parse_single_file(self, tmp_path):
+        py_file = tmp_path / "single.py"
+        py_file.write_text("def foo():\n    pass\n")
+        rel_path, nodes, edges, error, fhash = _parse_single_file(
+            ("single.py", str(tmp_path))
+        )
+        assert rel_path == "single.py"
+        assert error is None
+        assert len(nodes) > 0
+        assert fhash != ""
+
+    def test_parse_single_file_missing(self, tmp_path):
+        rel_path, nodes, edges, error, fhash = _parse_single_file(
+            ("missing.py", str(tmp_path))
+        )
+        assert error is not None
+        assert nodes == []
+        assert edges == []
+
+    def test_parallel_build_produces_same_results(self, tmp_path):
+        """Serial and parallel builds produce identical node/edge counts."""
+        (tmp_path / ".git").mkdir()
+        # Create several Python files
+        for i in range(10):
+            (tmp_path / f"mod{i}.py").write_text(
+                f"def func_{i}():\n    return {i}\n\n"
+                f"class Cls{i}:\n    pass\n"
+            )
+
+        tracked = [f"mod{i}.py" for i in range(10)]
+        mock_target = "code_review_graph.incremental.get_all_tracked_files"
+
+        # Serial build
+        db_serial = tmp_path / "serial.db"
+        store_serial = GraphStore(db_serial)
+        try:
+            with patch(mock_target, return_value=tracked):
+                with patch.dict("os.environ", {"CRG_SERIAL_PARSE": "1"}):
+                    result_serial = full_build(tmp_path, store_serial)
+            serial_nodes = result_serial["total_nodes"]
+            serial_edges = result_serial["total_edges"]
+            serial_files = result_serial["files_parsed"]
+        finally:
+            store_serial.close()
+
+        # Parallel build
+        db_parallel = tmp_path / "parallel.db"
+        store_parallel = GraphStore(db_parallel)
+        try:
+            with patch(mock_target, return_value=tracked):
+                with patch.dict("os.environ", {"CRG_SERIAL_PARSE": ""}):
+                    result_parallel = full_build(tmp_path, store_parallel)
+            parallel_nodes = result_parallel["total_nodes"]
+            parallel_edges = result_parallel["total_edges"]
+            parallel_files = result_parallel["files_parsed"]
+        finally:
+            store_parallel.close()
+
+        assert serial_files == parallel_files
+        assert serial_nodes == parallel_nodes
+        assert serial_edges == parallel_edges

@@ -3,7 +3,6 @@ import path from "node:path";
 import { resolveSandboxConfigForAgent } from "../agents/sandbox/config.js";
 import { hasPotentialConfiguredChannels } from "../channels/config-presence.js";
 import type { listChannelPlugins } from "../channels/plugins/index.js";
-import { formatCliCommand } from "../cli/command-format.js";
 import type { ConfigFileSnapshot, OpenClawConfig } from "../config/config.js";
 import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
@@ -19,6 +18,8 @@ import { listRiskyConfiguredSafeBins } from "../infra/exec-safe-bin-semantics.js
 import { normalizeTrustedSafeBinDirs } from "../infra/exec-safe-bin-trust.js";
 import { getActivePluginRegistry } from "../plugins/runtime.js";
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
+import { collectDeepCodeSafetyFindings } from "./audit-deep-code-safety.js";
+import { collectDeepProbeFindings } from "./audit-deep-probe-findings.js";
 import {
   formatPermissionDetail,
   formatPermissionRemediation,
@@ -114,7 +115,6 @@ type AuditExecutionContext = {
 
 let channelPluginsModulePromise: Promise<typeof import("../channels/plugins/index.js")> | undefined;
 let auditNonDeepModulePromise: Promise<typeof import("./audit.nondeep.runtime.js")> | undefined;
-let auditDeepModulePromise: Promise<typeof import("./audit.deep.runtime.js")> | undefined;
 let auditChannelModulePromise:
   | Promise<typeof import("./audit-channel.collect.runtime.js")>
   | undefined;
@@ -141,11 +141,6 @@ async function loadChannelPlugins() {
 async function loadAuditNonDeepModule() {
   auditNonDeepModulePromise ??= import("./audit.nondeep.runtime.js");
   return await auditNonDeepModulePromise;
-}
-
-async function loadAuditDeepModule() {
-  auditDeepModulePromise ??= import("./audit.deep.runtime.js");
-  return await auditDeepModulePromise;
 }
 
 async function loadAuditChannelModule() {
@@ -1260,32 +1255,6 @@ async function maybeProbeGateway(params: {
   };
 }
 
-export function collectDeepProbeFindings(params: {
-  deep?: SecurityAuditReport["deep"];
-  authWarning?: string;
-}): SecurityAuditFinding[] {
-  const findings: SecurityAuditFinding[] = [];
-  if (params.deep?.gateway?.attempted && !params.deep.gateway.ok) {
-    findings.push({
-      checkId: "gateway.probe_failed",
-      severity: "warn",
-      title: "Gateway probe failed (deep)",
-      detail: params.deep.gateway.error ?? "gateway unreachable",
-      remediation: `Run "${formatCliCommand("openclaw status --all")}" to debug connectivity/auth, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
-    });
-  }
-  if (params.authWarning) {
-    findings.push({
-      checkId: "gateway.probe_auth_secretref_unavailable",
-      severity: "warn",
-      title: "Gateway probe auth SecretRef is unavailable",
-      detail: params.authWarning,
-      remediation: `Set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD in this shell or resolve the external secret provider, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
-    });
-  }
-  return findings;
-}
-
 async function createAuditExecutionContext(
   opts: SecurityAuditOptions,
 ): Promise<AuditExecutionContext> {
@@ -1390,22 +1359,14 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
       })),
     );
     findings.push(...(await auditNonDeep.collectPluginsTrustFindings({ cfg, stateDir })));
-    if (context.deep) {
-      const auditDeep = await loadAuditDeepModule();
-      findings.push(
-        ...(await auditDeep.collectPluginsCodeSafetyFindings({
-          stateDir,
-          summaryCache: context.codeSafetySummaryCache,
-        })),
-      );
-      findings.push(
-        ...(await auditDeep.collectInstalledSkillsCodeSafetyFindings({
-          cfg,
-          stateDir,
-          summaryCache: context.codeSafetySummaryCache,
-        })),
-      );
-    }
+    findings.push(
+      ...(await collectDeepCodeSafetyFindings({
+        cfg,
+        stateDir,
+        deep: context.deep,
+        summaryCache: context.codeSafetySummaryCache,
+      })),
+    );
   }
 
   const shouldAuditChannelSecurity =
