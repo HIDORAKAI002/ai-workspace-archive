@@ -47,7 +47,63 @@ export async function trackScrape(opts: TrackScrapeParams): Promise<void> {
 }
 
 // =========================================
-// Search tracking
+// Search request tracking
+// =========================================
+
+interface TrackSearchRequestParams {
+  searchId: string;
+  requestId: string;
+  teamId: string;
+  query: string;
+  origin: string;
+  kind: string;
+  apiVersion: string;
+  lang?: string;
+  country?: string;
+  sources: string[];
+  numResults: number;
+  searchCredits: number;
+  scrapeCredits: number;
+  totalCredits: number;
+  hasScrapeFormats: boolean;
+  scrapeFormats: string[];
+  isSuccessful: boolean;
+  timeTaken: number;
+  zeroDataRetention: boolean;
+}
+
+export async function trackSearchRequest(
+  opts: TrackSearchRequestParams,
+): Promise<void> {
+  if (opts.zeroDataRetention) return;
+
+  await chInsert("search_requests", [
+    {
+      search_id: opts.searchId,
+      request_id: opts.requestId,
+      team_id: opts.teamId,
+      query: opts.query,
+      origin: opts.origin,
+      kind: opts.kind,
+      api_version: opts.apiVersion,
+      lang: opts.lang ?? "",
+      country: opts.country ?? "",
+      sources: opts.sources,
+      num_results: opts.numResults,
+      search_credits: opts.searchCredits,
+      scrape_credits: opts.scrapeCredits,
+      total_credits: opts.totalCredits,
+      has_scrape_formats: opts.hasScrapeFormats,
+      scrape_formats: opts.scrapeFormats,
+      is_successful: opts.isSuccessful,
+      time_taken: opts.timeTaken,
+      created_at: new Date().toISOString(),
+    },
+  ]);
+}
+
+// =========================================
+// Search result tracking
 // =========================================
 
 interface SearchResultUrl {
