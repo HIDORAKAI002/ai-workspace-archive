@@ -13,6 +13,7 @@ import {
   mergeScrapedContent,
   calculateScrapeCredits,
 } from "./scrape";
+import { trackSearchResults } from "../lib/search-tracking";
 import type { BillingMetadata } from "../services/billing/types";
 
 interface SearchOptions {
@@ -36,6 +37,7 @@ interface SearchContext {
   apiKeyId: number | null;
   flags: TeamFlags;
   requestId: string;
+  jobId: string;
   bypassBilling?: boolean;
   zeroDataRetention?: boolean;
   billing?: BillingMetadata;
@@ -172,6 +174,14 @@ export async function executeSearch(
       scrapeCredits = calculateScrapeCredits(allDocsWithCostTracking);
     }
   }
+
+  trackSearchResults({
+    searchId: context.jobId,
+    teamId,
+    response: searchResponse,
+    zeroDataRetention: zeroDataRetention ?? false,
+    hasScrapeFormats: shouldScrape ?? false,
+  }).catch(err => logger.warn("Search tracking failed", { error: err }));
 
   return {
     response: searchResponse,
