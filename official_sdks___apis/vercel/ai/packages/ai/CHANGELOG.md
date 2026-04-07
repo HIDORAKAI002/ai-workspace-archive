@@ -1,5 +1,36 @@
 # ai
 
+## 7.0.0-beta.71
+
+### Patch Changes
+
+- e68be55: fix(ai): skip stringifying text when streaming partial text
+- Updated dependencies [939171f]
+  - @ai-sdk/gateway@4.0.0-beta.40
+
+## 7.0.0-beta.70
+
+### Patch Changes
+
+- Updated dependencies [0694029]
+  - @ai-sdk/gateway@4.0.0-beta.39
+
+## 7.0.0-beta.69
+
+### Major Changes
+
+- 72223e7: chore(ai): remove deprecated isToolOrDynamicToolUIPart function
+
+### Patch Changes
+
+- 34bd95d: feat(ai): add support for uploading provider skills using the provider references abstraction
+- 008271d: feat(openai-compatible): emit warning when using kebab-case instead of camelCase
+- Updated dependencies [34bd95d]
+- Updated dependencies [008271d]
+  - @ai-sdk/provider@4.0.0-beta.8
+  - @ai-sdk/gateway@4.0.0-beta.38
+  - @ai-sdk/provider-utils@5.0.0-beta.14
+
 ## 7.0.0-beta.68
 
 ### Major Changes
