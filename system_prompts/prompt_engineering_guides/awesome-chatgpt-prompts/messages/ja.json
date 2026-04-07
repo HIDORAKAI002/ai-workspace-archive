@@ -2265,5 +2265,12 @@
     "submit": "送信",
     "communityExamples": "コミュニティの例",
     "userExample": "ユーザーの例"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

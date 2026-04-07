@@ -2280,5 +2280,12 @@
     "submit": "Soumettre",
     "communityExamples": "Exemples de la Communauté",
     "userExample": "Exemple utilisateur"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

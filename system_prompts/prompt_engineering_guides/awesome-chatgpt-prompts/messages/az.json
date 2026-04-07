@@ -2277,5 +2277,12 @@
     "submit": "Göndər",
     "communityExamples": "İcma Nümunələri",
     "userExample": "İstifadəçi nümunəsi"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

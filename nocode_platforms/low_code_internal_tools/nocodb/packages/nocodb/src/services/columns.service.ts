@@ -36,6 +36,7 @@ import {
   WebhookActions,
 } from 'nocodb-sdk';
 import { getProjectRole } from 'nocodb-sdk';
+import { dateFormats, dateMonthFormats } from 'nocodb-sdk';
 import rfdc from 'rfdc';
 import type { ClientType } from 'nocodb-sdk';
 import type {
@@ -127,6 +128,20 @@ export type { ReusableParams } from '~/services/columns.service.type';
 const deepClone = rfdc();
 
 const META_ONLY_COLUMN_PROPS = new Set(['description', 'meta']);
+
+const ALLOWED_DATE_FORMATS = new Set([...dateFormats, ...dateMonthFormats]);
+
+function validateDateFormatMeta(context: NcContext, meta: unknown) {
+  let parsed;
+  try {
+    parsed = typeof meta === 'string' ? JSON.parse(meta) : meta;
+  } catch {
+    return;
+  }
+  if (parsed?.date_format && !ALLOWED_DATE_FORMATS.has(parsed.date_format)) {
+    NcError.get(context).badRequest('Invalid date format');
+  }
+}
 
 // todo: move
 export enum Altered {
@@ -449,6 +464,8 @@ export class ColumnsService implements IColumnsService {
     const column = await Column.get(context, { colId: param.columnId });
     const oldColumn = deepClone(column);
 
+    validateDateFormatMeta(context, (param.column as any)?.meta);
+
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(context, {
         id: column.fk_model_id,
@@ -476,11 +493,12 @@ export class ColumnsService implements IColumnsService {
           UITypes.LastModifiedTime,
           UITypes.ID,
           UITypes.Order,
+          UITypes.Meta,
         ].includes(column.uidt)) ||
         // somehow current external meta sync do not mark pk as system
         column.pk) &&
-      // Allow meta-only updates (description, display format) for CreatedTime/LastModifiedTime
-      !(!payloadHasNonMetaProps && isCreatedOrLastModifiedTimeCol(column))
+      // Allow meta-only updates (description, display format) for system/pk columns
+      !!payloadHasNonMetaProps
     ) {
       NcError.get(context).systemFieldNonModifiable();
     }
@@ -2588,6 +2606,8 @@ export class ColumnsService implements IColumnsService {
       false,
       context,
     );
+
+    validateDateFormatMeta(context, (param.column as any)?.meta ?? {});
 
     const reuse = param.reuse || {};
 
@@ -5633,6 +5653,8 @@ export class ColumnsService implements IColumnsService {
             'Bad request, update operation requires column id',
           );
         }
+
+        validateDateFormatMeta(context, op.column?.meta);
       } else if (op.op === 'delete') {
         if (!op.column || !op.column?.id) {
           NcError.get(context).badRequest(
@@ -6626,18 +6648,14 @@ export class ColumnsService implements IColumnsService {
         // Update cached fk_relation_column_id for dependent lookup/rollup columns
         // that were retargeted from hmColumn → newLtarCol during the transaction.
         for (const colId of dependentLookupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_LOOKUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_LOOKUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
         for (const colId of dependentRollupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_ROLLUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_ROLLUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
       }
 

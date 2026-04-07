@@ -3570,7 +3570,7 @@ components:
           type: integer
         entity_labels:
           items:
-            type: string
+            additionalProperties: {}
           nullable: true
           type: array
         entities_allow_free_form:

@@ -32,9 +32,9 @@ This guide explains how to deploy **prompts.chat** on your own private server fo
 
 ## Prerequisites
 
-- **Node.js** 18+ 
+- **Node.js** 24.x
 - **PostgreSQL** database
-- **npm** or **yarn**
+- **npm**
 
 ## Environment Variables
 

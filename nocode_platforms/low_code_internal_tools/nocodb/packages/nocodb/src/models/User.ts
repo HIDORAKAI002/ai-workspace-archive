@@ -200,9 +200,8 @@ export default class User implements UserType {
 
       if (user) {
         user.meta = parseMetaProp(user);
+        await NocoCache.set('root', `${CacheScope.USER}:${email}`, user);
       }
-
-      await NocoCache.set('root', `${CacheScope.USER}:${email}`, user);
     }
 
     if (user?.is_deleted) {
@@ -242,13 +241,12 @@ export default class User implements UserType {
 
       if (user) {
         user.meta = parseMetaProp(user);
+        await NocoCache.set(
+          'root',
+          `${CacheScope.USER}:canonical:${canonical}`,
+          user,
+        );
       }
-
-      await NocoCache.set(
-        'root',
-        `${CacheScope.USER}:canonical:${canonical}`,
-        user,
-      );
     }
 
     if (user?.is_deleted) {
@@ -306,9 +304,8 @@ export default class User implements UserType {
 
       if (user) {
         user.meta = parseMetaProp(user);
+        await NocoCache.set('root', `${CacheScope.USER}:${userId}`, user);
       }
-
-      await NocoCache.set('root', `${CacheScope.USER}:${userId}`, user);
     }
 
     if (user?.is_deleted) {

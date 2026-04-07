@@ -2265,5 +2265,12 @@
     "submit": "提交",
     "communityExamples": "社区示例",
     "userExample": "用户示例"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

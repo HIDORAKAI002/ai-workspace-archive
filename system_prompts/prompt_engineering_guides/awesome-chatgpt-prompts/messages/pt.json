@@ -2279,5 +2279,12 @@
     "submit": "Enviar",
     "communityExamples": "Exemplos da Comunidade",
     "userExample": "Exemplo do usuário"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

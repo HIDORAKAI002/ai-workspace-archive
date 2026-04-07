@@ -121,14 +121,14 @@ export type ConfigAuditProcessInfo = {
 export type ConfigWriteAuditRecordBase = Omit<
   ConfigWriteAuditRecord,
   | "result"
-  | "errorCode"
-  | "errorMessage"
   | "nextDev"
   | "nextIno"
   | "nextMode"
   | "nextNlink"
   | "nextUid"
   | "nextGid"
+  | "errorCode"
+  | "errorMessage"
 > & {
   nextHash: string;
   nextBytes: number;

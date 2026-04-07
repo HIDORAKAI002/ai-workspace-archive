@@ -2265,5 +2265,12 @@
     "submit": "제출",
     "communityExamples": "커뮤니티 예제",
     "userExample": "사용자 예제"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }

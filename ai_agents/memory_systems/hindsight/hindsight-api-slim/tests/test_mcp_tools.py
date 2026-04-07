@@ -342,7 +342,8 @@ class TestMentalModelToolRegistration:
         assert "update_bank" in tools
         assert "delete_bank" in tools
         assert "clear_memories" in tools
-        assert len(tools) == 29
+        assert "sync_retain" in tools
+        assert len(tools) == 30
 
 
 @pytest.fixture
@@ -1107,10 +1108,65 @@ class TestMemoryBrowsingTools:
         assert '"deleted"' in result
         assert mock_memory.delete_memory_unit.call_args.kwargs["unit_id"] == "mem-1"
 
+    async def test_get_memory_invalid_uuid(self, mock_memory):
+        mock_memory.get_memory_unit.side_effect = ValueError("Invalid memory_id: 'nonexistent' is not a valid UUID")
+        mcp = _make_mcp_server(mock_memory, {"get_memory"}, include_bank_id=True)
+        result = await _tools(mcp)["get_memory"].fn(memory_id="nonexistent")
+        assert "not a valid UUID" in result
+
+    async def test_get_memory_invalid_uuid_single_bank(self, mock_memory):
+        mock_memory.get_memory_unit.side_effect = ValueError("Invalid memory_id: 'bad' is not a valid UUID")
+        mcp = _make_mcp_server(mock_memory, {"get_memory"}, include_bank_id=False)
+        result = await _tools(mcp)["get_memory"].fn(memory_id="bad")
+        assert "not a valid UUID" in result["error"]
+
+    async def test_delete_memory_invalid_uuid(self, mock_memory):
+        mock_memory.delete_memory_unit.side_effect = ValueError("Invalid unit_id: 'bad' is not a valid UUID")
+        mcp = _make_mcp_server(mock_memory, {"delete_memory"}, include_bank_id=True)
+        result = await _tools(mcp)["delete_memory"].fn(memory_id="bad")
+        assert "not a valid UUID" in result
+
     async def test_list_memories_single_bank(self, mock_memory):
         mcp = _make_mcp_server(mock_memory, {"list_memories"}, include_bank_id=False)
         result = await _tools(mcp)["list_memories"].fn()
         assert isinstance(result, dict)
+
+
+# =========================================================================
+# Sync Retain Tool Tests
+# =========================================================================
+
+
+@pytest.mark.asyncio
+class TestSyncRetainTool:
+    async def test_sync_retain_basic(self, mock_memory):
+        mock_memory.retain_batch_async.return_value = [["unit-1", "unit-2"]]
+        mcp = _make_mcp_server(mock_memory, {"sync_retain"}, include_bank_id=True)
+        result = await _tools(mcp)["sync_retain"].fn(content="test memory")
+        assert result["status"] == "completed"
+        assert result["memory_ids"] == ["unit-1", "unit-2"]
+
+    async def test_sync_retain_single_bank(self, mock_memory):
+        mock_memory.retain_batch_async.return_value = [["unit-1"]]
+        mcp = _make_mcp_server(mock_memory, {"sync_retain"}, include_bank_id=False)
+        result = await _tools(mcp)["sync_retain"].fn(content="test memory")
+        assert result["status"] == "completed"
+        assert result["memory_ids"] == ["unit-1"]
+
+    async def test_sync_retain_with_tags(self, mock_memory):
+        mock_memory.retain_batch_async.return_value = [["unit-1"]]
+        mcp = _make_mcp_server(mock_memory, {"sync_retain"}, include_bank_id=True)
+        result = await _tools(mcp)["sync_retain"].fn(content="test", tags=["project:alpha"])
+        assert result["status"] == "completed"
+        call_kwargs = mock_memory.retain_batch_async.call_args.kwargs
+        assert call_kwargs["contents"][0]["tags"] == ["project:alpha"]
+
+    async def test_sync_retain_error(self, mock_memory):
+        mock_memory.retain_batch_async.side_effect = Exception("DB error")
+        mcp = _make_mcp_server(mock_memory, {"sync_retain"}, include_bank_id=True)
+        result = await _tools(mcp)["sync_retain"].fn(content="test")
+        assert result["status"] == "error"
+        assert "DB error" in result["message"]
 
 
 # =========================================================================
