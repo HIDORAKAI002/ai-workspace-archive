@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.32.0 (2026-04-07)
+
+Full Changelog: [v1.31.0...v1.32.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.31.0...v1.32.0)
+
+### Features
+
+* **bedrock:** add AnthropicBedrockMantle client ([#704](https://github.com/anthropics/anthropic-sdk-go/issues/704)) ([058e8fa](https://github.com/anthropics/anthropic-sdk-go/commit/058e8fa51bcdaf3eaa8d9c4dfb51606647eb6fae))
+
+## 1.31.0 (2026-04-07)
+
+Full Changelog: [v1.30.0...v1.31.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.30.0...v1.31.0)
+
+### Features
+
+* **api:** Add support for claude-mythos-preview ([7144a65](https://github.com/anthropics/anthropic-sdk-go/commit/7144a657108e2194c0ac1a667aef49c0a06e6af3))
+
 ## 1.30.0 (2026-04-03)
 
 Full Changelog: [v1.29.0...v1.30.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.29.0...v1.30.0)
