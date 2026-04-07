@@ -2261,5 +2261,12 @@
     "submit": "ارسال",
     "communityExamples": "مثال‌های جامعه",
     "userExample": "مثال کاربر"
+  },
+  "selfHosting": {
+    "prerequisites": {
+      "nodeJs": "Node.js 24.x",
+      "postgresql": "PostgreSQL database",
+      "npm": "npm"
+    }
   }
 }
