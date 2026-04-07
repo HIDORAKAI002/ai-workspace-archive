@@ -33,6 +33,7 @@ async function runQaUi(opts: {
   controlUiUrl?: string;
   controlUiToken?: string;
   controlUiProxyTarget?: string;
+  uiDistDir?: string;
   autoKickoffTarget?: string;
   embeddedGateway?: string;
   sendKickoffOnStart?: boolean;
@@ -47,6 +48,7 @@ async function runQaDockerScaffold(opts: {
   qaLabPort?: number;
   image?: string;
   usePrebuiltImage?: boolean;
+  bindUiDist?: boolean;
 }) {
   const runtime = await loadQaLabCliRuntime();
   await runtime.runQaDockerScaffoldCommand(opts);
@@ -64,6 +66,7 @@ async function runQaDockerUp(opts: {
   providerBaseUrl?: string;
   image?: string;
   usePrebuiltImage?: boolean;
+  bindUiDist?: boolean;
   skipUiBuild?: boolean;
 }) {
   const runtime = await loadQaLabCliRuntime();
@@ -126,6 +129,7 @@ export function registerQaLabCli(program: Command) {
       "--control-ui-proxy-target <url>",
       "Optional upstream Control UI target for /control-ui proxying",
     )
+    .option("--ui-dist-dir <path>", "Optional QA Lab UI asset directory override")
     .option("--auto-kickoff-target <kind>", "Kickoff default target (direct or channel)")
     .option("--embedded-gateway <mode>", "Embedded gateway mode hint", "enabled")
     .option(
@@ -142,6 +146,7 @@ export function registerQaLabCli(program: Command) {
         controlUiUrl?: string;
         controlUiToken?: string;
         controlUiProxyTarget?: string;
+        uiDistDir?: string;
         autoKickoffTarget?: string;
         embeddedGateway?: string;
         sendKickoffOnStart?: boolean;
@@ -158,6 +163,11 @@ export function registerQaLabCli(program: Command) {
     .option("--provider-base-url <url>", "Provider base URL for the QA gateway")
     .option("--image <name>", "Prebaked image name", "openclaw:qa-local-prebaked")
     .option("--use-prebuilt-image", "Use image: instead of build: in docker-compose", false)
+    .option(
+      "--bind-ui-dist",
+      "Bind-mount extensions/qa-lab/web/dist into the qa-lab container for faster UI refresh",
+      false,
+    )
     .action(
       async (opts: {
         outputDir: string;
@@ -166,6 +176,7 @@ export function registerQaLabCli(program: Command) {
         providerBaseUrl?: string;
         image?: string;
         usePrebuiltImage?: boolean;
+        bindUiDist?: boolean;
       }) => {
         await runQaDockerScaffold(opts);
       },
@@ -186,6 +197,11 @@ export function registerQaLabCli(program: Command) {
     .option("--provider-base-url <url>", "Provider base URL for the QA gateway")
     .option("--image <name>", "Image tag", "openclaw:qa-local-prebaked")
     .option("--use-prebuilt-image", "Use image: instead of build: in docker-compose", false)
+    .option(
+      "--bind-ui-dist",
+      "Bind-mount extensions/qa-lab/web/dist into the qa-lab container for faster UI refresh",
+      false,
+    )
     .option("--skip-ui-build", "Skip pnpm qa:lab:build before starting Docker", false)
     .action(
       async (opts: {
@@ -195,6 +211,7 @@ export function registerQaLabCli(program: Command) {
         providerBaseUrl?: string;
         image?: string;
         usePrebuiltImage?: boolean;
+        bindUiDist?: boolean;
         skipUiBuild?: boolean;
       }) => {
         await runQaDockerUp(opts);
