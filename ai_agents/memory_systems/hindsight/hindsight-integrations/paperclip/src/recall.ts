@@ -56,8 +56,8 @@ export async function recall(
       maxTokens: config.recallMaxTokens,
     });
     results = response.results;
-  } catch {
-    // Graceful degradation — memory is enhancement, not requirement
+  } catch (err) {
+    console.warn('[hindsight-paperclip] recall failed:', (err as Error).message);
     return '';
   }
 
