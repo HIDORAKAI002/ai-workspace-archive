@@ -17,6 +17,8 @@ from phoenix.server.bearer_auth import is_authenticated
 if TYPE_CHECKING:
     from pydantic_ai.models import Model as PydanticAIModel
 
+    from phoenix.server.api.routers.mcp_tools import MintlifyDocsClient
+
 
 class CustomProviderChatSearchParams(BaseModel):
     provider_type: Literal["custom"]
@@ -142,11 +144,53 @@ def create_chat_router(authentication_enabled: bool) -> APIRouter:
         else:
             assert_never(params_)
 
+        # Get the MCP client from app state (lazily initialised).
+        mcp_client = _get_mcp_client(request)
+
         body = parse_chat_body(await request.body())
         return await stream_text(
             request,
             model,
             body=body,
+            mcp_client=mcp_client,
         )
 
     return router
+
+
+def _get_mcp_client(request: Request) -> "MintlifyDocsClient | None":
+    """Return the shared MCP client from app state, creating it on first use.
+
+    Returns ``None`` when external networking is disabled
+    (``PHOENIX_ALLOW_EXTERNAL_RESOURCES=false``) or if the client fails to
+    initialise, so the chat endpoint degrades gracefully (backend tools
+    simply won't be available).
+    """
+    from phoenix.config import get_env_allow_external_resources
+    from phoenix.server.api.routers.mcp_tools import MintlifyDocsClient
+
+    state = request.app.state
+    if not hasattr(state, "_mcp_client"):
+        if not get_env_allow_external_resources():
+            state._mcp_client = None
+        else:
+            try:
+                client = MintlifyDocsClient()
+                state._mcp_client = client
+
+                # Register cleanup so the HTTP transport and MCP session are
+                # closed on server shutdown rather than abandoned.
+                async def _close_mcp_client() -> None:
+                    try:
+                        await client.close()
+                    except Exception:
+                        pass
+
+                request.app.router.on_shutdown.append(_close_mcp_client)
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception("Failed to create MCP client")
+                state._mcp_client = None
+    result: MintlifyDocsClient | None = state._mcp_client
+    return result
