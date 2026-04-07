@@ -354,9 +354,6 @@ function renderSidebar(state: UiState): string {
           options: modelOptions,
           disabled: isRunning,
         })}
-        <div class="config-row">
-          <label><input id="fast-mode" type="checkbox"${selection?.fastMode ? " checked" : ""}${isRunning ? " disabled" : ""} /> Fast mode</label>
-        </div>
         ${
           selection?.providerMode === "live-openai"
             ? `<div class="config-hint">${esc(
@@ -634,6 +631,57 @@ function renderMessage(m: Message): string {
     </div>`;
 }
 
+function recentInspectorMessages(state: UiState, limit = 18) {
+  return (state.snapshot?.messages ?? []).slice(-limit).toReversed();
+}
+
+function renderInspectorLiveMessage(message: Message): string {
+  const avatar = messageAvatar(message);
+  const conversationLabel = message.conversation.title || message.conversation.id;
+  const threadLabel = message.threadTitle || message.threadId;
+
+  return `
+    <div class="inspector-live-message">
+      <div class="inspector-live-message-head">
+        <div class="inspector-live-message-identity">
+          <span class="inspector-live-avatar" style="background:${avatar.bg}">${avatar.emoji}</span>
+          <span class="inspector-live-sender">${esc(message.senderName || message.senderId)}</span>
+          <span class="inspector-live-direction inspector-live-direction-${message.direction}">${message.direction === "inbound" ? "inbound" : "outbound"}</span>
+        </div>
+        <span class="inspector-live-time">${formatTime(message.timestamp)}</span>
+      </div>
+      <div class="inspector-live-channel">
+        ${esc(conversationLabel)}${threadLabel ? ` · ${esc(threadLabel)}` : ""}
+      </div>
+      <div class="inspector-live-text">${esc(message.text)}</div>
+    </div>`;
+}
+
+function renderInspectorLiveTranscript(state: UiState): string {
+  const messages = recentInspectorMessages(state);
+  const isLive = state.bootstrap?.runner.status === "running";
+
+  return `
+    <aside class="inspector-live">
+      <div class="inspector-live-header">
+        <div>
+          <div class="inspector-section-title">Live Transcript</div>
+          <div class="inspector-live-subtitle">
+            ${isLive ? "Latest QA bus messages as the run progresses." : "Latest observed QA bus messages."}
+          </div>
+        </div>
+        ${isLive ? '<span class="live-indicator"><span class="live-dot"></span>LIVE</span>' : ""}
+      </div>
+      <div class="inspector-live-feed">
+        ${
+          messages.length > 0
+            ? messages.map((message) => renderInspectorLiveMessage(message)).join("")
+            : '<div class="empty-state">No transcript yet. Start a run or send a message.</div>'
+        }
+      </div>
+    </aside>`;
+}
+
 /* ===== Render: Results tab ===== */
 
 function renderResultsView(state: UiState): string {
@@ -671,71 +719,76 @@ function renderInspector(state: UiState, scenario: SeedScenario): string {
   const outcome = findScenarioOutcome(state, scenario);
 
   return `
-    <div class="inspector-header">
-      <div>
-        <div class="inspector-title">${esc(scenario.title)}</div>
-        ${badgeHtml(outcome?.status ?? "pending")}
+    <div class="inspector-layout">
+      <div class="inspector-main">
+        <div class="inspector-header">
+          <div>
+            <div class="inspector-title">${esc(scenario.title)}</div>
+            ${badgeHtml(outcome?.status ?? "pending")}
+          </div>
+        </div>
+        <div class="inspector-objective">${esc(scenario.objective)}</div>
+        <div class="inspector-meta">
+          <div class="inspector-meta-item"><span class="inspector-meta-label">Surface</span><span class="inspector-meta-value">${esc(scenario.surface)}</span></div>
+          <div class="inspector-meta-item"><span class="inspector-meta-label">Started</span><span class="inspector-meta-value">${esc(formatIso(outcome?.startedAt))}</span></div>
+          <div class="inspector-meta-item"><span class="inspector-meta-label">Finished</span><span class="inspector-meta-value">${esc(formatIso(outcome?.finishedAt))}</span></div>
+          <div class="inspector-meta-item"><span class="inspector-meta-label">Run</span><span class="inspector-meta-value">${esc(state.scenarioRun?.kind ?? "seed only")}</span></div>
+        </div>
+
+        <div class="inspector-section">
+          <div class="inspector-section-title">Success Criteria</div>
+          <ul class="criteria-list">
+            ${scenario.successCriteria.map((c) => `<li class="criteria-item"><span class="criteria-bullet"></span>${esc(c)}</li>`).join("")}
+          </ul>
+        </div>
+
+        <div class="inspector-section">
+          <div class="inspector-section-title">Observed Outcome</div>
+          ${
+            outcome
+              ? `
+                ${outcome.details ? `<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">${esc(outcome.details)}</div>` : ""}
+                <div class="step-list">
+                  ${
+                    outcome.steps?.length
+                      ? outcome.steps
+                          .map(
+                            (step) => `
+                              <div class="step-card">
+                                <div class="step-card-header">
+                                  <span class="step-card-name">${esc(step.name)}</span>
+                                  ${badgeHtml(step.status)}
+                                </div>
+                                ${step.details ? `<div class="step-card-details">${esc(step.details)}</div>` : ""}
+                              </div>`,
+                          )
+                          .join("")
+                      : '<div class="empty-state">No step data yet.</div>'
+                  }
+                </div>`
+              : '<div class="empty-state">Not executed yet — seed plan only.</div>'
+          }
+        </div>
+
+        ${
+          scenario.docsRefs?.length
+            ? `<div class="inspector-section">
+                <div class="inspector-section-title">Docs</div>
+                <div class="ref-list">${scenario.docsRefs.map((r) => `<span class="ref-tag">${esc(r)}</span>`).join("")}</div>
+              </div>`
+            : ""
+        }
+        ${
+          scenario.codeRefs?.length
+            ? `<div class="inspector-section">
+                <div class="inspector-section-title">Code</div>
+                <div class="ref-list">${scenario.codeRefs.map((r) => `<span class="ref-tag">${esc(r)}</span>`).join("")}</div>
+              </div>`
+            : ""
+        }
       </div>
-    </div>
-    <div class="inspector-objective">${esc(scenario.objective)}</div>
-    <div class="inspector-meta">
-      <div class="inspector-meta-item"><span class="inspector-meta-label">Surface</span><span class="inspector-meta-value">${esc(scenario.surface)}</span></div>
-      <div class="inspector-meta-item"><span class="inspector-meta-label">Started</span><span class="inspector-meta-value">${esc(formatIso(outcome?.startedAt))}</span></div>
-      <div class="inspector-meta-item"><span class="inspector-meta-label">Finished</span><span class="inspector-meta-value">${esc(formatIso(outcome?.finishedAt))}</span></div>
-      <div class="inspector-meta-item"><span class="inspector-meta-label">Run</span><span class="inspector-meta-value">${esc(state.scenarioRun?.kind ?? "seed only")}</span></div>
-    </div>
-
-    <div class="inspector-section">
-      <div class="inspector-section-title">Success Criteria</div>
-      <ul class="criteria-list">
-        ${scenario.successCriteria.map((c) => `<li class="criteria-item"><span class="criteria-bullet"></span>${esc(c)}</li>`).join("")}
-      </ul>
-    </div>
-
-    <div class="inspector-section">
-      <div class="inspector-section-title">Observed Outcome</div>
-      ${
-        outcome
-          ? `
-            ${outcome.details ? `<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">${esc(outcome.details)}</div>` : ""}
-            <div class="step-list">
-              ${
-                outcome.steps?.length
-                  ? outcome.steps
-                      .map(
-                        (step) => `
-                          <div class="step-card">
-                            <div class="step-card-header">
-                              <span class="step-card-name">${esc(step.name)}</span>
-                              ${badgeHtml(step.status)}
-                            </div>
-                            ${step.details ? `<div class="step-card-details">${esc(step.details)}</div>` : ""}
-                          </div>`,
-                      )
-                      .join("")
-                  : '<div class="empty-state">No step data yet.</div>'
-              }
-            </div>`
-          : '<div class="empty-state">Not executed yet — seed plan only.</div>'
-      }
-    </div>
-
-    ${
-      scenario.docsRefs?.length
-        ? `<div class="inspector-section">
-            <div class="inspector-section-title">Docs</div>
-            <div class="ref-list">${scenario.docsRefs.map((r) => `<span class="ref-tag">${esc(r)}</span>`).join("")}</div>
-          </div>`
-        : ""
-    }
-    ${
-      scenario.codeRefs?.length
-        ? `<div class="inspector-section">
-            <div class="inspector-section-title">Code</div>
-            <div class="ref-list">${scenario.codeRefs.map((r) => `<span class="ref-tag">${esc(r)}</span>`).join("")}</div>
-          </div>`
-        : ""
-    }`;
+      ${renderInspectorLiveTranscript(state)}
+    </div>`;
 }
 
 /* ===== Render: Report tab ===== */

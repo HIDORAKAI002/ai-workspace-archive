@@ -209,7 +209,7 @@ Fast UI refresh:
   - \`pnpm qa:lab:up --use-prebuilt-image --bind-ui-dist --skip-ui-build\`
 - In another shell, rebuild the QA Lab bundle on change:
   - \`pnpm qa:lab:watch\`
-- Refresh the browser after each rebuild to pick up the new bundle.
+- The browser auto-reloads when the QA Lab asset hash changes.
 
 Gateway:
 
