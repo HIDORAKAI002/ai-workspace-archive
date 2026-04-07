@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-08 03:00 IST] Auto-Sync
+- **45 Repositories Updated:** Langfuse, Promptfoo, n8n, Flowise, Activepieces, Windmill, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, pinecone-io/pinecone-python-client, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, firecrawl/firecrawl, chenglou/pretext, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, microsoft/graphrag, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-07 20:39 IST] Auto-Sync
 - **33 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, n8n, Dify, Activepieces, Trigger.dev, Appsmith, Budibase, NocoDB, Directus, Plane, Claude Skills, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, rusiaaman/wcgw, langchain-ai/langchain, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, vercel/ai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

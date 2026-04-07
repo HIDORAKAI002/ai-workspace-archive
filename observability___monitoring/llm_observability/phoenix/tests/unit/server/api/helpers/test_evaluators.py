@@ -1,5 +1,6 @@
 import json
 import re
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -25,7 +26,11 @@ from phoenix.db.types.annotation_configs import (
 from phoenix.db.types.db_helper_types import UNDEFINED
 from phoenix.db.types.evaluators import InputMapping
 from phoenix.db.types.identifier import Identifier
-from phoenix.db.types.model_provider import ModelProvider
+from phoenix.db.types.model_provider import (
+    LLMClientFactory,
+    ModelProvider,
+    openai_rate_limit_key,
+)
 from phoenix.db.types.prompts import (
     PromptChatTemplate,
     PromptMessage,
@@ -2243,11 +2248,15 @@ class TestLLMEvaluator:
         self,
         openai_api_key: str,
     ) -> "OpenAIStreamingClient":
-        def create_openai_client() -> AsyncOpenAI:
-            return AsyncOpenAI()
+        @asynccontextmanager
+        async def create_openai_client() -> Any:
+            yield AsyncOpenAI(api_key=openai_api_key, max_retries=0)
 
+        client_factory = LLMClientFactory(
+            create_openai_client, openai_rate_limit_key(openai_api_key, None)
+        )
         return OpenAIStreamingClient(
-            client_factory=create_openai_client,
+            client_factory=client_factory,
             model_name="gpt-4o-mini",
             provider="openai",
         )
@@ -2471,6 +2480,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
         async with db() as session:
@@ -2614,27 +2624,52 @@ class TestLLMEvaluator:
         assert attributes.pop(OUTPUT_MIME_TYPE) == "application/json"
         raw_output_value = attributes.pop(OUTPUT_VALUE)
         output_value = json.loads(raw_output_value)
-        messages = output_value.pop("messages")
-        assert not output_value
-        assert messages is not None
-        assert len(messages) == 1
-        message = messages[0]
-        assert message.pop("role") == "assistant"
-        tool_calls = message.pop("tool_calls")
-        assert not message
-        assert len(tool_calls) == 1
-        tool_call = tool_calls[0]
-        assert isinstance(tool_call.pop("id"), str)
-        function = tool_call.pop("function")
-        assert isinstance(function, dict)
-        assert function.pop("name") == "correctness"
-        raw_arguments = function.pop("arguments")
-        assert isinstance(raw_arguments, str)
-        arguments = json.loads(raw_arguments)
-        assert arguments.pop("label") == "correct"
-        assert isinstance(arguments.pop("explanation"), str)
-        assert not arguments
-        assert not function
+        assert output_value == {
+            "id": "chatcmpl-DQeuwqU8iYEn0jmW2dXui8MlYo5sn",
+            "object": "chat.completion",
+            "created": 1775246186,
+            "model": "gpt-4o-mini-2024-07-18",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "tool_calls": [
+                            {
+                                "id": "call_yUjsmpi4tVtBJrk9lDCaeHXm",
+                                "type": "function",
+                                "function": {
+                                    "name": "correctness",
+                                    "arguments": (
+                                        '{"label":"correct","explanation":"The output correctly '
+                                        'states that 2 + 2 equals 4."}'
+                                    ),
+                                },
+                            }
+                        ],
+                        "annotations": [],
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 98,
+                "completion_tokens": 32,
+                "total_tokens": 130,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0,
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0,
+                },
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_ebf4e532f9",
+        }
         assert attributes.pop(f"{LLM_OUTPUT_MESSAGES}.0.{MESSAGE_ROLE}") == "assistant"
         assert isinstance(
             attributes.pop(
@@ -2672,7 +2707,6 @@ class TestLLMEvaluator:
         assert json.loads(invocation_parameters) == {
             "temperature": 0.0,
             "tool_choice": "required",
-            "stream_options": {"include_usage": True},
         }
         expected_tool = {
             "type": "function",
@@ -2844,6 +2878,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
         # Check spans
@@ -2953,6 +2988,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
         async with db() as session:
@@ -3109,7 +3145,6 @@ class TestLLMEvaluator:
         assert json.loads(invocation_parameters) == {
             "temperature": 0.0,
             "tool_choice": "required",
-            "stream_options": {"include_usage": True},
         }
         expected_tool = {
             "type": "function",
@@ -3147,27 +3182,35 @@ class TestLLMEvaluator:
         output_config: CategoricalOutputConfig,
         input_mapping: EvaluatorInputMappingInput,
     ) -> None:
-        text_response_body = (
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"role":"assistant","content":""},'
-            '"finish_reason":null}],"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"content":"I cannot evaluate this."},'
-            '"finish_reason":null}],"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],'
-            '"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5,'
-            '"total_tokens":15}}\n\n'
-            "data: [DONE]\n\n"
+        text_response_body = json.dumps(
+            {
+                "id": "chatcmpl-mock",
+                "object": "chat.completion",
+                "created": 1700000000,
+                "model": "gpt-4o-mini",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "I cannot evaluate this.",
+                        },
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 5,
+                    "total_tokens": 15,
+                },
+            }
         )
         with respx.mock:
             respx.post("https://api.openai.com/v1/chat/completions").mock(
                 return_value=httpx.Response(
                     200,
                     content=text_response_body,
-                    headers={"content-type": "text/event-stream"},
+                    headers={"content-type": "application/json"},
                 )
             )
             evaluation_results = await llm_evaluator.evaluate(
@@ -3195,6 +3238,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
         # Check spans
@@ -3317,30 +3361,45 @@ class TestLLMEvaluator:
         output_config: CategoricalOutputConfig,
         input_mapping: EvaluatorInputMappingInput,
     ) -> None:
-        tool_call_response_body = (
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"role":"assistant","content":null,'
-            '"tool_calls":[{"index":0,"id":"call_abc123","type":"function",'
-            '"function":{"name":"correctness","arguments":""}}],"refusal":null},'
-            '"logprobs":null,"finish_reason":null}],"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,'
-            '"function":{"arguments":"{\\"explanation\\": \\"The output is correct.\\"}"}}]},'
-            '"logprobs":null,"finish_reason":null}],"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[{"index":0,"delta":{},'
-            '"finish_reason":"tool_calls"}],"usage":null}\n\n'
-            'data: {"id":"chatcmpl-mock","object":"chat.completion.chunk","created":1700000000,'
-            '"model":"gpt-4o-mini","choices":[],"usage":{"prompt_tokens":10,'
-            '"completion_tokens":20,"total_tokens":30}}\n\n'
-            "data: [DONE]\n\n"
+        tool_call_response_body = json.dumps(
+            {
+                "id": "chatcmpl-mock",
+                "object": "chat.completion",
+                "created": 1700000000,
+                "model": "gpt-4o-mini",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": None,
+                            "tool_calls": [
+                                {
+                                    "id": "call_abc123",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "correctness",
+                                        "arguments": '{"explanation": "The output is correct."}',
+                                    },
+                                }
+                            ],
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 20,
+                    "total_tokens": 30,
+                },
+            }
         )
         with respx.mock:
             respx.post("https://api.openai.com/v1/chat/completions").mock(
                 return_value=httpx.Response(
                     200,
                     content=tool_call_response_body,
-                    headers={"content-type": "text/event-stream"},
+                    headers={"content-type": "application/json"},
                 )
             )
             evaluation_results = await llm_evaluator.evaluate(
@@ -3367,6 +3426,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
     async def test_evaluate_with_multipart_template(
@@ -3403,6 +3463,7 @@ class TestLLMEvaluator:
         assert isinstance(result.pop("start_time"), datetime)
         assert isinstance(result.pop("end_time"), datetime)
         assert result.pop("metadata") == {}
+        result.pop("error_exc", None)
         assert not result
 
         async with db() as session:

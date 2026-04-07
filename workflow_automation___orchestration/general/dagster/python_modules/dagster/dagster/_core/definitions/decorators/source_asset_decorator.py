@@ -2,7 +2,7 @@ from collections.abc import Mapping, Sequence
 from typing import AbstractSet, Any, Callable, Union, overload  # noqa: UP035
 
 import dagster._check as check
-from dagster._annotations import beta, beta_param, hidden_param, public
+from dagster._annotations import beta, beta_param, public
 from dagster._core.definitions.asset_checks.asset_check_spec import AssetCheckSpec
 from dagster._core.definitions.assets.definition.asset_spec import AssetExecutionType, AssetSpec
 from dagster._core.definitions.assets.definition.assets_definition import AssetsDefinition
@@ -18,7 +18,6 @@ from dagster._core.definitions.decorators.decorator_assets_definition_builder im
     create_check_specs_by_output_name,
 )
 from dagster._core.definitions.events import CoercibleToAssetKey, CoercibleToAssetKeyPrefix
-from dagster._core.definitions.freshness_policy import LegacyFreshnessPolicy
 from dagster._core.definitions.metadata import RawMetadataMapping
 from dagster._core.definitions.partitions.definition import PartitionsDefinition
 from dagster._core.definitions.resource_annotation import get_resource_args
@@ -46,7 +45,6 @@ def observable_source_asset(
     required_resource_keys: AbstractSet[str] | None = None,
     resource_defs: Mapping[str, ResourceDefinition] | None = None,
     partitions_def: PartitionsDefinition | None = None,
-    legacy_freshness_policy: LegacyFreshnessPolicy | None = None,
     automation_condition: AutomationCondition | None = None,
     op_tags: Mapping[str, Any] | None = None,
     tags: Mapping[str, str] | None = None,
@@ -55,11 +53,6 @@ def observable_source_asset(
 
 @beta_param(param="io_manager_def")
 @beta_param(param="resource_defs")
-@hidden_param(
-    param="legacy_freshness_policy",
-    breaking_version="1.12.0",
-    additional_warn_text="use freshness checks instead.",
-)
 @public
 @beta
 def observable_source_asset(
@@ -135,7 +128,6 @@ def observable_source_asset(
         required_resource_keys,
         resource_defs,
         partitions_def,
-        kwargs.get("legacy_freshness_policy"),
         automation_condition,
         op_tags,
         tags=normalize_tags(tags, strict=True),
@@ -156,7 +148,6 @@ class _ObservableSourceAsset:
         required_resource_keys: AbstractSet[str] | None = None,
         resource_defs: Mapping[str, ResourceDefinition] | None = None,
         partitions_def: PartitionsDefinition | None = None,
-        legacy_freshness_policy: LegacyFreshnessPolicy | None = None,
         automation_condition: AutomationCondition | None = None,
         op_tags: Mapping[str, Any] | None = None,
         tags: Mapping[str, str] | None = None,
@@ -176,7 +167,6 @@ class _ObservableSourceAsset:
         self.required_resource_keys = required_resource_keys
         self.resource_defs = resource_defs
         self.partitions_def = partitions_def
-        self.legacy_freshness_policy = legacy_freshness_policy
         self.automation_condition = automation_condition
         self.op_tags = op_tags
         self.tags = tags
@@ -213,7 +203,7 @@ class _ObservableSourceAsset:
                 op_tags=self.op_tags,
                 partitions_def=self.partitions_def,
                 auto_observe_interval_minutes=None,
-                legacy_freshness_policy=self.legacy_freshness_policy,
+                legacy_freshness_policy=None,
                 automation_condition=self.automation_condition,
                 tags=self.tags,
             )

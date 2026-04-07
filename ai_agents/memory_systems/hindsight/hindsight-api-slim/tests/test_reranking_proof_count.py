@@ -14,24 +14,19 @@ UTC = timezone.utc
 def create_mock_scored_result(proof_count: int | None = None, ce_score: float = 0.8) -> ScoredResult:
     """Helper to create a minimal ScoredResult suitable for scoring tests."""
     retrieval = RetrievalResult(
-        id=uuid4(),
+        id=str(uuid4()),
         text="Test mock fact",
         fact_type="observation" if proof_count is not None else "world",
-        document_id=uuid4(),
-        chunk_id=uuid4(),
-        embedding=[0.1]*384,
-        similarity=0.9,
+        document_id=str(uuid4()),
+        chunk_id=str(uuid4()),
         proof_count=proof_count,
-        # Default neutral dates for testing so only proof_count changes score
-        occurred_start=datetime.now(UTC),
-        occurred_end=datetime.now(UTC)
+        # Use None for neutral recency so only proof_count changes score
+        occurred_start=None,
+        occurred_end=None
     )
     candidate = MergedCandidate(
-        id=retrieval.id,
         retrieval=retrieval,
-        semantic_rank=1,
-        bm25_rank=1,
-        rrf_score=0.1
+        rrf_score=0.1,
     )
     return ScoredResult(
         candidate=candidate,
