@@ -1,4 +1,0 @@
-repo,query,expected,rank,reciprocal_rank
-gin,Engine ServeHTTP,gin.go::Engine,0,0.0
-gin,Context request,context.go::Context,0,0.0
-gin,node tree,tree.go::node,1,1.0

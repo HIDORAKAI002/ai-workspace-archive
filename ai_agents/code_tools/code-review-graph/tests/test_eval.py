@@ -345,3 +345,189 @@ def test_runner_with_mock_repo():
         assert bp_results[0]["node_count"] > 0
 
         store.close()
+
+
+# --- Token benchmark tests ---
+
+
+def test_estimate_tokens_basic():
+    """estimate_tokens should return a reasonable approximation."""
+    from code_review_graph.eval.token_benchmark import estimate_tokens
+
+    # Simple string: "hello" => JSON '"hello"' (7 chars) => 7 // 4 = 1
+    assert estimate_tokens("hello") == 1
+
+    # Dict: {"a": 1} => '{"a": 1}' (8 chars) => 8 // 4 = 2
+    assert estimate_tokens({"a": 1}) == 2
+
+    # Longer content should scale proportionally
+    long_text = "x" * 400
+    tokens = estimate_tokens(long_text)
+    # JSON adds 2 quote chars: (400 + 2) // 4 = 100
+    assert tokens == 100
+
+
+def test_estimate_tokens_nested():
+    """estimate_tokens handles nested structures."""
+    from code_review_graph.eval.token_benchmark import estimate_tokens
+
+    nested = {"nodes": [{"name": "foo"}, {"name": "bar"}], "count": 2}
+    tokens = estimate_tokens(nested)
+    assert tokens > 0
+    assert isinstance(tokens, int)
+
+
+def test_estimate_tokens_non_serializable():
+    """estimate_tokens uses default=str for non-serializable objects."""
+    from pathlib import Path
+
+    from code_review_graph.eval.token_benchmark import estimate_tokens
+
+    # Path objects are not JSON-serializable but default=str handles them
+    tokens = estimate_tokens({"path": Path("/tmp/test")})
+    assert tokens > 0
+
+
+def test_benchmark_review_workflow():
+    """benchmark_review_workflow completes and returns expected structure."""
+    from code_review_graph.eval.token_benchmark import benchmark_review_workflow
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        repo_path = Path(tmpdir) / "bench_repo"
+        repo_path.mkdir()
+
+        # Init git repo with two commits
+        subprocess.run(
+            ["git", "init"], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        (repo_path / "main.py").write_text(
+            'from helper import greet\n\ndef main():\n    greet("world")\n',
+            encoding="utf-8",
+        )
+        (repo_path / "helper.py").write_text(
+            'def greet(name):\n    print(f"Hello {name}")\n',
+            encoding="utf-8",
+        )
+
+        subprocess.run(
+            ["git", "add", "."], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        # Second commit
+        (repo_path / "helper.py").write_text(
+            'def greet(name):\n    print(f"Hi {name}!")\n',
+            encoding="utf-8",
+        )
+        subprocess.run(
+            ["git", "add", "."], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "update greeting"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        # Build graph
+        from code_review_graph.graph import GraphStore
+        from code_review_graph.incremental import full_build, get_db_path
+
+        db_path = get_db_path(repo_path)
+        store = GraphStore(db_path)
+        full_build(repo_path, store)
+        store.close()
+
+        # Run the review benchmark
+        result = benchmark_review_workflow(
+            repo_root=str(repo_path), base="HEAD~1",
+        )
+
+        assert result["workflow"] == "review"
+        assert result["total_tokens"] > 0
+        assert result["tool_calls"] == 2
+        assert len(result["calls"]) == 2
+        assert result["calls"][0]["tool"] == "get_minimal_context"
+        assert result["calls"][1]["tool"] == "detect_changes_minimal"
+        for call in result["calls"]:
+            assert call["tokens"] >= 0
+
+
+def test_run_all_benchmarks():
+    """run_all_benchmarks returns results for all workflows."""
+    from code_review_graph.eval.token_benchmark import run_all_benchmarks
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        repo_path = Path(tmpdir) / "all_bench_repo"
+        repo_path.mkdir()
+
+        subprocess.run(
+            ["git", "init"], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        (repo_path / "app.py").write_text(
+            'def main():\n    print("hello")\n',
+            encoding="utf-8",
+        )
+
+        subprocess.run(
+            ["git", "add", "."], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        (repo_path / "app.py").write_text(
+            'def main():\n    print("hi")\n',
+            encoding="utf-8",
+        )
+        subprocess.run(
+            ["git", "add", "."], cwd=str(repo_path), capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "update"],
+            cwd=str(repo_path), capture_output=True,
+        )
+
+        from code_review_graph.graph import GraphStore
+        from code_review_graph.incremental import full_build, get_db_path
+
+        db_path = get_db_path(repo_path)
+        store = GraphStore(db_path)
+        full_build(repo_path, store)
+        store.close()
+
+        results = run_all_benchmarks(repo_root=str(repo_path), base="HEAD~1")
+
+        # Should have one result per workflow (5 total)
+        assert len(results) == 5
+
+        workflow_names = {r["workflow"] for r in results}
+        assert workflow_names == {
+            "review", "architecture", "debug", "onboard", "pre_merge",
+        }
+
+        # Each successful result should have total_tokens
+        for r in results:
+            if "error" not in r:
+                assert r["total_tokens"] >= 0
+                assert "calls" in r

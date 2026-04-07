@@ -28,6 +28,7 @@ def get_review_context(
     max_lines_per_file: int = 200,
     repo_root: str | None = None,
     base: str = "HEAD~1",
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """Generate a focused review context from changed files.
 
@@ -40,6 +41,10 @@ def get_review_context(
         max_lines_per_file: Max source lines per file in output (default: 200).
         repo_root: Repository root path. Auto-detected if omitted.
         base: Git ref for change detection (default: HEAD~1).
+        detail_level: Output detail level.  "standard" returns full context;
+            "minimal" returns summary, risk level, changed/impacted file counts,
+            top 5 key entity names, test gap count, and next tool suggestions.
+            Default: "standard".
 
     Returns:
         Structured review context with subgraph, source snippets, and
@@ -62,6 +67,55 @@ def get_review_context(
 
         abs_files = [str(root / f) for f in changed_files]
         impact = store.get_impact_radius(abs_files, max_depth=max_depth)
+
+        if detail_level == "minimal":
+            impacted_count = len(impact["impacted_nodes"])
+            if impacted_count > 20:
+                risk = "high"
+            elif impacted_count > 5:
+                risk = "medium"
+            else:
+                risk = "low"
+
+            key_entities = [
+                n.name for n in impact["changed_nodes"][:5]
+            ]
+
+            # Count test gaps among changed functions.
+            changed_funcs = [
+                n for n in impact["changed_nodes"]
+                if n.kind == "Function" and not n.is_test
+            ]
+            test_edges = [
+                e for e in impact["edges"] if e.kind == "TESTED_BY"
+            ]
+            tested_qualified = {e.source_qualified for e in test_edges}
+            test_gap_count = sum(
+                1 for f in changed_funcs
+                if f.qualified_name not in tested_qualified
+            )
+
+            summary_parts = [
+                f"Review context for {len(changed_files)} changed file(s):",
+                f"  - Risk: {risk}",
+                f"  - {len(impact['impacted_nodes'])} impacted nodes"
+                f" in {len(impact['impacted_files'])} files",
+            ]
+
+            return {
+                "status": "ok",
+                "summary": "\n".join(summary_parts),
+                "risk": risk,
+                "changed_file_count": len(changed_files),
+                "impacted_file_count": len(impact["impacted_files"]),
+                "key_entities": key_entities,
+                "test_gaps": test_gap_count,
+                "next_tool_suggestions": [
+                    "detect_changes",
+                    "get_affected_flows",
+                    "get_impact_radius",
+                ],
+            }
 
         # Build review context
         context: dict[str, Any] = {
@@ -299,6 +353,7 @@ def detect_changes_func(
     include_source: bool = False,
     max_depth: int = 2,
     repo_root: str | None = None,
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """Detect changes and produce risk-scored review guidance.
 
@@ -314,6 +369,10 @@ def detect_changes_func(
             functions.  Default: False.
         max_depth: Impact radius depth for BFS traversal.  Default: 2.
         repo_root: Repository root path.  Auto-detected if omitted.
+        detail_level: Output detail level.  "standard" returns full analysis;
+            "minimal" returns only summary, risk_score, changed_file_count,
+            test_gap_count, and top 3 review priorities (text only).
+            Default: "standard".
 
     Returns:
         Risk-scored analysis with changed functions, affected flows,
@@ -379,11 +438,26 @@ def detect_changes_func(
                         except (OSError, UnicodeDecodeError):
                             func["source"] = "(could not read file)"
 
-        result = {
-            "status": "ok",
-            "changed_files": changed_files,
-            **analysis,
-        }
+        if detail_level == "minimal":
+            priorities = analysis.get("review_priorities", [])
+            top_priorities = [
+                p.get("name", p.get("qualified_name", ""))
+                for p in priorities[:3]
+            ]
+            result: dict[str, Any] = {
+                "status": "ok",
+                "summary": analysis.get("summary", ""),
+                "risk_score": analysis.get("risk_score", 0.0),
+                "changed_file_count": len(changed_files),
+                "test_gap_count": len(analysis.get("test_gaps", [])),
+                "review_priorities": top_priorities,
+            }
+        else:
+            result = {
+                "status": "ok",
+                "changed_files": changed_files,
+                **analysis,
+            }
         result["_hints"] = generate_hints(
             "detect_changes", result, get_session()
         )

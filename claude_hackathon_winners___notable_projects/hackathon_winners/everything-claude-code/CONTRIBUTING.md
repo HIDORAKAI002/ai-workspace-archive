@@ -7,6 +7,7 @@ Thanks for wanting to contribute! This repo is a community resource for Claude C
 - [What We're Looking For](#what-were-looking-for)
 - [Quick Start](#quick-start)
 - [Contributing Skills](#contributing-skills)
+- [Skill Adaptation Policy](#skill-adaptation-policy)
 - [Contributing Agents](#contributing-agents)
 - [Contributing Hooks](#contributing-hooks)
 - [Contributing Commands](#contributing-commands)
@@ -143,6 +144,17 @@ Link to complementary skills (e.g., `related-skill-1`, `related-skill-2`).
 | **Domain Knowledge** | Specialized domains | `security-review`, `api-design` |
 | **Tool Integration** | Tool/library usage | `docker-patterns`, `supabase-patterns` |
 | **Template** | Project-specific skill templates | `docs/examples/project-guidelines-template.md` |
+
+### Skill Adaptation Policy
+
+If you are porting an idea from another repo, plugin, harness, or personal prompt pack, read [Skill Adaptation Policy](docs/skill-adaptation-policy.md) before opening the PR.
+
+Short version:
+
+- copy the underlying idea, not the external product identity
+- rename the skill when ECC materially changes or expands the surface
+- prefer ECC-native rules, skills, scripts, and MCPs over new default third-party dependencies
+- do not ship a skill whose main value is telling users to install an unvetted package
 
 ### Skill Checklist
 

@@ -19,6 +19,7 @@ def list_flows(
     sort_by: str = "criticality",
     limit: int = 50,
     kind: str | None = None,
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """List execution flows in the codebase, sorted by criticality.
 
@@ -32,6 +33,9 @@ def list_flows(
                  or name.
         limit: Maximum flows to return (default: 50).
         kind: Optional filter by entry point kind (e.g. "Test", "Function").
+        detail_level: "standard" (default) returns full flow data;
+                      "minimal" returns only name, criticality, and
+                      node_count per flow.
 
     Returns:
         List of flows with criticality scores.
@@ -52,6 +56,16 @@ def list_flows(
                     if node_kind == kind:
                         filtered.append(f)
             flows = filtered[:limit]
+
+        if detail_level == "minimal":
+            flows = [
+                {
+                    "name": f["name"],
+                    "criticality": f["criticality"],
+                    "node_count": f["node_count"],
+                }
+                for f in flows
+            ]
 
         result: dict[str, object] = {
             "status": "ok",

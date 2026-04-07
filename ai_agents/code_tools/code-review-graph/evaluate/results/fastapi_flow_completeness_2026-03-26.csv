@@ -1,2 +1,0 @@
-repo,known_entry_points,detected_entry_points,recall,detected_flows,avg_flow_depth,max_flow_depth
-fastapi,2,2,1.0,367,1.2,4

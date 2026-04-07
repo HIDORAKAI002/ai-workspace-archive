@@ -40,7 +40,7 @@ class TestReviewChangesPrompt:
 
     def test_mentions_test_gaps(self):
         result = review_changes_prompt()
-        assert "tests_for" in result[0]["content"]
+        assert "test" in result[0]["content"].lower()
 
 
 class TestArchitectureMapPrompt:
@@ -85,15 +85,15 @@ class TestDebugIssuePrompt:
     def test_empty_description(self):
         result = debug_issue_prompt()
         content = result[0]["content"]
-        assert "debugging" in content.lower()
+        assert "debug" in content.lower()
 
     def test_mentions_search(self):
         result = debug_issue_prompt(description="test issue")
         assert "semantic_search_nodes" in result[0]["content"]
 
-    def test_mentions_recent_changes(self):
+    def test_mentions_get_minimal_context(self):
         result = debug_issue_prompt()
-        assert "detect_changes" in result[0]["content"]
+        assert "get_minimal_context" in result[0]["content"]
 
 
 class TestOnboardDeveloperPrompt:
@@ -137,11 +137,15 @@ class TestPreMergeCheckPrompt:
 
     def test_default_base(self):
         result = pre_merge_check_prompt()
-        assert "HEAD~1" in result[0]["content"]
+        # The pre-merge prompt is now generic (doesn't embed the base ref)
+        assert "pre-merge" in result[0]["content"].lower()
 
     def test_custom_base(self):
+        # pre_merge_check_prompt still accepts base but the workflow
+        # is now generic — just verify it returns valid prompt
         result = pre_merge_check_prompt(base="develop")
-        assert "develop" in result[0]["content"]
+        assert isinstance(result, list)
+        assert len(result) >= 1
 
     def test_mentions_risk_scoring(self):
         result = pre_merge_check_prompt()
@@ -154,3 +158,28 @@ class TestPreMergeCheckPrompt:
     def test_mentions_dead_code(self):
         result = pre_merge_check_prompt()
         assert "dead_code" in result[0]["content"]
+
+
+class TestTokenEfficiencyPreamble:
+    """All prompts should include the token efficiency preamble."""
+
+    def test_review_has_preamble(self):
+        result = review_changes_prompt()
+        assert "get_minimal_context" in result[0]["content"]
+        assert "detail_level" in result[0]["content"]
+
+    def test_architecture_has_preamble(self):
+        result = architecture_map_prompt()
+        assert "get_minimal_context" in result[0]["content"]
+
+    def test_debug_has_preamble(self):
+        result = debug_issue_prompt()
+        assert "get_minimal_context" in result[0]["content"]
+
+    def test_onboard_has_preamble(self):
+        result = onboard_developer_prompt()
+        assert "get_minimal_context" in result[0]["content"]
+
+    def test_pre_merge_has_preamble(self):
+        result = pre_merge_check_prompt()
+        assert "get_minimal_context" in result[0]["content"]

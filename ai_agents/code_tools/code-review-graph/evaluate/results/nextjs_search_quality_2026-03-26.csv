@@ -1,4 +1,0 @@
-repo,query,expected,rank,reciprocal_rank
-nextjs,GraphStore nodes,code_review_graph/graph.py::GraphStore,1,1.0
-nextjs,parse AST,code_review_graph/parser.py::CodeParser,0,0.0
-nextjs,full build,code_review_graph/incremental.py::full_build,1,1.0

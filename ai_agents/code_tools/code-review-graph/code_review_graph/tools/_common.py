@@ -83,3 +83,33 @@ def _get_store(repo_root: str | None = None) -> tuple[GraphStore, Path]:
     root = _validate_repo_root(Path(repo_root)) if repo_root else find_project_root()
     db_path = get_db_path(root)
     return GraphStore(db_path), root
+
+
+def compact_response(
+    summary: str,
+    key_entities: list[str] | None = None,
+    risk: str = "unknown",
+    communities: list[str] | None = None,
+    flows_affected: list[str] | None = None,
+    next_tool_suggestions: list[str] | None = None,
+    data: dict[str, Any] | None = None,
+    detail_level: str = "minimal",
+) -> dict[str, Any]:
+    """Standard compact response format for token efficiency."""
+    resp: dict[str, Any] = {
+        "status": "ok",
+        "summary": summary,
+    }
+    if key_entities:
+        resp["key_entities"] = key_entities[:10]
+    if risk != "unknown":
+        resp["risk"] = risk
+    if communities:
+        resp["communities"] = communities[:5]
+    if flows_affected:
+        resp["flows_affected"] = flows_affected[:5]
+    if next_tool_suggestions:
+        resp["next_tool_suggestions"] = next_tool_suggestions[:3]
+    if detail_level != "minimal" and data:
+        resp["data"] = data
+    return resp
