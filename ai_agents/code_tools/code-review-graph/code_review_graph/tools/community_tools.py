@@ -18,6 +18,7 @@ def list_communities_func(
     repo_root: str | None = None,
     sort_by: str = "size",
     min_size: int = 0,
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """List detected code communities in the codebase.
 
@@ -30,6 +31,9 @@ def list_communities_func(
         repo_root: Repository root path. Auto-detected if omitted.
         sort_by: Sort column: size, cohesion, or name.
         min_size: Minimum community size to include (default: 0).
+        detail_level: "standard" (default) returns full community data;
+                      "minimal" returns only name, size, and cohesion
+                      per community.
 
     Returns:
         List of communities with size and cohesion scores.
@@ -39,6 +43,11 @@ def list_communities_func(
         communities = get_communities(
             store, sort_by=sort_by, min_size=min_size
         )
+        if detail_level == "minimal":
+            communities = [
+                {"name": c["name"], "size": c["size"], "cohesion": c["cohesion"]}
+                for c in communities
+            ]
         result: dict[str, object] = {
             "status": "ok",
             "summary": f"Found {len(communities)} communities",

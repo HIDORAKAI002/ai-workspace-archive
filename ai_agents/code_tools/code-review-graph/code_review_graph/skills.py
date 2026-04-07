@@ -204,7 +204,14 @@ _SKILLS: dict[str, dict[str, str]] = {
             "### Tips\n\n"
             "- Start broad (stats, architecture) then narrow down to specific areas.\n"
             "- Use `children_of` on a file to see all its functions and classes.\n"
-            "- Use `find_large_functions` to identify complex code."
+            "- Use `find_large_functions` to identify complex code.\n\n"
+            "## Token Efficiency Rules\n"
+            "- ALWAYS start with `get_minimal_context(task=\"<your task>\")` "
+            "before any other graph tool.\n"
+            "- Use `detail_level=\"minimal\"` on all calls. Only escalate to "
+            "\"standard\" when minimal is insufficient.\n"
+            "- Target: complete any review/debug/refactor task in ≤5 tool calls "
+            "and ≤800 total output tokens."
         ),
     },
     "review-changes.md": {
@@ -225,7 +232,14 @@ _SKILLS: dict[str, dict[str, str]] = {
             "- What changed and why it matters\n"
             "- Test coverage status\n"
             "- Suggested improvements\n"
-            "- Overall merge recommendation"
+            "- Overall merge recommendation\n\n"
+            "## Token Efficiency Rules\n"
+            "- ALWAYS start with `get_minimal_context(task=\"<your task>\")` "
+            "before any other graph tool.\n"
+            "- Use `detail_level=\"minimal\"` on all calls. Only escalate to "
+            "\"standard\" when minimal is insufficient.\n"
+            "- Target: complete any review/debug/refactor task in ≤5 tool calls "
+            "and ≤800 total output tokens."
         ),
     },
     "debug-issue.md": {
@@ -244,7 +258,14 @@ _SKILLS: dict[str, dict[str, str]] = {
             "### Tips\n\n"
             "- Check both callers and callees to understand the full context.\n"
             "- Look at affected flows to find the entry point that triggers the bug.\n"
-            "- Recent changes are the most common source of new issues."
+            "- Recent changes are the most common source of new issues.\n\n"
+            "## Token Efficiency Rules\n"
+            "- ALWAYS start with `get_minimal_context(task=\"<your task>\")` "
+            "before any other graph tool.\n"
+            "- Use `detail_level=\"minimal\"` on all calls. Only escalate to "
+            "\"standard\" when minimal is insufficient.\n"
+            "- Target: complete any review/debug/refactor task in ≤5 tool calls "
+            "and ≤800 total output tokens."
         ),
     },
     "refactor-safely.md": {
@@ -265,7 +286,14 @@ _SKILLS: dict[str, dict[str, str]] = {
             "- Always preview before applying (rename mode gives you an edit list).\n"
             "- Check `get_impact_radius` before major refactors.\n"
             "- Use `get_affected_flows` to ensure no critical paths are broken.\n"
-            "- Run `find_large_functions` to identify decomposition targets."
+            "- Run `find_large_functions` to identify decomposition targets.\n\n"
+            "## Token Efficiency Rules\n"
+            "- ALWAYS start with `get_minimal_context(task=\"<your task>\")` "
+            "before any other graph tool.\n"
+            "- Use `detail_level=\"minimal\"` on all calls. Only escalate to "
+            "\"standard\" when minimal is insufficient.\n"
+            "- Target: complete any review/debug/refactor task in ≤5 tool calls "
+            "and ≤800 total output tokens."
         ),
     },
 }
@@ -317,7 +345,7 @@ def generate_hooks_config() -> dict[str, Any]:
             "PostToolUse": [
                 {
                     "matcher": "Edit|Write|Bash",
-                    "command": "code-review-graph update --quiet",
+                    "command": "code-review-graph update --quiet --skip-flows",
                     "timeout": 5000,
                 },
             ],

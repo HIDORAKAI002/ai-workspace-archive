@@ -8,6 +8,7 @@ Supports impact-radius queries and subgraph extraction.
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
 import time
@@ -17,8 +18,11 @@ from typing import Any, Optional
 
 import networkx as nx
 
+from .constants import BFS_ENGINE, MAX_IMPACT_DEPTH, MAX_IMPACT_NODES
 from .migrations import get_schema_version, run_migrations
 from .parser import EdgeInfo, NodeInfo
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Schema
@@ -334,9 +338,16 @@ class GraphStore:
     # --- Impact / Graph traversal ---
 
     def get_impact_radius(
-        self, changed_files: list[str], max_depth: int = 2, max_nodes: int = 500
+        self,
+        changed_files: list[str],
+        max_depth: int = MAX_IMPACT_DEPTH,
+        max_nodes: int = MAX_IMPACT_NODES,
     ) -> dict[str, Any]:
         """BFS from changed files to find all impacted nodes within depth N.
+
+        Delegates to ``get_impact_radius_sql()`` by default (faster for
+        large graphs).  Set ``CRG_BFS_ENGINE=networkx`` to use the legacy
+        Python-side BFS via NetworkX.
 
         Returns dict with:
           - changed_nodes: nodes in changed files
@@ -344,16 +355,143 @@ class GraphStore:
           - impacted_files: unique set of affected files
           - edges: connecting edges
         """
-        nxg = self._build_networkx_graph()
+        if BFS_ENGINE == "networkx":
+            return self._get_impact_radius_networkx(
+                changed_files, max_depth=max_depth, max_nodes=max_nodes,
+            )
+        return self.get_impact_radius_sql(
+            changed_files, max_depth=max_depth, max_nodes=max_nodes,
+        )
 
-        # Seed: all qualified names in changed files
-        seeds = set()
+    # -- SQLite recursive CTE version (default) ---------------------------
+
+    def get_impact_radius_sql(
+        self,
+        changed_files: list[str],
+        max_depth: int = MAX_IMPACT_DEPTH,
+        max_nodes: int = MAX_IMPACT_NODES,
+    ) -> dict[str, Any]:
+        """Impact radius via SQLite recursive CTE.
+
+        Faster than NetworkX for large graphs because it avoids
+        materialising the full graph in Python.
+        """
+        if not changed_files:
+            return {
+                "changed_nodes": [],
+                "impacted_nodes": [],
+                "impacted_files": [],
+                "edges": [],
+                "truncated": False,
+                "total_impacted": 0,
+            }
+
+        # Seed qualified names
+        seeds: set[str] = set()
         for f in changed_files:
             nodes = self.get_nodes_by_file(f)
             for n in nodes:
                 seeds.add(n.qualified_name)
 
-        # BFS outward through all edge types
+        if not seeds:
+            return {
+                "changed_nodes": [],
+                "impacted_nodes": [],
+                "impacted_files": [],
+                "edges": [],
+                "truncated": False,
+                "total_impacted": 0,
+            }
+
+        # Build recursive CTE — use a temp table for the seed set to
+        # keep the query plan efficient and stay under variable limits.
+        self._conn.execute(
+            "CREATE TEMP TABLE IF NOT EXISTS _impact_seeds "
+            "(qn TEXT PRIMARY KEY)"
+        )
+        self._conn.execute("DELETE FROM _impact_seeds")
+        batch_size = 450
+        seed_list = list(seeds)
+        for i in range(0, len(seed_list), batch_size):
+            batch = seed_list[i:i + batch_size]
+            placeholders = ",".join("(?)" for _ in batch)
+            self._conn.execute(  # nosec B608
+                f"INSERT OR IGNORE INTO _impact_seeds (qn) VALUES {placeholders}",
+                batch,
+            )
+
+        cte_sql = """
+        WITH RECURSIVE impacted(node_qn, depth) AS (
+            SELECT qn, 0 FROM _impact_seeds
+            UNION
+            SELECT e.target_qualified, i.depth + 1
+            FROM impacted i
+            JOIN edges e ON e.source_qualified = i.node_qn
+            WHERE i.depth < ?
+            UNION
+            SELECT e.source_qualified, i.depth + 1
+            FROM impacted i
+            JOIN edges e ON e.target_qualified = i.node_qn
+            WHERE i.depth < ?
+        )
+        SELECT DISTINCT node_qn, MIN(depth) AS min_depth
+        FROM impacted
+        GROUP BY node_qn
+        LIMIT ?
+        """
+        rows = self._conn.execute(
+            cte_sql, (max_depth, max_depth, max_nodes + len(seeds)),
+        ).fetchall()
+
+        # Split into seeds vs impacted
+        impacted_qns: set[str] = set()
+        for r in rows:
+            qn = r[0]
+            if qn not in seeds:
+                impacted_qns.add(qn)
+
+        # Batch-fetch nodes
+        changed_nodes = self._batch_get_nodes(seeds)
+        impacted_nodes = self._batch_get_nodes(impacted_qns)
+
+        total_impacted = len(impacted_nodes)
+        truncated = total_impacted > max_nodes
+        if truncated:
+            impacted_nodes = impacted_nodes[:max_nodes]
+
+        impacted_files = list({n.file_path for n in impacted_nodes})
+
+        relevant_edges: list[GraphEdge] = []
+        all_qns = seeds | {n.qualified_name for n in impacted_nodes}
+        if all_qns:
+            relevant_edges = self.get_edges_among(all_qns)
+
+        return {
+            "changed_nodes": changed_nodes,
+            "impacted_nodes": impacted_nodes,
+            "impacted_files": impacted_files,
+            "edges": relevant_edges,
+            "truncated": truncated,
+            "total_impacted": total_impacted,
+        }
+
+    # -- NetworkX BFS version (legacy) ------------------------------------
+
+    def _get_impact_radius_networkx(
+        self,
+        changed_files: list[str],
+        max_depth: int = MAX_IMPACT_DEPTH,
+        max_nodes: int = MAX_IMPACT_NODES,
+    ) -> dict[str, Any]:
+        """BFS via NetworkX (legacy). Used when CRG_BFS_ENGINE=networkx."""
+        nxg = self._build_networkx_graph()
+
+        seeds: set[str] = set()
+        for f in changed_files:
+            nodes = self.get_nodes_by_file(f)
+            for n in nodes:
+                seeds.add(n.qualified_name)
+
         visited: set[str] = set()
         frontier = seeds.copy()
         depth = 0
@@ -363,32 +501,26 @@ class GraphStore:
             visited.update(frontier)
             next_frontier: set[str] = set()
             for qn in frontier:
-                # Forward edges (things this node affects)
                 if qn in nxg:
                     for neighbor in nxg.neighbors(qn):
                         if neighbor not in visited:
                             next_frontier.add(neighbor)
                             impacted.add(neighbor)
-                # Reverse edges (things that depend on this node)
                 if qn in nxg:
                     for pred in nxg.predecessors(qn):
                         if pred not in visited:
                             next_frontier.add(pred)
                             impacted.add(pred)
             next_frontier -= visited
-            # Cap total nodes to prevent resource exhaustion on dense graphs
             if len(visited) + len(next_frontier) > max_nodes:
                 break
             frontier = next_frontier
             depth += 1
 
-        # Batch-fetch nodes instead of N+1 individual queries
         changed_nodes = self._batch_get_nodes(seeds)
-
         impacted_qns = impacted - seeds
         impacted_nodes = self._batch_get_nodes(impacted_qns)
 
-        # Truncation: cap impacted nodes and report total
         total_impacted = len(impacted_nodes)
         truncated = total_impacted > max_nodes
         if truncated:
@@ -396,8 +528,7 @@ class GraphStore:
 
         impacted_files = list({n.file_path for n in impacted_nodes})
 
-        # Collect relevant edges in a single batch query
-        relevant_edges = []
+        relevant_edges: list[GraphEdge] = []
         all_qns = seeds | {n.qualified_name for n in impacted_nodes}
         if all_qns:
             relevant_edges = self.get_edges_among(all_qns)

@@ -32,8 +32,12 @@ env/
 .DS_Store
 Thumbs.db
 
-# Node (if any JS tooling)
+# Node
 node_modules/
+
+# VS Code extension build artifacts
+code-review-graph-vscode/dist/
+*.vsix
 
 # Claude Code
 .claude/
@@ -49,26 +53,24 @@ htmlcov/
 # mypy
 .mypy_cache/
 
-# Medium article
-medium/
-
-# Superpowers brainstorm
-.superpowers/
-docs/superpowers/plans/
-docs/superpowers/specs/
-
-# Diagrams (PNGs + script tracked, excalidraw sources gitignored)
-diagrams/*.excalidraw
-diagrams/export_pngs.mjs
+# Excalidraw source files (PNGs are tracked, sources are not)
 *.excalidraw
+diagrams/export_pngs.mjs
 
-# Evaluation test repos (third-party checkouts)
+# Evaluation (generated output — test repos, results, reports)
 evaluate/test_repos/
+evaluate/results/
+evaluate/reports/
 
-# Draft/duplicate files
+# Superpowers brainstorm docs
+.superpowers/
+docs/superpowers/
+
+# Draft/duplicate assets
 docs/assets/marketing-diagram*
 
-# One-off audit/design docs
+# One-off docs (audits, analyses, plans, articles)
+medium/
 Quality-Audit-Report.docx
 accessibility-audit.md
 cross-audit-synthesis.md
@@ -76,3 +78,5 @@ design-critique.md
 design-handoff.md
 design-system-audit.md
 research-synthesis.md
+code-review-graph-analysis.md
+SCALING_AND_TOKEN_EFFICIENCY_PLAN.md

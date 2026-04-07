@@ -1,9 +1,10 @@
-"""Tool 1: build_or_update_graph."""
+"""Tool 1: build_or_update_graph + run_postprocess."""
 
 from __future__ import annotations
 
 import logging
 import sqlite3
+import time
 from typing import Any
 
 from ..incremental import full_build, incremental_update
@@ -12,18 +13,282 @@ from ._common import _get_store
 logger = logging.getLogger(__name__)
 
 
+def _run_postprocess(
+    store: Any,
+    build_result: dict[str, Any],
+    postprocess: str,
+    full_rebuild: bool = False,
+    changed_files: list[str] | None = None,
+) -> list[str]:
+    """Run post-build steps based on *postprocess* level.
+
+    When *full_rebuild* is False and *changed_files* are available,
+    uses incremental flow/community detection for faster updates.
+
+    Returns a list of warning strings (empty on success).
+    """
+    warnings: list[str] = []
+    build_result["postprocess_level"] = postprocess
+
+    if postprocess == "none":
+        return warnings
+
+    # -- Signatures + FTS (fast, always run unless "none") --
+    try:
+        rows = store.get_nodes_without_signature()
+        for row in rows:
+            node_id, name, kind, params, ret = (
+                row[0], row[1], row[2], row[3], row[4],
+            )
+            if kind in ("Function", "Test"):
+                sig = f"def {name}({params or ''})"
+                if ret:
+                    sig += f" -> {ret}"
+            elif kind == "Class":
+                sig = f"class {name}"
+            else:
+                sig = name
+            store.update_node_signature(node_id, sig[:512])
+        store.commit()
+        build_result["signatures_updated"] = True
+    except (sqlite3.OperationalError, TypeError, KeyError) as e:
+        logger.warning("Signature computation failed: %s", e)
+        warnings.append(f"Signature computation failed: {type(e).__name__}: {e}")
+
+    try:
+        from code_review_graph.search import rebuild_fts_index
+
+        fts_count = rebuild_fts_index(store)
+        build_result["fts_indexed"] = fts_count
+        build_result["fts_rebuilt"] = True
+    except (sqlite3.OperationalError, ImportError) as e:
+        logger.warning("FTS index rebuild failed: %s", e)
+        warnings.append(f"FTS index rebuild failed: {type(e).__name__}: {e}")
+
+    if postprocess == "minimal":
+        return warnings
+
+    # -- Expensive: flows + communities (only for "full") --
+    use_incremental = not full_rebuild and bool(changed_files)
+
+    try:
+        if use_incremental:
+            from code_review_graph.flows import incremental_trace_flows
+
+            count = incremental_trace_flows(store, changed_files)
+        else:
+            from code_review_graph.flows import store_flows as _store_flows
+            from code_review_graph.flows import trace_flows as _trace_flows
+
+            flows = _trace_flows(store)
+            count = _store_flows(store, flows)
+        build_result["flows_detected"] = count
+    except (sqlite3.OperationalError, ImportError) as e:
+        logger.warning("Flow detection failed: %s", e)
+        warnings.append(f"Flow detection failed: {type(e).__name__}: {e}")
+
+    try:
+        if use_incremental:
+            from code_review_graph.communities import (
+                incremental_detect_communities,
+            )
+
+            count = incremental_detect_communities(store, changed_files)
+        else:
+            from code_review_graph.communities import (
+                detect_communities as _detect_communities,
+            )
+            from code_review_graph.communities import (
+                store_communities as _store_communities,
+            )
+
+            comms = _detect_communities(store)
+            count = _store_communities(store, comms)
+        build_result["communities_detected"] = count
+    except (sqlite3.OperationalError, ImportError) as e:
+        logger.warning("Community detection failed: %s", e)
+        warnings.append(f"Community detection failed: {type(e).__name__}: {e}")
+
+    # -- Compute pre-computed summary tables --
+    try:
+        _compute_summaries(store)
+        build_result["summaries_computed"] = True
+    except (sqlite3.OperationalError, Exception) as e:
+        logger.warning("Summary computation failed: %s", e)
+        warnings.append(f"Summary computation failed: {type(e).__name__}: {e}")
+
+    store.set_metadata(
+        "last_postprocessed_at", time.strftime("%Y-%m-%dT%H:%M:%S"),
+    )
+    store.set_metadata("postprocess_level", postprocess)
+
+    return warnings
+
+
+def _compute_summaries(store: Any) -> None:
+    """Populate community_summaries, flow_snapshots, and risk_index tables."""
+    import json as _json
+
+    conn = store._conn
+
+    # -- community_summaries --
+    try:
+        conn.execute("DELETE FROM community_summaries")
+        rows = conn.execute(
+            "SELECT id, name, size, dominant_language FROM communities"
+        ).fetchall()
+        for r in rows:
+            cid, cname, csize, clang = r[0], r[1], r[2], r[3]
+            # Top 5 symbols by in+out edge count
+            top_symbols = conn.execute(
+                "SELECT n.name FROM nodes n "
+                "LEFT JOIN edges e1 ON e1.source_qualified = n.qualified_name "
+                "LEFT JOIN edges e2 ON e2.target_qualified = n.qualified_name "
+                "WHERE n.community_id = ? AND n.kind != 'File' "
+                "GROUP BY n.id ORDER BY COUNT(e1.id) + COUNT(e2.id) DESC "
+                "LIMIT 5",
+                (cid,),
+            ).fetchall()
+            key_syms = _json.dumps([s[0] for s in top_symbols])
+            # Auto-generate purpose from common file path prefix
+            file_rows = conn.execute(
+                "SELECT DISTINCT file_path FROM nodes WHERE community_id = ? LIMIT 20",
+                (cid,),
+            ).fetchall()
+            paths = [fr[0] for fr in file_rows]
+            purpose = ""
+            if paths:
+                from os.path import commonprefix
+                prefix = commonprefix(paths)
+                if "/" in prefix:
+                    purpose = prefix.rsplit("/", 1)[0].split("/")[-1] if "/" in prefix else ""
+            conn.execute(
+                "INSERT OR REPLACE INTO community_summaries "
+                "(community_id, name, purpose, key_symbols, size, dominant_language) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (cid, cname, purpose, key_syms, csize, clang or ""),
+            )
+    except sqlite3.OperationalError:
+        pass  # Table may not exist yet
+
+    # -- flow_snapshots --
+    try:
+        conn.execute("DELETE FROM flow_snapshots")
+        rows = conn.execute(
+            "SELECT id, name, entry_point_id, criticality, node_count, "
+            "file_count, path_json FROM flows"
+        ).fetchall()
+        for r in rows:
+            fid = r[0]
+            fname = r[1]
+            ep_id = r[2]
+            crit = r[3]
+            ncount = r[4]
+            fcount = r[5]
+            # Get entry point name
+            ep_row = conn.execute(
+                "SELECT qualified_name FROM nodes WHERE id = ?", (ep_id,),
+            ).fetchone()
+            ep_name = ep_row[0] if ep_row else str(ep_id)
+            # Compress path to entry + top 3 intermediate + exit
+            path_ids = _json.loads(r[6]) if r[6] else []
+            critical_path = []
+            if path_ids:
+                critical_path.append(ep_name)
+                if len(path_ids) > 2:
+                    # Pick up to 3 intermediate nodes
+                    for nid in path_ids[1:4]:
+                        nr = conn.execute(
+                            "SELECT name FROM nodes WHERE id = ?", (nid,),
+                        ).fetchone()
+                        if nr:
+                            critical_path.append(nr[0])
+                if len(path_ids) > 1:
+                    last = conn.execute(
+                        "SELECT name FROM nodes WHERE id = ?",
+                        (path_ids[-1],),
+                    ).fetchone()
+                    if last and last[0] not in critical_path:
+                        critical_path.append(last[0])
+            conn.execute(
+                "INSERT OR REPLACE INTO flow_snapshots "
+                "(flow_id, name, entry_point, critical_path, criticality, "
+                "node_count, file_count) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (fid, fname, ep_name, _json.dumps(critical_path),
+                 crit, ncount, fcount),
+            )
+    except sqlite3.OperationalError:
+        pass
+
+    # -- risk_index --
+    try:
+        conn.execute("DELETE FROM risk_index")
+        # Per-node risk: caller_count, test coverage, security keywords
+        nodes = conn.execute(
+            "SELECT id, qualified_name, name FROM nodes "
+            "WHERE kind IN ('Function', 'Class', 'Test')"
+        ).fetchall()
+        security_kw = {
+            "auth", "login", "password", "token", "session", "crypt",
+            "secret", "credential", "permission", "sql", "execute",
+        }
+        for n in nodes:
+            nid, qn, name = n[0], n[1], n[2]
+            # Count callers
+            caller_count = conn.execute(
+                "SELECT COUNT(*) FROM edges WHERE target_qualified = ? "
+                "AND kind = 'CALLS'", (qn,),
+            ).fetchone()[0]
+            # Test coverage
+            tested = conn.execute(
+                "SELECT COUNT(*) FROM edges WHERE source_qualified = ? "
+                "AND kind = 'TESTED_BY'", (qn,),
+            ).fetchone()[0]
+            coverage = "tested" if tested > 0 else "untested"
+            # Security relevance
+            name_lower = name.lower()
+            sec_relevant = 1 if any(kw in name_lower for kw in security_kw) else 0
+            # Compute risk score
+            risk = 0.0
+            if caller_count > 10:
+                risk += 0.3
+            elif caller_count > 3:
+                risk += 0.15
+            if coverage == "untested":
+                risk += 0.3
+            if sec_relevant:
+                risk += 0.4
+            risk = min(risk, 1.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO risk_index "
+                "(node_id, qualified_name, risk_score, caller_count, "
+                "test_coverage, security_relevant, last_computed) "
+                "VALUES (?, ?, ?, ?, ?, ?, datetime('now'))",
+                (nid, qn, risk, caller_count, coverage, sec_relevant),
+            )
+    except sqlite3.OperationalError:
+        pass
+
+    conn.commit()
+
+
 def build_or_update_graph(
     full_rebuild: bool = False,
     repo_root: str | None = None,
     base: str = "HEAD~1",
+    postprocess: str = "full",
 ) -> dict[str, Any]:
     """Build or incrementally update the code knowledge graph.
 
     Args:
         full_rebuild: If True, re-parse every file. If False (default),
-                      only re-parse files changed since `base`.
+                      only re-parse files changed since ``base``.
         repo_root: Path to the repository root. Auto-detected if omitted.
         base: Git ref for incremental diff (default: HEAD~1).
+        postprocess: Post-processing level after build:
+            ``"full"`` (default) — signatures, FTS, flows, communities.
+            ``"minimal"`` — signatures + FTS only (fast, keeps search working).
+            ``"none"`` — skip all post-processing (raw parse only).
 
     Returns:
         Summary with files_parsed/updated, node/edge counts, and errors.
@@ -49,6 +314,7 @@ def build_or_update_graph(
                     "status": "ok",
                     "build_type": "incremental",
                     "summary": "No changes detected. Graph is up to date.",
+                    "postprocess_level": postprocess,
                     **result,
                 }
             build_result = {
@@ -64,10 +330,46 @@ def build_or_update_graph(
                 **result,
             }
 
-        # -- Post-build steps (non-fatal; failures are surfaced as warnings) --
-        warnings: list[str] = []
+        # Pass changed_files for incremental flow/community detection
+        changed = result.get("changed_files") if not full_rebuild else None
+        warnings = _run_postprocess(
+            store, build_result, postprocess,
+            full_rebuild=full_rebuild, changed_files=changed,
+        )
+        if warnings:
+            build_result["warnings"] = warnings
+        return build_result
+    finally:
+        store.close()
 
-        # Compute signatures for nodes that don't have them
+
+def run_postprocess(
+    flows: bool = True,
+    communities: bool = True,
+    fts: bool = True,
+    repo_root: str | None = None,
+) -> dict[str, Any]:
+    """Run post-processing steps on an existing graph.
+
+    Useful for running expensive steps (flows, communities) separately
+    from the build, or for re-running after the graph has been updated
+    with ``postprocess="none"``.
+
+    Args:
+        flows: Run flow detection. Default: True.
+        communities: Run community detection. Default: True.
+        fts: Rebuild FTS index. Default: True.
+        repo_root: Repository root path. Auto-detected if omitted.
+
+    Returns:
+        Summary of what was computed.
+    """
+    store, _root = _get_store(repo_root)
+    result: dict[str, Any] = {"status": "ok"}
+    warnings: list[str] = []
+
+    try:
+        # Signatures are always fast — run them
         try:
             rows = store.get_nodes_without_signature()
             for row in rows:
@@ -84,50 +386,55 @@ def build_or_update_graph(
                     sig = name
                 store.update_node_signature(node_id, sig[:512])
             store.commit()
+            result["signatures_updated"] = True
         except (sqlite3.OperationalError, TypeError, KeyError) as e:
             logger.warning("Signature computation failed: %s", e)
             warnings.append(f"Signature computation failed: {type(e).__name__}: {e}")
 
-        # Rebuild FTS index
-        try:
-            from code_review_graph.search import rebuild_fts_index
+        if fts:
+            try:
+                from code_review_graph.search import rebuild_fts_index
 
-            fts_count = rebuild_fts_index(store)
-            build_result["fts_indexed"] = fts_count
-        except (sqlite3.OperationalError, ImportError) as e:
-            logger.warning("FTS index rebuild failed: %s", e)
-            warnings.append(f"FTS index rebuild failed: {type(e).__name__}: {e}")
+                fts_count = rebuild_fts_index(store)
+                result["fts_indexed"] = fts_count
+            except (sqlite3.OperationalError, ImportError) as e:
+                logger.warning("FTS index rebuild failed: %s", e)
+                warnings.append(f"FTS index rebuild failed: {type(e).__name__}: {e}")
 
-        # Trace execution flows
-        try:
-            from code_review_graph.flows import store_flows as _store_flows
-            from code_review_graph.flows import trace_flows as _trace_flows
+        if flows:
+            try:
+                from code_review_graph.flows import store_flows as _store_flows
+                from code_review_graph.flows import trace_flows as _trace_flows
 
-            flows = _trace_flows(store)
-            count = _store_flows(store, flows)
-            build_result["flows_detected"] = count
-        except (sqlite3.OperationalError, ImportError) as e:
-            logger.warning("Flow detection failed: %s", e)
-            warnings.append(f"Flow detection failed: {type(e).__name__}: {e}")
+                traced = _trace_flows(store)
+                count = _store_flows(store, traced)
+                result["flows_detected"] = count
+            except (sqlite3.OperationalError, ImportError) as e:
+                logger.warning("Flow detection failed: %s", e)
+                warnings.append(f"Flow detection failed: {type(e).__name__}: {e}")
 
-        # Detect communities
-        try:
-            from code_review_graph.communities import (
-                detect_communities as _detect_communities,
-            )
-            from code_review_graph.communities import (
-                store_communities as _store_communities,
-            )
+        if communities:
+            try:
+                from code_review_graph.communities import (
+                    detect_communities as _detect_communities,
+                )
+                from code_review_graph.communities import (
+                    store_communities as _store_communities,
+                )
 
-            comms = _detect_communities(store)
-            count = _store_communities(store, comms)
-            build_result["communities_detected"] = count
-        except (sqlite3.OperationalError, ImportError) as e:
-            logger.warning("Community detection failed: %s", e)
-            warnings.append(f"Community detection failed: {type(e).__name__}: {e}")
+                comms = _detect_communities(store)
+                count = _store_communities(store, comms)
+                result["communities_detected"] = count
+            except (sqlite3.OperationalError, ImportError) as e:
+                logger.warning("Community detection failed: %s", e)
+                warnings.append(f"Community detection failed: {type(e).__name__}: {e}")
 
+        store.set_metadata(
+            "last_postprocessed_at", time.strftime("%Y-%m-%dT%H:%M:%S"),
+        )
+        result["summary"] = "Post-processing complete."
         if warnings:
-            build_result["warnings"] = warnings
-        return build_result
+            result["warnings"] = warnings
+        return result
     finally:
         store.close()

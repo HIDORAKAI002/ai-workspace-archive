@@ -1,6 +1,21 @@
 # Features
 
-## v2.1.0 (Current)
+## v2.2.1 (Current)
+- **24 MCP tools** (up from 22): Added `get_minimal_context` and `run_postprocess`.
+- **Parallel parsing**: `ProcessPoolExecutor` for 3-5x faster builds on large repos.
+- **Lazy post-processing**: `postprocess="full"|"minimal"|"none"` to skip expensive steps.
+- **SQLite-native BFS**: Recursive CTE replaces NetworkX for impact analysis (faster on large graphs).
+- **Token-efficient output**: `detail_level="minimal"` on 8 tools for 40-60% token reduction.
+- **`get_minimal_context`**: Ultra-compact entry point (~100 tokens) with task-based tool routing.
+- **Incremental flow/community updates**: Only re-trace affected flows, skip community re-detection when unaffected.
+- **Visualization aggregation**: Community/file/auto modes with drill-down for 5k+ node graphs.
+- **Token-efficiency benchmarks**: 5 workflow benchmarks in eval framework.
+- **Pre-computed summary tables**: DB schema v6 with `community_summaries`, `flow_snapshots`, `risk_index`.
+- **Configurable limits**: `CRG_MAX_IMPACT_NODES`, `CRG_MAX_IMPACT_DEPTH`, `CRG_DEPENDENT_HOPS`, etc.
+- **Multi-hop dependents**: N-hop dependent discovery (default 2) with 500-file cap.
+- **615 tests** across 22 test files.
+
+## v2.1.0
 - **22 MCP tools** (up from 9): 13 new tools for flows, communities, architecture, refactoring, wiki, multi-repo, and risk-scored change detection.
 - **5 MCP prompts**: `review_changes`, `architecture_map`, `debug_issue`, `onboard_developer`, `pre_merge_check` workflow templates.
 - **18 languages** (up from 15): Added Dart, R, Perl support.

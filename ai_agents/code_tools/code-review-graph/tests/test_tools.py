@@ -686,3 +686,146 @@ class TestCommunityTools:
         assert "Architecture:" in result["summary"]
         assert "communities" in result["summary"]
         assert "cross-community edges" in result["summary"]
+
+
+class TestBuildPostprocess:
+    """Tests for postprocess parameter in build_or_update_graph."""
+
+    def setup_method(self):
+        self.tmp = tempfile.mkdtemp()
+        self.root = Path(self.tmp)
+        (self.root / ".git").mkdir()
+        (self.root / "sample.py").write_text(
+            "def hello():\n    pass\n\nclass Foo:\n    pass\n"
+        )
+
+    def teardown_method(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_postprocess_none_produces_nodes_no_flows(self):
+        from unittest.mock import patch
+        from code_review_graph.tools.build import build_or_update_graph
+
+        with patch(
+            "code_review_graph.incremental.get_all_tracked_files",
+            return_value=["sample.py"],
+        ):
+            result = build_or_update_graph(
+                full_rebuild=True, repo_root=str(self.root),
+                postprocess="none",
+            )
+        assert result["status"] == "ok"
+        assert result["total_nodes"] > 0
+        assert result.get("postprocess_level") == "none"
+        assert "flows_detected" not in result
+        assert "communities_detected" not in result
+        assert "fts_indexed" not in result
+
+    def test_postprocess_minimal_has_fts_no_flows(self):
+        from unittest.mock import patch
+        from code_review_graph.tools.build import build_or_update_graph
+
+        with patch(
+            "code_review_graph.incremental.get_all_tracked_files",
+            return_value=["sample.py"],
+        ):
+            result = build_or_update_graph(
+                full_rebuild=True, repo_root=str(self.root),
+                postprocess="minimal",
+            )
+        assert result["status"] == "ok"
+        assert result.get("postprocess_level") == "minimal"
+        assert result.get("signatures_updated") is True
+        assert "flows_detected" not in result
+        assert "communities_detected" not in result
+
+    def test_postprocess_full_matches_default(self):
+        from unittest.mock import patch
+        from code_review_graph.tools.build import build_or_update_graph
+
+        with patch(
+            "code_review_graph.incremental.get_all_tracked_files",
+            return_value=["sample.py"],
+        ):
+            result = build_or_update_graph(
+                full_rebuild=True, repo_root=str(self.root),
+                postprocess="full",
+            )
+        assert result["status"] == "ok"
+        assert result.get("postprocess_level") == "full"
+        # Full postprocess should have flows and communities
+        assert "flows_detected" in result
+        assert "communities_detected" in result
+
+
+class TestGetMinimalContext:
+    """Tests for get_minimal_context tool."""
+
+    def setup_method(self):
+        self.tmp = tempfile.mkdtemp()
+        self.root = Path(self.tmp)
+        (self.root / ".git").mkdir()
+        (self.root / ".code-review-graph").mkdir()
+        # Create a small graph
+        import shutil
+        db_path = self.root / ".code-review-graph" / "graph.db"
+        self.store = GraphStore(str(db_path))
+        self.store.upsert_node(NodeInfo(
+            kind="File", name="app.py", file_path=str(self.root / "app.py"),
+            line_start=1, line_end=50, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name="main", file_path=str(self.root / "app.py"),
+            line_start=5, line_end=20, language="python",
+        ))
+        self.store.commit()
+        self.store.close()
+
+    def teardown_method(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_returns_required_keys(self):
+        from code_review_graph.tools.context import get_minimal_context
+
+        result = get_minimal_context(
+            task="explore codebase", repo_root=str(self.root),
+        )
+        assert result["status"] == "ok"
+        assert "summary" in result
+        assert "next_tool_suggestions" in result
+
+    def test_output_is_compact(self):
+        import json
+        from code_review_graph.tools.context import get_minimal_context
+
+        result = get_minimal_context(
+            task="review changes", repo_root=str(self.root),
+        )
+        serialized = json.dumps(result, default=str)
+        assert len(serialized) < 800
+
+    def test_task_routing_review(self):
+        from code_review_graph.tools.context import get_minimal_context
+
+        result = get_minimal_context(
+            task="review PR #42", repo_root=str(self.root),
+        )
+        assert "detect_changes" in result["next_tool_suggestions"]
+
+    def test_task_routing_debug(self):
+        from code_review_graph.tools.context import get_minimal_context
+
+        result = get_minimal_context(
+            task="debug login bug", repo_root=str(self.root),
+        )
+        assert "semantic_search_nodes" in result["next_tool_suggestions"]
+
+    def test_task_routing_refactor(self):
+        from code_review_graph.tools.context import get_minimal_context
+
+        result = get_minimal_context(
+            task="refactor auth module", repo_root=str(self.root),
+        )
+        assert "refactor" in result["next_tool_suggestions"]

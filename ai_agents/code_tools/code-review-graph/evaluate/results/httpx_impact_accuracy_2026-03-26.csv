@@ -1,3 +1,0 @@
-repo,commit,predicted_files,actual_files,true_positives,precision,recall,f1
-httpx,ae1b9f66238f75ced3ced5e4485408435de10768,4,3,3,0.75,1.0,0.857
-httpx,b55d4635701d9dc22928ee647880c76b078ba3f2,8,4,4,0.5,1.0,0.667
