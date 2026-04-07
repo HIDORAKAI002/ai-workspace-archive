@@ -84,8 +84,8 @@ export function createMemoryMiddleware(config: PaperclipMemoryConfig) {
           retain(
             { companyId, agentId, content: output, documentId: runId },
             config,
-          ).catch(() => {
-            // Graceful degradation
+          ).catch((err) => {
+            console.warn('[hindsight-paperclip] retain failed:', (err as Error).message);
           });
         }
       }
