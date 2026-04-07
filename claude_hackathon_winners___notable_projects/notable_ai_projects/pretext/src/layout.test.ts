@@ -385,7 +385,7 @@ describe('prepare invariants', () => {
       prefixed.widths[0]! +
       prefixed.widths[1]! +
       prefixed.widths[2]! +
-      prefixed.breakableWidths[4]![0]! +
+      prefixed.breakableFitAdvances[4]![0]! +
       prefixed.discretionaryHyphenWidth +
       0.1
     const continued = layoutWithLines(prefixed, continuedSoftBreakWidth, LINE_HEIGHT)
@@ -530,6 +530,17 @@ describe('prepare invariants', () => {
     expect(prepared.segments).toEqual(['===', ' ', 'heading', ' ', '==='])
   })
 
+  test('keeps long repeated punctuation runs coalesced', () => {
+    const text = '('.repeat(256)
+    const prepared = prepareWithSegments(text, FONT)
+    expect(prepared.segments).toEqual([text])
+  })
+
+  test('keeps repeated punctuation runs attachable to trailing closing punctuation', () => {
+    const prepared = prepareWithSegments('((()', FONT)
+    expect(prepared.segments).toEqual(['((()'])
+  })
+
   test('applies CJK and Hangul punctuation attachment rules', () => {
     expect(prepareWithSegments('中文，测试。', FONT).segments).toEqual(['中', '文，', '测', '试。'])
     expect(prepareWithSegments('테스트입니다.', FONT).segments.at(-1)).toBe('다.')
@@ -543,6 +554,7 @@ describe('prepare invariants', () => {
   test('keep-all keeps CJK-leading no-space runs cohesive without swallowing preceding latin runs', () => {
     expect(prepareWithSegments('中文，测试。', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['中文，', '测试。'])
     expect(prepareWithSegments('한국어테스트', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['한국어테스트'])
+    expect(prepareWithSegments('漢'.repeat(256), FONT, { wordBreak: 'keep-all' }).segments).toEqual(['漢'.repeat(256)])
 
     for (const text of ['日本語foo-bar', '日本語foo.bar', '日本語foo—bar']) {
       expect(prepareWithSegments(text, FONT, { wordBreak: 'keep-all' }).segments).toEqual([text])
@@ -756,7 +768,7 @@ describe('layout invariants', () => {
 
   test('breaks long words at grapheme boundaries and keeps both layout APIs aligned', () => {
     const prepared = prepareWithSegments('Superlongword', FONT)
-    const graphemeWidths = prepared.breakableWidths[0]!
+    const graphemeWidths = prepared.breakableFitAdvances[0]!
     const maxWidth = graphemeWidths[0]! + graphemeWidths[1]! + graphemeWidths[2]! + 0.1
 
     const plain = layout(prepared, maxWidth, LINE_HEIGHT)
@@ -781,7 +793,7 @@ describe('layout invariants', () => {
 
   test('layoutNextLine reproduces layoutWithLines exactly', () => {
     const prepared = prepareWithSegments('foo trans\u00ADatlantic said "hello" to 世界 and waved.', FONT)
-    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableWidths[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
+    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableFitAdvances[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
     const expected = layoutWithLines(prepared, width, LINE_HEIGHT)
 
     const actual = []
@@ -876,13 +888,22 @@ describe('layout invariants', () => {
       prepared.widths[0]! +
       prepared.widths[1]! +
       prepared.widths[2]! +
-      prepared.breakableWidths[4]![0]! +
+      prepared.breakableFitAdvances[4]![0]! +
       prepared.discretionaryHyphenWidth +
       0.1
     const result = layoutWithLines(prepared, width, LINE_HEIGHT)
 
     expect(result.lines.map(line => line.text).join('')).toBe('foo trans-atlantic')
     expect(reconstructFromLineBoundaries(prepared, result.lines)).toBe('foo trans\u00ADatlantic')
+  })
+
+  test('soft-hyphen fallback does not crash when overflow happens on a later space', () => {
+    const prepared = prepareWithSegments('foo trans\u00ADatlantic labels', FONT)
+    const width = measureWidth('foo transatlantic', FONT) + 0.1
+    const result = layoutWithLines(prepared, width, LINE_HEIGHT)
+
+    expect(result.lines.map(line => line.text)).toEqual(['foo transatlantic ', 'labels'])
+    expect(layout(prepared, width, LINE_HEIGHT).lineCount).toBe(result.lineCount)
   })
 
   test('layoutNextLine variable-width streaming stays contiguous and reconstructs normalized text', () => {
@@ -1040,7 +1061,7 @@ describe('layout invariants', () => {
   test('overlong breakable segments wrap onto a fresh line when the current line already has content', () => {
     const prepared = prepareWithSegments('foo abcdefghijk', FONT)
     const prefixWidth = prepared.widths[0]! + prepared.widths[1]!
-    const wordBreaks = prepared.breakableWidths[2]!
+    const wordBreaks = prepared.breakableFitAdvances[2]!
     const width = prefixWidth + wordBreaks[0]! + wordBreaks[1]! + 0.1
 
     const batched = layoutWithLines(prepared, width, LINE_HEIGHT)
@@ -1095,7 +1116,7 @@ describe('layout invariants', () => {
 
   test('walkLineRanges reproduces layoutWithLines geometry without materializing text', () => {
     const prepared = prepareWithSegments('foo trans\u00ADatlantic said "hello" to 世界 and waved.', FONT)
-    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableWidths[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
+    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableFitAdvances[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
     const expected = layoutWithLines(prepared, width, LINE_HEIGHT)
     const actual: Array<{
       width: number
@@ -1121,7 +1142,7 @@ describe('layout invariants', () => {
 
   test('measureLineStats matches walked line count and widest line', () => {
     const prepared = prepareWithSegments('foo trans\u00ADatlantic said "hello" to 世界 and waved.', FONT)
-    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableWidths[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
+    const width = prepared.widths[0]! + prepared.widths[1]! + prepared.widths[2]! + prepared.breakableFitAdvances[4]![0]! + prepared.discretionaryHyphenWidth + 0.1
     let walkedLineCount = 0
     let walkedMaxLineWidth = 0
 
