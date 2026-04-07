@@ -1,5 +1,5 @@
 import { Logger } from "winston";
-import { AddFeatureError } from "../../error";
+import { AddFeatureError, UnsupportedFileError } from "../../error";
 import { FireEngineCheckStatusSuccess } from "../fire-engine/checkStatus";
 import path from "path";
 import os from "os";
@@ -154,5 +154,26 @@ export async function specialtyScrapeCheck(
       feRes?.content.startsWith("%PDF-"))
   ) {
     throw new AddFeatureError(["pdf"], await feResToPdfPrefetch(logger, feRes));
+  }
+
+  // Reject unsupported binary content types (images, video, audio, archives, etc.)
+  const unsupportedBinaryPrefixes = [
+    "image/",
+    "video/",
+    "audio/",
+    "application/zip",
+    "application/x-tar",
+    "application/gzip",
+    "application/x-rar",
+    "application/x-7z",
+    "application/wasm",
+    "application/x-executable",
+    "application/x-sharedlib",
+    "application/java-archive",
+  ];
+  if (
+    unsupportedBinaryPrefixes.some(prefix => contentType.startsWith(prefix))
+  ) {
+    throw new UnsupportedFileError(contentType);
   }
 }
