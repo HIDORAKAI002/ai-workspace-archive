@@ -79,7 +79,7 @@ Then create or update `claude_desktop_config.json` (~/Library/Application Suppor
   "mcpServers": {
     "wcgw": {
       "command": "uvx",
-      "args": ["wcgw@latest"]
+      "args": ["--python", "3.12", "wcgw@latest"]
     }
   }
 }
@@ -96,7 +96,7 @@ To use a specific shell (bash or zsh), add the `--shell` argument:
   "mcpServers": {
     "wcgw": {
       "command": "uvx",
-      "args": ["wcgw@latest", "--shell", "/bin/bash"]
+      "args": ["--python", "3.12", "wcgw@latest", "--shell", "/bin/bash"]
     }
   }
 }
@@ -123,7 +123,7 @@ Then add or update the claude config file `%APPDATA%\Claude\claude_desktop_confi
   "mcpServers": {
     "wcgw": {
       "command": "wsl.exe",
-      "args": ["uvx", "wcgw@latest"]
+      "args": ["uvx", "--python", "3.12", "wcgw@latest"]
     }
   }
 }
