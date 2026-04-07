@@ -31,6 +31,7 @@ from .tools import (
     get_docs_section,
     get_flow,
     get_impact_radius,
+    get_minimal_context,
     get_review_context,
     get_wiki_page_func,
     list_communities_func,
@@ -39,6 +40,7 @@ from .tools import (
     list_repos_func,
     query_graph,
     refactor_func,
+    run_postprocess,
     semantic_search_nodes,
 )
 
@@ -61,6 +63,7 @@ def build_or_update_graph_tool(
     full_rebuild: bool = False,
     repo_root: Optional[str] = None,
     base: str = "HEAD~1",
+    postprocess: str = "full",
 ) -> dict:
     """Build or incrementally update the code knowledge graph.
 
@@ -72,9 +75,60 @@ def build_or_update_graph_tool(
         full_rebuild: If True, re-parse all files. Default: False (incremental).
         repo_root: Repository root path. Auto-detected from current directory if omitted.
         base: Git ref to diff against for incremental updates. Default: HEAD~1.
+        postprocess: Post-processing level: "full" (default), "minimal" (signatures+FTS only),
+                     or "none" (skip all post-processing). Use "minimal" for faster builds.
     """
     return build_or_update_graph(
-        full_rebuild=full_rebuild, repo_root=repo_root, base=base
+        full_rebuild=full_rebuild, repo_root=repo_root, base=base,
+        postprocess=postprocess,
+    )
+
+
+@mcp.tool()
+def run_postprocess_tool(
+    flows: bool = True,
+    communities: bool = True,
+    fts: bool = True,
+    repo_root: Optional[str] = None,
+) -> dict:
+    """Run post-processing on existing graph (flows, communities, FTS index).
+
+    Use after building with postprocess="none" or "minimal", or to re-run
+    expensive steps independently. Signatures are always computed.
+
+    Args:
+        flows: Run flow detection. Default: True.
+        communities: Run community detection. Default: True.
+        fts: Rebuild FTS index. Default: True.
+        repo_root: Repository root path. Auto-detected if omitted.
+    """
+    return run_postprocess(
+        flows=flows, communities=communities, fts=fts, repo_root=repo_root,
+    )
+
+
+@mcp.tool()
+def get_minimal_context_tool(
+    task: str = "",
+    changed_files: Optional[list[str]] = None,
+    repo_root: Optional[str] = None,
+    base: str = "HEAD~1",
+) -> dict:
+    """Get ultra-compact context for any task (~100 tokens). Always call this first.
+
+    Returns graph stats, risk score, top communities/flows, and suggested
+    next tools in a single compact response. Use this as the entry point
+    before any other graph tool to minimize token usage.
+
+    Args:
+        task: What you are doing (e.g. "review PR #42", "debug login timeout").
+        changed_files: Explicit list of changed files. Auto-detected if omitted.
+        repo_root: Repository root path. Auto-detected if omitted.
+        base: Git ref for diff comparison. Default: HEAD~1.
+    """
+    return get_minimal_context(
+        task=task, changed_files=changed_files,
+        repo_root=repo_root, base=base,
     )
 
 
@@ -84,6 +138,7 @@ def get_impact_radius_tool(
     max_depth: int = 2,
     repo_root: Optional[str] = None,
     base: str = "HEAD~1",
+    detail_level: str = "standard",
 ) -> dict:
     """Analyze the blast radius of changed files in the codebase.
 
@@ -95,10 +150,11 @@ def get_impact_radius_tool(
         max_depth: Number of hops to traverse in the dependency graph. Default: 2.
         repo_root: Repository root path. Auto-detected if omitted.
         base: Git ref for auto-detecting changes. Default: HEAD~1.
+        detail_level: "standard" for full output, "minimal" for compact summary. Default: standard.
     """
     return get_impact_radius(
         changed_files=changed_files, max_depth=max_depth,
-        repo_root=repo_root, base=base,
+        repo_root=repo_root, base=base, detail_level=detail_level,
     )
 
 
@@ -107,6 +163,7 @@ def query_graph_tool(
     pattern: str,
     target: str,
     repo_root: Optional[str] = None,
+    detail_level: str = "standard",
 ) -> dict:
     """Run a predefined graph query to explore code relationships.
 
@@ -124,8 +181,12 @@ def query_graph_tool(
         pattern: Query pattern name (see above).
         target: Node name, qualified name, or file path to query.
         repo_root: Repository root path. Auto-detected if omitted.
+        detail_level: "standard" for full output, "minimal" for compact summary. Default: standard.
     """
-    return query_graph(pattern=pattern, target=target, repo_root=repo_root)
+    return query_graph(
+        pattern=pattern, target=target, repo_root=repo_root,
+        detail_level=detail_level,
+    )
 
 
 @mcp.tool()
@@ -136,6 +197,7 @@ def get_review_context_tool(
     max_lines_per_file: int = 200,
     repo_root: Optional[str] = None,
     base: str = "HEAD~1",
+    detail_level: str = "standard",
 ) -> dict:
     """Generate a focused, token-efficient review context for code changes.
 
@@ -149,11 +211,13 @@ def get_review_context_tool(
         max_lines_per_file: Max source lines per file. Default: 200.
         repo_root: Repository root path. Auto-detected if omitted.
         base: Git ref for change detection. Default: HEAD~1.
+        detail_level: "standard" for full output, "minimal" for
+            token-efficient summary. Default: standard.
     """
     return get_review_context(
         changed_files=changed_files, max_depth=max_depth,
         include_source=include_source, max_lines_per_file=max_lines_per_file,
-        repo_root=repo_root, base=base,
+        repo_root=repo_root, base=base, detail_level=detail_level,
     )
 
 
@@ -164,6 +228,7 @@ def semantic_search_nodes_tool(
     limit: int = 20,
     repo_root: Optional[str] = None,
     model: Optional[str] = None,
+    detail_level: str = "standard",
 ) -> dict:
     """Search for code entities by name, keyword, or semantic similarity.
 
@@ -178,9 +243,11 @@ def semantic_search_nodes_tool(
         model: Embedding model for query vectors. Must match the model used
                during embed_graph. Falls back to CRG_EMBEDDING_MODEL env var,
                then all-MiniLM-L6-v2.
+        detail_level: "standard" for full output, "minimal" for compact summary. Default: standard.
     """
     return semantic_search_nodes(
-        query=query, kind=kind, limit=limit, repo_root=repo_root, model=model
+        query=query, kind=kind, limit=limit, repo_root=repo_root, model=model,
+        detail_level=detail_level,
     )
 
 
@@ -271,6 +338,7 @@ def list_flows_tool(
     sort_by: str = "criticality",
     limit: int = 50,
     kind: Optional[str] = None,
+    detail_level: str = "standard",
     repo_root: Optional[str] = None,
 ) -> dict:
     """List execution flows in the codebase, sorted by criticality.
@@ -283,10 +351,13 @@ def list_flows_tool(
         sort_by: Sort column: criticality, depth, node_count, file_count, or name.
         limit: Maximum flows to return. Default: 50.
         kind: Optional filter by entry point kind (e.g. "Test", "Function").
+        detail_level: "standard" (default) returns full flow data; "minimal"
+                      returns only name, criticality, and node_count per flow.
         repo_root: Repository root path. Auto-detected if omitted.
     """
     return list_flows(
         repo_root=repo_root, sort_by=sort_by, limit=limit, kind=kind,
+        detail_level=detail_level,
     )
 
 
@@ -342,6 +413,7 @@ def get_affected_flows_tool(
 def list_communities_tool(
     sort_by: str = "size",
     min_size: int = 0,
+    detail_level: str = "standard",
     repo_root: Optional[str] = None,
 ) -> dict:
     """List detected code communities in the codebase.
@@ -353,10 +425,14 @@ def list_communities_tool(
     Args:
         sort_by: Sort column: size, cohesion, or name.
         min_size: Minimum community size to include. Default: 0.
+        detail_level: "standard" (default) returns full community data;
+                      "minimal" returns only name, size, and cohesion
+                      per community.
         repo_root: Repository root path. Auto-detected if omitted.
     """
     return list_communities_func(
         repo_root=repo_root, sort_by=sort_by, min_size=min_size,
+        detail_level=detail_level,
     )
 
 
@@ -410,6 +486,7 @@ def detect_changes_tool(
     include_source: bool = False,
     max_depth: int = 2,
     repo_root: Optional[str] = None,
+    detail_level: str = "standard",
 ) -> dict:
     """Detect changes and produce risk-scored, priority-ordered review guidance.
 
@@ -423,11 +500,13 @@ def detect_changes_tool(
         include_source: Include source code snippets for changed functions. Default: False.
         max_depth: Impact radius depth for BFS traversal. Default: 2.
         repo_root: Repository root path. Auto-detected if omitted.
+        detail_level: "standard" for full output, "minimal" for
+            token-efficient summary. Default: standard.
     """
     return detect_changes_func(
         base=base, changed_files=changed_files,
         include_source=include_source, max_depth=max_depth,
-        repo_root=repo_root,
+        repo_root=repo_root, detail_level=detail_level,
     )
 
 

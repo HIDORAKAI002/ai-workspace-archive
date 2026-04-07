@@ -1,4 +1,4 @@
-# LLM-OPTIMIZED REFERENCE -- code-review-graph v2.1.0
+# LLM-OPTIMIZED REFERENCE -- code-review-graph v2.2.1
 
 Claude Code: Read ONLY the exact `<section>` you need. Never load the whole file.
 
@@ -7,15 +7,15 @@ Quick install: pip install code-review-graph
 Then: code-review-graph install && code-review-graph build
 First run: /code-review-graph:build-graph
 After that use only delta/pr commands.
-For v2 features: detect_changes_tool for risk-scored reviews, list_flows_tool for execution paths, list_communities_tool for architecture.
+ALWAYS start with get_minimal_context_tool(task="your task") — returns ~100 tokens with risk, communities, flows, and suggested next tools.
+Use detail_level="minimal" on all subsequent calls unless you need more detail.
 </section>
 
 <section name="review-delta">
-Always call get_impact_radius on changed files first.
-Then get_review_context (depth=2).
-Or use detect_changes_tool for risk-scored, priority-ordered review guidance.
-Generate review using ONLY changed nodes + 2-hop neighbors.
-Target: <800 tokens total context.
+1. Call get_minimal_context_tool(task="review changes") first.
+2. If risk is low: detect_changes_tool(detail_level="minimal") → report summary.
+3. If risk is medium/high: detect_changes_tool(detail_level="standard") → expand on high-risk items.
+Target: ≤5 tool calls, ≤800 tokens total context.
 </section>
 
 <section name="review-pr">
@@ -24,10 +24,11 @@ Never include full files unless explicitly asked.
 </section>
 
 <section name="commands">
-MCP tools (22): build_or_update_graph_tool, get_impact_radius_tool, query_graph_tool, get_review_context_tool, semantic_search_nodes_tool, embed_graph_tool, list_graph_stats_tool, get_docs_section_tool, find_large_functions_tool, list_flows_tool, get_flow_tool, get_affected_flows_tool, list_communities_tool, get_community_tool, get_architecture_overview_tool, detect_changes_tool, refactor_tool, apply_refactor_tool, generate_wiki_tool, get_wiki_page_tool, list_repos_tool, cross_repo_search_tool
+MCP tools (24): get_minimal_context_tool, build_or_update_graph_tool, run_postprocess_tool, get_impact_radius_tool, query_graph_tool, get_review_context_tool, semantic_search_nodes_tool, embed_graph_tool, list_graph_stats_tool, get_docs_section_tool, find_large_functions_tool, list_flows_tool, get_flow_tool, get_affected_flows_tool, list_communities_tool, get_community_tool, get_architecture_overview_tool, detect_changes_tool, refactor_tool, apply_refactor_tool, generate_wiki_tool, get_wiki_page_tool, list_repos_tool, cross_repo_search_tool
 MCP prompts (5): review_changes, architecture_map, debug_issue, onboard_developer, pre_merge_check
 Skills: build-graph, review-delta, review-pr
-CLI: code-review-graph [install|init|build|update|status|watch|visualize|serve|wiki|detect-changes|register|unregister|repos|eval]
+CLI: code-review-graph [install|init|build|update|status|watch|visualize|serve|wiki|detect-changes|postprocess|register|unregister|repos|eval]
+Token efficiency: All tools support detail_level="minimal" for compact output. Always call get_minimal_context_tool first.
 </section>
 
 <section name="legal">
@@ -48,7 +49,7 @@ Configure via CRG_EMBEDDING_MODEL env var or model parameter.
 </section>
 
 <section name="languages">
-Supported (18): Python, TypeScript/TSX, JavaScript, Vue, Go, Rust, Java, Scala, C#, Ruby, Kotlin, Swift, PHP, Solidity, C/C++, Dart, R, Perl
+Supported (19): Python, TypeScript/TSX, JavaScript, Vue, Go, Rust, Java, Scala, C#, Ruby, Kotlin, Swift, PHP, Solidity, C/C++, Dart, R, Perl, Lua
 Parser: Tree-sitter via tree-sitter-language-pack
 </section>
 

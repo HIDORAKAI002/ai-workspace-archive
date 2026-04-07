@@ -178,3 +178,67 @@ class TestGraphStore:
         self.store.set_metadata("test_key", "test_value")
         assert self.store.get_metadata("test_key") == "test_value"
         assert self.store.get_metadata("nonexistent") is None
+
+
+class TestImpactRadiusSql:
+    """Tests for get_impact_radius_sql vs NetworkX BFS."""
+
+    def setup_method(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.store = GraphStore(self.tmp.name)
+        self._build_chain()
+
+    def teardown_method(self):
+        self.store.close()
+        Path(self.tmp.name).unlink(missing_ok=True)
+
+    def _build_chain(self):
+        """Build A -> B -> C -> D chain for testing."""
+        for name, path in [
+            ("func_a", "/a.py"), ("func_b", "/b.py"),
+            ("func_c", "/c.py"), ("func_d", "/d.py"),
+        ]:
+            self.store.upsert_node(NodeInfo(
+                kind="File", name=path, file_path=path,
+                line_start=1, line_end=50, language="python",
+            ))
+            self.store.upsert_node(NodeInfo(
+                kind="Function", name=name, file_path=path,
+                line_start=5, line_end=20, language="python",
+            ))
+        self.store.upsert_edge(EdgeInfo(
+            kind="CALLS", source="/a.py::func_a",
+            target="/b.py::func_b", file_path="/a.py", line=10,
+        ))
+        self.store.upsert_edge(EdgeInfo(
+            kind="CALLS", source="/b.py::func_b",
+            target="/c.py::func_c", file_path="/b.py", line=10,
+        ))
+        self.store.upsert_edge(EdgeInfo(
+            kind="CALLS", source="/c.py::func_c",
+            target="/d.py::func_d", file_path="/c.py", line=10,
+        ))
+        self.store.commit()
+
+    def test_sql_matches_networkx(self):
+        """SQL and NetworkX BFS produce identical impacted node sets."""
+        sql_result = self.store.get_impact_radius_sql(["/a.py"], max_depth=2)
+        nx_result = self.store._get_impact_radius_networkx(["/a.py"], max_depth=2)
+
+        sql_qns = {n.qualified_name for n in sql_result["impacted_nodes"]}
+        nx_qns = {n.qualified_name for n in nx_result["impacted_nodes"]}
+        assert sql_qns == nx_qns
+
+    def test_max_nodes_truncation(self):
+        """Setting max_nodes=2 should truncate results."""
+        result = self.store.get_impact_radius_sql(
+            ["/a.py"], max_depth=3, max_nodes=2,
+        )
+        # With 4 files in chain + file nodes, max_nodes=2 should limit
+        assert result["total_impacted"] <= 2 or result["truncated"]
+
+    def test_empty_changed_files(self):
+        result = self.store.get_impact_radius_sql([], max_depth=2)
+        assert result["changed_nodes"] == []
+        assert result["impacted_nodes"] == []
+        assert result["total_impacted"] == 0

@@ -1,3 +1,0 @@
-repo,commit,description,changed_files,naive_tokens,standard_tokens,graph_tokens,naive_to_graph_ratio,standard_to_graph_ratio
-httpx,ae1b9f66238f75ced3ced5e4485408435de10768,Expose FunctionAuth in __all__,3,16841,267,1796,9.4,0.1
-httpx,b55d4635701d9dc22928ee647880c76b078ba3f2,Upgrade Python type checker mypy,4,7246,820,1660,4.4,0.5

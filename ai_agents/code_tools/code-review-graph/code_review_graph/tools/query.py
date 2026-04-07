@@ -37,6 +37,7 @@ def get_impact_radius(
     max_results: int = 500,
     repo_root: str | None = None,
     base: str = "HEAD~1",
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """Analyze the blast radius of changed files.
 
@@ -47,6 +48,7 @@ def get_impact_radius(
         max_results: Maximum impacted nodes to return (default: 500).
         repo_root: Repository root path. Auto-detected if omitted.
         base: Git ref for auto-detecting changes (default: HEAD~1).
+        detail_level: "standard" (full output) or "minimal" (summary only).
 
     Returns:
         Changed nodes, impacted nodes, impacted files, connecting edges,
@@ -94,6 +96,26 @@ def get_impact_radius(
                 f" of {total_impacted} impacted nodes"
             )
 
+        if detail_level == "minimal":
+            impacted_count = len(impacted_dicts)
+            if impacted_count > 20:
+                risk = "high"
+            elif impacted_count > 5:
+                risk = "medium"
+            else:
+                risk = "low"
+            key_entities = [
+                n["name"] for n in impacted_dicts[:5]
+            ]
+            return {
+                "status": "ok",
+                "summary": "\n".join(summary_parts),
+                "risk": risk,
+                "impacted_file_count": len(result["impacted_files"]),
+                "key_entities": key_entities,
+                "truncated": truncated,
+            }
+
         return {
             "status": "ok",
             "summary": "\n".join(summary_parts),
@@ -118,6 +140,7 @@ def query_graph(
     pattern: str,
     target: str,
     repo_root: str | None = None,
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """Run a predefined graph query.
 
@@ -126,6 +149,7 @@ def query_graph(
                  importers_of, children_of, tests_for, inheritors_of, file_summary.
         target: The node name, qualified name, or file path to query about.
         repo_root: Repository root path. Auto-detected if omitted.
+        detail_level: "standard" (full output) or "minimal" (summary only).
 
     Returns:
         Matching nodes and edges for the query.
@@ -274,15 +298,36 @@ def query_graph(
             for n in file_nodes:
                 results.append(node_to_dict(n))
 
+        summary = (
+            f"Found {len(results)} result(s) "
+            f"for {pattern}('{target}')"
+        )
+
+        if detail_level == "minimal":
+            minimal_results = [
+                {
+                    k: r[k]
+                    for k in ("name", "kind", "file_path")
+                    if k in r
+                }
+                for r in results[:5]
+            ]
+            return {
+                "status": "ok",
+                "pattern": pattern,
+                "target": target,
+                "description": _QUERY_PATTERNS[pattern],
+                "summary": summary,
+                "result_count": len(results),
+                "results": minimal_results,
+            }
+
         return {
             "status": "ok",
             "pattern": pattern,
             "target": target,
             "description": _QUERY_PATTERNS[pattern],
-            "summary": (
-                f"Found {len(results)} result(s) "
-                f"for {pattern}('{target}')"
-            ),
+            "summary": summary,
             "results": results,
             "edges": edges_out,
         }
@@ -302,6 +347,7 @@ def semantic_search_nodes(
     repo_root: str | None = None,
     context_files: list[str] | None = None,
     model: str | None = None,
+    detail_level: str = "standard",
 ) -> dict[str, Any]:
     """Search for nodes by name, keyword, or semantic similarity.
 
@@ -316,6 +362,7 @@ def semantic_search_nodes(
         repo_root: Repository root path. Auto-detected if omitted.
         context_files: Optional list of file paths. Nodes in these files
             receive a relevance boost.
+        detail_level: "standard" (full output) or "minimal" (summary only).
 
     Returns:
         Ranked list of matching nodes.
@@ -331,13 +378,32 @@ def semantic_search_nodes(
         if not results:
             search_mode = "keyword"
 
+        summary = f"Found {len(results)} node(s) matching '{query}'" + (
+            f" (kind={kind})" if kind else ""
+        )
+
+        if detail_level == "minimal":
+            minimal_results = [
+                {
+                    k: r[k]
+                    for k in ("name", "kind", "file_path", "score")
+                    if k in r
+                }
+                for r in results[:5]
+            ]
+            return {
+                "status": "ok",
+                "query": query,
+                "search_mode": search_mode,
+                "summary": summary,
+                "results": minimal_results,
+            }
+
         result: dict[str, object] = {
             "status": "ok",
             "query": query,
             "search_mode": search_mode,
-            "summary": f"Found {len(results)} node(s) matching '{query}'" + (
-                f" (kind={kind})" if kind else ""
-            ),
+            "summary": summary,
             "results": results,
         }
         result["_hints"] = generate_hints(

@@ -322,6 +322,7 @@ class FirecrawlClient:
         crawl_entire_domain: bool = False,
         allow_external_links: bool = False,
         allow_subdomains: bool = False,
+        ignore_robots_txt: bool = False,
         delay: Optional[int] = None,
         max_concurrency: Optional[int] = None,
         webhook: Optional[Union[str, WebhookConfig]] = None,
@@ -350,6 +351,7 @@ class FirecrawlClient:
             crawl_entire_domain: Follow parent directory links
             allow_external_links: Follow external domain links
             allow_subdomains: Follow subdomains
+            ignore_robots_txt: Whether to ignore robots.txt rules
             delay: Delay in seconds between scrapes
             max_concurrency: Maximum number of concurrent scrapes
             webhook: Webhook configuration for notifications
@@ -384,6 +386,7 @@ class FirecrawlClient:
             "crawl_entire_domain": crawl_entire_domain,
             "allow_external_links": allow_external_links,
             "allow_subdomains": allow_subdomains,
+            "ignore_robots_txt": ignore_robots_txt,
             "delay": delay,
             "max_concurrency": max_concurrency,
             "webhook": webhook,
@@ -421,6 +424,7 @@ class FirecrawlClient:
         crawl_entire_domain: bool = False,
         allow_external_links: bool = False,
         allow_subdomains: bool = False,
+        ignore_robots_txt: bool = False,
         delay: Optional[int] = None,
         max_concurrency: Optional[int] = None,
         webhook: Optional[Union[str, WebhookConfig]] = None,
@@ -446,6 +450,7 @@ class FirecrawlClient:
             crawl_entire_domain: Follow parent directory links
             allow_external_links: Follow external domain links
             allow_subdomains: Follow subdomains
+            ignore_robots_txt: Whether to ignore robots.txt rules
             delay: Delay in seconds between scrapes
             max_concurrency: Maximum number of concurrent scrapes
             webhook: Webhook configuration for notifications
@@ -453,7 +458,7 @@ class FirecrawlClient:
             regex_on_full_url: Apply includePaths/excludePaths regex to the full URL (including query parameters) instead of just the pathname
             deduplicate_similar_urls: Whether to deduplicate similar URLs during crawl (default: True)
             zero_data_retention: Whether to delete data after 24 hours
-            
+
         Returns:
             CrawlResponse with job information
             
@@ -476,6 +481,7 @@ class FirecrawlClient:
             "crawl_entire_domain": crawl_entire_domain,
             "allow_external_links": allow_external_links,
             "allow_subdomains": allow_subdomains,
+            "ignore_robots_txt": ignore_robots_txt,
             "delay": delay,
             "max_concurrency": max_concurrency,
             "webhook": webhook,

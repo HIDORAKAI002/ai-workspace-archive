@@ -1,2 +1,0 @@
-repo,file_count,node_count,edge_count,flow_detection_seconds,community_detection_seconds,search_avg_ms,nodes_per_second
-fastapi,1122,6285,27117,0.128,0.911,1.5,49085

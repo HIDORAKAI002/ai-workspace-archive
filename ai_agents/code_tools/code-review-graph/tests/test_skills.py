@@ -50,6 +50,24 @@ class TestGenerateSkills:
         assert result.is_dir()
         assert len(list(result.iterdir())) == 4
 
+    def test_skill_content_includes_get_minimal_context(self, tmp_path):
+        """Every skill template must reference get_minimal_context."""
+        skills_dir = generate_skills(tmp_path)
+        for path in skills_dir.iterdir():
+            content = path.read_text()
+            assert "get_minimal_context" in content, (
+                f"{path.name} missing get_minimal_context reference"
+            )
+
+    def test_skill_content_includes_detail_level(self, tmp_path):
+        """Every skill template must reference detail_level."""
+        skills_dir = generate_skills(tmp_path)
+        for path in skills_dir.iterdir():
+            content = path.read_text()
+            assert "detail_level" in content, (
+                f"{path.name} missing detail_level reference"
+            )
+
     def test_idempotent(self, tmp_path):
         """Running twice should not fail and files should still be valid."""
         generate_skills(tmp_path)

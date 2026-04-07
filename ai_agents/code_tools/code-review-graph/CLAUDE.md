@@ -4,6 +4,14 @@
 
 **code-review-graph** is a persistent, incrementally-updated knowledge graph for token-efficient code reviews with Claude Code. It parses codebases using Tree-sitter, builds a structural graph in SQLite, and exposes it via MCP tools and prompts.
 
+## Graph Tool Usage (Token-Efficient)
+When using code-review-graph MCP tools, follow these rules:
+1. First call: `get_minimal_context(task="<description>")` — costs ~100 tokens, gives you the full picture.
+2. All subsequent calls: use `detail_level="minimal"` unless you need more.
+3. Prefer `query_graph` with a specific target over broad `list_*` calls.
+4. The `next_tool_suggestions` field in every response tells you the optimal next step.
+5. Target: ≤5 tool calls per task, ≤800 total tokens of graph context.
+
 ## Architecture
 
 - **Core Package**: `code_review_graph/` (Python 3.10+)
