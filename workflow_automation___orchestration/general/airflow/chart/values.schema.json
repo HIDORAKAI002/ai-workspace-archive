@@ -78,7 +78,7 @@
         "defaultAirflowTag": {
             "description": "Default airflow tag to deploy.",
             "type": "string",
-            "default": "3.1.8",
+            "default": "3.2.0",
             "x-docsSection": "Common"
         },
         "defaultAirflowDigest": {
@@ -93,7 +93,7 @@
         "airflowVersion": {
             "description": "Airflow version (Used to make some decisions based on Airflow Version being deployed). Version 2.11.0 and above is supported.",
             "type": "string",
-            "default": "3.1.8",
+            "default": "3.2.0",
             "x-docsSection": "Common"
         },
         "securityContext": {
@@ -1848,21 +1848,21 @@
                     }
                 },
                 "serviceAccount": {
-                    "description": "Create ServiceAccount for Airflow Celery workers and pods created with pod-template-file.",
+                    "description": "Create ServiceAccount for Airflow Celery workers and pods created with pod-template-file (deprecated, use ``workers.celery.serviceAccount`` and/or ``workers.kubernetes.serviceAccount`` instead).",
                     "type": "object",
                     "properties": {
                         "automountServiceAccountToken": {
-                            "description": "Specifies if ServiceAccount's API credentials should be mounted onto Pods",
+                            "description": "Specifies if ServiceAccount's API credentials should be mounted onto Pods (deprecated, use ``workers.celery.serviceAccount.automountServiceAccountToken`` and/or ``workers.kubernetes.serviceAccount.automountServiceAccountToken`` instead)",
                             "type": "boolean",
                             "default": true
                         },
                         "create": {
-                            "description": "Specifies whether a ServiceAccount should be created.",
+                            "description": "Specifies whether a ServiceAccount should be created (deprecated, use ``workers.celery.serviceAccount.create`` and/or ``workers.kubernetes.serviceAccount.create`` instead).",
                             "type": "boolean",
                             "default": true
                         },
                         "name": {
-                            "description": "The name of the ServiceAccount to use. If not set and create is true, a name is generated using the release name.",
+                            "description": "The name of the ServiceAccount to use (deprecated, use ``workers.celery.serviceAccount.name`` and/or ``workers.kubernetes.serviceAccount.name`` instead). If not set and create is true, a name is generated using the release name.",
                             "type": [
                                 "string",
                                 "null"
@@ -1870,7 +1870,7 @@
                             "default": null
                         },
                         "annotations": {
-                            "description": "Annotations to add to the worker Kubernetes ServiceAccount.",
+                            "description": "Annotations to add to the worker Kubernetes ServiceAccount (deprecated, use ``workers.celery.serviceAccount.annotations`` and/or ``workers.kubernetes.serviceAccount.annotations`` instead).",
                             "type": "object",
                             "default": {},
                             "additionalProperties": {
@@ -2520,17 +2520,17 @@
                     }
                 },
                 "waitForMigrations": {
-                    "description": "Configuration of wait-for-airflow-migration init container for Airflow Celery workers.",
+                    "description": "Configuration of wait-for-airflow-migration init container for Airflow Celery workers (deprecated, use ``workers.celery.waitForMigrations`` instead).",
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
                         "enabled": {
-                            "description": "Enable wait-for-airflow-migrations init container.",
+                            "description": "Enable wait-for-airflow-migrations init container (deprecated, use ``workers.celery.waitForMigrations.enabled`` instead).",
                             "type": "boolean",
                             "default": true
                         },
                         "env": {
-                            "description": "Add additional env vars to wait-for-airflow-migrations init container.",
+                            "description": "Add additional env vars to wait-for-airflow-migrations init container (deprecated, use ``workers.celery.waitForMigrations.env`` instead).",
                             "type": "array",
                             "default": [],
                             "items": {
@@ -2551,12 +2551,12 @@
                             }
                         },
                         "securityContexts": {
-                            "description": "Security context definition for the wait-for-airflow-migrations container. If not set, the values from global `securityContexts` will be used.",
+                            "description": "Security context definition for the wait-for-airflow-migrations container (deprecated, use ``workers.celery.waitForMigrations.securityContexts`` instead). If not set, the values from global `securityContexts` will be used.",
                             "type": "object",
                             "x-docsSection": "Kubernetes",
                             "properties": {
                                 "container": {
-                                    "description": "Container security context definition for the wait-for-airflow-migrations container.",
+                                    "description": "Container security context definition for the wait-for-airflow-migrations container (deprecated, use ``workers.celery.waitForMigrations.securityContexts.container`` instead).",
                                     "type": "object",
                                     "$ref": "#/definitions/io.k8s.api.core.v1.SecurityContext",
                                     "default": {},
@@ -2917,6 +2917,44 @@
                                             ],
                                             "default": null
                                         }
+                                    }
+                                }
+                            }
+                        },
+                        "serviceAccount": {
+                            "description": "Create ServiceAccount for Airflow Celery workers.",
+                            "type": "object",
+                            "properties": {
+                                "automountServiceAccountToken": {
+                                    "description": "Specifies if ServiceAccount's API credentials should be mounted onto Pods.",
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "create": {
+                                    "description": "Specifies whether a ServiceAccount should be created.",
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "name": {
+                                    "description": "The name of the ServiceAccount to use. If not set and create is true, a name is generated using the release name.",
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "annotations": {
+                                    "description": "Annotations to add to the worker Kubernetes ServiceAccount.",
+                                    "type": "object",
+                                    "default": {},
+                                    "additionalProperties": {
+                                        "type": "string"
                                     }
                                 }
                             }
@@ -3348,6 +3386,66 @@
                                 }
                             ]
                         },
+                        "waitForMigrations": {
+                            "description": "Configuration of wait-for-airflow-migration init container for Airflow Celery workers.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "description": "Whether to create init container to wait for db migrations.",
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "env": {
+                                    "description": "Add additional env vars to wait-for-airflow-migrations init container.",
+                                    "type": "array",
+                                    "default": [],
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "name",
+                                            "value"
+                                        ],
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "securityContexts": {
+                                    "description": "Security context definition for the wait-for-airflow-migrations container. If not set, the values from ``workers.waitForMigrations.securityContexts`` will be used.",
+                                    "type": "object",
+                                    "x-docsSection": "Kubernetes",
+                                    "properties": {
+                                        "container": {
+                                            "description": "Container security context definition for the wait-for-airflow-migrations container.",
+                                            "type": "object",
+                                            "$ref": "#/definitions/io.k8s.api.core.v1.SecurityContext",
+                                            "default": {},
+                                            "x-docsSection": "Kubernetes",
+                                            "examples": [
+                                                {
+                                                    "allowPrivilegeEscalation": false,
+                                                    "capabilities": {
+                                                        "drop": [
+                                                            "ALL"
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         "volumeClaimTemplates": {
                             "description": "Specify additional volume claim template for Airflow Celery workers.",
                             "type": "array",
@@ -3473,6 +3571,44 @@
                                     }
                                 }
                             ]
+                        },
+                        "serviceAccount": {
+                            "description": "Create ServiceAccount for pods created with pod-template-file. When this section is specified, the Service Account is created from ``templates/workers/worker-kubernetes-serviceaccount.yaml`` file.",
+                            "type": "object",
+                            "properties": {
+                                "automountServiceAccountToken": {
+                                    "description": "Specifies if ServiceAccount's API credentials should be mounted onto Pods. If not specified, the ``workers.serviceAccount.automountServiceAccountToken`` value will be taken.",
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "create": {
+                                    "description": "Specifies whether a ServiceAccount should be created. If not specified, the ServiceAccount will be generated and used from ``templates/workers/worker-serviceaccount.yaml`` file if ``workers.serviceAccount.create`` will be 'true'.",
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "name": {
+                                    "description": "The name of the ServiceAccount to use. If not set and ``create`` is 'true', a name is generated using the release name with kubernetes dedicated name.",
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "default": null
+                                },
+                                "annotations": {
+                                    "description": "Annotations to add to the worker Kubernetes ServiceAccount. If not specified, the ``workers.serviceAccount.annotations`` value will be taken.",
+                                    "type": "object",
+                                    "default": {},
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
                         },
                         "kerberosSidecar": {
                             "description": "Kerberos sidecar for pods created with pod-template-file.",

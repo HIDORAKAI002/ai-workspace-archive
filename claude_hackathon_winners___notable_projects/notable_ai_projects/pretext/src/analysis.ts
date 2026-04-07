@@ -147,9 +147,8 @@ export function isCJK(s: string): boolean {
 }
 
 function endsWithLineStartProhibitedText(text: string): boolean {
-  let last = ''
-  for (const ch of text) last = ch
-  return last.length > 0 && (kinsokuStart.has(last) || leftStickyPunctuation.has(last))
+  const last = getLastCodePoint(text)
+  return last !== null && (kinsokuStart.has(last) || leftStickyPunctuation.has(last))
 }
 
 const keepAllGlueChars = new Set([
@@ -164,9 +163,8 @@ function containsCJKText(text: string): boolean {
 }
 
 function endsWithKeepAllGlueText(text: string): boolean {
-  let last = ''
-  for (const ch of text) last = ch
-  return last.length > 0 && keepAllGlueChars.has(last)
+  const last = getLastCodePoint(text)
+  return last !== null && keepAllGlueChars.has(last)
 }
 
 export function canContinueKeepAllTextRun(previousText: string): boolean {
@@ -352,12 +350,32 @@ function splitTrailingForwardStickyCluster(text: string): { head: string, tail: 
   }
 }
 
-function isRepeatedSingleCharRun(segment: string, ch: string): boolean {
-  if (segment.length === 0) return false
-  for (const part of segment) {
-    if (part !== ch) return false
-  }
-  return true
+function getRepeatableSingleCharRunChar(
+  text: string,
+  isWordLike: boolean,
+  kind: SegmentBreakKind,
+): string | null {
+  return kind === 'text' && !isWordLike && text.length === 1 && text !== '-' && text !== '—'
+    ? text
+    : null
+}
+
+function materializeDeferredSingleCharRun(
+  texts: string[],
+  chars: (string | null)[],
+  lengths: number[],
+  index: number,
+): string {
+  const ch = chars[index]
+  const text = texts[index]!
+  if (ch == null) return text
+
+  const length = lengths[index]!
+  if (text.length === length) return text
+
+  const materialized = ch.repeat(length)
+  texts[index] = materialized
+  return materialized
 }
 
 function endsWithArabicNoSpacePunctuation(segment: string): boolean {
@@ -883,10 +901,16 @@ function buildMergedSegmentation(
   const mergedWordLike: boolean[] = []
   const mergedKinds: SegmentBreakKind[] = []
   const mergedStarts: number[] = []
+  // Track repeatable single-char punctuation runs structurally so identical
+  // merges stay O(1) instead of re-scanning the accumulated segment each time.
+  const mergedSingleCharRunChars: (string | null)[] = []
+  const mergedSingleCharRunLengths: number[] = []
 
   for (const s of wordSegmenter.segment(normalized)) {
     for (const piece of splitSegmentByBreakKind(s.segment, s.isWordLike ?? false, s.index, whiteSpaceProfile)) {
       const isText = piece.kind === 'text'
+      const repeatableSingleCharRunChar = getRepeatableSingleCharRunChar(piece.text, piece.isWordLike, piece.kind)
+      const prevIndex = mergedLen - 1
 
       // First-pass keeps: no-space script-specific joins and punctuation glue
       // that depend on the immediately preceding text run.
@@ -894,69 +918,103 @@ function buildMergedSegmentation(
         profile.carryCJKAfterClosingQuote &&
         isText &&
         mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
+        mergedKinds[prevIndex] === 'text' &&
         isCJK(piece.text) &&
-        isCJK(mergedTexts[mergedLen - 1]!) &&
-        endsWithClosingQuote(mergedTexts[mergedLen - 1]!)
+        isCJK(mergedTexts[prevIndex]!) &&
+        endsWithClosingQuote(mergedTexts[prevIndex]!)
       ) {
-        mergedTexts[mergedLen - 1] += piece.text
-        mergedWordLike[mergedLen - 1] = mergedWordLike[mergedLen - 1]! || piece.isWordLike
+        mergedTexts[prevIndex] = materializeDeferredSingleCharRun(
+          mergedTexts,
+          mergedSingleCharRunChars,
+          mergedSingleCharRunLengths,
+          prevIndex,
+        ) + piece.text
+        mergedWordLike[prevIndex] = mergedWordLike[prevIndex]! || piece.isWordLike
+        mergedSingleCharRunChars[prevIndex] = null
       } else if (
         isText &&
         mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
+        mergedKinds[prevIndex] === 'text' &&
         isCJKLineStartProhibitedSegment(piece.text) &&
-        isCJK(mergedTexts[mergedLen - 1]!)
+        isCJK(mergedTexts[prevIndex]!)
       ) {
-        mergedTexts[mergedLen - 1] += piece.text
-        mergedWordLike[mergedLen - 1] = mergedWordLike[mergedLen - 1]! || piece.isWordLike
+        mergedTexts[prevIndex] = materializeDeferredSingleCharRun(
+          mergedTexts,
+          mergedSingleCharRunChars,
+          mergedSingleCharRunLengths,
+          prevIndex,
+        ) + piece.text
+        mergedWordLike[prevIndex] = mergedWordLike[prevIndex]! || piece.isWordLike
+        mergedSingleCharRunChars[prevIndex] = null
       } else if (
         isText &&
         mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
-        endsWithMyanmarMedialGlue(mergedTexts[mergedLen - 1]!)
+        mergedKinds[prevIndex] === 'text' &&
+        endsWithMyanmarMedialGlue(mergedTexts[prevIndex]!)
       ) {
-        mergedTexts[mergedLen - 1] += piece.text
-        mergedWordLike[mergedLen - 1] = mergedWordLike[mergedLen - 1]! || piece.isWordLike
+        mergedTexts[prevIndex] = materializeDeferredSingleCharRun(
+          mergedTexts,
+          mergedSingleCharRunChars,
+          mergedSingleCharRunLengths,
+          prevIndex,
+        ) + piece.text
+        mergedWordLike[prevIndex] = mergedWordLike[prevIndex]! || piece.isWordLike
+        mergedSingleCharRunChars[prevIndex] = null
       } else if (
         isText &&
         mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
+        mergedKinds[prevIndex] === 'text' &&
         piece.isWordLike &&
         containsArabicScript(piece.text) &&
-        endsWithArabicNoSpacePunctuation(mergedTexts[mergedLen - 1]!)
+        endsWithArabicNoSpacePunctuation(mergedTexts[prevIndex]!)
       ) {
-        mergedTexts[mergedLen - 1] += piece.text
-        mergedWordLike[mergedLen - 1] = true
+        mergedTexts[prevIndex] = materializeDeferredSingleCharRun(
+          mergedTexts,
+          mergedSingleCharRunChars,
+          mergedSingleCharRunLengths,
+          prevIndex,
+        ) + piece.text
+        mergedWordLike[prevIndex] = true
+        mergedSingleCharRunChars[prevIndex] = null
+      } else if (
+        repeatableSingleCharRunChar !== null &&
+        mergedLen > 0 &&
+        mergedKinds[prevIndex] === 'text' &&
+        mergedSingleCharRunChars[prevIndex] === repeatableSingleCharRunChar
+      ) {
+        mergedSingleCharRunLengths[prevIndex] = (mergedSingleCharRunLengths[prevIndex] ?? 1) + 1
       } else if (
         isText &&
         !piece.isWordLike &&
         mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
-        piece.text.length === 1 &&
-        piece.text !== '-' &&
-        piece.text !== '—' &&
-        isRepeatedSingleCharRun(mergedTexts[mergedLen - 1]!, piece.text)
-      ) {
-        mergedTexts[mergedLen - 1] += piece.text
-      } else if (
-        isText &&
-        !piece.isWordLike &&
-        mergedLen > 0 &&
-        mergedKinds[mergedLen - 1] === 'text' &&
+        mergedKinds[prevIndex] === 'text' &&
         (
           isLeftStickyPunctuationSegment(piece.text) ||
-          (piece.text === '-' && mergedWordLike[mergedLen - 1]!)
+          (piece.text === '-' && mergedWordLike[prevIndex]!)
         )
       ) {
-        mergedTexts[mergedLen - 1] += piece.text
+        mergedTexts[prevIndex] = materializeDeferredSingleCharRun(
+          mergedTexts,
+          mergedSingleCharRunChars,
+          mergedSingleCharRunLengths,
+          prevIndex,
+        ) + piece.text
+        mergedSingleCharRunChars[prevIndex] = null
       } else {
         mergedTexts[mergedLen] = piece.text
         mergedWordLike[mergedLen] = piece.isWordLike
         mergedKinds[mergedLen] = piece.kind
         mergedStarts[mergedLen] = piece.start
+        mergedSingleCharRunChars[mergedLen] = repeatableSingleCharRunChar
+        mergedSingleCharRunLengths[mergedLen] = repeatableSingleCharRunChar === null ? 0 : 1
         mergedLen++
       }
+    }
+  }
+
+  for (let i = 0; i < mergedLen; i++) {
+    if (mergedSingleCharRunChars[i] !== null) {
+      materializeDeferredSingleCharRun(mergedTexts, mergedSingleCharRunChars, mergedSingleCharRunLengths, i)
     }
   }
 
@@ -1083,30 +1141,56 @@ function mergeKeepAllTextSegments(segmentation: MergedSegmentation): MergedSegme
   const kinds: SegmentBreakKind[] = []
   const starts: number[] = []
 
+  let pendingTextParts: string[] | null = null
+  let pendingWordLike = false
+  let pendingStart = 0
+  let pendingContainsCJK = false
+  let pendingCanContinue = false
+
+  function flushPendingText(): void {
+    if (pendingTextParts === null) return
+    texts.push(joinTextParts(pendingTextParts))
+    isWordLike.push(pendingWordLike)
+    kinds.push('text')
+    starts.push(pendingStart)
+    pendingTextParts = null
+  }
+
   for (let i = 0; i < segmentation.len; i++) {
     const text = segmentation.texts[i]!
     const kind = segmentation.kinds[i]!
     const wordLike = segmentation.isWordLike[i]!
     const start = segmentation.starts[i]!
-    const previousIndex = texts.length - 1
 
-    if (
-      kind === 'text' &&
-      previousIndex >= 0 &&
-      kinds[previousIndex] === 'text' &&
-      canContinueKeepAllTextRun(texts[previousIndex]!) &&
-      containsCJKText(texts[previousIndex]!)
-    ) {
-      texts[previousIndex] += text
-      isWordLike[previousIndex] = isWordLike[previousIndex]! || wordLike
+    if (kind === 'text') {
+      const textContainsCJK = containsCJKText(text)
+      const textCanContinue = canContinueKeepAllTextRun(text)
+
+      if (pendingTextParts !== null && pendingContainsCJK && pendingCanContinue) {
+        pendingTextParts.push(text)
+        pendingWordLike = pendingWordLike || wordLike
+        pendingContainsCJK = pendingContainsCJK || textContainsCJK
+        pendingCanContinue = textCanContinue
+        continue
+      }
+
+      flushPendingText()
+      pendingTextParts = [text]
+      pendingWordLike = wordLike
+      pendingStart = start
+      pendingContainsCJK = textContainsCJK
+      pendingCanContinue = textCanContinue
       continue
     }
 
+    flushPendingText()
     texts.push(text)
     isWordLike.push(wordLike)
     kinds.push(kind)
     starts.push(start)
   }
+
+  flushPendingText()
 
   return {
     len: texts.length,

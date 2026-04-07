@@ -1,6 +1,6 @@
 # phoenix-helm
 
-![Version: 5.0.23](https://img.shields.io/badge/Version-5.0.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 13.23.0](https://img.shields.io/badge/AppVersion-13.23.0-informational?style=flat-square)
+![Version: 6.0.0](https://img.shields.io/badge/Version-6.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.0.0](https://img.shields.io/badge/AppVersion-14.0.0-informational?style=flat-square)
 
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=8e8e8b34-7900-43fa-a38f-1f070bd48c64&page=helm/README.md" />
 
@@ -94,6 +94,7 @@ Phoenix is an open-source AI observability platform designed for experimentation
 | database.postgres.schema | string | `""` | PostgreSQL schema to use (PHOENIX_SQL_DATABASE_SCHEMA) |
 | database.postgres.useAwsIamAuth | bool | `false` | Enable AWS RDS IAM authentication for PostgreSQL (PHOENIX_POSTGRES_USE_AWS_IAM_AUTH) When enabled, Phoenix will use AWS IAM credentials to generate short-lived authentication tokens instead of using a static password. Requires boto3 to be installed: pip install 'arize-phoenix[aws]' IMPORTANT: When enabled, do not set database.postgres.password |
 | database.postgres.user | string | `"postgres"` | PostgreSQL username (PHOENIX_POSTGRES_USER) |
+| database.readReplicaUrl | string | `""` | Optional PostgreSQL read replica URL for read-only query routing (PHOENIX_SQL_DATABASE_READ_REPLICA_URL) When set, Phoenix routes read-only queries to this replica while keeping writes on the primary. Ignored for SQLite deployments. |
 | database.url | string | `""` | Full database connection URL (overrides postgres settings if provided) IMPORTANT: Only set this for external databases (Strategy 3) - When using SQLite (Strategy 1): MUST be empty - SQLite auto-uses persistent volume - When using built-in PostgreSQL (Strategy 2): MUST be empty - auto-configured - When using external database (Strategy 3): MUST be configured with full connection string  Examples for external databases: PostgreSQL: "postgresql://username:password@your-rds-endpoint.region.rds.amazonaws.com:5432/phoenix" SQLite: "sqlite:///path/to/database.db" (only for external SQLite files, not recommended)  WARNING: Setting this will override all database.postgres.* settings and disable built-in PostgreSQL validation |
 | deployment.affinity | object | `{}` |  |
 | deployment.nodeSelector | object | `{}` |  |
@@ -124,7 +125,7 @@ Phoenix is an open-source AI observability platform designed for experimentation
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy for Phoenix container (Always, IfNotPresent, or Never) |
 | image.registry | string | `"docker.io"` | Docker image registry for Phoenix |
 | image.repository | string | `"arizephoenix/phoenix"` | Docker image repository for Phoenix |
-| image.tag | string | `"version-13.23.0-nonroot"` | Docker image tag/version to deploy |
+| image.tag | string | `"version-14.0.0-nonroot"` | Docker image tag/version to deploy |
 | ingress.annotations | object | `{}` | Annotations to add to the ingress resource |
 | ingress.apiPath | string | `"/"` | Path prefix for the Phoenix API |
 | ingress.enabled | bool | `true` | Enable ingress controller for external access |
