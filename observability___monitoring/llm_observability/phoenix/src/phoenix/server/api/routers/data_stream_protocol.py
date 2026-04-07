@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 from uuid import uuid4
@@ -140,6 +140,28 @@ def parse_chat_body(raw_body: bytes) -> ChatBody:
 
 def _sse(chunk: Any) -> str:
     return f"data: {chunk.encode(6)}\n\n"
+
+
+def _backend_tool_loop_limit_error(
+    *,
+    loop_count: int,
+    max_loops: int,
+    backend_calls: Sequence[dict[str, Any]],
+    has_frontend_calls: bool,
+) -> str | None:
+    """Return a user-visible error when backend tool execution exhausts the loop cap.
+
+    The server can satisfy backend tool calls inline, but if the model keeps
+    requesting more backend tools until the loop cap is hit, we would otherwise
+    end the stream without a final assistant response. Frontend tool calls are
+    excluded because the client will resubmit after it resolves them.
+    """
+    if loop_count < max_loops or not backend_calls or has_frontend_calls:
+        return None
+    return (
+        "Backend tool execution reached the maximum number of follow-up model calls "
+        "before producing a final response."
+    )
 
 
 async def _encode_stream(
@@ -405,8 +427,8 @@ async def stream_text(
         create_tool_span,
         ensure_project_exists,
         finalize_llm_span,
+        finalize_recent_input_tool_result_spans,
         finalize_tool_span,
-        replay_history_spans,
     )
     from phoenix.tracers import Tracer
 
@@ -417,8 +439,7 @@ async def stream_text(
         # Tracing state — managed across loop iterations.
         tracer: Tracer | None = None
         agent_span: Any = None
-        completed_llm_steps: int = 0
-        next_step_index: int = 0
+        llm_call_count = 0
 
         # Set up tracing before streaming begins.
         if ingest_traces:
@@ -435,7 +456,7 @@ async def stream_text(
                     session_id=body.session_id,
                     trace_name_suffix=body.trace_name_suffix,
                 )
-                completed_llm_steps, next_step_index = replay_history_spans(
+                finalize_recent_input_tool_result_spans(
                     tracer,
                     parent_span=agent_span,
                     messages=messages,
@@ -466,19 +487,18 @@ async def stream_text(
                 # Create a tracing LLM span for this model call.
                 llm_span: Any = None
                 if tracer is not None and agent_span is not None:
+                    llm_call_count += 1
                     llm_span = create_llm_span(
                         tracer,
                         parent_span=agent_span,
                         input_messages=messages,
                         tools=raw_all_tools or None,
                         trace_name_suffix=(
-                            f"Step {completed_llm_steps + 1}"
-                            if completed_llm_steps
+                            f"Step {llm_call_count}"
+                            if llm_call_count > 1
                             else body.trace_name_suffix
                         ),
-                        step_index=next_step_index,
                     )
-                    next_step_index += 1
 
                 yield _sse(StartStepChunk())
 
@@ -510,7 +530,6 @@ async def stream_text(
                                 model_name=getattr(stream, "model_name", None),
                                 provider=getattr(stream, "provider_name", None),
                             )
-                            completed_llm_steps += 1
                 except Exception as e:
                     logger.exception("Error in model.request_stream()")
                     yield _sse(ErrorChunk(error_text=str(e)))
@@ -590,10 +609,8 @@ async def stream_text(
                                 tool_name=tc_name,
                                 tool_parameters=tc_args_str,
                                 tool_output=result_text,
-                                step_index=next_step_index,
                             )
                             finalize_tool_span(tool_span)
-                            next_step_index += 1
 
                     except Exception as tool_err:
                         error_text = f"Backend tool error: {tool_err}"
@@ -619,10 +636,8 @@ async def stream_text(
                                 tool_name=tc_name,
                                 tool_parameters=tc_args_str,
                                 tool_output=error_text,
-                                step_index=next_step_index,
                             )
                             finalize_tool_span(tool_span, error=tool_err)
-                            next_step_index += 1
 
                 if has_frontend_calls:
                     # The model also requested frontend tools in this turn.
@@ -637,6 +652,17 @@ async def stream_text(
                 # the model's next response.
                 messages.append(ModelResponse(parts=tool_call_parts))
                 messages.append(ModelRequest(parts=tool_return_parts))
+
+                loop_limit_error = _backend_tool_loop_limit_error(
+                    loop_count=loop_count,
+                    max_loops=_MAX_BACKEND_TOOL_LOOPS,
+                    backend_calls=backend_calls,
+                    has_frontend_calls=has_frontend_calls,
+                )
+                if loop_limit_error is not None:
+                    yield _sse(ErrorChunk(error_text=loop_limit_error))
+                    finish_reason = "error"
+                    break
 
         except Exception as e:
             logger.exception("Unexpected error in generate() loop")

@@ -595,24 +595,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/evaluations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get span, trace, or document evaluations from a project */
-        get: operations["getEvaluations"];
-        put?: never;
-        /** Add span, trace, or document evaluations */
-        post: operations["addEvaluations"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/prompts": {
         parameters: {
             query?: never;
@@ -2954,7 +2936,27 @@ export interface components {
              */
             end_time: string;
         };
-        /** Span */
+        /**
+         * Span
+         * @example {
+         *       "attributes": {
+         *         "llm.model_name": "gpt-4",
+         *         "llm.token_count.completion": 50,
+         *         "llm.token_count.prompt": 100
+         *       },
+         *       "context": {
+         *         "span_id": "1a2b3c4d5e6f7a8b",
+         *         "trace_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+         *       },
+         *       "end_time": "2024-01-01T12:00:01Z",
+         *       "events": [],
+         *       "name": "llm_call",
+         *       "span_kind": "LLM",
+         *       "start_time": "2024-01-01T12:00:00Z",
+         *       "status_code": "OK",
+         *       "status_message": ""
+         *     }
+         */
         Span: {
             /**
              * Id
@@ -3109,7 +3111,13 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** SpanContext */
+        /**
+         * SpanContext
+         * @example {
+         *       "span_id": "1a2b3c4d5e6f7a8b",
+         *       "trace_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+         *     }
+         */
         SpanContext: {
             /**
              * Trace Id
@@ -3161,7 +3169,16 @@ export interface components {
              */
             document_position: number;
         };
-        /** SpanEvent */
+        /**
+         * SpanEvent
+         * @example {
+         *       "attributes": {
+         *         "exception.message": "Connection refused"
+         *       },
+         *       "name": "exception",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
         SpanEvent: {
             /**
              * Name
@@ -5461,109 +5478,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    getEvaluations: {
-        parameters: {
-            query?: {
-                /** @description The name of the project to get evaluations from (if omitted, evaluations will be drawn from the `default` project) */
-                project_name?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    addEvaluations: {
-        parameters: {
-            query?: never;
-            header?: {
-                "content-type"?: string | null;
-                "content-encoding"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/x-protobuf": string;
-                "application/x-pandas-arrow": string;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Unsupported content type, only gzipped protobuf and pandas-arrow are supported */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
                 };
             };
         };

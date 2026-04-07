@@ -3515,168 +3515,6 @@
         }
       }
     },
-    "/v1/evaluations": {
-      "post": {
-        "tags": [
-          "traces"
-        ],
-        "summary": "Add span, trace, or document evaluations",
-        "operationId": "addEvaluations",
-        "parameters": [
-          {
-            "name": "content-type",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Content-Type"
-            }
-          },
-          {
-            "name": "content-encoding",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Content-Encoding"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "415": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unsupported content type, only gzipped protobuf and pandas-arrow are supported"
-          },
-          "422": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/x-protobuf": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
-            "application/x-pandas-arrow": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "traces"
-        ],
-        "summary": "Get span, trace, or document evaluations from a project",
-        "operationId": "getEvaluations",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "The name of the project to get evaluations from (if omitted, evaluations will be drawn from the `default` project)",
-              "title": "Project Name"
-            },
-            "description": "The name of the project to get evaluations from (if omitted, evaluations will be drawn from the `default` project)"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "403": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/prompts": {
       "get": {
         "tags": [
@@ -10497,7 +10335,27 @@
           "end_time",
           "status_code"
         ],
-        "title": "Span"
+        "title": "Span",
+        "examples": [
+          {
+            "attributes": {
+              "llm.model_name": "gpt-4",
+              "llm.token_count.completion": 50,
+              "llm.token_count.prompt": 100
+            },
+            "context": {
+              "span_id": "1a2b3c4d5e6f7a8b",
+              "trace_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+            },
+            "end_time": "2024-01-01T12:00:01Z",
+            "events": [],
+            "name": "llm_call",
+            "span_kind": "LLM",
+            "start_time": "2024-01-01T12:00:00Z",
+            "status_code": "OK",
+            "status_message": ""
+          }
+        ]
       },
       "SpanAnnotation": {
         "properties": {
@@ -10705,7 +10563,13 @@
           "trace_id",
           "span_id"
         ],
-        "title": "SpanContext"
+        "title": "SpanContext",
+        "examples": [
+          {
+            "span_id": "1a2b3c4d5e6f7a8b",
+            "trace_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+          }
+        ]
       },
       "SpanDocumentAnnotationData": {
         "properties": {
@@ -10799,7 +10663,16 @@
           "name",
           "timestamp"
         ],
-        "title": "SpanEvent"
+        "title": "SpanEvent",
+        "examples": [
+          {
+            "attributes": {
+              "exception.message": "Connection refused"
+            },
+            "name": "exception",
+            "timestamp": "2024-01-01T12:00:00Z"
+          }
+        ]
       },
       "SpanNoteData": {
         "properties": {

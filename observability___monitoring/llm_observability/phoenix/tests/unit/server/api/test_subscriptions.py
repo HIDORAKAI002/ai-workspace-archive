@@ -17,6 +17,13 @@ from strawberry.relay.types import GlobalID
 from vcr.request import Request as VCRRequest  # type: ignore[import-untyped]
 
 from phoenix.db import models
+from phoenix.db.types.annotation_configs import (
+    AnnotationType,
+    CategoricalAnnotationValue,
+    CategoricalOutputConfig,
+    OptimizationDirection,
+)
+from phoenix.db.types.evaluators import InputMapping
 from phoenix.server.api.types.ChatCompletionSubscriptionPayload import (
     ChatCompletionSubscriptionError,
     ChatCompletionSubscriptionExperiment,
@@ -266,7 +273,6 @@ class TestChatCompletionSubscription:
         assert isinstance(invocation_parameters := attributes.pop("llm.invocation_parameters"), str)
         assert json.loads(invocation_parameters) == {
             "temperature": 0.1,
-            "stream_options": {"include_usage": True},
         }
         assert attributes.pop(LLM_TOKEN_COUNT_TOTAL) == token_count_total
         assert attributes.pop(LLM_TOKEN_COUNT_PROMPT) == token_count_prompt
@@ -417,7 +423,6 @@ class TestChatCompletionSubscription:
         assert isinstance(invocation_parameters := attributes.pop("llm.invocation_parameters"), str)
         assert json.loads(invocation_parameters) == {
             "temperature": 0.1,
-            "stream_options": {"include_usage": True},
         }
         assert attributes.pop(INPUT_VALUE)
         assert attributes.pop(INPUT_MIME_TYPE) == JSON
@@ -583,7 +588,6 @@ class TestChatCompletionSubscription:
         assert isinstance(invocation_paramaters := attributes.pop(LLM_INVOCATION_PARAMETERS), str)
         assert json.loads(invocation_paramaters) == {
             "tool_choice": "auto",
-            "stream_options": {"include_usage": True},
         }
         assert attributes.pop(LLM_TOKEN_COUNT_TOTAL) == token_count_total
         assert attributes.pop(LLM_TOKEN_COUNT_PROMPT) == token_count_prompt
@@ -760,7 +764,7 @@ class TestChatCompletionSubscription:
 
         assert attributes.pop(OPENINFERENCE_SPAN_KIND) == LLM
         assert isinstance(invocation_paramaters := attributes.pop(LLM_INVOCATION_PARAMETERS), str)
-        assert json.loads(invocation_paramaters) == {"stream_options": {"include_usage": True}}
+        assert json.loads(invocation_paramaters) == {}
         assert attributes.pop(LLM_MODEL_NAME) == "gpt-4"
         assert attributes.pop(LLM_TOKEN_COUNT_TOTAL) == token_count_total
         assert attributes.pop(LLM_TOKEN_COUNT_PROMPT) == token_count_prompt
@@ -905,7 +909,7 @@ class TestChatCompletionSubscription:
         assert not input
         assert "api_key" not in input_value
         assert "apiKey" not in input_value
-        assert (output := span.pop("output")).pop("mimeType") == "text"
+        assert (output := span.pop("output")).pop("mimeType") == "json"
         assert output.pop("value")
         assert not output
         assert not span.pop("events")
@@ -933,7 +937,7 @@ class TestChatCompletionSubscription:
         assert attributes.pop(INPUT_VALUE)
         assert attributes.pop(INPUT_MIME_TYPE) == JSON
         assert attributes.pop(OUTPUT_VALUE)
-        assert attributes.pop(OUTPUT_MIME_TYPE) == TEXT
+        assert attributes.pop(OUTPUT_MIME_TYPE) == JSON
         assert attributes.pop(LLM_INPUT_MESSAGES) == [
             {
                 "message": {
@@ -1011,6 +1015,7 @@ class TestChatCompletionOverDatasetSubscription:
             name
             metadata
             projectName
+            isEphemeral
             createdAt
             updatedAt
             description
@@ -1118,6 +1123,7 @@ class TestChatCompletionOverDatasetSubscription:
                     "tools": None,
                 },
                 "repetitions": 1,
+                "createEphemeralExperiment": True,
             }
         }
         payloads: dict[Optional[str], list[Any]] = {}
@@ -1147,11 +1153,14 @@ class TestChatCompletionOverDatasetSubscription:
         ]
         assert set(payloads.keys()) == set(example_ids) | {None}
 
-        # gather spans and experiment runs
+        # gather spans and experiment runs (only for successful examples)
         subscription_runs = {}
         subscription_spans = {}
         for example_id in example_ids:
-            assert (result_payload := payloads[example_id].pop()["chatCompletionOverDataset"])
+            last_payload = payloads[example_id][-1]["chatCompletionOverDataset"]
+            if last_payload["__typename"] != ChatCompletionSubscriptionResult.__name__:
+                continue
+            result_payload = payloads[example_id].pop()["chatCompletionOverDataset"]
             assert result_payload.pop("__typename") == ChatCompletionSubscriptionResult.__name__
             assert result_payload.pop("datasetExampleId") == example_id
             subscription_runs[example_id] = result_payload.pop("experimentRun")
@@ -1264,7 +1273,7 @@ class TestChatCompletionOverDatasetSubscription:
 
         assert attributes.pop(OPENINFERENCE_SPAN_KIND) == LLM
         assert isinstance(invocation_paramaters := attributes.pop(LLM_INVOCATION_PARAMETERS), str)
-        assert json.loads(invocation_paramaters) == {"stream_options": {"include_usage": True}}
+        assert json.loads(invocation_paramaters) == {}
         assert attributes.pop(LLM_MODEL_NAME) == "gpt-4"
         assert attributes.pop(LLM_TOKEN_COUNT_TOTAL) == token_count_total
         assert attributes.pop(LLM_TOKEN_COUNT_PROMPT) == token_count_prompt
@@ -1354,7 +1363,7 @@ class TestChatCompletionOverDatasetSubscription:
 
         assert attributes.pop(OPENINFERENCE_SPAN_KIND) == LLM
         assert isinstance(invocation_paramaters := attributes.pop(LLM_INVOCATION_PARAMETERS), str)
-        assert json.loads(invocation_paramaters) == {"stream_options": {"include_usage": True}}
+        assert json.loads(invocation_paramaters) == {}
         assert attributes.pop(LLM_MODEL_NAME) == "gpt-4"
         assert attributes.pop(LLM_TOKEN_COUNT_TOTAL) == token_count_total
         assert attributes.pop(LLM_TOKEN_COUNT_PROMPT) == token_count_prompt
@@ -1382,9 +1391,9 @@ class TestChatCompletionOverDatasetSubscription:
         assert attributes.pop(URL_PATH) == "chat/completions"
         assert not attributes
 
-        # check that example 3 has no span
+        # check that example 3 has no span (template error, no Result payload)
         example_id = example_ids[2]
-        assert subscription_spans[example_id] is None
+        assert example_id not in subscription_spans
 
         # check experiment
         response = await gql_client.execute(
@@ -1400,6 +1409,7 @@ class TestChatCompletionOverDatasetSubscription:
         assert experiment.pop("name") == "playground-experiment"
         project_name = experiment.pop("projectName")
         assert is_experiment_project_name(project_name)
+        assert experiment.pop("isEphemeral") is True
         assert experiment.pop("metadata") == {}
         assert isinstance(created_at := experiment.pop("createdAt"), str)
         assert isinstance(updated_at := experiment.pop("updatedAt"), str)
@@ -1458,12 +1468,15 @@ class TestChatCompletionOverDatasetSubscription:
         assert not trace
         assert not run
 
-        # check example 3 run
+        # check example 3 run (template error — no Result broadcast, verify via DB only)
         example_id = example_ids[2]
-        subscription_run = subscription_runs[example_id]
-        run_id = subscription_run["id"]
-        run = runs.pop(run_id)
-        assert run == subscription_run
+        assert example_id not in subscription_runs
+        # find the error run from the DB query
+        error_runs = [r for r in runs.values() if r.get("error")]
+        assert len(error_runs) == 1
+        run = error_runs[0]
+        run_id = run["id"]
+        runs.pop(run_id)
         assert run.pop("id") == run_id
         assert isinstance(experiment_id := run.pop("experimentId"), str)
         type_name, _ = from_global_id(GlobalID.from_id(experiment_id))
@@ -1916,20 +1929,12 @@ class TestChatCompletionOverDatasetSubscription:
                     {
                         "id": llm_evaluator_gid,
                         "name": "correctness",
-                        "inputMapping": {
-                            "pathMapping": {
-                                "input": "$.input",
-                                "output": "$.output",
-                            },
-                        },
+                        "inputMapping": {"literalMapping": {}, "pathMapping": {}},
                     },
                     {
                         "id": builtin_evaluator_gid,
                         "name": "exact-match",
-                        "inputMapping": {
-                            "literalMapping": {"expected": "France"},
-                            "pathMapping": {"actual": "$.output.messages[0].content"},
-                        },
+                        "inputMapping": {"literalMapping": {}, "pathMapping": {}},
                     },
                 ],
             }
@@ -2185,26 +2190,48 @@ class TestChatCompletionOverDatasetSubscription:
             assert attributes.pop(OUTPUT_MIME_TYPE) == JSON
             raw_output_value = attributes.pop(OUTPUT_VALUE)
             output_value = json.loads(raw_output_value)
-            messages = output_value.pop("messages")
-            assert not output_value
-            assert messages is not None
-            assert len(messages) == 1
-            message = messages[0]
-            assert message.pop("role") == "assistant"
-            tool_calls = message.pop("tool_calls")
-            assert not message
-            assert len(tool_calls) == 1
-            tool_call = tool_calls[0]
-            assert tool_call.pop("id") == "call_aABUz9QoikDpYXHXhUkahsNF"
-            function = tool_call.pop("function")
-            assert not tool_call
-            assert function.pop("name") == "correctness"
-            tool_call_arguments = function.pop("arguments")
-            assert tool_call_arguments is not None
-            assert json.loads(tool_call_arguments) == {
-                "label": "incorrect",
+            assert output_value == {
+                "id": "chatcmpl-DQenkImJhoauMjqwwwqLeZGXyTXmE",
+                "object": "chat.completion",
+                "created": 1775245740,
+                "model": "gpt-4-0613",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "tool_calls": [
+                                {
+                                    "id": "call_4q0aw0YpXJlp7wsm38rZs30l",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "correctness",
+                                        "arguments": '{\n"label": "incorrect"\n}',
+                                    },
+                                }
+                            ],
+                            "annotations": [],
+                        },
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 104,
+                    "completion_tokens": 11,
+                    "total_tokens": 115,
+                    "prompt_tokens_details": {
+                        "cached_tokens": 0,
+                        "audio_tokens": 0,
+                    },
+                    "completion_tokens_details": {
+                        "reasoning_tokens": 0,
+                        "audio_tokens": 0,
+                        "accepted_prediction_tokens": 0,
+                        "rejected_prediction_tokens": 0,
+                    },
+                },
+                "service_tier": "default",
             }
-            assert not function
             assert attributes.pop(f"{LLM_OUTPUT_MESSAGES}.0.{MESSAGE_ROLE}") == "assistant"
             assert isinstance(
                 attributes.pop(
@@ -2538,14 +2565,29 @@ class TestChatCompletionOverDatasetSubscription:
         openai_api_key: str,
         single_example_dataset: models.Dataset,
         assign_exact_match_builtin_evaluator_to_dataset: Callable[
-            [int], Awaitable[models.DatasetEvaluators]
+            ..., Awaitable[models.DatasetEvaluators]
         ],
         custom_vcr: CustomVCR,
         db: DbSessionFactory,
     ) -> None:
         """Test that builtin evaluators use name for annotation names in dataset runs."""
         builtin_dataset_evaluator = await assign_exact_match_builtin_evaluator_to_dataset(
-            single_example_dataset.id
+            single_example_dataset.id,
+            input_mapping=InputMapping(
+                literal_mapping={"expected": "test", "actual": "test"},
+                path_mapping={},
+            ),
+            output_configs=[
+                CategoricalOutputConfig(
+                    type=AnnotationType.CATEGORICAL.value,
+                    name="my-dataset-exact-match",
+                    optimization_direction=OptimizationDirection.MAXIMIZE,
+                    values=[
+                        CategoricalAnnotationValue(label="true", score=1.0),
+                        CategoricalAnnotationValue(label="false", score=0.0),
+                    ],
+                )
+            ],
         )
         evaluator_gid = str(
             GlobalID(
@@ -2588,12 +2630,7 @@ class TestChatCompletionOverDatasetSubscription:
                     {
                         "id": evaluator_gid,
                         "name": custom_name,
-                        "inputMapping": {
-                            "literalMapping": {
-                                "expected": "test",
-                                "actual": "test",
-                            },
-                        },
+                        "inputMapping": {"literalMapping": {}, "pathMapping": {}},
                     }
                 ],
             }
