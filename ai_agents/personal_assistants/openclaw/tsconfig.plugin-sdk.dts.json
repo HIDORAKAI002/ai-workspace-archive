@@ -4,6 +4,7 @@
     "declaration": true,
     "declarationMap": false,
     "emitDeclarationOnly": true,
+    "incremental": true,
     "noEmit": false,
     "noEmitOnError": false,
     "outDir": "dist/plugin-sdk",

@@ -3792,7 +3792,14 @@ class MemoryEngine(MemoryEngineInterface):
 
         Returns:
             Dictionary with deletion result
+
+        Raises:
+            ValueError: If unit_id is not a valid UUID
         """
+        try:
+            unit_uuid = uuid.UUID(unit_id)
+        except ValueError:
+            raise ValueError(f"Invalid unit_id: '{unit_id}' is not a valid UUID")
         await self._authenticate_tenant(request_context)
         pool = await self._get_pool()
         invalidated_obs = 0
@@ -3802,7 +3809,7 @@ class MemoryEngine(MemoryEngineInterface):
                 # Get bank_id and fact_type before deletion
                 row = await conn.fetchrow(
                     f"SELECT bank_id, fact_type FROM {fq_table('memory_units')} WHERE id = $1",
-                    unit_id,
+                    str(unit_uuid),
                 )
                 bank_id = row["bank_id"] if row else None
                 fact_type = row["fact_type"] if row else None
@@ -4697,7 +4704,14 @@ class MemoryEngine(MemoryEngineInterface):
 
         Returns:
             Dict with memory unit data or None if not found
+
+        Raises:
+            ValueError: If memory_id is not a valid UUID
         """
+        try:
+            memory_uuid = uuid.UUID(memory_id)
+        except ValueError:
+            raise ValueError(f"Invalid memory_id: '{memory_id}' is not a valid UUID")
         await self._authenticate_tenant(request_context)
         if self._operation_validator:
             from hindsight_api.extensions import BankReadContext
@@ -4715,7 +4729,7 @@ class MemoryEngine(MemoryEngineInterface):
                 FROM {fq_table("memory_units")}
                 WHERE id = $1 AND bank_id = $2
                 """,
-                memory_id,
+                str(memory_uuid),
                 bank_id,
             )
 
@@ -6497,6 +6511,7 @@ class MemoryEngine(MemoryEngineInterface):
 
         Returns None if the mental model is not found.
         Returns a list of history entries (most recent first), each with previous_content and changed_at.
+
         """
         await self._authenticate_tenant(request_context)
         pool = await self._get_pool()

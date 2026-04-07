@@ -19,7 +19,6 @@ async function runQaSuite(opts: {
   providerMode?: "mock-openai" | "live-openai";
   primaryModel?: string;
   alternateModel?: string;
-  fastMode?: boolean;
 }) {
   const runtime = await loadQaLabCliRuntime();
   await runtime.runQaSuiteCommand(opts);
@@ -96,21 +95,18 @@ export function registerQaLabCli(program: Command) {
     .option("--provider-mode <mode>", "Provider mode: mock-openai or live-openai", "mock-openai")
     .option("--model <ref>", "Primary provider/model ref")
     .option("--alt-model <ref>", "Alternate provider/model ref")
-    .option("--fast", "Enable provider fast mode where supported", false)
     .action(
       async (opts: {
         outputDir?: string;
         providerMode?: "mock-openai" | "live-openai";
         model?: string;
         altModel?: string;
-        fast?: boolean;
       }) => {
         await runQaSuite({
           outputDir: opts.outputDir,
           providerMode: opts.providerMode,
           primaryModel: opts.model,
           alternateModel: opts.altModel,
-          fastMode: opts.fast,
         });
       },
     );

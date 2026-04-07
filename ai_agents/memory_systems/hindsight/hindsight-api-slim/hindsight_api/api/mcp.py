@@ -97,6 +97,7 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
     _SINGLE_BANK_TOOLS: frozenset[str] = frozenset(
         {
             "retain",
+            "sync_retain",
             "recall",
             "reflect",
             "list_mental_models",

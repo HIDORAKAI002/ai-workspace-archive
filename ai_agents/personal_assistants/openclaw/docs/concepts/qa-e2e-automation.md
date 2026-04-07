@@ -49,7 +49,8 @@ pnpm qa:lab:watch
 
 `qa:lab:up:fast` keeps the Docker services on a prebuilt image and bind-mounts
 `extensions/qa-lab/web/dist` into the `qa-lab` container. `qa:lab:watch`
-rebuilds that bundle on change; refresh the browser after each rebuild.
+rebuilds that bundle on change, and the browser auto-reloads when the QA Lab
+asset hash changes.
 
 ## Repo-backed seeds
 

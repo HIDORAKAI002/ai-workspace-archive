@@ -37,7 +37,7 @@ class BankTemplateConfig(BaseModel):
     disposition_skepticism: Optional[Annotated[int, Field(le=5, strict=True, ge=1)]] = None
     disposition_literalism: Optional[Annotated[int, Field(le=5, strict=True, ge=1)]] = None
     disposition_empathy: Optional[Annotated[int, Field(le=5, strict=True, ge=1)]] = None
-    entity_labels: Optional[List[StrictStr]] = None
+    entity_labels: Optional[List[Dict[str, Any]]] = None
     entities_allow_free_form: Optional[StrictBool] = None
     __properties: ClassVar[List[str]] = ["reflect_mission", "retain_mission", "retain_extraction_mode", "retain_custom_instructions", "retain_chunk_size", "enable_observations", "observations_mission", "disposition_skepticism", "disposition_literalism", "disposition_empathy", "entity_labels", "entities_allow_free_form"]
 

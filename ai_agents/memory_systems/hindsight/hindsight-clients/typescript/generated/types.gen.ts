@@ -459,7 +459,9 @@ export type BankTemplateConfig = {
    *
    * Controlled vocabulary for entity labels
    */
-  entity_labels?: Array<string> | null;
+  entity_labels?: Array<{
+    [key: string]: unknown;
+  }> | null;
   /**
    * Entities Allow Free Form
    *

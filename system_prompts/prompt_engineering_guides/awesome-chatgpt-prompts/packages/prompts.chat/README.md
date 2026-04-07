@@ -2375,7 +2375,7 @@ import type {
 
 ## Requirements
 
-- **Node.js** 18+
+- **Node.js** 24.x
 - **TypeScript** 5+ (optional, for type checking)
 
 ---

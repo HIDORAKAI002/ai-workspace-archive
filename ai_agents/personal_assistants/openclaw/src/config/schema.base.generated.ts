@@ -2807,6 +2807,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           supportsStrictMode: {
                             type: "boolean",
                           },
+                          requiresStringContent: {
+                            type: "boolean",
+                          },
                           maxTokensField: {
                             anyOf: [
                               {
@@ -3462,6 +3465,18 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         {
                           type: "string",
                           const: "list",
+                        },
+                      ],
+                    },
+                    imagePathScope: {
+                      anyOf: [
+                        {
+                          type: "string",
+                          const: "temp",
+                        },
+                        {
+                          type: "string",
+                          const: "workspace",
                         },
                       ],
                     },

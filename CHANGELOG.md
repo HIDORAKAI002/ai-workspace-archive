@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-07 20:39 IST] Auto-Sync
+- **33 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, n8n, Dify, Activepieces, Trigger.dev, Appsmith, Budibase, NocoDB, Directus, Plane, Claude Skills, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, rusiaaman/wcgw, langchain-ai/langchain, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, vercel/ai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-07 14:19 IST] Auto-Sync
 - **29 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Appsmith, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, chatdev, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, firecrawl/firecrawl, google-gemini/gemini-cli, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

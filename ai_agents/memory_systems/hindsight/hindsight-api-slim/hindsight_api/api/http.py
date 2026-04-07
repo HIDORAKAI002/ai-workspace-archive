@@ -1661,7 +1661,9 @@ class BankTemplateConfig(BaseModel):
     disposition_skepticism: int | None = Field(default=None, ge=1, le=5, description="Skepticism trait (1-5)")
     disposition_literalism: int | None = Field(default=None, ge=1, le=5, description="Literalism trait (1-5)")
     disposition_empathy: int | None = Field(default=None, ge=1, le=5, description="Empathy trait (1-5)")
-    entity_labels: list[str] | None = Field(default=None, description="Controlled vocabulary for entity labels")
+    entity_labels: list[dict[str, Any]] | None = Field(
+        default=None, description="Controlled vocabulary for entity labels"
+    )
     entities_allow_free_form: bool | None = Field(
         default=None, description="Allow entities outside the label vocabulary"
     )
@@ -2677,6 +2679,8 @@ def _register_routes(app: FastAPI):
             return data
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -3287,6 +3291,8 @@ def _register_routes(app: FastAPI):
             raise
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             import traceback
 
@@ -3320,6 +3326,8 @@ def _register_routes(app: FastAPI):
             raise
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             import traceback
 
@@ -3484,6 +3492,8 @@ def _register_routes(app: FastAPI):
             return {"status": "deleted"}
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
