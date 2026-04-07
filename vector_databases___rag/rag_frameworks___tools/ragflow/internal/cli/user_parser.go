@@ -605,7 +605,7 @@ func (p *Parser) parseCreateIndex() (*Command, error) {
 	}
 	p.nextToken()
 
-	if p.curToken.Type != TokenNumber {
+	if p.curToken.Type != TokenInteger {
 		return nil, fmt.Errorf("expected vector size number, got %s", p.curToken.Value)
 	}
 	vectorSize, err := strconv.Atoi(p.curToken.Value)
@@ -1859,34 +1859,116 @@ func (p *Parser) parseInsertMetadataFromFile() (*Command, error) {
 
 func (p *Parser) parseSearchCommand() (*Command, error) {
 	p.nextToken() // consume SEARCH
-	question, err := p.parseQuotedString()
-	if err != nil {
-		return nil, err
+
+	var err error
+	var question string
+	if p.curToken.Type == TokenQuotedString {
+		question, err = p.parseQuotedString()
+		if err != nil {
+			return nil, err
+		}
+	} else if p.curToken.Type == TokenIdentifier {
+		question, err = p.parseIdentifier()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf("expected quoted string or identifier")
 	}
 
 	p.nextToken()
-	if p.curToken.Type != TokenOn {
-		return nil, fmt.Errorf("expected ON")
-	}
-	p.nextToken()
-	if p.curToken.Type != TokenDatasets {
-		return nil, fmt.Errorf("expected DATASETS")
-	}
-	p.nextToken()
 
-	datasets, err := p.parseQuotedString()
-	if err != nil {
-		return nil, err
-	}
+	if p.curToken.Type == TokenOn {
+		p.nextToken() // skip on
 
-	cmd := NewCommand("search_on_datasets")
-	cmd.Params["question"] = question
-	cmd.Params["datasets"] = datasets
-
-	p.nextToken()
-	// Semicolon is optional for UNSET TOKEN
-	if p.curToken.Type == TokenSemicolon {
+		if p.curToken.Type != TokenDatasets {
+			return nil, fmt.Errorf("expected DATASETS")
+		}
 		p.nextToken()
+
+		datasets, err := p.parseQuotedString()
+		if err != nil {
+			return nil, err
+		}
+
+		cmd := NewCommand("search_on_datasets")
+		cmd.Params["question"] = question
+		cmd.Params["datasets"] = datasets
+
+		p.nextToken()
+		// Semicolon is optional for UNSET TOKEN
+		if p.curToken.Type == TokenSemicolon {
+			p.nextToken()
+		}
+		return cmd, nil
+	}
+
+	cmd := NewCommand("context_search")
+
+	cmd.Params["query"] = question
+
+	if p.curToken.Type == TokenEOF {
+		cmd.Params["path"] = "."
+		return cmd, nil
+	}
+
+	for p.curToken.Type != TokenEOF {
+		if p.curToken.Type == TokenDash {
+			p.nextToken() // skip dash
+			if p.curToken.Type != TokenIdentifier {
+				return nil, fmt.Errorf("expect identifier")
+			}
+
+			if strings.ToLower(p.curToken.Value) == "n" {
+				p.nextToken()
+				var err error
+				if p.curToken.Type != TokenInteger {
+					return nil, fmt.Errorf("expect number")
+				}
+				cmd.Params["number"], err = p.parseNumber()
+				if err != nil {
+					return nil, err
+				}
+				p.nextToken()
+				continue
+			}
+
+			//if strings.ToLower(p.curToken.Value) == "t" {
+			//	p.nextToken()
+			//	var err error
+			//	if p.curToken.Type != TokenInteger {
+			//		return nil, fmt.Errorf("expect number")
+			//	}
+			//	cmd.Params["threshold"], err = p.parseFloat()
+			//	if err != nil {
+			//		return nil, err
+			//	}
+			//	p.nextToken()
+			//	continue
+			//}
+
+			return nil, fmt.Errorf("unknow parameter: %s", p.curToken.Value)
+		} else if p.curToken.Type == TokenIdentifier {
+			if cmd.Params["path"] == nil {
+				cmd.Params["path"] = p.curToken.Value
+			} else {
+				cmd.Params["path"] = fmt.Sprintf("%s%s", cmd.Params["path"], p.curToken.Value)
+			}
+			p.nextToken() // skip path
+			continue
+		} else if p.curToken.Type == TokenSlash {
+			if cmd.Params["path"] == nil {
+				cmd.Params["path"] = "/"
+			} else {
+				cmd.Params["path"] = fmt.Sprintf("%s/", cmd.Params["path"])
+			}
+			p.nextToken() // skip slash
+			if p.curToken.Type == TokenIdentifier {
+				cmd.Params["path"] = fmt.Sprintf("%s%s", cmd.Params["path"], p.curToken.Value)
+				p.nextToken()
+			}
+			continue
+		}
 	}
 	return cmd, nil
 }

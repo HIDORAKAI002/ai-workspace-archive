@@ -78,7 +78,7 @@ export class HindsightClient {
       query,
       budget: options?.budget ?? 'mid',
       max_tokens: options?.maxTokens ?? 1024,
-    }, 12_000);
+    });
   }
 
   async retain(

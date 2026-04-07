@@ -29,7 +29,7 @@ export interface PaperclipMemoryConfig {
 }
 
 export function loadConfig(overrides?: Partial<PaperclipMemoryConfig>): PaperclipMemoryConfig {
-  return {
+  const config: PaperclipMemoryConfig = {
     hindsightApiUrl: process.env['HINDSIGHT_API_URL'] ?? '',
     hindsightApiToken: process.env['HINDSIGHT_API_TOKEN'],
     bankGranularity: ['company', 'agent'],
@@ -40,4 +40,10 @@ export function loadConfig(overrides?: Partial<PaperclipMemoryConfig>): Papercli
     timeoutMs: 15_000,
     ...overrides,
   };
+  if (!config.hindsightApiUrl) {
+    throw new Error(
+      'hindsightApiUrl is required — set HINDSIGHT_API_URL or pass hindsightApiUrl to loadConfig()',
+    );
+  }
+  return config;
 }

@@ -52,7 +52,7 @@ export async function retain(
       context: config.retainContext,
       metadata: { companyId, agentId, ...metadata },
     });
-  } catch {
-    // Graceful degradation — memory is enhancement, not requirement
+  } catch (err) {
+    console.warn('[hindsight-paperclip] retain failed:', (err as Error).message);
   }
 }
