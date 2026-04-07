@@ -7,19 +7,11 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import {
-  Base,
-  Column,
-  FormView,
-  GridViewColumn,
-  Model,
-  Source,
-  View,
-} from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -1129,6 +1121,12 @@ export class PublicDatasService {
       source,
     });
 
+    // Verify parent row is visible in the shared view before fetching relations
+    const parentRow = await baseModel.readByPk(param.rowId);
+    if (!parentRow) {
+      NcError.recordNotFound(param.rowId);
+    }
+
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1205,6 +1203,12 @@ export class PublicDatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
+
+    // Verify parent row is visible in the shared view before fetching relations
+    const parentRow = await baseModel.readByPk(param.rowId);
+    if (!parentRow) {
+      NcError.recordNotFound(param.rowId);
+    }
 
     const key = `List`;
     const requestObj: any = {
