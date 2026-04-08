@@ -2,7 +2,12 @@ import type { componentsV1, PhoenixClient } from "@arizeai/phoenix-client";
 import { Command } from "commander";
 
 import { createPhoenixClient } from "../client";
-import { getConfigErrorMessage, resolveConfig } from "../config";
+import {
+  getConfigErrorMessage,
+  resolveConfig,
+  validateConfig,
+} from "../config";
+import { assertDeletesEnabled, confirmOrExit } from "../confirm";
 import { ExitCode, getExitCodeForError } from "../exitCodes";
 import { writeError, writeOutput, writeProgress } from "../io";
 import { formatPromptOutput, type OutputFormat } from "./formatPrompt";
@@ -26,6 +31,13 @@ interface PromptListOptions {
   format?: "pretty" | "json" | "raw";
   progress?: boolean;
   limit?: number;
+}
+
+interface PromptDeleteOptions {
+  endpoint?: string;
+  apiKey?: string;
+  yes?: boolean;
+  progress?: boolean;
 }
 
 /**
@@ -143,11 +155,11 @@ async function promptHandler(
     });
 
     // Validate that we have endpoint
-    if (!config.endpoint) {
-      const errors = [
-        "Phoenix endpoint not configured. Set PHOENIX_HOST environment variable or use --endpoint flag.",
-      ];
-      writeError({ message: getConfigErrorMessage({ errors }) });
+    const validation = validateConfig({ config, projectRequired: false });
+    if (!validation.valid) {
+      writeError({
+        message: getConfigErrorMessage({ errors: validation.errors }),
+      });
       process.exit(ExitCode.INVALID_ARGUMENT);
     }
 
@@ -196,11 +208,11 @@ async function promptListHandler(options: PromptListOptions): Promise<void> {
       },
     });
 
-    if (!config.endpoint) {
-      const errors = [
-        "Phoenix endpoint not configured. Set PHOENIX_HOST environment variable or use --endpoint flag.",
-      ];
-      writeError({ message: getConfigErrorMessage({ errors }) });
+    const validation = validateConfig({ config, projectRequired: false });
+    if (!validation.valid) {
+      writeError({
+        message: getConfigErrorMessage({ errors: validation.errors }),
+      });
       process.exit(ExitCode.INVALID_ARGUMENT);
     }
 
@@ -228,6 +240,62 @@ async function promptListHandler(options: PromptListOptions): Promise<void> {
   } catch (error) {
     writeError({
       message: `Error fetching prompts: ${error instanceof Error ? error.message : String(error)}`,
+    });
+    process.exit(getExitCodeForError(error));
+  }
+}
+
+/**
+ * Handler for `prompt delete`
+ */
+async function promptDeleteHandler(
+  promptIdentifier: string,
+  options: PromptDeleteOptions
+): Promise<void> {
+  try {
+    assertDeletesEnabled();
+
+    const config = resolveConfig({
+      cliOptions: {
+        endpoint: options.endpoint,
+        apiKey: options.apiKey,
+      },
+    });
+
+    const validation = validateConfig({ config, projectRequired: false });
+    if (!validation.valid) {
+      writeError({
+        message: getConfigErrorMessage({ errors: validation.errors }),
+      });
+      process.exit(ExitCode.INVALID_ARGUMENT);
+    }
+
+    const client = createPhoenixClient({ config });
+
+    await confirmOrExit({
+      message: `Delete prompt ${promptIdentifier}? This will also delete all versions, tags, and labels. This cannot be undone.`,
+      yes: options.yes,
+    });
+
+    const response = await client.DELETE("/v1/prompts/{prompt_identifier}", {
+      params: {
+        path: {
+          prompt_identifier: promptIdentifier,
+        },
+      },
+    });
+
+    if (response.error) {
+      throw new Error(`Failed to delete prompt: ${response.error}`);
+    }
+
+    writeProgress({
+      message: `Deleted prompt ${promptIdentifier}`,
+      noProgress: !options.progress,
+    });
+  } catch (error) {
+    writeError({
+      message: `Error deleting prompt: ${error instanceof Error ? error.message : String(error)}`,
     });
     process.exit(getExitCodeForError(error));
   }
@@ -265,6 +333,17 @@ export function createPromptListCommand(): Command {
     .action(promptListHandler);
 }
 
+export function createPromptDeleteCommand(): Command {
+  return new Command("delete")
+    .description("Delete a prompt")
+    .argument("<prompt-identifier>", "Prompt name or ID")
+    .option("--endpoint <url>", "Phoenix API endpoint")
+    .option("--api-key <key>", "Phoenix API key for authentication")
+    .option("-y, --yes", "Skip confirmation prompt")
+    .option("--no-progress", "Disable progress indicators")
+    .action(promptDeleteHandler);
+}
+
 /**
  * Create the `prompt` command with subcommands
  */
@@ -273,5 +352,6 @@ export function createPromptCommand(): Command {
   command.description("Manage Phoenix prompts");
   command.addCommand(createPromptListCommand());
   command.addCommand(createPromptGetCommand());
+  command.addCommand(createPromptDeleteCommand());
   return command;
 }

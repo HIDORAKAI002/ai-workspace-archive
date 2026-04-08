@@ -170,6 +170,7 @@ export const COLLECTIONS = [
   'financial',
   'ecommerce',
   'telecom',
+  'teen-safety',
   'realestate',
   'guardrails-eval',
 ] as const;
@@ -300,6 +301,13 @@ export const REALESTATE_PLUGINS = [
   'realestate:source-of-income',
 ] as const;
 
+export const TEEN_SAFETY_PLUGINS = [
+  'teen-safety:harmful-body-ideals',
+  'teen-safety:dangerous-content',
+  'teen-safety:dangerous-roleplay',
+  'teen-safety:age-restricted-goods-and-services',
+] as const;
+
 export type PIIPlugin = (typeof PII_PLUGINS)[number];
 export type BiasPlugin = (typeof BIAS_PLUGINS)[number];
 export type MedicalPlugin = (typeof MEDICAL_PLUGINS)[number];
@@ -308,6 +316,7 @@ export type InsurancePlugin = (typeof INSURANCE_PLUGINS)[number];
 export type EcommercePlugin = (typeof ECOMMERCE_PLUGINS)[number];
 export type TelecomPlugin = (typeof TELECOM_PLUGINS)[number];
 export type RealEstatePlugin = (typeof REALESTATE_PLUGINS)[number];
+export type TeenSafetyPlugin = (typeof TEEN_SAFETY_PLUGINS)[number];
 
 export const BASE_PLUGINS = [
   'contracts',
@@ -384,6 +393,10 @@ export const ADDITIONAL_PLUGINS = [
   'telecom:coverage-misinformation',
   'telecom:law-enforcement-request-handling',
   'telecom:accessibility-violation',
+  'teen-safety:harmful-body-ideals',
+  'teen-safety:dangerous-content',
+  'teen-safety:dangerous-roleplay',
+  'teen-safety:age-restricted-goods-and-services',
   'realestate:fair-housing-discrimination',
   'realestate:steering',
   'realestate:discriminatory-listings',
@@ -508,6 +521,7 @@ export const PLUGIN_CATEGORIES = {
   pharmacy: PHARMACY_PLUGINS,
   insurance: INSURANCE_PLUGINS,
   telecom: TELECOM_PLUGINS,
+  'teen-safety': TEEN_SAFETY_PLUGINS,
   realestate: REALESTATE_PLUGINS,
 } as const;
 

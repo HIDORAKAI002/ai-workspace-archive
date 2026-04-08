@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-08 15:38 IST] Auto-Sync
+- **30 Repositories Updated:** Public APIs Directory, Keboola MCP, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Windmill, Budibase, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-08 09:19 IST] Auto-Sync
 - **26 Repositories Updated:** Playwright MCP, Exa MCP Server, Dify, Windmill, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, openai/openai-agents-python, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, chenglou/pretext, google-gemini/gemini-cli, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
