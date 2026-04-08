@@ -15,13 +15,13 @@ from dagster_dg_core.utils import DgClickCommand
 from dagster_dg_core.utils.telemetry import cli_telemetry_wrapper
 from dagster_shared.plus.config import DAGSTER_CLOUD_BASE_URL, DagsterPlusCliConfig
 
+from dagster_dg_cli.cli.plus.build import get_agent_type_and_platform_from_graphql
 from dagster_dg_cli.cli.plus.constants import DgPlusAgentType
 from dagster_dg_cli.cli.plus.deploy.configure.commands import resolve_python_version
 from dagster_dg_cli.cli.plus.deploy.configure.configure_build_artifacts import (
     configure_build_artifacts_impl,
 )
 from dagster_dg_cli.cli.plus.deploy.configure.utils import DgPlusDeployConfigureOptions
-from dagster_dg_cli.utils.plus.build import get_agent_type_and_platform_from_graphql
 from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
 

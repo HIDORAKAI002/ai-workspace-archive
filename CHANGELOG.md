@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-08 21:58 IST] Auto-Sync
+- **43 Repositories Updated:** MCP Python SDK, BigQuery MCP, Langfuse, Promptfoo, n8n, Activepieces, Windmill, Appsmith, Budibase, modelcontextprotocol/java-sdk, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Swarms, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, RooCodeInc/Roo-Code, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, chenglou/pretext, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, microsoft/VibeVoice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nikopueringer/CorridorKey
+
 ## [2026-04-08 15:38 IST] Auto-Sync
 - **30 Repositories Updated:** Public APIs Directory, Keboola MCP, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Windmill, Budibase, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

@@ -1,0 +1,38 @@
+{
+  "_comment": "Set protectionMode to 'off', 'allowedTables', or 'autoProtect'. If protectionMode is not set, defaults to autoProtect for backward compatibility.",
+  "maximumBytesBilled": "10000000000",
+  "protectionMode": "autoProtect",
+
+  "_autoProtect": "Settings below are used only in autoProtect mode.",
+  "sensitiveFieldPatterns": [
+    "%first_name%", "%last_name%", "%full_name%", "%fullname%",
+    "%patient_name%", "%member_name%",
+    "%email%", "%phone%", "%address%",
+    "%zip_code%", "%zipcode%", "%postal_code%",
+    "%ssn%", "%social_security%",
+    "%date_of_birth%", "%dob%", "%birth_date%",
+    "%mrn%", "%medical_record%",
+    "%insurance_id%", "%member_id%", "%subscriber_id%", "%npi%",
+    "%password%", "%token%", "%secret%",
+    "%access_key%", "%api_key%", "%credential%"
+  ],
+  "sensitiveFieldScanFrequencyDays": 1,
+  "preventedFields": {
+    "dataset_name.table_name": [
+      "first_name",
+      "last_name",
+      "email"
+    ]
+  },
+
+  "_allowedTables": "Settings below are used only in allowedTables mode.",
+  "allowedTables": [
+    "analytics.page_views",
+    "analytics.sessions",
+    "reporting.daily_summary"
+  ],
+  "preventedFieldsInAllowedTables": {
+    "analytics.page_views": ["user_ip", "user_agent"],
+    "analytics.sessions": ["session_token"]
+  }
+}

@@ -76,6 +76,7 @@ graph TB
 | `auto_compile` | `bool` | Whether to automatically compile the workflow | `True` |
 | `verbose` | `bool` | Whether to enable detailed logging | `False` |
 | `backend` | `str` | Graph backend to use ("networkx" or "rustworkx") | `"networkx"` |
+| `checkpoint_dir` | `Optional[str]` | Directory to write per-layer checkpoint files. When set, each layer's outputs are saved to disk after execution and loaded on resume, skipping re-execution of completed layers. `None` disables checkpointing. | `None` |
 
 ## Graph Backends
 
@@ -1121,6 +1122,126 @@ try:
 except Exception as e:
     print(f"Workflow setup failed: {e}")
 ```
+
+## Checkpointing
+
+Long-running workflows can fail mid-way due to network errors, API timeouts, or process crashes. Without checkpointing, you'd have to re-run every layer from the start. With `checkpoint_dir` set, `GraphWorkflow` saves each layer's outputs to disk immediately after it completes, and skips any layer that already has a saved result when you re-run the same task.
+
+### How It Works
+
+```mermaid
+graph TD
+    A[run called] --> B{checkpoint file exists\nfor this layer?}
+    B -->|Yes| C[Load outputs from disk\nReplay into conversation\nSkip execution]
+    B -->|No| D[Execute layer normally]
+    D --> E[Save layer outputs to disk]
+    C --> F[Next layer]
+    E --> F
+```
+
+1. A stable SHA-256 hash of the task string is computed as a run key (unlike Python's built-in `hash()`, this is deterministic across process restarts).
+2. Before each layer executes, `GraphWorkflow` checks for a file named `{task_key}_layer_{idx}.json` in `checkpoint_dir`.
+3. If the file exists, its outputs are loaded, replayed into the conversation, and the layer is skipped.
+4. After each layer executes successfully, its outputs are written to that file.
+5. Call `clear_checkpoints()` after a successful run to clean up stale files.
+
+### Usage
+
+```python
+from swarms import Agent, GraphWorkflow
+
+research = Agent(agent_name="ResearchAgent", model_name="gpt-5.4", max_loops=1)
+analysis = Agent(agent_name="AnalysisAgent", model_name="gpt-5.4", max_loops=1)
+synthesis = Agent(agent_name="SynthesisAgent", model_name="gpt-5.4", max_loops=1)
+
+workflow = GraphWorkflow(
+    name="Resilient-Workflow",
+    checkpoint_dir="./checkpoints",  # enable checkpointing
+    verbose=True,
+)
+
+workflow.add_nodes([research, analysis, synthesis])
+workflow.add_edge("ResearchAgent", "AnalysisAgent")
+workflow.add_edge("AnalysisAgent", "SynthesisAgent")
+
+task = "Analyze renewable energy investment trends for 2025"
+
+# First run: all three layers execute and are saved to ./checkpoints/
+results = workflow.run(task)
+
+# If the process crashes and you re-run, completed layers are restored from disk.
+# Only layers that didn't finish will re-execute.
+results = workflow.run(task)
+
+# Clean up checkpoint files once the run succeeds.
+deleted = workflow.clear_checkpoints(task)
+print(f"Removed {deleted} checkpoint file(s)")
+```
+
+### Resuming After a Crash
+
+```python
+workflow = GraphWorkflow(
+    name="Long-Running-Workflow",
+    checkpoint_dir="./checkpoints",
+    verbose=True,
+)
+
+# ... add nodes and edges ...
+
+task = "Comprehensive global market analysis"
+
+try:
+    results = workflow.run(task)
+    workflow.clear_checkpoints(task)
+except Exception as e:
+    print(f"Run failed: {e}")
+    # Re-run — completed layers are skipped automatically
+    results = workflow.run(task)
+    workflow.clear_checkpoints(task)
+```
+
+### `clear_checkpoints(task: str) -> int`
+
+Deletes all checkpoint files written for a specific task. Call this after a run completes successfully to prevent stale files from being picked up by a future run with the same task string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `task` | `str` | The exact task string passed to `run()` |
+
+**Returns:** `int` — number of checkpoint files deleted.
+
+**Raises:** `ValueError` if `checkpoint_dir` is not set on the workflow.
+
+```python
+deleted = workflow.clear_checkpoints("Analyze renewable energy investment trends for 2025")
+print(f"Removed {deleted} checkpoint file(s)")
+```
+
+### Checkpoint File Format
+
+Each file is a JSON object mapping node IDs to their string output for that layer:
+
+```json
+{
+  "ResearchAgent": "Renewable energy investment reached $500B in 2024...",
+  "AnalysisAgent": "Key growth sectors: solar (42%), wind (31%)..."
+}
+```
+
+Files are named `{sha256_16chars}_layer_{idx}.json` and stored flat in `checkpoint_dir`.
+
+### Considerations
+
+| | Checkpointing on | Checkpointing off |
+|---|---|---|
+| Crash recovery | Resumes from last completed layer | Restarts from scratch |
+| Disk usage | Writes one JSON file per layer | No disk writes |
+| Determinism | Task key is SHA-256 — stable across restarts | N/A |
+| Cleanup | Call `clear_checkpoints()` after success | N/A |
+| Streaming callbacks | Not replayed from checkpoint | N/A |
+
+---
 
 ## Conclusion
 

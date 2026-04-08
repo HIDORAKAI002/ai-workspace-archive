@@ -83,6 +83,7 @@ export interface MemoryItemInput {
     tags?: string[];
     observation_scopes?: "per_tag" | "combined" | "all_combinations" | string[][];
     strategy?: string;
+    update_mode?: "replace" | "append";
 }
 
 export class HindsightClient {
@@ -137,6 +138,8 @@ export class HindsightClient {
             entities?: EntityInput[];
             /** Optional list of tags for this memory */
             tags?: string[];
+            /** How to handle existing documents: 'replace' (default) or 'append' */
+            updateMode?: "replace" | "append";
         }
     ): Promise<RetainResponse> {
         const item: {
@@ -147,6 +150,7 @@ export class HindsightClient {
             document_id?: string;
             entities?: EntityInput[];
             tags?: string[];
+            update_mode?: "replace" | "append";
         } = { content };
         if (options?.timestamp) {
             item.timestamp =
@@ -168,6 +172,9 @@ export class HindsightClient {
         }
         if (options?.tags) {
             item.tags = options.tags;
+        }
+        if (options?.updateMode) {
+            item.update_mode = options.updateMode;
         }
 
         const response = await sdk.retainMemories({
@@ -192,6 +199,7 @@ export class HindsightClient {
             tags: item.tags,
             observation_scopes: item.observation_scopes,
             strategy: item.strategy,
+            update_mode: item.update_mode,
             timestamp:
                 item.timestamp instanceof Date
                     ? item.timestamp.toISOString()

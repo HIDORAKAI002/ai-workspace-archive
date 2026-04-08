@@ -161,7 +161,7 @@ To switch between backends:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `ollama`, `lmstudio`, `vertexai`, `bedrock`, `litellm`, `volcano`, `openrouter`, `none` | `openai` |
+| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `ollama`, `lmstudio`, `llamacpp`, `vertexai`, `bedrock`, `litellm`, `volcano`, `openrouter`, `none` | `openai` |
 | `HINDSIGHT_API_LLM_API_KEY` | API key for LLM provider | - |
 | `HINDSIGHT_API_LLM_MODEL` | Model name | `gpt-5-mini` |
 | `HINDSIGHT_API_LLM_BASE_URL` | Custom LLM endpoint | Provider default |
@@ -220,6 +220,12 @@ export HINDSIGHT_API_LLM_PROVIDER=lmstudio
 export HINDSIGHT_API_LLM_BASE_URL=http://localhost:1234/v1
 export HINDSIGHT_API_LLM_MODEL=your-local-model
 
+# llama.cpp (built-in local inference, no external server needed)
+export HINDSIGHT_API_LLM_PROVIDER=llamacpp
+# No API key, base URL, or external server required.
+# Auto-downloads Gemma 4 E2B (~3.5 GB GGUF) on first run.
+# See "Built-in llama.cpp" section below for all configuration options.
+
 # OpenAI-compatible endpoint
 export HINDSIGHT_API_LLM_PROVIDER=openai
 export HINDSIGHT_API_LLM_BASE_URL=https://your-endpoint.com/v1
@@ -275,6 +281,36 @@ export HINDSIGHT_API_LLM_PROVIDER=none
 
 :::tip OpenAI Codex, Claude Code & Vertex AI Setup
 For detailed setup instructions for **OpenAI Codex** (ChatGPT Plus/Pro), **Claude Code** (Claude Pro/Max), and **Vertex AI** (Google Cloud), see the [Models documentation](./models#openai-codex-setup-chatgpt-pluspro).
+:::
+
+### Built-in llama.cpp
+
+The `llamacpp` provider runs a llama.cpp server as a managed subprocess — no external LLM server needed. On first run it auto-downloads a default GGUF model (~3.5 GB). Requires the `local-llm` extra: `pip install 'hindsight-api-slim[local-llm]'`.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HINDSIGHT_API_LLAMACPP_MODEL_PATH` | Path to a GGUF model file. If not set, auto-downloads `gemma-4-E2B-it-Q4_K_M` from HuggingFace. | Auto-download |
+| `HINDSIGHT_API_LLAMACPP_GPU_LAYERS` | Number of layers to offload to GPU. `-1` = all layers (recommended). `0` = CPU only. | `-1` |
+| `HINDSIGHT_API_LLAMACPP_CONTEXT_SIZE` | Context window size in tokens. | `8192` |
+| `HINDSIGHT_API_LLAMACPP_CHAT_FORMAT` | Chat template format. `null` = auto-detect from GGUF metadata (recommended). | Auto-detect |
+| `HINDSIGHT_API_LLAMACPP_NO_GRAMMAR` | Disable JSON grammar enforcement. Faster inference but less reliable JSON output. | `false` |
+| `HINDSIGHT_API_LLAMACPP_EXTRA_ARGS` | Space-separated extra CLI args passed to the llama.cpp server (e.g. `--n_threads 8 --type_k 1`). | - |
+
+```bash
+# Minimal setup (auto-downloads model, uses GPU)
+export HINDSIGHT_API_LLM_PROVIDER=llamacpp
+
+# Custom model with tuning
+export HINDSIGHT_API_LLM_PROVIDER=llamacpp
+export HINDSIGHT_API_LLM_MAX_CONCURRENT=2
+export HINDSIGHT_API_LLAMACPP_MODEL_PATH=~/.hindsight/models/my-model.gguf
+export HINDSIGHT_API_LLAMACPP_CONTEXT_SIZE=16384
+export HINDSIGHT_API_LLAMACPP_NO_GRAMMAR=true  # faster, less reliable JSON
+export HINDSIGHT_API_LLAMACPP_EXTRA_ARGS="--n_threads 8"
+```
+
+:::note
+The llama.cpp server is shared across all LLM operations (retain, reflect, consolidation). Set `HINDSIGHT_API_LLM_MAX_CONCURRENT=2` to allow retain and consolidation to run concurrently without blocking each other.
 :::
 
 ### Per-Operation LLM Configuration

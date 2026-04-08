@@ -1,10 +1,13 @@
+import hashlib
+
 import pytest
+
+from swarms.structs.agent import Agent
 from swarms.structs.graph_workflow import (
     GraphWorkflow,
     Node,
     NodeType,
 )
-from swarms.structs.agent import Agent
 
 try:
     import rustworkx as rx
@@ -526,6 +529,178 @@ def test_graph_workflow_rustworkx_agent_objects():
 
     result = workflow.run("Test agent objects in edges")
     assert result is not None
+
+
+def test_graph_workflow_checkpoint_writes_and_resumes(tmp_path):
+    """Checkpoint files are written after each layer and skipped on second run."""
+    from unittest.mock import MagicMock
+
+    def make_agent(name):
+        a = MagicMock()
+        a.agent_name = name
+        a.run = MagicMock(return_value=f"output-{name}")
+        return a
+
+    a1 = make_agent("CP-Alpha")
+    a2 = make_agent("CP-Beta")
+    a3 = make_agent("CP-Gamma")
+
+    cp_dir = str(tmp_path / "checkpoints")
+    wf = GraphWorkflow(name="CP-Test", checkpoint_dir=cp_dir)
+    wf.add_nodes([a1, a2, a3])
+    wf.add_edge("CP-Alpha", "CP-Beta")
+    wf.add_edge("CP-Beta", "CP-Gamma")
+    wf.compile()
+
+    TASK = "checkpoint test task"
+
+    # First run — all three agents execute, three checkpoint files written
+    results = wf.run(TASK)
+    assert results["CP-Alpha"] == "output-CP-Alpha"
+    assert results["CP-Beta"] == "output-CP-Beta"
+    assert results["CP-Gamma"] == "output-CP-Gamma"
+
+    task_key = hashlib.sha256(TASK.encode("utf-8")).hexdigest()[:16]
+    cp_files = list(tmp_path.glob("checkpoints/*.json"))
+    assert len(cp_files) == 3
+    assert any(f"{task_key}_layer_0" in f.name for f in cp_files)
+    assert any(f"{task_key}_layer_1" in f.name for f in cp_files)
+    assert any(f"{task_key}_layer_2" in f.name for f in cp_files)
+
+    # Reset call counts, then run again — all layers should be skipped
+    a1.run.reset_mock()
+    a2.run.reset_mock()
+    a3.run.reset_mock()
+
+    results2 = wf.run(TASK)
+    assert a1.run.call_count == 0
+    assert a2.run.call_count == 0
+    assert a3.run.call_count == 0
+    assert results2["CP-Alpha"] == "output-CP-Alpha"
+
+
+def test_graph_workflow_checkpoint_partial_resume(tmp_path):
+    """When only some checkpoints exist, only the missing layers re-execute."""
+    from unittest.mock import MagicMock
+
+    def make_agent(name):
+        a = MagicMock()
+        a.agent_name = name
+        a.run = MagicMock(return_value=f"output-{name}")
+        return a
+
+    a1 = make_agent("PR-Alpha")
+    a2 = make_agent("PR-Beta")
+    a3 = make_agent("PR-Gamma")
+
+    cp_dir = str(tmp_path / "checkpoints")
+    wf = GraphWorkflow(name="PR-Test", checkpoint_dir=cp_dir)
+    wf.add_nodes([a1, a2, a3])
+    wf.add_edge("PR-Alpha", "PR-Beta")
+    wf.add_edge("PR-Beta", "PR-Gamma")
+    wf.compile()
+
+    TASK = "partial resume task"
+    wf.run(TASK)
+
+    # Delete the last layer's checkpoint to simulate a crash after layer 2
+    task_key = hashlib.sha256(TASK.encode("utf-8")).hexdigest()[:16]
+    (tmp_path / "checkpoints" / f"{task_key}_layer_2.json").unlink()
+
+    a1.run.reset_mock()
+    a2.run.reset_mock()
+    a3.run.reset_mock()
+
+    wf.run(TASK)
+
+    assert a1.run.call_count == 0  # restored from checkpoint
+    assert a2.run.call_count == 0  # restored from checkpoint
+    assert a3.run.call_count == 1  # re-executed
+
+
+def test_graph_workflow_clear_checkpoints(tmp_path):
+    """clear_checkpoints() removes only the target task's files."""
+    from unittest.mock import MagicMock
+
+    def make_agent(name):
+        a = MagicMock()
+        a.agent_name = name
+        a.run = MagicMock(return_value=f"output-{name}")
+        return a
+
+    a1 = make_agent("CL-Alpha")
+    a2 = make_agent("CL-Beta")
+
+    cp_dir = str(tmp_path / "checkpoints")
+    wf = GraphWorkflow(name="CL-Test", checkpoint_dir=cp_dir)
+    wf.add_nodes([a1, a2])
+    wf.add_edge("CL-Alpha", "CL-Beta")
+    wf.compile()
+
+    TASK_A = "task a"
+    TASK_B = "task b"
+
+    wf.run(TASK_A)
+    wf.run(TASK_B)
+
+    all_files_before = list(tmp_path.glob("checkpoints/*.json"))
+    assert len(all_files_before) == 4  # 2 layers x 2 tasks
+
+    deleted = wf.clear_checkpoints(TASK_A)
+    assert deleted == 2
+
+    remaining = list(tmp_path.glob("checkpoints/*.json"))
+    assert len(remaining) == 2  # only TASK_B files remain
+
+    task_b_key = hashlib.sha256(TASK_B.encode("utf-8")).hexdigest()[
+        :16
+    ]
+    assert all(task_b_key in f.name for f in remaining)
+
+
+def test_graph_workflow_clear_checkpoints_no_dir():
+    """clear_checkpoints() raises ValueError when checkpoint_dir is not set."""
+    wf = GraphWorkflow(name="NoCp-Test")
+    with pytest.raises(ValueError, match="checkpoint_dir"):
+        wf.clear_checkpoints("some task")
+
+
+def test_graph_workflow_checkpoint_conversation_replay(tmp_path):
+    """Restored checkpoint outputs are replayed into self.conversation."""
+    from unittest.mock import MagicMock
+
+    def make_agent(name):
+        a = MagicMock()
+        a.agent_name = name
+        a.run = MagicMock(return_value=f"output-{name}")
+        return a
+
+    a1 = make_agent("CV-Alpha")
+    a2 = make_agent("CV-Beta")
+
+    cp_dir = str(tmp_path / "checkpoints")
+    wf = GraphWorkflow(name="CV-Test", checkpoint_dir=cp_dir)
+    wf.add_nodes([a1, a2])
+    wf.add_edge("CV-Alpha", "CV-Beta")
+    wf.compile()
+
+    TASK = "conversation replay task"
+    wf.run(TASK)
+
+    # Second run — both layers restored from checkpoints
+    a1.run.reset_mock()
+    a2.run.reset_mock()
+    wf.conversation = type(wf.conversation)()  # fresh conversation
+    wf.run(TASK)
+
+    assert a1.run.call_count == 0
+    assert a2.run.call_count == 0
+    # Conversation should contain the restored outputs
+    history_roles = [
+        m["role"] for m in wf.conversation.conversation_history
+    ]
+    assert "CV-Alpha" in history_roles
+    assert "CV-Beta" in history_roles
 
 
 def test_graph_workflow_to_spec_round_trip():

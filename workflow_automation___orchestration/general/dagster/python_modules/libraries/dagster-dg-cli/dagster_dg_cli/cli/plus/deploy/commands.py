@@ -24,6 +24,7 @@ from dagster_shared.plus.config import DagsterPlusCliConfig
 from dagster_shared.serdes import serialize_value
 from dagster_shared.seven.temp_dir import get_system_temp_directory
 
+from dagster_dg_cli.cli.plus.build import get_agent_type
 from dagster_dg_cli.cli.plus.constants import DgPlusAgentType, DgPlusDeploymentType
 from dagster_dg_cli.cli.plus.deploy.configure.commands import deploy_configure_group
 from dagster_dg_cli.cli.plus.deploy.deploy_session import (
@@ -32,7 +33,6 @@ from dagster_dg_cli.cli.plus.deploy.deploy_session import (
     init_deploy_session,
 )
 from dagster_dg_cli.cli.plus.deploy.validation import _extract_dagster_env_from_url
-from dagster_dg_cli.utils.plus.build import get_agent_type
 from dagster_dg_cli.utils.plus.gql import SECRETS_QUERY
 from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
