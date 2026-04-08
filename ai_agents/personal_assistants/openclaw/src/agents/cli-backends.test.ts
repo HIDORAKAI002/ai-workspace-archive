@@ -60,6 +60,38 @@ function createBackendEntry(params: {
   };
 }
 
+function createClaudeCliOverrideConfig(config: CliBackendConfig): OpenClawConfig {
+  return {
+    agents: {
+      defaults: {
+        cliBackends: {
+          "claude-cli": config,
+        },
+      },
+    },
+  } satisfies OpenClawConfig;
+}
+
+const NORMALIZED_CLAUDE_FALLBACK_ARGS = [
+  "-p",
+  "--output-format",
+  "stream-json",
+  "--setting-sources",
+  "user",
+  "--permission-mode",
+  "bypassPermissions",
+];
+
+const NORMALIZED_CLAUDE_FALLBACK_RESUME_ARGS = [
+  "-p",
+  "--resume",
+  "{sessionId}",
+  "--setting-sources",
+  "user",
+  "--permission-mode",
+  "bypassPermissions",
+];
+
 beforeAll(async () => {
   vi.doUnmock("../plugins/setup-registry.js");
   vi.doUnmock("../plugins/cli-backends.runtime.js");
@@ -449,79 +481,31 @@ describe("resolveCliBackendConfig claude-cli defaults", () => {
   });
 
   it("falls back to user-only setting sources when a custom override leaves the flag without a value", () => {
-    const cfg = {
-      agents: {
-        defaults: {
-          cliBackends: {
-            "claude-cli": {
-              command: "claude",
-              args: ["-p", "--setting-sources", "--output-format", "stream-json"],
-              resumeArgs: ["-p", "--setting-sources", "--resume", "{sessionId}"],
-            },
-          },
-        },
-      },
-    } satisfies OpenClawConfig;
+    const cfg = createClaudeCliOverrideConfig({
+      command: "claude",
+      args: ["-p", "--setting-sources", "--output-format", "stream-json"],
+      resumeArgs: ["-p", "--setting-sources", "--resume", "{sessionId}"],
+    });
 
     const resolved = resolveCliBackendConfig("claude-cli", cfg);
 
     expect(resolved).not.toBeNull();
-    expect(resolved?.config.args).toEqual([
-      "-p",
-      "--output-format",
-      "stream-json",
-      "--setting-sources",
-      "user",
-      "--permission-mode",
-      "bypassPermissions",
-    ]);
-    expect(resolved?.config.resumeArgs).toEqual([
-      "-p",
-      "--resume",
-      "{sessionId}",
-      "--setting-sources",
-      "user",
-      "--permission-mode",
-      "bypassPermissions",
-    ]);
+    expect(resolved?.config.args).toEqual(NORMALIZED_CLAUDE_FALLBACK_ARGS);
+    expect(resolved?.config.resumeArgs).toEqual(NORMALIZED_CLAUDE_FALLBACK_RESUME_ARGS);
   });
 
   it("falls back to bypassPermissions when a custom override leaves permission-mode without a value", () => {
-    const cfg = {
-      agents: {
-        defaults: {
-          cliBackends: {
-            "claude-cli": {
-              command: "claude",
-              args: ["-p", "--permission-mode", "--output-format", "stream-json"],
-              resumeArgs: ["-p", "--permission-mode", "--resume", "{sessionId}"],
-            },
-          },
-        },
-      },
-    } satisfies OpenClawConfig;
+    const cfg = createClaudeCliOverrideConfig({
+      command: "claude",
+      args: ["-p", "--permission-mode", "--output-format", "stream-json"],
+      resumeArgs: ["-p", "--permission-mode", "--resume", "{sessionId}"],
+    });
 
     const resolved = resolveCliBackendConfig("claude-cli", cfg);
 
     expect(resolved).not.toBeNull();
-    expect(resolved?.config.args).toEqual([
-      "-p",
-      "--output-format",
-      "stream-json",
-      "--setting-sources",
-      "user",
-      "--permission-mode",
-      "bypassPermissions",
-    ]);
-    expect(resolved?.config.resumeArgs).toEqual([
-      "-p",
-      "--resume",
-      "{sessionId}",
-      "--setting-sources",
-      "user",
-      "--permission-mode",
-      "bypassPermissions",
-    ]);
+    expect(resolved?.config.args).toEqual(NORMALIZED_CLAUDE_FALLBACK_ARGS);
+    expect(resolved?.config.resumeArgs).toEqual(NORMALIZED_CLAUDE_FALLBACK_RESUME_ARGS);
   });
 
   it("injects bypassPermissions when custom args omit any permission flag", () => {
