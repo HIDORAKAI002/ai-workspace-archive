@@ -1,4 +1,6 @@
+import copy
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Dict, List, Optional, Union
 import asyncio
@@ -694,9 +696,9 @@ class AgentRearrange:
                     # Use indexed key to preserve all outputs
                     # from repeated agents (e.g., "Writer_0", "Writer_2")
                     if agent_name in response_dict:
-                        response_dict[
-                            f"{agent_name}_{task_idx}"
-                        ] = result
+                        response_dict[f"{agent_name}_{task_idx}"] = (
+                            result
+                        )
                     else:
                         response_dict[agent_name] = result
 
@@ -838,6 +840,14 @@ class AgentRearrange:
             Each batch is processed sequentially, but individual tasks within
             a batch may run concurrently depending on the flow configuration.
         """
+        if batch_size <= 0:
+            raise ValueError(
+                f"batch_size must be a positive integer, got {batch_size}"
+            )
+        if img is not None and len(img) != len(tasks):
+            raise ValueError(
+                f"img length ({len(img)}) must match tasks length ({len(tasks)})"
+            )
         results = []
         for i in range(0, len(tasks), batch_size):
             batch_tasks = tasks[i : i + batch_size]
@@ -847,16 +857,26 @@ class AgentRearrange:
                 else [None] * len(batch_tasks)
             )
 
-            # Process batch using concurrent execution
-            batch_results = [
-                self.run(
-                    task=task,
-                    img=img_path,
-                    *args,
-                    **kwargs,
-                )
-                for task, img_path in zip(batch_tasks, batch_imgs)
-            ]
+            # Process batch concurrently. Each task gets a full deepcopy of
+            # self so conversation history and agent state are fully isolated.
+            max_workers = min(len(batch_tasks), os.cpu_count() or 4)
+            futures_ordered = []
+            with ThreadPoolExecutor(
+                max_workers=max_workers
+            ) as executor:
+                for task_item, img_path in zip(
+                    batch_tasks, batch_imgs
+                ):
+                    clone = copy.deepcopy(self)
+                    future = executor.submit(
+                        clone.run,
+                        task_item,
+                        img_path,
+                        *args,
+                        **kwargs,
+                    )
+                    futures_ordered.append(future)
+                batch_results = [f.result() for f in futures_ordered]
             results.extend(batch_results)
 
         return results

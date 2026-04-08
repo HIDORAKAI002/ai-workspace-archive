@@ -697,7 +697,9 @@ def test_repeated_agent_awareness_differs_per_position():
     )
 
     assert awareness_0 != awareness_2
-    print("✓ test_repeated_agent_awareness_differs_per_position passed")
+    print(
+        "✓ test_repeated_agent_awareness_differs_per_position passed"
+    )
 
 
 def test_repeated_agent_awareness_fallback_without_idx():
@@ -718,7 +720,9 @@ def test_repeated_agent_awareness_fallback_without_idx():
     assert awareness is not None
     assert isinstance(awareness, str)
     assert "Sequential awareness" in awareness
-    print("✓ test_repeated_agent_awareness_fallback_without_idx passed")
+    print(
+        "✓ test_repeated_agent_awareness_fallback_without_idx passed"
+    )
 
 
 def test_repeated_agent_three_occurrences():
@@ -733,17 +737,23 @@ def test_repeated_agent_three_occurrences():
     tasks = agent_rearrange.flow.split("->")
 
     # Writer at pos 0: no ahead, Reviewer behind
-    a0 = agent_rearrange._get_sequential_awareness("Writer", tasks, task_idx=0)
+    a0 = agent_rearrange._get_sequential_awareness(
+        "Writer", tasks, task_idx=0
+    )
     assert "Agent behind" in a0
     assert "Agent ahead" not in a0
 
     # Writer at pos 2: Reviewer ahead, Reviewer behind
-    a2 = agent_rearrange._get_sequential_awareness("Writer", tasks, task_idx=2)
+    a2 = agent_rearrange._get_sequential_awareness(
+        "Writer", tasks, task_idx=2
+    )
     assert "Agent ahead" in a2
     assert "Agent behind" in a2
 
     # Writer at pos 4: Reviewer ahead, no behind
-    a4 = agent_rearrange._get_sequential_awareness("Writer", tasks, task_idx=4)
+    a4 = agent_rearrange._get_sequential_awareness(
+        "Writer", tasks, task_idx=4
+    )
     assert "Agent ahead" in a4
     assert "Agent behind" not in a4
 
@@ -768,9 +778,9 @@ def test_repeated_agent_run():
     # Verify Writer appears twice in conversation
     messages = agent_rearrange.conversation.to_dict()
     writer_msgs = [m for m in messages if m.get("role") == "Writer"]
-    assert len(writer_msgs) == 2, (
-        f"Expected 2 Writer messages, got {len(writer_msgs)}"
-    )
+    assert (
+        len(writer_msgs) == 2
+    ), f"Expected 2 Writer messages, got {len(writer_msgs)}"
 
     print("✓ test_repeated_agent_run passed")
 
@@ -794,15 +804,18 @@ def test_repeated_agent_awareness_in_conversation():
     writer_awareness = []
     for idx, msg in enumerate(messages):
         if "Sequential awareness" in str(msg.get("content", "")):
-            if idx + 1 < len(messages) and messages[idx + 1].get("role") == "Writer":
+            if (
+                idx + 1 < len(messages)
+                and messages[idx + 1].get("role") == "Writer"
+            ):
                 writer_awareness.append(msg.get("content", ""))
 
-    assert len(writer_awareness) == 2, (
-        f"Expected 2 awareness messages before Writer, got {len(writer_awareness)}"
-    )
-    assert writer_awareness[0] != writer_awareness[1], (
-        "Both Writer invocations got identical awareness"
-    )
+    assert (
+        len(writer_awareness) == 2
+    ), f"Expected 2 awareness messages before Writer, got {len(writer_awareness)}"
+    assert (
+        writer_awareness[0] != writer_awareness[1]
+    ), "Both Writer invocations got identical awareness"
 
     print("✓ test_repeated_agent_awareness_in_conversation passed")
 
