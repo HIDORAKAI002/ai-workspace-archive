@@ -68,6 +68,9 @@ def list_assets_command(
     api = DgApiAssetApi(client)
 
     with handle_api_errors(ctx, output_json):
+        if limit > DG_API_MAX_ASSET_LIMIT:
+            raise ValueError(f"Limit cannot exceed {DG_API_MAX_ASSET_LIMIT}")
+
         assets = api.list_assets(limit=limit, cursor=cursor)
         output = format_assets(assets, as_json=output_json)
         click.echo(output)
@@ -211,6 +214,9 @@ def get_events_asset_command(
     api = DgApiAssetApi(client)
 
     with handle_api_errors(ctx, output_json):
+        if limit > DG_API_MAX_EVENT_LIMIT:
+            raise ValueError(f"Limit cannot exceed {DG_API_MAX_EVENT_LIMIT}")
+
         events = api.get_events(
             asset_key=asset_key,
             event_type=event_type.upper() if event_type else None,
@@ -281,6 +287,9 @@ def get_evaluations_asset_command(
     api = DgApiAssetApi(client)
 
     with handle_api_errors(ctx, output_json):
+        if limit > DG_API_MAX_EVENT_LIMIT:
+            raise ValueError(f"Limit cannot exceed {DG_API_MAX_EVENT_LIMIT}")
+
         evaluations = api.get_evaluations(
             asset_key=asset_key,
             limit=limit,

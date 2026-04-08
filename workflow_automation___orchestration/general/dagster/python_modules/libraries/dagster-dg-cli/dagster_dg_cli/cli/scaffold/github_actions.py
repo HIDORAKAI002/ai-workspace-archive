@@ -13,6 +13,7 @@ from dagster_dg_core.shared_options import dg_global_options
 from dagster_dg_core.utils import DgClickCommand
 from dagster_dg_core.utils.telemetry import cli_telemetry_wrapper
 
+from dagster_dg_cli.cli.plus.build import get_agent_type_and_platform_from_graphql
 from dagster_dg_cli.cli.plus.constants import DgPlusAgentType
 from dagster_dg_cli.cli.plus.deploy.configure.commands import (
     resolve_deployment,
@@ -23,7 +24,6 @@ from dagster_dg_cli.cli.plus.deploy.configure.commands import (
 )
 from dagster_dg_cli.cli.plus.deploy.configure.configure_ci import configure_ci_impl
 from dagster_dg_cli.cli.plus.deploy.configure.utils import DgPlusDeployConfigureOptions, GitProvider
-from dagster_dg_cli.utils.plus.build import get_agent_type_and_platform_from_graphql
 from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
 

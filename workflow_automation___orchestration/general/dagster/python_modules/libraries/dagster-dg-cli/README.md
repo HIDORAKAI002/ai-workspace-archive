@@ -1,3 +1,9 @@
 # dagster-dg-cli
 
-Experimental API for scaffolding Dagster projects and components. Includes the `dg` CLI tool.
+The `dg` cli tool.
+
+Includes:
+
+- Commands for scaffolding, checking, and listing Dagster entities, and running pipelines in a local Dagster instance.
+- Commands for interacting with Dagster Plus.
+- Commands for making REST-like API calls to Dagster Plus.

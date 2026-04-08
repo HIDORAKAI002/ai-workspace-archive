@@ -35,11 +35,6 @@ class DgApiAssetApi:
         cursor: str | None = None,
     ) -> "DgApiAssetList":
         """List assets with cursor-based pagination."""
-        from dagster_dg_cli.cli.api.asset import DG_API_MAX_ASSET_LIMIT
-
-        if limit > DG_API_MAX_ASSET_LIMIT:
-            raise ValueError(f"Limit cannot exceed {DG_API_MAX_ASSET_LIMIT}")
-
         return list_dg_plus_api_assets_via_graphql(self.client, limit=limit, cursor=cursor)
 
     def get_asset(self, asset_key: str) -> "DgApiAsset":
@@ -71,11 +66,6 @@ class DgApiAssetApi:
             before: ISO timestamp string for filtering events before this time.
             partitions: List of partition keys to filter by.
         """
-        from dagster_dg_cli.cli.api.asset import DG_API_MAX_EVENT_LIMIT
-
-        if limit > DG_API_MAX_EVENT_LIMIT:
-            raise ValueError(f"Limit cannot exceed {DG_API_MAX_EVENT_LIMIT}")
-
         # Convert ISO timestamp to millisecond epoch string for GraphQL
         before_timestamp_millis: str | None = None
         if before:
@@ -106,11 +96,6 @@ class DgApiAssetApi:
             cursor: Cursor for pagination (evaluation ID).
             include_nodes: Include the condition evaluation node tree.
         """
-        from dagster_dg_cli.cli.api.asset import DG_API_MAX_EVENT_LIMIT
-
-        if limit > DG_API_MAX_EVENT_LIMIT:
-            raise ValueError(f"Limit cannot exceed {DG_API_MAX_EVENT_LIMIT}")
-
         return get_asset_evaluations_via_graphql(
             self.client,
             asset_key,
