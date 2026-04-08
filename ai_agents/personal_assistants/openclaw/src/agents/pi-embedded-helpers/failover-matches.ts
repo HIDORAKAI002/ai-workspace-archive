@@ -123,6 +123,7 @@ const ERROR_PATTERNS = {
     "insufficient usd or diem balance",
     /requires?\s+more\s+credits/i,
     /out of extra usage/i,
+    /draw from your extra usage/i,
     /extra usage is required(?: for long context requests)?/i,
   ],
   authPermanent: HIGH_CONFIDENCE_AUTH_PERMANENT_PATTERNS,

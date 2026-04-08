@@ -16,6 +16,9 @@ use crate::execution::operators::{
         CountRecordsError, CountRecordsInput, CountRecordsOperator, CountRecordsOutput,
     },
     fetch_log::{FetchLogError, FetchLogOperator, FetchLogOutput},
+    filter_logs_for_shard::{
+        FilterLogsForShardError, FilterLogsForShardOperator, FilterLogsForShardOutput,
+    },
 };
 
 #[derive(Error, Debug)]
@@ -32,6 +35,8 @@ pub enum CountError {
     Result(#[from] RecvError),
     #[error("Operation aborted because resources exhausted")]
     Aborted,
+    #[error("Error partitioning logs to shard: {0}")]
+    FilterLogsForShard(#[from] FilterLogsForShardError),
 }
 
 impl ChromaError for CountError {
@@ -43,6 +48,7 @@ impl ChromaError for CountError {
             CountError::Panic(_) => ErrorCodes::Aborted,
             CountError::Result(_) => ErrorCodes::Internal,
             CountError::Aborted => ErrorCodes::ResourceExhausted,
+            CountError::FilterLogsForShard(e) => e.code(),
         }
     }
 }
@@ -81,6 +87,10 @@ pub struct CountOrchestrator {
     // Bloom filter manager
     bloom_filter_manager: Option<BloomFilterManager>,
 
+    // Sharding
+    shard_index: u32,
+    num_shards: u32,
+
     // Fetched log size
     fetch_log_bytes: Option<u64>,
 
@@ -89,6 +99,7 @@ pub struct CountOrchestrator {
 }
 
 impl CountOrchestrator {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         blockfile_provider: BlockfileProvider,
         dispatcher: chroma_system::ComponentHandle<Dispatcher>,
@@ -97,6 +108,8 @@ impl CountOrchestrator {
         fetch_log: FetchLogOperator,
         read_level: ReadLevel,
         bloom_filter_manager: Option<BloomFilterManager>,
+        shard_index: u32,
+        num_shards: u32,
     ) -> Self {
         let context = OrchestratorContext::new(dispatcher);
         Self {
@@ -107,6 +120,8 @@ impl CountOrchestrator {
             fetch_log,
             read_level,
             bloom_filter_manager,
+            shard_index,
+            num_shards,
             fetch_log_bytes: None,
             result_channel: None,
         }
@@ -143,6 +158,7 @@ impl Orchestrator for CountOrchestrator {
                         self.blockfile_provider.clone(),
                         empty_logs,
                         self.bloom_filter_manager.clone(),
+                        self.shard_index,
                     ),
                     ctx.receiver(),
                     self.context.task_cancellation_token.clone(),
@@ -188,15 +204,47 @@ impl Handler<TaskResult<FetchLogOutput, FetchLogError>> for CountOrchestrator {
             Some(output) => output,
             None => return,
         };
+
+        let task = wrap(
+            Box::new(FilterLogsForShardOperator {
+                shard_index: self.shard_index,
+                num_shards: self.num_shards,
+                record_segment: self.collection_and_segments.record_segment.clone(),
+                blockfile_provider: self.blockfile_provider.clone(),
+                bloom_filter_manager: self.bloom_filter_manager.clone(),
+            }),
+            output,
+            ctx.receiver(),
+            self.context.task_cancellation_token.clone(),
+        );
+        self.send(task, ctx, Some(Span::current())).await;
+    }
+}
+
+#[async_trait]
+impl Handler<TaskResult<FilterLogsForShardOutput, FilterLogsForShardError>> for CountOrchestrator {
+    type Result = ();
+
+    async fn handle(
+        &mut self,
+        message: TaskResult<FilterLogsForShardOutput, FilterLogsForShardError>,
+        ctx: &ComponentContext<Self>,
+    ) {
+        let partitioned = match self.ok_or_terminate(message.into_inner(), ctx).await {
+            Some(output) => output,
+            None => return,
+        };
+
         self.fetch_log_bytes
-            .replace(output.iter().map(|(l, _)| l.size_bytes()).sum());
+            .replace(partitioned.iter().map(|(l, _)| l.size_bytes()).sum());
         let task = wrap(
             CountRecordsOperator::new(),
             CountRecordsInput::new(
                 self.collection_and_segments.record_segment.clone(),
                 self.blockfile_provider.clone(),
-                output,
+                partitioned,
                 self.bloom_filter_manager.clone(),
+                self.shard_index,
             ),
             ctx.receiver(),
             self.context.task_cancellation_token.clone(),
