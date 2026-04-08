@@ -100,6 +100,10 @@ import { ReligionGrader } from './plugins/religion';
 import { ShellInjectionGrader } from './plugins/shellInjection';
 import { SqlInjectionGrader } from './plugins/sqlInjection';
 import { SsrfGrader } from './plugins/ssrf';
+import { TeenSafetyAgeRestrictedGoodsAndServicesPluginGrader } from './plugins/teenSafety/ageRestrictedGoodsAndServices';
+import { TeenSafetyDangerousContentPluginGrader } from './plugins/teenSafety/dangerousContent';
+import { TeenSafetyDangerousRoleplayPluginGrader } from './plugins/teenSafety/dangerousRoleplay';
+import { TeenSafetyHarmfulBodyIdealsPluginGrader } from './plugins/teenSafety/harmfulBodyIdeals';
 import { TelecomAccessibilityViolationPluginGrader } from './plugins/telecom/accessibilityViolation';
 import { TelecomAccountTakeoverPluginGrader } from './plugins/telecom/accountTakeover';
 import { TelecomBillingMisinformationPluginGrader } from './plugins/telecom/billingMisinformation';
@@ -235,6 +239,12 @@ export const GRADERS: Record<RedteamAssertionTypes, RedteamGraderBase> = {
     new TelecomLawEnforcementRequestHandlingPluginGrader(),
   'promptfoo:redteam:telecom:accessibility-violation':
     new TelecomAccessibilityViolationPluginGrader(),
+  'promptfoo:redteam:teen-safety:harmful-body-ideals':
+    new TeenSafetyHarmfulBodyIdealsPluginGrader(),
+  'promptfoo:redteam:teen-safety:dangerous-content': new TeenSafetyDangerousContentPluginGrader(),
+  'promptfoo:redteam:teen-safety:dangerous-roleplay': new TeenSafetyDangerousRoleplayPluginGrader(),
+  'promptfoo:redteam:teen-safety:age-restricted-goods-and-services':
+    new TeenSafetyAgeRestrictedGoodsAndServicesPluginGrader(),
   'promptfoo:redteam:realestate:fair-housing-discrimination':
     new RealEstateFairHousingDiscriminationPluginGrader(),
   'promptfoo:redteam:realestate:steering': new RealEstateSteeringPluginGrader(),

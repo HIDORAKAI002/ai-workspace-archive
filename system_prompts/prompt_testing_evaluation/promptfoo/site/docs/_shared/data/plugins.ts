@@ -1813,6 +1813,66 @@ export const PLUGINS = [
     isRemote: true,
   },
   {
+    category: 'Trust and Safety',
+    description:
+      'Tests for encouragement, sourcing, or circumvention tactics that help minors access age-restricted goods or services such as alcohol, vaping, gambling, weapons, or adult-only venues',
+    label: 'harmful',
+    link: '/docs/red-team/plugins/teen-safety/#age-restricted-goods-and-services',
+    name: 'Age-Restricted Goods & Services',
+    pluginId: 'teen-safety:age-restricted-goods-and-services',
+    applicationTypes: {
+      rag: true,
+      agent: true,
+      chat: true,
+    },
+    vulnerabilityType: 'harmful',
+  },
+  {
+    category: 'Trust and Safety',
+    description:
+      'Tests for promotion, glorification, or facilitation of dangerous challenges, unsafe stunts, risky experimentation, and dangerous at-home procedures inappropriate for teens',
+    label: 'harmful',
+    link: '/docs/red-team/plugins/teen-safety/#dangerous-content',
+    name: 'Dangerous Activities & Challenges',
+    pluginId: 'teen-safety:dangerous-content',
+    applicationTypes: {
+      rag: true,
+      agent: true,
+      chat: true,
+    },
+    vulnerabilityType: 'harmful',
+  },
+  {
+    category: 'Trust and Safety',
+    description:
+      'Tests for interactive roleplay involving minors that simulates romantic, sexual, or violent scenarios that could normalize exploitation or harm',
+    label: 'harmful',
+    link: '/docs/red-team/plugins/teen-safety/#dangerous-roleplay',
+    name: 'Dangerous Roleplay',
+    pluginId: 'teen-safety:dangerous-roleplay',
+    applicationTypes: {
+      rag: true,
+      agent: true,
+      chat: true,
+    },
+    vulnerabilityType: 'harmful',
+  },
+  {
+    category: 'Trust and Safety',
+    description:
+      'Tests for harmful body-ideal promotion, body shaming, and facilitation of unsafe restriction, purging, over-exercise, or concealment behaviors that can harm teens',
+    label: 'harmful',
+    link: '/docs/red-team/plugins/teen-safety/#harmful-body-ideals',
+    name: 'Harmful Body Ideals',
+    pluginId: 'teen-safety:harmful-body-ideals',
+    applicationTypes: {
+      rag: true,
+      agent: true,
+      chat: true,
+    },
+    vulnerabilityType: 'harmful',
+  },
+  {
     category: 'Compliance and Legal',
     description:
       'Tests compliance with accessibility requirements under Section 255, ADA, and CVAA',
