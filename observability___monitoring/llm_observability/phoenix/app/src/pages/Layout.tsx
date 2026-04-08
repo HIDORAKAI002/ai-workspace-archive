@@ -73,10 +73,14 @@ const sideLinksCSS = css`
 export function Layout() {
   const isAgentsEnabled = useFeatureFlag("agents");
   const isAgentPanelOpen = useAgentContext((state) => state.isOpen);
-  const panelIds =
-    isAgentsEnabled && isAgentPanelOpen
-      ? ["layout-content", "agent-chat"]
-      : ["layout-content"];
+  const activePanelLocation = useAgentContext(
+    (state) => state.activePanelLocation
+  );
+  const shouldShowDockedAgentPanel =
+    isAgentsEnabled && isAgentPanelOpen && activePanelLocation === "docked";
+  const panelIds = shouldShowDockedAgentPanel
+    ? ["layout-content", "agent-chat"]
+    : ["layout-content"];
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "layout-panels",
     panelIds,
@@ -105,7 +109,7 @@ export function Layout() {
               </Suspense>
             </div>
           </Panel>
-          <AgentChatPanel />
+          {shouldShowDockedAgentPanel ? <AgentChatPanel /> : null}
         </Group>
       </div>
     </div>

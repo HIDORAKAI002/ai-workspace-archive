@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { Suspense } from "react";
 
-import { useAgentStore } from "@phoenix/contexts/AgentContext";
+import { Loading } from "@phoenix/components/core";
 import { useFeatureFlag } from "@phoenix/contexts/FeatureFlagsContext";
 
-import { AgentChatPanelView } from "./AgentChatPanelView";
+import { AgentChatHeader, DockedAgentChatFrame } from "./AgentChatPanelView";
 import { ChatView } from "./Chat";
 import {
   EMPTY_SESSION_DISPLAY_NAME,
@@ -90,8 +90,6 @@ function AgentChatController({
     typeof useAgentChatPanelState
   >["handleModelChange"];
 }) {
-  const store = useAgentStore();
-
   const {
     messages,
     sendMessage,
@@ -106,59 +104,36 @@ function AgentChatController({
     chatApiUrl,
   });
 
-  const previousSessionIdRef = useRef<string | null>(null);
-
-  // Mirror the active chat status into the store so the FAB can reflect
-  // background streaming while the panel itself is hidden.
-  useEffect(() => {
-    const previousSessionId = previousSessionIdRef.current;
-    if (previousSessionId && previousSessionId !== activeSessionId) {
-      store.getState().setSessionChatStatus(previousSessionId, "ready");
-    }
-    previousSessionIdRef.current = activeSessionId;
-  }, [activeSessionId, store]);
-
-  useEffect(() => {
-    if (activeSessionId !== null) {
-      store.getState().setSessionChatStatus(activeSessionId, status);
-    }
-  }, [activeSessionId, status, store]);
-
-  useEffect(() => {
-    return () => {
-      const sessionId = previousSessionIdRef.current;
-      if (sessionId !== null) {
-        store.getState().setSessionChatStatus(sessionId, "ready");
-      }
-    };
-  }, [store]);
-
   if (!isOpen) {
     return null;
   }
 
   return (
-    <AgentChatPanelView
-      sessionDisplayName={sessionDisplayName}
-      orderedSessions={orderedSessions}
-      activeSessionId={activeSessionId}
-      onSelectSession={setActiveSession}
-      onDeleteSession={deleteSession}
-      onCreateSession={createSession}
-      onClose={closePanel}
-    >
-      <ChatView
-        messages={messages}
-        sendMessage={sendMessage}
-        stop={stop}
-        status={status}
-        error={error}
-        pendingElicitation={pendingElicitation}
-        handleElicitationSubmit={handleElicitationSubmit}
-        handleElicitationCancel={handleElicitationCancel}
-        modelMenuValue={menuValue}
-        onModelChange={handleModelChange}
+    <DockedAgentChatFrame>
+      <AgentChatHeader
+        sessionDisplayName={sessionDisplayName}
+        orderedSessions={orderedSessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={setActiveSession}
+        onDeleteSession={deleteSession}
+        onCreateSession={createSession}
+        onClose={closePanel}
       />
-    </AgentChatPanelView>
+      {/* Catch runaway suspense triggers that aren't handled locally */}
+      <Suspense fallback={<Loading />}>
+        <ChatView
+          messages={messages}
+          sendMessage={sendMessage}
+          stop={stop}
+          status={status}
+          error={error}
+          pendingElicitation={pendingElicitation}
+          handleElicitationSubmit={handleElicitationSubmit}
+          handleElicitationCancel={handleElicitationCancel}
+          modelMenuValue={menuValue}
+          onModelChange={handleModelChange}
+        />
+      </Suspense>
+    </DockedAgentChatFrame>
   );
 }
