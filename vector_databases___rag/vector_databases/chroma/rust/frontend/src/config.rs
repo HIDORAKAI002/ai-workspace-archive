@@ -77,6 +77,8 @@ pub struct FrontendConfig {
     pub min_records_for_invocation: u64,
     #[serde(default = "Default::default")]
     pub tenants_with_quantization_enabled: Vec<String>,
+    #[serde(default = "default_enable_log_scouting")]
+    pub enable_log_scouting: bool,
 }
 
 impl FrontendConfig {
@@ -99,6 +101,7 @@ impl FrontendConfig {
             enable_schema: default_enable_schema(),
             min_records_for_invocation: default_min_records_for_invocation(),
             tenants_with_quantization_enabled: vec![],
+            enable_log_scouting: false,
         }
     }
 }
@@ -151,6 +154,10 @@ fn default_enable_schema() -> bool {
     true
 }
 
+fn default_enable_log_scouting() -> bool {
+    false
+}
+
 pub fn default_min_records_for_invocation() -> u64 {
     100
 }
@@ -176,6 +183,8 @@ pub struct FrontendServerConfig {
     #[serde(default)]
     pub scorecard: Vec<ScorecardRule>,
     pub open_telemetry: Option<OpenTelemetryConfig>,
+    #[serde(default)]
+    pub stdout_tracing: bool,
     #[serde(default = "default_persist_path")]
     pub persist_path: String,
     #[serde(default = "default_sqlite_filename")]
