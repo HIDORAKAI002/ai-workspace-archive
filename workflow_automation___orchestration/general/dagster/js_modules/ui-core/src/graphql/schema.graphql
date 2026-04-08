@@ -2861,6 +2861,7 @@ type RunQueueConfig {
   maxConcurrentRuns: Int!
   tagConcurrencyLimitsYaml: String
   isOpConcurrencyAware: Boolean
+  maxConcurrentRunsAllBranchDeployments: Int
 }
 
 type ConcurrencyKeyInfo {

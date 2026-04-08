@@ -5044,6 +5044,7 @@ type RunQueueConfig = {
   __typename: 'RunQueueConfig';
   isOpConcurrencyAware: Maybe<Scalars['Boolean']['output']>;
   maxConcurrentRuns: Scalars['Int']['output'];
+  maxConcurrentRunsAllBranchDeployments: Maybe<Scalars['Int']['output']>;
   tagConcurrencyLimitsYaml: Maybe<Scalars['String']['output']>;
 };
 
@@ -14800,6 +14801,10 @@ export const buildRunQueueConfig = (
       overrides && overrides.hasOwnProperty('maxConcurrentRuns')
         ? overrides.maxConcurrentRuns!
         : 9835,
+    maxConcurrentRunsAllBranchDeployments:
+      overrides && overrides.hasOwnProperty('maxConcurrentRunsAllBranchDeployments')
+        ? overrides.maxConcurrentRunsAllBranchDeployments!
+        : 8486,
     tagConcurrencyLimitsYaml:
       overrides && overrides.hasOwnProperty('tagConcurrencyLimitsYaml')
         ? overrides.tagConcurrencyLimitsYaml!
