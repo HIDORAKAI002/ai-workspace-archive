@@ -307,6 +307,7 @@ mod tests {
             id: id.to_string(),
             task: "test task".to_string(),
             agent_type: "claude".to_string(),
+            working_dir: PathBuf::from("/tmp"),
             state: SessionState::Pending,
             pid: None,
             worktree: None,

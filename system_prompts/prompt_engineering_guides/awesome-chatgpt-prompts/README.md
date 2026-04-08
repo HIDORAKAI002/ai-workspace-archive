@@ -238,4 +238,9 @@ Use prompts.chat as an MCP server in your AI tools.
 
 ## 📜 License
 
-**[CC0 1.0 Universal (Public Domain)](https://creativecommons.org/publicdomain/zero/1.0/)** — Copy, modify, distribute, and use freely. No attribution required.
+This project is dual-licensed:
+
+- **Source code** is licensed under the [MIT License](LICENSE-MIT).
+- **Prompt content and data** (prompts.csv, PROMPTS.md, user-submitted prompts) is dedicated to the public domain under [CC0 1.0 Universal](LICENSE-CC0).
+
+See [LICENSE](LICENSE) for details.

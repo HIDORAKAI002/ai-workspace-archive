@@ -29,6 +29,9 @@ pub struct Config {
     pub session_timeout_secs: u64,
     pub heartbeat_interval_secs: u64,
     pub default_agent: String,
+    pub auto_dispatch_unread_handoffs: bool,
+    pub auto_dispatch_limit_per_session: usize,
+    pub auto_merge_ready_worktrees: bool,
     pub cost_budget_usd: f64,
     pub token_budget: u64,
     pub theme: Theme,
@@ -53,6 +56,9 @@ impl Default for Config {
             session_timeout_secs: 3600,
             heartbeat_interval_secs: 30,
             default_agent: "claude".to_string(),
+            auto_dispatch_unread_handoffs: false,
+            auto_dispatch_limit_per_session: 5,
+            auto_merge_ready_worktrees: false,
             cost_budget_usd: 10.0,
             token_budget: 500_000,
             theme: Theme::Dark,
@@ -69,11 +75,15 @@ impl Config {
         block: 0.85,
     };
 
-    pub fn load() -> Result<Self> {
-        let config_path = dirs::home_dir()
+    pub fn config_path() -> PathBuf {
+        dirs::home_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join(".claude")
-            .join("ecc2.toml");
+            .join("ecc2.toml")
+    }
+
+    pub fn load() -> Result<Self> {
+        let config_path = Self::config_path();
 
         if config_path.exists() {
             let content = std::fs::read_to_string(&config_path)?;
@@ -82,6 +92,20 @@ impl Config {
         } else {
             Ok(Config::default())
         }
+    }
+
+    pub fn save(&self) -> Result<()> {
+        self.save_to_path(&Self::config_path())
+    }
+
+    pub fn save_to_path(&self, path: &std::path::Path) -> Result<()> {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        let content = toml::to_string_pretty(self)?;
+        std::fs::write(path, content)?;
+        Ok(())
     }
 }
 
@@ -94,6 +118,7 @@ impl Default for RiskThresholds {
 #[cfg(test)]
 mod tests {
     use super::{Config, PaneLayout};
+    use uuid::Uuid;
 
     #[test]
     fn default_includes_positive_budget_thresholds() {
@@ -123,6 +148,18 @@ theme = "Dark"
         assert_eq!(config.token_budget, defaults.token_budget);
         assert_eq!(config.pane_layout, defaults.pane_layout);
         assert_eq!(config.risk_thresholds, defaults.risk_thresholds);
+        assert_eq!(
+            config.auto_dispatch_unread_handoffs,
+            defaults.auto_dispatch_unread_handoffs
+        );
+        assert_eq!(
+            config.auto_dispatch_limit_per_session,
+            defaults.auto_dispatch_limit_per_session
+        );
+        assert_eq!(
+            config.auto_merge_ready_worktrees,
+            defaults.auto_merge_ready_worktrees
+        );
     }
 
     #[test]
@@ -140,5 +177,24 @@ theme = "Dark"
     #[test]
     fn default_risk_thresholds_are_applied() {
         assert_eq!(Config::default().risk_thresholds, Config::RISK_THRESHOLDS);
+    }
+
+    #[test]
+    fn save_round_trips_automation_settings() {
+        let path = std::env::temp_dir().join(format!("ecc2-config-{}.toml", Uuid::new_v4()));
+        let mut config = Config::default();
+        config.auto_dispatch_unread_handoffs = true;
+        config.auto_dispatch_limit_per_session = 9;
+        config.auto_merge_ready_worktrees = true;
+
+        config.save_to_path(&path).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
+        let loaded: Config = toml::from_str(&content).unwrap();
+
+        assert!(loaded.auto_dispatch_unread_handoffs);
+        assert_eq!(loaded.auto_dispatch_limit_per_session, 9);
+        assert!(loaded.auto_merge_ready_worktrees);
+
+        let _ = std::fs::remove_file(path);
     }
 }

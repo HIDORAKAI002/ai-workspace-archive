@@ -33,6 +33,7 @@ func TestBetaFileListWithOptionalParams(t *testing.T) {
 		AfterID:  anthropic.String("after_id"),
 		BeforeID: anthropic.String("before_id"),
 		Limit:    anthropic.Int(1),
+		ScopeID:  anthropic.String("scope_id"),
 		Betas:    []anthropic.AnthropicBeta{anthropic.AnthropicBetaMessageBatches2024_09_24},
 	})
 	if err != nil {

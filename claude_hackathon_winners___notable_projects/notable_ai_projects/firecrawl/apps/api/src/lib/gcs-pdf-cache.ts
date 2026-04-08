@@ -4,45 +4,46 @@ import { config } from "../config";
 import crypto from "crypto";
 import { storage } from "./gcs-jobs";
 
-const PDF_CACHE_PREFIX = "pdf-cache-v2/";
+type PdfCacheProvider = "runpod" | "firepdf";
 
-/**
- * Creates a SHA-256 hash of the PDF content to use as a cache key
- * Directly hashes the content without any conversion
- */
+const PROVIDER_PREFIXES: Record<PdfCacheProvider, string> = {
+  runpod: "pdf-cache-v2/",
+  firepdf: "pdf-cache-firepdf/",
+};
+
 function createPdfCacheKey(pdfContent: string | Buffer): string {
   return crypto.createHash("sha256").update(pdfContent).digest("hex");
 }
 
-/**
- * Save RunPod markdown results to GCS cache
- */
 export async function savePdfResultToCache(
   pdfContent: string,
   result: { markdown: string; html: string },
+  provider: PdfCacheProvider = "runpod",
 ): Promise<string | null> {
   try {
     if (!config.GCS_BUCKET_NAME) {
       return null;
     }
 
+    const prefix = PROVIDER_PREFIXES[provider];
     const cacheKey = createPdfCacheKey(pdfContent);
     const bucket = storage.bucket(config.GCS_BUCKET_NAME);
-    const blob = bucket.file(`${PDF_CACHE_PREFIX}${cacheKey}.json`);
+    const blob = bucket.file(`${prefix}${cacheKey}.json`);
 
     for (let i = 0; i < 3; i++) {
       try {
         await blob.save(JSON.stringify(result), {
           contentType: "application/json",
           metadata: {
-            source: "runpod_pdf_conversion",
+            source: `${provider}_pdf_conversion`,
             cache_type: "pdf_markdown",
             created_at: new Date().toISOString(),
           },
         });
 
-        logger.info(`Saved PDF RunPod result to GCS cache`, {
+        logger.info(`Saved PDF result to GCS cache`, {
           cacheKey,
+          provider,
         });
 
         return cacheKey;
@@ -50,47 +51,46 @@ export async function savePdfResultToCache(
         if (i === 2) {
           throw error;
         } else {
-          logger.error(
-            `Error saving PDF RunPod result to GCS cache, retrying`,
-            {
-              error,
-              cacheKey,
-              i,
-            },
-          );
+          logger.error(`Error saving PDF result to GCS cache, retrying`, {
+            error,
+            cacheKey,
+            provider,
+            i,
+          });
         }
       }
     }
 
     return cacheKey;
   } catch (error) {
-    logger.error(`Error saving PDF RunPod result to GCS cache`, {
+    logger.error(`Error saving PDF result to GCS cache`, {
       error,
+      provider,
     });
     return null;
   }
 }
 
-/**
- * Get cached RunPod markdown results from GCS
- */
 export async function getPdfResultFromCache(
   pdfContent: string,
+  provider: PdfCacheProvider = "runpod",
 ): Promise<{ markdown: string; html: string } | null> {
   try {
     if (!config.GCS_BUCKET_NAME) {
       return null;
     }
 
+    const prefix = PROVIDER_PREFIXES[provider];
     const cacheKey = createPdfCacheKey(pdfContent);
     const bucket = storage.bucket(config.GCS_BUCKET_NAME);
-    const blob = bucket.file(`${PDF_CACHE_PREFIX}${cacheKey}.json`);
+    const blob = bucket.file(`${prefix}${cacheKey}.json`);
 
     const [content] = await blob.download();
     const result = JSON.parse(content.toString());
 
-    logger.info(`Retrieved PDF RunPod result from GCS cache`, {
+    logger.info(`Retrieved PDF result from GCS cache`, {
       cacheKey,
+      provider,
     });
 
     return {
@@ -105,8 +105,9 @@ export async function getPdfResultFromCache(
       return null;
     }
 
-    logger.error(`Error retrieving PDF RunPod result from GCS cache`, {
+    logger.error(`Error retrieving PDF result from GCS cache`, {
       error,
+      provider,
     });
     return null;
   }

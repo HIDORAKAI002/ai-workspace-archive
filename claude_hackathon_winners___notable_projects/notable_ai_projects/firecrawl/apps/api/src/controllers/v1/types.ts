@@ -527,6 +527,7 @@ const baseScrapeOptions = z.strictObject({
   __searchPreviewToken: z.string().optional(),
   __experimental_omce: z.boolean().prefault(false).optional(),
   __experimental_omceDomain: z.string().optional(),
+  __forceFirePDF: z.boolean().prefault(false).optional(),
 });
 
 const fire1RefineOpts = {
