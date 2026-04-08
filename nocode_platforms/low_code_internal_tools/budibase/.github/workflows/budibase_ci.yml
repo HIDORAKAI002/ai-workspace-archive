@@ -145,6 +145,32 @@ jobs:
             yarn check:types
           fi
 
+  missing-deps:
+    runs-on: ubuntu-24.04
+    needs: install-deps
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || github.token }}
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+
+      - name: Restore hoisted node_modules cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node22-hoisted-node-modules-${{ hashFiles('yarn.lock') }}
+          fail-on-cache-miss: true
+
+      - name: Check missing deps
+        run: yarn check:missing-deps
+
   helm-lint:
     runs-on: ubuntu-24.04
     steps:
