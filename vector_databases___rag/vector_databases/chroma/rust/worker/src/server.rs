@@ -253,6 +253,7 @@ impl WorkerServer {
         &self,
         collection_and_segments: &CollectionAndSegments,
         batch_size: u32,
+        log_upper_bound_offset: i64,
     ) -> Result<FetchLogOperator, Status> {
         let database_name =
             chroma_types::DatabaseName::new(collection_and_segments.collection.database.clone())
@@ -272,6 +273,7 @@ impl WorkerServer {
             database_name,
             fetch_log_concurrency: self.fetch_log_concurrency,
             fragment_fetcher,
+            log_upper_bound_offset,
         })
     }
 
@@ -314,9 +316,14 @@ impl WorkerServer {
             .scan
             .ok_or(Status::invalid_argument("Invalid Scan Operator"))?;
 
-        let collection_and_segments = Scan::try_from(scan)?.collection_and_segments;
+        let scan = Scan::try_from(scan)?;
+        let collection_and_segments = scan.collection_and_segments;
         let collection_id = collection_and_segments.collection.collection_id;
-        let fetch_log = self.fetch_log(&collection_and_segments, self.fetch_log_batch_size)?;
+        let fetch_log = self.fetch_log(
+            &collection_and_segments,
+            self.fetch_log_batch_size,
+            scan.log_upper_bound_offset,
+        )?;
 
         let count_orchestrator = CountOrchestrator::new(
             self.blockfile_provider.clone(),
@@ -327,6 +334,8 @@ impl WorkerServer {
             fetch_log,
             read_level,
             self.bloom_filter_manager_for_collection(collection_id),
+            scan.shard_index,
+            scan.num_shards,
         );
 
         match count_orchestrator.run(self.system.clone()).await {
@@ -347,9 +356,14 @@ impl WorkerServer {
             .scan
             .ok_or(Status::invalid_argument("Invalid Scan Operator"))?;
 
-        let collection_and_segments = Scan::try_from(scan)?.collection_and_segments;
+        let scan = Scan::try_from(scan)?;
+        let collection_and_segments = scan.collection_and_segments;
         let collection_id = collection_and_segments.collection.collection_id;
-        let fetch_log = self.fetch_log(&collection_and_segments, self.fetch_log_batch_size)?;
+        let fetch_log = self.fetch_log(
+            &collection_and_segments,
+            self.fetch_log_batch_size,
+            scan.log_upper_bound_offset,
+        )?;
 
         let filter = get_inner
             .filter
@@ -374,6 +388,8 @@ impl WorkerServer {
             limit.into(),
             projection.into(),
             self.bloom_filter_manager_for_collection(collection_id),
+            scan.shard_index,
+            scan.num_shards,
         );
 
         match get_orchestrator.run(self.system.clone()).await {
@@ -405,10 +421,15 @@ impl WorkerServer {
             .scan
             .ok_or(Status::invalid_argument("Invalid Scan Operator"))?;
 
-        let collection_and_segments = Scan::try_from(scan)?.collection_and_segments;
+        let scan = Scan::try_from(scan)?;
+        let collection_and_segments = scan.collection_and_segments;
         let collection_id = collection_and_segments.collection.collection_id;
 
-        let fetch_log = self.fetch_log(&collection_and_segments, self.fetch_log_batch_size)?;
+        let fetch_log = self.fetch_log(
+            &collection_and_segments,
+            self.fetch_log_batch_size,
+            scan.log_upper_bound_offset,
+        )?;
 
         let filter = knn_inner
             .filter
@@ -453,6 +474,8 @@ impl WorkerServer {
             filter.try_into()?,
             ReadLevel::IndexAndWal, // Full consistency for KNN queries
             bloom_filter_manager.clone(),
+            scan.shard_index,
+            scan.num_shards,
         );
 
         let matching_records = match knn_filter_orchestrator.run(system.clone()).await {
@@ -481,6 +504,7 @@ impl WorkerServer {
                     let knn_projection = knn_projection.clone();
                     let segment_type = vector_segment_type;
                     let bloom_filter_manager = bloom_filter_manager.clone();
+                    let shard_index = scan.shard_index;
 
                     async move {
                         // Run KNN orchestrator — dispatch based on segment type.
@@ -493,6 +517,7 @@ impl WorkerServer {
                                 matching_records.clone(),
                                 knn,
                                 bloom_filter_manager.clone(),
+                                shard_index,
                             )
                             .run(system.clone())
                             .await
@@ -506,6 +531,7 @@ impl WorkerServer {
                                 knn.fetch as usize,
                                 knn.embedding,
                                 bloom_filter_manager.clone(),
+                                shard_index,
                             )
                             .run(system.clone())
                             .await
@@ -522,6 +548,7 @@ impl WorkerServer {
                             record_distances,
                             knn_projection,
                             bloom_filter_manager,
+                            shard_index,
                         );
                         projection_orchestrator
                             .run(system)
@@ -546,6 +573,7 @@ impl WorkerServer {
             }
         } else {
             // Create unified futures that run KNN then projection
+            let shard_index = scan.shard_index;
             let knn_with_projection_futures =
                 Vec::from(KnnBatch::try_from(knn)?).into_iter().map(|knn| {
                     let blockfile_provider = self.blockfile_provider.clone();
@@ -567,6 +595,7 @@ impl WorkerServer {
                             matching_records.clone(),
                             knn,
                             bloom_filter_manager.clone(),
+                            shard_index,
                         );
                         let record_distances = knn_orchestrator
                             .run(system.clone())
@@ -583,6 +612,7 @@ impl WorkerServer {
                             record_distances,
                             knn_projection,
                             bloom_filter_manager,
+                            shard_index,
                         );
                         projection_orchestrator
                             .run(system)
@@ -614,10 +644,15 @@ impl WorkerServer {
         payload: chroma_proto::SearchPayload,
         read_level: ReadLevel,
     ) -> Result<RankOrchestratorOutput, Status> {
-        let collection_and_segments = Scan::try_from(scan)?.collection_and_segments;
+        let scan = Scan::try_from(scan)?;
+        let collection_and_segments = scan.collection_and_segments;
         let collection_id = collection_and_segments.collection.collection_id;
         let search_payload = SearchPayload::try_from(payload)?;
-        let fetch_log = self.fetch_log(&collection_and_segments, self.fetch_log_batch_size)?;
+        let fetch_log = self.fetch_log(
+            &collection_and_segments,
+            self.fetch_log_batch_size,
+            scan.log_upper_bound_offset,
+        )?;
 
         // We return early on uninitialized collection, otherwise
         // the downstream will error due to missing dimension
@@ -636,6 +671,8 @@ impl WorkerServer {
             search_payload.filter.clone(),
             read_level, // Use the specified read level
             bloom_filter_manager.clone(),
+            scan.shard_index,
+            scan.num_shards,
         );
 
         let knn_filter_output = match knn_filter_orchestrator.run(self.system.clone()).await {
@@ -656,6 +693,7 @@ impl WorkerServer {
             let blockfile_provider = self.blockfile_provider.clone();
             let spann_provider = self.spann_provider.clone();
             let bloom_filter_manager = bloom_filter_manager.clone();
+            let shard_index = scan.shard_index;
 
             knn_futures.push(async move {
                 let result = match knn_query.query {
@@ -676,6 +714,7 @@ impl WorkerServer {
                                     fetch: knn_query.limit,
                                 },
                                 bloom_filter_manager,
+                                shard_index,
                             )
                             .run(system_clone)
                             .await
@@ -689,6 +728,7 @@ impl WorkerServer {
                                 knn_query.limit as usize,
                                 query,
                                 bloom_filter_manager,
+                                shard_index,
                             )
                             .run(system_clone)
                             .await
@@ -707,6 +747,7 @@ impl WorkerServer {
                                     knn_filter_output_clone,
                                     knn,
                                     bloom_filter_manager,
+                                    shard_index,
                                 )
                                 .run(system_clone)
                                 .await
@@ -726,6 +767,7 @@ impl WorkerServer {
                             knn_query.key.to_string(),
                             knn_query.limit,
                             bloom_filter_manager,
+                            shard_index,
                         );
 
                         sparse_orchestrator
@@ -757,6 +799,7 @@ impl WorkerServer {
             search_payload.select,
             collection_and_segments,
             bloom_filter_manager,
+            scan.shard_index,
         );
 
         rank_orchestrator
@@ -957,6 +1000,9 @@ mod tests {
                 metadata: None,
                 file_paths: HashMap::new(),
             }),
+            shard_index: 0,
+            num_shards: 1,
+            log_upper_bound_offset: 0,
         }
     }
 

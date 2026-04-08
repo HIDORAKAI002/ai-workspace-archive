@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-08 09:19 IST] Auto-Sync
+- **26 Repositories Updated:** Playwright MCP, Exa MCP Server, Dify, Windmill, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, openai/openai-agents-python, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, chenglou/pretext, google-gemini/gemini-cli, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-04-08 03:00 IST] Auto-Sync
 - **45 Repositories Updated:** Langfuse, Promptfoo, n8n, Flowise, Activepieces, Windmill, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, pinecone-io/pinecone-python-client, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, firecrawl/firecrawl, chenglou/pretext, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, microsoft/graphrag, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 

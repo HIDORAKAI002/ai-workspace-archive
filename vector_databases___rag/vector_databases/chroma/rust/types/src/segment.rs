@@ -124,6 +124,42 @@ pub struct Segment {
 }
 
 impl Segment {
+    pub fn get_shards(&self) -> Result<Vec<SegmentShard>, SegmentShardError> {
+        // If there are no file paths, return empty vector
+        if self.file_path.is_empty() {
+            let vec = vec![self.get_new_shard()];
+            return Ok(vec);
+        }
+
+        // Check that all file-path keys have the same number of shards
+        let counts: std::collections::HashSet<usize> =
+            self.file_path.values().map(|v| v.len()).collect();
+        if counts.len() > 1 {
+            let first_key = self.file_path.keys().next().unwrap();
+            let expected = self.file_path[first_key].len();
+            return Err(SegmentShardError::MismatchedShardCounts {
+                key: format!("segment {}", self.id),
+                actual: counts.into_iter().next().unwrap(),
+                expected,
+            });
+        }
+
+        // All paths should have the same number of shards
+        let num_shards = self
+            .file_path
+            .values()
+            .next()
+            .map(|paths| paths.len())
+            .unwrap_or(0);
+
+        // Create a SegmentShard for each shard index, propagating any errors
+        let shards: Result<Vec<SegmentShard>, SegmentShardError> = (0..num_shards)
+            .map(|shard_index| SegmentShard::try_from((self, shard_index as u32)))
+            .collect();
+
+        shards
+    }
+
     pub fn prefetch_supported(&self) -> bool {
         matches!(
             self.r#type,
@@ -164,6 +200,27 @@ impl Segment {
             _ => {}
         }
         res
+    }
+
+    /// Returns the number of shards for this segment.
+    /// Derives from the length of file_path Vecs (all must be equal per the
+    /// shard count invariant). Returns 1 if no file paths are present.
+    pub fn num_shards(&self) -> Result<usize, SegmentShardError> {
+        let mut values = self.file_path.values();
+        let num_shards = match values.next() {
+            Some(paths) => paths.len().max(1),
+            None => return Ok(1),
+        };
+        for (key, paths) in &self.file_path {
+            if paths.len() != num_shards {
+                return Err(SegmentShardError::MismatchedShardCounts {
+                    key: key.clone(),
+                    actual: paths.len(),
+                    expected: num_shards,
+                });
+            }
+        }
+        Ok(num_shards)
     }
 
     pub fn extract_prefix_and_id(path: &str) -> Result<(&str, uuid::Uuid), uuid::Error> {
@@ -218,6 +275,14 @@ pub enum SegmentShardError {
     EmptyPathString(String),
     #[error("Shard index {index} out of bounds for key '{key}' (len {len})")]
     ShardIndexOutOfBounds { key: String, index: u32, len: usize },
+    #[error("Mismatched shard counts: key '{key}' has {actual} entries, expected {expected}")]
+    MismatchedShardCounts {
+        key: String,
+        actual: usize,
+        expected: usize,
+    },
+    #[error("No shards found")]
+    EmptyShards,
 }
 
 impl ChromaError for SegmentShardError {
@@ -260,6 +325,19 @@ impl TryFrom<(&Segment, u32)> for SegmentShard {
             metadata: segment.metadata.clone(),
             file_path,
         })
+    }
+}
+
+impl Segment {
+    pub fn get_new_shard(&self) -> SegmentShard {
+        SegmentShard {
+            id: self.id,
+            r#type: self.r#type,
+            scope: self.scope.clone(),
+            collection: self.collection,
+            metadata: self.metadata.clone(),
+            file_path: HashMap::new(),
+        }
     }
 }
 
@@ -451,5 +529,82 @@ mod tests {
             id,
             Uuid::from_str("00000000-0000-0000-0000-000000000001").expect("Cannot happen")
         );
+    }
+
+    #[test]
+    fn test_num_shards_empty_file_path() {
+        let segment = Segment {
+            id: SegmentUuid(Uuid::nil()),
+            r#type: SegmentType::BlockfileRecord,
+            scope: SegmentScope::RECORD,
+            collection: CollectionUuid(Uuid::nil()),
+            metadata: None,
+            file_path: HashMap::new(),
+        };
+        assert_eq!(segment.num_shards().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_num_shards_single_shard() {
+        let mut file_path = HashMap::new();
+        file_path.insert("key_a".to_string(), vec!["path_a_0".to_string()]);
+        file_path.insert("key_b".to_string(), vec!["path_b_0".to_string()]);
+        let segment = Segment {
+            id: SegmentUuid(Uuid::nil()),
+            r#type: SegmentType::BlockfileRecord,
+            scope: SegmentScope::RECORD,
+            collection: CollectionUuid(Uuid::nil()),
+            metadata: None,
+            file_path,
+        };
+        assert_eq!(segment.num_shards().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_num_shards_multi_shard() {
+        let mut file_path = HashMap::new();
+        file_path.insert(
+            "key_a".to_string(),
+            vec!["a0".to_string(), "a1".to_string(), "a2".to_string()],
+        );
+        file_path.insert(
+            "key_b".to_string(),
+            vec!["b0".to_string(), "b1".to_string(), "b2".to_string()],
+        );
+        let segment = Segment {
+            id: SegmentUuid(Uuid::nil()),
+            r#type: SegmentType::BlockfileRecord,
+            scope: SegmentScope::RECORD,
+            collection: CollectionUuid(Uuid::nil()),
+            metadata: None,
+            file_path,
+        };
+        assert_eq!(segment.num_shards().unwrap(), 3);
+    }
+
+    #[test]
+    fn test_num_shards_mismatched_lengths() {
+        let mut file_path = HashMap::new();
+        file_path.insert(
+            "key_a".to_string(),
+            vec!["a0".to_string(), "a1".to_string()],
+        );
+        file_path.insert(
+            "key_b".to_string(),
+            vec!["b0".to_string(), "b1".to_string(), "b2".to_string()],
+        );
+        let segment = Segment {
+            id: SegmentUuid(Uuid::nil()),
+            r#type: SegmentType::BlockfileRecord,
+            scope: SegmentScope::RECORD,
+            collection: CollectionUuid(Uuid::nil()),
+            metadata: None,
+            file_path,
+        };
+        let err = segment.num_shards().unwrap_err();
+        assert!(matches!(
+            err,
+            SegmentShardError::MismatchedShardCounts { .. }
+        ));
     }
 }

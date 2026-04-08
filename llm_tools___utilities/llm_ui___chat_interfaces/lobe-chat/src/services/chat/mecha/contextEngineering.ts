@@ -416,13 +416,22 @@ export const contextEngineering = async ({
 
   if (shouldInjectAvailableAgents) {
     try {
-      // Over-fetch by 1 to detect overflow.
+      // Over-fetch by 2: +1 reserved for the current agent (filtered out below
+      // so the model has no exposure to its own id and cannot self-delegate)
+      // and +1 to detect overflow for the `hasMore` flag.
       const AVAILABLE_AGENTS_LIMIT = 10;
       const recentAgents = await lambdaClient.agent.queryAgents.query({
-        limit: AVAILABLE_AGENTS_LIMIT + 1,
+        limit: AVAILABLE_AGENTS_LIMIT + 2,
       });
-      const hasMoreAgents = recentAgents.length > AVAILABLE_AGENTS_LIMIT;
-      const availableAgents = recentAgents.slice(0, AVAILABLE_AGENTS_LIMIT).map((a) => ({
+
+      // Exclude current agent from `availableAgents`. The model is the current
+      // agent — its identity/persona is already established by `systemRole`, so
+      // we don't re-inject it here, and removing self from the list ensures the
+      // model never sees its own id in the agent-management context (so it
+      // cannot accidentally call itself via `callAgent`).
+      const otherAgents = agentId ? recentAgents.filter((a) => a.id !== agentId) : recentAgents;
+      const hasMoreAgents = otherAgents.length > AVAILABLE_AGENTS_LIMIT;
+      const availableAgents = otherAgents.slice(0, AVAILABLE_AGENTS_LIMIT).map((a) => ({
         description: a.description ?? undefined,
         id: a.id,
         title: a.title ?? 'Untitled',
