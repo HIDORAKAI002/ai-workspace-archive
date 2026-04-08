@@ -67,6 +67,7 @@
     "schemas/",
     "scripts/ci/",
     "scripts/ecc.js",
+    "scripts/gemini-adapt-agents.js",
     "scripts/hooks/",
     "scripts/lib/",
     "scripts/claw.js",
