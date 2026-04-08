@@ -1,53 +1,11 @@
 # Dagster Plus API Architecture
 
-## QUICKSTART
+Highly recommend pointing your AI agent to this file and the [dagster plus schema](../cli/plus/schema.graphql) to do development in the CLI project. With these two pieces of context, it should be able to generate most of this code easily.
 
-Highly recommend you use prompting (and point the AI to thie file) to accomplish it.
+For a given noun you want to add, interrogate the schema, ensure that you are picking the most up-to-date queries, and follow the pattern described here.
+For detailed testing documentation, troubleshooting, and advanced workflows, see [api_tests/README.md](../../dagster_dg_cli_tests/cli_tests/api_tests/README.md).
 
-We have the dagster plus schema checked in at python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/plus/schema.graphql
-which is critical to have in context. It should be combine to generate most of this code easily.
-
-For a given noun you want to add to the system, have it interrgate the schema, ensure that you are picking
-the most up-to-date queries, and then have it follow the patterns here for implementation and the testing
-
-patterns in python_modules/libraries/dagster-dg-cli/dagster_dg_cli_tests/cli_tests/api_tests/README.md.
-
-### Add a new API endpoint in 4 steps:
-
-1. **Define the schema** in `schemas/my_resource.py`:
-
-   ```python
-   class MyResource(BaseModel):
-       id: int
-       name: str
-   ```
-
-2. **Create GraphQL adapter** in `graphql_adapter/my_resource.py`:
-
-   ```python
-   def list_my_resources_via_graphql(config):
-       # GraphQL implementation
-       pass
-   ```
-
-3. **Implement API class** in `api/my_resources.py`:
-
-   ```python
-   class DgApiMyResourceApi:
-       def list_resources(self):
-           return list_my_resources_via_graphql(self.config)
-   ```
-
-4. **Add CLI command** and **test it**:
-   ```bash
-   # Add to scenarios.yaml, record GraphQL, run tests
-   dagster-dev dg-api-record my_resource
-   pytest api_tests/my_resource_tests/
-   ```
-
-That's it! Your API endpoint is ready. 🚀
-
-## Overview
+## Architectural Overview
 
 This package implements a three-layer architecture: **CLI → REST-like API → GraphQL**
 
@@ -57,7 +15,8 @@ Each layer has distinct responsibilities:
 - **REST API**: Business logic and REST semantics
 - **GraphQL**: Backend communication
 
-The goal is to provide an obvious mapping between CLI and REST semantics, setting us up to deploy a REST API on Dagster Plus in the future. REST is a better interface for API consumption across organizations.
+The goal is to provide an obvious mapping between CLI and REST semantics, setting us up to deploy a REST API on Dagster Plus in the future.
+REST is a better interface for API consumption across organizations.
 
 ## Architecture Layers
 
@@ -73,12 +32,12 @@ dg api asset get my-asset --json
 
 Every command supports `--json` for scripting. The API is modeled on GitHub's `gh` CLI.
 
-### 2. REST-like API Layer (`dagster_plus_api/`)
+### 2. REST-like API Layer (`dagster_dg_cli/api_layer/`)
 
 Intermediate abstraction providing REST semantics:
 
 ```
-dagster_plus_api/
+api_layer/
 ├── api/               # REST-like interface classes
 │   ├── deployments.py # DgApiDeploymentApi
 │   └── asset.py       # DgApiAssetApi
@@ -90,7 +49,7 @@ dagster_plus_api/
     └── asset.py       # list_assets_via_graphql()
 ```
 
-### 3. GraphQL Layer (`utils/plus/gql_client.py`)
+### 3. GraphQL Layer (`dagster_dg_cli/utils/plus/gql_client.py`)
 
 Handles backend communication with authentication and error handling.
 
@@ -105,7 +64,7 @@ CLI Layer (cli/api/asset.py)
     - Parse arguments
     - Check authentication
     ↓
-API Layer (api/asset.py)
+API Layer (api_layer/api/asset.py)
     - DgApiAssetApi.list_assets()
     - Apply business logic
     ↓
@@ -148,27 +107,23 @@ Pydantic models for type safety:
 
 ## Testing Strategy
 
-### Add a new API endpoint test in 3 steps:
+Each resource should be added to the general compliance tests and given individual unit tests.
+For detailed testing documentation, troubleshooting, and advanced workflows, see [api_tests/README.md](../../dagster_dg_cli_tests/cli_tests/api_tests/README.md).
 
-1. **Add test scenario** in `api_tests/{domain}_tests/scenarios.yaml`:
+### Compliance Tests
 
-   ```yaml
-   success_list_assets:
-     command: "dg api asset list --json"
-   ```
+Tests automatically validate:
 
-2. **Record GraphQL responses:**
+- Method naming conventions
+- Type signatures
+- Response consistency
+- Parameter patterns
 
-   ```bash
-   dagster-dev dg-api-record asset --recording success_list_assets
-   ```
+### Unit Tests
 
-3. **Generate snapshots:**
-   ```bash
-   pytest api_tests/asset_tests/ --snapshot-update
-   ```
+The unit tests rely on scenarios, recoded graphql responses, and output snapshots.
 
-### Update tests when logic changes:
+To update tests when logic changes:
 
 ```bash
 # Re-record responses (when API behavior changes)
@@ -178,18 +133,9 @@ dagster-dev dg-api-record asset --recording success_list_assets
 pytest api_tests/asset_tests/ --snapshot-update
 ```
 
-For detailed testing documentation, troubleshooting, and advanced workflows, see [api_tests/README.md](../../../dagster_dg_cli_tests/cli_tests/api_tests/README.md).
+## Adding A New Resource
 
-### Compliance testing
-
-Tests automatically validate:
-
-- Method naming conventions
-- Type signatures (primitives + Pydantic only)
-- Response consistency
-- Parameter patterns
-
-## Adding New Resources
+In this example, we'll be implementing a `run` resource.
 
 ### Step 1: Define Schema
 
@@ -254,16 +200,41 @@ def list_runs(json):
 
 ### Step 5: Add Tests
 
-1. Add to `test_rest_compliance.py`:
+1. Add to the compliance tests `dagster_dg_cli_tests/cli_tests/api_tests/test_rest_compliance.py`:
 
-   ```python
-   def get_all_api_classes():
-       return [..., DgApiRunApi]
-   ```
+```diff
+...
+from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+from dagster_dg_cli.api_layer.api.deployments import DgApiDeploymentApi
++ from dagster_dg_cli.api_layer.api.run import DgApiRunApi
 
-2. Create `api_tests/run_tests/scenarios.yaml`
+...
 
-3. Record fixtures and run tests
+ALL_API_CLASSES = [
+    DgApiDeploymentApi,
+    DgApiAssetApi,
++     DgApiRunApi,
+]
+```
+
+2. **Add test scenario** in `api_tests/run_tests/scenarios.yaml`:
+
+```yaml
+success_list_runs:
+  command: "dg api run list --json"
+```
+
+3. **Record GraphQL responses:**
+
+```bash
+dagster-dev dg-api-record run list --recording success_list_runs
+```
+
+4. **Generate snapshots:**
+
+```bash
+pytest api_tests/run_tests/ --snapshot-update
+```
 
 ## Best Practices
 

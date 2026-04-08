@@ -66,21 +66,3 @@ def create_dg_api_graphql_client(
         client = DebugGraphQLClient(client)
 
     return client
-
-
-def create_dg_api_client(ctx: click.Context) -> IGraphQLClient:
-    """Create GraphQL client for DG API commands with automatic config handling.
-
-    This is a convenience function for deployment commands that handles both
-    config creation and client creation in a single step.
-
-    Args:
-        ctx: Click context from the CLI command
-
-    Returns:
-        IGraphQLClient instance
-    """
-    from dagster_dg_cli.cli.api.shared import get_config_for_api_command
-
-    config = get_config_for_api_command(ctx)
-    return create_dg_api_graphql_client(ctx, config)

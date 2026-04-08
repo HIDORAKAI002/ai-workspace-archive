@@ -5,14 +5,20 @@ from types import UnionType
 from typing import Union, get_args, get_origin
 
 import pytest
+from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+from dagster_dg_cli.api_layer.api.deployments import DgApiDeploymentApi
 from pydantic import BaseModel
 
-from dagster_dg_cli_tests.cli_tests.api_tests.api_classes import get_all_api_classes
 from dagster_dg_cli_tests.cli_tests.api_tests.rest_compliance_infrastructure import (
     REST_PREFIXES,
     is_allowed_type,
     is_pydantic_model,
 )
+
+ALL_API_CLASSES = [
+    DgApiDeploymentApi,
+    DgApiAssetApi,
+]
 
 
 class TestRestCompliance:
@@ -20,7 +26,7 @@ class TestRestCompliance:
 
     def test_method_naming_conventions(self):
         """Test that all public methods follow REST naming conventions."""
-        for api_class in get_all_api_classes():
+        for api_class in ALL_API_CLASSES:
             public_methods = [
                 method
                 for method in dir(api_class)
@@ -41,7 +47,7 @@ class TestRestCompliance:
 
     def test_type_signatures(self):
         """Test that methods only use primitives and Pydantic models."""
-        for api_class in get_all_api_classes():
+        for api_class in ALL_API_CLASSES:
             public_methods = [
                 method
                 for method in dir(api_class)
@@ -80,7 +86,7 @@ class TestRestCompliance:
 
     def test_response_consistency(self):
         """Test that list methods return consistent response structures."""
-        for api_class in get_all_api_classes():
+        for api_class in ALL_API_CLASSES:
             public_methods = [
                 method
                 for method in dir(api_class)
@@ -114,7 +120,7 @@ class TestRestCompliance:
 
     def test_parameter_patterns(self):
         """Test that parameters follow consistent patterns."""
-        for api_class in get_all_api_classes():
+        for api_class in ALL_API_CLASSES:
             public_methods = [
                 method
                 for method in dir(api_class)

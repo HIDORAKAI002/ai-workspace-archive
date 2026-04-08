@@ -48,7 +48,6 @@ import {
   parseSelectedToolsFromEditorData,
   processCommands,
 } from './commandBus';
-
 /**
  * Extended params for sendMessage with context
  */
@@ -329,7 +328,6 @@ export class ConversationLifecycleActionImpl {
       },
       { operationId, tempMessageId: tempAssistantId },
     );
-    this.#get().internal_toggleMessageLoading(true, tempId);
 
     // Associate temp messages with operation
     this.#get().associateMessageWithOperation(tempId, operationId);
@@ -495,8 +493,6 @@ export class ConversationLifecycleActionImpl {
       }
     }
 
-    this.#get().internal_toggleMessageLoading(false, tempId);
-
     // Clear editor temp state after message created
     if (data) {
       this.#get().updateOperationMetadata(operationId, { inputEditorTempState: null });
@@ -587,6 +583,31 @@ export class ConversationLifecycleActionImpl {
     }
 
     // ── AI execution ──
+
+    // Gateway mode: server-side execution via WebSocket (opt-in via Labs toggle)
+    if (this.#get().isGatewayModeEnabled()) {
+      try {
+        await this.#get().executeGatewayAgent({
+          assistantMessageId: data.assistantMessageId,
+          context: execContext,
+          message,
+          parentOperationId: operationId,
+          topicId: data.topicId,
+          userMessageId: data.userMessageId,
+        });
+      } catch (e) {
+        console.error('[Gateway] Failed to start server-side agent:', e);
+        if (data.topicId) this.#get().internal_updateTopicLoading(data.topicId, false);
+      }
+
+      return {
+        assistantMessageId: data.assistantMessageId,
+        createdThreadId: data.createdThreadId,
+        userMessageId: data.userMessageId,
+      };
+    }
+
+    // Client mode: run agent loop locally
     {
       const displayMessages = displayMessageSelectors.getDisplayMessagesByKey(
         messageMapKey(execContext),
