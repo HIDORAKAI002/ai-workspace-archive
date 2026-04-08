@@ -240,6 +240,7 @@ mod tests {
             id: session_id.clone(),
             task: "stream output".to_string(),
             agent_type: "test".to_string(),
+            working_dir: env::temp_dir(),
             state: SessionState::Pending,
             pid: None,
             worktree: None,

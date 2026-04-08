@@ -215,6 +215,7 @@ setLocale(locale?: string): void // optional (by default we use the current loca
 Notes:
 - `PreparedText` is the opaque fast-path handle. `PreparedTextWithSegments` is the richer manual-layout handle.
 - `LayoutCursor` is a segment/grapheme cursor, not a raw string offset.
+- `layout()` with an empty string returns `{ lineCount: 0, height: 0 }`. Browsers still size an empty block to one `line-height`, so clamp with `Math.max(1, lineCount) * lineHeight` if you need that behavior.
 - The richer handle also includes `segLevels` for custom bidi-aware rendering. The line-breaking APIs do not read it.
 - Segment widths are browser-canvas widths for line breaking, not exact glyph-position data for custom Arabic or mixed-direction x-coordinate reconstruction.
 - If a soft hyphen wins the break, materialized line text includes the visible trailing `-`.

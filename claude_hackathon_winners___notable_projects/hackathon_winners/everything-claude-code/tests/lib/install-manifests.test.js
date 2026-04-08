@@ -74,6 +74,8 @@ function runTests() {
     const components = listInstallComponents();
     assert.ok(components.some(component => component.id === 'lang:typescript'),
       'Should include lang:typescript');
+    assert.ok(components.some(component => component.id === 'lang:c'),
+      'Should include lang:c');
     assert.ok(components.some(component => component.id === 'capability:security'),
       'Should include capability:security');
   })) passed++; else failed++;
@@ -87,6 +89,7 @@ function runTests() {
     assert.ok(languages.includes('kotlin'));
     assert.ok(languages.includes('rust'));
     assert.ok(languages.includes('cpp'));
+    assert.ok(languages.includes('c'));
     assert.ok(languages.includes('csharp'));
   })) passed++; else failed++;
 
@@ -181,6 +184,17 @@ function runTests() {
     assert.ok(selection.moduleIds.includes('rules-core'));
     assert.ok(selection.moduleIds.includes('framework-language'),
       'cpp should resolve to framework-language module');
+  })) passed++; else failed++;
+
+  if (test('resolves c legacy compatibility into framework-language module', () => {
+    const selection = resolveLegacyCompatibilitySelection({
+      target: 'cursor',
+      legacyLanguages: ['c'],
+    });
+
+    assert.ok(selection.moduleIds.includes('rules-core'));
+    assert.ok(selection.moduleIds.includes('framework-language'),
+      'c should resolve to framework-language module');
   })) passed++; else failed++;
 
   if (test('resolves csharp legacy compatibility into framework-language module', () => {
