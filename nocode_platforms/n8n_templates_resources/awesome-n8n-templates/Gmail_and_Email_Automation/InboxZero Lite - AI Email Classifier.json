@@ -1,0 +1,110 @@
+{
+  "name": "InboxZero Lite — Simple Email Classifier (Log Only)",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute", "minute": 5 }] },
+        "simple": false,
+        "filters": { "readStatus": "unread" }
+      },
+      "id": "trigger-gmail",
+      "name": "Gmail: New Email",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const e = $input.first().json;\n  return [{ json: { messageId: e.id || '', from: e.from?.value?.[0]?.address || '', fromName: e.from?.value?.[0]?.name || '', subject: e.subject || '', snippet: (e.snippet || '').substring(0, 500), date: e.date || new Date().toISOString() } }];\n} catch (e) {\n  throw new Error('Failed to parse email: ' + e.message);\n}"
+      },
+      "id": "parse",
+      "name": "Parse Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Classify this email as: urgent, important, informational, or spam. Also write a 1-sentence summary. JSON: { \"category\": \"...\", \"summary\": \"...\" }"
+            },
+            {
+              "role": "user",
+              "content": "=From: {{$json.fromName}} <{{$json.from}}>\nSubject: {{$json.subject}}\n\n{{$json.snippet}}"
+            }
+          ]
+        },
+        "options": { "temperature": 0.2, "maxTokens": 200, "responseFormat": "json_object" }
+      },
+      "id": "ai-classify",
+      "name": "AI: Classify",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [640, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Parse Email').first().json;\nconst aiRaw = $input.first().json;\nlet ai;\ntry { ai = JSON.parse(aiRaw.message?.content || '{}'); } catch(e) { ai = { category: 'informational', summary: '' }; }\nreturn [{ json: { ...email, category: ai.category || 'informational', summary: ai.summary || '', classifiedAt: new Date().toISOString() } }];"
+      },
+      "id": "merge",
+      "name": "Merge Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.INBOXZERO_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Lite Log", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Category": "={{ $json.category }}",
+            "Summary": "={{ $json.summary }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-sheets",
+      "name": "Log to Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1080, 400],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "content": "## InboxZero Lite — Classify Only\n\nSimplest version: classify + log.\nNo auto-actions, no Slack, no drafts.\n\nPerfect for trying InboxZero before\nenabling auto-actions.",
+        "width": 300,
+        "height": 180,
+        "color": 6
+      },
+      "id": "note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [120, 180]
+    }
+  ],
+  "connections": {
+    "Gmail: New Email": { "main": [[{ "node": "Parse Email", "type": "main", "index": 0 }]] },
+    "Parse Email": { "main": [[{ "node": "AI: Classify", "type": "main", "index": 0 }]] },
+    "AI: Classify": { "main": [[{ "node": "Merge Result", "type": "main", "index": 0 }]] },
+    "Merge Result": { "main": [[{ "node": "Log to Sheets", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "tags": [{ "name": "InboxZero", "id": "inboxzero" }, { "name": "AutoFlow", "id": "autoflow" }, { "name": "Lite", "id": "lite" }],
+  "meta": { "instanceId": "inboxzero-lite-v1" }
+}
