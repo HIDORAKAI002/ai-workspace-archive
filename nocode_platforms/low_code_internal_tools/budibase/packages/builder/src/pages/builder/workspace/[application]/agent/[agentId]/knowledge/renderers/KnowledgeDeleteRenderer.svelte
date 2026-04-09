@@ -12,9 +12,11 @@
 </script>
 
 <div class="file-actions">
-  <AbsTooltip text="Remove file">
-    <ActionButton icon="trash" size="S" on:click={remove} />
-  </AbsTooltip>
+  {#if row.onDelete}
+    <AbsTooltip text="Remove file">
+      <ActionButton icon="trash" size="S" on:click={remove} />
+    </AbsTooltip>
+  {/if}
 </div>
 
 <style>

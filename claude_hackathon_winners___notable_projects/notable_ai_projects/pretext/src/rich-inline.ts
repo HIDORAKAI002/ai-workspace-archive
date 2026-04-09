@@ -1,13 +1,14 @@
 import {
-  materializeLineRange,
   measureNaturalWidth,
   prepareWithSegments,
-  type LayoutCursor,
-  type LayoutLineRange,
   type PreparedTextWithSegments,
+  type LayoutCursor,
 } from './layout.js'
 import {
-  layoutNextLineRange as stepPreparedLineRange,
+  buildLineTextFromRange,
+  getLineTextCache,
+} from './line-text.js'
+import {
   type LineBreakCursor,
   stepPreparedLineGeometry,
 } from './line-break.js'
@@ -129,12 +130,13 @@ function prepareWholeItemLine(prepared: PreparedTextWithSegments): {
   endSegmentIndex: number
   width: number
 } | null {
-  const line = stepPreparedLineRange(prepared, EMPTY_LAYOUT_CURSOR, Number.POSITIVE_INFINITY)
-  if (line === null) return null
+  const end: LineBreakCursor = { segmentIndex: 0, graphemeIndex: 0 }
+  const width = stepPreparedLineGeometry(prepared, end, Number.POSITIVE_INFINITY)
+  if (width === null) return null
   return {
-    endGraphemeIndex: line.endGraphemeIndex,
-    endSegmentIndex: line.endSegmentIndex,
-    width: line.width,
+    endGraphemeIndex: end.graphemeIndex,
+    endSegmentIndex: end.segmentIndex,
+    width,
   }
 }
 
@@ -296,16 +298,20 @@ function stepRichInlineLine(
     }
 
     const availableWidth = Math.max(1, remainingWidth - reservedWidth)
-    const line = stepPreparedLineRange(item.prepared, textCursor, availableWidth)
-    if (line === null) {
+    const lineEnd: LineBreakCursor = {
+      segmentIndex: textCursor.segmentIndex,
+      graphemeIndex: textCursor.graphemeIndex,
+    }
+    const lineWidthForItem = stepPreparedLineGeometry(item.prepared, lineEnd, availableWidth)
+    if (lineWidthForItem === null) {
       itemIndex++
       textCursor.segmentIndex = 0
       textCursor.graphemeIndex = 0
       continue
     }
     if (
-      textCursor.segmentIndex === line.endSegmentIndex &&
-      textCursor.graphemeIndex === line.endGraphemeIndex
+      textCursor.segmentIndex === lineEnd.segmentIndex &&
+      textCursor.graphemeIndex === lineEnd.graphemeIndex
     ) {
       itemIndex++
       textCursor.segmentIndex = 0
@@ -322,20 +328,21 @@ function stepRichInlineLine(
       lineWidth > 0 &&
       atItemStart &&
       gapBefore > 0 &&
-      endsInsideFirstSegment(line.endSegmentIndex, line.endGraphemeIndex)
+      endsInsideFirstSegment(lineEnd.segmentIndex, lineEnd.graphemeIndex)
     ) {
-      const freshLine = stepPreparedLineRange(
+      const freshLineEnd: LineBreakCursor = { segmentIndex: 0, graphemeIndex: 0 }
+      const freshLineWidth = stepPreparedLineGeometry(
         item.prepared,
-        EMPTY_LAYOUT_CURSOR,
+        freshLineEnd,
         Math.max(1, safeWidth - item.extraWidth),
       )
       if (
-        freshLine !== null &&
+        freshLineWidth !== null &&
         (
-          freshLine.endSegmentIndex > line.endSegmentIndex ||
+          freshLineEnd.segmentIndex > lineEnd.segmentIndex ||
           (
-            freshLine.endSegmentIndex === line.endSegmentIndex &&
-            freshLine.endGraphemeIndex > line.endGraphemeIndex
+            freshLineEnd.segmentIndex === lineEnd.segmentIndex &&
+            freshLineEnd.graphemeIndex > lineEnd.graphemeIndex
           )
         )
       ) {
@@ -346,19 +353,19 @@ function stepRichInlineLine(
     collectFragment?.(
       item,
       gapBefore,
-      line.width + item.extraWidth,
+      lineWidthForItem + item.extraWidth,
       cloneCursor(textCursor),
       {
-        segmentIndex: line.endSegmentIndex,
-        graphemeIndex: line.endGraphemeIndex,
+        segmentIndex: lineEnd.segmentIndex,
+        graphemeIndex: lineEnd.graphemeIndex,
       },
     )
-    lineWidth += gapBefore + line.width + item.extraWidth
+    lineWidth += gapBefore + lineWidthForItem + item.extraWidth
     remainingWidth = Math.max(0, safeWidth - lineWidth)
 
     if (
-      line.endSegmentIndex === item.endSegmentIndex &&
-      line.endGraphemeIndex === item.endGraphemeIndex
+      lineEnd.segmentIndex === item.endSegmentIndex &&
+      lineEnd.graphemeIndex === item.endGraphemeIndex
     ) {
       itemIndex++
       textCursor.segmentIndex = 0
@@ -366,8 +373,8 @@ function stepRichInlineLine(
       continue
     }
 
-    textCursor.segmentIndex = line.endSegmentIndex
-    textCursor.graphemeIndex = line.endGraphemeIndex
+    textCursor.segmentIndex = lineEnd.segmentIndex
+    textCursor.graphemeIndex = lineEnd.graphemeIndex
     break
   }
 
@@ -546,12 +553,14 @@ function materializeFragmentText(
   item: PreparedRichInlineItem,
   fragment: RichInlineFragmentRange,
 ): string {
-  const line = materializeLineRange(item.prepared, {
-    width: fragment.occupiedWidth - item.extraWidth,
-    start: fragment.start,
-    end: fragment.end,
-  } satisfies LayoutLineRange)
-  return line.text
+  return buildLineTextFromRange(
+    item.prepared,
+    getLineTextCache(item.prepared),
+    fragment.start.segmentIndex,
+    fragment.start.graphemeIndex,
+    fragment.end.segmentIndex,
+    fragment.end.graphemeIndex,
+  )
 }
 
 // Bridge from cheap range walking to full fragment text. Lets callers do
@@ -562,15 +571,24 @@ export function materializeRichInlineLineRange(
   line: RichInlineLineRange,
 ): RichInlineLine {
   const flow = getInternalPreparedRichInline(prepared)
+  const fragments: RichInlineFragment[] = []
+
+  for (let i = 0; i < line.fragments.length; i++) {
+    const fragment = line.fragments[i]!
+    const item = flow.itemsBySourceItemIndex[fragment.itemIndex]
+    if (item === undefined) throw new Error('Missing rich-text inline item for fragment')
+    fragments.push({
+      itemIndex: fragment.itemIndex,
+      text: materializeFragmentText(item, fragment),
+      gapBefore: fragment.gapBefore,
+      occupiedWidth: fragment.occupiedWidth,
+      start: fragment.start,
+      end: fragment.end,
+    })
+  }
+
   return {
-    fragments: line.fragments.map(fragment => {
-      const item = flow.itemsBySourceItemIndex[fragment.itemIndex]
-      if (item === undefined) throw new Error('Missing rich-text inline item for fragment')
-      return {
-        ...fragment,
-        text: materializeFragmentText(item, fragment),
-      }
-    }),
+    fragments,
     width: line.width,
     end: line.end,
   }

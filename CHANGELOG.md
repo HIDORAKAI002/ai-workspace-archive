@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-09 23:20 IST] Auto-Sync
+- **39 Repositories Updated:** MCP Python SDK, Langfuse, Promptfoo, n8n, Dify, Activepieces, Windmill, Appsmith, Budibase, Awesome n8n Templates, Directus, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Swarms, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, traceloop/openllmetry, arize-ai/phoenix, open-telemetry/opentelemetry-python, danny-avila/LibreChat, chenglou/pretext, google-gemini/gemini-cli, vercel/ai, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
+
 ## [2026-04-09 16:58 IST] Auto-Sync
 - **31 Repositories Updated:** Langfuse, Promptfoo, Dify, Flowise, Activepieces, Budibase, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, browser-use/browser-use, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, Aider-AI/aider, weaviate/weaviate, infiniflow/ragflow, traceloop/openllmetry, open-telemetry/opentelemetry-python, BradyFU/Awesome-Multimodal-Large-Language-Models, mindsdb/mindsdb, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

@@ -5,9 +5,18 @@
   export let row: {
     displayStatus: string
     status: KnowledgeBaseFileStatus
+    isUploading?: boolean
   }
 
-  const getStatusProps = (status: KnowledgeBaseFileStatus) => {
+  const getStatusProps = (row: {
+    status: KnowledgeBaseFileStatus
+    isUploading?: boolean
+  }) => {
+    if (row.isUploading) {
+      return { info: true }
+    }
+
+    const { status } = row
     switch (status) {
       case KnowledgeBaseFileStatus.READY:
         return { positive: true }
@@ -19,6 +28,6 @@
   }
 </script>
 
-<StatusLight size="S" {...getStatusProps(row.status)}>
+<StatusLight size="S" {...getStatusProps(row)}>
   {row.displayStatus}
 </StatusLight>

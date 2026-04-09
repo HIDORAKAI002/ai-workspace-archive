@@ -1,0 +1,18 @@
+{
+  "name": "VoiceAgent Lite — Simple Call Logger",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"voiceagent-lite","responseMode":"responseNode","options":{}},"id":"trigger","name":"Call Received","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[200,400],"webhookId":"voiceagent-lite"},
+    {"parameters":{"jsCode":"try {\n  const b = $input.first().json.body || $input.first().json;\n  return [{ json: { callId: b.call_id || require('crypto').randomUUID(), caller: b.caller_name || b.from || 'Unknown', phone: b.caller_phone || b.from || '', duration: b.duration || 0, transcript: b.transcript || '', summary: b.summary || '', receivedAt: new Date().toISOString() } }];\n} catch (e) { throw new Error('Parse failed: ' + e.message); }"},"id":"parse","name":"Parse Call","type":"n8n-nodes-base.code","typeVersion":2,"position":[420,400]},
+    {"parameters":{"operation":"append","documentId":{"__rl":true,"value":"={{ $env.VOICEAGENT_SHEET_ID }}","mode":"id"},"sheetName":{"__rl":true,"value":"Lite Call Log","mode":"name"},"columns":{"mappingMode":"defineBelow","value":{"Call ID":"={{ $json.callId }}","Date":"={{ $json.receivedAt }}","Caller":"={{ $json.caller }}","Phone":"={{ $json.phone }}","Duration":"={{ $json.duration }}","Summary":"={{ $json.summary }}","Transcript":"={{ $json.transcript.substring(0,500) }}"}},"options":{}},"id":"log","name":"Log to Sheets","type":"n8n-nodes-base.googleSheets","typeVersion":4.5,"position":[660,400],"retryOnFail":true,"maxTries":2},
+    {"parameters":{"respondWith":"json","responseBody":"={{ JSON.stringify({ success: true, callId: $json.callId, caller: $json.caller }) }}"},"id":"respond","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1.1,"position":[900,400]},
+    {"parameters":{"content":"## VoiceAgent Lite\nSimple call logging.\nNo AI analysis, no calendar.\nJust log calls to Sheets.","width":260,"height":120,"color":6},"id":"note","name":"Sticky Note","type":"n8n-nodes-base.stickyNote","typeVersion":1,"position":[120,220]}
+  ],
+  "connections": {
+    "Call Received":{"main":[[{"node":"Parse Call","type":"main","index":0}]]},
+    "Parse Call":{"main":[[{"node":"Log to Sheets","type":"main","index":0}]]},
+    "Log to Sheets":{"main":[[{"node":"Respond","type":"main","index":0}]]}
+  },
+  "settings":{"executionOrder":"v1","saveManualExecutions":true},
+  "tags":[{"name":"VoiceAgent","id":"voiceagent"},{"name":"AutoFlow","id":"autoflow"},{"name":"Lite","id":"lite"}],
+  "meta":{"instanceId":"voiceagent-lite-v1"}
+}

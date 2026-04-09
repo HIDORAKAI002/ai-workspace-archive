@@ -1,0 +1,120 @@
+{
+  "name": "SocialPulse Lite — Single Source Monitor (Reddit Only)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }] }
+      },
+      "id": "trigger",
+      "name": "Run Daily (9 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.reddit.com/r/{{ $env.SOCIALPULSE_SUBREDDITS?.split(',')[0]?.trim() || 'SaaS' }}/hot.json?limit=20",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "User-Agent", "value": "SocialPulse/1.0" }] },
+        "options": { "timeout": 15000 }
+      },
+      "id": "fetch-reddit",
+      "name": "Reddit: Fetch Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 400],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const reddit = $input.first().json;\n  const posts = (reddit?.data?.children || []).map(c => ({ title: c.data?.title || '', score: c.data?.score || 0, comments: c.data?.num_comments || 0, url: 'https://reddit.com' + (c.data?.permalink || ''), subreddit: c.data?.subreddit || '' })).filter(p => p.score > 3).sort((a,b) => b.score - a.score).slice(0, 15);\n  return [{ json: { totalPosts: posts.length, posts, scannedAt: new Date().toISOString() } }];\n} catch (e) {\n  throw new Error('Failed to parse Reddit data: ' + e.message);\n}"
+      },
+      "id": "parse",
+      "name": "Parse & Rank Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            { "role": "system", "content": "Analyze these Reddit posts. Find 3 trending topics and suggest 2 content ideas. JSON: { \"trends\": [\"topic1\"], \"contentIdeas\": [{ \"idea\": \"...\", \"platform\": \"Twitter\" }], \"sentiment\": \"positive/neutral/negative\" }" },
+            { "role": "user", "content": "=Top Reddit posts:\n{{ $json.posts.map((p,i) => (i+1) + '. ' + p.title + ' (score:' + p.score + ')').join('\\n') }}" }
+          ]
+        },
+        "options": { "temperature": 0.5, "maxTokens": 800, "responseFormat": "json_object" }
+      },
+      "id": "ai-analyze",
+      "name": "AI: Quick Analysis",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [920, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const data = $('Parse & Rank Posts').first().json;\n  const aiRaw = $input.first().json;\n  let ai;\n  try { ai = JSON.parse(aiRaw.message?.content || '{}'); } catch(e) { ai = { trends: [], contentIdeas: [], sentiment: 'unknown' }; }\n  return [{ json: { ...data, analysis: ai } }];\n} catch (e) {\n  throw new Error('Failed to merge: ' + e.message);\n}"
+      },
+      "id": "merge",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.SOCIALPULSE_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Lite Log", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.scannedAt }}",
+            "Posts": "={{ $json.totalPosts }}",
+            "Trends": "={{ JSON.stringify($json.analysis.trends) }}",
+            "Content Ideas": "={{ JSON.stringify($json.analysis.contentIdeas) }}",
+            "Sentiment": "={{ $json.analysis.sentiment }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-sheets",
+      "name": "Log to Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1380, 400],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "content": "## SocialPulse Lite\n\nReddit-only monitoring.\nDaily scan, quick AI analysis.\nPerfect for testing before\nenabling full 3-source scan.",
+        "width": 280,
+        "height": 160,
+        "color": 6
+      },
+      "id": "note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [120, 200]
+    }
+  ],
+  "connections": {
+    "Run Daily (9 AM)": { "main": [[{ "node": "Reddit: Fetch Posts", "type": "main", "index": 0 }]] },
+    "Reddit: Fetch Posts": { "main": [[{ "node": "Parse & Rank Posts", "type": "main", "index": 0 }]] },
+    "Parse & Rank Posts": { "main": [[{ "node": "AI: Quick Analysis", "type": "main", "index": 0 }]] },
+    "AI: Quick Analysis": { "main": [[{ "node": "Merge Results", "type": "main", "index": 0 }]] },
+    "Merge Results": { "main": [[{ "node": "Log to Sheets", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "tags": [{ "name": "SocialPulse", "id": "socialpulse" }, { "name": "AutoFlow", "id": "autoflow" }, { "name": "Lite", "id": "lite" }],
+  "meta": { "instanceId": "socialpulse-lite-v1" }
+}

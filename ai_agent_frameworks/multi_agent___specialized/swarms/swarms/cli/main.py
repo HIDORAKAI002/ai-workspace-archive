@@ -113,7 +113,7 @@ def run_autoswarm(
 
         agents_count = len(config.get("agents", []))
         console.print(
-            f"[white]✓ Swarm configuration generated[/white]"
+            "[white]✓ Swarm configuration generated[/white]"
         )
         console.print(
             f"[white]✓ Parsed {agents_count} agents from config[/white]"
@@ -126,17 +126,13 @@ def run_autoswarm(
             output_path=output_path,
             output_dir=output_dir,
         )
-        console.print(
-            f"[white]✓ Written to: {written_path}[/white]"
-        )
+        console.print(f"[white]✓ Written to: {written_path}[/white]")
 
         # Step 3: Optionally run the swarm
         if not no_run:
             import yaml
 
-            console.print(
-                "[white]Running swarm...[/white]"
-            )
+            console.print("[white]Running swarm...[/white]")
             yaml_string = yaml.dump(config, default_flow_style=False)
             create_agents_from_yaml(
                 yaml_string=yaml_string,
