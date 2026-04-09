@@ -91,7 +91,12 @@ export async function robustFetch<
             file_content: undefined,
           },
         }
-      : body,
+      : body?.pdf
+        ? {
+            ...body,
+            pdf: undefined,
+          }
+        : body,
     logger: undefined,
   };
 
