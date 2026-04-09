@@ -821,25 +821,11 @@ Explore comprehensive examples and tutorials to learn how to use Swarms effectiv
 
 ## Contribute to Swarms
 
-Our mission is to accelerate the transition to a fully autonomous world economy by providing enterprise-grade, production-ready infrastructure that enables seamless deployment and orchestration of millions of autonomous agents. We are creating the operating system for the agent economy, and we need your help to achieve this goal.
+Swarms is an open-source, community-driven framework aiming to accelerate a fully autonomous world by providing robust infrastructure for deploying and orchestrating millions of agents. By contributing, you can help advance multi-agent AI, collaborate with passionate peers, shape the agent economy, and enhance your expertise. 
 
-Swarms is built by the community, for the community. We believe that collaborative development is the key to pushing the boundaries of what's possible with multi-agent AI. Your contributions are not only welcome—they are essential to our mission. [Learn more about why you should contribute to Swarms](https://docs.swarms.world/en/latest/contributors/main/)
+Learn more about how you can make a meaningful impact in our [Contributor's Guide](https://docs.swarms.world/en/latest/contributors/main/).
 
-### Why Contribute?
-
-By joining us, you have the opportunity to:
-
-* **Work on the Frontier of Agents:** Shape the future of autonomous agent technology and help build a production-grade, open-source framework.
-
-* **Join a Vibrant Community:** Collaborate with a passionate and growing group of agent developers, researchers, and agent enthusasits.
-
-* **Make a Tangible Impact:** Whether you're fixing a bug, adding a new feature, or improving documentation, your work will be used in real-world applications.
-
-* **Learn and Grow:** Gain hands-on experience with advanced AI concepts and strengthen your software engineering skills.
-
-Discover more about our mission and the benefits of becoming a contributor in our official [**Contributor's Guide**](https://docs.swarms.world/en/latest/contributors/main/).
-
-### How to Get Started
+### How to Contribute
 
 We've made it easy to start contributing. Here's how you can help:
 
@@ -851,7 +837,6 @@ We've made it easy to start contributing. Here's how you can help:
 
 4. **Join the Discussion:** To participate in roadmap discussions and connect with other developers, join our community on [**Discord**](https://discord.gg/EamjgSaEQf).
 
-
 ### Thank You to Our Contributors
 
 Thank you for contributing to swarms. Your work is extremely appreciated and recognized.
@@ -859,6 +844,14 @@ Thank you for contributing to swarms. Your work is extremely appreciated and rec
 <a href="https://github.com/kyegomez/swarms/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=kyegomez/swarms" />
 </a>
+
+
+## Join the Discord
+
+Join thousands of agent builders and AI engineers in the **[Swarms Discord](https://discord.gg/EamjgSaEQf)** for technical support, project showcases, collaboration, and the latest swarms ecosystem updates.
+
+[Join the Swarms Discord →](https://discord.gg/EamjgSaEQf)
+
 
 ### Thank You to Our Community
 
@@ -870,7 +863,7 @@ We're incredibly grateful to everyone who supports Swarms! Your stars, forks, an
 
 -----
 
-## Join the Swarms community
+## Join the Swarms Community!
 
 Join our community of agent engineers and researchers for technical support, cutting-edge updates, and exclusive access to world-class agent engineering insights!
 

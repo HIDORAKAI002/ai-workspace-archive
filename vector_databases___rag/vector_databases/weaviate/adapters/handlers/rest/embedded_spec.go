@@ -7922,6 +7922,17 @@ func init() {
           "description": "Index each object by its internal timestamps (default: ` + "`" + `false` + "`" + `).",
           "type": "boolean"
         },
+        "stopwordPresets": {
+          "description": "User-defined named stopword lists. Each key is a preset name that can be referenced by a property's textAnalyzer.stopwordPreset field. The value is an array of stopword strings.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "x-omitempty": true
+        },
         "stopwords": {
           "$ref": "#/definitions/StopwordConfig"
         },
@@ -9623,6 +9634,11 @@ func init() {
             "type": "string"
           },
           "x-omitempty": true
+        },
+        "stopwordPreset": {
+          "description": "Stopword preset name. Overrides the collection-level invertedIndexConfig.stopwords for this property. Only applies to properties using 'word' tokenization. Can be a built-in preset ('en', 'none') or a user-defined preset from invertedIndexConfig.stopwordPresets.",
+          "type": "string",
+          "x-omitempty": true
         }
       },
       "x-omitempty": true
@@ -9639,9 +9655,13 @@ func init() {
           "description": "Optional text analyzer configuration (e.g. ASCII folding).",
           "$ref": "#/definitions/TextAnalyzerConfig"
         },
-        "stopwordConfig": {
-          "description": "Optional stopword configuration. When provided, stopwords are removed from query tokens but preserved in indexed tokens.",
-          "$ref": "#/definitions/StopwordConfig"
+        "stopwordPresets": {
+          "description": "Optional named stopword configurations. Each key is a preset name that can be referenced by analyzerConfig.stopwordPreset. Each value is a StopwordConfig (with optional preset, additions, and removals).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StopwordConfig"
+          },
+          "x-omitempty": true
         },
         "text": {
           "description": "The text to tokenize.",
@@ -18317,6 +18337,17 @@ func init() {
           "description": "Index each object by its internal timestamps (default: ` + "`" + `false` + "`" + `).",
           "type": "boolean"
         },
+        "stopwordPresets": {
+          "description": "User-defined named stopword lists. Each key is a preset name that can be referenced by a property's textAnalyzer.stopwordPreset field. The value is an array of stopword strings.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "x-omitempty": true
+        },
         "stopwords": {
           "$ref": "#/definitions/StopwordConfig"
         },
@@ -20194,6 +20225,11 @@ func init() {
             "type": "string"
           },
           "x-omitempty": true
+        },
+        "stopwordPreset": {
+          "description": "Stopword preset name. Overrides the collection-level invertedIndexConfig.stopwords for this property. Only applies to properties using 'word' tokenization. Can be a built-in preset ('en', 'none') or a user-defined preset from invertedIndexConfig.stopwordPresets.",
+          "type": "string",
+          "x-omitempty": true
         }
       },
       "x-omitempty": true
@@ -20210,9 +20246,13 @@ func init() {
           "description": "Optional text analyzer configuration (e.g. ASCII folding).",
           "$ref": "#/definitions/TextAnalyzerConfig"
         },
-        "stopwordConfig": {
-          "description": "Optional stopword configuration. When provided, stopwords are removed from query tokens but preserved in indexed tokens.",
-          "$ref": "#/definitions/StopwordConfig"
+        "stopwordPresets": {
+          "description": "Optional named stopword configurations. Each key is a preset name that can be referenced by analyzerConfig.stopwordPreset. Each value is a StopwordConfig (with optional preset, additions, and removals).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StopwordConfig"
+          },
+          "x-omitempty": true
         },
         "text": {
           "description": "The text to tokenize.",

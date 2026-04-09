@@ -27,11 +27,33 @@
   const MAX_FILE_SIZE_BYTES = 100 * BYTES_IN_MB
   const MAX_FILE_SIZE_LABEL = "100MB"
 
+  interface PendingUpload {
+    tempId: string
+    filename: string
+    size?: number
+    mimetype?: string
+    createdAt: string
+  }
+
   let currentAgent: Agent | undefined = $derived($selectedAgent)
+  let activeAgentId = $derived(currentAgent?._id)
   let loading = $state(true)
   let files = $state<KnowledgeBaseFile[]>([])
+  let pendingUploadsByAgent = $state<Record<string, PendingUpload[]>>({})
+  let uploadingByAgent = $state<Record<string, boolean>>({})
+  let uploadProgressByAgent = $state<Record<string, string>>({})
   let fileInput = $state<HTMLInputElement>()
   let loadedAgentId = $state<string | undefined>()
+
+  let activePendingUploads = $derived(
+    activeAgentId ? pendingUploadsByAgent[activeAgentId] || [] : []
+  )
+  let isUploadingActiveAgent = $derived(
+    activeAgentId ? !!uploadingByAgent[activeAgentId] : false
+  )
+  let activeUploadProgress = $derived(
+    activeAgentId ? uploadProgressByAgent[activeAgentId] || "" : ""
+  )
 
   const readableStatus: Record<KnowledgeBaseFileStatus, string> = {
     [KnowledgeBaseFileStatus.PROCESSING]: "Processing",
@@ -61,16 +83,36 @@
   const shouldPoll = () =>
     files.some(file => file.status === KnowledgeBaseFileStatus.PROCESSING)
 
-  const getUploadErrorMessage = (error: any) => {
-    const status = error?.status
-    const message = error?.message || "Failed to upload file"
-    const isFileTooLargeError = status === 413
-
-    if (isFileTooLargeError) {
-      return `Files cannot exceed ${MAX_FILE_SIZE_LABEL}. Please try again with a smaller file.`
+  const setPendingUploadsForAgent = (
+    agentId: string,
+    pendingUploads: PendingUpload[]
+  ) => {
+    pendingUploadsByAgent = {
+      ...pendingUploadsByAgent,
+      [agentId]: pendingUploads,
     }
+  }
 
-    return message
+  const removePendingUpload = (agentId: string, tempId: string) => {
+    const pendingUploads = pendingUploadsByAgent[agentId] || []
+    setPendingUploadsForAgent(
+      agentId,
+      pendingUploads.filter(upload => upload.tempId !== tempId)
+    )
+  }
+
+  const setUploadingForAgent = (agentId: string, uploading: boolean) => {
+    uploadingByAgent = {
+      ...uploadingByAgent,
+      [agentId]: uploading,
+    }
+  }
+
+  const setUploadProgressForAgent = (agentId: string, progress: string) => {
+    uploadProgressByAgent = {
+      ...uploadProgressByAgent,
+      [agentId]: progress,
+    }
   }
 
   const poller = createPolling({
@@ -85,20 +127,34 @@
   })
 
   let tableRows = $derived.by(() =>
-    files
-      .map(file => ({
+    [
+      ...activePendingUploads.map(upload => ({
+        _id: upload.tempId,
+        filename: upload.filename,
+        status: KnowledgeBaseFileStatus.PROCESSING,
+        displayStatus: "Uploading",
+        isUploading: true,
+        size: helpers.formatBytes(upload.size, " "),
+        updatedAt: formatTimestamp(upload.createdAt),
+        onDelete: undefined,
+        errorMessage: undefined,
+        mimetype: upload.mimetype,
+      })),
+      ...files.map(file => ({
         _id: file._id,
         filename: file.filename,
         status: file.status,
         displayStatus: formatFileStatus(file),
+        isUploading: false,
         size: helpers.formatBytes(file.size, " "),
         updatedAt: formatTimestamp(
           file.processedAt || file.updatedAt || file.createdAt
         ),
         onDelete: () => removeFile(file),
         errorMessage: file.errorMessage,
-      }))
-      .sort((a, b) => a.filename.localeCompare(b.filename))
+        mimetype: file.mimetype,
+      })),
+    ].sort((a, b) => a.filename.localeCompare(b.filename))
   )
 
   const customRenderers = [
@@ -156,34 +212,116 @@
   })
 
   async function handleFileUpload(event: Event) {
-    const agentId = currentAgent?._id
-    if (!agentId) {
+    const uploadAgentId = currentAgent?._id
+    if (!uploadAgentId) {
       return
     }
     const target = event.currentTarget as HTMLInputElement
-    const file = target?.files?.[0]
-    if (!file) {
+    const selectedFiles = Array.from(target?.files || [])
+    if (selectedFiles.length === 0) {
       return
     }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      notifications.error(
-        `Files cannot exceed ${MAX_FILE_SIZE_LABEL}. Please try again with a smaller file.`
-      )
-      if (target) {
-        target.value = ""
-      }
-      return
-    }
+    const uploads = selectedFiles.map((file, index) => ({
+      file,
+      tempId: `pending-upload-${Date.now()}-${index}`,
+      createdAt: new Date().toISOString(),
+    }))
+
+    setPendingUploadsForAgent(uploadAgentId, [
+      ...uploads.map(upload => ({
+        tempId: upload.tempId,
+        filename: upload.file.name,
+        size: upload.file.size,
+        mimetype: upload.file.type || undefined,
+        createdAt: upload.createdAt,
+      })),
+      ...(pendingUploadsByAgent[uploadAgentId] || []),
+    ])
+
+    setUploadingForAgent(uploadAgentId, true)
+    setUploadProgressForAgent(uploadAgentId, "")
+    let successfulUploads = 0
+    const failedUploads: string[] = []
+    const oversizedUploads: string[] = []
 
     try {
-      await agentsStore.uploadAgentFile(agentId, file)
-      await fetchFiles(agentId)
-      notifications.success("File uploaded")
-    } catch (error: any) {
-      console.error(error)
-      notifications.error(getUploadErrorMessage(error))
+      for (const [index, upload] of uploads.entries()) {
+        const file = upload.file
+        setUploadProgressForAgent(
+          uploadAgentId,
+          `Uploading ${index + 1}/${uploads.length}...`
+        )
+
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          oversizedUploads.push(file.name)
+          removePendingUpload(uploadAgentId, upload.tempId)
+          continue
+        }
+
+        try {
+          const { file: uploadedFile } = await agentsStore.uploadAgentFile(
+            uploadAgentId,
+            file
+          )
+          if (currentAgent?._id === uploadAgentId) {
+            files = [
+              uploadedFile,
+              ...files.filter(existing => existing._id !== uploadedFile._id),
+            ]
+          }
+          successfulUploads += 1
+        } catch (error) {
+          console.error(error)
+          failedUploads.push(file.name)
+        } finally {
+          removePendingUpload(uploadAgentId, upload.tempId)
+        }
+      }
+
+      if (currentAgent?._id === uploadAgentId) {
+        await fetchFiles(uploadAgentId)
+      }
+
+      if (failedUploads.length === 0 && oversizedUploads.length === 0) {
+        notifications.success(
+          successfulUploads === 1
+            ? "File uploaded"
+            : `Uploaded ${successfulUploads} files`
+        )
+        return
+      }
+
+      if (successfulUploads > 0) {
+        notifications.info(
+          `Uploaded ${successfulUploads}/${uploads.length} files`
+        )
+      }
+
+      const issueMessages: string[] = []
+      if (failedUploads.length > 0) {
+        issueMessages.push(
+          failedUploads.length === 1
+            ? "1 file failed"
+            : `${failedUploads.length} files failed`
+        )
+      }
+      if (oversizedUploads.length > 0) {
+        issueMessages.push(
+          oversizedUploads.length === 1
+            ? `1 file exceeded ${MAX_FILE_SIZE_LABEL}`
+            : `${oversizedUploads.length} files exceeded ${MAX_FILE_SIZE_LABEL}`
+        )
+      }
+
+      notifications.error(
+        issueMessages.length > 0
+          ? `Some files were not uploaded: ${issueMessages.join(", ")}.`
+          : "Failed to upload files"
+      )
     } finally {
+      setUploadingForAgent(uploadAgentId, false)
+      setUploadProgressForAgent(uploadAgentId, "")
       if (target) {
         target.value = ""
       }
@@ -191,6 +329,9 @@
   }
 
   function handleUploadClick() {
+    if (isUploadingActiveAgent) {
+      return
+    }
     fileInput?.click()
   }
 
@@ -228,13 +369,21 @@
   <div class="knowledge-header">
     <Body size="S">Knowledge bases</Body>
 
-    <Button icon="plus" size="S" secondary on:click={handleUploadClick}
-      >Add knowledge</Button
+    <Button
+      icon="plus"
+      size="S"
+      secondary
+      disabled={isUploadingActiveAgent}
+      on:click={handleUploadClick}
+      >{isUploadingActiveAgent
+        ? activeUploadProgress || "Uploading..."
+        : "Add knowledge"}</Button
     >
 
     <input
       type="file"
       accept=".txt,.md,.markdown,.json,.yaml,.yml,.csv,.tsv,.pdf"
+      multiple
       hidden
       bind:this={fileInput}
       onchange={handleFileUpload}

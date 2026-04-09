@@ -1,0 +1,142 @@
+{
+  "name": "SupportFlow Lite — Simple AI Support Bot (No RAG)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "supportflow-lite",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Receive Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "supportflow-lite"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst message = body.message || body.text || '';\nconst sessionId = body.session_id || require('crypto').randomUUID();\nconst customerName = body.customer_name || 'Customer';\n\nif (!message || message.trim().length < 2) {\n  throw new Error('Message is required.');\n}\n\nreturn [{ json: { message: message.trim(), sessionId, customerName, receivedAt: new Date().toISOString(), messageId: require('crypto').randomUUID() } }];"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a helpful customer support assistant for {{ $env.SUPPORTFLOW_COMPANY_NAME || 'our company' }}.\n\nCompany info:\n{{ $env.SUPPORTFLOW_COMPANY_INFO || 'We are a technology company focused on providing excellent customer service.' }}\n\nRules:\n1. Be friendly, professional, and concise\n2. Answer based on the company info provided\n3. If you don't know the answer, say: 'I don't have that information. Let me connect you with our team at [support email].'\n4. Keep responses under 150 words\n5. Never make up product features, prices, or policies\n\nRespond in JSON: { \"answer\": \"...\", \"confidence\": 0.0-1.0, \"category\": \"faq|billing|technical|complaint|other\" }"
+            },
+            {
+              "role": "user",
+              "content": "=Customer {{$json.customerName}} asks:\n{{$json.message}}"
+            }
+          ]
+        },
+        "options": { "temperature": 0.3, "maxTokens": 500, "responseFormat": "json_object" }
+      },
+      "id": "ai-respond",
+      "name": "AI: Generate Response",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [660, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Validate Input').first().json;\nconst aiRaw = $input.first().json;\nlet ai;\ntry {\n  ai = JSON.parse(aiRaw.message?.content || aiRaw.content || '{}');\n} catch (e) {\n  ai = { answer: 'Sorry, I had trouble processing that. Please try again.', confidence: 0, category: 'other' };\n}\n\nreturn [{ json: { ...original, answer: ai.answer || '', confidence: ai.confidence || 0, category: ai.category || 'other', respondedAt: new Date().toISOString() } }];"
+      },
+      "id": "merge-response",
+      "name": "Merge Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.SUPPORTFLOW_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Lite Conversations", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $json.messageId }}",
+            "Session ID": "={{ $json.sessionId }}",
+            "Customer": "={{ $json.customerName }}",
+            "Question": "={{ $json.message }}",
+            "Answer": "={{ $json.answer }}",
+            "Confidence": "={{ $json.confidence }}",
+            "Category": "={{ $json.category }}",
+            "Received": "={{ $json.receivedAt }}",
+            "Responded": "={{ $json.respondedAt }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-sheets",
+      "name": "Log to Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1140, 300],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, messageId: $json.messageId, answer: $json.answer, confidence: $json.confidence, category: $json.category }) }}"
+      },
+      "id": "respond",
+      "name": "Respond to Customer",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1140, 500]
+    },
+    {
+      "parameters": {
+        "content": "## SupportFlow Lite — Simple AI Bot\n\nNo vector database needed.\nUses company info from environment variable.\n\nBest for: Small businesses, MVPs, testing.\nSetup: 2 minutes (just OpenAI + Sheets).\n\nUpgrade to Main workflow when you\nneed RAG-powered knowledge base.",
+        "width": 350,
+        "height": 220,
+        "color": 6
+      },
+      "id": "note-overview",
+      "name": "Sticky Note: Lite",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [120, 140]
+    }
+  ],
+  "connections": {
+    "Receive Message": {
+      "main": [[{ "node": "Validate Input", "type": "main", "index": 0 }]]
+    },
+    "Validate Input": {
+      "main": [[{ "node": "AI: Generate Response", "type": "main", "index": 0 }]]
+    },
+    "AI: Generate Response": {
+      "main": [[{ "node": "Merge Response", "type": "main", "index": 0 }]]
+    },
+    "Merge Response": {
+      "main": [[
+        { "node": "Log to Sheets", "type": "main", "index": 0 },
+        { "node": "Respond to Customer", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "tags": [
+    { "name": "SupportFlow", "id": "supportflow" },
+    { "name": "AutoFlow", "id": "autoflow" },
+    { "name": "Lite", "id": "lite" }
+  ],
+  "meta": { "instanceId": "supportflow-lite-v1" }
+}

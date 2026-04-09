@@ -101,7 +101,7 @@ curl \
 </TabItem>
 </Tabs>
 
-Refer to the [External assets REST API documentation](/api/rest_api) for more information.
+For more information, see the [External assets REST API documentation](/api/rest-api).
 
 ## Modeling a graph of external assets
 

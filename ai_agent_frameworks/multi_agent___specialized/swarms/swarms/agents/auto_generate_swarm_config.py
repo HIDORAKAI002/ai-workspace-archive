@@ -6,9 +6,6 @@ import yaml
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from swarms import Agent
-from swarms.agents.create_agents_from_yaml import (
-    create_agents_from_yaml,
-)
 from swarms.utils.formatter import formatter
 from swarms.utils.litellm_wrapper import LiteLLM
 
@@ -341,9 +338,7 @@ def write_autoswarm_file(
             router_lines.append(
                 f"    description={_format_value(swarm_arch['description'])},"
             )
-        router_lines.append(
-            f"    agents=[{', '.join(agent_vars)}],"
-        )
+        router_lines.append(f"    agents=[{', '.join(agent_vars)}],")
         if swarm_arch.get("swarm_type"):
             router_lines.append(
                 f"    swarm_type={_format_value(swarm_arch['swarm_type'])},"

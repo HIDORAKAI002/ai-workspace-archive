@@ -1,0 +1,22 @@
+{
+  "name": "DataForge Lite — Single URL AI Scraper",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"dataforge-lite","responseMode":"responseNode","options":{}},"id":"trigger","name":"Scrape URL","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[200,400],"webhookId":"dataforge-lite"},
+    {"parameters":{"jsCode":"try {\n  const b = $input.first().json.body || $input.first().json;\n  if (!b.url) throw new Error('URL is required.');\n  return [{ json: { url: b.url, extractFields: b.extract_fields || 'price,features,description', name: b.name || '' } }];\n} catch (e) { throw new Error('Invalid input: ' + e.message); }"},"id":"validate","name":"Validate","type":"n8n-nodes-base.code","typeVersion":2,"position":[400,400]},
+    {"parameters":{"method":"GET","url":"={{ $json.url }}","sendHeaders":true,"headerParameters":{"parameters":[{"name":"User-Agent","value":"Mozilla/5.0 (compatible; DataForge/1.0)"}]},"options":{"timeout":20000}},"id":"fetch","name":"Fetch Page","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[600,400],"retryOnFail":true,"maxTries":2,"continueOnFail":true},
+    {"parameters":{"jsCode":"try {\n  const url = $('Validate').first().json;\n  const r = $input.first().json;\n  const html = typeof r === 'string' ? r : (r.data || r.body || JSON.stringify(r));\n  const text = html.replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi,'').replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi,'').replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim().substring(0,4000);\n  return [{ json: { ...url, pageText: text } }];\n} catch(e) { throw new Error('Extract failed: ' + e.message); }"},"id":"extract","name":"Extract Text","type":"n8n-nodes-base.code","typeVersion":2,"position":[800,400]},
+    {"parameters":{"model":"gpt-4o-mini","messages":{"values":[{"role":"system","content":"=Extract from the page: {{ $json.extractFields }}. Also: title, description, stats, sentiment. JSON: { \"title\": \"\", \"description\": \"\", \"extractedData\": {}, \"statistics\": [], \"sentiment\": \"\" }"},{"role":"user","content":"=URL: {{$json.url}}\nExtract: {{$json.extractFields}}\n\nContent:\n{{$json.pageText}}"}]},"options":{"temperature":0.2,"maxTokens":800,"responseFormat":"json_object"}},"id":"ai","name":"AI: Extract Data","type":"n8n-nodes-base.openAi","typeVersion":1.8,"position":[1020,400],"retryOnFail":true,"maxTries":3,"waitBetweenTries":2000},
+    {"parameters":{"respondWith":"json","responseBody":"={{ $input.first().json.message?.content || $input.first().json.content || '{}' }}"},"id":"respond","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1.1,"position":[1240,400]},
+    {"parameters":{"content":"## DataForge Lite\nPOST a URL, get structured data.\nNo Sheets, no schedule.","width":260,"height":100,"color":6},"id":"note","name":"Sticky Note","type":"n8n-nodes-base.stickyNote","typeVersion":1,"position":[120,220]}
+  ],
+  "connections": {
+    "Scrape URL":{"main":[[{"node":"Validate","type":"main","index":0}]]},
+    "Validate":{"main":[[{"node":"Fetch Page","type":"main","index":0}]]},
+    "Fetch Page":{"main":[[{"node":"Extract Text","type":"main","index":0}]]},
+    "Extract Text":{"main":[[{"node":"AI: Extract Data","type":"main","index":0}]]},
+    "AI: Extract Data":{"main":[[{"node":"Respond","type":"main","index":0}]]}
+  },
+  "settings":{"executionOrder":"v1","saveManualExecutions":true},
+  "tags":[{"name":"DataForge","id":"dataforge"},{"name":"AutoFlow","id":"autoflow"},{"name":"Lite","id":"lite"}],
+  "meta":{"instanceId":"dataforge-lite-v1"}
+}

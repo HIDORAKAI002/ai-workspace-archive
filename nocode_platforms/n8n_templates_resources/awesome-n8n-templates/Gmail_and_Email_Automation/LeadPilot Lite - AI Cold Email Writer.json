@@ -1,0 +1,159 @@
+{
+  "name": "LeadPilot Lite — Manual Lead Email Writer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "leadpilot-lite",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Receive Lead Data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "leadpilot-lite-input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst leads = body.leads || [body];\n\nif (!leads.length || !leads[0].name) {\n  throw new Error('Please provide leads with at least: name, email, title, company. Format: { \"leads\": [{ \"name\": \"...\", \"email\": \"...\", \"title\": \"...\", \"company\": \"...\" }] }');\n}\n\nconst senderName = body.sender_name || $env.LEADPILOT_SENDER_NAME || 'Your Name';\nconst senderCompany = body.sender_company || $env.LEADPILOT_SENDER_COMPANY || 'Your Company';\nconst senderValue = body.value_prop || $env.LEADPILOT_VALUE_PROP || 'We help companies save time with automation.';\nconst calendarLink = body.calendar_link || $env.LEADPILOT_CALENDAR_LINK || '';\n\nreturn leads.map(lead => ({\n  json: {\n    name: lead.name,\n    email: lead.email || '',\n    title: lead.title || '',\n    company: lead.company || '',\n    industry: lead.industry || '',\n    companyDescription: lead.company_description || '',\n    linkedinUrl: lead.linkedin_url || '',\n    notes: lead.notes || '',\n    senderName,\n    senderCompany,\n    senderValue,\n    calendarLink,\n    requestId: require('crypto').randomUUID()\n  }\n}));"
+      },
+      "id": "parse-input",
+      "name": "Parse Lead List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an elite cold email copywriter. Write a personalized cold email.\n\nRules:\n- Subject: 3-7 words, personalized, zero spam triggers\n- Opening: Reference their company or role specifically\n- Body: 50-80 words MAX. One pain point + one value prop.\n- CTA: Soft question or calendar link\n- Include 1 follow-up email (3 days later, 30-50 words)\n\nJSON: { \"subjectLine\": \"...\", \"emailBody\": \"full email\", \"followUp\": { \"subject\": \"Re: [subject]\", \"body\": \"follow-up text\" } }"
+            },
+            {
+              "role": "user",
+              "content": "=Write a cold email:\n\nRecipient: {{$json.name}}\nTitle: {{$json.title}}\nCompany: {{$json.company}}\nIndustry: {{$json.industry}}\nAbout Company: {{$json.companyDescription}}\nNotes: {{$json.notes}}\n\nSender: {{$json.senderName}} at {{$json.senderCompany}}\nValue Prop: {{$json.senderValue}}\nCalendar: {{$json.calendarLink}}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 800,
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "ai-write-email",
+      "name": "AI: Write Cold Email",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [660, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('Parse Lead List').item;\nconst emailRaw = $input.first().json;\nlet emailData;\ntry {\n  emailData = JSON.parse(emailRaw.message?.content || emailRaw.content || '{}');\n} catch (e) {\n  throw new Error('Failed to parse email: ' + e.message);\n}\n\nreturn [{\n  json: {\n    ...lead.json,\n    email_subject: emailData.subjectLine || '',\n    email_body: emailData.emailBody || '',\n    followUp_subject: emailData.followUp?.subject || '',\n    followUp_body: emailData.followUp?.body || '',\n    generatedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "merge-results",
+      "name": "Merge Lead + Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.LEADPILOT_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Lite Pipeline",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Title": "={{ $json.title }}",
+            "Company": "={{ $json.company }}",
+            "Subject Line": "={{ $json.email_subject }}",
+            "Email Body": "={{ $json.email_body }}",
+            "Follow-up": "={{ $json.followUp_body }}",
+            "Generated At": "={{ $json.generatedAt }}",
+            "Sent": "=No"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-sheets",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1120, 300],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, lead: $json.name, company: $json.company, subjectLine: $json.email_subject, message: 'Email generated. Check Google Sheets to review and send.' }) }}"
+      },
+      "id": "respond-success",
+      "name": "Respond: Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 500]
+    },
+    {
+      "parameters": {
+        "content": "## LeadPilot Lite — Manual Lead Email Writer\n\nSimplified version for manual lead lists.\nNo Apollo.io needed — you provide the leads.\n\n**Input:** POST with lead data (name, email, title, company)\n**Output:** Personalized cold email + 1 follow-up\n**Saved to:** Google Sheets for review before sending\n\nPerfect for:\n- Small lead lists (5-20 leads)\n- Manual prospecting\n- Testing email copy before scaling",
+        "width": 380,
+        "height": 280,
+        "color": 6
+      },
+      "id": "note-overview",
+      "name": "Sticky Note: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [120, 80]
+    }
+  ],
+  "connections": {
+    "Receive Lead Data": {
+      "main": [[{ "node": "Parse Lead List", "type": "main", "index": 0 }]]
+    },
+    "Parse Lead List": {
+      "main": [[{ "node": "AI: Write Cold Email", "type": "main", "index": 0 }]]
+    },
+    "AI: Write Cold Email": {
+      "main": [[{ "node": "Merge Lead + Email", "type": "main", "index": 0 }]]
+    },
+    "Merge Lead + Email": {
+      "main": [[
+        { "node": "Save to Google Sheets", "type": "main", "index": 0 },
+        { "node": "Respond: Success", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": [
+    { "name": "LeadPilot", "id": "leadpilot" },
+    { "name": "AutoFlow", "id": "autoflow" },
+    { "name": "Lite", "id": "lite" }
+  ],
+  "meta": {
+    "instanceId": "leadpilot-lite-v1"
+  }
+}

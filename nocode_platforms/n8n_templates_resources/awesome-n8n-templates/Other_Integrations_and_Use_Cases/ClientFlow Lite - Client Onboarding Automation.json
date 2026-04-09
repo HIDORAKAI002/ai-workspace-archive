@@ -1,0 +1,48 @@
+{
+  "name": "ClientFlow Lite — Simple Onboarding (Email + Log)",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "clientflow-lite", "responseMode": "responseNode", "options": {} },
+      "id": "trigger", "name": "New Client", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 400], "webhookId": "clientflow-lite"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const b = $input.first().json.body || $input.first().json;\n  if (!b.name && !b.client_name) throw new Error('Client name required.');\n  return [{ json: { name: b.client_name || b.name, email: b.client_email || b.email || '', company: b.company_name || b.company || '', projectType: b.project_type || 'General', clientId: 'CF-' + Date.now().toString(36).toUpperCase(), onboardedAt: new Date().toISOString() } }];\n} catch (e) { throw new Error('Invalid data: ' + e.message); }"
+      },
+      "id": "validate", "name": "Validate", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}", "subject": "=Welcome aboard, {{ $json.name }}!", "emailType": "text",
+        "message": "=Hi {{ $json.name }},\n\nWelcome! We're excited to start working on your {{ $json.projectType }} project.\n\nWe'll be in touch soon with next steps and a kick-off meeting invite.\n\nBest regards,\n{{ $env.CLIENTFLOW_SENDER_NAME || 'The Team' }}"
+      },
+      "id": "send-email", "name": "Gmail: Welcome Email", "type": "n8n-nodes-base.gmail", "typeVersion": 2.1, "position": [660, 300], "retryOnFail": true, "maxTries": 2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.CLIENTFLOW_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Lite Pipeline", "mode": "name" },
+        "columns": { "mappingMode": "defineBelow", "value": { "Client ID": "={{ $json.clientId }}", "Name": "={{ $json.name }}", "Email": "={{ $json.email }}", "Company": "={{ $json.company }}", "Project": "={{ $json.projectType }}", "Onboarded": "={{ $json.onboardedAt }}" } },
+        "options": {}
+      },
+      "id": "log-sheets", "name": "Log to Sheets", "type": "n8n-nodes-base.googleSheets", "typeVersion": 4.5, "position": [660, 500], "retryOnFail": true, "maxTries": 2
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ JSON.stringify({ success: true, clientId: $json.clientId, name: $json.name }) }}" },
+      "id": "respond", "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [900, 400]
+    },
+    {
+      "parameters": { "content": "## ClientFlow Lite\n\nSimplest onboarding: welcome email + sheet log.\nNo Stripe, Calendar, or Slack.\nPerfect for solo freelancers.", "width": 300, "height": 160, "color": 6 },
+      "id": "note", "name": "Sticky Note", "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [120, 180]
+    }
+  ],
+  "connections": {
+    "New Client": { "main": [[{ "node": "Validate", "type": "main", "index": 0 }]] },
+    "Validate": { "main": [[{ "node": "Gmail: Welcome Email", "type": "main", "index": 0 }, { "node": "Log to Sheets", "type": "main", "index": 0 }]] },
+    "Log to Sheets": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "tags": [{ "name": "ClientFlow", "id": "clientflow" }, { "name": "AutoFlow", "id": "autoflow" }, { "name": "Lite", "id": "lite" }],
+  "meta": { "instanceId": "clientflow-lite-v1" }
+}
