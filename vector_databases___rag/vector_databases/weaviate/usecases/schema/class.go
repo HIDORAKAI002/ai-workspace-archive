@@ -706,8 +706,13 @@ func (h *Handler) validateProperty(
 			return fmt.Errorf("property '%s': invalid dataType: %v: %w", property.Name, property.DataType, err)
 		}
 
+		var userPresets map[string][]string
+		if class.InvertedIndexConfig != nil {
+			userPresets = class.InvertedIndexConfig.StopwordPresets
+		}
+
 		if propertyDataType.IsNested() {
-			if err := validateNestedProperties(property.NestedProperties, property.Name); err != nil {
+			if err := validateNestedProperties(property.NestedProperties, property.Name, userPresets); err != nil {
 				return err
 			}
 		} else {
@@ -721,7 +726,7 @@ func (h *Handler) validateProperty(
 			return err
 		}
 
-		if err := validatePropertyProcessing(property, propertyDataType); err != nil {
+		if err := validatePropertyProcessing(property, propertyDataType, userPresets); err != nil {
 			return err
 		}
 
@@ -922,10 +927,10 @@ func (h *Handler) validatePropertyIndexing(prop *models.Property) error {
 	return nil
 }
 
-func validatePropertyProcessing(prop *models.Property, propertyDataType schema.PropertyDataType) error {
+func validatePropertyProcessing(prop *models.Property, propertyDataType schema.PropertyDataType, userPresets map[string][]string) error {
 	// Treat an empty config as absent — some client generators emit
 	// "textAnalyzer": {} by default and this should not block creation.
-	if prop.TextAnalyzer != nil && !prop.TextAnalyzer.ASCIIFold && len(prop.TextAnalyzer.ASCIIFoldIgnore) == 0 {
+	if prop.TextAnalyzer != nil && !prop.TextAnalyzer.ASCIIFold && len(prop.TextAnalyzer.ASCIIFoldIgnore) == 0 && prop.TextAnalyzer.StopwordPreset == "" {
 		prop.TextAnalyzer = nil
 	}
 	if prop.TextAnalyzer == nil {
@@ -974,6 +979,76 @@ func validatePropertyProcessing(prop *models.Property, propertyDataType schema.P
 		}
 	}
 
+	if prop.TextAnalyzer.StopwordPreset != "" {
+		if prop.Tokenization != models.PropertyTokenizationWord {
+			return fmt.Errorf("property '%s': stopwordPreset is only supported with tokenization %q, got %q",
+				prop.Name, models.PropertyTokenizationWord, prop.Tokenization)
+		}
+		_, builtIn := stopwords.Presets[prop.TextAnalyzer.StopwordPreset]
+		_, userDefined := userPresets[prop.TextAnalyzer.StopwordPreset]
+		if !builtIn && !userDefined {
+			return fmt.Errorf("property '%s': unknown stopword preset %q; must be a built-in preset ('en', 'none') or defined in invertedIndexConfig.stopwordPresets",
+				prop.Name, prop.TextAnalyzer.StopwordPreset)
+		}
+	}
+
+	return nil
+}
+
+// validateStopwordPresetsStillReferenced rejects an inverted-index-config
+// update that would remove a user-defined stopwordPreset still referenced by
+// any (top-level or nested) property's textAnalyzer.stopwordPreset. Without
+// this check, the property would silently fall back to no stopwords at query
+// time once the preset disappears from the collection config.
+func validateStopwordPresetsStillReferenced(properties []*models.Property,
+	updatedPresets map[string][]string,
+) error {
+	check := func(propName, presetName string) error {
+		if presetName == "" {
+			return nil
+		}
+		if _, builtIn := stopwords.Presets[presetName]; builtIn {
+			return nil
+		}
+		if _, ok := updatedPresets[presetName]; ok {
+			return nil
+		}
+		return fmt.Errorf("invertedIndexConfig.stopwordPresets: cannot remove preset %q because it is still used by property %q",
+			presetName, propName)
+	}
+
+	var walkNested func(parentName string, nested []*models.NestedProperty) error
+	walkNested = func(parentName string, nested []*models.NestedProperty) error {
+		for _, np := range nested {
+			if np == nil {
+				continue
+			}
+			fullName := parentName + "." + np.Name
+			if np.TextAnalyzer != nil {
+				if err := check(fullName, np.TextAnalyzer.StopwordPreset); err != nil {
+					return err
+				}
+			}
+			if err := walkNested(fullName, np.NestedProperties); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	for _, prop := range properties {
+		if prop == nil {
+			continue
+		}
+		if prop.TextAnalyzer != nil {
+			if err := check(prop.Name, prop.TextAnalyzer.StopwordPreset); err != nil {
+				return err
+			}
+		}
+		if err := walkNested(prop.Name, prop.NestedProperties); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

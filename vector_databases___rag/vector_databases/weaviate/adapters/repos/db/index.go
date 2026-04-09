@@ -229,7 +229,12 @@ type Index struct {
 	logger       logrus.FieldLogger
 	remote       *sharding.RemoteIndex
 	stopwords    *stopwords.Detector
-	replicator   *replica.Replicator
+	// stopwordProvider bundles the collection-level stopword detector and the
+	// cached user-defined preset detectors. It is replaced atomically when
+	// invertedIndexConfig is updated, so reads on hot query paths do not need
+	// to take invertedIndexConfigLock. Always access via getStopwordProvider().
+	stopwordProvider atomic.Pointer[stopwords.Provider]
+	replicator       *replica.Replicator
 
 	vectorIndexUserConfigLock sync.Mutex
 	vectorIndexUserConfig     schemaConfig.VectorIndexConfig
@@ -351,6 +356,11 @@ func NewIndex(
 		return nil, errors.Wrap(err, "failed to create new index")
 	}
 
+	presetDetectors, err := stopwords.BuildPresetDetectors(invertedIndexConfig.StopwordPresets)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create new index")
+	}
+
 	if cfg.QueryNestedRefLimit == 0 {
 		cfg.QueryNestedRefLimit = config.DefaultQueryNestedCrossReferenceLimit
 	}
@@ -394,6 +404,7 @@ func NewIndex(
 		HFreshEnabled:           cfg.HFreshEnabled,
 		tenantsManager:          tenantsManager,
 	}
+	index.stopwordProvider.Store(stopwords.NewProvider(sd, presetDetectors))
 
 	getDeletionStrategy := func() string {
 		return index.DeletionStrategy()
@@ -821,12 +832,25 @@ func (i *Index) updateInvertedIndexConfig(ctx context.Context,
 		return fmt.Errorf("update inverted index config: %w", err)
 	}
 
+	presetDetectors, err := stopwords.BuildPresetDetectors(updated.StopwordPresets)
+	if err != nil {
+		return fmt.Errorf("update inverted index config: %w", err)
+	}
+	i.stopwordProvider.Store(stopwords.NewProvider(i.stopwords, presetDetectors))
+
 	err = tokenizer.AddCustomDict(i.Config.ClassName.String(), updated.TokenizerUserDict)
 	if err != nil {
 		return errors.Wrap(err, "updating inverted index config")
 	}
 
 	return nil
+}
+
+// getStopwordProvider returns the current stopword provider, which bundles
+// the collection-level fallback detector and the cached user-defined preset
+// detectors. Safe for concurrent use without invertedIndexConfigLock.
+func (i *Index) getStopwordProvider() *stopwords.Provider {
+	return i.stopwordProvider.Load()
 }
 
 func (i *Index) asyncReplicationGloballyDisabled() bool {
