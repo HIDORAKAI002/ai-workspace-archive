@@ -188,7 +188,7 @@ dg api deployment settings set deployment_settings.yaml
 
 After deploying your code to the EU organization, you can optionally migrate historical asset materialization metadata from the US organization. Without this step, the EU organization starts without metadata, and metadata accumulates from new materializations going forward.
 
-To migrate metadata, use the Dagster+ [REST API to report asset materializations](/api/rest-apis/external-assets-rest-api) against the EU organization. The [`oss-metadata-to-plus` example](https://github.com/dagster-io/dagster/tree/master/examples/oss-metadata-to-plus) demonstrates this pattern: it reads materialization records from a source instance and replays them to a target organization via the `report_asset_materialization` endpoint.
+To migrate metadata, use the Dagster+ [REST API to report asset materializations](/api/rest-api) against the EU organization. The [`oss-metadata-to-plus` example](https://github.com/dagster-io/dagster/tree/master/examples/oss-metadata-to-plus) demonstrates this pattern: it reads materialization records from a source instance and replays them to a target organization via the `report_asset_materialization` endpoint.
 
 To adapt this for a US-to-EU migration, point the REST API calls at your EU organization URL:
 
