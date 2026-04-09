@@ -7,6 +7,7 @@ import type {
 } from '@/libs/agent-stream';
 import { AgentStreamClient } from '@/libs/agent-stream/client';
 import { aiAgentService } from '@/services/aiAgent';
+import { messageService } from '@/services/message';
 import { topicService } from '@/services/topic';
 import type { ChatStore } from '@/store/chat/store';
 import type { StoreSetter } from '@/store/types';
@@ -41,6 +42,10 @@ export interface ConnectGatewayParams {
    */
   operationId: string;
   /**
+   * Enable resume buffering for reconnect scenarios (default: false)
+   */
+  resumeOnConnect?: boolean;
+  /**
    * Auth token for the Gateway
    */
   token: string;
@@ -67,12 +72,12 @@ export class GatewayActionImpl {
    * Creates an AgentStreamClient, manages its lifecycle, and wires up event callbacks.
    */
   connectToGateway = (params: ConnectGatewayParams): void => {
-    const { operationId, gatewayUrl, token, onEvent, onSessionComplete } = params;
+    const { operationId, gatewayUrl, token, onEvent, onSessionComplete, resumeOnConnect } = params;
 
     // Disconnect existing connection for this operation if any
     this.disconnectFromGateway(operationId);
 
-    const client = this.createClient({ gatewayUrl, operationId, token });
+    const client = this.createClient({ gatewayUrl, operationId, resumeOnConnect, token });
 
     // Track connection in store
     this.#set(
@@ -202,9 +207,21 @@ export class GatewayActionImpl {
       prompt: message,
     });
 
-    // If server created a new topic, switch to it and clean up the _new key temp messages
+    // If server created a new topic, fetch messages first then switch topic
+    // (same pattern as client mode: replaceMessages before switchTopic to avoid skeleton flash)
     if (isCreateNewTopic && result.topicId) {
-      await this.#get().switchTopic(result.topicId, { clearNewKey: true });
+      try {
+        const newContext = { ...context, topicId: result.topicId };
+        const messages = await messageService.getMessages(newContext);
+        this.#get().replaceMessages(messages, { context: newContext });
+      } catch {
+        /* non-critical */
+      }
+
+      await this.#get().switchTopic(result.topicId, {
+        clearNewKey: true,
+        skipRefreshMessage: true,
+      });
     }
 
     // Use the server-created topicId for the execution context
@@ -303,6 +320,7 @@ export class GatewayActionImpl {
         topicService.updateTopicMetadata(topicId, { runningOperation: null }).catch(() => {});
       },
       operationId,
+      resumeOnConnect: true,
       token,
     });
   };
