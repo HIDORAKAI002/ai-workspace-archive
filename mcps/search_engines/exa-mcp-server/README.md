@@ -62,9 +62,18 @@ claude mcp add --transport http exa https://mcp.exa.ai/mcp
 <details>
 <summary><b>Claude Desktop</b></summary>
 
-Add to your config file:
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+Exa is available as a native Claude Connector — no config files or terminal commands needed.
+
+1. Open Claude Desktop **Settings** (or **Customize**) and go to **Connectors**
+2. Search for **Exa** in the directory
+3. Click **+** to add it
+
+That's it! Claude will now have access to Exa's search tools.
+
+<details>
+<summary>Alternative: manual config</summary>
+
+Add to your config file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 
 ```json
 {
@@ -76,6 +85,7 @@ Add to your config file:
   }
 }
 ```
+</details>
 </details>
 
 <details>
@@ -280,6 +290,19 @@ Use the npm package with your API key. [Get your API key](https://dashboard.exa.
 | Tool | Description |
 | ---- | ----------- |
 | `web_search_advanced_exa` | Advanced web search with full control over filters, domains, dates, and content options |
+
+**Deprecated** (still available for backwards compatibility):
+
+| Tool | Use instead |
+| ---- | ----------- |
+| `get_code_context_exa` | `web_search_exa` |
+| `company_research_exa` | `web_search_advanced_exa` |
+| `crawling_exa` | `web_fetch_exa` |
+| `people_search_exa` | `web_search_advanced_exa` |
+| `linkedin_search_exa` | `web_search_advanced_exa` |
+| `deep_researcher_start` | [Research API](https://docs.exa.ai/reference/research/create-a-task) |
+| `deep_researcher_check` | [Research API](https://docs.exa.ai/reference/research/get-a-task) |
+| `deep_search_exa` | `web_search_advanced_exa` |
 
 Enable additional tools with the `tools` parameter:
 
