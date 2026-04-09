@@ -31,6 +31,7 @@ pub struct Config {
     pub default_agent: String,
     pub auto_dispatch_unread_handoffs: bool,
     pub auto_dispatch_limit_per_session: usize,
+    pub auto_create_worktrees: bool,
     pub auto_merge_ready_worktrees: bool,
     pub cost_budget_usd: f64,
     pub token_budget: u64,
@@ -58,6 +59,7 @@ impl Default for Config {
             default_agent: "claude".to_string(),
             auto_dispatch_unread_handoffs: false,
             auto_dispatch_limit_per_session: 5,
+            auto_create_worktrees: true,
             auto_merge_ready_worktrees: false,
             cost_budget_usd: 10.0,
             token_budget: 500_000,
@@ -156,6 +158,7 @@ theme = "Dark"
             config.auto_dispatch_limit_per_session,
             defaults.auto_dispatch_limit_per_session
         );
+        assert_eq!(config.auto_create_worktrees, defaults.auto_create_worktrees);
         assert_eq!(
             config.auto_merge_ready_worktrees,
             defaults.auto_merge_ready_worktrees
@@ -185,6 +188,7 @@ theme = "Dark"
         let mut config = Config::default();
         config.auto_dispatch_unread_handoffs = true;
         config.auto_dispatch_limit_per_session = 9;
+        config.auto_create_worktrees = false;
         config.auto_merge_ready_worktrees = true;
 
         config.save_to_path(&path).unwrap();
@@ -193,6 +197,7 @@ theme = "Dark"
 
         assert!(loaded.auto_dispatch_unread_handoffs);
         assert_eq!(loaded.auto_dispatch_limit_per_session, 9);
+        assert!(!loaded.auto_create_worktrees);
         assert!(loaded.auto_merge_ready_worktrees);
 
         let _ = std::fs::remove_file(path);
