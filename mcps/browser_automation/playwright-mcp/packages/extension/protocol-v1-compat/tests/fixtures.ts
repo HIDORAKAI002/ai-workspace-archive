@@ -22,9 +22,8 @@ import { test as baseTest, expect as baseExpect } from '@playwright/test';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { ListRootsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { TestServer } from './testserver/index';
+import { TestServer } from '../../../playwright-mcp/tests/testserver/index';
 
-import type { Config } from '../config';
 import type { BrowserContext } from 'playwright';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { Stream } from 'stream';
@@ -39,6 +38,8 @@ type CDPServer = {
   endpoint: string;
   start: () => Promise<BrowserContext>;
 };
+
+type Config = any;
 
 export type StartClient = (options?: {
   clientName?: string,
@@ -186,28 +187,18 @@ async function createTransport(args: string[], cwd: string, mcpMode: TestOptions
   transport: Transport,
   stderr: Stream | null,
 }> {
-  if (mcpMode === 'docker') {
-    const relCwd = path.relative(test.info().project.outputDir, cwd);
-    const dockerCwd = path.posix.join('/app/test-results', relCwd.split(path.sep).join('/'));
-    const dockerArgs = ['run', '--rm', '-i', '--network=host', '-v', `${test.info().project.outputDir}:/app/test-results`, '-w', dockerCwd];
-    const transport = new StdioClientTransport({
-      command: 'docker',
-      args: [...dockerArgs, 'playwright-mcp-dev:latest', ...args],
-    });
-    return {
-      transport,
-      stderr: transport.stderr,
-    };
-  }
+  if (mcpMode === 'docker')
+    throw new Error('Docker mode is not supported in protocol-v1-compat tests');
 
+  const mcpPath = path.join(path.dirname(require.resolve('@playwright/mcp')), 'cli.js');
   const transport = new StdioClientTransport({
     command: 'node',
-    args: [path.join(__dirname, '../cli.js'), ...args],
+    args: [mcpPath, ...args],
     cwd,
     stderr: 'pipe',
     env: {
       ...process.env,
-      DEBUG: process.env.PWMCP_DEBUG ? 'pw:mcp*' : 'pw:mcp:test',
+      DEBUG: 'pw:mcp:test',
       DEBUG_COLORS: '0',
       DEBUG_HIDE_DATE: '1',
       PWMCP_PROFILES_DIR_FOR_TEST: profilesDir,
