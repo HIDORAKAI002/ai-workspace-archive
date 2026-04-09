@@ -68,6 +68,7 @@ function assertSafeRepoRelativePath(relativePath, label) {
 console.log('\n=== .claude-plugin/plugin.json ===\n');
 
 const claudePluginPath = path.join(repoRoot, '.claude-plugin', 'plugin.json');
+const claudeMarketplacePath = path.join(repoRoot, '.claude-plugin', 'marketplace.json');
 
 test('claude plugin.json exists', () => {
   assert.ok(fs.existsSync(claudePluginPath), 'Expected .claude-plugin/plugin.json to exist');
@@ -129,6 +130,30 @@ test('claude plugin.json does NOT have explicit hooks declaration', () => {
     !('hooks' in claudePlugin),
     'hooks field must NOT be declared — Claude Code v2.1+ auto-loads hooks/hooks.json by convention',
   );
+});
+
+console.log('\n=== .claude-plugin/marketplace.json ===\n');
+
+test('claude marketplace.json exists', () => {
+  assert.ok(fs.existsSync(claudeMarketplacePath), 'Expected .claude-plugin/marketplace.json to exist');
+});
+
+const claudeMarketplace = loadJsonObject(claudeMarketplacePath, '.claude-plugin/marketplace.json');
+
+test('claude marketplace.json keeps only Claude-supported top-level keys', () => {
+  const unsupportedTopLevelKeys = ['$schema', 'description'];
+  for (const key of unsupportedTopLevelKeys) {
+    assert.ok(
+      !(key in claudeMarketplace),
+      `.claude-plugin/marketplace.json must not declare unsupported top-level key "${key}"`,
+    );
+  }
+});
+
+test('claude marketplace.json has plugins array with a short ecc plugin entry', () => {
+  assert.ok(Array.isArray(claudeMarketplace.plugins) && claudeMarketplace.plugins.length > 0, 'Expected plugins array');
+  assert.strictEqual(claudeMarketplace.name, 'ecc');
+  assert.strictEqual(claudeMarketplace.plugins[0].name, 'ecc');
 });
 
 // ── Codex plugin manifest ─────────────────────────────────────────────────────

@@ -80,6 +80,14 @@ function runTests() {
       'Should include capability:security');
   })) passed++; else failed++;
 
+  if (test('labels continuous-learning as a legacy v1 install surface', () => {
+    const components = listInstallComponents({ family: 'skill' });
+    const component = components.find(entry => entry.id === 'skill:continuous-learning');
+    assert.ok(component, 'Should include skill:continuous-learning');
+    assert.match(component.description, /legacy/i, 'Should label continuous-learning as legacy');
+    assert.match(component.description, /continuous-learning-v2/, 'Should point new installs to continuous-learning-v2');
+  })) passed++; else failed++;
+
   if (test('lists supported legacy compatibility languages', () => {
     const languages = listLegacyCompatibilityLanguages();
     assert.ok(languages.includes('typescript'));

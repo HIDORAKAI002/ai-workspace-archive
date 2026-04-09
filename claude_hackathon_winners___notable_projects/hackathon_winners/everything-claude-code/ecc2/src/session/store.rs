@@ -33,6 +33,9 @@ pub struct DaemonActivity {
     pub last_auto_merge_conflicted_skipped: usize,
     pub last_auto_merge_dirty_skipped: usize,
     pub last_auto_merge_failed: usize,
+    pub last_auto_prune_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub last_auto_prune_pruned: usize,
+    pub last_auto_prune_active_skipped: usize,
 }
 
 impl DaemonActivity {
@@ -174,7 +177,10 @@ impl StateStore {
                 last_auto_merge_active_skipped INTEGER NOT NULL DEFAULT 0,
                 last_auto_merge_conflicted_skipped INTEGER NOT NULL DEFAULT 0,
                 last_auto_merge_dirty_skipped INTEGER NOT NULL DEFAULT 0,
-                last_auto_merge_failed INTEGER NOT NULL DEFAULT 0
+                last_auto_merge_failed INTEGER NOT NULL DEFAULT 0,
+                last_auto_prune_at TEXT,
+                last_auto_prune_pruned INTEGER NOT NULL DEFAULT 0,
+                last_auto_prune_active_skipped INTEGER NOT NULL DEFAULT 0
             );
 
             CREATE INDEX IF NOT EXISTS idx_sessions_state ON sessions(state);
@@ -305,6 +311,33 @@ impl StateStore {
                     [],
                 )
                 .context("Failed to add last_auto_merge_failed column to daemon_activity table")?;
+        }
+
+        if !self.has_column("daemon_activity", "last_auto_prune_at")? {
+            self.conn
+                .execute(
+                    "ALTER TABLE daemon_activity ADD COLUMN last_auto_prune_at TEXT",
+                    [],
+                )
+                .context("Failed to add last_auto_prune_at column to daemon_activity table")?;
+        }
+
+        if !self.has_column("daemon_activity", "last_auto_prune_pruned")? {
+            self.conn
+                .execute(
+                    "ALTER TABLE daemon_activity ADD COLUMN last_auto_prune_pruned INTEGER NOT NULL DEFAULT 0",
+                    [],
+                )
+                .context("Failed to add last_auto_prune_pruned column to daemon_activity table")?;
+        }
+
+        if !self.has_column("daemon_activity", "last_auto_prune_active_skipped")? {
+            self.conn
+                .execute(
+                    "ALTER TABLE daemon_activity ADD COLUMN last_auto_prune_active_skipped INTEGER NOT NULL DEFAULT 0",
+                    [],
+                )
+                .context("Failed to add last_auto_prune_active_skipped column to daemon_activity table")?;
         }
 
         Ok(())
@@ -712,7 +745,8 @@ impl StateStore {
                         last_rebalance_at, last_rebalance_rerouted, last_rebalance_leads,
                         last_auto_merge_at, last_auto_merge_merged, last_auto_merge_active_skipped,
                         last_auto_merge_conflicted_skipped, last_auto_merge_dirty_skipped,
-                        last_auto_merge_failed
+                        last_auto_merge_failed, last_auto_prune_at, last_auto_prune_pruned,
+                        last_auto_prune_active_skipped
                  FROM daemon_activity
                  WHERE id = 1",
                 [],
@@ -752,6 +786,9 @@ impl StateStore {
                         last_auto_merge_conflicted_skipped: row.get::<_, i64>(14)? as usize,
                         last_auto_merge_dirty_skipped: row.get::<_, i64>(15)? as usize,
                         last_auto_merge_failed: row.get::<_, i64>(16)? as usize,
+                        last_auto_prune_at: parse_ts(row.get(17)?)?,
+                        last_auto_prune_pruned: row.get::<_, i64>(18)? as usize,
+                        last_auto_prune_active_skipped: row.get::<_, i64>(19)? as usize,
                     })
                 },
             )
@@ -841,6 +878,27 @@ impl StateStore {
                 conflicted_skipped as i64,
                 dirty_skipped as i64,
                 failed as i64,
+            ],
+        )?;
+
+        Ok(())
+    }
+
+    pub fn record_daemon_auto_prune_pass(
+        &self,
+        pruned: usize,
+        active_skipped: usize,
+    ) -> Result<()> {
+        self.conn.execute(
+            "UPDATE daemon_activity
+             SET last_auto_prune_at = ?1,
+                 last_auto_prune_pruned = ?2,
+                 last_auto_prune_active_skipped = ?3
+             WHERE id = 1",
+            rusqlite::params![
+                chrono::Utc::now().to_rfc3339(),
+                pruned as i64,
+                active_skipped as i64,
             ],
         )?;
 
@@ -1223,6 +1281,7 @@ mod tests {
         db.record_daemon_recovery_dispatch_pass(2, 1)?;
         db.record_daemon_rebalance_pass(3, 1)?;
         db.record_daemon_auto_merge_pass(2, 1, 1, 1, 0)?;
+        db.record_daemon_auto_prune_pass(3, 1)?;
 
         let activity = db.daemon_activity()?;
         assert_eq!(activity.last_dispatch_routed, 4);
@@ -1238,10 +1297,13 @@ mod tests {
         assert_eq!(activity.last_auto_merge_conflicted_skipped, 1);
         assert_eq!(activity.last_auto_merge_dirty_skipped, 1);
         assert_eq!(activity.last_auto_merge_failed, 0);
+        assert_eq!(activity.last_auto_prune_pruned, 3);
+        assert_eq!(activity.last_auto_prune_active_skipped, 1);
         assert!(activity.last_dispatch_at.is_some());
         assert!(activity.last_recovery_dispatch_at.is_some());
         assert!(activity.last_rebalance_at.is_some());
         assert!(activity.last_auto_merge_at.is_some());
+        assert!(activity.last_auto_prune_at.is_some());
 
         Ok(())
     }
@@ -1274,6 +1336,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         assert!(unresolved.prefers_rebalance_first());
         assert!(unresolved.dispatch_cooloff_active());

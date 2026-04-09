@@ -237,7 +237,12 @@ pub fn merge_readiness(worktree: &WorktreeInfo) -> Result<MergeReadiness> {
     let output = Command::new("git")
         .arg("-C")
         .arg(&worktree.path)
-        .args(["merge-tree", "--write-tree", &worktree.base_branch, &worktree.branch])
+        .args([
+            "merge-tree",
+            "--write-tree",
+            &worktree.base_branch,
+            &worktree.branch,
+        ])
         .output()
         .context("Failed to generate merge readiness preview")?;
 
@@ -519,7 +524,8 @@ fn base_checkout_path(worktree: &WorktreeInfo) -> Result<PathBuf> {
                 if fallback.is_none() && path != worktree.path {
                     fallback = Some(path.clone());
                 }
-                if current_branch.as_deref() == Some(target_branch.as_str()) && path != worktree.path
+                if current_branch.as_deref() == Some(target_branch.as_str())
+                    && path != worktree.path
                 {
                     return Ok(path);
                 }
@@ -660,16 +666,12 @@ mod tests {
         };
 
         let preview = diff_file_preview(&info, 6)?;
-        assert!(
-            preview
-                .iter()
-                .any(|line| line.contains("Branch A") && line.contains("src.txt"))
-        );
-        assert!(
-            preview
-                .iter()
-                .any(|line| line.contains("Working M") && line.contains("README.md"))
-        );
+        assert!(preview
+            .iter()
+            .any(|line| line.contains("Branch A") && line.contains("src.txt")));
+        assert!(preview
+            .iter()
+            .any(|line| line.contains("Working M") && line.contains("README.md")));
 
         let _ = Command::new("git")
             .arg("-C")
@@ -736,7 +738,8 @@ mod tests {
 
     #[test]
     fn merge_readiness_reports_ready_worktree() -> Result<()> {
-        let root = std::env::temp_dir().join(format!("ecc2-worktree-merge-ready-{}", Uuid::new_v4()));
+        let root =
+            std::env::temp_dir().join(format!("ecc2-worktree-merge-ready-{}", Uuid::new_v4()));
         let repo = root.join("repo");
         fs::create_dir_all(&repo)?;
 
@@ -787,7 +790,8 @@ mod tests {
 
     #[test]
     fn merge_readiness_reports_conflicted_worktree() -> Result<()> {
-        let root = std::env::temp_dir().join(format!("ecc2-worktree-merge-conflict-{}", Uuid::new_v4()));
+        let root =
+            std::env::temp_dir().join(format!("ecc2-worktree-merge-conflict-{}", Uuid::new_v4()));
         let repo = root.join("repo");
         fs::create_dir_all(&repo)?;
 

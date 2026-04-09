@@ -7,12 +7,12 @@ use ratatui::{
 use std::collections::HashMap;
 use tokio::sync::broadcast;
 
-use super::widgets::{BudgetState, TokenMeter, budget_state, format_currency, format_token_count};
+use super::widgets::{budget_state, format_currency, format_token_count, BudgetState, TokenMeter};
 use crate::comms;
 use crate::config::{Config, PaneLayout};
 use crate::observability::ToolLogEntry;
 use crate::session::manager;
-use crate::session::output::{OUTPUT_BUFFER_LIMIT, OutputEvent, OutputLine, SessionOutputStore};
+use crate::session::output::{OutputEvent, OutputLine, SessionOutputStore, OUTPUT_BUFFER_LIMIT};
 use crate::session::store::{DaemonActivity, StateStore};
 use crate::session::{Session, SessionMessage, SessionState};
 use crate::worktree;
@@ -362,7 +362,11 @@ impl Dashboard {
                     let content = if lines.is_empty() {
                         "Waiting for session output...".to_string()
                     } else {
-                        lines.iter().map(|line| line.text.as_str()).collect::<Vec<_>>().join("\n")
+                        lines
+                            .iter()
+                            .map(|line| line.text.as_str())
+                            .collect::<Vec<_>>()
+                            .join("\n")
                     };
                     (" Output ", content)
                 }
@@ -383,18 +387,17 @@ impl Dashboard {
                     (" Diff ", content)
                 }
                 OutputMode::ConflictProtocol => {
-                    let content = self
-                        .selected_conflict_protocol
-                        .clone()
-                        .unwrap_or_else(|| {
-                            "No conflicted worktree available for the selected session."
-                                .to_string()
-                        });
+                    let content = self.selected_conflict_protocol.clone().unwrap_or_else(|| {
+                        "No conflicted worktree available for the selected session.".to_string()
+                    });
                     (" Conflict Protocol ", content)
                 }
             }
         } else {
-            (" Output ", "No sessions. Press 'n' to start one.".to_string())
+            (
+                " Output ",
+                "No sessions. Press 'n' to start one.".to_string(),
+            )
         };
 
         let paragraph = Paragraph::new(content)
@@ -523,7 +526,7 @@ impl Dashboard {
 
     fn render_status_bar(&self, frame: &mut Frame, area: Rect) {
         let text = format!(
-            " [n]ew session  [a]ssign  re[b]alance  global re[B]alance  dra[i]n inbox  [g]lobal dispatch  coordinate [G]lobal  [v]iew diff  conflict proto[c]ol  [m]erge  merge ready [M]  auto-merge [w]  toggle [p]olicy  [,/.] dispatch limit  [s]top  [u]resume  [x]cleanup  prune inactive [X]  [d]elete  [r]efresh  [Tab] switch pane  [j/k] scroll  [+/-] resize  [{}] layout  [?] help  [q]uit ",
+            " [n]ew session  [a]ssign  re[b]alance  global re[B]alance  dra[i]n inbox  [g]lobal dispatch  coordinate [G]lobal  [v]iew diff  conflict proto[c]ol  [m]erge  merge ready [M]  auto-worktree [t]  auto-merge [w]  toggle [p]olicy  [,/.] dispatch limit  [s]top  [u]resume  [x]cleanup  prune inactive [X]  [d]elete  [r]efresh  [Tab] switch pane  [j/k] scroll  [+/-] resize  [{}] layout  [?] help  [q]uit ",
             self.layout_label()
         );
         let text = if let Some(note) = self.operator_note.as_ref() {
@@ -578,6 +581,7 @@ impl Dashboard {
             "  c       Show conflict-resolution protocol for selected conflicted worktree",
             "  m       Merge selected ready worktree into base and clean it up",
             "  M       Merge all ready inactive worktrees and clean them up",
+            "  t       Toggle default worktree creation for new sessions and delegated work",
             "  p       Toggle daemon auto-dispatch policy and persist config",
             "  w       Toggle daemon auto-merge for ready inactive worktrees",
             "  ,/.     Decrease/increase auto-dispatch limit per lead",
@@ -714,15 +718,22 @@ impl Dashboard {
         let task = self.new_session_task();
         let agent = self.cfg.default_agent.clone();
 
-        let session_id =
-            match manager::create_session(&self.db, &self.cfg, &task, &agent, true).await {
-                Ok(session_id) => session_id,
-                Err(error) => {
-                    tracing::warn!("Failed to create new session from dashboard: {error}");
-                    self.set_operator_note(format!("new session failed: {error}"));
-                    return;
-                }
-            };
+        let session_id = match manager::create_session(
+            &self.db,
+            &self.cfg,
+            &task,
+            &agent,
+            self.cfg.auto_create_worktrees,
+        )
+        .await
+        {
+            Ok(session_id) => session_id,
+            Err(error) => {
+                tracing::warn!("Failed to create new session from dashboard: {error}");
+                self.set_operator_note(format!("new session failed: {error}"));
+                return;
+            }
+        };
 
         if let Some(source_session) = self.sessions.get(self.selected_session) {
             let context = format!(
@@ -834,7 +845,7 @@ impl Dashboard {
             &source_session.id,
             &task,
             &agent,
-            true,
+            self.cfg.auto_create_worktrees,
         )
         .await
         {
@@ -876,7 +887,7 @@ impl Dashboard {
             &self.cfg,
             &source_session_id,
             &agent,
-            true,
+            self.cfg.auto_create_worktrees,
             self.cfg.auto_dispatch_limit_per_session,
         )
         .await
@@ -930,7 +941,7 @@ impl Dashboard {
             &self.cfg,
             &source_session_id,
             &agent,
-            true,
+            self.cfg.auto_create_worktrees,
             self.cfg.max_parallel_sessions,
         )
         .await
@@ -975,17 +986,22 @@ impl Dashboard {
         let agent = self.cfg.default_agent.clone();
         let lead_limit = self.sessions.len().max(1);
 
-        let outcomes =
-            match manager::auto_dispatch_backlog(&self.db, &self.cfg, &agent, true, lead_limit)
-                .await
-            {
-                Ok(outcomes) => outcomes,
-                Err(error) => {
-                    tracing::warn!("Failed to auto-dispatch backlog from dashboard: {error}");
-                    self.set_operator_note(format!("global auto-dispatch failed: {error}"));
-                    return;
-                }
-            };
+        let outcomes = match manager::auto_dispatch_backlog(
+            &self.db,
+            &self.cfg,
+            &agent,
+            self.cfg.auto_create_worktrees,
+            lead_limit,
+        )
+        .await
+        {
+            Ok(outcomes) => outcomes,
+            Err(error) => {
+                tracing::warn!("Failed to auto-dispatch backlog from dashboard: {error}");
+                self.set_operator_note(format!("global auto-dispatch failed: {error}"));
+                return;
+            }
+        };
 
         let total_processed: usize = outcomes.iter().map(|outcome| outcome.routed.len()).sum();
         let total_routed: usize = outcomes
@@ -1029,16 +1045,22 @@ impl Dashboard {
         let agent = self.cfg.default_agent.clone();
         let lead_limit = self.sessions.len().max(1);
 
-        let outcomes =
-            match manager::rebalance_all_teams(&self.db, &self.cfg, &agent, true, lead_limit).await
-            {
-                Ok(outcomes) => outcomes,
-                Err(error) => {
-                    tracing::warn!("Failed to rebalance teams from dashboard: {error}");
-                    self.set_operator_note(format!("global rebalance failed: {error}"));
-                    return;
-                }
-            };
+        let outcomes = match manager::rebalance_all_teams(
+            &self.db,
+            &self.cfg,
+            &agent,
+            self.cfg.auto_create_worktrees,
+            lead_limit,
+        )
+        .await
+        {
+            Ok(outcomes) => outcomes,
+            Err(error) => {
+                tracing::warn!("Failed to rebalance teams from dashboard: {error}");
+                self.set_operator_note(format!("global rebalance failed: {error}"));
+                return;
+            }
+        };
 
         let total_rerouted: usize = outcomes.iter().map(|outcome| outcome.rerouted.len()).sum();
         let selected_session_id = self
@@ -1070,7 +1092,11 @@ impl Dashboard {
         let lead_limit = self.sessions.len().max(1);
 
         let outcome = match manager::coordinate_backlog(
-            &self.db, &self.cfg, &agent, true, lead_limit,
+            &self.db,
+            &self.cfg,
+            &agent,
+            self.cfg.auto_create_worktrees,
+            lead_limit,
         )
         .await
         {
@@ -1386,6 +1412,29 @@ impl Dashboard {
         }
     }
 
+    pub fn toggle_auto_worktree_policy(&mut self) {
+        self.cfg.auto_create_worktrees = !self.cfg.auto_create_worktrees;
+        match self.cfg.save() {
+            Ok(()) => {
+                let state = if self.cfg.auto_create_worktrees {
+                    "enabled"
+                } else {
+                    "disabled"
+                };
+                self.set_operator_note(format!(
+                    "default worktree creation {state} | saved to {}",
+                    crate::config::Config::config_path().display()
+                ));
+            }
+            Err(error) => {
+                self.cfg.auto_create_worktrees = !self.cfg.auto_create_worktrees;
+                self.set_operator_note(format!(
+                    "failed to persist worktree creation policy: {error}"
+                ));
+            }
+        }
+    }
+
     pub fn adjust_auto_dispatch_limit(&mut self, delta: isize) {
         let next =
             (self.cfg.auto_dispatch_limit_per_session as isize + delta).clamp(1, 50) as usize;
@@ -1571,10 +1620,13 @@ impl Dashboard {
         self.selected_diff_preview = worktree
             .and_then(|worktree| worktree::diff_file_preview(worktree, MAX_DIFF_PREVIEW_LINES).ok())
             .unwrap_or_default();
-        self.selected_diff_patch = worktree
-            .and_then(|worktree| worktree::diff_patch_preview(worktree, MAX_DIFF_PATCH_LINES).ok().flatten());
-        self.selected_merge_readiness = worktree
-            .and_then(|worktree| worktree::merge_readiness(worktree).ok());
+        self.selected_diff_patch = worktree.and_then(|worktree| {
+            worktree::diff_patch_preview(worktree, MAX_DIFF_PATCH_LINES)
+                .ok()
+                .flatten()
+        });
+        self.selected_merge_readiness =
+            worktree.and_then(|worktree| worktree::merge_readiness(worktree).ok());
         self.selected_conflict_protocol = session
             .zip(worktree)
             .zip(self.selected_merge_readiness.as_ref())
@@ -1870,7 +1922,7 @@ impl Dashboard {
             }
 
             lines.push(format!(
-                "Global handoff backlog {} lead(s) / {} handoff(s) | Auto-dispatch {} @ {}/lead | Auto-merge {}",
+                "Global handoff backlog {} lead(s) / {} handoff(s) | Auto-dispatch {} @ {}/lead | Auto-worktree {} | Auto-merge {}",
                 self.global_handoff_backlog_leads,
                 self.global_handoff_backlog_messages,
                 if self.cfg.auto_dispatch_unread_handoffs {
@@ -1879,6 +1931,11 @@ impl Dashboard {
                     "off"
                 },
                 self.cfg.auto_dispatch_limit_per_session,
+                if self.cfg.auto_create_worktrees {
+                    "on"
+                } else {
+                    "off"
+                },
                 if self.cfg.auto_merge_ready_worktrees {
                     "on"
                 } else {
@@ -1969,6 +2026,15 @@ impl Dashboard {
                     self.daemon_activity.last_auto_merge_dirty_skipped,
                     self.daemon_activity.last_auto_merge_failed,
                     self.short_timestamp(&last_auto_merge_at.to_rfc3339())
+                ));
+            }
+
+            if let Some(last_auto_prune_at) = self.daemon_activity.last_auto_prune_at.as_ref() {
+                lines.push(format!(
+                    "Last daemon auto-prune {} pruned / {} active @ {}",
+                    self.daemon_activity.last_auto_prune_pruned,
+                    self.daemon_activity.last_auto_prune_active_skipped,
+                    self.short_timestamp(&last_auto_prune_at.to_rfc3339())
                 ));
             }
 
@@ -2099,10 +2165,7 @@ impl Dashboard {
             .is_some();
 
         for session in &self.sessions {
-            if self
-                .worktree_health_by_session
-                .get(&session.id)
-                .copied()
+            if self.worktree_health_by_session.get(&session.id).copied()
                 == Some(worktree::WorktreeHealth::Conflicted)
             {
                 items.push(format!(
@@ -2283,7 +2346,11 @@ impl Dashboard {
 
     fn log_field<'a>(&self, value: &'a str) -> &'a str {
         let trimmed = value.trim();
-        if trimmed.is_empty() { "n/a" } else { trimmed }
+        if trimmed.is_empty() {
+            "n/a"
+        } else {
+            trimmed
+        }
     }
 
     fn short_timestamp(&self, timestamp: &str) -> String {
@@ -2423,11 +2490,19 @@ fn summary_line(summary: &SessionSummary) -> Line<'static> {
     ];
 
     if summary.conflicted_worktrees > 0 {
-        spans.push(summary_span("Conflicts", summary.conflicted_worktrees, Color::Red));
+        spans.push(summary_span(
+            "Conflicts",
+            summary.conflicted_worktrees,
+            Color::Red,
+        ));
     }
 
     if summary.in_progress_worktrees > 0 {
-        spans.push(summary_span("Worktrees", summary.in_progress_worktrees, Color::Cyan));
+        spans.push(summary_span(
+            "Worktrees",
+            summary.in_progress_worktrees,
+            Color::Cyan,
+        ));
     }
 
     Line::from(spans)
@@ -2462,17 +2537,19 @@ fn attention_queue_line(summary: &SessionSummary, stabilized: bool) -> Line<'sta
         ]);
     }
 
-    let mut spans = vec![
-        Span::styled(
-            "Attention queue  ",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-    ];
+    let mut spans = vec![Span::styled(
+        "Attention queue  ",
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+    )];
 
     if summary.conflicted_worktrees > 0 {
-        spans.push(summary_span("Conflicts", summary.conflicted_worktrees, Color::Red));
+        spans.push(summary_span(
+            "Conflicts",
+            summary.conflicted_worktrees,
+            Color::Red,
+        ));
     }
 
     spans.extend([
@@ -2606,11 +2683,16 @@ fn build_conflict_protocol(
     ));
     lines.push(format!("2. Open worktree: cd {}", worktree.path.display()));
     lines.push("3. Resolve conflicts and stage files: git add <paths>".to_string());
-    lines.push(format!("4. Commit the resolution on {}: git commit", worktree.branch));
+    lines.push(format!(
+        "4. Commit the resolution on {}: git commit",
+        worktree.branch
+    ));
     lines.push(format!(
         "5. Re-check readiness: ecc worktree-status {session_id} --check"
     ));
-    lines.push(format!("6. Merge when clear: ecc merge-worktree {session_id}"));
+    lines.push(format!(
+        "6. Merge when clear: ecc merge-worktree {session_id}"
+    ));
 
     Some(lines.join("\n"))
 }
@@ -2643,7 +2725,7 @@ fn format_duration(duration_secs: u64) -> String {
 mod tests {
     use anyhow::{Context, Result};
     use chrono::Utc;
-    use ratatui::{Terminal, backend::TestBackend};
+    use ratatui::{backend::TestBackend, Terminal};
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::process::Command;
@@ -2862,14 +2944,14 @@ diff --git a/src/next.rs b/src/next.rs
         let text = dashboard.selected_session_metrics_text();
         assert!(text.contains("Team 3/8 | idle 1 | running 1 | pending 1 | failed 0 | stopped 0"));
         assert!(text.contains(
-            "Global handoff backlog 2 lead(s) / 5 handoff(s) | Auto-dispatch off @ 5/lead | Auto-merge off"
+            "Global handoff backlog 2 lead(s) / 5 handoff(s) | Auto-dispatch off @ 5/lead | Auto-worktree on | Auto-merge off"
         ));
         assert!(text.contains("Coordination mode dispatch-first"));
         assert!(text.contains("Next route reuse idle worker-1"));
     }
 
     #[test]
-    fn selected_session_metrics_text_shows_auto_merge_policy_state() {
+    fn selected_session_metrics_text_shows_worktree_and_auto_merge_policy_state() {
         let mut dashboard = test_dashboard(
             vec![sample_session(
                 "focus-12345678",
@@ -2882,14 +2964,58 @@ diff --git a/src/next.rs b/src/next.rs
             0,
         );
         dashboard.cfg.auto_dispatch_unread_handoffs = true;
+        dashboard.cfg.auto_create_worktrees = false;
         dashboard.cfg.auto_merge_ready_worktrees = true;
         dashboard.global_handoff_backlog_leads = 1;
         dashboard.global_handoff_backlog_messages = 2;
 
         let text = dashboard.selected_session_metrics_text();
         assert!(text.contains(
-            "Global handoff backlog 1 lead(s) / 2 handoff(s) | Auto-dispatch on @ 5/lead | Auto-merge on"
+            "Global handoff backlog 1 lead(s) / 2 handoff(s) | Auto-dispatch on @ 5/lead | Auto-worktree off | Auto-merge on"
         ));
+    }
+
+    #[test]
+    fn toggle_auto_worktree_policy_persists_config() {
+        let tempdir = std::env::temp_dir().join(format!("ecc2-worktree-policy-{}", Uuid::new_v4()));
+        std::fs::create_dir_all(&tempdir).unwrap();
+        let previous_home = std::env::var_os("HOME");
+        std::env::set_var("HOME", &tempdir);
+
+        let mut dashboard = test_dashboard(
+            vec![sample_session(
+                "focus-12345678",
+                "planner",
+                SessionState::Running,
+                Some("ecc/focus"),
+                512,
+                42,
+            )],
+            0,
+        );
+        dashboard.cfg.auto_create_worktrees = true;
+
+        dashboard.toggle_auto_worktree_policy();
+
+        assert!(!dashboard.cfg.auto_create_worktrees);
+        let expected_note = format!(
+            "default worktree creation disabled | saved to {}",
+            crate::config::Config::config_path().display()
+        );
+        assert_eq!(
+            dashboard.operator_note.as_deref(),
+            Some(expected_note.as_str())
+        );
+
+        let saved = std::fs::read_to_string(crate::config::Config::config_path()).unwrap();
+        assert!(saved.contains("auto_create_worktrees = false"));
+
+        if let Some(home) = previous_home {
+            std::env::set_var("HOME", home);
+        } else {
+            std::env::remove_var("HOME");
+        }
+        let _ = std::fs::remove_dir_all(tempdir);
     }
 
     #[test]
@@ -2924,6 +3050,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 1,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: Some(now + chrono::Duration::seconds(4)),
+            last_auto_prune_pruned: 3,
+            last_auto_prune_active_skipped: 1,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -2932,9 +3061,10 @@ diff --git a/src/next.rs b/src/next.rs
         assert!(text.contains("Last daemon dispatch 4 routed / 2 deferred across 2 lead(s)"));
         assert!(text.contains("Last daemon recovery dispatch 1 handoff(s) across 1 lead(s)"));
         assert!(text.contains("Last daemon rebalance 1 handoff(s) across 1 lead(s)"));
-        assert!(
-            text.contains("Last daemon auto-merge 2 merged / 1 active / 1 conflicted / 0 dirty / 0 failed")
-        );
+        assert!(text.contains(
+            "Last daemon auto-merge 2 merged / 1 active / 1 conflicted / 0 dirty / 0 failed"
+        ));
+        assert!(text.contains("Last daemon auto-prune 3 pruned / 1 active"));
     }
 
     #[test]
@@ -2968,6 +3098,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3005,6 +3138,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3013,8 +3149,8 @@ diff --git a/src/next.rs b/src/next.rs
     }
 
     #[test]
-    fn selected_session_metrics_text_recommends_operator_escalation_when_chronic_saturation_is_stuck()
-     {
+    fn selected_session_metrics_text_recommends_operator_escalation_when_chronic_saturation_is_stuck(
+    ) {
         let mut dashboard = test_dashboard(
             vec![sample_session(
                 "focus-12345678",
@@ -3044,6 +3180,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3084,6 +3223,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3139,6 +3281,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3241,6 +3386,9 @@ diff --git a/src/next.rs b/src/next.rs
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
 
         let text = dashboard.selected_session_metrics_text();
@@ -3664,18 +3812,16 @@ diff --git a/src/next.rs b/src/next.rs
             dashboard.operator_note.as_deref(),
             Some("pruned 1 inactive worktree(s); skipped 1 active session(s)")
         );
-        assert!(
-            db.get_session("stopped-1")?
-                .expect("stopped session should exist")
-                .worktree
-                .is_none()
-        );
-        assert!(
-            db.get_session("running-1")?
-                .expect("running session should exist")
-                .worktree
-                .is_some()
-        );
+        assert!(db
+            .get_session("stopped-1")?
+            .expect("stopped session should exist")
+            .worktree
+            .is_none());
+        assert!(db
+            .get_session("running-1")?
+            .expect("running session should exist")
+            .worktree
+            .is_some());
 
         let _ = std::fs::remove_dir_all(active_path);
         let _ = std::fs::remove_dir_all(stopped_path);
@@ -3734,7 +3880,10 @@ diff --git a/src/next.rs b/src/next.rs
             .db
             .get_session(&session_id)?
             .context("merged session should still exist")?;
-        assert!(session.worktree.is_none(), "worktree metadata should be cleared");
+        assert!(
+            session.worktree.is_none(),
+            "worktree metadata should be cleared"
+        );
         assert!(!worktree.path.exists(), "worktree path should be removed");
         assert_eq!(
             std::fs::read_to_string(repo_root.join("dashboard.txt"))?,
@@ -3756,8 +3905,12 @@ diff --git a/src/next.rs b/src/next.rs
         let db = StateStore::open(&cfg.db_path)?;
         let now = Utc::now();
 
-        let merged_worktree = worktree::create_for_session_in_repo("merge-ready", &cfg, &repo_root)?;
-        std::fs::write(merged_worktree.path.join("merged.txt"), "dashboard bulk merge\n")?;
+        let merged_worktree =
+            worktree::create_for_session_in_repo("merge-ready", &cfg, &repo_root)?;
+        std::fs::write(
+            merged_worktree.path.join("merged.txt"),
+            "dashboard bulk merge\n",
+        )?;
         Command::new("git")
             .arg("-C")
             .arg(&merged_worktree.path)
@@ -3805,14 +3958,12 @@ diff --git a/src/next.rs b/src/next.rs
             .context("operator note should be set")?;
         assert!(note.contains("merged 1 ready worktree(s)"));
         assert!(note.contains("skipped 1 active"));
-        assert!(
-            dashboard
-                .db
-                .get_session("merge-ready")?
-                .context("merged session should still exist")?
-                .worktree
-                .is_none()
-        );
+        assert!(dashboard
+            .db
+            .get_session("merge-ready")?
+            .context("merged session should still exist")?
+            .worktree
+            .is_none());
         assert_eq!(
             std::fs::read_to_string(repo_root.join("merged.txt"))?,
             "dashboard bulk merge\n"
@@ -4100,6 +4251,7 @@ diff --git a/src/next.rs b/src/next.rs
             default_agent: "claude".to_string(),
             auto_dispatch_unread_handoffs: false,
             auto_dispatch_limit_per_session: 5,
+            auto_create_worktrees: true,
             auto_merge_ready_worktrees: false,
             cost_budget_usd: 10.0,
             token_budget: 500_000,

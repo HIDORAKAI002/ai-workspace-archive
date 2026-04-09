@@ -50,6 +50,7 @@ pub async fn run(db: StateStore, cfg: Config) -> Result<()> {
                     (_, KeyCode::Char('m')) => dashboard.merge_selected_worktree().await,
                     (_, KeyCode::Char('M')) => dashboard.merge_ready_worktrees().await,
                     (_, KeyCode::Char('p')) => dashboard.toggle_auto_dispatch_policy(),
+                    (_, KeyCode::Char('t')) => dashboard.toggle_auto_worktree_policy(),
                     (_, KeyCode::Char('w')) => dashboard.toggle_auto_merge_policy(),
                     (_, KeyCode::Char(',')) => dashboard.adjust_auto_dispatch_limit(-1),
                     (_, KeyCode::Char('.')) => dashboard.adjust_auto_dispatch_limit(1),
