@@ -801,6 +801,7 @@ export interface SpawnBackgroundTaskOptions {
 	run: (
 		signal: AbortSignal,
 		drainCorrections: () => string[],
+		waitForCorrection: () => Promise<void>,
 	) => Promise<string | BackgroundTaskResult>;
 }
 
