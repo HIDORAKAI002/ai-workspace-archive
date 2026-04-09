@@ -7,10 +7,8 @@ real Agent and SwarmRouter objects are created with the correct parameters.
 
 import ast
 import os
-import sys
 import tempfile
 
-import pytest
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +16,6 @@ load_dotenv()
 from swarms.agents.auto_generate_swarm_config import (
     _agent_var_name,
     _format_value,
-    _render_agent_code,
     _slugify,
     write_autoswarm_file,
 )
@@ -101,7 +98,9 @@ def _exec_generated_code(source: str) -> dict:
 
     namespace["Agent"] = Agent
     namespace["SwarmRouter"] = SwarmRouter
-    namespace["__name__"] = "not_main"  # prevent __main__ block from running
+    namespace["__name__"] = (
+        "not_main"  # prevent __main__ block from running
+    )
 
     exec("\n".join(code_lines), namespace)
     return namespace
@@ -150,7 +149,10 @@ class TestAgentVarName:
         assert _agent_var_name("Researcher") == "researcher"
 
     def test_with_dashes(self):
-        assert _agent_var_name("Data-Analysis Agent") == "data_analysis_agent"
+        assert (
+            _agent_var_name("Data-Analysis Agent")
+            == "data_analysis_agent"
+        )
 
     def test_leading_digit(self):
         assert _agent_var_name("1st-Agent") == "agent_1st_agent"
@@ -228,7 +230,10 @@ class TestGeneratedFileCreatesRealAgents:
         _, source = _generate_file(config=config)
         ns = _exec_generated_code(source)
 
-        assert ns["describer"].agent_description == "An agent that describes"
+        assert (
+            ns["describer"].agent_description
+            == "An agent that describes"
+        )
 
     def test_all_params_passed_to_agent(self):
         """Every supported YAML key ends up as the correct Agent attribute.
@@ -310,7 +315,9 @@ class TestGeneratedFileCreatesRealSwarmRouter:
         _, source = _generate_file()
         ns = _exec_generated_code(source)
 
-        assert ns["swarm"].description == "End-to-end research pipeline"
+        assert (
+            ns["swarm"].description == "End-to-end research pipeline"
+        )
 
     def test_swarm_type_matches(self):
         _, source = _generate_file()
@@ -397,7 +404,9 @@ class TestDuplicateAgentNames:
         assert ns["worker"].agent_name == "Worker"
         assert ns["worker_2"].agent_name == "Worker"
         # Different system prompts prove they're different objects
-        assert ns["worker"].system_prompt != ns["worker_2"].system_prompt
+        assert (
+            ns["worker"].system_prompt != ns["worker_2"].system_prompt
+        )
         # Both are in the router
         assert len(ns["swarm"].agents) == 2
 
@@ -418,14 +427,17 @@ class TestMultilinePrompts:
         ns = _exec_generated_code(source)
 
         # Agent appends collaboration prompts to system_prompt, so check with `in`
-        assert "Line one.\nLine two.\nLine three." in ns["multiline_bot"].system_prompt
+        assert (
+            "Line one.\nLine two.\nLine three."
+            in ns["multiline_bot"].system_prompt
+        )
 
     def test_prompt_with_quotes(self):
         config = {
             "agents": [
                 {
                     "agent_name": "Quoter",
-                    "system_prompt": 'She said "hello" and he said \'goodbye\'',
+                    "system_prompt": "She said \"hello\" and he said 'goodbye'",
                 },
             ],
         }
@@ -468,7 +480,10 @@ class TestFileOutput:
                 result = write_autoswarm_file(
                     config=SAMPLE_CONFIG, task=TASK
                 )
-                assert "autoswarm_research_pipeline.py" in os.path.basename(result)
+                assert (
+                    "autoswarm_research_pipeline.py"
+                    in os.path.basename(result)
+                )
             finally:
                 os.chdir(orig)
 
@@ -478,8 +493,13 @@ class TestFileOutput:
             result = write_autoswarm_file(
                 config=SAMPLE_CONFIG, task=TASK, output_dir=target_dir
             )
-            assert os.path.dirname(result) == os.path.abspath(target_dir)
-            assert os.path.basename(result) == "autoswarm_research_pipeline.py"
+            assert os.path.dirname(result) == os.path.abspath(
+                target_dir
+            )
+            assert (
+                os.path.basename(result)
+                == "autoswarm_research_pipeline.py"
+            )
             assert os.path.exists(result)
 
     def test_output_dir_creates_missing_directories(self):
@@ -496,8 +516,10 @@ class TestFileOutput:
             explicit = os.path.join(tmpdir, "explicit.py")
             other_dir = os.path.join(tmpdir, "other")
             result = write_autoswarm_file(
-                config=SAMPLE_CONFIG, task=TASK,
-                output_path=explicit, output_dir=other_dir,
+                config=SAMPLE_CONFIG,
+                task=TASK,
+                output_path=explicit,
+                output_dir=other_dir,
             )
             assert result == os.path.abspath(explicit)
             assert not os.path.exists(other_dir)
@@ -523,7 +545,15 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "test", "--model", "gpt-4", "-o", "out.py"]
+            [
+                "autoswarm",
+                "--task",
+                "test",
+                "--model",
+                "gpt-4",
+                "-o",
+                "out.py",
+            ]
         )
         assert args.output == "out.py"
 
@@ -532,7 +562,15 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "test", "--model", "gpt-4", "--output", "out.py"]
+            [
+                "autoswarm",
+                "--task",
+                "test",
+                "--model",
+                "gpt-4",
+                "--output",
+                "out.py",
+            ]
         )
         assert args.output == "out.py"
 
@@ -541,7 +579,14 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "test", "--model", "gpt-4", "--no-run"]
+            [
+                "autoswarm",
+                "--task",
+                "test",
+                "--model",
+                "gpt-4",
+                "--no-run",
+            ]
         )
         assert args.no_run is True
 
@@ -550,7 +595,15 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "test", "--model", "gpt-4", "-d", "/tmp/out"]
+            [
+                "autoswarm",
+                "--task",
+                "test",
+                "--model",
+                "gpt-4",
+                "-d",
+                "/tmp/out",
+            ]
         )
         assert args.output_dir == "/tmp/out"
 
@@ -559,7 +612,15 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "test", "--model", "gpt-4", "--output-dir", "/tmp/out"]
+            [
+                "autoswarm",
+                "--task",
+                "test",
+                "--model",
+                "gpt-4",
+                "--output-dir",
+                "/tmp/out",
+            ]
         )
         assert args.output_dir == "/tmp/out"
 
@@ -579,8 +640,18 @@ class TestCLIAutoswarmArgs:
 
         parser = setup_argument_parser()
         args = parser.parse_args(
-            ["autoswarm", "--task", "do stuff", "--model", "gpt-4",
-             "-o", "my_file.py", "-d", "/tmp/out", "--no-run"]
+            [
+                "autoswarm",
+                "--task",
+                "do stuff",
+                "--model",
+                "gpt-4",
+                "-o",
+                "my_file.py",
+                "-d",
+                "/tmp/out",
+                "--no-run",
+            ]
         )
         assert args.task == "do stuff"
         assert args.model == "gpt-4"
@@ -644,7 +715,9 @@ This creates a two-agent sequential pipeline.
         from swarms.structs.swarm_router import SwarmRouter
 
         # Step 1: Parse the YAML from LLM markdown (same as generate_swarm_config)
-        yaml_content = parse_yaml_from_swarm_markdown(self.RAW_LLM_OUTPUT)
+        yaml_content = parse_yaml_from_swarm_markdown(
+            self.RAW_LLM_OUTPUT
+        )
         config_dict = yaml.safe_load(yaml_content)
 
         # Step 2: Write the file
@@ -672,7 +745,10 @@ This creates a two-agent sequential pipeline.
 
         assert ns["summarizer"].agent_name == "Summarizer"
         assert ns["translator"].agent_name == "Translator"
-        assert "summarization specialist" in ns["summarizer"].system_prompt
+        assert (
+            "summarization specialist"
+            in ns["summarizer"].system_prompt
+        )
         assert "French translator" in ns["translator"].system_prompt
         assert ns["summarizer"].max_loops == 1
         assert ns["translator"].max_loops == 1
@@ -684,7 +760,10 @@ This creates a two-agent sequential pipeline.
         # Step 6: Verify real SwarmRouter
         assert isinstance(ns["swarm"], SwarmRouter)
         assert ns["swarm"].name == "Summarize-Translate-Pipeline"
-        assert ns["swarm"].description == "Summarizes text then translates the summary to French"
+        assert (
+            ns["swarm"].description
+            == "Summarizes text then translates the summary to French"
+        )
         assert ns["swarm"].swarm_type == "SequentialWorkflow"
         assert ns["swarm"].max_loops == 1
 
@@ -701,8 +780,6 @@ This creates a two-agent sequential pipeline.
             parse_yaml_from_swarm_markdown,
             write_autoswarm_file,
         )
-        from swarms.structs.agent import Agent
-        from swarms.structs.swarm_router import SwarmRouter
 
         llm_output = """
 ```yaml
@@ -760,7 +837,12 @@ swarm_architecture:
         # 4 real agents
         assert len(ns["swarm"].agents) == 4
         names = [a.agent_name for a in ns["swarm"].agents]
-        assert names == ["Data-Collector", "Analyzer", "Visualizer", "Report-Writer"]
+        assert names == [
+            "Data-Collector",
+            "Analyzer",
+            "Visualizer",
+            "Report-Writer",
+        ]
 
         # Verify individual agent params
         assert ns["data_collector"].max_loops == 2
