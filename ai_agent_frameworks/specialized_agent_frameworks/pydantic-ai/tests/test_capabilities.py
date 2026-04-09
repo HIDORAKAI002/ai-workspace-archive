@@ -48,6 +48,7 @@ from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
     ModelResponse,
+    PartStartEvent,
     RetryPromptPart,
     TextPart,
     ToolCallPart,
@@ -589,12 +590,8 @@ def test_model_json_schema_with_capabilities():
                         'bedrock:us.meta.llama3-2-90b-instruct-v1:0',
                         'bedrock:us.meta.llama3-3-70b-instruct-v1:0',
                         'cerebras:gpt-oss-120b',
-                        'cerebras:llama-3.3-70b',
                         'cerebras:llama3.1-8b',
                         'cerebras:qwen-3-235b-a22b-instruct-2507',
-                        'cerebras:qwen-3-32b',
-                        'cerebras:qwen-3-coder-480b',
-                        'cerebras:zai-glm-4.6',
                         'cerebras:zai-glm-4.7',
                         'cohere:c4ai-aya-expanse-32b',
                         'cohere:c4ai-aya-expanse-8b',
@@ -785,11 +782,18 @@ def test_model_json_schema_with_capabilities():
                         'heroku:claude-3-haiku',
                         'heroku:claude-4-5-haiku',
                         'heroku:claude-4-5-sonnet',
+                        'heroku:claude-4-6-sonnet',
                         'heroku:claude-4-sonnet',
                         'heroku:claude-opus-4-5',
+                        'heroku:claude-opus-4-6',
+                        'heroku:deepseek-v3-2',
+                        'heroku:glm-4-7',
+                        'heroku:glm-4-7-flash',
                         'heroku:gpt-oss-120b',
+                        'heroku:kimi-k2-5',
                         'heroku:kimi-k2-thinking',
                         'heroku:minimax-m2',
+                        'heroku:minimax-m2-1',
                         'heroku:qwen3-235b',
                         'heroku:qwen3-coder-480b',
                         'heroku:nova-2-lite',
@@ -3388,6 +3392,32 @@ class TestWrapRunEventStream:
         async with agent.run_stream('hello') as stream:
             await stream.get_output()
         assert len(observed_events) > 0
+
+    async def test_wrap_run_event_stream_fires_in_run_without_handler(self):
+        """wrap_run_event_stream fires in run() even without an event_stream_handler."""
+        observed_events: list[AgentStreamEvent] = []
+
+        @dataclass
+        class ObserverCap(AbstractCapability[Any]):
+            async def wrap_run_event_stream(
+                self,
+                ctx: RunContext[Any],
+                *,
+                stream: AsyncIterable[AgentStreamEvent],
+            ) -> AsyncIterable[AgentStreamEvent]:
+                async for event in stream:
+                    observed_events.append(event)
+                    yield event
+
+        agent = Agent(
+            FunctionModel(simple_model_function, stream_function=simple_stream_function),
+            capabilities=[ObserverCap()],
+        )
+
+        # No event_stream_handler — hook should still fire via forced streaming
+        result = await agent.run('hello')
+        assert result.output is not None
+        assert any(isinstance(e, PartStartEvent) for e in observed_events)
 
 
 class TestWrapRunShortCircuit:
@@ -6315,6 +6345,45 @@ class TestHooksCapability:
         async with agent.run_stream('hello') as stream:
             await stream.get_output()
         assert len(events_seen) > 0
+
+    async def test_on_event_hook_fires_in_run(self):
+        """on.event fires in run() even without an event_stream_handler."""
+        hooks = Hooks()
+        events_seen: list[str] = []
+
+        @hooks.on.event
+        async def observe(ctx: RunContext[Any], event: AgentStreamEvent) -> AgentStreamEvent:
+            events_seen.append(type(event).__name__)
+            return event
+
+        agent = Agent(
+            FunctionModel(simple_model_function, stream_function=simple_stream_function),
+            capabilities=[hooks],
+        )
+        result = await agent.run('hello')
+        assert result.output is not None
+        assert 'PartStartEvent' in events_seen
+
+    async def test_wrap_run_event_stream_fires_in_run(self):
+        """on.run_event_stream fires in run() even without an event_stream_handler."""
+        hooks = Hooks()
+        events_seen: list[str] = []
+
+        @hooks.on.run_event_stream
+        async def observe_stream(
+            ctx: RunContext[Any], *, stream: AsyncIterable[AgentStreamEvent]
+        ) -> AsyncIterable[AgentStreamEvent]:
+            async for event in stream:
+                events_seen.append(type(event).__name__)
+                yield event
+
+        agent = Agent(
+            FunctionModel(simple_model_function, stream_function=simple_stream_function),
+            capabilities=[hooks],
+        )
+        result = await agent.run('hello')
+        assert result.output is not None
+        assert 'PartStartEvent' in events_seen
 
     async def test_on_event_with_run_event_stream(self):
         """on.event and on.run_event_stream can be used together."""
