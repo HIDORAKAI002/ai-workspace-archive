@@ -8,19 +8,11 @@
 
 > 🔥🔥 **Surveys of MLLMs**  |  **[💬 WeChat (MLLM微信交流群)](./images/wechat-group.png)**
 
-- 🌟 **A Survey of Unified Multimodal Understanding and Generation: Advances and Challenges**  
-<p align="center">
-    <img src="./images/unify-survey.png" width="90%" height="90%">
-</p>  
-
-<font size=7><div align='center'> A total of **83 pages**, and **750+ references**! </div></font>
-
-<font size=7><div align='center'> [[📖 Paper](https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.176289261.16802577)] [[🌟 Project](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Unified)]</div></font>  
-
-
-
 - 🌟 **MME-Survey: A Comprehensive Survey on Evaluation of Multimodal LLMs**  
 arXiv 2025, [Paper](https://arxiv.org/pdf/2411.15296.pdf), [Project](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Benchmarks) 
+
+- 🌟 **A Survey of Unified Multimodal Understanding and Generation: Advances and Challenges**  
+arXiv 2025, [Paper](https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.176289261.16802577), [Project](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Unified) 
 
 - **A Survey on Multimodal Large Language Models**  
 NSR 2024, [Paper](https://arxiv.org/pdf/2306.13549.pdf), [Project](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models)
@@ -31,13 +23,10 @@ NSR 2024, [Paper](https://arxiv.org/pdf/2306.13549.pdf), [Project](https://githu
 
 > 🔥🔥 **VITA Series Omni MLLMs** | **[💬 WeChat (VITA微信交流群)](https://github.com/VITA-MLLM/VITA/blob/main/asset/wechat-group.jpg)**
 
-- 🌟 **VITA-1.5: Towards GPT-4o Level Real-Time Vision and Speech Interaction**  
+- **VITA-1.5: Towards GPT-4o Level Real-Time Vision and Speech Interaction**  
 NeurIPS 2025 Highlight, [Paper](https://arxiv.org/pdf/2501.01957.pdf), [Project](https://github.com/VITA-MLLM/VITA)
 
-- 🌟 **VITA-VLA: Efficiently Teaching Vision-Language Models to Act via Action Expert Distillation**  
-arXiv 2025, [Paper](https://arxiv.org/pdf/2510.09607.pdf), [Project](https://ltbai.github.io/VITA-VLA/)
-
-- 🌟 **VITA-E: Natural Embodied Interaction with Concurrent Seeing, Hearing, Speaking, and Acting**  
+- **VITA-E: Natural Embodied Interaction with Concurrent Seeing, Hearing, Speaking, and Acting**  
 arXiv 2025, [Paper](https://arxiv.org/pdf/2510.21817.pdf), [Project](https://lxysl.github.io/VITA-E/)
 
 - **VITA: Towards Open-Source Interactive Omni Multimodal LLM**  
@@ -54,6 +43,14 @@ NeurIPS 2025, [Paper](https://arxiv.org/pdf/2505.03739.pdf), [Project](https://g
 
 
 > 🔥🔥 **MME Series MLLM Benchmarks**
+
+- 🔥 **Video-MME-v2: Towards the Next Stage in Video Understanding Evaluation**
+
+<p align="center">
+    <img src="./images/video-mme-v2-logo.png" width="100%" height="100%">
+</p>
+
+<font size=7><div align='center' > [[🍎 Project Page](https://video-mme-v2.netlify.app/)] [[📖 Paper](https://arxiv.org/pdf/2604.05015)] [[🤗 Dataset](https://huggingface.co/datasets/MME-Benchmarks/Video-MME-v2)] [[🏆 Leaderboard](https://video-mme-v2.netlify.app/#leaderboard)]  </div></font>
 
 - 🌟 **MME-Survey: A Comprehensive Survey on Evaluation of Multimodal LLMs**  
 arXiv 2025, [Paper](https://arxiv.org/pdf/2411.15296.pdf), [Project](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Benchmarks)
@@ -76,7 +73,7 @@ ICLR 2025, [Paper](https://arxiv.org/pdf/2408.13257.pdf), [Project](https://mme-
 
 <font size=5><center><b> Table of Contents </b> </center></font>
 - [Awesome Papers](#awesome-papers)
-  - [Multimodal Instruction Tuning](#multimodal-instruction-tuning)
+  - [Multimodal Instruction Tuning (& Latest Works)](#multimodal-instruction-tuning--latest-works)
   - [Multimodal Hallucination](#multimodal-hallucination)
   - [Multimodal In-Context Learning](#multimodal-in-context-learning)
   - [Multimodal Chain-of-Thought](#multimodal-chain-of-thought)
@@ -97,9 +94,11 @@ ICLR 2025, [Paper](https://arxiv.org/pdf/2408.13257.pdf), [Project](https://mme-
 
 # Awesome Papers
 
-## Multimodal Instruction Tuning
+## Multimodal Instruction Tuning (& Latest Works)
 |  Title  |   Venue  |   Date   |   Code   |   Demo   |
 |:--------|:--------:|:--------:|:--------:|:--------:|
+| ![Star](https://img.shields.io/github/stars/MME-Benchmarks/Video-MME-v2.svg?style=social&label=Star) <br> [**Video-MME-v2: Towards the Next Stage in Benchmarks for Comprehensive Video Understanding**](https://arxiv.org/pdf/2604.05015) <br> | arXiv | 2026-04-06 | [Github](https://github.com/MME-Benchmarks/Video-MME-v2) | [Demo](https://video-mme-v2.netlify.app/) |
+| [**Introducing Muse Spark: Scaling Towards Personal Superintelligence**](https://ai.meta.com/blog/introducing-muse-spark-msl/) | Blog | 2026-04-08 | - | [Demo](https://meta.ai/) |
 | ![Star](https://img.shields.io/github/stars/VITA-MLLM/VITA-QinYu.svg?style=social&label=Star) <br> [**VITA-QinYu: Expressive Spoken Language Model for Role-Playing and Singing**](https://github.com/VITA-MLLM/VITA-QinYu) <br> | arXiv | 2026-04-03 | [Github](https://github.com/VITA-MLLM/VITA-QinYu) | Local Demo |
 | [**Gemma 4: Byte for byte, the most capable open models**](https://deepmind.google/models/gemma/gemma-4/) | Blog | 2026-04-02 | - | [Demo](https://aistudio.google.com/prompts/new_chat?model=gemma-4-31b-it&utm_source=deepmind.google&utm_medium=referral&utm_campaign=gdm&utm_content=) |
 | [**Qwen3.5-Omni: Scaling Up, Toward Native Omni-Modal AGI**](https://qwen.ai/blog?id=qwen3.5-omni) | Blog | 2026-03-30 | - | [Demo](https://chat.qwen.ai/?spm=a2ty_o06.30285417.0.0.6d26c921GDrWrb) |
