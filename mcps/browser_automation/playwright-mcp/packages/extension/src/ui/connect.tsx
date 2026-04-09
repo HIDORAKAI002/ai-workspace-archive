@@ -27,7 +27,7 @@ type Status =
   | { type: 'error'; message: string }
   | { type: 'error'; versionMismatch: { extensionVersion: string; } };
 
-const SUPPORTED_PROTOCOL_VERSION = 1;
+const SUPPORTED_PROTOCOL_VERSION = 2;
 
 const ConnectApp: React.FC = () => {
   const [tabs, setTabs] = useState<TabInfo[]>([]);
@@ -75,8 +75,8 @@ const ConnectApp: React.FC = () => {
       }
 
       const parsedVersion = parseInt(params.get('protocolVersion') ?? '', 10);
-      const requiredVersion = isNaN(parsedVersion) ? 1 : parsedVersion;
-      if (requiredVersion > SUPPORTED_PROTOCOL_VERSION) {
+      const requestedVersion = isNaN(parsedVersion) ? 1 : parsedVersion;
+      if (requestedVersion > SUPPORTED_PROTOCOL_VERSION) {
         const extensionVersion = chrome.runtime.getManifest().version;
         setShowButtons(false);
         setShowTabList(false);
@@ -92,7 +92,7 @@ const ConnectApp: React.FC = () => {
       const expectedToken = getOrCreateAuthToken();
       const token = params.get('token');
       if (token === expectedToken) {
-        await connectToMCPRelay(relayUrl);
+        await connectToMCPRelay(relayUrl, requestedVersion);
         await handleConnectToTab();
         return;
       }
@@ -101,7 +101,7 @@ const ConnectApp: React.FC = () => {
         return;
       }
 
-      await connectToMCPRelay(relayUrl);
+      await connectToMCPRelay(relayUrl, requestedVersion);
 
       // If this is a browser_navigate command, hide the tab list and show simple allow/reject
       if (params.get('newTab') === 'true') {
@@ -120,8 +120,8 @@ const ConnectApp: React.FC = () => {
     setStatus({ type: 'error', message });
   }, []);
 
-  const connectToMCPRelay = useCallback(async (mcpRelayUrl: string) => {
-    const response = await chrome.runtime.sendMessage({ type: 'connectToMCPRelay', mcpRelayUrl  });
+  const connectToMCPRelay = useCallback(async (mcpRelayUrl: string, protocolVersion: number) => {
+    const response = await chrome.runtime.sendMessage({ type: 'connectToMCPRelay', mcpRelayUrl, protocolVersion });
     if (!response.success)
       handleReject(response.error);
   }, [handleReject]);

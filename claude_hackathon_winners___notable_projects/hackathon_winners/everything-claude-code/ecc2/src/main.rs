@@ -18,6 +18,28 @@ struct Cli {
     command: Option<Commands>,
 }
 
+#[derive(clap::Args, Debug, Clone, Default)]
+struct WorktreePolicyArgs {
+    /// Create a dedicated worktree
+    #[arg(short = 'w', long = "worktree", action = clap::ArgAction::SetTrue, overrides_with = "no_worktree")]
+    worktree: bool,
+    /// Skip dedicated worktree creation
+    #[arg(long = "no-worktree", action = clap::ArgAction::SetTrue, overrides_with = "worktree")]
+    no_worktree: bool,
+}
+
+impl WorktreePolicyArgs {
+    fn resolve(&self, cfg: &config::Config) -> bool {
+        if self.worktree {
+            true
+        } else if self.no_worktree {
+            false
+        } else {
+            cfg.auto_create_worktrees
+        }
+    }
+}
+
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
     /// Launch the TUI dashboard
@@ -30,9 +52,8 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree for this session
-        #[arg(short, long)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Source session to delegate from
         #[arg(long)]
         from_session: Option<String>,
@@ -47,9 +68,8 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree for the delegated session
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
     },
     /// Route work to an existing delegate when possible, otherwise spawn a new one
     Assign {
@@ -61,9 +81,8 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if a new delegate must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
     },
     /// Route unread task handoffs from a lead session inbox through the assignment policy
     DrainInbox {
@@ -72,9 +91,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum unread task handoffs to route
         #[arg(long, default_value_t = 5)]
         limit: usize,
@@ -84,9 +102,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum lead sessions to sweep in one pass
         #[arg(long, default_value_t = 10)]
         lead_limit: usize,
@@ -96,9 +113,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum lead sessions to sweep in one pass
         #[arg(long, default_value_t = 10)]
         lead_limit: usize,
@@ -129,9 +145,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum lead sessions to sweep in one pass
         #[arg(long, default_value_t = 10)]
         lead_limit: usize,
@@ -150,9 +165,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum lead sessions to sweep in one pass
         #[arg(long, default_value_t = 10)]
         lead_limit: usize,
@@ -164,9 +178,8 @@ enum Commands {
         /// Agent type for routed delegates
         #[arg(short, long, default_value = "claude")]
         agent: String,
-        /// Create a dedicated worktree if new delegates must be spawned
-        #[arg(short, long, default_value_t = true)]
-        worktree: bool,
+        #[command(flatten)]
+        worktree: WorktreePolicyArgs,
         /// Maximum handoffs to reroute in one pass
         #[arg(long, default_value_t = 5)]
         limit: usize,
@@ -319,9 +332,10 @@ async fn main() -> Result<()> {
         Some(Commands::Start {
             task,
             agent,
-            worktree: use_worktree,
+            worktree,
             from_session,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let session_id =
                 session::manager::create_session(&db, &cfg, &task, &agent, use_worktree).await?;
             if let Some(from_session) = from_session {
@@ -334,8 +348,9 @@ async fn main() -> Result<()> {
             from_session,
             task,
             agent,
-            worktree: use_worktree,
+            worktree,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let from_id = resolve_session_id(&db, &from_session)?;
             let source = db
                 .get_session(&from_id)?
@@ -361,18 +376,13 @@ async fn main() -> Result<()> {
             from_session,
             task,
             agent,
-            worktree: use_worktree,
+            worktree,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let lead_id = resolve_session_id(&db, &from_session)?;
-            let outcome = session::manager::assign_session(
-                &db,
-                &cfg,
-                &lead_id,
-                &task,
-                &agent,
-                use_worktree,
-            )
-            .await?;
+            let outcome =
+                session::manager::assign_session(&db, &cfg, &lead_id, &task, &agent, use_worktree)
+                    .await?;
             if session::manager::assignment_action_routes_work(outcome.action) {
                 println!(
                     "Assignment routed: {} -> {} ({})",
@@ -396,32 +406,28 @@ async fn main() -> Result<()> {
         Some(Commands::DrainInbox {
             session_id,
             agent,
-            worktree: use_worktree,
+            worktree,
             limit,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let lead_id = resolve_session_id(&db, &session_id)?;
-            let outcomes = session::manager::drain_inbox(
-                &db,
-                &cfg,
-                &lead_id,
-                &agent,
-                use_worktree,
-                limit,
-            )
-            .await?;
+            let outcomes =
+                session::manager::drain_inbox(&db, &cfg, &lead_id, &agent, use_worktree, limit)
+                    .await?;
             if outcomes.is_empty() {
                 println!("No unread task handoffs for {}", short_session(&lead_id));
             } else {
                 let routed_count = outcomes
                     .iter()
-                    .filter(|outcome| session::manager::assignment_action_routes_work(outcome.action))
+                    .filter(|outcome| {
+                        session::manager::assignment_action_routes_work(outcome.action)
+                    })
                     .count();
                 let deferred_count = outcomes.len().saturating_sub(routed_count);
                 println!(
                     "Processed {} inbox task handoff(s) from {} ({} routed, {} deferred)",
                     outcomes.len(),
-                    short_session(&lead_id)
-                    ,
+                    short_session(&lead_id),
                     routed_count,
                     deferred_count
                 );
@@ -445,9 +451,10 @@ async fn main() -> Result<()> {
         }
         Some(Commands::AutoDispatch {
             agent,
-            worktree: use_worktree,
+            worktree,
             lead_limit,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let outcomes = session::manager::auto_dispatch_backlog(
                 &db,
                 &cfg,
@@ -459,14 +466,17 @@ async fn main() -> Result<()> {
             if outcomes.is_empty() {
                 println!("No unread task handoff backlog found");
             } else {
-                let total_processed: usize = outcomes.iter().map(|outcome| outcome.routed.len()).sum();
+                let total_processed: usize =
+                    outcomes.iter().map(|outcome| outcome.routed.len()).sum();
                 let total_routed: usize = outcomes
                     .iter()
                     .map(|outcome| {
                         outcome
                             .routed
                             .iter()
-                            .filter(|item| session::manager::assignment_action_routes_work(item.action))
+                            .filter(|item| {
+                                session::manager::assignment_action_routes_work(item.action)
+                            })
                             .count()
                     })
                     .sum();
@@ -497,18 +507,15 @@ async fn main() -> Result<()> {
         }
         Some(Commands::CoordinateBacklog {
             agent,
-            worktree: use_worktree,
+            worktree,
             lead_limit,
             json,
             check,
             until_healthy,
             max_passes,
         }) => {
-            let pass_budget = if until_healthy {
-                max_passes.max(1)
-            } else {
-                1
-            };
+            let use_worktree = worktree.resolve(&cfg);
+            let pass_budget = if until_healthy { max_passes.max(1) } else { 1 };
             let run = run_coordination_loop(
                 &db,
                 &cfg,
@@ -542,12 +549,13 @@ async fn main() -> Result<()> {
         }
         Some(Commands::MaintainCoordination {
             agent,
-            worktree: use_worktree,
+            worktree,
             lead_limit,
             json,
             check,
             max_passes,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let initial_status = session::manager::get_coordination_status(&db, &cfg)?;
             let run = if matches!(
                 initial_status.health,
@@ -591,17 +599,13 @@ async fn main() -> Result<()> {
         }
         Some(Commands::RebalanceAll {
             agent,
-            worktree: use_worktree,
+            worktree,
             lead_limit,
         }) => {
-            let outcomes = session::manager::rebalance_all_teams(
-                &db,
-                &cfg,
-                &agent,
-                use_worktree,
-                lead_limit,
-            )
-            .await?;
+            let use_worktree = worktree.resolve(&cfg);
+            let outcomes =
+                session::manager::rebalance_all_teams(&db, &cfg, &agent, use_worktree, lead_limit)
+                    .await?;
             if outcomes.is_empty() {
                 println!("No delegate backlog needed global rebalancing");
             } else {
@@ -624,9 +628,10 @@ async fn main() -> Result<()> {
         Some(Commands::RebalanceTeam {
             session_id,
             agent,
-            worktree: use_worktree,
+            worktree,
             limit,
         }) => {
+            let use_worktree = worktree.resolve(&cfg);
             let lead_id = resolve_session_id(&db, &session_id)?;
             let outcomes = session::manager::rebalance_team_backlog(
                 &db,
@@ -638,7 +643,10 @@ async fn main() -> Result<()> {
             )
             .await?;
             if outcomes.is_empty() {
-                println!("No delegate backlog needed rebalancing for {}", short_session(&lead_id));
+                println!(
+                    "No delegate backlog needed rebalancing for {}",
+                    short_session(&lead_id)
+                );
             } else {
                 println!(
                     "Rebalanced {} task handoff(s) for {}",
@@ -779,12 +787,9 @@ async fn main() -> Result<()> {
             } else {
                 let id = session_id.unwrap_or_else(|| "latest".to_string());
                 let resolved_id = resolve_session_id(&db, &id)?;
-                let outcome = session::manager::merge_session_worktree(
-                    &db,
-                    &resolved_id,
-                    !keep_worktree,
-                )
-                .await?;
+                let outcome =
+                    session::manager::merge_session_worktree(&db, &resolved_id, !keep_worktree)
+                        .await?;
                 if json {
                     println!("{}", serde_json::to_string_pretty(&outcome)?);
                 } else {
@@ -821,7 +826,11 @@ async fn main() -> Result<()> {
                 let to = resolve_session_id(&db, &to)?;
                 let message = build_message(kind, text, context, file)?;
                 comms::send(&db, &from, &to, &message)?;
-                println!("Message sent: {} -> {}", short_session(&from), short_session(&to));
+                println!(
+                    "Message sent: {} -> {}",
+                    short_session(&from),
+                    short_session(&to)
+                );
             }
             MessageCommands::Inbox { session_id, limit } => {
                 let session_id = resolve_session_id(&db, &session_id)?;
@@ -1057,7 +1066,10 @@ struct WorktreeResolutionReport {
     resolution_steps: Vec<String>,
 }
 
-fn build_worktree_status_report(session: &session::Session, include_patch: bool) -> Result<WorktreeStatusReport> {
+fn build_worktree_status_report(
+    session: &session::Session,
+    include_patch: bool,
+) -> Result<WorktreeStatusReport> {
     let Some(worktree) = session.worktree.as_ref() else {
         return Ok(WorktreeStatusReport {
             session_id: session.id.clone(),
@@ -1117,7 +1129,9 @@ fn build_worktree_status_report(session: &session::Session, include_patch: bool)
     })
 }
 
-fn build_worktree_resolution_report(session: &session::Session) -> Result<WorktreeResolutionReport> {
+fn build_worktree_resolution_report(
+    session: &session::Session,
+) -> Result<WorktreeResolutionReport> {
     let Some(worktree) = session.worktree.as_ref() else {
         return Ok(WorktreeResolutionReport {
             session_id: session.id.clone(),
@@ -1139,11 +1153,17 @@ fn build_worktree_resolution_report(session: &session::Session) -> Result<Worktr
     let conflicted = merge_readiness.status == worktree::MergeReadinessStatus::Conflicted;
     let resolution_steps = if conflicted {
         vec![
-            format!("Inspect current patch: ecc worktree-status {} --patch", session.id),
+            format!(
+                "Inspect current patch: ecc worktree-status {} --patch",
+                session.id
+            ),
             format!("Open worktree: cd {}", worktree.path.display()),
             "Resolve conflicts and stage files: git add <paths>".to_string(),
             format!("Commit the resolution on {}: git commit", worktree.branch),
-            format!("Re-check readiness: ecc worktree-status {} --check", session.id),
+            format!(
+                "Re-check readiness: ecc worktree-status {} --check",
+                session.id
+            ),
             format!("Merge when clear: ecc merge-worktree {}", session.id),
         ]
     } else {
@@ -1183,7 +1203,8 @@ fn format_worktree_status_human(report: &WorktreeStatusReport) -> String {
     if let Some(path) = report.path.as_ref() {
         lines.push(format!("Path {path}"));
     }
-    if let (Some(branch), Some(base_branch)) = (report.branch.as_ref(), report.base_branch.as_ref()) {
+    if let (Some(branch), Some(base_branch)) = (report.branch.as_ref(), report.base_branch.as_ref())
+    {
         lines.push(format!("Branch {branch} (base {base_branch})"));
     }
     if let Some(diff_summary) = report.diff_summary.as_ref() {
@@ -1237,7 +1258,8 @@ fn format_worktree_resolution_human(report: &WorktreeResolutionReport) -> String
     if let Some(path) = report.path.as_ref() {
         lines.push(format!("Path {path}"));
     }
-    if let (Some(branch), Some(base_branch)) = (report.branch.as_ref(), report.base_branch.as_ref()) {
+    if let (Some(branch), Some(base_branch)) = (report.branch.as_ref(), report.base_branch.as_ref())
+    {
         lines.push(format!("Branch {branch} (base {base_branch})"));
     }
     lines.push(report.summary.clone());
@@ -1295,12 +1317,11 @@ fn format_worktree_merge_human(outcome: &session::manager::WorktreeMergeOutcome)
     lines.join("\n")
 }
 
-fn format_bulk_worktree_merge_human(outcome: &session::manager::WorktreeBulkMergeOutcome) -> String {
+fn format_bulk_worktree_merge_human(
+    outcome: &session::manager::WorktreeBulkMergeOutcome,
+) -> String {
     let mut lines = Vec::new();
-    lines.push(format!(
-        "Merged {} ready worktree(s)",
-        outcome.merged.len()
-    ));
+    lines.push(format!("Merged {} ready worktree(s)", outcome.merged.len()));
 
     for merged in &outcome.merged {
         lines.push(format!(
@@ -1427,7 +1448,10 @@ fn summarize_coordinate_backlog(
         .map(|rebalance| rebalance.rerouted.len())
         .sum();
 
-    let message = if total_routed == 0 && total_rerouted == 0 && outcome.remaining_backlog_sessions == 0 {
+    let message = if total_routed == 0
+        && total_rerouted == 0
+        && outcome.remaining_backlog_sessions == 0
+    {
         "Backlog already clear".to_string()
     } else {
         format!(
@@ -1470,11 +1494,7 @@ fn coordination_status_exit_code(status: &session::manager::CoordinationStatus) 
     }
 }
 
-fn send_handoff_message(
-    db: &session::store::StateStore,
-    from_id: &str,
-    to_id: &str,
-) -> Result<()> {
+fn send_handoff_message(db: &session::store::StateStore, from_id: &str, to_id: &str) -> Result<()> {
     let from_session = db
         .get_session(from_id)?
         .ok_or_else(|| anyhow::anyhow!("Session not found: {from_id}"))?;
@@ -1508,6 +1528,37 @@ fn send_handoff_message(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Config;
+
+    #[test]
+    fn worktree_policy_defaults_to_config_setting() {
+        let mut cfg = Config::default();
+        let policy = WorktreePolicyArgs::default();
+
+        assert!(policy.resolve(&cfg));
+
+        cfg.auto_create_worktrees = false;
+        assert!(!policy.resolve(&cfg));
+    }
+
+    #[test]
+    fn worktree_policy_explicit_flags_override_config_setting() {
+        let mut cfg = Config::default();
+        cfg.auto_create_worktrees = false;
+
+        assert!(WorktreePolicyArgs {
+            worktree: true,
+            no_worktree: false,
+        }
+        .resolve(&cfg));
+
+        cfg.auto_create_worktrees = true;
+        assert!(!WorktreePolicyArgs {
+            worktree: false,
+            no_worktree: true,
+        }
+        .resolve(&cfg));
+    }
 
     #[test]
     fn cli_parses_resume_command() {
@@ -1587,6 +1638,20 @@ mod tests {
     }
 
     #[test]
+    fn cli_parses_start_no_worktree_override() {
+        let cli = Cli::try_parse_from(["ecc", "start", "--task", "Follow up", "--no-worktree"])
+            .expect("start --no-worktree should parse");
+
+        match cli.command {
+            Some(Commands::Start { worktree, .. }) => {
+                assert!(!worktree.worktree);
+                assert!(worktree.no_worktree);
+            }
+            _ => panic!("expected start subcommand"),
+        }
+    }
+
+    #[test]
     fn cli_parses_delegate_command() {
         let cli = Cli::try_parse_from([
             "ecc",
@@ -1609,6 +1674,20 @@ mod tests {
                 assert_eq!(from_session, "planner");
                 assert_eq!(task.as_deref(), Some("Review auth changes"));
                 assert_eq!(agent, "codex");
+            }
+            _ => panic!("expected delegate subcommand"),
+        }
+    }
+
+    #[test]
+    fn cli_parses_delegate_worktree_override() {
+        let cli = Cli::try_parse_from(["ecc", "delegate", "planner", "--worktree"])
+            .expect("delegate --worktree should parse");
+
+        match cli.command {
+            Some(Commands::Delegate { worktree, .. }) => {
+                assert!(worktree.worktree);
+                assert!(!worktree.no_worktree);
             }
             _ => panic!("expected delegate subcommand"),
         }
@@ -1704,9 +1783,7 @@ mod tests {
 
         let command = err.command.expect("expected command");
         let Commands::WorktreeStatus {
-            session_id,
-            all,
-            ..
+            session_id, all, ..
         } = command
         else {
             panic!("expected worktree-status subcommand");
@@ -1807,8 +1884,9 @@ mod tests {
 
     #[test]
     fn cli_parses_worktree_resolution_flags() {
-        let cli = Cli::try_parse_from(["ecc", "worktree-resolution", "planner", "--json", "--check"])
-            .expect("worktree-resolution flags should parse");
+        let cli =
+            Cli::try_parse_from(["ecc", "worktree-resolution", "planner", "--json", "--check"])
+                .expect("worktree-resolution flags should parse");
 
         match cli.command {
             Some(Commands::WorktreeResolution {
@@ -2280,9 +2358,7 @@ mod tests {
 
         match cli.command {
             Some(Commands::AutoDispatch {
-                agent,
-                lead_limit,
-                ..
+                agent, lead_limit, ..
             }) => {
                 assert_eq!(agent, "claude");
                 assert_eq!(lead_limit, 4);
@@ -2406,9 +2482,7 @@ mod tests {
 
         match cli.command {
             Some(Commands::RebalanceAll {
-                agent,
-                lead_limit,
-                ..
+                agent, lead_limit, ..
             }) => {
                 assert_eq!(agent, "claude");
                 assert_eq!(lead_limit, 6);

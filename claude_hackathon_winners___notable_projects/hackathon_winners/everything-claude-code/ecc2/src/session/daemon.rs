@@ -37,6 +37,10 @@ pub async fn run(db: StateStore, cfg: Config) -> Result<()> {
             tracing::error!("Worktree auto-merge pass failed: {e}");
         }
 
+        if let Err(e) = maybe_auto_prune_inactive_worktrees(&db).await {
+            tracing::error!("Worktree auto-prune pass failed: {e}");
+        }
+
         time::sleep(heartbeat_interval).await;
     }
 }
@@ -392,10 +396,7 @@ where
         );
     }
     if dirty > 0 {
-        tracing::warn!(
-            "Skipped {} dirty worktree(s) during auto-merge",
-            dirty
-        );
+        tracing::warn!("Skipped {} dirty worktree(s) during auto-merge", dirty);
     }
     if active > 0 {
         tracing::info!("Skipped {active} active worktree(s) during auto-merge");
@@ -405,6 +406,46 @@ where
     }
 
     Ok(merged)
+}
+
+async fn maybe_auto_prune_inactive_worktrees(db: &StateStore) -> Result<usize> {
+    maybe_auto_prune_inactive_worktrees_with_recorder(
+        || manager::prune_inactive_worktrees(db),
+        |pruned, active| db.record_daemon_auto_prune_pass(pruned, active),
+    )
+    .await
+}
+
+async fn maybe_auto_prune_inactive_worktrees_with<F, Fut>(prune: F) -> Result<usize>
+where
+    F: Fn() -> Fut,
+    Fut: Future<Output = Result<manager::WorktreePruneOutcome>>,
+{
+    maybe_auto_prune_inactive_worktrees_with_recorder(prune, |_, _| Ok(())).await
+}
+
+async fn maybe_auto_prune_inactive_worktrees_with_recorder<F, Fut, R>(
+    prune: F,
+    mut record: R,
+) -> Result<usize>
+where
+    F: Fn() -> Fut,
+    Fut: Future<Output = Result<manager::WorktreePruneOutcome>>,
+    R: FnMut(usize, usize) -> Result<()>,
+{
+    let outcome = prune().await?;
+    let pruned = outcome.cleaned_session_ids.len();
+    let active = outcome.active_with_worktree_ids.len();
+    record(pruned, active)?;
+
+    if pruned > 0 {
+        tracing::info!("Auto-pruned {pruned} inactive worktree(s)");
+    }
+    if active > 0 {
+        tracing::info!("Skipped {active} active worktree(s) during auto-prune");
+    }
+
+    Ok(pruned)
 }
 
 #[cfg(unix)]
@@ -772,6 +813,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         let order = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let dispatch_order = order.clone();
@@ -835,6 +879,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         let recorded = std::sync::Arc::new(std::sync::Mutex::new(None));
         let recorded_clone = recorded.clone();
@@ -890,6 +937,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         let calls = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let calls_clone = calls.clone();
@@ -946,6 +996,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         let calls = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let calls_clone = calls.clone();
@@ -1002,6 +1055,9 @@ mod tests {
             last_auto_merge_conflicted_skipped: 0,
             last_auto_merge_dirty_skipped: 0,
             last_auto_merge_failed: 0,
+            last_auto_prune_at: None,
+            last_auto_prune_pruned: 0,
+            last_auto_prune_active_skipped: 0,
         };
         let rebalance_calls = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let rebalance_calls_clone = rebalance_calls.clone();
@@ -1200,6 +1256,30 @@ mod tests {
         .await?;
 
         assert_eq!(merged, 2);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn maybe_auto_prune_inactive_worktrees_records_pruned_and_active_counts() -> Result<()> {
+        let recorded = std::sync::Arc::new(std::sync::Mutex::new(None));
+        let recorded_clone = recorded.clone();
+
+        let pruned = maybe_auto_prune_inactive_worktrees_with_recorder(
+            || async move {
+                Ok(manager::WorktreePruneOutcome {
+                    cleaned_session_ids: vec!["stopped-a".to_string(), "stopped-b".to_string()],
+                    active_with_worktree_ids: vec!["running-a".to_string()],
+                })
+            },
+            move |pruned, active| {
+                *recorded_clone.lock().unwrap() = Some((pruned, active));
+                Ok(())
+            },
+        )
+        .await?;
+
+        assert_eq!(pruned, 2);
+        assert_eq!(*recorded.lock().unwrap(), Some((2, 1)));
         Ok(())
     }
 }

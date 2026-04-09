@@ -351,7 +351,7 @@ everything-claude-code/
 |   |-- market-research/            # Source-attributed market, competitor, and investor research (NEW)
 |   |-- investor-materials/         # Pitch decks, one-pagers, memos, and financial models (NEW)
 |   |-- investor-outreach/          # Personalized fundraising outreach and follow-up (NEW)
-|   |-- continuous-learning/        # Auto-extract patterns from sessions (Longform Guide)
+|   |-- continuous-learning/        # Legacy v1 Stop-hook pattern extraction
 |   |-- continuous-learning-v2/     # Instinct-based learning with confidence scoring
 |   |-- iterative-retrieval/        # Progressive context refinement for subagents
 |   |-- strategic-compact/          # Manual compaction suggestions (Longform Guide)
@@ -515,7 +515,7 @@ Use the `/skill-create` command for local analysis without external services:
 
 ```bash
 /skill-create                    # Analyze current repo
-/skill-create --instincts        # Also generate instincts for continuous-learning
+/skill-create --instincts        # Also generate instincts for continuous-learning-v2
 ```
 
 This analyzes your git history locally and generates SKILL.md files.
@@ -580,6 +580,7 @@ The instinct-based learning system automatically learns your patterns:
 ```
 
 See `skills/continuous-learning-v2/` for full documentation.
+Keep `continuous-learning/` only when you explicitly want the legacy v1 Stop-hook learned-skill flow.
 
 ---
 

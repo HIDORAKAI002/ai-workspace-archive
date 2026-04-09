@@ -70,11 +70,7 @@ impl DbWriter {
     }
 }
 
-fn run_db_writer(
-    db_path: PathBuf,
-    session_id: String,
-    mut rx: mpsc::UnboundedReceiver<DbMessage>,
-) {
+fn run_db_writer(db_path: PathBuf, session_id: String, mut rx: mpsc::UnboundedReceiver<DbMessage>) {
     let (opened, open_error) = match StateStore::open(&db_path) {
         Ok(db) => (Some(db), None),
         Err(error) => (None, Some(error.to_string())),
@@ -84,7 +80,9 @@ fn run_db_writer(
         match message {
             DbMessage::UpdateState { state, ack } => {
                 let result = match opened.as_ref() {
-                    Some(db) => db.update_state(&session_id, &state).map_err(|error| error.to_string()),
+                    Some(db) => db
+                        .update_state(&session_id, &state)
+                        .map_err(|error| error.to_string()),
                     None => Err(open_error
                         .clone()
                         .unwrap_or_else(|| "Failed to open state store".to_string())),
@@ -93,7 +91,9 @@ fn run_db_writer(
             }
             DbMessage::UpdatePid { pid, ack } => {
                 let result = match opened.as_ref() {
-                    Some(db) => db.update_pid(&session_id, pid).map_err(|error| error.to_string()),
+                    Some(db) => db
+                        .update_pid(&session_id, pid)
+                        .map_err(|error| error.to_string()),
                     None => Err(open_error
                         .clone()
                         .unwrap_or_else(|| "Failed to open state store".to_string())),
@@ -205,9 +205,7 @@ where
     let mut lines = BufReader::new(reader).lines();
 
     while let Some(line) = lines.next_line().await? {
-        db_writer
-            .append_output_line(stream, line.clone())
-            .await?;
+        db_writer.append_output_line(stream, line.clone()).await?;
         output_store.push_line(&session_id, stream, line);
     }
 
