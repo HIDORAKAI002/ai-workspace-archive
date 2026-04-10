@@ -100,7 +100,7 @@
     "amqplib": "^0.10.9",
     "async-mutex": "^0.5.0",
     "autumn-js": "1.1.6",
-    "axios": "^1.13.5",
+    "axios": "^1.15.0",
     "body-parser": "^1.20.3",
     "bullmq": "^5.56.7",
     "cacheable-lookup": "^6.1.0",
