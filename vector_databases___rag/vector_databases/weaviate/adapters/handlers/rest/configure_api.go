@@ -715,6 +715,7 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 		appState.DB, appState.Modules, appState.Logger,
 		exportClient, appState.Cluster, appState.Cluster.LocalName(),
 		appState.ExportMetrics,
+		appState.ServerConfig.Config.ExportParallelism,
 	)
 
 	appState.InternalServer = clusterapi.NewServer(appState)
@@ -2200,6 +2201,7 @@ func initRuntimeOverrides(appState *state.State) *configRuntime.ConfigManager[co
 		registered.ObjectsTTLConcurrencyFactor = appState.ServerConfig.Config.ObjectsTTLConcurrencyFactor
 		registered.ExportEnabled = appState.ServerConfig.Config.Export.Enabled
 		registered.ExportDefaultBucket = appState.ServerConfig.Config.Export.DefaultBucket
+		registered.ExportParallelism = appState.ServerConfig.Config.ExportParallelism
 
 		if appState.ServerConfig.Config.Authentication.OIDC.Enabled {
 			registered.OIDCIssuer = appState.ServerConfig.Config.Authentication.OIDC.Issuer
