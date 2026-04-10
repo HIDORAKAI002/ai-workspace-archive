@@ -8,6 +8,21 @@ import PageHero from '@site/src/components/PageHero';
 
 [← OpenClaw integration](/sdks/integrations/openclaw)
 
+## 0.6.0 (Unreleased)
+
+**Breaking Changes**
+
+- The plugin no longer reads any configuration from process environment variables. All settings — including the LLM provider, model, API key, base URL, external Hindsight API URL/token, and bank ID — must now be set through OpenClaw's plugin config (e.g. `openclaw config set plugins.entries.hindsight-openclaw.config.<field> <value>`). API keys and other secrets should be configured as `SecretRef` values via `--ref-source env|file|exec` so they're resolved from your secret store at runtime instead of being stored in plaintext on disk.
+- Removed the `llmApiKeyEnv` plugin config field. Use the new `llmApiKey` field configured as a SecretRef instead (e.g. `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY`).
+- Removed automatic LLM provider detection from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` / `GROQ_API_KEY`. Set `llmProvider` and `llmApiKey` explicitly via `openclaw config set`.
+- Removed support for the `HINDSIGHT_API_LLM_PROVIDER`, `HINDSIGHT_API_LLM_MODEL`, `HINDSIGHT_API_LLM_API_KEY`, `HINDSIGHT_API_LLM_BASE_URL`, `HINDSIGHT_EMBED_API_URL`, `HINDSIGHT_EMBED_API_TOKEN`, and `HINDSIGHT_BANK_ID` environment variables. The same values now live in plugin config — see the [migration guide](/sdks/integrations/openclaw#migration-from-05x).
+
+**Features**
+
+- Added the `llmApiKey` plugin config field, marked as a sensitive field so OpenClaw resolves it as a `SecretRef` from env, file, or exec sources.
+- Added the `llmBaseUrl` plugin config field for OpenAI-compatible endpoint overrides (OpenRouter, Azure OpenAI, vLLM, etc.).
+- Marked `hindsightApiToken` as a sensitive field — it can now be configured as a `SecretRef` the same way as `llmApiKey`.
+
 ## [0.5.1](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.5.1)
 
 **Bug Fixes**

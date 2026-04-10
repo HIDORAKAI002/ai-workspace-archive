@@ -1,9 +1,9 @@
-use anyhow::Result;
-use chrono::{Duration as ChronoDuration, NaiveDate, Utc};
-use std::collections::BTreeMap;
 use crate::api::ApiClient;
 use crate::output::{self, OutputFormat};
 use crate::ui;
+use anyhow::Result;
+use chrono::{Duration as ChronoDuration, NaiveDate, Utc};
+use std::collections::BTreeMap;
 
 pub fn list(
     client: &ApiClient,
@@ -26,7 +26,13 @@ pub fn list(
         None
     };
 
-    let response = client.list_documents(agent_id, query.as_deref(), Some(limit), Some(offset), verbose);
+    let response = client.list_documents(
+        agent_id,
+        query.as_deref(),
+        Some(limit),
+        Some(offset),
+        verbose,
+    );
 
     if let Some(mut sp) = spinner {
         sp.finish();
@@ -35,13 +41,25 @@ pub fn list(
     match response {
         Ok(docs_response) => {
             if output_format == OutputFormat::Pretty {
-                ui::print_info(&format!("Documents for bank '{}' (total: {})", agent_id, docs_response.total));
+                ui::print_info(&format!(
+                    "Documents for bank '{}' (total: {})",
+                    agent_id, docs_response.total
+                ));
                 for doc in &docs_response.items {
                     let id = doc.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
-                    let created = doc.get("created_at").and_then(|v| v.as_str()).unwrap_or("unknown");
-                    let updated = doc.get("updated_at").and_then(|v| v.as_str()).unwrap_or("unknown");
+                    let created = doc
+                        .get("created_at")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("unknown");
+                    let updated = doc
+                        .get("updated_at")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("unknown");
                     let text_len = doc.get("text_length").and_then(|v| v.as_i64()).unwrap_or(0);
-                    let mem_count = doc.get("memory_unit_count").and_then(|v| v.as_i64()).unwrap_or(0);
+                    let mem_count = doc
+                        .get("memory_unit_count")
+                        .and_then(|v| v.as_i64())
+                        .unwrap_or(0);
 
                     println!("\n  Document ID: {}", id);
                     println!("    Created: {}", created);
@@ -54,7 +72,7 @@ pub fn list(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -87,9 +105,7 @@ fn list_with_date(
     let mut filtered_count = 0;
 
     for doc in all_docs {
-        let created_at = doc.get("created_at")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let created_at = doc.get("created_at").and_then(|v| v.as_str()).unwrap_or("");
 
         // Parse the date part (YYYY-MM-DD) from created_at
         let doc_date = created_at.split('T').next().unwrap_or("");
@@ -126,7 +142,10 @@ fn list_with_date(
             println!("  {} ({} documents)", date_str, docs.len());
             for doc in docs {
                 let id = doc.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
-                let mem_count = doc.get("memory_unit_count").and_then(|v| v.as_i64()).unwrap_or(0);
+                let mem_count = doc
+                    .get("memory_unit_count")
+                    .and_then(|v| v.as_i64())
+                    .unwrap_or(0);
                 println!("    - {} ({} memories)", id, mem_count);
             }
             println!();
@@ -224,7 +243,7 @@ pub fn get(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -260,6 +279,45 @@ pub fn delete(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
+}
+
+/// Update a document (currently only supports replacing tags)
+pub fn update(
+    client: &ApiClient,
+    bank_id: &str,
+    document_id: &str,
+    tags: Option<Vec<String>>,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    if tags.is_none() {
+        anyhow::bail!("At least one of --tags must be provided");
+    }
+
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Updating document..."))
+    } else {
+        None
+    };
+
+    let response = client.update_document(bank_id, document_id, tags, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        ui::print_success(&format!("Document '{}' updated", document_id));
+        let json = serde_json::to_value(&result)?;
+        println!(
+            "  {}",
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
 }

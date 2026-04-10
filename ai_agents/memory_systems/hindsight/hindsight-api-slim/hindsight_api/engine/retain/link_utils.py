@@ -739,16 +739,9 @@ async def compute_semantic_links_ann(
         return []
 
     import time as time_mod
-    import uuid as uuid_mod
 
     ann_start = time_mod.time()
     links = []
-
-    # Lower ef_search for retain ANN — default 400 is tuned for recall precision
-    # but at 164k units each HNSW probe takes 94ms. ef_search=60 gives 2.7ms/probe
-    # (35x faster) with sufficient accuracy for top-50 semantic link creation.
-    # Reset after to avoid polluting the connection pool for recall queries.
-    await conn.execute("SET hnsw.ef_search = 60")
 
     logger.debug(f"[ANN] Starting: {len(unit_ids)} seeds, top_k={top_k}")
 
@@ -760,54 +753,75 @@ async def compute_semantic_links_ann(
     # sequential-scan every HNSW probe result against the array, destroying
     # performance (67s for 8k seeds). Self-links are harmless (ON CONFLICT DO
     # NOTHING handles duplicates in memory_links).
-    t_setup = time_mod.time()
-    await conn.execute("CREATE TEMP TABLE IF NOT EXISTS _ann_seeds (unit_id text, emb_text text, fact_type text)")
-    await conn.execute("TRUNCATE _ann_seeds")
+    #
+    # The entire CREATE TEMP TABLE → COPY → SELECT sequence MUST run inside a
+    # single transaction. Callers may connect through pgBouncer in `transaction`
+    # pool mode, in which case the backend is only pinned to the client for the
+    # duration of a transaction. Outside a transaction, pgBouncer can rebind
+    # the client to a different backend between statements, and the temp table
+    # (which is session-scoped to its creating backend) becomes invisible.
+    # The observed failure mode was an intermittent
+    # `relation "_ann_seeds" does not exist` on the second statement.
+    #
+    # Using ON COMMIT DROP + SET LOCAL also means we don't have to remember to
+    # manually drop the temp table or reset hnsw.ef_search — the transaction
+    # end handles both.
+    rows: list = []
+    async with conn.transaction():
+        # Transaction-local ef_search. Default 400 is tuned for recall precision
+        # but at 164k units each HNSW probe takes 94ms. ef_search=60 gives 2.7ms
+        # per probe (35x faster) with sufficient accuracy for top-50 semantic
+        # link creation. SET LOCAL auto-reverts at commit, so we don't pollute
+        # the pool for subsequent recall queries.
+        await conn.execute("SET LOCAL hnsw.ef_search = 60")
 
-    records = [
-        (uid, emb if isinstance(emb, str) else str(emb), ft) for uid, emb, ft in zip(unit_ids, embeddings, fact_types)
-    ]
-    await conn.copy_records_to_table("_ann_seeds", records=records, columns=["unit_id", "emb_text", "fact_type"])
-    logger.debug(f"[ANN] Temp table setup: {time_mod.time() - t_setup:.3f}s ({len(records)} seeds)")
-
-    # Run one ANN query per fact_type so each uses the right HNSW index.
-    rows = []
-    active_types = set(fact_types)
-    for fact_type in active_types:
-        t_query = time_mod.time()
-        seed_count = sum(1 for ft in fact_types if ft == fact_type)
-        logger.debug(f"[ANN] Querying fact_type={fact_type}: {seed_count} seeds")
-        ft_rows = await conn.fetch(
-            f"""
-            SELECT s.unit_id       AS from_id,
-                   n.id::text      AS to_id,
-                   n.similarity
-            FROM _ann_seeds s
-            CROSS JOIN LATERAL (
-                SELECT mu.id,
-                       1 - (mu.embedding <=> s.emb_text::vector) AS similarity
-                FROM {fq_table("memory_units")} mu
-                WHERE mu.bank_id = $1
-                  AND mu.fact_type = $2
-                  AND mu.embedding IS NOT NULL
-                ORDER BY mu.embedding <=> s.emb_text::vector
-                LIMIT $3
-            ) n
-            WHERE s.fact_type = $2
-            """,
-            bank_id,
-            fact_type,
-            top_k,
-            timeout=300,  # ANN on large banks can take minutes
+        t_setup = time_mod.time()
+        await conn.execute(
+            "CREATE TEMP TABLE _ann_seeds (unit_id text, emb_text text, fact_type text) ON COMMIT DROP"
         )
-        logger.debug(f"[ANN] fact_type={fact_type}: {len(ft_rows)} rows in {time_mod.time() - t_query:.3f}s")
-        rows.extend(ft_rows)
 
-    # Clean up temp table (no ON COMMIT DROP since we're not in a transaction)
-    await conn.execute("DROP TABLE IF EXISTS _ann_seeds")
+        records = [
+            (uid, emb if isinstance(emb, str) else str(emb), ft)
+            for uid, emb, ft in zip(unit_ids, embeddings, fact_types)
+        ]
+        await conn.copy_records_to_table(
+            "_ann_seeds", records=records, columns=["unit_id", "emb_text", "fact_type"]
+        )
+        logger.debug(f"[ANN] Temp table setup: {time_mod.time() - t_setup:.3f}s ({len(records)} seeds)")
 
-    # Reset ef_search to default so the pooled connection doesn't affect recall queries
-    await conn.execute("RESET hnsw.ef_search")
+        # Run one ANN query per fact_type so each uses the right HNSW index.
+        active_types = set(fact_types)
+        for fact_type in active_types:
+            t_query = time_mod.time()
+            seed_count = sum(1 for ft in fact_types if ft == fact_type)
+            logger.debug(f"[ANN] Querying fact_type={fact_type}: {seed_count} seeds")
+            ft_rows = await conn.fetch(
+                f"""
+                SELECT s.unit_id       AS from_id,
+                       n.id::text      AS to_id,
+                       n.similarity
+                FROM _ann_seeds s
+                CROSS JOIN LATERAL (
+                    SELECT mu.id,
+                           1 - (mu.embedding <=> s.emb_text::vector) AS similarity
+                    FROM {fq_table("memory_units")} mu
+                    WHERE mu.bank_id = $1
+                      AND mu.fact_type = $2
+                      AND mu.embedding IS NOT NULL
+                    ORDER BY mu.embedding <=> s.emb_text::vector
+                    LIMIT $3
+                ) n
+                WHERE s.fact_type = $2
+                """,
+                bank_id,
+                fact_type,
+                top_k,
+                timeout=300,  # ANN on large banks can take minutes
+            )
+            logger.debug(f"[ANN] fact_type={fact_type}: {len(ft_rows)} rows in {time_mod.time() - t_query:.3f}s")
+            rows.extend(ft_rows)
+    # Transaction commits here. _ann_seeds is dropped (ON COMMIT DROP).
+    # hnsw.ef_search reverts (SET LOCAL).
 
     for row in rows:
         sim = float(min(1.0, max(0.0, row["similarity"])))

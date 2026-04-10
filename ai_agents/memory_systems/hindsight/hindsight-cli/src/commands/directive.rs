@@ -99,11 +99,13 @@ pub fn get(
 }
 
 /// Create a new directive
+#[allow(clippy::too_many_arguments)]
 pub fn create(
     client: &ApiClient,
     bank_id: &str,
     name: &str,
     content: &str,
+    priority: i64,
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
@@ -117,7 +119,7 @@ pub fn create(
         name: name.to_string(),
         content: content.to_string(),
         is_active: true,
-        priority: 0,
+        priority,
         tags: vec![],
     };
 
@@ -143,6 +145,7 @@ pub fn create(
 }
 
 /// Update a directive
+#[allow(clippy::too_many_arguments)]
 pub fn update(
     client: &ApiClient,
     bank_id: &str,
@@ -150,11 +153,14 @@ pub fn update(
     name: Option<String>,
     content: Option<String>,
     is_active: Option<bool>,
+    priority: Option<i64>,
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
-    if name.is_none() && content.is_none() && is_active.is_none() {
-        anyhow::bail!("At least one of --name, --content, or --is-active must be provided");
+    if name.is_none() && content.is_none() && is_active.is_none() && priority.is_none() {
+        anyhow::bail!(
+            "At least one of --name, --content, --is-active, or --priority must be provided"
+        );
     }
 
     let spinner = if output_format == OutputFormat::Pretty {
@@ -167,7 +173,7 @@ pub fn update(
         name,
         content,
         is_active,
-        priority: None,
+        priority,
         tags: None,
     };
 

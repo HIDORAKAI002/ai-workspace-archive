@@ -3,13 +3,16 @@ use std::fs;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-use crate::api::{ApiClient, RecallRequest, ReflectRequest, MemoryItem, RetainRequest};
+use crate::api::{ApiClient, MemoryItem, RecallRequest, ReflectRequest, RetainRequest};
 use crate::config;
 use crate::output::{self, OutputFormat};
 use crate::ui;
 
 // Import types from generated client
-use hindsight_client::types::{Budget, ChunkIncludeOptions, FactsIncludeOptions, IncludeOptions, ReflectIncludeOptions, TagsMatch};
+use hindsight_client::types::{
+    Budget, ChunkIncludeOptions, FactsIncludeOptions, IncludeOptions, ReflectIncludeOptions,
+    TagsMatch,
+};
 use serde::Deserialize;
 use serde_json;
 
@@ -45,7 +48,12 @@ fn parse_budget(budget: &str) -> Budget {
 
 // Helper function to parse tags_match string to TagsMatch enum
 fn parse_tags_match(tags_match: &Option<String>) -> TagsMatch {
-    match tags_match.as_deref().unwrap_or("any").to_lowercase().as_str() {
+    match tags_match
+        .as_deref()
+        .unwrap_or("any")
+        .to_lowercase()
+        .as_str()
+    {
         "all" => TagsMatch::All,
         "any_strict" => TagsMatch::AnyStrict,
         "all_strict" => TagsMatch::AllStrict,
@@ -86,13 +94,19 @@ pub fn list(
     match response {
         Ok(result) => {
             if output_format == OutputFormat::Pretty {
-                ui::print_section_header(&format!("Memories: {} (showing {}-{})", bank_id, offset + 1, offset + result.items.len() as i64));
+                ui::print_section_header(&format!(
+                    "Memories: {} (showing {}-{})",
+                    bank_id,
+                    offset + 1,
+                    offset + result.items.len() as i64
+                ));
 
                 if result.items.is_empty() {
                     println!("  {}", ui::dim("No memories found."));
                 } else {
                     for item in &result.items {
-                        let fact_type = item.get("type")
+                        let fact_type = item
+                            .get("type")
                             .and_then(|v| v.as_str())
                             .unwrap_or("unknown");
                         let type_t = match fact_type {
@@ -102,9 +116,7 @@ pub fn list(
                             _ => 0.5,
                         };
 
-                        let id = item.get("id")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("unknown");
+                        let id = item.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
 
                         println!(
                             "  {} {}",
@@ -172,7 +184,11 @@ pub fn get(
 
                 ui::print_section_header(&format!("Memory: {}", memory_id));
 
-                println!("  {} {}", ui::dim("Type:"), ui::gradient(&fact_type.to_uppercase(), type_t));
+                println!(
+                    "  {} {}",
+                    ui::dim("Type:"),
+                    ui::gradient(&fact_type.to_uppercase(), type_t)
+                );
                 println!("  {} {}", ui::dim("ID:"), result.id);
 
                 if let Some(doc_id) = &result.document_id {
@@ -234,12 +250,9 @@ pub fn get(
 fn is_supported_file(path: &std::path::Path) -> bool {
     const SUPPORTED_EXTENSIONS: &[&str] = &[
         // Documents
-        "pdf", "docx", "doc", "pptx", "ppt", "xlsx", "xls",
-        // Images (OCR)
-        "jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff",
-        // Web / markup
-        "html", "htm",
-        // Text / data
+        "pdf", "docx", "doc", "pptx", "ppt", "xlsx", "xls", // Images (OCR)
+        "jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff", // Web / markup
+        "html", "htm", // Text / data
         "txt", "md", "csv", "json", "yaml", "yml", "toml", "xml", "rst", "adoc", "log",
         // Audio (transcription)
         "mp3", "wav", "ogg", "flac",
@@ -250,6 +263,7 @@ fn is_supported_file(path: &std::path::Path) -> bool {
         .unwrap_or(false)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn recall(
     client: &ApiClient,
     agent_id: &str,
@@ -262,6 +276,7 @@ pub fn recall(
     chunk_max_tokens: i64,
     tags: Vec<String>,
     tags_match: Option<String>,
+    query_timestamp: Option<String>,
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
@@ -286,11 +301,15 @@ pub fn recall(
 
     let request = RecallRequest {
         query,
-        types: if fact_type.is_empty() { None } else { Some(fact_type) },
+        types: if fact_type.is_empty() {
+            None
+        } else {
+            Some(fact_type)
+        },
         budget: Some(parse_budget(&budget)),
         max_tokens,
         trace,
-        query_timestamp: None,
+        query_timestamp,
         include,
         tags: if tags.is_empty() { None } else { Some(tags) },
         tags_match: parse_tags_match(&tags_match),
@@ -312,10 +331,11 @@ pub fn recall(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn reflect(
     client: &ApiClient,
     agent_id: &str,
@@ -327,6 +347,9 @@ pub fn reflect(
     tags: Vec<String>,
     tags_match: Option<String>,
     include_facts: bool,
+    fact_types: Option<Vec<String>>,
+    exclude_mental_models: bool,
+    exclude_mental_model_ids: Option<Vec<String>>,
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
@@ -340,8 +363,9 @@ pub fn reflect(
     let response_schema = if let Some(path) = schema_path {
         let schema_content = fs::read_to_string(&path)
             .with_context(|| format!("Failed to read schema file: {}", path.display()))?;
-        let schema: serde_json::Map<String, serde_json::Value> = serde_json::from_str(&schema_content)
-            .with_context(|| format!("Failed to parse JSON schema from: {}", path.display()))?;
+        let schema: serde_json::Map<String, serde_json::Value> =
+            serde_json::from_str(&schema_content)
+                .with_context(|| format!("Failed to parse JSON schema from: {}", path.display()))?;
         Some(schema)
     } else {
         None
@@ -356,6 +380,21 @@ pub fn reflect(
         None
     };
 
+    // Map the CLI fact-type strings (world, experience, observation) into the
+    // generated FactTypesItem enum. Unknown values are dropped — the server
+    // would reject them anyway.
+    let mapped_fact_types = fact_types.as_ref().map(|types| {
+        types
+            .iter()
+            .filter_map(|t| match t.to_lowercase().as_str() {
+                "world" => Some(hindsight_client::types::FactTypesItem::World),
+                "experience" => Some(hindsight_client::types::FactTypesItem::Experience),
+                "observation" => Some(hindsight_client::types::FactTypesItem::Observation),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    });
+
     let request = ReflectRequest {
         query,
         budget: Some(parse_budget(&budget)),
@@ -366,9 +405,9 @@ pub fn reflect(
         tags: if tags.is_empty() { None } else { Some(tags) },
         tags_match: parse_tags_match(&tags_match),
         tag_groups: None,
-        fact_types: None,
-        exclude_mental_models: false,
-        exclude_mental_model_ids: None,
+        fact_types: mapped_fact_types,
+        exclude_mental_models,
+        exclude_mental_model_ids,
     };
 
     let response = client.reflect(agent_id, &request, verbose);
@@ -386,10 +425,11 @@ pub fn reflect(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn retain(
     client: &ApiClient,
     agent_id: &str,
@@ -397,6 +437,7 @@ pub fn retain(
     doc_id: Option<String>,
     context: Option<String>,
     r#async: bool,
+    document_tags: Option<Vec<String>>,
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
@@ -424,7 +465,7 @@ pub fn retain(
     let request = RetainRequest {
         items: vec![item],
         async_: r#async,
-        document_tags: None,
+        document_tags,
     };
 
     let response = client.retain(agent_id, &request, r#async, verbose);
@@ -451,7 +492,7 @@ pub fn retain(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -618,7 +659,7 @@ pub fn delete(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -688,8 +729,83 @@ pub fn clear(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
+}
+
+/// Get the observation history for a memory unit
+pub fn history(
+    client: &ApiClient,
+    bank_id: &str,
+    memory_id: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Fetching observation history..."))
+    } else {
+        None
+    };
+
+    let response = client.get_observation_history(bank_id, memory_id, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        println!("{}", serde_json::to_string_pretty(&result)?);
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
+}
+
+/// Clear the observations attached to a specific memory unit
+pub fn clear_observations(
+    client: &ApiClient,
+    bank_id: &str,
+    memory_id: &str,
+    yes: bool,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    if !yes && output_format == OutputFormat::Pretty {
+        let msg = format!(
+            "Clear observations for memory '{}'? They will be re-derived on next consolidation.",
+            memory_id
+        );
+        if !ui::prompt_confirmation(&msg)? {
+            ui::print_info("Operation cancelled");
+            return Ok(());
+        }
+    }
+
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Clearing observations..."))
+    } else {
+        None
+    };
+
+    let response = client.clear_memory_observations(bank_id, memory_id, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        ui::print_success(&format!("Cleared observations for memory '{}'", memory_id));
+        let json = serde_json::to_value(&result)?;
+        println!(
+            "  {}",
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -700,8 +816,17 @@ mod tests {
     #[test]
     fn test_is_supported_file_text_extensions() {
         let supported = [
-            "file.txt", "file.md", "file.json", "file.yaml", "file.yml",
-            "file.toml", "file.xml", "file.csv", "file.log", "file.rst", "file.adoc",
+            "file.txt",
+            "file.md",
+            "file.json",
+            "file.yaml",
+            "file.yml",
+            "file.toml",
+            "file.xml",
+            "file.csv",
+            "file.log",
+            "file.rst",
+            "file.adoc",
         ];
         for filename in supported {
             assert!(
@@ -715,9 +840,16 @@ mod tests {
     #[test]
     fn test_is_supported_file_binary_extensions() {
         let supported = [
-            "file.pdf", "file.docx", "file.pptx", "file.xlsx",
-            "file.png", "file.jpg", "file.jpeg", "file.gif",
-            "file.mp3", "file.wav",
+            "file.pdf",
+            "file.docx",
+            "file.pptx",
+            "file.xlsx",
+            "file.png",
+            "file.jpg",
+            "file.jpeg",
+            "file.gif",
+            "file.mp3",
+            "file.wav",
         ];
         for filename in supported {
             assert!(
@@ -739,9 +871,7 @@ mod tests {
 
     #[test]
     fn test_is_supported_file_unsupported_extensions() {
-        let unsupported = [
-            "file.exe", "file.bin", "file.zip", "file.tar", "file.gz",
-        ];
+        let unsupported = ["file.exe", "file.bin", "file.zip", "file.tar", "file.gz"];
         for filename in unsupported {
             assert!(
                 !is_supported_file(Path::new(filename)),

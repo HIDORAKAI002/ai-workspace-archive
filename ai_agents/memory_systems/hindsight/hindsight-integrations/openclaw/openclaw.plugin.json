@@ -2,6 +2,14 @@
   "id": "hindsight-openclaw",
   "name": "Hindsight Memory",
   "kind": "memory",
+  "configContracts": {
+    "secretInputs": {
+      "paths": [
+        { "path": "llmApiKey", "expected": "string" },
+        { "path": "hindsightApiToken", "expected": "string" }
+      ]
+    }
+  },
   "configSchema": {
     "type": "object",
     "properties": {
@@ -27,7 +35,7 @@
       },
       "llmProvider": {
         "type": "string",
-        "description": "LLM provider for Hindsight memory (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code'). Takes priority over auto-detection but not over HINDSIGHT_API_LLM_PROVIDER env var.",
+        "description": "LLM provider for Hindsight memory (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code').",
         "enum": [
           "openai",
           "anthropic",
@@ -42,9 +50,13 @@
         "type": "string",
         "description": "LLM model to use (e.g. 'gpt-4o-mini', 'claude-3-5-haiku-20241022'). Used with llmProvider."
       },
-      "llmApiKeyEnv": {
+      "llmApiKey": {
+        "type": ["string", "object"],
+        "description": "API key for the LLM provider used by the Hindsight memory daemon. Set via 'openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY' to reference an env var without storing plaintext."
+      },
+      "llmBaseUrl": {
         "type": "string",
-        "description": "Name of the env var holding the API key (e.g. 'MY_CUSTOM_KEY'). If not set, uses the standard env var for the chosen provider."
+        "description": "Optional base URL override for OpenAI-compatible providers (e.g. 'https://openrouter.ai/api/v1')."
       },
       "embedPackagePath": {
         "type": "string",
@@ -60,7 +72,7 @@
         "description": "External Hindsight API URL (e.g. 'https://mcp.hindsight.devcraft.team'). When set, skips local daemon and connects directly to this API."
       },
       "hindsightApiToken": {
-        "type": "string",
+        "type": ["string", "object"],
         "description": "API token for external Hindsight API authentication. Required if the external API has authentication enabled."
       },
       "dynamicBankId": {
@@ -70,7 +82,7 @@
       },
       "bankId": {
         "type": "string",
-        "description": "Static bank ID used when dynamicBankId is false. Can also be provided via HINDSIGHT_BANK_ID."
+        "description": "Static bank ID used when dynamicBankId is false."
       },
       "bankIdPrefix": {
         "type": "string",
@@ -290,9 +302,14 @@
       "label": "LLM Model",
       "placeholder": "e.g. gpt-4o-mini, claude-3-5-haiku-20241022"
     },
-    "llmApiKeyEnv": {
-      "label": "API Key Env Var",
-      "placeholder": "e.g. MY_CUSTOM_API_KEY (optional)"
+    "llmApiKey": {
+      "label": "LLM API Key",
+      "placeholder": "API key for the chosen LLM provider",
+      "sensitive": true
+    },
+    "llmBaseUrl": {
+      "label": "LLM Base URL",
+      "placeholder": "e.g. https://openrouter.ai/api/v1 (optional)"
     },
     "embedPackagePath": {
       "label": "Local Package Path (Dev)",
@@ -308,7 +325,8 @@
     },
     "hindsightApiToken": {
       "label": "External API Token",
-      "placeholder": "API token if external API requires authentication"
+      "placeholder": "API token if external API requires authentication",
+      "sensitive": true
     },
     "dynamicBankId": {
       "label": "Dynamic Bank IDs",

@@ -1,7 +1,7 @@
-use anyhow::Result;
 use crate::api::ApiClient;
 use crate::output::{self, OutputFormat};
 use crate::ui;
+use anyhow::Result;
 
 pub fn list(
     client: &ApiClient,
@@ -27,7 +27,10 @@ pub fn list(
                 if ops_response.operations.is_empty() {
                     ui::print_info("No operations found");
                 } else {
-                    ui::print_info(&format!("Found {} operation(s)", ops_response.operations.len()));
+                    ui::print_info(&format!(
+                        "Found {} operation(s)",
+                        ops_response.operations.len()
+                    ));
                     for op in &ops_response.operations {
                         println!("\n  Operation ID: {}", op.id);
                         println!("    Type: {}", op.task_type);
@@ -43,7 +46,7 @@ pub fn list(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -128,6 +131,40 @@ pub fn cancel(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
+}
+
+/// Retry a failed async operation
+pub fn retry(
+    client: &ApiClient,
+    agent_id: &str,
+    operation_id: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Retrying operation..."))
+    } else {
+        None
+    };
+
+    let response = client.retry_operation(agent_id, operation_id, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        ui::print_success(&format!("Operation '{}' retried", operation_id));
+        let json = serde_json::to_value(&result)?;
+        println!(
+            "  {}",
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
 }

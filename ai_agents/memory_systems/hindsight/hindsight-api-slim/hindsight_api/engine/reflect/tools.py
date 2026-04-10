@@ -9,6 +9,7 @@ Implements hierarchical retrieval:
 
 import logging
 import uuid
+from dataclasses import replace
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
@@ -162,13 +163,18 @@ async def tool_search_observations(
     if include_source_facts and source_facts_max_tokens > 0:
         recall_kwargs["max_source_facts_tokens"] = source_facts_max_tokens
 
+    # Use an internal request context so this recall is not billed as a
+    # user-facing operation. The reflect caller is already billed for the
+    # overall reflect operation; double-billing the sub-recalls would
+    # overcharge the customer.
+    internal_ctx = replace(request_context, internal=True)
     result = await memory_engine.recall_async(
         bank_id=bank_id,
         query=query,
         fact_type=["observation"],
         max_tokens=max_tokens,
         enable_trace=False,
-        request_context=request_context,
+        request_context=internal_ctx,
         tags=tags,
         tags_match=tags_match,
         tag_groups=tag_groups,
@@ -233,13 +239,14 @@ async def tool_recall(
     # Only world/experience are valid for raw recall (observation is handled by search_observations)
     recall_fact_type = [ft for ft in (fact_types or ["experience", "world"]) if ft in ("world", "experience")]
     include_chunks = True
+    internal_ctx = replace(request_context, internal=True)
     result = await memory_engine.recall_async(
         bank_id=bank_id,
         query=query,
         fact_type=recall_fact_type,
         max_tokens=max_tokens,
         enable_trace=False,
-        request_context=request_context,
+        request_context=internal_ctx,
         tags=tags,
         tags_match=tags_match,
         tag_groups=tag_groups,
