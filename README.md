@@ -297,7 +297,7 @@ ai_skills_library/skills/
 </details>
 
 <details>
-<summary><b>Developer & Filesystem Tools (4 repos)</b></summary>
+<summary><b>Developer & Filesystem Tools (5 repos)</b></summary>
 
 | Repo Folder | GitHub | Stars | What It Does |
 |---|---|---|---|
@@ -305,6 +305,7 @@ ai_skills_library/skills/
 | `mcp-server-commands` | [g0t4/mcp-server-commands](https://github.com/g0t4/mcp-server-commands) | 200+ | Run shell commands via MCP |
 | `mcp-youtube` | [suekou/mcp-youtube](https://github.com/suekou/mcp-youtube) | 150+ | YouTube transcript and video data |
 | `filesystem_servers` | Community | - | Additional filesystem integration wrappers |
+| `delimit-mcp-server` | [delimit-ai/delimit-mcp-server](https://github.com/delimit-ai/delimit-mcp-server) | 10+ | API governance, persistent memory, multi-model context, policy enforcement |
 
 </details>
 
