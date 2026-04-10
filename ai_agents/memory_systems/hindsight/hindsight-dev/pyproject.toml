@@ -36,6 +36,7 @@ generate-changelog = "hindsight_dev.generate_changelog:main"
 sync-cookbook = "hindsight_dev.sync_cookbook:main"
 generate-llms-full = "hindsight_dev.generate_llms_full:main"
 check-openapi-compatibility = "hindsight_dev.check_openapi_compatibility:main"
+cli-coverage-check = "hindsight_dev.cli_coverage_check:main"
 
 [dependency-groups]
 dev = [

@@ -20,7 +20,7 @@ from dagster_dg_cli.cli.response_schema import dg_response_schema
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.issue", cls="DgApiIssue")
+@dg_response_schema(module="dagster_rest_resources.schemas.issue", cls="DgApiIssue")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -34,7 +34,7 @@ def get_issue_command(
     view_graphql: bool,
 ) -> None:
     """Get an issue by ID."""
-    from dagster_dg_cli.api_layer.api.issue import DgApiIssueApi
+    from dagster_rest_resources.api.issue import DgApiIssueApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
         deployment=deployment,
@@ -69,7 +69,7 @@ def get_issue_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.issue", cls="DgApiIssueList")
+@dg_response_schema(module="dagster_rest_resources.schemas.issue", cls="DgApiIssueList")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -84,7 +84,7 @@ def list_issues_command(
     view_graphql: bool,
 ) -> None:
     """List issues with pagination."""
-    from dagster_dg_cli.api_layer.api.issue import DgApiIssueApi
+    from dagster_rest_resources.api.issue import DgApiIssueApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
         deployment=deployment,

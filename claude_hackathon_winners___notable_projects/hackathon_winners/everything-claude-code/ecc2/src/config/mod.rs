@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -49,6 +50,16 @@ pub struct ConflictResolutionConfig {
     pub notify_lead: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ComputerUseDispatchConfig {
+    pub agent: Option<String>,
+    pub profile: Option<String>,
+    pub use_worktree: bool,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AgentProfileConfig {
@@ -78,6 +89,132 @@ pub struct ResolvedAgentProfile {
     pub append_system_prompt: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct HarnessRunnerConfig {
+    pub program: String,
+    pub base_args: Vec<String>,
+    pub project_markers: Vec<PathBuf>,
+    pub cwd_flag: Option<String>,
+    pub session_name_flag: Option<String>,
+    pub task_flag: Option<String>,
+    pub model_flag: Option<String>,
+    pub add_dir_flag: Option<String>,
+    pub include_directories_flag: Option<String>,
+    pub allowed_tools_flag: Option<String>,
+    pub disallowed_tools_flag: Option<String>,
+    pub permission_mode_flag: Option<String>,
+    pub max_budget_usd_flag: Option<String>,
+    pub append_system_prompt_flag: Option<String>,
+    pub inline_system_prompt_for_task: bool,
+    pub env: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct OrchestrationTemplateConfig {
+    pub description: Option<String>,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+    pub agent: Option<String>,
+    pub profile: Option<String>,
+    pub worktree: Option<bool>,
+    pub steps: Vec<OrchestrationTemplateStepConfig>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct OrchestrationTemplateStepConfig {
+    pub name: Option<String>,
+    pub task: String,
+    pub agent: Option<String>,
+    pub profile: Option<String>,
+    pub worktree: Option<bool>,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum MemoryConnectorConfig {
+    JsonlFile(MemoryConnectorJsonlFileConfig),
+    JsonlDirectory(MemoryConnectorJsonlDirectoryConfig),
+    MarkdownFile(MemoryConnectorMarkdownFileConfig),
+    MarkdownDirectory(MemoryConnectorMarkdownDirectoryConfig),
+    DotenvFile(MemoryConnectorDotenvFileConfig),
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryConnectorJsonlFileConfig {
+    pub path: PathBuf,
+    pub session_id: Option<String>,
+    pub default_entity_type: Option<String>,
+    pub default_observation_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryConnectorJsonlDirectoryConfig {
+    pub path: PathBuf,
+    pub recurse: bool,
+    pub session_id: Option<String>,
+    pub default_entity_type: Option<String>,
+    pub default_observation_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryConnectorMarkdownFileConfig {
+    pub path: PathBuf,
+    pub session_id: Option<String>,
+    pub default_entity_type: Option<String>,
+    pub default_observation_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryConnectorMarkdownDirectoryConfig {
+    pub path: PathBuf,
+    pub recurse: bool,
+    pub session_id: Option<String>,
+    pub default_entity_type: Option<String>,
+    pub default_observation_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryConnectorDotenvFileConfig {
+    pub path: PathBuf,
+    pub session_id: Option<String>,
+    pub default_entity_type: Option<String>,
+    pub default_observation_type: Option<String>,
+    pub key_prefixes: Vec<String>,
+    pub include_keys: Vec<String>,
+    pub exclude_keys: Vec<String>,
+    pub include_safe_values: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResolvedOrchestrationTemplate {
+    pub template_name: String,
+    pub description: Option<String>,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+    pub steps: Vec<ResolvedOrchestrationTemplateStep>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResolvedOrchestrationTemplateStep {
+    pub name: String,
+    pub task: String,
+    pub agent: Option<String>,
+    pub profile: Option<String>,
+    pub worktree: bool,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -92,7 +229,11 @@ pub struct Config {
     pub auto_terminate_stale_sessions: bool,
     pub default_agent: String,
     pub default_agent_profile: Option<String>,
+    pub harness_runners: BTreeMap<String, HarnessRunnerConfig>,
     pub agent_profiles: BTreeMap<String, AgentProfileConfig>,
+    pub orchestration_templates: BTreeMap<String, OrchestrationTemplateConfig>,
+    pub memory_connectors: BTreeMap<String, MemoryConnectorConfig>,
+    pub computer_use_dispatch: ComputerUseDispatchConfig,
     pub auto_dispatch_unread_handoffs: bool,
     pub auto_dispatch_limit_per_session: usize,
     pub auto_create_worktrees: bool,
@@ -155,7 +296,11 @@ impl Default for Config {
             auto_terminate_stale_sessions: false,
             default_agent: "claude".to_string(),
             default_agent_profile: None,
+            harness_runners: BTreeMap::new(),
             agent_profiles: BTreeMap::new(),
+            orchestration_templates: BTreeMap::new(),
+            memory_connectors: BTreeMap::new(),
+            computer_use_dispatch: ComputerUseDispatchConfig::default(),
             auto_dispatch_unread_handoffs: false,
             auto_dispatch_limit_per_session: 5,
             auto_create_worktrees: true,
@@ -214,9 +359,108 @@ impl Config {
         self.budget_alert_thresholds.sanitized()
     }
 
+    pub fn computer_use_dispatch_defaults(&self) -> ResolvedComputerUseDispatchConfig {
+        let agent = self
+            .computer_use_dispatch
+            .agent
+            .clone()
+            .unwrap_or_else(|| self.default_agent.clone());
+        let profile = self
+            .computer_use_dispatch
+            .profile
+            .clone()
+            .or_else(|| self.default_agent_profile.clone());
+        ResolvedComputerUseDispatchConfig {
+            agent,
+            profile,
+            use_worktree: self.computer_use_dispatch.use_worktree,
+            project: self.computer_use_dispatch.project.clone(),
+            task_group: self.computer_use_dispatch.task_group.clone(),
+        }
+    }
+
     pub fn resolve_agent_profile(&self, name: &str) -> Result<ResolvedAgentProfile> {
         let mut chain = Vec::new();
         self.resolve_agent_profile_inner(name, &mut chain)
+    }
+
+    pub fn harness_runner(&self, harness: &str) -> Option<&HarnessRunnerConfig> {
+        let key = harness.trim().to_ascii_lowercase();
+        self.harness_runners.get(&key)
+    }
+
+    pub fn resolve_orchestration_template(
+        &self,
+        name: &str,
+        vars: &BTreeMap<String, String>,
+    ) -> Result<ResolvedOrchestrationTemplate> {
+        let template = self
+            .orchestration_templates
+            .get(name)
+            .ok_or_else(|| anyhow::anyhow!("Unknown orchestration template: {name}"))?;
+
+        if template.steps.is_empty() {
+            anyhow::bail!("orchestration template {name} has no steps");
+        }
+
+        let description = interpolate_optional_string(template.description.as_deref(), vars)?;
+        let project = interpolate_optional_string(template.project.as_deref(), vars)?;
+        let task_group = interpolate_optional_string(template.task_group.as_deref(), vars)?;
+        let default_agent = interpolate_optional_string(template.agent.as_deref(), vars)?;
+        let default_profile = interpolate_optional_string(template.profile.as_deref(), vars)?;
+        if let Some(profile_name) = default_profile.as_deref() {
+            self.resolve_agent_profile(profile_name)?;
+        }
+
+        let mut steps = Vec::with_capacity(template.steps.len());
+        for (index, step) in template.steps.iter().enumerate() {
+            let task = interpolate_required_string(&step.task, vars).with_context(|| {
+                format!(
+                    "resolve task for orchestration template {name} step {}",
+                    index + 1
+                )
+            })?;
+            let step_name = interpolate_optional_string(step.name.as_deref(), vars)?
+                .unwrap_or_else(|| format!("step {}", index + 1));
+            let agent = interpolate_optional_string(
+                step.agent.as_deref().or(default_agent.as_deref()),
+                vars,
+            )?;
+            let profile = interpolate_optional_string(
+                step.profile.as_deref().or(default_profile.as_deref()),
+                vars,
+            )?;
+            if let Some(profile_name) = profile.as_deref() {
+                self.resolve_agent_profile(profile_name)?;
+            }
+
+            steps.push(ResolvedOrchestrationTemplateStep {
+                name: step_name,
+                task,
+                agent,
+                profile,
+                worktree: step
+                    .worktree
+                    .or(template.worktree)
+                    .unwrap_or(self.auto_create_worktrees),
+                project: interpolate_optional_string(
+                    step.project.as_deref().or(project.as_deref()),
+                    vars,
+                )?,
+                task_group: interpolate_optional_string(
+                    step.task_group.as_deref().or(task_group.as_deref()),
+                    vars,
+                )?,
+            });
+        }
+
+        Ok(ResolvedOrchestrationTemplate {
+            template_name: name.to_string(),
+            description,
+            project,
+            task_group,
+            steps,
+        })
     }
 
     fn resolve_agent_profile_inner(
@@ -226,10 +470,7 @@ impl Config {
     ) -> Result<ResolvedAgentProfile> {
         if chain.iter().any(|existing| existing == name) {
             chain.push(name.to_string());
-            anyhow::bail!(
-                "agent profile inheritance cycle: {}",
-                chain.join(" -> ")
-            );
+            anyhow::bail!("agent profile inheritance cycle: {}", chain.join(" -> "));
         }
 
         let profile = self
@@ -539,6 +780,50 @@ impl ResolvedAgentProfile {
     }
 }
 
+impl Default for HarnessRunnerConfig {
+    fn default() -> Self {
+        Self {
+            program: String::new(),
+            base_args: Vec::new(),
+            project_markers: Vec::new(),
+            cwd_flag: None,
+            session_name_flag: None,
+            task_flag: None,
+            model_flag: None,
+            add_dir_flag: None,
+            include_directories_flag: None,
+            allowed_tools_flag: None,
+            disallowed_tools_flag: None,
+            permission_mode_flag: None,
+            max_budget_usd_flag: None,
+            append_system_prompt_flag: None,
+            inline_system_prompt_for_task: true,
+            env: BTreeMap::new(),
+        }
+    }
+}
+
+impl Default for ComputerUseDispatchConfig {
+    fn default() -> Self {
+        Self {
+            agent: None,
+            profile: None,
+            use_worktree: false,
+            project: None,
+            task_group: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ResolvedComputerUseDispatchConfig {
+    pub agent: String,
+    pub profile: Option<String>,
+    pub use_worktree: bool,
+    pub project: Option<String>,
+    pub task_group: Option<String>,
+}
+
 fn merge_unique<T>(base: &mut Vec<T>, additions: &[T])
 where
     T: Clone + PartialEq,
@@ -548,6 +833,55 @@ where
             base.push(value.clone());
         }
     }
+}
+
+fn interpolate_optional_string(
+    value: Option<&str>,
+    vars: &BTreeMap<String, String>,
+) -> Result<Option<String>> {
+    value
+        .map(|value| interpolate_required_string(value, vars))
+        .transpose()
+        .map(|value| {
+            value.and_then(|value| {
+                let trimmed = value.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                }
+            })
+        })
+}
+
+fn interpolate_required_string(value: &str, vars: &BTreeMap<String, String>) -> Result<String> {
+    let placeholder = Regex::new(r"\{\{\s*([A-Za-z0-9_-]+)\s*\}\}")
+        .expect("orchestration template placeholder regex");
+    let mut missing = Vec::new();
+    let rendered = placeholder.replace_all(value, |captures: &regex::Captures<'_>| {
+        let key = captures
+            .get(1)
+            .map(|capture| capture.as_str())
+            .unwrap_or_default();
+        match vars.get(key) {
+            Some(value) => value.to_string(),
+            None => {
+                missing.push(key.to_string());
+                String::new()
+            }
+        }
+    });
+
+    if !missing.is_empty() {
+        missing.sort();
+        missing.dedup();
+        anyhow::bail!(
+            "missing orchestration template variable(s): {}",
+            missing.join(", ")
+        );
+    }
+
+    Ok(rendered.into_owned())
 }
 
 impl BudgetAlertThresholds {
@@ -570,10 +904,11 @@ impl BudgetAlertThresholds {
 #[cfg(test)]
 mod tests {
     use super::{
-        BudgetAlertThresholds, Config, ConflictResolutionConfig, ConflictResolutionStrategy,
-        PaneLayout,
+        BudgetAlertThresholds, ComputerUseDispatchConfig, Config, ConflictResolutionConfig,
+        ConflictResolutionStrategy, PaneLayout, ResolvedComputerUseDispatchConfig,
     };
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use std::collections::BTreeMap;
     use std::path::PathBuf;
     use uuid::Uuid;
 
@@ -921,6 +1256,42 @@ notify_lead = false
     }
 
     #[test]
+    fn computer_use_dispatch_deserializes_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[computer_use_dispatch]
+agent = "codex"
+profile = "browser"
+use_worktree = true
+project = "ops"
+task_group = "remote browser"
+"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            config.computer_use_dispatch,
+            ComputerUseDispatchConfig {
+                agent: Some("codex".to_string()),
+                profile: Some("browser".to_string()),
+                use_worktree: true,
+                project: Some("ops".to_string()),
+                task_group: Some("remote browser".to_string()),
+            }
+        );
+        assert_eq!(
+            config.computer_use_dispatch_defaults(),
+            ResolvedComputerUseDispatchConfig {
+                agent: "codex".to_string(),
+                profile: Some("browser".to_string()),
+                use_worktree: true,
+                project: Some("ops".to_string()),
+                task_group: Some("remote browser".to_string()),
+            }
+        );
+    }
+
+    #[test]
     fn agent_profiles_resolve_inheritance_and_defaults() {
         let config: Config = toml::from_str(
             r#"
@@ -977,6 +1348,312 @@ inherits = "a"
         assert!(error
             .to_string()
             .contains("agent profile inheritance cycle"));
+    }
+
+    #[test]
+    fn harness_runners_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[harness_runners.cursor]
+program = "cursor-agent"
+base_args = ["run"]
+project_markers = [".cursor", ".cursor/rules"]
+cwd_flag = "--cwd"
+session_name_flag = "--name"
+task_flag = "--task"
+model_flag = "--model"
+permission_mode_flag = "--permission-mode"
+inline_system_prompt_for_task = true
+
+[harness_runners.cursor.env]
+ECC_HARNESS = "cursor"
+"#,
+        )
+        .unwrap();
+
+        let runner = config.harness_runner("cursor").expect("cursor runner");
+        assert_eq!(runner.program, "cursor-agent");
+        assert_eq!(runner.base_args, vec!["run"]);
+        assert_eq!(
+            runner.project_markers,
+            vec![PathBuf::from(".cursor"), PathBuf::from(".cursor/rules")]
+        );
+        assert_eq!(runner.cwd_flag.as_deref(), Some("--cwd"));
+        assert_eq!(runner.session_name_flag.as_deref(), Some("--name"));
+        assert_eq!(runner.task_flag.as_deref(), Some("--task"));
+        assert_eq!(runner.model_flag.as_deref(), Some("--model"));
+        assert_eq!(
+            runner.permission_mode_flag.as_deref(),
+            Some("--permission-mode")
+        );
+        assert!(runner.inline_system_prompt_for_task);
+        assert_eq!(
+            runner.env.get("ECC_HARNESS").map(String::as_str),
+            Some("cursor")
+        );
+    }
+
+    #[test]
+    fn orchestration_templates_resolve_steps_and_interpolate_variables() {
+        let config: Config = toml::from_str(
+            r#"
+default_agent = "claude"
+default_agent_profile = "reviewer"
+
+[agent_profiles.reviewer]
+model = "sonnet"
+
+[orchestration_templates.feature_development]
+description = "Ship {{task}}"
+project = "{{project}}"
+task_group = "{{task_group}}"
+profile = "reviewer"
+worktree = true
+
+[[orchestration_templates.feature_development.steps]]
+name = "planner"
+task = "Plan {{task}}"
+agent = "claude"
+
+[[orchestration_templates.feature_development.steps]]
+name = "reviewer"
+task = "Review {{task}} in {{component}}"
+profile = "reviewer"
+worktree = false
+"#,
+        )
+        .unwrap();
+
+        let vars = BTreeMap::from([
+            ("task".to_string(), "stabilize auth callback".to_string()),
+            ("project".to_string(), "ecc-core".to_string()),
+            ("task_group".to_string(), "auth callback".to_string()),
+            ("component".to_string(), "billing".to_string()),
+        ]);
+        let template = config
+            .resolve_orchestration_template("feature_development", &vars)
+            .unwrap();
+
+        assert_eq!(template.template_name, "feature_development");
+        assert_eq!(
+            template.description.as_deref(),
+            Some("Ship stabilize auth callback")
+        );
+        assert_eq!(template.project.as_deref(), Some("ecc-core"));
+        assert_eq!(template.task_group.as_deref(), Some("auth callback"));
+        assert_eq!(template.steps.len(), 2);
+        assert_eq!(template.steps[0].name, "planner");
+        assert_eq!(template.steps[0].task, "Plan stabilize auth callback");
+        assert_eq!(template.steps[0].agent.as_deref(), Some("claude"));
+        assert_eq!(template.steps[0].profile.as_deref(), Some("reviewer"));
+        assert!(template.steps[0].worktree);
+        assert_eq!(
+            template.steps[1].task,
+            "Review stabilize auth callback in billing"
+        );
+        assert!(!template.steps[1].worktree);
+    }
+
+    #[test]
+    fn orchestration_templates_fail_when_required_variables_are_missing() {
+        let config: Config = toml::from_str(
+            r#"
+[orchestration_templates.feature_development]
+[[orchestration_templates.feature_development.steps]]
+task = "Plan {{task}} for {{component}}"
+"#,
+        )
+        .unwrap();
+
+        let error = config
+            .resolve_orchestration_template(
+                "feature_development",
+                &BTreeMap::from([("task".to_string(), "fix retry".to_string())]),
+            )
+            .expect_err("missing template variables must fail");
+        let error_text = format!("{error:#}");
+        assert!(error_text
+            .contains("resolve task for orchestration template feature_development step 1"));
+        assert!(error_text.contains("missing orchestration template variable(s): component"));
+    }
+
+    #[test]
+    fn memory_connectors_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[memory_connectors.hermes_notes]
+kind = "jsonl_file"
+path = "/tmp/hermes-memory.jsonl"
+session_id = "latest"
+default_entity_type = "incident"
+default_observation_type = "external_note"
+"#,
+        )
+        .unwrap();
+
+        let connector = config
+            .memory_connectors
+            .get("hermes_notes")
+            .expect("connector should deserialize");
+        match connector {
+            crate::config::MemoryConnectorConfig::JsonlFile(settings) => {
+                assert_eq!(settings.path, PathBuf::from("/tmp/hermes-memory.jsonl"));
+                assert_eq!(settings.session_id.as_deref(), Some("latest"));
+                assert_eq!(settings.default_entity_type.as_deref(), Some("incident"));
+                assert_eq!(
+                    settings.default_observation_type.as_deref(),
+                    Some("external_note")
+                );
+            }
+            _ => panic!("expected jsonl_file connector"),
+        }
+    }
+
+    #[test]
+    fn memory_jsonl_directory_connectors_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[memory_connectors.hermes_dir]
+kind = "jsonl_directory"
+path = "/tmp/hermes-memory"
+recurse = true
+default_entity_type = "incident"
+default_observation_type = "external_note"
+"#,
+        )
+        .unwrap();
+
+        let connector = config
+            .memory_connectors
+            .get("hermes_dir")
+            .expect("connector should deserialize");
+        match connector {
+            crate::config::MemoryConnectorConfig::JsonlDirectory(settings) => {
+                assert_eq!(settings.path, PathBuf::from("/tmp/hermes-memory"));
+                assert!(settings.recurse);
+                assert_eq!(settings.default_entity_type.as_deref(), Some("incident"));
+                assert_eq!(
+                    settings.default_observation_type.as_deref(),
+                    Some("external_note")
+                );
+            }
+            _ => panic!("expected jsonl_directory connector"),
+        }
+    }
+
+    #[test]
+    fn memory_markdown_file_connectors_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[memory_connectors.workspace_note]
+kind = "markdown_file"
+path = "/tmp/hermes-memory.md"
+session_id = "latest"
+default_entity_type = "note_section"
+default_observation_type = "external_note"
+"#,
+        )
+        .unwrap();
+
+        let connector = config
+            .memory_connectors
+            .get("workspace_note")
+            .expect("connector should deserialize");
+        match connector {
+            crate::config::MemoryConnectorConfig::MarkdownFile(settings) => {
+                assert_eq!(settings.path, PathBuf::from("/tmp/hermes-memory.md"));
+                assert_eq!(settings.session_id.as_deref(), Some("latest"));
+                assert_eq!(
+                    settings.default_entity_type.as_deref(),
+                    Some("note_section")
+                );
+                assert_eq!(
+                    settings.default_observation_type.as_deref(),
+                    Some("external_note")
+                );
+            }
+            _ => panic!("expected markdown_file connector"),
+        }
+    }
+
+    #[test]
+    fn memory_markdown_directory_connectors_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[memory_connectors.workspace_notes]
+kind = "markdown_directory"
+path = "/tmp/hermes-memory"
+recurse = true
+session_id = "latest"
+default_entity_type = "note_section"
+default_observation_type = "external_note"
+"#,
+        )
+        .unwrap();
+
+        let connector = config
+            .memory_connectors
+            .get("workspace_notes")
+            .expect("connector should deserialize");
+        match connector {
+            crate::config::MemoryConnectorConfig::MarkdownDirectory(settings) => {
+                assert_eq!(settings.path, PathBuf::from("/tmp/hermes-memory"));
+                assert!(settings.recurse);
+                assert_eq!(settings.session_id.as_deref(), Some("latest"));
+                assert_eq!(
+                    settings.default_entity_type.as_deref(),
+                    Some("note_section")
+                );
+                assert_eq!(
+                    settings.default_observation_type.as_deref(),
+                    Some("external_note")
+                );
+            }
+            _ => panic!("expected markdown_directory connector"),
+        }
+    }
+
+    #[test]
+    fn memory_dotenv_file_connectors_deserialize_from_toml() {
+        let config: Config = toml::from_str(
+            r#"
+[memory_connectors.hermes_env]
+kind = "dotenv_file"
+path = "/tmp/hermes.env"
+session_id = "latest"
+default_entity_type = "service_config"
+default_observation_type = "external_config"
+key_prefixes = ["STRIPE_", "PUBLIC_"]
+include_keys = ["PUBLIC_BASE_URL"]
+exclude_keys = ["STRIPE_WEBHOOK_SECRET"]
+include_safe_values = true
+"#,
+        )
+        .unwrap();
+
+        let connector = config
+            .memory_connectors
+            .get("hermes_env")
+            .expect("connector should deserialize");
+        match connector {
+            crate::config::MemoryConnectorConfig::DotenvFile(settings) => {
+                assert_eq!(settings.path, PathBuf::from("/tmp/hermes.env"));
+                assert_eq!(settings.session_id.as_deref(), Some("latest"));
+                assert_eq!(
+                    settings.default_entity_type.as_deref(),
+                    Some("service_config")
+                );
+                assert_eq!(
+                    settings.default_observation_type.as_deref(),
+                    Some("external_config")
+                );
+                assert_eq!(settings.key_prefixes, vec!["STRIPE_", "PUBLIC_"]);
+                assert_eq!(settings.include_keys, vec!["PUBLIC_BASE_URL"]);
+                assert_eq!(settings.exclude_keys, vec!["STRIPE_WEBHOOK_SECRET"]);
+                assert!(settings.include_safe_values);
+            }
+            _ => panic!("expected dotenv_file connector"),
+        }
     }
 
     #[test]

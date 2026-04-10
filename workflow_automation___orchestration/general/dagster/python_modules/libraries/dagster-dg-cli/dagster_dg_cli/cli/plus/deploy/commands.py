@@ -34,7 +34,6 @@ from dagster_dg_cli.cli.plus.deploy.deploy_session import (
 )
 from dagster_dg_cli.cli.plus.deploy.validation import _extract_dagster_env_from_url
 from dagster_dg_cli.utils.plus.gql import SECRETS_QUERY
-from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
 if TYPE_CHECKING:
     from dagster._core.instance import DagsterInstance
@@ -532,6 +531,8 @@ def _fetch_secrets_for_location(
 
     Selects the appropriate secret scope based on whether this is a branch or full deployment.
     """
+    from dagster_rest_resources.gql_client import DagsterPlusGraphQLClient
+
     client = DagsterPlusGraphQLClient.from_location_state(location_state, api_token, organization)
 
     # Select scope based on deployment type

@@ -76,6 +76,9 @@ This ensures memories survive context window trimming.
       "autoRecall": true,
       "autoRetain": true,
       "recallBudget": "mid",
+      "recallTags": [],
+      "recallTagsMatch": "any",
+      "retainTags": [],
       "retainEveryNTurns": 10,
       "debug": false
     }]
@@ -108,6 +111,8 @@ Create `~/.hindsight/opencode.json` for persistent configuration that applies ac
 | `HINDSIGHT_RETAIN_MODE` | `full-session` or `last-turn` | `full-session` |
 | `HINDSIGHT_RECALL_BUDGET` | Recall budget: `low`, `mid`, `high` | `mid` |
 | `HINDSIGHT_RECALL_MAX_TOKENS` | Max tokens for recall results | `1024` |
+| `HINDSIGHT_RECALL_TAGS` | Comma-separated tags to filter recall results | |
+| `HINDSIGHT_RECALL_TAGS_MATCH` | Tag match mode: `any`, `all`, `any_strict`, `all_strict` | `any` |
 | `HINDSIGHT_DYNAMIC_BANK_ID` | Enable dynamic bank ID derivation | `false` |
 | `HINDSIGHT_BANK_MISSION` | Bank mission/context for reflect | |
 | `HINDSIGHT_DEBUG` | Enable debug logging to stderr | `false` |

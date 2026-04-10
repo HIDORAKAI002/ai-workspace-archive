@@ -34,7 +34,12 @@ async def test_submit_async_retain_includes_document_tags_in_task_payload():
     contents = [{"content": "Async retain payload test."}]
     document_tags = ["scope:tools", "user:alice"]
 
-    with patch("hindsight_api.engine.memory_engine.bank_utils.get_bank_profile", new_callable=AsyncMock):
+    # Return (profile, created=False) so the default-template-on-create hook is skipped.
+    with patch(
+        "hindsight_api.engine.memory_engine.bank_utils.get_or_create_bank_profile",
+        new_callable=AsyncMock,
+        return_value=(MagicMock(), False),
+    ):
         result = await MemoryEngine.submit_async_retain(
             engine,
             bank_id="bank-1",

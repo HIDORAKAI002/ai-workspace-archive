@@ -826,11 +826,11 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dg-cli"),
             pytest_tox_factors=[
-                ToxFactor("general", splits=3),
+                ToxFactor("general"),
                 ToxFactor("plus"),
             ],
             env_vars=["SHELL"],
-            force_run_fn=BuildkiteContext.has_dg_or_component_integration_changes,
+            force_run_fn=BuildkiteContext.has_dg_or_component_integration_or_rest_resource_changes,
             # general tests depend on dagster-dbt which does not support Python 3.14
             unsupported_python_versions=(
                 lambda tox_factor: (
@@ -998,6 +998,13 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 ToxFactor("storage_tests_sqlalchemy_1_3"),
             ],
             force_run_fn=BuildkiteContext.has_storage_test_fixture_changes,
+        ),
+        PackageSpec(
+            oss_path("python_modules/libraries/dagster-rest-resources"),
+            pytest_tox_factors=[
+                ToxFactor("default"),
+            ],
+            force_run_fn=BuildkiteContext.has_rest_resources_changes,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-twilio"),

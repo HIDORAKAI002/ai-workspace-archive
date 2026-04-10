@@ -42,7 +42,7 @@ DG_API_MAX_EVENT_LIMIT: Final = 1000
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiAssetList")
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiAssetList")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -63,7 +63,7 @@ def list_assets_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 
@@ -84,7 +84,7 @@ def list_assets_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiAsset")
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiAsset")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -104,7 +104,7 @@ def get_asset_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 
@@ -122,7 +122,7 @@ def get_asset_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiAssetStatus")
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiAssetStatus")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -142,7 +142,7 @@ def get_health_asset_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 
@@ -185,7 +185,7 @@ def get_health_asset_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiAssetEventList")
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiAssetEventList")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -209,7 +209,7 @@ def get_events_asset_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 
@@ -253,9 +253,7 @@ def get_events_asset_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(
-    module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiEvaluationRecordList"
-)
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiEvaluationRecordList")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -282,7 +280,7 @@ def get_evaluations_asset_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 
@@ -308,7 +306,7 @@ def get_evaluations_asset_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_dg_cli.api_layer.schemas.asset", cls="DgApiPartitionStats")
+@dg_response_schema(module="dagster_rest_resources.schemas.asset", cls="DgApiPartitionStats")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -328,7 +326,7 @@ def get_partition_status_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    from dagster_dg_cli.api_layer.api.asset import DgApiAssetApi
+    from dagster_rest_resources.api.asset import DgApiAssetApi
 
     api = DgApiAssetApi(client)
 

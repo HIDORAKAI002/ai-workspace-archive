@@ -113,6 +113,22 @@ async def get_bank_profile(pool, bank_id: str) -> BankProfile:
     Returns:
         BankProfile with name, typed DispositionTraits, and mission
     """
+    profile, _ = await get_or_create_bank_profile(pool, bank_id)
+    return profile
+
+
+async def get_or_create_bank_profile(pool, bank_id: str) -> tuple[BankProfile, bool]:
+    """
+    Get bank profile, auto-creating with defaults if it doesn't exist.
+
+    Same as get_bank_profile, but also returns a flag indicating whether the
+    bank was freshly created on this call. Used by the memory engine to apply
+    the HINDSIGHT_API_DEFAULT_BANK_TEMPLATE hook on first bank creation.
+
+    Returns:
+        Tuple of (BankProfile, created) where created is True if the bank
+        did not exist before this call.
+    """
     async with acquire_with_retry(pool) as conn:
         # Try to get existing bank
         row = await conn.fetchrow(
@@ -129,10 +145,13 @@ async def get_bank_profile(pool, bank_id: str) -> BankProfile:
             if isinstance(disposition_data, str):
                 disposition_data = json.loads(disposition_data)
 
-            return BankProfile(
-                name=row["name"],
-                disposition=DispositionTraits(**disposition_data),
-                mission=row["mission"] or "",
+            return (
+                BankProfile(
+                    name=row["name"],
+                    disposition=DispositionTraits(**disposition_data),
+                    mission=row["mission"] or "",
+                ),
+                False,
             )
 
         # Bank doesn't exist, create with defaults.
@@ -153,11 +172,15 @@ async def get_bank_profile(pool, bank_id: str) -> BankProfile:
             internal_id,
         )
 
-        if inserted:
+        created = inserted is not None
+        if created:
             # Fresh insert — create per-bank vector indexes (instant on empty bank)
             await create_bank_vector_indexes(conn, bank_id, str(internal_id))
 
-        return BankProfile(name=bank_id, disposition=DispositionTraits(**DEFAULT_DISPOSITION), mission="")
+        return (
+            BankProfile(name=bank_id, disposition=DispositionTraits(**DEFAULT_DISPOSITION), mission=""),
+            created,
+        )
 
 
 async def update_bank_disposition(pool, bank_id: str, disposition: dict[str, int]) -> None:

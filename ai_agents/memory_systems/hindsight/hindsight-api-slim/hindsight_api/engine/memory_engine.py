@@ -5153,7 +5153,13 @@ class MemoryEngine(MemoryEngineInterface):
             ctx = BankReadContext(bank_id=bank_id, operation="get_bank_profile", request_context=request_context)
             await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
         pool = await self._get_pool()
-        profile = await bank_utils.get_bank_profile(pool, bank_id)
+        profile, created = await bank_utils.get_or_create_bank_profile(pool, bank_id)
+
+        # Apply HINDSIGHT_API_DEFAULT_BANK_TEMPLATE to freshly-created banks. Done
+        # before reading the resolved config below so the template's overrides
+        # (e.g. reflect_mission, dispositions) are visible on this very call.
+        if created:
+            await self._apply_default_bank_template(bank_id, request_context)
 
         # reflect_mission and disposition in config take precedence over the legacy DB columns
         config_dict = await self._config_resolver.get_bank_config(bank_id, request_context)
@@ -5177,6 +5183,62 @@ class MemoryEngine(MemoryEngineInterface):
             "disposition": disposition,
             "mission": mission,
         }
+
+    async def _apply_default_bank_template(
+        self,
+        bank_id: str,
+        request_context: "RequestContext",
+    ) -> None:
+        """Apply HINDSIGHT_API_DEFAULT_BANK_TEMPLATE to a freshly-created bank.
+
+        No-op if the env var is unset. A malformed default template is logged
+        and swallowed here rather than raised, so a bad server-level setting
+        cannot wedge bank creation across all callers. Misconfiguration is
+        still surfaced loudly via `logger.error`.
+        """
+        from ..config import get_config
+
+        template_dict = get_config().default_bank_template
+        if not template_dict:
+            return
+
+        # Lazy import to avoid a cycle (http.py imports memory_engine).
+        from pydantic import ValidationError
+
+        from hindsight_api.api.http import (
+            BankTemplateManifest,
+            apply_bank_template_manifest,
+            validate_bank_template,
+        )
+
+        try:
+            manifest = BankTemplateManifest.model_validate(template_dict)
+        except ValidationError as e:
+            errors = [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()]
+            logger.error(
+                "HINDSIGHT_API_DEFAULT_BANK_TEMPLATE failed schema validation "
+                f"and will be ignored for bank '{bank_id}': {'; '.join(errors)}"
+            )
+            return
+
+        semantic_errors = validate_bank_template(manifest)
+        if semantic_errors:
+            logger.error(
+                "HINDSIGHT_API_DEFAULT_BANK_TEMPLATE failed semantic validation "
+                f"and will be ignored for bank '{bank_id}': {'; '.join(semantic_errors)}"
+            )
+            return
+
+        try:
+            await apply_bank_template_manifest(
+                memory=self,
+                bank_id=bank_id,
+                manifest=manifest,
+                request_context=request_context,
+            )
+            logger.info(f"Applied HINDSIGHT_API_DEFAULT_BANK_TEMPLATE to newly-created bank '{bank_id}'")
+        except Exception as e:
+            logger.error(f"Failed to apply HINDSIGHT_API_DEFAULT_BANK_TEMPLATE to bank '{bank_id}': {e}")
 
     async def update_bank_disposition(
         self,
@@ -7789,7 +7851,9 @@ class MemoryEngine(MemoryEngineInterface):
 
         # Ensure the bank row exists before inserting async_operations (which now has a FK).
         # Banks are created lazily on first retain, but the FK requires the row to exist first.
-        await bank_utils.get_bank_profile(pool, bank_id)
+        _, created = await bank_utils.get_or_create_bank_profile(pool, bank_id)
+        if created:
+            await self._apply_default_bank_template(bank_id, request_context)
 
         # Create typed metadata for parent operation
         parent_metadata = BatchRetainParentMetadata(
