@@ -59,6 +59,8 @@ type replicationClient struct {
 	retryClient
 }
 
+var _ (replica.Client) = (*replicationClient)(nil)
+
 func NewReplicationClient(httpClient *http.Client) *replicationClient {
 	return &replicationClient{
 		retryClient: retryClient{
@@ -227,6 +229,21 @@ func (c *replicationClient) HashTreeLevel(ctx context.Context,
 	var result []hashtree.Digest
 	err = json.NewDecoder(res.Body).Decode(&result)
 	return result, err
+}
+
+func (c *replicationClient) CountObjects(ctx context.Context, host string, index string, shard string) (int, error) {
+	var resp int
+	req, err := newHttpReplicaRequest(
+		ctx, http.MethodGet, host, index, shard,
+		"", "_count", nil, 0,
+	)
+	if err != nil {
+		return resp, fmt.Errorf("create http request: %w", err)
+	}
+	// CountObjects is used as a best-effort consistency check during aggregation, so we don't want to retry on error
+	// We just accept the error and return it so it can be ignored in the reconciliation logic
+	err = c.do(c.timeoutUnit*QUERY_TIMEOUT_VALUE, req, nil, &resp, 0)
+	return resp, err
 }
 
 func (c *replicationClient) OverwriteObjects(ctx context.Context,
