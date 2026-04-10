@@ -14,34 +14,35 @@ This plugin integrates [hindsight-embed](https://vectorize.io/hindsight/cli), a 
 
 ## Quick Start
 
-**Step 1: Set up LLM for memory extraction**
-
-Choose one provider and set its API key:
-
-```bash
-# Option A: OpenAI
-export OPENAI_API_KEY="sk-your-key"
-
-# Option B: Anthropic
-export ANTHROPIC_API_KEY="your-key"
-
-# Option C: Gemini
-export GEMINI_API_KEY="your-key"
-
-# Option D: Groq
-export GROQ_API_KEY="your-key"
-
-# Option E: Claude Code (no API key needed)
-export HINDSIGHT_API_LLM_PROVIDER=claude-code
-
-# Option F: OpenAI Codex (no API key needed)
-export HINDSIGHT_API_LLM_PROVIDER=openai-codex
-```
-
-**Step 2: Install the plugin**
+**Step 1: Install the plugin**
 
 ```bash
 openclaw plugins install @vectorize-io/hindsight-openclaw
+```
+
+**Step 2: Configure the LLM provider used for memory extraction**
+
+The plugin reads configuration from OpenClaw's plugin config — set it
+non-interactively with `openclaw config set`:
+
+```bash
+# Option A — OpenAI (set llmApiKey as a SecretRef so the value comes from
+# the OPENAI_API_KEY environment variable at runtime instead of being
+# stored in plaintext on disk)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
+
+# Option B — Anthropic
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider anthropic
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id ANTHROPIC_API_KEY
+
+# Option C — Claude Code (no API key needed)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider claude-code
+
+# Option D — OpenAI Codex (no API key needed)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai-codex
 ```
 
 **Step 3: Start OpenClaw**
@@ -56,6 +57,8 @@ The plugin will automatically:
 - Inject relevant memories before agent responses
 
 **Important:** The LLM you configure above is **only for memory extraction** (background processing). Your main OpenClaw agent can use any model you configure separately.
+
+**Migrating from 0.5.x?** See the [Migration from 0.5.x](#migration-from-05x) section below for the env-var → SecretRef mapping.
 
 ## How It Works
 
@@ -94,9 +97,13 @@ Optional settings in `~/.openclaw/openclaw.json`:
 - `apiPort` - Port for the openclaw profile daemon (default: `9077`)
 - `daemonIdleTimeout` - Seconds before daemon shuts down from inactivity (default: `0` = never)
 - `embedVersion` - hindsight-embed version (default: `"latest"`)
+- `llmProvider` - LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `hindsightApiUrl` is set.
+- `llmModel` - LLM model used with `llmProvider` (provider default if omitted)
+- `llmApiKey` - API key for the LLM provider. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY` to reference an env var.
+- `llmBaseUrl` - Optional base URL override for OpenAI-compatible providers (e.g. `https://openrouter.ai/api/v1`)
 - `bankMission` - Agent identity/purpose stored on the memory bank. Helps the memory engine understand context for better fact extraction during retain. Set once per bank on first use — not a recall prompt.
 - `dynamicBankId` - Enable per-context memory banks (default: `true`)
-- `bankId` - Static bank ID used when `dynamicBankId` is `false`. Can also be set with `HINDSIGHT_BANK_ID`.
+- `bankId` - Static bank ID used when `dynamicBankId` is `false`.
 - `bankIdPrefix` - Optional prefix for bank IDs (e.g. `"prod"` → `"prod-slack-C123"` or `"prod-shared-bank"`)
 - `dynamicBankGranularity` - Fields used to derive bank ID: `agent`, `channel`, `user`, `provider` (default: `["agent", "channel", "user"]`)
 - `excludeProviders` - Message providers to skip for recall/retain (e.g. `["slack"]`, `["telegram"]`, `["discord"]`)
@@ -145,7 +152,7 @@ Available isolation fields:
 - `user` - The user interacting with the agent
 - `provider` - The message provider (e.g. Slack, Discord)
 
-Use `bankIdPrefix` to namespace bank IDs across environments (e.g. `"prod"`, `"staging"`). Set `dynamicBankId` to `false` to use a single shared bank for all conversations. In static mode, the plugin uses `bankId`, then `HINDSIGHT_BANK_ID`, then the default `openclaw` bank name.
+Use `bankIdPrefix` to namespace bank IDs across environments (e.g. `"prod"`, `"staging"`). Set `dynamicBankId` to `false` to use a single shared bank for all conversations. In static mode, the plugin uses `bankId` if set, otherwise the default `openclaw` bank name.
 
 ### Retention Controls
 
@@ -172,37 +179,60 @@ By default, the plugin retains `user` and `assistant` messages after each turn. 
 
 ### LLM Configuration
 
-The plugin auto-detects your LLM provider from these environment variables:
+Configure the memory-extraction LLM via OpenClaw's plugin config. API keys
+should be stored as `SecretRef` values so they're resolved from env vars,
+mounted files, or `exec`-style secret managers (Vault, etc.) at runtime
+instead of sitting in plaintext on disk.
 
-| Provider | Env Var | Notes |
-|----------|---------|-------|
-| OpenAI | `OPENAI_API_KEY` | |
-| Anthropic | `ANTHROPIC_API_KEY` | |
-| Gemini | `GEMINI_API_KEY` | |
-| Groq | `GROQ_API_KEY` | |
-| Claude Code | `HINDSIGHT_API_LLM_PROVIDER=claude-code` | No API key needed |
-| OpenAI Codex | `HINDSIGHT_API_LLM_PROVIDER=openai-codex` | No API key needed |
+| Provider | `llmProvider` | API key |
+|---|---|---|
+| OpenAI | `openai` | required |
+| Anthropic | `anthropic` | required |
+| Gemini | `gemini` | required |
+| Groq | `groq` | required |
+| Ollama | `ollama` | not required (local) |
+| Claude Code | `claude-code` | not required (uses Claude Code CLI) |
+| OpenAI Codex | `openai-codex` | not required (uses Codex CLI auth) |
 
-The model is selected automatically by the Hindsight API. To override, set `HINDSIGHT_API_LLM_MODEL`.
-
-**Override with explicit config:**
-
-```bash
-export HINDSIGHT_API_LLM_PROVIDER=openai
-export HINDSIGHT_API_LLM_API_KEY=sk-your-key
-
-# Optional: custom base URL (OpenRouter, Azure, vLLM, etc.)
-export HINDSIGHT_API_LLM_BASE_URL=https://openrouter.ai/api/v1
-```
-
-**Example: Free OpenRouter model**
+**Set provider + API key:**
 
 ```bash
-export HINDSIGHT_API_LLM_PROVIDER=openai
-export HINDSIGHT_API_LLM_MODEL=xiaomi/mimo-v2-flash  # FREE!
-export HINDSIGHT_API_LLM_API_KEY=sk-or-v1-your-openrouter-key
-export HINDSIGHT_API_LLM_BASE_URL=https://openrouter.ai/api/v1
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
 ```
+
+**Override the model (optional — Hindsight picks a sensible default per provider):**
+
+```bash
+openclaw config set plugins.entries.hindsight-openclaw.config.llmModel gpt-4o-mini
+```
+
+**OpenAI-compatible providers (OpenRouter, Azure OpenAI, vLLM, ...):**
+
+```bash
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.hindsight-openclaw.config.llmBaseUrl https://openrouter.ai/api/v1
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id OPENROUTER_API_KEY
+openclaw config set plugins.entries.hindsight-openclaw.config.llmModel xiaomi/mimo-v2-flash
+```
+
+**Use a file or exec source instead of env (for K8s secrets, Vault, etc.):**
+
+```bash
+# File source (e.g. mounted Docker/K8s secret)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source file --ref-provider mounted-json --ref-id /providers/openai/apiKey
+
+# Exec source (e.g. HashiCorp Vault)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source exec --ref-provider vault --ref-id openai/api-key
+```
+
+The corresponding secret provider needs to be configured under `secrets.providers`
+in your OpenClaw config — see `openclaw config set --help` for the
+`--provider-source`/`--provider-path`/`--provider-command` builder flags.
 
 ### External API (Advanced)
 
@@ -234,20 +264,12 @@ Configure in `~/.openclaw/openclaw.json`:
 
 **Options:**
 - `hindsightApiUrl` - Full URL to external Hindsight API (e.g., `https://mcp.hindsight.example.com`)
-- `hindsightApiToken` - API token for authentication (optional, only if API requires auth)
+- `hindsightApiToken` - API token for authentication (optional). **Sensitive** — set as a SecretRef:
 
-#### Environment Variables (Alternative)
-
-You can also configure via environment variables:
-
-```bash
-export HINDSIGHT_EMBED_API_URL=https://your-hindsight-server.com
-export HINDSIGHT_EMBED_API_TOKEN=your-api-token  # Optional
-
-openclaw gateway
-```
-
-**Note:** Plugin config takes precedence over environment variables.
+  ```bash
+  openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken \
+      --ref-source env --ref-provider default --ref-id HINDSIGHT_API_TOKEN
+  ```
 
 #### Behavior
 
@@ -336,26 +358,35 @@ uvx hindsight-embed@latest profile list
 
 ### No API key error
 
-Make sure you've set one of the provider API keys (or use a provider that doesn't require one):
+Make sure you've configured the LLM provider through `openclaw config set`
+(or use a provider that doesn't require a key):
 
 ```bash
-# Option 1: OpenAI
-export OPENAI_API_KEY="sk-your-key"
+# Option 1 — OpenAI (requires OPENAI_API_KEY in your env)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
 
-# Option 2: Anthropic
-export ANTHROPIC_API_KEY="your-key"
+# Option 2 — Anthropic
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider anthropic
+openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+    --ref-source env --ref-provider default --ref-id ANTHROPIC_API_KEY
 
-# Option 3: Claude Code (no API key needed)
-export HINDSIGHT_API_LLM_PROVIDER=claude-code
+# Option 3 — Claude Code (no API key needed)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider claude-code
 
-# Option 4: OpenAI Codex (no API key needed)
-export HINDSIGHT_API_LLM_PROVIDER=openai-codex
+# Option 4 — OpenAI Codex (no API key needed)
+openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai-codex
 
-# Verify it's set
-echo $OPENAI_API_KEY
-# or
-echo $HINDSIGHT_API_LLM_PROVIDER
+# Verify the config is valid
+openclaw config validate
+
+# Inspect the current value
+openclaw config get plugins.entries.hindsight-openclaw.config.llmProvider
 ```
+
+If you used `--ref-source env`, double-check that the referenced env var
+(e.g. `OPENAI_API_KEY`) is exported in the shell that runs `openclaw gateway`.
 
 ### Verify it's working
 
@@ -373,3 +404,29 @@ tail -f /tmp/openclaw/openclaw-*.log | grep Hindsight
 # [Hindsight] Retained X messages for session ...
 # [Hindsight] Auto-recall: Injecting X memories
 ```
+
+## Migration from 0.5.x
+
+0.6.0 removes all process-environment reads from the plugin. Configuration that
+previously came from shell env vars must now go through OpenClaw's plugin config
+(with `SecretRef` for credentials). The plugin no longer auto-detects providers
+from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / etc. — you must set
+`llmProvider` explicitly.
+
+| Old (0.5.x) | New (0.6.0) |
+|---|---|
+| `OPENAI_API_KEY=…` (auto-detected) | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai` <br/> `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
+| `HINDSIGHT_API_LLM_PROVIDER=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider …` |
+| `HINDSIGHT_API_LLM_MODEL=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.llmModel …` |
+| `HINDSIGHT_API_LLM_API_KEY=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id …` |
+| `HINDSIGHT_API_LLM_BASE_URL=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.llmBaseUrl …` |
+| `HINDSIGHT_EMBED_API_URL=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiUrl …` |
+| `HINDSIGHT_EMBED_API_TOKEN=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken --ref-source env --ref-id …` |
+| `HINDSIGHT_BANK_ID=…` | `openclaw config set plugins.entries.hindsight-openclaw.config.bankId …` |
+| `llmApiKeyEnv: "MY_KEY"` (plugin config) | `llmApiKey` configured as a SecretRef with `--ref-id MY_KEY` |
+
+If your shell already exports `OPENAI_API_KEY`, the SecretRef config above
+resolves to the same value at startup — you don't need to change your shell
+setup, just point the plugin at the variable explicitly. Run
+`openclaw config validate` after migrating to confirm the new shape parses
+cleanly.

@@ -265,6 +265,7 @@ ENV_MCP_ENABLED = "HINDSIGHT_API_MCP_ENABLED"
 ENV_MCP_ENABLED_TOOLS = "HINDSIGHT_API_MCP_ENABLED_TOOLS"
 ENV_MCP_STATELESS = "HINDSIGHT_API_MCP_STATELESS"
 ENV_ENABLE_BANK_CONFIG_API = "HINDSIGHT_API_ENABLE_BANK_CONFIG_API"
+ENV_DEFAULT_BANK_TEMPLATE = "HINDSIGHT_API_DEFAULT_BANK_TEMPLATE"
 ENV_GRAPH_RETRIEVER = "HINDSIGHT_API_GRAPH_RETRIEVER"
 ENV_RECALL_MAX_CONCURRENT = "HINDSIGHT_API_RECALL_MAX_CONCURRENT"
 ENV_RECALL_CONNECTION_BUDGET = "HINDSIGHT_API_RECALL_CONNECTION_BUDGET"
@@ -502,6 +503,7 @@ DEFAULT_MCP_ENABLED = True
 DEFAULT_MCP_ENABLED_TOOLS: list[str] | None = None  # None = all tools enabled
 DEFAULT_MCP_STATELESS = False  # False = stateful (supports SSE/GET); True = stateless (POST-only)
 DEFAULT_ENABLE_BANK_CONFIG_API = True
+DEFAULT_DEFAULT_BANK_TEMPLATE: dict | None = None  # BankTemplateManifest dict applied to newly-created banks
 DEFAULT_GRAPH_RETRIEVER = "link_expansion"
 DEFAULT_RECALL_MAX_CONCURRENT = 32  # Max concurrent recall operations per worker
 DEFAULT_RECALL_CONNECTION_BUDGET = 4  # Max concurrent DB connections per recall operation
@@ -676,6 +678,26 @@ def _get_default_model_for_provider(provider: str) -> str:
     return PROVIDER_DEFAULT_MODELS.get(provider.lower(), DEFAULT_LLM_MODEL)
 
 
+def _parse_default_bank_template(raw: str | None) -> dict | None:
+    """
+    Parse HINDSIGHT_API_DEFAULT_BANK_TEMPLATE as JSON.
+
+    The env var holds a BankTemplateManifest (JSON object) applied verbatim to
+    every newly-created bank. Full Pydantic validation is deferred to bank
+    creation time (to avoid pulling API models into config.py), but we fail
+    fast here if the value is not valid JSON or not a JSON object.
+    """
+    if raw is None or raw.strip() == "":
+        return DEFAULT_DEFAULT_BANK_TEMPLATE
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid {ENV_DEFAULT_BANK_TEMPLATE}: expected a JSON object, got invalid JSON: {e}") from e
+    if not isinstance(parsed, dict):
+        raise ValueError(f"Invalid {ENV_DEFAULT_BANK_TEMPLATE}: expected a JSON object, got {type(parsed).__name__}")
+    return parsed
+
+
 @dataclass
 class HindsightConfig:
     """Configuration container for Hindsight API."""
@@ -820,6 +842,9 @@ class HindsightConfig:
     mcp_enabled_tools: list[str] | None  # None = all tools; explicit list = allowlist
     mcp_stateless: bool  # True = stateless HTTP (POST-only); False = stateful (supports GET/SSE)
     enable_bank_config_api: bool
+    # Default bank template (static, server-level only). When set, the manifest is applied
+    # to every newly-created bank, overriding the env/config defaults for any fields it sets.
+    default_bank_template: dict | None
 
     # Recall
     graph_retriever: str
@@ -1346,6 +1371,7 @@ class HindsightConfig:
             mcp_stateless=os.getenv(ENV_MCP_STATELESS, str(DEFAULT_MCP_STATELESS)).lower() == "true",
             enable_bank_config_api=os.getenv(ENV_ENABLE_BANK_CONFIG_API, str(DEFAULT_ENABLE_BANK_CONFIG_API)).lower()
             == "true",
+            default_bank_template=_parse_default_bank_template(os.getenv(ENV_DEFAULT_BANK_TEMPLATE)),
             # Recall
             graph_retriever=os.getenv(ENV_GRAPH_RETRIEVER, DEFAULT_GRAPH_RETRIEVER),
             recall_max_concurrent=int(os.getenv(ENV_RECALL_MAX_CONCURRENT, str(DEFAULT_RECALL_MAX_CONCURRENT))),

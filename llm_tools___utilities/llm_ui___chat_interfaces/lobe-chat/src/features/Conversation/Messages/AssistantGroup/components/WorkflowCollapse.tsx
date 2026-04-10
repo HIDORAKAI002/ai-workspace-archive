@@ -4,6 +4,7 @@ import { cssVar } from 'antd-style';
 import { Check, X } from 'lucide-react';
 import { AnimatePresence, m as motion } from 'motion/react';
 import { type Key, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
@@ -23,7 +24,7 @@ import {
 import {
   areWorkflowToolsComplete,
   formatReasoningDuration,
-  getWorkflowStreamingHeadlineParts,
+  getWorkflowStreamingHeadlineState,
   getWorkflowSummaryText,
   hasToolError,
   shapeProseForWorkflowHeadline,
@@ -42,7 +43,7 @@ const collectTools = (blocks: AssistantContentBlock[]): ChatToolPayloadWithResul
   return blocks.flatMap((b) => b.tools ?? []);
 };
 
-const useDebouncedHeadline = (raw: string, allComplete: boolean) => {
+const useDebouncedHeadline = (raw: string, allComplete: boolean, immediate = false) => {
   const [out, setOut] = useState(raw);
   const prevCompleteRef = useRef(allComplete);
 
@@ -51,6 +52,10 @@ const useDebouncedHeadline = (raw: string, allComplete: boolean) => {
     prevCompleteRef.current = allComplete;
     const streaming = !allComplete;
 
+    if (immediate) {
+      setOut(raw);
+      return;
+    }
     if (!streaming) {
       setOut(raw);
       return;
@@ -61,7 +66,7 @@ const useDebouncedHeadline = (raw: string, allComplete: boolean) => {
     }
     const id = window.setTimeout(() => setOut(raw), WORKFLOW_HEADLINE_DEBOUNCE_MS);
     return () => window.clearTimeout(id);
-  }, [allComplete, raw]);
+  }, [allComplete, immediate, raw]);
 
   return !allComplete ? out : raw;
 };
@@ -94,6 +99,7 @@ const useCommittedProseHeadline = (proseSource: string, streaming: boolean) => {
 
 const WorkflowCollapse = memo<WorkflowCollapseProps>(
   ({ assistantMessageId, blocks, disableEditing, workflowChromeComplete = false }) => {
+    const { t } = useTranslation('chat');
     const allTools = useMemo(() => collectTools(blocks), [blocks]);
     const toolsPhaseComplete = areWorkflowToolsComplete(allTools);
     const isGenerating = useConversationStore(
@@ -131,19 +137,36 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
     const streaming = !allComplete;
     const isExpanded = expanded;
 
-    const { explicitStep, fallbackTool, proseSource } = useMemo(
-      () => getWorkflowStreamingHeadlineParts(blocks, allTools),
-      [blocks, allTools],
+    const headlineState = useMemo(() => getWorkflowStreamingHeadlineState(blocks), [blocks]);
+    const committedProse = useCommittedProseHeadline(
+      headlineState.kind === 'prose' ? headlineState.proseSource : '',
+      streaming,
     );
-    const committedProse = useCommittedProseHeadline(proseSource, streaming);
 
+    const showExpandedWorkingLabel = streaming && isExpanded;
+    const workingLabel = t('workflow.working', { defaultValue: 'Working...' });
     const streamingHeadlineRaw = useMemo(() => {
-      if (explicitStep) return explicitStep;
-      if (committedProse) return committedProse;
-      if (fallbackTool) return fallbackTool;
-      return '';
-    }, [committedProse, explicitStep, fallbackTool]);
-    const streamingHeadline = useDebouncedHeadline(streamingHeadlineRaw, allComplete);
+      if (showExpandedWorkingLabel) return workingLabel;
+      switch (headlineState.kind) {
+        case 'thinking': {
+          return headlineState.reasoningTitle;
+        }
+        case 'tool': {
+          return headlineState.explicitStep || headlineState.fallbackTool;
+        }
+        case 'prose': {
+          return committedProse;
+        }
+        default: {
+          return '';
+        }
+      }
+    }, [committedProse, headlineState, showExpandedWorkingLabel, workingLabel]);
+    const streamingHeadline = useDebouncedHeadline(
+      streamingHeadlineRaw,
+      allComplete,
+      showExpandedWorkingLabel,
+    );
 
     const [workingElapsedSeconds, setWorkingElapsedSeconds] = useState(0);
 
@@ -210,7 +233,7 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
             gap={6}
             style={{ minHeight: WORKFLOW_STREAMING_TITLE_MIN_HEIGHT_PX, minWidth: 0 }}
           >
-            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
               <AnimatePresence initial={false} mode="wait">
                 <motion.div
                   animate={{ opacity: 1, y: 0 }}
@@ -232,7 +255,7 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {streamingHeadline || 'Working...'}
+                    {streamingHeadline || workingLabel}
                   </span>
                 </motion.div>
               </AnimatePresence>
@@ -246,8 +269,13 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
         ) : (
           <Flexbox horizontal align="center" gap={6} style={{ minWidth: 0, overflow: 'hidden' }}>
             <Text
-              style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               type="secondary"
+              style={{
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
             >
               {summaryText}
             </Text>
@@ -264,7 +292,6 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
     return (
       <Accordion
         expandedKeys={isExpanded ? ['workflow'] : []}
-        indicatorPlacement="end"
         variant="borderless"
         onExpandedChange={handleExpandedChange}
       >

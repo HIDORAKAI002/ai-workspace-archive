@@ -1800,6 +1800,150 @@ class BankTemplateImportResponse(BaseModel):
     dry_run: bool = Field(default=False, description="True if this was a validation-only run")
 
 
+def validate_bank_template(manifest: "BankTemplateManifest") -> list[str]:
+    """Validate a parsed manifest beyond Pydantic's structural checks.
+
+    Returns a list of human-readable error strings (e.g. invalid
+    extraction mode values, conflicting settings).
+    """
+    errors: list[str] = []
+    if manifest.bank:
+        bank = manifest.bank
+        if bank.retain_extraction_mode is not None:
+            valid_modes = ("concise", "verbose", "custom", "chunks")
+            if bank.retain_extraction_mode not in valid_modes:
+                errors.append(
+                    f"bank.retain_extraction_mode: must be one of {valid_modes}, got '{bank.retain_extraction_mode}'"
+                )
+        if bank.retain_custom_instructions and bank.retain_extraction_mode != "custom":
+            errors.append("bank.retain_custom_instructions: requires retain_extraction_mode='custom'")
+    if manifest.mental_models:
+        for i, mm in enumerate(manifest.mental_models):
+            if not mm.name.strip():
+                errors.append(f"mental_models[{i}].name: must not be empty")
+            if not mm.source_query.strip():
+                errors.append(f"mental_models[{i}].source_query: must not be empty")
+    if manifest.directives:
+        for i, d in enumerate(manifest.directives):
+            if not d.name.strip():
+                errors.append(f"directives[{i}].name: must not be empty")
+            if not d.content.strip():
+                errors.append(f"directives[{i}].content: must not be empty")
+    return errors
+
+
+async def apply_bank_template_manifest(
+    memory,
+    bank_id: str,
+    manifest: "BankTemplateManifest",
+    request_context: "RequestContext",
+) -> "BankTemplateImportResponse":
+    """Apply a validated BankTemplateManifest to an existing bank.
+
+    Shared by the /import endpoint and the default-template-on-create hook
+    driven by HINDSIGHT_API_DEFAULT_BANK_TEMPLATE. The bank MUST already
+    exist; caller is responsible for validation (Pydantic + validate_bank_template).
+    """
+    config_applied = False
+    if manifest.bank:
+        config_updates = manifest.bank.get_config_updates()
+        if config_updates:
+            await memory._config_resolver.update_bank_config(bank_id, config_updates, request_context)
+            config_applied = True
+
+    created_ids: list[str] = []
+    updated_ids: list[str] = []
+    operation_ids: list[str] = []
+
+    if manifest.mental_models:
+        # Fetch existing mental models to decide create vs update
+        existing = await memory.list_mental_models(bank_id=bank_id, request_context=request_context)
+        existing_by_id = {m["id"]: m for m in existing}
+
+        for mm in manifest.mental_models:
+            if mm.id in existing_by_id:
+                await memory.update_mental_model(
+                    bank_id=bank_id,
+                    mental_model_id=mm.id,
+                    name=mm.name,
+                    source_query=mm.source_query,
+                    max_tokens=mm.max_tokens,
+                    tags=mm.tags if mm.tags else None,
+                    trigger=mm.trigger.model_dump() if mm.trigger else None,
+                    request_context=request_context,
+                )
+                result = await memory.submit_async_refresh_mental_model(
+                    bank_id=bank_id,
+                    mental_model_id=mm.id,
+                    request_context=request_context,
+                )
+                operation_ids.append(result["operation_id"])
+                updated_ids.append(mm.id)
+            else:
+                mental_model = await memory.create_mental_model(
+                    bank_id=bank_id,
+                    name=mm.name,
+                    source_query=mm.source_query,
+                    content="Generating content...",
+                    mental_model_id=mm.id,
+                    tags=mm.tags if mm.tags else None,
+                    max_tokens=mm.max_tokens,
+                    trigger=mm.trigger.model_dump() if mm.trigger else None,
+                    request_context=request_context,
+                )
+                result = await memory.submit_async_refresh_mental_model(
+                    bank_id=bank_id,
+                    mental_model_id=mental_model["id"],
+                    request_context=request_context,
+                )
+                operation_ids.append(result["operation_id"])
+                created_ids.append(mm.id)
+
+    directives_created: list[str] = []
+    directives_updated: list[str] = []
+
+    if manifest.directives:
+        existing_directives = await memory.list_directives(
+            bank_id=bank_id, active_only=False, request_context=request_context
+        )
+        existing_by_name = {d["name"]: d for d in existing_directives}
+
+        for directive in manifest.directives:
+            if directive.name in existing_by_name:
+                await memory.update_directive(
+                    bank_id=bank_id,
+                    directive_id=existing_by_name[directive.name]["id"],
+                    content=directive.content,
+                    priority=directive.priority,
+                    is_active=directive.is_active,
+                    tags=directive.tags if directive.tags else None,
+                    request_context=request_context,
+                )
+                directives_updated.append(directive.name)
+            else:
+                await memory.create_directive(
+                    bank_id=bank_id,
+                    name=directive.name,
+                    content=directive.content,
+                    priority=directive.priority,
+                    is_active=directive.is_active,
+                    tags=directive.tags if directive.tags else None,
+                    request_context=request_context,
+                )
+                directives_created.append(directive.name)
+
+    return BankTemplateImportResponse(
+        bank_id=bank_id,
+        config_applied=config_applied,
+        mental_models_created=created_ids,
+        mental_models_updated=updated_ids,
+        directives_created=directives_created,
+        directives_updated=directives_updated,
+        operation_ids=operation_ids,
+        dry_run=False,
+    )
+
+
 class OperationResponse(BaseModel):
     """Response model for a single async operation."""
 
@@ -4377,38 +4521,6 @@ def _register_routes(app: FastAPI):
     # Bank Template Import / Export
     # =====================================================================
 
-    def _validate_template(manifest: BankTemplateManifest) -> list[str]:
-        """Validate a parsed manifest beyond Pydantic's structural checks.
-
-        Returns a list of human-readable error strings (e.g. invalid
-        extraction mode values, conflicting settings).
-        """
-        errors: list[str] = []
-        if manifest.bank:
-            bank = manifest.bank
-            if bank.retain_extraction_mode is not None:
-                valid_modes = ("concise", "verbose", "custom", "chunks")
-                if bank.retain_extraction_mode not in valid_modes:
-                    errors.append(
-                        f"bank.retain_extraction_mode: must be one of {valid_modes}, "
-                        f"got '{bank.retain_extraction_mode}'"
-                    )
-            if bank.retain_custom_instructions and bank.retain_extraction_mode != "custom":
-                errors.append("bank.retain_custom_instructions: requires retain_extraction_mode='custom'")
-        if manifest.mental_models:
-            for i, mm in enumerate(manifest.mental_models):
-                if not mm.name.strip():
-                    errors.append(f"mental_models[{i}].name: must not be empty")
-                if not mm.source_query.strip():
-                    errors.append(f"mental_models[{i}].source_query: must not be empty")
-        if manifest.directives:
-            for i, d in enumerate(manifest.directives):
-                if not d.name.strip():
-                    errors.append(f"directives[{i}].name: must not be empty")
-                if not d.content.strip():
-                    errors.append(f"directives[{i}].content: must not be empty")
-        return errors
-
     @app.post(
         "/v1/default/banks/{bank_id}/import",
         response_model=BankTemplateImportResponse,
@@ -4444,7 +4556,7 @@ def _register_routes(app: FastAPI):
                 )
 
             # Semantic validation beyond Pydantic structural checks
-            validation_errors = _validate_template(body)
+            validation_errors = validate_bank_template(body)
             if validation_errors:
                 raise HTTPException(
                     status_code=400,
@@ -4462,107 +4574,11 @@ def _register_routes(app: FastAPI):
             # Ensure bank exists (auto-creates with defaults if needed)
             await app.state.memory.get_bank_profile(bank_id, request_context=request_context)
 
-            config_applied = False
-            if body.bank:
-                config_updates = body.bank.get_config_updates()
-                if config_updates:
-                    await app.state.memory._config_resolver.update_bank_config(bank_id, config_updates, request_context)
-                    config_applied = True
-
-            created_ids: list[str] = []
-            updated_ids: list[str] = []
-            operation_ids: list[str] = []
-
-            if body.mental_models:
-                # Fetch existing mental models to decide create vs update
-                existing = await app.state.memory.list_mental_models(bank_id=bank_id, request_context=request_context)
-                existing_by_id = {m["id"]: m for m in existing}
-
-                for mm in body.mental_models:
-                    if mm.id in existing_by_id:
-                        # Update existing mental model metadata
-                        await app.state.memory.update_mental_model(
-                            bank_id=bank_id,
-                            mental_model_id=mm.id,
-                            name=mm.name,
-                            source_query=mm.source_query,
-                            max_tokens=mm.max_tokens,
-                            tags=mm.tags if mm.tags else None,
-                            trigger=mm.trigger.model_dump() if mm.trigger else None,
-                            request_context=request_context,
-                        )
-                        # Schedule a refresh to regenerate content with updated query
-                        result = await app.state.memory.submit_async_refresh_mental_model(
-                            bank_id=bank_id,
-                            mental_model_id=mm.id,
-                            request_context=request_context,
-                        )
-                        operation_ids.append(result["operation_id"])
-                        updated_ids.append(mm.id)
-                    else:
-                        # Create new mental model
-                        mental_model = await app.state.memory.create_mental_model(
-                            bank_id=bank_id,
-                            name=mm.name,
-                            source_query=mm.source_query,
-                            content="Generating content...",
-                            mental_model_id=mm.id,
-                            tags=mm.tags if mm.tags else None,
-                            max_tokens=mm.max_tokens,
-                            trigger=mm.trigger.model_dump() if mm.trigger else None,
-                            request_context=request_context,
-                        )
-                        result = await app.state.memory.submit_async_refresh_mental_model(
-                            bank_id=bank_id,
-                            mental_model_id=mental_model["id"],
-                            request_context=request_context,
-                        )
-                        operation_ids.append(result["operation_id"])
-                        created_ids.append(mm.id)
-
-            directives_created: list[str] = []
-            directives_updated: list[str] = []
-
-            if body.directives:
-                # Fetch existing directives to decide create vs update (matched by name)
-                existing_directives = await app.state.memory.list_directives(
-                    bank_id=bank_id, active_only=False, request_context=request_context
-                )
-                existing_by_name = {d["name"]: d for d in existing_directives}
-
-                for directive in body.directives:
-                    if directive.name in existing_by_name:
-                        await app.state.memory.update_directive(
-                            bank_id=bank_id,
-                            directive_id=existing_by_name[directive.name]["id"],
-                            content=directive.content,
-                            priority=directive.priority,
-                            is_active=directive.is_active,
-                            tags=directive.tags if directive.tags else None,
-                            request_context=request_context,
-                        )
-                        directives_updated.append(directive.name)
-                    else:
-                        await app.state.memory.create_directive(
-                            bank_id=bank_id,
-                            name=directive.name,
-                            content=directive.content,
-                            priority=directive.priority,
-                            is_active=directive.is_active,
-                            tags=directive.tags if directive.tags else None,
-                            request_context=request_context,
-                        )
-                        directives_created.append(directive.name)
-
-            return BankTemplateImportResponse(
+            return await apply_bank_template_manifest(
+                memory=app.state.memory,
                 bank_id=bank_id,
-                config_applied=config_applied,
-                mental_models_created=created_ids,
-                mental_models_updated=updated_ids,
-                directives_created=directives_created,
-                directives_updated=directives_updated,
-                operation_ids=operation_ids,
-                dry_run=False,
+                manifest=body,
+                request_context=request_context,
             )
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -4964,7 +4980,9 @@ def _register_routes(app: FastAPI):
             from hindsight_api.engine.retain import bank_utils
 
             # Ensure the bank row exists before inserting into webhooks (FK constraint).
-            await bank_utils.get_bank_profile(pool, bank_id)
+            _, created = await bank_utils.get_or_create_bank_profile(pool, bank_id)
+            if created:
+                await app.state.memory._apply_default_bank_template(bank_id, request_context)
 
             webhook_id = uuid.uuid4()
             now = datetime.now(timezone.utc).isoformat()

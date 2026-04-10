@@ -2,12 +2,14 @@
 import numpy as np
 import pytest
 from datetime import datetime, timezone, timedelta
+from unittest.mock import AsyncMock, MagicMock
 
 from hindsight_api.engine.retain.link_utils import (
     _normalize_datetime,
     _cap_links_per_unit,
     compute_temporal_links,
     compute_temporal_query_bounds,
+    compute_semantic_links_ann,
     compute_semantic_links_within_batch,
     MAX_TEMPORAL_LINKS_PER_UNIT,
 )
@@ -388,3 +390,145 @@ class TestComputeSemanticLinksWithinBatch:
             assert link_type == "semantic"
             assert 0.0 <= weight <= 1.0
             assert entity_id is None
+
+
+class TestComputeSemanticLinksAnnPgBouncerSafety:
+    """Regression tests ensuring compute_semantic_links_ann stays in a single
+    transaction so that the `_ann_seeds` temp table remains visible when the
+    caller's connection goes through pgBouncer in `transaction` pool mode.
+
+    In pgBouncer transaction mode, the backend is only pinned to the client
+    for the duration of an actual PostgreSQL transaction. Outside a
+    transaction, consecutive statements can land on different backends, and
+    session-scoped temp tables (which are bound to the backend that created
+    them) become invisible. The observed failure mode was an intermittent
+    `relation "_ann_seeds" does not exist` on the statement immediately
+    following the CREATE TEMP TABLE.
+    """
+
+    @pytest.fixture
+    def mock_conn(self):
+        """An asyncpg-like connection mock with an async `transaction()`
+        context manager and awaitable execute/fetch/copy helpers."""
+        conn = MagicMock()
+
+        txn_cm = MagicMock()
+        txn_cm.__aenter__ = AsyncMock(return_value=None)
+        txn_cm.__aexit__ = AsyncMock(return_value=None)
+        conn.transaction = MagicMock(return_value=txn_cm)
+
+        conn.execute = AsyncMock()
+        conn.copy_records_to_table = AsyncMock()
+        conn.fetch = AsyncMock(return_value=[])
+        return conn
+
+    @pytest.mark.asyncio
+    async def test_empty_inputs_skip_transaction(self, mock_conn):
+        """No seeds -> no work, no transaction, no temp-table churn."""
+        result = await compute_semantic_links_ann(
+            conn=mock_conn,
+            bank_id="bank-1",
+            unit_ids=[],
+            embeddings=[],
+        )
+        assert result == []
+        mock_conn.transaction.assert_not_called()
+        mock_conn.execute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_runs_inside_a_transaction(self, mock_conn):
+        """The full CREATE TEMP TABLE -> COPY -> SELECT sequence must happen
+        inside a single `async with conn.transaction():` block."""
+        emb = [0.1] * 384
+        await compute_semantic_links_ann(
+            conn=mock_conn,
+            bank_id="bank-1",
+            unit_ids=["u1", "u2"],
+            embeddings=[emb, emb],
+            fact_types=["world", "world"],
+        )
+
+        # Transaction context manager was entered.
+        mock_conn.transaction.assert_called_once()
+        txn_cm = mock_conn.transaction.return_value
+        txn_cm.__aenter__.assert_awaited_once()
+        txn_cm.__aexit__.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_temp_table_uses_on_commit_drop(self, mock_conn):
+        """The CREATE TEMP TABLE statement must use ON COMMIT DROP so the
+        table is transaction-scoped. Without ON COMMIT DROP the table would
+        be session-scoped and would not survive pgBouncer backend rebinding
+        between transactions."""
+        emb = [0.1] * 384
+        await compute_semantic_links_ann(
+            conn=mock_conn,
+            bank_id="bank-1",
+            unit_ids=["u1"],
+            embeddings=[emb],
+            fact_types=["world"],
+        )
+
+        executed_sql = [call.args[0] for call in mock_conn.execute.call_args_list]
+        create_statements = [s for s in executed_sql if "CREATE TEMP TABLE" in s]
+        assert len(create_statements) == 1, "Should create _ann_seeds exactly once"
+        assert "_ann_seeds" in create_statements[0]
+        assert "ON COMMIT DROP" in create_statements[0], (
+            "CREATE TEMP TABLE must use ON COMMIT DROP so the table is cleaned "
+            "up at transaction end and is transaction-scoped"
+        )
+
+        # Must not use IF NOT EXISTS — the table is fresh each transaction.
+        assert "IF NOT EXISTS" not in create_statements[0], (
+            "With ON COMMIT DROP the table is always fresh at transaction start, "
+            "so IF NOT EXISTS is both unnecessary and misleading (suggests the "
+            "table might persist across transactions)"
+        )
+
+    @pytest.mark.asyncio
+    async def test_no_manual_drop_or_truncate(self, mock_conn):
+        """With ON COMMIT DROP we must not re-add manual TRUNCATE or DROP
+        statements — they were the source of the original pgBouncer bug."""
+        emb = [0.1] * 384
+        await compute_semantic_links_ann(
+            conn=mock_conn,
+            bank_id="bank-1",
+            unit_ids=["u1"],
+            embeddings=[emb],
+            fact_types=["world"],
+        )
+
+        executed_sql = [call.args[0] for call in mock_conn.execute.call_args_list]
+        assert not any("TRUNCATE _ann_seeds" in s for s in executed_sql), (
+            "TRUNCATE is unnecessary with ON COMMIT DROP and was previously "
+            "the statement that failed with 'relation does not exist' when "
+            "pgBouncer rebound the backend"
+        )
+        assert not any("DROP TABLE" in s and "_ann_seeds" in s for s in executed_sql), (
+            "Explicit DROP is unnecessary with ON COMMIT DROP"
+        )
+
+    @pytest.mark.asyncio
+    async def test_uses_set_local_for_ef_search(self, mock_conn):
+        """hnsw.ef_search must be set with SET LOCAL so the change is scoped
+        to the transaction. Without SET LOCAL, the setting would leak onto
+        the pooled backend and affect subsequent recall queries that land
+        on the same backend."""
+        emb = [0.1] * 384
+        await compute_semantic_links_ann(
+            conn=mock_conn,
+            bank_id="bank-1",
+            unit_ids=["u1"],
+            embeddings=[emb],
+            fact_types=["world"],
+        )
+
+        executed_sql = [call.args[0] for call in mock_conn.execute.call_args_list]
+        ef_statements = [s for s in executed_sql if "hnsw.ef_search" in s]
+        assert ef_statements, "ef_search must be tuned down for retain ANN"
+        for stmt in ef_statements:
+            assert stmt.strip().startswith("SET LOCAL"), (
+                f"hnsw.ef_search must use SET LOCAL, got: {stmt}"
+            )
+        # And there must not be a RESET — SET LOCAL handles it at commit.
+        assert not any("RESET hnsw.ef_search" in s for s in executed_sql)

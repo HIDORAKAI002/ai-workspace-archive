@@ -98,9 +98,13 @@ pub async fn run(db: StateStore, cfg: Config) -> Result<()> {
                     (_, KeyCode::Char('I')) => dashboard.focus_next_approval_target(),
                     (_, KeyCode::Char('g')) => dashboard.auto_dispatch_backlog().await,
                     (_, KeyCode::Char('G')) => dashboard.coordinate_backlog().await,
+                    (_, KeyCode::Char('K')) => dashboard.toggle_context_graph_mode(),
                     (_, KeyCode::Char('h')) => dashboard.collapse_selected_pane(),
                     (_, KeyCode::Char('H')) => dashboard.restore_collapsed_panes(),
                     (_, KeyCode::Char('y')) => dashboard.toggle_timeline_mode(),
+                    (_, KeyCode::Char('E')) if dashboard.is_context_graph_mode() => {
+                        dashboard.cycle_graph_entity_filter()
+                    }
                     (_, KeyCode::Char('E')) => dashboard.cycle_timeline_event_filter(),
                     (_, KeyCode::Char('v')) => dashboard.toggle_output_mode(),
                     (_, KeyCode::Char('z')) => dashboard.toggle_git_status_mode(),

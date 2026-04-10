@@ -72,5 +72,5 @@ When using Declarative Automation, dependency-based automation conditions like `
 
 To make automation conditions look through virtual assets to their non-virtual ancestors, use the `.resolve_through_virtual()` modifier. For more information, see:
 
-- [Customizing on_cron: resolving dependencies through virtual assets](/guides/automate/declarative-automation/customizing-automation-conditions/customizing-on-cron-condition#resolving-dependencies-through-virtual-assets)
-- [Customizing eager: resolving dependencies through virtual assets](/guides/automate/declarative-automation/customizing-automation-conditions/customizing-eager-condition#resolving-dependencies-through-virtual-assets)
+- [Customizing on_cron: resolving dependencies through virtual assets](/guides/automate/declarative-automation/customizing-automation-conditions/customizing-on-cron-condition#resolving-dependencies-through-virtual-assets-views)
+- [Customizing eager: resolving dependencies through virtual assets](/guides/automate/declarative-automation/customizing-automation-conditions/customizing-eager-condition#resolving-dependencies-through-virtual-assets-views)

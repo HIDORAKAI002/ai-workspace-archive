@@ -68,6 +68,8 @@ export function createTools(
                 budget: config.recallBudget as 'low' | 'mid' | 'high',
                 maxTokens: config.recallMaxTokens,
                 types: config.recallTypes,
+                tags: config.recallTags.length ? config.recallTags : undefined,
+                tagsMatch: config.recallTags.length ? config.recallTagsMatch : undefined,
             });
 
             const results = response.results || [];

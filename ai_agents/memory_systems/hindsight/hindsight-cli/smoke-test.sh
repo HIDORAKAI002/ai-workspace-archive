@@ -118,6 +118,41 @@ run_test "clear memories" "$HINDSIGHT_CLI" memory clear "$TEST_BANK" || FAILED=1
 # Test 15: List operations
 run_test "list operations" "$HINDSIGHT_CLI" operation list "$TEST_BANK" || FAILED=1
 
+# --- Coverage-critical commands (added to ensure CLI exercises every endpoint) ---
+
+# Test: Set disposition directly (PUT /profile)
+run_test "bank set-disposition" "$HINDSIGHT_CLI" bank set-disposition "$TEST_BANK" \
+    --skepticism 3 --literalism 3 --empathy 3 || FAILED=1
+
+# Test: Recover consolidation (no-op when nothing stalled, but exercises the endpoint)
+run_test "bank consolidation-recover" "$HINDSIGHT_CLI" bank consolidation-recover "$TEST_BANK" || FAILED=1
+
+# Test: Bank template schema
+run_test "bank template-schema" "$HINDSIGHT_CLI" bank template-schema -o json || FAILED=1
+
+# Test: Export bank template
+run_test "bank export-template" "$HINDSIGHT_CLI" bank export-template "$TEST_BANK" -o json || FAILED=1
+
+# Test: Audit log list + stats
+run_test "audit list" "$HINDSIGHT_CLI" audit list "$TEST_BANK" -o json || FAILED=1
+run_test "audit stats" "$HINDSIGHT_CLI" audit stats "$TEST_BANK" -o json || FAILED=1
+
+# Test: Webhook lifecycle (list / create / update / deliveries / delete)
+run_test "webhook list (empty)" "$HINDSIGHT_CLI" webhook list "$TEST_BANK" -o json || FAILED=1
+
+WEBHOOK_OUT=$("$HINDSIGHT_CLI" webhook create "$TEST_BANK" https://example.invalid/hook -o json 2>/tmp/cli-test-output.txt || true)
+if echo "$WEBHOOK_OUT" | grep -q '"id"'; then
+    echo "Testing: webhook create... OK"
+    WEBHOOK_ID=$(echo "$WEBHOOK_OUT" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+    run_test "webhook update" "$HINDSIGHT_CLI" webhook update "$TEST_BANK" "$WEBHOOK_ID" --enabled false || FAILED=1
+    run_test "webhook deliveries" "$HINDSIGHT_CLI" webhook deliveries "$TEST_BANK" "$WEBHOOK_ID" -o json || FAILED=1
+    run_test "webhook delete" "$HINDSIGHT_CLI" webhook delete "$TEST_BANK" "$WEBHOOK_ID" -y || FAILED=1
+else
+    echo "Testing: webhook create... FAILED"
+    cat /tmp/cli-test-output.txt | sed 's/^/    /'
+    FAILED=1
+fi
+
 # Test 16: Delete bank
 run_test "delete bank" "$HINDSIGHT_CLI" bank delete "$TEST_BANK" -y || FAILED=1
 

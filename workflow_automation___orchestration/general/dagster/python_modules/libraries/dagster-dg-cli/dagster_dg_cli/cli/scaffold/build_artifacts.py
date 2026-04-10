@@ -22,7 +22,6 @@ from dagster_dg_cli.cli.plus.deploy.configure.configure_build_artifacts import (
     configure_build_artifacts_impl,
 )
 from dagster_dg_cli.cli.plus.deploy.configure.utils import DgPlusDeployConfigureOptions
-from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
 
 def _resolve_config_for_build_artifacts(
@@ -37,6 +36,8 @@ def _resolve_config_for_build_artifacts(
     This command only scaffolds build artifacts (no CI/CD), and tries to detect
     agent type/platform from Plus config but doesn't prompt if unavailable.
     """
+    from dagster_rest_resources.gql_client import DagsterPlusGraphQLClient
+
     plus_config = DagsterPlusCliConfig.get() if DagsterPlusCliConfig.exists() else None
 
     # Try to detect agent type and platform from Plus config

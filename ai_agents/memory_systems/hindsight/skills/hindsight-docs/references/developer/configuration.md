@@ -1289,6 +1289,33 @@ Configuration fields are categorized for security:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_ENABLE_BANK_CONFIG_API` | Enable per-bank config API | `true` |
+| `HINDSIGHT_API_DEFAULT_BANK_TEMPLATE` | Bank template manifest (JSON) applied automatically to every newly-created bank. See below. | _(unset)_ |
+
+##### `HINDSIGHT_API_DEFAULT_BANK_TEMPLATE`
+
+Server-level default bank template. When set, the manifest is applied once
+to every bank the server creates — triggered the first time a bank is
+touched (via `PUT /v1/default/banks/{bank_id}`, `/import`, `/retain`, etc.).
+The value is a JSON-encoded `BankTemplateManifest` with the same shape
+accepted by `POST /v1/default/banks/{bank_id}/import` (see the `bank`,
+`mental_models`, and `directives` sections in the Bank Templates API).
+
+Precedence: fields set by the template become per-bank overrides, so they
+take precedence over the equivalent `HINDSIGHT_API_*` env-var defaults
+(e.g. `HINDSIGHT_API_RETAIN_EXTRACTION_MODE`). Users can still override
+individual fields later via `PATCH /v1/default/banks/{bank_id}/config`;
+the template is **not** re-applied on subsequent accesses, so explicit
+overrides are never clobbered.
+
+A malformed manifest (bad JSON, unknown version, schema errors) is logged
+and ignored — bank creation still succeeds with plain defaults, so a
+broken server-level setting cannot wedge all callers.
+
+Example (compact, single-line JSON as required by env vars):
+
+```bash
+export HINDSIGHT_API_DEFAULT_BANK_TEMPLATE='{"version":"1","bank":{"reflect_mission":"Help support agents remember customer interactions.","retain_extraction_mode":"verbose","disposition_empathy":5},"directives":[{"name":"Be concise","content":"Always respond concisely.","priority":10}]}'
+```
 
 #### API Endpoints
 

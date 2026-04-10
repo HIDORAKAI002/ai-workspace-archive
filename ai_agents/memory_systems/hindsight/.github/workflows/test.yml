@@ -32,6 +32,7 @@ jobs:
       helm: ${{ steps.filter.outputs.helm }}
       docs: ${{ steps.filter.outputs.docs }}
       embed: ${{ steps.filter.outputs.embed }}
+      all-npm: ${{ steps.filter.outputs.all-npm }}
       hindsight-all: ${{ steps.filter.outputs.hindsight-all }}
       integration-tests: ${{ steps.filter.outputs.integration-tests }}
       integrations-openclaw: ${{ steps.filter.outputs.integrations-openclaw }}
@@ -92,6 +93,10 @@ jobs:
             - '*.md'
           embed:
             - 'hindsight-embed/**'
+          all-npm:
+            - 'hindsight-all-npm/**'
+            - 'package.json'
+            - 'package-lock.json'
           hindsight-all:
             - 'hindsight-all/**'
           integration-tests:
@@ -183,12 +188,12 @@ jobs:
     - name: Build TypeScript client
       run: npm run build --workspace=hindsight-clients/typescript
 
-  build-openclaw-integration:
+  build-hindsight-all-npm:
     needs: [detect-changes]
     if: >-
       github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-openclaw == 'true' ||
+      needs.detect-changes.outputs.all-npm == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
     runs-on: ubuntu-latest
 
@@ -201,18 +206,70 @@ jobs:
       uses: actions/setup-node@v6
       with:
         node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
 
     - name: Install dependencies
+      run: npm ci --workspace=hindsight-all-npm
+
+    - name: Run tests
+      run: npm test --workspace=hindsight-all-npm
+
+    - name: Build
+      run: npm run build --workspace=hindsight-all-npm
+
+  build-openclaw-integration:
+    needs: [detect-changes]
+    if: >-
+      github.event_name != 'pull_request_review' &&
+      (github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.integrations-openclaw == 'true' ||
+      needs.detect-changes.outputs.clients-ts == 'true' ||
+      needs.detect-changes.outputs.all-npm == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    # openclaw depends on two monorepo workspaces via `file:` deps:
+    # @vectorize-io/hindsight-client and @vectorize-io/hindsight-all. Their
+    # `dist/` directories are gitignored, so we must build them first.
+    # Otherwise vitest/tsc in openclaw fails with
+    # "Failed to resolve entry for package ..." on the value imports.
+    - name: Install root workspace dependencies
+      run: npm ci
+
+    - name: Build hindsight-client (openclaw dep)
+      run: npm run build --workspace=hindsight-clients/typescript
+
+    - name: Build hindsight-all-npm (openclaw dep)
+      run: npm run build --workspace=hindsight-all-npm
+
+    - name: Install openclaw dependencies
       working-directory: ./hindsight-integrations/openclaw
       run: npm ci
+
+    # Build must run before tests: one unit test in src/backfill.test.ts
+    # creates a symlink to `$cwd/dist/backfill.js` and calls realpathSync on
+    # it via isDirectExecution(). Without a populated dist/ the realpath call
+    # throws, both paths stay unresolved, and the equality assertion fails.
+    - name: Build
+      working-directory: ./hindsight-integrations/openclaw
+      run: npm run build
 
     - name: Run tests
       working-directory: ./hindsight-integrations/openclaw
       run: npm test
-
-    - name: Build
-      working-directory: ./hindsight-integrations/openclaw
-      run: npm run build
 
   test-claude-code-integration:
     needs: [detect-changes]
@@ -1525,6 +1582,18 @@ jobs:
         print('Models downloaded successfully')
         "
 
+    # openclaw depends on @vectorize-io/hindsight-client and
+    # @vectorize-io/hindsight-all via `file:` — their `dist/` directories are
+    # gitignored and must be built before openclaw's npm ci copies them.
+    - name: Install root workspace dependencies
+      run: npm ci
+
+    - name: Build hindsight-client (openclaw dep)
+      run: npm run build --workspace=hindsight-clients/typescript
+
+    - name: Build hindsight-all-npm (openclaw dep)
+      run: npm run build --workspace=hindsight-all-npm
+
     - name: Install openclaw integration dependencies
       working-directory: ./hindsight-integrations/openclaw
       run: npm ci
@@ -2441,6 +2510,40 @@ jobs:
         cd hindsight-dev
         uv run check-openapi-compatibility /tmp/old-openapi.json ../hindsight-docs/static/openapi.json
 
+  check-cli-coverage:
+    needs: [detect-changes]
+    if: >-
+      github.event_name != 'pull_request_review' &&
+      (github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.cli == 'true' ||
+      needs.detect-changes.outputs.dev == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Install hindsight-dev dependencies
+      run: |
+        cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match
+
+    - name: Check CLI covers every OpenAPI operation
+      run: |
+        cd hindsight-dev
+        uv run cli-coverage-check
+
   # Report CI status back to the PR for pull_request_review events.
   # GitHub does not automatically link pull_request_review check runs to the PR,
   # so we create a commit status on the PR head SHA and post a comment.
@@ -2484,6 +2587,7 @@ jobs:
       - test-upgrade
       - verify-generated-files
       - check-openapi-compatibility
+      - check-cli-coverage
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -2524,8 +2628,7 @@ jobs:
             core.setOutput('run_url', runUrl);
 
       - name: Report status to PR
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createCommitStatus({

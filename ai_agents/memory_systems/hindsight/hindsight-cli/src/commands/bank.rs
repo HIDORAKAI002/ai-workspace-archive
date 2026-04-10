@@ -1,7 +1,7 @@
-use anyhow::{anyhow, Result};
 use crate::api::ApiClient;
 use crate::output::{self, OutputFormat};
 use crate::ui;
+use anyhow::{anyhow, Result};
 
 pub fn list(client: &ApiClient, verbose: bool, output_format: OutputFormat) -> Result<()> {
     let spinner = if output_format == OutputFormat::Pretty {
@@ -32,11 +32,16 @@ pub fn list(client: &ApiClient, verbose: bool, output_format: OutputFormat) -> R
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
-pub fn disposition(client: &ApiClient, bank_id: &str, verbose: bool, output_format: OutputFormat) -> Result<()> {
+pub fn disposition(
+    client: &ApiClient,
+    bank_id: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
     let spinner = if output_format == OutputFormat::Pretty {
         Some(ui::create_spinner("Fetching disposition..."))
     } else {
@@ -58,11 +63,16 @@ pub fn disposition(client: &ApiClient, bank_id: &str, verbose: bool, output_form
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
-pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: OutputFormat) -> Result<()> {
+pub fn stats(
+    client: &ApiClient,
+    bank_id: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
     let spinner = if output_format == OutputFormat::Pretty {
         Some(ui::create_spinner("Fetching statistics..."))
     } else {
@@ -80,9 +90,21 @@ pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: Ou
             if output_format == OutputFormat::Pretty {
                 ui::print_section_header(&format!("Statistics: {}", bank_id));
 
-                println!("  {} {}", ui::dim("memory units:"), ui::gradient_start(&stats.total_nodes.to_string()));
-                println!("  {} {}", ui::dim("links:"), ui::gradient_mid(&stats.total_links.to_string()));
-                println!("  {} {}", ui::dim("documents:"), ui::gradient_end(&stats.total_documents.to_string()));
+                println!(
+                    "  {} {}",
+                    ui::dim("memory units:"),
+                    ui::gradient_start(&stats.total_nodes.to_string())
+                );
+                println!(
+                    "  {} {}",
+                    ui::dim("links:"),
+                    ui::gradient_mid(&stats.total_links.to_string())
+                );
+                println!(
+                    "  {} {}",
+                    ui::dim("documents:"),
+                    ui::gradient_end(&stats.total_documents.to_string())
+                );
                 println!();
 
                 println!("{}", ui::gradient_text("─── Memory Units by Type ───"));
@@ -90,7 +112,11 @@ pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: Ou
                 fact_types.sort_by_key(|(k, _)| *k);
                 for (i, (fact_type, count)) in fact_types.iter().enumerate() {
                     let t = i as f32 / fact_types.len().max(1) as f32;
-                    println!("  {:<10} {}", fact_type, ui::gradient(&count.to_string(), t));
+                    println!(
+                        "  {:<10} {}",
+                        fact_type,
+                        ui::gradient(&count.to_string(), t)
+                    );
                 }
                 println!();
 
@@ -99,7 +125,11 @@ pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: Ou
                 link_types.sort_by_key(|(k, _)| *k);
                 for (i, (link_type, count)) in link_types.iter().enumerate() {
                     let t = i as f32 / link_types.len().max(1) as f32;
-                    println!("  {:<10} {}", link_type, ui::gradient(&count.to_string(), t));
+                    println!(
+                        "  {:<10} {}",
+                        link_type,
+                        ui::gradient(&count.to_string(), t)
+                    );
                 }
                 println!();
 
@@ -108,7 +138,11 @@ pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: Ou
                 fact_type_links.sort_by_key(|(k, _)| *k);
                 for (i, (fact_type, count)) in fact_type_links.iter().enumerate() {
                     let t = i as f32 / fact_type_links.len().max(1) as f32;
-                    println!("  {:<10} {}", fact_type, ui::gradient(&count.to_string(), t));
+                    println!(
+                        "  {:<10} {}",
+                        fact_type,
+                        ui::gradient(&count.to_string(), t)
+                    );
                 }
                 println!();
 
@@ -141,11 +175,17 @@ pub fn stats(client: &ApiClient, bank_id: &str, verbose: bool, output_format: Ou
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
-pub fn update_name(client: &ApiClient, bank_id: &str, name: &str, verbose: bool, output_format: OutputFormat) -> Result<()> {
+pub fn update_name(
+    client: &ApiClient,
+    bank_id: &str,
+    name: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
     let spinner = if output_format == OutputFormat::Pretty {
         Some(ui::create_spinner("Updating bank name..."))
     } else {
@@ -167,7 +207,7 @@ pub fn update_name(client: &ApiClient, bank_id: &str, name: &str, verbose: bool,
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -177,7 +217,7 @@ pub fn update_background(
     content: &str,
     no_update_disposition: bool,
     verbose: bool,
-    output_format: OutputFormat
+    output_format: OutputFormat,
 ) -> Result<()> {
     let current_profile = if !no_update_disposition {
         client.get_profile(bank_id, verbose).ok()
@@ -204,9 +244,10 @@ pub fn update_background(
                 println!("\n{}", profile.mission);
 
                 if !no_update_disposition {
-                    if let (Some(old_p), Some(new_p)) =
-                        (current_profile.as_ref().map(|p| p.disposition.clone()), &profile.disposition)
-                    {
+                    if let (Some(old_p), Some(new_p)) = (
+                        current_profile.as_ref().map(|p| p.disposition.clone()),
+                        &profile.disposition,
+                    ) {
                         println!("\nDisposition changes:");
                         println!("  Skepticism:  {} → {}", old_p.skepticism, new_p.skepticism);
                         println!("  Literalism:  {} → {}", old_p.literalism, new_p.literalism);
@@ -218,7 +259,7 @@ pub fn update_background(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -329,7 +370,12 @@ pub fn update(
     verbose: bool,
     output_format: OutputFormat,
 ) -> Result<()> {
-    if name.is_none() && mission_text.is_none() && skepticism.is_none() && literalism.is_none() && empathy.is_none() {
+    if name.is_none()
+        && mission_text.is_none()
+        && skepticism.is_none()
+        && literalism.is_none()
+        && empathy.is_none()
+    {
         anyhow::bail!("At least one field must be provided (--name, --mission, --skepticism, --literalism, --empathy)");
     }
 
@@ -407,20 +453,27 @@ pub fn graph(
             if output_format == OutputFormat::Pretty {
                 ui::print_section_header(&format!("Memory Graph: {}", bank_id));
 
-                println!("  {} {}", ui::dim("Nodes:"), ui::gradient_start(&result.nodes.len().to_string()));
-                println!("  {} {}", ui::dim("Edges:"), ui::gradient_end(&result.edges.len().to_string()));
+                println!(
+                    "  {} {}",
+                    ui::dim("Nodes:"),
+                    ui::gradient_start(&result.nodes.len().to_string())
+                );
+                println!(
+                    "  {} {}",
+                    ui::dim("Edges:"),
+                    ui::gradient_end(&result.edges.len().to_string())
+                );
                 println!();
 
                 // Show sample of nodes
                 if !result.nodes.is_empty() {
                     println!("{}", ui::gradient_text("─── Sample Nodes ───"));
                     for node in result.nodes.iter().take(5) {
-                        let fact_type = node.get("type")
+                        let fact_type = node
+                            .get("type")
                             .and_then(|v| v.as_str())
                             .unwrap_or("unknown");
-                        let id = node.get("id")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("unknown");
+                        let id = node.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
                         println!("  {} [{}]", ui::dim(id), fact_type);
                         if let Some(text) = node.get("text").and_then(|v| v.as_str()) {
                             let preview: String = text.chars().take(60).collect();
@@ -429,12 +482,18 @@ pub fn graph(
                         }
                     }
                     if result.nodes.len() > 5 {
-                        println!("  {} more...", ui::dim(&format!("+ {}", result.nodes.len() - 5)));
+                        println!(
+                            "  {} more...",
+                            ui::dim(&format!("+ {}", result.nodes.len() - 5))
+                        );
                     }
                     println!();
                 }
 
-                println!("{}", ui::dim("Use JSON output for full graph data: -o json"));
+                println!(
+                    "{}",
+                    ui::dim("Use JSON output for full graph data: -o json")
+                );
             } else {
                 output::print_output(&result, output_format)?;
             }
@@ -449,7 +508,7 @@ pub fn delete(
     bank_id: &str,
     yes: bool,
     verbose: bool,
-    output_format: OutputFormat
+    output_format: OutputFormat,
 ) -> Result<()> {
     // Confirmation prompt unless -y flag is used
     if !yes && output_format == OutputFormat::Pretty {
@@ -494,7 +553,7 @@ pub fn delete(
             }
             Ok(())
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -527,7 +586,11 @@ pub fn consolidate(
                 ui::print_success("Consolidation triggered");
                 println!("  {} {}", ui::dim("Operation ID:"), operation_id);
                 if result.deduplicated {
-                    println!("  {} {}", ui::dim("Note:"), "Reusing existing pending consolidation task");
+                    println!(
+                        "  {} {}",
+                        ui::dim("Note:"),
+                        "Reusing existing pending consolidation task"
+                    );
                 }
             } else {
                 output::print_output(&result, output_format)?;
@@ -544,7 +607,13 @@ pub fn consolidate(
             // Poll for completion
             if output_format == OutputFormat::Pretty {
                 println!();
-                println!("{}", ui::dim(&format!("Polling every {}s for completion...", poll_interval)));
+                println!(
+                    "{}",
+                    ui::dim(&format!(
+                        "Polling every {}s for completion...",
+                        poll_interval
+                    ))
+                );
             }
 
             let start = std::time::Instant::now();
@@ -561,7 +630,10 @@ pub fn consolidate(
                         match op.map(|o| o.status.as_str()) {
                             Some("completed") => {
                                 if output_format == OutputFormat::Pretty {
-                                    ui::print_success(&format!("Consolidation completed ({}s)", elapsed));
+                                    ui::print_success(&format!(
+                                        "Consolidation completed ({}s)",
+                                        elapsed
+                                    ));
                                 }
                                 break;
                             }
@@ -571,7 +643,10 @@ pub fn consolidate(
                                     .map(|s| s.as_str())
                                     .unwrap_or("Unknown error");
                                 if output_format == OutputFormat::Pretty {
-                                    ui::print_error(&format!("Consolidation failed: {}", error_msg));
+                                    ui::print_error(&format!(
+                                        "Consolidation failed: {}",
+                                        error_msg
+                                    ));
                                 }
                                 std::process::exit(1);
                             }
@@ -582,7 +657,10 @@ pub fn consolidate(
                             }
                             None => {
                                 if output_format == OutputFormat::Pretty {
-                                    ui::print_warning(&format!("Operation {} not found in list", operation_id));
+                                    ui::print_warning(&format!(
+                                        "Operation {} not found in list",
+                                        operation_id
+                                    ));
                                 }
                                 break;
                             }
@@ -732,37 +810,67 @@ pub fn set_config(
     let mut updates: HashMap<String, serde_json::Value> = HashMap::new();
 
     if let Some(provider) = llm_provider {
-        updates.insert("llm_provider".to_string(), serde_json::Value::String(provider));
+        updates.insert(
+            "llm_provider".to_string(),
+            serde_json::Value::String(provider),
+        );
     }
     if let Some(model) = llm_model {
         updates.insert("llm_model".to_string(), serde_json::Value::String(model));
     }
     if let Some(api_key) = llm_api_key {
-        updates.insert("llm_api_key".to_string(), serde_json::Value::String(api_key));
+        updates.insert(
+            "llm_api_key".to_string(),
+            serde_json::Value::String(api_key),
+        );
     }
     if let Some(base_url) = llm_base_url {
-        updates.insert("llm_base_url".to_string(), serde_json::Value::String(base_url));
+        updates.insert(
+            "llm_base_url".to_string(),
+            serde_json::Value::String(base_url),
+        );
     }
     if let Some(mission) = retain_mission {
-        updates.insert("retain_mission".to_string(), serde_json::Value::String(mission));
+        updates.insert(
+            "retain_mission".to_string(),
+            serde_json::Value::String(mission),
+        );
     }
     if let Some(mode) = retain_extraction_mode {
-        updates.insert("retain_extraction_mode".to_string(), serde_json::Value::String(mode));
+        updates.insert(
+            "retain_extraction_mode".to_string(),
+            serde_json::Value::String(mode),
+        );
     }
     if let Some(mission) = observations_mission {
-        updates.insert("observations_mission".to_string(), serde_json::Value::String(mission));
+        updates.insert(
+            "observations_mission".to_string(),
+            serde_json::Value::String(mission),
+        );
     }
     if let Some(mission) = reflect_mission {
-        updates.insert("reflect_mission".to_string(), serde_json::Value::String(mission));
+        updates.insert(
+            "reflect_mission".to_string(),
+            serde_json::Value::String(mission),
+        );
     }
     if let Some(skepticism) = disposition_skepticism {
-        updates.insert("disposition_skepticism".to_string(), serde_json::Value::Number(skepticism.into()));
+        updates.insert(
+            "disposition_skepticism".to_string(),
+            serde_json::Value::Number(skepticism.into()),
+        );
     }
     if let Some(literalism) = disposition_literalism {
-        updates.insert("disposition_literalism".to_string(), serde_json::Value::Number(literalism.into()));
+        updates.insert(
+            "disposition_literalism".to_string(),
+            serde_json::Value::Number(literalism.into()),
+        );
     }
     if let Some(empathy) = disposition_empathy {
-        updates.insert("disposition_empathy".to_string(), serde_json::Value::Number(empathy.into()));
+        updates.insert(
+            "disposition_empathy".to_string(),
+            serde_json::Value::Number(empathy.into()),
+        );
     }
 
     if updates.is_empty() {
@@ -832,7 +940,10 @@ pub fn reset_config(
     match response {
         Ok(result) => {
             if output_format == OutputFormat::Pretty {
-                ui::print_success(&format!("Configuration reset to defaults for bank '{}'", bank_id));
+                ui::print_success(&format!(
+                    "Configuration reset to defaults for bank '{}'",
+                    bank_id
+                ));
             } else {
                 output::print_output(&result, output_format)?;
             }
@@ -840,4 +951,189 @@ pub fn reset_config(
         }
         Err(e) => Err(e),
     }
+}
+
+/// Set disposition traits (skepticism, literalism, empathy) via PUT /profile
+pub fn set_disposition(
+    client: &ApiClient,
+    bank_id: &str,
+    skepticism: u64,
+    literalism: u64,
+    empathy: u64,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Updating disposition..."))
+    } else {
+        None
+    };
+
+    let response =
+        client.update_bank_disposition(bank_id, skepticism, literalism, empathy, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let profile = response?;
+    if output_format == OutputFormat::Pretty {
+        ui::print_success(&format!("Disposition updated for bank '{}'", bank_id));
+        ui::print_disposition(&profile);
+    } else {
+        output::print_output(&profile, output_format)?;
+    }
+    Ok(())
+}
+
+/// Recover from a stalled consolidation
+pub fn consolidation_recover(
+    client: &ApiClient,
+    bank_id: &str,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Recovering consolidation..."))
+    } else {
+        None
+    };
+
+    let response = client.recover_consolidation(bank_id, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        ui::print_success(&format!("Consolidation recovered for bank '{}'", bank_id));
+        let json = serde_json::to_value(&result)?;
+        println!(
+            "  {}",
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
+}
+
+/// Export a bank template manifest (bank config + mental models + directives)
+pub fn export_template(
+    client: &ApiClient,
+    bank_id: &str,
+    out_path: Option<std::path::PathBuf>,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Exporting bank template..."))
+    } else {
+        None
+    };
+
+    let response = client.export_bank_template(bank_id, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let manifest = response?;
+    let json = serde_json::to_string_pretty(&manifest)?;
+
+    if let Some(path) = out_path {
+        std::fs::write(&path, &json)
+            .map_err(|e| anyhow!("Failed to write {}: {}", path.display(), e))?;
+        if output_format == OutputFormat::Pretty {
+            ui::print_success(&format!("Template written to {}", path.display()));
+        }
+    } else if output_format == OutputFormat::Pretty {
+        println!("{}", json);
+    } else {
+        output::print_output(&manifest, output_format)?;
+    }
+    Ok(())
+}
+
+/// Import a bank template manifest from a JSON file
+pub fn import_template(
+    client: &ApiClient,
+    bank_id: &str,
+    manifest_path: &std::path::Path,
+    dry_run: bool,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let raw = std::fs::read_to_string(manifest_path)
+        .map_err(|e| anyhow!("Failed to read {}: {}", manifest_path.display(), e))?;
+    let manifest: serde_json::Value = serde_json::from_str(&raw)
+        .map_err(|e| anyhow!("Invalid JSON in {}: {}", manifest_path.display(), e))?;
+
+    let spinner = if output_format == OutputFormat::Pretty {
+        let msg = if dry_run {
+            "Validating bank template (dry run)..."
+        } else {
+            "Importing bank template..."
+        };
+        Some(ui::create_spinner(msg))
+    } else {
+        None
+    };
+
+    let response = client.import_bank_template(bank_id, &manifest, dry_run, verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let result = response?;
+    if output_format == OutputFormat::Pretty {
+        if dry_run {
+            ui::print_success(&format!("Template for bank '{}' validated", bank_id));
+        } else {
+            ui::print_success(&format!("Template imported into bank '{}'", bank_id));
+        }
+        println!("  directives created: {:?}", result.directives_created);
+        println!("  directives updated: {:?}", result.directives_updated);
+        println!(
+            "  mental models created: {:?}",
+            result.mental_models_created
+        );
+        println!(
+            "  mental models updated: {:?}",
+            result.mental_models_updated
+        );
+        println!("  config applied: {}", result.config_applied);
+    } else {
+        output::print_output(&result, output_format)?;
+    }
+    Ok(())
+}
+
+/// Fetch the bank template JSON schema
+pub fn template_schema(
+    client: &ApiClient,
+    verbose: bool,
+    output_format: OutputFormat,
+) -> Result<()> {
+    let spinner = if output_format == OutputFormat::Pretty {
+        Some(ui::create_spinner("Fetching template schema..."))
+    } else {
+        None
+    };
+
+    let response = client.get_bank_template_schema(verbose);
+
+    if let Some(mut sp) = spinner {
+        sp.finish();
+    }
+
+    let schema = response?;
+    if output_format == OutputFormat::Pretty {
+        println!("{}", serde_json::to_string_pretty(&schema)?);
+    } else {
+        output::print_output(&schema, output_format)?;
+    }
+    Ok(())
 }

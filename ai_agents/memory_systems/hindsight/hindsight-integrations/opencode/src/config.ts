@@ -21,6 +21,8 @@ export interface HindsightConfig {
     recallContextTurns: number;
     recallMaxQueryChars: number;
     recallPromptPreamble: string;
+    recallTags: string[];
+    recallTagsMatch: 'any' | 'all' | 'any_strict' | 'all_strict';
 
     // Retain
     autoRetain: boolean;
@@ -56,6 +58,8 @@ const DEFAULTS: HindsightConfig = {
     recallTypes: ['world', 'experience'],
     recallContextTurns: 1,
     recallMaxQueryChars: 800,
+    recallTags: [],
+    recallTagsMatch: 'any',
     recallPromptPreamble:
         'Relevant memories from past conversations (prioritize recent when ' +
         'conflicting). Only use memories that are directly useful to continue ' +
@@ -156,6 +160,19 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
         }
     }
 
+    // Array env vars (comma-separated)
+    const recallTagsEnv = process.env['HINDSIGHT_RECALL_TAGS'];
+    if (recallTagsEnv !== undefined) {
+        config['recallTags'] = recallTagsEnv
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
+    }
+    const recallTagsMatchEnv = process.env['HINDSIGHT_RECALL_TAGS_MATCH'];
+    if (recallTagsMatchEnv !== undefined) {
+        config['recallTagsMatch'] = recallTagsMatchEnv;
+    }
+
     const result = config as unknown as HindsightConfig;
 
     // Validate enum-like fields to catch typos early
@@ -166,6 +183,15 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
                 `valid: ${VALID_RETAIN_MODES.join(', ')}. Falling back to "full-session".`,
         );
         result.retainMode = 'full-session';
+    }
+
+    const VALID_TAGS_MATCH = ['any', 'all', 'any_strict', 'all_strict'];
+    if (!VALID_TAGS_MATCH.includes(result.recallTagsMatch)) {
+        console.error(
+            `[Hindsight] Unknown recallTagsMatch "${result.recallTagsMatch}" — ` +
+                `valid: ${VALID_TAGS_MATCH.join(', ')}. Falling back to "any".`,
+        );
+        result.recallTagsMatch = 'any';
     }
 
     const VALID_BUDGETS = ['low', 'mid', 'high'];

@@ -598,3 +598,182 @@ class TestExport:
         assert resp.status_code == 200
         data = resp.json()
         assert data["version"] == "1"
+
+
+class TestDefaultBankTemplateEnvVar:
+    """Tests for HINDSIGHT_API_DEFAULT_BANK_TEMPLATE — a server-level env var
+    whose manifest is applied automatically to every newly-created bank."""
+
+    @pytest.fixture
+    def default_template(self):
+        return {
+            "version": "1",
+            "bank": {
+                "reflect_mission": "default-env-mission",
+                "retain_extraction_mode": "verbose",
+                "disposition_empathy": 5,
+                "disposition_skepticism": 1,
+            },
+            "mental_models": [
+                {
+                    "id": "default-env-model",
+                    "name": "Default Env Model",
+                    "source_query": "What is the default?",
+                },
+            ],
+            "directives": [
+                {
+                    "name": "Default Env Directive",
+                    "content": "Follow the default behavior.",
+                    "priority": 7,
+                },
+            ],
+        }
+
+    @pytest.fixture
+    def _patched_default_template(self, monkeypatch, default_template):
+        """Install the default template on the already-initialized global config.
+
+        We can't rely on env-var resolution here: MemoryEngine (and its
+        ConfigResolver) snapshot the global config at fixture init time.
+        Patching the field directly keeps the test deterministic while still
+        exercising the same code path that reads `get_config().default_bank_template`.
+        """
+        from hindsight_api.config import _get_raw_config
+
+        raw = _get_raw_config()
+        monkeypatch.setattr(raw, "default_bank_template", default_template)
+        yield default_template
+
+    @pytest.mark.asyncio
+    async def test_default_template_applied_on_new_bank(
+        self, api_client, bank_id, _patched_default_template
+    ):
+        """Creating a new bank applies the default template (config + mental models + directives)."""
+        # Trigger bank auto-creation via GET profile
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        assert resp.status_code == 200
+
+        # Config from template should be present as bank overrides
+        config_resp = await api_client.get(f"/v1/default/banks/{bank_id}/config")
+        assert config_resp.status_code == 200
+        overrides = config_resp.json()["overrides"]
+        assert overrides["reflect_mission"] == "default-env-mission"
+        assert overrides["retain_extraction_mode"] == "verbose"
+        assert overrides["disposition_empathy"] == 5
+        assert overrides["disposition_skepticism"] == 1
+
+        # Mental model from template should exist
+        mm_resp = await api_client.get(f"/v1/default/banks/{bank_id}/mental-models/default-env-model")
+        assert mm_resp.status_code == 200
+        assert mm_resp.json()["name"] == "Default Env Model"
+
+        # Directive from template should exist
+        dir_resp = await api_client.get(f"/v1/default/banks/{bank_id}/directives")
+        assert dir_resp.status_code == 200
+        names = [d["name"] for d in dir_resp.json()["items"]]
+        assert "Default Env Directive" in names
+
+    @pytest.mark.asyncio
+    async def test_default_template_overrides_env_config_defaults(
+        self, api_client, bank_id, monkeypatch, default_template
+    ):
+        """Fields set by the default template override server-level env-var defaults.
+
+        We point both HINDSIGHT_API_RETAIN_EXTRACTION_MODE (env) and the
+        default template at different values, then confirm the template wins
+        via the per-bank config overrides layer (highest precedence).
+        """
+        from hindsight_api.config import _get_raw_config
+
+        raw = _get_raw_config()
+        # Simulate an env-level default of "concise", overridden by a template that sets "verbose".
+        monkeypatch.setattr(raw, "retain_extraction_mode", "concise")
+        monkeypatch.setattr(raw, "default_bank_template", default_template)
+
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        assert resp.status_code == 200
+
+        config_resp = await api_client.get(f"/v1/default/banks/{bank_id}/config")
+        overrides = config_resp.json()["overrides"]
+        # Template value wins at the bank-override layer.
+        assert overrides["retain_extraction_mode"] == "verbose"
+
+    @pytest.mark.asyncio
+    async def test_default_template_not_reapplied_on_existing_bank(
+        self, api_client, bank_id, _patched_default_template
+    ):
+        """Template only applies on FIRST creation; subsequent puts are no-ops."""
+        # First hit creates the bank and applies the template
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        assert resp.status_code == 200
+
+        # User explicitly overrides a template-set field
+        patch_resp = await api_client.patch(
+            f"/v1/default/banks/{bank_id}/config",
+            json={"updates": {"reflect_mission": "user-override"}},
+        )
+        assert patch_resp.status_code == 200
+
+        # Second put — template must NOT be reapplied (would clobber the override)
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        assert resp.status_code == 200
+
+        config_resp = await api_client.get(f"/v1/default/banks/{bank_id}/config")
+        assert config_resp.json()["overrides"]["reflect_mission"] == "user-override"
+
+    @pytest.mark.asyncio
+    async def test_default_template_unset_is_noop(self, api_client, bank_id):
+        """With the env var unset (fixture default), bank creation behaves as before."""
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        assert resp.status_code == 200
+
+        # No template = no overrides
+        config_resp = await api_client.get(f"/v1/default/banks/{bank_id}/config")
+        assert config_resp.json()["overrides"] == {}
+
+    @pytest.mark.asyncio
+    async def test_default_template_malformed_is_swallowed(
+        self, api_client, bank_id, monkeypatch
+    ):
+        """A malformed default template is logged and ignored — bank creation still succeeds."""
+        from hindsight_api.config import _get_raw_config
+
+        raw = _get_raw_config()
+        # Wrong version number fails Pydantic validation.
+        monkeypatch.setattr(raw, "default_bank_template", {"version": "999"})
+
+        resp = await api_client.put(f"/v1/default/banks/{bank_id}", json={})
+        # Bank creation must not fail even though the template is broken.
+        assert resp.status_code == 200
+
+    def test_parse_default_bank_template_valid_json(self, monkeypatch):
+        """_parse_default_bank_template parses a valid JSON object env var."""
+        from hindsight_api.config import _parse_default_bank_template
+
+        parsed = _parse_default_bank_template('{"version": "1", "bank": {"disposition_empathy": 4}}')
+        assert parsed == {"version": "1", "bank": {"disposition_empathy": 4}}
+
+    def test_parse_default_bank_template_none_or_empty(self):
+        """Unset / empty env var resolves to None."""
+        from hindsight_api.config import _parse_default_bank_template
+
+        assert _parse_default_bank_template(None) is None
+        assert _parse_default_bank_template("") is None
+        assert _parse_default_bank_template("   ") is None
+
+    def test_parse_default_bank_template_invalid_json_raises(self):
+        """Invalid JSON fails fast with a clear error."""
+        from hindsight_api.config import _parse_default_bank_template
+
+        with pytest.raises(ValueError, match="HINDSIGHT_API_DEFAULT_BANK_TEMPLATE"):
+            _parse_default_bank_template("not-json")
+
+    def test_parse_default_bank_template_non_object_raises(self):
+        """Non-object JSON (e.g. array, string) fails fast."""
+        from hindsight_api.config import _parse_default_bank_template
+
+        with pytest.raises(ValueError, match="expected a JSON object"):
+            _parse_default_bank_template("[1, 2, 3]")
+        with pytest.raises(ValueError, match="expected a JSON object"):
+            _parse_default_bank_template('"just a string"')

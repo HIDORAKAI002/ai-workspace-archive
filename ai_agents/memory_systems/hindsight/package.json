@@ -4,7 +4,8 @@
   "workspaces": [
     "hindsight-clients/typescript",
     "hindsight-control-plane",
-    "hindsight-docs"
+    "hindsight-docs",
+    "hindsight-all-npm"
   ],
   "scripts": {
     "prepare": "./scripts/setup-hooks.sh"

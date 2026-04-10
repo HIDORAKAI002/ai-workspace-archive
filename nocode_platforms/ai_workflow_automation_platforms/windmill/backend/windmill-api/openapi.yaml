@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.680.0
+  version: 1.682.0
   title: Windmill API
 
   contact:
@@ -725,6 +725,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ExportedUser"
+
+  /users/ext_jwt_tokens:
+    get:
+      summary: list external JWT tokens (ee only)
+      operationId: listExtJwtTokens
+      tags:
+        - user
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+        - name: active_only
+          in: query
+          description: only tokens used in the last 30 days
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: list of external JWT tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExternalJwtToken"
 
   /users/onboarding:
     post:
@@ -19509,25 +19539,6 @@ components:
     # This is why it is better to inline each of schemas for better compat
     # Do not change next line. It is used by python-client for pre-processing
     # -- INLINE START --
-    CiTestResult:
-      type: object
-      properties:
-        test_script_path:
-          type: string
-        job_id:
-          type: string
-          format: uuid
-          nullable: true
-        status:
-          type: string
-          nullable: true
-        started_at:
-          type: string
-          format: date-time
-          nullable: true
-      required:
-        - test_script_path
-
     OpenFlow:
       $ref: "../../openflow.openapi.yaml#/components/schemas/OpenFlow"
     FlowValue:
@@ -19578,6 +19589,25 @@ components:
       $ref: "../../openflow.openapi.yaml#/components/schemas/FlowNote"
     # -- INLINE END --
     # Do not change line above
+
+    CiTestResult:
+      type: object
+      properties:
+        test_script_path:
+          type: string
+        job_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - test_script_path
 
     HealthStatusResponse:
       type: object
@@ -19874,6 +19904,9 @@ components:
         token:
           type: string
           description: Static Vault token for testing/development (optional, if provided this is used instead of JWT authentication)
+        skip_ssl_verify:
+          type: boolean
+          description: Skip TLS certificate verification when connecting to Vault. Only use for self-signed certificates in development environments.
 
     AzureKeyVaultSettings:
       type: object
@@ -21467,6 +21500,39 @@ components:
       required:
         - token_prefix
         - created_at
+        - last_used_at
+
+    ExternalJwtToken:
+      type: object
+      properties:
+        jwt_hash:
+          type: integer
+          format: int64
+        email:
+          type: string
+        username:
+          type: string
+        is_admin:
+          type: boolean
+        is_operator:
+          type: boolean
+        workspace_id:
+          type: string
+        label:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        last_used_at:
+          type: string
+          format: date-time
+      required:
+        - jwt_hash
+        - email
+        - username
+        - is_admin
+        - is_operator
         - last_used_at
 
     NewToken:

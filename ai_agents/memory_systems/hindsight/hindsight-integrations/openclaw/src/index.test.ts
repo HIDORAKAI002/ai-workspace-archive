@@ -241,7 +241,7 @@ describe('buildRetainRequest', () => {
 
     expect(request).toEqual({
       content: 'hello world',
-      document_id: 'openclaw:agent:main:main:turn:000001',
+      documentId: 'openclaw:agent:main:main:turn:000001',
       metadata: {
         retained_at: expect.any(String),
         message_count: '2',
@@ -274,7 +274,7 @@ describe('buildRetainRequest', () => {
       windowTurns: 2,
     });
 
-    expect(request.document_id).toBe('openclaw:agent:agentname:discord:group:123:topic:456:window:000002');
+    expect(request.documentId).toBe('openclaw:agent:agentname:discord:group:123:topic:456:window:000002');
     expect(request.metadata).toMatchObject({
       source: 'openclaw',
       retention_scope: 'window',
