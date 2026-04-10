@@ -1,5 +1,6 @@
 mod comms;
 mod config;
+mod notifications;
 mod observability;
 mod session;
 mod tui;
@@ -52,6 +53,9 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
+        /// Agent profile defined in ecc2.toml
+        #[arg(long)]
+        profile: Option<String>,
         #[command(flatten)]
         worktree: WorktreePolicyArgs,
         /// Source session to delegate from
@@ -68,6 +72,9 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
+        /// Agent profile defined in ecc2.toml
+        #[arg(long)]
+        profile: Option<String>,
         #[command(flatten)]
         worktree: WorktreePolicyArgs,
     },
@@ -81,6 +88,9 @@ enum Commands {
         /// Agent type (claude, codex, custom)
         #[arg(short, long, default_value = "claude")]
         agent: String,
+        /// Agent profile defined in ecc2.toml
+        #[arg(long)]
+        profile: Option<String>,
         #[command(flatten)]
         worktree: WorktreePolicyArgs,
     },
@@ -244,11 +254,59 @@ enum Commands {
         #[arg(long)]
         keep_worktree: bool,
     },
+    /// Show the merge queue for inactive worktrees and any branch-to-branch blockers
+    MergeQueue {
+        /// Emit machine-readable JSON instead of the human summary
+        #[arg(long)]
+        json: bool,
+        /// Process the queue, auto-rebasing clean blocked worktrees and merging what becomes ready
+        #[arg(long)]
+        apply: bool,
+    },
     /// Prune worktrees for inactive sessions and report any active sessions still holding one
     PruneWorktrees {
         /// Emit machine-readable JSON instead of the human summary
         #[arg(long)]
         json: bool,
+    },
+    /// Log a significant agent decision for auditability
+    LogDecision {
+        /// Session ID or alias. Omit to log against the latest session.
+        session_id: Option<String>,
+        /// The chosen decision or direction
+        #[arg(long)]
+        decision: String,
+        /// Why the agent made this choice
+        #[arg(long)]
+        reasoning: String,
+        /// Alternative considered and rejected; repeat for multiple entries
+        #[arg(long = "alternative")]
+        alternatives: Vec<String>,
+        /// Emit machine-readable JSON instead of the human summary
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show recent decision-log entries
+    Decisions {
+        /// Session ID or alias. Omit to read the latest session.
+        session_id: Option<String>,
+        /// Show decision log entries across all sessions
+        #[arg(long)]
+        all: bool,
+        /// Emit machine-readable JSON instead of the human summary
+        #[arg(long)]
+        json: bool,
+        /// Maximum decision-log entries to return
+        #[arg(long, default_value_t = 20)]
+        limit: usize,
+    },
+    /// Export sessions, tool spans, and metrics in OTLP-compatible JSON
+    ExportOtel {
+        /// Session ID or alias. Omit to export all sessions.
+        session_id: Option<String>,
+        /// Write the export to a file instead of stdout
+        #[arg(long)]
+        output: Option<PathBuf>,
     },
     /// Stop a running session
     Stop {
@@ -332,14 +390,50 @@ async fn main() -> Result<()> {
         Some(Commands::Start {
             task,
             agent,
+            profile,
             worktree,
             from_session,
         }) => {
             let use_worktree = worktree.resolve(&cfg);
-            let session_id =
-                session::manager::create_session(&db, &cfg, &task, &agent, use_worktree).await?;
-            if let Some(from_session) = from_session {
-                let from_id = resolve_session_id(&db, &from_session)?;
+            let source = if let Some(from_session) = from_session.as_ref() {
+                let from_id = resolve_session_id(&db, from_session)?;
+                Some(
+                    db.get_session(&from_id)?
+                        .ok_or_else(|| anyhow::anyhow!("Session not found: {from_id}"))?,
+                )
+            } else {
+                None
+            };
+            let grouping = session::SessionGrouping {
+                project: source.as_ref().map(|session| session.project.clone()),
+                task_group: source.as_ref().map(|session| session.task_group.clone()),
+            };
+            let session_id = if let Some(source) = source.as_ref() {
+                session::manager::create_session_from_source_with_profile_and_grouping(
+                    &db,
+                    &cfg,
+                    &task,
+                    &agent,
+                    use_worktree,
+                    profile.as_deref(),
+                    &source.id,
+                    grouping,
+                )
+                .await?
+            } else {
+                session::manager::create_session_with_profile_and_grouping(
+                    &db,
+                    &cfg,
+                    &task,
+                    &agent,
+                    use_worktree,
+                    profile.as_deref(),
+                    grouping,
+                )
+                .await?
+            };
+            if let Some(source) = source {
+                let from_id = source.id;
                 send_handoff_message(&db, &from_id, &session_id)?;
             }
             println!("Session started: {session_id}");
@@ -348,6 +442,7 @@ async fn main() -> Result<()> {
             from_session,
             task,
             agent,
+            profile,
             worktree,
         }) => {
             let use_worktree = worktree.resolve(&cfg);
@@ -363,8 +458,20 @@ async fn main() -> Result<()> {
                 )
             });
 
-            let session_id =
-                session::manager::create_session(&db, &cfg, &task, &agent, use_worktree).await?;
+            let session_id = session::manager::create_session_from_source_with_profile_and_grouping(
+                &db,
+                &cfg,
+                &task,
+                &agent,
+                use_worktree,
+                profile.as_deref(),
+                &source.id,
+                session::SessionGrouping {
+                    project: Some(source.project.clone()),
+                    task_group: Some(source.task_group.clone()),
+                },
+            )
+            .await?;
             send_handoff_message(&db, &source.id, &session_id)?;
             println!(
                 "Delegated session started: {} <- {}",
@@ -376,13 +483,22 @@ async fn main() -> Result<()> {
             from_session,
             task,
             agent,
+            profile,
             worktree,
         }) => {
             let use_worktree = worktree.resolve(&cfg);
             let lead_id = resolve_session_id(&db, &from_session)?;
-            let outcome =
-                session::manager::assign_session(&db, &cfg, &lead_id, &task, &agent, use_worktree)
-                    .await?;
+            let outcome = session::manager::assign_session_with_profile_and_grouping(
+                &db,
+                &cfg,
+                &lead_id,
+                &task,
+                &agent,
+                use_worktree,
+                profile.as_deref(),
+                session::SessionGrouping::default(),
+            )
+            .await?;
             if session::manager::assignment_action_routes_work(outcome.action) {
                 println!(
                     "Assignment routed: {} -> {} ({})",
@@ -673,17 +789,20 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Sessions) => {
+            sync_runtime_session_metrics(&db, &cfg)?;
             let sessions = session::manager::list_sessions(&db)?;
             for s in sessions {
                 println!("{} [{}] {}", s.id, s.state, s.task);
             }
         }
         Some(Commands::Status { session_id }) => {
+            sync_runtime_session_metrics(&db, &cfg)?;
             let id = session_id.unwrap_or_else(|| "latest".to_string());
             let status = session::manager::get_status(&db, &id)?;
             println!("{status}");
         }
         Some(Commands::Team { session_id, depth }) => {
+            sync_runtime_session_metrics(&db, &cfg)?;
             let id = session_id.unwrap_or_else(|| "latest".to_string());
             let team = session::manager::get_team_status(&db, &id, depth)?;
             println!("{team}");
@@ -797,12 +916,83 @@ async fn main() -> Result<()> {
                 }
             }
         }
+        Some(Commands::MergeQueue { json, apply }) => {
+            if apply {
+                let outcome = session::manager::process_merge_queue(&db).await?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&outcome)?);
+                } else {
+                    println!("{}", format_bulk_worktree_merge_human(&outcome));
+                }
+            } else {
+                let report = session::manager::build_merge_queue(&db)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                } else {
+                    println!("{}", format_merge_queue_human(&report));
+                }
+            }
+        }
         Some(Commands::PruneWorktrees { json }) => {
-            let outcome = session::manager::prune_inactive_worktrees(&db).await?;
+            let outcome = session::manager::prune_inactive_worktrees(&db, &cfg).await?;
             if json {
                 println!("{}", serde_json::to_string_pretty(&outcome)?);
             } else {
                 println!("{}", format_prune_worktrees_human(&outcome));
+            }
+        }
+        Some(Commands::LogDecision {
+            session_id,
+            decision,
+            reasoning,
+            alternatives,
+            json,
+        }) => {
+            let resolved_id = resolve_session_id(&db, session_id.as_deref().unwrap_or("latest"))?;
+            let entry = db.insert_decision(&resolved_id, &decision, &alternatives, &reasoning)?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&entry)?);
+            } else {
+                println!("{}", format_logged_decision_human(&entry));
+            }
+        }
+        Some(Commands::Decisions {
+            session_id,
+            all,
+            json,
+            limit,
+        }) => {
+            if all && session_id.is_some() {
+                return Err(anyhow::anyhow!(
+                    "decisions does not accept a session ID when --all is set"
+                ));
+            }
+            let entries = if all {
+                db.list_decisions(limit)?
+            } else {
+                let resolved_id =
+                    resolve_session_id(&db, session_id.as_deref().unwrap_or("latest"))?;
+                db.list_decisions_for_session(&resolved_id, limit)?
+            };
+            if json {
+                println!("{}", serde_json::to_string_pretty(&entries)?);
+            } else {
+                println!("{}", format_decisions_human(&entries, all));
+            }
+        }
+        Some(Commands::ExportOtel { session_id, output }) => {
+            sync_runtime_session_metrics(&db, &cfg)?;
+            let resolved_session_id = session_id
+                .as_deref()
+                .map(|value| resolve_session_id(&db, value))
+                .transpose()?;
+            let export = build_otel_export(&db, resolved_session_id.as_deref())?;
+            let rendered = serde_json::to_string_pretty(&export)?;
+            if let Some(path) = output {
+                std::fs::write(&path, rendered)?;
+                println!("OTLP export written to {}", path.display());
+            } else {
+                println!("{rendered}");
             }
         }
         Some(Commands::Stop { session_id }) => {
@@ -888,6 +1078,18 @@ fn resolve_session_id(db: &session::store::StateStore, value: &str) -> Result<St
     db.get_session(value)?
         .map(|session| session.id)
         .ok_or_else(|| anyhow::anyhow!("Session not found: {value}"))
+}
+
+fn sync_runtime_session_metrics(
+    db: &session::store::StateStore,
+    cfg: &config::Config,
+) -> Result<()> {
+    db.refresh_session_durations()?;
+    db.sync_cost_tracker_metrics(&cfg.cost_metrics_path())?;
+    db.sync_tool_activity_metrics(&cfg.tool_activity_metrics_path())?;
+    let _ = session::manager::enforce_session_heartbeats(db, cfg)?;
+    let _ = session::manager::enforce_budget_hard_limits(db, cfg)?;
+    Ok(())
 }
 
 fn build_message(
@@ -1064,6 +1266,93 @@ struct WorktreeResolutionReport {
     summary: String,
     conflicts: Vec<String>,
     resolution_steps: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpExport {
+    resource_spans: Vec<OtlpResourceSpans>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpResourceSpans {
+    resource: OtlpResource,
+    scope_spans: Vec<OtlpScopeSpans>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpResource {
+    attributes: Vec<OtlpKeyValue>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpScopeSpans {
+    scope: OtlpInstrumentationScope,
+    spans: Vec<OtlpSpan>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpInstrumentationScope {
+    name: String,
+    version: String,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpSpan {
+    trace_id: String,
+    span_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_span_id: Option<String>,
+    name: String,
+    kind: String,
+    start_time_unix_nano: String,
+    end_time_unix_nano: String,
+    attributes: Vec<OtlpKeyValue>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    links: Vec<OtlpSpanLink>,
+    status: OtlpSpanStatus,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpSpanLink {
+    trace_id: String,
+    span_id: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attributes: Vec<OtlpKeyValue>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpSpanStatus {
+    code: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpKeyValue {
+    key: String,
+    value: OtlpAnyValue,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct OtlpAnyValue {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    string_value: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    int_value: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    double_value: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    bool_value: Option<bool>,
 }
 
 fn build_worktree_status_report(
@@ -1337,6 +1626,26 @@ fn format_bulk_worktree_merge_human(
         ));
     }
 
+    if !outcome.rebased.is_empty() {
+        lines.push(format!(
+            "Rebased {} blocked worktree(s) onto their base branch",
+            outcome.rebased.len()
+        ));
+        for rebased in &outcome.rebased {
+            lines.push(format!(
+                "- rebased {} onto {} for {}{}",
+                rebased.branch,
+                rebased.base_branch,
+                short_session(&rebased.session_id),
+                if rebased.already_up_to_date {
+                    " (already up to date)"
+                } else {
+                    ""
+                }
+            ));
+        }
+    }
+
     if !outcome.active_with_worktree_ids.is_empty() {
         lines.push(format!(
             "Skipped {} active worktree session(s)",
@@ -1353,6 +1662,12 @@ fn format_bulk_worktree_merge_human(
         lines.push(format!(
             "Skipped {} dirty worktree(s)",
             outcome.dirty_worktree_ids.len()
+        ));
+    }
+    if !outcome.blocked_by_queue_session_ids.is_empty() {
+        lines.push(format!(
+            "Blocked {} worktree(s) on remaining queue conflicts",
+            outcome.blocked_by_queue_session_ids.len()
         ));
     }
     if !outcome.failures.is_empty() {
@@ -1419,7 +1734,341 @@ fn format_prune_worktrees_human(outcome: &session::manager::WorktreePruneOutcome
         }
     }
 
+    if outcome.retained_session_ids.is_empty() {
+        lines.push("No inactive worktrees are being retained".to_string());
+    } else {
+        lines.push(format!(
+            "Deferred {} inactive worktree(s) still within retention",
+            outcome.retained_session_ids.len()
+        ));
+        for session_id in &outcome.retained_session_ids {
+            lines.push(format!("- retained {}", short_session(session_id)));
+        }
+    }
+
     lines.join("\n")
+}
+
+fn format_logged_decision_human(entry: &session::DecisionLogEntry) -> String {
+    let mut lines = vec![
+        format!("Logged decision for {}", short_session(&entry.session_id)),
+        format!("Decision: {}", entry.decision),
+        format!("Why: {}", entry.reasoning),
+    ];
+
+    if entry.alternatives.is_empty() {
+        lines.push("Alternatives: none recorded".to_string());
+    } else {
+        lines.push("Alternatives:".to_string());
+        for alternative in &entry.alternatives {
+            lines.push(format!("- {alternative}"));
+        }
+    }
+
+    lines.push(format!(
+        "Recorded at: {}",
+        entry.timestamp.format("%Y-%m-%d %H:%M:%S UTC")
+    ));
+    lines.join("\n")
+}
+
+fn format_decisions_human(entries: &[session::DecisionLogEntry], include_session: bool) -> String {
+    if entries.is_empty() {
+        return if include_session {
+            "No decision-log entries across all sessions yet.".to_string()
+        } else {
+            "No decision-log entries for this session yet.".to_string()
+        };
+    }
+
+    let mut lines = vec![format!("Decision log: {} entries", entries.len())];
+    for entry in entries {
+        let prefix = if include_session {
+            format!("{} | ", short_session(&entry.session_id))
+        } else {
+            String::new()
+        };
+        lines.push(format!(
+            "- [{}] {prefix}{}",
+            entry.timestamp.format("%H:%M:%S"),
+            entry.decision
+        ));
+        lines.push(format!("  why {}", entry.reasoning));
+        if entry.alternatives.is_empty() {
+            lines.push("  alternatives none recorded".to_string());
+        } else {
+            for alternative in &entry.alternatives {
+                lines.push(format!("  alternative {alternative}"));
+            }
+        }
+    }
+
+    lines.join("\n")
+}
+
+fn format_merge_queue_human(report: &session::manager::MergeQueueReport) -> String {
+    let mut lines = Vec::new();
+    lines.push(format!(
+        "Merge queue: {} ready / {} blocked",
+        report.ready_entries.len(),
+        report.blocked_entries.len()
+    ));
+
+    if report.ready_entries.is_empty() {
+        lines.push("No merge-ready worktrees queued".to_string());
+    } else {
+        lines.push("Ready".to_string());
+        for entry in &report.ready_entries {
+            lines.push(format!(
+                "- #{} {} [{}] | {} / {} | {}",
+                entry.queue_position.unwrap_or(0),
+                entry.session_id,
+                entry.branch,
+                entry.project,
+                entry.task_group,
+                entry.task
+            ));
+        }
+    }
+
+    if !report.blocked_entries.is_empty() {
+        lines.push(String::new());
+        lines.push("Blocked".to_string());
+        for entry in &report.blocked_entries {
+            lines.push(format!(
+                "- {} [{}] | {} / {} | {}",
+                entry.session_id,
+                entry.branch,
+                entry.project,
+                entry.task_group,
+                entry.suggested_action
+            ));
+            for blocker in entry.blocked_by.iter().take(2) {
+                lines.push(format!(
+                    "  blocker {} [{}] | {}",
+                    blocker.session_id, blocker.branch, blocker.summary
+                ));
+                for conflict in blocker.conflicts.iter().take(3) {
+                    lines.push(format!("    conflict {conflict}"));
+                }
+                if let Some(preview) = blocker.conflicting_patch_preview.as_ref() {
+                    for line in preview.lines().take(6) {
+                        lines.push(format!("    {}", line));
+                    }
+                }
+            }
+        }
+    }
+
+    lines.join("\n")
+}
+
+fn build_otel_export(
+    db: &session::store::StateStore,
+    session_id: Option<&str>,
+) -> Result<OtlpExport> {
+    let sessions = if let Some(session_id) = session_id {
+        vec![db
+            .get_session(session_id)?
+            .ok_or_else(|| anyhow::anyhow!("Session not found: {session_id}"))?]
+    } else {
+        db.list_sessions()?
+    };
+
+    let mut spans = Vec::new();
+    for session in &sessions {
+        spans.extend(build_session_otel_spans(db, session)?);
+    }
+
+    Ok(OtlpExport {
+        resource_spans: vec![OtlpResourceSpans {
+            resource: OtlpResource {
+                attributes: vec![
+                    otlp_string_attr("service.name", "ecc2"),
+                    otlp_string_attr("service.version", env!("CARGO_PKG_VERSION")),
+                    otlp_string_attr("telemetry.sdk.language", "rust"),
+                ],
+            },
+            scope_spans: vec![OtlpScopeSpans {
+                scope: OtlpInstrumentationScope {
+                    name: "ecc2".to_string(),
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                },
+                spans,
+            }],
+        }],
+    })
+}
+
+fn build_session_otel_spans(
+    db: &session::store::StateStore,
+    session: &session::Session,
+) -> Result<Vec<OtlpSpan>> {
+    let trace_id = otlp_trace_id(&session.id);
+    let session_span_id = otlp_span_id(&format!("session:{}", session.id));
+    let parent_link = db.latest_task_handoff_source(&session.id)?;
+    let session_end = session.updated_at.max(session.created_at);
+    let mut spans = vec![OtlpSpan {
+        trace_id: trace_id.clone(),
+        span_id: session_span_id.clone(),
+        parent_span_id: None,
+        name: format!("session {}", session.task),
+        kind: "SPAN_KIND_INTERNAL".to_string(),
+        start_time_unix_nano: otlp_timestamp_nanos(session.created_at),
+        end_time_unix_nano: otlp_timestamp_nanos(session_end),
+        attributes: vec![
+            otlp_string_attr("ecc.session.id", &session.id),
+            otlp_string_attr("ecc.session.state", &session.state.to_string()),
+            otlp_string_attr("ecc.agent.type", &session.agent_type),
+            otlp_string_attr("ecc.session.task", &session.task),
+            otlp_string_attr(
+                "ecc.working_dir",
+                session.working_dir.to_string_lossy().as_ref(),
+            ),
+            otlp_int_attr("ecc.metrics.input_tokens", session.metrics.input_tokens),
+            otlp_int_attr("ecc.metrics.output_tokens", session.metrics.output_tokens),
+            otlp_int_attr("ecc.metrics.tokens_used", session.metrics.tokens_used),
+            otlp_int_attr("ecc.metrics.tool_calls", session.metrics.tool_calls),
+            otlp_int_attr(
+                "ecc.metrics.files_changed",
+                u64::from(session.metrics.files_changed),
+            ),
+            otlp_int_attr("ecc.metrics.duration_secs", session.metrics.duration_secs),
+            otlp_double_attr("ecc.metrics.cost_usd", session.metrics.cost_usd),
+        ],
+        links: parent_link
+            .into_iter()
+            .map(|parent_session_id| OtlpSpanLink {
+                trace_id: otlp_trace_id(&parent_session_id),
+                span_id: otlp_span_id(&format!("session:{parent_session_id}")),
+                attributes: vec![otlp_string_attr(
+                    "ecc.parent_session.id",
+                    &parent_session_id,
+                )],
+            })
+            .collect(),
+        status: otlp_session_status(&session.state),
+    }];
+
+    for entry in db.list_tool_logs_for_session(&session.id)? {
+        let span_end = chrono::DateTime::parse_from_rfc3339(&entry.timestamp)
+            .unwrap_or_else(|_| session.updated_at.into())
+            .with_timezone(&chrono::Utc);
+        let span_start = span_end - chrono::Duration::milliseconds(entry.duration_ms as i64);
+
+        spans.push(OtlpSpan {
+            trace_id: trace_id.clone(),
+            span_id: otlp_span_id(&format!("tool:{}:{}", session.id, entry.id)),
+            parent_span_id: Some(session_span_id.clone()),
+            name: format!("tool {}", entry.tool_name),
+            kind: "SPAN_KIND_INTERNAL".to_string(),
+            start_time_unix_nano: otlp_timestamp_nanos(span_start),
+            end_time_unix_nano: otlp_timestamp_nanos(span_end),
+            attributes: vec![
+                otlp_string_attr("ecc.session.id", &entry.session_id),
+                otlp_string_attr("tool.name", &entry.tool_name),
+                otlp_string_attr("tool.input_summary", &entry.input_summary),
+                otlp_string_attr("tool.output_summary", &entry.output_summary),
+                otlp_string_attr("tool.trigger_summary", &entry.trigger_summary),
+                otlp_string_attr("tool.input_params_json", &entry.input_params_json),
+                otlp_int_attr("tool.duration_ms", entry.duration_ms),
+                otlp_double_attr("tool.risk_score", entry.risk_score),
+            ],
+            links: Vec::new(),
+            status: OtlpSpanStatus {
+                code: "STATUS_CODE_UNSET".to_string(),
+                message: None,
+            },
+        });
+    }
+
+    Ok(spans)
+}
+
+fn otlp_timestamp_nanos(value: chrono::DateTime<chrono::Utc>) -> String {
+    value
+        .timestamp_nanos_opt()
+        .unwrap_or_default()
+        .max(0)
+        .to_string()
+}
+
+fn otlp_trace_id(seed: &str) -> String {
+    format!(
+        "{:016x}{:016x}",
+        fnv1a64(seed.as_bytes()),
+        fnv1a64_with_seed(seed.as_bytes(), 1099511628211)
+    )
+}
+
+fn otlp_span_id(seed: &str) -> String {
+    format!("{:016x}", fnv1a64(seed.as_bytes()))
+}
+
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    fnv1a64_with_seed(bytes, 14695981039346656037)
+}
+
+fn fnv1a64_with_seed(bytes: &[u8], offset_basis: u64) -> u64 {
+    let mut hash = offset_basis;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(1099511628211);
+    }
+    hash
+}
+
+fn otlp_string_attr(key: &str, value: &str) -> OtlpKeyValue {
+    OtlpKeyValue {
+        key: key.to_string(),
+        value: OtlpAnyValue {
+            string_value: Some(value.to_string()),
+            int_value: None,
+            double_value: None,
+            bool_value: None,
+        },
+    }
+}
+
+fn otlp_int_attr(key: &str, value: u64) -> OtlpKeyValue {
+    OtlpKeyValue {
+        key: key.to_string(),
+        value: OtlpAnyValue {
+            string_value: None,
+            int_value: Some(value.to_string()),
+            double_value: None,
+            bool_value: None,
+        },
+    }
+}
+
+fn otlp_double_attr(key: &str, value: f64) -> OtlpKeyValue {
+    OtlpKeyValue {
+        key: key.to_string(),
+        value: OtlpAnyValue {
+            string_value: None,
+            int_value: None,
+            double_value: Some(value),
+            bool_value: None,
+        },
+    }
+}
+
+fn otlp_session_status(state: &session::SessionState) -> OtlpSpanStatus {
+    match state {
+        session::SessionState::Completed => OtlpSpanStatus {
+            code: "STATUS_CODE_OK".to_string(),
+            message: None,
+        },
+        session::SessionState::Failed => OtlpSpanStatus {
+            code: "STATUS_CODE_ERROR".to_string(),
+            message: Some("session failed".to_string()),
+        },
+        _ => OtlpSpanStatus {
+            code: "STATUS_CODE_UNSET".to_string(),
+            message: None,
+        },
+    }
 }
 
 fn summarize_coordinate_backlog(
@@ -1529,6 +2178,68 @@ fn send_handoff_message(db: &session::store::StateStore, from_id: &str, to_id: &
 mod tests {
     use super::*;
     use crate::config::Config;
+    use crate::session::store::StateStore;
+    use crate::session::{Session, SessionMetrics, SessionState};
+    use chrono::{Duration, Utc};
+    use std::fs;
+    use std::path::{Path, PathBuf};
+
+    struct TestDir {
+        path: PathBuf,
+    }
+
+    impl TestDir {
+        fn new(label: &str) -> Result<Self> {
+            let path =
+                std::env::temp_dir().join(format!("ecc2-main-{label}-{}", uuid::Uuid::new_v4()));
+            fs::create_dir_all(&path)?;
+            Ok(Self { path })
+        }
+
+        fn path(&self) -> &Path {
+            &self.path
+        }
+    }
+
+    impl Drop for TestDir {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.path);
+        }
+    }
+
+    fn build_session(id: &str, task: &str, state: SessionState) -> Session {
+        let now = Utc::now();
+        Session {
+            id: id.to_string(),
+            task: task.to_string(),
+            project: "workspace".to_string(),
+            task_group: "general".to_string(),
+            agent_type: "claude".to_string(),
+            working_dir: PathBuf::from("/tmp/ecc"),
+            state,
+            pid: None,
+            worktree: None,
+            created_at: now - Duration::seconds(5),
+            updated_at: now,
+            last_heartbeat_at: now,
+            metrics: SessionMetrics {
+                input_tokens: 120,
+                output_tokens: 30,
+                tokens_used: 150,
+                tool_calls: 2,
+                files_changed: 1,
+                duration_secs: 5,
+                cost_usd: 0.42,
+            },
+        }
+    }
+
+    fn attr_value<'a>(attrs: &'a [OtlpKeyValue], key: &str) -> Option<&'a OtlpAnyValue> {
+        attrs
+            .iter()
+            .find(|attr| attr.key == key)
+            .map(|attr| &attr.value)
+    }
 
     #[test]
     fn worktree_policy_defaults_to_config_setting() {
@@ -1568,6 +2279,26 @@ mod tests {
         match cli.command {
             Some(Commands::Resume { session_id }) => assert_eq!(session_id, "deadbeef"),
             _ => panic!("expected resume subcommand"),
+        }
+    }
+
+    #[test]
+    fn cli_parses_export_otel_command() {
+        let cli = Cli::try_parse_from([
+            "ecc",
+            "export-otel",
+            "worker-1234",
+            "--output",
+            "/tmp/ecc-otel.json",
+        ])
+        .expect("export-otel should parse");
+
+        match cli.command {
+            Some(Commands::ExportOtel { session_id, output }) => {
+                assert_eq!(session_id.as_deref(), Some("worker-1234"));
+                assert_eq!(output.as_deref(), Some(Path::new("/tmp/ecc-otel.json")));
+            }
+            _ => panic!("expected export-otel subcommand"),
         }
     }
 
@@ -1860,6 +2591,99 @@ mod tests {
     }
 
     #[test]
+    fn build_otel_export_includes_session_and_tool_spans() -> Result<()> {
+        let tempdir = TestDir::new("otel-export-session")?;
+        let db = StateStore::open(&tempdir.path().join("state.db"))?;
+        let session = build_session("session-1", "Investigate export", SessionState::Completed);
+        db.insert_session(&session)?;
+        db.insert_tool_log(
+            &session.id,
+            "Write",
+            "Write src/lib.rs",
+            "{\"file\":\"src/lib.rs\"}",
+            "Updated file",
+            "manual test",
+            120,
+            0.75,
+            &Utc::now().to_rfc3339(),
+        )?;
+
+        let export = build_otel_export(&db, Some("session-1"))?;
+        let spans = &export.resource_spans[0].scope_spans[0].spans;
+        assert_eq!(spans.len(), 2);
+
+        let session_span = spans
+            .iter()
+            .find(|span| span.parent_span_id.is_none())
+            .expect("session root span");
+        let tool_span = spans
+            .iter()
+            .find(|span| span.parent_span_id.is_some())
+            .expect("tool child span");
+
+        assert_eq!(session_span.trace_id, tool_span.trace_id);
+        assert_eq!(
+            tool_span.parent_span_id.as_deref(),
+            Some(session_span.span_id.as_str())
+        );
+        assert_eq!(session_span.status.code, "STATUS_CODE_OK");
+        assert_eq!(
+            attr_value(&session_span.attributes, "ecc.session.id")
+                .and_then(|value| value.string_value.as_deref()),
+            Some("session-1")
+        );
+        assert_eq!(
+            attr_value(&tool_span.attributes, "tool.name")
+                .and_then(|value| value.string_value.as_deref()),
+            Some("Write")
+        );
+        assert_eq!(
+            attr_value(&tool_span.attributes, "tool.duration_ms")
+                .and_then(|value| value.int_value.as_deref()),
+            Some("120")
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn build_otel_export_links_delegated_session_to_parent_trace() -> Result<()> {
+        let tempdir = TestDir::new("otel-export-parent-link")?;
+        let db = StateStore::open(&tempdir.path().join("state.db"))?;
+        let parent = build_session("lead-1", "Lead task", SessionState::Running);
+        let child = build_session("worker-1", "Delegated task", SessionState::Running);
+        db.insert_session(&parent)?;
+        db.insert_session(&child)?;
+        db.send_message(
+            &parent.id,
+            &child.id,
+            "{\"task\":\"Delegated task\",\"context\":\"Delegated from lead\"}",
+            "task_handoff",
+        )?;
+
+        let export = build_otel_export(&db, Some("worker-1"))?;
+        let session_span = export.resource_spans[0].scope_spans[0]
+            .spans
+            .iter()
+            .find(|span| span.parent_span_id.is_none())
+            .expect("session root span");
+
+        assert_eq!(session_span.links.len(), 1);
+        assert_eq!(session_span.links[0].trace_id, otlp_trace_id("lead-1"));
+        assert_eq!(
+            session_span.links[0].span_id,
+            otlp_span_id("session:lead-1")
+        );
+        assert_eq!(
+            attr_value(&session_span.links[0].attributes, "ecc.parent_session.id")
+                .and_then(|value| value.string_value.as_deref()),
+            Some("lead-1")
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn cli_parses_worktree_status_check_flag() {
         let cli = Cli::try_parse_from(["ecc", "worktree-status", "--check"])
             .expect("worktree-status --check should parse");
@@ -1987,6 +2811,34 @@ mod tests {
     }
 
     #[test]
+    fn cli_parses_merge_queue_json_flag() {
+        let cli = Cli::try_parse_from(["ecc", "merge-queue", "--json"])
+            .expect("merge-queue --json should parse");
+
+        match cli.command {
+            Some(Commands::MergeQueue { json, apply }) => {
+                assert!(json);
+                assert!(!apply);
+            }
+            _ => panic!("expected merge-queue subcommand"),
+        }
+    }
+
+    #[test]
+    fn cli_parses_merge_queue_apply_flag() {
+        let cli = Cli::try_parse_from(["ecc", "merge-queue", "--apply", "--json"])
+            .expect("merge-queue --apply --json should parse");
+
+        match cli.command {
+            Some(Commands::MergeQueue { json, apply }) => {
+                assert!(json);
+                assert!(apply);
+            }
+            _ => panic!("expected merge-queue subcommand"),
+        }
+    }
+
+    #[test]
     fn format_worktree_status_human_includes_readiness_and_conflicts() {
         let report = WorktreeStatusReport {
             session_id: "deadbeefcafefeed".to_string(),
@@ -2090,12 +2942,15 @@ mod tests {
         let text = format_prune_worktrees_human(&session::manager::WorktreePruneOutcome {
             cleaned_session_ids: vec!["deadbeefcafefeed".to_string()],
             active_with_worktree_ids: vec!["facefeed12345678".to_string()],
+            retained_session_ids: vec!["retain1234567890".to_string()],
         });
 
         assert!(text.contains("Pruned 1 inactive worktree(s)"));
         assert!(text.contains("- cleaned deadbeef"));
         assert!(text.contains("Skipped 1 active session(s) still holding worktrees"));
         assert!(text.contains("- active facefeed"));
+        assert!(text.contains("Deferred 1 inactive worktree(s) still within retention"));
+        assert!(text.contains("- retained retain12"));
     }
 
     #[test]
@@ -2115,6 +2970,60 @@ mod tests {
     }
 
     #[test]
+    fn format_merge_queue_human_reports_ready_and_blocked_entries() {
+        let text = format_merge_queue_human(&session::manager::MergeQueueReport {
+            ready_entries: vec![session::manager::MergeQueueEntry {
+                session_id: "alpha1234".to_string(),
+                task: "merge alpha".to_string(),
+                project: "ecc".to_string(),
+                task_group: "checkout".to_string(),
+                branch: "ecc/alpha1234".to_string(),
+                base_branch: "main".to_string(),
+                state: session::SessionState::Stopped,
+                worktree_health: worktree::WorktreeHealth::InProgress,
+                dirty: false,
+                queue_position: Some(1),
+                ready_to_merge: true,
+                blocked_by: Vec::new(),
+                suggested_action: "merge in queue order #1".to_string(),
+            }],
+            blocked_entries: vec![session::manager::MergeQueueEntry {
+                session_id: "beta5678".to_string(),
+                task: "merge beta".to_string(),
+                project: "ecc".to_string(),
+                task_group: "checkout".to_string(),
+                branch: "ecc/beta5678".to_string(),
+                base_branch: "main".to_string(),
+                state: session::SessionState::Stopped,
+                worktree_health: worktree::WorktreeHealth::InProgress,
+                dirty: false,
+                queue_position: None,
+                ready_to_merge: false,
+                blocked_by: vec![session::manager::MergeQueueBlocker {
+                    session_id: "alpha1234".to_string(),
+                    branch: "ecc/alpha1234".to_string(),
+                    state: session::SessionState::Stopped,
+                    conflicts: vec!["README.md".to_string()],
+                    summary: "merge after alpha1234 to avoid branch conflicts".to_string(),
+                    conflicting_patch_preview: Some(
+                        "--- Branch diff vs main ---\nREADME.md".to_string(),
+                    ),
+                    blocker_patch_preview: None,
+                }],
+                suggested_action: "merge after alpha1234".to_string(),
+            }],
+        });
+
+        assert!(text.contains("Merge queue: 1 ready / 1 blocked"));
+        assert!(text.contains("Ready"));
+        assert!(text.contains("#1 alpha1234"));
+        assert!(text.contains("Blocked"));
+        assert!(text.contains("beta5678"));
+        assert!(text.contains("blocker alpha1234"));
+        assert!(text.contains("conflict README.md"));
+    }
+
+    #[test]
     fn format_bulk_worktree_merge_human_reports_summary_and_skips() {
         let text = format_bulk_worktree_merge_human(&session::manager::WorktreeBulkMergeOutcome {
             merged: vec![session::manager::WorktreeMergeOutcome {
@@ -2124,9 +3033,16 @@ mod tests {
                 already_up_to_date: false,
                 cleaned_worktree: true,
             }],
+            rebased: vec![session::manager::WorktreeRebaseOutcome {
+                session_id: "rebased12345678".to_string(),
+                branch: "ecc/rebased12345678".to_string(),
+                base_branch: "main".to_string(),
+                already_up_to_date: false,
+            }],
             active_with_worktree_ids: vec!["running12345678".to_string()],
             conflicted_session_ids: vec!["conflict123456".to_string()],
             dirty_worktree_ids: vec!["dirty123456789".to_string()],
+            blocked_by_queue_session_ids: vec!["queue123456789".to_string()],
             failures: vec![session::manager::WorktreeMergeFailure {
                 session_id: "fail1234567890".to_string(),
                 reason: "base branch not checked out".to_string(),
@@ -2135,9 +3051,12 @@ mod tests {
 
         assert!(text.contains("Merged 1 ready worktree(s)"));
         assert!(text.contains("- merged ecc/deadbeefcafefeed -> main for deadbeef"));
+        assert!(text.contains("Rebased 1 blocked worktree(s) onto their base branch"));
+        assert!(text.contains("- rebased ecc/rebased12345678 onto main for rebased1"));
         assert!(text.contains("Skipped 1 active worktree session(s)"));
         assert!(text.contains("Skipped 1 conflicted worktree(s)"));
         assert!(text.contains("Skipped 1 dirty worktree(s)"));
+        assert!(text.contains("Blocked 1 worktree(s) on remaining queue conflicts"));
         assert!(text.contains("Encountered 1 merge failure(s)"));
         assert!(text.contains("- failed fail1234: base branch not checked out"));
     }
@@ -2503,6 +3422,87 @@ mod tests {
             }
             _ => panic!("expected coordination-status subcommand"),
         }
+    }
+
+    #[test]
+    fn cli_parses_log_decision_command() {
+        let cli = Cli::try_parse_from([
+            "ecc",
+            "log-decision",
+            "latest",
+            "--decision",
+            "Use sqlite",
+            "--reasoning",
+            "It is already embedded",
+            "--alternative",
+            "json files",
+            "--alternative",
+            "memory only",
+            "--json",
+        ])
+        .expect("log-decision should parse");
+
+        match cli.command {
+            Some(Commands::LogDecision {
+                session_id,
+                decision,
+                reasoning,
+                alternatives,
+                json,
+            }) => {
+                assert_eq!(session_id.as_deref(), Some("latest"));
+                assert_eq!(decision, "Use sqlite");
+                assert_eq!(reasoning, "It is already embedded");
+                assert_eq!(alternatives, vec!["json files", "memory only"]);
+                assert!(json);
+            }
+            _ => panic!("expected log-decision subcommand"),
+        }
+    }
+
+    #[test]
+    fn cli_parses_decisions_command() {
+        let cli = Cli::try_parse_from(["ecc", "decisions", "--all", "--limit", "5", "--json"])
+            .expect("decisions should parse");
+
+        match cli.command {
+            Some(Commands::Decisions {
+                session_id,
+                all,
+                json,
+                limit,
+            }) => {
+                assert!(session_id.is_none());
+                assert!(all);
+                assert!(json);
+                assert_eq!(limit, 5);
+            }
+            _ => panic!("expected decisions subcommand"),
+        }
+    }
+
+    #[test]
+    fn format_decisions_human_renders_details() {
+        let text = format_decisions_human(
+            &[session::DecisionLogEntry {
+                id: 1,
+                session_id: "sess-12345678".to_string(),
+                decision: "Use sqlite for the shared context graph".to_string(),
+                alternatives: vec!["json files".to_string(), "memory only".to_string()],
+                reasoning: "SQLite keeps the audit trail queryable.".to_string(),
+                timestamp: chrono::DateTime::parse_from_rfc3339("2026-04-09T01:02:03Z")
+                    .unwrap()
+                    .with_timezone(&chrono::Utc),
+            }],
+            true,
+        );
+
+        assert!(text.contains("Decision log: 1 entries"));
+        assert!(text.contains("sess-123"));
+        assert!(text.contains("Use sqlite for the shared context graph"));
+        assert!(text.contains("why SQLite keeps the audit trail queryable."));
+        assert!(text.contains("alternative json files"));
+        assert!(text.contains("alternative memory only"));
     }
 
     #[test]
