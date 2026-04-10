@@ -29,7 +29,7 @@ def test_fetch_dbt_cloud_workspace_data(
     fetch_workspace_data_api_mocks: responses.RequestsMock,
 ) -> None:
     workspace_data = workspace.get_or_fetch_workspace_data()
-    assert len(fetch_workspace_data_api_mocks.calls) == 8
+    assert len(fetch_workspace_data_api_mocks.calls) == 6
     assert workspace_data.project_id == TEST_PROJECT_ID
     assert workspace_data.environment_id == TEST_ENVIRONMENT_ID
     assert workspace_data.adhoc_job_id == TEST_ADHOC_JOB_ID
