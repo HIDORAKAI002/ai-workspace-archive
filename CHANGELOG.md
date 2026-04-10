@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-10 11:59 IST] Auto-Sync
+- **28 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, microsoft/VibeVoice, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-04-10 05:40 IST] Auto-Sync
 - **42 Repositories Updated:** Prompt Engineering Tutorials, Promptfoo, Flowise, Activepieces, Plane, modelcontextprotocol/csharp-sdk, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, weaviate/weaviate, arize-ai/phoenix, Arize-ai/openinference, danny-avila/LibreChat, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, microsoft/graphrag, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
 
