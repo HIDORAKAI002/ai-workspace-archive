@@ -12,8 +12,8 @@ import {
   FileClockIcon,
   FlaskConical,
   Rocket,
-  Settings,
   Settings2,
+  SettingsIcon,
 } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,7 @@ import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors/systemStatus';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/slices/settings/selectors';
+import { prefetchRoute } from '@/utils/router';
 
 const PRODUCT_HUNT_NOTIFICATION = {
   actionHref: 'https://www.producthunt.com/products/lobehub?launch=lobehub',
@@ -239,9 +240,14 @@ const Footer = memo(() => {
           <DropdownMenu items={helpMenuItems} placement="topLeft">
             <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
           </DropdownMenu>
-          {isDevMode && !isSettingsPage && (
-            <Link to="/settings">
-              <ActionIcon aria-label={t('userPanel.setting')} icon={Settings} size={16} />
+          {isDevMode && (
+            <Link to="/settings" onMouseEnter={() => prefetchRoute('/settings')}>
+              <ActionIcon
+                aria-label={t('userPanel.setting')}
+                icon={SettingsIcon}
+                size={16}
+                title={t('userPanel.setting')}
+              />
             </Link>
           )}
         </Flexbox>

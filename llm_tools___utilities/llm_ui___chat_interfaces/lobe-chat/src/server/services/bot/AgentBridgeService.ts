@@ -82,6 +82,7 @@ async function safeSideEffect(fn: () => Promise<unknown>, label: string): Promis
 interface DiscordChannelContext {
   channel: { id: string; name?: string; topic?: string; type?: number };
   guild: { id: string };
+  thread?: { id: string; name?: string };
 }
 
 interface ThreadState {
@@ -90,18 +91,6 @@ interface ThreadState {
 }
 
 interface BridgeHandlerOpts {
-  /**
-   * Internal: when true, the caller already holds the `activeThreads` flag
-   * for this thread, so the callee must skip its own activeThreads check /
-   * add / delete (the parent caller owns the lifecycle).
-   *
-   * Used by `handleSubscribedMessage` when it recursively calls
-   * `handleMention` on a stale-topic reset or FK violation. Without this,
-   * the recursive call would either (a) trip its own activeThreads check
-   * and silently skip the message (race-prone) or (b) try to delete the
-   * flag in its finally and leave the parent's finally double-deleting.
-   */
-  _activeFlagHeldByCaller?: boolean;
   agentId: string;
   botContext?: ChatTopicBotContext;
   charLimit?: number;
@@ -334,7 +323,11 @@ export class AgentBridgeService {
       } catch (error) {
         log('handleMention error: %O', error);
         const msg = error instanceof Error ? error.message : String(error);
-        await thread.post(`**Agent Execution Failed**\n\`\`\`\n${msg}\n\`\`\``);
+        try {
+          await thread.post(`**Agent Execution Failed**\n\`\`\`\n${msg}\n\`\`\``);
+        } catch (postError) {
+          log('handleMention: failed to post error message: %O', postError);
+        }
       }
     } finally {
       AgentBridgeService.activeThreads.delete(thread.id);
@@ -467,7 +460,11 @@ export class AgentBridgeService {
         }
 
         log('handleSubscribedMessage error: %O', error);
-        await thread.post(`**Agent Execution Failed**. Details:\n\`\`\`\n${errMsg}\n\`\`\``);
+        try {
+          await thread.post(`**Agent Execution Failed**. Details:\n\`\`\`\n${errMsg}\n\`\`\``);
+        } catch (postError) {
+          log('handleSubscribedMessage: failed to post error message: %O', postError);
+        }
       }
     } finally {
       AgentBridgeService.activeThreads.delete(thread.id);
@@ -499,7 +496,9 @@ export class AgentBridgeService {
     },
   ): Promise<{ reply: string; topicId: string }> {
     // Resolve bot platform context from platform registry
-    let botPlatformContext: { platformName: string; supportsMarkdown: boolean } | undefined;
+    let botPlatformContext:
+      | { platformName: string; supportsMarkdown: boolean; warnings?: string[] }
+      | undefined;
     if (opts.botContext?.platform) {
       const platformDef = platformRegistry.getPlatform(opts.botContext.platform);
       if (platformDef) {
@@ -534,8 +533,13 @@ export class AgentBridgeService {
       log('executeWithCallback: failed to post initial placeholder message: %O', error);
     }
 
-    const files = await this.resolveFiles(userMessage, client);
+    const { files, warnings: fileWarnings } = await this.resolveFiles(userMessage, client);
     const prompt = this.formatPrompt(userMessage, client);
+
+    // Attach file warnings to botPlatformContext for injection via context engine
+    if (fileWarnings?.length && botPlatformContext) {
+      botPlatformContext.warnings = fileWarnings;
+    }
 
     // Build webhook config for production mode
     const callbackUrl = '/api/agent/webhooks/bot-callback';
@@ -543,6 +547,13 @@ export class AgentBridgeService {
       applicationId: botContext?.applicationId,
       platformThreadId: botContext?.platformThreadId,
       progressMessageId: progressMessage?.id,
+      // Pass thread name only if it's user-set.
+      // Bot-generated threads use "Thread <locale date>" (e.g. "Thread 4/9/2026, 6:00:00 PM"),
+      // which always starts with "Thread " followed by a digit.
+      threadName:
+        channelContext?.thread?.name && /^Thread \d/.test(channelContext.thread.name)
+          ? undefined
+          : channelContext?.thread?.name,
       userMessageId: userMessage.id,
     };
 
@@ -635,7 +646,11 @@ export class AgentBridgeService {
           botContext,
           botPlatformContext,
           discordContext: channelContext
-            ? { channel: channelContext.channel, guild: channelContext.guild }
+            ? {
+                channel: channelContext.channel,
+                guild: channelContext.guild,
+                thread: channelContext.thread,
+              }
             : undefined,
           files,
           hooks: [
@@ -783,7 +798,11 @@ export class AgentBridgeService {
           botContext,
           botPlatformContext,
           discordContext: channelContext
-            ? { channel: channelContext.channel, guild: channelContext.guild }
+            ? {
+                channel: channelContext.channel,
+                guild: channelContext.guild,
+                thread: channelContext.thread,
+              }
             : undefined,
           files,
           hooks: [
@@ -1041,6 +1060,7 @@ export class AgentBridgeService {
       const decoded = thread.adapter.decodeThreadId(thread.id) as {
         channelId?: string;
         guildId?: string;
+        threadId?: string;
       };
 
       if (!decoded?.guildId || !decoded?.channelId) {
@@ -1048,25 +1068,49 @@ export class AgentBridgeService {
         return undefined;
       }
 
-      // Fetch thread info to get channel name and metadata
-      const threadInfo = await thread.adapter.fetchThread(thread.id);
-      const raw = threadInfo.metadata?.raw as { topic?: string; type?: number } | undefined;
+      // Fetch parent channel info
+      const channelInfo = await thread.adapter.fetchThread(thread.id);
+      const raw = channelInfo.metadata?.raw as { topic?: string; type?: number } | undefined;
 
       const context: DiscordChannelContext = {
         channel: {
           id: decoded.channelId,
-          name: threadInfo.channelName,
+          name: channelInfo.channelName,
           topic: raw?.topic,
           type: raw?.type,
         },
         guild: { id: decoded.guildId },
       };
 
+      // When in a Discord thread, also fetch thread info.
+      // Discord threads are channels, so we can fetch via /channels/{threadId}
+      // by constructing a synthetic composite ID with threadId as the channelId slot.
+      if (decoded.threadId) {
+        try {
+          const syntheticId = `discord:${decoded.guildId}:${decoded.threadId}`;
+          const threadInfoResult = await thread.adapter.fetchThread(syntheticId);
+          context.thread = {
+            id: decoded.threadId,
+            name: threadInfoResult.channelName,
+          };
+          log(
+            'fetchChannelContext: thread=%s (%s)',
+            decoded.threadId,
+            threadInfoResult.channelName,
+          );
+        } catch (threadError) {
+          log('fetchChannelContext: failed to fetch thread info: %O', threadError);
+          // Still include thread ID even if name fetch fails
+          context.thread = { id: decoded.threadId };
+        }
+      }
+
       log(
-        'fetchChannelContext: guild=%s, channel=%s (%s)',
+        'fetchChannelContext: guild=%s, channel=%s (%s), thread=%s',
         decoded.guildId,
         decoded.channelId,
-        threadInfo.channelName,
+        channelInfo.channelName,
+        context.thread?.name ?? 'none',
       );
 
       return context;
@@ -1091,17 +1135,20 @@ export class AgentBridgeService {
   private async resolveFiles(
     message: Message,
     client?: PlatformClient,
-  ): Promise<
-    | Array<{
-        buffer?: Buffer;
-        mimeType?: string;
-        name?: string;
-        size?: number;
-        url?: string;
-      }>
-    | undefined
-  > {
-    return client?.extractFiles?.(message);
+  ): Promise<{
+    files?: Array<{
+      buffer?: Buffer;
+      mimeType?: string;
+      name?: string;
+      size?: number;
+      url?: string;
+    }>;
+    warnings?: string[];
+  }> {
+    const result = await client?.extractFiles?.(message);
+    if (!result) return {};
+    if (Array.isArray(result)) return { files: result };
+    return { files: result.files, warnings: result.warnings };
   }
 
   /**
