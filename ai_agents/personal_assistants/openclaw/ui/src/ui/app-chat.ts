@@ -1,12 +1,16 @@
+import { setLastActiveSessionKey } from "./app-last-active-session.ts";
 import { scheduleChatScroll, resetChatScroll } from "./app-scroll.ts";
-import { setLastActiveSessionKey } from "./app-settings.ts";
 import { resetToolStream } from "./app-tool-stream.ts";
-import type { OpenClawApp } from "./app.ts";
 import { executeSlashCommand } from "./chat/slash-command-executor.ts";
 import { parseSlashCommand } from "./chat/slash-commands.ts";
-import { abortChatRun, loadChatHistory, sendChatMessage } from "./controllers/chat.ts";
+import {
+  abortChatRun,
+  loadChatHistory,
+  sendChatMessage,
+  type ChatState,
+} from "./controllers/chat.ts";
 import { loadModels } from "./controllers/models.ts";
-import { loadSessions } from "./controllers/sessions.ts";
+import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { normalizeBasePath } from "./navigation.ts";
 import { parseAgentSessionKey } from "./session-key.ts";
@@ -82,7 +86,7 @@ export async function handleAbortChat(host: ChatHost) {
     return;
   }
   host.chatMessage = "";
-  await abortChatRun(host as unknown as OpenClawApp);
+  await abortChatRun(host as unknown as ChatState);
 }
 
 function enqueueChatMessage(
@@ -142,7 +146,7 @@ async function sendChatMessageNow(
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
   // Reset scroll state before sending to ensure auto-scroll works for the response
   resetChatScroll(host as unknown as Parameters<typeof resetChatScroll>[0]);
-  const runId = await sendChatMessage(host as unknown as OpenClawApp, message, opts?.attachments);
+  const runId = await sendChatMessage(host as unknown as ChatState, message, opts?.attachments);
   const ok = Boolean(runId);
   if (!ok && opts?.previousDraft != null) {
     host.chatMessage = opts.previousDraft;
@@ -375,7 +379,7 @@ async function clearChatHistory(host: ChatHost) {
     host.chatMessages = [];
     host.chatStream = null;
     host.chatRunId = null;
-    await loadChatHistory(host as unknown as OpenClawApp);
+    await loadChatHistory(host as unknown as ChatState);
   } catch (err) {
     host.lastError = String(err);
   }
@@ -395,8 +399,8 @@ function injectCommandResult(host: ChatHost, content: string) {
 
 export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: boolean }) {
   await Promise.all([
-    loadChatHistory(host as unknown as OpenClawApp),
-    loadSessions(host as unknown as OpenClawApp, {
+    loadChatHistory(host as unknown as ChatState),
+    loadSessions(host as unknown as SessionsState, {
       activeMinutes: 0,
       limit: 0,
       includeGlobal: true,

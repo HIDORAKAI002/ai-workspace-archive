@@ -177,7 +177,7 @@ export function checkCreditsMiddleware(
       req.account = { remainingCredits };
       if (!success) {
         if (
-          !minimum &&
+          !_minimum &&
           req.body &&
           (req.body as any).limit !== undefined &&
           remainingCredits > 0
