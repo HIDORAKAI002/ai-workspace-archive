@@ -50,9 +50,7 @@ TEST_ADHOC_JOB_ID = 4444
 TEST_RUN_ID = 5555
 TEST_DEFAULT_ADHOC_JOB_NAME = get_dagster_adhoc_job_name(
     project_id=TEST_PROJECT_ID,
-    project_name=TEST_PROJECT_NAME,
     environment_id=TEST_ENVIRONMENT_ID,
-    environment_name=TEST_ENVIRONMENT_NAME,
 )
 TEST_CUSTOM_ADHOC_JOB_NAME = "test_custom_adhoc_job_name"
 
@@ -779,18 +777,6 @@ def workspace_fixture(credentials: DbtCloudCredentials) -> Generator[DbtCloudWor
 )
 def project_environment_api_mocks_fixture() -> Iterator[responses.RequestsMock]:
     with responses.RequestsMock() as response:
-        response.add(
-            method=responses.GET,
-            url=f"{TEST_REST_API_BASE_URL}/projects/{TEST_PROJECT_ID}",
-            json=SAMPLE_PROJECT_RESPONSE,
-            status=200,
-        )
-        response.add(
-            method=responses.GET,
-            url=f"{TEST_REST_API_BASE_URL}/environments/{TEST_ENVIRONMENT_ID}",
-            json=SAMPLE_ENVIRONMENT_RESPONSE,
-            status=200,
-        )
         yield response
 
 
@@ -840,36 +826,6 @@ def fetch_workspace_data_api_mocks_fixture(
         status=200,
     )
     yield job_api_mocks
-
-
-@pytest.fixture(
-    name="asset_decorator_group_name_api_mocks",
-)
-def asset_decorator_group_name_api_mocks_fixture(
-    fetch_workspace_data_api_mocks: responses.RequestsMock,
-) -> Iterator[responses.RequestsMock]:
-    fetch_workspace_data_api_mocks.add(
-        method=responses.GET,
-        url=f"{TEST_REST_API_BASE_URL}",
-        json=SAMPLE_ACCOUNT_RESPONSE,
-        status=200,
-    )
-    yield fetch_workspace_data_api_mocks
-
-
-@pytest.fixture(
-    name="sensor_builder_api_mocks",
-)
-def sensor_builder_api_mocks_fixture(
-    project_environment_api_mocks: responses.RequestsMock,
-) -> Iterator[responses.RequestsMock]:
-    project_environment_api_mocks.add(
-        method=responses.GET,
-        url=f"{TEST_REST_API_BASE_URL}",
-        json=SAMPLE_ACCOUNT_RESPONSE,
-        status=200,
-    )
-    yield project_environment_api_mocks
 
 
 @pytest.fixture(
@@ -927,12 +883,6 @@ def all_api_mocks_fixture(
         method=responses.GET,
         url=f"{TEST_REST_API_BASE_URL}/runs",
         json=SAMPLE_LIST_RUNS_RESPONSE,
-        status=200,
-    )
-    cli_invocation_api_mocks.add(
-        method=responses.GET,
-        url=f"{TEST_REST_API_BASE_URL}",
-        json=SAMPLE_ACCOUNT_RESPONSE,
         status=200,
     )
     yield cli_invocation_api_mocks
