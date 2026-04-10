@@ -9,7 +9,6 @@ from dagster_shared.plus.config import DagsterPlusCliConfig
 
 from dagster_dg_cli.cli.plus.constants import DgPlusAgentPlatform, DgPlusAgentType
 from dagster_dg_cli.utils.plus.gql import DEPLOYMENT_INFO_QUERY
-from dagster_dg_cli.utils.plus.gql_client import DagsterPlusGraphQLClient
 
 
 def get_dockerfile_path(
@@ -58,6 +57,8 @@ def get_agent_type_and_platform_from_graphql(
 
 def get_agent_type(cli_config: DagsterPlusCliConfig | None = None) -> DgPlusAgentType:
     if cli_config:
+        from dagster_rest_resources.gql_client import DagsterPlusGraphQLClient
+
         gql_client = DagsterPlusGraphQLClient.from_config(cli_config)
         return get_agent_type_and_platform_from_graphql(gql_client)[0]
 
