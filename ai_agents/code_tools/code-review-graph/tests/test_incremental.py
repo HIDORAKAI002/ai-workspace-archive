@@ -145,6 +145,39 @@ class TestIgnorePatterns:
         assert _should_ignore(".git/HEAD", patterns)
         assert not _should_ignore("src/main.py", patterns)
 
+    def test_should_ignore_nested_dependency_dirs(self):
+        """Nested node_modules / vendor / .gradle should be ignored (#91)."""
+        patterns = [
+            "node_modules/**", "vendor/**", ".gradle/**", ".venv/**",
+        ]
+        # Monorepo: nested node_modules
+        assert _should_ignore("packages/app/node_modules/react/index.js", patterns)
+        assert _should_ignore("apps/web/node_modules/lodash/index.js", patterns)
+        # PHP/Laravel: vendor at any depth
+        assert _should_ignore("backend/vendor/autoload.php", patterns)
+        # Gradle at any depth
+        assert _should_ignore("android/app/.gradle/cache/metadata.bin", patterns)
+        # Negative: similarly-named dirs that aren't a match
+        assert not _should_ignore("src/node_modules_helper/foo.py", patterns)
+        assert not _should_ignore("src/venv_tools/bar.py", patterns)
+
+    def test_should_ignore_framework_defaults(self):
+        """Default patterns should cover Laravel, Gradle, Flutter, and caches."""
+        from code_review_graph.incremental import DEFAULT_IGNORE_PATTERNS
+
+        patterns = DEFAULT_IGNORE_PATTERNS
+        # Laravel/PHP
+        assert _should_ignore("vendor/autoload.php", patterns)
+        assert _should_ignore("bootstrap/cache/packages.php", patterns)
+        # Gradle/Java
+        assert _should_ignore(".gradle/caches/jars.bin", patterns)
+        assert _should_ignore("build/libs/app.jar", patterns)
+        # Flutter/Dart
+        assert _should_ignore(".dart_tool/package_config.json", patterns)
+        # Coverage/cache
+        assert _should_ignore("coverage/lcov.info", patterns)
+        assert _should_ignore(".cache/webpack/index.pack", patterns)
+
 
 class TestIsBinary:
     def test_text_file_is_not_binary(self, tmp_path):
@@ -214,6 +247,62 @@ class TestGitOperations:
         )
         result = get_all_tracked_files(tmp_path)
         assert result == ["a.py", "b.py", "c.go"]
+
+    @patch("code_review_graph.incremental.subprocess.run")
+    def test_get_all_tracked_files_recurse_submodules_param(
+        self, mock_run, tmp_path
+    ):
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="a.py\nsub/b.py\n",
+        )
+        result = get_all_tracked_files(tmp_path, recurse_submodules=True)
+        assert result == ["a.py", "sub/b.py"]
+        cmd = mock_run.call_args[0][0]
+        assert "--recurse-submodules" in cmd
+
+    @patch("code_review_graph.incremental.subprocess.run")
+    def test_get_all_tracked_files_no_recurse_by_default(
+        self, mock_run, tmp_path
+    ):
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="a.py\n",
+        )
+        result = get_all_tracked_files(tmp_path)
+        assert result == ["a.py"]
+        cmd = mock_run.call_args[0][0]
+        assert "--recurse-submodules" not in cmd
+
+    @patch("code_review_graph.incremental.subprocess.run")
+    @patch("code_review_graph.incremental._RECURSE_SUBMODULES", True)
+    def test_get_all_tracked_files_env_var_fallback(
+        self, mock_run, tmp_path
+    ):
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="a.py\nsub/c.py\n",
+        )
+        # None -> falls back to env var (_RECURSE_SUBMODULES=True)
+        result = get_all_tracked_files(tmp_path, recurse_submodules=None)
+        assert result == ["a.py", "sub/c.py"]
+        cmd = mock_run.call_args[0][0]
+        assert "--recurse-submodules" in cmd
+
+    @patch("code_review_graph.incremental.subprocess.run")
+    @patch("code_review_graph.incremental._RECURSE_SUBMODULES", True)
+    def test_get_all_tracked_files_param_overrides_env(
+        self, mock_run, tmp_path
+    ):
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="a.py\n",
+        )
+        # Explicit False overrides env var
+        result = get_all_tracked_files(tmp_path, recurse_submodules=False)
+        assert result == ["a.py"]
+        cmd = mock_run.call_args[0][0]
+        assert "--recurse-submodules" not in cmd
 
 
 class TestFullBuild:

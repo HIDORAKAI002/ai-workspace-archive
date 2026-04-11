@@ -14,7 +14,7 @@ import os
 import re
 import subprocess
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional
 
 from .graph import GraphStore
@@ -26,7 +26,11 @@ _MAX_PARSE_WORKERS = int(os.environ.get(
 
 logger = logging.getLogger(__name__)
 
-# Default ignore patterns (in addition to .gitignore)
+# Default ignore patterns (in addition to .gitignore).
+#
+# `<dir>/**` patterns are matched at any depth by _should_ignore, so
+# `node_modules/**` also excludes `packages/app/node_modules/react/index.js`
+# inside monorepos. See: #91
 DEFAULT_IGNORE_PATTERNS = [
     ".code-review-graph/**",
     "node_modules/**",
@@ -39,6 +43,21 @@ DEFAULT_IGNORE_PATTERNS = [
     "build/**",
     ".next/**",
     "target/**",
+    # PHP / Laravel / Composer
+    "vendor/**",
+    "bootstrap/cache/**",
+    "public/build/**",
+    # Ruby / Bundler
+    ".bundle/**",
+    # Java / Kotlin / Gradle
+    ".gradle/**",
+    "*.jar",
+    # Dart / Flutter
+    ".dart_tool/**",
+    ".pub-cache/**",
+    # General
+    "coverage/**",
+    ".cache/**",
     "*.min.js",
     "*.min.css",
     "*.map",
@@ -148,8 +167,31 @@ def _load_ignore_patterns(repo_root: Path) -> list[str]:
 
 
 def _should_ignore(path: str, patterns: list[str]) -> bool:
-    """Check if a path matches any ignore pattern."""
-    return any(fnmatch.fnmatch(path, p) for p in patterns)
+    """Check if a path matches any ignore pattern.
+
+    Handles nested occurrences of ``<dir>/**`` patterns: for example,
+    ``node_modules/**`` also matches ``packages/app/node_modules/foo.js``
+    inside monorepos. ``fnmatch`` alone treats ``*`` as not crossing ``/``
+    and only matches the prefix, so we additionally test each path segment
+    against the bare prefix of ``<dir>/**`` patterns. See: #91
+    """
+    # Direct fnmatch first (cheap)
+    if any(fnmatch.fnmatch(path, p) for p in patterns):
+        return True
+    # Then: treat simple single-segment "dir/**" patterns as
+    # "this directory at any depth".
+    parts = PurePosixPath(path).parts
+    for p in patterns:
+        if not p.endswith("/**"):
+            continue
+        prefix = p[:-3]
+        # Only single-segment dir patterns (no "/" inside the prefix)
+        # qualify for nested matching.
+        if "/" in prefix or not prefix:
+            continue
+        if prefix in parts:
+            return True
+    return False
 
 
 def _is_binary(path: Path) -> bool:
@@ -162,6 +204,13 @@ def _is_binary(path: Path) -> bool:
 
 
 _GIT_TIMEOUT = int(os.environ.get("CRG_GIT_TIMEOUT", "30"))  # seconds, configurable
+
+# When True, `git ls-files --recurse-submodules` is used so that files
+# inside git submodules are included in the graph.  Opt-in via env var;
+# can also be overridden per-call through function parameters.
+_RECURSE_SUBMODULES = os.environ.get(
+    "CRG_RECURSE_SUBMODULES", ""
+).lower() in ("1", "true", "yes")
 
 
 def _git_branch_info(repo_root: Path) -> tuple[str, str]:
@@ -244,11 +293,29 @@ def get_staged_and_unstaged(repo_root: Path) -> list[str]:
         return []
 
 
-def get_all_tracked_files(repo_root: Path) -> list[str]:
-    """Get all files tracked by git."""
+def get_all_tracked_files(
+    repo_root: Path,
+    recurse_submodules: bool | None = None,
+) -> list[str]:
+    """Get all files tracked by git.
+
+    Args:
+        repo_root: Repository root directory.
+        recurse_submodules: If True, pass ``--recurse-submodules`` to
+            ``git ls-files`` so that files inside git submodules are
+            included.  When *None* (default), falls back to the
+            ``CRG_RECURSE_SUBMODULES`` environment variable.
+    """
+    if recurse_submodules is None:
+        recurse_submodules = _RECURSE_SUBMODULES
+
+    cmd = ["git", "ls-files"]
+    if recurse_submodules:
+        cmd.append("--recurse-submodules")
+
     try:
         result = subprocess.run(
-            ["git", "ls-files"],
+            cmd,
             capture_output=True,
             text=True,
             cwd=str(repo_root),
@@ -259,14 +326,23 @@ def get_all_tracked_files(repo_root: Path) -> list[str]:
         return []
 
 
-def collect_all_files(repo_root: Path) -> list[str]:
-    """Collect all parseable files in the repo, respecting ignore patterns."""
+def collect_all_files(
+    repo_root: Path,
+    recurse_submodules: bool | None = None,
+) -> list[str]:
+    """Collect all parseable files in the repo, respecting ignore patterns.
+
+    Args:
+        repo_root: Repository root directory.
+        recurse_submodules: If True, include files from git submodules.
+            When *None*, falls back to ``CRG_RECURSE_SUBMODULES`` env var.
+    """
     ignore_patterns = _load_ignore_patterns(repo_root)
     parser = CodeParser()
     files = []
 
     # Prefer git ls-files for tracked files
-    tracked = get_all_tracked_files(repo_root)
+    tracked = get_all_tracked_files(repo_root, recurse_submodules)
     if tracked:
         candidates = tracked
     else:
@@ -371,10 +447,21 @@ def _parse_single_file(
         return (rel_path, [], [], str(e), "")
 
 
-def full_build(repo_root: Path, store: GraphStore) -> dict:
-    """Full rebuild of the entire graph."""
+def full_build(
+    repo_root: Path,
+    store: GraphStore,
+    recurse_submodules: bool | None = None,
+) -> dict:
+    """Full rebuild of the entire graph.
+
+    Args:
+        repo_root: Repository root directory.
+        store: Graph database store.
+        recurse_submodules: If True, include files from git submodules.
+            When *None*, falls back to ``CRG_RECURSE_SUBMODULES`` env var.
+    """
     parser = CodeParser()
-    files = collect_all_files(repo_root)
+    files = collect_all_files(repo_root, recurse_submodules)
 
     # Purge stale data from files no longer on disk
     existing_files = set(store.get_all_files())
