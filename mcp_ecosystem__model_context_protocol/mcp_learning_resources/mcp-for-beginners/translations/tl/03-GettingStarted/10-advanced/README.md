@@ -1,20 +1,20 @@
-# Advanced server usage
+# Advanced na paggamit ng server
 
-May dalawang magkakaibang uri ng server na ipinapakita sa MCP SDK, ang iyong normal na server at ang low-level server. Karaniwan, gagamitin mo ang regular na server para magdagdag ng mga feature dito. Sa ilang mga kaso, gusto mong umasa sa low-level server gaya ng:
+May dalawang magkaibang uri ng server na inilalantad sa MCP SDK, ang iyong karaniwang server at ang low-level na server. Karaniwan, gagamitin mo ang regular na server para magdagdag ng mga tampok dito. Para sa ilang kaso, gusto mong umasa sa low-level na server tulad ng:
 
-- Mas magandang arkitektura. Posibleng gumawa ng malinis na arkitektura gamit ang parehong regular na server at low-level server pero maaaring sabihin na mas madali ito sa low-level server.
-- Availability ng feature. Ang ilang advanced na feature ay maaari lamang gamitin sa low-level server. Makikita mo ito sa mga susunod na kabanata habang nagdadagdag tayo ng sampling at elicitation.
+- Mas mahusay na arkitektura. Posibleng lumikha ng malinis na arkitektura gamit ang parehong regular na server at low-level na server ngunit maaring mas madaling gawin ito gamit ang low-level na server.
+- Availability ng tampok. Ang ilang mga advanced na tampok ay maaari lamang gamitin gamit ang low-level na server. Makikita mo ito sa mga susunod na kabanata habang nagdaragdag tayo ng sampling at elicitation.
 
-## Regular server vs low-level server
+## Regular na server kumpara sa low-level na server
 
-Ganito ang hitsura ng paglikha ng isang MCP Server gamit ang regular na server
+Ganito ang hitsura ng paglikha ng MCP Server gamit ang regular na server
 
 **Python**
 
 ```python
 mcp = FastMCP("Demo")
 
-# Magdagdag ng isang kasangkapang pandagdag
+# Magdagdag ng isang kasangkapan para sa pagdaragdag
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -29,7 +29,7 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// Magdagdag ng isang kasangkapang pantambal
+// Magdagdag ng isang pandagdag na kasangkapan
 server.registerTool("add",
   {
     title: "Addition Tool",
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-Ang punto ay ikaw ay hayagang nagdaragdag ng bawat tool, resource o prompt na gusto mong magkaroon ang server. Walang masama doon.
+Ang punto ay nagdadagdag ka ng bawat tool, resource o prompt na nais mong magkaroon ang server nang hayagan. Walang mali doon.
 
-### Low-level server approach
+### Paraan ng low-level na server
 
-Gayunpaman, kapag ginamit mo ang low-level server na pamamaraan, kailangan mong mag-isip nang iba. Sa halip na magrehistro ng bawat tool, lumikha ka ng dalawang handler bawat uri ng feature (tools, resources o prompts). Halimbawa, ang tools ay may dalawang function lang tulad nito:
+Gayunpaman, kapag ginamit mo ang low-level na paraan ng server, kailangan mong isipin ito nang iba. Sa halip na magrehistro ng bawat tool, lumikha ka ng dalawang handler kada uri ng tampok (tools, resources o prompts). Halimbawa, sa mga tool ay may dalawang function lamang tulad ng:
 
-- Paglista ng lahat ng tools. Ang isang function ang magiging responsable sa lahat ng pagtatangka na maglista ng tools.
-- Pamahalaan ang pagtawag ng lahat ng tools. Dito rin, iisang function lang ang humahawak ng pagtawag sa tool.
+- Paglista ng lahat ng tools. Isang function ang responsable sa lahat ng pagsubok na maglista ng mga tool.
+- Pamahalaan ang pagtawag sa lahat ng tools. Dito rin, isang function lang ang humahawak sa pagtawag sa tool.
 
-Mukhang mas kaunting trabaho, hindi ba? Sa halip na magrehistro ng tool, kailangan ko lang siguraduhin na naka-lista ang tool kapag nililista ko ang lahat ng tools at na tinatawag ito kapag may darating na request na tumawag ng tool.
+Mukhang mas kaunti ang trabaho, di ba? Kaya sa halip na magrehistro ng tool, kailangan ko lang siguraduhin na nakalista ang tool kapag nililista ko ang lahat ng tools at tinatawag ito kapag may papasok na kahilingan na tumawag ng tool.
 
-Tingnan natin kung paano ang hitsura ng code ngayon:
+Tingnan natin kung paano ngayon ang hitsura ng code:
 
 **Python**
 
@@ -81,7 +81,7 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Ibalik ang listahan ng mga nakarehistrong kasangkapan
+  // Ibalik ang listahan ng mga nakarehistrong kagamitan
   return {
     tools: [{
         name="add",
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Dito mayroon na tayong function na nagbabalik ng listahan ng mga feature. Bawat entry sa tools listahan ay may mga field tulad ng `name`, `description` at `inputSchema` para sumunod sa return type. Pinapahintulutan tayo nito na ilagay ang ating mga tool at feature na definisyon sa ibang lugar. Maaari na nating likhain lahat ng ating tools sa isang tools folder at ganoon din sa lahat ng mga feature kaya ang iyong proyekto ay biglang magiging organisado ng ganito:
+Dito ay may isang function tayo na nagbabalik ng listahan ng mga tampok. Bawat entry sa listahan ng tools ay may mga field tulad ng `name`, `description` at `inputSchema` para sumunod sa return type. Pinapayagan tayo nitong ilagay ang ating mga tool at depinisyon ng tampok sa ibang lugar. Maaari na nating likhain ang lahat ng tools sa isang tools folder at ganoon din sa lahat ng iyong mga tampok kaya ang iyong proyekto ay maaaring maging maayos na nakaayos tulad ng:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Ang ganda, maaaring maging malinis ang ating arkitektura.
+Maganda, ang ating arkitektura ay maaaring gawing malinis ang itsura.
 
-Paano naman ang pagtawag ng mga tools, pareho lang ba ang ideya, isang handler lang na tumawag sa isang tool, sinumang tool? Oo, tama iyan, narito ang code para doon:
+Paano naman ang pagtawag sa tools, pareho lang ba ang ideya, isang handler lang para tawagin ang anumang tool? Oo, eksakto, ito ang code para doon:
 
 **Python**
 
@@ -125,7 +125,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # ang tools ay isang diksyonaryo na may mga pangalan ng kagamitan bilang mga susi
+    # ang tools ay isang diksyunaryo na may mga pangalan ng kasangkapan bilang mga susi
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -158,7 +158,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     
     // args: request.params.arguments
-    // TODO tawagan ang kasangkapan,
+    // TODO tawagan ang tool,
 
     return {
        content: [{ type: "text", text: `Tool ${name} called with arguments: ${JSON.stringify(input)}, result: ${JSON.stringify(result)}` }]
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Tulad ng nakikita mo mula sa code sa itaas, kailangan nating i-parse kung anong tool ang tatawagin, at kung ano ang mga argumento, at pagkatapos ay kailangan nating ipagpatuloy ang pagtawag sa tool.
+Makikita mo sa code sa itaas, kailangan nating i-parse ang tool na tatawagin, at kung anong mga argumento, tapos kailangan nating ipagpatuloy ang pagtawag sa tool.
 
-## Pagpapabuti ng pamamaraan gamit ang validation
+## Pagpapahusay ng paraan gamit ang validation
 
-Sa ngayon, nakita mo kung paano ang lahat ng iyong mga rehistrasyon para magdagdag ng tools, resources at prompts ay maaaring mapalitan ng dalawang handler bawat uri ng feature. Ano pa ba ang kailangan nating gawin? Dapat tayong magdagdag ng ilang anyo ng validation upang matiyak na ang tool ay tinatawag na may tamang mga argumento. Bawat runtime ay may kanya-kanyang solusyon para dito, halimbawa ginagamit ng Python ang Pydantic at TypeScript ang Zod. Ang ideya ay gawin natin ang sumusunod:
+Hanggang ngayon, nakita mo kung paano mapapalitan ang lahat ng iyong rehistrasyon upang magdagdag ng tools, resources at prompts gamit ang dalawang handlers na ito kada uri ng tampok. Ano pa ang kailangan nating gawin? Dapat tayong magdagdag ng anumang uri ng validation upang matiyak na tinatawag ang tool gamit ang tamang mga argumento. Bawat runtime ay may sariling solusyon para dito, halimbawa Python ay gumagamit ng Pydantic at TypeScript ay gumagamit ng Zod. Ang ideya ay gawin natin ang mga sumusunod:
 
-- Ilipat ang lohika para sa paglikha ng feature (tool, resource o prompt) sa kanya-kanyang nakalaang folder.
-- Magdagdag ng paraan upang ma-validate ang papasok na request na, halimbawa, tumawag ng tool.
+- Ilipat ang lohika sa paglikha ng tampok (tool, resource o prompt) sa sariling dedikadong folder nito.
+- Magdagdag ng paraan upang i-validate ang papasok na request na, halimbawa, tumatawag ng tool.
 
-### Lumikha ng isang feature
+### Gumawa ng tampok
 
-Para lumikha ng isang feature, kailangan nating gumawa ng file para sa feature na iyon at siguraduhin na mayroon itong mga mandatory na field na kailangan ng feature na iyon. Ang mga field ay bahagyang nagkakaiba sa pagitan ng tools, resources at prompts.
+Para gumawa ng tampok, kailangan nating gumawa ng file para sa tampok na iyon at siguraduhin na mayroon itong mga mandatory na field na kinakailangan ng tampok. Ang mga field ay bahagyang nagkakaiba sa tools, resources at prompts.
 
 **Python**
 
@@ -195,12 +195,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Beripikahin ang input gamit ang Pydantic na modelo
+        # Suriin ang input gamit ang Pydantic model
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: idagdag ang Pydantic, upang makagawa tayo ng AddInputModel at ma-validate ang mga args
+    # TODO: magdagdag ng Pydantic, para makagawa tayo ng AddInputModel at masuri ang mga argumento
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -213,10 +213,10 @@ tool_add = {
 }
 ```
 
-Dito makikita mo kung paano natin ginagawa ang sumusunod:
+dito makikita mo kung paano namin ginagawa ang mga sumusunod:
 
 - Gumawa ng schema gamit ang Pydantic `AddInputModel` na may mga field na `a` at `b` sa file na *schema.py*.
-- Subukang i-parse ang papasok na request upang maging uri ng `AddInputModel`, kung may mismatch sa mga parameter ay matatalo ito:
+- Subukan i-parse ang papasok na request bilang uri na `AddInputModel`, kung may mismatch sa mga parameter ay magka-crash ito:
 
    ```python
    # add.py
@@ -227,7 +227,7 @@ Dito makikita mo kung paano natin ginagawa ang sumusunod:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Maaari mong piliin kung ilalagay ang lohika ng parsing na ito sa mismong tool call o sa handler function.
+Maaari mong piliing ilagay ang parsing logic na ito mismo sa pagtawag ng tool o sa handler function.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- Sa handler na humahawak sa lahat ng pagtawag sa tool, sinusubukan nating i-parse ang papasok na request sa schema na idinefine ng tool:
+- Sa handler na humahawak sa lahat ng pagtawag sa tool, sinusubukan nating i-parse ang papasok na request sa schema na tinukoy ng tool:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    kung gumana ito, magpapatuloy tayo sa pagtawag ng aktwal na tool:
+    kung gumana ito, ipagpapatuloy natin ang pagtawag sa aktwal na tool:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-Tulad ng nakikita mo, ang pamamaraang ito ay lumilikha ng magandang arkitektura dahil bawat bagay ay may sariling lugar, ang *server.ts* ay isang napakaliit na file na nag-uugnay lang sa mga request handlers at bawat feature ay nasa kani-kaniyang folder gaya ng tools/, resources/ o /prompts.
+Makikita mo, ang paraang ito ay lumilikha ng maganda at maayos na arkitektura dahil lahat ay may lugar, ang *server.ts* ay isang napakaliit na file na nag-uugnay lamang sa mga request handler at bawat tampok ay nasa kani-kanilang folder gaya ng tools/, resources/ o /prompts.
 
-Maganda, subukan nating buuin ito ngayon.
+Maganda, subukan natin itong buuin na.
 
-## Exercise: Paglikha ng low-level server
+## Ehersisyo: Paglikha ng low-level na server
 
-Sa pagsasanay na ito, gagawin natin ang mga sumusunod:
+Sa ehersisyong ito, gagawin natin ang mga sumusunod:
 
-1. Gumawa ng low-level server na humahawak sa paglista ng tools at pagtawag ng mga tools.
-2. Magpatupad ng arkitektura na madaling mapalawig.
-3. Magdagdag ng validation upang matiyak na wastong na-validate ang pagtawag sa tool.
+1. Lumikha ng low-level na server na humahawak sa paglista ng tools at pagtawag ng tools.
+1. Ipatupad ang arkitekturang maaari mong pagbuunan ng karagdagang mga tampok.
+1. Magdagdag ng validation upang matiyak na wastong na-validate ang mga pagtawag sa iyong tool.
 
 ### -1- Gumawa ng arkitektura
 
-Ang unang bagay na kailangan nating tugunan ay isang arkitektura na tumutulong sa atin mag-scale habang nagdadagdag tayo ng mas maraming feature, ganito ang hitsura:
+Ang unang bagay na kailangan nating tugunan ay isang arkitekturang tumutulong sa pag-scale habang nagdaragdag tayo ng mas maraming tampok, ganito ang hitsura nito:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Ngayon ay na-set up na natin ang arkitektura na nagtitiyak na madali tayong makakapagdagdag ng mga bagong tools sa tools folder. Malayang sundan ito upang magdagdag ng mga subdirectory para sa resources at prompts.
+Ngayon ay nakagawa na tayo ng arkitekturang nagsisiguro na madali tayong makakadagdag ng mga bagong tools sa isang tools folder. Malayang sundan ito upang magdagdag ng mga subdirectory para sa resources at prompts.
 
-### -2- Paglikha ng tool
+### -2- Paggawa ng tool
 
-Tingnan natin kung paano ang paggawa ng tool. Una, kailangang likhain ito sa kanyang *tool* na subdirectory tulad nito:
+Tingnan natin kung ano ang hitsura ng paggawa ng tool. Una, kailangan itong gawin sa ilalim ng *tool* na subdirectory tulad ng:
 
 **Python**
 
@@ -353,7 +353,7 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # I-validate ang input gamit ang Pydantic model
+        # I-validate ang input gamit ang Pydantic na modelo
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Makikita dito kung paano natin dinefine ang pangalan, deskripsyon, at input schema gamit ang Pydantic at isang handler na tatawagin kapag tinawag ang tool na ito. Sa huli, inilalabas natin ang `tool_add` na isang dictionary na naglalaman ng mga property na ito.
+Dito makikita kung paano namin dine-define ang pangalan, paglalarawan, at input schema gamit ang Pydantic at isang handler na tatawagin sa oras na tawagin ang tool na ito. Sa huli, inia-expose namin ang `tool_add` na isang dictionary na naglalaman ng lahat ng mga propertie na ito.
 
-Meron ding *schema.py* na ginagamit upang idefine ang input schema na ginagamit ng ating tool:
+Mayroon ding *schema.py* na ginagamit para i-define ang input schema na ginagamit ng ating tool:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Kailangan din nating lagyan ng laman ang *__init__.py* upang matiyak na ang tools directory ay itinuturing bilang isang module. Bukod doon, kailangan nating ilabas ang mga module na nasa loob nito ng ganito:
+Kailangan din nating lagyan ng laman ang *__init__.py* upang matiyak na ang tools directory ay tinitingnan bilang module. Bukod pa rito, kailangan nating i-expose ang mga module sa loob nito tulad nito:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Maaari nating patuloy na dagdagan ang file na ito habang nadaragdagan ang ating mga tools.
+Patuloy natin itong madadagdagan habang nagdadagdag tayo ng mas maraming tools.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Dito gumawa tayo ng dictionary na binubuo ng mga property:
+Dito gumawa tayo ng dictionary na binubuo ng mga properties:
 
 - name, ito ang pangalan ng tool.
-- rawSchema, ito ang Zod schema, gagamitin ito para i-validate ang mga papasok na request para tawagin ang tool.
-- inputSchema, gagamitin ito ng handler.
-- callback, ito ang ginagamit para tawagin ang tool.
+- rawSchema, ito ang Zod schema, gagamitin ito para i-validate ang mga papasok na kahilingan na tumawag sa tool na ito.
+- inputSchema, ang schema na ito ay gagamitin ng handler.
+- callback, ito ang ginagamit para ipatawag ang tool.
 
-Meron ding `Tool` na ginagamit para i-convert ang dictionary na ito sa isang type na matatanggap ng mcp server handler at ganito ang itsura:
+Mayroon din `Tool` na ginagamit para i-convert ang dictionary na ito sa uri na matatanggap ng mcp server handler at ganito ang hitsura nito:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-At may *schema.ts* kung saan inilalagay natin ang input schemas para sa bawat tool na ganito ang itsura at kasalukuyang may isang schema lamang pero habang nagdadagdag tayo ng tools maaari tayong magdagdag ng iba pang entry:
+At mayroon ding *schema.ts* kung saan ini-store natin ang mga input schemas para sa bawat tool na ganito ang itsura kahit isa pa lang ang schema ngayon pero habang nagdadagdag tayo ng tools ay madadaganan natin ng mga entry:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Maganda, magpapatuloy tayo sa paghawak ng paglista ng ating mga tool.
+Maganda, magpatuloy tayo sa paghawak ng paglista ng tools.
 
-### -3- Hawakan ang paglista ng tool
+### -3- Pangasiwaan ang paglista ng tool
 
-Susunod, upang hawakan ang paglista ng ating mga tool, kailangan nating mag-set up ng request handler para dito. Ito ang kailangan nating idagdag sa ating server file:
+Sunod, para hawakan ang paglista ng tools, kailangan nating gumawa ng request handler para dito. Ito ang kailangan nating idagdag sa ating server file:
 
 **Python**
 
 ```python
-# inalis ang code para sa pagpapaikli
+# inalis ang code para sa ikinababawas ng haba
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Dito, idinagdag natin ang decorator na `@server.list_tools` at ang function na nag-iimplementa na `handle_list_tools`. Sa huli, kailangan nating gumawa ng listahan ng mga tools. Pansinin na bawat tool ay kailangang may pangalan, deskripsyon at inputSchema.
+Dito, idinagdag natin ang decorator na `@server.list_tools` at ang implementing function na `handle_list_tools`. Sa huli, kailangan nating gumawa ng listahan ng mga tool. Pansinin na ang bawat tool ay kailangang may pangalan, paglalarawan at inputSchema.
 
 **TypeScript**
 
-Para mag-set up ng request handler para sa paglista ng tools, kailangan nating tawagin ang `setRequestHandler` sa server gamit ang schema na akma sa gusto nating gawin, sa kasong ito ay `ListToolsRequestSchema`.
+Para i-set up ang request handler para maglista ng tools, kailangan nating tawagan ang `setRequestHandler` sa server gamit ang schema na angkop sa ginagawa natin, sa kasong ito ay `ListToolsRequestSchema`.
 
 ```typescript
 // index.ts
@@ -488,26 +488,26 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// code na nilaktawan para sa ikinababawas ng haba
+// code tinanggal para sa maigsiang paliwanag
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Ibalik ang listahan ng mga nakarehistrong kasangkapan
+  // Ibalik ang listahan ng mga rehistradong kasangkapan
   return {
     tools: tools
   };
 });
 ```
 
-Maganda, ngayon ay nasolusyunan na natin ang bahagi ng paglista ng tools, tingnan natin kung paano naman tayo tatawag ng mga tools.
+Maganda, naresolba na natin ang bahagi ng paglista ng tools, tingnan natin paano naman tayo tatawag ng tools.
 
-### -4- Hawakan ang pagtawag ng tool
+### -4- Pangasiwaan ang pagtawag sa isang tool
 
-Para tumawag ng tool, kailangan nating mag-set up ng isa pang request handler, ngayon ay nakatuon ito sa paghawak ng request na nagsasaad kung anong feature ang tatawagin at kung anong mga argumento.
+Para tumawag ng tool, kailangan nating gumawa ng isa pang request handler, na nakatuon sa paghawak ng request na nagsasaad kung aling tampok ang tatawagin at kung anong mga argumento.
 
 **Python**
 
-Gamitin natin ang decorator na `@server.call_tool` at ipatupad ito sa isang function na tulad ng `handle_call_tool`. Sa loob ng function na iyon, kailangan nating i-parse ang pangalan ng tool, ang mga argumento nito at tiyakin na valid ang mga argumento para sa tool na iyon. Maaari nating i-validate ang mga argumento dito o sa mismong tool.
+Gamitin natin ang decorator na `@server.call_tool` at ipatupad ito gamit ang function gaya ng `handle_call_tool`. Sa loob ng function na iyon, kailangan nating i-parse ang pangalan ng tool, ang kanyang argumento at tiyakin na ang mga argumento ay valid para sa tool na tinutukoy. Maaari nating i-validate ang mga argumento dito o sa mas downstream sa aktwal na tool.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # ang tools ay isang diksyunaryo na may mga pangalan ng tool bilang mga susi
+    # ang tools ay isang diksyunaryo na may mga pangalan ng kasangkapan bilang mga susi
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -523,7 +523,7 @@ async def handle_call_tool(
 
     result = "default"
     try:
-        # tawagin ang tool
+        # tawagin ang kasangkapan
         result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)
     except Exception as e:
         raise ValueError(f"Error calling tool {name}: {str(e)}")
@@ -533,33 +533,33 @@ async def handle_call_tool(
     ] 
 ```
 
-Ito ang nangyayari:
+Ganito ang nangyayari:
 
-- Ang pangalan ng tool ay nandiyan na bilang input parameter na `name` at ang mga argumento ay nasa anyo ng `arguments` dictionary.
+- Ang pangalan ng tool ay naroon na bilang input parameter `name` na totoo para sa ating mga argumento sa anyo ng `arguments` dictionary.
 
-- Ang tool ay tinatawag gamit ang `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Ang validation ng mga argumento ay nagaganap sa `handler` property na tumutukoy sa isang function, kung pumalya ito ay magpa-raise ng exception.
+- Ang tool ay tinatawag gamit ang `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Nangyayari ang validation ng mga argumento sa `handler` property na tumutukoy sa isang function, kung mabigo ito ay magtataas ng exception.
 
-Ayan, mayroon na tayong buong pag-unawa sa paglista at pagtawag ng tools gamit ang low-level server.
+Ayan, ngayon ay may buong pag-unawa na tayo sa paglista at pagtawag ng tools gamit ang low-level na server.
 
 Tingnan ang [buong halimbawa](./code/README.md) dito
 
-## Assignment
+## Takdang Aralin
 
-Palawakin ang code na ibinigay sa iyo gamit ang ilang tools, resources at prompt at pagnilayan kung paano mo napapansin na kailangan mo lang magdagdag ng mga file sa tools directory at sa ibang parte wala nang kailangang idagdag.
+Palawakin ang code na ibinigay sa iyo gamit ang ilang mga tools, resources at prompt at pagnilayan kung paano mo mapapansin na kailangan mo lang magdagdag ng mga files sa tools directory at wala nang iba pa.
 
 *Walang ibinigay na solusyon*
 
 ## Buod
 
-Sa kabanatang ito, nakita natin kung paano gumagana ang low-level server approach at kung paano nito matutulungan tayong makagawa ng magandang arkitektura na maaari nating dagdagan. Tinalakay din natin ang validation at ipinakita kung paano gamitin ang mga validation library upang gumawa ng mga schema para sa input validation.
+Sa kabanatang ito, nakita natin kung paano gumagana ang low-level na paraan ng server at kung paano nito matutulungan tayong lumikha ng maganda at maayos na arkitektura na maaari nating ipagpatuloy na pagbuo. Tinalakay din natin ang validation at ipinakita kung paano gamitin ang mga validation libraries para gumawa ng mga schema para sa input validation.
 
-## Anong Susunod
+## Ano ang Susunod
 
 - Susunod: [Simple Authentication](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Paalala**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nagsusumikap kaming maging tumpak, mangyaring tandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa sariling wika nito ang dapat ituring bilang pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang pagsasalin ng isang propesyonal na tao. Hindi kami mananagot para sa anumang hindi pagkakaintindihan o maling interpretasyon na maaaring magmula sa paggamit ng pagsasaling ito.
+**Pagtatanggi**:  
+Ang dokumentong ito ay isinalin gamit ang serbisyong AI na pagsasalin na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nagsusumikap kami para sa katumpakan, pakitandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi tumpak na impormasyon. Ang orihinal na dokumento sa kanyang likas na wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasaling-tao. Hindi kami mananagot para sa anumang hindi pagkakaintindihan o maling pagpapakahulugan na nagmula sa paggamit ng pagsasaling ito.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

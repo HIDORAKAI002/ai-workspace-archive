@@ -1,20 +1,20 @@
-# Fejlett szerverhasználat
+# Haladó szerverhasználat
 
-Az MCP SDK két különböző típusú szervert tartalmaz, a normál szervert és az alacsony szintű szervert. Normál esetben a normál szervert használod, hogy funkciókat adj hozzá. Bizonyos esetekben azonban az alacsony szintű szerverre támaszkodnál, például:
+Az MCP SDK-ban két különböző típusú szervert találunk, a szokásos szerveredet és az alacsony szintű szervert. Általában a hagyományos szervert használod arra, hogy funkciókat adj hozzá. Bizonyos esetekben azonban az alacsony szintű szerverre szeretnél támaszkodni, például:
 
-- Jobb architektúra. Lehet tiszta architektúrát létrehozni mind a normál, mind az alacsony szintű szerverrel, de elmondható, hogy az alacsony szintű szerverrel ez némileg könnyebb.
-- Funkció elérhetősége. Egyes fejlett funkciókat csak az alacsony szintű szerverrel lehet használni. Ez későbbi fejezetekben is látható lesz, amikor mintavételt és kiváltást adunk hozzá.
+- Jobb architektúra. Lehetséges tiszta architektúrát létrehozni mind a hagyományos, mind az alacsony szintű szerverrel, de elmondható, hogy az alacsony szintű szerverrel ez valamivel egyszerűbb.
+- Funkciók elérhetősége. Egyes fejlett funkciók csak alacsony szintű szerverrel használhatók. Ezt a későbbi fejezetekben látni fogod, amikor mintavételt és kiváltást adunk hozzá.
 
-## Normál szerver vs alacsony szintű szerver
+## Hagyományos szerver vs alacsony szintű szerver
 
-Így néz ki az MCP szerver létrehozása a normál szerverrel
+Így néz ki egy MCP szerver létrehozása a hagyományos szerverrel
 
 **Python**
 
 ```python
 mcp = FastMCP("Demo")
 
-# Adjon hozzá egy összeadási eszközt
+# Adj hozzá egy összeadó eszközt
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-A lényeg, hogy explicit módon hozzáadsz minden eszközt, erőforrást vagy promptot, amivel a szervernek rendelkeznie kell. Ebben nincs semmi hiba.
+A lényeg az, hogy explicit módon adod hozzá az összes eszközt, forrást vagy üzenetküldést, amit a szervernek meg akarsz adni. Ezzel nincs semmi gond.
 
 ### Alacsony szintű szerver megközelítés
 
-Azonban, amikor az alacsony szintű szerver megközelítést használod, másképp kell gondolkodnod. Ahelyett, hogy minden eszközt regisztrálnál, inkább két kezelőt hozol létre minden funkció típushoz (eszközök, erőforrások vagy promptok). Például az eszközöknél így csak két funkció van:
+Azonban az alacsony szintű szerver használatakor másképpen kell gondolkodni. Az eszközök regisztrálása helyett inkább két kezelőt hozol létre minden funkciótípushoz (eszközök, források vagy üzenetküldések). Például az eszközöknek akkor csak két funkciója van:
 
-- Az összes eszköz listázása. Egy funkciónak kell kezelnie minden eszközlistázási próbálkozást.
-- Az eszközök hívásának kezelése. Itt is csak egy funkció kezel minden eszköz hívást.
+- Az összes eszköz listázása. Egy funkció felel az összes eszköz lista lekéréséért.
+- Az eszközök meghívásának kezelése. Itt is csak egy funkció kezeli az eszköz meghívásait.
 
-Ez potenciálisan kevesebb munkának tűnik, igaz? Tehát ahelyett, hogy regisztrálok egy eszközt, csak biztosítanom kell, hogy az eszköz benne legyen az eszközök listájában és hogy hívás esetén az el legyen indítva.
+Ez potenciálisan kevesebb munkának hangzik, igaz? Tehát az eszköz regisztrálása helyett csak annyi a dolgom, hogy az eszköz szerepeljen az eszközök listájában, és meghívásnál ezt az eszközt hívja meg a rendszer.
 
-Nézzük meg hogyan néz ki a kód most:
+Nézzük meg, hogyan néz ki most a kód:
 
 **Python**
 
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Itt most van egy funkciónk, ami visszaadja az elérhető funkciók listáját. Az eszközök listájának minden elemében most vannak olyan mezők, mint a `name`, `description`, és `inputSchema`, hogy megfeleljenek a visszatérési típusnak. Ez lehetővé teszi, hogy az eszközeinket és funkció definícióinkat máshol tartsuk. Most már létrehozhatod az összes eszközt egy tools mappában, és ugyanez vonatkozik minden funkcióra, így a projekted hirtelen így nézhet ki:
+Itt most egy olyan függvényünk van, ami funkciók listáját adja vissza. Az eszközök listájában lévő minden bejegyzés tartalmaz olyan mezőket, mint `name`, `description` és `inputSchema`, hogy megfeleljen a visszatérési típusnak. Ez lehetővé teszi, hogy az eszközök és funkciódefiníció máshol legyen. Most már minden eszközünket egy *tools* mappában hozhatjuk létre, és ugyanez vonatkozik az összes funkcióra, így a projekted hirtelen így nézhet ki:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Ez nagyszerű, az architektúránk elég tisztának tűnhet.
+Ez nagyszerű, az architektúránk elég tisztának nézhet ki.
 
-Akkor az eszközök hívásánál is ugyanaz az ötlet, egy kezelő hív minden eszközt? Igen, pontosan, itt a kód erre:
+Az eszközök hívásáról mi a helyzet? Ugyanez az elv, egy kezelő, ami meghív minden eszközt, bármelyiket? Igen, pontosan, itt a kód erre:
 
 **Python**
 
@@ -125,7 +125,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # a tools egy szótár, ahol az eszköznevek a kulcsok
+    # a tools egy szótár, amelyben az eszközök nevei a kulcsok
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -158,7 +158,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     
     // args: request.params.arguments
-    // TODO hívja meg az eszközt,
+    // TODO hívd meg az eszközt,
 
     return {
        content: [{ type: "text", text: `Tool ${name} called with arguments: ${JSON.stringify(input)}, result: ${JSON.stringify(result)}` }]
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Ahogy a fenti kódból látható, ki kell szednünk, melyik eszközt hívjuk, milyen argumentumokkal, majd ezt követően meghívjuk az eszközt.
+Ahogy a fenti kódból látható, meg kell határoznunk, melyik eszközt hívjuk meg, milyen argumentumokkal, majd folytatni kell az eszköz meghívásával.
 
 ## Megközelítés fejlesztése validációval
 
-Eddig láttad, hogyan válthatod le az összes regisztrációdat eszközök, erőforrások és promptok hozzáadásához ezekre a két kezelőre minden funkció típusra. Mit kell még tennünk? Nos, valamilyen validációt kell hozzáadnunk, hogy biztosítsuk, hogy az eszközt a megfelelő argumentumokkal hívják meg. Minden futtatókörnyezet saját megoldást használ erre, például a Python a Pydantic-et, a TypeScript pedig a Zod-ot. A koncepció a következő:
+Eddig láttad, hogy hogyan váltható ki minden eszköz, forrás és üzenet regisztrálása ezekkel a két kezelővel funkciónként. Mi mást kell még csinálnunk? Nos, hozzá kell adnunk valamilyen validációt annak biztosítására, hogy az eszköz megfelelő argumentumokkal legyen meghívva. Minden futtatókörnyezetnek megvan a saját megoldása erre, például Pythonban Pydanticet használunk, TypeScriptben pedig a Zodot. Az ötlet a következő:
 
-- Az adott funkció (eszköz, erőforrás vagy prompt) létrehozásának logikáját áthelyezni a dedikált mappájába.
-- Hozzáadni egy módot a bejövő kérés validálására, amely például egy eszköz meghívását kéri.
+- Áthelyezni a funkció (eszköz, forrás vagy üzenet) létrehozásának logikáját a dedikált mappájába.
+- Olyan módot adni arra, hogy ellenőrizni tudjuk az érkező kérést, például egy eszköz meghívását.
 
-### Funkció létrehozása
+### Egy funkció létrehozása
 
-Funkció létrehozásához szükséges egy fájlt készíteni az adott funkcióhoz, és biztosítani, hogy a kötelező mezőket tartalmazza, amelyek kissé eltérnek az eszközök, erőforrások és promptok esetében.
+Egy funkció létrehozásához létre kell hozni egy fájlt ehhez a funkcióhoz, és gondoskodni arról, hogy megfeleljen a kötelező mezőknek, amelyek eltérnek eszközök, források és üzenetek között.
 
 **Python**
 
@@ -195,12 +195,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # A bemenet érvényesítése Pydantic modellel
+        # A bemenet érvényesítése Pydantic modell segítségével
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: adjuk hozzá a Pydantic-et, hogy létrehozhassunk egy AddInputModelt és érvényesíthessük az argumentumokat
+    # TODO: adjuk hozzá a Pydantic-et, hogy létrehozhassunk egy AddInputModel-t és érvényesíthessük a paramétereket
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -213,26 +213,26 @@ tool_add = {
 }
 ```
 
-Itt látható, hogyan csináljuk a következőt:
+Itt láthatod, hogy hogyan csináljuk a következőt:
 
-- Létrehozunk egy séma típust Pydantic `AddInputModel` néven, amely mezőket `a` és `b` tartalmaz, a *schema.py* fájlban.
-- Megpróbáljuk beolvasni a bejövő kérést `AddInputModel` típusként, ha az argumentumok nem egyeznek, akkor a folyamat leáll:
+- Egy Pydantic `AddInputModel` séma létrehozása a `schema.py` fájlban, amely mezőként az `a` és `b` típusokat tartalmazza.
+- Az érkező kérés megpróbálása `AddInputModel` típusúvá parszerként, ha hiba van a paraméterekben, a program leáll:
 
    ```python
    # add.py
     try:
-        # Érvényesítse a bemenetet Pydantic modell segítségével
+        # Érvényesítsük a bemenetet Pydantic modellel
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Dönthetsz, hogy ezt az elemző logikát magában az eszköz hívásában vagy a kezelő funkcióban helyezed el.
+Dönthetsz, hogy ezt a parszer logikát az eszköz meghívásánál helyezed el vagy a kezelő függvényben.
 
 **TypeScript**
 
 ```typescript
-// server.ts
+// szerver.ts
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { params: { name } } = request;
     let tool = tools.find(t => t.name === name);
@@ -266,12 +266,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 });
 
-// schema.ts
+// séma.ts
 import { z } from 'zod';
 
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 
-// add.ts
+// hozzáad.ts
 import { Tool } from "./tool.js";
 import { MathInputSchema } from "./schema.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- Az összes eszköz hívását kezelő funkciónál most megpróbáljuk a bejövő kérést a megfelelő eszköz által definiált sémára parse-olni:
+- Az összes eszköz meghívását kezelő handlerben most megpróbáljuk feldolgozni az érkező kérés a tool által definiált sémára:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -303,21 +303,21 @@ export default {
     const result = await tool.callback(input);
     ```
 
-Ahogy látható, ez a megközelítés nagyszerű architektúrát hoz létre, mert mindennek megvan a helye, a *server.ts* egy nagyon kicsi fájl, amely csak összeköti a kérés kezelőket, és minden funkció a maga mappájában van, azaz tools/, resources/ vagy prompts/ mappákban.
+Ahogy látod, ez a megközelítés remek architektúrát hoz létre, mivel minden megvan a maga helyén, a *server.ts* egy nagyon kicsi fájl, amely csak összeköti a kéréskezelőket, és minden funkció a megfelelő mappájában van, pl. tools/, resources/ vagy /prompts/.
 
-Nagyszerű, próbáljuk meg ezt legközelebb megépíteni.
+Nagyszerű, próbáljuk meg ezt következőként megépíteni.
 
 ## Gyakorlat: Alacsony szintű szerver létrehozása
 
-Ebben a gyakorlatban a következőket fogjuk tenni:
+Ebben a gyakorlatban a következőket tesszük:
 
 1. Létrehozunk egy alacsony szintű szervert, amely kezeli az eszközök listázását és meghívását.
-1. Megvalósítunk egy olyan architektúrát, amelyre építhetsz.
-1. Hozzáadunk validációt, hogy biztosítsuk az eszköz hívások helyes validálását.
+2. Megvalósítunk egy olyan architektúrát, amelyre építhetsz tovább.
+3. Hozzáadunk validációt, hogy az eszköz meghívások megfelelőek legyenek.
 
 ### -1- Architektúra létrehozása
 
-Az első dolog, amit meg kell oldanunk, egy olyan architektúra létrehozása, amely lehetővé teszi a bővítést további funkciókkal. Így néz ki:
+Az első, amivel foglalkoznunk kell, egy olyan architektúra, ami skálázható, miközben új funkciókat adunk hozzá, így néz ki:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Most beállítottunk egy olyan architektúrát, amely biztosítja, hogy könnyen hozzáadhass új eszközöket a tools mappában. Nyugodtan kövesd ezt, hogy al-mappákat hozz létre az erőforrások és promptok számára.
+Most már beállítottunk egy olyan architektúrát, amely biztosítja, hogy könnyen adjunk hozzá új eszközöket a *tools* mappában. Nyugodtan hozz létre almappákat a forrásoknak és az üzenetküldéseknek is.
 
-### -2- Eszköz létrehozása
+### -2- Egy eszköz létrehozása
 
-Nézzük meg, hogyan néz ki egy eszköz létrehozása. Elsőként az eszközt a saját *tool* almappájában kell létrehozni így:
+Nézzük meg, hogyan néz ki egy eszköz létrehozása. Először is létre kell hozni a *tool* almappájában így:
 
 **Python**
 
@@ -353,12 +353,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Érvényesítse a bemenetet Pydantic modellel
+        # Érvényesítse a bemenetet Pydantic modell használatával
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: adjuk hozzá a Pydantic-et, hogy létrehozhassunk egy AddInputModelt és érvényesíthessük az argumentumokat
+    # TEENDŐ: adjon hozzá Pydantic-et, hogy létrehozhassunk egy AddInputModel-t és érvényesíthessük az argumentumokat
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Itt látható, hogyan definiáljuk a nevet, leírást és a bemeneti sémát a Pydantic segítségével, valamint egy kezelőt, ami akkor hívódik meg, amikor az eszközt meghívják. Végül kiteszünk egy `tool_add` nevű szótárat, amely tartalmazza ezeket a tulajdonságokat.
+Itt látható, hogyan definiáljuk a nevet, leírást és a Pydantic input sémát, valamint egy kezelőt, amelyet akkor hív meg a rendszer, amikor ez az eszköz meghívásra kerül. Végül pedig kiteszünk egy `tool_add` szótárt, amely tartalmazza ezeket a tulajdonságokat.
 
-Van még a *schema.py* fájl, amely definiálja az eszköz által használt bemeneti sémát:
+Van még a *schema.py*, amely az eszköz input sémáját határozza meg:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Meg kell töltenünk a *__init__.py* fájlt is, hogy a tools könyvtár modulnak számítson. Ezen túlmenően meg kell osztanunk a benne lévő modulokat így:
+Továbbá ki kell tölteni a *__init__.py* fájlt, hogy a tools könyvtár modulként legyen kezelve. Továbbá a benne lévő modulokat így ki kell tenni:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Ehhez a fájlhoz hozzáadhatunk újabb eszközöket, ahogy szükséges.
+Ezt a fájlt bővíthetjük, miközben több eszközt adunk hozzá.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Itt létrehozunk egy szótárt, amely a következő tulajdonságokat tartalmazza:
+Itt létrehozunk egy objektumot, amely az alábbi tulajdonságokat tartalmazza:
 
-- name, az eszköz neve.
-- rawSchema, ez a Zod séma, amely használatban lesz a bejövő kérések validálására, amelyek ezt az eszközt hívják.
-- inputSchema, ezt a sémát a kezelő használja.
-- callback, ez az eszköz meghívására szolgál.
+- name, ez az eszköz neve.
+- rawSchema, ez a Zod séma, amely az eszköz meghívására érkező kérések validálására szolgál.
+- inputSchema, ezt a sémát használja a kezelő.
+- callback, ezt használjuk az eszköz meghívására.
 
-Van egy `Tool` is, amely ezt a szótárt átalakítja egy olyan típussá, amelyet az mcp szerver kezelő elfogad, és így néz ki:
+Van még egy `Tool` típus, amely átalakítja ezt az objektumot olyan típussá, amit az mcp szerver kezelője elfogad, így néz ki:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-Van még egy *schema.ts* fájl, ahol minden eszköz beviteli sémáját tároljuk, jelenleg csak egy sémával, de ahogy további eszközöket adunk hozzá, több bejegyzést is elhelyezhetünk:
+Létezik a *schema.ts* is, ahol az egyes eszközök input sémáit tároljuk, jelenleg csak egy séma van benne, de ahogy további eszközöket adunk hozzá, egyre több bejegyzés lehet:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Nagyszerű, folytassuk az eszközök listázásának kezelésével.
+Nagyszerű, folytassuk most egy eszközök listázását kezelő függvény írásával.
 
-### -3- Eszközlista kezelése
+### -3- Eszközök listázásának kezelése
 
-Az eszközök listázásának kezeléséhez kérés kezelőt kell beállítanunk. Íme, mit kell hozzáadnunk a szerver fájlunkhoz:
+Az eszközök lista kezeléséhez be kell állítanunk egy kérés kezelőt. Itt az, amit a szerver fájlhoz hozzá kell adnunk:
 
 **Python**
 
 ```python
-# a kód egyszerűsítve
+# a kód a tömörség kedvéért el lett hagyva
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Itt hozzáadjuk a `@server.list_tools` dekorátort és a megvalósító `handle_list_tools` függvényt. Ebben előállítunk egy eszközök listáját. Figyeld meg, hogy minden eszköznek van `name`, `description` és `inputSchema` mezője.
+Itt hozzáadjuk a `@server.list_tools` dekorátort és a hozzá tartozó `handle_list_tools` implementáló függvényt. Ebben listáznunk kell az eszközöket. Vegyük észre, hogy minden eszköznek névvel, leírással és input sémával kell rendelkeznie.
 
 **TypeScript**
 
-Az eszközök listázását kezelő kéréskezelő beállításához a szerveren hívni kell a `setRequestHandler` metódust, amelynek egy sémát adunk meg, ami illik a feladathoz, jelen esetben a `ListToolsRequestSchema`-t.
+Az eszközök listázását kezelő kéréskezelőt a szerveren a `setRequestHandler` hívásával állítjuk be a kérésnek megfelelő sémával, ebben az esetben a `ListToolsRequestSchema`-val.
 
 ```typescript
 // index.ts
@@ -488,7 +488,7 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// a kód rövidítve
+// kód rövidítés miatt elhagyva
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
@@ -499,15 +499,15 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Nagyszerű, most megoldottuk az eszközök listázását, nézzük meg, hogyan hívhatjuk meg az eszközöket.
+Remek, most megoldottuk az eszközök listázásának részét, nézzük meg, hogyan kezelhetjük az eszközök meghívását.
 
-### -4- Eszköz meghívás kezelése
+### -4- Egy eszköz hívásának kezelése
 
-Az eszköz meghívásához egy újabb kéréskezelőt kell beállítanunk, amely olyan kéréseket kezel, amelyek megadják, melyik funkciót (eszközt) kell hívni és milyen argumentumokkal.
+Eszköz meghívásához egy másik kérés kezelőt kell beállítanunk, amely arra fókuszál, hogy megkapja, mely funkciót kell meghívni és milyen argumentumokkal.
 
 **Python**
 
-Használjuk a `@server.call_tool` dekorátort, és valósítsuk meg egy függvénnyel, például `handle_call_tool`-lal. Ebben a függvényben ki kell olvasnunk az eszköz nevét, az argumentumait, és ellenőriznünk kell, hogy az argumentumok érvényesek-e az adott eszköz számára. Ez a validáció történhet itt vagy később, magában az eszközben is.
+Használjuk a `@server.call_tool` dekorátort, és implementáljuk `handle_call_tool` függvénnyel. Ebben a függvényben ki kell olvasnunk az eszköz nevét, argumentumokat és biztosítani kell, hogy az argumentumok megfelelnek az adott eszköznek. Az argumentumokat ellenőrizhetjük ebben a függvényben vagy alacsonyabb szinten magában az eszközben.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # a tools egy szótár, amiben az eszközök nevei a kulcsok
+    # a tools egy szótár, amelynek kulcsai az eszközök nevei
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -535,22 +535,23 @@ async def handle_call_tool(
 
 Itt történik:
 
-- Az eszköz neve már az input paraméter `name` formájában van, az argumentumok pedig a `arguments` szótárban.
-- Az eszköz meghívása `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)` formában történik. Az argumentumok validációja a `handler` tulajdonságban történik, amely egy függvényt hív meg; ha ez nem sikerül, kivételt dob.
+- Az eszköz neve már megvan, mint bemeneti paraméter `name`, az argumentumok pedig az `arguments` szótárban találhatók.
 
-Ennyi, most már teljes képet kaptunk arról, hogyan lehet listázni és meghívni az eszközöket egy alacsony szintű szerverrel.
+- Az eszközt meghívjuk azzal, hogy `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Az argumentumok validálása a `handler` tulajdonságban (ami egy függvény) történik, ha ez sikertelen, kivétel keletkezik.
+
+Ennyi, így most már teljesen értjük, hogyan történik az eszközök listázása és meghívása alacsony szintű szerverrel.
 
 Lásd a [teljes példát](./code/README.md) itt
 
 ## Feladat
 
-Bővítsd a kapott kódot több eszközzel, erőforrással és prompttal, és gondold át, hogy mennyire csak a tools könyvtárba kell új fájlokat hozzáadnod, máshova nem.
+Bővítsd a megadott kódot több eszközzel, forrással és üzenetküldéssel, és figyeld meg, hogy csak a tools könyvtárban kell fájlokat hozzáadnod, máshol nem.
 
-*Megoldás nincs megadva*
+*Megoldás nem megadott*
 
-## Összefoglaló
+## Összefoglalás
 
-Ebben a fejezetben megnéztük, hogyan működik az alacsony szintű szerver megközelítés, és hogyan segíthet egy tiszta architektúra kialakításában, amelyre építhetünk tovább. Megbeszéltük a validációt, és bemutattuk, hogyan használhatók validációs könyvtárak sémák létrehozására a bemenetek validálásához.
+Ebben a fejezetben láttuk, hogyan működik az alacsony szintű szerver megközelítés, és hogyan segíthet nekünk tiszta architektúrát kialakítani, amire építhetünk tovább. Megbeszéltük a validációt is, és bemutattuk, hogyan használhatóak a validációs könyvtárak input sémák létrehozására.
 
 ## Mi következik
 
@@ -559,6 +560,6 @@ Ebben a fejezetben megnéztük, hogyan működik az alacsony szintű szerver meg
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Jogi Nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár igyekszünk a pontosságra, kérjük, vegye figyelembe, hogy az automatikus fordítások tartalmazhatnak hibákat vagy pontatlanságokat. Az eredeti dokumentum az anyanyelvén tekintendő hivatalos forrásnak. Fontos információk esetén professzionális, emberi fordítás igénybevétele javasolt. Nem vállalunk felelősséget a fordítás használatából eredő félreértésekért vagy téves értelmezésekért.
+**Jogi nyilatkozat**:  
+Ez a dokumentum az [Co-op Translator](https://github.com/Azure/co-op-translator) AI fordító szolgáltatás segítségével készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti, anyanyelvű dokumentum tekintendő hiteles forrásnak. Kritikus információk esetén javasolt a szakmai emberi fordítás igénybevétele. Nem vállalunk felelősséget semmilyen félreértésért vagy félreértelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
