@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-11 19:42 IST] Auto-Sync
+- **15 Repositories Updated:** MCP TypeScript SDK, Promptfoo, NocoDB, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, bytedance/deer-flow, tirth8205/code-review-graph
+
 ## [2026-04-11 13:23 IST] Auto-Sync
 - **21 Repositories Updated:** Public APIs Directory, Playwright MCP, Keboola MCP, Awesome ChatGPT Prompts, Promptfoo, Dify, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, firecrawl/firecrawl, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
