@@ -148,6 +148,11 @@ if [ -f "$README_BACKUP" ]; then
     rm "$README_BACKUP"
 fi
 
+# Create PEP 561 py.typed marker files for type checker support
+echo "📦 Creating PEP 561 py.typed marker files..."
+touch "$PYTHON_CLIENT_DIR/hindsight_client_api/py.typed"
+touch "$PYTHON_CLIENT_DIR/hindsight_client/py.typed"
+
 # Keep our custom pyproject.toml (don't let generator overwrite it)
 if [ -f "setup.py" ]; then
     echo "Note: setup.py generated but we're using pyproject.toml"

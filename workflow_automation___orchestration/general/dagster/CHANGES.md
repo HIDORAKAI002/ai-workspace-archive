@@ -52,12 +52,9 @@
 
 ### Dagster Plus
 
-- Added percent-change comparison type for metric monitor alerts.
 - Added SCIM Groups filter support for `members.value eq` queries.
-- Added MCP server integration providing AI assistants with access to Dagster Cloud operations.
 - Fixed an issue where the Dagster+ Kubernetes agent would emit log noise about `DAGSTER_CLOUD_RAW_GIT_URL` and `DAGSTER_CLOUD_GIT_URL` environment variables when `onlyAllowUserDefinedK8sConfigFields` was set.
 - Fixed incorrect alert type label for metrics alerts.
-- Fixed Databricks connections failing with an "unable to start warehouse" error.
 
 ## 1.12.22 (core) / 0.28.22 (libraries)
 
