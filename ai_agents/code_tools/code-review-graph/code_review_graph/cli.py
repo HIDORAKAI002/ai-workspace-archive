@@ -32,6 +32,7 @@ import argparse
 import json
 import logging
 import os
+from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def _get_version() -> str:
     """Get the installed package version."""
     try:
         return pkg_version("code-review-graph")
-    except Exception:
+    except PackageNotFoundError:
         return "dev"
 
 
@@ -146,12 +147,13 @@ def _handle_init(args: argparse.Namespace) -> None:
     if not skip_skills:
         skills_dir = generate_skills(repo_root)
         print(f"Generated skills in {skills_dir}")
-        inject_claude_md(repo_root)
-        updated = inject_platform_instructions(repo_root)
+        if target in ("claude", "all"):
+            inject_claude_md(repo_root)
+        updated = inject_platform_instructions(repo_root, target=target)
         if updated:
             print(f"Injected graph instructions into: {', '.join(updated)}")
 
-    if not skip_hooks:
+    if not skip_hooks and target in ("claude", "all"):
         install_hooks(repo_root)
         print(f"Installed hooks in {repo_root / '.claude' / 'settings.json'}")
         git_hook = install_git_hook(repo_root)
@@ -201,7 +203,7 @@ def main() -> None:
         "--platform",
         choices=[
             "codex", "claude", "claude-code", "cursor", "windsurf", "zed",
-            "continue", "opencode", "antigravity", "all",
+            "continue", "opencode", "antigravity", "qwen", "all",
         ],
         default="all",
         help="Target platform for MCP config (default: all detected)",
@@ -231,7 +233,7 @@ def main() -> None:
         "--platform",
         choices=[
             "codex", "claude", "claude-code", "cursor", "windsurf", "zed",
-            "continue", "opencode", "antigravity", "all",
+            "continue", "opencode", "antigravity", "qwen", "all",
         ],
         default="all",
         help="Target platform for MCP config (default: all detected)",
