@@ -78,6 +78,8 @@ const createRegistry = (diagnostics: PluginDiagnostic[]): PluginRegistry => ({
   webFetchProviders: [],
   webSearchProviders: [],
   memoryEmbeddingProviders: [],
+  textTransforms: [],
+  agentHarnesses: [],
   gatewayHandlers: {},
   httpRoutes: [],
   cliRegistrars: [],
