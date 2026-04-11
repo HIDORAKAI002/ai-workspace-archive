@@ -57,7 +57,9 @@ class NodeInfo:
 
 @dataclass
 class EdgeInfo:
-    kind: str  # CALLS, IMPORTS_FROM, INHERITS, IMPLEMENTS, CONTAINS, TESTED_BY, DEPENDS_ON
+    # CALLS, IMPORTS_FROM, INHERITS, IMPLEMENTS, CONTAINS,
+    # TESTED_BY, DEPENDS_ON, REFERENCES
+    kind: str
     source: str  # qualified name or path
     target: str  # qualified name or path
     file_path: str
@@ -102,6 +104,10 @@ EXTENSION_TO_LANGUAGE: dict[str, str] = {
     ".xs": "c",  # Perl XS: parsed as C to capture functions/structs/includes
     ".lua": "lua",
     ".luau": "luau",
+    ".m": "objc",  # Objective-C (.h still maps to C; .mm defers to C++ for simplicity)
+    ".sh": "bash",
+    ".bash": "bash",
+    ".zsh": "bash",
     ".ipynb": "notebook",
 }
 
@@ -138,6 +144,11 @@ _CLASS_TYPES: dict[str, list[str]] = {
     "dart": ["class_definition", "mixin_declaration", "enum_declaration"],
     "lua": [],  # Lua has no class keyword; table-based OOP handled via constructs handler
     "luau": ["type_definition"],  # Luau type aliases; table-based OOP via constructs handler
+    "objc": [
+        "class_interface", "class_implementation",
+        "category_interface", "protocol_declaration",
+    ],
+    "bash": [],  # Shell has no classes
 }
 
 _FUNCTION_TYPES: dict[str, list[str]] = {
@@ -173,6 +184,12 @@ _FUNCTION_TYPES: dict[str, list[str]] = {
     "dart": ["function_signature"],
     "lua": ["function_declaration"],
     "luau": ["function_declaration"],
+    # Objective-C: method_definition lives inside implementation_definition
+    # inside class_implementation. C-style function_definition is also present
+    # for main() and helper functions.
+    "objc": ["method_definition", "function_definition"],
+    # Bash: only function_definition; everything else is a command.
+    "bash": ["function_definition"],
 }
 
 _IMPORT_TYPES: dict[str, list[str]] = {
@@ -199,6 +216,11 @@ _IMPORT_TYPES: dict[str, list[str]] = {
     # Lua/Luau: require() is a function_call, handled via _extract_lua_constructs
     "lua": [],
     "luau": [],
+    # Objective-C: #import "..." and #include "..." both arrive as preproc_include
+    # (tree-sitter-objc doesn't distinguish via a separate preproc_import node).
+    "objc": ["preproc_include"],
+    # Bash: source / . <file> is a command — handled in _extract_bash_source below.
+    "bash": [],
 }
 
 _CALL_TYPES: dict[str, list[str]] = {
@@ -225,6 +247,11 @@ _CALL_TYPES: dict[str, list[str]] = {
     "solidity": ["call_expression"],
     "lua": ["function_call"],
     "luau": ["function_call"],
+    # Objective-C: [receiver message:args] produces message_expression;
+    # C-style foo(x) produces call_expression.
+    "objc": ["message_expression", "call_expression"],
+    # Bash: every command invocation is a "command" node.
+    "bash": ["command"],
 }
 
 # Patterns that indicate a test function
@@ -302,12 +329,16 @@ class CodeParser:
         self._module_file_cache: dict[str, Optional[str]] = {}
         self._export_symbol_cache: dict[str, Optional[str]] = {}
         self._tsconfig_resolver = TsconfigResolver()
+        # Per-parse cache of Dart pubspec root lookups; see #87
+        self._dart_pubspec_cache: dict[tuple[str, str], Optional[Path]] = {}
 
     def _get_parser(self, language: str):  # type: ignore[arg-type]
         if language not in self._parsers:
             try:
                 self._parsers[language] = tslp.get_parser(language)  # type: ignore[arg-type]
-            except Exception:
+            except (LookupError, ValueError, ImportError) as exc:
+                # language not packaged, or grammar load failed
+                logger.debug("tree-sitter parser unavailable for %s: %s", language, exc)
                 return None
         return self._parsers[language]
 
@@ -851,7 +882,7 @@ class CodeParser:
 
         resolved: list[EdgeInfo] = []
         for edge in edges:
-            if edge.kind == "CALLS" and "::" not in edge.target:
+            if edge.kind in ("CALLS", "REFERENCES") and "::" not in edge.target:
                 if edge.target in symbols:
                     edge = EdgeInfo(
                         kind=edge.kind,
@@ -922,6 +953,28 @@ class CodeParser:
             ):
                 continue
 
+            # --- Bash-specific constructs ---
+            # ``source ./foo.sh`` and ``. ./foo.sh`` are commands in
+            # tree-sitter-bash; re-interpret them as IMPORTS_FROM edges so
+            # cross-script wiring works the same as in other languages.
+            if language == "bash" and node_type == "command":
+                if self._extract_bash_source_command(
+                    child, file_path, edges,
+                ):
+                    continue
+
+            # --- Dart call detection (see #87) ---
+            # tree-sitter-dart does not wrap calls in a single
+            # ``call_expression`` node; instead the pattern is
+            # ``identifier + selector > argument_part`` as siblings inside
+            # the parent.  Scan child's children here and emit CALLS edges
+            # for any we find; nested calls are handled by the main recursion.
+            if language == "dart":
+                self._extract_dart_calls_from_children(
+                    child, source, file_path, edges,
+                    enclosing_class, enclosing_func,
+                )
+
             # --- JS/TS variable-assigned functions (const foo = () => {}) ---
             if (
                 language in ("javascript", "typescript", "tsx")
@@ -989,6 +1042,13 @@ class CodeParser:
                     import_map, defined_names,
                 )
 
+            # --- Value references (function-as-value in maps, arrays, args) ---
+            self._extract_value_references(
+                child, node_type, source, language, file_path, edges,
+                enclosing_class, enclosing_func,
+                import_map, defined_names,
+            )
+
             # --- Solidity-specific constructs ---
             if language == "solidity" and self._extract_solidity_constructs(
                 child, node_type, source, file_path, nodes, edges,
@@ -1004,6 +1064,120 @@ class CodeParser:
                 import_map=import_map, defined_names=defined_names,
                 _depth=_depth + 1,
             )
+
+    def _extract_bash_source_command(
+        self,
+        node,
+        file_path: str,
+        edges: list[EdgeInfo],
+    ) -> bool:
+        """Detect ``source foo.sh`` / ``. foo.sh`` and emit an IMPORTS_FROM
+        edge. Returns True if handled (so the main loop skips recursing
+        into this command). See: #197
+        """
+        command_name: Optional[str] = None
+        args: list[str] = []
+        for sub in node.children:
+            if sub.type == "command_name":
+                command_name = sub.text.decode("utf-8", errors="replace").strip()
+            elif sub.type in ("word", "string", "raw_string") and command_name:
+                txt = sub.text.decode("utf-8", errors="replace").strip()
+                # Strip surrounding quotes if present
+                if len(txt) >= 2 and txt[0] in ("'", '"') and txt[-1] == txt[0]:
+                    txt = txt[1:-1]
+                if txt:
+                    args.append(txt)
+        if command_name in ("source", ".") and args:
+            target = args[0]
+            # Try to resolve relative paths to real files
+            resolved = self._resolve_module_to_file(target, file_path, "bash")
+            edges.append(EdgeInfo(
+                kind="IMPORTS_FROM",
+                source=file_path,
+                target=resolved if resolved else target,
+                file_path=file_path,
+                line=node.start_point[0] + 1,
+            ))
+            return True
+        return False
+
+    def _extract_dart_calls_from_children(
+        self,
+        parent,
+        source: bytes,
+        file_path: str,
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> None:
+        """Detect Dart call sites from a parent node's children (#87 bug 1).
+
+        tree-sitter-dart does not emit a single ``call_expression`` node for
+        Dart calls.  Instead it produces ``identifier`` / method-selector
+        siblings followed by a ``selector`` whose child is ``argument_part``:
+
+            identifier "print"
+            selector
+              argument_part
+
+        And for method calls like ``obj.foo()`` the middle selector is a
+        ``unconditional_assignable_selector`` holding the method name:
+
+            identifier "obj"
+            selector
+              unconditional_assignable_selector "."
+                identifier "foo"
+            selector
+              argument_part
+
+        This walker scans the immediate children of ``parent`` for either
+        shape and emits a ``CALLS`` edge.  Nested calls are picked up as
+        ``_extract_from_tree`` recurses into child nodes.
+        """
+        call_name: Optional[str] = None
+        for sub in parent.children:
+            if sub.type == "identifier":
+                call_name = sub.text.decode("utf-8", errors="replace")
+                continue
+            if sub.type == "selector":
+                # Case A: selector > unconditional_assignable_selector > identifier
+                # (updates call_name to the method name)
+                method_name: Optional[str] = None
+                has_arguments = False
+                for ssub in sub.children:
+                    if ssub.type == "unconditional_assignable_selector":
+                        for ident in ssub.children:
+                            if ident.type == "identifier":
+                                method_name = ident.text.decode(
+                                    "utf-8", errors="replace"
+                                )
+                                break
+                    elif ssub.type == "argument_part":
+                        has_arguments = True
+                if method_name is not None:
+                    call_name = method_name
+                if has_arguments and call_name:
+                    src_qn = (
+                        self._qualify(enclosing_func, file_path, enclosing_class)
+                        if enclosing_func else file_path
+                    )
+                    edges.append(EdgeInfo(
+                        kind="CALLS",
+                        source=src_qn,
+                        target=call_name,
+                        file_path=file_path,
+                        line=parent.start_point[0] + 1,
+                    ))
+                    # After emitting for this call, clear call_name so we
+                    # don't re-emit on any trailing chained selector.
+                    call_name = None
+                continue
+            # Non-identifier, non-selector children don't change the
+            # pending call name (``return``, ``await``, ``yield``, etc.)
+            # but anything unexpected should reset it to avoid spurious
+            # edges across unrelated siblings.
+            if sub.type not in ("return", "await", "yield", "this", "const", "new"):
+                call_name = None
 
     def _extract_r_constructs(
         self,
@@ -1568,6 +1742,14 @@ class CodeParser:
         if not name:
             return False
 
+        # Go methods: attach to their receiver type as the enclosing class,
+        # so `func (s *T) Foo()` becomes a member of T rather than a
+        # top-level function. See: #190
+        if language == "go" and child.type == "method_declaration":
+            receiver_type = self._get_go_receiver_type(child)
+            if receiver_type:
+                enclosing_class = receiver_type
+
         # Extract annotations/decorators for test detection
         decorators: tuple[str, ...] = ()
         deco_list: list[str] = []
@@ -1841,6 +2023,234 @@ class CodeParser:
                 return resolved
 
         return component_name
+
+    # ------------------------------------------------------------------
+    # Value-reference extraction (function-as-value patterns)
+    # ------------------------------------------------------------------
+
+    # AST node types that represent object literal key-value pairs.
+    _PAIR_TYPES = frozenset({"pair"})
+
+    # AST node types for array/list containers.
+    _ARRAY_TYPES = frozenset({"array", "list"})
+
+    # Names that are almost certainly not function references (constants,
+    # common primitives).  All-uppercase identifiers and very short names
+    # are excluded by a length/casing heuristic in the method itself.
+    _VALUE_REF_SKIP_NAMES = frozenset({
+        "true", "false", "null", "undefined", "None", "True", "False",
+        "self", "this", "cls", "super",
+    })
+
+    def _extract_value_references(
+        self,
+        child,
+        node_type: str,
+        source: bytes,
+        language: str,
+        file_path: str,
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: Optional[dict[str, str]],
+        defined_names: Optional[set[str]],
+    ) -> None:
+        """Emit ``REFERENCES`` edges for function-as-value patterns.
+
+        Detects identifiers in value positions that likely refer to
+        functions — object literal values, map property assignments,
+        array elements, and callback arguments.  This reduces false
+        positives in dead-code detection for dispatch-map patterns
+        like ``Record<string, Handler>``.
+
+        Only emits edges when the identifier matches a locally defined
+        name or an imported symbol, avoiding noise from arbitrary
+        variable references.
+        """
+        imap = import_map or {}
+        dnames = defined_names or set()
+
+        # Use enclosing function as source, or the file path for module-scope code.
+        if enclosing_func:
+            caller = self._qualify(enclosing_func, file_path, enclosing_class)
+        else:
+            caller = file_path
+
+        # --- JS/TS/Python: object literal pair values  { key: fnRef } ---
+        if node_type in self._PAIR_TYPES:
+            self._ref_from_pair(child, source, language, file_path, caller, edges, imap, dnames)
+            return
+
+        # --- JS/TS: shorthand property identifiers  { fnRef } ---
+        if (
+            node_type == "shorthand_property_identifier"
+            and language in ("javascript", "typescript", "tsx")
+        ):
+            name = child.text.decode("utf-8", errors="replace")
+            self._emit_reference_if_known(
+                name, language, file_path, caller, edges, imap, dnames,
+                line=child.start_point[0] + 1,
+            )
+            return
+
+        # --- JS/TS/Python: assignment with member/subscript LHS ---
+        if node_type in ("assignment_expression", "augmented_assignment", "assignment"):
+            self._ref_from_assignment(
+                child, source, language, file_path, caller, edges, imap, dnames,
+            )
+            return
+
+        # --- JS/TS/Python: array / list elements ---
+        if node_type in self._ARRAY_TYPES:
+            self._ref_from_array(child, source, language, file_path, caller, edges, imap, dnames)
+            return
+
+        # --- Callback arguments (identifier args inside call_expression) ---
+        if node_type == "arguments":
+            self._ref_from_arguments(
+                child, source, language, file_path, caller, edges, imap, dnames,
+            )
+
+    def _emit_reference_if_known(
+        self,
+        name: str,
+        language: str,
+        file_path: str,
+        caller: str,
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+        line: int = 0,
+    ) -> None:
+        """Emit a ``REFERENCES`` edge if *name* is a known function/import."""
+        if not name or name in self._VALUE_REF_SKIP_NAMES:
+            return
+        # Skip all-uppercase names (likely constants) and single-char names.
+        if name.isupper() or len(name) <= 1:
+            return
+        # Must be a known local definition or import to be worth tracking.
+        if name not in defined_names and name not in import_map:
+            return
+
+        target = self._resolve_call_target(
+            name, file_path, language, import_map, defined_names,
+        )
+        edges.append(EdgeInfo(
+            kind="REFERENCES",
+            source=caller,
+            target=target,
+            file_path=file_path,
+            line=line,
+        ))
+
+    def _ref_from_pair(
+        self,
+        pair_node,
+        source: bytes,
+        language: str,
+        file_path: str,
+        caller: str,
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> None:
+        """Extract a REFERENCES edge from an object/dict literal pair value."""
+        # pair children: key, ":", value
+        children = pair_node.children
+        # Find the value — it's the last meaningful child.
+        value_node = None
+        for ch in reversed(children):
+            if ch.type not in (":", ",", "comment"):
+                value_node = ch
+                break
+        if value_node is None:
+            return
+        if value_node.type == "identifier":
+            name = value_node.text.decode("utf-8", errors="replace")
+            self._emit_reference_if_known(
+                name, language, file_path, caller, edges,
+                import_map, defined_names,
+                line=value_node.start_point[0] + 1,
+            )
+
+    def _ref_from_assignment(
+        self,
+        assign_node,
+        source: bytes,
+        language: str,
+        file_path: str,
+        caller: str,
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> None:
+        """Extract REFERENCES from ``obj.key = fnRef`` or ``obj['key'] = fnRef``."""
+        children = assign_node.children
+        if len(children) < 3:
+            return
+        lhs = children[0]
+        # LHS must be a member_expression or subscript_expression (map assignment).
+        if lhs.type not in (
+            "member_expression", "subscript_expression",
+            "attribute", "subscript",
+        ):
+            return
+        # RHS is the last non-punctuation child.
+        rhs = None
+        for ch in reversed(children):
+            if ch.type not in ("=", ":", ",", "comment", "type_annotation"):
+                rhs = ch
+                break
+        if rhs is None or rhs.type != "identifier":
+            return
+        name = rhs.text.decode("utf-8", errors="replace")
+        self._emit_reference_if_known(
+            name, language, file_path, caller, edges,
+            import_map, defined_names,
+            line=rhs.start_point[0] + 1,
+        )
+
+    def _ref_from_array(
+        self,
+        array_node,
+        source: bytes,
+        language: str,
+        file_path: str,
+        caller: str,
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> None:
+        """Extract REFERENCES from array/list elements that are identifiers."""
+        for ch in array_node.children:
+            if ch.type == "identifier":
+                name = ch.text.decode("utf-8", errors="replace")
+                self._emit_reference_if_known(
+                    name, language, file_path, caller, edges,
+                    import_map, defined_names,
+                    line=ch.start_point[0] + 1,
+                )
+
+    def _ref_from_arguments(
+        self,
+        args_node,
+        source: bytes,
+        language: str,
+        file_path: str,
+        caller: str,
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> None:
+        """Extract REFERENCES from identifier arguments (callbacks)."""
+        for ch in args_node.children:
+            if ch.type == "identifier":
+                name = ch.text.decode("utf-8", errors="replace")
+                self._emit_reference_if_known(
+                    name, language, file_path, caller, edges,
+                    import_map, defined_names,
+                    line=ch.start_point[0] + 1,
+                )
 
     def _extract_solidity_constructs(
         self,
@@ -2183,6 +2593,17 @@ class CodeParser:
         """Language-aware module-to-file resolution."""
         caller_dir = Path(file_path).parent
 
+        if language == "bash":
+            # ``source ./lib.sh`` or ``source lib.sh`` — resolve relative
+            # to the caller's directory. See: #197
+            try:
+                target = (caller_dir / module).resolve()
+                if target.is_file():
+                    return str(target)
+            except (OSError, ValueError):
+                pass
+            return None
+
         if language == "python":
             rel_path = module.replace(".", "/")
             candidates = [rel_path + ".py", rel_path + "/__init__.py"]
@@ -2232,7 +2653,58 @@ class CodeParser:
                 target = base.with_suffix(".dart")
                 if target.is_file():
                     return str(target.resolve())
+            elif module.startswith("package:"):
+                # ``package:<name>/<sub_path>`` — resolve to the current repo's
+                # ``lib/<sub_path>`` iff a ``pubspec.yaml`` declaring that
+                # package name is found in an ancestor directory. See: #87
+                try:
+                    uri_body = module[len("package:"):]
+                    pkg_name, _, sub_path = uri_body.partition("/")
+                    if not sub_path:
+                        return None
+                    pubspec_root = self._find_dart_pubspec_root(
+                        caller_dir, pkg_name
+                    )
+                    if pubspec_root is not None:
+                        target = pubspec_root / "lib" / sub_path
+                        if target.is_file():
+                            return str(target.resolve())
+                except (OSError, ValueError):
+                    return None
+            # ``dart:core`` / ``dart:async`` etc. are SDK libraries we do
+            # not track; fall through to return None.
 
+        return None
+
+    def _find_dart_pubspec_root(
+        self, start: Path, pkg_name: str,
+    ) -> Optional[Path]:
+        """Walk up from ``start`` to find a ``pubspec.yaml`` whose ``name:``
+        matches ``pkg_name``. Returns the directory containing that pubspec,
+        or None if no match is found. Result is cached per (start, pkg_name)
+        pair so repeated lookups within one parse pass are cheap.
+        """
+        cache_key = (str(start), pkg_name)
+        cached = self._dart_pubspec_cache.get(cache_key)
+        if cached is not None or cache_key in self._dart_pubspec_cache:
+            return cached
+        current = start
+        # Avoid infinite loops on weird symlinks.
+        for _ in range(20):
+            pubspec = current / "pubspec.yaml"
+            if pubspec.is_file():
+                try:
+                    text = pubspec.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    text = ""
+                m = re.search(r"^name:\s*([\w-]+)", text, re.MULTILINE)
+                if m and m.group(1) == pkg_name:
+                    self._dart_pubspec_cache[cache_key] = current
+                    return current
+            if current.parent == current:
+                break
+            current = current.parent
+        self._dart_pubspec_cache[cache_key] = None
         return None
 
     def _resolve_call_target(
@@ -2418,21 +2890,39 @@ class CodeParser:
                     return child.text.decode("utf-8", errors="replace")
                 if child.type == "package" and child.text != b"package":
                     return child.text.decode("utf-8", errors="replace")
-        # For C/C++: function names are inside function_declarator/pointer_declarator
-        # Check these first to avoid matching the return type_identifier
-        if language in ("c", "cpp") and kind == "function":
+        # For C/C++/Objective-C: function names are inside
+        # function_declarator / pointer_declarator. Check these first to
+        # avoid matching the return type_identifier as the function name.
+        if language in ("c", "cpp", "objc") and kind == "function":
             for child in node.children:
                 if child.type in ("function_declarator", "pointer_declarator"):
                     result = self._get_name(child, language, kind)
                     if result:
                         return result
+
+        # Objective-C method_definition: the method name is the first
+        # ``identifier`` child (first part of the selector). Multi-part
+        # selectors like ``- (void)add:(int)a to:(int)b`` keep ``add`` as
+        # the canonical method name; later parts are keyword arguments.
+        if language == "objc" and node.type == "method_definition":
+            for child in node.children:
+                if child.type == "identifier":
+                    return child.text.decode("utf-8", errors="replace")
+
+        # Bash function_definition: ``foo() { ... }`` — tree-sitter-bash
+        # stores the function name as a ``word`` child, which the generic
+        # loop below doesn't recognize.
+        if language == "bash" and node.type == "function_definition":
+            for child in node.children:
+                if child.type == "word":
+                    return child.text.decode("utf-8", errors="replace")
         # Go methods: tree-sitter-go uses field_identifier for the name
         # (e.g. func (s *T) MethodName(...) { }). Must run before the generic
         # loop, which would match the result type's type_identifier (e.g. int64).
         if language == "go" and node.type == "method_declaration":
             for child in node.children:
                 if child.type == "field_identifier":
-                    return child.text.decode("utf-8", errors="replace")                        
+                    return child.text.decode("utf-8", errors="replace")
         # Most languages use a 'name' child
         for child in node.children:
             if child.type in (
@@ -2445,6 +2935,36 @@ class CodeParser:
             for child in node.children:
                 if child.type == "type_spec":
                     return self._get_name(child, language, kind)
+        return None
+
+    def _get_go_receiver_type(self, node) -> Optional[str]:
+        """Extract the receiver type from a Go method_declaration.
+
+        For ``func (s *T) Foo() {...}`` returns ``"T"``. For ``func (T) Foo()``
+        also returns ``"T"``. Returns None if no receiver is present.
+
+        The receiver is always the first ``parameter_list`` child of a
+        Go ``method_declaration`` and contains a single ``parameter_declaration``
+        whose type is either a ``type_identifier`` or a ``pointer_type``
+        wrapping one. See: #190
+        """
+        for child in node.children:
+            if child.type != "parameter_list":
+                continue
+            for param in child.children:
+                if param.type != "parameter_declaration":
+                    continue
+                for sub in param.children:
+                    if sub.type == "type_identifier":
+                        return sub.text.decode("utf-8", errors="replace")
+                    if sub.type == "pointer_type":
+                        for ptr_child in sub.children:
+                            if ptr_child.type == "type_identifier":
+                                return ptr_child.text.decode(
+                                    "utf-8", errors="replace"
+                                )
+            # First parameter_list is always the receiver; stop searching.
+            return None
         return None
 
     def _get_params(self, node, language: str, source: bytes) -> Optional[str]:
@@ -2693,6 +3213,33 @@ class CodeParser:
             for child in node.children:
                 if child.type in ("type_identifier", "identifier"):
                     return child.text.decode("utf-8", errors="replace")
+            return None
+
+        # Objective-C: [receiver method:arg] — the method name is the
+        # SECOND identifier-like child (the first is the receiver). For
+        # multi-part selectors like `[obj add:a to:b]` we keep the first
+        # part (`add`) as the call name; later parts are keyword arguments.
+        if language == "objc" and node.type == "message_expression":
+            receiver_skipped = False
+            for child in node.children:
+                if child.type in ("[", "]"):
+                    continue
+                if not receiver_skipped:
+                    # First non-bracket child is the receiver (identifier,
+                    # message_expression for chained calls, etc.)
+                    receiver_skipped = True
+                    continue
+                if child.type == "identifier":
+                    return child.text.decode("utf-8", errors="replace")
+            return None
+
+        # Bash: `command` node's first child is the command name.
+        if language == "bash" and node.type == "command":
+            for child in node.children:
+                if child.type == "command_name":
+                    # command_name wraps a word — get its text
+                    txt = child.text.decode("utf-8", errors="replace").strip()
+                    return txt or None
             return None
 
         # Solidity wraps call targets in an 'expression' node – unwrap it
