@@ -45,6 +45,9 @@ import * as nc_202603230000_subscription_last_paid_seat_count from './v0/nc_2026
 import * as nc_202603301109_fine_grained_api_tokens from './v0/nc_202603301109_fine_grained_api_tokens';
 import * as nc_202603310000_integration_links from './v0/nc_202603310000_integration_links';
 import * as nc_202604030000_installations_add_fk_user_id from './v0/nc_202604030000_installations_add_fk_user_id';
+import * as nc_202604040000_gcp_marketplace from './v0/nc_202604040000_gcp_marketplace';
+import * as nc_202604071200_default_org from './v0/nc_202604071200_default_org';
+import * as nc_202604071201_scim_config_default_role from './v0/nc_202604071201_scim_config_default_role';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -101,6 +104,10 @@ export default class XcMigrationSourcev0 {
       'nc_202603301109_fine_grained_api_tokens',
       'nc_202603310000_integration_links',
       'nc_202604030000_installations_add_fk_user_id',
+
+      'nc_202604040000_gcp_marketplace',
+      'nc_202604071200_default_org',
+      'nc_202604071201_scim_config_default_role',
     ]);
   }
 
@@ -204,6 +211,13 @@ export default class XcMigrationSourcev0 {
         return nc_202603310000_integration_links;
       case 'nc_202604030000_installations_add_fk_user_id':
         return nc_202604030000_installations_add_fk_user_id;
+
+      case 'nc_202604040000_gcp_marketplace':
+        return nc_202604040000_gcp_marketplace;
+      case 'nc_202604071200_default_org':
+        return nc_202604071200_default_org;
+      case 'nc_202604071201_scim_config_default_role':
+        return nc_202604071201_scim_config_default_role;
     }
   }
 }

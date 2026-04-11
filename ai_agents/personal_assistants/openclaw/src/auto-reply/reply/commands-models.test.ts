@@ -13,12 +13,16 @@ const modelCatalogMocks = vi.hoisted(() => ({
   loadModelCatalog: vi.fn(),
 }));
 
+const modelAuthLabelMocks = vi.hoisted(() => ({
+  resolveModelAuthLabel: vi.fn<(params: unknown) => string | undefined>(() => undefined),
+}));
+
 vi.mock("../../agents/model-catalog.js", () => ({
-  loadModelCatalog: (...args: unknown[]) => modelCatalogMocks.loadModelCatalog(...args),
+  loadModelCatalog: modelCatalogMocks.loadModelCatalog,
 }));
 
 vi.mock("../../agents/model-auth-label.js", () => ({
-  resolveModelAuthLabel: () => undefined,
+  resolveModelAuthLabel: modelAuthLabelMocks.resolveModelAuthLabel,
 }));
 
 const telegramModelsTestPlugin: ChannelPlugin = {
@@ -59,6 +63,8 @@ beforeEach(() => {
     { provider: "openai", id: "gpt-4.1-mini", name: "GPT-4.1 Mini" },
     { provider: "google", id: "gemini-2.0-flash", name: "Gemini Flash" },
   ]);
+  modelAuthLabelMocks.resolveModelAuthLabel.mockReset();
+  modelAuthLabelMocks.resolveModelAuthLabel.mockReturnValue(undefined);
   setActivePluginRegistry(
     createTestRegistry([
       {
@@ -241,6 +247,41 @@ describe("handleModelsCommand", () => {
     expect(result?.shouldContinue).toBe(false);
     expect(result?.reply?.text).toContain("Providers:");
     expect(result?.reply?.text).toContain("localai");
+  });
+
+  it("prefers the target session entry for model auth labeling", async () => {
+    modelAuthLabelMocks.resolveModelAuthLabel.mockReturnValue("target-auth");
+    const params = buildModelsParams("/models anthropic", cfg, "discord", {
+      agentId: "main",
+      sessionKey: "agent:support:main",
+    });
+    params.sessionEntry = {
+      sessionId: "wrapper-session",
+      updatedAt: Date.now(),
+      providerOverride: "wrapper-provider",
+      modelOverride: "wrapper-model",
+    };
+    params.sessionStore = {
+      "agent:support:main": {
+        sessionId: "target-session",
+        updatedAt: Date.now(),
+        providerOverride: "target-provider",
+        modelOverride: "target-model",
+      },
+    };
+
+    const result = await handleModelsCommand(params, true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(modelAuthLabelMocks.resolveModelAuthLabel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionEntry: expect.objectContaining({
+          providerOverride: "target-provider",
+          modelOverride: "target-model",
+        }),
+      }),
+    );
+    expect(result?.reply?.text).toContain("target-auth");
   });
 
   it("honors model allowlists and config-only providers", async () => {
