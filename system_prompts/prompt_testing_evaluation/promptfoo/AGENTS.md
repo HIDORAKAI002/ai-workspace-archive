@@ -13,6 +13,7 @@ Promptfoo is an open-source framework for evaluating and testing LLM application
 | `src/`           | Core library                  | -                         |
 | `src/app/`       | Web UI (React 19/Vite/MUI v7) | `src/app/AGENTS.md`       |
 | `src/commands/`  | CLI commands                  | `src/commands/AGENTS.md`  |
+| `src/matchers/`  | Assertion matcher helpers     | `src/matchers/AGENTS.md`  |
 | `src/providers/` | LLM providers                 | `src/providers/AGENTS.md` |
 | `src/redteam/`   | Security testing              | `src/redteam/AGENTS.md`   |
 | `src/server/`    | Backend server                | `src/server/AGENTS.md`    |
@@ -47,7 +48,7 @@ npm run f                  # Format only changed files
 npm run test:watch         # Run tests in watch mode
 npm run test:integration   # Run integration tests
 npm run test:redteam:integration  # Run red team integration tests
-npm run test:app -- -- src/pages/path/to/test.test.tsx --run  # Run a specific frontend test file from repo root
+npm run test:app -- src/pages/path/to/test.test.tsx --run  # Run a specific frontend test file from repo root
 npx vitest path/to/test    # Run a specific backend test file
 
 # Development
