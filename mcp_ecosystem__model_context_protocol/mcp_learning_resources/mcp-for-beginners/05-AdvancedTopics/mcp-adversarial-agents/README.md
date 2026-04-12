@@ -254,6 +254,8 @@ The orchestrator creates both agents, manages the debate turns, then passes the 
 # debate_orchestrator.py
 import asyncio
 from anthropic import AsyncAnthropic
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 from prompts import FOR_SYSTEM_PROMPT, AGAINST_SYSTEM_PROMPT, JUDGE_SYSTEM_PROMPT
 
 client = AsyncAnthropic()
@@ -264,75 +266,122 @@ NUM_ROUNDS = 3  # Number of back-and-forth exchange rounds
 async def run_agent_turn(
     conversation_history: list[dict],
     system_prompt: str,
+    session: ClientSession,
 ) -> str:
-    """Run one turn for a single agent, returning its response text."""
-    # NOTE: Replace with actual MCP-aware agent call when using a full MCP client.
-    # The pattern below illustrates the concept; wire it to your preferred LLM + MCP SDK.
-    # See Step 4 for how to connect this to a live MCP session.
-    response = await client.messages.create(
-        model="claude-opus-4-5",
-        max_tokens=512,
-        system=system_prompt,
-        messages=conversation_history,
-    )
-    return response.content[0].text
+    """Run one agent turn with MCP tool support.
+
+    Lists tools from the shared MCP session, passes them to the LLM, and
+    handles tool_use blocks in a loop until the model returns a final text reply.
+    """
+    # Fetch the current tool list from the shared MCP server.
+    tools_result = await session.list_tools()
+    tools = [
+        {
+            "name": t.name,
+            "description": t.description or "",
+            "input_schema": t.inputSchema,
+        }
+        for t in tools_result.tools
+    ]
+
+    messages = list(conversation_history)
+    while True:
+        response = await client.messages.create(
+            model="claude-opus-4-5",
+            max_tokens=512,
+            system=system_prompt,
+            messages=messages,
+            tools=tools,
+        )
+
+        # Collect any text the model produced.
+        text_blocks = [b for b in response.content if b.type == "text"]
+
+        # If the model is done (no tool calls), return its text reply.
+        tool_uses = [b for b in response.content if b.type == "tool_use"]
+        if not tool_uses:
+            return text_blocks[0].text if text_blocks else ""
+
+        # Record the assistant turn (may mix text + tool_use blocks).
+        messages.append({"role": "assistant", "content": response.content})
+
+        # Execute each tool call and collect results.
+        tool_results = []
+        for tool_use in tool_uses:
+            result = await session.call_tool(tool_use.name, tool_use.input)
+            tool_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": tool_use.id,
+                    "content": result.content[0].text if result.content else "",
+                }
+            )
+
+        # Feed the tool results back to the model.
+        messages.append({"role": "user", "content": tool_results})
 
 
 async def run_debate(proposition: str) -> dict:
     """
     Run a full adversarial debate on a proposition.
 
-    Returns a dictionary with:
-      - transcript: list of all debate turns
-      - verdict: the judge's final evaluation
+    Both agents share a single MCP session so they operate in the same
+    tool environment. Returns a dictionary with the transcript and verdict.
     """
-    transcript: list[dict] = []
-
-    # Seed the debate with the proposition.
-    opening_message = {"role": "user", "content": f"Proposition: {proposition}"}
-
-    for_history: list[dict] = [opening_message]
-    against_history: list[dict] = [opening_message]
-
-    for round_num in range(1, NUM_ROUNDS + 1):
-        print(f"\n--- Round {round_num} ---")
-
-        # Agent A argues FOR.
-        for_response = await run_agent_turn(for_history, FOR_SYSTEM_PROMPT)
-        print(f"Agent A (FOR): {for_response}")
-        transcript.append({"round": round_num, "agent": "FOR", "text": for_response})
-
-        # Share Agent A's argument with Agent B.
-        for_history.append({"role": "assistant", "content": for_response})
-        against_history.append({"role": "user", "content": f"Opponent argued: {for_response}"})
-
-        # Agent B argues AGAINST.
-        against_response = await run_agent_turn(
-            against_history, AGAINST_SYSTEM_PROMPT
-        )
-        print(f"Agent B (AGAINST): {against_response}")
-        transcript.append({"round": round_num, "agent": "AGAINST", "text": against_response})
-
-        # Share Agent B's argument with Agent A for the next round.
-        against_history.append({"role": "assistant", "content": against_response})
-        for_history.append({"role": "user", "content": f"Opponent argued: {against_response}"})
-
-    # Build the transcript summary for the judge.
-    transcript_text = "\n\n".join(
-        f"Round {t['round']} – {t['agent']}:\n{t['text']}" for t in transcript
+    server_params = StdioServerParameters(
+        command="python", args=["shared_tools_server.py"]
     )
-    judge_input = [
-        {
-            "role": "user",
-            "content": f"Proposition: {proposition}\n\nDebate transcript:\n{transcript_text}",
-        }
-    ]
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
 
-    # Judge evaluates the debate.
-    verdict = await run_agent_turn(judge_input, JUDGE_SYSTEM_PROMPT)
-    print(f"\n=== Judge Verdict ===\n{verdict}")
+            transcript: list[dict] = []
 
-    return {"transcript": transcript, "verdict": verdict}
+            # Seed the debate with the proposition.
+            opening_message = {"role": "user", "content": f"Proposition: {proposition}"}
+
+            for_history: list[dict] = [opening_message]
+            against_history: list[dict] = [opening_message]
+
+            for round_num in range(1, NUM_ROUNDS + 1):
+                print(f"\n--- Round {round_num} ---")
+
+                # Agent A argues FOR.
+                for_response = await run_agent_turn(for_history, FOR_SYSTEM_PROMPT, session)
+                print(f"Agent A (FOR): {for_response}")
+                transcript.append({"round": round_num, "agent": "FOR", "text": for_response})
+
+                # Share Agent A's argument with Agent B.
+                for_history.append({"role": "assistant", "content": for_response})
+                against_history.append({"role": "user", "content": f"Opponent argued: {for_response}"})
+
+                # Agent B argues AGAINST.
+                against_response = await run_agent_turn(
+                    against_history, AGAINST_SYSTEM_PROMPT, session
+                )
+                print(f"Agent B (AGAINST): {against_response}")
+                transcript.append({"round": round_num, "agent": "AGAINST", "text": against_response})
+
+                # Share Agent B's argument with Agent A for the next round.
+                against_history.append({"role": "assistant", "content": against_response})
+                for_history.append({"role": "user", "content": f"Opponent argued: {against_response}"})
+
+            # Build the transcript summary for the judge.
+            transcript_text = "\n\n".join(
+                f"Round {t['round']} – {t['agent']}:\n{t['text']}" for t in transcript
+            )
+            judge_input = [
+                {
+                    "role": "user",
+                    "content": f"Proposition: {proposition}\n\nDebate transcript:\n{transcript_text}",
+                }
+            ]
+
+            # Judge evaluates the debate.
+            verdict = await run_agent_turn(judge_input, JUDGE_SYSTEM_PROMPT, session)
+            print(f"\n=== Judge Verdict ===\n{verdict}")
+
+            return {"transcript": transcript, "verdict": verdict}
 
 
 if __name__ == "__main__":
@@ -566,34 +615,11 @@ Deliver a verdict with:
 
 ### Step 4 — Wiring MCP Tools into the Agents
 
-The examples above show the debate orchestration logic. In a production implementation, you wire each agent's LLM call through the MCP client SDK so that the agents can actually call tools. To keep both agents in the same MCP tool environment, create one long-lived client/session and pass that shared session into each agent turn:
+The Python orchestrator above already shows the complete MCP-wired implementation. The key pattern is:
 
-```python
-# Pseudocode: connecting both agents to one shared MCP session
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-async def run_agent_turn_with_tools(history, system_prompt, session):
-    # Reuse the already-initialized shared session for each turn
-    tools = await session.list_tools()
-    # ... call LLM with tools, handle tool_use blocks, call session.call_tool(...)
-
-async def run_debate(for_history, against_history):
-    server_params = StdioServerParameters(
-        command="python", args=["shared_tools_server.py"]
-    )
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-
-            for_result = await run_agent_turn_with_tools(
-                for_history, "Argue in favor of the proposal.", session
-            )
-            against_result = await run_agent_turn_with_tools(
-                against_history, "Argue against the proposal.", session
-            )
-            return for_result, against_result
-```
+- **One shared session**: `run_debate` opens a single `ClientSession` and passes it to every `run_agent_turn` call, so both agents and the judge operate in the same tool environment.
+- **Tool listing per turn**: `run_agent_turn` calls `session.list_tools()` to fetch the current tool definitions and forwards them to the LLM as the `tools` parameter.
+- **Tool-use loop**: When the model returns `tool_use` blocks, `run_agent_turn` calls `session.call_tool()` for each one and feeds the results back to the model, repeating until the model produces a final text response.
 
 Refer to [03-GettingStarted/02-client](../../03-GettingStarted/02-client/solution/) for complete MCP client examples in each language.
 
