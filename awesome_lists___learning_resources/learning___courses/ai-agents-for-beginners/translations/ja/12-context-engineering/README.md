@@ -96,11 +96,11 @@ AIエージェントが管理する必要があるコンテキストの種類に
   
 ### コンテキストエンジニアリングの例
 
-例えば、AIエージェントに **"Book me a trip to Paris."** と依頼したいとしましょう。
+例えば、AIエージェントに **"パリ旅行を予約してください。"** と依頼したいとしましょう。
 
-• A simple  agent using only prompt engineering might just respond: **"Okay, when would you like to go to Paris?**". 単にユーザーが尋ねた時点での直接的な質問しか処理しません。
+• プロンプトエンジニアリングのみを使用する単純なエージェントは、単に「***わかりました。パリにはいつ行きたいですか？***」と答えるかもしれません。単にユーザーが尋ねた時点での直接的な質問しか処理しません。
 
-• An agent using  the context engineering strategies covered would do much more. Before even responding, its system might:
+• ここで説明したコンテキストエンジニアリング戦略を用いるエージェントは、さらに多くのことを行うだろう。応答する前に、そのシステムは次のようなことを行う可能性がある。
 
   ◦ **カレンダーを確認する**  利用可能な日付を確認する（リアルタイムデータの取得）。
 
@@ -108,7 +108,7 @@ AIエージェントが管理する必要があるコンテキストの種類に
 
   ◦ **利用可能なツールを特定する** フライトとホテルの予約のためのツールなど。
 
-- Then, an example response could be:  "Hey [Your Name]! I see you're free the first week of October. Shall I look for direct flights to Paris on [Preferred Airline] within your usual budget of [Budget]?". このように、より豊かなコンテキスト認識に基づく応答は、コンテキストエンジニアリングの力を示しています。
+- 例えば、次のような返信が考えられます。「こんにちは、[あなたの名前]さん！10月の第1週はご都合がよろしいようですね。[希望の航空会社]のパリ行き直行便を、あなたのいつもの予算は[予算]の範囲内で探してみましょうか？」。このように、より豊かなコンテキスト認識に基づく応答は、コンテキストエンジニアリングの力を示しています。
 
 ## よくあるコンテキストの失敗
 
@@ -154,7 +154,7 @@ AIエージェントが管理する必要があるコンテキストの種類に
 
 ## コンテキストエンジニアリングについてさらに質問がありますか？
 
-Join the [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) to meet with other learners, attend office hours and get your AI Agents questions answered.
+[Microsoft Foundry Discord](https://aka.ms/ai-agents/discord)に参加して、他の学習者と交流したり、オフィスアワーに参加したり、AIエージェントに関する質問への回答を得たりしましょう。
 
 ---
 

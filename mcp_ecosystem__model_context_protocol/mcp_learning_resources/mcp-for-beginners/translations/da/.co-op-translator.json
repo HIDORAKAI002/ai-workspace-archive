@@ -48,8 +48,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/01-first-server/README.md": {
-    "original_hash": "8fdac7600a5f4722643d0f14e15ac259",
-    "translation_date": "2025-12-11T06:47:18+00:00",
+    "original_hash": "e7d34112ae90a02725e7dc2d0f92c65c",
+    "translation_date": "2026-04-12T00:35:36+00:00",
     "source_file": "03-GettingStarted/01-first-server/README.md",
     "language_code": "da"
   },
@@ -138,8 +138,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/03-llm-client/README.md": {
-    "original_hash": "0e32a55181e7306d2b264301ca951a0e",
-    "translation_date": "2026-02-28T16:24:11+00:00",
+    "original_hash": "a9f961c28ecf88d4e37e06c6e78c22ea",
+    "translation_date": "2026-04-12T00:34:15+00:00",
     "source_file": "03-GettingStarted/03-llm-client/README.md",
     "language_code": "da"
   },
@@ -270,8 +270,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/08-testing/README.md": {
-    "original_hash": "87f203434a7c2f62f4443fc737ec1f81",
-    "translation_date": "2026-03-15T14:46:29+00:00",
+    "original_hash": "b6e64cb54c38599a0c4395828b6c4977",
+    "translation_date": "2026-04-12T00:34:31+00:00",
     "source_file": "03-GettingStarted/08-testing/README.md",
     "language_code": "da"
   },
@@ -306,8 +306,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/11-simple-auth/README.md": {
-    "original_hash": "79f0cc70ccc02ea25210e6365fdbf391",
-    "translation_date": "2026-03-15T15:53:13+00:00",
+    "original_hash": "e192af3a119f24896a3a0ab93ef848fd",
+    "translation_date": "2026-04-12T00:32:35+00:00",
     "source_file": "03-GettingStarted/11-simple-auth/README.md",
     "language_code": "da"
   },
@@ -372,8 +372,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/14-sampling/README.md": {
-    "original_hash": "7fcaf3469589a8b02c633a0fad971ae3",
-    "translation_date": "2026-02-18T16:21:33+00:00",
+    "original_hash": "272288dd38ea2187dc13cac51a8901d8",
+    "translation_date": "2026-04-12T00:31:16+00:00",
     "source_file": "03-GettingStarted/14-sampling/README.md",
     "language_code": "da"
   },
@@ -396,8 +396,8 @@
     "language_code": "da"
   },
   "03-GettingStarted/15-mcp-apps/README.md": {
-    "original_hash": "0ce5c2b226bb11d8d473bec29ef60eff",
-    "translation_date": "2026-03-03T20:10:58+00:00",
+    "original_hash": "1cffea8068711496c655e78a8ef6be27",
+    "translation_date": "2026-04-12T00:33:03+00:00",
     "source_file": "03-GettingStarted/15-mcp-apps/README.md",
     "language_code": "da"
   },
