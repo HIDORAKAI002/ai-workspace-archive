@@ -1434,5 +1434,5 @@ print(f"Adjusted hotel recommendation (highest_quality): {adjusted_recommendatio
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **免責事項**：  
-本書類はAI翻訳サービス「Co-op Translator」（https://github.com/Azure/co-op-translator）を使用して翻訳されています。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な箇所が含まれる可能性があることをご了承ください。原文の言語による文書が正式な情報源となります。重要な情報については、専門の人間による翻訳を推奨いたします。本翻訳の使用に伴う誤解や誤訳について、当方は一切の責任を負いかねます。
+本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されています。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な箇所が含まれる可能性があることをご了承ください。原文の言語による文書が正式な情報源となります。重要な情報については、専門の人間による翻訳を推奨いたします。本翻訳の使用に伴う誤解や誤訳について、当方は一切の責任を負いかねます。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -4,18 +4,18 @@
 
 AIエージェントが実験的プロトタイプから実世界のアプリケーションへ移行するにつれて、その振る舞いを理解し、性能を監視し、出力を体系的に評価する能力が重要になります。
 
-## Learning Goals
+## 学習目標
 
-After completing this lesson, you will know how to/understand:
-- Core concepts of agent observability and evaluation
-- Techniques for improving the performance, costs, and effectiveness of agents
-- What and how to evaluate your AI agents systematically
-- How to control costs when deploying AI agents to production
-- How to instrument agents built with Microsoft Agent Framework
+このレッスンを完了すると、以下の内容を理解できるようになります。
+- エージェントの可観測性と評価の基本概念
+- エージェントのパフォーマンス、コスト、および有効性を向上させるための手法
+- AIエージェントを体系的に評価する方法
+- AIエージェントを本番環境にデプロイする際のコスト管理方法
+- Microsoft Agent Frameworkで構築されたエージェントを計測する方法
 
 目的は、あなたの「ブラックボックス」なエージェントを透過的で管理しやすく、信頼できるシステムへと変えるための知識を提供することです。
 
-_**Note:** It is important to deploy AI Agents that are safe and trustworthy. Check out the [信頼できるAIエージェントの構築](./06-building-trustworthy-agents/README.md) lesson as well._
+_**注:** 安全で信頼できるAIエージェントをデプロイすることが重要です。[信頼できるAIエージェントの構築](./06-building-trustworthy-agents/README.md)のレッスンも併せてご確認ください。_
 
 ## トレースとスパン
 
@@ -145,34 +145,34 @@ AIエージェントを本番に展開すると、さまざまな課題に直面
 これらの問題の多くは、可観測性があればより効果的に特定できます。前述したトレースとメトリクスは、エージェントワークフローのどの部分で問題が発生しているかを特定するのに役立ち、デバッグや最適化を大幅に効率化します。
 
 ## コスト管理
-Here are some strategies to manage the costs of deploying AI agents to production:
+AIエージェントを本番環境に導入する際のコストを管理するための戦略をいくつかご紹介します。
 
-**Using Smaller Models:** 小規模言語モデル（SLMs）は特定のエージェント用途でうまく機能し、コストを大幅に削減できます。前述したように、評価システムを構築して大規模モデルと性能を比較・判定することが、SLMがあなたのユースケースでどれほど有効かを理解する最良の方法です。意図分類やパラメータ抽出のようなより簡単なタスクにはSLMsを検討し、複雑な推論には大規模モデルを割り当ててください。
+**小型モデルの使用：** 小規模言語モデル（SLMs）は特定のエージェント用途でうまく機能し、コストを大幅に削減できます。前述したように、評価システムを構築して大規模モデルと性能を比較・判定することが、SLMがあなたのユースケースでどれほど有効かを理解する最良の方法です。意図分類やパラメータ抽出のようなより簡単なタスクにはSLMsを検討し、複雑な推論には大規模モデルを割り当ててください。
 
-**Using a Router Model:** 類似の戦略として、さまざまなモデルやサイズを組み合わせて使用する方法があります。LLM/SLMやサーバーレス関数を使って、リクエストの複雑さに応じて最適なモデルへルーティングすることができます。これによりコストを削減しつつ、適切なタスクでの性能を確保できます。たとえば、単純なクエリはより小さく高速なモデルにルーティングし、複雑な推論には高価な大規模モデルのみを使用する、という具合です。
+**ルーターモデルの使用:** 類似の戦略として、さまざまなモデルやサイズを組み合わせて使用する方法があります。LLM/SLMやサーバーレス関数を使って、リクエストの複雑さに応じて最適なモデルへルーティングすることができます。これによりコストを削減しつつ、適切なタスクでの性能を確保できます。たとえば、単純なクエリはより小さく高速なモデルにルーティングし、複雑な推論には高価な大規模モデルのみを使用する、という具合です。
 
-**Caching Responses:** 共通のリクエストやタスクを特定し、それらをエージェント型システムを経由する前に応答を提供することで、類似リクエストの量を減らすことができます。より基本的なAIモデルを使って、あるリクエストがキャッシュされたリクエストとどれほど類似しているかを判定するフローを実装することも可能です。この戦略は、頻繁に尋ねられる質問や共通のワークフローに対するコストを大幅に削減できます。
+**レスポンスのキャッシュ：** 共通のリクエストやタスクを特定し、それらをエージェント型システムを経由する前に応答を提供することで、類似リクエストの量を減らすことができます。より基本的なAIモデルを使って、あるリクエストがキャッシュされたリクエストとどれほど類似しているかを判定するフローを実装することも可能です。この戦略は、頻繁に尋ねられる質問や共通のワークフローに対するコストを大幅に削減できます。
 
-## Lets see how this works in practice
+## 実際にどのように機能するか見てみましょう
 
-In the [example notebook of this section](./code_samples/10-expense_claim-demo.ipynb), we’ll see examples of how we can use observability tools to monitor and evaluate our agent.
+[このセクションのサンプルノートブック](./code_samples/10-expense_claim-demo.ipynb)では、オブザーバビリティツールを使用してエージェントを監視および評価する方法の例を示します。
 
 
-### Got More Questions about AI Agents in Production?
+### 運用中のAIエージェントについて、さらにご質問がありますか？
 
-Join the [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) to meet with other learners, attend office hours and get your AI Agents questions answered.
+[Microsoft Foundry Discord](https://aka.ms/ai-agents/discord)に参加して、他の学習者と交流したり、オフィスアワーに参加したり、AIエージェントに関する質問への回答を得たりしましょう。
 
-## Previous Lesson
+## 前のレッスン
 
-[Metacognition Design Pattern](../09-metacognition/README.md)
+[メタ認知デザインパターン](../09-metacognition/README.md)
 
-## Next Lesson
+## 次のレッスン
 
-[Agentic Protocols](../11-agentic-protocols/README.md)
+[エージェントプロトコル](../11-agentic-protocols/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 免責事項:
-この文書はAI翻訳サービス「Co-op Translator」（https://github.com/Azure/co-op-translator）を使用して翻訳されました。正確性には努めておりますが、自動翻訳には誤りや不正確な表現が含まれる場合があることをご留意ください。原文（原言語で作成された文書）が正式な正本と見なされます。重要な情報については、専門の人間による翻訳をお勧めします。本翻訳の使用により生じたいかなる誤解や誤った解釈についても、当方は責任を負いません。
+この文書はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性には努めておりますが、自動翻訳には誤りや不正確な表現が含まれる場合があることをご留意ください。原文（原言語で作成された文書）が正式な正本と見なされます。重要な情報については、専門の人間による翻訳をお勧めします。本翻訳の使用により生じたいかなる誤解や誤った解釈についても、当方は責任を負いません。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

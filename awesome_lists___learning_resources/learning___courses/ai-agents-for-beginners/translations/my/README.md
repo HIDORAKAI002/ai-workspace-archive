@@ -1,8 +1,8 @@
-# AI Agents for Beginners - သင်တန်း
+# AI Agents for Beginners - A Course
 
 ![Generative AI For Beginners](../../translated_images/my/repo-thumbnailv2.06f4a48036fde647.webp)
 
-## AI Agents တည်ဆောက်ခြင်းစတင်ရန်လိုအပ်သည့် အရာအားလုံးကို သင်ကြားပေးသည့် သင်တန်း
+## AI Agents တည်ဆောက်ရန် စတင်သင်ယူရန် လိုအပ်သော အရာအားလုံးကို သင်ကြားပေးသော သင်တန်း
 
 [![GitHub license](https://img.shields.io/github/license/microsoft/ai-agents-for-beginners.svg)](https://github.com/microsoft/ai-agents-for-beginners/blob/master/LICENSE?WT.mc_id=academic-105485-koreyst)
 [![GitHub contributors](https://img.shields.io/github/contributors/microsoft/ai-agents-for-beginners.svg)](https://GitHub.com/microsoft/ai-agents-for-beginners/graphs/contributors/?WT.mc_id=academic-105485-koreyst)
@@ -10,16 +10,16 @@
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/microsoft/ai-agents-for-beginners.svg)](https://GitHub.com/microsoft/ai-agents-for-beginners/pulls/?WT.mc_id=academic-105485-koreyst)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com?WT.mc_id=academic-105485-koreyst)
 
-### 🌐 ဘာသာစကားစုံ ကူညီမှု
+### 🌐 ဘာသာစကားအမျိုးမျိုးကို ပံ့ပိုးထားခြင်း
 
-#### GitHub Action မှတဆင့် အလိုအလျောက်နှင့် အမြဲတမ်း အပ်ဒိတ်ယူရန် ပံ့ပိုးမှုရရှိသည်
+#### GitHub Action ဖြင့် ပံ့ပိုးထားသည် (အလိုအလျောက် & အမြဲတမ်းနောက်ဆုံးပေါ်)
 
 <!-- CO-OP TRANSLATOR LANGUAGES TABLE START -->
-[Arabic](../ar/README.md) | [Bengali](../bn/README.md) | [Bulgarian](../bg/README.md) | [Burmese (Myanmar)](./README.md) | [Chinese (Simplified)](../zh-CN/README.md) | [Chinese (Traditional, Hong Kong)](../zh-HK/README.md) | [Chinese (Traditional, Macau)](../zh-MO/README.md) | [Chinese (Traditional, Taiwan)](../zh-TW/README.md) | [Croatian](../hr/README.md) | [Czech](../cs/README.md) | [Danish](../da/README.md) | [Dutch](../nl/README.md) | [Estonian](../et/README.md) | [Finnish](../fi/README.md) | [French](../fr/README.md) | [German](../de/README.md) | [Greek](../el/README.md) | [Hebrew](../he/README.md) | [Hindi](../hi/README.md) | [Hungarian](../hu/README.md) | [Indonesian](../id/README.md) | [Italian](../it/README.md) | [Japanese](../ja/README.md) | [Kannada](../kn/README.md) | [Korean](../ko/README.md) | [Lithuanian](../lt/README.md) | [Malay](../ms/README.md) | [Malayalam](../ml/README.md) | [Marathi](../mr/README.md) | [Nepali](../ne/README.md) | [Nigerian Pidgin](../pcm/README.md) | [Norwegian](../no/README.md) | [Persian (Farsi)](../fa/README.md) | [Polish](../pl/README.md) | [Portuguese (Brazil)](../pt-BR/README.md) | [Portuguese (Portugal)](../pt-PT/README.md) | [Punjabi (Gurmukhi)](../pa/README.md) | [Romanian](../ro/README.md) | [Russian](../ru/README.md) | [Serbian (Cyrillic)](../sr/README.md) | [Slovak](../sk/README.md) | [Slovenian](../sl/README.md) | [Spanish](../es/README.md) | [Swahili](../sw/README.md) | [Swedish](../sv/README.md) | [Tagalog (Filipino)](../tl/README.md) | [Tamil](../ta/README.md) | [Telugu](../te/README.md) | [Thai](../th/README.md) | [Turkish](../tr/README.md) | [Ukrainian](../uk/README.md) | [Urdu](../ur/README.md) | [Vietnamese](../vi/README.md)
+[Arabic](../ar/README.md) | [Bengali](../bn/README.md) | [Bulgarian](../bg/README.md) | [Burmese (Myanmar)](./README.md) | [Chinese (Simplified)](../zh-CN/README.md) | [Chinese (Traditional, Hong Kong)](../zh-HK/README.md) | [Chinese (Traditional, Macau)](../zh-MO/README.md) | [Chinese (Traditional, Taiwan)](../zh-TW/README.md) | [Croatian](../hr/README.md) | [Czech](../cs/README.md) | [Danish](../da/README.md) | [Dutch](../nl/README.md) | [Estonian](../et/README.md) | [Finnish](../fi/README.md) | [French](../fr/README.md) | [German](../de/README.md) | [Greek](../el/README.md) | [Hebrew](../he/README.md) | [Hindi](../hi/README.md) | [Hungarian](../hu/README.md) | [Indonesian](../id/README.md) | [Italian](../it/README.md) | [Japanese](../ja/README.md) | [Kannada](../kn/README.md) | [Khmer](../km/README.md) | [Korean](../ko/README.md) | [Lithuanian](../lt/README.md) | [Malay](../ms/README.md) | [Malayalam](../ml/README.md) | [Marathi](../mr/README.md) | [Nepali](../ne/README.md) | [Nigerian Pidgin](../pcm/README.md) | [Norwegian](../no/README.md) | [Persian (Farsi)](../fa/README.md) | [Polish](../pl/README.md) | [Portuguese (Brazil)](../pt-BR/README.md) | [Portuguese (Portugal)](../pt-PT/README.md) | [Punjabi (Gurmukhi)](../pa/README.md) | [Romanian](../ro/README.md) | [Russian](../ru/README.md) | [Serbian (Cyrillic)](../sr/README.md) | [Slovak](../sk/README.md) | [Slovenian](../sl/README.md) | [Spanish](../es/README.md) | [Swahili](../sw/README.md) | [Swedish](../sv/README.md) | [Tagalog (Filipino)](../tl/README.md) | [Tamil](../ta/README.md) | [Telugu](../te/README.md) | [Thai](../th/README.md) | [Turkish](../tr/README.md) | [Ukrainian](../uk/README.md) | [Urdu](../ur/README.md) | [Vietnamese](../vi/README.md)
 
-> **ဒိုင်ယာလော့ ထည့်ချင်ပါသလား?**
+> **ပြည်တွင်းမှာ Clone ဖို့ စိတ်ဝင်စားပါသလား?**
 >
-> ဒီ repository တွင် ဘာသာစကား ၅၀ ကျော်၏ ဘာသာပြန်ထားမှုများပါရှိပြီး ဒေါင်းလုပ်အရွယ်အစားကို အနည်းငယ် တိုးတက်စေသည်။ ဘာသာပြန်မပါဘဲ clone ဆွဲချင်ရင် sparse checkout ကို အသုံးပြုပါ။
+> ဤ repository တွင် ၅၀ ကျော်သော ဘာသာစကား ဘာသာပြန်များ ပါရှိသည်၊ ဒါကြောင့်ဒေါင်းလုပ်အရွယ်အစား တိုးလာသည်။ ဘာသာပြန်များမပါသော clone ရန် sparse checkout ကို အသုံးပြုပါ။
 >
 > **Bash / macOS / Linux:**
 > ```bash
@@ -35,10 +35,10 @@
 > git sparse-checkout set --no-cone "/*" "!translations" "!translated_images"
 > ```
 >
-> သင့်နောက်ဆုံးဆုံးဆုံးသင်တန်းကို အမြန်ဆုံး ဒေါင်းလုပ်ယူနိုင်ရန် လိုအပ်သည့် အရာအားလုံးကို ပေးသည်။
+> သင်ဤသင်တန်းကို အပြီးသတ်ရန် လိုအပ်သည်များကို ဖြည့်ဆည်းပေးသည့် အလွန်မြန်ဆန်သော ဒေါင်းလုပ်ဖြစ်ပါသည်။
 <!-- CO-OP TRANSLATOR LANGUAGES TABLE END -->
 
-**ထပ်မံဘာသာပြန်သည့် ဘာသာစကားများထည့်သွင်းလိုပါက ဒီနေရာမှာ ဖော်ပြထားသော အရာများကို ကြည့်ရှုနိုင်ပါသည် [here](https://github.com/Azure/co-op-translator/blob/main/getting_started/supported-languages.md)**
+**သင်လိုအပ်ပါက ထပ်မံသော ဘာသာပြန်ဘာသာစကားများကို [ဤနေရာတွင်](https://github.com/Azure/co-op-translator/blob/main/getting_started/supported-languages.md) ကြည့်ရှုနိုင်ပါသည်။**
 
 [![GitHub watchers](https://img.shields.io/github/watchers/microsoft/ai-agents-for-beginners.svg?style=social&label=Watch)](https://GitHub.com/microsoft/ai-agents-for-beginners/watchers/?WT.mc_id=academic-105485-koreyst)
 [![GitHub forks](https://img.shields.io/github/forks/microsoft/ai-agents-for-beginners.svg?style=social&label=Fork)](https://GitHub.com/microsoft/ai-agents-for-beginners/network/?WT.mc_id=academic-105485-koreyst)
@@ -49,60 +49,56 @@
 
 ## 🌱 စတင်ခြင်း
 
-ဒီသင်တန်းတွင် AI Agents တည်ဆောက်ခြင်း၏ အခြေခံ အယူအဆများကို သင်ကြားပေးပါသည်။ တစ်ခုချင်းစီသင်ခန်းစာတွင် ကိုယ်ပိုင်ဘာသာရပ်များပါရှိသောကြောင့် သင်ကြိုက်သလို စတင်လေ့လာနိုင်ပါတယ်!
+ဤသင်တန်းတွင် AI Agents တည်ဆောက်ရန် အခြေခံအနှစ်ချုပ်များကို သင်ကြားပေးသည်။ တစ်ခုချင်းစီသည် ကိုယ်ပိုင်ဘာသာရပ်ကို ဖော်ပြထားသည့်ကြောင့် သင်နှစ်သက်ရာနေရာမှ စတင်နိုင်ပါသည်။
 
-ဒီသင်တန်းအတွက် ဘာသာစကားစုံ ကူညီမှု ရှိပါတယ်။ ကျွန်တော်တို့ရဲ့ [ရရှိနိုင်သောဘာသာစကားများကို ဒီမှာကြည့်ပါ](../..)။
+ဤသင်တန်း၌ ဘာသာစကားအမျိုးမျိုးကို ပံ့ပိုးထားသည်။ [တောင်းဆိုနိုင်သော ဘာသာစကားများကို ဤနေရာတွင်](#-multi-language-support) ကြည့်ပါ။
 
-Generative AI မော်ဒယ်များနှင့် ပထမဆုံးတည်ဆောက်ခြင်းဖြစ်ပါက ကျွန်တော်တို့ရဲ့ [Generative AI For Beginners](https://aka.ms/genai-beginners) သင်တန်းကို ကြည့်ပါ၊ လေ့လာမှု ၂၁ချက် ပါဝင်ပါတယ်။
+Generative AI မော်ဒယ်များဖြင့် ပထမဆုံးအကြိမ် အလုပ်လုပ်မည်ဆိုပါက ဤသင်တန်း [Generative AI For Beginners](https://aka.ms/genai-beginners) ကို ပြန်လည်ကြည့်ရှုပါ၊ ၎င်းတွင် Generative AI ဖြင့် တည်ဆောက်ခြင်းဆိုင်ရာ သင်ခန်းစာ ၂၁ ခုပါဝင်သည်။
 
-ဒီ repo ကို [ကြယ်ခတ် (🌟) ပေးဖို့ မေ့ပစ်မနေပါနဲ့](https://docs.github.com/en/get-started/exploring-projects-on-github/saving-repositories-with-stars?WT.mc_id=academic-105485-koreyst) နှင့် [fork ပြုလုပ်ဖို့](https://github.com/microsoft/ai-agents-for-beginners/fork) ဖော်ပြထားတဲ့ ကုဒ်ကို သုံးနိုင်ပါတယ်။
+ဤ repo ကို [ကြယ် (🌟) ပေးပါ](https://docs.github.com/en/get-started/exploring-projects-on-github/saving-repositories-with-stars?WT.mc_id=academic-105485-koreyst) နှင့် code ကို မောင်းနှင်ရန် [fork ချပါ](https://github.com/microsoft/ai-agents-for-beginners/fork) မမိပါနှင့်။
 
-### အခြားလေ့လာသူများနှင့်တွေ့ဆုံပြီး မေးခွန်းများကို ဖြေကြားပါ
+### အခြားသင်ယူသူများနှင့် တွေ့ဆုံလိုက်ပါ၊ မေးခွန်းများကို ဖြေနိုင်ပါစေ
 
-AI Agents တည်ဆောက်ရာတွင် စိန်ခေါ်မှုများ ရှိလာပါက၊ သင့်မေးခွန်းများကို ဖြေရှင်းရန် ကျွန်တော်တို့ရဲ့ [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) မှ Discord ချန်နယ်တွင် ပါဝင်ဆွေးနွေးနိုင်ပါတယ်။
+AI Agents တည်ဆောက်ရာတွင် အခက်အခဲရှိပါက သင်၏မေးခွန်းများကို ဖြေရှင်းပေးရန် Microsoft Foundry Discord ၏ သီးသန့် Discord ချန်နယ်သို့ ဝင်ရောက်ပါ။ [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord)
 
-### လိုအပ်သောအရာများ
+### လိုအပ်သော အရာများ
 
-ဒီသင်တန်းတစ်ခုချင်းလေ့လာမှုတွင် ကုဒ်ဥပမာများပါဝင်ပြီး၊ code_samples ဖိုင်လ်ဒီမှာ တွေ့ရှိနိုင်ပါတယ်။ သင့်ကိုယ်ပိုင်ကော်ပီ ဖန်တီးရန် သင် [repo ကို fork ပြုလုပ်နိုင်ပါတယ်](https://github.com/microsoft/ai-agents-for-beginners/fork)။
+ဤသင်တန်းအတွင်း တစ်ခုချင်း အခန်းများတွင် code ဥပမာများ ပါဝင်ပြီး၊ တစ်ခုချင်းစီကို code_samples ဖိုလ်ဒါတွင် တွေ့နိုင်ပါသည်။ သင်၏ကိုယ်ပိုင် ကူးယူမြောက်မိသည့် ကူးယူရန် [repo ကို fork ချနိုင်ပါသည်](https://github.com/microsoft/ai-agents-for-beginners/fork)။
 
-ဒီလေ့ကျင့်ခန်းများအတွက် ကုဒ်ဥပမာများတွင် Microsoft Agent Framework နှင့် Azure AI Foundry Agent Service V2 ကိုအသုံးပြုထားသည် -
+ဤလေ့ကျင့်ခန်းများတွင် Microsoft Agent Framework ကို Azure AI Foundry Agent Service V2 ဖြင့် အသုံးပြုထားသည်-
 
-- [Microsoft Foundry](https://aka.ms/ai-agents-beginners/ai-foundry) - Azure အကောင့် လိုအပ်သည်
+- [Microsoft Foundry](https://aka.ms/ai-agents-beginners/ai-foundry) - Azure အကောင့် လိုအပ်သည်။
 
-ဒီသင်တန်းအတွက် Microsoft ၏ AI Agent frameworks နှင့် ဝန်ဆောင်မှုများကို အသုံးပြုသည် -
+ဤသင်တန်းတွင် Microsoft မှ AI Agent Frameworks များ နှင့် ဝန်ဆောင်မှုများကို အသုံးပြုထားပါသည်။
 
 - [Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok)
 - [Azure AI Foundry Agent Service V2](https://aka.ms/ai-agents-beginners/ai-agent-service)
 
+ဤသင်တန်းအတွက် code ကို မောင်းနှင်ရန် ပိုမိုသိရှိလိုပါက [Course Setup](./00-course-setup/README.md) ကို ကြည့်ပါ။
 
-ဒီသင်တန်းအတွက် အောင်မြင်စွာ ကုဒ်ကို စတင်သုံး ejecutar စီးရန်အတွက် [Course Setup](./00-course-setup/README.md) ကို ဖတ်ရှုပါ။
+## 🙏 ကူညီလိုပါသလား?
 
-## 🙏 ကူညီချင်ပါသလား?
+အသုံးပြုရာတွင် အကြံပြုချက်များရှိပါသလား၊ စာလုံးပေါင်း သို့မဟုတ် ကုဒ်မှားယွင်းချက်တွေ တွေ့ပါသလား? [ပြဿနာတင်ပါ](https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst) သို့မဟုတ် [pull request တင်ပါ](https://github.com/microsoft/ai-agents-for-beginners/pulls?WT.mc_id=academic-105485-koreyst)
 
-အကြံပြုချက်များရှိပါသလား၊ စာလုံးပေါ်မှု သို့မဟုတ် ကုဒ် အမှားတွေတွေ့ရှိခဲ့ပါက? [အရေးယူပါ](https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst) သို့မဟုတ် [Pull request တင်ပါ](https://github.com/microsoft/ai-agents-for-beginners/pulls?WT.mc_id=academic-105485-koreyst)။
+## 📂 တစ်ခုချင်း အခန်းတွင် ပါဝင်သော အရာများ
 
-
-
-## 📂 တစ်ခုချင်း သင်ခန်းစာတွင် ပါဝင်သည်
-
-- README တွင် ရေးသားထားသော သင်ခန်းစာနှင့် ဗီဒီယိုတို
-- Microsoft Agent Framework နှင့် Azure AI Foundry ကို အသုံးပြုသော Python ကုဒ်ဥပမာများ
-- သင်လေ့လာမှု ဆက်လက်လုပ်ဆောင်ရန် အပိုအရင်းအမြစ်များအတွက် လင့်ခ်များ
-
+- README တွင် ရေးသားပေးထားသည့် သင်ခန်းစာနှင့် အတိုချုံးဗီဒီယို
+- Python code ဥပမာများ (Microsoft Agent Framework အသုံးပြုပြီး Azure AI Foundry ဖြင့်)
+- သင်ယူမှုကို ဆက်လက်တိုးတက်စေရန် အပိုအရင်းအမြစ်များ လင့်ခ်များ
 
 ## 🗃️ သင်ခန်းစာများ
 
-| **သင်ခန်းစာ**                              | **စာတမ်းနှင့် ကုဒ်**                              | **ဗီဒီယို**                                               | **အပိုလေ့လာမှုများ**                                                                    |
-|--------------------------------------------|--------------------------------------------------|----------------------------------------------------------|------------------------------------------------------------------------------------------|
-| AI Agents နှင့် Agent အသုံးပြုမှုမိတ်ဆက်    | [Link](./01-intro-to-ai-agents/README.md)         | [Video](https://youtu.be/3zgm60bXmQk?si=z8QygFvYQv-9WtO1) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| AI Agentic Frameworks ကို ရှာဖွေခြင်း      | [Link](./02-explore-agentic-frameworks/README.md) | [Video](https://youtu.be/ODwF-EZo_O8?si=Vawth4hzVaHv-u0H) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| AI Agentic Design Patterns ကို နားလည်ခြင်း | [Link](./03-agentic-design-patterns/README.md)    | [Video](https://youtu.be/m9lM8qqoOEA?si=BIzHwzstTPL8o9GF) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| ကိရိယာအသုံးပြုမှု ဒီဇိုင်းပုံစံ          | [Link](./04-tool-use/README.md)                   | [Video](https://youtu.be/vieRiPRx-gI?si=2z6O2Xu2cu_Jz46N) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| Agentic RAG                                 | [Link](./05-agentic-rag/README.md)                | [Video](https://youtu.be/WcjAARvdL7I?si=gKPWsQpKiIlDH9A3) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| ယုံကြည်စိတ်ချရသော AI Agents တည်ဆောက်ခြင်း | [Link](./06-building-trustworthy-agents/README.md)| [Video](https://youtu.be/iZKkMEGBCUQ?si=jZjpiMnGFOE9L8OK )| [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| စီမံကိန်း မျဉ်းစည်း ဒီဇိုင်းပုံစံ          | [Link](./07-planning-design/README.md)            | [Video](https://youtu.be/kPfJ2BrBCMY?si=6SC_iv_E5-mzucnC) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| Multi-Agent ဒီဇိုင်းပုံစံ                     | [Link](./08-multi-agent/README.md)                | [Video](https://youtu.be/V6HpE9hZEx0?si=rMgDhEu7wXo2uo6g) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
-| Metacognition ဒီဇိုင်းပုံစံ                   | [Link](./09-metacognition/README.md)              | [Video](https://youtu.be/His9R6gw6Ec?si=8gck6vvdSNCt6OcF) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)     |
+| **သင်ခန်းစာ**                                | **စာသားနှင့် ကုဒ်**                             | **ဗီဒီယို**                                                | **အပိုသင်ယူမှု**                                                                         |
+|----------------------------------------------|-------------------------------------------------|-----------------------------------------------------------|------------------------------------------------------------------------------------------|
+| AI Agents နှင့် Agent အသုံးပြုမှု မိတ်ဆက်ခြင်း | [Link](./01-intro-to-ai-agents/README.md)         | [Video](https://youtu.be/3zgm60bXmQk?si=z8QygFvYQv-9WtO1) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| AI Agentic Frameworks ရှာဖွေခြင်း             | [Link](./02-explore-agentic-frameworks/README.md) | [Video](https://youtu.be/ODwF-EZo_O8?si=Vawth4hzVaHv-u0H) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| AI Agentic Design Patterns ရင်းမြစ်လေ့လာခြင်း  | [Link](./03-agentic-design-patterns/README.md)    | [Video](https://youtu.be/m9lM8qqoOEA?si=BIzHwzstTPL8o9GF) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| Tool Use Design Pattern                        | [Link](./04-tool-use/README.md)                   | [Video](https://youtu.be/vieRiPRx-gI?si=2z6O2Xu2cu_Jz46N) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| Agentic RAG                                   | [Link](./05-agentic-rag/README.md)                | [Video](https://youtu.be/WcjAARvdL7I?si=gKPWsQpKiIlDH9A3) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| ယုံကြည်စိတ်ချရသော AI Agents တည်ဆောက်ခြင်း    | [Link](./06-building-trustworthy-agents/README.md) | [Video](https://youtu.be/iZKkMEGBCUQ?si=jZjpiMnGFOE9L8OK) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| Planning Design Pattern                        | [Link](./07-planning-design/README.md)            | [Video](https://youtu.be/kPfJ2BrBCMY?si=6SC_iv_E5-mzucnC) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| Multi-Agent Design Pattern                     | [Link](./08-multi-agent/README.md)                | [Video](https://youtu.be/V6HpE9hZEx0?si=rMgDhEu7wXo2uo6g) | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst)   |
+| Metacognition Design Pattern                 | [Link](./09-metacognition/README.md)               | [Video](https://youtu.be/His9R6gw6Ec?si=8gck6vvdSNCt6OcF)  | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst) |
 | AI Agents in Production                      | [Link](./10-ai-agents-production/README.md)        | [Video](https://youtu.be/l4TP6IyJxmQ?si=31dnhexRo6yLRJDl)  | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst) |
 | Using Agentic Protocols (MCP, A2A and NLWeb) | [Link](./11-agentic-protocols/README.md)           | [Video](https://youtu.be/X-Dh9R3Opn8)                                 | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst) |
 | Context Engineering for AI Agents            | [Link](./12-context-engineering/README.md)         | [Video](https://youtu.be/F5zqRV7gEag)                                 | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst) |
@@ -115,7 +111,7 @@ AI Agents တည်ဆောက်ရာတွင် စိန်ခေါ်မ
 
 ## 🎒 အခြားသင်တန်းများ
 
-ကျွန်ုပ်တို့အဖွဲ့သည် အခြားသင်တန်းများထုတ်လုပ်နေပါသည်! စစ်ဆေးကြည့်ပါ:
+ကျွန်ုပ်တို့အဖွဲ့သည် အခြားသင်တန်းများကို ထုတ်လုပ်နေပါသည်! စစ်ဆေးကြည့်ပါ-
 
 <!-- CO-OP TRANSLATOR OTHER COURSES START -->
 ### LangChain
@@ -140,7 +136,7 @@ AI Agents တည်ဆောက်ရာတွင် စိန်ခေါ်မ
 
 ---
  
-### အခြေခံသင်ယူမှု
+### အခြေခံ သင်ယူမှု
 [![ML for Beginners](https://img.shields.io/badge/ML%20for%20Beginners-22C55E?style=for-the-badge&labelColor=E5E7EB&color=22C55E)](https://aka.ms/ml-beginners?WT.mc_id=academic-105485-koreyst)
 [![Data Science for Beginners](https://img.shields.io/badge/Data%20Science%20for%20Beginners-84CC16?style=for-the-badge&labelColor=E5E7EB&color=84CC16)](https://aka.ms/datascience-beginners?WT.mc_id=academic-105485-koreyst)
 [![AI for Beginners](https://img.shields.io/badge/AI%20for%20Beginners-A3E635?style=for-the-badge&labelColor=E5E7EB&color=A3E635)](https://aka.ms/ai-beginners?WT.mc_id=academic-105485-koreyst)
@@ -151,41 +147,41 @@ AI Agents တည်ဆောက်ရာတွင် စိန်ခေါ်မ
 
 ---
  
-### Copilot စီးရီးများ
+### Copilot ဆက်စပ်သင်တန်းများ
 [![Copilot for AI Paired Programming](https://img.shields.io/badge/Copilot%20for%20AI%20Paired%20Programming-FACC15?style=for-the-badge&labelColor=E5E7EB&color=FACC15)](https://aka.ms/GitHubCopilotAI?WT.mc_id=academic-105485-koreyst)
 [![Copilot for C#/.NET](https://img.shields.io/badge/Copilot%20for%20C%23/.NET-FBBF24?style=for-the-badge&labelColor=E5E7EB&color=FBBF24)](https://github.com/microsoft/mastering-github-copilot-for-dotnet-csharp-developers?WT.mc_id=academic-105485-koreyst)
 [![Copilot Adventure](https://img.shields.io/badge/Copilot%20Adventure-FDE68A?style=for-the-badge&labelColor=E5E7EB&color=FDE68A)](https://github.com/microsoft/CopilotAdventures?WT.mc_id=academic-105485-koreyst)
 <!-- CO-OP TRANSLATOR OTHER COURSES END -->
 
-## 🌟 နိုင်ငံသားလူမှုအသိုင်းအဝိုင်း ကျေးဇူးတင်ခြင်း
+## 🌟 အသိုင်းအဝိုင်းအတွက် ကျေးဇူးတင်မှုများ
 
-Agentic RAG ကိုဖော်ပြပေးသော အရေးကြီးသောကုဒ်နမူနာများအတွက် [Shivam Goyal](https://www.linkedin.com/in/shivam2003/) ကိုကျေးဇူးတင်ရှိပါသည်။
+Agentic RAG ကို ဖော်ပြသည့် အရေးပါသော ကုဒ်နမူနာများ ပံ့ပိုးပေးသူ [Shivam Goyal](https://www.linkedin.com/in/shivam2003/) အား ကျေးဇူးတင်ပါသည်။
 
-## ဆောင်ရွက်ရန်
+## အထောက်အပံ့ ပေးခြင်း
 
-ဤပရောဂျက်သည် အကြံပြုချက်များနှင့် ပံ့ပိုးမှုများကို လက်ခံသည်။  မိမိလုပ်ဆောင်ချက်များအတွက် Contributor License Agreement (CLA) တစ်ခုကို သဘောတူညီရမည်ဖြစ်ပြီး၊ မိမိ၏ ပံ့ပိုးမှုအား အသုံးပြုခွင့်ရှိကြောင်း ကြေညာရမည်။ အသေးစိတ်အချက်အလက်များအတွက် <https://cla.opensource.microsoft.com> ကို လည်ပတ်ကြည့်ပါ။
+ဤပရိုဂျက်သည် ပံ့ပိုးမှုများ နှင့် အကြံပြုချက်များကို လက်ခံသည်။ ပံ့ပိုးမှုအများဆုံးတွင် သင်သည် Contributor License Agreement (CLA) ကို လက်ခံရန်လိုအပ်ပြီး၊ သင်၏ပံ့ပိုးမှုကို အသုံးပြုခွင့်များရှိကြောင်း သဘောတူကြောင်း ထည့်သွင်းဖော်ပြရမည်။ အသေးစိတ်အချက်အလက်များအတွက် <https://cla.opensource.microsoft.com> သို့ ဝင်ရောက်ကြည့်ရှုပါ။
 
-သင်သည် pull request တင်သွင်းသောအခါ၊ CLA bot မှ CLA ပေးရန် လိုအပ်မှုရှိမရှိကို အလိုအလျောက်ဆုံးဖြတ်ပြီး PR ကို သီးသန့် အကဲဖြတ်ချက်များ (ဖြစ်ဖြစ်၊ မှတ်ချက်ဖြစ်ဖြစ်) ဖြင့် ဖော်ပြပါလိမ့်မည်။ bot မှ ပေးသော ညွှန်ကြားချက်များကို ရိုးရိုးလိုက်နာပါ။ သင်သည် ယင်း CLA ကို အသုံးပြုသည့် repository များအတွက် တစ်ကြိမ်တည်းသာလုပ်ဆောင်ရမည် ဖြစ်သည်။
+သင် pull request တင်သောအခါ CLA bot သည် သင် CLA ပေးရန် လိုအပ်မလား၊ PR ကို သင့်တင့်စွာ အလှဆင်ထားမလားကို အလိုအလျောက် ဆုံးဖြတ်ပေးပါလိမ့်မည် (ဥပမာ - status check, comment)။ bot တစ်ခုချင်းစီ၏ ညွှန်ကြားချက်များကို လိုက်နာပါ။၎င်းကို ကျွန်ုပ်တို့၏ CLA သုံးပြီးသော စီးရီးများတွင် တစ်ခါတည်းသာ ပြုလုပ်ရန် လိုအပ်ပါသည်။
 
-ဤပရောဂျက်သည် [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/) ကို လိုက်နာထားသည်။ ပိုမိုသိရှိလိုပါက [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) ကြည့်ရှုပါ သို့မဟုတ် မေးခွန်းများ သို့မဟုတ် မှတ်ချက်များရှိပါက [opencode@microsoft.com](mailto:opencode@microsoft.com) သို့ ဆက်သွယ်စုံစမ်းနိုင်သည်။
+ဤပရိုဂျက်သည် [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/) ကို အသုံးပြုထားပါသည်။ အသေးစိတ်အချက်အလက်များအတွက် [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) သို့မဟုတ် [opencode@microsoft.com](mailto:opencode@microsoft.com) သို့ ဆက်သွယ်မေးမြန်းနိုင်ပါသည်။
 
-## တံဆိပ်အမှတ်တံဆိပ်များ (Trademarks)
+## အမှတ်တံဆိပ်များ
 
-ဤပရောဂျက်တွင် ပရောဂျက်များ၊ ထုတ်ကုန်များ သို့မဟုတ် ဝန်ဆောင်မှုများအတွက် တံဆိပ်အမှတ်တံဆိပ် သို့မဟုတ် logos များ ပါဝင်နိုင်သည်။ Microsoft ၏ တံဆိပ်အမှတ်တံဆိပ် သို့မဟုတ် logo များကို အသုံးပြုခြင်း သည် [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general) ကိုလိုက်နာရမည်။ ဤပရောဂျက်ကို ပြင်ဆင်၍ တတိယပါတီ တံဆိပ်များ သို့မဟုတ် logos များကို အသုံးပြုသည့်အခါ Microsoft ၏ အဖွဲ့အစည်းထောက်ခံမှု ရှိသည့်အသိပေးချက် မရှိစေရန် သတိပြုရမည်။ တတိယပါတီ တံဆိပ်များ သို့မဟုတ် logos များကို အသုံးပြုသည့်အခါ၌ အဆိုပါ တတိယပါတီ၏ စည်းကမ်းများနှင့် ရွေးချယ်မှုများကိုလိုက်နာရမည်ဖြစ်သည်။
+ဤပရိုဂျက်တွင် ပရိုဂျက်များ၊ ထုတ်ကုန်များ သို့မဟုတ် ဝန်ဆောင်မှုပေါင်းများ၏ အမှတ်တံဆိပ် သို့မဟုတ် အမှတ်တံဆိပ်ပုံများ ပါဝင်နိုင်သည်။ Microsoft အမှတ်တံဆိပ်များ သို့မဟုတ် အမှတ်တံဆိပ်ပုံများကို အသုံးပြုခြင်းသည် [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general) အတိုင်း ဆောင်ရွက်ရမည်။ ဤပရိုဂျက်၏ ပြုပြင်ထားသည့် ဗားရှင်းများ၌ Microsoft အမှတ်တံဆိပ်များ သို့မဟုတ် အမှတ်တံဆိပ်ပုံများကို အသုံးပြုခြင်းသည် မမှားယွင်းမှု ဖြစ်ပေါ်စေနိုင်မည်မဟုတ်၊ Microsoft ၏ ကြီးမှုကို ပြောဆိုခြင်းမပြုရ။ အတွင်းသုံး စေ့စပ်သော အမှတ်တံဆိပ်များ သို့မဟုတ် အမှတ်တံဆိပ်ပုံများသည် ၎င်းတို့၏ ကိုယ်ပိုင် စည်းမျဉ်းများအောက်တွင်သာ အသုံးပြုနိုင်သည်။
 
-## ကူညီမှုရယူခြင်း
+## အကူအညီ ရယူခြင်း
 
-AI apps တည်ဆောက်ရာတွင် အခက်အခဲရှိပါက သို့မဟုတ် မေးခွန်းရှိပါက အောက်ပါနေရာသို့ ဝင်ရောက်ပါ:
+AI အက်ပ်များ တည်ဆောက်ရာတွင် ပြဿနာတက်လျှင် သို့မဟုတ် မေးခွန်းများရှိပါက:
 
 [![Microsoft Foundry Discord](https://img.shields.io/badge/Discord-Azure_AI_Foundry_Community_Discord-blue?style=for-the-badge&logo=discord&color=5865f2&logoColor=fff)](https://aka.ms/foundry/discord)
 
-ထုတ်ကုန်အကြံပြုချက်များ သို့မဟုတ် ဖောက်သည်အမှားများ ပေါ်လစီရေးရာအတွက် အောက်ပါနေရာသို့ သွားရောက်စုံစမ်းနိုင်သည်:
+ထုတ်ကုန် feedback များ သို့မဟုတ် တည်ဆောက်ရာတွင် အမှားများမျှဝေလိုပါက:
 
 [![Microsoft Foundry Developer Forum](https://img.shields.io/badge/GitHub-Azure_AI_Foundry_Developer_Forum-blue?style=for-the-badge&logo=github&color=000000&logoColor=fff)](https://aka.ms/foundry/forum)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ကန့်သတ်ချက်**  
-ဤစာရွက်စာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ဖြင့် ဘာသာပြန်ထားခြင်းဖြစ်ပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းနေသော်လည်း စက်နှင့်အလိုအလျောက် ဘာသာပြန်ချက်များတွင် အမှားများ သို့မဟုတ် မမှန်ကန်မှုများ ပါဝင်နိုင်ကြောင်း သတိပြုရန်လိုသည်။ မူရင်းစာရွက်စာတမ်းကို မိမိဘာသာစကားဖြင့်သာ အတည်ပြုနိုင်သော အကြောင်းအရာအဖြစ် ယူဆသင့်ပါသည်။ အရေးကြီးသော အချက်အလက်များအတွက် အကျွမ်းတော် လူသားဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက် အသုံးပြုမှုကြောင့် ဖြစ်ပေါ်လာသည့် နားမလည်မှုများ သို့မဟုတ် မိန့်ဖျက်ချက်များအတွက် ကျွန်ုပ်တို့အနေဖြင့် တာဝန်မယူပါ။
+**အာမခံချက်**  
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ကို အသုံးပြု၍ ဘာသာပြန်ထားခြင်းဖြစ်ပါသည်။ တိကျမှုအတွက် ကြိုးစားပြုလုပ်ထားသော်လည်း၊ အလိုအလျောက် ဘာသာပြန်မှုတွင် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်သည်ကို သတိပြုပါရန် အရေးကြီးပါသည်။ မူရင်းစာတမ်းကို မူလဘာသာဖြင့်သာ တရားဝင်အရင်းအမြစ်အဖြစ် ယူဆသင့်ပါသည်။ အရေးကြီးသော သတင်းအချက်အလက်များအတွက်ကျွမ်းကျင် လူ့ဘာသာပြန်သူမှ ဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်မှု အသုံးပြုရာမှ ဖြစ်ပေါ်နိုင်သော နားလည်မှုမှားယွင်းခြင်းများ၊ မှားယွင်းဖတ်ရှုမှုများအတွက် ကျွန်ုပ်တို့အား တာဝန်မပေးပါ။
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
