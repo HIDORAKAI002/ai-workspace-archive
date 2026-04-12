@@ -8,6 +8,7 @@ import type { ConnectionMode } from '../bot/platforms';
 import { getEffectiveConnectionMode, platformRegistry } from '../bot/platforms';
 import { BOT_CONNECT_QUEUE_EXPIRE_MS, BotConnectQueue } from './botConnectQueue';
 import { createGatewayManager, getGatewayManager } from './GatewayManager';
+import { getMessageGatewayClient } from './MessageGatewayClient';
 import { BOT_RUNTIME_STATUSES, updateBotRuntimeStatus } from './runtimeStatus';
 
 const log = debug('lobe-server:service:gateway');
@@ -15,7 +16,21 @@ const log = debug('lobe-server:service:gateway');
 const isVercel = !!process.env.VERCEL_ENV;
 
 export class GatewayService {
+  /**
+   * Check if the external message-gateway is configured.
+   * When enabled, all platforms are registered on the gateway for
+   * connection management and typing persistence.
+   */
+  get useMessageGateway(): boolean {
+    return getMessageGatewayClient().isConfigured;
+  }
+
   async ensureRunning(): Promise<void> {
+    if (this.useMessageGateway) {
+      await this.syncGatewayConnections();
+      return;
+    }
+
     const existing = getGatewayManager();
     if (existing?.isRunning) {
       log('GatewayManager already running');
@@ -26,6 +41,91 @@ export class GatewayService {
     await manager.start();
 
     log('GatewayManager started');
+  }
+
+  /**
+   * Sync all enabled bots to the external message-gateway.
+   * Called on startup to recover connections after LobeHub restarts.
+   */
+  private async syncGatewayConnections(): Promise<void> {
+    const { getServerDB } = await import('@/database/core/db-adaptor');
+    const { AgentBotProviderModel } = await import('@/database/models/agentBotProvider');
+    const { KeyVaultsGateKeeper } = await import('@/server/modules/KeyVaultsEncrypt');
+
+    const client = getMessageGatewayClient();
+    const serverDB = await getServerDB();
+    const gateKeeper = await KeyVaultsGateKeeper.initWithEnvKey();
+
+    // Sync all registered platforms
+    for (const definition of platformRegistry.listPlatforms()) {
+      const platform = definition.id;
+      try {
+        const providers = await AgentBotProviderModel.findEnabledByPlatform(
+          serverDB,
+          platform,
+          gateKeeper,
+        );
+
+        log('Gateway sync: found %d enabled providers for %s', providers.length, platform);
+
+        for (const provider of providers) {
+          try {
+            const definition = platformRegistry.getPlatform(platform);
+            const connectionMode = getEffectiveConnectionMode(definition, provider.settings);
+
+            // Webhook-mode platforms don't need persistent gateway connections.
+            // Run the platform client locally via GatewayManager instead
+            // (e.g. Telegram setWebhook, QQ credential verification).
+            if (connectionMode === 'webhook') {
+              const manager = createGatewayManager({
+                definitions: platformRegistry.listPlatforms(),
+              });
+              await manager.startClient(platform, provider.applicationId, provider.userId);
+              log(
+                'Gateway sync: started webhook-mode %s:%s locally',
+                platform,
+                provider.applicationId,
+              );
+              continue;
+            }
+
+            // For persistent connections, check gateway status before reconnecting
+            try {
+              const status = await client.getStatus(provider.id);
+              if (status.state.status === 'connected') {
+                log('Gateway sync: %s already connected, skipping', provider.id);
+                continue;
+              }
+            } catch {
+              // Status check failed — try to connect
+            }
+
+            const webhookPath = `/api/agent/webhooks/${platform}/${provider.applicationId}`;
+            await client.connect({
+              applicationId: provider.applicationId,
+              connectionId: provider.id,
+              connectionMode,
+              credentials: provider.credentials,
+              platform,
+              userId: provider.userId,
+              webhookPath,
+            });
+
+            await updateBotRuntimeStatus({
+              applicationId: provider.applicationId,
+              platform,
+              status: BOT_RUNTIME_STATUSES.connected,
+            });
+
+            log('Gateway sync: connected %s:%s', platform, provider.applicationId);
+          } catch (err) {
+            log('Gateway sync: failed to connect %s:%s: %O', platform, provider.applicationId, err);
+          }
+        }
+      } catch (err) {
+        log('Gateway sync: error syncing platform %s: %O', platform, err);
+      }
+    }
   }
 
   async stop(): Promise<void> {
@@ -41,6 +141,11 @@ export class GatewayService {
     applicationId: string,
     userId: string,
   ): Promise<'started' | 'queued'> {
+    if (this.useMessageGateway) {
+      return this.startClientViaGateway(platform, applicationId, userId);
+    }
+
+    // ─── Legacy: in-process connection management ───
     if (isVercel) {
       // Load the provider so we can resolve per-provider connection mode.
       // The platform default is only a fallback — Slack/Feishu (default websocket)
@@ -72,8 +177,6 @@ export class GatewayService {
         return 'queued';
       }
 
-      // Webhook-based platforms only need a single HTTP call,
-      // so we can run directly in a Vercel serverless function.
       const manager = createGatewayManager({ definitions: platformRegistry.listPlatforms() });
       await manager.startClient(platform, applicationId, userId);
       log('Started client %s:%s (direct)', platform, applicationId);
@@ -93,6 +196,11 @@ export class GatewayService {
   }
 
   async stopClient(platform: string, applicationId: string, userId?: string): Promise<void> {
+    if (this.useMessageGateway) {
+      return this.stopClientViaGateway(platform, applicationId);
+    }
+
+    // ─── Legacy: in-process connection management ───
     if (isVercel) {
       // Without a userId we cannot resolve per-provider settings; fall back to the
       // platform default to decide if a queue cleanup is even worth attempting.
@@ -126,5 +234,99 @@ export class GatewayService {
       platform,
       status: BOT_RUNTIME_STATUSES.disconnected,
     });
+  }
+
+  // ─── External Message Gateway ───
+
+  private async startClientViaGateway(
+    platform: string,
+    applicationId: string,
+    userId: string,
+  ): Promise<'started'> {
+    const client = getMessageGatewayClient();
+
+    const { getServerDB } = await import('@/database/core/db-adaptor');
+    const { AgentBotProviderModel } = await import('@/database/models/agentBotProvider');
+    const { KeyVaultsGateKeeper } = await import('@/server/modules/KeyVaultsEncrypt');
+
+    const serverDB = await getServerDB();
+    const gateKeeper = await KeyVaultsGateKeeper.initWithEnvKey();
+    const model = new AgentBotProviderModel(serverDB, userId, gateKeeper);
+    const provider = await model.findEnabledByApplicationId(platform, applicationId);
+
+    if (!provider) {
+      log('No enabled provider found for %s:%s', platform, applicationId);
+      throw new Error(`No enabled provider found for ${platform}:${applicationId}`);
+    }
+
+    const definition = platformRegistry.getPlatform(platform);
+    const connectionMode = getEffectiveConnectionMode(definition, provider.settings);
+
+    // Webhook-mode platforms don't need persistent gateway connections.
+    // Run the platform client locally via GatewayManager so each platform can
+    // perform its own initialization (e.g. Telegram calls setWebhook).
+    if (connectionMode === 'webhook') {
+      const manager = createGatewayManager({ definitions: platformRegistry.listPlatforms() });
+      await manager.startClient(platform, applicationId, userId);
+      log('Started webhook-mode client locally %s:%s', platform, applicationId);
+      return 'started';
+    }
+
+    const webhookPath = `/api/agent/webhooks/${platform}/${applicationId}`;
+
+    await client.connect({
+      applicationId: provider.applicationId,
+      connectionId: provider.id,
+      connectionMode,
+      credentials: provider.credentials,
+      platform,
+      userId,
+      webhookPath,
+    });
+
+    await updateBotRuntimeStatus({
+      applicationId,
+      platform,
+      status: BOT_RUNTIME_STATUSES.connected,
+    });
+
+    log('Started client via message-gateway %s:%s', platform, applicationId);
+    return 'started';
+  }
+
+  private async stopClientViaGateway(platform: string, applicationId: string): Promise<void> {
+    // Stop locally-managed webhook client if it exists (e.g. Telegram deleteWebhook)
+    const manager = getGatewayManager();
+    if (manager) {
+      await manager.stopClient(platform, applicationId);
+    }
+
+    const client = getMessageGatewayClient();
+
+    const { getServerDB } = await import('@/database/core/db-adaptor');
+    const { AgentBotProviderModel } = await import('@/database/models/agentBotProvider');
+
+    const serverDB = await getServerDB();
+    const provider = await AgentBotProviderModel.findByPlatformAndAppId(
+      serverDB,
+      platform,
+      applicationId,
+    );
+
+    if (provider) {
+      try {
+        await client.disconnect(provider.id);
+      } catch (err) {
+        log('Disconnect via message-gateway failed: %O', err);
+      }
+    }
+
+    await updateBotRuntimeStatus({
+      applicationId,
+      platform,
+      status: BOT_RUNTIME_STATUSES.disconnected,
+    });
+
+    log('Stopped client via message-gateway %s:%s', platform, applicationId);
   }
 }

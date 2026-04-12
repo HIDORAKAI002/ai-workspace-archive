@@ -23,7 +23,7 @@
   "channel.connecting": "Connecting...",
   "channel.connectionConfig": "Connection Configuration",
   "channel.connectionMode": "Connection Mode",
-  "channel.connectionModeHint": "WebSocket is recommended for new bots. Use Webhook if your bot already has a callback URL configured on QQ Open Platform.",
+  "channel.connectionModeHint": "WebSocket is recommended for new bots. Use Webhook if your bot already has a callback URL configured.",
   "channel.connectionModeWebSocket": "WebSocket",
   "channel.connectionModeWebhook": "Webhook",
   "channel.copied": "Copied to clipboard",
