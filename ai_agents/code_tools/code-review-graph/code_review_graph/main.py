@@ -6,6 +6,7 @@ Communicates via stdio (standard MCP transport).
 
 from __future__ import annotations
 
+import asyncio
 import sys
 from typing import Optional
 
@@ -77,7 +78,7 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def build_or_update_graph_tool(
+async def build_or_update_graph_tool(
     full_rebuild: bool = False,
     repo_root: Optional[str] = None,
     base: str = "HEAD~1",
@@ -90,6 +91,13 @@ def build_or_update_graph_tool(
     By default performs an incremental update (only changed files).
     Set full_rebuild=True to re-parse every file.
 
+    Runs the blocking full_build / incremental_update work in a thread
+    via ``asyncio.to_thread`` so the stdio event loop stays responsive.
+    Without this wrapper, long builds deadlocked on Windows because
+    ``ProcessPoolExecutor`` (used by parallel parsing) interacted badly
+    with the sync handler blocking the only event-loop thread. See:
+    #46, #136.
+
     Args:
         full_rebuild: If True, re-parse all files. Default: False (incremental).
         repo_root: Repository root path. Auto-detected from current directory if omitted.
@@ -99,14 +107,18 @@ def build_or_update_graph_tool(
         recurse_submodules: If True, include files from git submodules.
             When None (default), falls back to CRG_RECURSE_SUBMODULES env var.
     """
-    return build_or_update_graph(
-        full_rebuild=full_rebuild, repo_root=_resolve_repo_root(repo_root), base=base,
-        postprocess=postprocess, recurse_submodules=recurse_submodules,
+    return await asyncio.to_thread(
+        build_or_update_graph,
+        full_rebuild=full_rebuild,
+        repo_root=_resolve_repo_root(repo_root),
+        base=base,
+        postprocess=postprocess,
+        recurse_submodules=recurse_submodules,
     )
 
 
 @mcp.tool()
-def run_postprocess_tool(
+async def run_postprocess_tool(
     flows: bool = True,
     communities: bool = True,
     fts: bool = True,
@@ -117,14 +129,20 @@ def run_postprocess_tool(
     Use after building with postprocess="none" or "minimal", or to re-run
     expensive steps independently. Signatures are always computed.
 
+    Offloaded to a thread via ``asyncio.to_thread`` so community
+    detection on large graphs doesn't block the MCP event loop. See:
+    #46, #136.
+
     Args:
         flows: Run flow detection. Default: True.
         communities: Run community detection. Default: True.
         fts: Rebuild FTS index. Default: True.
         repo_root: Repository root path. Auto-detected if omitted.
     """
-    return run_postprocess(
-        flows=flows, communities=communities, fts=fts, repo_root=_resolve_repo_root(repo_root),
+    return await asyncio.to_thread(
+        run_postprocess,
+        flows=flows, communities=communities, fts=fts,
+        repo_root=_resolve_repo_root(repo_root),
     )
 
 
@@ -273,7 +291,7 @@ def semantic_search_nodes_tool(
 
 
 @mcp.tool()
-def embed_graph_tool(
+async def embed_graph_tool(
     repo_root: Optional[str] = None,
     model: Optional[str] = None,
 ) -> dict:
@@ -287,12 +305,21 @@ def embed_graph_tool(
     After running this, semantic_search_nodes_tool will use vector similarity
     instead of keyword matching for much better results.
 
+    Runs the blocking sentence-transformers / Gemini inference in a
+    thread via ``asyncio.to_thread`` so the stdio event loop stays
+    responsive — without this wrapper, embedding a large graph would
+    silently hang the MCP server on Windows. See: #46, #136.
+
     Args:
         repo_root: Repository root path. Auto-detected if omitted.
         model: Embedding model name (HuggingFace ID or local path).
                Falls back to CRG_EMBEDDING_MODEL env var, then all-MiniLM-L6-v2.
     """
-    return embed_graph(repo_root=_resolve_repo_root(repo_root), model=model)
+    return await asyncio.to_thread(
+        embed_graph,
+        repo_root=_resolve_repo_root(repo_root),
+        model=model,
+    )
 
 
 @mcp.tool()
@@ -501,7 +528,7 @@ def get_architecture_overview_tool(
 
 
 @mcp.tool()
-def detect_changes_tool(
+async def detect_changes_tool(
     base: str = "HEAD~1",
     changed_files: Optional[list[str]] = None,
     include_source: bool = False,
@@ -515,6 +542,10 @@ def detect_changes_tool(
     flows, communities, and test coverage gaps. Returns risk scores and
     prioritized review items. Replaces get_review_context for change-aware reviews.
 
+    Offloaded to a thread via ``asyncio.to_thread`` — runs `git diff`
+    subprocesses and BFS traversals that can take several seconds on
+    large repos. See: #46, #136.
+
     Args:
         base: Git ref to diff against. Default: HEAD~1.
         changed_files: List of changed file paths (relative to repo root). Auto-detected if omitted.
@@ -524,7 +555,8 @@ def detect_changes_tool(
         detail_level: "standard" for full output, "minimal" for
             token-efficient summary. Default: standard.
     """
-    return detect_changes_func(
+    return await asyncio.to_thread(
+        detect_changes_func,
         base=base, changed_files=changed_files,
         include_source=include_source, max_depth=max_depth,
         repo_root=_resolve_repo_root(repo_root), detail_level=detail_level,
@@ -571,6 +603,7 @@ def refactor_tool(
 def apply_refactor_tool(
     refactor_id: str,
     repo_root: Optional[str] = None,
+    dry_run: bool = False,
 ) -> dict:
     """Apply a previously previewed refactoring to source files.
 
@@ -584,14 +617,20 @@ def apply_refactor_tool(
     Args:
         refactor_id: The refactor ID from refactor_tool's response.
         repo_root: Repository root path. Auto-detected if omitted.
+        dry_run: If True, return a unified diff of what would change
+            without touching any files. The refactor_id remains valid so
+            the same preview can be applied in a follow-up call without
+            dry_run. Use this for a human-in-the-loop review before
+            committing changes to disk. See: #176
     """
     return apply_refactor_func(
         refactor_id=refactor_id, repo_root=_resolve_repo_root(repo_root),
+        dry_run=dry_run,
     )
 
 
 @mcp.tool()
-def generate_wiki_tool(
+async def generate_wiki_tool(
     repo_root: Optional[str] = None,
     force: bool = False,
 ) -> dict:
@@ -601,11 +640,19 @@ def generate_wiki_tool(
     Pages are written to .code-review-graph/wiki/ inside the repository.
     Only regenerates pages whose content has changed unless force=True.
 
+    Offloaded to a thread via ``asyncio.to_thread`` — on large graphs
+    the page-generation loop touches every community and issues many
+    SQLite reads, which would block the MCP event loop. See: #46, #136.
+
     Args:
         repo_root: Repository root path. Auto-detected if omitted.
         force: If True, regenerate all pages even if content unchanged. Default: False.
     """
-    return generate_wiki_func(repo_root=_resolve_repo_root(repo_root), force=force)
+    return await asyncio.to_thread(
+        generate_wiki_func,
+        repo_root=_resolve_repo_root(repo_root),
+        force=force,
+    )
 
 
 @mcp.tool()

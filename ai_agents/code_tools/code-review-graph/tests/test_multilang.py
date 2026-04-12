@@ -1091,3 +1091,65 @@ class TestBashParsing:
         assert any(t.endswith("::log_info") for t in call_targets)
         assert any(t.endswith("::ensure_dir") for t in call_targets)
         assert any(t.endswith("::cleanup") for t in call_targets)
+
+
+class TestElixirParsing:
+    """Elixir parser — closes #112."""
+
+    def setup_method(self):
+        self.parser = CodeParser()
+        self.nodes, self.edges = self.parser.parse_file(FIXTURES / "sample.ex")
+
+    def test_detects_language(self):
+        assert self.parser.detect_language(Path("lib.ex")) == "elixir"
+        assert self.parser.detect_language(Path("script.exs")) == "elixir"
+
+    def test_nodes_have_elixir_language(self):
+        for n in self.nodes:
+            assert n.language == "elixir"
+
+    def test_modules_become_classes(self):
+        classes = {n.name for n in self.nodes if n.kind == "Class"}
+        assert "Calculator" in classes
+        assert "MathHelpers" in classes
+
+    def test_def_defp_produce_functions_with_parent_module(self):
+        funcs = {
+            (n.name, n.parent_name) for n in self.nodes if n.kind == "Function"
+        }
+        # public defs
+        assert ("add", "Calculator") in funcs
+        assert ("subtract", "Calculator") in funcs
+        assert ("compute", "Calculator") in funcs
+        assert ("double", "MathHelpers") in funcs
+        assert ("triple", "MathHelpers") in funcs
+        # private defp
+        assert ("log", "Calculator") in funcs
+
+    def test_alias_import_require_produce_imports(self):
+        imports = [e for e in self.edges if e.kind == "IMPORTS_FROM"]
+        targets = [e.target for e in imports]
+        # alias Calculator, import Calculator, require Logger
+        assert targets.count("Calculator") >= 2
+        assert "Logger" in targets
+
+    def test_internal_calls_resolve_to_qualified_names(self):
+        calls = [e for e in self.edges if e.kind == "CALLS"]
+        targets = {e.target for e in calls}
+        # Calculator.compute calls add() and log() — both inside Calculator
+        assert any(t.endswith("::Calculator.add") for t in targets)
+        assert any(t.endswith("::Calculator.log") for t in targets)
+        # MathHelpers.double calls Calculator.compute
+        assert any(t.endswith("::Calculator.compute") for t in targets)
+        # MathHelpers.triple calls double() — within the same module
+        assert any(t.endswith("::MathHelpers.double") for t in targets)
+
+    def test_contains_edges_wire_module_to_functions(self):
+        contains = [e for e in self.edges if e.kind == "CONTAINS"]
+        # Each function should be CONTAINS-linked to its parent module
+        function_targets = {
+            e.target for e in contains
+            if "::" in e.source and "Calculator" in e.source
+        }
+        assert any(t.endswith("::Calculator.add") for t in function_targets)
+        assert any(t.endswith("::Calculator.compute") for t in function_targets)
