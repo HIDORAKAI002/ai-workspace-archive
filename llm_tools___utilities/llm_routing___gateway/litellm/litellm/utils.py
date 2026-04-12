@@ -243,8 +243,6 @@ from typing import (
     get_args,
 )
 
-from openai import OpenAIError as OriginalError
-
 # These are lazy loaded via __getattr__
 from litellm.llms.base_llm.base_utils import (
     BaseLLMModelInfo,
@@ -8960,6 +8958,12 @@ class ProviderConfigManager:
             )
 
             return OpenAIContainerConfig()
+        if provider in (LlmProviders.AZURE, LlmProviders.AZURE_TEXT):
+            from litellm.llms.azure.containers.transformation import (
+                AzureContainerConfig,
+            )
+
+            return AzureContainerConfig()
         return None
 
     @staticmethod
