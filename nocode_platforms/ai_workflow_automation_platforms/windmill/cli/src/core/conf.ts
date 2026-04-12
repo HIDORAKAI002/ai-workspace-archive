@@ -55,6 +55,15 @@ type LegacyBranchesConfig = {
   };
 };
 
+export const SUPPORTED_SYNC_BEHAVIOR_VERSION = 1;
+
+export function parseSyncBehavior(value?: string | number): number {
+  if (!value && value !== 0) return 0;
+  const s = String(value);
+  const match = s.match(/^v(\d+)$/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
 export interface SyncOptions {
   stateful?: boolean;
   raw?: boolean;
@@ -98,6 +107,7 @@ export interface SyncOptions {
   promotion?: string;
   lint?: boolean;
   locksRequired?: boolean;
+  syncBehavior?: string;
 }
 
 export interface Codebase {
@@ -274,6 +284,14 @@ export async function readConfigFile(opts?: { warnIfMissing?: boolean }): Promis
     // Initialize global nonDottedPaths setting from config
     setNonDottedPaths(conf?.nonDottedPaths ?? false);
 
+    const syncBehaviorVersion = parseSyncBehavior(conf?.syncBehavior);
+    if (syncBehaviorVersion > SUPPORTED_SYNC_BEHAVIOR_VERSION) {
+      log.error(
+        `Your wmill.yaml specifies syncBehavior: ${conf!.syncBehavior}, but this CLI only supports up to v${SUPPORTED_SYNC_BEHAVIOR_VERSION}. Run 'wmill upgrade' to update.`
+      );
+      process.exit(1);
+    }
+
     return typeof conf == "object" ? conf : ({} as SyncOptions);
   } catch (e) {
     if (
@@ -333,6 +351,7 @@ export const DEFAULT_SYNC_OPTIONS: Readonly<
       | "includeSettings"
       | "includeKey"
       | "nonDottedPaths"
+      | "syncBehavior"
     >
   >
 > = {
@@ -356,6 +375,7 @@ export const DEFAULT_SYNC_OPTIONS: Readonly<
   includeKey: false,
   skipWorkspaceDependencies: false,
   nonDottedPaths: false,
+  syncBehavior: "v1",
 } as const;
 
 export async function mergeConfigWithConfigFile<T>(

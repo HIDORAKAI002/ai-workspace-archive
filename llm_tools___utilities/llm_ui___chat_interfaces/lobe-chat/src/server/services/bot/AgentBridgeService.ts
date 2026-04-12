@@ -4,11 +4,13 @@ import type { Message, SentMessage, Thread } from 'chat';
 import { emoji } from 'chat';
 import debug from 'debug';
 
+import { AgentBotProviderModel } from '@/database/models/agentBotProvider';
 import { TopicModel } from '@/database/models/topic';
 import { UserModel } from '@/database/models/user';
 import type { LobeChatDatabase } from '@/database/type';
 import { createAbortError, isAbortError } from '@/server/services/agentRuntime/abort';
 import { AiAgentService } from '@/server/services/aiAgent';
+import { getMessageGatewayClient } from '@/server/services/gateway/MessageGatewayClient';
 import { isQueueAgentRuntimeEnabled } from '@/server/services/queue/impls';
 import { SystemAgentService } from '@/server/services/systemAgent';
 
@@ -232,13 +234,21 @@ export class AgentBridgeService {
 
     AgentBridgeService.clearActiveThread(thread.id);
 
+    const errorContent = stopped ? renderStopped(errorMessage) : renderError(errorMessage);
+
     if (progressMessage) {
       try {
-        await progressMessage.edit(
-          stopped ? renderStopped(errorMessage) : renderError(errorMessage),
-        );
+        await progressMessage.edit(errorContent);
       } catch (editError) {
         log('finishStartupFailure: failed to edit progress message: %O', editError);
+      }
+    } else {
+      // No placeholder message (e.g. gateway typing mode) — post a new message
+      // so the user still sees the error instead of a silently frozen typing indicator.
+      try {
+        await thread.post(errorContent);
+      } catch (postError) {
+        log('finishStartupFailure: failed to post error message: %O', postError);
       }
     }
 
@@ -524,13 +534,48 @@ export class AgentBridgeService {
     const aiAgentService = new AiAgentService(this.db, this.userId);
     const timezone = await this.loadTimezone();
 
-    await safeSideEffect(() => thread.startTyping(), 'startTyping (executeWithWebhooks)');
+    // When the message-gateway is configured AND the platform supports typing
+    // indicators, skip the ack/progress message and rely on the gateway's
+    // alarm-based typing indicator throughout AI generation.
+    // Posting an ack message cancels platform-level typing (e.g. Discord), and the
+    // gateway typing makes ack redundant as user feedback.
+    // For platforms without typing support (no triggerTyping on messenger), the
+    // gateway typing is invisible, so we still send an ack message as user feedback.
+    const gwClient = getMessageGatewayClient();
+    const platformSupportsTyping =
+      client && botContext?.platformThreadId
+        ? !!client.getMessenger(botContext.platformThreadId).triggerTyping
+        : true;
+    const useGatewayTyping = gwClient.isConfigured && platformSupportsTyping;
 
     let progressMessage: SentMessage | undefined;
-    try {
-      progressMessage = await thread.post(renderStart(userMessage.text, { timezone }));
-    } catch (error) {
-      log('executeWithCallback: failed to post initial placeholder message: %O', error);
+    if (useGatewayTyping) {
+      log('executeWithWebhooks: using gateway typing, skipping ack message');
+
+      // Platform typing (best-effort, must not block AI generation)
+      await safeSideEffect(() => thread.startTyping(), 'startTyping (executeWithWebhooks)');
+
+      // Start gateway typing immediately so the alarm keeps it alive through
+      // the entire AI generation (platform typing expires after ~10s).
+      if (botContext?.platformThreadId && botContext?.applicationId) {
+        const platform = botContext.platformThreadId.split(':')[0];
+        AgentBotProviderModel.findByPlatformAndAppId(this.db, platform, botContext.applicationId)
+          .then((row) => {
+            if (row?.id) {
+              return gwClient.startTyping(row.id, botContext.platformThreadId!);
+            }
+          })
+          .catch((err) => {
+            log('executeWithWebhooks: gateway startTyping failed: %O', err);
+          });
+      }
+    } else {
+      await safeSideEffect(() => thread.startTyping(), 'startTyping (executeWithWebhooks)');
+      try {
+        progressMessage = await thread.post(renderStart(userMessage.text, { timezone }));
+      } catch (error) {
+        log('executeWithWebhooks: failed to post initial placeholder message: %O', error);
+      }
     }
 
     const { files, warnings: fileWarnings } = await this.resolveFiles(userMessage, client);
