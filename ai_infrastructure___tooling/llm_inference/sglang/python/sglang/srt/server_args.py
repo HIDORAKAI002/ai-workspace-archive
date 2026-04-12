@@ -762,6 +762,8 @@ class ServerArgs:
         # Normalize load balancing defaults early (before dummy-model short-circuit).
         self._handle_load_balance_method()
 
+        # Validate mm_process_config before dummy-model early return.
+        self._handle_multimodal()
         # Validate SSL arguments early (before dummy-model short-circuit).
         self._handle_ssl_validation()
 
@@ -938,17 +940,36 @@ class ServerArgs:
                     "--enable-http2 requires the 'granian' package. "
                     'Install it with: pip install "sglang[http2]"'
                 )
+
             if self.enable_ssl_refresh:
                 raise ValueError(
                     "--enable-ssl-refresh is not supported with --enable-http2. "
                     "Granian does not support SSL certificate hot-reloading. "
                     "Use Uvicorn (the default) or handle certificate rotation externally."
                 )
+
             if self.tokenizer_worker_num > 1:
                 raise ValueError(
                     "--enable-http2 does not yet support --tokenizer-worker-num > 1. "
                     "Multi-worker HTTP/2 support will be added in a future release."
                 )
+
+    def _handle_multimodal(self):
+        """Validate mm_process_config structure before model loading."""
+        if self.mm_process_config is not None:
+            if not isinstance(self.mm_process_config, dict):
+                raise TypeError(
+                    f"mm_process_config must be a dict, "
+                    f"but got {type(self.mm_process_config)}"
+                )
+            for key in ("image", "video", "audio"):
+                if key in self.mm_process_config and not isinstance(
+                    self.mm_process_config[key], dict
+                ):
+                    raise TypeError(
+                        f"mm_process_config['{key}'] must be a dict, "
+                        f"but got {type(self.mm_process_config[key])}"
+                    )
 
     def _handle_deprecated_args(self):
         # Handle deprecated tool call parsers
