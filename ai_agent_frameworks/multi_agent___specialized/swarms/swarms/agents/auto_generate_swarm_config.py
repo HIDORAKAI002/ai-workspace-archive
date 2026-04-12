@@ -417,7 +417,6 @@ def generate_swarm_config(
                 system_prompt=AUTO_GEN_PROMPT,
                 llm=model,
                 max_loops=1,
-                dynamic_temperature_enabled=True,
                 saved_state_path="swarm_builder.json",
                 user_name="swarms_corp",
                 output_type="str",
