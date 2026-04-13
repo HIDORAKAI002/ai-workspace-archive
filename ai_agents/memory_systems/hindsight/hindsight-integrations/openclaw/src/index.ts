@@ -592,6 +592,20 @@ export function truncateRecallQuery(query: string, latestQuery: string, maxChars
  * Format: "agent:{agentId}:{provider}:{channelType}:{channelId}[:{extra}]"
  * Example: "agent:c0der:telegram:group:-1003825475854:topic:42"
  */
+// Some OpenClaw hook contexts populate `ctx.channelId` with the provider name
+// (e.g. "discord") instead of the actual channel ID. Treat those as missing so
+// we fall through to the sessionKey-derived channel. See issue #854.
+const PROVIDER_CHANNEL_ID_TOKENS = new Set([
+  'discord', 'telegram', 'slack', 'matrix', 'whatsapp', 'signal', 'messenger', 'sms', 'email', 'web', 'cli',
+]);
+
+function sanitizeChannelId(channelId: string | undefined, provider?: string): string | undefined {
+  if (!channelId) return undefined;
+  if (provider && channelId === provider) return undefined;
+  if (PROVIDER_CHANNEL_ID_TOKENS.has(channelId.toLowerCase())) return undefined;
+  return channelId;
+}
+
 function parseSessionKey(sessionKey: string): { agentId?: string; provider?: string; channel?: string } {
   const parts = sessionKey.split(':');
   if (parts.length < 5 || parts[0] !== 'agent') return {};
@@ -634,7 +648,7 @@ export function deriveBankId(ctx: PluginHookAgentContext | undefined, pluginConf
 
   const fieldMap: Record<string, string> = {
     agent: ctx?.agentId || sessionParsed.agentId || 'default',
-    channel: ctx?.channelId || sessionParsed.channel || 'unknown',
+    channel: sanitizeChannelId(ctx?.channelId, ctx?.messageProvider || sessionParsed.provider) || sessionParsed.channel || 'unknown',
     user: ctx?.senderId || 'anonymous',
     provider: ctx?.messageProvider || sessionParsed.provider || 'unknown',
   };
@@ -1574,8 +1588,8 @@ export function buildRetainRequest(
   const documentBase = getSessionDocumentBase(effectiveCtx);
   const documentKind = retentionScope === 'window' ? 'window' : 'turn';
   const documentId = `${documentBase}:${documentKind}:${String(turnIndex).padStart(6, '0')}`;
-  const channelId = effectiveCtx?.channelId || parsedSession.channel;
   const provider = effectiveCtx?.messageProvider || parsedSession.provider;
+  const channelId = sanitizeChannelId(effectiveCtx?.channelId, provider) || parsedSession.channel;
   const threadId = extractThreadId(channelId);
 
   return {
