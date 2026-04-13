@@ -75,6 +75,24 @@ def test_runs_triggered_by_dagster(
     )
 
 
+def test_runs_triggered_by_stale_dagster_job(
+    init_load_context: None,
+    instance: DagsterInstance,
+    sensor_runs_triggered_by_stale_dagster_job_api_mocks: responses.RequestsMock,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """Test that runs from a stale adhoc job (old naming convention) are still filtered out."""
+    result, _ = build_and_invoke_sensor(
+        instance=instance,
+    )
+    assert len(result.asset_events) == 0
+
+    captured = capsys.readouterr()
+    assert re.search(
+        r"dagster - INFO - Run (?s:.)+ was triggered by Dagster. Continuing.", captured.err
+    )
+
+
 def test_no_runs(
     init_load_context: None,
     instance: DagsterInstance,

@@ -14,6 +14,9 @@
 # limitations under the License.
 
 
+import textwrap
+from unittest.mock import patch
+
 import pytest
 
 from nemoguardrails import LLMRails, RailsConfig
@@ -227,3 +230,47 @@ def test_no_llm_calls_embedding_only(colang_2_config):
     assert new_message["content"] == "Hello!"
 
     assert rails.explain_info.llm_calls == []
+
+
+def test_user_message_index_searched_once_when_embeddings_only_disabled():
+    config = RailsConfig.from_content(
+        colang_content=textwrap.dedent("""\
+            define user express greeting
+              "hello"
+              "hi there"
+
+            define bot express greeting
+              "Hello! How can I help you?"
+
+            define flow greeting
+              user express greeting
+              bot express greeting
+        """),
+        yaml_content=textwrap.dedent("""\
+            models:
+              - type: main
+                engine: openai
+                model: gpt-4o
+        """),
+    )
+
+    chat = TestChat(
+        config,
+        llm_completions=[
+            "  express greeting",
+            '  "Hello! How can I help you?"',
+            "  express greeting",
+            '  "Hello! How can I help you?"',
+        ],
+    )
+    actions = chat.app.llm_generation_actions
+
+    chat.app.generate(messages=[{"role": "user", "content": "hello"}])
+
+    with patch.object(actions.user_message_index, "search", wraps=actions.user_message_index.search) as mock_search:
+        chat.app.generate(messages=[{"role": "user", "content": "hey there"}])
+
+    assert mock_search.call_count == 1, (
+        f"user_message_index.search should be called exactly once "
+        f"when embeddings_only is disabled, but was called {mock_search.call_count} times"
+    )

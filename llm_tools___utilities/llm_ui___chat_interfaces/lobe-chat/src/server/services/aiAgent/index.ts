@@ -223,6 +223,7 @@ export class AiAgentService {
       appContext,
       autoStart = true,
       botContext,
+      clientRuntime,
       deviceId: requestedDeviceId,
       botPlatformContext,
       discordContext,
@@ -565,6 +566,7 @@ export class AiAgentService {
           chatConfig: agentConfig.chatConfig ?? undefined,
           plugins: agentPlugins,
         },
+        clientRuntime,
         deviceContext: gatewayConfigured
           ? {
               autoActivated: activeDeviceId ? true : undefined,
@@ -623,13 +625,17 @@ export class AiAgentService {
       // require local IPC / subprocess capabilities:
       //   - local-system builtin: Electron IPC for file + command execution
       //   - stdio MCP plugins: subprocess lives on the user's machine
-      // Dispatcher in RuntimeExecutors reads this to route via Agent Gateway WS.
-      if (manifestMap.has(LocalSystemManifest.identifier)) {
-        toolExecutorMap[LocalSystemManifest.identifier] = 'client';
-      }
-      for (const plugin of installedPlugins) {
-        if (plugin.customParams?.mcp?.type === 'stdio' && manifestMap.has(plugin.identifier)) {
-          toolExecutorMap[plugin.identifier] = 'client';
+      // Only applies when gateway is NOT configured (standalone Electron). When
+      // deviceContext is present, tools are routed via the RemoteDevice proxy,
+      // so marking them as `client` would misdispatch through dispatchClientTool.
+      if (!gatewayConfigured) {
+        if (manifestMap.has(LocalSystemManifest.identifier)) {
+          toolExecutorMap[LocalSystemManifest.identifier] = 'client';
+        }
+        for (const plugin of installedPlugins) {
+          if (plugin.customParams?.mcp?.type === 'stdio' && manifestMap.has(plugin.identifier)) {
+            toolExecutorMap[plugin.identifier] = 'client';
+          }
         }
       }
 

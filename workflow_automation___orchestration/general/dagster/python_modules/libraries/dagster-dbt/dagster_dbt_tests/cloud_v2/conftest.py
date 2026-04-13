@@ -23,6 +23,7 @@ from dagster._core.definitions.repository_definition.repository_definition impor
 from dagster._core.test_utils import instance_for_test
 from dagster_dbt.cloud_v2.client import DAGSTER_ADHOC_TRIGGER_CAUSE
 from dagster_dbt.cloud_v2.resources import (
+    DAGSTER_ADHOC_PREFIX,
     DbtCloudCredentials,
     DbtCloudWorkspace,
     get_dagster_adhoc_job_name,
@@ -57,6 +58,9 @@ TEST_CUSTOM_ADHOC_JOB_NAME = "test_custom_adhoc_job_name"
 TEST_ANOTHER_JOB_ID = 6666
 TEST_ANOTHER_JOB_NAME = "test_another_job_name"
 
+TEST_STALE_ADHOC_JOB_ID = 7777
+TEST_STALE_ADHOC_JOB_NAME = f"{DAGSTER_ADHOC_PREFIX}OLD_PROJECT__OLD_ENVIRONMENT"
+
 TEST_RUN_URL = (
     f"{TEST_ACCESS_URL}/deploy/{TEST_ACCOUNT_ID}/projects/{TEST_PROJECT_ID}/runs/{TEST_RUN_ID}/"
 )
@@ -80,9 +84,9 @@ def get_sample_run_results_json() -> Mapping[str, Any]:
 
 # Taken from dbt Cloud REST API documentation
 # https://docs.getdbt.com/dbt-cloud/api-v2#/operations/Create%20Job
-def get_sample_job_data(job_name: str) -> Mapping[str, Any]:
+def get_sample_job_data(job_name: str, job_id: int = TEST_ADHOC_JOB_ID) -> Mapping[str, Any]:
     return {
-        "id": TEST_ADHOC_JOB_ID,
+        "id": job_id,
         "account_id": TEST_ACCOUNT_ID,
         "project_id": TEST_PROJECT_ID,
         "environment_id": TEST_ENVIRONMENT_ID,
@@ -735,6 +739,35 @@ SAMPLE_TRIGGERED_BY_DAGSTER_RUNS_RESPONSE = get_sample_list_runs_sample(
     total_count=1,
 )
 
+SAMPLE_LIST_JOBS_WITH_STALE_ADHOC_RESPONSE = {
+    "data": [
+        get_sample_job_data(job_name=TEST_ANOTHER_JOB_NAME),
+        get_sample_job_data(job_name=TEST_STALE_ADHOC_JOB_NAME, job_id=TEST_STALE_ADHOC_JOB_ID),
+    ],
+    "extra": {
+        "filters": {"property1": None, "property2": None},
+        "order_by": "string",
+        "pagination": {"count": 0, "total_count": 0},
+    },
+    "status": {
+        "code": 200,
+        "is_success": True,
+        "user_message": "string",
+        "developer_message": "string",
+    },
+}
+
+SAMPLE_STALE_ADHOC_RUNS_RESPONSE = get_sample_list_runs_sample(
+    data=[
+        get_sample_run_data(
+            run_status=int(DbtCloudJobRunStatusType.SUCCESS),
+            job_id=TEST_STALE_ADHOC_JOB_ID,
+        ),
+    ],
+    count=1,
+    total_count=1,
+)
+
 
 # Taken from dbt Cloud REST API documentation
 # https://docs.getdbt.com/dbt-cloud/api-v2#/operations/List%20Run%20Artifacts
@@ -921,6 +954,34 @@ def sensor_runs_triggered_by_dagster_api_mocks_fixture(
         method_or_response=responses.GET,
         url=f"{TEST_REST_API_BASE_URL}/runs",
         json=SAMPLE_TRIGGERED_BY_DAGSTER_RUNS_RESPONSE,
+    )
+    all_api_mocks.remove(
+        method_or_response=responses.GET,
+        url=f"{TEST_REST_API_BASE_URL}/runs/{TEST_RUN_ID}/artifacts",
+    )
+    all_api_mocks.remove(
+        method_or_response=responses.GET,
+        url=f"{TEST_REST_API_BASE_URL}/runs/{TEST_RUN_ID}/artifacts/run_results.json",
+    )
+
+    yield all_api_mocks
+
+
+@pytest.fixture(
+    name="sensor_runs_triggered_by_stale_dagster_job_api_mocks",
+)
+def sensor_runs_triggered_by_stale_dagster_job_api_mocks_fixture(
+    all_api_mocks: responses.RequestsMock,
+) -> Iterator[responses.RequestsMock]:
+    all_api_mocks.replace(
+        method_or_response=responses.GET,
+        url=f"{TEST_REST_API_BASE_URL}/jobs",
+        json=SAMPLE_LIST_JOBS_WITH_STALE_ADHOC_RESPONSE,
+    )
+    all_api_mocks.replace(
+        method_or_response=responses.GET,
+        url=f"{TEST_REST_API_BASE_URL}/runs",
+        json=SAMPLE_STALE_ADHOC_RUNS_RESPONSE,
     )
     all_api_mocks.remove(
         method_or_response=responses.GET,

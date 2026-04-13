@@ -361,6 +361,11 @@ await async_client.aclose()</p>
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tunings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#genai.tunings.AsyncTunings" title="genai.tunings.AsyncTunings"><span class="pre">AsyncTunings</span></a></em><a class="headerlink" href="#genai.client.AsyncClient.tunings" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="genai.client.AsyncClient.webhooks">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">webhooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AsyncWebhooksResource</span></em><a class="headerlink" href="#genai.client.AsyncClient.webhooks" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -625,6 +630,11 @@ client.close()</p>
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vertexai</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
 <dd><p>Returns whether the client is using the Vertex AI API.</p>
 </dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="genai.client.Client.webhooks">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">webhooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">WebhooksResource</span></em><a class="headerlink" href="#genai.client.Client.webhooks" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -2103,7 +2113,7 @@ are still running.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="genai._interactions.resources.interactions.AsyncInteractionsResource.create">
-<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_version=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_interaction_id=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_format=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_mime_type=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_modalities=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_tier=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_instruction=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_query=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_body=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout=NOT_GIVEN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai._interactions.resources.interactions.AsyncInteractionsResource.create" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_version=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_interaction_id=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_format=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_mime_type=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_modalities=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_tier=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_instruction=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">webhook_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_query=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_body=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout=NOT_GIVEN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai._interactions.resources.interactions.AsyncInteractionsResource.create" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Interaction</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncStream</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionStartEvent</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionCompleteEvent</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionStatusUpdate</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentStart</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentDelta</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentStop</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ErrorEvent</span></code>]]]</span></p>
@@ -2184,7 +2194,7 @@ are still running.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="genai._interactions.resources.interactions.InteractionsResource.create">
-<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_version=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_interaction_id=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_format=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_mime_type=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_modalities=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_tier=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_instruction=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_query=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_body=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout=NOT_GIVEN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai._interactions.resources.interactions.InteractionsResource.create" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_version=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_interaction_id=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_format=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_mime_type=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_modalities=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_tier=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_instruction=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">webhook_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_config=&lt;google.genai._interactions.Omit</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_query=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_body=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout=NOT_GIVEN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai._interactions.resources.interactions.InteractionsResource.create" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Interaction</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionStartEvent</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionCompleteEvent</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">InteractionStatusUpdate</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentStart</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentDelta</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ContentStop</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ErrorEvent</span></code>]]]</span></p>
@@ -30218,6 +30228,18 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GCS or BigQuery URI prefix for the output predictions. Example:\n      \&quot;gs://path/to/output/data\&quot; or \&quot;bq://projectId.bqDatasetId.bqTableId\&quot;.\n      &quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dest&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;webhookConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/WebhookConfig&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Webhook configuration for receiving notifications when the batch\n      operation completes.\n      &quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -33885,6 +33907,44 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;VideoMetadata&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;WebhookConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for webhook notifications.\n\nUsed to configure webhook endpoints that will receive notifications\nwhen long-running operations (e.g., batch jobs, video generation) complete.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;uris&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                     </span><span class="p">},</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The webhook URIs to receive notifications. If set, these\n      webhook URIs will be used instead of the registered webhooks.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Uris&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;userMetadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User metadata that will be included in each webhook event\n      notification. Use this to attach custom key-value data to correlate\n      webhook events with your internal systems.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Usermetadata&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WebhookConfig&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
@@ -33897,6 +33957,7 @@ validated to form a valid model.</p>
 <li><p><a class="reference internal" href="#genai.types.CreateBatchJobConfig.dest" title="genai.types.CreateBatchJobConfig.dest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dest</span> <span class="pre">(genai.types.BatchJobDestination</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.CreateBatchJobConfig.display_name" title="genai.types.CreateBatchJobConfig.display_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display_name</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.CreateBatchJobConfig.http_options" title="genai.types.CreateBatchJobConfig.http_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">http_options</span> <span class="pre">(genai.types.HttpOptions</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.CreateBatchJobConfig.webhook_config" title="genai.types.CreateBatchJobConfig.webhook_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">webhook_config</span> <span class="pre">(genai.types.WebhookConfig</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 </ul>
 </dd>
 <dt class="field-even">Validators<span class="colon">:</span></dt>
@@ -33942,6 +34003,20 @@ validated to form a valid model.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.CreateBatchJobConfig.webhook_config">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">webhook_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.WebhookConfig" title="genai.types.WebhookConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">WebhookConfig</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'webhookConfig')</span></em><a class="headerlink" href="#genai.types.CreateBatchJobConfig.webhook_config" title="Link to this definition">¶</a></dt>
+<dd><p>Webhook configuration for receiving notifications when the batch
+operation completes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -33966,6 +34041,13 @@ validated to form a valid model.</p>
 <dt class="sig sig-object py" id="genai.types.CreateBatchJobConfigDict.http_options">
 <span class="sig-name descname"><span class="pre">http_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.HttpOptionsDict" title="genai.types.HttpOptionsDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">HttpOptionsDict</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#genai.types.CreateBatchJobConfigDict.http_options" title="Link to this definition">¶</a></dt>
 <dd><p>Used to override HTTP request options.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.CreateBatchJobConfigDict.webhook_config">
+<span class="sig-name descname"><span class="pre">webhook_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.WebhookConfigDict" title="genai.types.WebhookConfigDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">WebhookConfigDict</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#genai.types.CreateBatchJobConfigDict.webhook_config" title="Link to this definition">¶</a></dt>
+<dd><p>Webhook configuration for receiving notifications when the batch
+operation completes.</p>
 </dd></dl>
 
 </dd></dl>
@@ -75127,6 +75209,18 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User specified labels to track billing usage.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Labels&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;webhookConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/WebhookConfig&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Webhook configuration for receiving notifications when the\n      video generation operation completes.&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -75270,6 +75364,44 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="p">],</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;VideoGenerationReferenceType&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;WebhookConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for webhook notifications.\n\nUsed to configure webhook endpoints that will receive notifications\nwhen long-running operations (e.g., batch jobs, video generation) complete.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;uris&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                     </span><span class="p">},</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The webhook URIs to receive notifications. If set, these\n      webhook URIs will be used instead of the registered webhooks.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Uris&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;userMetadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User metadata that will be included in each webhook event\n      notification. Use this to attach custom key-value data to correlate\n      webhook events with your internal systems.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Usermetadata&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WebhookConfig&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
@@ -75297,6 +75429,7 @@ validated to form a valid model.</p>
 <li><p><a class="reference internal" href="#genai.types.GenerateVideosConfig.reference_images" title="genai.types.GenerateVideosConfig.reference_images"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reference_images</span> <span class="pre">(list[genai.types.VideoGenerationReferenceImage]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GenerateVideosConfig.resolution" title="genai.types.GenerateVideosConfig.resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolution</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GenerateVideosConfig.seed" title="genai.types.GenerateVideosConfig.seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seed</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.GenerateVideosConfig.webhook_config" title="genai.types.GenerateVideosConfig.webhook_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">webhook_config</span> <span class="pre">(genai.types.WebhookConfig</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 </ul>
 </dd>
 <dt class="field-even">Validators<span class="colon">:</span></dt>
@@ -75549,6 +75682,20 @@ result.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.GenerateVideosConfig.webhook_config">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">webhook_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.WebhookConfig" title="genai.types.WebhookConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">WebhookConfig</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'webhookConfig')</span></em><a class="headerlink" href="#genai.types.GenerateVideosConfig.webhook_config" title="Link to this definition">¶</a></dt>
+<dd><p>Webhook configuration for receiving notifications when the
+video generation operation completes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -75680,6 +75827,13 @@ supported.</p>
 unchanged inputs, the prediction results will be consistent. Otherwise,
 a random RNG seed will be used each time to produce a different
 result.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.GenerateVideosConfigDict.webhook_config">
+<span class="sig-name descname"><span class="pre">webhook_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.WebhookConfigDict" title="genai.types.WebhookConfigDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">WebhookConfigDict</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#genai.types.GenerateVideosConfigDict.webhook_config" title="Link to this definition">¶</a></dt>
+<dd><p>Webhook configuration for receiving notifications when the
+video generation operation completes.</p>
 </dd></dl>
 
 </dd></dl>
@@ -180035,6 +180189,123 @@ validated to form a valid model.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
 <p>Standard web search for grounding and related configurations.</p>
 <p>Only text results are returned.</p>
+</dd></dl>
+
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="genai.types.WebhookConfig">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">genai.types.</span></span><span class="sig-name descname"><span class="pre">WebhookConfig</span></span><a class="headerlink" href="#genai.types.WebhookConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration for webhook notifications.</p>
+<p>Used to configure webhook endpoints that will receive notifications
+when long-running operations (e.g., batch jobs, video generation) complete.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WebhookConfig&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for webhook notifications.\n\nUsed to configure webhook endpoints that will receive notifications\nwhen long-running operations (e.g., batch jobs, video generation) complete.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;uris&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">               </span><span class="p">},</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The webhook URIs to receive notifications. If set, these\n      webhook URIs will be used instead of the registered webhooks.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Uris&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;userMetadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User metadata that will be included in each webhook event\n      notification. Use this to attach custom key-value data to correlate\n      webhook events with your internal systems.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Usermetadata&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="field-list simple">
+<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#genai.types.WebhookConfig.uris" title="genai.types.WebhookConfig.uris"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uris</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.WebhookConfig.user_metadata" title="genai.types.WebhookConfig.user_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">user_metadata</span> <span class="pre">(dict[str,</span> <span class="pre">Any]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Validators<span class="colon">:</span></dt>
+<dd class="field-even"><p></p></dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.WebhookConfig.uris">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uris</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#genai.types.WebhookConfig.uris" title="Link to this definition">¶</a></dt>
+<dd><p>The webhook URIs to receive notifications. If set, these
+webhook URIs will be used instead of the registered webhooks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.WebhookConfig.user_metadata">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">user_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">,</span> <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code><span class="pre">]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'userMetadata')</span></em><a class="headerlink" href="#genai.types.WebhookConfig.user_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>User metadata that will be included in each webhook event
+notification. Use this to attach custom key-value data to correlate
+webhook events with your internal systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="genai.types.WebhookConfigDict">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">genai.types.</span></span><span class="sig-name descname"><span class="pre">WebhookConfigDict</span></span><a class="headerlink" href="#genai.types.WebhookConfigDict" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Configuration for webhook notifications.</p>
+<p>Used to configure webhook endpoints that will receive notifications
+when long-running operations (e.g., batch jobs, video generation) complete.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.WebhookConfigDict.uris">
+<span class="sig-name descname"><span class="pre">uris</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]]</span></em><a class="headerlink" href="#genai.types.WebhookConfigDict.uris" title="Link to this definition">¶</a></dt>
+<dd><p>The webhook URIs to receive notifications. If set, these
+webhook URIs will be used instead of the registered webhooks.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.WebhookConfigDict.user_metadata">
+<span class="sig-name descname"><span class="pre">user_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">,</span> <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code><span class="pre">]]</span></em><a class="headerlink" href="#genai.types.WebhookConfigDict.user_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>User metadata that will be included in each webhook event
+notification. Use this to attach custom key-value data to correlate
+webhook events with your internal systems.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class pydantic_model">

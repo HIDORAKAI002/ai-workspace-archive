@@ -22,7 +22,7 @@ from dagster._serdes import deserialize_value, serialize_value
 from dagster._time import datetime_from_timestamp, get_current_datetime
 from dagster_shared.serdes import whitelist_for_serdes
 
-from dagster_dbt.cloud_v2.resources import DbtCloudWorkspace
+from dagster_dbt.cloud_v2.resources import DAGSTER_ADHOC_PREFIX, DbtCloudWorkspace
 from dagster_dbt.cloud_v2.run_handler import (
     COMPLETED_AT_TIMESTAMP_METADATA_KEY,
     DbtCloudJobRunResults,
@@ -63,6 +63,16 @@ def materializations_from_batch_iter(
     client = workspace.get_client()
     workspace_data = workspace.get_or_fetch_workspace_data()
 
+    # Build a set of all adhoc job IDs to filter out Dagster-triggered runs.
+    # This includes the current adhoc job and any stale adhoc jobs from a
+    # previous naming convention that still exist in dbt Cloud.
+    adhoc_job_ids = {
+        job["id"]
+        for job in workspace_data.jobs
+        if (job.get("name") or "").startswith(DAGSTER_ADHOC_PREFIX)
+    }
+    adhoc_job_ids.add(workspace_data.adhoc_job_id)
+
     total_processed_runs = 0
     while True:
         latest_offset = total_processed_runs + offset
@@ -84,7 +94,7 @@ def materializations_from_batch_iter(
         for i, run_details in enumerate(runs):
             run = DbtCloudRun.from_run_details(run_details=run_details)
 
-            if run.job_definition_id == workspace_data.adhoc_job_id:
+            if run.job_definition_id in adhoc_job_ids:
                 context.log.info(f"Run {run.id} was triggered by Dagster. Continuing.")
                 continue
 

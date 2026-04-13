@@ -345,6 +345,7 @@ type commonConfig struct {
 	ClusterID              ParamItem `refreshable:"false"`
 
 	HybridSearchRequeryPolicy ParamItem `refreshable:"true"`
+	SearchRequeryPolicy       ParamItem `refreshable:"true"`
 	QNFileResourceMode        ParamItem `refreshable:"true"`
 	DNFileResourceMode        ParamItem `refreshable:"true"`
 
@@ -1371,6 +1372,15 @@ If enabled, IPv6 ULA/global addresses will be prioritized ahead of IPv4.`,
 		Export:       false,
 	}
 	p.HybridSearchRequeryPolicy.Init(base.mgr)
+
+	p.SearchRequeryPolicy = ParamItem{
+		Key:          "common.requery.searchPolicy",
+		Version:      "2.6.15",
+		DefaultValue: "OutputVector",
+		Doc:          `the policy to decide when to do requery in search, support "always", "outputvector" and "outputfields"`,
+		Export:       false,
+	}
+	p.SearchRequeryPolicy.Init(base.mgr)
 
 	p.QNFileResourceMode = ParamItem{
 		Key:          "common.fileResource.mode.queryNode",
@@ -3817,7 +3827,7 @@ If set to 0, time based eviction is disabled.`,
 	p.TieredLoadingTimeoutMs = ParamItem{
 		Key:          "queryNode.segcore.tieredStorage.loadingTimeoutMs",
 		Version:      "2.6.10",
-		DefaultValue: "0",
+		DefaultValue: "-1",
 		Doc:          "Loading timeout in milliseconds for cache slot loading. -1 means no timeout, 0 means immediate failure if resource cannot be reserved, >0 means a specific timeout.",
 		Export:       false,
 	}
