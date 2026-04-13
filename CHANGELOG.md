@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-13 22:44 IST] Auto-Sync
+- **42 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Tavily MCP, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/java-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, open-telemetry/opentelemetry-python, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-13 16:05 IST] Auto-Sync
 - **29 Repositories Updated:** Public APIs Directory, Keboola MCP, Kubernetes MCP Server, MCP Host, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Activepieces, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, traceloop/openllmetry, affaan-m/everything-claude-code, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
 

@@ -157,7 +157,7 @@ export async function robustFetch<
           });
           throw new Error("Request failed", {
             cause: {
-              params,
+              params: logParams,
               requestId,
               error,
             },

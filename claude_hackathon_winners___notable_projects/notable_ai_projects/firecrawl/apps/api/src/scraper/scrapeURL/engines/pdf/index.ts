@@ -1,8 +1,8 @@
 import { Meta } from "../..";
 import { config } from "../../../../config";
 import { EngineScrapeResult } from "..";
-import * as marked from "marked";
 import { downloadFile, fetchFileToBuffer } from "../utils/downloadFile";
+import { safeMarkdownToHtml } from "./markdownToHtml";
 import {
   PDFAntibotError,
   PDFInsufficientTimeError,
@@ -300,7 +300,11 @@ export async function scrapePDF(meta: Meta): Promise<EngineScrapeResult> {
         }
 
         if (eligible && pdfResult.markdown) {
-          const html = await marked.parse(pdfResult.markdown, { async: true });
+          const html = await safeMarkdownToHtml(
+            pdfResult.markdown,
+            logger,
+            meta.id,
+          );
           result = { markdown: pdfResult.markdown, html };
         }
       } catch (error) {
