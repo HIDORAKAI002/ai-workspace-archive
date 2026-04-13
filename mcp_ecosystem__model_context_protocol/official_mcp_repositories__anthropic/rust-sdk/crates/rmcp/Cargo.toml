@@ -82,7 +82,7 @@ tower-service = { version = "0.3", optional = true }
 process-wrap = { version = "9.0", features = ["tokio1"], optional = true }
 
 # for cross-platform executable path resolution
-which = { version = "7", optional = true }
+which = { version = "8", optional = true }
 
 # for ws transport
 # tokio-tungstenite ={ version = "0.26", optional = true }
@@ -338,4 +338,17 @@ required-features = [
   "transport-streamable-http-client-reqwest"
 ]
 path = "tests/test_streamable_http_stale_session.rs"
+
+[[test]]
+name = "test_streamable_http_connection_reuse"
+required-features = [
+  "server",
+  "client",
+  "macros",
+  "schemars",
+  "transport-streamable-http-server",
+  "transport-streamable-http-client",
+  "transport-streamable-http-client-reqwest",
+]
+path = "tests/test_streamable_http_connection_reuse.rs"
 

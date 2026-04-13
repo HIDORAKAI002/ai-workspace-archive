@@ -620,6 +620,10 @@ pub async fn run_server(
                         .nest("/volumes", volumes_oss::workspaced_service())
                         .nest("/workers", windmill_api_workers::workspaced_service())
                         .nest("/workspaces", workspaces::workspaced_service())
+                        .nest(
+                            "/deployment_request",
+                            windmill_api_workspaces::deployment_requests::workspaced_service(),
+                        )
                         .nest("/oidc", oidc_oss::workspaced_service())
                         .nest("/openapi", {
                             #[cfg(feature = "http_trigger")]
@@ -990,6 +994,14 @@ pub async fn run_server(
     } else {
         app
     };
+
+    // Seed the per-request LogContext task-local. Registered outside
+    // TraceLayer so MyOnResponse::on_response's `"response"` log fires inside
+    // the scope and gets method/uri/workspace_id/email attached by the EE
+    // LogContextBridge.
+    let app = app.layer(axum::middleware::from_fn(
+        tracing_init::log_context_middleware,
+    ));
 
     let app = app.layer(CatchPanicLayer::custom(|err| {
         tracing::error!("panic in handler, returning 500: {:?}", err);

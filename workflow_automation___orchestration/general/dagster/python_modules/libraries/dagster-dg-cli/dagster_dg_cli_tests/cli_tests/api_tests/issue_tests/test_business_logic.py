@@ -5,8 +5,12 @@ GraphQL client mocking or external dependencies.
 """
 
 import json
+from typing import Any
+from unittest.mock import MagicMock
 
+import click
 from dagster_dg_cli.cli.api.formatters import format_issue, format_issues
+from dagster_rest_resources.graphql_adapter.issue import list_issues_via_graphql
 from dagster_rest_resources.schemas.issue import DgApiIssue, DgApiIssueList, DgApiIssueStatus
 
 
@@ -149,3 +153,140 @@ class TestFormatIssues:
         )
         result = format_issue(issue, as_json=False)
         snapshot.assert_match(result)
+
+
+class TestIssueDataProcessing:
+    """Test processing of issue data structures."""
+
+    def test_issue_creation_with_all_statuses(self, snapshot):
+        """Test creating issues with all possible status values."""
+        issues = [
+            DgApiIssue(
+                id=f"issue-{status.value.lower()}-uuid",
+                title=f"Issue with status {status.value}",
+                description=f"Test issue for status {status.value}.",
+                status=status,
+                created_by_email="test@example.com",
+            )
+            for status in DgApiIssueStatus
+        ]
+
+        issue_list = DgApiIssueList(items=issues, cursor=None, has_more=False)
+        result = issue_list.model_dump_json(indent=2)
+        parsed = json.loads(result)
+        snapshot.assert_match(parsed)
+
+    def test_issue_list_pagination_fields(self):
+        """Test IssueList properly tracks pagination fields."""
+        issue = DgApiIssue(
+            id="test-issue",
+            title="Test",
+            description="Test description.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="test@example.com",
+        )
+        issue_list = DgApiIssueList(items=[issue], cursor="abc123", has_more=True)
+
+        assert len(issue_list.items) == 1
+        assert issue_list.cursor == "abc123"
+        assert issue_list.has_more is True
+
+    def test_issue_optional_fields_default_to_none(self):
+        """Test that optional fields default to None."""
+        issue = DgApiIssue(
+            id="test-issue",
+            title="Test",
+            description="Test.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="test@example.com",
+        )
+
+        assert issue.run_id is None
+        assert issue.asset_key is None
+        assert issue.context is None
+
+
+def _make_mock_client(issues: list[dict[str, Any]] | None = None) -> MagicMock:
+    """Build a mock GraphQL client that returns a minimal IssueConnection response."""
+    client = MagicMock()
+    client.execute.return_value = {
+        "issues": {
+            "__typename": "IssueConnection",
+            "issues": issues or [],
+            "cursor": None,
+            "hasMore": False,
+        }
+    }
+    return client
+
+
+class TestListIssuesCommandOptions:
+    """Test that CLI option definitions stay in sync with schema enums."""
+
+    def test_status_filter_choices_match_enum(self):
+        """--status choices must exactly match DgApiIssueStatus values."""
+        from dagster_dg_cli.cli.api.issues import list_issues_command
+
+        status_param = next(p for p in list_issues_command.params if p.name == "statuses")
+        assert isinstance(status_param.type, click.Choice)
+        assert set(status_param.type.choices) == {s.value for s in DgApiIssueStatus}
+
+
+class TestListIssuesGraphQLVariables:
+    """Test that list_issues_via_graphql sends the correct GraphQL variables."""
+
+    def test_no_filters(self, snapshot):
+        """No filters: only limit variable is sent."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, limit=5)
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_status_filter_single(self, snapshot):
+        """Single status filter is included in variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, statuses=["OPEN"])
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_status_filter_multiple(self, snapshot):
+        """Multiple status filters are included in variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, statuses=["OPEN", "TRIAGE"])
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_created_after_filter(self, snapshot):
+        """created_after timestamp is included in variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, created_after=1700000000.0)
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_created_before_filter(self, snapshot):
+        """created_before timestamp is included in variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, created_before=1710000000.0)
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_combined_filters(self, snapshot):
+        """All filters combined are included in variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(
+            client,
+            limit=20,
+            cursor="some-cursor",
+            statuses=["CLOSED"],
+            created_after=1700000000.0,
+            created_before=1710000000.0,
+        )
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])
+
+    def test_empty_statuses_omitted(self, snapshot):
+        """Empty statuses list does not add filters to variables."""
+        client = _make_mock_client()
+        list_issues_via_graphql(client, statuses=None)
+        _, kwargs = client.execute.call_args
+        snapshot.assert_match(kwargs["variables"])

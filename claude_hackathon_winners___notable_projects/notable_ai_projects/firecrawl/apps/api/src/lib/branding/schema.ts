@@ -46,8 +46,9 @@ const baseBrandingEnhancementSchema = z.object({
     primaryColor: z.string().describe("Main brand color (hex)"),
     secondaryColor: z
       .string()
+      .optional()
       .describe(
-        "Secondary brand color (hex) - a complementary color distinct from primary, often used for secondary UI elements, headings, or supporting brand visuals. Return empty string if no clear secondary color exists.",
+        "Secondary brand color (hex) - a complementary color distinct from primary, often used for secondary UI elements, headings, or supporting brand visuals. Omit or return empty string if no clear secondary color exists.",
       ),
     accentColor: z.string().describe("Accent/CTA color (hex)"),
     backgroundColor: z.string().describe("Main background color (hex)"),
