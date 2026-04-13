@@ -520,4 +520,71 @@ describe('createServerAgentToolsEngine', () => {
       expect(result.enabledToolIds).not.toContain(RemoteDeviceManifest.identifier);
     });
   });
+
+  describe('clientRuntime === "desktop" (Phase 6.4)', () => {
+    it('enables LocalSystem when caller is desktop, regardless of device-proxy config', () => {
+      // The Agent Gateway WS used to push `tool_execute` is orthogonal to
+      // the legacy device-proxy. A desktop Electron caller is already the
+      // execution target — no device-proxy prerequisite required.
+      const context = createMockContext();
+      const engine = createServerAgentToolsEngine(context, {
+        agentConfig: { plugins: [LocalSystemManifest.identifier] },
+        clientRuntime: 'desktop',
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      const result = engine.generateToolsDetailed({
+        toolIds: [LocalSystemManifest.identifier],
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      expect(result.enabledToolIds).toContain(LocalSystemManifest.identifier);
+    });
+
+    it('respects agent-level runtimeMode opt-out for desktop callers', () => {
+      // User has configured the agent to NOT use local runtime on desktop.
+      // Even though the caller is a desktop client, local-system stays off.
+      const context = createMockContext();
+      const engine = createServerAgentToolsEngine(context, {
+        agentConfig: {
+          chatConfig: {
+            runtimeEnv: { runtimeMode: { desktop: 'none' } },
+          },
+          plugins: [LocalSystemManifest.identifier],
+        },
+        clientRuntime: 'desktop',
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      const result = engine.generateToolsDetailed({
+        toolIds: [LocalSystemManifest.identifier],
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      expect(result.enabledToolIds).not.toContain(LocalSystemManifest.identifier);
+    });
+
+    it('does not enable LocalSystem for web callers even when gateway is configured', () => {
+      const context = createMockContext();
+      const engine = createServerAgentToolsEngine(context, {
+        agentConfig: { plugins: [LocalSystemManifest.identifier] },
+        clientRuntime: 'web',
+        deviceContext: { gatewayConfigured: true },
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      const result = engine.generateToolsDetailed({
+        toolIds: [LocalSystemManifest.identifier],
+        model: 'gpt-4',
+        provider: 'openai',
+      });
+
+      expect(result.enabledToolIds).not.toContain(LocalSystemManifest.identifier);
+    });
+  });
 });
