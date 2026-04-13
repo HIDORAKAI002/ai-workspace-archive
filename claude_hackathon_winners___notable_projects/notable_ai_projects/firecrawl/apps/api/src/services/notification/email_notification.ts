@@ -21,15 +21,6 @@ type EmailTemplate = {
 };
 
 const emailTemplates: Record<NotificationType, EmailTemplate> = {
-  [NotificationType.APPROACHING_LIMIT]: {
-    subject: "You've used 80% of your credit limit - Firecrawl",
-    html: "Hey there,<br/><p>You are approaching your credit limit for this billing period. Your usage right now is around 80% of your total credit limit. Consider upgrading your plan to avoid hitting the limit. Check out our <a href='https://firecrawl.dev/pricing'>pricing page</a> for more info.</p><br/>Thanks,<br/>Firecrawl Team<br/>",
-  },
-  [NotificationType.LIMIT_REACHED]: {
-    subject:
-      "Credit Limit Reached! Take action now to resume usage - Firecrawl",
-    html: "Hey there,<br/><p>You have reached your credit limit for this billing period. To resume usage, please upgrade your plan. Check out our <a href='https://firecrawl.dev/pricing'>pricing page</a> for more info.</p><br/>Thanks,<br/>Firecrawl Team<br/>",
-  },
   [NotificationType.RATE_LIMIT_REACHED]: {
     subject: "Rate Limit Reached - Firecrawl",
     html: "Hey there,<br/><p>You've hit one of the Firecrawl endpoint's rate limit! Take a breather and try again in a few moments. If you need higher rate limits, consider upgrading your plan. Check out our <a href='https://firecrawl.dev/pricing'>pricing page</a> for more info.</p><p>If you have any questions, feel free to reach out to us at <a href='mailto:help@firecrawl.com'>help@firecrawl.com</a></p><br/>Thanks,<br/>Firecrawl Team<br/><br/>Ps. this email is only sent once every 7 days if you reach a rate limit.",
@@ -74,8 +65,6 @@ const notificationToEmailCategory: Record<
   NotificationType,
   "rate_limit_warnings" | "system_alerts"
 > = {
-  [NotificationType.APPROACHING_LIMIT]: "system_alerts",
-  [NotificationType.LIMIT_REACHED]: "system_alerts",
   [NotificationType.RATE_LIMIT_REACHED]: "rate_limit_warnings",
   [NotificationType.AUTO_RECHARGE_SUCCESS]: "system_alerts",
   [NotificationType.AUTO_RECHARGE_FAILED]: "system_alerts",

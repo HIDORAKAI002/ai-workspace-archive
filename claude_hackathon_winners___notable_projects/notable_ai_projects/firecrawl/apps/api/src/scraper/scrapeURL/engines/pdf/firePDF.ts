@@ -2,8 +2,8 @@ import { Meta } from "../..";
 import { config } from "../../../../config";
 import { robustFetch } from "../../lib/fetch";
 import { z } from "zod";
-import * as marked from "marked";
 import type { PDFProcessorResult } from "./types";
+import { safeMarkdownToHtml } from "./markdownToHtml";
 import {
   getPdfResultFromCache,
   savePdfResultToCache,
@@ -78,7 +78,7 @@ export async function scrapePDFWithFirePDF(
 
   const processorResult = {
     markdown: resp.markdown,
-    html: await marked.parse(resp.markdown, { async: true }),
+    html: await safeMarkdownToHtml(resp.markdown, logger, meta.id),
   };
 
   if (!maxPages && !meta.internalOptions.zeroDataRetention) {

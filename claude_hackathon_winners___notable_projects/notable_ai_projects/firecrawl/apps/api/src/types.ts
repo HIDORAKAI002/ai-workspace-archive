@@ -163,8 +163,6 @@ export type AuthResponse =
     };
 
 export enum NotificationType {
-  APPROACHING_LIMIT = "approachingLimit",
-  LIMIT_REACHED = "limitReached",
   RATE_LIMIT_REACHED = "rateLimitReached",
   AUTO_RECHARGE_SUCCESS = "autoRechargeSuccess",
   AUTO_RECHARGE_FAILED = "autoRechargeFailed",
