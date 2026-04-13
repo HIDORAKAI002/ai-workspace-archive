@@ -23,6 +23,20 @@ class DgApiIssueApi:
         """Get an issue by ID."""
         return get_issue_via_graphql(self.client, issue_id)
 
-    def list_issues(self, limit: int = 10, cursor: str | None = None) -> "DgApiIssueList":
-        """List issues with pagination."""
-        return list_issues_via_graphql(self.client, limit=limit, cursor=cursor)
+    def list_issues(
+        self,
+        limit: int = 10,
+        cursor: str | None = None,
+        statuses: list[str] | None = None,
+        created_after: float | None = None,
+        created_before: float | None = None,
+    ) -> "DgApiIssueList":
+        """List issues with pagination and filtering."""
+        return list_issues_via_graphql(
+            self.client,
+            limit=limit,
+            cursor=cursor,
+            statuses=statuses,
+            created_after=created_after,
+            created_before=created_before,
+        )

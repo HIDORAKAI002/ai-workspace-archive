@@ -1,5 +1,7 @@
 """Issue API commands."""
 
+import datetime
+
 import click
 from dagster_dg_core.utils import DgClickCommand, DgClickGroup
 from dagster_dg_core.utils.telemetry import cli_telemetry_wrapper
@@ -64,6 +66,25 @@ def get_issue_command(
     help="Cursor for pagination",
 )
 @click.option(
+    "--status",
+    "statuses",
+    multiple=True,
+    type=click.Choice(["OPEN", "CLOSED", "TRIAGE"], case_sensitive=False),
+    help="Filter by issue status. Repeatable.",
+)
+@click.option(
+    "--created-after",
+    type=click.DateTime(formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"]),
+    default=None,
+    help="Filter issues created after this date (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
+)
+@click.option(
+    "--created-before",
+    type=click.DateTime(formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"]),
+    default=None,
+    help="Filter issues created before this date (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
+)
+@click.option(
     "--json",
     "output_json",
     is_flag=True,
@@ -77,13 +98,16 @@ def list_issues_command(
     ctx: click.Context,
     limit: int,
     cursor: str | None,
+    statuses: tuple[str, ...],
+    created_after: datetime.datetime | None,
+    created_before: datetime.datetime | None,
     output_json: bool,
     organization: str,
     deployment: str,
     api_token: str,
     view_graphql: bool,
 ) -> None:
-    """List issues with pagination."""
+    """List issues with pagination and optional filtering."""
     from dagster_rest_resources.api.issue import DgApiIssueApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
@@ -95,7 +119,13 @@ def list_issues_command(
     api = DgApiIssueApi(client)
 
     with handle_api_errors(ctx, output_json):
-        issue_list = api.list_issues(limit=limit, cursor=cursor)
+        issue_list = api.list_issues(
+            limit=limit,
+            cursor=cursor,
+            statuses=list(statuses) if statuses else None,
+            created_after=created_after.timestamp() if created_after else None,
+            created_before=created_before.timestamp() if created_before else None,
+        )
         output = format_issues(issue_list, as_json=output_json)
         click.echo(output)
 

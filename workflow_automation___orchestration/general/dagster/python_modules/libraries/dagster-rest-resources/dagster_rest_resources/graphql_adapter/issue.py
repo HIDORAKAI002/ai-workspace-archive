@@ -44,8 +44,8 @@ query FetchIssue($issueId: String!) {
 """
 
 LIST_ISSUES_QUERY = """
-query FetchIssues($limit: Int!, $cursor: String) {
-    issues(limit: $limit, cursor: $cursor) {
+query FetchIssues($limit: Int!, $cursor: String, $filters: IssuesFilter) {
+    issues(limit: $limit, cursor: $cursor, filters: $filters) {
         ... on IssueConnection {
             __typename
             issues {
@@ -109,11 +109,24 @@ def list_issues_via_graphql(
     client: IGraphQLClient,
     limit: int = 10,
     cursor: str | None = None,
+    statuses: list[str] | None = None,
+    created_after: float | None = None,
+    created_before: float | None = None,
 ) -> DgApiIssueList:
-    """List issues via GraphQL with pagination."""
+    """List issues via GraphQL with pagination and filtering."""
     variables: dict[str, Any] = {"limit": limit}
     if cursor:
         variables["cursor"] = cursor
+
+    filters: dict[str, Any] = {}
+    if statuses:
+        filters["statuses"] = statuses
+    if created_after is not None:
+        filters["createdAfter"] = created_after
+    if created_before is not None:
+        filters["createdBefore"] = created_before
+    if filters:
+        variables["filters"] = filters
 
     result = client.execute(LIST_ISSUES_QUERY, variables=variables)
     issues_result = result["issues"]

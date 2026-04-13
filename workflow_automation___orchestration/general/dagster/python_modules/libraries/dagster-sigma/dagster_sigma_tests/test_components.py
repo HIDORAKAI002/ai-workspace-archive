@@ -39,6 +39,7 @@ def setup_sigma_component(
             defs_yaml_contents=defs_yaml_contents,
         )
         with (
+            environ({"DAGSTER_IS_DEV_CLI": "1"}),
             scoped_definitions_load_context(),
             sandbox.load_component_and_build_defs(defs_path=defs_path) as (component, defs),
         ):
@@ -254,6 +255,7 @@ def test_subclass_override_get_asset_spec(sigma_sample_data: Any, sigma_auth_tok
             },
         )
         with (
+            environ({"DAGSTER_IS_DEV_CLI": "1"}),
             scoped_definitions_load_context(),
             sandbox.load_component_and_build_defs(defs_path=defs_path) as (_, defs),
         ):

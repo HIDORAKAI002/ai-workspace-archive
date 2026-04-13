@@ -126,3 +126,101 @@
   Additional Context: Additional diagnostic information here.
   '''
 # ---
+# name: TestIssueDataProcessing.test_issue_creation_with_all_statuses[0]
+  dict({
+    'cursor': None,
+    'has_more': False,
+    'items': list([
+      dict({
+        'asset_key': None,
+        'context': None,
+        'created_by_email': 'test@example.com',
+        'description': 'Test issue for status OPEN.',
+        'id': 'issue-open-uuid',
+        'run_id': None,
+        'status': 'OPEN',
+        'title': 'Issue with status OPEN',
+      }),
+      dict({
+        'asset_key': None,
+        'context': None,
+        'created_by_email': 'test@example.com',
+        'description': 'Test issue for status CLOSED.',
+        'id': 'issue-closed-uuid',
+        'run_id': None,
+        'status': 'CLOSED',
+        'title': 'Issue with status CLOSED',
+      }),
+      dict({
+        'asset_key': None,
+        'context': None,
+        'created_by_email': 'test@example.com',
+        'description': 'Test issue for status TRIAGE.',
+        'id': 'issue-triage-uuid',
+        'run_id': None,
+        'status': 'TRIAGE',
+        'title': 'Issue with status TRIAGE',
+      }),
+    ]),
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_combined_filters[0]
+  dict({
+    'cursor': 'some-cursor',
+    'filters': dict({
+      'createdAfter': 1700000000.0,
+      'createdBefore': 1710000000.0,
+      'statuses': list([
+        'CLOSED',
+      ]),
+    }),
+    'limit': 20,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_created_after_filter[0]
+  dict({
+    'filters': dict({
+      'createdAfter': 1700000000.0,
+    }),
+    'limit': 10,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_created_before_filter[0]
+  dict({
+    'filters': dict({
+      'createdBefore': 1710000000.0,
+    }),
+    'limit': 10,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_empty_statuses_omitted[0]
+  dict({
+    'limit': 10,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_no_filters[0]
+  dict({
+    'limit': 5,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_status_filter_multiple[0]
+  dict({
+    'filters': dict({
+      'statuses': list([
+        'OPEN',
+        'TRIAGE',
+      ]),
+    }),
+    'limit': 10,
+  })
+# ---
+# name: TestListIssuesGraphQLVariables.test_status_filter_single[0]
+  dict({
+    'filters': dict({
+      'statuses': list([
+        'OPEN',
+      ]),
+    }),
+    'limit': 10,
+  })
+# ---
