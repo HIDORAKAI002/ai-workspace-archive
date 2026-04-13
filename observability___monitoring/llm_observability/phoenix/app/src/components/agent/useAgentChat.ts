@@ -82,6 +82,7 @@ export function useAgentChat({
                     messages,
                     trigger,
                     messageId,
+                    systemPrompt: store.getState().systemPrompt,
                     sessionId,
                   }),
                 }),
