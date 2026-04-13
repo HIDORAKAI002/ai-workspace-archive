@@ -4,10 +4,18 @@ Docs: https://docs.openclaw.ai
 
 ## Unreleased
 
+- fix(ui): replace marked.js with markdown-it to fix ReDoS UI freeze (#46707) thanks @zhangfnf
+
 ### Changes
+
+- Telegram/forum topics: surface human topic names in agent context, prompt metadata, and plugin hook metadata by learning names from Telegram forum service messages. (#65973) Thanks @ptahdunbar.
 
 ### Fixes
 
+- fix(heartbeat): force owner downgrade for untrusted hook:wake system events [AI-assisted]. (#66031) Thanks @pgondhi987.
+- fix(browser): enforce SSRF policy on snapshot, screenshot, and tab routes [AI]. (#66040) Thanks @pgondhi987.
+- fix(msteams): enforce sender allowlist checks on SSO signin invokes [AI]. (#66033) Thanks @pgondhi987.
+- fix(config): redact sourceConfig and runtimeConfig alias fields in redactConfigSnapshot [AI]. (#66030) Thanks @pgondhi987.
 - Agents/context engines: run opt-in turn maintenance as idle-aware background work so the next foreground turn no longer waits on proactive maintenance. (#65233) thanks @100yenadmin
 
 - Plugins/status: report the registered context-engine IDs in `plugins inspect` instead of the owning plugin ID, so non-matching engine IDs and multi-engine plugins are classified correctly. (#58766) thanks @zhuisDEV
@@ -16,6 +24,21 @@ Docs: https://docs.openclaw.ai
 - Gateway/update: unify service entrypoint resolution around the canonical bundled gateway entrypoint so update, reinstall, and doctor repair stop drifting between stale `dist/entry.js` and current `dist/index.js` paths. (#65984) Thanks @mbelinky.
 - Heartbeat/Telegram topics: keep isolated heartbeat replies on the bound forum topic when `target=last`, instead of dropping them into the group root chat. (#66035) Thanks @mbelinky.
 - Browser/CDP: let managed local Chrome readiness, status probes, and managed loopback CDP control bypass browser SSRF policy for their own loopback control plane, so OpenClaw no longer misclassifies a healthy child browser as "not reachable after start". (#65695, #66043) Thanks @mbelinky.
+- Gateway/sessions: stop heartbeat, cron-event, and exec-event turns from overwriting shared-session routing and origin metadata, preventing synthetic `heartbeat` targets from poisoning later cron or user delivery. (#63733, #35300)
+- Browser/CDP: let local attach-only `manual-cdp` profiles reuse the local loopback CDP control plane under strict default policy and remote-class probe timeouts, so tabs/snapshot stop falsely reporting a live local browser session as not running. (#65611, #66080) Thanks @mbelinky.
+- Cron/scheduler: stop inventing short retries when cron next-run calculation returns no valid future slot, and keep a maintenance wake armed so enabled unscheduled jobs recover without entering a refire loop. (#66019, #66083) Thanks @mbelinky.
+- Cron/scheduler: preserve the active error-backoff floor when maintenance repair recomputes a missing cron next-run, so recurring errored jobs do not resume early after a transient next-run resolution failure. (#66019, #66083, #66113) Thanks @mbelinky.
+- Outbound/delivery-queue: persist the originating outbound `session` context on queued delivery entries and replay it during recovery, so write-ahead-queued sends keep their original outbound media policy context after restart instead of evaluating against a missing session. (#66025) Thanks @eleqtrizit.
+- Auto-reply/queue: split collect-mode followup drains into contiguous groups by per-message authorization context (sender id, owner status, exec/bash-elevated overrides), so queued items from different senders or exec configs no longer execute under the last queued run's owner-only and exec-approval context. (#66024) Thanks @eleqtrizit.
+- Dreaming/memory-core: require a live queued Dreaming cron event before the heartbeat hook runs the sweep, so managed Dreaming no longer replays on later heartbeats after the scheduled run was already consumed. (#66139) Thanks @mbelinky.
+- Control UI/Dreaming: stop Imported Insights and Memory Palace from calling optional `memory-wiki` gateway methods when the plugin is off, and refresh config before wiki reloads so the Dreaming tab stops showing misleading unknown-method failures. (#66140) Thanks @mbelinky.
+- Agents/tools: only mark streamed unknown-tool retries as counted when a streamed message actually classifies an unavailable tool, and keep incomplete streamed tool names from resetting the retry streak before the final assistant message arrives. (#66145) Thanks @dutifulbob.
+- Memory/active-memory: move recalled memory onto the hidden untrusted prompt-prefix path instead of system prompt injection, label the visible Active Memory status line fields, and include the resolved recall provider/model in gateway debug logs so trace/debug output matches what the model actually saw.
+- Memory/QMD: stop treating legacy lowercase `memory.md` as a second default root collection, so QMD recall no longer searches phantom `memory-alt-*` collections and builtin/QMD root-memory fallback stays aligned. (#66141) Thanks @mbelinky.
+- Agents/OpenAI: map `minimal` thinking to OpenAI's supported `low` reasoning effort for GPT-5.4 requests, so embedded runs stop failing request validation.
+- Voice-call/media-stream: resolve the source IP from trusted forwarding headers for per-IP pending-connection limits when `webhookSecurity.trustForwardingHeaders` and `trustedProxyIPs` are configured, and reserve `maxConnections` capacity for in-flight WebSocket upgrades so concurrent handshakes can no longer momentarily exceed the operator-set cap. (#66027) Thanks @eleqtrizit.
+- Feishu/allowlist: canonicalize allowlist entries by explicit `user`/`chat` kind, strip repeated `feishu:`/`lark:` provider prefixes, and stop folding opaque Feishu IDs to lowercase, so allowlist matching no longer crosses user/chat namespaces or widens to case-insensitive ID matches the operator did not intend. (#66021) Thanks @eleqtrizit.
+
 ## 2026.4.12
 
 ### Changes
@@ -91,6 +114,10 @@ Docs: https://docs.openclaw.ai
 - CLI/audio providers: report env-authenticated providers as configured in `openclaw infer audio providers --json`, while keeping trusted workspace provider env lookup defaults stable during auth setup. (#65491)
 - Plugins/install: reinstall bundled runtime packages when the matching platform native optional child is missing, so packaged Windows installs can recover dependencies that were packed on another host OS.
 - Memory/QMD: preserve explicit `memory.qmd.command` paths, create missing agent workspaces before QMD probes, and keep the current Node binary on QMD subprocess PATH so service and gateway environments do not fall back to builtin search unnecessarily.
+- Plugins/Lobster: load the published `@clawdbot/lobster/core` runtime in process so bundled Lobster runs stop depending on private package internals. (#64755) Thanks @mbelinky.
+- Agents/CLI: keep unrelated config, session, transcript, and MCP bootstrap runtime off common `openclaw agent` cold paths so provider selection and agent startup stop stalling on heavyweight imports. Thanks @vincentkoc.
+- Setup/config/install: stop setup, config dry-runs, and daemon install from eagerly booting auth-profile and plugin repair runtime when those paths are not needed, so onboarding and local service setup avoid long cold-start stalls. Thanks @vincentkoc.
+- Cron/direct delivery: slim isolated-agent delivery cold paths so direct channel delivery and related cron execution spend less time loading unrelated auth, plugin, and channel runtime. Thanks @vincentkoc.
 
 ## 2026.4.11
 
@@ -255,6 +282,7 @@ Docs: https://docs.openclaw.ai
 - Daemon/launchd: keep `openclaw gateway stop` persistent without uninstalling the macOS LaunchAgent, re-enable it on explicit restart or repair, and harden launchd label handling. (#64447) Thanks @ngutman.
 - Plugins/context engines: preserve `plugins.slots.contextEngine` through normalization and keep explicitly selected workspace context-engine plugins enabled, so loader diagnostics and plugin activation stop dropping that slot selection. (#64192) Thanks @hclsys.
 - Heartbeat: stop top-level `interval:` and `prompt:` fields outside the `tasks:` block from bleeding into the last parsed heartbeat task. (#64488) Thanks @Rahulkumar070.
+- Slack/plugin commands: include plugin-registered slash commands in Slack native command registration when Slack native commands are enabled. (#64578) Thanks @rafaelreis-r.
 - Agents/OpenAI replay: preserve malformed function-call arguments in stored assistant history, avoid double-encoding preserved raw strings on replay, and coerce replayed string args back to objects at Anthropic and Google provider boundaries. (#61956) Thanks @100yenadmin.
 - Heartbeat/config: accept and honor `agents.defaults.heartbeat.timeoutSeconds` and per-agent heartbeat timeout overrides for heartbeat agent turns. (#64491) Thanks @cedillarack.
 - CLI/devices: make implicit `openclaw devices approve` selection preview-only and require approving the exact request ID, preventing latest-request races during device pairing. (#64160) Thanks @coygeek.

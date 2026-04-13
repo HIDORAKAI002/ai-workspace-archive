@@ -1,16 +1,13 @@
+import { CHANNEL_IDS, listChatChannelAliases } from "../channels/ids.js";
 import {
-  CHANNEL_IDS,
-  listChatChannelAliases,
   listRegisteredChannelPluginAliases,
   listRegisteredChannelPluginIds,
-  normalizeAnyChannelId,
-  normalizeChatChannelId,
 } from "../channels/registry.js";
-import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import {
   INTERNAL_MESSAGE_CHANNEL,
   type InternalMessageChannel,
 } from "./message-channel-constants.js";
+import { normalizeMessageChannel as normalizeMessageChannelCore } from "./message-channel-core.js";
 
 type ChannelId = string & { readonly __openclawChannelIdBrand?: never };
 
@@ -20,6 +17,10 @@ export type GatewayMessageChannel = DeliverableMessageChannel;
 
 export type GatewayAgentChannelHint = GatewayMessageChannel;
 
+export function normalizeMessageChannel(raw?: string | null): string | undefined {
+  return normalizeMessageChannelCore(raw);
+}
+
 const listPluginChannelIds = (): string[] => {
   return listRegisteredChannelPluginIds();
 };
@@ -27,21 +28,6 @@ const listPluginChannelIds = (): string[] => {
 const listPluginChannelAliases = (): string[] => {
   return listRegisteredChannelPluginAliases();
 };
-
-export function normalizeMessageChannel(raw?: string | null): string | undefined {
-  const normalized = normalizeOptionalLowercaseString(raw);
-  if (!normalized) {
-    return undefined;
-  }
-  if (normalized === INTERNAL_MESSAGE_CHANNEL) {
-    return INTERNAL_MESSAGE_CHANNEL;
-  }
-  const builtIn = normalizeChatChannelId(normalized);
-  if (builtIn) {
-    return builtIn;
-  }
-  return normalizeAnyChannelId(normalized) ?? normalized;
-}
 
 export const listDeliverableMessageChannels = (): ChannelId[] =>
   Array.from(new Set([...CHANNEL_IDS, ...listPluginChannelIds()]));
