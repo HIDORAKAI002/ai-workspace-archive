@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-14 17:51 IST] Auto-Sync
+- **32 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Kubernetes MCP Server, Prompt Engineering Tutorials, n8n, Dify, Activepieces, Budibase, Plane, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Upsonic, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, firecrawl/firecrawl, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, tirth8205/code-review-graph
+
 ## [2026-04-14 11:28 IST] Auto-Sync
 - **27 Repositories Updated:** Public APIs Directory, Playwright MCP, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, Flowise, Trigger.dev, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, google-gemini/gemini-cli, googleapis/python-genai, sgl-project/sglang, openclaw/openclaw, microsoft/VibeVoice, mastra-ai/mastra, bytedance/deer-flow
 
