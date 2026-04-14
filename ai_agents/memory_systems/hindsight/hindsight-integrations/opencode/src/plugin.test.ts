@@ -127,11 +127,14 @@ describe('HindsightPlugin state sharing', () => {
     });
 });
 
-describe('PluginModule default export', () => {
-    it('exports correct module shape', async () => {
+describe('plugin default export', () => {
+    it('default-exports the Plugin function itself', async () => {
         const mod = await import('./index.js');
-        expect(mod.default).toBeDefined();
-        expect(mod.default.id).toBe('hindsight');
-        expect(typeof mod.default.server).toBe('function');
+        expect(typeof mod.default).toBe('function');
+        // OpenCode iterates Object.entries(mod) and calls every export as a
+        // Plugin factory, deduping by reference. The default export must be
+        // the same reference as the named HindsightPlugin export to avoid
+        // running the factory twice.
+        expect(mod.default).toBe(mod.HindsightPlugin);
     });
 });

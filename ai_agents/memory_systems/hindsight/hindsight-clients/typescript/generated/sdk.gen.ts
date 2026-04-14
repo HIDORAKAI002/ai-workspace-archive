@@ -85,6 +85,9 @@ import type {
   GetGraphData,
   GetGraphErrors,
   GetGraphResponses,
+  GetMemoriesTimeseriesData,
+  GetMemoriesTimeseriesErrors,
+  GetMemoriesTimeseriesResponses,
   GetMemoryData,
   GetMemoryErrors,
   GetMemoryResponses,
@@ -389,6 +392,23 @@ export const getAgentStats = <ThrowOnError extends boolean = false>(
     GetAgentStatsErrors,
     ThrowOnError
   >({ url: "/v1/default/banks/{bank_id}/stats", ...options });
+
+/**
+ * Memory ingestion time-series
+ *
+ * Memories ingested over a period, bucketed by time and broken down by fact type.
+ */
+export const getMemoriesTimeseries = <ThrowOnError extends boolean = false>(
+  options: Options<GetMemoriesTimeseriesData, ThrowOnError>,
+) =>
+  (options.client ?? client).get<
+    GetMemoriesTimeseriesResponses,
+    GetMemoriesTimeseriesErrors,
+    ThrowOnError
+  >({
+    url: "/v1/default/banks/{bank_id}/stats/memories-timeseries",
+    ...options,
+  });
 
 /**
  * List entities

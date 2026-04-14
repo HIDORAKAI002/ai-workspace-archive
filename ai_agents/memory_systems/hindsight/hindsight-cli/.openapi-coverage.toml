@@ -21,7 +21,9 @@
 # Operation-level skips
 # ---------------------------------------------------------------------------
 [skip]
-# (empty — every operation is currently wired)
+# UI-only endpoint powering the control-plane stats chart.
+# Zero-filled bucket arrays don't map to a useful CLI command.
+get_memories_timeseries = "UI-only endpoint for the control plane stats chart"
 
 # ---------------------------------------------------------------------------
 # Per-operation parameter skips

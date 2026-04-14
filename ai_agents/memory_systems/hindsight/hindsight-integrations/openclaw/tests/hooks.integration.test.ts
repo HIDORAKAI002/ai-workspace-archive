@@ -476,13 +476,13 @@ describe('agent_end hook', () => {
 
     expect(retainSpy).toHaveBeenCalledOnce();
     // HindsightClient.retain signature: (bankId, content, options?)
+    // Default retainFormat is 'json' with Anthropic-shaped typed blocks.
     const [, content] = retainSpy.mock.calls[0];
-    expect(content).toContain('[role: user]');
-    expect(content).toContain('I love TypeScript.');
-    expect(content).toContain('[user:end]');
-    expect(content).toContain('[role: assistant]');
-    expect(content).toContain('TypeScript is great!');
-    expect(content).toContain('[assistant:end]');
+    const parsed = JSON.parse(content);
+    expect(parsed).toEqual([
+      { role: 'user', content: [{ type: 'text', text: 'I love TypeScript.' }] },
+      { role: 'assistant', content: [{ type: 'text', text: 'TypeScript is great!' }] },
+    ]);
   });
 
   it('includes session key in documentId', async () => {
@@ -675,9 +675,13 @@ describe('agent_end hook', () => {
     expect(retainSpy).toHaveBeenCalledOnce();
     const [, content, options] = retainSpy.mock.calls[0];
 
-    // Only the last turn (from last user message onwards) is retained
-    expect(content).toContain('[role: user]\nI work as a data scientist.\n[user:end]');
-    expect(content).toContain("[role: assistant]\nThat's a fascinating career!\n[assistant:end]");
+    // Only the last turn (from last user message onwards) is retained.
+    // Default retainFormat is 'json' with Anthropic-shaped typed blocks.
+    const parsed = JSON.parse(content);
+    expect(parsed).toEqual([
+      { role: 'user', content: [{ type: 'text', text: 'I work as a data scientist.' }] },
+      { role: 'assistant', content: [{ type: 'text', text: "That's a fascinating career!" }] },
+    ]);
     expect(content).not.toContain('My name is Carol.');
     expect(options?.metadata?.message_count).toBe('2');
   });

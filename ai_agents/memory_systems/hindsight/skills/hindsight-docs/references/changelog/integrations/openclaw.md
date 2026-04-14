@@ -8,6 +8,20 @@ import PageHero from '@site/src/components/PageHero';
 
 ← OpenClaw integration
 
+## [0.6.3](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.6.3)
+
+**Features**
+
+- Inline retain tags are now merged with default retain tags, improving consistency of retention behavior without extra configuration. ([`b79ab2b7`](https://github.com/vectorize-io/hindsight/commit/b79ab2b7))
+
+**Improvements**
+
+- All HTTP requests now include an identifying User-Agent, improving request attribution and compatibility with stricter endpoints. ([`9372462e`](https://github.com/vectorize-io/hindsight/commit/9372462e))
+
+**Bug Fixes**
+
+- Per-agent banking now respects identity skip-filter configuration, preventing incorrect identity filtering. ([`90a22016`](https://github.com/vectorize-io/hindsight/commit/90a22016))
+
 ## [0.6.2](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.6.2)
 
 **Features**

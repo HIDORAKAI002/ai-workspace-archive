@@ -235,6 +235,44 @@ def _get_tiktoken_encoding():
 
 
 @dataclass(frozen=True)
+class _TimeseriesPeriodConfig:
+    """How one period slices the time axis for the memories-ingested chart."""
+
+    interval: str  # postgres interval literal used in the `now() - interval '...'` filter
+    trunc: str  # date_trunc unit (minute/hour/day)
+    step: timedelta  # distance between adjacent buckets
+    count: int  # total buckets rendered for the period
+
+
+_MEMORIES_TIMESERIES_PERIODS: dict[str, _TimeseriesPeriodConfig] = {
+    "1h": _TimeseriesPeriodConfig("1 hour", "minute", timedelta(minutes=1), 60),
+    "12h": _TimeseriesPeriodConfig("12 hours", "hour", timedelta(hours=1), 12),
+    "1d": _TimeseriesPeriodConfig("24 hours", "hour", timedelta(hours=1), 24),
+    "7d": _TimeseriesPeriodConfig("7 days", "day", timedelta(days=1), 7),
+    "30d": _TimeseriesPeriodConfig("30 days", "day", timedelta(days=1), 30),
+    "90d": _TimeseriesPeriodConfig("90 days", "day", timedelta(days=1), 90),
+}
+
+
+@dataclass
+class MemoryTimeseriesBucketData:
+    """One bucket of the memories-ingested time series (engine-side)."""
+
+    time: str
+    world: int = 0
+    experience: int = 0
+    observation: int = 0
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "time": self.time,
+            "world": self.world,
+            "experience": self.experience,
+            "observation": self.observation,
+        }
+
+
+@dataclass(frozen=True)
 class RefreshTagFiltering:
     """Resolved tag filtering parameters for mental model refresh."""
 
@@ -6162,6 +6200,90 @@ class MemoryEngine(MemoryEngineInterface):
                 "pending_consolidation": consolidation_row["pending"] if consolidation_row else 0,
                 "total_observations": node_counts.get("observation", 0),
             }
+
+    async def get_memories_timeseries(
+        self,
+        bank_id: str,
+        *,
+        period: str,
+        request_context: "RequestContext",
+    ) -> dict[str, Any]:
+        """Memory ingestion bucketed by time, broken down by fact_type.
+
+        Always returns the full expected bucket set for the period so the
+        chart line is continuous (empty buckets show as zeros). Buckets are
+        anchored on UTC boundaries — we do this (rather than the PG session
+        timezone) so the API response is deterministic regardless of where
+        the database is deployed, and so the control-plane chart can match
+        buckets by ISO key on the client side.
+        """
+        await self._authenticate_tenant(request_context)
+        if self._operation_validator:
+            from hindsight_api.extensions import BankReadContext
+
+            ctx = BankReadContext(bank_id=bank_id, operation="get_memories_timeseries", request_context=request_context)
+            await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
+
+        cfg = _MEMORIES_TIMESERIES_PERIODS.get(period) or _MEMORIES_TIMESERIES_PERIODS["7d"]
+        if period not in _MEMORIES_TIMESERIES_PERIODS:
+            period = "7d"
+
+        pool = await self._get_pool()
+        async with acquire_with_retry(pool) as conn:
+            rows = await conn.fetch(
+                f"""
+                SELECT date_trunc('{cfg.trunc}', created_at AT TIME ZONE 'UTC') AS bucket,
+                       fact_type, COUNT(*) AS count
+                FROM {fq_table("memory_units")}
+                WHERE bank_id = $1
+                  AND created_at >= now() - interval '{cfg.interval}'
+                GROUP BY bucket, fact_type
+                ORDER BY bucket
+                """,
+                bank_id,
+            )
+
+        # Build the canonical bucket list anchored on the most recent UTC boundary.
+        now_utc = datetime.utcnow()
+        if cfg.trunc == "minute":
+            end = now_utc.replace(second=0, microsecond=0)
+        elif cfg.trunc == "hour":
+            end = now_utc.replace(minute=0, second=0, microsecond=0)
+        else:
+            end = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        buckets: list[MemoryTimeseriesBucketData] = []
+        by_iso: dict[str, MemoryTimeseriesBucketData] = {}
+        for i in range(cfg.count):
+            t = end - cfg.step * (cfg.count - 1 - i)
+            entry = MemoryTimeseriesBucketData(time=t.isoformat())
+            buckets.append(entry)
+            by_iso[entry.time] = entry
+
+        for row in rows:
+            # asyncpg hands us a tz-aware datetime when the column is timestamptz.
+            # Normalize to the naive-UTC format we used for the dict keys.
+            bucket_dt = row["bucket"]
+            if bucket_dt.tzinfo is not None:
+                bucket_dt = bucket_dt.astimezone(timezone.utc).replace(tzinfo=None)
+            entry = by_iso.get(bucket_dt.isoformat())
+            if entry is None:
+                # Row fell outside the requested window (clock skew / edge case).
+                continue
+            ft = row["fact_type"]
+            if ft == "world":
+                entry.world += row["count"]
+            elif ft == "experience":
+                entry.experience += row["count"]
+            elif ft == "observation":
+                entry.observation += row["count"]
+
+        return {
+            "bank_id": bank_id,
+            "period": period,
+            "trunc": cfg.trunc,
+            "buckets": [b.as_dict() for b in buckets],
+        }
 
     async def get_entity(
         self,
