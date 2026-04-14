@@ -26,7 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Clock, AlertCircle, CheckCircle, Loader2, X, RotateCcw } from "lucide-react";
+import {
+  RefreshCw,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  X,
+  RotateCcw,
+  Code,
+} from "lucide-react";
 
 interface Operation {
   id: string;
@@ -61,8 +70,9 @@ type OperationDetails =
         num_sub_batches?: number;
         is_parent?: boolean;
         [key: string]: any;
-      };
-      child_operations?: ChildOperationStatus[];
+      } | null;
+      child_operations?: ChildOperationStatus[] | null;
+      task_payload?: Record<string, unknown> | null;
       error?: never; // Not present in success case
     }
   | {
@@ -76,6 +86,7 @@ type OperationDetails =
       error_message?: never;
       result_metadata?: never;
       child_operations?: never;
+      task_payload?: never;
     };
 
 const OPERATION_TYPE_OPTIONS = [
@@ -101,6 +112,8 @@ export function BankOperationsView() {
   const [selectedOperation, setSelectedOperation] = useState<OperationDetails | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [loadingPayload, setLoadingPayload] = useState(false);
+  const [payloadLoadedFor, setPayloadLoadedFor] = useState<string | null>(null);
 
   const loadOperations = useCallback(
     async (
@@ -179,6 +192,7 @@ export function BankOperationsView() {
 
     setLoadingDetails(true);
     setDialogOpen(true);
+    setPayloadLoadedFor(null);
     try {
       const details = await client.getOperationStatus(currentBank, operationId);
       setSelectedOperation(details);
@@ -187,6 +201,24 @@ export function BankOperationsView() {
       setSelectedOperation({ error: "Failed to load operation details" });
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const handleLoadRaw = async () => {
+    if (!currentBank || !selectedOperation?.operation_id) return;
+
+    setLoadingPayload(true);
+    try {
+      const opId = selectedOperation.operation_id;
+      const details = await client.getOperationStatus(currentBank, opId, {
+        includePayload: true,
+      });
+      setSelectedOperation(details);
+      setPayloadLoadedFor(opId);
+    } catch (error) {
+      console.error("Error loading raw payload:", error);
+    } finally {
+      setLoadingPayload(false);
     }
   };
 
@@ -485,6 +517,19 @@ export function BankOperationsView() {
                     )}
                   </div>
 
+                  {/* Metadata */}
+                  {selectedOperation.result_metadata &&
+                    Object.keys(selectedOperation.result_metadata).length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground mb-2">
+                          Metadata
+                        </div>
+                        <pre className="rounded-lg border bg-muted/30 p-3 text-xs font-mono overflow-x-auto max-h-96 whitespace-pre-wrap break-words">
+                          {JSON.stringify(selectedOperation.result_metadata, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+
                   {/* Error Message */}
                   {selectedOperation.error_message && (
                     <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
@@ -555,6 +600,54 @@ export function BankOperationsView() {
                         </div>
                       </div>
                     )}
+
+                  {/* Raw payload */}
+                  {(() => {
+                    const loadedThisOp = payloadLoadedFor === selectedOperation.operation_id;
+                    const hasPayload = !!selectedOperation.task_payload;
+                    const isParent = !!selectedOperation.result_metadata?.is_parent;
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            Raw payload
+                          </div>
+                          {!loadedThisOp && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={handleLoadRaw}
+                              disabled={loadingPayload}
+                            >
+                              {loadingPayload ? (
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <Code className="w-3 h-3 mr-1" />
+                              )}
+                              Load raw
+                            </Button>
+                          )}
+                        </div>
+                        {hasPayload ? (
+                          <pre className="rounded-lg border bg-muted/30 p-3 text-xs font-mono overflow-x-auto max-h-96 whitespace-pre-wrap break-words">
+                            {JSON.stringify(selectedOperation.task_payload, null, 2)}
+                          </pre>
+                        ) : loadedThisOp ? (
+                          <p className="text-xs text-muted-foreground">
+                            {isParent
+                              ? "This is a parent operation — the raw payload is stored on each sub-batch. Open a child operation to inspect its payload."
+                              : "No raw payload stored for this operation."}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            Shows the full parameters the operation was submitted with (may be
+                            large).
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </div>

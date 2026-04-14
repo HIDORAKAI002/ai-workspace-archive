@@ -18,6 +18,7 @@ from .config import (
     DEFAULT_BANK_ID,
     DEFAULT_HINDSIGHT_API_URL,
     HINDSIGHT_API_KEY_ENV,
+    USER_AGENT,
     HindsightCallSettings,
     _merge_call_settings as _merge_settings,
     get_config,
@@ -40,7 +41,7 @@ def _get_client(api_url: str, api_key: Optional[str] = None):
     """
     from hindsight_client import Hindsight
 
-    return Hindsight(base_url=api_url, api_key=api_key, timeout=30.0)
+    return Hindsight(base_url=api_url, api_key=api_key, timeout=30.0, user_agent=USER_AGENT)
 
 
 def _close_client():
@@ -897,6 +898,7 @@ class HindsightOpenAI:
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
+                user_agent=USER_AGENT,
             )
         return self._hindsight_client
 
@@ -1326,6 +1328,7 @@ class HindsightAnthropic:
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
+                user_agent=USER_AGENT,
             )
         return self._hindsight_client
 
@@ -1744,7 +1747,7 @@ def wrap_openai(
         try:
             from hindsight_client import Hindsight
 
-            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key)
+            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
             hs_client.create_bank(
                 bank_id=settings_kwargs["bank_id"],
                 name=bank_name,
@@ -1846,7 +1849,7 @@ def wrap_anthropic(
         try:
             from hindsight_client import Hindsight
 
-            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key)
+            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
             hs_client.create_bank(
                 bank_id=settings_kwargs["bank_id"],
                 name=bank_name,

@@ -1,9 +1,21 @@
 #!/usr/bin/env node
-import { existsSync, realpathSync } from 'fs';
-import { join, resolve } from 'path';
+import { existsSync, readFileSync, realpathSync } from 'fs';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { HindsightServer } from '@vectorize-io/hindsight-all';
 import { HindsightClient } from '@vectorize-io/hindsight-client';
+
+function loadPackageVersion(): string {
+  try {
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string };
+    return pkg.version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+const USER_AGENT = `hindsight-openclaw/${loadPackageVersion()}`;
 import { detectExternalApi, detectLLMConfig } from './index.js';
 import type { BankStats, PluginConfig } from './types.js';
 import {
@@ -181,9 +193,11 @@ function inferApiSettings(pluginConfig: PluginConfig, explicitApiUrl?: string, e
 
 async function checkHealth(apiUrl: string, apiToken?: string): Promise<boolean> {
   try {
+    const headers: Record<string, string> = { 'User-Agent': USER_AGENT };
+    if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
     const response = await fetch(`${apiUrl.replace(/\/$/, '')}/health`, {
       method: 'GET',
-      headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined,
+      headers,
       signal: AbortSignal.timeout(5000),
     });
     return response.ok;
@@ -323,7 +337,7 @@ export async function createBackfillRuntime(
  * doesn't yet wrap this endpoint, so we go direct — it's one call.
  */
 async function fetchBankStats(baseUrl: string, apiToken: string | undefined, bankId: string): Promise<BankStats> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { 'User-Agent': USER_AGENT };
   if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
   const res = await fetch(`${baseUrl}/v1/default/banks/${encodeURIComponent(bankId)}/stats`, { headers });
   if (!res.ok) {

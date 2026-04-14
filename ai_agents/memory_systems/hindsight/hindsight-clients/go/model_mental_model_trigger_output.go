@@ -27,6 +27,9 @@ type MentalModelTriggerOutput struct {
 	ExcludeMentalModelIds []string `json:"exclude_mental_model_ids,omitempty"`
 	TagsMatch NullableString `json:"tags_match,omitempty"`
 	TagGroups []MentalModelTriggerOutputTagGroupsInner `json:"tag_groups,omitempty"`
+	IncludeChunks NullableBool `json:"include_chunks,omitempty"`
+	RecallMaxTokens NullableInt32 `json:"recall_max_tokens,omitempty"`
+	RecallChunksMaxTokens NullableInt32 `json:"recall_chunks_max_tokens,omitempty"`
 }
 
 // NewMentalModelTriggerOutput instantiates a new MentalModelTriggerOutput object
@@ -259,6 +262,132 @@ func (o *MentalModelTriggerOutput) SetTagGroups(v []MentalModelTriggerOutputTagG
 	o.TagGroups = v
 }
 
+// GetIncludeChunks returns the IncludeChunks field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MentalModelTriggerOutput) GetIncludeChunks() bool {
+	if o == nil || IsNil(o.IncludeChunks.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.IncludeChunks.Get()
+}
+
+// GetIncludeChunksOk returns a tuple with the IncludeChunks field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MentalModelTriggerOutput) GetIncludeChunksOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.IncludeChunks.Get(), o.IncludeChunks.IsSet()
+}
+
+// HasIncludeChunks returns a boolean if a field has been set.
+func (o *MentalModelTriggerOutput) HasIncludeChunks() bool {
+	if o != nil && o.IncludeChunks.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetIncludeChunks gets a reference to the given NullableBool and assigns it to the IncludeChunks field.
+func (o *MentalModelTriggerOutput) SetIncludeChunks(v bool) {
+	o.IncludeChunks.Set(&v)
+}
+// SetIncludeChunksNil sets the value for IncludeChunks to be an explicit nil
+func (o *MentalModelTriggerOutput) SetIncludeChunksNil() {
+	o.IncludeChunks.Set(nil)
+}
+
+// UnsetIncludeChunks ensures that no value is present for IncludeChunks, not even an explicit nil
+func (o *MentalModelTriggerOutput) UnsetIncludeChunks() {
+	o.IncludeChunks.Unset()
+}
+
+// GetRecallMaxTokens returns the RecallMaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MentalModelTriggerOutput) GetRecallMaxTokens() int32 {
+	if o == nil || IsNil(o.RecallMaxTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallMaxTokens.Get()
+}
+
+// GetRecallMaxTokensOk returns a tuple with the RecallMaxTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MentalModelTriggerOutput) GetRecallMaxTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallMaxTokens.Get(), o.RecallMaxTokens.IsSet()
+}
+
+// HasRecallMaxTokens returns a boolean if a field has been set.
+func (o *MentalModelTriggerOutput) HasRecallMaxTokens() bool {
+	if o != nil && o.RecallMaxTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallMaxTokens gets a reference to the given NullableInt32 and assigns it to the RecallMaxTokens field.
+func (o *MentalModelTriggerOutput) SetRecallMaxTokens(v int32) {
+	o.RecallMaxTokens.Set(&v)
+}
+// SetRecallMaxTokensNil sets the value for RecallMaxTokens to be an explicit nil
+func (o *MentalModelTriggerOutput) SetRecallMaxTokensNil() {
+	o.RecallMaxTokens.Set(nil)
+}
+
+// UnsetRecallMaxTokens ensures that no value is present for RecallMaxTokens, not even an explicit nil
+func (o *MentalModelTriggerOutput) UnsetRecallMaxTokens() {
+	o.RecallMaxTokens.Unset()
+}
+
+// GetRecallChunksMaxTokens returns the RecallChunksMaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MentalModelTriggerOutput) GetRecallChunksMaxTokens() int32 {
+	if o == nil || IsNil(o.RecallChunksMaxTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallChunksMaxTokens.Get()
+}
+
+// GetRecallChunksMaxTokensOk returns a tuple with the RecallChunksMaxTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MentalModelTriggerOutput) GetRecallChunksMaxTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallChunksMaxTokens.Get(), o.RecallChunksMaxTokens.IsSet()
+}
+
+// HasRecallChunksMaxTokens returns a boolean if a field has been set.
+func (o *MentalModelTriggerOutput) HasRecallChunksMaxTokens() bool {
+	if o != nil && o.RecallChunksMaxTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallChunksMaxTokens gets a reference to the given NullableInt32 and assigns it to the RecallChunksMaxTokens field.
+func (o *MentalModelTriggerOutput) SetRecallChunksMaxTokens(v int32) {
+	o.RecallChunksMaxTokens.Set(&v)
+}
+// SetRecallChunksMaxTokensNil sets the value for RecallChunksMaxTokens to be an explicit nil
+func (o *MentalModelTriggerOutput) SetRecallChunksMaxTokensNil() {
+	o.RecallChunksMaxTokens.Set(nil)
+}
+
+// UnsetRecallChunksMaxTokens ensures that no value is present for RecallChunksMaxTokens, not even an explicit nil
+func (o *MentalModelTriggerOutput) UnsetRecallChunksMaxTokens() {
+	o.RecallChunksMaxTokens.Unset()
+}
+
 func (o MentalModelTriggerOutput) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -286,6 +415,15 @@ func (o MentalModelTriggerOutput) ToMap() (map[string]interface{}, error) {
 	}
 	if o.TagGroups != nil {
 		toSerialize["tag_groups"] = o.TagGroups
+	}
+	if o.IncludeChunks.IsSet() {
+		toSerialize["include_chunks"] = o.IncludeChunks.Get()
+	}
+	if o.RecallMaxTokens.IsSet() {
+		toSerialize["recall_max_tokens"] = o.RecallMaxTokens.Get()
+	}
+	if o.RecallChunksMaxTokens.IsSet() {
+		toSerialize["recall_chunks_max_tokens"] = o.RecallChunksMaxTokens.Get()
 	}
 	return toSerialize, nil
 }

@@ -16,9 +16,13 @@ export async function GET(
       return NextResponse.json({ error: "operation_id is required" }, { status: 400 });
     }
 
+    const url = new URL(request.url);
+    const includePayload = url.searchParams.get("include_payload") === "true";
+
     const response = await sdk.getOperationStatus({
       client: lowLevelClient,
       path: { bank_id: bankId, operation_id: operationId },
+      query: includePayload ? { include_payload: true } : undefined,
     });
 
     if (response.error) {

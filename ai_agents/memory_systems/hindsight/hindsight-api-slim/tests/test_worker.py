@@ -1505,8 +1505,7 @@ async def test_consolidation_slots_reserved_when_retain_saturates(pool, clean_op
         consolidation_started = [op for op, t in started.items() if t == "consolidation"]
 
         assert len(retain_started) == 3, (
-            f"Retain should be capped at max_slots - consolidation_max_slots = 3, "
-            f"got {len(retain_started)}"
+            f"Retain should be capped at max_slots - consolidation_max_slots = 3, got {len(retain_started)}"
         )
         assert len(consolidation_started) == 1, (
             f"Consolidation should claim its reserved slot even while retain saturates, "
@@ -1527,6 +1526,96 @@ async def test_consolidation_slots_reserved_when_retain_saturates(pool, clean_op
             await asyncio.wait_for(poll_task, timeout=1.0)
         except asyncio.CancelledError:
             pass
+
+
+@pytest.mark.asyncio
+async def test_pending_breakdown_explains_unclaimable_rows(pool, clean_operations, caplog):
+    """Pending rows that the claim query filters out must be visible in logs.
+
+    Background: production incident where a 'pending' retain sat in the queue for
+    hours while workers had free slots. With only the global pending count in
+    [WORKER_STATS] there's no way to tell whether the rows are claimable-but-not-
+    being-claimed (real bug) vs filtered out by the claim WHERE clause (data
+    state). This test verifies [PENDING_BREAKDOWN] surfaces each filter bucket
+    so operators can diagnose without DB access.
+    """
+    import logging
+
+    from hindsight_api.worker.poller import WorkerPoller
+
+    poller = WorkerPoller(
+        pool=pool,
+        worker_id="test-worker-pending-breakdown",
+        executor=lambda _t: asyncio.sleep(0),
+        poll_interval_ms=50,
+        max_slots=5,
+    )
+
+    bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+    await _ensure_bank(pool, bank_id)
+
+    # Mix of pending rows that the claim query treats differently:
+    #   * payload_null  - batch_retain parent (orphan candidate)
+    #   * retry_blocked - failed once, scheduled an hour out
+    #   * assigned      - worker_id stamped (e.g. left over from a prior crash
+    #                     that re-queued without clearing worker_id)
+    #   * claimable     - normal retain ready to go
+    #   * consolidation - normal consolidation, also claimable
+    rows = [
+        ("batch_retain", None, None, None),  # payload_null
+        ("retain", json.dumps({"type": "test"}), "future", None),  # retry_blocked
+        ("retain", json.dumps({"type": "test"}), None, "ghost-worker"),  # assigned
+        ("retain", json.dumps({"type": "test"}), None, None),  # claimable
+        ("consolidation", json.dumps({"type": "test"}), None, None),  # claimable
+    ]
+    for op_type, payload, retry_marker, worker_id in rows:
+        op_id = uuid.uuid4()
+        await pool.execute(
+            """
+            INSERT INTO async_operations
+                (operation_id, bank_id, operation_type, status, task_payload,
+                 next_retry_at, worker_id)
+            VALUES ($1, $2, $3, 'pending', $4::jsonb,
+                    CASE WHEN $5::text = 'future' THEN now() + interval '1 hour' ELSE NULL END,
+                    $6)
+            """,
+            op_id,
+            bank_id,
+            op_type,
+            payload,
+            retry_marker,
+            worker_id,
+        )
+
+    # Trigger one stats emit. _last_progress_log starts at 0, so the first call
+    # always logs.
+    with caplog.at_level(logging.INFO, logger="hindsight_api.worker.poller"):
+        await poller._log_progress_if_due()
+
+    breakdown_lines = [r.message for r in caplog.records if r.message.startswith("[PENDING_BREAKDOWN]")]
+    assert len(breakdown_lines) == 1, f"Expected exactly one breakdown line, got: {breakdown_lines}"
+
+    # The breakdown is global (not bank-scoped), so other rows in the table may
+    # contribute. Parse the per-op_type buckets from the line and assert that
+    # our additions appear (>= 1 for each bucket we populated).
+    line = breakdown_lines[0]
+    buckets: dict[str, dict[str, int]] = {}
+    for section in line.removeprefix("[PENDING_BREAKDOWN]").split("|"):
+        section = section.strip()
+        if ":" not in section:
+            continue
+        op_type, fields = section.split(":", 1)
+        kv = {}
+        for token in fields.strip().split():
+            k, _, v = token.partition("=")
+            kv[k] = int(v)
+        buckets[op_type.strip()] = kv
+
+    assert buckets["batch_retain"]["payload_null"] >= 1
+    assert buckets["retain"]["retry_blocked"] >= 1
+    assert buckets["retain"]["assigned"] >= 1
+    assert buckets["retain"]["claimable"] >= 1
+    assert buckets["consolidation"]["claimable"] >= 1
 
 
 class TestMarkFailedParentPropagation:

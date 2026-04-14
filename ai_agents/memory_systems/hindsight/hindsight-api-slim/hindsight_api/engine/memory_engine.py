@@ -24,7 +24,13 @@ import asyncpg
 import httpx
 import tiktoken
 
-from ..config import DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS, get_config
+from ..config import (
+    DEFAULT_RECALL_CHUNKS_MAX_TOKENS,
+    DEFAULT_RECALL_INCLUDE_CHUNKS,
+    DEFAULT_RECALL_MAX_TOKENS,
+    DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS,
+    get_config,
+)
 from ..metrics import get_metrics_collector
 from ..tracing import create_operation_span
 from ..utils import mask_network_location
@@ -952,6 +958,9 @@ class MemoryEngine(MemoryEngineInterface):
         fact_types = trigger_data.get("fact_types")
         exclude_mental_models = trigger_data.get("exclude_mental_models", False)
         stored_exclude_ids: list[str] = trigger_data.get("exclude_mental_model_ids") or []
+        recall_include_chunks_override = trigger_data.get("include_chunks")
+        recall_max_tokens_override = trigger_data.get("recall_max_tokens")
+        recall_chunks_max_tokens_override = trigger_data.get("recall_chunks_max_tokens")
 
         tag_filtering = _resolve_refresh_tag_filtering(mental_model.get("tags"), trigger_data)
 
@@ -967,6 +976,9 @@ class MemoryEngine(MemoryEngineInterface):
             fact_types=fact_types,
             exclude_mental_models=exclude_mental_models,
             exclude_mental_model_ids=list({*stored_exclude_ids, mental_model_id}),
+            recall_include_chunks=recall_include_chunks_override,
+            recall_max_tokens_override=recall_max_tokens_override,
+            recall_chunks_max_tokens_override=recall_chunks_max_tokens_override,
         )
 
         generated_content = reflect_result.text or "No content generated"
@@ -5399,6 +5411,9 @@ class MemoryEngine(MemoryEngineInterface):
         exclude_mental_model_ids: list[str] | None = None,
         fact_types: list[str] | None = None,
         exclude_mental_models: bool = False,
+        recall_include_chunks: bool | None = None,
+        recall_max_tokens_override: int | None = None,
+        recall_chunks_max_tokens_override: int | None = None,
         _skip_span: bool = False,
     ) -> ReflectResult:
         """
@@ -5521,6 +5536,23 @@ class MemoryEngine(MemoryEngineInterface):
             "reflect_source_facts_max_tokens", DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS
         )
 
+        # Resolve recall overrides: caller arg (e.g. mental model trigger) → bank config → env default
+        effective_recall_include_chunks = (
+            recall_include_chunks
+            if recall_include_chunks is not None
+            else config_dict.get("recall_include_chunks", DEFAULT_RECALL_INCLUDE_CHUNKS)
+        )
+        effective_recall_max_tokens = (
+            recall_max_tokens_override
+            if recall_max_tokens_override is not None
+            else config_dict.get("recall_max_tokens", DEFAULT_RECALL_MAX_TOKENS)
+        )
+        effective_recall_chunks_max_tokens = (
+            recall_chunks_max_tokens_override
+            if recall_chunks_max_tokens_override is not None
+            else config_dict.get("recall_chunks_max_tokens", DEFAULT_RECALL_CHUNKS_MAX_TOKENS)
+        )
+
         async def search_observations_fn(q: str, max_tokens: int = 5000) -> dict[str, Any]:
             return await tool_search_observations(
                 self,
@@ -5541,7 +5573,14 @@ class MemoryEngine(MemoryEngineInterface):
         recall_fact_types = [ft for ft in (fact_types or ["world", "experience"]) if ft in ("world", "experience")]
         include_recall = bool(recall_fact_types)
 
-        async def recall_fn(q: str, max_tokens: int = 4096, max_chunk_tokens: int = 1000) -> dict[str, Any]:
+        # Defaults are bound at closure-definition time (re-evaluated on each
+        # reflect_async call), so per-bank/per-trigger overrides apply when the
+        # agent invokes recall without explicit token args.
+        async def recall_fn(
+            q: str,
+            max_tokens: int = effective_recall_max_tokens,
+            max_chunk_tokens: int = effective_recall_chunks_max_tokens,
+        ) -> dict[str, Any]:
             return await tool_recall(
                 self,
                 bank_id,
@@ -5553,6 +5592,7 @@ class MemoryEngine(MemoryEngineInterface):
                 tag_groups=tag_groups,
                 max_chunk_tokens=max_chunk_tokens,
                 fact_types=recall_fact_types if fact_types is not None else None,
+                include_chunks=effective_recall_include_chunks,
             )
 
         async def expand_fn(memory_ids: list[str], depth: str) -> dict[str, Any]:
@@ -6770,6 +6810,9 @@ class MemoryEngine(MemoryEngineInterface):
             fact_types = trigger_data.get("fact_types")
             exclude_mental_models = trigger_data.get("exclude_mental_models", False)
             stored_exclude_ids: list[str] = trigger_data.get("exclude_mental_model_ids") or []
+            recall_include_chunks_override = trigger_data.get("include_chunks")
+            recall_max_tokens_override = trigger_data.get("recall_max_tokens")
+            recall_chunks_max_tokens_override = trigger_data.get("recall_chunks_max_tokens")
 
             tag_filtering = _resolve_refresh_tag_filtering(mental_model.get("tags"), trigger_data)
 
@@ -6785,6 +6828,9 @@ class MemoryEngine(MemoryEngineInterface):
                 fact_types=fact_types,
                 exclude_mental_models=exclude_mental_models,
                 exclude_mental_model_ids=list({*stored_exclude_ids, mental_model_id}),
+                recall_include_chunks=recall_include_chunks_override,
+                recall_max_tokens_override=recall_max_tokens_override,
+                recall_chunks_max_tokens_override=recall_chunks_max_tokens_override,
                 _skip_span=True,
             )
 
@@ -7433,6 +7479,7 @@ class MemoryEngine(MemoryEngineInterface):
         operation_id: str,
         *,
         request_context: "RequestContext",
+        include_payload: bool = False,
     ) -> dict[str, Any]:
         """Get the status of a specific async operation.
 
@@ -7455,9 +7502,10 @@ class MemoryEngine(MemoryEngineInterface):
         op_uuid = uuid.UUID(operation_id)
 
         async with acquire_with_retry(pool) as conn:
+            payload_column = ", task_payload" if include_payload else ""
             row = await conn.fetchrow(
                 f"""
-                SELECT operation_id, operation_type, created_at, updated_at, completed_at, status, error_message, result_metadata
+                SELECT operation_id, operation_type, created_at, updated_at, completed_at, status, error_message, result_metadata{payload_column}
                 FROM {fq_table("async_operations")}
                 WHERE operation_id = $1 AND bank_id = $2
                 """,
@@ -7469,6 +7517,7 @@ class MemoryEngine(MemoryEngineInterface):
                 # Check if this is a parent operation
                 result_metadata = json.loads(row["result_metadata"]) if row["result_metadata"] else {}
                 is_parent = result_metadata.get("is_parent", False)
+                task_payload = json.loads(row["task_payload"]) if include_payload and row["task_payload"] else None
 
                 # Use status from database (parent status is updated when all children complete/fail)
                 db_status = row["status"]
@@ -7545,6 +7594,7 @@ class MemoryEngine(MemoryEngineInterface):
                         "error_message": row["error_message"],
                         "result_metadata": result_metadata,
                         "child_operations": child_statuses,
+                        "task_payload": task_payload,
                     }
                 else:
                     # Regular operation (not a parent)
@@ -7557,6 +7607,7 @@ class MemoryEngine(MemoryEngineInterface):
                         "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
                         "error_message": row["error_message"],
                         "result_metadata": result_metadata,
+                        "task_payload": task_payload,
                     }
             else:
                 # Operation not found

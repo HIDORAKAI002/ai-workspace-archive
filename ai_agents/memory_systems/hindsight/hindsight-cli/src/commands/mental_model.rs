@@ -124,6 +124,9 @@ pub fn create(
             fact_types: None,
             tag_groups: None,
             tags_match: None,
+            include_chunks: None,
+            recall_max_tokens: None,
+            recall_chunks_max_tokens: None,
         })
     } else {
         None
@@ -198,6 +201,9 @@ pub fn update(
         fact_types: None,
         tag_groups: None,
         tags_match: None,
+        include_chunks: None,
+        recall_max_tokens: None,
+        recall_chunks_max_tokens: None,
     });
 
     let request = types::UpdateMentalModelRequest {

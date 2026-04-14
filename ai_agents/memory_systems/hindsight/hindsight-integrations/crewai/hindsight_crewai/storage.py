@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from importlib import metadata
 from typing import Any, Callable
 
 from crewai.memory.storage.interface import Storage
@@ -17,6 +18,12 @@ from .config import get_config
 from .errors import HindsightError
 
 logger = logging.getLogger(__name__)
+
+try:
+    _VERSION = metadata.version("hindsight-crewai")
+except metadata.PackageNotFoundError:
+    _VERSION = "0.0.0"
+_USER_AGENT = f"hindsight-crewai/{_VERSION}"
 
 
 class HindsightStorage(Storage):
@@ -110,6 +117,7 @@ class HindsightStorage(Storage):
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
+                user_agent=_USER_AGENT,
             )
             self._local.client = client
         return client
