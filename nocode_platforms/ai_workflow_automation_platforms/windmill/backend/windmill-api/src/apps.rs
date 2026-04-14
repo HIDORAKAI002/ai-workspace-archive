@@ -767,7 +767,7 @@ async fn custom_path_exists(
     Extension(db): Extension<DB>,
     Path((w_id, custom_path)): Path<(String, String)>,
 ) -> JsonResult<bool> {
-    let as_workspaced_route = *APP_WORKSPACED_ROUTE.read().await;
+    let as_workspaced_route = APP_WORKSPACED_ROUTE.load(std::sync::atomic::Ordering::Relaxed);
 
     let exists =
         sqlx::query_scalar!(
@@ -1275,7 +1275,7 @@ async fn create_app_internal<'a>(
     }
     if let Some(custom_path) = &app.custom_path {
         require_admin(authed.is_admin, &authed.username)?;
-        let as_workspaced_route = *APP_WORKSPACED_ROUTE.read().await;
+        let as_workspaced_route = APP_WORKSPACED_ROUTE.load(std::sync::atomic::Ordering::Relaxed);
 
         let exists = sqlx::query_scalar!(
             "SELECT EXISTS(SELECT 1 FROM app WHERE custom_path = $1 AND ($2::TEXT IS NULL OR workspace_id = $2))",
@@ -1410,7 +1410,7 @@ async fn create_app_internal<'a>(
 async fn list_hub_apps(Extension(db): Extension<DB>) -> impl IntoResponse {
     let (status_code, headers, body) = query_elems_from_hub(
         &HTTP_CLIENT,
-        &format!("{}/searchUiData?approved=true", *HUB_BASE_URL.read().await),
+        &format!("{}/searchUiData?approved=true", **HUB_BASE_URL.load()),
         None,
         &db,
     )
@@ -1424,7 +1424,7 @@ pub async fn get_hub_app_by_id(
 ) -> JsonResult<Box<serde_json::value::RawValue>> {
     let value = http_get_from_hub(
         &HTTP_CLIENT,
-        &format!("{}/apps/{}/json", *HUB_BASE_URL.read().await, id),
+        &format!("{}/apps/{}/json", **HUB_BASE_URL.load(), id),
         false,
         None,
         Some(&db),
@@ -1442,7 +1442,7 @@ pub async fn get_hub_raw_app_by_id(
 ) -> JsonResult<Box<serde_json::value::RawValue>> {
     let value = http_get_from_hub(
         &HTTP_CLIENT,
-        &format!("{}/raw_apps/{}/json", *HUB_BASE_URL.read().await, id),
+        &format!("{}/raw_apps/{}/json", **HUB_BASE_URL.load(), id),
         false,
         None,
         Some(&db),
@@ -1772,7 +1772,7 @@ async fn update_app_internal<'a>(
 
         if let Some(ncustom_path) = &ns.custom_path {
             require_admin(authed.is_admin, &authed.username)?;
-            let as_workspaced_route = *APP_WORKSPACED_ROUTE.read().await;
+            let as_workspaced_route = APP_WORKSPACED_ROUTE.load(std::sync::atomic::Ordering::Relaxed);
 
             if ncustom_path.is_empty() {
                 sqlb.set("custom_path", "NULL");

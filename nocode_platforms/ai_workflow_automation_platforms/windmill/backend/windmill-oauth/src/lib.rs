@@ -16,7 +16,6 @@
 
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
 
 use anyhow::anyhow;
 use base64::Engine;
@@ -24,7 +23,6 @@ use hmac::Mac;
 use itertools::Itertools;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
-use tokio::sync::RwLock;
 use tower_cookies::{Cookie, Cookies};
 use windmill_common::error::{self, to_anyhow, Error};
 use windmill_common::more_serde::maybe_number_opt;
@@ -54,11 +52,11 @@ lazy_static::lazy_static! {
         .build()
         .expect("Failed to create OAuth HTTP client");
 
-    pub static ref OAUTH_CLIENTS: Arc<RwLock<AllClients>> = Arc::new(RwLock::new(AllClients {
+    pub static ref OAUTH_CLIENTS: arc_swap::ArcSwap<AllClients> = arc_swap::ArcSwap::from_pointee(AllClients {
         logins: HashMap::new(),
         connects: HashMap::new(),
         slack: None
-    }));
+    });
 }
 
 /// OAuth client with associated scopes and configuration
@@ -407,7 +405,7 @@ pub async fn build_slack_client(
     let token_url = Url::parse("https://slack.com/api/oauth.access")
         .map_err(|e| anyhow!("Invalid Slack token URL: {e}"))?;
 
-    let base_url = BASE_URL.read().await.clone();
+    let base_url = (**BASE_URL.load()).clone();
     let redirect_url = format!("{}/oauth/callback_slack", base_url);
 
     let mut client = OClient::new(client_id.to_string(), auth_url, token_url);
@@ -488,7 +486,7 @@ pub async fn build_client_credentials_oauth_client(
         tenant: oauth_client_config.tenant.clone(),
     };
 
-    let base_url = BASE_URL.read().await.clone();
+    let base_url = (**BASE_URL.load()).clone();
     let (_, client) = build_basic_client(
         client_name.to_string(),
         connect_config,
