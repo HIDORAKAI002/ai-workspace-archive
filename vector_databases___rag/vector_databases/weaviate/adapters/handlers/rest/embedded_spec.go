@@ -48,7 +48,7 @@ func init() {
       "url": "https://github.com/weaviate",
       "email": "hello@weaviate.io"
     },
-    "version": "1.37.0-rc.0"
+    "version": "1.37.0-rc.1"
   },
   "basePath": "/v1",
   "paths": {
@@ -2523,12 +2523,6 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "Optional path prefix within the bucket. If not specified, uses the backend's default path.",
-            "name": "path",
-            "in": "query"
           }
         ],
         "responses": {
@@ -2591,12 +2585,6 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "Optional path prefix within the bucket.",
-            "name": "path",
-            "in": "query"
           }
         ],
         "responses": {
@@ -7654,16 +7642,6 @@ func init() {
         "file_format"
       ],
       "properties": {
-        "config": {
-          "description": "Backend-specific configuration",
-          "type": "object",
-          "properties": {
-            "path": {
-              "description": "Path prefix within the bucket or filesystem",
-              "type": "string"
-            }
-          }
-        },
         "exclude": {
           "description": "List of collection names to exclude from the export. Cannot be used with 'include'.",
           "type": "array",
@@ -10170,7 +10148,7 @@ func init() {
       "url": "https://github.com/weaviate",
       "email": "hello@weaviate.io"
     },
-    "version": "1.37.0-rc.0"
+    "version": "1.37.0-rc.1"
   },
   "basePath": "/v1",
   "paths": {
@@ -12633,12 +12611,6 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "Optional path prefix within the bucket. If not specified, uses the backend's default path.",
-            "name": "path",
-            "in": "query"
           }
         ],
         "responses": {
@@ -12701,12 +12673,6 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "Optional path prefix within the bucket.",
-            "name": "path",
-            "in": "query"
           }
         ],
         "responses": {
@@ -18026,16 +17992,6 @@ func init() {
         "file_format"
       ],
       "properties": {
-        "config": {
-          "description": "Backend-specific configuration",
-          "type": "object",
-          "properties": {
-            "path": {
-              "description": "Path prefix within the bucket or filesystem",
-              "type": "string"
-            }
-          }
-        },
         "exclude": {
           "description": "List of collection names to exclude from the export. Cannot be used with 'include'.",
           "type": "array",
@@ -18060,16 +18016,6 @@ func init() {
           "items": {
             "type": "string"
           }
-        }
-      }
-    },
-    "ExportCreateRequestConfig": {
-      "description": "Backend-specific configuration",
-      "type": "object",
-      "properties": {
-        "path": {
-          "description": "Path prefix within the bucket or filesystem",
-          "type": "string"
         }
       }
     },

@@ -63,6 +63,7 @@ type WeaviateRuntimeConfig struct {
 	// Export settings
 	ExportEnabled       *runtime.DynamicValue[bool]   `json:"export_enabled" yaml:"export_enabled"`
 	ExportDefaultBucket *runtime.DynamicValue[string] `json:"export_default_bucket" yaml:"export_default_bucket"`
+	ExportDefaultPath   *runtime.DynamicValue[string] `json:"export_default_path" yaml:"export_default_path"`
 	ExportParallelism   *runtime.DynamicValue[int]    `json:"export_parallelism" yaml:"export_parallelism"`
 
 	// RAFT specific configs
