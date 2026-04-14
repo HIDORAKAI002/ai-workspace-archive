@@ -201,7 +201,7 @@ pub async fn uv_pip_compile(
     logs.push_str(&format!("\ncontent of requirements:\n{}\n", requirements));
 
     let requirements = if let Some(pip_local_dependencies) =
-        WORKER_CONFIG.read().await.pip_local_dependencies.as_ref()
+        WORKER_CONFIG.load().pip_local_dependencies.as_ref()
     {
         let deps = pip_local_dependencies.clone();
         let compiled_deps = deps.iter().map(|dep| {
@@ -1699,12 +1699,10 @@ pub(crate) async fn handle_python_deps(
     create_dependencies_dir(job_dir).await;
 
     let mut additional_python_paths: Vec<String> = WORKER_CONFIG
-        .read()
-        .await
+        .load()
         .additional_python_paths
         .clone()
-        .unwrap_or_else(|| vec![])
-        .clone();
+        .unwrap_or_else(|| vec![]);
 
     let (pyv, resolved_lines) = match requirements_o {
         // Deployed

@@ -84,6 +84,7 @@ export function useAgentChat({
                     messageId,
                     systemPrompt: store.getState().systemPrompt,
                     sessionId,
+                    capabilities: store.getState().capabilities,
                   }),
                 }),
               }),

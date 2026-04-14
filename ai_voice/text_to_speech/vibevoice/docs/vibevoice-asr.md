@@ -10,6 +10,7 @@
 **Report:** [VibeVoice-ASR-Report](https://arxiv.org/pdf/2601.18184)<br>
 **Finetuning:** [finetune-guide](../finetuning-asr/README.md)<br>
 **vLLM:** [vLLM-asr](./vibevoice-vllm-asr.md)<br>
+**Transformers:** [VibeVoice-ASR-HF](https://huggingface.co/microsoft/VibeVoice-ASR-HF)<br>
 
 
 ## 🔥 Key Features
@@ -51,7 +52,7 @@ https://github.com/user-attachments/assets/acde5602-dc17-4314-9e3b-c630bc84aefa
 
 
 ## Installation
-We recommend to use NVIDIA Deep Learning Container to manage the CUDA environment. 
+We recommend using NVIDIA Deep Learning Container to manage the CUDA environment. 
 
 1. Launch docker
 ```bash

@@ -15,199 +15,10 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
-import { chromium } from 'playwright';
-import { spawn } from 'child_process';
-import { test as base, expect } from '../../playwright-mcp/tests/fixtures';
+import { test, testWithOldExtensionVersion, expect, extensionId, startWithExtensionFlag } from './extension-fixtures';
 
-import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import type { BrowserContext } from 'playwright';
-import type { StartClient } from '../../playwright-mcp/tests/fixtures';
-
-type BrowserWithExtension = {
-  userDataDir: string;
-  launch: (mode?: 'disable-extension') => Promise<BrowserContext>;
-};
-
-type CliResult = {
-  output: string;
-  error: string;
-};
-
-type TestFixtures = {
-  browserWithExtension: BrowserWithExtension,
-  pathToExtension: string,
-  useShortConnectionTimeout: (timeoutMs: number) => void
-  overrideProtocolVersion: (version: number) => void
-  cli: (...args: string[]) => Promise<CliResult>;
-};
-
-const extensionPublicKey = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwRsUUO4mmbCi4JpmrIoIw31iVW9+xUJRZ6nSzya17PQkaUPDxe1IpgM+vpd/xB6mJWlJSyE1Lj95c0sbomGfVY1M0zUeKbaRVcAb+/a6m59gNR+ubFlmTX0nK9/8fE2FpRB9D+4N5jyeIPQuASW/0oswI2/ijK7hH5NTRX8gWc/ROMSgUj7rKhTAgBrICt/NsStgDPsxRTPPJnhJ/ViJtM1P5KsSYswE987DPoFnpmkFpq8g1ae0eYbQfXy55ieaacC4QWyJPj3daU2kMfBQw7MXnnk0H/WDxouMOIHnd8MlQxpEMqAihj7KpuONH+MUhuj9HEQo4df6bSaIuQ0b4QIDAQAB';
-const extensionId = 'mmlmfjhmonkocbjadbfplnigmagldckm';
-
-const test = base.extend<TestFixtures>({
-  pathToExtension: async ({}, use, testInfo) => {
-    const extensionDir = testInfo.outputPath('extension');
-    const srcDir = path.resolve(__dirname, '../dist');
-    await fs.cp(srcDir, extensionDir, { recursive: true });
-    const manifestPath = path.join(extensionDir, 'manifest.json');
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-    // We don't hardcode the key in manifest, but for the tests we set the key field
-    // to ensure that locally installed extension has the same id as the one published
-    // in the store.
-    manifest.key = extensionPublicKey;
-    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-    await use(extensionDir);
-  },
-
-  browserWithExtension: async ({ mcpBrowser, pathToExtension }, use, testInfo) => {
-    // The flags no longer work in Chrome since
-    // https://chromium.googlesource.com/chromium/src/+/290ed8046692651ce76088914750cb659b65fb17%5E%21/chrome/browser/extensions/extension_service.cc?pli=1#
-    test.skip('chromium' !== mcpBrowser, '--load-extension is not supported for official builds of Chromium');
-
-    let browserContext: BrowserContext | undefined;
-    const userDataDir = testInfo.outputPath('extension-user-data-dir');
-    await use({
-      userDataDir,
-      launch: async (mode?: 'disable-extension') => {
-        browserContext = await chromium.launchPersistentContext(userDataDir, {
-          channel: mcpBrowser,
-          // Opening the browser singleton only works in headed.
-          headless: false,
-          // Automation disables singleton browser process behavior, which is necessary for the extension.
-          ignoreDefaultArgs: ['--enable-automation'],
-          args: mode === 'disable-extension' ? [] : [
-            `--disable-extensions-except=${pathToExtension}`,
-            `--load-extension=${pathToExtension}`,
-          ],
-        });
-
-        // for manifest v3:
-        let [serviceWorker] = browserContext.serviceWorkers();
-        if (!serviceWorker)
-          serviceWorker = await browserContext.waitForEvent('serviceworker');
-
-        return browserContext;
-      }
-    });
-    await browserContext?.close();
-
-    // Free up disk space.
-    await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
-  },
-
-  useShortConnectionTimeout: async ({}, use) => {
-    await use((timeoutMs: number) => {
-      process.env.PWMCP_TEST_CONNECTION_TIMEOUT = timeoutMs.toString();
-    });
-    delete process.env.PWMCP_TEST_CONNECTION_TIMEOUT;
-  },
-
-  overrideProtocolVersion: async ({}, use) => {
-    await use((version: number) => {
-      process.env.PWMCP_TEST_PROTOCOL_VERSION = version.toString();
-    });
-    delete process.env.PWMCP_TEST_PROTOCOL_VERSION;
-  },
-
-  cli: async ({ mcpBrowser }, use, testInfo) => {
-    await use(async (...args: string[]) => {
-      return await runCli(args, { mcpBrowser, testInfo });
-    });
-
-    // Cleanup sessions
-    await runCli(['close-all'], { mcpBrowser, testInfo }).catch(() => {});
-
-    const daemonDir = path.join(testInfo.outputDir, 'daemon');
-    await fs.rm(daemonDir, { recursive: true, force: true }).catch(() => {});
-  },
-});
-
-function cliEnv() {
-  return {
-    PLAYWRIGHT_SERVER_REGISTRY: test.info().outputPath('registry'),
-    PLAYWRIGHT_DAEMON_SESSION_DIR: test.info().outputPath('daemon'),
-    PLAYWRIGHT_SOCKETS_DIR: path.join(test.info().project.outputDir, 'ds', String(test.info().parallelIndex)),
-  };
-}
-
-async function runCli(
-  args: string[],
-  options: { mcpBrowser?: string, testInfo: any },
-): Promise<CliResult> {
-  const stepTitle = `cli ${args.join(' ')}`;
-
-  return await test.step(stepTitle, async () => {
-    const testInfo = options.testInfo;
-
-    // Path to the terminal CLI
-    const cliPath = path.join(__dirname, '../../../node_modules/playwright-core/lib/tools/cli-client/cli.js');
-
-    return new Promise<CliResult>((resolve, reject) => {
-      let stdout = '';
-      let stderr = '';
-
-      const childProcess = spawn(process.execPath, [cliPath, ...args], {
-        cwd: testInfo.outputPath(),
-        env: {
-          ...process.env,
-          ...cliEnv(),
-          PLAYWRIGHT_MCP_BROWSER: options.mcpBrowser,
-          PLAYWRIGHT_MCP_HEADLESS: 'false',
-        },
-        detached: true,
-      });
-
-      childProcess.stdout?.on('data', (data) => {
-        stdout += data.toString();
-      });
-
-      childProcess.stderr?.on('data', (data) => {
-        if (process.env.PWMCP_DEBUG)
-          process.stderr.write(data);
-        stderr += data.toString();
-      });
-
-      childProcess.on('close', async (code) => {
-        await testInfo.attach(stepTitle, { body: stdout, contentType: 'text/plain' });
-        resolve({
-          output: stdout.trim(),
-          error: stderr.trim(),
-        });
-      });
-
-      childProcess.on('error', reject);
-    });
-  });
-}
-
-async function startWithExtensionFlag(browserWithExtension: BrowserWithExtension, startClient: StartClient): Promise<Client> {
-  const { client } = await startClient({
-    args: [`--extension`],
-    config: {
-      browser: {
-        userDataDir: browserWithExtension.userDataDir,
-      }
-    },
-  });
-  return client;
-}
-
-const testWithOldExtensionVersion = test.extend({
-  pathToExtension: async ({ pathToExtension }, use, testInfo) => {
-    const manifestPath = path.join(pathToExtension, 'manifest.json');
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-    manifest.key = extensionPublicKey;
-    manifest.version = '0.0.1';
-    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-    await use(pathToExtension);
-  },
-});
-
-test(`navigate with extension`, async ({ browserWithExtension, startClient, server }) => {
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+test(`navigate with extension`, async ({ startExtensionClient, server }) => {
+  const { browserContext, client } = await startExtensionClient();
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -226,11 +37,27 @@ test(`navigate with extension`, async ({ browserWithExtension, startClient, serv
   });
 });
 
-test(`browser_tabs new creates a new tab`, async ({ browserWithExtension, startClient, server }) => {
-  server.setContent('/second.html', '<title>Second</title><body>Second page<body>', 'text/html');
-  const browserContext = await browserWithExtension.launch();
+test(`connect.html protocolVersion search param matches fixture option`, async ({ startExtensionClient, server, protocolVersion }) => {
+  const { browserContext, client } = await startExtensionClient();
 
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const confirmationPagePromise = browserContext.waitForEvent('page', page => {
+    return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
+  });
+
+  client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  }).catch(() => {});
+
+  const selectorPage = await confirmationPagePromise;
+  const url = new URL(selectorPage.url());
+  expect(url.searchParams.get('protocolVersion')).toBe(String(protocolVersion));
+});
+
+test(`browser_tabs new creates a new tab`, async ({ startExtensionClient, server, protocolVersion }) => {
+  test.skip(protocolVersion === 1, 'Multi-tab not supported in protocol v1');
+  server.setContent('/second.html', '<title>Second</title><body>Second page<body>', 'text/html');
+  const { browserContext, client } = await startExtensionClient();
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -269,12 +96,11 @@ test(`browser_tabs new creates a new tab`, async ({ browserWithExtension, startC
   });
 });
 
-test(`cmd+click opens new tab visible in tab list`, async ({ browserWithExtension, startClient, server }) => {
+test(`cmd+click opens new tab visible in tab list`, async ({ startExtensionClient, server, protocolVersion }) => {
+  test.skip(protocolVersion === 1, 'Multi-tab not supported in protocol v1');
   server.setContent('/link-page', '<title>LinkPage</title><body><a href="/target-page">click me</a></body>', 'text/html');
   server.setContent('/target-page', '<title>TargetPage</title><body>Target content</body>', 'text/html');
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const { browserContext, client } = await startExtensionClient();
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -317,12 +143,11 @@ test(`cmd+click opens new tab visible in tab list`, async ({ browserWithExtensio
   });
 });
 
-test(`window.open from tracked tab auto-attaches new tab`, async ({ browserWithExtension, startClient, server }) => {
+test(`window.open from tracked tab auto-attaches new tab`, async ({ startExtensionClient, server, protocolVersion }) => {
+  test.skip(protocolVersion === 1, 'Multi-tab not supported in protocol v1');
   server.setContent('/opener-page', `<title>Opener</title><body><button onclick="window.open('${server.PREFIX}opened-page', '_blank', 'noopener')">open</button></body>`, 'text/html');
   server.setContent('/opened-page', '<title>Opened</title><body>Opened content</body>', 'text/html');
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const { browserContext, client } = await startExtensionClient();
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -365,7 +190,8 @@ test(`window.open from tracked tab auto-attaches new tab`, async ({ browserWithE
   });
 });
 
-test(`browser_run_code can evaluate in a web worker`, async ({ browserWithExtension, startClient, server }) => {
+test(`browser_run_code can evaluate in a web worker`, async ({ startExtensionClient, server, protocolVersion }) => {
+  test.skip(protocolVersion === 1, 'Multi-tab not supported in protocol v1');
   server.setContent('/worker.js', `
     self.onmessage = (e) => self.postMessage('echo:' + e.data);
     self.workerName = 'mcp-worker';
@@ -379,9 +205,7 @@ test(`browser_run_code can evaluate in a web worker`, async ({ browserWithExtens
     </body>
   `, 'text/html');
 
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const { browserContext, client } = await startExtensionClient();
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -481,12 +305,8 @@ test(`snapshot of an existing page`, async ({ browserWithExtension, startClient,
   expect(browserContext.pages()).toHaveLength(4);
 });
 
-test(`extension not installed timeout`, async ({ browserWithExtension, startClient, server, useShortConnectionTimeout }) => {
-  useShortConnectionTimeout(100);
-
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+test(`extension not installed timeout`, async ({ startExtensionClient, server }) => {
+  const { browserContext, client } = await startExtensionClient({ PWMCP_TEST_CONNECTION_TIMEOUT: '100' });
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -503,13 +323,9 @@ test(`extension not installed timeout`, async ({ browserWithExtension, startClie
   await confirmationPagePromise;
 });
 
-testWithOldExtensionVersion(`works with old extension version`, async ({ browserWithExtension, startClient, server, useShortConnectionTimeout }) => {
-  useShortConnectionTimeout(500);
-
+testWithOldExtensionVersion(`works with old extension version`, async ({ startExtensionClient, server }) => {
   // Prelaunch the browser, so that it is properly closed after the test.
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const { browserContext, client } = await startExtensionClient({ PWMCP_TEST_CONNECTION_TIMEOUT: '500' });
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -528,14 +344,9 @@ testWithOldExtensionVersion(`works with old extension version`, async ({ browser
   });
 });
 
-test(`extension needs update`, async ({ browserWithExtension, startClient, server, useShortConnectionTimeout, overrideProtocolVersion }) => {
-  useShortConnectionTimeout(500);
-  overrideProtocolVersion(1000);
-
+test(`extension needs update`, async ({ startExtensionClient, server }) => {
   // Prelaunch the browser, so that it is properly closed after the test.
-  const browserContext = await browserWithExtension.launch();
-
-  const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  const { browserContext, client } = await startExtensionClient({ PWMCP_TEST_CONNECTION_TIMEOUT: '500', PLAYWRIGHT_EXTENSION_PROTOCOL: '1000' });
 
   const confirmationPagePromise = browserContext.waitForEvent('page', page => {
     return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
@@ -555,14 +366,13 @@ test(`extension needs update`, async ({ browserWithExtension, startClient, serve
   });
 });
 
-test(`custom executablePath`, async ({ startClient, server, useShortConnectionTimeout }) => {
-  useShortConnectionTimeout(1000);
-
+test(`custom executablePath`, async ({ startClient, server }) => {
   const executablePath = test.info().outputPath('echo.sh');
   await fs.writeFile(executablePath, '#!/bin/bash\necho "Custom exec args: $@" > "$(dirname "$0")/output.txt"', { mode: 0o755 });
 
   const { client } = await startClient({
     args: [`--extension`],
+    env: { PWMCP_TEST_CONNECTION_TIMEOUT: '1000' },
     config: {
       browser: {
         launchOptions: {
@@ -593,11 +403,13 @@ test(`bypass connection dialog with token`, async ({ browserWithExtension, start
 
   const { client } = await startClient({
     args: [`--extension`],
-    extensionToken: value,
     config: {
       browser: {
         userDataDir: browserWithExtension.userDataDir,
       }
+    },
+    env: {
+      PLAYWRIGHT_MCP_EXTENSION_TOKEN: value,
     },
   });
 
@@ -612,9 +424,8 @@ test(`bypass connection dialog with token`, async ({ browserWithExtension, start
 });
 
 test.describe('tab grouping', () => {
-  test('connect page is added to green Playwright group on relay connect', async ({ browserWithExtension, startClient, server }) => {
-    const browserContext = await browserWithExtension.launch();
-    const client = await startWithExtensionFlag(browserWithExtension, startClient);
+  test('connect page is added to green Playwright group on relay connect', async ({ startExtensionClient, server }) => {
+    const { browserContext, client } = await startExtensionClient();
 
     const connectPagePromise = browserContext.waitForEvent('page', page =>
       page.url().startsWith(`chrome-extension://${extensionId}/connect.html`)

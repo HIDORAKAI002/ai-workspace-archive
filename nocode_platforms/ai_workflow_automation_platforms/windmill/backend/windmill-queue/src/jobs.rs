@@ -1188,7 +1188,7 @@ async fn commit_completed_job<T: Serialize + Send + Sync + ValidableJson>(
                 {
                     if !success {
                         tracing::error!("Could not apply schedule error handler: {}", err);
-                        let base_url = windmill_common::BASE_URL.read().await;
+                        let base_url = windmill_common::BASE_URL.load();
                         let w_id: &String = &completed_job.workspace_id;
                         if !matches!(err, Error::QuotaExceeded(_)) {
                             report_error_to_workspace_handler_or_critical_side_channel(
@@ -3480,7 +3480,7 @@ async fn pull_single_job_and_mark_as_running_no_concurrency_limit<'c>(
          *   suspend_until is non-null
          *   and suspend = 0 when the resume messages are received
          *   or suspend_until <= now() if it has timed out */
-        let query = WORKER_SUSPENDED_PULL_QUERY.read().await;
+        let query = WORKER_SUSPENDED_PULL_QUERY.load();
 
         if query.is_empty() {
             tracing::warn!("No suspended pull queries available");
@@ -3502,7 +3502,7 @@ async fn pull_single_job_and_mark_as_running_no_concurrency_limit<'c>(
             // let instant = Instant::now();
             let mut highest_priority_job: Option<PulledJob> = None;
 
-            let queries = WORKER_PULL_QUERIES.read().await;
+            let queries = WORKER_PULL_QUERIES.load();
 
             if queries.is_empty() {
                 tracing::warn!("No pull queries available");

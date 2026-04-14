@@ -203,6 +203,13 @@ export interface SystemStatus {
   zenMode?: boolean;
 }
 
+export interface GlobalNavigationRef {
+  current: NavigateFunction | null;
+}
+
+/** Fresh ref object — use for store init and resets so `initialState` is not aliased by nested mutation. */
+export const createNavigationRef = (): GlobalNavigationRef => ({ current: null });
+
 export interface GlobalState {
   hasNewVersion?: boolean;
   initClientDBError?: Error;
@@ -225,7 +232,8 @@ export interface GlobalState {
   isServerVersionOutdated?: boolean;
   isStatusInit?: boolean;
   latestVersion?: string;
-  navigate?: NavigateFunction;
+  /** Imperative router navigate; see `NavigatorRegistrar` in `src/utils/router.tsx`. */
+  navigationRef: GlobalNavigationRef;
   /**
    * Server version number, used to detect client-server version consistency
    */
@@ -292,6 +300,7 @@ export const initialState: GlobalState = {
   initClientDBStage: DatabaseLoadingState.Idle,
   isMobile: false,
   isStatusInit: false,
+  navigationRef: createNavigationRef(),
   sidebarKey: SidebarTabKey.Chat,
   status: INITIAL_STATUS,
   statusStorage: new AsyncLocalStorage('LOBE_SYSTEM_STATUS'),
