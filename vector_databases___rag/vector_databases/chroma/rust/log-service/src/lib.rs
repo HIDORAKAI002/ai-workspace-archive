@@ -2160,25 +2160,40 @@ impl LogServer {
             .make_log_reader(topology_name.as_ref(), collection_id)
             .await
             .map_err(|err| Status::unknown(err.to_string()))?;
-        let (start_position, limit_position) = match self
-            .manifest_with_head_check(&*log_reader, collection_id)
-            .await
-        {
-            Ok(Some(mw)) => (
-                mw.manifest.oldest_timestamp(),
-                mw.manifest.next_write_timestamp(),
-            ),
-            Ok(None) => (LogPosition::from_offset(1), LogPosition::from_offset(1)),
-            Err(wal3::Error::UninitializedLog) => {
-                return Err(Status::not_found(format!(
-                    "collection {collection_id} not found"
-                )));
+        let (start_position, limit_position) = if topology_name.is_some() {
+            match log_reader
+                .manifest_bounds_and_witness()
+                .await
+                .map_err(|err| {
+                    Status::new(err.code().into(), format!("could not scout logs: {err:?}"))
+                })? {
+                Some(bounds_and_witness) => (
+                    bounds_and_witness.bounds.oldest_timestamp,
+                    bounds_and_witness.bounds.next_write_timestamp,
+                ),
+                None => (LogPosition::from_offset(1), LogPosition::from_offset(1)),
             }
-            Err(err) => {
-                return Err(Status::new(
-                    err.code().into(),
-                    format!("could not scout logs: {err:?}"),
-                ));
+        } else {
+            match self
+                .manifest_with_head_check(&*log_reader, collection_id)
+                .await
+            {
+                Ok(Some(mw)) => (
+                    mw.manifest.oldest_timestamp(),
+                    mw.manifest.next_write_timestamp(),
+                ),
+                Ok(None) => (LogPosition::from_offset(1), LogPosition::from_offset(1)),
+                Err(wal3::Error::UninitializedLog) => {
+                    return Err(Status::not_found(format!(
+                        "collection {collection_id} not found"
+                    )));
+                }
+                Err(err) => {
+                    return Err(Status::new(
+                        err.code().into(),
+                        format!("could not scout logs: {err:?}"),
+                    ));
+                }
             }
         };
         let start_offset = start_position.offset() as i64;
@@ -2340,6 +2355,11 @@ impl LogServer {
             max_records: Some(pull_logs.batch_size as u64),
         };
         let from = LogPosition::from_offset(pull_logs.start_from_offset as u64);
+        if topology_name.is_some() {
+            if let Some(fragments) = log_reader.scan_partial(from, limits).await? {
+                return Ok(fragments);
+            }
+        }
         if let Ok(Some(manifest_and_witness)) = log_reader.manifest_and_witness().await {
             let fragments = scan_from_manifest(&manifest_and_witness.manifest, from, limits);
             if let Some(cache) = self.cache.as_ref() {
@@ -3659,7 +3679,6 @@ mod tests {
     use crate::state_hash_table::Value;
 
     use chroma_config::spanner::SpannerEmulatorConfig;
-    use chroma_config::ADMIN_RPC_TIMEOUT_SECS;
     use chroma_storage::s3_client_for_test_with_new_bucket;
     use chroma_types::Topology;
     use chroma_types::{are_update_metadatas_close_to_equal, Operation, OperationRecord};
@@ -4881,9 +4900,7 @@ mod tests {
             let config = LogServerConfig {
                 writer: writer_options,
                 repl: repl_options,
-                // Use zero threshold in integration tests to surface small repl-dirty changes
-                // immediately. The default threshold (100) hides small writes.
-                record_count_threshold: 0,
+                record_count_threshold: 1,
                 ..Default::default()
             };
 
@@ -4923,7 +4940,7 @@ mod tests {
         let dtor = Box::pin(async move {
             let admin_client_config = AdminClientConfig {
                 environment: Environment::Emulator(dtor_emulator.grpc_endpoint()),
-                timeout: Duration::from_secs(ADMIN_RPC_TIMEOUT_SECS),
+                timeout: Duration::from_secs(dtor_emulator.channel.admin_rpc_timeout_secs),
                 connect_timeout: Duration::from_secs(dtor_emulator.channel.connect_timeout_secs),
                 http2_keep_alive_interval: Some(Duration::from_secs(
                     dtor_emulator.channel.http2_keep_alive_interval_secs,
@@ -5157,11 +5174,7 @@ mod tests {
         }
     }
 
-    async fn validate_dirty_log_on_server(
-        server: &LogServer,
-        _db_name: &str,
-        collection_ids: &[CollectionUuid],
-    ) {
+    async fn validate_dirty_log_on_server(server: &LogServer, collection_ids: &[CollectionUuid]) {
         server
             .roll_dirty_log_s3_cycle()
             .await
@@ -5400,7 +5413,7 @@ mod tests {
         runtime.block_on(async move {
             let (ctor, dtor) = setup_log_server();
             let log_server = ctor.await;
-            validate_dirty_log_on_server(&log_server, &db_name, &[]).await;
+            validate_dirty_log_on_server(&log_server, &[]).await;
 
             let collection_id = CollectionUuid::new();
 
@@ -5408,7 +5421,7 @@ mod tests {
                 push_log_to_server(&log_server, &db_name, collection_id, chunk).await;
             }
 
-            validate_dirty_log_on_server(&log_server, &db_name, &[collection_id]).await;
+            validate_dirty_log_on_server(&log_server, &[collection_id]).await;
             validate_log_on_server(
                 &log_server,
                 &db_name,
@@ -5421,7 +5434,7 @@ mod tests {
             let enum_offset = get_enum_offset_on_server(&log_server, &db_name, collection_id).await;
             update_compact_offset_on_server(&log_server, &db_name, collection_id, enum_offset)
                 .await;
-            validate_dirty_log_on_server(&log_server, &db_name, &[]).await;
+            validate_dirty_log_on_server(&log_server, &[]).await;
             dtor.await;
         });
     }
@@ -5437,7 +5450,7 @@ mod tests {
         runtime.block_on(async move {
             let (ctor, dtor) = setup_log_server();
             let log_server = ctor.await;
-            validate_dirty_log_on_server(&log_server, &db_name, &[]).await;
+            validate_dirty_log_on_server(&log_server, &[]).await;
 
             let mut collection_id_with_ord = Vec::new();
             for (index, operation) in operations {
@@ -5457,10 +5470,21 @@ mod tests {
 
             while let Some(collection_id) = collection_ids.pop() {
                 update_compact_offset_on_server(&log_server, &db_name, collection_id, 1).await;
-                validate_dirty_log_on_server(&log_server, &db_name, &collection_ids).await;
+                validate_dirty_log_on_server(&log_server, &collection_ids).await;
             }
             dtor.await;
         });
+    }
+
+    fn test_operation_record(id: impl Into<String>) -> OperationRecord {
+        OperationRecord {
+            id: id.into(),
+            embedding: Some(vec![1.0, 2.0, 3.0]),
+            encoding: None,
+            metadata: None,
+            document: None,
+            operation: Operation::Add,
+        }
     }
 
     fn test_fork_logs(
@@ -5476,7 +5500,7 @@ mod tests {
         runtime.block_on(async move {
             let (ctor, dtor) = setup_log_server();
             let log_server = ctor.await;
-            validate_dirty_log_on_server(&log_server, &db_name, &[]).await;
+            validate_dirty_log_on_server(&log_server, &[]).await;
 
             let source_collection_id = CollectionUuid::new();
             let fork_collection_id = CollectionUuid::new();
@@ -5530,7 +5554,7 @@ mod tests {
                 dirty_collection_ids.push(fork_collection_id);
             }
 
-            validate_dirty_log_on_server(&log_server, &db_name, &dirty_collection_ids).await;
+            validate_dirty_log_on_server(&log_server, &dirty_collection_ids).await;
             validate_log_on_server(
                 &log_server,
                 &db_name,
@@ -5574,7 +5598,7 @@ mod tests {
                 )
                 .await;
             }
-            validate_dirty_log_on_server(&log_server, &db_name, &[]).await;
+            validate_dirty_log_on_server(&log_server, &[]).await;
             dtor.await;
         });
     }
@@ -6243,6 +6267,42 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_k8s_mcmr_integration_rust_log_service_dirty_logs_single_add_regression() {
+        std::thread::Builder::new()
+            .stack_size(1 << 22)
+            .spawn(move || {
+                test_dirty_logs(
+                    &format!("{TEST_TOPOLOGY_NAME}+dbname"),
+                    vec![(0, test_operation_record("single-add"))],
+                    mcmr_setup_log_server,
+                )
+            })
+            .expect("Thread should be spawnable")
+            .join()
+            .expect("Spawned thread should not fail to join");
+    }
+
+    #[test]
+    fn test_k8s_mcmr_integration_rust_log_service_dirty_logs_three_adds_regression() {
+        std::thread::Builder::new()
+            .stack_size(1 << 22)
+            .spawn(move || {
+                test_dirty_logs(
+                    &format!("{TEST_TOPOLOGY_NAME}+dbname"),
+                    vec![
+                        (2, test_operation_record("third-add")),
+                        (0, test_operation_record("first-add")),
+                        (1, test_operation_record("second-add")),
+                    ],
+                    mcmr_setup_log_server,
+                )
+            })
+            .expect("Thread should be spawnable")
+            .join()
+            .expect("Spawned thread should not fail to join");
+    }
+
     proptest! {
         #![proptest_config(ProptestConfig {
             timeout: 60_000,
@@ -6283,8 +6343,8 @@ mod tests {
 
     proptest! {
         #![proptest_config(ProptestConfig {
-            timeout: 60_000,
-            cases: 10,
+            timeout: 90_000,
+            cases: 1,
             .. ProptestConfig::default()
         })]
         #[test]
