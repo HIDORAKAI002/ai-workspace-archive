@@ -35,7 +35,11 @@ import {
 } from './AssetCatalogV2VirtualizedTable';
 import {AssetHealthGroupBy, GROUP_BY_ITEMS} from './AttributeStatusHeaderRow';
 import {SelectedAssetsPopoverContent} from './SelectedAssetsPopoverContent';
-import {isHealthGroupBy, useAssetCatalogGroupAndSortBy} from './useAssetCatalogGroupAndSortBy';
+import {
+  SortOptionConfig,
+  isHealthGroupBy,
+  useAssetCatalogGroupAndSortBy,
+} from './useAssetCatalogGroupAndSortBy';
 import {useFullScreen} from '../../app/AppTopNav/AppTopNavContext';
 import {PythonErrorInfo} from '../../app/PythonErrorInfo';
 import {currentPageAtom, useTrackEvent} from '../../app/analytics';
@@ -119,8 +123,8 @@ export const AssetCatalogTableV2 = React.memo(() => {
     setGroupBy,
     groupedAndSorted,
     allGroups,
-    SORT_ITEMS,
-    ITEMS_BY_KEY,
+    sortOptions,
+    sortOptionsByKey,
   } = useAssetCatalogGroupAndSortBy({
     liveDataByNode,
     assetsByAssetKey,
@@ -249,8 +253,8 @@ export const AssetCatalogTableV2 = React.memo(() => {
             onToggleFactory={onToggleFactory}
             onToggleGroup={onToggleGroup}
             allGroups={allGroups}
-            SORT_ITEMS={SORT_ITEMS}
-            ITEMS_BY_KEY={ITEMS_BY_KEY}
+            sortOptions={sortOptions}
+            sortOptionsByKey={sortOptionsByKey}
           />
         );
     }
@@ -299,8 +303,8 @@ type TableProps<T extends string, TAsset extends {key: {path: string[]}}> = {
   groupBy: AssetHealthGroupBy;
   setGroupBy: (groupBy: (typeof GROUP_BY_ITEMS)[number]['key']) => void;
   allGroups?: T[];
-  SORT_ITEMS: ReturnType<typeof useAssetCatalogGroupAndSortBy>['SORT_ITEMS'];
-  ITEMS_BY_KEY: ReturnType<typeof useAssetCatalogGroupAndSortBy>['ITEMS_BY_KEY'];
+  sortOptions: ReturnType<typeof useAssetCatalogGroupAndSortBy>['sortOptions'];
+  sortOptionsByKey: ReturnType<typeof useAssetCatalogGroupAndSortBy>['sortOptionsByKey'];
 };
 
 const Table = React.memo(
@@ -321,8 +325,8 @@ const Table = React.memo(
     groupBy,
     setGroupBy,
     allGroups: _allGroups,
-    SORT_ITEMS,
-    ITEMS_BY_KEY,
+    sortOptions,
+    sortOptionsByKey,
   }: TableProps<T, TAsset>) => {
     const splitContainerRef = useRef<SplitPanelContainerHandle>(null);
 
@@ -420,13 +424,13 @@ const Table = React.memo(
             </Box>
             <Box flex={{direction: 'row', alignItems: 'center', gap: 4}}>
               <Body color={Colors.textLight()}>Sort by</Body>
-              <Select<(typeof SORT_ITEMS)[number]>
+              <Select<SortOptionConfig>
                 popoverProps={{
                   position: 'bottom-right',
                 }}
                 filterable={false}
-                activeItem={ITEMS_BY_KEY[sortBy]}
-                items={SORT_ITEMS}
+                activeItem={sortOptionsByKey[sortBy]}
+                items={sortOptions}
                 itemRenderer={(item, props) => {
                   return (
                     <MenuItem
@@ -441,7 +445,7 @@ const Table = React.memo(
                 onItemSelect={(item) => setSortBy(item.key)}
               >
                 <UnstyledButton $outlineOnHover style={{display: 'flex', padding: '6px 4px'}}>
-                  {ITEMS_BY_KEY[sortBy].text}
+                  {sortOptionsByKey[sortBy].text}
                   <Icon name="arrow_drop_down" />
                 </UnstyledButton>
               </Select>
@@ -466,6 +470,7 @@ const Table = React.memo(
             onToggleFactory={onToggleFactory}
             onToggleGroup={onToggleGroup}
             id={`asset-catalog-table-${groupBy}`}
+            sortBy={sortBy}
           />
         </div>
       </Box>
