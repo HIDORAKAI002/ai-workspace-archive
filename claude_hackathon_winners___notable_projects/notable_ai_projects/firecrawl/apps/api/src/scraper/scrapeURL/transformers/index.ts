@@ -8,9 +8,9 @@ import { extractMetadata } from "../lib/extractMetadata";
 import {
   performLLMExtract,
   performSummary,
-  performQuery,
   performCleanContent,
 } from "./llmExtract";
+import { performQuery } from "./query";
 import { uploadScreenshot } from "./uploadScreenshot";
 import { removeBase64Images } from "./removeBase64Images";
 import { performAgent } from "./agent";
