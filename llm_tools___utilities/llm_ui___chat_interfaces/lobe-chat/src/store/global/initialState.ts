@@ -185,7 +185,12 @@ export interface SystemStatus {
   showVideoPanel?: boolean;
   showVideoTopicPanel?: boolean;
   /**
-   * Order of sidebar sections (e.g. ['recents', 'agent'])
+   * Flat ordered list of sidebar items.
+   */
+  sidebarItems?: string[];
+  /**
+   * Legacy accordion-only ordering (recents/agent) from the pre-rework sidebar.
+   * @deprecated Kept for one-time migration into `sidebarItems`.
    */
   sidebarSectionOrder?: string[];
   systemRoleExpandedMap: Record<string, boolean>;

@@ -17,7 +17,7 @@
  * ```
  */
 
-import type { Plugin, PluginModule } from '@opencode-ai/plugin';
+import type { Plugin } from '@opencode-ai/plugin';
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 import { loadConfig } from './config.js';
 import { deriveBankId } from './bank.js';
@@ -67,13 +67,9 @@ const HindsightPlugin: Plugin = async (input, options) => {
 // Named export for direct import
 export { HindsightPlugin };
 
-// Default export as PluginModule for OpenCode plugin loader
-const module: PluginModule = {
-    id: 'hindsight',
-    server: HindsightPlugin,
-};
-
-export default module;
+// Default export is the Plugin function itself — OpenCode's loader calls the
+// default export directly.
+export default HindsightPlugin;
 
 // Re-export types for consumers
 export type { HindsightConfig } from './config.js';

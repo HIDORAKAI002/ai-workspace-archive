@@ -741,6 +741,7 @@ interface ResolveAndCacheIdentityOptions {
   ctx?: PluginHookAgentContext;
   senderIdHint?: string;
   dispatchChannel?: string;
+  pluginConfig?: PluginConfig;
 }
 
 function resolveAndCacheIdentity(
@@ -787,7 +788,7 @@ function resolveAndCacheIdentity(
 
   cacheSessionIdentity(sessionKey, resolvedCtx);
 
-  const { reason: skipReason } = getIdentitySkipReason(resolvedCtx);
+  const { reason: skipReason } = getIdentitySkipReason(resolvedCtx, options.pluginConfig);
   if (sessionKey) {
     if (skipReason) {
       setCappedMapValue(skipHindsightTurnBySession, sessionKey, skipReason);
@@ -801,15 +802,30 @@ function resolveAndCacheIdentity(
 
 export function getIdentitySkipReason(
   ctx: PluginHookAgentContext | undefined,
+  pluginConfig?: PluginConfig,
 ): { resolvedCtx: PluginHookAgentContext | undefined; reason?: IdentitySkipReason } {
   const resolvedCtx = resolveSessionIdentity(ctx);
   const sessionKey = resolvedCtx?.sessionKey;
+  // The "internal main" / "operational provider main" / "anonymous sender" filters
+  // exist to keep the default multi-tenant bank from being polluted by CLI/main
+  // sessions that lack a stable identity. They should NOT fire when the user has
+  // explicitly opted into a routing scheme that expects those sessions:
+  //   - dynamicBankGranularity includes 'agent' → each agent (including 'main')
+  //     gets its own bank
+  //   - dynamicBankId === false with a configured bankId → user pinned a single
+  //     named bank and wants every session retained into it
+  const agentBanking = pluginConfig?.dynamicBankGranularity?.includes('agent') ?? false;
+  const staticBanking =
+    pluginConfig?.dynamicBankId === false &&
+    typeof pluginConfig?.bankId === 'string' &&
+    pluginConfig.bankId.length > 0;
+  const allowCliSessions = agentBanking || staticBanking;
 
   if (typeof sessionKey === 'string') {
     if (/^agent:[^:]+:(cron|heartbeat|subagent):/.test(sessionKey)) {
       return { resolvedCtx, reason: finalSkipReason(`operational session ${sessionKey}`) };
     }
-    if (/^agent:[^:]+:main$/.test(sessionKey)) {
+    if (!allowCliSessions && /^agent:[^:]+:main$/.test(sessionKey)) {
       return { resolvedCtx, reason: finalSkipReason(`internal main session ${sessionKey}`) };
     }
     if (/^temp:/.test(sessionKey)) {
@@ -817,14 +833,21 @@ export function getIdentitySkipReason(
     }
   }
 
-  if (resolvedCtx?.messageProvider && ['cron', 'heartbeat', 'subagent', 'main'].includes(resolvedCtx.messageProvider)) {
+  const operationalProviders = allowCliSessions
+    ? ['cron', 'heartbeat', 'subagent']
+    : ['cron', 'heartbeat', 'subagent', 'main'];
+  if (resolvedCtx?.messageProvider && operationalProviders.includes(resolvedCtx.messageProvider)) {
     return { resolvedCtx, reason: finalSkipReason(`operational provider ${resolvedCtx.messageProvider}`) };
   }
   if (!resolvedCtx?.messageProvider || resolvedCtx.messageProvider === 'unknown') {
     return { resolvedCtx, reason: retryableSkipReason('missing stable message provider') };
   }
   if (!resolvedCtx?.senderId || resolvedCtx.senderId === 'anonymous') {
-    return { resolvedCtx, reason: retryableSkipReason('missing stable sender identity') };
+    if (allowCliSessions && resolvedCtx?.agentId) {
+      resolvedCtx.senderId = `agent-user:${resolvedCtx.agentId}`;
+    } else {
+      return { resolvedCtx, reason: retryableSkipReason('missing stable sender identity') };
+    }
   }
   if (
     resolvedCtx.messageProvider === 'telegram' &&
@@ -1520,6 +1543,7 @@ export default function (api: MoltbotPluginAPI) {
               ctx?.senderId,
           },
           dispatchChannel,
+          pluginConfig,
         });
 
         if (skipReason) {
@@ -1543,7 +1567,7 @@ export default function (api: MoltbotPluginAPI) {
     api.on('before_agent_start', async (event: any, ctx?: PluginHookAgentContext) => {
       try {
         const sessionKey = ctx?.sessionKey ?? (typeof event?.sessionKey === 'string' ? event.sessionKey : undefined);
-        const { resolvedCtx, skipReason } = resolveAndCacheIdentity({ sessionKey, ctx });
+        const { resolvedCtx, skipReason } = resolveAndCacheIdentity({ sessionKey, ctx, pluginConfig });
 
         if (sessionKey && skipReason) {
           debug(`[Hindsight] before_agent_start skipping session ${sessionKey}: ${formatIdentitySkipReason(skipReason)}`);
@@ -1604,6 +1628,7 @@ export default function (api: MoltbotPluginAPI) {
           sessionKey: sessionKeyForCache,
           ctx,
           senderIdHint: senderIdFromPrompt,
+          pluginConfig,
         });
         if (identitySkipReason) {
           debug(`[Hindsight] Skipping recall for session ${sessionKeyForCache}: ${formatIdentitySkipReason(identitySkipReason)}`);
@@ -1769,7 +1794,7 @@ ${memoriesFormatted}
         }
 
         const { effectiveCtx: effectiveCtxForRetain, resolvedCtx: resolvedCtxForRetain, skipReason: identitySkipReason } =
-          resolveAndCacheIdentity({ sessionKey: sessionKeyForLookup, ctx: effectiveCtx });
+          resolveAndCacheIdentity({ sessionKey: sessionKeyForLookup, ctx: effectiveCtx, pluginConfig });
 
         if (identitySkipReason) {
           debug(`[Hindsight Hook] Skipping retain for session ${sessionKeyForLookup}: ${formatIdentitySkipReason(identitySkipReason)}`);
@@ -2138,7 +2163,7 @@ function buildAnthropicStructuredMessages(
 
 function extractStructuredBlocks(content: any, role: string): any[] {
   if (typeof content === 'string') {
-    const cleaned = stripMetadataEnvelopes(stripMemoryTags(content)).trim();
+    const cleaned = stripMetadataEnvelopes(stripInlineRetainTags(stripMemoryTags(content))).trim();
     return cleaned ? [{ type: 'text', text: cleaned }] : [];
   }
   if (!Array.isArray(content)) return [];
@@ -2149,7 +2174,7 @@ function extractStructuredBlocks(content: any, role: string): any[] {
     const blockType = block.type;
 
     if (blockType === 'text') {
-      const cleaned = stripMetadataEnvelopes(stripMemoryTags(block.text ?? '')).trim();
+      const cleaned = stripMetadataEnvelopes(stripInlineRetainTags(stripMemoryTags(block.text ?? ''))).trim();
       if (cleaned) blocks.push({ type: 'text', text: cleaned });
     } else if (blockType === 'toolCall' && role === 'assistant') {
       const name = typeof block.name === 'string' ? block.name : 'unknown';

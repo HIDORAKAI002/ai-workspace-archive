@@ -15,8 +15,9 @@ use uuid::Uuid;
 
 use crate::interfaces::{ManifestConsumer, ManifestPublisher, PositionWitness};
 use crate::{
-    Cursor, CursorWitness, Error, ExponentialBackoff, Fragment, FragmentIdentifier, FragmentSeqNo,
-    FragmentUuid, Garbage, GarbageCollectionOptions, LogPosition, Manifest, ManifestAndWitness,
+    reader::post_process_fragments, Cursor, CursorWitness, Error, ExponentialBackoff, Fragment,
+    FragmentIdentifier, FragmentSeqNo, FragmentUuid, Garbage, GarbageCollectionOptions, Limits,
+    LogPosition, Manifest, ManifestAndWitness, ManifestBounds, ManifestBoundsAndWitness,
     ManifestWitness, Snapshot, SnapshotPointer,
 };
 
@@ -27,12 +28,53 @@ pub struct ManifestManager {
 }
 
 impl ManifestManager {
+    const FRAGMENTS_BY_POSITION_LIMIT_INDEX: &'static str = "fragments_by_position_limit";
+
     pub fn new(spanner: Arc<Client>, local_region: String, log_id: Uuid) -> Self {
         Self {
             spanner,
             local_region,
             log_id,
         }
+    }
+
+    fn decode_optional_log_position(
+        log_id: &Uuid,
+        field_name: &str,
+        offset: Option<i64>,
+    ) -> Result<Option<LogPosition>, Error> {
+        let Some(offset) = offset else {
+            return Ok(None);
+        };
+        if offset < 0 {
+            return Err(Error::CorruptManifest(format!(
+                "negative {field_name} {offset} for manifest {log_id}"
+            )));
+        }
+        Ok(Some(LogPosition::from_offset(offset as u64)))
+    }
+
+    fn decode_intrinsic_cursor(
+        log_id: &Uuid,
+        offset: Option<i64>,
+    ) -> Result<Option<LogPosition>, Error> {
+        Ok(
+            Self::decode_optional_log_position(log_id, "intrinsic_cursor", offset)?
+                .filter(|position| position.offset() > 0),
+        )
+    }
+
+    fn region_compaction_offset(
+        intrinsic_cursor: Option<LogPosition>,
+        initial_offset: Option<LogPosition>,
+    ) -> LogPosition {
+        intrinsic_cursor.unwrap_or(initial_offset.unwrap_or(LogPosition::from_offset(0)))
+    }
+
+    fn partial_scan_query_limit(max_files: u64) -> Option<i64> {
+        max_files
+            .checked_add(1)
+            .and_then(|limit| i64::try_from(limit).ok())
     }
 
     pub async fn init(
@@ -71,15 +113,26 @@ impl ManifestManager {
         let initial_offset = manifest
             .initial_offset
             .unwrap_or(LogPosition::from_offset(1));
+        // The intrinsic cursor reflects explicit reader progress stored in Spanner.
+        // Keep it unset at initialization so GC does not treat the log's starting
+        // offset as an active reader position.
+        let intrinsic_cursor = 0i64;
         for region in regions.iter() {
             mutations.push(insert(
                 "manifest_regions",
-                &["log_id", "region", "collected", "initial_offset"],
+                &[
+                    "log_id",
+                    "region",
+                    "collected",
+                    "initial_offset",
+                    "intrinsic_cursor",
+                ],
                 &[
                     &log_id.to_string(),
                     region,
                     &manifest.collected.hexdigest(),
                     &(initial_offset.offset() as i64),
+                    &intrinsic_cursor,
                 ],
             ));
         }
@@ -213,7 +266,14 @@ impl ManifestManager {
         let local_region = local_region.to_string();
         let mut stmt1 = Statement::new(
             "
-            SELECT setsum, manifest_regions.collected, acc_bytes, writer, enumeration_offset, manifest_regions.initial_offset
+            SELECT
+                setsum,
+                manifest_regions.collected,
+                acc_bytes,
+                writer,
+                enumeration_offset,
+                manifest_regions.initial_offset,
+                manifest_regions.intrinsic_cursor
             FROM manifests INNER JOIN manifest_regions on manifests.log_id = manifest_regions.log_id
             WHERE manifests.log_id = @log_id
                 AND manifest_regions.region = @local_region
@@ -221,24 +281,6 @@ impl ManifestManager {
         );
         stmt1.add_param("log_id", &log_id.to_string());
         stmt1.add_param("local_region", &local_region);
-        let mut stmt2 = Statement::new(
-            "
-            SELECT
-                fragments.ident,
-                fragments.path,
-                fragments.position_start,
-                fragments.position_limit,
-                fragments.num_bytes,
-                fragments.setsum
-            FROM fragments INNER JOIN fragment_regions
-                ON fragments.log_id = fragment_regions.log_id
-                AND fragments.ident = fragment_regions.ident
-            WHERE fragments.log_id = @log_id
-                AND fragment_regions.region = @local_region
-            ",
-        );
-        stmt2.add_param("log_id", &log_id.to_string());
-        stmt2.add_param("local_region", &local_region);
         let mut tx = spanner.read_only_transaction().await?;
         // Load the manifest table
         let mut manifest = tx.query(stmt1).await?;
@@ -250,7 +292,15 @@ impl ManifestManager {
         let acc_bytes = manifest_row.column_by_name::<i64>("acc_bytes")?;
         let writer = manifest_row.column_by_name::<String>("writer")?;
         let enumeration_offset = manifest_row.column_by_name::<i64>("enumeration_offset")?;
-        let stored_initial_offset = manifest_row.column_by_name::<Option<i64>>("initial_offset")?;
+        let stored_initial_offset = Self::decode_optional_log_position(
+            &log_id,
+            "initial_offset",
+            manifest_row.column_by_name::<Option<i64>>("initial_offset")?,
+        )?;
+        let intrinsic_cursor = Self::decode_intrinsic_cursor(
+            &log_id,
+            manifest_row.column_by_name::<Option<i64>>("intrinsic_cursor")?,
+        )?;
         let Some(setsum) = Setsum::from_hexdigest(&setsum) else {
             return Err(Error::CorruptManifest(format!(
                 "invalid setsum {setsum} for manifest {log_id}"
@@ -273,6 +323,25 @@ impl ManifestManager {
             )));
         }
         let enumeration_offset = enumeration_offset as u64;
+        let compaction_offset =
+            Self::region_compaction_offset(intrinsic_cursor, stored_initial_offset);
+        let mut stmt2 = Statement::new(format!(
+            "
+            SELECT
+                fragments.ident,
+                fragments.path,
+                fragments.position_start,
+                fragments.position_limit,
+                fragments.num_bytes,
+                fragments.setsum
+            FROM fragments@{{FORCE_INDEX={}}}
+            WHERE fragments.log_id = @log_id
+                AND fragments.position_limit > @compaction_offset
+            ",
+            Self::FRAGMENTS_BY_POSITION_LIMIT_INDEX,
+        ));
+        stmt2.add_param("log_id", &log_id.to_string());
+        stmt2.add_param("compaction_offset", &(compaction_offset.offset() as i64));
         // Load the fragments.
         let mut fragments = vec![];
         let mut fragments_query = tx.query(stmt2).await?;
@@ -326,13 +395,14 @@ impl ManifestManager {
         fragments.sort_by_key(|f| f.start);
         // Compute initial_offset:
         // 1. If fragments exist, use the minimum fragment start
-        // 2. If no fragments but stored_initial_offset is set (after GC), use it
+        // 2. Otherwise use the local region's compaction offset when present
         // 3. Otherwise fall back to enumeration_offset (backward compatibility)
         let initial_offset = fragments
             .iter()
             .map(|f| f.start)
             .min()
-            .or_else(|| stored_initial_offset.map(|o| LogPosition::from_offset(o as u64)))
+            .or(intrinsic_cursor)
+            .or(stored_initial_offset)
             .unwrap_or(LogPosition::from_offset(enumeration_offset));
         // Construct the manifest and witness.
         let manifest = Manifest {
@@ -354,12 +424,242 @@ impl ManifestManager {
         Ok(Some((manifest, manifest_witness)))
     }
 
-    /// Returns log_ids from the manifests table that have fragments in the specified region and
-    /// have a spread between their intrinsic cursor and their enumeration_offset.
+    pub async fn load_bounds(
+        spanner: &Client,
+        log_id: Uuid,
+        local_region: &str,
+    ) -> Result<Option<(ManifestBounds, ManifestWitness)>, Error> {
+        let local_region = local_region.to_string();
+        let mut stmt1 = Statement::new(
+            "
+            SELECT
+                manifest_regions.collected,
+                manifests.enumeration_offset,
+                manifest_regions.initial_offset,
+                manifest_regions.intrinsic_cursor
+            FROM manifests
+                INNER JOIN manifest_regions
+                ON manifests.log_id = manifest_regions.log_id
+            WHERE manifests.log_id = @log_id
+                AND manifest_regions.region = @local_region
+            LIMIT 1
+            ",
+        );
+        stmt1.add_param("log_id", &log_id.to_string());
+        stmt1.add_param("local_region", &local_region);
+        let mut tx = spanner.read_only_transaction().await?;
+        let mut manifest = tx.query(stmt1).await?;
+        let Some(manifest_row) = manifest.next().await? else {
+            return Ok(None);
+        };
+        let collected = manifest_row.column_by_name::<String>("collected")?;
+        let enumeration_offset = manifest_row.column_by_name::<i64>("enumeration_offset")?;
+        let stored_initial_offset = Self::decode_optional_log_position(
+            &log_id,
+            "initial_offset",
+            manifest_row.column_by_name::<Option<i64>>("initial_offset")?,
+        )?;
+        let intrinsic_cursor = Self::decode_intrinsic_cursor(
+            &log_id,
+            manifest_row.column_by_name::<Option<i64>>("intrinsic_cursor")?,
+        )?;
+        let Some(collected) = Setsum::from_hexdigest(&collected) else {
+            return Err(Error::CorruptManifest(format!(
+                "invalid collected setsum {collected} for manifest {log_id}"
+            )));
+        };
+        if enumeration_offset < 0 {
+            return Err(Error::CorruptManifest(format!(
+                "negative enumeration_offset {enumeration_offset} for manifest {log_id}"
+            )));
+        }
+        let enumeration_offset = enumeration_offset as u64;
+        let compaction_offset =
+            Self::region_compaction_offset(intrinsic_cursor, stored_initial_offset);
+        let mut stmt2 = Statement::new(format!(
+            "
+            SELECT MIN(fragments.position_start) AS min_position_start
+            FROM fragments@{{FORCE_INDEX={}}}
+            WHERE fragments.log_id = @log_id
+                AND fragments.position_limit > @compaction_offset
+            ",
+            Self::FRAGMENTS_BY_POSITION_LIMIT_INDEX,
+        ));
+        stmt2.add_param("log_id", &log_id.to_string());
+        stmt2.add_param("compaction_offset", &(compaction_offset.offset() as i64));
+        let mut iter = tx.query(stmt2).await?;
+        let min_fragment_start = if let Some(row) = iter.next().await? {
+            row.column_by_name::<Option<i64>>("min_position_start")?
+        } else {
+            None
+        };
+        let oldest_timestamp = if let Some(min_fragment_start) = min_fragment_start {
+            if min_fragment_start < 0 {
+                return Err(Error::CorruptManifest(format!(
+                    "negative position_start {min_fragment_start} for manifest {log_id}"
+                )));
+            }
+            LogPosition::from_offset(min_fragment_start as u64)
+        } else if let Some(intrinsic_cursor) = intrinsic_cursor {
+            intrinsic_cursor
+        } else if let Some(stored_initial_offset) = stored_initial_offset {
+            stored_initial_offset
+        } else {
+            LogPosition::from_offset(enumeration_offset)
+        };
+        let bounds = ManifestBounds {
+            oldest_timestamp,
+            next_write_timestamp: LogPosition::from_offset(enumeration_offset),
+        };
+        let witness = ManifestWitness::Position(PositionWitness::new(
+            LogPosition::from_offset(enumeration_offset),
+            collected,
+        ));
+        Ok(Some((bounds, witness)))
+    }
+
+    async fn partial_scan(
+        &self,
+        from: LogPosition,
+        limits: Limits,
+    ) -> Result<Option<Vec<Fragment>>, Error> {
+        let (Some(max_records), Some(max_files)) = (limits.max_records, limits.max_files) else {
+            return Ok(None);
+        };
+        if from.offset() > i64::MAX as u64 {
+            return Err(Error::Overflow(format!(
+                "from offset {} exceeds i64::MAX",
+                from.offset()
+            )));
+        }
+        if max_files > i64::MAX as u64 {
+            return Err(Error::Overflow(format!(
+                "max_files {} exceeds i64::MAX",
+                max_files
+            )));
+        }
+        let Some(fetch_max_files) = Self::partial_scan_query_limit(max_files) else {
+            return Ok(None);
+        };
+        let mut stmt0 = Statement::new(
+            "
+            SELECT intrinsic_cursor, initial_offset
+            FROM manifest_regions
+            WHERE log_id = @log_id
+                AND region = @local_region
+            LIMIT 1
+            ",
+        );
+        stmt0.add_param("log_id", &self.log_id.to_string());
+        stmt0.add_param("local_region", &self.local_region);
+        let mut tx = self.spanner.read_only_transaction().await?;
+        let mut region_rows = tx.query(stmt0).await?;
+        let Some(region_row) = region_rows.next().await? else {
+            return Err(Error::UninitializedLog);
+        };
+        let intrinsic_cursor = Self::decode_intrinsic_cursor(
+            &self.log_id,
+            region_row.column_by_name::<Option<i64>>("intrinsic_cursor")?,
+        )?;
+        let initial_offset = Self::decode_optional_log_position(
+            &self.log_id,
+            "initial_offset",
+            region_row.column_by_name::<Option<i64>>("initial_offset")?,
+        )?;
+        let effective_from = std::cmp::max(
+            from,
+            Self::region_compaction_offset(intrinsic_cursor, initial_offset),
+        );
+        let from_offset = effective_from.offset() as i64;
+        let upper_bound = effective_from
+            .offset()
+            .saturating_add(max_records)
+            .min(i64::MAX as u64) as i64;
+        let mut stmt = Statement::new(format!(
+            "
+            SELECT
+                fragments.ident,
+                fragments.path,
+                fragments.position_start,
+                fragments.position_limit,
+                fragments.num_bytes,
+                fragments.setsum
+            FROM fragments@{{FORCE_INDEX={}}}
+            WHERE fragments.log_id = @log_id
+                AND fragments.position_limit > @from_offset
+                AND fragments.position_start < @upper_bound
+            ORDER BY fragments.position_limit ASC
+            LIMIT @fetch_max_files
+            ",
+            Self::FRAGMENTS_BY_POSITION_LIMIT_INDEX,
+        ));
+        stmt.add_param("log_id", &self.log_id.to_string());
+        stmt.add_param("from_offset", &from_offset);
+        stmt.add_param("upper_bound", &upper_bound);
+        stmt.add_param("fetch_max_files", &fetch_max_files);
+        let mut query = tx.query(stmt).await?;
+        let mut fragments = vec![];
+        while let Some(row) = query.next().await? {
+            let ident = row.column_by_name::<String>("ident")?;
+            let path = row.column_by_name::<String>("path")?;
+            let position_start = row.column_by_name::<i64>("position_start")?;
+            let position_limit = row.column_by_name::<i64>("position_limit")?;
+            let num_bytes = row.column_by_name::<i64>("num_bytes")?;
+            let setsum = row.column_by_name::<String>("setsum")?;
+            let ident = ident
+                .parse::<Uuid>()
+                .map(FragmentUuid::from_uuid)
+                .map_err(|e| {
+                    Error::CorruptFragment(format!(
+                        "invalid fragment ident {ident} for manifest {}: {e}",
+                        self.log_id
+                    ))
+                })?;
+            if position_start < 0 {
+                return Err(Error::CorruptFragment(format!(
+                    "negative position_start {position_start} for fragment {ident}"
+                )));
+            }
+            if position_limit < 0 {
+                return Err(Error::CorruptFragment(format!(
+                    "negative position_limit {position_limit} for fragment {ident}"
+                )));
+            }
+            if num_bytes < 0 {
+                return Err(Error::CorruptFragment(format!(
+                    "negative num_bytes {num_bytes} for fragment {ident}"
+                )));
+            }
+            let Some(setsum) = Setsum::from_hexdigest(&setsum) else {
+                return Err(Error::CorruptFragment(format!(
+                    "invalid setsum {setsum} for fragment {ident}"
+                )));
+            };
+            fragments.push(Fragment {
+                path,
+                seq_no: FragmentIdentifier::Uuid(ident),
+                start: LogPosition::from_offset(position_start as u64),
+                limit: LogPosition::from_offset(position_limit as u64),
+                num_bytes: num_bytes as u64,
+                setsum,
+            });
+        }
+        fragments.sort_by_key(|f| f.start);
+        let mut short_read = false;
+        Ok(Some(post_process_fragments(
+            fragments,
+            effective_from,
+            limits,
+            &mut short_read,
+        )))
+    }
+
+    /// Returns log_ids from the manifests table whose state for the specified region has a spread
+    /// between its compaction cursor and enumeration offset.
     ///
     /// A spread indicates uncompacted data: the intrinsic cursor has not caught up to the
-    /// enumeration_offset.  Logs with no intrinsic cursor are included as they have never been
-    /// compacted.
+    /// enumeration_offset.  A region may be reported dirty even if it has no local fragments yet;
+    /// read repair will hydrate the region on demand.
     pub async fn get_dirty_logs(
         spanner: &Client,
         region: &str,
@@ -368,16 +668,17 @@ impl ManifestManager {
     ) -> Result<Vec<(Uuid, LogPosition, LogPosition, SystemTime)>, Error> {
         let mut stmt = Statement::new(
             "
-            SELECT DISTINCT manifests.log_id, manifest_regions.intrinsic_cursor, manifest_regions.initial_offset, manifests.enumeration_offset,
+            SELECT DISTINCT manifests.log_id, NULLIF(manifest_regions.intrinsic_cursor, 0) AS intrinsic_cursor,
+                manifest_regions.initial_offset, manifests.enumeration_offset,
                 COALESCE(manifests.updated_at, TIMESTAMP_SECONDS(0)) AS updated_at
             FROM manifests
                 INNER JOIN manifest_regions
                 ON manifests.log_id = manifest_regions.log_id
             WHERE manifest_regions.region = @region
                 AND (
-                    manifests.enumeration_offset - COALESCE(manifest_regions.intrinsic_cursor, manifest_regions.initial_offset, 0) > @record_count_threshold
+                    manifests.enumeration_offset - COALESCE(NULLIF(manifest_regions.intrinsic_cursor, 0), manifest_regions.initial_offset, 0) >= @record_count_threshold
                     OR (
-                        manifests.enumeration_offset > COALESCE(manifest_regions.intrinsic_cursor, manifest_regions.initial_offset, 0)
+                        manifests.enumeration_offset > COALESCE(NULLIF(manifest_regions.intrinsic_cursor, 0), manifest_regions.initial_offset, 0)
                         AND UNIX_MICROS(CURRENT_TIMESTAMP()) - UNIX_MICROS(COALESCE(manifests.updated_at, TIMESTAMP_SECONDS(0))) >= @timeout_us
                     )
                 )
@@ -1189,6 +1490,22 @@ impl ManifestConsumer<FragmentUuid> for ManifestManager {
         Self::load(&self.spanner, self.log_id, &self.local_region).await
     }
 
+    async fn manifest_bounds_and_witness(&self) -> Result<Option<ManifestBoundsAndWitness>, Error> {
+        Ok(
+            Self::load_bounds(&self.spanner, self.log_id, &self.local_region)
+                .await?
+                .map(|(bounds, witness)| ManifestBoundsAndWitness { bounds, witness }),
+        )
+    }
+
+    async fn scan_partial(
+        &self,
+        from: LogPosition,
+        limits: Limits,
+    ) -> Result<Option<Vec<Fragment>>, Error> {
+        self.partial_scan(from, limits).await
+    }
+
     async fn update_intrinsic_cursor(
         &self,
         position: LogPosition,
@@ -1295,8 +1612,10 @@ mod tests {
     use super::ManifestManager;
     use crate::interfaces::ManifestConsumer;
     use crate::interfaces::{ManifestPublisher, PositionWitness};
-    use crate::{Error, FragmentUuid, LogPosition, Manifest, ManifestWitness};
-    use crate::{Fragment, FragmentIdentifier};
+    use crate::{
+        scan_from_manifest, Error, Fragment, FragmentIdentifier, FragmentUuid, Limits, LogPosition,
+        Manifest, ManifestWitness,
+    };
 
     fn to_session_config(cfg: &SpannerSessionPoolConfig) -> SessionConfig {
         let mut config = SessionConfig::default();
@@ -1364,6 +1683,7 @@ mod tests {
             http2_keep_alive_interval_secs: 11,
             keep_alive_timeout_secs: 13,
             keep_alive_while_idle: false,
+            admin_rpc_timeout_secs: 30 * 60,
         };
 
         let channel_config = to_channel_config(&cfg);
@@ -1377,6 +1697,19 @@ mod tests {
             Some(Duration::from_secs(13))
         );
         assert_eq!(channel_config.keep_alive_while_idle, Some(false));
+    }
+
+    #[test]
+    fn partial_scan_query_limit_overfetches_one_row() {
+        assert_eq!(Some(3), ManifestManager::partial_scan_query_limit(2));
+        assert_eq!(
+            Some(i64::MAX),
+            ManifestManager::partial_scan_query_limit((i64::MAX - 1) as u64)
+        );
+        assert_eq!(
+            None,
+            ManifestManager::partial_scan_query_limit(i64::MAX as u64)
+        );
     }
 
     fn make_setsum(seed: u8) -> Setsum {
@@ -1449,6 +1782,47 @@ mod tests {
             "test_k8s_mcmr_integration_init_and_load: log_id={}, witness={:?}",
             log_id, pos_witness
         );
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_init_leaves_intrinsic_cursor_unset_for_each_region() {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let mut manifest = Manifest::new_empty("test-writer");
+        manifest.initial_offset = Some(LogPosition::from_offset(1));
+        ManifestManager::init(
+            vec!["region-a".to_string(), "region-b".to_string()],
+            &client,
+            log_id,
+            &manifest,
+        )
+        .await
+        .expect("init failed");
+
+        for region in ["region-a", "region-b"] {
+            let manager =
+                ManifestManager::new(Arc::new(client.clone()), region.to_string(), log_id);
+            let intrinsic_cursor = ManifestPublisher::load_intrinsic_cursor(&manager)
+                .await
+                .expect("load_intrinsic_cursor failed");
+            assert_eq!(
+                None, intrinsic_cursor,
+                "region {region} should start with no intrinsic cursor until a reader advances it"
+            );
+
+            let (manifest, _) = ManifestManager::load(&client, log_id, region)
+                .await
+                .expect("load failed")
+                .expect("manifest should exist");
+            assert_eq!(
+                LogPosition::from_offset(1),
+                manifest.oldest_timestamp(),
+                "region {region} should still expose the manifest initial_offset"
+            );
+        }
     }
 
     // Load a non-existent manifest returns None.
@@ -1735,6 +2109,264 @@ mod tests {
             pos2.offset(),
             pos3.offset()
         );
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_load_bounds_with_fragments() {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let manifest = make_empty_manifest();
+        ManifestManager::init(vec!["dummy".to_string()], &client, log_id, &manifest)
+            .await
+            .expect("init failed");
+
+        let manager = ManifestManager::new(Arc::new(client), "dummy".to_string(), log_id);
+        let pointer1 = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer1,
+                "path1",
+                10,
+                100,
+                make_setsum(1),
+                &["dummy".to_string()],
+            )
+            .await
+            .expect("first publish failed");
+        let pointer2 = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer2,
+                "path2",
+                20,
+                200,
+                make_setsum(2),
+                &["dummy".to_string()],
+            )
+            .await
+            .expect("second publish failed");
+
+        let bounds = ManifestConsumer::<FragmentUuid>::manifest_bounds_and_witness(&manager)
+            .await
+            .expect("bounds query should succeed")
+            .expect("bounds should be present");
+        assert_eq!(LogPosition::from_offset(0), bounds.bounds.oldest_timestamp);
+        assert_eq!(
+            LogPosition::from_offset(30),
+            bounds.bounds.next_write_timestamp
+        );
+        let ManifestWitness::Position(witness) = bounds.witness else {
+            panic!("expected position witness");
+        };
+        assert_eq!(LogPosition::from_offset(30), witness.position());
+    }
+
+    async fn set_intrinsic_cursor(
+        client: &Client,
+        log_id: Uuid,
+        region: &str,
+        intrinsic_cursor: i64,
+    ) {
+        client
+            .read_write_transaction(|tx| {
+                let log_id = log_id.to_string();
+                let region = region.to_string();
+                Box::pin(async move {
+                    tx.buffer_write(vec![update(
+                        "manifest_regions",
+                        &["log_id", "region", "intrinsic_cursor"],
+                        &[&log_id, &region, &intrinsic_cursor],
+                    )]);
+                    Ok::<_, google_cloud_spanner::session::SessionError>(())
+                })
+            })
+            .await
+            .expect("failed to advance local intrinsic_cursor");
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_read_metadata_excludes_remote_only_fragments_before_compaction_offset(
+    ) {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let regions = vec!["region-a".to_string(), "region-b".to_string()];
+        ManifestManager::init(regions, &client, log_id, &make_empty_manifest())
+            .await
+            .expect("init failed");
+
+        let manager =
+            ManifestManager::new(Arc::new(client.clone()), "region-a".to_string(), log_id);
+        let pointer = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer,
+                "remote-only-path",
+                10,
+                100,
+                make_setsum(1),
+                &["region-b".to_string()],
+            )
+            .await
+            .expect("publish failed");
+        set_intrinsic_cursor(&client, log_id, "region-a", 10).await;
+
+        let (manifest, _) = ManifestManager::load(&client, log_id, "region-a")
+            .await
+            .expect("load should succeed")
+            .expect("manifest should exist");
+        assert!(manifest.fragments.is_empty());
+        assert_eq!(LogPosition::from_offset(10), manifest.oldest_timestamp());
+        assert_eq!(
+            LogPosition::from_offset(10),
+            manifest.next_write_timestamp()
+        );
+
+        let bounds = ManifestManager::load_bounds(&client, log_id, "region-a")
+            .await
+            .expect("bounds query should succeed")
+            .expect("bounds should exist");
+        assert_eq!(LogPosition::from_offset(10), bounds.0.oldest_timestamp);
+        assert_eq!(LogPosition::from_offset(10), bounds.0.next_write_timestamp);
+
+        let limits = Limits {
+            max_files: Some(2),
+            max_bytes: Some(256),
+            max_records: Some(10),
+        };
+        let partial = ManifestConsumer::<FragmentUuid>::scan_partial(
+            &manager,
+            LogPosition::from_offset(0),
+            limits,
+        )
+        .await
+        .expect("partial scan should succeed")
+        .expect("partial scan should be available");
+        assert!(partial.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_read_metadata_includes_remote_only_fragments_overlapping_compaction_offset(
+    ) {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let regions = vec!["region-a".to_string(), "region-b".to_string()];
+        ManifestManager::init(regions, &client, log_id, &make_empty_manifest())
+            .await
+            .expect("init failed");
+
+        let manager =
+            ManifestManager::new(Arc::new(client.clone()), "region-a".to_string(), log_id);
+        let pointer = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer,
+                "remote-only-path",
+                20,
+                100,
+                make_setsum(1),
+                &["region-b".to_string()],
+            )
+            .await
+            .expect("publish failed");
+        set_intrinsic_cursor(&client, log_id, "region-a", 10).await;
+
+        let (manifest, _) = ManifestManager::load(&client, log_id, "region-a")
+            .await
+            .expect("load should succeed")
+            .expect("manifest should exist");
+        assert_eq!(1, manifest.fragments.len());
+        assert_eq!("remote-only-path", manifest.fragments[0].path);
+        assert_eq!(LogPosition::from_offset(0), manifest.oldest_timestamp());
+        assert_eq!(
+            LogPosition::from_offset(20),
+            manifest.next_write_timestamp()
+        );
+
+        let bounds = ManifestManager::load_bounds(&client, log_id, "region-a")
+            .await
+            .expect("bounds query should succeed")
+            .expect("bounds should exist");
+        assert_eq!(LogPosition::from_offset(0), bounds.0.oldest_timestamp);
+        assert_eq!(LogPosition::from_offset(20), bounds.0.next_write_timestamp);
+
+        let limits = Limits {
+            max_files: Some(2),
+            max_bytes: Some(256),
+            max_records: Some(10),
+        };
+        let partial = ManifestConsumer::<FragmentUuid>::scan_partial(
+            &manager,
+            LogPosition::from_offset(0),
+            limits,
+        )
+        .await
+        .expect("partial scan should succeed")
+        .expect("partial scan should be available");
+        let expected = scan_from_manifest(&manifest, LogPosition::from_offset(10), limits)
+            .expect("expected scan");
+        assert_eq!(expected, partial);
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_scan_partial_matches_scan_from_manifest() {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let manifest = make_empty_manifest();
+        ManifestManager::init(vec!["dummy".to_string()], &client, log_id, &manifest)
+            .await
+            .expect("init failed");
+
+        let manager = ManifestManager::new(Arc::new(client), "dummy".to_string(), log_id);
+        for (idx, (path, messages_len, num_bytes, setsum)) in [
+            ("path1", 10, 100, make_setsum(1)),
+            ("path2", 20, 200, make_setsum(2)),
+            ("path3", 5, 50, make_setsum(3)),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            manager
+                .publish_fragment(
+                    &FragmentUuid::generate(),
+                    path,
+                    messages_len,
+                    num_bytes,
+                    setsum,
+                    &["dummy".to_string()],
+                )
+                .await
+                .unwrap_or_else(|err| panic!("publish {idx} failed: {err:?}"));
+        }
+
+        let limits = Limits {
+            max_files: Some(4),
+            max_bytes: Some(512),
+            max_records: Some(15),
+        };
+        let from = LogPosition::from_offset(5);
+        let partial = ManifestConsumer::<FragmentUuid>::scan_partial(&manager, from, limits)
+            .await
+            .expect("partial scan should succeed")
+            .expect("partial scan should be available");
+        let (manifest, _) = ManifestManager::load(&manager.spanner, log_id, "dummy")
+            .await
+            .expect("load should succeed")
+            .expect("manifest should exist");
+        let expected = scan_from_manifest(&manifest, from, limits)
+            .expect("full manifest scan should satisfy the requested range");
+        assert_eq!(expected, partial);
     }
 
     // Test publish_fragment with messages_len exceeding i64::MAX.
@@ -2655,6 +3287,109 @@ mod tests {
             "test_k8s_mcmr_integration_get_dirty_logs_returns_uncompacted: found log_id={} in {} dirty logs",
             log_id,
             dirty_logs.len()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_get_dirty_logs_ignores_zero_intrinsic_cursor_default() {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let manifest = make_empty_manifest();
+        ManifestManager::init(vec!["dummy".to_string()], &client, log_id, &manifest)
+            .await
+            .expect("init failed");
+
+        let dirty_logs = ManifestManager::get_dirty_logs(&client, "dummy", 1, u64::MAX)
+            .await
+            .expect("get_dirty_logs failed");
+
+        assert!(
+            !dirty_logs.iter().any(|(id, _, _, _)| *id == log_id),
+            "get_dirty_logs should not report a newly initialized log as dirty when intrinsic_cursor is still the default zero value, log_id={}, dirty_logs={:?}",
+            log_id,
+            dirty_logs
+        );
+    }
+
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_get_dirty_logs_includes_remote_only_fragments_for_read_repair(
+    ) {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let regions = vec!["region-a".to_string(), "region-b".to_string()];
+        ManifestManager::init(regions, &client, log_id, &make_empty_manifest())
+            .await
+            .expect("init failed");
+
+        let manager =
+            ManifestManager::new(Arc::new(client.clone()), "region-a".to_string(), log_id);
+        let pointer = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer,
+                "remote-only-path",
+                20,
+                100,
+                make_setsum(1),
+                &["region-b".to_string()],
+            )
+            .await
+            .expect("publish failed");
+
+        let dirty_logs = ManifestManager::get_dirty_logs(&client, "region-a", 1, u64::MAX)
+            .await
+            .expect("get_dirty_logs failed");
+
+        assert!(
+            dirty_logs.iter().any(|(id, _, _, _)| *id == log_id),
+            "get_dirty_logs should include a log in a new region so read repair can hydrate it, log_id={}, dirty_logs={:?}",
+            log_id,
+            dirty_logs
+        );
+    }
+
+    // Test that get_dirty_logs includes a log whose spread exactly matches the threshold.
+    #[tokio::test]
+    async fn test_k8s_mcmr_integration_get_dirty_logs_includes_exact_threshold() {
+        let Some(client) = setup_spanner_client().await else {
+            panic!("Spanner emulator not reachable. Is Tilt running?");
+        };
+
+        let log_id = Uuid::new_v4();
+        let manifest = make_empty_manifest();
+        ManifestManager::init(vec!["dummy".to_string()], &client, log_id, &manifest)
+            .await
+            .expect("init failed");
+
+        let manager = ManifestManager::new(Arc::new(client.clone()), "dummy".to_string(), log_id);
+        let pointer = FragmentUuid::generate();
+        manager
+            .publish_fragment(
+                &pointer,
+                "path/frag.parquet",
+                10,
+                100,
+                make_setsum(1),
+                &["dummy".to_string()],
+            )
+            .await
+            .expect("publish failed");
+
+        let dirty_logs = ManifestManager::get_dirty_logs(&client, "dummy", 10, u64::MAX)
+            .await
+            .expect("get_dirty_logs failed");
+
+        assert!(
+            dirty_logs.iter().any(|(id, _, _, _)| *id == log_id),
+            "get_dirty_logs should include logs at the exact threshold, log_id={}, dirty_logs={:?}",
+            log_id,
+            dirty_logs
         );
     }
 

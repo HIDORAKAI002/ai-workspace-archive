@@ -36,10 +36,11 @@ class BankStatsResponse(BaseModel):
     links_breakdown: Dict[str, Dict[str, StrictInt]]
     pending_operations: StrictInt
     failed_operations: StrictInt
+    operations_by_status: Optional[Dict[str, StrictInt]] = Field(default=None, description="Async operations grouped by status (pending, in_progress, completed, failed, cancelled).")
     last_consolidated_at: Optional[StrictStr] = None
     pending_consolidation: Optional[StrictInt] = Field(default=0, description="Number of memories not yet processed into observations")
     total_observations: Optional[StrictInt] = Field(default=0, description="Total number of observations")
-    __properties: ClassVar[List[str]] = ["bank_id", "total_nodes", "total_links", "total_documents", "nodes_by_fact_type", "links_by_link_type", "links_by_fact_type", "links_breakdown", "pending_operations", "failed_operations", "last_consolidated_at", "pending_consolidation", "total_observations"]
+    __properties: ClassVar[List[str]] = ["bank_id", "total_nodes", "total_links", "total_documents", "nodes_by_fact_type", "links_by_link_type", "links_by_fact_type", "links_breakdown", "pending_operations", "failed_operations", "operations_by_status", "last_consolidated_at", "pending_consolidation", "total_observations"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -107,6 +108,7 @@ class BankStatsResponse(BaseModel):
             "links_breakdown": obj.get("links_breakdown"),
             "pending_operations": obj.get("pending_operations"),
             "failed_operations": obj.get("failed_operations"),
+            "operations_by_status": obj.get("operations_by_status"),
             "last_consolidated_at": obj.get("last_consolidated_at"),
             "pending_consolidation": obj.get("pending_consolidation") if obj.get("pending_consolidation") is not None else 0,
             "total_observations": obj.get("total_observations") if obj.get("total_observations") is not None else 0

@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS edges (
     file_path TEXT NOT NULL,
     line INTEGER DEFAULT 0,
     extra TEXT DEFAULT '{}',
+    confidence REAL DEFAULT 1.0,
+    confidence_tier TEXT DEFAULT 'EXTRACTED',
     updated_at REAL NOT NULL
 );
 
@@ -103,6 +105,8 @@ class GraphEdge:
     file_path: str
     line: int
     extra: dict
+    confidence: float = 1.0
+    confidence_tier: str = "EXTRACTED"
 
 
 @dataclass
@@ -204,7 +208,10 @@ class GraphStore:
     def upsert_edge(self, edge: EdgeInfo) -> int:
         """Insert or update an edge."""
         now = time.time()
-        extra = json.dumps(edge.extra) if edge.extra else "{}"
+        extra_dict = edge.extra if edge.extra else {}
+        confidence = float(extra_dict.get("confidence", 1.0))
+        confidence_tier = str(extra_dict.get("confidence_tier", "EXTRACTED"))
+        extra = json.dumps(extra_dict)
 
         # Check for existing edge (include line so multiple call sites are preserved)
         existing = self._conn.execute(
@@ -216,16 +223,19 @@ class GraphStore:
 
         if existing:
             self._conn.execute(
-                "UPDATE edges SET line=?, extra=?, updated_at=? WHERE id=?",
-                (edge.line, extra, now, existing["id"]),
+                "UPDATE edges SET line=?, extra=?, confidence=?, confidence_tier=?,"
+                " updated_at=? WHERE id=?",
+                (edge.line, extra, confidence, confidence_tier, now, existing["id"]),
             )
             return existing["id"]
 
         self._conn.execute(
             """INSERT INTO edges
-               (kind, source_qualified, target_qualified, file_path, line, extra, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (edge.kind, edge.source, edge.target, edge.file_path, edge.line, extra, now),
+               (kind, source_qualified, target_qualified, file_path, line, extra,
+                confidence, confidence_tier, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (edge.kind, edge.source, edge.target, edge.file_path, edge.line, extra,
+             confidence, confidence_tier, now),
         )
         return self._conn.execute("SELECT last_insert_rowid()").fetchone()[0]
 
@@ -1229,6 +1239,9 @@ class GraphStore:
         )
 
     def _row_to_edge(self, row: sqlite3.Row) -> GraphEdge:
+        extra = json.loads(row["extra"]) if row["extra"] else {}
+        confidence = row["confidence"] if "confidence" in row.keys() else 1.0
+        confidence_tier = row["confidence_tier"] if "confidence_tier" in row.keys() else "EXTRACTED"
         return GraphEdge(
             id=row["id"],
             kind=row["kind"],
@@ -1236,7 +1249,9 @@ class GraphStore:
             target_qualified=row["target_qualified"],
             file_path=row["file_path"],
             line=row["line"],
-            extra=json.loads(row["extra"]) if row["extra"] else {},
+            extra=extra,
+            confidence=confidence,
+            confidence_tier=confidence_tier,
         )
 
 
@@ -1274,4 +1289,5 @@ def edge_to_dict(e: GraphEdge) -> dict:
         "source": _sanitize_name(e.source_qualified),
         "target": _sanitize_name(e.target_qualified),
         "file_path": e.file_path, "line": e.line,
+        "confidence": e.confidence, "confidence_tier": e.confidence_tier,
     }

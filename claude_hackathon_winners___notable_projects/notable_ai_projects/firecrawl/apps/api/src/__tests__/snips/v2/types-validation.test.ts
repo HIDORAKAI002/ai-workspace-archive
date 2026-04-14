@@ -885,7 +885,7 @@ describe("V2 Types Validation", () => {
 
       const result = searchRequestSchema.parse(input);
       expect(result.scrapeOptions?.formats).toEqual([
-        { type: "query", prompt: "What is Firecrawl?" },
+        { type: "query", prompt: "What is Firecrawl?", directQuote: false },
       ]);
     });
 

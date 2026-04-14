@@ -836,6 +836,72 @@ describe('session identity helpers', () => {
     });
   });
 
+  it('allows agent:*:main sessions through when agent banking is enabled', () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: 'agent:project-alpha:main' },
+      { dynamicBankGranularity: ['agent'] },
+    );
+    expect(result.reason).toBeUndefined();
+    expect(result.resolvedCtx?.agentId).toBe('project-alpha');
+    expect(result.resolvedCtx?.senderId).toBe('agent-user:project-alpha');
+  });
+
+  it('allows provider main when agent banking is enabled', () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: 'agent:main:main' },
+      { dynamicBankGranularity: ['agent'] },
+    );
+    expect(result.reason).toBeUndefined();
+  });
+
+  it('still skips cron/heartbeat/subagent providers when agent banking is enabled', () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: 'agent:main:cron:nightly:cleanup' },
+      { dynamicBankGranularity: ['agent'] },
+    );
+    expect(result.reason).toEqual({
+      kind: 'final',
+      detail: 'operational session agent:main:cron:nightly:cleanup',
+    });
+  });
+
+  it('synthesizes sender identity for anonymous CLI sessions when agent banking is enabled', () => {
+    const result = getIdentitySkipReason(
+      { agentId: 'project-beta', messageProvider: 'cli', senderId: 'anonymous' },
+      { dynamicBankGranularity: ['agent'] },
+    );
+    expect(result.reason).toBeUndefined();
+    expect(result.resolvedCtx?.senderId).toBe('agent-user:project-beta');
+  });
+
+  it('allows agent:*:main sessions through when a static bankId is configured', () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: 'agent:main:main' },
+      { dynamicBankId: false, bankId: 'shared-bank' },
+    );
+    expect(result.reason).toBeUndefined();
+    expect(result.resolvedCtx?.senderId).toBe('agent-user:main');
+  });
+
+  it('does not broaden the carve-out when dynamicBankId is false but bankId is missing', () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: 'agent:main:main' },
+      { dynamicBankId: false },
+    );
+    expect(result.reason).toEqual({
+      kind: 'final',
+      detail: 'internal main session agent:main:main',
+    });
+  });
+
+  it('preserves default skip behavior when agent banking is not enabled', () => {
+    const result = getIdentitySkipReason({ sessionKey: 'agent:main:main' }, {});
+    expect(result.reason).toEqual({
+      kind: 'final',
+      detail: 'internal main session agent:main:main',
+    });
+  });
+
   it('detects ephemeral operational text with or without transcript wrappers', () => {
     expect(isEphemeralOperationalText('A new session was started via /reset.')).toBe(true);
     expect(

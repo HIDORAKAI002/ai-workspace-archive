@@ -18,7 +18,10 @@ if TYPE_CHECKING:
     from pydantic_ai.models import Model
     from pydantic_ai.ui.vercel_ai.response_types import FinishReason
 
-    from phoenix.server.api.routers.chat_tracing import StreamAccumulator
+    from phoenix.server.api.routers.chat_tracing import (
+        AgentMessageMetadata,
+        StreamAccumulator,
+    )
     from phoenix.server.api.routers.mcp_tools import MintlifyDocsClient
 
 logger = logging.getLogger(__name__)
@@ -429,12 +432,14 @@ async def stream_text(
         finalize_llm_span,
         finalize_recent_input_tool_result_spans,
         finalize_tool_span,
+        get_agent_message_metadata,
     )
     from phoenix.tracers import Tracer
 
     async def generate() -> AsyncIterator[str]:
         finish_reason: FinishReason = "stop"
         project_id: int | None = None
+        message_metadata: AgentMessageMetadata | None = None
 
         # Tracing state — managed across loop iterations.
         tracer: Tracer | None = None
@@ -456,6 +461,10 @@ async def stream_text(
                     session_id=body.session_id,
                     trace_name_suffix=body.trace_name_suffix,
                 )
+                if body.session_id is not None:
+                    message_metadata = get_agent_message_metadata(
+                        agent_span, session_id=body.session_id
+                    )
                 finalize_recent_input_tool_result_spans(
                     tracer,
                     parent_span=agent_span,
@@ -467,7 +476,7 @@ async def stream_text(
                 tracer = None
                 agent_span = None
 
-        yield _sse(StartChunk())
+        yield _sse(StartChunk(message_metadata=message_metadata))
 
         # ---------------------------------------------------------------
         # Backend tool execution loop.

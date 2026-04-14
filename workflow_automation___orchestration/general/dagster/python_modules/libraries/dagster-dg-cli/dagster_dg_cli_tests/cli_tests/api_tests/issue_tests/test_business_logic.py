@@ -154,6 +154,83 @@ class TestFormatIssues:
         result = format_issue(issue, as_json=False)
         snapshot.assert_match(result)
 
+    def test_format_created_issue_text_output(self, snapshot):
+        """Test formatting a newly created issue as text."""
+        issue = DgApiIssue(
+            id="new-issue-uuid-abc",
+            title="New pipeline issue",
+            description="Pipeline failed unexpectedly.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="creator@example.com",
+        )
+        result = format_issue(issue, as_json=False)
+        snapshot.assert_match(result)
+
+    def test_format_created_issue_json_output(self, snapshot):
+        """Test formatting a newly created issue as JSON."""
+        issue = DgApiIssue(
+            id="new-issue-uuid-abc",
+            title="New pipeline issue",
+            description="Pipeline failed unexpectedly.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="creator@example.com",
+        )
+        result = format_issue(issue, as_json=True)
+        parsed = json.loads(result)
+        snapshot.assert_match(parsed)
+
+    def test_format_updated_issue_text_output(self, snapshot):
+        """Test formatting an updated issue as text."""
+        issue = DgApiIssue(
+            id="existing-issue-uuid-xyz",
+            title="Updated issue title",
+            description="Updated description after investigation.",
+            status=DgApiIssueStatus.CLOSED,
+            created_by_email="owner@example.com",
+        )
+        result = format_issue(issue, as_json=False)
+        snapshot.assert_match(result)
+
+    def test_format_updated_issue_json_output(self, snapshot):
+        """Test formatting an updated issue as JSON."""
+        issue = DgApiIssue(
+            id="existing-issue-uuid-xyz",
+            title="Updated issue title",
+            description="Updated description after investigation.",
+            status=DgApiIssueStatus.CLOSED,
+            created_by_email="owner@example.com",
+        )
+        result = format_issue(issue, as_json=True)
+        parsed = json.loads(result)
+        snapshot.assert_match(parsed)
+
+    def test_format_updated_issue_with_context_text_output(self, snapshot):
+        """Test formatting an updated issue with context as text."""
+        issue = DgApiIssue(
+            id="existing-issue-uuid-xyz",
+            title="Updated issue title",
+            description="Updated description after investigation.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="owner@example.com",
+            context="New context added during update.",
+        )
+        result = format_issue(issue, as_json=False)
+        snapshot.assert_match(result)
+
+    def test_format_updated_issue_with_context_json_output(self, snapshot):
+        """Test formatting an updated issue with context as JSON."""
+        issue = DgApiIssue(
+            id="existing-issue-uuid-xyz",
+            title="Updated issue title",
+            description="Updated description after investigation.",
+            status=DgApiIssueStatus.OPEN,
+            created_by_email="owner@example.com",
+            context="New context added during update.",
+        )
+        result = format_issue(issue, as_json=True)
+        parsed = json.loads(result)
+        snapshot.assert_match(parsed)
+
 
 class TestIssueDataProcessing:
     """Test processing of issue data structures."""

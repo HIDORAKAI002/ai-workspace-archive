@@ -1,8 +1,7 @@
-use crate::bloom_filter::{BloomFilter, BloomFilterError, BloomFilterFlusher, BloomFilterManager};
-use crate::types::ChromaSegmentFlusher;
-
 use super::distributed_spann::SpannSegmentWriterShardError;
 use super::types::{HydratedMaterializedLogRecord, LogMaterializerError, MaterializeLogsResult};
+use crate::bloom_filter::{BloomFilter, BloomFilterError, BloomFilterFlusher, BloomFilterManager};
+use crate::types::{ChromaSegmentFlusher, PartitionedMaterializeLogsResult};
 use chroma_blockstore::arrow::provider::BlockfileReaderOptions;
 use chroma_blockstore::provider::ReadKey;
 use chroma_blockstore::provider::ReadValue;
@@ -52,6 +51,9 @@ impl chroma_error::ChromaError for RecordSegmentWriterCreationError {
 pub struct RecordSegmentWriter {
     shards: Vec<RecordSegmentWriterShard>,
     pub id: SegmentUuid,
+    // TODO(tanujnay112): Remove SegmentUuid from above as its
+    // redundant with this.
+    segment: Segment,
 }
 
 impl RecordSegmentWriter {
@@ -88,19 +90,73 @@ impl RecordSegmentWriter {
         Ok(Self {
             shards: writer_shards,
             id: segment.id,
+            segment: segment.clone(),
         })
+    }
+
+    /// Returns the number of shards in the writer
+    pub fn num_shards(&self) -> usize {
+        self.shards.len()
+    }
+
+    /// Returns a read-only view of the shards
+    pub fn shards(&self) -> &[RecordSegmentWriterShard] {
+        &self.shards
+    }
+
+    pub async fn create_new_shard(
+        &mut self,
+        collection: &chroma_types::Collection,
+        blockfile_provider: &BlockfileProvider,
+        bloom_filter_manager: Option<BloomFilterManager>,
+    ) -> Result<SegmentShard, RecordSegmentWriterCreationError> {
+        let new_shard_segment = self.segment.new_shard();
+
+        let new_writer_shard = RecordSegmentWriterShard::from_segment(
+            &collection.tenant,
+            &collection.database_id,
+            &new_shard_segment,
+            blockfile_provider,
+            collection.schema.as_ref().and_then(|s| s.cmek.clone()),
+            bloom_filter_manager,
+        )
+        .await?;
+
+        self.shards.push(new_writer_shard);
+        Ok(new_shard_segment)
     }
 
     pub async fn apply_materialized_log_chunk(
         &self,
-        record_segment_reader: &Option<RecordSegmentReaderShard<'_>>,
-        materialized: &MaterializeLogsResult,
+        record_segment_reader: &Option<RecordSegmentReader<'_>>,
+        materialized: &PartitionedMaterializeLogsResult,
     ) -> Result<(), ApplyMaterializedLogError> {
         // Apply to all shards concurrently
+        let partitions = &materialized.shards;
+
+        // Extract shard readers ahead of time
+        let shard_readers: Vec<_> = (0..self.shards.len())
+            .map(|shard_idx| {
+                record_segment_reader.as_ref().and_then(|reader| {
+                    reader
+                        .shards
+                        .get(shard_idx)
+                        .and_then(|opt| opt.as_ref())
+                        .cloned()
+                })
+            })
+            .collect();
+
         let futures = self
             .shards
             .iter()
-            .map(|shard| shard.apply_materialized_log_chunk(record_segment_reader, materialized));
+            .zip(partitions.iter())
+            .zip(shard_readers.into_iter())
+            .map(|((shard, partitioned), shard_reader)| async move {
+                shard
+                    .apply_materialized_log_chunk(&shard_reader, partitioned)
+                    .await
+            });
 
         // TODO: Limit concurrency?
         futures::future::try_join_all(futures).await?;
@@ -783,6 +839,8 @@ pub enum ApplyMaterializedLogError {
     #[cfg(feature = "usearch")]
     #[error(transparent)]
     QuantizedSpannSegmentError(#[from] crate::quantized_spann::QuantizedSpannSegmentError),
+    #[error("Invalid number of partitions: expected {expected}, actual {actual}")]
+    InvalidNumberOfPartitions { expected: usize, actual: usize },
 }
 
 impl ChromaError for ApplyMaterializedLogError {
@@ -800,13 +858,16 @@ impl ChromaError for ApplyMaterializedLogError {
             ApplyMaterializedLogError::BloomFilterSerializationError(e) => e.code(),
             #[cfg(feature = "usearch")]
             ApplyMaterializedLogError::QuantizedSpannSegmentError(e) => e.code(),
+            ApplyMaterializedLogError::InvalidNumberOfPartitions { .. } => {
+                ErrorCodes::InvalidArgument
+            }
         }
     }
 }
 
 #[derive(Debug)]
 pub struct RecordSegmentFlusher {
-    shards: Vec<RecordSegmentFlusherShard>,
+    pub(crate) shards: Vec<RecordSegmentFlusherShard>,
     pub id: SegmentUuid,
 }
 
@@ -824,6 +885,11 @@ impl RecordSegmentFlusher {
                     .append(&mut paths);
             }
         }
+
+        tracing::info!(
+            "Flushed all record segment shards. flushed_files: {:?}",
+            all_file_paths
+        );
 
         Ok(all_file_paths)
     }
@@ -1307,6 +1373,8 @@ pub enum RecordSegmentReaderCreationError {
         shard_index: u32,
         source: Box<RecordSegmentReaderShardCreationError>,
     },
+    #[error("Shard index {shard_idx} is out of bounds for {num_shards} shards")]
+    ShardIndexOutOfBounds { shard_idx: u32, num_shards: u32 },
 }
 
 impl ChromaError for RecordSegmentReaderCreationError {
@@ -1314,12 +1382,16 @@ impl ChromaError for RecordSegmentReaderCreationError {
         match self {
             RecordSegmentReaderCreationError::Shard(e) => e.code(),
             RecordSegmentReaderCreationError::ShardReader { source, .. } => source.code(),
+            RecordSegmentReaderCreationError::ShardIndexOutOfBounds { .. } => {
+                ErrorCodes::InvalidArgument
+            }
         }
     }
 }
 
 /// Multi-shard record segment reader that wraps N `RecordSegmentReaderShard`
 /// instances and can resolve which shard owns a given user ID.
+#[derive(Debug, Clone)]
 pub struct RecordSegmentReader<'me> {
     shards: Vec<Option<RecordSegmentReaderShard<'me>>>,
 }
@@ -1378,6 +1450,10 @@ impl<'me> RecordSegmentReader<'me> {
         Ok(Self { shards })
     }
 
+    pub fn get_shards(&self) -> &[Option<RecordSegmentReaderShard<'_>>] {
+        &self.shards
+    }
+
     /// Resolve which shard owns the given user ID.
     ///
     /// Checks each shard's bloom filter first (fast negative) when enabled in
@@ -1401,6 +1477,72 @@ impl<'me> RecordSegmentReader<'me> {
 
     pub fn num_shards(&self) -> usize {
         self.shards.len()
+    }
+
+    /// Get the maximum offset ID for each shard
+    pub fn get_max_offset_ids(&self) -> Vec<u32> {
+        self.shards
+            .iter()
+            .map(|shard| shard.as_ref().map_or(0, |s| s.get_max_offset_id()))
+            .collect()
+    }
+
+    pub async fn count(&self) -> Result<usize, Box<dyn ChromaError>> {
+        let mut total = 0usize;
+        for reader in self.shards.iter().flatten() {
+            total += reader.count().await?;
+        }
+        Ok(total)
+    }
+
+    pub async fn partition_logs(
+        &self,
+        logs: &Chunk<LogRecord>,
+        options: &RecordSegmentReaderOptions,
+    ) -> Result<Vec<Chunk<LogRecord>>, Box<dyn ChromaError>> {
+        let num_shards = self.shards.len() as u32;
+
+        // Partition logs by shard - initialize each shard with a visibility vector
+        let mut shard_visibilities: Vec<Vec<bool>> = (0..num_shards)
+            .map(|_| vec![false; logs.total_len()])
+            .collect();
+
+        // Partition based on which shard owns each record
+        for (log, idx) in logs.iter() {
+            let shard_idx = self
+                .resolve_shard(&log.record.id, options)
+                .await?
+                .unwrap_or(num_shards - 1);
+
+            if shard_idx >= num_shards {
+                return Err(Box::new(
+                    RecordSegmentReaderCreationError::ShardIndexOutOfBounds {
+                        shard_idx,
+                        num_shards,
+                    },
+                ));
+            }
+
+            shard_visibilities[shard_idx as usize][idx] = true;
+        }
+
+        let sharded_logs = shard_visibilities
+            .into_iter()
+            .map(|visibility| {
+                let mut filtered_logs = logs.clone();
+                filtered_logs.set_visibility(visibility);
+                filtered_logs
+            })
+            .collect::<Vec<_>>();
+
+        Ok(sharded_logs)
+    }
+
+    pub async fn get_active_shard_record_count(&self) -> Result<usize, Box<dyn ChromaError>> {
+        match self.shards.last() {
+            Some(Some(shard)) => shard.count().await,
+            _ => Ok(0),
+        }
     }
 }
 

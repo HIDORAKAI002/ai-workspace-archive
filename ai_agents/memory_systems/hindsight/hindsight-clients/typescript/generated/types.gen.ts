@@ -366,6 +366,14 @@ export type BankStatsResponse = {
    */
   failed_operations: number;
   /**
+   * Operations By Status
+   *
+   * Async operations grouped by status (pending, in_progress, completed, failed, cancelled).
+   */
+  operations_by_status?: {
+    [key: string]: number;
+  };
+  /**
    * Last Consolidated At
    *
    * When consolidation last ran (ISO format)
@@ -1659,6 +1667,36 @@ export type ListTagsResponse = {
 };
 
 /**
+ * MemoriesTimeseriesResponse
+ *
+ * Time-series of memory ingestion bucketed by time and fact type.
+ */
+export type MemoriesTimeseriesResponse = {
+  /**
+   * Bank Id
+   */
+  bank_id: string;
+  /**
+   * Period
+   *
+   * One of: 1h, 12h, 1d, 7d, 30d, 90d.
+   */
+  period: string;
+  /**
+   * Trunc
+   *
+   * Bucket granularity: minute, hour, day.
+   */
+  trunc: string;
+  /**
+   * Buckets
+   *
+   * Per-bucket counts, always returned fully padded for the requested period.
+   */
+  buckets?: Array<MemoryTimeseriesBucket>;
+};
+
+/**
  * MemoryItem
  *
  * Single memory item for retain.
@@ -1725,6 +1763,38 @@ export type MemoryItem = {
    * How to handle an existing document with the same document_id. 'replace' (default) deletes old data and reprocesses from scratch. 'append' concatenates new content to the existing document text and reprocesses.
    */
   update_mode?: "replace" | "append" | null;
+};
+
+/**
+ * MemoryTimeseriesBucket
+ *
+ * One bucket in the memory ingestion time-series.
+ */
+export type MemoryTimeseriesBucket = {
+  /**
+   * Time
+   *
+   * Bucket start timestamp in ISO-8601 (UTC).
+   */
+  time: string;
+  /**
+   * World
+   *
+   * World-fact memories ingested in this bucket.
+   */
+  world?: number;
+  /**
+   * Experience
+   *
+   * Experience memories ingested in this bucket.
+   */
+  experience?: number;
+  /**
+   * Observation
+   *
+   * Observations recorded in this bucket.
+   */
+  observation?: number;
 };
 
 /**
@@ -3540,6 +3610,49 @@ export type GetAgentStatsResponses = {
 
 export type GetAgentStatsResponse =
   GetAgentStatsResponses[keyof GetAgentStatsResponses];
+
+export type GetMemoriesTimeseriesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Authorization
+     */
+    authorization?: string | null;
+  };
+  path: {
+    /**
+     * Bank Id
+     */
+    bank_id: string;
+  };
+  query?: {
+    /**
+     * Period
+     */
+    period?: string;
+  };
+  url: "/v1/default/banks/{bank_id}/stats/memories-timeseries";
+};
+
+export type GetMemoriesTimeseriesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetMemoriesTimeseriesError =
+  GetMemoriesTimeseriesErrors[keyof GetMemoriesTimeseriesErrors];
+
+export type GetMemoriesTimeseriesResponses = {
+  /**
+   * Successful Response
+   */
+  200: MemoriesTimeseriesResponse;
+};
+
+export type GetMemoriesTimeseriesResponse =
+  GetMemoriesTimeseriesResponses[keyof GetMemoriesTimeseriesResponses];
 
 export type ListEntitiesData = {
   body?: never;

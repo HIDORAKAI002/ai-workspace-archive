@@ -419,6 +419,145 @@ def _detect_file_based(
 
 
 # ---------------------------------------------------------------------------
+# Oversized community splitting
+# ---------------------------------------------------------------------------
+
+
+def _split_oversized(
+    communities: list[dict],
+    nodes: list[GraphNode],
+    edges: list[GraphEdge],
+    threshold_pct: float = 0.25,
+    min_split_size: int = 10,
+) -> list[dict]:
+    """Recursively split communities that exceed threshold_pct of total.
+
+    Uses Leiden on the subgraph of oversized communities. If igraph is
+    not available, returns communities unchanged.
+    """
+    if not IGRAPH_AVAILABLE:
+        return communities
+
+    total = sum(
+        c.get("size", len(c.get("members", [])))
+        for c in communities
+    )
+    if total == 0:
+        return communities
+
+    threshold = max(int(total * threshold_pct), min_split_size)
+    result: list[dict] = []
+    next_id = max(
+        (c.get("id", 0) for c in communities), default=0
+    ) + 1
+
+    for comm in communities:
+        members = set(comm.get("members", []))
+        if len(members) <= threshold:
+            result.append(comm)
+            continue
+
+        # Build subgraph for this community
+        member_nodes = [
+            n for n in nodes
+            if n.qualified_name in members
+        ]
+        member_edges = [
+            e for e in edges
+            if (
+                e.source_qualified in members
+                and e.target_qualified in members
+            )
+        ]
+
+        if len(member_nodes) < min_split_size:
+            result.append(comm)
+            continue
+
+        # Run Leiden on subgraph
+        qn_to_idx = {
+            n.qualified_name: i
+            for i, n in enumerate(member_nodes)
+        }
+        ig_edges: list[tuple[int, int]] = []
+        ig_weights: list[float] = []
+        for e in member_edges:
+            si = qn_to_idx.get(e.source_qualified)
+            ti = qn_to_idx.get(e.target_qualified)
+            if si is not None and ti is not None and si != ti:
+                ig_edges.append((si, ti))
+                ig_weights.append(
+                    EDGE_WEIGHTS.get(e.kind, 0.5)
+                )
+
+        if not ig_edges:
+            result.append(comm)
+            continue
+
+        try:
+            g = ig.Graph(
+                n=len(member_nodes),
+                edges=ig_edges,
+                directed=False,
+            )
+            g.es["weight"] = ig_weights
+            partition = g.community_leiden(
+                objective_function="modularity",
+                weights="weight",
+                resolution=0.5,
+            )
+
+            sub_communities: dict[int, list[str]] = {}
+            for idx, cid in enumerate(partition.membership):
+                sub_communities.setdefault(cid, []).append(
+                    member_nodes[idx].qualified_name
+                )
+
+            if len(sub_communities) <= 1:
+                result.append(comm)
+                continue
+
+            parent_id = comm.get("id", 0)
+            comm_name = comm.get("name", "")
+            for sub_members in sub_communities.values():
+                sub_comm = {
+                    "id": next_id,
+                    "name": comm_name + f"-sub{next_id}",
+                    "level": comm.get("level", 0) + 1,
+                    "parent_id": parent_id,
+                    "members": sub_members,
+                    "size": len(sub_members),
+                    "cohesion": 0.0,
+                    "dominant_language": comm.get(
+                        "dominant_language"
+                    ),
+                    "description": (
+                        f"Split from {comm_name}"
+                    ),
+                }
+                result.append(sub_comm)
+                next_id += 1
+
+            logger.info(
+                "Split oversized community '%s' "
+                "(%d members) into %d",
+                comm_name,
+                len(members),
+                len(sub_communities),
+            )
+        except Exception:
+            logger.warning(
+                "Failed to split community '%s', "
+                "keeping as-is",
+                comm.get("name", ""),
+                exc_info=True,
+            )
+            result.append(comm)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -457,6 +596,11 @@ def detect_communities(
     else:
         logger.info("igraph not available, using file-based community detection")
         results = _detect_file_based(unique_nodes, all_edges, min_size, adj=adj)
+
+    # Split oversized communities
+    results = _split_oversized(
+        results, unique_nodes, all_edges,
+    )
 
     # Convert member_qns (internal set) to a list for serialization safety,
     # then strip it from the returned dicts to avoid leaking internal state.

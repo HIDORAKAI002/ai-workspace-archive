@@ -31,6 +31,8 @@ type BankStatsResponse struct {
 	LinksBreakdown map[string]map[string]int32 `json:"links_breakdown"`
 	PendingOperations int32 `json:"pending_operations"`
 	FailedOperations int32 `json:"failed_operations"`
+	// Async operations grouped by status (pending, in_progress, completed, failed, cancelled).
+	OperationsByStatus map[string]int32 `json:"operations_by_status,omitempty"`
 	LastConsolidatedAt NullableString `json:"last_consolidated_at,omitempty"`
 	// Number of memories not yet processed into observations
 	PendingConsolidation *int32 `json:"pending_consolidation,omitempty"`
@@ -315,6 +317,38 @@ func (o *BankStatsResponse) SetFailedOperations(v int32) {
 	o.FailedOperations = v
 }
 
+// GetOperationsByStatus returns the OperationsByStatus field value if set, zero value otherwise.
+func (o *BankStatsResponse) GetOperationsByStatus() map[string]int32 {
+	if o == nil || IsNil(o.OperationsByStatus) {
+		var ret map[string]int32
+		return ret
+	}
+	return o.OperationsByStatus
+}
+
+// GetOperationsByStatusOk returns a tuple with the OperationsByStatus field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BankStatsResponse) GetOperationsByStatusOk() (map[string]int32, bool) {
+	if o == nil || IsNil(o.OperationsByStatus) {
+		return map[string]int32{}, false
+	}
+	return o.OperationsByStatus, true
+}
+
+// HasOperationsByStatus returns a boolean if a field has been set.
+func (o *BankStatsResponse) HasOperationsByStatus() bool {
+	if o != nil && !IsNil(o.OperationsByStatus) {
+		return true
+	}
+
+	return false
+}
+
+// SetOperationsByStatus gets a reference to the given map[string]int32 and assigns it to the OperationsByStatus field.
+func (o *BankStatsResponse) SetOperationsByStatus(v map[string]int32) {
+	o.OperationsByStatus = v
+}
+
 // GetLastConsolidatedAt returns the LastConsolidatedAt field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BankStatsResponse) GetLastConsolidatedAt() string {
 	if o == nil || IsNil(o.LastConsolidatedAt.Get()) {
@@ -441,6 +475,9 @@ func (o BankStatsResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["links_breakdown"] = o.LinksBreakdown
 	toSerialize["pending_operations"] = o.PendingOperations
 	toSerialize["failed_operations"] = o.FailedOperations
+	if !IsNil(o.OperationsByStatus) {
+		toSerialize["operations_by_status"] = o.OperationsByStatus
+	}
 	if o.LastConsolidatedAt.IsSet() {
 		toSerialize["last_consolidated_at"] = o.LastConsolidatedAt.Get()
 	}

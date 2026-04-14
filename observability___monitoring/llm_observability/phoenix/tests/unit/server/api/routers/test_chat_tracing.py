@@ -3,6 +3,7 @@ import json
 
 import pytest
 from openinference.semconv.trace import OpenInferenceSpanKindValues
+from opentelemetry.trace import format_span_id, format_trace_id
 from sqlalchemy import select
 
 from phoenix.config import get_env_phoenix_pxi_project_name
@@ -14,6 +15,7 @@ from phoenix.server.api.routers.chat_tracing import (
     finalize_agent_span,
     finalize_llm_span,
     finalize_recent_input_tool_result_spans,
+    get_agent_message_metadata,
     persist_traces,
 )
 from phoenix.server.daemons.generative_model_store import GenerativeModelStore
@@ -89,6 +91,25 @@ class TestEnsureProjectExists:
 
 class TestSpanHierarchy:
     """Verify that AGENT → LLM parent-child span structure is correct."""
+
+    def test_chat_message_metadata_uses_root_agent_span_ids(self, db: DbSessionFactory) -> None:
+        from pydantic_ai.messages import ModelRequest, UserPromptPart
+
+        tracer = _make_tracer(db)
+        messages = [ModelRequest(parts=[UserPromptPart(content="Hello")])]
+
+        agent_span = create_agent_span(tracer, input_messages=messages, session_id="s1")
+
+        metadata = get_agent_message_metadata(agent_span, session_id="s1")
+        span_context = agent_span.get_span_context()
+
+        assert metadata == {
+            "traceId": format_trace_id(span_context.trace_id),
+            "rootSpanId": format_span_id(span_context.span_id),
+            "sessionId": "s1",
+        }
+
+        finalize_agent_span(agent_span)
 
     def test_llm_span_is_child_of_agent_span(self, db: DbSessionFactory) -> None:
         from pydantic_ai.messages import ModelRequest, UserPromptPart
