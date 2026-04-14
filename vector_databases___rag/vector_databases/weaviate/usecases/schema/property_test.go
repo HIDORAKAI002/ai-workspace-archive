@@ -784,6 +784,7 @@ func (pdt *fakePropertyDataType) ContainsClass(name schema.ClassName) bool {
 }
 
 func TestHandler_DeleteClassVectorIndex(t *testing.T) {
+	t.Setenv("ENABLE_EXPERIMENTAL_ALTER_SCHEMA_ENDPOINTS", "true")
 	ctx := context.Background()
 
 	t.Run("class not found returns error", func(t *testing.T) {
