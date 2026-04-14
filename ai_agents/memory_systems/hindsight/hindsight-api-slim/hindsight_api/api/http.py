@@ -1431,10 +1431,35 @@ class BankStatsResponse(BaseModel):
     links_breakdown: dict[str, dict[str, int]]
     pending_operations: int
     failed_operations: int
+    operations_by_status: dict[str, int] = Field(
+        default_factory=dict,
+        description="Async operations grouped by status (pending, in_progress, completed, failed, cancelled).",
+    )
     # Consolidation stats
     last_consolidated_at: str | None = Field(default=None, description="When consolidation last ran (ISO format)")
     pending_consolidation: int = Field(default=0, description="Number of memories not yet processed into observations")
     total_observations: int = Field(default=0, description="Total number of observations")
+
+
+class MemoryTimeseriesBucket(BaseModel):
+    """One bucket in the memory ingestion time-series."""
+
+    time: str = Field(description="Bucket start timestamp in ISO-8601 (UTC).")
+    world: int = Field(default=0, description="World-fact memories ingested in this bucket.")
+    experience: int = Field(default=0, description="Experience memories ingested in this bucket.")
+    observation: int = Field(default=0, description="Observations recorded in this bucket.")
+
+
+class MemoriesTimeseriesResponse(BaseModel):
+    """Time-series of memory ingestion bucketed by time and fact type."""
+
+    bank_id: str
+    period: str = Field(description="One of: 1h, 12h, 1d, 7d, 30d, 90d.")
+    trunc: str = Field(description="Bucket granularity: minute, hour, day.")
+    buckets: list[MemoryTimeseriesBucket] = Field(
+        default_factory=list,
+        description="Per-bucket counts, always returned fully padded for the requested period.",
+    )
 
 
 # Mental Model models
@@ -3303,6 +3328,7 @@ def _register_routes(app: FastAPI):
                 links_breakdown=links_breakdown,
                 pending_operations=ops.get("pending", 0),
                 failed_operations=ops.get("failed", 0),
+                operations_by_status=ops,
                 last_consolidated_at=stats["last_consolidated_at"],
                 pending_consolidation=stats["pending_consolidation"],
                 total_observations=stats["total_observations"],
@@ -3316,6 +3342,35 @@ def _register_routes(app: FastAPI):
 
             error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             logger.error(f"Error in /v1/default/banks/{bank_id}/stats: {error_detail}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/stats/memories-timeseries",
+        response_model=MemoriesTimeseriesResponse,
+        summary="Memory ingestion time-series",
+        description="Memories ingested over a period, bucketed by time and broken down by fact type.",
+        operation_id="get_memories_timeseries",
+        tags=["Banks"],
+    )
+    async def api_memories_timeseries(
+        bank_id: str,
+        period: str = "7d",
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        try:
+            data = await app.state.memory.get_memories_timeseries(
+                bank_id, period=period, request_context=request_context
+            )
+            return MemoriesTimeseriesResponse(**data)
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            logger.error(f"Error in /v1/default/banks/{bank_id}/stats/memories-timeseries: {error_detail}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.get(

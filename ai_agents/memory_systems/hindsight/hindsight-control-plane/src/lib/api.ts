@@ -305,6 +305,20 @@ export class ControlPlaneClient {
     return this.fetchApi(`/api/stats/${bankId}`);
   }
 
+  async getMemoriesTimeseries(bankId: string, period: string) {
+    return this.fetchApi<{
+      bank_id: string;
+      period: string;
+      trunc: string;
+      buckets: Array<{
+        time: string;
+        world: number;
+        experience: number;
+        observation: number;
+      }>;
+    }>(`/api/stats/${bankId}/memories-timeseries?period=${encodeURIComponent(period)}`);
+  }
+
   /**
    * Get graph data
    */

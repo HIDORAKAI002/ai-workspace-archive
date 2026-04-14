@@ -493,6 +493,7 @@ from litellm.proxy.utils import (
     ProxyUpdateSpend,
     _cache_user_row,
     _get_docs_url,
+    _get_openapi_url,
     _get_projected_spend_over_limit,
     _get_redoc_url,
     _is_projected_spend_over_limit,
@@ -1000,6 +1001,7 @@ async def proxy_startup_event(app: FastAPI):  # noqa: PLR0915
 app = FastAPI(
     docs_url=_get_docs_url(),
     redoc_url=_get_redoc_url(),
+    openapi_url=_get_openapi_url(),
     title=_title,
     description=_description,
     version=version,
@@ -11527,8 +11529,11 @@ async def login_v2(request: Request):  # noqa: PLR0915
             litellm_dashboard_ui += "/ui/"
         litellm_dashboard_ui += "?login=success"
 
+        # Token is included in the response body so the UI can set a JS-accessible
+        # cookie even when a reverse proxy (e.g. nginx-ingress) adds HttpOnly to the
+        # server-set cookie, which would otherwise cause an infinite login redirect.
         json_response = JSONResponse(
-            content={"redirect_url": litellm_dashboard_ui},
+            content={"redirect_url": litellm_dashboard_ui, "token": jwt_token},
             status_code=status.HTTP_200_OK,
         )
         json_response.set_cookie(key="token", value=jwt_token)

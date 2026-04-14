@@ -116,9 +116,7 @@ function aggregateHistoricalPeriodsByMonth(list: any[]): HistoricalPeriod[] {
   }));
 }
 
-function getGroupedCredits(
-  entry: any,
-): Record<string, number> | undefined {
+function getGroupedCredits(entry: any): Record<string, number> | undefined {
   return (
     entry.groupedValues?.[CREDITS_FEATURE_ID] ??
     entry.grouped_values?.[CREDITS_FEATURE_ID]
@@ -213,14 +211,25 @@ export async function getTeamBalance(
     // Entity not found — fall through to customer-level
   }
 
-  // Fall back to customer-level balance if CREDITS feature not present
-  if (!balances?.[CREDITS_FEATURE_ID]) {
+  // Fall back to customer-level if CREDITS balance is missing, or if the
+  // entity had no subscriptions (subscriptions live at the customer level
+  // while balances may be entity-scoped).
+  const needCustomerFallback =
+    !balances?.[CREDITS_FEATURE_ID] || !subscriptions?.length;
+
+  if (needCustomerFallback) {
     const customer = await autumnClient.customers.getOrCreate({
       customerId: orgId,
       autoEnablePlanId: "free",
     });
-    balances = customer?.balances;
-    subscriptions = customer?.subscriptions;
+
+    if (!balances?.[CREDITS_FEATURE_ID]) {
+      balances = customer?.balances;
+    }
+    // Always prefer customer-level subscriptions when entity had none
+    if (!subscriptions?.length) {
+      subscriptions = customer?.subscriptions;
+    }
   }
 
   const creditBalance = balances?.[CREDITS_FEATURE_ID];
@@ -229,25 +238,71 @@ export async function getTeamBalance(
     return null;
   }
 
-  // Find the active subscription's billing period
-  const activeSub = subscriptions?.find(
-    (s: any) =>
-      s.status === "active" ||
-      s.status === "trialing" ||
-      s.status === "past_due",
-  );
+  // Find the subscription's billing period.
+  // Autumn uses "active" and "scheduled" statuses (not Stripe's "trialing" /
+  // "past_due").  Prefer an active subscription, but fall back to any
+  // subscription that carries period timestamps so we never return nulls
+  // when the data is actually available.
+  const activeSub =
+    subscriptions?.find((s: any) => s.status === "active") ??
+    subscriptions?.find((s: any) => s.currentPeriodStart != null);
 
-  const periodStartEpoch = activeSub?.currentPeriodStart;
-  const periodEndEpoch = activeSub?.currentPeriodEnd;
+  let periodStartEpoch = activeSub?.currentPeriodStart;
+  let periodEndEpoch = activeSub?.currentPeriodEnd;
 
   // Extract plan-only credits from the breakdown (excludes credit packs,
-  // auto-recharge, etc.) to preserve backwards compatibility with the old
-  // planCredits field semantics.
+  // auto-recharge, one-off grants, etc.) to preserve backwards compatibility
+  // with the old planCredits field semantics.
   let planCredits = creditBalance?.granted ?? 0;
   const breakdowns: Array<any> | undefined = creditBalance?.breakdown;
+
+  // For yearly plans, Autumn may not populate currentPeriodStart/End on the
+  // subscription.  Fall back to the balance's reset schedule: nextResetAt is
+  // the period end, and we derive the start from the reset interval.
+  if (periodStartEpoch == null && periodEndEpoch == null) {
+    const resetAt: number | undefined = creditBalance?.nextResetAt;
+    if (resetAt) {
+      const resetEntry = breakdowns?.find(
+        (b: any) => b.reset?.interval && b.reset.interval !== "one_off",
+      );
+      const interval = resetEntry?.reset?.interval;
+      if (interval === "month" || interval === "year") {
+        periodEndEpoch = resetAt;
+        const endDate = new Date(resetAt);
+        const targetYear =
+          interval === "year"
+            ? endDate.getUTCFullYear() - 1
+            : endDate.getUTCFullYear();
+        const targetMonth =
+          interval === "month"
+            ? endDate.getUTCMonth() - 1
+            : endDate.getUTCMonth();
+
+        // Clamp day to the last day of the target month to avoid overflow
+        // (e.g. Mar 31 minus 1 month → Feb 28, not Mar 3)
+        const lastDay = new Date(
+          Date.UTC(targetYear, targetMonth + 1, 0),
+        ).getUTCDate();
+        const clampedDay = Math.min(endDate.getUTCDate(), lastDay);
+
+        periodStartEpoch = new Date(
+          Date.UTC(
+            targetYear,
+            targetMonth,
+            clampedDay,
+            endDate.getUTCHours(),
+            endDate.getUTCMinutes(),
+            endDate.getUTCSeconds(),
+            endDate.getUTCMilliseconds(),
+          ),
+        ).getTime();
+      }
+    }
+  }
   if (breakdowns?.length) {
     planCredits = breakdowns.reduce(
-      (sum: number, b: any) => sum + (b.includedGrant ?? 0),
+      (sum: number, b: any) =>
+        b.planId != null ? sum + (b.includedGrant ?? 0) : sum,
       0,
     );
   }
@@ -259,11 +314,9 @@ export async function getTeamBalance(
     usage: creditBalance?.usage ?? 0,
     unlimited: creditBalance?.unlimited ?? false,
     periodStart: periodStartEpoch
-      ? new Date(periodStartEpoch * 1000).toISOString()
+      ? new Date(periodStartEpoch).toISOString()
       : null,
-    periodEnd: periodEndEpoch
-      ? new Date(periodEndEpoch * 1000).toISOString()
-      : null,
+    periodEnd: periodEndEpoch ? new Date(periodEndEpoch).toISOString() : null,
   };
 }
 

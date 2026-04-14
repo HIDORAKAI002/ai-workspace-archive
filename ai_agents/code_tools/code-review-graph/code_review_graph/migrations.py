@@ -225,6 +225,19 @@ def _migrate_v8(conn: sqlite3.Connection) -> None:
     logger.info("Migration v8: created composite edge index")
 
 
+def _migrate_v9(conn: sqlite3.Connection) -> None:
+    """v9: Add confidence scoring to edges."""
+    if not _has_column(conn, "edges", "confidence"):
+        conn.execute(
+            "ALTER TABLE edges ADD COLUMN confidence REAL DEFAULT 1.0"
+        )
+    if not _has_column(conn, "edges", "confidence_tier"):
+        conn.execute(
+            "ALTER TABLE edges ADD COLUMN confidence_tier TEXT DEFAULT 'EXTRACTED'"
+        )
+    logger.info("Migration v9: added edge confidence columns")
+
+
 # ---------------------------------------------------------------------------
 # Migration registry
 # ---------------------------------------------------------------------------
@@ -237,6 +250,7 @@ MIGRATIONS: dict[int, Callable[[sqlite3.Connection], None]] = {
     6: _migrate_v6,
     7: _migrate_v7,
     8: _migrate_v8,
+    9: _migrate_v9,
 }
 
 LATEST_VERSION = max(MIGRATIONS.keys())

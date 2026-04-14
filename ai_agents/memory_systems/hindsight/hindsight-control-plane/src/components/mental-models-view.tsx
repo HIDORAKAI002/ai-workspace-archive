@@ -384,75 +384,73 @@ export function MentalModelsView() {
 
               {/* Table View */}
               {viewMode === "table" && (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table className="table-fixed">
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-[20%]">ID</TableHead>
-                        <TableHead className="w-[20%]">Name</TableHead>
-                        <TableHead className="w-[35%]">Source Query</TableHead>
-                        <TableHead className="w-[15%]">Last Refreshed</TableHead>
-                        <TableHead className="w-[10%]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedMentalModels.map((m) => {
-                        const refreshedDate = new Date(m.last_refreshed_at);
-                        const dateDisplay = refreshedDate.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        });
-                        const timeDisplay = refreshedDate.toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        });
+                <Table className="table-fixed">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[20%]">ID</TableHead>
+                      <TableHead className="w-[20%]">Name</TableHead>
+                      <TableHead className="w-[35%]">Source Query</TableHead>
+                      <TableHead className="w-[15%]">Last Refreshed</TableHead>
+                      <TableHead className="w-[10%]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedMentalModels.map((m) => {
+                      const refreshedDate = new Date(m.last_refreshed_at);
+                      const dateDisplay = refreshedDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      });
+                      const timeDisplay = refreshedDate.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      });
 
-                        return (
-                          <TableRow
-                            key={m.id}
-                            className={`cursor-pointer hover:bg-muted/50 ${
-                              selectedMentalModel?.id === m.id ? "bg-primary/10" : ""
-                            }`}
-                            onClick={() => setSelectedMentalModel(m)}
-                          >
-                            <TableCell className="py-2">
-                              <code className="text-xs font-mono text-muted-foreground truncate block">
-                                {m.id}
-                              </code>
-                            </TableCell>
-                            <TableCell className="py-2">
-                              <div className="font-medium text-foreground">{m.name}</div>
-                            </TableCell>
-                            <TableCell className="py-2">
-                              <div className="text-sm text-muted-foreground truncate">
-                                {m.source_query}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-2 text-sm text-foreground">
-                              <div>{dateDisplay}</div>
-                              <div className="text-xs text-muted-foreground">{timeDisplay}</div>
-                            </TableCell>
-                            <TableCell className="py-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteTarget({ id: m.id, name: m.name });
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                      return (
+                        <TableRow
+                          key={m.id}
+                          className={`cursor-pointer hover:bg-muted/50 ${
+                            selectedMentalModel?.id === m.id ? "bg-primary/10" : ""
+                          }`}
+                          onClick={() => setSelectedMentalModel(m)}
+                        >
+                          <TableCell className="py-2">
+                            <code className="text-xs font-mono text-muted-foreground truncate block">
+                              {m.id}
+                            </code>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="font-medium text-foreground">{m.name}</div>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="text-sm text-muted-foreground truncate">
+                              {m.source_query}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2 text-sm text-foreground">
+                            <div>{dateDisplay}</div>
+                            <div className="text-xs text-muted-foreground">{timeDisplay}</div>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget({ id: m.id, name: m.name });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               )}
 
               {/* Pagination Controls */}

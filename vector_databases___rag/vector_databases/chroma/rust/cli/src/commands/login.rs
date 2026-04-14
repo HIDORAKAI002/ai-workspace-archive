@@ -4,15 +4,12 @@ use crate::client::dashboard_client::{
 };
 use crate::commands::db::DbError;
 use crate::commands::login::LoginError::BrowserAuthFailed;
+use crate::config_store::{ConfigStore, FileConfigStore};
+use crate::terminal::{SystemTerminal, Terminal};
 use crate::ui_utils::validate_uri;
-use crate::utils::{
-    read_config, read_profiles, write_config, write_profiles, CliError, Profile, Profiles,
-    UtilsError, CHROMA_DIR, CREDENTIALS_FILE,
-};
+use crate::utils::{CliError, Profile, Profiles, UtilsError};
 use clap::Parser;
 use colored::Colorize;
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Input, Select};
 use std::error::Error;
 use std::time::Duration;
 use thiserror::Error;
@@ -57,13 +54,12 @@ fn profile_name_input_prompt(profile_name: &str) -> String {
     )
 }
 
-fn login_success_message(team_name: &str, profile_name: &str) -> String {
+fn login_success_message(team_name: &str, profile_name: &str, config_dir: &str) -> String {
     format!(
-        "{} {}\nCredentials saved to ~/{}/{} under the profile {}\n",
+        "{} {}\nCredentials saved to {} under the profile {}\n",
         "Login successful for team".green().bold(),
         team_name.green().bold(),
-        CHROMA_DIR,
-        CREDENTIALS_FILE,
+        config_dir,
         profile_name
     )
 }
@@ -88,20 +84,16 @@ fn validate_profile_name(profile_name: String) -> Result<String, LoginError> {
     validate_uri(profile_name).map_err(LoginError::InvalidProfileName)
 }
 
-fn select_team(teams: Vec<Team>) -> Result<Team, CliError> {
+fn select_team(teams: Vec<Team>, term: &mut dyn Terminal) -> Result<Team, CliError> {
     match teams.len() {
         0 => Err(LoginError::NoTeamsFound.into()),
         1 => Ok(teams.into_iter().next().unwrap()),
         _ => {
             let team_names: Vec<String> = teams.iter().map(|team| team.name.clone()).collect();
-            println!("{}", team_selection_prompt());
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&team_names)
-                .default(0)
-                .interact()
-                .map_err(|_| UtilsError::UserInputFailed)?;
+            term.println(&team_selection_prompt());
+            let selection = term.prompt_select(&team_names)?;
             let selected = teams.into_iter().nth(selection).unwrap();
-            println!("{}\n", selected.name.green());
+            term.println(&format!("{}\n", selected.name.green()));
             Ok(selected)
         }
     }
@@ -114,7 +106,11 @@ fn filter_team(team_id: &str, teams: Vec<Team>) -> Result<Team, LoginError> {
         .ok_or_else(|| LoginError::TeamNotFound(team_id.to_string()))
 }
 
-fn get_profile_from_team(team: &Team, profiles: &Profiles) -> Result<String, CliError> {
+fn get_profile_from_team(
+    team: &Team,
+    profiles: &Profiles,
+    term: &mut dyn Terminal,
+) -> Result<String, CliError> {
     let team_name = match team.name.as_str() {
         "default" => "default",
         _ => team.slug.as_str(),
@@ -124,20 +120,20 @@ fn get_profile_from_team(team: &Team, profiles: &Profiles) -> Result<String, Cli
         return Ok(team_name.to_string());
     }
 
-    println!("{}", profile_name_input_prompt(team_name));
-    let profile_name: String = Input::with_theme(&ColorfulTheme::default())
-        .allow_empty(true)
-        .report(false)
-        .interact_text()
-        .map_err(|_| UtilsError::UserInputFailed)?;
+    term.println(&profile_name_input_prompt(team_name));
+    let profile_name = term.prompt_input()?;
 
     match profile_name.as_str() {
         "" => {
-            println!("{} {}\n", "Overriding profile".green(), team_name.green());
+            term.println(&format!(
+                "{} {}\n",
+                "Overriding profile".green(),
+                team_name.green()
+            ));
             Ok(team_name.to_string())
         }
         _ => {
-            println!("{}\n", profile_name.green());
+            term.println(&format!("{}\n", profile_name.green()));
             Ok(profile_name)
         }
     }
@@ -162,7 +158,10 @@ async fn verify_token(
     Ok(None)
 }
 
-async fn browser_auth(dashboard_client: &DashboardClient) -> Result<String, Box<dyn Error>> {
+async fn browser_auth(
+    dashboard_client: &DashboardClient,
+    term: &mut dyn Terminal,
+) -> Result<String, Box<dyn Error>> {
     let token = dashboard_client.get_cli_token().await?;
 
     let login_url = format!(
@@ -171,7 +170,7 @@ async fn browser_auth(dashboard_client: &DashboardClient) -> Result<String, Box<
     );
     webbrowser::open(&login_url)?;
 
-    println!("Waiting for browser authentication...\nCtrl+C to quit\n");
+    term.println("Waiting for browser authentication...\nCtrl+C to quit\n");
 
     let session_id = verify_token(dashboard_client, token).await?;
     match session_id {
@@ -180,10 +179,14 @@ async fn browser_auth(dashboard_client: &DashboardClient) -> Result<String, Box<
     }
 }
 
-pub async fn browser_login(args: LoginArgs) -> Result<(), CliError> {
+pub async fn browser_login(
+    args: LoginArgs,
+    store: &dyn ConfigStore,
+    term: &mut dyn Terminal,
+) -> Result<(), CliError> {
     let dashboard_client = get_dashboard_client(args.dev);
 
-    let session_id = browser_auth(&dashboard_client)
+    let session_id = browser_auth(&dashboard_client, term)
         .await
         .map_err(|_| BrowserAuthFailed)?;
 
@@ -200,7 +203,7 @@ pub async fn browser_login(args: LoginArgs) -> Result<(), CliError> {
             (api_key, team)
         }
         None => {
-            let team = select_team(teams)?;
+            let team = select_team(teams, term)?;
             let api_key = dashboard_client
                 .get_api_key(&team.slug, &session_id)
                 .await?;
@@ -208,43 +211,51 @@ pub async fn browser_login(args: LoginArgs) -> Result<(), CliError> {
         }
     };
 
-    let mut profiles = read_profiles()?;
+    let mut profiles = store.read_profiles()?;
     let mut profile_name = match args.profile {
         Some(name) => name,
-        None => get_profile_from_team(&team, &profiles)?,
+        None => get_profile_from_team(&team, &profiles, term)?,
     };
     profile_name = validate_profile_name(profile_name)?;
     let profile = Profile::new(api_key, team.uuid);
 
     let set_current = profiles.is_empty();
     profiles.insert(profile_name.clone(), profile);
-    write_profiles(&profiles)?;
+    store.write_profiles(&profiles)?;
 
-    let mut config = read_config()?;
+    let mut config = store.read_config()?;
 
     if set_current {
         config.current_profile = profile_name.clone();
-        write_config(&config)?;
+        store.write_config(&config)?;
     }
 
-    println!("{}", login_success_message(&team.name, &profile_name));
+    term.println(&login_success_message(
+        &team.name,
+        &profile_name,
+        &store.config_dir(),
+    ));
 
     if !config.current_profile.eq(&profile_name) {
-        println!("{}", set_profile_message(&profile_name));
+        term.println(&set_profile_message(&profile_name));
     }
 
-    println!("{}", next_steps_message());
+    term.println(&next_steps_message());
 
     Ok(())
 }
 
-pub async fn headless_login(args: LoginArgs) -> Result<(), CliError> {
+pub async fn headless_login(
+    args: LoginArgs,
+    store: &dyn ConfigStore,
+    term: &mut dyn Terminal,
+) -> Result<(), CliError> {
     let api_key = args.api_key.unwrap_or_default();
 
     let mut profile_name = args.profile.unwrap_or_default();
     profile_name = validate_profile_name(profile_name)?;
 
-    let mut profiles = read_profiles()?;
+    let mut profiles = store.read_profiles()?;
 
     if profiles.contains_key(&profile_name) {
         return Err(LoginError::ProfileAlreadyExists(profile_name).into());
@@ -261,30 +272,32 @@ pub async fn headless_login(args: LoginArgs) -> Result<(), CliError> {
 
     let set_current = profiles.is_empty();
     profiles.insert(profile_name.clone(), profile);
-    write_profiles(&profiles)?;
+    store.write_profiles(&profiles)?;
 
-    let mut config = read_config()?;
+    let mut config = store.read_config()?;
 
     if set_current {
         config.current_profile = profile_name.clone();
-        write_config(&config)?;
+        store.write_config(&config)?;
     }
 
     if !config.current_profile.eq(&profile_name) {
-        println!("{}", set_profile_message(&profile_name));
+        term.println(&set_profile_message(&profile_name));
     }
 
-    println!("{}", next_steps_message());
+    term.println(&next_steps_message());
 
     Ok(())
 }
 
 pub fn login(args: LoginArgs) -> Result<(), CliError> {
+    let store = FileConfigStore::default();
+    let mut term = SystemTerminal;
     let runtime = tokio::runtime::Runtime::new().map_err(|_| DbError::RuntimeError)?;
     runtime.block_on(async {
         match (&args.api_key, &args.profile) {
-            (Some(_), Some(_)) => headless_login(args).await,
-            _ => browser_login(args).await,
+            (Some(_), Some(_)) => headless_login(args, &store, &mut term).await,
+            _ => browser_login(args, &store, &mut term).await,
         }
     })?;
     Ok(())

@@ -1,4 +1,24 @@
 # serializer version: 1
+# name: TestFormatIssues.test_format_created_issue_json_output[0]
+  dict({
+    'asset_key': None,
+    'context': None,
+    'created_by_email': 'creator@example.com',
+    'description': 'Pipeline failed unexpectedly.',
+    'id': 'new-issue-uuid-abc',
+    'run_id': None,
+    'status': 'OPEN',
+    'title': 'New pipeline issue',
+  })
+# ---
+# name: TestFormatIssues.test_format_created_issue_text_output[0]
+  '''
+  Title:       New pipeline issue
+  Status:      OPEN
+  Created By:  creator@example.com
+  Description: Pipeline failed unexpectedly.
+  '''
+# ---
 # name: TestFormatIssues.test_format_empty_issues_json_output[0]
   dict({
     'cursor': None,
@@ -124,6 +144,47 @@
   Asset Key:          ['namespace', 'my_critical_asset']
   Description:        The pipeline failed with a critical error during execution.
   Additional Context: Additional diagnostic information here.
+  '''
+# ---
+# name: TestFormatIssues.test_format_updated_issue_json_output[0]
+  dict({
+    'asset_key': None,
+    'context': None,
+    'created_by_email': 'owner@example.com',
+    'description': 'Updated description after investigation.',
+    'id': 'existing-issue-uuid-xyz',
+    'run_id': None,
+    'status': 'CLOSED',
+    'title': 'Updated issue title',
+  })
+# ---
+# name: TestFormatIssues.test_format_updated_issue_text_output[0]
+  '''
+  Title:       Updated issue title
+  Status:      CLOSED
+  Created By:  owner@example.com
+  Description: Updated description after investigation.
+  '''
+# ---
+# name: TestFormatIssues.test_format_updated_issue_with_context_json_output[0]
+  dict({
+    'asset_key': None,
+    'context': 'New context added during update.',
+    'created_by_email': 'owner@example.com',
+    'description': 'Updated description after investigation.',
+    'id': 'existing-issue-uuid-xyz',
+    'run_id': None,
+    'status': 'OPEN',
+    'title': 'Updated issue title',
+  })
+# ---
+# name: TestFormatIssues.test_format_updated_issue_with_context_text_output[0]
+  '''
+  Title:              Updated issue title
+  Status:             OPEN
+  Created By:         owner@example.com
+  Description:        Updated description after investigation.
+  Additional Context: New context added during update.
   '''
 # ---
 # name: TestIssueDataProcessing.test_issue_creation_with_all_statuses[0]

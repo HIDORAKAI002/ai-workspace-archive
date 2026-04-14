@@ -695,6 +695,75 @@
         }
       }
     },
+    "/v1/default/banks/{bank_id}/stats/memories-timeseries": {
+      "get": {
+        "tags": [
+          "Banks"
+        ],
+        "summary": "Memory ingestion time-series",
+        "description": "Memories ingested over a period, bucketed by time and broken down by fact type.",
+        "operationId": "get_memories_timeseries",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Bank Id"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "7d",
+              "title": "Period"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoriesTimeseriesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/default/banks/{bank_id}/entities": {
       "get": {
         "tags": [
@@ -5081,6 +5150,14 @@
             "type": "integer",
             "title": "Failed Operations"
           },
+          "operations_by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Operations By Status",
+            "description": "Async operations grouped by status (pending, in_progress, completed, failed, cancelled)."
+          },
           "last_consolidated_at": {
             "anyOf": [
               {
@@ -7243,6 +7320,40 @@
           "total": 25
         }
       },
+      "MemoriesTimeseriesResponse": {
+        "properties": {
+          "bank_id": {
+            "type": "string",
+            "title": "Bank Id"
+          },
+          "period": {
+            "type": "string",
+            "title": "Period",
+            "description": "One of: 1h, 12h, 1d, 7d, 30d, 90d."
+          },
+          "trunc": {
+            "type": "string",
+            "title": "Trunc",
+            "description": "Bucket granularity: minute, hour, day."
+          },
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryTimeseriesBucket"
+            },
+            "type": "array",
+            "title": "Buckets",
+            "description": "Per-bucket counts, always returned fully padded for the requested period."
+          }
+        },
+        "type": "object",
+        "required": [
+          "bank_id",
+          "period",
+          "trunc"
+        ],
+        "title": "MemoriesTimeseriesResponse",
+        "description": "Time-series of memory ingestion bucketed by time and fact type."
+      },
       "MemoryItem": {
         "properties": {
           "content": {
@@ -7416,6 +7527,39 @@
           ],
           "timestamp": "2024-01-15T10:30:00Z"
         }
+      },
+      "MemoryTimeseriesBucket": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "title": "Time",
+            "description": "Bucket start timestamp in ISO-8601 (UTC)."
+          },
+          "world": {
+            "type": "integer",
+            "title": "World",
+            "description": "World-fact memories ingested in this bucket.",
+            "default": 0
+          },
+          "experience": {
+            "type": "integer",
+            "title": "Experience",
+            "description": "Experience memories ingested in this bucket.",
+            "default": 0
+          },
+          "observation": {
+            "type": "integer",
+            "title": "Observation",
+            "description": "Observations recorded in this bucket.",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "time"
+        ],
+        "title": "MemoryTimeseriesBucket",
+        "description": "One bucket in the memory ingestion time-series."
       },
       "MentalModelListResponse": {
         "properties": {

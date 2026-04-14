@@ -14,9 +14,11 @@ package schema
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	clusterSchema "github.com/weaviate/weaviate/cluster/schema"
+	entcfg "github.com/weaviate/weaviate/entities/config"
 	"github.com/weaviate/weaviate/entities/models"
 	"github.com/weaviate/weaviate/entities/modelsext"
 	"github.com/weaviate/weaviate/entities/schema"
@@ -98,6 +100,9 @@ func (h *Handler) AddClassProperty(ctx context.Context, principal *models.Princi
 func (h *Handler) DeleteClassPropertyIndex(ctx context.Context, principal *models.Principal,
 	class *models.Class, className, propertyName, indexName string,
 ) error {
+	if !entcfg.Enabled(os.Getenv("ENABLE_EXPERIMENTAL_ALTER_SCHEMA_ENDPOINTS")) {
+		return fmt.Errorf("alter schema endpoints are experimental and disabled by default, set the environment variable ENABLE_EXPERIMENTAL_ALTER_SCHEMA_ENDPOINTS=true to enable them")
+	}
 	if err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(className)...); err != nil {
 		return err
 	}
@@ -162,6 +167,9 @@ func (h *Handler) DeleteClassPropertyIndex(ctx context.Context, principal *model
 func (h *Handler) DeleteClassVectorIndex(ctx context.Context, principal *models.Principal,
 	className, vectorIndexName string,
 ) error {
+	if !entcfg.Enabled(os.Getenv("ENABLE_EXPERIMENTAL_ALTER_SCHEMA_ENDPOINTS")) {
+		return fmt.Errorf("alter schema endpoints are experimental and disabled by default, set the environment variable ENABLE_EXPERIMENTAL_ALTER_SCHEMA_ENDPOINTS=true to enable them")
+	}
 	if err := h.Authorizer.Authorize(ctx, principal, authorization.UPDATE, authorization.CollectionsMetadata(className)...); err != nil {
 		return err
 	}

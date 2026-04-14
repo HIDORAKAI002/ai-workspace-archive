@@ -464,6 +464,53 @@ paths:
       summary: Get statistics for memory bank
       tags:
       - Banks
+  /v1/default/banks/{bank_id}/stats/memories-timeseries:
+    get:
+      description: "Memories ingested over a period, bucketed by time and broken down\
+        \ by fact type."
+      operationId: get_memories_timeseries
+      parameters:
+      - explode: false
+        in: path
+        name: bank_id
+        required: true
+        schema:
+          title: Bank Id
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: period
+        required: false
+        schema:
+          default: 7d
+          title: Period
+          type: string
+        style: form
+      - explode: false
+        in: header
+        name: authorization
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoriesTimeseriesResponse'
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Memory ingestion time-series
+      tags:
+      - Banks
   /v1/default/banks/{bank_id}/entities:
     get:
       description: "List all entities (people, organizations, etc.) known by the bank,\
@@ -3513,6 +3560,12 @@ components:
         failed_operations:
           title: Failed Operations
           type: integer
+        operations_by_status:
+          additionalProperties:
+            type: integer
+          description: "Async operations grouped by status (pending, in_progress,\
+            \ completed, failed, cancelled)."
+          title: Operations By Status
         last_consolidated_at:
           nullable: true
           type: string
@@ -4782,6 +4835,44 @@ components:
       - offset
       - total
       title: ListTagsResponse
+    MemoriesTimeseriesResponse:
+      description: Time-series of memory ingestion bucketed by time and fact type.
+      example:
+        period: period
+        trunc: trunc
+        bank_id: bank_id
+        buckets:
+        - world: 0
+          observation: 1
+          time: time
+          experience: 6
+        - world: 0
+          observation: 1
+          time: time
+          experience: 6
+      properties:
+        bank_id:
+          title: Bank Id
+          type: string
+        period:
+          description: "One of: 1h, 12h, 1d, 7d, 30d, 90d."
+          title: Period
+          type: string
+        trunc:
+          description: "Bucket granularity: minute, hour, day."
+          title: Trunc
+          type: string
+        buckets:
+          description: "Per-bucket counts, always returned fully padded for the requested\
+            \ period."
+          items:
+            $ref: '#/components/schemas/MemoryTimeseriesBucket'
+          type: array
+      required:
+      - bank_id
+      - period
+      - trunc
+      title: MemoriesTimeseriesResponse
     MemoryItem:
       description: Single memory item for retain.
       example:
@@ -4839,6 +4930,36 @@ components:
       required:
       - content
       title: MemoryItem
+    MemoryTimeseriesBucket:
+      description: One bucket in the memory ingestion time-series.
+      example:
+        world: 0
+        observation: 1
+        time: time
+        experience: 6
+      properties:
+        time:
+          description: Bucket start timestamp in ISO-8601 (UTC).
+          title: Time
+          type: string
+        world:
+          default: 0
+          description: World-fact memories ingested in this bucket.
+          title: World
+          type: integer
+        experience:
+          default: 0
+          description: Experience memories ingested in this bucket.
+          title: Experience
+          type: integer
+        observation:
+          default: 0
+          description: Observations recorded in this bucket.
+          title: Observation
+          type: integer
+      required:
+      - time
+      title: MemoryTimeseriesBucket
     MentalModelListResponse:
       description: Response model for listing mental models.
       example:

@@ -403,6 +403,7 @@ type AttributesFormatWithOptions = z.output<typeof attributesFormatWithOptions>;
 const queryFormatWithOptions = z.strictObject({
   type: z.literal("query"),
   prompt: z.string().max(10000),
+  directQuote: z.boolean().optional().default(false),
 });
 
 type QueryFormatWithOptions = z.output<typeof queryFormatWithOptions>;

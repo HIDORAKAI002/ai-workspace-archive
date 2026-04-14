@@ -124,10 +124,11 @@ pub struct Segment {
 }
 
 impl Segment {
+    // INVARIANT: THIS ALWAYS RETURNS AT LEAST ONE SHARD
     pub fn get_shards(&self) -> Result<Vec<SegmentShard>, SegmentShardError> {
         // If there are no file paths, return empty vector
         if self.file_path.is_empty() {
-            let vec = vec![self.get_new_shard()];
+            let vec = vec![self.new_shard()];
             return Ok(vec);
         }
 
@@ -170,7 +171,10 @@ impl Segment {
         )
     }
 
-    pub fn filepaths_to_prefetch(&self) -> Vec<String> {
+    /// Returns the file paths that should be prefetched for this segment.
+    /// If shard_index is None, returns the active shard's file paths. If shard_index is Some, returns
+    /// only the file paths for that shard.
+    pub fn filepaths_to_prefetch(&self, shard_index: Option<u32>) -> Vec<String> {
         let mut res = Vec::new();
         match self.r#type {
             SegmentType::QuantizedSpann => {
@@ -180,13 +184,23 @@ impl Segment {
                     QUANTIZED_SPANN_SCALAR_METADATA,
                 ] {
                     if let Some(paths) = self.file_path.get(key) {
-                        res.extend(paths.iter().cloned());
+                        if let Some(path) = match shard_index {
+                            Some(index) => paths.get(index as usize),
+                            None => paths.last(),
+                        } {
+                            res.push(path.clone());
+                        }
                     }
                 }
             }
             SegmentType::Spann => {
                 if let Some(pl_path) = self.file_path.get(POSTING_LIST_PATH) {
-                    res.extend(pl_path.iter().cloned());
+                    if let Some(path) = match shard_index {
+                        Some(index) => pl_path.get(index as usize),
+                        None => pl_path.last(),
+                    } {
+                        res.push(path.clone());
+                    }
                 }
             }
             SegmentType::BlockfileMetadata | SegmentType::BlockfileRecord => {
@@ -194,7 +208,12 @@ impl Segment {
                     if key == USER_ID_BLOOM_FILTER {
                         continue;
                     }
-                    res.extend(paths.iter().cloned());
+                    if let Some(path) = match shard_index {
+                        Some(index) => paths.get(index as usize),
+                        None => paths.last(),
+                    } {
+                        res.push(path.clone());
+                    }
                 }
             }
             _ => {}
@@ -329,7 +348,7 @@ impl TryFrom<(&Segment, u32)> for SegmentShard {
 }
 
 impl Segment {
-    pub fn get_new_shard(&self) -> SegmentShard {
+    pub fn new_shard(&self) -> SegmentShard {
         SegmentShard {
             id: self.id,
             r#type: self.r#type,
