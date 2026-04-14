@@ -269,13 +269,17 @@ export function mergeBrandingResults(
       primary: llm.colorRoles.primaryColor || merged.colors?.primary,
       ...(llm.colorRoles.secondaryColor
         ? { secondary: llm.colorRoles.secondaryColor }
-        : merged.colors?.secondary
-          ? { secondary: merged.colors.secondary }
-          : {}),
+        : {}),
       accent: llm.colorRoles.accentColor || merged.colors?.accent,
       background: llm.colorRoles.backgroundColor || merged.colors?.background,
       textPrimary: llm.colorRoles.textPrimary || merged.colors?.textPrimary,
     };
+
+    // When the LLM omits secondaryColor, remove the JS-heuristic secondary
+    // to avoid propagating spurious colors from CSS presets (e.g. WordPress themes)
+    if (!llm.colorRoles.secondaryColor && merged.colors?.secondary) {
+      delete merged.colors.secondary;
+    }
 
     // Add LLM-selected colors to debug output
     if ((merged as any).__debug_colors) {
