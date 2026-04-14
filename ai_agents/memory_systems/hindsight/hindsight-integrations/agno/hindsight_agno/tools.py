@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from importlib import metadata
 from typing import Any
 
 from agno.run.base import RunContext
@@ -18,6 +19,12 @@ from .config import get_config
 from .errors import HindsightError
 
 logger = logging.getLogger(__name__)
+
+try:
+    _VERSION = metadata.version("hindsight-agno")
+except metadata.PackageNotFoundError:
+    _VERSION = "0.0.0"
+_USER_AGENT = f"hindsight-agno/{_VERSION}"
 
 _TOOL_INSTRUCTIONS = """\
 You have access to long-term memory via Hindsight tools.
@@ -52,7 +59,7 @@ def _resolve_client(
             "Pass client= or hindsight_api_url=, or call configure() first."
         )
 
-    kwargs: dict[str, Any] = {"base_url": url, "timeout": 30.0}
+    kwargs: dict[str, Any] = {"base_url": url, "timeout": 30.0, "user_agent": _USER_AGENT}
     if key:
         kwargs["api_key"] = key
     return Hindsight(**kwargs)

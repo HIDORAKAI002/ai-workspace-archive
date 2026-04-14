@@ -1526,6 +1526,27 @@ class MentalModelTrigger(BaseModel):
             "Supports nested and/or/not expressions for complex tag-based scoping."
         ),
     )
+    include_chunks: bool | None = Field(
+        default=None,
+        description=(
+            "Override whether the internal recall used during refresh returns raw chunk text. "
+            "None means use the bank/global config default (recall_include_chunks)."
+        ),
+    )
+    recall_max_tokens: int | None = Field(
+        default=None,
+        description=(
+            "Override the token budget for facts returned by the internal recall during refresh. "
+            "None means use the bank/global config default (recall_max_tokens)."
+        ),
+    )
+    recall_chunks_max_tokens: int | None = Field(
+        default=None,
+        description=(
+            "Override the token budget for raw chunks returned by the internal recall during refresh. "
+            "None means use the bank/global config default (recall_chunks_max_tokens)."
+        ),
+    )
 
     @field_validator("fact_types")
     @classmethod
@@ -1672,6 +1693,36 @@ class BankTemplateConfig(BaseModel):
     )
     entities_allow_free_form: bool | None = Field(
         default=None, description="Allow entities outside the label vocabulary"
+    )
+    retain_default_strategy: str | None = Field(
+        default=None, description="Name of the default retain strategy (key into retain_strategies map)"
+    )
+    retain_strategies: dict | None = Field(
+        default=None, description="Map of retain strategy name to per-strategy config dict"
+    )
+    retain_chunk_batch_size: int | None = Field(
+        default=None, description="Max chunks per streaming batch (0 disables batching)"
+    )
+    mcp_enabled_tools: list[str] | None = Field(
+        default=None, description="MCP tool allowlist for this bank (None = all tools)"
+    )
+    consolidation_llm_batch_size: int | None = Field(
+        default=None, description="LLM batch size for observation consolidation"
+    )
+    consolidation_source_facts_max_tokens: int | None = Field(
+        default=None, description="Max tokens of source facts per consolidation batch"
+    )
+    consolidation_source_facts_max_tokens_per_observation: int | None = Field(
+        default=None, description="Max tokens of source facts per observation"
+    )
+    max_observations_per_scope: int | None = Field(
+        default=None, description="Max observations to retain per consolidation scope"
+    )
+    reflect_source_facts_max_tokens: int | None = Field(
+        default=None, description="Max tokens of source facts per reflect call"
+    )
+    llm_gemini_safety_settings: list | None = Field(
+        default=None, description="Per-bank Gemini/VertexAI safety filter settings"
     )
 
     def get_config_updates(self) -> dict[str, Any]:
@@ -2083,6 +2134,10 @@ class OperationStatusResponse(BaseModel):
     )
     child_operations: list[ChildOperationStatus] | None = Field(
         default=None, description="Child operations for batch operations (if applicable)"
+    )
+    task_payload: dict[str, Any] | None = Field(
+        default=None,
+        description="Raw task payload (params the operation was submitted with). Only populated when include_payload=true.",
     )
 
 
@@ -4168,7 +4223,13 @@ def _register_routes(app: FastAPI):
         tags=["Operations"],
     )
     async def api_get_operation_status(
-        bank_id: str, operation_id: str, request_context: RequestContext = Depends(get_request_context)
+        bank_id: str,
+        operation_id: str,
+        include_payload: bool = Query(
+            default=False,
+            description="Include the raw task payload (submission params) in the response. May be large.",
+        ),
+        request_context: RequestContext = Depends(get_request_context),
     ):
         """Get the status of an async operation."""
         try:
@@ -4178,7 +4239,9 @@ def _register_routes(app: FastAPI):
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid operation_id format: {operation_id}")
 
-            result = await app.state.memory.get_operation_status(bank_id, operation_id, request_context=request_context)
+            result = await app.state.memory.get_operation_status(
+                bank_id, operation_id, request_context=request_context, include_payload=include_payload
+            )
             return OperationStatusResponse(**result)
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)

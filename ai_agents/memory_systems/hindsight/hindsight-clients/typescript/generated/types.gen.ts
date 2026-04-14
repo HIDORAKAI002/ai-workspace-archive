@@ -468,6 +468,68 @@ export type BankTemplateConfig = {
    * Allow entities outside the label vocabulary
    */
   entities_allow_free_form?: boolean | null;
+  /**
+   * Retain Default Strategy
+   *
+   * Name of the default retain strategy (key into retain_strategies map)
+   */
+  retain_default_strategy?: string | null;
+  /**
+   * Retain Strategies
+   *
+   * Map of retain strategy name to per-strategy config dict
+   */
+  retain_strategies?: {
+    [key: string]: unknown;
+  } | null;
+  /**
+   * Retain Chunk Batch Size
+   *
+   * Max chunks per streaming batch (0 disables batching)
+   */
+  retain_chunk_batch_size?: number | null;
+  /**
+   * Mcp Enabled Tools
+   *
+   * MCP tool allowlist for this bank (None = all tools)
+   */
+  mcp_enabled_tools?: Array<string> | null;
+  /**
+   * Consolidation Llm Batch Size
+   *
+   * LLM batch size for observation consolidation
+   */
+  consolidation_llm_batch_size?: number | null;
+  /**
+   * Consolidation Source Facts Max Tokens
+   *
+   * Max tokens of source facts per consolidation batch
+   */
+  consolidation_source_facts_max_tokens?: number | null;
+  /**
+   * Consolidation Source Facts Max Tokens Per Observation
+   *
+   * Max tokens of source facts per observation
+   */
+  consolidation_source_facts_max_tokens_per_observation?: number | null;
+  /**
+   * Max Observations Per Scope
+   *
+   * Max observations to retain per consolidation scope
+   */
+  max_observations_per_scope?: number | null;
+  /**
+   * Reflect Source Facts Max Tokens
+   *
+   * Max tokens of source facts per reflect call
+   */
+  reflect_source_facts_max_tokens?: number | null;
+  /**
+   * Llm Gemini Safety Settings
+   *
+   * Per-bank Gemini/VertexAI safety filter settings
+   */
+  llm_gemini_safety_settings?: Array<unknown> | null;
 };
 
 /**
@@ -1776,6 +1838,24 @@ export type MentalModelTriggerInput = {
   tag_groups?: Array<
     TagGroupLeaf | TagGroupAndInput | TagGroupOrInput | TagGroupNotInput
   > | null;
+  /**
+   * Include Chunks
+   *
+   * Override whether the internal recall used during refresh returns raw chunk text. None means use the bank/global config default (recall_include_chunks).
+   */
+  include_chunks?: boolean | null;
+  /**
+   * Recall Max Tokens
+   *
+   * Override the token budget for facts returned by the internal recall during refresh. None means use the bank/global config default (recall_max_tokens).
+   */
+  recall_max_tokens?: number | null;
+  /**
+   * Recall Chunks Max Tokens
+   *
+   * Override the token budget for raw chunks returned by the internal recall during refresh. None means use the bank/global config default (recall_chunks_max_tokens).
+   */
+  recall_chunks_max_tokens?: number | null;
 };
 
 /**
@@ -1822,6 +1902,24 @@ export type MentalModelTriggerOutput = {
   tag_groups?: Array<
     TagGroupLeaf | TagGroupAndOutput | TagGroupOrOutput | TagGroupNotOutput
   > | null;
+  /**
+   * Include Chunks
+   *
+   * Override whether the internal recall used during refresh returns raw chunk text. None means use the bank/global config default (recall_include_chunks).
+   */
+  include_chunks?: boolean | null;
+  /**
+   * Recall Max Tokens
+   *
+   * Override the token budget for facts returned by the internal recall during refresh. None means use the bank/global config default (recall_max_tokens).
+   */
+  recall_max_tokens?: number | null;
+  /**
+   * Recall Chunks Max Tokens
+   *
+   * Override the token budget for raw chunks returned by the internal recall during refresh. None means use the bank/global config default (recall_chunks_max_tokens).
+   */
+  recall_chunks_max_tokens?: number | null;
 };
 
 /**
@@ -1908,6 +2006,14 @@ export type OperationStatusResponse = {
    * Child operations for batch operations (if applicable)
    */
   child_operations?: Array<ChildOperationStatus> | null;
+  /**
+   * Task Payload
+   *
+   * Raw task payload (params the operation was submitted with). Only populated when include_payload=true.
+   */
+  task_payload?: {
+    [key: string]: unknown;
+  } | null;
 };
 
 /**
@@ -4509,7 +4615,14 @@ export type GetOperationStatusData = {
      */
     operation_id: string;
   };
-  query?: never;
+  query?: {
+    /**
+     * Include Payload
+     *
+     * Include the raw task payload (submission params) in the response. May be large.
+     */
+    include_payload?: boolean;
+  };
   url: "/v1/default/banks/{bank_id}/operations/{operation_id}";
 };
 

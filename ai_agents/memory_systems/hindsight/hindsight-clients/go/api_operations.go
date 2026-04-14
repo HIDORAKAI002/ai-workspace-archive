@@ -154,7 +154,14 @@ type ApiGetOperationStatusRequest struct {
 	ApiService *OperationsAPIService
 	bankId string
 	operationId string
+	includePayload *bool
 	authorization *string
+}
+
+// Include the raw task payload (submission params) in the response. May be large.
+func (r ApiGetOperationStatusRequest) IncludePayload(includePayload bool) ApiGetOperationStatusRequest {
+	r.includePayload = &includePayload
+	return r
 }
 
 func (r ApiGetOperationStatusRequest) Authorization(authorization string) ApiGetOperationStatusRequest {
@@ -208,6 +215,12 @@ func (a *OperationsAPIService) GetOperationStatusExecute(r ApiGetOperationStatus
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.includePayload != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_payload", r.includePayload, "form", "")
+	} else {
+		var defaultValue bool = false
+		r.includePayload = &defaultValue
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 

@@ -108,6 +108,7 @@ import logging
 import litellm
 
 from .config import (
+    USER_AGENT,
     configure,
     set_defaults,
     get_config,
@@ -855,6 +856,7 @@ def _get_existing_document_content(
             host=config.hindsight_api_url, access_token=config.api_key
         )
         api_client = hindsight_client_api.ApiClient(api_config)
+        api_client.user_agent = USER_AGENT
         if config.api_key:
             api_client.set_default_header("Authorization", f"Bearer {config.api_key}")
         docs_api = documents_api.DocumentsApi(api_client)

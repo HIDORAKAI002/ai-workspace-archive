@@ -31,6 +31,16 @@ type BankTemplateConfig struct {
 	DispositionEmpathy NullableInt32 `json:"disposition_empathy,omitempty"`
 	EntityLabels []map[string]interface{} `json:"entity_labels,omitempty"`
 	EntitiesAllowFreeForm NullableBool `json:"entities_allow_free_form,omitempty"`
+	RetainDefaultStrategy NullableString `json:"retain_default_strategy,omitempty"`
+	RetainStrategies map[string]interface{} `json:"retain_strategies,omitempty"`
+	RetainChunkBatchSize NullableInt32 `json:"retain_chunk_batch_size,omitempty"`
+	McpEnabledTools []string `json:"mcp_enabled_tools,omitempty"`
+	ConsolidationLlmBatchSize NullableInt32 `json:"consolidation_llm_batch_size,omitempty"`
+	ConsolidationSourceFactsMaxTokens NullableInt32 `json:"consolidation_source_facts_max_tokens,omitempty"`
+	ConsolidationSourceFactsMaxTokensPerObservation NullableInt32 `json:"consolidation_source_facts_max_tokens_per_observation,omitempty"`
+	MaxObservationsPerScope NullableInt32 `json:"max_observations_per_scope,omitempty"`
+	ReflectSourceFactsMaxTokens NullableInt32 `json:"reflect_source_facts_max_tokens,omitempty"`
+	LlmGeminiSafetySettings []interface{} `json:"llm_gemini_safety_settings,omitempty"`
 }
 
 // NewBankTemplateConfig instantiates a new BankTemplateConfig object
@@ -545,6 +555,399 @@ func (o *BankTemplateConfig) UnsetEntitiesAllowFreeForm() {
 	o.EntitiesAllowFreeForm.Unset()
 }
 
+// GetRetainDefaultStrategy returns the RetainDefaultStrategy field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRetainDefaultStrategy() string {
+	if o == nil || IsNil(o.RetainDefaultStrategy.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.RetainDefaultStrategy.Get()
+}
+
+// GetRetainDefaultStrategyOk returns a tuple with the RetainDefaultStrategy field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRetainDefaultStrategyOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RetainDefaultStrategy.Get(), o.RetainDefaultStrategy.IsSet()
+}
+
+// HasRetainDefaultStrategy returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRetainDefaultStrategy() bool {
+	if o != nil && o.RetainDefaultStrategy.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRetainDefaultStrategy gets a reference to the given NullableString and assigns it to the RetainDefaultStrategy field.
+func (o *BankTemplateConfig) SetRetainDefaultStrategy(v string) {
+	o.RetainDefaultStrategy.Set(&v)
+}
+// SetRetainDefaultStrategyNil sets the value for RetainDefaultStrategy to be an explicit nil
+func (o *BankTemplateConfig) SetRetainDefaultStrategyNil() {
+	o.RetainDefaultStrategy.Set(nil)
+}
+
+// UnsetRetainDefaultStrategy ensures that no value is present for RetainDefaultStrategy, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRetainDefaultStrategy() {
+	o.RetainDefaultStrategy.Unset()
+}
+
+// GetRetainStrategies returns the RetainStrategies field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRetainStrategies() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.RetainStrategies
+}
+
+// GetRetainStrategiesOk returns a tuple with the RetainStrategies field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRetainStrategiesOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.RetainStrategies) {
+		return map[string]interface{}{}, false
+	}
+	return o.RetainStrategies, true
+}
+
+// HasRetainStrategies returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRetainStrategies() bool {
+	if o != nil && !IsNil(o.RetainStrategies) {
+		return true
+	}
+
+	return false
+}
+
+// SetRetainStrategies gets a reference to the given map[string]interface{} and assigns it to the RetainStrategies field.
+func (o *BankTemplateConfig) SetRetainStrategies(v map[string]interface{}) {
+	o.RetainStrategies = v
+}
+
+// GetRetainChunkBatchSize returns the RetainChunkBatchSize field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRetainChunkBatchSize() int32 {
+	if o == nil || IsNil(o.RetainChunkBatchSize.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RetainChunkBatchSize.Get()
+}
+
+// GetRetainChunkBatchSizeOk returns a tuple with the RetainChunkBatchSize field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRetainChunkBatchSizeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RetainChunkBatchSize.Get(), o.RetainChunkBatchSize.IsSet()
+}
+
+// HasRetainChunkBatchSize returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRetainChunkBatchSize() bool {
+	if o != nil && o.RetainChunkBatchSize.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRetainChunkBatchSize gets a reference to the given NullableInt32 and assigns it to the RetainChunkBatchSize field.
+func (o *BankTemplateConfig) SetRetainChunkBatchSize(v int32) {
+	o.RetainChunkBatchSize.Set(&v)
+}
+// SetRetainChunkBatchSizeNil sets the value for RetainChunkBatchSize to be an explicit nil
+func (o *BankTemplateConfig) SetRetainChunkBatchSizeNil() {
+	o.RetainChunkBatchSize.Set(nil)
+}
+
+// UnsetRetainChunkBatchSize ensures that no value is present for RetainChunkBatchSize, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRetainChunkBatchSize() {
+	o.RetainChunkBatchSize.Unset()
+}
+
+// GetMcpEnabledTools returns the McpEnabledTools field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetMcpEnabledTools() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+	return o.McpEnabledTools
+}
+
+// GetMcpEnabledToolsOk returns a tuple with the McpEnabledTools field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetMcpEnabledToolsOk() ([]string, bool) {
+	if o == nil || IsNil(o.McpEnabledTools) {
+		return nil, false
+	}
+	return o.McpEnabledTools, true
+}
+
+// HasMcpEnabledTools returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasMcpEnabledTools() bool {
+	if o != nil && !IsNil(o.McpEnabledTools) {
+		return true
+	}
+
+	return false
+}
+
+// SetMcpEnabledTools gets a reference to the given []string and assigns it to the McpEnabledTools field.
+func (o *BankTemplateConfig) SetMcpEnabledTools(v []string) {
+	o.McpEnabledTools = v
+}
+
+// GetConsolidationLlmBatchSize returns the ConsolidationLlmBatchSize field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetConsolidationLlmBatchSize() int32 {
+	if o == nil || IsNil(o.ConsolidationLlmBatchSize.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ConsolidationLlmBatchSize.Get()
+}
+
+// GetConsolidationLlmBatchSizeOk returns a tuple with the ConsolidationLlmBatchSize field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetConsolidationLlmBatchSizeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConsolidationLlmBatchSize.Get(), o.ConsolidationLlmBatchSize.IsSet()
+}
+
+// HasConsolidationLlmBatchSize returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasConsolidationLlmBatchSize() bool {
+	if o != nil && o.ConsolidationLlmBatchSize.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConsolidationLlmBatchSize gets a reference to the given NullableInt32 and assigns it to the ConsolidationLlmBatchSize field.
+func (o *BankTemplateConfig) SetConsolidationLlmBatchSize(v int32) {
+	o.ConsolidationLlmBatchSize.Set(&v)
+}
+// SetConsolidationLlmBatchSizeNil sets the value for ConsolidationLlmBatchSize to be an explicit nil
+func (o *BankTemplateConfig) SetConsolidationLlmBatchSizeNil() {
+	o.ConsolidationLlmBatchSize.Set(nil)
+}
+
+// UnsetConsolidationLlmBatchSize ensures that no value is present for ConsolidationLlmBatchSize, not even an explicit nil
+func (o *BankTemplateConfig) UnsetConsolidationLlmBatchSize() {
+	o.ConsolidationLlmBatchSize.Unset()
+}
+
+// GetConsolidationSourceFactsMaxTokens returns the ConsolidationSourceFactsMaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetConsolidationSourceFactsMaxTokens() int32 {
+	if o == nil || IsNil(o.ConsolidationSourceFactsMaxTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ConsolidationSourceFactsMaxTokens.Get()
+}
+
+// GetConsolidationSourceFactsMaxTokensOk returns a tuple with the ConsolidationSourceFactsMaxTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetConsolidationSourceFactsMaxTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConsolidationSourceFactsMaxTokens.Get(), o.ConsolidationSourceFactsMaxTokens.IsSet()
+}
+
+// HasConsolidationSourceFactsMaxTokens returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasConsolidationSourceFactsMaxTokens() bool {
+	if o != nil && o.ConsolidationSourceFactsMaxTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConsolidationSourceFactsMaxTokens gets a reference to the given NullableInt32 and assigns it to the ConsolidationSourceFactsMaxTokens field.
+func (o *BankTemplateConfig) SetConsolidationSourceFactsMaxTokens(v int32) {
+	o.ConsolidationSourceFactsMaxTokens.Set(&v)
+}
+// SetConsolidationSourceFactsMaxTokensNil sets the value for ConsolidationSourceFactsMaxTokens to be an explicit nil
+func (o *BankTemplateConfig) SetConsolidationSourceFactsMaxTokensNil() {
+	o.ConsolidationSourceFactsMaxTokens.Set(nil)
+}
+
+// UnsetConsolidationSourceFactsMaxTokens ensures that no value is present for ConsolidationSourceFactsMaxTokens, not even an explicit nil
+func (o *BankTemplateConfig) UnsetConsolidationSourceFactsMaxTokens() {
+	o.ConsolidationSourceFactsMaxTokens.Unset()
+}
+
+// GetConsolidationSourceFactsMaxTokensPerObservation returns the ConsolidationSourceFactsMaxTokensPerObservation field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetConsolidationSourceFactsMaxTokensPerObservation() int32 {
+	if o == nil || IsNil(o.ConsolidationSourceFactsMaxTokensPerObservation.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ConsolidationSourceFactsMaxTokensPerObservation.Get()
+}
+
+// GetConsolidationSourceFactsMaxTokensPerObservationOk returns a tuple with the ConsolidationSourceFactsMaxTokensPerObservation field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetConsolidationSourceFactsMaxTokensPerObservationOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConsolidationSourceFactsMaxTokensPerObservation.Get(), o.ConsolidationSourceFactsMaxTokensPerObservation.IsSet()
+}
+
+// HasConsolidationSourceFactsMaxTokensPerObservation returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasConsolidationSourceFactsMaxTokensPerObservation() bool {
+	if o != nil && o.ConsolidationSourceFactsMaxTokensPerObservation.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConsolidationSourceFactsMaxTokensPerObservation gets a reference to the given NullableInt32 and assigns it to the ConsolidationSourceFactsMaxTokensPerObservation field.
+func (o *BankTemplateConfig) SetConsolidationSourceFactsMaxTokensPerObservation(v int32) {
+	o.ConsolidationSourceFactsMaxTokensPerObservation.Set(&v)
+}
+// SetConsolidationSourceFactsMaxTokensPerObservationNil sets the value for ConsolidationSourceFactsMaxTokensPerObservation to be an explicit nil
+func (o *BankTemplateConfig) SetConsolidationSourceFactsMaxTokensPerObservationNil() {
+	o.ConsolidationSourceFactsMaxTokensPerObservation.Set(nil)
+}
+
+// UnsetConsolidationSourceFactsMaxTokensPerObservation ensures that no value is present for ConsolidationSourceFactsMaxTokensPerObservation, not even an explicit nil
+func (o *BankTemplateConfig) UnsetConsolidationSourceFactsMaxTokensPerObservation() {
+	o.ConsolidationSourceFactsMaxTokensPerObservation.Unset()
+}
+
+// GetMaxObservationsPerScope returns the MaxObservationsPerScope field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetMaxObservationsPerScope() int32 {
+	if o == nil || IsNil(o.MaxObservationsPerScope.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.MaxObservationsPerScope.Get()
+}
+
+// GetMaxObservationsPerScopeOk returns a tuple with the MaxObservationsPerScope field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetMaxObservationsPerScopeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.MaxObservationsPerScope.Get(), o.MaxObservationsPerScope.IsSet()
+}
+
+// HasMaxObservationsPerScope returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasMaxObservationsPerScope() bool {
+	if o != nil && o.MaxObservationsPerScope.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMaxObservationsPerScope gets a reference to the given NullableInt32 and assigns it to the MaxObservationsPerScope field.
+func (o *BankTemplateConfig) SetMaxObservationsPerScope(v int32) {
+	o.MaxObservationsPerScope.Set(&v)
+}
+// SetMaxObservationsPerScopeNil sets the value for MaxObservationsPerScope to be an explicit nil
+func (o *BankTemplateConfig) SetMaxObservationsPerScopeNil() {
+	o.MaxObservationsPerScope.Set(nil)
+}
+
+// UnsetMaxObservationsPerScope ensures that no value is present for MaxObservationsPerScope, not even an explicit nil
+func (o *BankTemplateConfig) UnsetMaxObservationsPerScope() {
+	o.MaxObservationsPerScope.Unset()
+}
+
+// GetReflectSourceFactsMaxTokens returns the ReflectSourceFactsMaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetReflectSourceFactsMaxTokens() int32 {
+	if o == nil || IsNil(o.ReflectSourceFactsMaxTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ReflectSourceFactsMaxTokens.Get()
+}
+
+// GetReflectSourceFactsMaxTokensOk returns a tuple with the ReflectSourceFactsMaxTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetReflectSourceFactsMaxTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ReflectSourceFactsMaxTokens.Get(), o.ReflectSourceFactsMaxTokens.IsSet()
+}
+
+// HasReflectSourceFactsMaxTokens returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasReflectSourceFactsMaxTokens() bool {
+	if o != nil && o.ReflectSourceFactsMaxTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetReflectSourceFactsMaxTokens gets a reference to the given NullableInt32 and assigns it to the ReflectSourceFactsMaxTokens field.
+func (o *BankTemplateConfig) SetReflectSourceFactsMaxTokens(v int32) {
+	o.ReflectSourceFactsMaxTokens.Set(&v)
+}
+// SetReflectSourceFactsMaxTokensNil sets the value for ReflectSourceFactsMaxTokens to be an explicit nil
+func (o *BankTemplateConfig) SetReflectSourceFactsMaxTokensNil() {
+	o.ReflectSourceFactsMaxTokens.Set(nil)
+}
+
+// UnsetReflectSourceFactsMaxTokens ensures that no value is present for ReflectSourceFactsMaxTokens, not even an explicit nil
+func (o *BankTemplateConfig) UnsetReflectSourceFactsMaxTokens() {
+	o.ReflectSourceFactsMaxTokens.Unset()
+}
+
+// GetLlmGeminiSafetySettings returns the LlmGeminiSafetySettings field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetLlmGeminiSafetySettings() []interface{} {
+	if o == nil {
+		var ret []interface{}
+		return ret
+	}
+	return o.LlmGeminiSafetySettings
+}
+
+// GetLlmGeminiSafetySettingsOk returns a tuple with the LlmGeminiSafetySettings field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetLlmGeminiSafetySettingsOk() ([]interface{}, bool) {
+	if o == nil || IsNil(o.LlmGeminiSafetySettings) {
+		return nil, false
+	}
+	return o.LlmGeminiSafetySettings, true
+}
+
+// HasLlmGeminiSafetySettings returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasLlmGeminiSafetySettings() bool {
+	if o != nil && !IsNil(o.LlmGeminiSafetySettings) {
+		return true
+	}
+
+	return false
+}
+
+// SetLlmGeminiSafetySettings gets a reference to the given []interface{} and assigns it to the LlmGeminiSafetySettings field.
+func (o *BankTemplateConfig) SetLlmGeminiSafetySettings(v []interface{}) {
+	o.LlmGeminiSafetySettings = v
+}
+
 func (o BankTemplateConfig) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -590,6 +993,36 @@ func (o BankTemplateConfig) ToMap() (map[string]interface{}, error) {
 	}
 	if o.EntitiesAllowFreeForm.IsSet() {
 		toSerialize["entities_allow_free_form"] = o.EntitiesAllowFreeForm.Get()
+	}
+	if o.RetainDefaultStrategy.IsSet() {
+		toSerialize["retain_default_strategy"] = o.RetainDefaultStrategy.Get()
+	}
+	if o.RetainStrategies != nil {
+		toSerialize["retain_strategies"] = o.RetainStrategies
+	}
+	if o.RetainChunkBatchSize.IsSet() {
+		toSerialize["retain_chunk_batch_size"] = o.RetainChunkBatchSize.Get()
+	}
+	if o.McpEnabledTools != nil {
+		toSerialize["mcp_enabled_tools"] = o.McpEnabledTools
+	}
+	if o.ConsolidationLlmBatchSize.IsSet() {
+		toSerialize["consolidation_llm_batch_size"] = o.ConsolidationLlmBatchSize.Get()
+	}
+	if o.ConsolidationSourceFactsMaxTokens.IsSet() {
+		toSerialize["consolidation_source_facts_max_tokens"] = o.ConsolidationSourceFactsMaxTokens.Get()
+	}
+	if o.ConsolidationSourceFactsMaxTokensPerObservation.IsSet() {
+		toSerialize["consolidation_source_facts_max_tokens_per_observation"] = o.ConsolidationSourceFactsMaxTokensPerObservation.Get()
+	}
+	if o.MaxObservationsPerScope.IsSet() {
+		toSerialize["max_observations_per_scope"] = o.MaxObservationsPerScope.Get()
+	}
+	if o.ReflectSourceFactsMaxTokens.IsSet() {
+		toSerialize["reflect_source_facts_max_tokens"] = o.ReflectSourceFactsMaxTokens.Get()
+	}
+	if o.LlmGeminiSafetySettings != nil {
+		toSerialize["llm_gemini_safety_settings"] = o.LlmGeminiSafetySettings
 	}
 	return toSerialize, nil
 }

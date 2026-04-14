@@ -387,6 +387,9 @@ ENV_REFLECT_MAX_CONTEXT_TOKENS = "HINDSIGHT_API_REFLECT_MAX_CONTEXT_TOKENS"
 ENV_REFLECT_WALL_TIMEOUT = "HINDSIGHT_API_REFLECT_WALL_TIMEOUT"
 ENV_REFLECT_MISSION = "HINDSIGHT_API_REFLECT_MISSION"
 ENV_REFLECT_SOURCE_FACTS_MAX_TOKENS = "HINDSIGHT_API_REFLECT_SOURCE_FACTS_MAX_TOKENS"
+ENV_RECALL_INCLUDE_CHUNKS = "HINDSIGHT_API_RECALL_INCLUDE_CHUNKS"
+ENV_RECALL_MAX_TOKENS = "HINDSIGHT_API_RECALL_MAX_TOKENS"
+ENV_RECALL_CHUNKS_MAX_TOKENS = "HINDSIGHT_API_RECALL_CHUNKS_MAX_TOKENS"
 
 # Audit log settings
 ENV_AUDIT_LOG_ENABLED = "HINDSIGHT_API_AUDIT_LOG_ENABLED"
@@ -587,6 +590,9 @@ DEFAULT_REFLECT_MAX_ITERATIONS = 10  # Max tool call iterations before forcing r
 DEFAULT_REFLECT_MAX_CONTEXT_TOKENS = 100_000  # Max accumulated context tokens before forcing final prompt
 DEFAULT_REFLECT_WALL_TIMEOUT = 300  # Wall-clock timeout in seconds for the entire reflect operation (5 minutes)
 DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS = -1  # Token budget for source facts in search_observations (-1 = disabled)
+DEFAULT_RECALL_INCLUDE_CHUNKS = True  # Whether internal recall (e.g. mental model refresh) returns raw chunks
+DEFAULT_RECALL_MAX_TOKENS = 2048  # Token budget for facts returned by internal recall
+DEFAULT_RECALL_CHUNKS_MAX_TOKENS = 1000  # Token budget for raw chunks returned by internal recall
 
 # Disposition defaults (None = not set, fall back to bank DB value or 3)
 DEFAULT_DISPOSITION_SKEPTICISM = None
@@ -925,6 +931,11 @@ class HindsightConfig:
     reflect_mission: str | None
     reflect_source_facts_max_tokens: int
 
+    # Recall settings (used by internal recall, e.g. during mental model refresh)
+    recall_include_chunks: bool
+    recall_max_tokens: int
+    recall_chunks_max_tokens: int
+
     # Disposition settings (hierarchical - can be overridden per bank; None = fall back to DB)
     disposition_skepticism: int | None
     disposition_literalism: int | None
@@ -1038,6 +1049,10 @@ class HindsightConfig:
         # Reflect settings
         "reflect_mission",
         "reflect_source_facts_max_tokens",
+        # Recall settings (used by internal recall, e.g. mental model refresh)
+        "recall_include_chunks",
+        "recall_max_tokens",
+        "recall_chunks_max_tokens",
         # Disposition settings
         "disposition_skepticism",
         "disposition_literalism",
@@ -1522,6 +1537,12 @@ class HindsightConfig:
             reflect_mission=os.getenv(ENV_REFLECT_MISSION) or None,
             reflect_source_facts_max_tokens=int(
                 os.getenv(ENV_REFLECT_SOURCE_FACTS_MAX_TOKENS, str(DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS))
+            ),
+            recall_include_chunks=os.getenv(ENV_RECALL_INCLUDE_CHUNKS, str(DEFAULT_RECALL_INCLUDE_CHUNKS)).lower()
+            in ("true", "1", "yes"),
+            recall_max_tokens=int(os.getenv(ENV_RECALL_MAX_TOKENS, str(DEFAULT_RECALL_MAX_TOKENS))),
+            recall_chunks_max_tokens=int(
+                os.getenv(ENV_RECALL_CHUNKS_MAX_TOKENS, str(DEFAULT_RECALL_CHUNKS_MAX_TOKENS))
             ),
             # Disposition settings (None = fall back to DB value)
             disposition_skepticism=int(os.getenv(ENV_DISPOSITION_SKEPTICISM))

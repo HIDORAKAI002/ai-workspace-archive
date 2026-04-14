@@ -39,7 +39,17 @@ class BankTemplateConfig(BaseModel):
     disposition_empathy: Optional[Annotated[int, Field(le=5, strict=True, ge=1)]] = None
     entity_labels: Optional[List[Dict[str, Any]]] = None
     entities_allow_free_form: Optional[StrictBool] = None
-    __properties: ClassVar[List[str]] = ["reflect_mission", "retain_mission", "retain_extraction_mode", "retain_custom_instructions", "retain_chunk_size", "enable_observations", "observations_mission", "disposition_skepticism", "disposition_literalism", "disposition_empathy", "entity_labels", "entities_allow_free_form"]
+    retain_default_strategy: Optional[StrictStr] = None
+    retain_strategies: Optional[Dict[str, Any]] = None
+    retain_chunk_batch_size: Optional[StrictInt] = None
+    mcp_enabled_tools: Optional[List[StrictStr]] = None
+    consolidation_llm_batch_size: Optional[StrictInt] = None
+    consolidation_source_facts_max_tokens: Optional[StrictInt] = None
+    consolidation_source_facts_max_tokens_per_observation: Optional[StrictInt] = None
+    max_observations_per_scope: Optional[StrictInt] = None
+    reflect_source_facts_max_tokens: Optional[StrictInt] = None
+    llm_gemini_safety_settings: Optional[List[Any]] = None
+    __properties: ClassVar[List[str]] = ["reflect_mission", "retain_mission", "retain_extraction_mode", "retain_custom_instructions", "retain_chunk_size", "enable_observations", "observations_mission", "disposition_skepticism", "disposition_literalism", "disposition_empathy", "entity_labels", "entities_allow_free_form", "retain_default_strategy", "retain_strategies", "retain_chunk_batch_size", "mcp_enabled_tools", "consolidation_llm_batch_size", "consolidation_source_facts_max_tokens", "consolidation_source_facts_max_tokens_per_observation", "max_observations_per_scope", "reflect_source_facts_max_tokens", "llm_gemini_safety_settings"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -140,6 +150,56 @@ class BankTemplateConfig(BaseModel):
         if self.entities_allow_free_form is None and "entities_allow_free_form" in self.model_fields_set:
             _dict['entities_allow_free_form'] = None
 
+        # set to None if retain_default_strategy (nullable) is None
+        # and model_fields_set contains the field
+        if self.retain_default_strategy is None and "retain_default_strategy" in self.model_fields_set:
+            _dict['retain_default_strategy'] = None
+
+        # set to None if retain_strategies (nullable) is None
+        # and model_fields_set contains the field
+        if self.retain_strategies is None and "retain_strategies" in self.model_fields_set:
+            _dict['retain_strategies'] = None
+
+        # set to None if retain_chunk_batch_size (nullable) is None
+        # and model_fields_set contains the field
+        if self.retain_chunk_batch_size is None and "retain_chunk_batch_size" in self.model_fields_set:
+            _dict['retain_chunk_batch_size'] = None
+
+        # set to None if mcp_enabled_tools (nullable) is None
+        # and model_fields_set contains the field
+        if self.mcp_enabled_tools is None and "mcp_enabled_tools" in self.model_fields_set:
+            _dict['mcp_enabled_tools'] = None
+
+        # set to None if consolidation_llm_batch_size (nullable) is None
+        # and model_fields_set contains the field
+        if self.consolidation_llm_batch_size is None and "consolidation_llm_batch_size" in self.model_fields_set:
+            _dict['consolidation_llm_batch_size'] = None
+
+        # set to None if consolidation_source_facts_max_tokens (nullable) is None
+        # and model_fields_set contains the field
+        if self.consolidation_source_facts_max_tokens is None and "consolidation_source_facts_max_tokens" in self.model_fields_set:
+            _dict['consolidation_source_facts_max_tokens'] = None
+
+        # set to None if consolidation_source_facts_max_tokens_per_observation (nullable) is None
+        # and model_fields_set contains the field
+        if self.consolidation_source_facts_max_tokens_per_observation is None and "consolidation_source_facts_max_tokens_per_observation" in self.model_fields_set:
+            _dict['consolidation_source_facts_max_tokens_per_observation'] = None
+
+        # set to None if max_observations_per_scope (nullable) is None
+        # and model_fields_set contains the field
+        if self.max_observations_per_scope is None and "max_observations_per_scope" in self.model_fields_set:
+            _dict['max_observations_per_scope'] = None
+
+        # set to None if reflect_source_facts_max_tokens (nullable) is None
+        # and model_fields_set contains the field
+        if self.reflect_source_facts_max_tokens is None and "reflect_source_facts_max_tokens" in self.model_fields_set:
+            _dict['reflect_source_facts_max_tokens'] = None
+
+        # set to None if llm_gemini_safety_settings (nullable) is None
+        # and model_fields_set contains the field
+        if self.llm_gemini_safety_settings is None and "llm_gemini_safety_settings" in self.model_fields_set:
+            _dict['llm_gemini_safety_settings'] = None
+
         return _dict
 
     @classmethod
@@ -163,7 +223,17 @@ class BankTemplateConfig(BaseModel):
             "disposition_literalism": obj.get("disposition_literalism"),
             "disposition_empathy": obj.get("disposition_empathy"),
             "entity_labels": obj.get("entity_labels"),
-            "entities_allow_free_form": obj.get("entities_allow_free_form")
+            "entities_allow_free_form": obj.get("entities_allow_free_form"),
+            "retain_default_strategy": obj.get("retain_default_strategy"),
+            "retain_strategies": obj.get("retain_strategies"),
+            "retain_chunk_batch_size": obj.get("retain_chunk_batch_size"),
+            "mcp_enabled_tools": obj.get("mcp_enabled_tools"),
+            "consolidation_llm_batch_size": obj.get("consolidation_llm_batch_size"),
+            "consolidation_source_facts_max_tokens": obj.get("consolidation_source_facts_max_tokens"),
+            "consolidation_source_facts_max_tokens_per_observation": obj.get("consolidation_source_facts_max_tokens_per_observation"),
+            "max_observations_per_scope": obj.get("max_observations_per_scope"),
+            "reflect_source_facts_max_tokens": obj.get("reflect_source_facts_max_tokens"),
+            "llm_gemini_safety_settings": obj.get("llm_gemini_safety_settings")
         })
         return _obj
 

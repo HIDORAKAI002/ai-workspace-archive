@@ -1781,6 +1781,19 @@ paths:
           title: Operation Id
           type: string
         style: simple
+      - description: Include the raw task payload (submission params) in the response.
+          May be large.
+        explode: true
+        in: query
+        name: include_payload
+        required: false
+        schema:
+          default: false
+          description: Include the raw task payload (submission params) in the response.
+            May be large.
+          title: Include Payload
+          type: boolean
+        style: form
       - explode: false
         in: header
         name: authorization
@@ -3576,6 +3589,39 @@ components:
         entities_allow_free_form:
           nullable: true
           type: boolean
+        retain_default_strategy:
+          nullable: true
+          type: string
+        retain_strategies:
+          additionalProperties: {}
+          nullable: true
+        retain_chunk_batch_size:
+          nullable: true
+          type: integer
+        mcp_enabled_tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+        consolidation_llm_batch_size:
+          nullable: true
+          type: integer
+        consolidation_source_facts_max_tokens:
+          nullable: true
+          type: integer
+        consolidation_source_facts_max_tokens_per_observation:
+          nullable: true
+          type: integer
+        max_observations_per_scope:
+          nullable: true
+          type: integer
+        reflect_source_facts_max_tokens:
+          nullable: true
+          type: integer
+        llm_gemini_safety_settings:
+          items: {}
+          nullable: true
+          type: array
       title: BankTemplateConfig
     BankTemplateDirective:
       description: |-
@@ -4807,6 +4853,7 @@ components:
           id: id
           trigger:
             refresh_after_consolidation: false
+            recall_chunks_max_tokens: 1
             tag_groups:
             - match: any_strict
               tags:
@@ -4822,8 +4869,10 @@ components:
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
+            include_chunks: true
             tags_match: any
             exclude_mental_models: false
+            recall_max_tokens: 6
           last_refreshed_at: last_refreshed_at
           content: content
           tags:
@@ -4839,6 +4888,7 @@ components:
           id: id
           trigger:
             refresh_after_consolidation: false
+            recall_chunks_max_tokens: 1
             tag_groups:
             - match: any_strict
               tags:
@@ -4854,8 +4904,10 @@ components:
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
+            include_chunks: true
             tags_match: any
             exclude_mental_models: false
+            recall_max_tokens: 6
           last_refreshed_at: last_refreshed_at
           content: content
           tags:
@@ -4882,6 +4934,7 @@ components:
         id: id
         trigger:
           refresh_after_consolidation: false
+          recall_chunks_max_tokens: 1
           tag_groups:
           - match: any_strict
             tags:
@@ -4897,8 +4950,10 @@ components:
           exclude_mental_model_ids:
           - exclude_mental_model_ids
           - exclude_mental_model_ids
+          include_chunks: true
           tags_match: any
           exclude_mental_models: false
+          recall_max_tokens: 6
         last_refreshed_at: last_refreshed_at
         content: content
         tags:
@@ -4986,11 +5041,21 @@ components:
             $ref: '#/components/schemas/MentalModelTrigger_Input_tag_groups_inner'
           nullable: true
           type: array
+        include_chunks:
+          nullable: true
+          type: boolean
+        recall_max_tokens:
+          nullable: true
+          type: integer
+        recall_chunks_max_tokens:
+          nullable: true
+          type: integer
       title: MentalModelTrigger
     MentalModelTrigger-Output:
       description: Trigger settings for a mental model.
       example:
         refresh_after_consolidation: false
+        recall_chunks_max_tokens: 1
         tag_groups:
         - match: any_strict
           tags:
@@ -5006,8 +5071,10 @@ components:
         exclude_mental_model_ids:
         - exclude_mental_model_ids
         - exclude_mental_model_ids
+        include_chunks: true
         tags_match: any
         exclude_mental_models: false
+        recall_max_tokens: 6
       properties:
         refresh_after_consolidation:
           default: false
@@ -5048,6 +5115,15 @@ components:
             $ref: '#/components/schemas/MentalModelTrigger_Output_tag_groups_inner'
           nullable: true
           type: array
+        include_chunks:
+          nullable: true
+          type: boolean
+        recall_max_tokens:
+          nullable: true
+          type: integer
+        recall_chunks_max_tokens:
+          nullable: true
+          type: integer
       title: MentalModelTrigger
     OperationResponse:
       description: Response model for a single async operation.
@@ -5131,6 +5207,9 @@ components:
             $ref: '#/components/schemas/ChildOperationStatus'
           nullable: true
           type: array
+        task_payload:
+          additionalProperties: {}
+          nullable: true
       required:
       - operation_id
       - status
