@@ -2535,6 +2535,18 @@
             }
           },
           {
+            "name": "include_payload",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include the raw task payload (submission params) in the response. May be large.",
+              "default": false,
+              "title": "Include Payload"
+            },
+            "description": "Include the raw task payload (submission params) in the response. May be large."
+          },
+          {
             "name": "authorization",
             "in": "header",
             "required": false,
@@ -5298,6 +5310,131 @@
             ],
             "title": "Entities Allow Free Form",
             "description": "Allow entities outside the label vocabulary"
+          },
+          "retain_default_strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retain Default Strategy",
+            "description": "Name of the default retain strategy (key into retain_strategies map)"
+          },
+          "retain_strategies": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retain Strategies",
+            "description": "Map of retain strategy name to per-strategy config dict"
+          },
+          "retain_chunk_batch_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retain Chunk Batch Size",
+            "description": "Max chunks per streaming batch (0 disables batching)"
+          },
+          "mcp_enabled_tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcp Enabled Tools",
+            "description": "MCP tool allowlist for this bank (None = all tools)"
+          },
+          "consolidation_llm_batch_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consolidation Llm Batch Size",
+            "description": "LLM batch size for observation consolidation"
+          },
+          "consolidation_source_facts_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consolidation Source Facts Max Tokens",
+            "description": "Max tokens of source facts per consolidation batch"
+          },
+          "consolidation_source_facts_max_tokens_per_observation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consolidation Source Facts Max Tokens Per Observation",
+            "description": "Max tokens of source facts per observation"
+          },
+          "max_observations_per_scope": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Observations Per Scope",
+            "description": "Max observations to retain per consolidation scope"
+          },
+          "reflect_source_facts_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reflect Source Facts Max Tokens",
+            "description": "Max tokens of source facts per reflect call"
+          },
+          "llm_gemini_safety_settings": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Gemini Safety Settings",
+            "description": "Per-bank Gemini/VertexAI safety filter settings"
           }
         },
         "type": "object",
@@ -7502,6 +7639,42 @@
             ],
             "title": "Tag Groups",
             "description": "Compound boolean tag expressions to use during refresh instead of the model's own tags. When set, these tag groups are passed to reflect and the model's flat tags are NOT used for filtering. Supports nested and/or/not expressions for complex tag-based scoping."
+          },
+          "include_chunks": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Chunks",
+            "description": "Override whether the internal recall used during refresh returns raw chunk text. None means use the bank/global config default (recall_include_chunks)."
+          },
+          "recall_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Max Tokens",
+            "description": "Override the token budget for facts returned by the internal recall during refresh. None means use the bank/global config default (recall_max_tokens)."
+          },
+          "recall_chunks_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Chunks Max Tokens",
+            "description": "Override the token budget for raw chunks returned by the internal recall during refresh. None means use the bank/global config default (recall_chunks_max_tokens)."
           }
         },
         "type": "object",
@@ -7602,6 +7775,42 @@
             ],
             "title": "Tag Groups",
             "description": "Compound boolean tag expressions to use during refresh instead of the model's own tags. When set, these tag groups are passed to reflect and the model's flat tags are NOT used for filtering. Supports nested and/or/not expressions for complex tag-based scoping."
+          },
+          "include_chunks": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Chunks",
+            "description": "Override whether the internal recall used during refresh returns raw chunk text. None means use the bank/global config default (recall_include_chunks)."
+          },
+          "recall_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Max Tokens",
+            "description": "Override the token budget for facts returned by the internal recall during refresh. None means use the bank/global config default (recall_max_tokens)."
+          },
+          "recall_chunks_max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Chunks Max Tokens",
+            "description": "Override the token budget for raw chunks returned by the internal recall during refresh. None means use the bank/global config default (recall_chunks_max_tokens)."
           }
         },
         "type": "object",
@@ -7770,6 +7979,19 @@
             ],
             "title": "Child Operations",
             "description": "Child operations for batch operations (if applicable)"
+          },
+          "task_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Payload",
+            "description": "Raw task payload (params the operation was submitted with). Only populated when include_payload=true."
           }
         },
         "type": "object",

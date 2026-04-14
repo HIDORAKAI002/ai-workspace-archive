@@ -17,7 +17,14 @@ This module provides a clean API for configuring Hindsight integration:
 import os
 from dataclasses import asdict, dataclass, field, fields
 from enum import Enum
+from importlib import metadata
 from typing import Any, Dict, List, Optional
+
+try:
+    _VERSION = metadata.version("hindsight-litellm")
+except metadata.PackageNotFoundError:
+    _VERSION = "0.0.0"
+USER_AGENT = f"hindsight-litellm/{_VERSION}"
 
 # Default Hindsight API URL (production)
 DEFAULT_HINDSIGHT_API_URL = "https://api.hindsight.vectorize.io"
@@ -508,7 +515,7 @@ def _create_or_update_bank(
     try:
         from hindsight_client import Hindsight
 
-        client = Hindsight(base_url=hindsight_api_url, api_key=api_key)
+        client = Hindsight(base_url=hindsight_api_url, api_key=api_key, user_agent=USER_AGENT)
         client.create_bank(
             bank_id=bank_id,
             name=name,

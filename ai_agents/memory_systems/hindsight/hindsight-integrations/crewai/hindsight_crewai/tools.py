@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from importlib import metadata
 from typing import Any
 
 from crewai.tools import BaseTool
@@ -18,6 +19,12 @@ from .config import get_config
 from .errors import HindsightError
 
 logger = logging.getLogger(__name__)
+
+try:
+    _VERSION = metadata.version("hindsight-crewai")
+except metadata.PackageNotFoundError:
+    _VERSION = "0.0.0"
+_USER_AGENT = f"hindsight-crewai/{_VERSION}"
 
 
 class HindsightReflectTool(BaseTool):
@@ -80,6 +87,7 @@ class HindsightReflectTool(BaseTool):
                 base_url=api_url,
                 api_key=api_key,
                 timeout=30.0,
+                user_agent=_USER_AGENT,
             )
             self._local.client = client
         return client

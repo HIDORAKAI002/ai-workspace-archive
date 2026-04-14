@@ -4,7 +4,24 @@
  * Uses native fetch (Node 20+). No external dependencies.
  */
 
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import type { PaperclipMemoryConfig } from './config.js';
+
+function loadPackageVersion(): string {
+  try {
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string };
+    return pkg.version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+// Sent on every request so self-hosted deployments behind Cloudflare (or any
+// reverse proxy with UA-based bot filtering) accept the traffic.
+const USER_AGENT = `hindsight-paperclip/${loadPackageVersion()}`;
 
 export interface Memory {
   text: string;
@@ -35,7 +52,10 @@ export class HindsightClient {
   }
 
   private headers(): Record<string, string> {
-    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    const h: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': USER_AGENT,
+    };
     if (this.token) h['Authorization'] = `Bearer ${this.token}`;
     return h;
   }

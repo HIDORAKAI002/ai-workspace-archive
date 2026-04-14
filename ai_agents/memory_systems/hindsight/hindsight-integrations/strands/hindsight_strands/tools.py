@@ -10,7 +10,14 @@ from __future__ import annotations
 
 import concurrent.futures
 import logging
+from importlib import metadata
 from typing import Any
+
+try:
+    _VERSION = metadata.version("hindsight-strands")
+except metadata.PackageNotFoundError:
+    _VERSION = "0.0.0"
+_USER_AGENT = f"hindsight-strands/{_VERSION}"
 
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
@@ -52,7 +59,7 @@ def _resolve_client(
             "Pass client= or hindsight_api_url=, or call configure() first."
         )
 
-    kwargs: dict[str, Any] = {"base_url": url, "timeout": 30.0}
+    kwargs: dict[str, Any] = {"base_url": url, "timeout": 30.0, "user_agent": _USER_AGENT}
     if key:
         kwargs["api_key"] = key
     return Hindsight(**kwargs)

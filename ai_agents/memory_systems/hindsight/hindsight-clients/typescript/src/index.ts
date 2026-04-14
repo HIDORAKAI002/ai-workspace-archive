@@ -44,12 +44,22 @@ import type {
     Budget,
 } from '../generated/types.gen';
 
+export const CLIENT_VERSION = '0.5.1';
+export const DEFAULT_USER_AGENT = `hindsight-client-typescript/${CLIENT_VERSION}`;
+
 export interface HindsightClientOptions {
     baseUrl: string;
     /**
      * Optional API key for authentication (sent as Bearer token in Authorization header)
      */
     apiKey?: string;
+    /**
+     * Override the default `User-Agent` header. Integrations should set this to
+     * identify themselves (e.g. `"hindsight-ai-sdk/1.2.0"`). Browsers ignore
+     * attempts to set `User-Agent`; this only takes effect in Node.js / Bun /
+     * Deno runtimes. Defaults to `hindsight-client-typescript/<version>`.
+     */
+    userAgent?: string;
 }
 
 /**
@@ -90,12 +100,16 @@ export class HindsightClient {
     private client: Client;
 
     constructor(options: HindsightClientOptions) {
+        const headers: Record<string, string> = {
+            'User-Agent': options.userAgent ?? DEFAULT_USER_AGENT,
+        };
+        if (options.apiKey) {
+            headers.Authorization = `Bearer ${options.apiKey}`;
+        }
         this.client = createClient(
             createConfig({
                 baseUrl: options.baseUrl,
-                headers: options.apiKey
-                    ? { Authorization: `Bearer ${options.apiKey}` }
-                    : undefined,
+                headers,
             })
         );
     }

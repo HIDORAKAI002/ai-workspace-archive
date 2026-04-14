@@ -4,6 +4,8 @@ import {
   extractRecallQuery,
   formatMemories,
   prepareRetentionTranscript,
+  countUserTurns,
+  getRetentionTurnIndex,
   sliceLastTurnsByUserBoundary,
   composeRecallQuery,
   truncateRecallQuery,
@@ -14,6 +16,9 @@ import {
   getIdentitySkipReason,
   isEphemeralOperationalText,
   deriveBankId,
+  normalizeRetainTags,
+  extractInlineRetainTags,
+  stripInlineRetainTags,
 } from './index.js';
 import type { PluginConfig, MemoryResult } from './types.js';
 
@@ -229,8 +234,72 @@ describe('formatMemories', () => {
 });
 
 // ---------------------------------------------------------------------------
-// prepareRetentionTranscript
+// retention helpers
 // ---------------------------------------------------------------------------
+
+describe('countUserTurns', () => {
+  it('counts user messages across a resumed conversation history', () => {
+    expect(countUserTurns([
+      { role: 'user', content: 'turn 1' },
+      { role: 'assistant', content: 'reply 1' },
+      { role: 'system', content: 'meta' },
+      { role: 'user', content: 'turn 2' },
+      { role: 'assistant', content: 'reply 2' },
+      { role: 'user', content: 'turn 3' },
+    ])).toBe(3);
+  });
+});
+
+describe('getRetentionTurnIndex', () => {
+  it('uses the full conversation turn count for per-turn retention', () => {
+    expect(getRetentionTurnIndex(7, 1)).toBe(7);
+  });
+
+  it('derives a stable window sequence for chunked retention', () => {
+    expect(getRetentionTurnIndex(6, 3)).toBe(2);
+  });
+
+  it('returns null when a chunk boundary has not been reached', () => {
+    expect(getRetentionTurnIndex(5, 3)).toBeNull();
+  });
+});
+
+describe('normalizeRetainTags', () => {
+  it('trims, deduplicates, and preserves order for string arrays', () => {
+    expect(normalizeRetainTags([' source_system:openclaw ', 'agent:main', 'agent:main', ''])).toEqual([
+      'source_system:openclaw',
+      'agent:main',
+    ]);
+  });
+
+  it('drops non-string values instead of stringifying them', () => {
+    expect(normalizeRetainTags(['agent:main', { a: 1 } as unknown as string, 42 as unknown as string, null as unknown as string])).toEqual([
+      'agent:main',
+    ]);
+  });
+
+  it('accepts comma-separated strings', () => {
+    expect(normalizeRetainTags(' source_system:openclaw, agent:main , agent:main ')).toEqual([
+      'source_system:openclaw',
+      'agent:main',
+    ]);
+  });
+});
+
+describe('inline retain tag helpers', () => {
+  it('extracts retain tags from inline directives', () => {
+    expect(extractInlineRetainTags('hello <retain_tags> client:acme, type:decision, client:acme </retain_tags> world')).toEqual([
+      'client:acme',
+      'type:decision',
+    ]);
+  });
+
+  it('supports hindsight_retain_tags alias and strips directives from content', () => {
+    const input = 'Keep this.\n<hindsight_retain_tags>scope:user</hindsight_retain_tags>\nNot the directive.';
+    expect(extractInlineRetainTags(input)).toEqual(['scope:user']);
+    expect(stripInlineRetainTags(input)).toBe('Keep this.\n\nNot the directive.');
+  });
+});
 
 describe('buildRetainRequest', () => {
   it('adds configured source metadata and retain tags', () => {
@@ -293,6 +362,21 @@ describe('buildRetainRequest', () => {
       sender_id: 'user:456',
       window_turns: '2',
     });
+  });
+
+  it('merges configured retain tags with inline per-message tags', () => {
+    const request = buildRetainRequest('hello world', 1, {}, {
+      retainTags: ['source_system:openclaw', 'agent:main'],
+    }, 1700000000000, {
+      turnIndex: 1,
+      tags: ['client:acme', 'agent:main'],
+    });
+
+    expect(request.tags).toEqual([
+      'source_system:openclaw',
+      'agent:main',
+      'client:acme',
+    ]);
   });
 
   it('defaults source metadata to openclaw when unset', () => {
@@ -378,6 +462,19 @@ describe('prepareRetentionTranscript', () => {
     expect(result?.transcript).not.toContain('<hindsight_memories>');
     expect(result?.transcript).not.toContain('User prefers dark mode');
     expect(result?.transcript).toContain('Here is how to enable dark mode.');
+  });
+
+  it('strips inline retain-tag directives from retained content', () => {
+    const messages = [
+      { role: 'user', content: 'Remember this.\n<retain_tags>client:acme, type:decision</retain_tags>\nActual content.' },
+      { role: 'assistant', content: 'Got it.' }
+    ];
+    const result = prepareRetentionTranscript(messages, baseConfig);
+    expect(result).not.toBeNull();
+    expect(result?.transcript).toContain('Remember this.');
+    expect(result?.transcript).toContain('Actual content.');
+    expect(result?.transcript).not.toContain('<retain_tags>');
+    expect(result?.transcript).not.toContain('client:acme');
   });
 
   it('strips memory tags from user message when prependContext is prepended to it', () => {

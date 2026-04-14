@@ -812,13 +812,42 @@ class WorkerPoller:
             schemas = await self._get_schemas()
             global_pending = 0
             all_worker_counts: dict[str, int] = {}
+            # operation_type -> aggregated bucket counts across schemas
+            pending_breakdown: dict[str, dict[str, int]] = {}
 
             async with self._pool.acquire() as conn:
                 for schema in schemas:
                     table = fq_table("async_operations", schema)
 
-                    row = await conn.fetchrow(f"SELECT COUNT(*) as count FROM {table} WHERE status = 'pending'")
-                    global_pending += row["count"] if row else 0
+                    # Bucket pending rows by the same predicates the claim query
+                    # filters on, so an operator can see why pending > 0 but
+                    # nothing is being claimed (orphaned batch_retain parents,
+                    # retry backoff, etc.).
+                    breakdown_rows = await conn.fetch(
+                        f"""
+                        SELECT
+                            operation_type,
+                            COUNT(*) AS total,
+                            COUNT(*) FILTER (WHERE task_payload IS NULL) AS payload_null,
+                            COUNT(*) FILTER (
+                                WHERE next_retry_at IS NOT NULL AND next_retry_at > now()
+                            ) AS retry_blocked,
+                            COUNT(*) FILTER (WHERE worker_id IS NOT NULL) AS assigned
+                        FROM {table}
+                        WHERE status = 'pending'
+                        GROUP BY operation_type
+                        """
+                    )
+                    for br in breakdown_rows:
+                        op_type = br["operation_type"] or "unknown"
+                        bucket = pending_breakdown.setdefault(
+                            op_type, {"total": 0, "payload_null": 0, "retry_blocked": 0, "assigned": 0}
+                        )
+                        bucket["total"] += br["total"]
+                        bucket["payload_null"] += br["payload_null"]
+                        bucket["retry_blocked"] += br["retry_blocked"]
+                        bucket["assigned"] += br["assigned"]
+                        global_pending += br["total"]
 
                     worker_rows = await conn.fetch(
                         f"""
@@ -855,6 +884,13 @@ class WorkerPoller:
                 f"proc: {proc_str} | "
                 f"my_active: {processing_str}"
             )
+
+            # Pending breakdown - explains why pending rows aren't being claimed
+            # (orphaned batch_retain parents have payload_null > 0, retry storms
+            # show up as retry_blocked, etc.). Skip when nothing is pending so
+            # the line doesn't add noise on idle deployments.
+            if global_pending > 0:
+                self._log_pending_breakdown(pending_breakdown)
 
             # Per-task lines, sorted oldest-first so stuck tasks bubble to the top.
             self._log_per_task_lines(active_tasks, now=time.monotonic())
@@ -909,6 +945,35 @@ class WorkerPoller:
         except Exception as e:
             logger.debug(f"Pool stats unavailable: {e}")
             return "unavailable"
+
+    def _log_pending_breakdown(self, breakdown: dict[str, dict[str, int]]) -> None:
+        """Emit one [PENDING_BREAKDOWN] line bucketing pending rows by claimability.
+
+        Each bucket mirrors a predicate in the claim query:
+          * payload_null   - row has no task_payload (e.g. batch_retain parent
+                             whose reconciliation never fired); claim query
+                             skips it forever
+          * retry_blocked  - next_retry_at is still in the future
+          * assigned       - worker_id already set; another worker owns it
+
+        ``claimable`` is the residual that *should* be picked up on the next
+        poll. If ``claimable > 0`` while workers report free slots, the bug is
+        somewhere else (lock contention, tenant discovery, etc.) - this line
+        narrows the search.
+        """
+        if not breakdown:
+            return
+
+        parts = []
+        for op_type in sorted(breakdown):
+            b = breakdown[op_type]
+            claimable = b["total"] - b["payload_null"] - b["retry_blocked"] - b["assigned"]
+            parts.append(
+                f"{op_type}: total={b['total']} claimable={claimable} "
+                f"payload_null={b['payload_null']} retry_blocked={b['retry_blocked']} "
+                f"assigned={b['assigned']}"
+            )
+        logger.info(f"[PENDING_BREAKDOWN] {' | '.join(parts)}")
 
     def _log_per_task_lines(self, active_tasks: dict[str, ActiveTaskInfo], now: float) -> None:
         """Emit one [WORKER_TASK] line per in-flight task and dump stuck stacks.

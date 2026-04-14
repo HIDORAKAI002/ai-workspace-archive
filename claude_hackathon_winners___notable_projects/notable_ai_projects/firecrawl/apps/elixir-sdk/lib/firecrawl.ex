@@ -262,7 +262,7 @@ defmodule Firecrawl do
     allow_external_links: [type: :boolean, doc: "Allows the crawler to follow links to external websites."],
     allow_subdomains: [type: :boolean, doc: "Allows the crawler to follow links to subdomains of the main domain."],
     crawl_entire_domain: [type: :boolean, doc: "Allows the crawler to follow internal links to sibling or parent URLs, not just child paths.\n\nfalse: Only crawls deeper (child) URLs.\n→ e.g. /features/feature-1 → /features/feature-1/tips ✅\n→ Won't follow /pricing or / ❌\n\ntrue: Crawls any internal links, including siblings and parents.\n→ e.g. /features/feature-1 → /pricing, /, etc. ✅\n\nUse true for broader internal coverage beyond nested paths."],
-    delay: [type: {:or, [:integer, :float]}, doc: "Delay in seconds between scrapes. This helps respect website rate limits."],
+    delay: [type: {:or, [:integer, :float]}, doc: "Delay in seconds between scrapes. This helps respect website rate limits. Setting this forces concurrency to 1."],
     exclude_paths: [type: {:list, :string}, doc: "URL pathname regex patterns that exclude matching URLs from the crawl. For example, if you set \"excludePaths\": [\"blog/.*\"] for the base URL firecrawl.dev, any results matching that pattern will be excluded, such as https://www.firecrawl.dev/blog/firecrawl-launch-week-1-recap."],
     ignore_query_parameters: [type: :boolean, doc: "Do not re-scrape the same path with different (or none) query parameters"],
     include_paths: [type: {:list, :string}, doc: "URL pathname regex patterns that include matching URLs in the crawl. Only the paths that match the specified patterns will be included in the response. Note: the starting URL is also checked against these patterns — if it does not match, the crawl may return 0 pages. For example, if you set \"includePaths\": [\"blog/.*\"] for the base URL firecrawl.dev/blog, only pages under /blog/ will be included in the results, such as https://www.firecrawl.dev/blog/firecrawl-launch-week-1-recap."],
@@ -461,6 +461,50 @@ defmodule Firecrawl do
   @spec get_active_crawls!(keyword()) :: Req.Response.t()
   def get_active_crawls!(opts \\ []) do
     Req.get!(client(opts), url: "/crawl/active")
+  end
+
+
+  @get_activity_query_schema NimbleOptions.new!([
+    endpoint: [type: {:in, [:scrape, :crawl, :batch_scrape, :search, :extract, :llmstxt, :deep_research, :map, :agent, :browser, :interact]}, doc: "Filter by endpoint"],
+    limit: [type: :integer, doc: "Maximum number of results per page"],
+    cursor: [type: :string, doc: "Cursor for pagination. Use the cursor value from the previous response."]
+  ])
+
+  @get_activity_query_key_mapping %{endpoint: "endpoint", limit: "limit", cursor: "cursor"}
+
+  @doc """
+  List recent API activity
+
+  `GET /team/activity`
+
+  Tag: Account
+
+  ## Query Parameters
+
+    * `endpoint` — query parameter `endpoint`
+    * `limit` — query parameter `limit`
+    * `cursor` — query parameter `cursor`
+
+  ## Returns
+
+    * `{:ok, %Req.Response{}}` on success
+    * `{:error, exception}` on HTTP or validation failure
+  """
+  @spec get_activity(keyword(), keyword()) :: response()
+  def get_activity(params \\ [], opts \\ []) do
+    with {:ok, params} <- NimbleOptions.validate(params, @get_activity_query_schema) do
+      Req.get(client(opts), url: "/team/activity", params: to_query(params, @get_activity_query_key_mapping))
+    end
+  end
+
+
+  @doc """
+  Bang variant of `get_activity`. Raises on error.
+  """
+  @spec get_activity!(keyword(), keyword()) :: Req.Response.t()
+  def get_activity!(params \\ [], opts \\ []) do
+    params = NimbleOptions.validate!(params, @get_activity_query_schema)
+    Req.get!(client(opts), url: "/team/activity", params: to_query(params, @get_activity_query_key_mapping))
   end
 
 
@@ -869,7 +913,7 @@ defmodule Firecrawl do
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
-    timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 30000 (30 seconds). Maximum is 300000 (300 seconds)."],
+    timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 60000 (60 seconds). Maximum is 300000 (300 seconds)."],
     wait_for: [type: :integer, doc: "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load. This waiting time is in addition to Firecrawl's smart wait feature."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
@@ -933,7 +977,7 @@ defmodule Firecrawl do
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
-    timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 30000 (30 seconds). Maximum is 300000 (300 seconds)."],
+    timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 60000 (60 seconds). Maximum is 300000 (300 seconds)."],
     wait_for: [type: :integer, doc: "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load. This waiting time is in addition to Firecrawl's smart wait feature."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this batch scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
