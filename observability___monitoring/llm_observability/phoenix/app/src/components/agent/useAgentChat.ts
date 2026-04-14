@@ -1,5 +1,5 @@
 import { Chat, useChat } from "@ai-sdk/react";
-import type { ChatStatus, UIMessage } from "ai";
+import type { ChatStatus } from "ai";
 import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithToolCalls,
@@ -8,6 +8,10 @@ import { useEffect, useRef } from "react";
 
 import { buildAgentChatRequestBody } from "@phoenix/agent/chat/buildAgentChatRequestBody";
 import { handleAgentToolCall } from "@phoenix/agent/chat/handleAgentToolCall";
+import {
+  assistantMessageMetadataSchema,
+  type AgentUIMessage,
+} from "@phoenix/agent/chat/types";
 import type {
   ElicitToolOutput,
   PendingElicitation,
@@ -63,9 +67,10 @@ export function useAgentChat({
             // be recreated without losing visible conversation history.
             const initialMessages =
               store.getState().sessionMap[sessionId]?.messages ?? [];
-            const chat = new Chat<UIMessage>({
+            const chat = new Chat<AgentUIMessage>({
               id: sessionId,
               messages: initialMessages,
+              messageMetadataSchema: assistantMessageMetadataSchema,
               transport: new DefaultChatTransport({
                 api: chatApiUrl,
                 fetch: authFetch,
@@ -117,7 +122,7 @@ export function useAgentChat({
   // `useChat` subscribes the current React tree to the already-created runtime
   // instance. When `sessionId` is null we intentionally expose an inert chat
   // shape rather than creating a shared fallback runtime through this hook.
-  const chat = useChat<UIMessage>(
+  const chat = useChat<AgentUIMessage>(
     chatInstance ? { chat: chatInstance } : { id: undefined, messages: [] }
   );
   const { messages, sendMessage, status, error, addToolOutput, stop } = chat;
@@ -173,7 +178,7 @@ export function useAgentChat({
     handleElicitationSubmit,
     handleElicitationCancel,
   } as {
-    messages: UIMessage[];
+    messages: AgentUIMessage[];
     sendMessage: (message: { text: string }) => void;
     stop: () => Promise<void>;
     status: ChatStatus;

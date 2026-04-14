@@ -1,7 +1,8 @@
 import { css } from "@emotion/react";
-import type { ChatStatus, UIMessage } from "ai";
+import type { ChatStatus } from "ai";
 import { useEffect, useRef } from "react";
 
+import type { AgentUIMessage } from "@phoenix/agent/chat/types";
 import type {
   ElicitToolOutput,
   PendingElicitation,
@@ -135,7 +136,7 @@ export function ChatView({
   modelMenuValue,
   onModelChange,
 }: {
-  messages: UIMessage[];
+  messages: AgentUIMessage[];
   sendMessage: (message: { text: string }) => void;
   stop: () => Promise<void>;
   status: ChatStatus;
