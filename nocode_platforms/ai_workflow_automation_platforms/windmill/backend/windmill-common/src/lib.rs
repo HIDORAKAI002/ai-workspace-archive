@@ -14,7 +14,7 @@ use std::{
     net::SocketAddr,
     str::FromStr,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicI64, Ordering},
         Arc,
     },
 };
@@ -211,18 +211,18 @@ lazy_static::lazy_static! {
     pub static ref CRITICAL_ALERT_MUTE_UI_ENABLED: AtomicBool = AtomicBool::new(false);
     pub static ref CRITICAL_ALERTS_ON_TOKEN_EXPIRY: AtomicBool = AtomicBool::new(false);
 
-    pub static ref BASE_URL: Arc<RwLock<String>> = Arc::new(RwLock::new("".to_string()));
+    pub static ref BASE_URL: arc_swap::ArcSwap<String> = arc_swap::ArcSwap::from_pointee("".to_string());
     pub static ref IS_READY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-    pub static ref HUB_BASE_URL: Arc<RwLock<String>> = Arc::new(RwLock::new(DEFAULT_HUB_BASE_URL.to_string()));
+    pub static ref HUB_BASE_URL: arc_swap::ArcSwap<String> = arc_swap::ArcSwap::from_pointee(DEFAULT_HUB_BASE_URL.to_string());
 
 
-    pub static ref CRITICAL_ERROR_CHANNELS: Arc<RwLock<Vec<CriticalErrorChannel>>> = Arc::new(RwLock::new(vec![]));
-    pub static ref CRITICAL_ALERTS_ON_DB_OVERSIZE: Arc<RwLock<Option<f32>>> = Arc::new(RwLock::new(None));
+    pub static ref CRITICAL_ERROR_CHANNELS: arc_swap::ArcSwap<Vec<CriticalErrorChannel>> = arc_swap::ArcSwap::from_pointee(vec![]);
+    pub static ref CRITICAL_ALERTS_ON_DB_OVERSIZE: arc_swap::ArcSwap<Option<f32>> = arc_swap::ArcSwap::from_pointee(None);
 
-    pub static ref JOB_RETENTION_SECS: Arc<RwLock<i64>> = Arc::new(RwLock::new(0));
-    pub static ref AUDIT_LOG_RETENTION_DAYS: Arc<RwLock<i64>> = Arc::new(RwLock::new(0));
+    pub static ref JOB_RETENTION_SECS: AtomicI64 = AtomicI64::new(0);
+    pub static ref AUDIT_LOG_RETENTION_DAYS: AtomicI64 = AtomicI64::new(0);
 
-    pub static ref MONITOR_LOGS_ON_OBJECT_STORE: Arc<RwLock<bool>> = Arc::new(RwLock::new(false));
+    pub static ref MONITOR_LOGS_ON_OBJECT_STORE: AtomicBool = AtomicBool::new(false);
 
     pub static ref INSTANCE_NAME: String = rd_string(5);
 
@@ -315,7 +315,6 @@ pub async fn shutdown_signal(
     Ok(())
 }
 
-use tokio::sync::RwLock;
 use utils::rd_string;
 
 #[cfg(feature = "prometheus")]

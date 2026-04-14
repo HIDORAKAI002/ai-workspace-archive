@@ -20,6 +20,7 @@ import {
 import { Shimmer } from "@phoenix/components/ai/shimmer";
 import type { ModelMenuValue } from "@phoenix/components/generative/ModelMenu";
 
+import { AgentDebugMenu } from "./AgentDebugMenu";
 import { AgentModelMenu } from "./AgentModelMenu";
 import { AssistantMessage, UserMessage } from "./ChatMessage";
 import { useAgentChat } from "./useAgentChat";
@@ -204,6 +205,7 @@ export function ChatView({
                     shouldFlip
                     variant="quiet"
                   />
+                  <AgentDebugMenu />
                 </PromptInputTools>
                 <PromptInputActions>
                   <PromptInputSubmit

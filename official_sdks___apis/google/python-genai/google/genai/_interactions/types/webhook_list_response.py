@@ -15,77 +15,12 @@
 
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
-from datetime import datetime
-from typing_extensions import Literal
+from typing import List, Optional
 
+from .webhook import Webhook
 from .._models import BaseModel
 
-__all__ = ["WebhookListResponse", "Webhook", "WebhookSigningSecret"]
-
-
-class WebhookSigningSecret(BaseModel):
-    """Represents a signing secret used to verify webhook payloads."""
-
-    expire_time: Optional[datetime] = None
-    """Output only. The expiration date of the signing secret."""
-
-    truncated_secret: Optional[str] = None
-    """Output only. The truncated version of the signing secret."""
-
-
-class Webhook(BaseModel):
-    """A Webhook resource."""
-
-    subscribed_events: List[
-        Union[
-            Literal[
-                "batch.succeeded",
-                "batch.cancelled",
-                "batch.expired",
-                "batch.failed",
-                "interaction.requires_action",
-                "interaction.completed",
-                "interaction.failed",
-                "interaction.cancelled",
-                "video.generated",
-            ],
-            str,
-        ]
-    ]
-    """Required. The events that the webhook is subscribed to. Available events:
-
-    - batch.succeeded
-    - batch.cancelled
-    - batch.expired
-    - batch.failed
-    - interaction.requires_action
-    - interaction.completed
-    - interaction.failed
-    - interaction.cancelled
-    - video.generated
-    """
-
-    uri: str
-    """Required. The URI to which webhook events will be sent."""
-
-    create_time: Optional[datetime] = None
-    """Output only. The timestamp when the webhook was created."""
-
-    name: Optional[str] = None
-    """Identifier. The name of the webhook. Format: `webhooks/{webhook_id}`"""
-
-    new_signing_secret: Optional[str] = None
-    """Output only. The new signing secret for the webhook. Only populated on create."""
-
-    signing_secrets: Optional[List[WebhookSigningSecret]] = None
-    """Output only. The signing secrets associated with this webhook."""
-
-    state: Optional[Literal["enabled", "disabled", "disabled_due_to_failed_deliveries"]] = None
-    """The state of the webhook."""
-
-    update_time: Optional[datetime] = None
-    """Output only. The timestamp when the webhook was last updated."""
+__all__ = ["WebhookListResponse"]
 
 
 class WebhookListResponse(BaseModel):

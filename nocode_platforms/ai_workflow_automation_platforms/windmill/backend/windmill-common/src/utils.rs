@@ -28,10 +28,8 @@ use sha2::{Digest, Sha256};
 use sqlx::{Pool, Postgres};
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::sync::Arc;
 use std::{fs::DirBuilder as SyncDirBuilder, str::FromStr};
 use tokio::fs::DirBuilder as AsyncDirBuilder;
-use tokio::sync::RwLock;
 use url::Url;
 
 pub const MAX_PER_PAGE: usize = 10000;
@@ -46,13 +44,13 @@ pub const AGENT_WORKER_NAME_PREFIX: &str = "ag";
 
 use crate::CRITICAL_ALERT_MUTE_UI_ENABLED;
 use std::panic::{self, AssertUnwindSafe, Location};
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::worker::CLOUD_HOSTED;
 
 lazy_static::lazy_static! {
     pub static ref COOKIE_DOMAIN: Option<String> = std::env::var("COOKIE_DOMAIN").ok();
-    pub static ref IS_SECURE: Arc<RwLock<bool>> = Arc::new(RwLock::new(false));
+    pub static ref IS_SECURE: AtomicBool = AtomicBool::new(false);
 
     pub static ref FORCE_IPV4: bool = std::env::var("FORCE_IPV4")
         .map(|v| v.to_lowercase() == "true" || v == "1")
@@ -164,7 +162,7 @@ lazy_static::lazy_static! {
         }
     };
 
-    pub static ref HUB_API_SECRET: Arc<RwLock<Option<String>>> = Arc::new(RwLock::new(None));
+    pub static ref HUB_API_SECRET: arc_swap::ArcSwap<Option<String>> = arc_swap::ArcSwap::from_pointee(None);
 }
 
 #[derive(Clone)]
@@ -392,7 +390,7 @@ pub async fn http_get_from_hub(
         request = request.header("X-uid", uid);
     }
 
-    if let Some(hub_api_secret) = HUB_API_SECRET.read().await.clone() {
+    if let Some(hub_api_secret) = (**HUB_API_SECRET.load()).clone() {
         request = request.header("X-api-secret", hub_api_secret);
     }
 
@@ -427,7 +425,7 @@ pub fn calculate_hash(s: &str) -> String {
 pub async fn get_license_id_or_uid<'c, E: sqlx::Executor<'c, Database = Postgres>>(
     db: E,
 ) -> Result<String> {
-    let license_id = LICENSE_KEY_ID.read().await.clone();
+    let license_id = (**LICENSE_KEY_ID.load()).clone();
 
     if license_id.is_empty() {
         get_instance_uid(db).await
@@ -452,7 +450,7 @@ async fn get_instance_uid<'c, E: sqlx::Executor<'c, Database = Postgres>>(db: E)
 pub async fn get_telemetry_ids<'c, E: sqlx::Executor<'c, Database = Postgres>>(
     db: E,
 ) -> Result<(String, String)> {
-    let license_id = LICENSE_KEY_ID.read().await.clone();
+    let license_id = (**LICENSE_KEY_ID.load()).clone();
     let instance_uid = get_instance_uid(db).await?;
     if license_id.is_empty() {
         Ok((instance_uid.clone(), instance_uid))

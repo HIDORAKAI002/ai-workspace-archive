@@ -651,7 +651,7 @@ async fn is_valid_logout_redirect(rd: &str) -> bool {
     if host == "windmill.dev" || host.ends_with(".windmill.dev") {
         return true;
     }
-    let hub_url = HUB_BASE_URL.read().await.clone();
+    let hub_url = (**HUB_BASE_URL.load()).clone();
     if let Ok(hub_parsed) = url::Url::parse(&hub_url) {
         if let Some(hub_host) = hub_parsed.host_str() {
             if host == hub_host {
@@ -2071,7 +2071,7 @@ pub async fn create_session_token<'c>(
     .await?;
 
     let mut cookie = Cookie::new(COOKIE_NAME, token.clone());
-    cookie.set_secure(IS_SECURE.read().await.clone());
+    cookie.set_secure(IS_SECURE.load(std::sync::atomic::Ordering::Relaxed));
     cookie.set_same_site(Some(tower_cookies::cookie::SameSite::Lax));
     cookie.set_http_only(true);
     cookie.set_path(COOKIE_PATH);
@@ -2202,7 +2202,7 @@ async fn exit_impersonation(
     Json(req): Json<ExitImpersonationRequest>,
 ) -> Result<String> {
     let mut cookie = tower_cookies::Cookie::new(COOKIE_NAME, req.token);
-    cookie.set_secure(IS_SECURE.read().await.clone());
+    cookie.set_secure(IS_SECURE.load(std::sync::atomic::Ordering::Relaxed));
     cookie.set_same_site(Some(tower_cookies::cookie::SameSite::Lax));
     cookie.set_http_only(true);
     cookie.set_path(COOKIE_PATH);
@@ -2655,7 +2655,7 @@ async fn request_password_reset(
         .await?;
 
         // Get the base URL for the reset link
-        let base_url = BASE_URL.read().await.clone();
+        let base_url = (**BASE_URL.load()).clone();
         let base_url = if base_url.is_empty() {
             std::env::var("BASE_URL").unwrap_or_else(|_| "http://localhost".to_string())
         } else {

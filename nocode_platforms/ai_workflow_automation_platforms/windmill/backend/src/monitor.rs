@@ -263,7 +263,6 @@ pub async fn initial_load(
             }
             Connection::Http(_) => {
                 // TODO: reload worker config from http
-                let mut config = WORKER_CONFIG.write().await;
                 let worker_tags = DECODED_AGENT_TOKEN
                     .as_ref()
                     .map(|x| x.tags.clone())
@@ -271,7 +270,7 @@ pub async fn initial_load(
                 // we only check from env as native_mode is not stored in the token
                 // NATIVE_MODE_RESOLVED is already set in main.rs during startup
                 let native_mode = windmill_common::worker::is_native_mode_from_env();
-                *config = WorkerConfig {
+                WORKER_CONFIG.store(std::sync::Arc::new(WorkerConfig {
                     worker_tags,
                     env_vars: load_env_vars(
                         load_whitelist_env_vars_from_env(),
@@ -287,7 +286,7 @@ pub async fn initial_load(
                     additional_python_paths: None,
                     pip_local_dependencies: None,
                     native_mode,
-                };
+                }));
             }
         }
     }
@@ -491,12 +490,10 @@ pub async fn load_tag_per_workspace_workspaces(db: &DB) -> error::Result<()> {
                 .filter_map(|x| x.as_str())
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>();
-            let mut w = DEFAULT_TAGS_WORKSPACES.write().await;
-            *w = Some(workspaces);
+            DEFAULT_TAGS_WORKSPACES.store(std::sync::Arc::new(Some(workspaces)));
         }
         Ok(None) => {
-            let mut w = DEFAULT_TAGS_WORKSPACES.write().await;
-            *w = None;
+            DEFAULT_TAGS_WORKSPACES.store(std::sync::Arc::new(None));
         }
         _ => (),
     };
@@ -1137,7 +1134,7 @@ pub async fn delete_expired_items(db: &DB) -> () {
         ),
     }
 
-    let job_retention_secs = *JOB_RETENTION_SECS.read().await;
+    let job_retention_secs = JOB_RETENTION_SECS.load(std::sync::atomic::Ordering::Relaxed);
     if job_retention_secs > 0 {
         let batch_size = *JOB_CLEANUP_BATCH_SIZE;
         let max_batches = *JOB_CLEANUP_MAX_BATCHES;
@@ -1442,7 +1439,8 @@ async fn delete_log_files_from_disk_and_store(
     // API, up to 1000 objects per request).
     #[cfg(feature = "parquet")]
     {
-        let should_del_from_store = *MONITOR_LOGS_ON_OBJECT_STORE.read().await;
+        let should_del_from_store =
+            MONITOR_LOGS_ON_OBJECT_STORE.load(std::sync::atomic::Ordering::Relaxed);
         if should_del_from_store {
             if let Some(os) = windmill_object_store::get_object_store().await {
                 let s3_paths: Vec<_> = paths_to_delete
@@ -1491,11 +1489,13 @@ pub async fn reload_instance_events_webhook_setting(db: &DB) {
     let value = load_value_from_global_settings(db, INSTANCE_EVENTS_WEBHOOK_SETTING).await;
     match value {
         Ok(Some(serde_json::Value::String(s))) if !s.is_empty() => {
-            *INSTANCE_EVENTS_WEBHOOK.write().await = Some(s);
+            INSTANCE_EVENTS_WEBHOOK.store(std::sync::Arc::new(Some(s)));
         }
         Ok(None) | Ok(Some(serde_json::Value::Null)) | Ok(Some(serde_json::Value::String(_))) => {
             // Fall back to env var if DB has no value
-            *INSTANCE_EVENTS_WEBHOOK.write().await = std::env::var("INSTANCE_EVENTS_WEBHOOK").ok();
+            INSTANCE_EVENTS_WEBHOOK.store(std::sync::Arc::new(
+                std::env::var("INSTANCE_EVENTS_WEBHOOK").ok(),
+            ));
         }
         Err(e) => {
             tracing::error!("Error loading instance_events_webhook setting: {e:#}");
@@ -1732,57 +1732,55 @@ pub async fn reload_workspace_registries_setting(conn: &Connection) {
 }
 
 pub async fn reload_hub_api_secret_setting(conn: &Connection) {
-    reload_option_setting_with_tracing(
-        conn,
-        HUB_API_SECRET_SETTING,
-        "HUB_API_SECRET",
-        HUB_API_SECRET.clone(),
-    )
-    .await;
+    match load_option_setting_value::<String>(conn, HUB_API_SECRET_SETTING, "HUB_API_SECRET").await
+    {
+        Ok(v) => HUB_API_SECRET.store(std::sync::Arc::new(v)),
+        Err(e) => tracing::error!("Error reloading setting HUB_API_SECRET: {:?}", e),
+    }
 }
 
 pub async fn reload_retention_period_setting(conn: &Connection) {
-    if let Err(e) = reload_setting(
+    match load_setting_value::<i64>(
         conn,
         RETENTION_PERIOD_SECS_SETTING,
         "JOB_RETENTION_SECS",
         60 * 60 * 24 * 30,
-        JOB_RETENTION_SECS.clone(),
         |x| x,
     )
     .await
     {
-        tracing::error!("Error reloading retention period: {:?}", e)
+        Ok(v) => JOB_RETENTION_SECS.store(v, Ordering::Relaxed),
+        Err(e) => tracing::error!("Error reloading retention period: {:?}", e),
     }
 }
 
 pub async fn reload_audit_log_retention_days_setting(conn: &Connection) {
-    if let Err(e) = reload_setting(
+    match load_setting_value::<i64>(
         conn,
         AUDIT_LOG_RETENTION_DAYS_SETTING,
         "AUDIT_LOG_RETENTION_DAYS",
         0, // 0 means use default: 365 for EE, 14 for CE
-        AUDIT_LOG_RETENTION_DAYS.clone(),
         |x| x,
     )
     .await
     {
-        tracing::error!("Error reloading audit log retention days: {:?}", e)
+        Ok(v) => AUDIT_LOG_RETENTION_DAYS.store(v, Ordering::Relaxed),
+        Err(e) => tracing::error!("Error reloading audit log retention days: {:?}", e),
     }
 }
 
 pub async fn reload_delete_logs_periodically_setting(conn: &Connection) {
-    if let Err(e) = reload_setting(
+    match load_setting_value::<bool>(
         conn,
         MONITOR_LOGS_ON_OBJECT_STORE_SETTING,
         "MONITOR_LOGS_ON_OBJECT_STORE",
         false,
-        MONITOR_LOGS_ON_OBJECT_STORE.clone(),
         |x| x,
     )
     .await
     {
-        tracing::error!("Error reloading retention period: {:?}", e)
+        Ok(v) => MONITOR_LOGS_ON_OBJECT_STORE.store(v, Ordering::Relaxed),
+        Err(e) => tracing::error!("Error reloading retention period: {:?}", e),
     }
 }
 
@@ -1916,20 +1914,22 @@ pub async fn load_value_from_global_settings_with_conn(
     }
 }
 
-pub async fn reload_option_setting<T: FromStr + DeserializeOwned>(
+/// Load an optional setting value without writing it anywhere.
+///
+/// Extracted from [`reload_option_setting`] so callers that store the value
+/// in something other than `Arc<RwLock<Option<T>>>` (e.g. `ArcSwap<Option<T>>`,
+/// an `AtomicBool`, etc.) can reuse the load pipeline.
+pub async fn load_option_setting_value<T: FromStr + DeserializeOwned>(
     conn: &Connection,
     setting_name: &str,
     std_env_var: &str,
-    lock: Arc<RwLock<Option<T>>>,
-) -> error::Result<()> {
+) -> error::Result<Option<T>> {
     let force_value = std::env::var(format!("FORCE_{}", std_env_var))
         .ok()
         .and_then(|x| x.parse::<T>().ok());
 
     if let Some(force_value) = force_value {
-        let mut l = lock.write().await;
-        *l = Some(force_value);
-        return Ok(());
+        return Ok(Some(force_value));
     }
 
     let q = load_value_from_global_settings_with_conn(conn, setting_name, true).await?;
@@ -1947,14 +1947,24 @@ pub async fn reload_option_setting<T: FromStr + DeserializeOwned>(
         }
     };
 
+    if value.is_none() {
+        tracing::info!("Loaded {setting_name} setting to None");
+    }
+
+    Ok(value)
+}
+
+pub async fn reload_option_setting<T: FromStr + DeserializeOwned>(
+    conn: &Connection,
+    setting_name: &str,
+    std_env_var: &str,
+    lock: Arc<RwLock<Option<T>>>,
+) -> error::Result<()> {
+    let value = load_option_setting_value::<T>(conn, setting_name, std_env_var).await?;
     {
-        if value.is_none() {
-            tracing::info!("Loaded {setting_name} setting to None");
-        }
         let mut l = lock.write().await;
         *l = value;
     }
-
     Ok(())
 }
 
@@ -1969,12 +1979,16 @@ pub async fn reload_url_list_setting_with_tracing(
     }
 }
 
-pub async fn reload_url_list_setting(
+/// Load an optional URL list setting without writing it anywhere.
+///
+/// Extracted from [`reload_url_list_setting`] so callers that store the
+/// value in something other than `Arc<RwLock<Option<Vec<Url>>>>` (e.g.
+/// `ArcSwap<Option<Vec<Url>>>`) can reuse the parsing pipeline.
+pub async fn load_url_list_setting_value(
     conn: &Connection,
     setting_name: &str,
     std_env_var: &str,
-    lock: Arc<RwLock<Option<Vec<url::Url>>>>,
-) -> error::Result<()> {
+) -> error::Result<Option<Vec<url::Url>>> {
     // Check for force environment variable
     if let Ok(force_value) = std::env::var(format!("FORCE_{}", std_env_var)) {
         let mut urls = Vec::new();
@@ -1989,9 +2003,7 @@ pub async fn reload_url_list_setting(
                 }
             }
         }
-        let mut l = lock.write().await;
-        *l = if urls.is_empty() { None } else { Some(urls) };
-        return Ok(());
+        return Ok(if urls.is_empty() { None } else { Some(urls) });
     }
 
     let q = load_value_from_global_settings_with_conn(conn, setting_name, true).await?;
@@ -2041,25 +2053,39 @@ pub async fn reload_url_list_setting(
         }
     }
 
+    if value.is_none() {
+        tracing::info!("Loaded {} setting to None", setting_name);
+    }
+
+    Ok(value)
+}
+
+pub async fn reload_url_list_setting(
+    conn: &Connection,
+    setting_name: &str,
+    std_env_var: &str,
+    lock: Arc<RwLock<Option<Vec<url::Url>>>>,
+) -> error::Result<()> {
+    let value = load_url_list_setting_value(conn, setting_name, std_env_var).await?;
     {
-        if value.is_none() {
-            tracing::info!("Loaded {} setting to None", setting_name);
-        }
         let mut l = lock.write().await;
         *l = value;
     }
-
     Ok(())
 }
 
-pub async fn reload_setting<T: FromStr + DeserializeOwned + Display>(
+/// Load a required setting value without writing it anywhere.
+///
+/// Extracted from [`reload_setting`] so callers that store the value in
+/// something other than `Arc<RwLock<T>>` (e.g. `AtomicI64`, `AtomicBool`,
+/// `ArcSwap<T>`) can reuse the load pipeline.
+pub async fn load_setting_value<T: FromStr + DeserializeOwned + Display>(
     conn: &Connection,
     setting_name: &str,
     std_env_var: &str,
     default: T,
-    lock: Arc<RwLock<T>>,
     transformer: fn(T) -> T,
-) -> error::Result<()> {
+) -> error::Result<T> {
     let q = load_value_from_global_settings_with_conn(conn, setting_name, true).await?;
 
     let mut value = std::env::var(std_env_var)
@@ -2076,11 +2102,22 @@ pub async fn reload_setting<T: FromStr + DeserializeOwned + Display>(
         }
     };
 
+    Ok(value)
+}
+
+pub async fn reload_setting<T: FromStr + DeserializeOwned + Display>(
+    conn: &Connection,
+    setting_name: &str,
+    std_env_var: &str,
+    default: T,
+    lock: Arc<RwLock<T>>,
+    transformer: fn(T) -> T,
+) -> error::Result<()> {
+    let value = load_setting_value(conn, setting_name, std_env_var, default, transformer).await?;
     {
         let mut l = lock.write().await;
         *l = value;
     }
-
     Ok(())
 }
 
@@ -2620,9 +2657,8 @@ pub async fn reload_smtp_config(db: &Pool<Postgres>) {
     if let Err(e) = smtp_config {
         tracing::error!("Error reloading smtp config: {:?}", e)
     } else {
-        let mut wc = SMTP_CONFIG.write().await;
         tracing::info!("Reloading smtp config...");
-        *wc = smtp_config.unwrap()
+        SMTP_CONFIG.store(std::sync::Arc::new(smtp_config.unwrap()));
     }
 }
 
@@ -2631,9 +2667,8 @@ pub async fn reload_indexer_config(db: &Pool<Postgres>) {
     if let Err(e) = indexer_config {
         tracing::error!("Error reloading indexer config: {:?}", e)
     } else {
-        let mut wc = INDEXER_CONFIG.write().await;
-        tracing::info!("Reloading smtp config...");
-        *wc = indexer_config.unwrap()
+        tracing::info!("Reloading indexer config...");
+        INDEXER_CONFIG.store(std::sync::Arc::new(indexer_config.unwrap()));
     }
 }
 
@@ -2642,29 +2677,29 @@ pub async fn reload_worker_config(db: &DB, tx: KillpillSender, kill_if_change: b
     if let Err(e) = config {
         tracing::error!("Error reloading worker config: {:?}", e)
     } else {
-        let wc = WORKER_CONFIG.read().await;
+        let wc = WORKER_CONFIG.load();
         let config = config.unwrap();
         let has_dedicated = config.dedicated_worker.is_some()
             || config
                 .dedicated_workers
                 .as_ref()
                 .is_some_and(|dws| !dws.is_empty());
-        if *wc != config || has_dedicated {
+        if **wc != config || has_dedicated {
             if kill_if_change {
                 if has_dedicated
-                    || (*wc).dedicated_worker != config.dedicated_worker
-                    || (*wc).dedicated_workers != config.dedicated_workers
+                    || wc.dedicated_worker != config.dedicated_worker
+                    || wc.dedicated_workers != config.dedicated_workers
                 {
                     tracing::info!("Dedicated worker config changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                 }
 
-                if (*wc).init_bash != config.init_bash {
+                if wc.init_bash != config.init_bash {
                     tracing::info!("Init bash config changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                 }
 
-                if (*wc).cache_clear != config.cache_clear {
+                if wc.cache_clear != config.cache_clear {
                     tracing::info!("Cache clear changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                     tracing::info!("Waiting 5 seconds to allow others workers to start potential jobs that depend on a potential shared cache volume");
@@ -2674,29 +2709,27 @@ pub async fn reload_worker_config(db: &DB, tx: KillpillSender, kill_if_change: b
                     }
                 }
 
-                if (*wc).periodic_script_bash != config.periodic_script_bash {
+                if wc.periodic_script_bash != config.periodic_script_bash {
                     tracing::info!("Periodic script bash config changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                 }
 
-                if (*wc).periodic_script_interval_seconds != config.periodic_script_interval_seconds
-                {
+                if wc.periodic_script_interval_seconds != config.periodic_script_interval_seconds {
                     tracing::info!("Periodic script interval config changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                 }
 
-                if (*wc).native_mode != config.native_mode {
+                if wc.native_mode != config.native_mode {
                     tracing::info!("Native mode config changed, sending killpill. Expecting to be restarted by supervisor.");
                     let _ = tx.send();
                 }
             }
             drop(wc);
 
-            let mut wc = WORKER_CONFIG.write().await;
             tracing::info!("Reloading worker config...");
             store_suspended_pull_query(&config).await;
             store_pull_query(&config).await;
-            *wc = config
+            WORKER_CONFIG.store(std::sync::Arc::new(config));
         }
     }
 }
@@ -2725,10 +2758,7 @@ pub async fn load_base_url(conn: &Connection) -> error::Result<String> {
     } else {
         std_base_url
     };
-    {
-        let mut l = BASE_URL.write().await;
-        *l = base_url.clone();
-    }
+    BASE_URL.store(std::sync::Arc::new(base_url.clone()));
     Ok(base_url)
 }
 
@@ -2759,17 +2789,14 @@ pub async fn reload_base_url_setting(conn: &Connection) -> error::Result<()> {
     #[cfg(feature = "oauth2")]
     {
         if let Some(db) = conn.as_sql() {
-            let mut l = windmill_api::OAUTH_CLIENTS.write().await;
-            *l = windmill_api::oauth2_oss::build_oauth_clients(&base_url, oauths, db).await
-            .map_err(|e| tracing::error!("Error building oauth clients (is the oauth.json mounted and in correct format? Use '{}' as minimal oauth.json): {}", "{}", e))
-            .unwrap();
+            let clients = windmill_api::oauth2_oss::build_oauth_clients(&base_url, oauths, db).await
+                .map_err(|e| tracing::error!("Error building oauth clients (is the oauth.json mounted and in correct format? Use '{}' as minimal oauth.json): {}", "{}", e))
+                .unwrap();
+            windmill_api::OAUTH_CLIENTS.store(std::sync::Arc::new(clients));
         }
     }
 
-    {
-        let mut l = IS_SECURE.write().await;
-        *l = is_secure;
-    }
+    IS_SECURE.store(is_secure, Ordering::Relaxed);
 
     Ok(())
 }
@@ -2898,7 +2925,7 @@ async fn handle_zombie_jobs(db: &Pool<Postgres>, base_internal_url: &str, node_n
 
         otel_incr_zombie_restart_count(restarted.len() as u64);
 
-        let base_url = BASE_URL.read().await.clone();
+        let base_url = (**BASE_URL.load()).clone();
         for r in restarted {
             let last_ping = if let Some(x) = r.ping {
                 format!("last ping at {x}")
@@ -3385,7 +3412,7 @@ async fn handle_zombie_flows(db: &DB) -> error::Result<()> {
             let id = flow.id.clone();
             let last_ping = flow.last_ping.clone();
             let now = now_from_db(db).await?;
-            let base_url = BASE_URL.read().await;
+            let base_url = BASE_URL.load();
             let workspace_id = flow.workspace_id.clone();
 
             let fmt_mb = |b: i64| format!("{:.1} MB", b as f64 / 1024.0 / 1024.0);
@@ -3614,11 +3641,11 @@ pub async fn reload_hub_base_url_setting(
         DEFAULT_HUB_BASE_URL.to_string()
     };
 
-    let mut l = HUB_BASE_URL.write().await;
+    let previous = HUB_BASE_URL.load();
     if server_mode {
         #[cfg(feature = "embedding")]
         if let Some(db) = conn.as_sql() {
-            if *l != base_url {
+            if **previous != base_url {
                 let disable_embedding = std::env::var("DISABLE_EMBEDDING")
                     .ok()
                     .map(|x| x.parse::<bool>().unwrap_or(false))
@@ -3632,7 +3659,8 @@ pub async fn reload_hub_base_url_setting(
             }
         }
     }
-    *l = base_url;
+    drop(previous);
+    HUB_BASE_URL.store(std::sync::Arc::new(base_url));
 
     Ok(())
 }
@@ -3655,8 +3683,7 @@ pub async fn reload_critical_error_channels_setting(conn: &DB) -> error::Result<
         vec![]
     };
 
-    let mut l = CRITICAL_ERROR_CHANNELS.write().await;
-    *l = critical_error_channels;
+    CRITICAL_ERROR_CHANNELS.store(std::sync::Arc::new(critical_error_channels));
 
     Ok(())
 }
@@ -3678,9 +3705,7 @@ pub async fn reload_app_workspaced_route_setting(conn: &DB) -> error::Result<()>
         }
     };
 
-    let mut l = APP_WORKSPACED_ROUTE.write().await;
-
-    *l = ws_route;
+    APP_WORKSPACED_ROUTE.store(ws_route, Ordering::Relaxed);
     Ok(())
 }
 
@@ -3701,18 +3726,13 @@ pub async fn reload_http_route_workspaced_route_setting(conn: &DB) -> error::Res
         }
     };
 
-    let mut l = HTTP_ROUTE_WORKSPACED_ROUTE.write().await;
-
-    if *l != ws_route {
-        *l = ws_route;
-        drop(l);
+    let previous = HTTP_ROUTE_WORKSPACED_ROUTE.swap(ws_route, Ordering::Relaxed);
+    if previous != ws_route {
         // Bump the HTTP trigger version so the route cache is rebuilt with
         // the updated workspaced_route behavior on the next request.
         sqlx::query!("SELECT nextval('http_trigger_version_seq')")
             .fetch_one(conn)
             .await?;
-    } else {
-        *l = ws_route;
     }
     Ok(())
 }
@@ -3744,8 +3764,7 @@ pub async fn reload_critical_alerts_on_db_oversize(conn: &DB) -> error::Result<(
         None
     };
 
-    let mut l = CRITICAL_ALERTS_ON_DB_OVERSIZE.write().await;
-    *l = db_oversize;
+    CRITICAL_ALERTS_ON_DB_OVERSIZE.store(std::sync::Arc::new(db_oversize));
 
     Ok(())
 }
@@ -3776,8 +3795,7 @@ pub async fn reload_jwt_secret_setting(db: &DB) -> error::Result<()> {
         generate_and_save_jwt_secret(db).await?
     };
 
-    let mut l = JWT_SECRET.write().await;
-    *l = jwt_secret;
+    JWT_SECRET.store(std::sync::Arc::new(jwt_secret));
 
     Ok(())
 }
@@ -3899,7 +3917,7 @@ RETURNING job_id
 }
 
 async fn audit_log_retention_days() -> i64 {
-    let v = *AUDIT_LOG_RETENTION_DAYS.read().await;
+    let v = AUDIT_LOG_RETENTION_DAYS.load(std::sync::atomic::Ordering::Relaxed);
     if v > 0 {
         v
     } else if cfg!(feature = "enterprise") {
