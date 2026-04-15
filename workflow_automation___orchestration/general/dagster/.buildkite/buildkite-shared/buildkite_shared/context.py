@@ -591,18 +591,32 @@ def _setup_git_repo(repo_path: Path) -> None:
                 check=False,
             )
 
-        # Only fetch if origin/master doesn't exist locally (e.g. shallow clone on CI).
-        # Avoids a slow network call when running locally or in tests.
-        has_origin_master = (
-            subprocess.run(
-                ["git", "rev-parse", "--verify", "origin/master"],
-                capture_output=True,
-                check=False,
-            ).returncode
-            == 0
-        )
-        if not has_origin_master:
-            subprocess.run(["git", "fetch", "origin", "master"], check=True)
+        if _is_master_branch(os.environ.get("BUILDKITE_BRANCH", "")):
+            # On master we diff HEAD^...HEAD, so ensure the parent commit is
+            # present locally. Buildkite's default shallow clone may not include it.
+            has_parent = (
+                subprocess.run(
+                    ["git", "rev-parse", "--verify", "HEAD^"],
+                    capture_output=True,
+                    check=False,
+                ).returncode
+                == 0
+            )
+            if not has_parent:
+                subprocess.run(["git", "fetch", "--deepen=1"], check=True)
+        else:
+            # Only fetch if origin/master doesn't exist locally (e.g. shallow clone on CI).
+            # Avoids a slow network call when running locally or in tests.
+            has_origin_master = (
+                subprocess.run(
+                    ["git", "rev-parse", "--verify", "origin/master"],
+                    capture_output=True,
+                    check=False,
+                ).returncode
+                == 0
+            )
+            if not has_origin_master:
+                subprocess.run(["git", "fetch", "origin", "master"], check=True)
 
 
 # ########################
@@ -613,15 +627,23 @@ def _setup_git_repo(repo_path: Path) -> None:
 def _discover_changed_files(repo_path: Path) -> frozenset[Path]:
     """Shared logic for loading changed files from git."""
     with pushd(repo_path):
-        origin = _get_commit("origin/master")
+        # On master, diff against the previous commit so that file-change-gated
+        # steps (e.g. utility docker image builds) actually run on merges to
+        # master. On other branches, diff against origin/master.
+        base_ref = (
+            "HEAD^"
+            if _is_master_branch(os.environ.get("BUILDKITE_BRANCH", ""))
+            else "origin/master"
+        )
+        base = _get_commit(base_ref)
         head = _get_commit("HEAD")
-        logging.info(f"Changed files between origin/master ({origin}) and HEAD ({head}):")
+        logging.info(f"Changed files between {base_ref} ({base}) and HEAD ({head}):")
 
         result = subprocess.run(
             [
                 "git",
                 "diff",
-                "origin/master...HEAD",
+                f"{base_ref}...HEAD",
                 "--name-only",
                 "--relative",
                 "--",

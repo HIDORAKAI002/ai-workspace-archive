@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-16 01:51 IST] Auto-Sync
+- **48 Repositories Updated:** Kubernetes MCP Server, GitHub MCP Server, Exa MCP Server, Tavily MCP, Prompt Engineering Tutorials, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Directus, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, Significant-Gravitas/AutoGPT, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, arize-ai/phoenix, Arize-ai/openinference, open-telemetry/opentelemetry-python, openai/openai-cookbook, firecrawl/firecrawl, mindsdb/mindsdb, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-15 19:25 IST] Auto-Sync
 - **32 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Dify, Activepieces, Trigger.dev, Appsmith, Budibase, Directus, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, huggingface/smolagents, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, traceloop/openllmetry, openlit/openlit, open-telemetry/opentelemetry-python, firecrawl/firecrawl, chenglou/pretext, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 
