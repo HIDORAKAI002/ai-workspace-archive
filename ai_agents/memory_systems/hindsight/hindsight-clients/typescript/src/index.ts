@@ -42,6 +42,11 @@ import type {
     BankConfigResponse,
     CreateBankRequest,
     Budget,
+    BankTemplateManifest,
+    BankTemplateConfig,
+    BankTemplateMentalModel,
+    BankTemplateDirective,
+    BankTemplateImportResponse,
 } from '../generated/types.gen';
 
 export const CLIENT_VERSION = '0.5.1';
@@ -824,6 +829,11 @@ export type {
     BankConfigResponse,
     CreateBankRequest,
     Budget,
+    BankTemplateManifest,
+    BankTemplateConfig,
+    BankTemplateMentalModel,
+    BankTemplateDirective,
+    BankTemplateImportResponse,
 };
 
 // Also export low-level SDK functions for advanced usage

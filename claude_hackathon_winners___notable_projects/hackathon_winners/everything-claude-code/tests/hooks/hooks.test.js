@@ -1912,13 +1912,14 @@ async function runTests() {
         for (const entry of hookArray) {
           for (const hook of entry.hooks) {
             if (hook.type === 'command') {
-              const isNode = hook.command.startsWith('node');
-              const isNpx = hook.command.startsWith('npx ');
-              const isSkillScript = hook.command.includes('/skills/') && (/^(bash|sh)\s/.test(hook.command) || hook.command.startsWith('${CLAUDE_PLUGIN_ROOT}/skills/'));
-              const isHookShellWrapper = /^(bash|sh)\s+["']?\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/hooks\/run-with-flags-shell\.sh/.test(hook.command);
+              const commandText = Array.isArray(hook.command) ? hook.command.join(' ') : hook.command;
+              const commandStart = Array.isArray(hook.command) ? hook.command[0] : hook.command;
+              const isNode = commandStart === 'node' || (typeof commandStart === 'string' && commandStart.startsWith('node'));
+              const isNpx = commandStart === 'npx' || (typeof commandStart === 'string' && commandStart.startsWith('npx '));
+              const isSkillScript = commandText.includes('/skills/') && (/^(bash|sh)\s/.test(commandText) || commandText.includes('/skills/'));
               assert.ok(
-                isNode || isNpx || isSkillScript || isHookShellWrapper,
-                `Hook command should use node or approved shell wrapper: ${hook.command.substring(0, 100)}...`
+                isNode || isNpx || isSkillScript,
+                `Hook command should use node or approved shell wrapper: ${commandText.substring(0, 100)}...`
               );
             }
           }
@@ -1940,16 +1941,18 @@ async function runTests() {
       const sessionStartHook = hooks.hooks.SessionStart?.[0]?.hooks?.[0];
 
       assert.ok(sessionStartHook, 'Should define a SessionStart hook');
-      // The bootstrap was extracted to a standalone file to avoid shell history
-      // expansion of `!` characters that caused startup hook errors when the
-      // logic was embedded as an inline `node -e "..."` string.
+      const commandText = Array.isArray(sessionStartHook.command)
+        ? sessionStartHook.command.join(' ')
+        : sessionStartHook.command;
+      assert.ok(Array.isArray(sessionStartHook.command), 'SessionStart should use argv form for cross-platform safety');
       assert.ok(
-        sessionStartHook.command.includes('session-start-bootstrap.js'),
+        commandText.includes('session-start-bootstrap.js'),
         'SessionStart should delegate to the extracted bootstrap script'
       );
-      assert.ok(sessionStartHook.command.includes('CLAUDE_PLUGIN_ROOT'), 'SessionStart should use CLAUDE_PLUGIN_ROOT');
-      assert.ok(!sessionStartHook.command.includes('find '), 'Should not scan arbitrary plugin paths with find');
-      assert.ok(!sessionStartHook.command.includes('head -n 1'), 'Should not pick the first matching plugin path');
+      assert.ok(commandText.includes('CLAUDE_PLUGIN_ROOT'), 'SessionStart should use CLAUDE_PLUGIN_ROOT');
+      assert.ok(!commandText.includes('${CLAUDE_PLUGIN_ROOT}'), 'SessionStart should not depend on raw shell placeholder expansion');
+      assert.ok(!commandText.includes('find '), 'Should not scan arbitrary plugin paths with find');
+      assert.ok(!commandText.includes('head -n 1'), 'Should not pick the first matching plugin path');
 
       // Verify the bootstrap script itself contains the expected logic
       const bootstrapPath = path.join(__dirname, '..', '..', 'scripts', 'hooks', 'session-start-bootstrap.js');
@@ -1971,29 +1974,41 @@ async function runTests() {
       const sessionEndHooks = (hooks.hooks.SessionEnd || []).flatMap(entry => entry.hooks || []);
 
       for (const hook of [...stopHooks, ...sessionEndHooks]) {
-        assert.ok(hook.command.startsWith('node -e "'), 'Lifecycle hook should use inline node resolver');
-        assert.ok(hook.command.includes('run-with-flags.js'), 'Lifecycle hook should resolve the runner script');
-        assert.ok(hook.command.includes('CLAUDE_PLUGIN_ROOT'), 'Lifecycle hook should consult CLAUDE_PLUGIN_ROOT');
-        assert.ok(hook.command.includes('plugins'), 'Lifecycle hook should probe known plugin roots');
-        assert.ok(!hook.command.includes('find '), 'Lifecycle hook should not scan arbitrary plugin paths with find');
-        assert.ok(!hook.command.includes('head -n 1'), 'Lifecycle hook should not pick the first matching plugin path');
+        const commandText = Array.isArray(hook.command) ? hook.command.join(' ') : hook.command;
+        assert.ok(
+          (Array.isArray(hook.command) && hook.command[0] === 'node' && hook.command[1] === '-e') ||
+          (typeof hook.command === 'string' && hook.command.startsWith('node -e "')),
+          'Lifecycle hook should use inline node resolver'
+        );
+        assert.ok(commandText.includes('run-with-flags.js'), 'Lifecycle hook should resolve the runner script');
+        assert.ok(commandText.includes('CLAUDE_PLUGIN_ROOT'), 'Lifecycle hook should consult CLAUDE_PLUGIN_ROOT');
+        assert.ok(!commandText.includes('${CLAUDE_PLUGIN_ROOT}'), 'Lifecycle hook should not depend on raw shell placeholder expansion');
+        assert.ok(commandText.includes('plugins'), 'Lifecycle hook should probe known plugin roots');
+        assert.ok(!commandText.includes('find '), 'Lifecycle hook should not scan arbitrary plugin paths with find');
+        assert.ok(!commandText.includes('head -n 1'), 'Lifecycle hook should not pick the first matching plugin path');
       }
     })
   )
     passed++;
   else failed++;
   if (
-    test('script references use CLAUDE_PLUGIN_ROOT variable or a safe inline resolver', () => {
+    test('script references use the safe inline resolver or plugin bootstrap', () => {
       const hooksPath = path.join(__dirname, '..', '..', 'hooks', 'hooks.json');
       const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
 
       const checkHooks = hookArray => {
         for (const entry of hookArray) {
           for (const hook of entry.hooks) {
-            if (hook.type === 'command' && hook.command.includes('scripts/hooks/')) {
-              const usesInlineResolver = hook.command.startsWith('node -e') && hook.command.includes('run-with-flags.js');
-              const hasPluginRoot = hook.command.includes('${CLAUDE_PLUGIN_ROOT}') || usesInlineResolver;
-              assert.ok(hasPluginRoot, `Script paths should use CLAUDE_PLUGIN_ROOT: ${hook.command.substring(0, 80)}...`);
+            const commandText = Array.isArray(hook.command) ? hook.command.join(' ') : hook.command;
+            const commandStart = Array.isArray(hook.command) ? `${hook.command[0]} ${hook.command[1] || ''}`.trim() : hook.command;
+            if (hook.type === 'command' && commandText.includes('scripts/hooks/')) {
+              const usesInlineResolver = commandStart.startsWith('node -e') && commandText.includes('run-with-flags.js');
+              const usesPluginBootstrap = commandStart.startsWith('node -e') && commandText.includes('plugin-hook-bootstrap.js');
+              assert.ok(!commandText.includes('${CLAUDE_PLUGIN_ROOT}'), `Script paths should not depend on raw shell placeholder expansion: ${commandText.substring(0, 80)}...`);
+              assert.ok(
+                usesInlineResolver || usesPluginBootstrap,
+                `Script paths should use the inline resolver or plugin bootstrap: ${commandText.substring(0, 80)}...`
+              );
             }
           }
         }

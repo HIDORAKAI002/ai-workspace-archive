@@ -2547,6 +2547,9 @@ jobs:
     - name: Run generate-openapi
       run: ./scripts/generate-openapi.sh
 
+    - name: Run generate-bank-template-schema
+      run: ./scripts/generate-bank-template-schema.sh
+
     - name: Run generate-clients
       run: ./scripts/generate-clients.sh
 
@@ -2566,6 +2569,7 @@ jobs:
           echo ""
           echo "Please run the following commands locally and commit the changes:"
           echo "  ./scripts/generate-openapi.sh"
+          echo "  ./scripts/generate-bank-template-schema.sh"
           echo "  ./scripts/generate-clients.sh"
           echo "  ./scripts/generate-docs-skill.sh"
           echo "  ./scripts/hooks/lint.sh"
