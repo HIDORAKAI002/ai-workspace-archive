@@ -145,7 +145,23 @@ var (
 	// When active, consolidated tools are replaced by single-purpose granular tools.
 	FeatureFlagIssuesGranular       = "issues_granular"
 	FeatureFlagPullRequestsGranular = "pull_requests_granular"
+)
 
+// headerAllowedFeatureFlags are the feature flags that clients may enable via the
+// X-MCP-Features header. Only these flags are accepted from headers; unknown flags
+// are silently ignored.
+var headerAllowedFeatureFlags = []string{
+	FeatureFlagIssuesGranular,
+	FeatureFlagPullRequestsGranular,
+}
+
+// HeaderAllowedFeatureFlags returns the feature flags that clients may enable via
+// the X-MCP-Features header.
+func HeaderAllowedFeatureFlags() []string {
+	return slices.Clone(headerAllowedFeatureFlags)
+}
+
+var (
 	// Remote-only toolsets - these are only available in the remote MCP server
 	// but are documented here for consistency and to enable automated documentation.
 	ToolsetMetadataCopilotSpaces = inventory.ToolsetMetadata{
