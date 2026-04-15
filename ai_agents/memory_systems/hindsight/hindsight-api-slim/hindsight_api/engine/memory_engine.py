@@ -5986,6 +5986,108 @@ class MemoryEngine(MemoryEngineInterface):
                 "offset": offset,
             }
 
+    async def get_entity_graph(
+        self,
+        bank_id: str,
+        *,
+        limit: int = 1000,
+        min_count: int = 1,
+        request_context: "RequestContext",
+    ) -> dict[str, Any]:
+        """
+        Get entity co-occurrence graph for visualization.
+
+        Returns nodes for entities and edges from the materialized
+        entity_cooccurrences table. Edges are ordered by cooccurrence_count DESC
+        and capped at `limit` to keep the payload renderable.
+        """
+        await self._authenticate_tenant(request_context)
+        if self._operation_validator:
+            from hindsight_api.extensions import BankReadContext
+
+            ctx = BankReadContext(bank_id=bank_id, operation="get_entity_graph", request_context=request_context)
+            await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
+        pool = await self._get_pool()
+        async with acquire_with_retry(pool) as conn:
+            edge_rows = await conn.fetch(
+                f"""
+                SELECT ec.entity_id_1,
+                       ec.entity_id_2,
+                       ec.cooccurrence_count,
+                       ec.last_cooccurred,
+                       e1.canonical_name AS name_1,
+                       e1.mention_count  AS mention_count_1,
+                       e2.canonical_name AS name_2,
+                       e2.mention_count  AS mention_count_2
+                FROM {fq_table("entity_cooccurrences")} ec
+                JOIN {fq_table("entities")} e1 ON e1.id = ec.entity_id_1
+                JOIN {fq_table("entities")} e2 ON e2.id = ec.entity_id_2
+                WHERE e1.bank_id = $1
+                  AND e2.bank_id = $1
+                  AND ec.cooccurrence_count >= $2
+                ORDER BY ec.cooccurrence_count DESC, ec.last_cooccurred DESC
+                LIMIT $3
+                """,
+                bank_id,
+                min_count,
+                limit,
+            )
+
+        @dataclass
+        class _EntityNode:
+            id: str
+            label: str
+            mention_count: int
+
+        nodes_by_id: dict[str, _EntityNode] = {}
+        edges: list[dict[str, Any]] = []
+        for row in edge_rows:
+            for eid, name, mentions in (
+                (row["entity_id_1"], row["name_1"], row["mention_count_1"]),
+                (row["entity_id_2"], row["name_2"], row["mention_count_2"]),
+            ):
+                key = str(eid)
+                if key not in nodes_by_id:
+                    nodes_by_id[key] = _EntityNode(id=key, label=name, mention_count=mentions or 0)
+
+            from_id = str(row["entity_id_1"])
+            to_id = str(row["entity_id_2"])
+            count = row["cooccurrence_count"]
+            edges.append(
+                {
+                    "data": {
+                        "id": f"{from_id}-{to_id}",
+                        "source": from_id,
+                        "target": to_id,
+                        "linkType": "cooccurrence",
+                        "weight": count,
+                        "color": "#ffd700",
+                        "lineStyle": "solid",
+                        "lastCooccurred": row["last_cooccurred"].isoformat() if row["last_cooccurred"] else None,
+                    }
+                }
+            )
+
+        nodes = [
+            {
+                "data": {
+                    "id": n.id,
+                    "label": n.label,
+                    "mentionCount": n.mention_count,
+                    "color": "#42a5f5" if n.mention_count > 1 else "#90caf9",
+                }
+            }
+            for n in nodes_by_id.values()
+        ]
+
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "total_entities": len(nodes),
+            "total_edges": len(edges),
+            "limit": limit,
+        }
+
     async def list_tags(
         self,
         bank_id: str,
@@ -6940,7 +7042,7 @@ class MemoryEngine(MemoryEngineInterface):
 
             # Run reflect with the source query, excluding the mental model being refreshed
             # Skip creating a nested "hindsight.reflect" span since we already have "hindsight.mental_model_refresh"
-            reflect_result = await self.reflect_async(
+            reflect_kwargs: dict[str, Any] = dict(
                 bank_id=bank_id,
                 query=mental_model["source_query"],
                 request_context=request_context,
@@ -6955,6 +7057,12 @@ class MemoryEngine(MemoryEngineInterface):
                 recall_chunks_max_tokens_override=recall_chunks_max_tokens_override,
                 _skip_span=True,
             )
+            # Forward the per-model max_tokens so the final synthesis is capped at the
+            # user-configured limit rather than the reflect_async default.
+            stored_max_tokens = mental_model.get("max_tokens")
+            if stored_max_tokens is not None:
+                reflect_kwargs["max_tokens"] = stored_max_tokens
+            reflect_result = await self.reflect_async(**reflect_kwargs)
 
             # Build reflect_response payload to store
             # based_on contains MemoryFact objects for most types, but plain dicts for directives

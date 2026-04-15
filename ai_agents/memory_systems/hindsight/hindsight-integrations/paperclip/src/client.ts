@@ -4,18 +4,18 @@
  * Uses native fetch (Node 20+). No external dependencies.
  */
 
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import type { PaperclipMemoryConfig } from './config.js';
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import type { PaperclipMemoryConfig } from "./config.js";
 
 function loadPackageVersion(): string {
   try {
-    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string };
-    return pkg.version ?? '0.0.0';
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
+    return pkg.version ?? "0.0.0";
   } catch {
-    return '0.0.0';
+    return "0.0.0";
   }
 }
 
@@ -45,18 +45,18 @@ export class HindsightClient {
 
   constructor(config: PaperclipMemoryConfig) {
     const url = config.hindsightApiUrl.trim();
-    if (!url) throw new Error('hindsightApiUrl is required');
-    this.baseUrl = url.replace(/\/$/, '');
+    if (!url) throw new Error("hindsightApiUrl is required");
+    this.baseUrl = url.replace(/\/$/, "");
     this.token = config.hindsightApiToken;
     this.timeoutMs = config.timeoutMs ?? 15_000;
   }
 
   private headers(): Record<string, string> {
     const h: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'User-Agent': USER_AGENT,
+      "Content-Type": "application/json",
+      "User-Agent": USER_AGENT,
     };
-    if (this.token) h['Authorization'] = `Bearer ${this.token}`;
+    if (this.token) h["Authorization"] = `Bearer ${this.token}`;
     return h;
   }
 
@@ -64,7 +64,7 @@ export class HindsightClient {
     method: string,
     path: string,
     body?: unknown,
-    timeoutMs?: number,
+    timeoutMs?: number
   ): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs ?? this.timeoutMs);
@@ -78,7 +78,7 @@ export class HindsightClient {
       });
 
       if (!resp.ok) {
-        const text = await resp.text().catch(() => '');
+        const text = await resp.text().catch(() => "");
         throw new Error(`HTTP ${resp.status} from ${path}: ${text}`);
       }
 
@@ -91,12 +91,12 @@ export class HindsightClient {
   async recall(
     bankId: string,
     query: string,
-    options?: { budget?: string; maxTokens?: number },
+    options?: { budget?: string; maxTokens?: number }
   ): Promise<RecallResponse> {
     const path = `/v1/default/banks/${encodeURIComponent(bankId)}/memories/recall`;
-    return this.request<RecallResponse>('POST', path, {
+    return this.request<RecallResponse>("POST", path, {
       query,
-      budget: options?.budget ?? 'mid',
+      budget: options?.budget ?? "mid",
       max_tokens: options?.maxTokens ?? 1024,
     });
   }
@@ -109,22 +109,22 @@ export class HindsightClient {
       context?: string;
       metadata?: Record<string, string>;
       tags?: string[];
-    },
+    }
   ): Promise<RetainResponse> {
     const path = `/v1/default/banks/${encodeURIComponent(bankId)}/memories`;
     const item: Record<string, unknown> = { content };
-    if (options?.documentId) item['document_id'] = options.documentId;
-    if (options?.context) item['context'] = options.context;
-    if (options?.metadata) item['metadata'] = options.metadata;
-    if (options?.tags) item['tags'] = options.tags;
-    return this.request<RetainResponse>('POST', path, { items: [item], async: true });
+    if (options?.documentId) item["document_id"] = options.documentId;
+    if (options?.context) item["context"] = options.context;
+    if (options?.metadata) item["metadata"] = options.metadata;
+    if (options?.tags) item["tags"] = options.tags;
+    return this.request<RetainResponse>("POST", path, { items: [item], async: true });
   }
 
   async setBankMission(bankId: string, mission: string, retainMission?: string): Promise<void> {
     const path = `/v1/default/banks/${encodeURIComponent(bankId)}/config`;
     const updates: Record<string, string> = { reflect_mission: mission };
-    if (retainMission) updates['retain_mission'] = retainMission;
-    await this.request('PATCH', path, { updates });
+    if (retainMission) updates["retain_mission"] = retainMission;
+    await this.request("PATCH", path, { updates });
   }
 
   async health(): Promise<boolean> {

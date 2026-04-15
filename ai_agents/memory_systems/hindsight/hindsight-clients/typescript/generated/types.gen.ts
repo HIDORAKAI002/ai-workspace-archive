@@ -1338,6 +1338,38 @@ export type EntityDetailResponse = {
 };
 
 /**
+ * EntityGraphResponse
+ *
+ * Response model for entity co-occurrence graph endpoint.
+ */
+export type EntityGraphResponse = {
+  /**
+   * Nodes
+   */
+  nodes: Array<{
+    [key: string]: unknown;
+  }>;
+  /**
+   * Edges
+   */
+  edges: Array<{
+    [key: string]: unknown;
+  }>;
+  /**
+   * Total Entities
+   */
+  total_entities: number;
+  /**
+   * Total Edges
+   */
+  total_edges: number;
+  /**
+   * Limit
+   */
+  limit: number;
+};
+
+/**
  * EntityIncludeOptions
  *
  * Options for including entity observations in recall results.
@@ -3703,6 +3735,57 @@ export type ListEntitiesResponses = {
 
 export type ListEntitiesResponse =
   ListEntitiesResponses[keyof ListEntitiesResponses];
+
+export type GetEntityGraphData = {
+  body?: never;
+  headers?: {
+    /**
+     * Authorization
+     */
+    authorization?: string | null;
+  };
+  path: {
+    /**
+     * Bank Id
+     */
+    bank_id: string;
+  };
+  query?: {
+    /**
+     * Limit
+     *
+     * Maximum number of co-occurrence edges to return
+     */
+    limit?: number;
+    /**
+     * Min Count
+     *
+     * Minimum cooccurrence_count to include an edge
+     */
+    min_count?: number;
+  };
+  url: "/v1/default/banks/{bank_id}/entities/graph";
+};
+
+export type GetEntityGraphErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetEntityGraphError =
+  GetEntityGraphErrors[keyof GetEntityGraphErrors];
+
+export type GetEntityGraphResponses = {
+  /**
+   * Successful Response
+   */
+  200: EntityGraphResponse;
+};
+
+export type GetEntityGraphResponse =
+  GetEntityGraphResponses[keyof GetEntityGraphResponses];
 
 export type GetEntityData = {
   body?: never;

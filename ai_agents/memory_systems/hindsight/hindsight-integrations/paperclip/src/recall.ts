@@ -5,9 +5,9 @@
  * from prior heartbeats and sessions.
  */
 
-import { HindsightClient } from './client.js';
-import type { PaperclipMemoryConfig } from './config.js';
-import { deriveBankId } from './bank.js';
+import { HindsightClient } from "./client.js";
+import type { PaperclipMemoryConfig } from "./config.js";
+import { deriveBankId } from "./bank.js";
 
 export interface RecallInput {
   /** Paperclip company ID — used to derive the bank ID. */
@@ -38,13 +38,10 @@ export interface RecallInput {
  * }
  * ```
  */
-export async function recall(
-  input: RecallInput,
-  config: PaperclipMemoryConfig,
-): Promise<string> {
+export async function recall(input: RecallInput, config: PaperclipMemoryConfig): Promise<string> {
   const { companyId, agentId, query } = input;
 
-  if (!query.trim()) return '';
+  if (!query.trim()) return "";
 
   const bankId = deriveBankId({ companyId, agentId }, config);
   const client = new HindsightClient(config);
@@ -57,23 +54,23 @@ export async function recall(
     });
     results = response.results;
   } catch (err) {
-    console.warn('[hindsight-paperclip] recall failed:', (err as Error).message);
-    return '';
+    console.warn("[hindsight-paperclip] recall failed:", (err as Error).message);
+    return "";
   }
 
-  if (!results.length) return '';
+  if (!results.length) return "";
 
   return formatMemories(results);
 }
 
 function formatMemories(
-  results: Array<{ text: string; type?: string; mentionedAt?: string }>,
+  results: Array<{ text: string; type?: string; mentionedAt?: string }>
 ): string {
   return results
     .map((r) => {
-      const typeStr = r.type ? ` [${r.type}]` : '';
-      const dateStr = r.mentionedAt ? ` (${r.mentionedAt})` : '';
+      const typeStr = r.type ? ` [${r.type}]` : "";
+      const dateStr = r.mentionedAt ? ` (${r.mentionedAt})` : "";
       return `- ${r.text}${typeStr}${dateStr}`;
     })
-    .join('\n\n');
+    .join("\n\n");
 }

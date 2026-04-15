@@ -37,6 +37,39 @@ export interface ConstellationProps {
   onNodeClick?: (node: GraphNode) => void;
   nodeColorFn?: (node: GraphNode) => string;
   linkColorFn?: (link: GraphLink) => string;
+  /**
+   * Optional override for the on-screen dot radius (in CSS pixels, pre-zoom).
+   * When omitted, radius is derived from link count (default star-field behavior).
+   * Used by the entities view to scale dots by total co-occurrence weight.
+   */
+  nodeSizeFn?: (node: GraphNode) => number;
+  /**
+   * When true, pack labels densely: small deconfliction footprint and no zoom
+   * threshold. Appropriate for graphs with short labels (e.g. entity names)
+   * where the memory-page truncated-text defaults would hide most of them.
+   */
+  compactLabels?: boolean;
+  /**
+   * Optional override for the node heat gradient (0..1 where 1 = hottest).
+   * Default is a normalized link-count. Use this to map color to a different
+   * dimension — e.g. recency — while keeping size mapped to something else.
+   */
+  nodeHeatFn?: (node: GraphNode) => number;
+  /**
+   * Caption for the heat-gradient legend (default: "LINKS"). Use when nodeHeatFn
+   * represents something other than connectivity — e.g. "RECENCY".
+   */
+  heatLegendLabel?: string;
+  /**
+   * Captions for the heat-gradient endpoints (default: "few" → "many").
+   */
+  heatLegendEndpoints?: [string, string];
+  /**
+   * When set, draws a "small dot → big dot" legend entry with this caption.
+   * Use this when nodeSizeFn encodes a meaningful dimension (e.g. "source facts",
+   * "co-occurrences") so the reader knows what the node size represents.
+   */
+  sizeLegendLabel?: string;
 }
 
 // ============================================================================
@@ -68,12 +101,14 @@ function hexToRgba(hex: string, alpha: number): string {
 function heatColor(t: number): string {
   const v = Math.max(0, Math.min(1, t));
 
-  // Brighter, more luminous stops — like stars in a night sky
-  // teal glow → bright cyan → white-blue
+  // Cool-to-hot ramp with strong contrast between stops so low/high reads at a
+  // glance. Previously a teal→cyan→blue ramp, but all three blues looked alike.
+  // deep indigo → magenta → orange → gold (sunset-style)
   const stops = [
-    [80, 200, 205], // bright teal
-    [100, 210, 255], // bright cyan
-    [140, 180, 255], // light blue-white
+    [60, 90, 180], // cool indigo
+    [170, 70, 190], // magenta
+    [240, 120, 70], // vivid orange
+    [255, 210, 90], // warm gold
   ];
   const seg = v * (stops.length - 1);
   const i = Math.min(Math.floor(seg), stops.length - 2);
@@ -138,6 +173,12 @@ export function Constellation({
   onNodeClick,
   nodeColorFn,
   linkColorFn,
+  nodeSizeFn,
+  nodeHeatFn,
+  heatLegendLabel,
+  heatLegendEndpoints,
+  compactLabels,
+  sizeLegendLabel,
 }: ConstellationProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -195,7 +236,9 @@ export function Constellation({
       const color = nodeColorFn?.(node) || node.color || DEFAULT_NODE_COLOR;
       const lc = linkCounts.get(node.id) || 0;
       // Use sqrt for a less aggressive curve — avoids everything being red
-      const heat = heatColor(Math.sqrt(lc / maxLinkCount));
+      const heat = nodeHeatFn
+        ? heatColor(Math.max(0, Math.min(1, nodeHeatFn(node))))
+        : heatColor(Math.sqrt(lc / maxLinkCount));
 
       // Position: use hash of id for deterministic placement, spread in a ring
       const seed = hashStr(node.id);
@@ -253,7 +296,7 @@ export function Constellation({
       linksByNode: byNode,
       linksWithIndices: linksIdx,
     };
-  }, [data, nodeColorFn, linkColorFn]);
+  }, [data, nodeColorFn, linkColorFn, nodeHeatFn]);
 
   // ----- Animation loop -----
   const animate = useCallback(() => {
@@ -379,8 +422,9 @@ export function Constellation({
     }
 
     // --- Draw nodes ---
-    // Label deconfliction grid
-    const GRID_CELL = 90;
+    // Label deconfliction grid. Compact mode shrinks the cell so short labels
+    // (e.g. entity names) can pack more densely.
+    const GRID_CELL = compactLabels ? 28 : 90;
     const labelGrid = new Set<string>();
 
     function canPlace(lx: number, ly: number, lw: number, lh: number) {
@@ -424,8 +468,10 @@ export function Constellation({
         hoveredLinks.size > 0 &&
         (linksByNode.get(i) || []).some((li: number) => hoveredLinks.has(li));
 
-      // Size varies slightly by link count — subtle range like star magnitudes
-      const baseR = 2.5 + Math.min(n.linkCount * 0.15, 2.5);
+      // Size varies slightly by link count — subtle range like star magnitudes.
+      // When nodeSizeFn is provided (e.g. entities view), it overrides linkCount
+      // sizing so dots can scale by an external weight like co-occurrence count.
+      const baseR = nodeSizeFn ? nodeSizeFn(n.node) : 2.5 + Math.min(n.linkCount * 0.15, 2.5);
       const r = Math.max(1.5, baseR * Math.min(zoom, 2));
 
       // Opacity varies — fewer links = dimmer, more links = brighter
@@ -470,10 +516,11 @@ export function Constellation({
           drawLabel(ctx, n, i, sx, sy, r, false, isNeighbor, isDark, zoom);
           labelsShown++;
         }
-      } else if (zoom > 0.5 || isNeighbor) {
-        // Show inline labels with deconfliction — neighbors included but grid-checked
-        const lw = 155;
-        const lh = 16;
+      } else if (compactLabels || zoom > 0.5 || isNeighbor) {
+        // Show inline labels with deconfliction — neighbors included but grid-checked.
+        // Compact mode uses a tiny bounding box so short labels pack densely.
+        const lw = compactLabels ? 60 : 155;
+        const lh = compactLabels ? 12 : 16;
         const lx = sx + r + 5;
         const ly = sy - 8;
         if (canPlace(lx, ly, lw, lh)) {
@@ -514,7 +561,7 @@ export function Constellation({
     ctx.textAlign = "left";
     ctx.font = FONT_BOLD;
     ctx.fillStyle = isDark ? "#a1a1aa" : "#52525b";
-    ctx.fillText("LINKS", 12, 36);
+    ctx.fillText((heatLegendLabel || "LINKS").toUpperCase(), 12, 36);
     const gradW = 80;
     for (let gx = 0; gx < gradW; gx++) {
       ctx.fillStyle = heatColor(gx / gradW);
@@ -522,9 +569,34 @@ export function Constellation({
     }
     ctx.font = MONO;
     ctx.fillStyle = isDark ? "#a1a1aa" : "#71717a";
-    ctx.fillText("few", 12, 60);
+    const [heatLo, heatHi] = heatLegendEndpoints || ["few", "many"];
+    ctx.fillText(heatLo, 12, 60);
     ctx.textAlign = "right";
-    ctx.fillText("many", 12 + gradW, 60);
+    ctx.fillText(heatHi, 12 + gradW, 60);
+
+    // Node-size legend — only shown when the caller maps size to a real dimension.
+    if (sizeLegendLabel) {
+      ctx.textAlign = "left";
+      ctx.font = FONT_BOLD;
+      ctx.fillStyle = isDark ? "#a1a1aa" : "#52525b";
+      ctx.fillText(sizeLegendLabel.toUpperCase(), 12, 82);
+      const dotColor = isDark ? "#a1a1aa" : "#52525b";
+      ctx.fillStyle = dotColor;
+      ctx.beginPath();
+      ctx.arc(16, 94, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(28, 94, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(44, 94, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = MONO;
+      ctx.fillStyle = isDark ? "#a1a1aa" : "#71717a";
+      ctx.fillText("few", 56, 98);
+      ctx.textAlign = "right";
+      ctx.fillText("many", 92, 98);
+    }
 
     // Instructions
     ctx.textAlign = "left";

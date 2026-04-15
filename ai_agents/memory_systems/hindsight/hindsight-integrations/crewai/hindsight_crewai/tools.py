@@ -65,9 +65,7 @@ class HindsightReflectTool(BaseTool):
     hindsight_api_url: str | None = Field(default=None, description="Override API URL")
     api_key: str | None = Field(default=None, description="Override API key")
     budget: str = Field(default="mid", description="Reflect budget (low/mid/high)")
-    reflect_context: str | None = Field(
-        default=None, description="Additional context for reflect reasoning"
-    )
+    reflect_context: str | None = Field(default=None, description="Additional context for reflect reasoning")
 
     _local: Any = PrivateAttr(default_factory=threading.local)
 
@@ -78,9 +76,7 @@ class HindsightReflectTool(BaseTool):
             from hindsight_client import Hindsight
 
             config = get_config()
-            api_url = self.hindsight_api_url or (
-                config.hindsight_api_url if config else "http://localhost:8888"
-            )
+            api_url = self.hindsight_api_url or (config.hindsight_api_url if config else "http://localhost:8888")
             api_key = self.api_key or (config.api_key if config else None)
 
             client = Hindsight(

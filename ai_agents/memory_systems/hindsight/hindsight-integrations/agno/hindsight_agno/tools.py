@@ -55,8 +55,7 @@ def _resolve_client(
 
     if url is None:
         raise HindsightError(
-            "No Hindsight API URL configured. "
-            "Pass client= or hindsight_api_url=, or call configure() first."
+            "No Hindsight API URL configured. Pass client= or hindsight_api_url=, or call configure() first."
         )
 
     kwargs: dict[str, Any] = {"base_url": url, "timeout": 30.0, "user_agent": _USER_AGENT}
@@ -131,14 +130,8 @@ class HindsightTools(Toolkit):
         self._budget = budget or (config.budget if config else "mid")
         self._max_tokens = max_tokens or (config.max_tokens if config else 4096)
         self._tags = tags if tags is not None else (config.tags if config else None)
-        self._recall_tags = (
-            recall_tags
-            if recall_tags is not None
-            else (config.recall_tags if config else None)
-        )
-        self._recall_tags_match = recall_tags_match or (
-            config.recall_tags_match if config else "any"
-        )
+        self._recall_tags = recall_tags if recall_tags is not None else (config.recall_tags if config else None)
+        self._recall_tags_match = recall_tags_match or (config.recall_tags_match if config else "any")
 
         # Build list of tools to register based on enable flags
         tools: list[Callable[..., Any]] = []
@@ -176,8 +169,7 @@ class HindsightTools(Toolkit):
             return user_id
 
         raise HindsightError(
-            "No bank_id available. Provide bank_id=, bank_resolver=, "
-            "or ensure run_context.user_id is set."
+            "No bank_id available. Provide bank_id=, bank_resolver=, or ensure run_context.user_id is set."
         )
 
     def _ensure_bank(self, bank_id: str) -> None:

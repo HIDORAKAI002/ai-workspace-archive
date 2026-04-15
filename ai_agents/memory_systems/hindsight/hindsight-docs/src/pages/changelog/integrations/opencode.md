@@ -10,6 +10,12 @@ For the source code, see [`hindsight-integrations/opencode`](https://github.com/
 
 ← [Back to main changelog](/changelog)
 
+## [0.1.4](https://github.com/vectorize-io/hindsight/tree/integrations/opencode/v0.1.4)
+
+**Improvements**
+
+- Reduce noisy error output by logging opencode integration errors only in debug mode. ([`33442f19`](https://github.com/vectorize-io/hindsight/commit/33442f19))
+
 ## [0.1.3](https://github.com/vectorize-io/hindsight/tree/integrations/opencode/v0.1.3)
 
 **Bug Fixes**

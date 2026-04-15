@@ -721,6 +721,7 @@ Controls the retain (memory ingestion) pipeline.
 | `HINDSIGHT_API_RETAIN_BATCH_ENABLED` | Use LLM Batch API for fact extraction (50% cost savings, only with async operations) | `false` |
 | `HINDSIGHT_API_RETAIN_MAX_CONCURRENT` | Max concurrent retain DB phases (HNSW reads + writes). Limits I/O contention during high-concurrency ingestion. | `4` |
 | `HINDSIGHT_API_RETAIN_BATCH_TOKENS` | Max characters per sub-batch for async retain auto-splitting | `10000` |
+| `HINDSIGHT_API_RETAIN_CHUNK_BATCH_SIZE` | Max chunks per streaming batch when retain ingests long documents. Each chunk produces roughly 17 facts, so the default 100 chunks ≈ 1700 facts per batch. Lower to cap memory/LLM pressure on large documents; raise for smaller chunks. Configurable per bank. | `100` |
 | `HINDSIGHT_API_RETAIN_ENTITY_LOOKUP` | Entity lookup method during retain: `full` (exact match) or `trigram` (fuzzy trigram matching) | `trigram` |
 | `HINDSIGHT_API_RETAIN_DEFAULT_STRATEGY` | Default retain strategy name. When set, all retain calls without an explicit `strategy` parameter use this strategy. | - |
 | `HINDSIGHT_API_RETAIN_BATCH_POLL_INTERVAL_SECONDS` | Batch API polling interval in seconds | `60` |
@@ -985,12 +986,13 @@ For production deployments, use `s3`, `gcs`, or `azure` to avoid storing large b
 
 ### Observations (Experimental) {#observations}
 
-Observations are consolidated knowledge synthesized from facts.
+Observations are deduplicated, evidence-grounded knowledge consolidated from multiple facts. Each observation tracks its supporting memories, a proof count, and a computed freshness trend, and is refined — not overwritten — when new evidence arrives.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_ENABLE_OBSERVATIONS` | Enable observation consolidation | `true` |
 | `HINDSIGHT_API_ENABLE_OBSERVATION_HISTORY` | Track history of changes to each observation (previous content + timestamp). Disable to reduce storage if audit trails are not needed. | `true` |
+| `HINDSIGHT_API_CONSOLIDATION_MAX_ATTEMPTS` | Outer retry attempts for the consolidation LLM batch call. Each attempt uses the inner retry budget (`HINDSIGHT_API_CONSOLIDATION_LLM_MAX_RETRIES`). Worst-case API calls per batch = `MAX_ATTEMPTS × (LLM_MAX_RETRIES + 1)`. | `3` |
 | `HINDSIGHT_API_CONSOLIDATION_BATCH_SIZE` | Memories to load per batch (internal optimization) | `50` |
 | `HINDSIGHT_API_CONSOLIDATION_MAX_TOKENS` | Max tokens for recall when finding related observations during consolidation | `1024` |
 | `HINDSIGHT_API_CONSOLIDATION_LLM_BATCH_SIZE` | Number of facts sent to the LLM in a single consolidation call. Higher values reduce LLM calls and improve throughput at the cost of larger prompts. Set to `1` to disable batching. Configurable per bank. | `8` |
@@ -1008,7 +1010,7 @@ Observations are consolidated knowledge synthesized from facts.
 
 **`HINDSIGHT_API_OBSERVATIONS_MISSION` — redefine what this bank synthesises**
 
-By default, observations are durable, specific facts synthesized from memories — the kind of knowledge that stays true over time (preferences, skills, relationships, recurring patterns). Ephemeral state is filtered out. Contradictions are tracked with temporal markers.
+By default, observations are durable, specific beliefs consolidated from memories — the kind of knowledge that stays true over time (preferences, skills, relationships, recurring patterns). Each one is grounded in the source memories that support it. Ephemeral state is filtered out. Contradictions are tracked with temporal markers rather than overwriting the prior belief.
 
 Set `HINDSIGHT_API_OBSERVATIONS_MISSION` to replace this definition entirely. Write a plain-language description of what observations should be for your use case. The LLM will use this instead of the default rules when deciding what to create or update. Leave it unset to keep the server default.
 
@@ -1047,6 +1049,16 @@ export HINDSIGHT_API_OBSERVATIONS_MISSION="Observations are recurring patterns i
 | `HINDSIGHT_API_REFLECT_WALL_TIMEOUT` | Wall-clock timeout in seconds for the entire reflect operation. If exceeded, the request returns HTTP 504. | `300` |
 | `HINDSIGHT_API_REFLECT_MISSION` | Global reflect mission (identity and reasoning framing). Overridden per bank via config API. | - |
 | `HINDSIGHT_API_REFLECT_SOURCE_FACTS_MAX_TOKENS` | Token budget for source facts in `search_observations` during reflect. `-1` disables source facts (default), `0` enables with no limit, `>0` enables with a token budget. Hierarchical — can be overridden per bank via config API. | `-1` |
+
+#### Internal recall (used by mental model refresh)
+
+These knobs control the recall tool that runs inside `reflect_async` (e.g. when refreshing a mental model). They are hierarchical — overridable per bank via the config API, and individually overridable per mental model via the `trigger.include_chunks`, `trigger.recall_max_tokens`, and `trigger.recall_chunks_max_tokens` fields.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HINDSIGHT_API_RECALL_INCLUDE_CHUNKS` | Whether the internal recall returns raw chunk text alongside facts. Set `false` to skip chunks and save prompt budget. | `true` |
+| `HINDSIGHT_API_RECALL_MAX_TOKENS` | Token budget for facts returned by the internal recall. | `2048` |
+| `HINDSIGHT_API_RECALL_CHUNKS_MAX_TOKENS` | Token budget for raw chunks returned by the internal recall. | `1000` |
 
 #### Disposition
 

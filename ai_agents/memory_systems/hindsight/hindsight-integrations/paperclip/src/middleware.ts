@@ -13,10 +13,10 @@
  * }
  */
 
-import type { Request, Response, NextFunction } from 'express';
-import type { PaperclipMemoryConfig } from './config.js';
-import { recall } from './recall.js';
-import { retain } from './retain.js';
+import type { Request, Response, NextFunction } from "express";
+import type { PaperclipMemoryConfig } from "./config.js";
+import { recall } from "./recall.js";
+import { retain } from "./retain.js";
 
 /** Augmented request with Hindsight memory context. */
 export interface HindsightRequest extends Request {
@@ -63,7 +63,7 @@ export function createMemoryMiddleware(config: PaperclipMemoryConfig) {
       return;
     }
 
-    const query: string = context?.taskDescription ?? context?.taskTitle ?? '';
+    const query: string = context?.taskDescription ?? context?.taskTitle ?? "";
 
     // Pre-recall: inject memories into request
     const memories = await recall({ companyId, agentId, query }, config);
@@ -71,22 +71,21 @@ export function createMemoryMiddleware(config: PaperclipMemoryConfig) {
       memories,
       companyId,
       agentId,
-      runId: runId ?? '',
+      runId: runId ?? "",
     };
 
     // Post-retain: wrap res.json to capture agent output
     const originalJson = res.json.bind(res) as (body: unknown) => Response;
     (res as Response).json = function (body: unknown): Response {
       // Fire-and-forget retain (don't block response)
-      if (body && typeof body === 'object' && 'output' in body && runId) {
+      if (body && typeof body === "object" && "output" in body && runId) {
         const output = (body as { output: unknown }).output;
-        if (typeof output === 'string' && output.trim()) {
-          retain(
-            { companyId, agentId, content: output, documentId: runId },
-            config,
-          ).catch((err) => {
-            console.warn('[hindsight-paperclip] retain failed:', (err as Error).message);
-          });
+        if (typeof output === "string" && output.trim()) {
+          retain({ companyId, agentId, content: output, documentId: runId }, config).catch(
+            (err) => {
+              console.warn("[hindsight-paperclip] retain failed:", (err as Error).message);
+            }
+          );
         }
       }
       return originalJson(body);

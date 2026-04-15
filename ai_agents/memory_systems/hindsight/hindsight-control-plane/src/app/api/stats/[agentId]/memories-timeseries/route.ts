@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
 
 export async function GET(
   request: NextRequest,
@@ -8,7 +8,10 @@ export async function GET(
   try {
     const { agentId } = await params;
     const period = request.nextUrl.searchParams.get("period") || "7d";
-    const url = `${DATAPLANE_URL}/v1/default/banks/${encodeURIComponent(agentId)}/stats/memories-timeseries?period=${encodeURIComponent(period)}`;
+    const url = dataplaneBankUrl(
+      agentId,
+      `/stats/memories-timeseries?period=${encodeURIComponent(period)}`
+    );
     const upstream = await fetch(url, { headers: getDataplaneHeaders() });
     const body = await upstream.json();
     return NextResponse.json(body, { status: upstream.status });

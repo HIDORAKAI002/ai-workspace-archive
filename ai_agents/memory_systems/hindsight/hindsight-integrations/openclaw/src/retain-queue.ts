@@ -15,8 +15,8 @@ import {
   existsSync,
   renameSync,
   unlinkSync,
-} from 'fs';
-import { randomBytes } from 'crypto';
+} from "fs";
+import { randomBytes } from "crypto";
 
 /** The subset of a retain payload the queue needs to persist and replay. */
 export interface QueuedRetainPayload {
@@ -57,15 +57,15 @@ export class RetainQueue {
   /** Append a failed retain for later delivery. */
   enqueue(bankId: string, request: QueuedRetainPayload, metadata?: Record<string, unknown>): void {
     const item: QueuedRetain = {
-      id: `${Date.now()}-${randomBytes(4).toString('hex')}`,
+      id: `${Date.now()}-${randomBytes(4).toString("hex")}`,
       bankId,
       content: request.content,
-      documentId: request.documentId || 'conversation',
+      documentId: request.documentId || "conversation",
       metadata: metadata || request.metadata || {},
       tags: request.tags,
       createdAt: new Date().toISOString(),
     };
-    appendFileSync(this.filePath, JSON.stringify(item) + '\n', 'utf8');
+    appendFileSync(this.filePath, JSON.stringify(item) + "\n", "utf8");
     this.cachedSize++;
   }
 
@@ -112,10 +112,10 @@ export class RetainQueue {
 
   private readAll(): QueuedRetain[] {
     if (!existsSync(this.filePath)) return [];
-    const content = readFileSync(this.filePath, 'utf8').trim();
+    const content = readFileSync(this.filePath, "utf8").trim();
     if (!content) return [];
     const items: QueuedRetain[] = [];
-    for (const line of content.split('\n')) {
+    for (const line of content.split("\n")) {
       try {
         items.push(JSON.parse(line) as QueuedRetain);
       } catch {
@@ -136,8 +136,8 @@ export class RetainQueue {
       this.cachedSize = 0;
       return;
     }
-    const tmpPath = this.filePath + '.tmp';
-    writeFileSync(tmpPath, items.map((i) => JSON.stringify(i)).join('\n') + '\n', 'utf8');
+    const tmpPath = this.filePath + ".tmp";
+    writeFileSync(tmpPath, items.map((i) => JSON.stringify(i)).join("\n") + "\n", "utf8");
     renameSync(tmpPath, this.filePath);
     this.cachedSize = items.length;
   }
