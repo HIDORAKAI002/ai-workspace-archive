@@ -21,6 +21,7 @@ describe("matrix live qa runtime", () => {
     const next = liveTesting.buildMatrixQaConfig(baseCfg, {
       driverUserId: "@driver:matrix-qa.test",
       homeserver: "http://127.0.0.1:28008/",
+      observerUserId: "@observer:matrix-qa.test",
       sutAccessToken: "syt_sut",
       sutAccountId: "sut",
       sutDeviceId: "DEVICE123",
@@ -84,6 +85,7 @@ describe("matrix live qa runtime", () => {
       {
         driverUserId: "@driver:matrix-qa.test",
         homeserver: "http://127.0.0.1:28008/",
+        observerUserId: "@observer:matrix-qa.test",
         sutAccessToken: "syt_sut",
         sutAccountId: "sut",
         sutUserId: "@sut:matrix-qa.test",
@@ -144,6 +146,110 @@ describe("matrix live qa runtime", () => {
     });
   });
 
+  it("records default and per-scenario Matrix config snapshots in the summary", () => {
+    expect(
+      liveTesting.buildMatrixQaSummary({
+        artifactPaths: {
+          observedEvents: "/tmp/observed.json",
+          report: "/tmp/report.md",
+          summary: "/tmp/summary.json",
+        },
+        checks: [{ name: "Matrix harness ready", status: "pass" }],
+        config: {
+          default: liveTesting.buildMatrixQaConfigSnapshot({
+            driverUserId: "@driver:matrix-qa.test",
+            observerUserId: "@observer:matrix-qa.test",
+            sutUserId: "@sut:matrix-qa.test",
+            topology: {
+              defaultRoomId: "!room:matrix-qa.test",
+              defaultRoomKey: "main",
+              rooms: [
+                {
+                  key: "main",
+                  kind: "group",
+                  memberRoles: ["driver", "observer", "sut"],
+                  memberUserIds: [
+                    "@driver:matrix-qa.test",
+                    "@observer:matrix-qa.test",
+                    "@sut:matrix-qa.test",
+                  ],
+                  name: "Matrix QA",
+                  requireMention: true,
+                  roomId: "!room:matrix-qa.test",
+                },
+              ],
+            },
+          }),
+          scenarios: [
+            {
+              id: "matrix-room-thread-reply-override",
+              title: "Matrix threadReplies always keeps room replies threaded",
+              config: liveTesting.buildMatrixQaConfigSnapshot({
+                driverUserId: "@driver:matrix-qa.test",
+                observerUserId: "@observer:matrix-qa.test",
+                overrides: {
+                  threadReplies: "always",
+                },
+                sutUserId: "@sut:matrix-qa.test",
+                topology: {
+                  defaultRoomId: "!room:matrix-qa.test",
+                  defaultRoomKey: "main",
+                  rooms: [
+                    {
+                      key: "main",
+                      kind: "group",
+                      memberRoles: ["driver", "observer", "sut"],
+                      memberUserIds: [
+                        "@driver:matrix-qa.test",
+                        "@observer:matrix-qa.test",
+                        "@sut:matrix-qa.test",
+                      ],
+                      name: "Matrix QA",
+                      requireMention: true,
+                      roomId: "!room:matrix-qa.test",
+                    },
+                  ],
+                },
+              }),
+            },
+          ],
+        },
+        finishedAt: "2026-04-10T10:05:00.000Z",
+        harness: {
+          baseUrl: "http://127.0.0.1:28008/",
+          composeFile: "/tmp/docker-compose.yml",
+          dmRoomIds: [],
+          image: "ghcr.io/matrix-construct/tuwunel:v1.5.1",
+          roomId: "!room:matrix-qa.test",
+          roomIds: ["!room:matrix-qa.test"],
+          serverName: "matrix-qa.test",
+        },
+        observedEventCount: 0,
+        scenarios: [],
+        startedAt: "2026-04-10T10:00:00.000Z",
+        sutAccountId: "sut",
+        userIds: {
+          driver: "@driver:matrix-qa.test",
+          observer: "@observer:matrix-qa.test",
+          sut: "@sut:matrix-qa.test",
+        },
+      }).config,
+    ).toMatchObject({
+      default: {
+        replyToMode: "off",
+        threadReplies: "inbound",
+      },
+      scenarios: [
+        {
+          id: "matrix-room-thread-reply-override",
+          config: {
+            threadReplies: "always",
+          },
+        },
+      ],
+    });
+  });
+
   it("preserves negative-scenario artifacts in the Matrix summary", () => {
     expect(
       liveTesting.buildMatrixQaSummary({
@@ -153,6 +259,19 @@ describe("matrix live qa runtime", () => {
           summary: "/tmp/summary.json",
         },
         checks: [{ name: "Matrix harness ready", status: "pass" }],
+        config: {
+          default: liveTesting.buildMatrixQaConfigSnapshot({
+            driverUserId: "@driver:matrix-qa.test",
+            observerUserId: "@observer:matrix-qa.test",
+            sutUserId: "@sut:matrix-qa.test",
+            topology: {
+              defaultRoomId: "!room:matrix-qa.test",
+              defaultRoomKey: "main",
+              rooms: [],
+            },
+          }),
+          scenarios: [],
+        },
         finishedAt: "2026-04-10T10:05:00.000Z",
         harness: {
           baseUrl: "http://127.0.0.1:28008/",
@@ -204,6 +323,26 @@ describe("matrix live qa runtime", () => {
         },
       ],
     });
+  });
+
+  it("batches Matrix scenarios by config key while preserving stable in-group order", () => {
+    const scenarios = liveTesting.findMatrixQaScenarios([
+      "matrix-top-level-reply-shape",
+      "matrix-room-thread-reply-override",
+      "matrix-thread-follow-up",
+      "matrix-room-quiet-streaming-preview",
+      "matrix-reaction-notification",
+    ]);
+
+    expect(
+      liveTesting.scheduleMatrixQaScenariosByConfig(scenarios).map(({ scenario }) => scenario.id),
+    ).toEqual([
+      "matrix-thread-follow-up",
+      "matrix-top-level-reply-shape",
+      "matrix-reaction-notification",
+      "matrix-room-thread-reply-override",
+      "matrix-room-quiet-streaming-preview",
+    ]);
   });
 
   it("treats only connected, healthy Matrix accounts as ready", () => {

@@ -53,11 +53,11 @@ module.exports = createInstallTargetAdapter({
         }));
     }).sort((left, right) => {
       const getPriority = value => {
-        if (value === 'rules') {
+        if (value === '.cursor') {
           return 0;
         }
 
-        if (value === '.cursor') {
+        if (value === 'rules') {
           return 1;
         }
 

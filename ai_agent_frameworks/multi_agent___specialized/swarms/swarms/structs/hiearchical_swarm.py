@@ -13,13 +13,11 @@ Flow:
 6. All context and conversation history is preserved throughout the process
 
 Todo
-
 - Add layers of management -- a list of list of agents that act as departments
 - Auto build agents from input prompt - and then add them to the swarm
 - Make it faster and more high performance
 - Enable the director to choose a multi-agent approach to the task, it orchestrates how the agents talk and work together.
 - Improve the director feedback, maybe add agent as a judge to the worker agent instead of the director.
-
 """
 
 import asyncio

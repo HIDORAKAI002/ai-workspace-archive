@@ -14,7 +14,13 @@ import {
 } from "../../shared/live-lane-helpers.js";
 import { buildMatrixQaObservedEventsArtifact } from "../../substrate/artifacts.js";
 import { provisionMatrixQaRoom, type MatrixQaProvisionResult } from "../../substrate/client.js";
-import { buildMatrixQaConfig, type MatrixQaConfigOverrides } from "../../substrate/config.js";
+import {
+  buildMatrixQaConfig,
+  buildMatrixQaConfigSnapshot,
+  summarizeMatrixQaConfigSnapshot,
+  type MatrixQaConfigOverrides,
+  type MatrixQaConfigSnapshot,
+} from "../../substrate/config.js";
 import type { MatrixQaObservedEvent } from "../../substrate/events.js";
 import { startMatrixQaHarness } from "../../substrate/harness.runtime.js";
 import { resolveMatrixQaModels } from "./model-selection.js";
@@ -55,8 +61,23 @@ type MatrixQaScenarioResult = {
   title: string;
 };
 
+type MatrixQaScheduledScenario = {
+  originalIndex: number;
+  scenario: (typeof MATRIX_QA_SCENARIOS)[number];
+};
+
+type MatrixQaScenarioConfigEntry = MatrixQaSummary["config"]["scenarios"][number];
+
 type MatrixQaSummary = {
   checks: QaReportCheck[];
+  config: {
+    default: MatrixQaConfigSnapshot;
+    scenarios: Array<{
+      config: MatrixQaConfigSnapshot;
+      id: string;
+      title: string;
+    }>;
+  };
   counts: {
     failed: number;
     passed: number;
@@ -93,6 +114,94 @@ type MatrixQaArtifactPaths = {
   summary: string;
 };
 
+function countMatrixQaStatuses<T extends { status: "fail" | "pass" | "skip" }>(entries: T[]) {
+  return {
+    failed: entries.filter((entry) => entry.status === "fail").length,
+    passed: entries.filter((entry) => entry.status === "pass").length,
+  };
+}
+
+function formatMatrixQaScenarioDetails(params: { details: string; configSummary?: string }) {
+  if (!params.configSummary) {
+    return params.details;
+  }
+  return [`effective config: ${params.configSummary}`, params.details].join("\n");
+}
+
+function buildMatrixQaScenarioConfigEntry(params: {
+  gatewayConfigParams: {
+    driverUserId: string;
+    homeserver: string;
+    observerUserId: string;
+    sutAccessToken: string;
+    sutAccountId: string;
+    sutDeviceId?: string;
+    sutUserId: string;
+    topology: MatrixQaProvisionResult["topology"];
+  };
+  scenario: (typeof MATRIX_QA_SCENARIOS)[number];
+}): {
+  entry: MatrixQaScenarioConfigEntry;
+  summary?: string;
+} {
+  const snapshot = buildMatrixQaConfigSnapshot({
+    ...params.gatewayConfigParams,
+    overrides: params.scenario.configOverrides,
+  });
+  return {
+    entry: {
+      config: snapshot,
+      id: params.scenario.id,
+      title: params.scenario.title,
+    },
+    summary:
+      params.scenario.configOverrides === undefined
+        ? undefined
+        : summarizeMatrixQaConfigSnapshot(snapshot),
+  };
+}
+
+function buildMatrixQaScenarioResult(params: {
+  artifacts?: MatrixQaScenarioArtifacts;
+  configSummary?: string;
+  details: string;
+  scenario: {
+    id: string;
+    title: string;
+  };
+  status: "fail" | "pass";
+}): MatrixQaScenarioResult {
+  return {
+    artifacts: params.artifacts,
+    id: params.scenario.id,
+    title: params.scenario.title,
+    status: params.status,
+    details: formatMatrixQaScenarioDetails({
+      details: params.details,
+      configSummary: params.configSummary,
+    }),
+  };
+}
+
+function scheduleMatrixQaScenariosByConfig(
+  scenarios: readonly (typeof MATRIX_QA_SCENARIOS)[number][],
+): MatrixQaScheduledScenario[] {
+  const grouped = new Map<string, MatrixQaScheduledScenario[]>();
+
+  scenarios.forEach((scenario, originalIndex) => {
+    const configKey = buildMatrixQaGatewayConfigKey(scenario.configOverrides);
+    const existing = grouped.get(configKey);
+    const scheduled = { originalIndex, scenario };
+    if (existing) {
+      existing.push(scheduled);
+      return;
+    }
+    grouped.set(configKey, [scheduled]);
+  });
+
+  return [...grouped.values()].flat();
+}
+
 export type MatrixQaRunResult = {
   observedEventsPath: string;
   outputDir: string;
@@ -105,6 +214,7 @@ function buildMatrixQaSummary(params: {
   artifactPaths: MatrixQaArtifactPaths;
   canary?: MatrixQaCanaryArtifact;
   checks: QaReportCheck[];
+  config: MatrixQaSummary["config"];
   finishedAt: string;
   harness: MatrixQaSummary["harness"];
   observedEventCount: number;
@@ -113,16 +223,16 @@ function buildMatrixQaSummary(params: {
   sutAccountId: string;
   userIds: MatrixQaSummary["userIds"];
 }): MatrixQaSummary {
+  const checkCounts = countMatrixQaStatuses(params.checks);
+  const scenarioCounts = countMatrixQaStatuses(params.scenarios);
+
   return {
     checks: params.checks,
+    config: params.config,
     counts: {
       total: params.checks.length + params.scenarios.length,
-      passed:
-        params.checks.filter((check) => check.status === "pass").length +
-        params.scenarios.filter((scenario) => scenario.status === "pass").length,
-      failed:
-        params.checks.filter((check) => check.status === "fail").length +
-        params.scenarios.filter((scenario) => scenario.status === "fail").length,
+      passed: checkCounts.passed + scenarioCounts.passed,
+      failed: checkCounts.failed + scenarioCounts.failed,
     },
     finishedAt: params.finishedAt,
     harness: params.harness,
@@ -282,7 +392,9 @@ export async function runMatrixQaLive(params: {
       ].join("\n"),
     },
   ];
-  const scenarioResults: MatrixQaScenarioResult[] = [];
+  const scenarioResults: Array<MatrixQaScenarioResult | undefined> = Array.from({
+    length: scenarios.length,
+  });
   const cleanupErrors: string[] = [];
   let canaryArtifact: MatrixQaCanaryArtifact | undefined;
   let gatewayHarness: MatrixQaLiveLaneGatewayHarness | null = null;
@@ -292,12 +404,17 @@ export async function runMatrixQaLive(params: {
   const gatewayConfigParams = {
     driverUserId: provisioning.driver.userId,
     homeserver: harness.baseUrl,
+    observerUserId: provisioning.observer.userId,
     sutAccessToken: provisioning.sut.accessToken,
     sutAccountId,
     sutDeviceId: provisioning.sut.deviceId,
     sutUserId: provisioning.sut.userId,
     topology: provisioning.topology,
   };
+  const defaultConfigSnapshot = buildMatrixQaConfigSnapshot(gatewayConfigParams);
+  const scenarioConfigSnapshots: MatrixQaScenarioConfigEntry[] = [];
+
+  const scheduledScenarios = scheduleMatrixQaScenariosByConfig(scenarios);
 
   try {
     const ensureGatewayHarness = async (overrides?: MatrixQaConfigOverrides) => {
@@ -371,7 +488,13 @@ export async function runMatrixQaLive(params: {
     }
 
     if (!canaryFailed) {
-      for (const scenario of scenarios) {
+      for (const { scenario, originalIndex } of scheduledScenarios) {
+        const { entry: scenarioConfigEntry, summary: scenarioConfigSummary } =
+          buildMatrixQaScenarioConfigEntry({
+            gatewayConfigParams,
+            scenario,
+          });
+        scenarioConfigSnapshots[originalIndex] = scenarioConfigEntry;
         try {
           const scenarioGateway = await ensureGatewayHarness(scenario.configOverrides);
           const result = await runMatrixQaScenario(scenario, {
@@ -402,19 +525,19 @@ export async function runMatrixQaLive(params: {
             timeoutMs: scenario.timeoutMs,
             topology: provisioning.topology,
           });
-          scenarioResults.push({
+          scenarioResults[originalIndex] = buildMatrixQaScenarioResult({
             artifacts: result.artifacts,
-            id: scenario.id,
-            title: scenario.title,
-            status: "pass",
+            configSummary: scenarioConfigSummary,
             details: result.details,
+            scenario,
+            status: "pass",
           });
         } catch (error) {
-          scenarioResults.push({
-            id: scenario.id,
-            title: scenario.title,
-            status: "fail",
+          scenarioResults[originalIndex] = buildMatrixQaScenarioResult({
+            configSummary: scenarioConfigSummary,
             details: formatErrorMessage(error),
+            scenario,
+            status: "fail",
           });
         }
       }
@@ -433,6 +556,9 @@ export async function runMatrixQaLive(params: {
       appendLiveLaneIssue(cleanupErrors, "Matrix harness cleanup", error);
     }
   }
+  const completedScenarioResults = scenarioResults.filter(
+    (scenario): scenario is MatrixQaScenarioResult => scenario !== undefined,
+  );
   if (cleanupErrors.length > 0) {
     checks.push({
       name: "Matrix cleanup",
@@ -456,7 +582,7 @@ export async function runMatrixQaLive(params: {
     startedAt: startedAtDate,
     finishedAt: finishedAtDate,
     checks,
-    scenarios: scenarioResults.map((scenario) => ({
+    scenarios: completedScenarioResults.map((scenario) => ({
       details: scenario.details,
       name: scenario.title,
       status: scenario.status,
@@ -464,6 +590,7 @@ export async function runMatrixQaLive(params: {
     notes: [
       `roomId: ${provisioning.roomId}`,
       `roomIds: ${provisioning.topology.rooms.map((room) => room.roomId).join(", ")}`,
+      `default config: ${summarizeMatrixQaConfigSnapshot(defaultConfigSnapshot)}`,
       `driver: ${provisioning.driver.userId}`,
       `observer: ${provisioning.observer.userId}`,
       `sut: ${provisioning.sut.userId}`,
@@ -475,6 +602,10 @@ export async function runMatrixQaLive(params: {
     artifactPaths,
     canary: canaryArtifact,
     checks,
+    config: {
+      default: defaultConfigSnapshot,
+      scenarios: scenarioConfigSnapshots,
+    },
     finishedAt,
     harness: {
       baseUrl: harness.baseUrl,
@@ -488,7 +619,7 @@ export async function runMatrixQaLive(params: {
       serverName: harness.serverName,
     },
     observedEventCount: observedEvents.length,
-    scenarios: scenarioResults,
+    scenarios: completedScenarioResults,
     startedAt,
     sutAccountId,
     userIds: {
@@ -519,7 +650,7 @@ export async function runMatrixQaLive(params: {
   const failedChecks = checks.filter(
     (check) => check.status === "fail" && check.name !== "Matrix cleanup",
   );
-  const failedScenarios = scenarioResults.filter((scenario) => scenario.status === "fail");
+  const failedScenarios = completedScenarioResults.filter((scenario) => scenario.status === "fail");
   if (failedChecks.length > 0 || failedScenarios.length > 0) {
     throw new Error(
       buildLiveLaneArtifactsError({
@@ -547,16 +678,20 @@ export async function runMatrixQaLive(params: {
     observedEventsPath,
     outputDir,
     reportPath,
-    scenarios: scenarioResults,
+    scenarios: completedScenarioResults,
     summaryPath,
   };
 }
 
 export const __testing = {
   buildMatrixQaSummary,
+  scheduleMatrixQaScenariosByConfig,
   MATRIX_QA_SCENARIOS,
   buildMatrixQaConfig,
+  buildMatrixQaConfigSnapshot,
+  findMatrixQaScenarios,
   isMatrixAccountReady,
   resolveMatrixQaModels,
+  summarizeMatrixQaConfigSnapshot,
   waitForMatrixChannelReady,
 };
