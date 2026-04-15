@@ -22,7 +22,11 @@ from buildkite_shared.utils import oss_path
 from dagster_buildkite.defines import GCP_CREDS_FILENAME, GCP_CREDS_LOCAL_FILE, OSS_ROOT
 from dagster_buildkite.steps.test_project import test_project_depends_fn
 from dagster_buildkite.steps.tox import ToxFactor, build_tox_step
-from dagster_buildkite.utils import connect_sibling_docker_container, network_buildkite_container
+from dagster_buildkite.utils import (
+    connect_sibling_docker_container,
+    network_buildkite_container,
+    wait_for_mysql_container,
+)
 
 _CORE_PACKAGES = [
     oss_path("python_modules/dagster"),
@@ -445,6 +449,12 @@ mysql_extra_cmds = [
         "test-mysql-db-pinned-backcompat",
         "MYSQL_TEST_PINNED_BACKCOMPAT_DB_HOST",
     ),
+    # Wait for mysqld to accept connections; `docker-compose up -d` returns before
+    # init is finished, which caused flaky ECONNREFUSED (111) failures on early-
+    # running tests. Placed after network setup so the two overlap with mysqld init.
+    wait_for_mysql_container("test-mysql-db"),
+    wait_for_mysql_container("test-mysql-db-pinned", port=3307),
+    wait_for_mysql_container("test-mysql-db-pinned-backcompat", port=3308),
     "popd",
 ]
 
