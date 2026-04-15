@@ -1,7 +1,7 @@
 {
   "name": "playwright-scraper-api",
   "version": "1.0.0",
-  "description": "scraper api with playwright",
+  "description": "browser rendering service with playwright",
   "main": "api.ts",
   "scripts": {
     "start": "node dist/api.js",
