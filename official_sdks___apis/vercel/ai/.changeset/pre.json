@@ -129,6 +129,7 @@
     "fast-ears-beam",
     "fix-anthropic-temperature-top-p",
     "fix-embedding-jsdoc",
+    "fix-gateway-reranking-modeltype",
     "fix-mcp-iserror-output-schema",
     "fix-ssrf-redirect-bypass",
     "fix-streaming-tool-call-early-finalization",
@@ -268,7 +269,9 @@
     "weak-windows-ring",
     "wicked-nails-prove",
     "wise-dodos-help",
+    "workflow-agent-model-type",
     "workflow-serde-support",
+    "xsppb-nrpzc-sshwt",
     "yellow-lobsters-warn",
     "young-mice-learn",
     "yrrxh-yphmk-gxyfa"
