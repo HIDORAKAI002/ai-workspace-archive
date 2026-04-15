@@ -10,6 +10,12 @@ For the source code, see [`hindsight-integrations/paperclip`](https://github.com
 
 ← [Back to main changelog](/changelog)
 
+## [0.1.2](https://github.com/vectorize-io/hindsight/tree/integrations/paperclip/v0.1.2)
+
+**Improvements**
+
+- Paperclip integration now sends an identifying User-Agent on all HTTP requests for better request tracing and compatibility. ([`9372462e`](https://github.com/vectorize-io/hindsight/commit/9372462e))
+
 ## [0.1.1](https://github.com/vectorize-io/hindsight/tree/integrations/paperclip/v0.1.1)
 
 **Features**

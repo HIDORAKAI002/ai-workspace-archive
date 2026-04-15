@@ -81,6 +81,9 @@ import type {
   GetDocumentResponses,
   GetEntityData,
   GetEntityErrors,
+  GetEntityGraphData,
+  GetEntityGraphErrors,
+  GetEntityGraphResponses,
   GetEntityResponses,
   GetGraphData,
   GetGraphErrors,
@@ -423,6 +426,20 @@ export const listEntities = <ThrowOnError extends boolean = false>(
     ListEntitiesErrors,
     ThrowOnError
   >({ url: "/v1/default/banks/{bank_id}/entities", ...options });
+
+/**
+ * Get entity co-occurrence graph
+ *
+ * Return a graph of entities (nodes) and their co-occurrences (edges) for visualization.
+ */
+export const getEntityGraph = <ThrowOnError extends boolean = false>(
+  options: Options<GetEntityGraphData, ThrowOnError>,
+) =>
+  (options.client ?? client).get<
+    GetEntityGraphResponses,
+    GetEntityGraphErrors,
+    ThrowOnError
+  >({ url: "/v1/default/banks/{bank_id}/entities/graph", ...options });
 
 /**
  * Get entity details

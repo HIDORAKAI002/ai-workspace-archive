@@ -265,6 +265,7 @@ ENV_PORT = "HINDSIGHT_API_PORT"
 ENV_BASE_PATH = "HINDSIGHT_API_BASE_PATH"
 ENV_LOG_LEVEL = "HINDSIGHT_API_LOG_LEVEL"
 ENV_LOG_FORMAT = "HINDSIGHT_API_LOG_FORMAT"
+ENV_LOG_JSON_FIELDS = "HINDSIGHT_API_LOG_JSON_FIELDS"
 ENV_WORKERS = "HINDSIGHT_API_WORKERS"
 ENV_MCP_ENABLED = "HINDSIGHT_API_MCP_ENABLED"
 ENV_MCP_ENABLED_TOOLS = "HINDSIGHT_API_MCP_ENABLED_TOOLS"
@@ -339,6 +340,7 @@ ENV_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS = "HINDSIGHT_API_CONSOLIDATION_SOURCE_
 ENV_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS_PER_OBSERVATION = (
     "HINDSIGHT_API_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS_PER_OBSERVATION"
 )
+ENV_CONSOLIDATION_MAX_ATTEMPTS = "HINDSIGHT_API_CONSOLIDATION_MAX_ATTEMPTS"
 ENV_OBSERVATIONS_MISSION = "HINDSIGHT_API_OBSERVATIONS_MISSION"
 ENV_MAX_OBSERVATIONS_PER_SCOPE = "HINDSIGHT_API_MAX_OBSERVATIONS_PER_SCOPE"
 ENV_ENABLE_OBSERVATION_HISTORY = "HINDSIGHT_API_ENABLE_OBSERVATION_HISTORY"
@@ -554,6 +556,7 @@ DEFAULT_FILE_DELETE_AFTER_RETAIN = True  # Delete file bytes after retain (saves
 DEFAULT_ENABLE_OBSERVATIONS = True  # Observations enabled by default
 DEFAULT_ENABLE_OBSERVATION_HISTORY = True  # Observation history tracking enabled by default
 DEFAULT_ENABLE_MENTAL_MODEL_HISTORY = True  # Mental model history tracking enabled by default
+DEFAULT_CONSOLIDATION_MAX_ATTEMPTS = 3  # Outer retry attempts for consolidation LLM batch calls
 DEFAULT_CONSOLIDATION_BATCH_SIZE = 50  # Memories to load per batch (internal memory optimization)
 DEFAULT_CONSOLIDATION_LLM_BATCH_SIZE = 8  # Facts per LLM call (1 = no batching; >1 = batch mode)
 DEFAULT_CONSOLIDATION_MAX_TOKENS = 512  # Max tokens for recall when finding related observations
@@ -655,6 +658,10 @@ class JsonFormatter(logging.Formatter):
         logging.CRITICAL: "CRITICAL",
     }
 
+    def __init__(self, allowed_fields: frozenset[str] | None = None):
+        super().__init__()
+        self._allowed_fields = allowed_fields
+
     def format(self, record: logging.LogRecord) -> str:
         log_entry = {
             "severity": self.SEVERITY_MAP.get(record.levelno, "DEFAULT"),
@@ -663,9 +670,19 @@ class JsonFormatter(logging.Formatter):
             "logger": record.name,
         }
 
+        # Lazy import to avoid circular dependency (engine imports from config).
+        from hindsight_api.engine.memory_engine import _current_schema
+
+        tenant = _current_schema.get()
+        if tenant:
+            log_entry["tenant"] = tenant
+
         # Add exception info if present
         if record.exc_info:
             log_entry["exception"] = self.formatException(record.exc_info)
+
+        if self._allowed_fields is not None:
+            log_entry = {k: v for k, v in log_entry.items() if k in self._allowed_fields}
 
         return json.dumps(log_entry)
 
@@ -855,6 +872,7 @@ class HindsightConfig:
     base_path: str
     log_level: str
     log_format: str
+    log_json_fields: list[str] | None  # None = all fields; explicit list = allowlist
     mcp_enabled: bool
     mcp_enabled_tools: list[str] | None  # None = all tools; explicit list = allowlist
     mcp_stateless: bool  # True = stateless HTTP (POST-only); False = stateful (supports GET/SSE)
@@ -917,6 +935,7 @@ class HindsightConfig:
     consolidation_max_tokens: int
     consolidation_source_facts_max_tokens: int
     consolidation_source_facts_max_tokens_per_observation: int
+    consolidation_max_attempts: int
     observations_mission: str | None
     max_observations_per_scope: int
 
@@ -1397,6 +1416,7 @@ class HindsightConfig:
             base_path=os.getenv(ENV_BASE_PATH, DEFAULT_BASE_PATH),
             log_level=os.getenv(ENV_LOG_LEVEL, DEFAULT_LOG_LEVEL),
             log_format=os.getenv(ENV_LOG_FORMAT, DEFAULT_LOG_FORMAT).lower(),
+            log_json_fields=_parse_str_list(os.getenv(ENV_LOG_JSON_FIELDS, "")) or None,
             mcp_enabled=os.getenv(ENV_MCP_ENABLED, str(DEFAULT_MCP_ENABLED)).lower() == "true",
             mcp_enabled_tools=[t.strip() for t in os.getenv(ENV_MCP_ENABLED_TOOLS).split(",") if t.strip()]
             if os.getenv(ENV_MCP_ENABLED_TOOLS)
@@ -1503,6 +1523,9 @@ class HindsightConfig:
                     ENV_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS_PER_OBSERVATION,
                     str(DEFAULT_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS_PER_OBSERVATION),
                 )
+            ),
+            consolidation_max_attempts=int(
+                os.getenv(ENV_CONSOLIDATION_MAX_ATTEMPTS, str(DEFAULT_CONSOLIDATION_MAX_ATTEMPTS))
             ),
             observations_mission=os.getenv(ENV_OBSERVATIONS_MISSION) or DEFAULT_OBSERVATIONS_MISSION,
             max_observations_per_scope=int(
@@ -1634,7 +1657,8 @@ class HindsightConfig:
         handler.setLevel(self.get_python_log_level())
 
         if self.log_format == "json":
-            handler.setFormatter(JsonFormatter())
+            allowed = frozenset(self.log_json_fields) if self.log_json_fields else None
+            handler.setFormatter(JsonFormatter(allowed_fields=allowed))
         else:
             handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
 

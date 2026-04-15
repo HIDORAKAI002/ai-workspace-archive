@@ -4,7 +4,7 @@
  * Aligns Hindsight's memory bank model with Paperclip's company/agent isolation.
  */
 
-import type { PaperclipMemoryConfig } from './config.js';
+import type { PaperclipMemoryConfig } from "./config.js";
 
 export interface BankContext {
   companyId: string;
@@ -27,14 +27,14 @@ export function deriveBankId(context: BankContext, config: PaperclipMemoryConfig
     parts.push(config.bankIdPrefix);
   }
 
-  for (const field of config.bankGranularity ?? ['company', 'agent']) {
-    if (field === 'company') parts.push(context.companyId);
-    if (field === 'agent') parts.push(context.agentId);
+  for (const field of config.bankGranularity ?? ["company", "agent"]) {
+    if (field === "company") parts.push(context.companyId);
+    if (field === "agent") parts.push(context.agentId);
   }
 
   if (parts.length === 0) {
-    throw new Error('Bank ID cannot be empty — bankGranularity or bankIdPrefix must be set');
+    throw new Error("Bank ID cannot be empty — bankGranularity or bankIdPrefix must be set");
   }
 
-  return parts.join('::');
+  return parts.join("::");
 }

@@ -133,7 +133,7 @@ function buildFeatureFlags(
 ): Set<FeatureFlag> {
   const flags: Set<FeatureFlag> = new Set();
 
-  if (options.actions !== undefined) {
+  if (options.actions !== undefined && options.actions.length > 0) {
     flags.add("actions");
   }
 

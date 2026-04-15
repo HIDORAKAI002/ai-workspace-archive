@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Hindsight HTTP API
-  version: 0.5.1
+  version: 0.5.2
 servers:
 - url: /
 paths:
@@ -569,6 +569,66 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
       summary: List entities
+      tags:
+      - Entities
+  /v1/default/banks/{bank_id}/entities/graph:
+    get:
+      description: Return a graph of entities (nodes) and their co-occurrences (edges)
+        for visualization.
+      operationId: get_entity_graph
+      parameters:
+      - explode: false
+        in: path
+        name: bank_id
+        required: true
+        schema:
+          title: Bank Id
+          type: string
+        style: simple
+      - description: Maximum number of co-occurrence edges to return
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 1000
+          description: Maximum number of co-occurrence edges to return
+          title: Limit
+          type: integer
+        style: form
+      - description: Minimum cooccurrence_count to include an edge
+        explode: true
+        in: query
+        name: min_count
+        required: false
+        schema:
+          default: 1
+          description: Minimum cooccurrence_count to include an edge
+          title: Min Count
+          type: integer
+        style: form
+      - explode: false
+        in: header
+        name: authorization
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityGraphResponse'
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get entity co-occurrence graph
       tags:
       - Entities
   /v1/default/banks/{bank_id}/entities/{entity_id}:
@@ -4480,6 +4540,58 @@ components:
       - mention_count
       - observations
       title: EntityDetailResponse
+    EntityGraphResponse:
+      description: Response model for entity co-occurrence graph endpoint.
+      example:
+        edges:
+        - data:
+            color: '#ffd700'
+            id: uuid-1-uuid-2
+            lastCooccurred: 2024-02-01T14:00:00Z
+            lineStyle: solid
+            linkType: cooccurrence
+            source: uuid-1
+            target: uuid-2
+            weight: 5
+        limit: 1000
+        nodes:
+        - data:
+            color: '#42a5f5'
+            id: uuid-1
+            label: Alice
+            mentionCount: 12
+        - data:
+            color: '#42a5f5'
+            id: uuid-2
+            label: Google
+            mentionCount: 8
+        total_edges: 1
+        total_entities: 2
+      properties:
+        nodes:
+          items:
+            additionalProperties: {}
+          type: array
+        edges:
+          items:
+            additionalProperties: {}
+          type: array
+        total_entities:
+          title: Total Entities
+          type: integer
+        total_edges:
+          title: Total Edges
+          type: integer
+        limit:
+          title: Limit
+          type: integer
+      required:
+      - edges
+      - limit
+      - nodes
+      - total_edges
+      - total_entities
+      title: EntityGraphResponse
     EntityIncludeOptions:
       description: Options for including entity observations in recall results.
       properties:

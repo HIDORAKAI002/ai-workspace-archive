@@ -49,10 +49,13 @@ Or configure inline in `opencode.json`:
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    ["@vectorize-io/opencode-hindsight", {
-      "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-      "hindsightApiToken": "your-api-key"
-    }]
+    [
+      "@vectorize-io/opencode-hindsight",
+      {
+        "hindsightApiUrl": "https://api.hindsight.vectorize.io",
+        "hindsightApiToken": "your-api-key"
+      }
+    ]
   ]
 }
 ```
@@ -66,13 +69,16 @@ Pass options directly in `opencode.json`:
 ```json
 {
   "plugin": [
-    ["@vectorize-io/opencode-hindsight", {
-      "hindsightApiUrl": "http://localhost:8888",
-      "bankId": "my-project",
-      "autoRecall": true,
-      "autoRetain": true,
-      "recallBudget": "mid"
-    }]
+    [
+      "@vectorize-io/opencode-hindsight",
+      {
+        "hindsightApiUrl": "http://localhost:8888",
+        "bankId": "my-project",
+        "autoRecall": true,
+        "autoRetain": true,
+        "recallBudget": "mid"
+      }
+    ]
   ]
 }
 ```
@@ -93,20 +99,20 @@ Create `~/.hindsight/opencode.json` for persistent configuration:
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|---|---|---|
-| `HINDSIGHT_API_URL` | Hindsight API base URL | (required) |
-| `HINDSIGHT_API_TOKEN` | API key for authentication | (none) |
-| `HINDSIGHT_BANK_ID` | Static memory bank ID | `opencode` |
-| `HINDSIGHT_AGENT_NAME` | Agent name for dynamic bank IDs | `opencode` |
-| `HINDSIGHT_AUTO_RECALL` | Auto-recall on session start | `true` |
-| `HINDSIGHT_AUTO_RETAIN` | Auto-retain on session idle | `true` |
-| `HINDSIGHT_RETAIN_MODE` | `full-session` or `last-turn` | `full-session` |
-| `HINDSIGHT_RECALL_BUDGET` | Recall budget: `low`, `mid`, `high` | `mid` |
-| `HINDSIGHT_RECALL_MAX_TOKENS` | Max tokens for recall results | `1024` |
-| `HINDSIGHT_DYNAMIC_BANK_ID` | Enable dynamic bank ID derivation | `false` |
-| `HINDSIGHT_BANK_MISSION` | Bank mission/context | (none) |
-| `HINDSIGHT_DEBUG` | Enable debug logging | `false` |
+| Variable                      | Description                         | Default        |
+| ----------------------------- | ----------------------------------- | -------------- |
+| `HINDSIGHT_API_URL`           | Hindsight API base URL              | (required)     |
+| `HINDSIGHT_API_TOKEN`         | API key for authentication          | (none)         |
+| `HINDSIGHT_BANK_ID`           | Static memory bank ID               | `opencode`     |
+| `HINDSIGHT_AGENT_NAME`        | Agent name for dynamic bank IDs     | `opencode`     |
+| `HINDSIGHT_AUTO_RECALL`       | Auto-recall on session start        | `true`         |
+| `HINDSIGHT_AUTO_RETAIN`       | Auto-retain on session idle         | `true`         |
+| `HINDSIGHT_RETAIN_MODE`       | `full-session` or `last-turn`       | `full-session` |
+| `HINDSIGHT_RECALL_BUDGET`     | Recall budget: `low`, `mid`, `high` | `mid`          |
+| `HINDSIGHT_RECALL_MAX_TOKENS` | Max tokens for recall results       | `1024`         |
+| `HINDSIGHT_DYNAMIC_BANK_ID`   | Enable dynamic bank ID derivation   | `false`        |
+| `HINDSIGHT_BANK_MISSION`      | Bank mission/context                | (none)         |
+| `HINDSIGHT_DEBUG`             | Enable debug logging                | `false`        |
 
 ### Configuration Priority
 
