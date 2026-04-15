@@ -104,6 +104,7 @@ export interface MentalModel {
   last_refreshed_at: string;
   created_at: string;
   reflect_response?: any;
+  is_stale?: boolean | null;
 }
 
 export interface BankTemplateImportResponse {
@@ -1053,6 +1054,14 @@ export class ControlPlaneClient {
     return this.fetchApi<
       {
         previous_content: string | null;
+        previous_reflect_response: {
+          text?: string;
+          based_on?: Record<
+            string,
+            { id: string; text: string; type: string; context?: string | null }[]
+          >;
+          mental_models?: unknown[];
+        } | null;
         changed_at: string;
       }[]
     >(bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}/history`));

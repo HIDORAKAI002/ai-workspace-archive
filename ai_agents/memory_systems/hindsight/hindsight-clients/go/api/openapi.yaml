@@ -5107,6 +5107,7 @@ components:
             exclude_mental_models: false
             recall_max_tokens: 6
           last_refreshed_at: last_refreshed_at
+          is_stale: true
           content: content
           tags:
           - tags
@@ -5142,6 +5143,7 @@ components:
             exclude_mental_models: false
             recall_max_tokens: 6
           last_refreshed_at: last_refreshed_at
+          is_stale: true
           content: content
           tags:
           - tags
@@ -5188,6 +5190,7 @@ components:
           exclude_mental_models: false
           recall_max_tokens: 6
         last_refreshed_at: last_refreshed_at
+        is_stale: true
         content: content
         tags:
         - tags
@@ -5227,6 +5230,9 @@ components:
         reflect_response:
           additionalProperties: {}
           nullable: true
+        is_stale:
+          nullable: true
+          type: boolean
       required:
       - bank_id
       - id
