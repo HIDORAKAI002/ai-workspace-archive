@@ -614,31 +614,6 @@ This architecture is perfect for financial analysis, strategic planning, researc
 
 ---
 
-### MAKER
-
-`MAKER` implements **maximal agentic decomposition** with **first-to-ahead-by-k voting** and **red-flagging**: you supply `format_prompt`, `parse_response`, and optional `validate_response` / `update_state`, then run for a fixed number of steps (or until a stop condition). Each step spins up a focused one-shot `Agent` (or cycles a pool you provide) until one parsed answer leads all others by `k` votes. This matches the error-correction story in [Solving a Million-Step LLM Task with Zero Errors](https://arxiv.org/abs/2511.09030). [Full documentation](https://docs.swarms.world/en/latest/swarms/structs/maker/)
-
-```python
-from swarms.structs.maker import MAKER
-
-maker = MAKER(
-    model_name="gpt-4.1-mini",
-    system_prompt="You solve tasks in one clear line per step.",
-    k=3,
-)
-
-# Optional: override format_prompt / parse_response / validate_response for your domain.
-results = maker.run(
-    task="List three concise benefits of typed APIs, one per step.",
-    max_steps=3,
-)
-print(results)
-```
-
-For lower latency when `k` is large, use `run_parallel_voting` with the same `task` and `max_steps`.
-
----
-
 ### Social Algorithms
 
 **Social Algorithms** provide a flexible framework for defining custom communication patterns between agents. You can upload any arbitrary social algorithm as a callable that defines the sequence of communication, enabling agents to talk to each other in sophisticated ways. [Learn more about Social Algorithms](https://docs.swarms.world/en/latest/swarms/structs/social_algorithms/)

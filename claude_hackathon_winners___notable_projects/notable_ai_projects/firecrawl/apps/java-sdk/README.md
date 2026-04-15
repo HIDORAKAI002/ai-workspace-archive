@@ -1,6 +1,6 @@
 # Firecrawl Java SDK
 
-Java SDK for the [Firecrawl](https://firecrawl.dev) v2 web scraping API.
+Java SDK for [Firecrawl](https://firecrawl.dev) — search, scrape, and interact with the web.
 
 ## Prerequisites
 
@@ -268,7 +268,7 @@ for (Map<String, Object> link : data.getLinks()) {
 Search the web and optionally scrape results.
 
 ```java
-SearchData results = client.search("firecrawl web scraping",
+SearchData results = client.search("firecrawl",
     SearchOptions.builder()
         .limit(10)
         .build());

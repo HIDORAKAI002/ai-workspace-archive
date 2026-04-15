@@ -45,7 +45,7 @@ mavenPublishing {
 
     pom {
         name.set("Firecrawl Java SDK")
-        description.set("Java SDK for the Firecrawl web scraping API")
+        description.set("Java SDK for the Firecrawl API")
         url.set("https://github.com/firecrawl/firecrawl")
 
         licenses {
