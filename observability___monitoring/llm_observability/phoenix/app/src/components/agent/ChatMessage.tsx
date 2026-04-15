@@ -1,11 +1,11 @@
 import { css } from "@emotion/react";
 import { isTextUIPart } from "ai";
-import { useMemo } from "react";
 
 import type { AgentUIMessage } from "@phoenix/agent/chat/types";
 import { Message, MessageContent } from "@phoenix/components/ai/message";
 import { MarkdownBlock } from "@phoenix/components/markdown";
 
+import { AssistantMessageActions } from "./AssistantMessageActions";
 import { groupMessageParts } from "./groupMessageParts";
 import { ToolPart } from "./ToolPart";
 import { ToolPartGroup } from "./ToolPartGroup";
@@ -39,42 +39,55 @@ export function UserMessage({ parts }: { parts: AgentUIMessage["parts"] }) {
  * parts. Consecutive runs of 3+ tool calls are collapsed into a
  * {@link ToolPartGroup} pool; shorter runs render individually as
  * {@link ToolPart} details.
+ *
+ * `showActions` gates the feedback/copy/trace toolbar — callers should set
+ * it to `false` while this particular message is still streaming so users
+ * don't interact with incomplete content.
  */
 export function AssistantMessage({
-  parts,
+  message,
+  showActions = true,
 }: {
-  parts: AgentUIMessage["parts"];
+  message: AgentUIMessage;
+  showActions?: boolean;
 }) {
-  const grouped = useMemo(() => groupMessageParts(parts), [parts]);
+  const grouped = groupMessageParts(message.parts);
 
   return (
-    <div css={assistantMessageCSS}>
-      {grouped.map((group) => {
-        switch (group.kind) {
-          case "text":
-            return (
-              <MarkdownBlock
-                key={`text-${group.index}`}
-                mode="markdown"
-                renderMode="streaming"
-                margin="none"
-              >
-                {group.part.type === "text" ? group.part.text : ""}
-              </MarkdownBlock>
-            );
-          case "tool-solo":
-            return <ToolPart key={`tool-${group.index}`} part={group.part} />;
-          case "tool-group":
-            return (
-              <ToolPartGroup
-                key={`pool-${group.startIndex}`}
-                parts={group.parts}
-              />
-            );
-          default:
-            return null;
-        }
-      })}
-    </div>
+    <Message from="assistant">
+      <MessageContent>
+        <div css={assistantMessageCSS}>
+          {grouped.map((group) => {
+            switch (group.kind) {
+              case "text":
+                return (
+                  <MarkdownBlock
+                    key={`text-${group.index}`}
+                    mode="markdown"
+                    renderMode="streaming"
+                    margin="none"
+                  >
+                    {group.part.type === "text" ? group.part.text : ""}
+                  </MarkdownBlock>
+                );
+              case "tool-solo":
+                return (
+                  <ToolPart key={`tool-${group.index}`} part={group.part} />
+                );
+              case "tool-group":
+                return (
+                  <ToolPartGroup
+                    key={`pool-${group.startIndex}`}
+                    parts={group.parts}
+                  />
+                );
+              default:
+                return null;
+            }
+          })}
+        </div>
+      </MessageContent>
+      {showActions ? <AssistantMessageActions message={message} /> : null}
+    </Message>
   );
 }
