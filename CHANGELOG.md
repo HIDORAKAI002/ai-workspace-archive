@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-15 19:25 IST] Auto-Sync
+- **32 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Dify, Activepieces, Trigger.dev, Appsmith, Budibase, Directus, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, huggingface/smolagents, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, traceloop/openllmetry, openlit/openlit, open-telemetry/opentelemetry-python, firecrawl/firecrawl, chenglou/pretext, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-15 13:01 IST] Auto-Sync
 - **27 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Langflow, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, Swarms, VoltAgent, BerriAI/litellm, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, infiniflow/ragflow, affaan-m/everything-claude-code, google-gemini/gemini-cli, vercel/ai, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
 
