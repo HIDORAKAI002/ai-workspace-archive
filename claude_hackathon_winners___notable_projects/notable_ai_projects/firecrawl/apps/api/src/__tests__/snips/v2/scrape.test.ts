@@ -379,6 +379,23 @@ describe("Scrape tests", () => {
     scrapeTimeout,
   );
 
+  itIf(TEST_SELF_HOST && !HAS_FIRE_ENGINE && ALLOW_TEST_SUITE_WEBSITE)(
+    "does not reject empty actions array without fire-engine",
+    async () => {
+      const raw = await scrapeRaw(
+        {
+          url: base,
+          actions: [],
+        },
+        identity,
+      );
+
+      expect(raw.statusCode).toBe(200);
+      expect(raw.body.success).toBe(true);
+    },
+    scrapeTimeout,
+  );
+
   describeIf(ALLOW_TEST_SUITE_WEBSITE)("JSON scrape support", () => {
     it.concurrent(
       "returns parseable JSON",
