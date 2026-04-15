@@ -294,6 +294,44 @@ class EntityListResponse(BaseModel):
     offset: int
 
 
+class EntityGraphResponse(BaseModel):
+    """Response model for entity co-occurrence graph endpoint."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "nodes": [
+                    {"data": {"id": "uuid-1", "label": "Alice", "mentionCount": 12, "color": "#42a5f5"}},
+                    {"data": {"id": "uuid-2", "label": "Google", "mentionCount": 8, "color": "#42a5f5"}},
+                ],
+                "edges": [
+                    {
+                        "data": {
+                            "id": "uuid-1-uuid-2",
+                            "source": "uuid-1",
+                            "target": "uuid-2",
+                            "linkType": "cooccurrence",
+                            "weight": 5,
+                            "color": "#ffd700",
+                            "lineStyle": "solid",
+                            "lastCooccurred": "2024-02-01T14:00:00Z",
+                        }
+                    }
+                ],
+                "total_entities": 2,
+                "total_edges": 1,
+                "limit": 1000,
+            }
+        }
+    )
+
+    nodes: list[dict[str, Any]]
+    edges: list[dict[str, Any]]
+    total_entities: int
+    total_edges: int
+    limit: int
+
+
 class EntityDetailResponse(BaseModel):
     """Response model for entity detail endpoint."""
 
@@ -3407,6 +3445,36 @@ def _register_routes(app: FastAPI):
 
             error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             logger.error(f"Error in /v1/default/banks/{bank_id}/entities: {error_detail}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/entities/graph",
+        response_model=EntityGraphResponse,
+        summary="Get entity co-occurrence graph",
+        description="Return a graph of entities (nodes) and their co-occurrences (edges) for visualization.",
+        operation_id="get_entity_graph",
+        tags=["Entities"],
+    )
+    async def api_entity_graph(
+        bank_id: str,
+        limit: int = Query(default=1000, description="Maximum number of co-occurrence edges to return"),
+        min_count: int = Query(default=1, description="Minimum cooccurrence_count to include an edge"),
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        """Return entity co-occurrence graph for a bank."""
+        try:
+            return await app.state.memory.get_entity_graph(
+                bank_id, limit=limit, min_count=min_count, request_context=request_context
+            )
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            logger.error(f"Error in /v1/default/banks/{bank_id}/entities/graph: {error_detail}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.get(

@@ -5,9 +5,9 @@
  * so future heartbeats can recall the context.
  */
 
-import { HindsightClient } from './client.js';
-import type { PaperclipMemoryConfig } from './config.js';
-import { deriveBankId } from './bank.js';
+import { HindsightClient } from "./client.js";
+import type { PaperclipMemoryConfig } from "./config.js";
+import { deriveBankId } from "./bank.js";
 
 export interface RetainInput {
   /** Paperclip company ID — used to derive the bank ID. */
@@ -35,10 +35,7 @@ export interface RetainInput {
  * )
  * ```
  */
-export async function retain(
-  input: RetainInput,
-  config: PaperclipMemoryConfig,
-): Promise<void> {
+export async function retain(input: RetainInput, config: PaperclipMemoryConfig): Promise<void> {
   const { companyId, agentId, content, documentId, metadata } = input;
 
   if (!content.trim()) return;
@@ -53,6 +50,6 @@ export async function retain(
       metadata: { companyId, agentId, ...metadata },
     });
   } catch (err) {
-    console.warn('[hindsight-paperclip] retain failed:', (err as Error).message);
+    console.warn("[hindsight-paperclip] retain failed:", (err as Error).message);
   }
 }

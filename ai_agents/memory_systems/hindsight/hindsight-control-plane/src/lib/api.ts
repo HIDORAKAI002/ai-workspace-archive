@@ -4,6 +4,7 @@
  */
 
 import { toast } from "sonner";
+import { bankApi, bankStatsApi, documentApi, memoryApi } from "./bank-url";
 
 export interface WebhookHttpConfig {
   method: string;
@@ -212,7 +213,7 @@ export class ControlPlaneClient {
    */
   async importBankTemplate(bankId: string, manifest: Record<string, unknown>, dryRun = false) {
     const params = dryRun ? "?dry_run=true" : "";
-    return this.fetchApi<BankTemplateImportResponse>(`/api/banks/${bankId}/import${params}`, {
+    return this.fetchApi<BankTemplateImportResponse>(bankApi(bankId, `/import${params}`), {
       method: "POST",
       body: JSON.stringify(manifest),
     });
@@ -222,7 +223,7 @@ export class ControlPlaneClient {
    * Export a bank as a template manifest
    */
   async exportBankTemplate(bankId: string) {
-    return this.fetchApi<Record<string, unknown>>(`/api/banks/${bankId}/export`);
+    return this.fetchApi<Record<string, unknown>>(bankApi(bankId, "/export"));
   }
 
   /**
@@ -302,7 +303,7 @@ export class ControlPlaneClient {
    * Get bank statistics
    */
   async getBankStats(bankId: string) {
-    return this.fetchApi(`/api/stats/${bankId}`);
+    return this.fetchApi(bankStatsApi(bankId));
   }
 
   async getMemoriesTimeseries(bankId: string, period: string) {
@@ -316,7 +317,7 @@ export class ControlPlaneClient {
         experience: number;
         observation: number;
       }>;
-    }>(`/api/stats/${bankId}/memories-timeseries?period=${encodeURIComponent(period)}`);
+    }>(bankStatsApi(bankId, `/memories-timeseries?period=${encodeURIComponent(period)}`));
   }
 
   /**
@@ -367,7 +368,7 @@ export class ControlPlaneClient {
         status: string;
         error_message: string | null;
       }>;
-    }>(`/api/operations/${bankId}${query ? `?${query}` : ""}`);
+    }>(`/api/operations/${encodeURIComponent(bankId)}${query ? `?${query}` : ""}`);
   }
 
   /**
@@ -378,9 +379,12 @@ export class ControlPlaneClient {
       success: boolean;
       message: string;
       operation_id: string;
-    }>(`/api/operations/${bankId}?operation_id=${operationId}`, {
-      method: "DELETE",
-    });
+    }>(
+      `/api/operations/${encodeURIComponent(bankId)}?operation_id=${encodeURIComponent(operationId)}`,
+      {
+        method: "DELETE",
+      }
+    );
   }
 
   /**
@@ -391,7 +395,7 @@ export class ControlPlaneClient {
       success: boolean;
       message: string;
       operation_id: string;
-    }>(`/api/banks/${bankId}/operations/${operationId}`, {
+    }>(bankApi(bankId, `/operations/${encodeURIComponent(operationId)}`), {
       method: "POST",
     });
   }
@@ -413,19 +417,53 @@ export class ControlPlaneClient {
   }
 
   /**
+   * Get entity co-occurrence graph
+   */
+  async getEntityGraph(params: { bank_id: string; limit?: number; min_count?: number }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append("bank_id", params.bank_id);
+    if (params.limit) queryParams.append("limit", params.limit.toString());
+    if (params.min_count !== undefined)
+      queryParams.append("min_count", params.min_count.toString());
+    return this.fetchApi<{
+      nodes: Array<{ data: { id: string; label: string; mentionCount: number; color: string } }>;
+      edges: Array<{
+        data: {
+          id: string;
+          source: string;
+          target: string;
+          linkType: string;
+          weight: number;
+          color: string;
+          lineStyle: string;
+          lastCooccurred: string | null;
+        };
+      }>;
+      total_entities: number;
+      total_edges: number;
+      limit: number;
+    }>(`/api/entities/graph?${queryParams}`);
+  }
+
+  /**
    * Get entity details
    */
   async getEntity(entityId: string, bankId: string) {
-    return this.fetchApi(`/api/entities/${entityId}?bank_id=${bankId}`);
+    return this.fetchApi(
+      `/api/entities/${encodeURIComponent(entityId)}?bank_id=${encodeURIComponent(bankId)}`
+    );
   }
 
   /**
    * Regenerate entity observations
    */
   async regenerateEntityObservations(entityId: string, bankId: string) {
-    return this.fetchApi(`/api/entities/${entityId}/regenerate?bank_id=${bankId}`, {
-      method: "POST",
-    });
+    return this.fetchApi(
+      `/api/entities/${encodeURIComponent(entityId)}/regenerate?bank_id=${encodeURIComponent(bankId)}`,
+      {
+        method: "POST",
+      }
+    );
   }
 
   /**
@@ -444,21 +482,18 @@ export class ControlPlaneClient {
    * Get document
    */
   async getDocument(documentId: string, bankId: string) {
-    return this.fetchApi(`/api/documents/${documentId}?bank_id=${bankId}`);
+    return this.fetchApi(documentApi(documentId, bankId));
   }
 
   /**
    * Update tags on a document and its associated memory units
    */
   async updateDocument(documentId: string, bankId: string, tags: string[]) {
-    return this.fetchApi<{ success: boolean }>(
-      `/api/documents/${encodeURIComponent(documentId)}?bank_id=${bankId}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tags }),
-      }
-    );
+    return this.fetchApi<{ success: boolean }>(documentApi(documentId, bankId), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tags }),
+    });
   }
 
   /**
@@ -470,7 +505,7 @@ export class ControlPlaneClient {
       message: string;
       document_id: string;
       memory_units_deleted: number;
-    }>(`/api/documents/${documentId}?bank_id=${bankId}`, {
+    }>(documentApi(documentId, bankId), {
       method: "DELETE",
     });
   }
@@ -483,7 +518,7 @@ export class ControlPlaneClient {
       success: boolean;
       message: string;
       deleted_count: number;
-    }>(`/api/banks/${bankId}`, {
+    }>(bankApi(bankId), {
       method: "DELETE",
     });
   }
@@ -496,7 +531,7 @@ export class ControlPlaneClient {
       success: boolean;
       message: string;
       deleted_count: number;
-    }>(`/api/banks/${bankId}/observations`, {
+    }>(bankApi(bankId, "/observations"), {
       method: "DELETE",
     });
   }
@@ -508,7 +543,7 @@ export class ControlPlaneClient {
     return this.fetchApi<{
       operation_id: string;
       deduplicated: boolean;
-    }>(`/api/banks/${bankId}/consolidate`, {
+    }>(bankApi(bankId, "/consolidate"), {
       method: "POST",
     });
   }
@@ -519,7 +554,7 @@ export class ControlPlaneClient {
   async recoverConsolidation(bankId: string) {
     return this.fetchApi<{
       retried_count: number;
-    }>(`/api/banks/${bankId}/consolidation-recover`, {
+    }>(bankApi(bankId, "/consolidation-recover"), {
       method: "POST",
     });
   }
@@ -558,7 +593,7 @@ export class ControlPlaneClient {
         changed_at: string;
         new_source_memory_ids: string[];
       }[];
-    }>(`/api/memories/${memoryId}?bank_id=${bankId}`);
+    }>(memoryApi(memoryId, bankId));
   }
 
   /**
@@ -582,7 +617,7 @@ export class ControlPlaneClient {
           is_new: boolean;
         }[];
       }[]
-    >(`/api/memories/${memoryId}/history?bank_id=${bankId}`);
+    >(memoryApi(memoryId, bankId, "/history"));
   }
 
   /**
@@ -599,14 +634,14 @@ export class ControlPlaneClient {
       };
       mission: string;
       background?: string; // Deprecated, kept for backwards compatibility
-    }>(`/api/profile/${bankId}`);
+    }>(`/api/profile/${encodeURIComponent(bankId)}`);
   }
 
   /**
    * Set bank mission
    */
   async setBankMission(bankId: string, mission: string) {
-    return this.fetchApi(`/api/banks/${bankId}`, {
+    return this.fetchApi(bankApi(bankId), {
       method: "PATCH",
       body: JSON.stringify({ mission }),
     });
@@ -636,7 +671,7 @@ export class ControlPlaneClient {
         created_at: string;
         updated_at: string;
       }>;
-    }>(`/api/banks/${bankId}/directives${query ? `?${query}` : ""}`);
+    }>(bankApi(bankId, `/directives${query ? `?${query}` : ""}`));
   }
 
   /**
@@ -662,7 +697,7 @@ export class ControlPlaneClient {
       tags: string[];
       created_at: string;
       updated_at: string;
-    }>(`/api/banks/${bankId}/directives`, {
+    }>(bankApi(bankId, "/directives"), {
       method: "POST",
       body: JSON.stringify(params),
     });
@@ -682,14 +717,14 @@ export class ControlPlaneClient {
       tags: string[];
       created_at: string;
       updated_at: string;
-    }>(`/api/banks/${bankId}/directives/${directiveId}`);
+    }>(bankApi(bankId, `/directives/${encodeURIComponent(directiveId)}`));
   }
 
   /**
    * Delete a directive
    */
   async deleteDirective(bankId: string, directiveId: string) {
-    return this.fetchApi(`/api/banks/${bankId}/directives/${directiveId}`, {
+    return this.fetchApi(bankApi(bankId, `/directives/${encodeURIComponent(directiveId)}`), {
       method: "DELETE",
     });
   }
@@ -718,7 +753,7 @@ export class ControlPlaneClient {
       tags: string[];
       created_at: string;
       updated_at: string;
-    }>(`/api/banks/${bankId}/directives/${directiveId}`, {
+    }>(bankApi(bankId, `/directives/${encodeURIComponent(directiveId)}`), {
       method: "PATCH",
       body: JSON.stringify(params),
     });
@@ -756,7 +791,7 @@ export class ControlPlaneClient {
         error_message: string | null;
       }> | null;
       task_payload?: Record<string, unknown> | null;
-    }>(`/api/banks/${bankId}/operations/${operationId}${qs}`);
+    }>(bankApi(bankId, `/operations/${encodeURIComponent(operationId)}${qs}`));
   }
 
   /**
@@ -774,7 +809,7 @@ export class ControlPlaneClient {
       mission?: string;
     }
   ) {
-    return this.fetchApi(`/api/profile/${bankId}`, {
+    return this.fetchApi(`/api/profile/${encodeURIComponent(bankId)}`, {
       method: "PUT",
       body: JSON.stringify(profile),
     });
@@ -818,7 +853,7 @@ export class ControlPlaneClient {
         created_at: string;
         updated_at: string;
       }>;
-    }>(`/api/banks/${bankId}/observations${query ? `?${query}` : ""}`);
+    }>(bankApi(bankId, `/observations${query ? `?${query}` : ""}`));
   }
 
   /**
@@ -847,7 +882,7 @@ export class ControlPlaneClient {
       }>;
       created_at: string;
       updated_at: string;
-    }>(`/api/banks/${bankId}/observations/${observationId}`);
+    }>(bankApi(bankId, `/observations/${encodeURIComponent(observationId)}`));
   }
 
   // ============= MENTAL MODELS (stored reflect responses) =============
@@ -891,7 +926,7 @@ export class ControlPlaneClient {
           based_on: Record<string, Array<{ id: string; text: string; type: string }>>;
         };
       }>;
-    }>(`/api/banks/${bankId}/mental-models${query ? `?${query}` : ""}`);
+    }>(bankApi(bankId, `/mental-models${query ? `?${query}` : ""}`));
   }
 
   /**
@@ -921,7 +956,7 @@ export class ControlPlaneClient {
   ) {
     return this.fetchApi<{
       operation_id: string;
-    }>(`/api/banks/${bankId}/mental-models`, {
+    }>(bankApi(bankId, "/mental-models"), {
       method: "POST",
       body: JSON.stringify(params),
     });
@@ -931,7 +966,9 @@ export class ControlPlaneClient {
    * Get a mental model
    */
   async getMentalModel(bankId: string, mentalModelId: string): Promise<MentalModel> {
-    return this.fetchApi<MentalModel>(`/api/banks/${bankId}/mental-models/${mentalModelId}`);
+    return this.fetchApi<MentalModel>(
+      bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}`)
+    );
   }
 
   /**
@@ -983,7 +1020,7 @@ export class ControlPlaneClient {
         text: string;
         based_on: Record<string, Array<{ id: string; text: string; type: string }>>;
       };
-    }>(`/api/banks/${bankId}/mental-models/${mentalModelId}`, {
+    }>(bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}`), {
       method: "PATCH",
       body: JSON.stringify(params),
     });
@@ -993,7 +1030,7 @@ export class ControlPlaneClient {
    * Delete a mental model
    */
   async deleteMentalModel(bankId: string, mentalModelId: string) {
-    return this.fetchApi(`/api/banks/${bankId}/mental-models/${mentalModelId}`, {
+    return this.fetchApi(bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}`), {
       method: "DELETE",
     });
   }
@@ -1004,7 +1041,7 @@ export class ControlPlaneClient {
   async refreshMentalModel(bankId: string, mentalModelId: string) {
     return this.fetchApi<{
       operation_id: string;
-    }>(`/api/banks/${bankId}/mental-models/${mentalModelId}/refresh`, {
+    }>(bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}/refresh`), {
       method: "POST",
     });
   }
@@ -1018,7 +1055,7 @@ export class ControlPlaneClient {
         previous_content: string | null;
         changed_at: string;
       }[]
-    >(`/api/banks/${bankId}/mental-models/${mentalModelId}/history`);
+    >(bankApi(bankId, `/mental-models/${encodeURIComponent(mentalModelId)}/history`));
   }
 
   /**
@@ -1105,7 +1142,7 @@ export class ControlPlaneClient {
       bank_id: string;
       config: Record<string, any>;
       overrides: Record<string, any>;
-    }>(`/api/banks/${bankId}/config`);
+    }>(bankApi(bankId, "/config"));
   }
 
   /**
@@ -1116,7 +1153,7 @@ export class ControlPlaneClient {
       bank_id: string;
       config: Record<string, any>;
       overrides: Record<string, any>;
-    }>(`/api/banks/${bankId}/config`, {
+    }>(bankApi(bankId, "/config"), {
       method: "PATCH",
       body: JSON.stringify({ updates }),
     });
@@ -1130,7 +1167,7 @@ export class ControlPlaneClient {
       bank_id: string;
       config: Record<string, any>;
       overrides: Record<string, any>;
-    }>(`/api/banks/${bankId}/config`, {
+    }>(bankApi(bankId, "/config"), {
       method: "DELETE",
     });
   }
@@ -1139,7 +1176,7 @@ export class ControlPlaneClient {
    * List webhooks for a bank
    */
   async listWebhooks(bankId: string): Promise<{ items: Webhook[] }> {
-    return this.fetchApi<{ items: Webhook[] }>(`/api/banks/${bankId}/webhooks`);
+    return this.fetchApi<{ items: Webhook[] }>(bankApi(bankId, "/webhooks"));
   }
 
   /**
@@ -1155,7 +1192,7 @@ export class ControlPlaneClient {
       http_config?: WebhookHttpConfig;
     }
   ): Promise<Webhook> {
-    return this.fetchApi<Webhook>(`/api/banks/${bankId}/webhooks`, {
+    return this.fetchApi<Webhook>(bankApi(bankId, "/webhooks"), {
       method: "POST",
       body: JSON.stringify(params),
     });
@@ -1175,7 +1212,7 @@ export class ControlPlaneClient {
       http_config?: WebhookHttpConfig;
     }
   ): Promise<Webhook> {
-    return this.fetchApi<Webhook>(`/api/banks/${bankId}/webhooks/${webhookId}`, {
+    return this.fetchApi<Webhook>(bankApi(bankId, `/webhooks/${encodeURIComponent(webhookId)}`), {
       method: "PATCH",
       body: JSON.stringify(params),
     });
@@ -1185,9 +1222,12 @@ export class ControlPlaneClient {
    * Delete a webhook
    */
   async deleteWebhook(bankId: string, webhookId: string): Promise<{ success: boolean }> {
-    return this.fetchApi<{ success: boolean }>(`/api/banks/${bankId}/webhooks/${webhookId}`, {
-      method: "DELETE",
-    });
+    return this.fetchApi<{ success: boolean }>(
+      bankApi(bankId, `/webhooks/${encodeURIComponent(webhookId)}`),
+      {
+        method: "DELETE",
+      }
+    );
   }
 
   /**
@@ -1204,7 +1244,10 @@ export class ControlPlaneClient {
     if (cursor) params.append("cursor", cursor);
     const query = params.toString();
     return this.fetchApi<{ items: WebhookDelivery[]; next_cursor: string | null }>(
-      `/api/banks/${bankId}/webhooks/${webhookId}/deliveries${query ? `?${query}` : ""}`
+      bankApi(
+        bankId,
+        `/webhooks/${encodeURIComponent(webhookId)}/deliveries${query ? `?${query}` : ""}`
+      )
     );
   }
 
@@ -1231,7 +1274,7 @@ export class ControlPlaneClient {
     if (options?.offset) params.append("offset", options.offset.toString());
     const query = params.toString();
     return this.fetchApi<AuditLogsResponse>(
-      `/api/banks/${bankId}/audit-logs${query ? `?${query}` : ""}`
+      bankApi(bankId, `/audit-logs${query ? `?${query}` : ""}`)
     );
   }
 
@@ -1244,7 +1287,7 @@ export class ControlPlaneClient {
     if (options?.period) params.append("period", options.period);
     const query = params.toString();
     return this.fetchApi<AuditStatsResponse>(
-      `/api/banks/${bankId}/audit-logs/stats${query ? `?${query}` : ""}`
+      bankApi(bankId, `/audit-logs/stats${query ? `?${query}` : ""}`)
     );
   }
 }

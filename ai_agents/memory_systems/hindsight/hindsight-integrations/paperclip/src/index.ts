@@ -17,20 +17,20 @@
  * ```
  */
 
-export { recall } from './recall.js';
-export type { RecallInput } from './recall.js';
+export { recall } from "./recall.js";
+export type { RecallInput } from "./recall.js";
 
-export { retain } from './retain.js';
-export type { RetainInput } from './retain.js';
+export { retain } from "./retain.js";
+export type { RetainInput } from "./retain.js";
 
-export { createMemoryMiddleware } from './middleware.js';
-export type { HindsightRequest } from './middleware.js';
+export { createMemoryMiddleware } from "./middleware.js";
+export type { HindsightRequest } from "./middleware.js";
 
-export { deriveBankId } from './bank.js';
-export type { BankContext } from './bank.js';
+export { deriveBankId } from "./bank.js";
+export type { BankContext } from "./bank.js";
 
-export { loadConfig } from './config.js';
-export type { PaperclipMemoryConfig, BankGranularity } from './config.js';
+export { loadConfig } from "./config.js";
+export type { PaperclipMemoryConfig, BankGranularity } from "./config.js";
 
-export { HindsightClient } from './client.js';
-export type { Memory, RecallResponse, RetainResponse } from './client.js';
+export { HindsightClient } from "./client.js";
+export type { Memory, RecallResponse, RetainResponse } from "./client.js";

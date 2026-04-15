@@ -10,7 +10,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "0.5.1"
+    "version": "0.5.2"
   },
   "paths": {
     "/health": {
@@ -830,6 +830,89 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EntityListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/default/banks/{bank_id}/entities/graph": {
+      "get": {
+        "tags": [
+          "Entities"
+        ],
+        "summary": "Get entity co-occurrence graph",
+        "description": "Return a graph of entities (nodes) and their co-occurrences (edges) for visualization.",
+        "operationId": "get_entity_graph",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Bank Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Maximum number of co-occurrence edges to return",
+              "default": 1000,
+              "title": "Limit"
+            },
+            "description": "Maximum number of co-occurrence edges to return"
+          },
+          {
+            "name": "min_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Minimum cooccurrence_count to include an edge",
+              "default": 1,
+              "title": "Min Count"
+            },
+            "description": "Minimum cooccurrence_count to include an edge"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityGraphResponse"
                 }
               }
             }
@@ -6758,6 +6841,85 @@
               "text": "John works at Google"
             }
           ]
+        }
+      },
+      "EntityGraphResponse": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Edges"
+          },
+          "total_entities": {
+            "type": "integer",
+            "title": "Total Entities"
+          },
+          "total_edges": {
+            "type": "integer",
+            "title": "Total Edges"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges",
+          "total_entities",
+          "total_edges",
+          "limit"
+        ],
+        "title": "EntityGraphResponse",
+        "description": "Response model for entity co-occurrence graph endpoint.",
+        "example": {
+          "edges": [
+            {
+              "data": {
+                "color": "#ffd700",
+                "id": "uuid-1-uuid-2",
+                "lastCooccurred": "2024-02-01T14:00:00Z",
+                "lineStyle": "solid",
+                "linkType": "cooccurrence",
+                "source": "uuid-1",
+                "target": "uuid-2",
+                "weight": 5
+              }
+            }
+          ],
+          "limit": 1000,
+          "nodes": [
+            {
+              "data": {
+                "color": "#42a5f5",
+                "id": "uuid-1",
+                "label": "Alice",
+                "mentionCount": 12
+              }
+            },
+            {
+              "data": {
+                "color": "#42a5f5",
+                "id": "uuid-2",
+                "label": "Google",
+                "mentionCount": 8
+              }
+            }
+          ],
+          "total_edges": 1,
+          "total_entities": 2
         }
       },
       "EntityIncludeOptions": {

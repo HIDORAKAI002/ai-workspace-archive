@@ -8,6 +8,12 @@ import PageHero from '@site/src/components/PageHero';
 
 ← OpenClaw integration
 
+## [0.6.4](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.6.4)
+
+**Features**
+
+- Openclaw now uses a session-scoped document ID and records structured timestamps for each message, improving session consistency and message ordering. ([`33645e08`](https://github.com/vectorize-io/hindsight/commit/33645e08))
+
 ## [0.6.3](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.6.3)
 
 **Features**

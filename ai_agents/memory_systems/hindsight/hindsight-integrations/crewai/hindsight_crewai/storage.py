@@ -84,20 +84,14 @@ class HindsightStorage(Storage):
 
         # Resolve settings: constructor args override global config
         config = get_config()
-        self._api_url = hindsight_api_url or (
-            config.hindsight_api_url if config else "http://localhost:8888"
-        )
+        self._api_url = hindsight_api_url or (config.hindsight_api_url if config else "http://localhost:8888")
         self._api_key = api_key or (config.api_key if config else None)
         self._budget = budget or (config.budget if config else "mid")
         self._max_tokens = max_tokens or (config.max_tokens if config else 4096)
         self._tags = tags or (config.tags if config else None)
         self._recall_tags = recall_tags or (config.recall_tags if config else None)
-        self._recall_tags_match = recall_tags_match or (
-            config.recall_tags_match if config else "any"
-        )
-        self._verbose = (
-            verbose if verbose is not None else (config.verbose if config else False)
-        )
+        self._recall_tags_match = recall_tags_match or (config.recall_tags_match if config else "any")
+        self._verbose = verbose if verbose is not None else (config.verbose if config else False)
 
         # Eagerly create the default bank if mission is provided
         if mission:
@@ -202,9 +196,7 @@ class HindsightStorage(Storage):
         try:
             call_sync(_retain)
             if self._verbose:
-                logger.info(
-                    f"Stored memory to bank {bank_id} (agent={agent}, len={len(value)})"
-                )
+                logger.info(f"Stored memory to bank {bank_id} (agent={agent}, len={len(value)})")
         except Exception as e:
             logger.error(f"Failed to store memory: {e}")
             raise HindsightError(f"Failed to store memory: {e}") from e
@@ -284,9 +276,7 @@ class HindsightStorage(Storage):
                 )
 
             if self._verbose:
-                logger.info(
-                    f"Recalled {len(results)} memories from bank {bank_id} for query: {query[:80]}"
-                )
+                logger.info(f"Recalled {len(results)} memories from bank {bank_id} for query: {query[:80]}")
 
             return results
 

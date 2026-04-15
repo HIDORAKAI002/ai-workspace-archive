@@ -4,7 +4,7 @@
  * Loaded from explicit options first, then environment variables.
  */
 
-export type BankGranularity = 'company' | 'agent';
+export type BankGranularity = "company" | "agent";
 
 export interface PaperclipMemoryConfig {
   /** Hindsight server URL. Required. env: HINDSIGHT_API_URL */
@@ -19,7 +19,7 @@ export interface PaperclipMemoryConfig {
   /** Prefix prepended to all bank IDs. Default: "paperclip" */
   bankIdPrefix?: string;
   /** Recall search depth. Default: "mid" */
-  recallBudget?: 'low' | 'mid' | 'high';
+  recallBudget?: "low" | "mid" | "high";
   /** Max tokens in the recalled memory block. Default: 1024 */
   recallMaxTokens?: number;
   /** Provenance label stored with each retained document. Default: "paperclip" */
@@ -30,19 +30,19 @@ export interface PaperclipMemoryConfig {
 
 export function loadConfig(overrides?: Partial<PaperclipMemoryConfig>): PaperclipMemoryConfig {
   const config: PaperclipMemoryConfig = {
-    hindsightApiUrl: process.env['HINDSIGHT_API_URL'] ?? '',
-    hindsightApiToken: process.env['HINDSIGHT_API_TOKEN'],
-    bankGranularity: ['company', 'agent'],
-    bankIdPrefix: 'paperclip',
-    recallBudget: 'mid',
+    hindsightApiUrl: process.env["HINDSIGHT_API_URL"] ?? "",
+    hindsightApiToken: process.env["HINDSIGHT_API_TOKEN"],
+    bankGranularity: ["company", "agent"],
+    bankIdPrefix: "paperclip",
+    recallBudget: "mid",
     recallMaxTokens: 1024,
-    retainContext: 'paperclip',
+    retainContext: "paperclip",
     timeoutMs: 15_000,
     ...overrides,
   };
   if (!config.hindsightApiUrl) {
     throw new Error(
-      'hindsightApiUrl is required — set HINDSIGHT_API_URL or pass hindsightApiUrl to loadConfig()',
+      "hindsightApiUrl is required — set HINDSIGHT_API_URL or pass hindsightApiUrl to loadConfig()"
     );
   }
   return config;
