@@ -15,6 +15,7 @@
  */
 
 import fs from 'fs/promises';
+import os from 'os';
 import path from 'path';
 import { chromium } from 'playwright';
 import { spawn } from 'child_process';
@@ -56,8 +57,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures & ExtensionTestOpti
   protocolVersion: [2, { option: true, scope: 'worker' }],
 
   _protocolEnv: [async ({ protocolVersion }, use) => {
-    if (protocolVersion === 1)
-      process.env.PLAYWRIGHT_EXTENSION_PROTOCOL = '1';
+    // Default is 1.
+    if (protocolVersion === 2)
+      process.env.PLAYWRIGHT_EXTENSION_PROTOCOL = '2';
     await use();
   }, { auto: true, scope: 'worker' }],
 
@@ -149,7 +151,9 @@ function cliEnv() {
   return {
     PLAYWRIGHT_SERVER_REGISTRY: test.info().outputPath('registry'),
     PLAYWRIGHT_DAEMON_SESSION_DIR: test.info().outputPath('daemon'),
-    PLAYWRIGHT_SOCKETS_DIR: path.join(test.info().project.outputDir, 'ds', String(test.info().parallelIndex)),
+    // Short path because macOS caps unix socket paths at 104 chars; the
+    // long `project.outputDir` path overflows and causes EADDRINUSE.
+    PLAYWRIGHT_SOCKETS_DIR: path.join(os.tmpdir(), 'pwmcp-sock', String(test.info().parallelIndex)),
   };
 }
 

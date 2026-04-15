@@ -96,7 +96,7 @@ from firecrawl import Firecrawl
 
 app = Firecrawl(api_key="fc-YOUR_API_KEY")
 
-search_result = app.search("firecrawl web scraping", limit=5)
+search_result = app.search("firecrawl", limit=5)
 ```
 
 <details>
@@ -108,7 +108,7 @@ import Firecrawl from '@mendable/firecrawl-js';
 
 const app = new Firecrawl({apiKey: "fc-YOUR_API_KEY"});
 
-app.search("firecrawl web scraping", { limit: 5 })
+app.search("firecrawl", { limit: 5 })
 ```
 
 **cURL**
@@ -117,14 +117,14 @@ curl -X POST 'https://api.firecrawl.dev/v2/search' \
 -H 'Authorization: Bearer fc-YOUR_API_KEY' \
 -H 'Content-Type: application/json' \
 -d '{
-  "query": "firecrawl web scraping",
+  "query": "firecrawl",
   "limit": 5
 }'
 ```
 
 **CLI**
 ```bash
-firecrawl search "firecrawl web scraping" --limit 5
+firecrawl search "firecrawl" --limit 5
 ```
 </details>
 
@@ -189,14 +189,13 @@ Output:
 ```
 # Firecrawl
 
-Firecrawl is a powerful web scraping tool that makes it easy
-to extract clean data from any website.
+Firecrawl helps AI systems search, scrape, and interact with the web.
 
 ## Features
-- Scrape: Markdown from any page
-- Search: Search + scrape the web
-- Map: Discover all site URLs
-- Agent: Extract with AI prompts
+- Search: Find information across the web
+- Scrape: Clean data from any page
+- Interact: Click, navigate, and operate pages
+- Agent: Autonomous data gathering
 ```
 
 ### Interact
@@ -316,7 +315,7 @@ See the [Skill + CLI documentation](https://docs.firecrawl.dev/sdks/cli) for all
 
 ### Agent
 
-**The easiest way to get data from the web.** Describe what you need, and our AI agent searches, navigates, and extracts it. No URLs required.
+**The easiest way to get data from the web.** Describe what you need, and our AI agent searches, navigates, and retrieves it. No URLs required.
 
 Agent is the evolution of our `/extract` endpoint: faster, more reliable, and doesn't require you to know the URLs upfront.
 ```bash
@@ -390,7 +389,7 @@ Choose between two models based on your needs:
 | Model | Cost | Best For |
 |-------|------|----------|
 | `spark-1-mini` (default) | 60% cheaper | Most tasks |
-| `spark-1-pro` | Standard | Complex research, critical extraction |
+| `spark-1-pro` | Standard | Complex research, critical data gathering |
 ```python
 result = app.agent(
     prompt="Compare enterprise features across Firecrawl, Apify, and ScrapingBee",
@@ -509,7 +508,7 @@ for doc in job.data:
 
 ## SDKs
 
-Our SDKs provide a convenient way to interact with all Firecrawl features and automatically handle polling for async operations like crawling and batch scraping.
+Our SDKs provide a convenient way to use all Firecrawl features and automatically handle polling for async operations.
 
 ### Python
 
@@ -536,7 +535,7 @@ for doc in docs.data:
     print(doc.metadata.source_url, doc.markdown[:100])
 
 # Search the web
-results = app.search("best web scraping tools 2024", limit=10)
+results = app.search("best AI data tools 2024", limit=10)
 print(results)
 ```
 
@@ -566,7 +565,7 @@ docs.data.forEach(doc => {
 });
 
 // Search the web
-const results = await app.search('best web scraping tools 2024', { limit: 10 });
+const results = await app.search('best AI data tools 2024', { limit: 10 });
 results.data.web.forEach(result => {
     console.log(`${result.title}: ${result.url}`);
 });
@@ -614,7 +613,7 @@ for (FirecrawlDocument page : job.getData()) {
 }
 
 // Search the web
-SearchParams searchParams = new SearchParams("best web scraping tools 2024");
+SearchParams searchParams = new SearchParams("best AI data tools 2024");
 searchParams.setLimit(10);
 SearchResponse results = client.search(searchParams);
 for (SearchResult r : results.getResults()) {
@@ -647,7 +646,7 @@ end
 
 # Search the web
 {:ok, response} = Firecrawl.search_and_scrape(
-  query: "best web scraping tools 2024",
+  query: "best AI data tools 2024",
   limit: 10
 )
 
