@@ -2,11 +2,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import {
-  __testing,
-  startMatrixQaHarness,
-  writeMatrixQaHarnessFiles,
-} from "./matrix-harness.runtime.js";
+import { __testing, startMatrixQaHarness, writeMatrixQaHarnessFiles } from "./harness.runtime.js";
 
 describe("matrix harness runtime", () => {
   it("writes a pinned Tuwunel compose file and redacted manifest", async () => {
@@ -87,6 +83,10 @@ describe("matrix harness runtime", () => {
       expect(result.baseUrl).toBe("http://127.0.0.1:28008/");
       expect(result.stopCommand).toBe(
         `docker compose -f ${outputDir}/docker-compose.matrix-qa.yml down --remove-orphans`,
+      );
+      await result.restartService();
+      expect(calls).toContain(
+        `docker compose -f ${outputDir}/docker-compose.matrix-qa.yml restart matrix-qa-homeserver @/repo/openclaw`,
       );
     } finally {
       await rm(outputDir, { recursive: true, force: true });
