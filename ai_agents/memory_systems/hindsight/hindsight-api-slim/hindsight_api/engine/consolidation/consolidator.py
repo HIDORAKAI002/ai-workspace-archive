@@ -593,17 +593,15 @@ async def _trigger_mental_model_refreshes(
     """
     pool = memory_engine._pool
 
-    # Find mental models with refresh_after_consolidation=true
-    # SECURITY: Control which mental models get refreshed based on tags
+    # Find mental models with refresh_after_consolidation=true that are actually stale.
+    # The tag filter on the SELECT enforces the security boundary (never look outside the
+    # relevant tag scope); compute_mental_model_is_stale then verifies that new memories
+    # in the MM's scope really were ingested since its last refresh.
     async with pool.acquire() as conn:
         if consolidated_tags:
-            # Tagged memories were consolidated - refresh:
-            # 1. Mental models with overlapping tags (security boundary)
-            # 2. Untagged mental models (they're "global" and available to all contexts)
-            # DO NOT refresh mental models with different tags
-            rows = await conn.fetch(
+            candidates = await conn.fetch(
                 f"""
-                SELECT id, name, tags
+                SELECT id, name, tags, last_refreshed_at, trigger
                 FROM {fq_table("mental_models")}
                 WHERE bank_id = $1
                   AND (trigger->>'refresh_after_consolidation')::boolean = true
@@ -616,11 +614,9 @@ async def _trigger_mental_model_refreshes(
                 consolidated_tags,
             )
         else:
-            # Untagged memories were consolidated - only refresh untagged mental models
-            # SECURITY: Tagged mental models are NOT refreshed when untagged memories are consolidated
-            rows = await conn.fetch(
+            candidates = await conn.fetch(
                 f"""
-                SELECT id, name, tags
+                SELECT id, name, tags, last_refreshed_at, trigger
                 FROM {fq_table("mental_models")}
                 WHERE bank_id = $1
                   AND (trigger->>'refresh_after_consolidation')::boolean = true
@@ -628,6 +624,11 @@ async def _trigger_mental_model_refreshes(
                 """,
                 bank_id,
             )
+
+        rows = []
+        for candidate in candidates:
+            if await memory_engine.compute_mental_model_is_stale(conn, bank_id, candidate):
+                rows.append(candidate)
 
     if not rows:
         return 0

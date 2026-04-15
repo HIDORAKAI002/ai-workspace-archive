@@ -130,6 +130,9 @@ class WorkerPoller:
         self._active_tasks: dict[str, ActiveTaskInfo] = {}
         # Track in-flight tasks by operation type
         self._in_flight_by_type: dict[str, int] = {}
+        # Rotation offset for per-tenant fair claiming. Advances past the last
+        # schema we serviced so a busy tenant can't monopolize the poll order.
+        self._next_schema_idx: int = 0
 
     async def _get_schemas(self) -> list[str | None]:
         """Get list of schemas to poll. Returns [None] for default schema (no prefix)."""
@@ -196,6 +199,15 @@ class WorkerPoller:
 
         Uses FOR UPDATE SKIP LOCKED to ensure no conflicts with other workers.
 
+        Schema iteration is round-robin to prevent one busy tenant from
+        starving others. Each poll starts at ``self._next_schema_idx`` and
+        wraps around the full list. First pass caps at 1 claim per schema
+        so every tenant with pending work gets a fair chance; a second
+        pass backfills remaining slots from any schema when there's spare
+        capacity. After the call, the offset advances past the last
+        schema we serviced (or by 1 if nothing was claimed) so the next
+        poll starts at a different position.
+
         Returns:
             List of ClaimedTask objects containing operation_id, task_dict, and schema
         """
@@ -206,15 +218,29 @@ class WorkerPoller:
             return []
 
         schemas = await self._get_schemas()
+        if not schemas:
+            return []
+
+        # Rotate the schema order so no tenant is always first.
+        start = self._next_schema_idx % len(schemas)
+        rotated = list(enumerate(schemas))
+        rotated = rotated[start:] + rotated[:start]
+
         all_tasks: list[ClaimedTask] = []
         remaining_non_consolidation = non_consolidation_available
         remaining_consolidation = consolidation_available
+        last_serviced_idx: int | None = None
 
-        for schema in schemas:
+        # Pass 1: fairness pass — at most 1 claim per pool per schema,
+        # so every tenant with pending work is considered before we
+        # return to a tenant we already claimed from.
+        for orig_idx, schema in rotated:
             if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
                 break
 
-            tasks = await self._claim_batch_for_schema(schema, remaining_non_consolidation, remaining_consolidation)
+            nc_limit = min(1, remaining_non_consolidation)
+            c_limit = min(1, remaining_consolidation)
+            tasks = await self._claim_batch_for_schema(schema, nc_limit, c_limit)
 
             for task in tasks:
                 op_type = task.task_dict.get("operation_type", "unknown")
@@ -223,7 +249,40 @@ class WorkerPoller:
                 else:
                     remaining_non_consolidation -= 1
 
+            if tasks:
+                last_serviced_idx = orig_idx
+
             all_tasks.extend(tasks)
+
+        # Pass 2: capacity pass — fill any remaining slots from whichever
+        # schemas still have work. Preserves rotation order so a tenant
+        # earlier in the rotation doesn't monopolize again when only one
+        # tenant has more work.
+        if remaining_non_consolidation > 0 or remaining_consolidation > 0:
+            for orig_idx, schema in rotated:
+                if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
+                    break
+
+                tasks = await self._claim_batch_for_schema(schema, remaining_non_consolidation, remaining_consolidation)
+
+                for task in tasks:
+                    op_type = task.task_dict.get("operation_type", "unknown")
+                    if op_type == "consolidation":
+                        remaining_consolidation -= 1
+                    else:
+                        remaining_non_consolidation -= 1
+
+                if tasks:
+                    last_serviced_idx = orig_idx
+
+                all_tasks.extend(tasks)
+
+        # Advance offset past the last schema we serviced, or by 1 if
+        # nothing was claimed (so we don't keep re-hitting an empty head).
+        if last_serviced_idx is not None:
+            self._next_schema_idx = (last_serviced_idx + 1) % len(schemas)
+        else:
+            self._next_schema_idx = (start + 1) % len(schemas)
 
         return all_tasks
 

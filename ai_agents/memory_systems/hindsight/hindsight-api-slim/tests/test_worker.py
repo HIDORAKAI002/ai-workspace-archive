@@ -1836,3 +1836,145 @@ class TestMarkFailedParentPropagation:
             f"Parent batch_retain should be 'failed' after child fails via unhandled exception, "
             f"got '{parent_row['status']}'"
         )
+
+
+class TestClaimBatchRotation:
+    """Tests for round-robin schema rotation in claim_batch.
+
+    These use a mocked _claim_batch_for_schema so the tests are hermetic
+    and exercise rotation logic without needing multiple real tenant schemas.
+    """
+
+    def _make_poller_with_fake_work(self, pool, pending_per_schema, max_slots=1):
+        """Build a poller whose schemas and per-schema claims are scripted.
+
+        ``pending_per_schema`` maps schema name -> current pending count.
+        The fake claim handler decrements the count and returns a ClaimedTask
+        if the schema still has work, else returns an empty list.
+        """
+        from hindsight_api.extensions.tenant import Tenant, TenantExtension
+        from hindsight_api.worker import WorkerPoller
+        from hindsight_api.worker.poller import ClaimedTask
+
+        schemas = list(pending_per_schema.keys())
+
+        class StaticTenantExtension(TenantExtension):
+            def __init__(self):
+                super().__init__(config={})
+
+            async def authenticate(self, context):
+                raise NotImplementedError
+
+            async def list_tenants(self) -> list[Tenant]:
+                return [Tenant(schema=s) for s in schemas]
+
+        poller = WorkerPoller(
+            pool=pool,
+            worker_id="test-rotation",
+            executor=lambda x: None,
+            tenant_extension=StaticTenantExtension(),
+            max_slots=max_slots,
+            # No consolidation reservation — all slots available for non-consolidation
+            # test tasks. Keeps the fair-rotation behavior easy to assert.
+            consolidation_max_slots=0,
+        )
+
+        serviced: list[str] = []
+
+        async def fake_claim(schema, non_consolidation_limit, consolidation_limit):
+            # Tests only exercise non-consolidation ("test") tasks, so we only
+            # consult the non-consolidation limit.
+            remaining = pending_per_schema.get(schema, 0)
+            if remaining <= 0 or non_consolidation_limit <= 0:
+                return []
+            take = min(remaining, non_consolidation_limit)
+            pending_per_schema[schema] = remaining - take
+            out = []
+            for _ in range(take):
+                serviced.append(schema)
+                out.append(
+                    ClaimedTask(
+                        operation_id=str(uuid.uuid4()),
+                        task_dict={"operation_type": "test", "bank_id": schema or "default"},
+                        schema=schema,
+                    )
+                )
+            return out
+
+        poller._claim_batch_for_schema = fake_claim  # type: ignore[method-assign]
+        return poller, serviced
+
+    @pytest.mark.asyncio
+    async def test_rotation_advances_past_serviced_schema(self, pool):
+        """After claiming from schema at offset N, next poll starts at N+1.
+
+        This is the 'crucial detail' that separates working rotation from
+        broken rotation: advancing +1 from the previous offset would cause
+        the first schema with work to always win.
+        """
+        # Only schema "b" has work; "a" and "c" are idle.
+        pending = {"a": 0, "b": 5, "c": 0}
+        poller, serviced = self._make_poller_with_fake_work(pool, pending, max_slots=1)
+
+        await poller.claim_batch()
+        # Found work at index 1 ("b"), so next offset should be 2 ("c").
+        assert poller._next_schema_idx == 2
+        assert serviced == ["b"]
+
+    @pytest.mark.asyncio
+    async def test_rotation_advances_by_one_when_no_work(self, pool):
+        """Empty sweep advances offset by 1 so we don't keep re-hitting the same head."""
+        pending = {"a": 0, "b": 0, "c": 0}
+        poller, serviced = self._make_poller_with_fake_work(pool, pending, max_slots=1)
+
+        poller._next_schema_idx = 0
+        await poller.claim_batch()
+        assert poller._next_schema_idx == 1
+        assert serviced == []
+
+        await poller.claim_batch()
+        assert poller._next_schema_idx == 2
+        assert serviced == []
+
+    @pytest.mark.asyncio
+    async def test_small_tenant_not_starved_by_busy_tenant(self, pool):
+        """Small tenant with 1 pending task gets serviced within bounded polls
+        even when another tenant has a huge backlog. Prevents the regression
+        observed in prod where one tenant's 1000+ retains monopolized workers.
+        """
+        pending = {"friday-main": 1000, "tenant-b": 1}
+        poller, serviced = self._make_poller_with_fake_work(pool, pending, max_slots=1)
+
+        # MAX_SLOTS=1 means one claim per poll. Over ~2 polls the rotation
+        # must reach tenant-b, regardless of which started first.
+        for _ in range(5):
+            await poller.claim_batch()
+            if "tenant-b" in serviced:
+                break
+
+        assert "tenant-b" in serviced, f"tenant-b was starved; serviced={serviced[:20]}"
+
+    @pytest.mark.asyncio
+    async def test_max_slots_greater_than_one_spreads_across_tenants(self, pool):
+        """With MAX_SLOTS>1 the first pass caps at 1 claim per schema so
+        a single poll services multiple tenants rather than draining one.
+        """
+        pending = {"a": 10, "b": 10, "c": 10, "d": 10, "e": 10}
+        poller, serviced = self._make_poller_with_fake_work(pool, pending, max_slots=3)
+
+        await poller.claim_batch()
+        # First pass gives 1 claim each to 3 different schemas — not 3 from the same one.
+        assert len(serviced) == 3
+        assert len(set(serviced)) == 3, f"Expected 3 different tenants, got {serviced}"
+
+    @pytest.mark.asyncio
+    async def test_max_slots_greater_than_one_backfills_when_only_one_tenant_has_work(self, pool):
+        """Second pass fills remaining slots when only one tenant has work,
+        so fairness doesn't sacrifice throughput in the single-tenant case.
+        """
+        pending = {"a": 0, "b": 10, "c": 0}
+        poller, serviced = self._make_poller_with_fake_work(pool, pending, max_slots=3)
+
+        await poller.claim_batch()
+        # Pass 1: 1 from "b" (only one with work). Pass 2: 2 more from "b".
+        assert serviced == ["b", "b", "b"]

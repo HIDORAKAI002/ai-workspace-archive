@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { client, type TagGroup, type TagsMatch } from "@/lib/api";
+import { formatAbsoluteDateTime, formatRelativeTime } from "@/lib/relative-time";
+import { CompactMarkdown } from "./compact-markdown";
 import { useBank } from "@/lib/bank-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,26 +52,13 @@ import {
   Loader2,
   Trash2,
   RefreshCw,
-  X,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Pencil,
   LayoutGrid,
   List,
-  History,
-  MoreVertical,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MemoryDetailModal } from "./memory-detail-modal";
-import { DirectiveDetailModal } from "./directive-detail-modal";
 import { MentalModelDetailModal } from "./mental-model-detail-modal";
 
 interface ReflectResponseBasedOnFact {
@@ -274,18 +261,6 @@ export function MentalModelsView() {
               {viewMode === "dashboard" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {paginatedMentalModels.map((m) => {
-                    const refreshedDate = new Date(m.last_refreshed_at);
-                    const dateDisplay = refreshedDate.toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    });
-                    const timeDisplay = refreshedDate.toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    });
-
                     return (
                       <Card
                         key={m.id}
@@ -332,24 +307,9 @@ export function MentalModelsView() {
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                             {m.source_query}
                           </p>
-                          <div className="text-sm text-foreground mb-3 border-t border-border pt-3">
-                            {/* Check if content has tables or complex markdown */}
-                            {m.content.includes("|") ||
-                            m.content.includes("```") ||
-                            m.content.includes("\n\n") ? (
-                              // Show plain text preview for complex content
-                              <div className="line-clamp-3 text-muted-foreground italic">
-                                {m.content.substring(0, 150)}...{" "}
-                                <span className="text-primary">Click to view full content</span>
-                              </div>
-                            ) : (
-                              // Render simple markdown with line clamp
-                              <div className="line-clamp-6 prose prose-sm dark:prose-invert max-w-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {m.content}
-                                </ReactMarkdown>
-                              </div>
-                            )}
+                          <div className="relative mb-3 border-t border-border pt-3 max-h-40 overflow-hidden">
+                            <CompactMarkdown>{m.content}</CompactMarkdown>
+                            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent" />
                           </div>
                           <div className="flex items-center justify-between text-xs border-t border-border pt-3">
                             <div className="flex items-center gap-2">
@@ -371,8 +331,11 @@ export function MentalModelsView() {
                                 </div>
                               )}
                             </div>
-                            <div className="text-muted-foreground">
-                              {dateDisplay} {timeDisplay}
+                            <div
+                              className="text-muted-foreground"
+                              title={formatAbsoluteDateTime(m.last_refreshed_at)}
+                            >
+                              {formatRelativeTime(m.last_refreshed_at)}
                             </div>
                           </div>
                         </CardContent>
@@ -396,18 +359,6 @@ export function MentalModelsView() {
                   </TableHeader>
                   <TableBody>
                     {paginatedMentalModels.map((m) => {
-                      const refreshedDate = new Date(m.last_refreshed_at);
-                      const dateDisplay = refreshedDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                      const timeDisplay = refreshedDate.toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      });
-
                       return (
                         <TableRow
                           key={m.id}
@@ -429,9 +380,11 @@ export function MentalModelsView() {
                               {m.source_query}
                             </div>
                           </TableCell>
-                          <TableCell className="py-2 text-sm text-foreground">
-                            <div>{dateDisplay}</div>
-                            <div className="text-xs text-muted-foreground">{timeDisplay}</div>
+                          <TableCell
+                            className="py-2 text-sm text-foreground"
+                            title={formatAbsoluteDateTime(m.last_refreshed_at)}
+                          >
+                            {formatRelativeTime(m.last_refreshed_at)}
                           </TableCell>
                           <TableCell className="py-2">
                             <Button
@@ -553,23 +506,19 @@ export function MentalModelsView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {selectedMentalModel && (
-        <MentalModelDetailPanel
-          mentalModel={selectedMentalModel}
-          onClose={() => setSelectedMentalModel(null)}
-          onDelete={() =>
-            setDeleteTarget({ id: selectedMentalModel.id, name: selectedMentalModel.name })
-          }
-          onEdit={() => {
-            setMentalModelToUpdate(selectedMentalModel);
-            setShowUpdateDialog(true);
-          }}
-          onRefreshed={(updated) => {
-            setMentalModels((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
-            setSelectedMentalModel(updated);
-          }}
-        />
-      )}
+      <MentalModelDetailModal
+        mentalModelId={selectedMentalModel?.id ?? null}
+        onClose={() => setSelectedMentalModel(null)}
+        onDelete={(m) => setDeleteTarget({ id: m.id, name: m.name })}
+        onEdit={(m) => {
+          setMentalModelToUpdate(m);
+          setShowUpdateDialog(true);
+        }}
+        onRefreshed={(updated) => {
+          setMentalModels((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+          setSelectedMentalModel(updated);
+        }}
+      />
 
       {mentalModelToUpdate && (
         <UpdateMentalModelDialog
@@ -1342,361 +1291,5 @@ function UpdateMentalModelDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function MentalModelDetailPanel({
-  mentalModel,
-  onClose,
-  onDelete,
-  onEdit,
-  onRefreshed,
-}: {
-  mentalModel: MentalModel;
-  onClose: () => void;
-  onDelete: () => void;
-  onEdit: () => void;
-  onRefreshed: (m: MentalModel) => void;
-}) {
-  const { currentBank } = useBank();
-  const [refreshing, setRefreshing] = useState(false);
-  const [viewMemoryId, setViewMemoryId] = useState<string | null>(null);
-  const [viewDirectiveId, setViewDirectiveId] = useState<string | null>(null);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-
-  const handleRefresh = async () => {
-    if (!currentBank) return;
-
-    setRefreshing(true);
-    const originalRefreshedAt = mentalModel.last_refreshed_at;
-
-    try {
-      // Submit the refresh task
-      await client.refreshMentalModel(currentBank, mentalModel.id);
-
-      // Poll until last_refreshed_at changes
-      const pollInterval = 1000; // 1 second
-      const maxAttempts = 120; // 2 minutes max
-      let attempts = 0;
-
-      const poll = async (): Promise<void> => {
-        attempts++;
-        try {
-          const updated = await client.getMentalModel(currentBank, mentalModel.id);
-          if (updated.last_refreshed_at !== originalRefreshedAt) {
-            // Refresh complete
-            onRefreshed(updated);
-            setRefreshing(false);
-            return;
-          }
-          if (attempts >= maxAttempts) {
-            // Timeout
-            setRefreshing(false);
-            toast.error("Refresh timeout", {
-              description:
-                "Refresh is taking longer than expected. Check the operations list for status.",
-            });
-            return;
-          }
-          // Continue polling
-          setTimeout(poll, pollInterval);
-        } catch (error) {
-          console.error("Error polling mental model:", error);
-          setRefreshing(false);
-        }
-      };
-
-      // Start polling after a short delay
-      setTimeout(poll, pollInterval);
-    } catch (error) {
-      // Error toast is shown automatically by the API client interceptor
-      setRefreshing(false);
-    }
-  };
-
-  const formatDateTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })} at ${date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })}`;
-  };
-
-  // Extract all memories from based_on (excluding observations which are shown separately)
-  const basedOnFacts = mentalModel.reflect_response?.based_on
-    ? Object.entries(mentalModel.reflect_response.based_on)
-        .filter(([factType]) => factType !== "observation")
-        .flatMap(([factType, facts]) => facts.map((fact) => ({ ...fact, factType })))
-    : [];
-
-  // Helper to determine display label for fact type
-  const getFactTypeDisplay = (fact: any) => {
-    if (fact.factType === "directives") {
-      return {
-        label: "directive",
-        color: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-      };
-    }
-    if (fact.factType === "mental-models") {
-      return {
-        label: "mental model",
-        color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-      };
-    }
-    if (fact.factType === "world") {
-      return { label: "world", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" };
-    }
-    if (fact.factType === "experience") {
-      return { label: "experience", color: "bg-green-500/10 text-green-600 dark:text-green-400" };
-    }
-    return { label: fact.factType, color: "bg-slate-500/10 text-slate-600 dark:text-slate-400" };
-  };
-
-  // Observations are now in based_on with type=observation
-  const observations = mentalModel.reflect_response?.based_on?.observation || [];
-
-  return (
-    <div className="fixed right-0 top-0 h-screen w-1/2 bg-card border-l shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300 ease-out">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-8 pb-5 border-b border-border">
-          <div className="flex-1 mr-4">
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-foreground">{mentalModel.name}</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{mentalModel.source_query}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2 gap-1" disabled={refreshing}>
-                  {refreshing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <MoreVertical className="h-4 w-4" />
-                  )}
-                  <span className="text-xs">Actions</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleRefresh}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowHistoryModal(true)}>
-                  <History className="h-4 w-4 mr-2" />
-                  View History
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Metadata Section */}
-          <div className="space-y-4">
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">ID</div>
-              <div className="text-sm text-foreground font-mono">{mentalModel.id}</div>
-            </div>
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">Name</div>
-              <div className="text-sm text-foreground">{mentalModel.name}</div>
-            </div>
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
-                Source Query
-              </div>
-              <div className="text-sm text-foreground">{mentalModel.source_query}</div>
-            </div>
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
-                Max Tokens
-              </div>
-              <div className="text-sm text-foreground">{mentalModel.max_tokens}</div>
-            </div>
-            {mentalModel.tags.length > 0 && (
-              <div>
-                <div className="text-xs font-bold text-muted-foreground uppercase mb-2">Tags</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {mentalModel.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 rounded text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
-                Auto-refresh
-              </div>
-              <span
-                className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
-                  mentalModel.trigger?.refresh_after_consolidation
-                    ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                    : "bg-slate-500/10 text-slate-600 dark:text-slate-400"
-                }`}
-              >
-                {mentalModel.trigger?.refresh_after_consolidation ? "Auto Refresh" : "Manual"}
-              </span>
-            </div>
-            {mentalModel.last_refreshed_at && (
-              <div>
-                <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
-                  Last Refreshed
-                </div>
-                <div className="text-sm text-foreground">
-                  {formatDateTime(mentalModel.last_refreshed_at)}
-                </div>
-              </div>
-            )}
-            <div>
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">Created</div>
-              <div className="text-sm text-foreground">
-                {formatDateTime(mentalModel.created_at)}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-border pt-5">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Content
-            </div>
-            <div className="prose prose-base dark:prose-invert max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{mentalModel.content}</ReactMarkdown>
-            </div>
-          </div>
-
-          {/* Based On Facts Section */}
-          {basedOnFacts.length > 0 && (
-            <div className="border-t border-border pt-5">
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-3">
-                Based On ({basedOnFacts.length} {basedOnFacts.length === 1 ? "fact" : "facts"})
-              </div>
-              <div className="space-y-3">
-                {basedOnFacts.map((fact, i) => {
-                  const display = getFactTypeDisplay(fact);
-                  return (
-                    <div
-                      key={fact.id || i}
-                      className="p-4 bg-muted/50 rounded-lg border border-border/50"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <span
-                          className={`px-2 py-0.5 rounded text-xs font-medium ${display.color}`}
-                        >
-                          {display.label}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-6 text-xs"
-                          onClick={() => {
-                            if (fact.factType === "directives") {
-                              setViewDirectiveId(fact.id);
-                            } else {
-                              setViewMemoryId(fact.id);
-                            }
-                          }}
-                        >
-                          View
-                        </Button>
-                      </div>
-                      <p className="text-sm text-foreground leading-relaxed">{fact.text}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Observations Used Section */}
-          {observations.length > 0 && (
-            <div className="border-t border-border pt-5">
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-3">
-                Observations Used ({observations.length})
-              </div>
-              <div className="space-y-3">
-                {observations.map((obs, i) => (
-                  <div
-                    key={obs.id || i}
-                    className="p-4 bg-muted/50 rounded-lg border border-border/50"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                        observation
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-xs"
-                        onClick={() => setViewMemoryId(obs.id)}
-                      >
-                        View
-                      </Button>
-                    </div>
-                    <p className="text-sm text-foreground leading-relaxed">{obs.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* No based_on data yet */}
-          {!mentalModel.reflect_response && (
-            <div className="border-t border-border pt-5">
-              <div className="text-xs font-bold text-muted-foreground uppercase mb-3">Based On</div>
-              <p className="text-sm text-muted-foreground">
-                No source data available. Click &quot;Refresh&quot; to regenerate with source
-                tracking.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Memory Detail Modal */}
-      {viewMemoryId && currentBank && (
-        <MemoryDetailModal memoryId={viewMemoryId} onClose={() => setViewMemoryId(null)} />
-      )}
-
-      {/* Directive Detail Modal */}
-      {viewDirectiveId && currentBank && (
-        <DirectiveDetailModal
-          directiveId={viewDirectiveId}
-          onClose={() => setViewDirectiveId(null)}
-        />
-      )}
-
-      {/* Mental Model History Modal */}
-      <MentalModelDetailModal
-        mentalModelId={showHistoryModal ? mentalModel.id : null}
-        onClose={() => setShowHistoryModal(false)}
-        initialTab="history"
-      />
-    </div>
   );
 }

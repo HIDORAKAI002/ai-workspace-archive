@@ -1639,6 +1639,14 @@ class MentalModelResponse(BaseModel):
         default=None,
         description="Full reflect API response payload including based_on facts and observations",
     )
+    is_stale: bool | None = Field(
+        default=None,
+        description=(
+            "True when new memories matching this mental model's tag/fact_type scope have been "
+            "ingested since last_refreshed_at, or consolidation has pending items. Only populated "
+            "when detail=full."
+        ),
+    )
 
 
 class MentalModelListResponse(BaseModel):

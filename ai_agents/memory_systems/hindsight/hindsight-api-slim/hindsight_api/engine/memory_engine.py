@@ -5556,6 +5556,7 @@ class MemoryEngine(MemoryEngineInterface):
             query_embedding = embeddings[0]
             async with pool.acquire() as conn:
                 return await tool_search_mental_models(
+                    self,
                     conn,
                     bank_id,
                     q,
@@ -5565,7 +5566,6 @@ class MemoryEngine(MemoryEngineInterface):
                     tags_match=tags_match,
                     tag_groups=tag_groups,
                     exclude_ids=exclude_mental_model_ids,
-                    pending_consolidation=pending_consolidation,
                 )
 
         # Get reflect source facts config (hierarchical: env → tenant → bank)
@@ -6854,6 +6854,8 @@ class MemoryEngine(MemoryEngineInterface):
             )
 
             result = self._row_to_mental_model(row, detail=detail) if row else None
+            if result is not None and detail == "full":
+                result["is_stale"] = await self.compute_mental_model_is_stale(conn, bank_id, row)
 
         # Post-operation hook (usage recording)
         if result and self._operation_validator:
@@ -7147,16 +7149,22 @@ class MemoryEngine(MemoryEngineInterface):
         pool = await self._get_pool()
 
         async with acquire_with_retry(pool) as conn:
-            # If content is changing, fetch current content first to record history
+            # If content is changing, fetch current content + reflect_response to record history
             previous_content: str | None = None
+            previous_reflect_response: dict[str, Any] | None = None
             if content is not None:
                 current_row = await conn.fetchrow(
-                    f"SELECT content FROM {fq_table('mental_models')} WHERE bank_id = $1 AND id = $2",
+                    f"SELECT content, reflect_response FROM {fq_table('mental_models')} WHERE bank_id = $1 AND id = $2",
                     bank_id,
                     mental_model_id,
                 )
                 if current_row:
                     previous_content = current_row["content"]
+                    raw_rr = current_row["reflect_response"]
+                    if isinstance(raw_rr, str):
+                        previous_reflect_response = json.loads(raw_rr) if raw_rr else None
+                    else:
+                        previous_reflect_response = raw_rr
 
             # Build dynamic update
             updates = []
@@ -7176,7 +7184,13 @@ class MemoryEngine(MemoryEngineInterface):
                 # Record history entry with the previous content
                 if get_config().enable_mental_model_history:
                     history_entry = json.dumps(
-                        [{"previous_content": previous_content, "changed_at": datetime.now(timezone.utc).isoformat()}]
+                        [
+                            {
+                                "previous_content": previous_content,
+                                "previous_reflect_response": previous_reflect_response,
+                                "changed_at": datetime.now(timezone.utc).isoformat(),
+                            }
+                        ]
                     )
                     updates.append(f"history = COALESCE(history, '[]'::jsonb) || ${param_idx}::jsonb")
                     params.append(history_entry)
@@ -7263,6 +7277,77 @@ class MemoryEngine(MemoryEngineInterface):
             )
 
         return result == "DELETE 1"
+
+    async def compute_mental_model_is_stale(
+        self,
+        conn,
+        bank_id: str,
+        mm_row: Any,
+    ) -> bool:
+        """Check whether a mental model is out of date.
+
+        A mental model is stale when a memory in its **scope** has been ingested after
+        ``last_refreshed_at``. The scope is defined by the model's ``tags`` +
+        ``trigger.tags_match`` semantics (``any`` / ``all`` / ``any_strict`` /
+        ``all_strict``, matching recall semantics) and its ``trigger.fact_types`` filter
+        when set. Memories still pending consolidation are included because they are
+        already rows in ``memory_units``; no separate ``pending_consolidation`` signal is
+        needed — it would bypass the tag scope and falsely flag unrelated MMs.
+
+        Untagged mental model defaults to ``tags_match="any"`` so it matches any memory
+        ingested in the bank (what a user would expect for a "global" MM).
+        """
+        from hindsight_api.engine.search.tags import _parse_tags_match
+
+        def _get(key: str) -> Any:
+            if isinstance(mm_row, dict):
+                return mm_row.get(key)
+            try:
+                return mm_row[key]
+            except (KeyError, TypeError):
+                return None
+
+        last_refreshed_at = _get("last_refreshed_at")
+        if not last_refreshed_at:
+            return True
+
+        raw_tags = _get("tags")
+        mm_tags: list[str] = list(raw_tags) if raw_tags else []
+
+        trigger = _get("trigger")
+        if isinstance(trigger, str):
+            try:
+                trigger = json.loads(trigger)
+            except json.JSONDecodeError:
+                trigger = None
+        trigger = trigger or {}
+        fact_types: list[str] = list(trigger.get("fact_types") or [])
+        tags_match = trigger.get("tags_match")
+        if not tags_match:
+            tags_match = "any"  # default: untagged MM is "global", tagged MM matches any overlap
+
+        params: list[Any] = [bank_id, last_refreshed_at]
+        where = ["bank_id = $1", "created_at > $2"]
+
+        if mm_tags:
+            operator, include_untagged = _parse_tags_match(tags_match)
+            params.append(mm_tags)
+            tag_idx = len(params)
+            if include_untagged:
+                where.append(f"(tags IS NULL OR tags = '{{}}' OR tags {operator} ${tag_idx}::varchar[])")
+            else:
+                where.append(f"(tags IS NOT NULL AND tags != '{{}}' AND tags {operator} ${tag_idx}::varchar[])")
+        # else: untagged MM → no tag constraint, matches any ingested memory in scope
+
+        if fact_types:
+            params.append(fact_types)
+            where.append(f"fact_type = ANY(${len(params)}::text[])")
+
+        row = await conn.fetchrow(
+            f"SELECT 1 FROM {fq_table('memory_units')} WHERE {' AND '.join(where)} LIMIT 1",
+            *params,
+        )
+        return row is not None
 
     def _row_to_mental_model(self, row, *, detail: str = "full") -> dict[str, Any]:
         """Convert a database row to a mental model dict.
