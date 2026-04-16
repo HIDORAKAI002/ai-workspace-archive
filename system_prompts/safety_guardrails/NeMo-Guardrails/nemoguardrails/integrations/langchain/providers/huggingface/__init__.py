@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(0.24.0): remove this file and its test in TestMovedModuleStubs
-raise ImportError(
-    "nemoguardrails.llm.helpers has moved to nemoguardrails.integrations.langchain.helpers. Please update your imports."
-)
+from nemoguardrails.integrations.langchain.providers.huggingface.pipeline import HuggingFacePipelineCompatible
+from nemoguardrails.integrations.langchain.providers.huggingface.streamers import AsyncTextIteratorStreamer
+
+__all__ = [
+    "HuggingFacePipelineCompatible",
+    "AsyncTextIteratorStreamer",
+]

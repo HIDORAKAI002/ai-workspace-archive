@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for model_manager module."""
+"""Unit tests for engine_registry module."""
 
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from nemoguardrails.guardrails.model_manager import ModelManager
+from nemoguardrails.guardrails.api_engine import APIEngine
+from nemoguardrails.guardrails.engine_registry import EngineRegistry
+from nemoguardrails.guardrails.model_engine import ModelEngine
 from nemoguardrails.rails.llm.config import RailsConfig
 from tests.guardrails.test_data import NEMOGUARDS_CONFIG
 
@@ -33,54 +35,82 @@ def rails_config():
 @pytest.fixture
 @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
 def manager(rails_config):
-    """Create a ModelManager from test config."""
-    return ModelManager(rails_config)
+    """Create a EngineRegistry from test config."""
+    return EngineRegistry(rails_config.models, rails_config.rails.config)
 
 
-class TestModelManagerInit:
-    """Test ModelManager creates engines from config."""
+class TestEngineRegistryInit:
+    """Test EngineRegistry creates engines from config."""
 
     def test_create_engines_for_each_model_type(self, manager):
-        """Creates one engine per model type in config."""
-        manager_engine_types = {engine for engine, _ in manager._engines.items()}
-        assert {"main", "content_safety", "topic_control"} == manager_engine_types
+        """Creates one engine per model type in config, plus API engines."""
+        engine_names = set(manager._engines.keys())
+        assert {"main", "content_safety", "topic_control", "jailbreak_detection"} == engine_names
 
     @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
     def test_empty_config_creates_no_engines(self):
         """Empty models list results in no engines."""
         config = RailsConfig.from_content(config={"models": []})
-        mgr = ModelManager(config)
+        mgr = EngineRegistry(config.models, config.rails.config)
         assert len(mgr._engines) == 0
 
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    def test_model_type_collision_with_api_engine_raises(self):
+        """Raises ValueError when a model type collides with an API engine name."""
+        config = RailsConfig.from_content(
+            config={
+                "models": [
+                    {"type": "main", "engine": "nim", "model": "meta/llama-3.3-70b-instruct"},
+                    {"type": "jailbreak_detection", "engine": "nim", "model": "some/model"},
+                ],
+                "rails": {
+                    "config": {
+                        "jailbreak_detection": {
+                            "nim_base_url": "https://ai.api.nvidia.com",
+                            "nim_server_endpoint": "/v1/security/nvidia/nemoguard-jailbreak-detect",
+                            "api_key_env_var": "NVIDIA_API_KEY",
+                        }
+                    }
+                },
+            }
+        )
+        with pytest.raises(ValueError, match="already registered"):
+            EngineRegistry(config.models, config.rails.config)
 
-class TestModelManagerGetModelEngine:
+
+class TestEngineRegistryGetModelEngine:
     """Test engine lookup by model type."""
 
     def test_get_existing_engine(self, manager):
         """Returns the main LLM engine with correct model name."""
-        engine = manager._get_model_engine("main")
+        engine = manager._get_engine("main", ModelEngine)
         assert engine is not None
         assert engine.model_name == "meta/llama-3.3-70b-instruct"
 
     def test_get_content_safety_engine(self, manager):
         """Returns the content safety engine with correct model name."""
-        engine = manager._get_model_engine("content_safety")
+        engine = manager._get_engine("content_safety", ModelEngine)
         assert engine.model_name == "nvidia/llama-3.1-nemoguard-8b-content-safety"
 
     def test_get_missing_engine_raises_key_error(self, manager):
         """Raises KeyError for an unconfigured model type."""
-        with pytest.raises(KeyError, match="No model configured with type 'nonexistent'"):
-            manager._get_model_engine("nonexistent")
+        with pytest.raises(KeyError, match="No engine configured with name 'nonexistent'"):
+            manager._get_engine("nonexistent", ModelEngine)
 
     def test_key_error_message_lists_available_types(self, manager):
         """KeyError message includes available model types for debugging."""
         with pytest.raises(KeyError) as exc_info:
-            manager._get_model_engine("missing")
+            manager._get_engine("missing", ModelEngine)
         assert "main" in str(exc_info.value)
 
+    def test_wrong_type_raises_type_error(self, manager):
+        """Raises TypeError when engine exists but is the wrong type."""
+        with pytest.raises(TypeError, match="Engine 'jailbreak_detection' is APIEngine, expected ModelEngine"):
+            manager._get_engine("jailbreak_detection", ModelEngine)
 
-class TestModelManagerLifecycle:
-    """Test ModelManager start/stop delegation to engines."""
+
+class TestEngineRegistryLifecycle:
+    """Test EngineRegistry start/stop delegation to engines."""
 
     @pytest.mark.asyncio
     async def test_start_calls_start_on_all_engines(self, manager):
@@ -149,32 +179,30 @@ class TestModelManagerLifecycle:
             engine.stop.assert_not_called()
 
 
-class TestModelManagerGenerateAsync:
-    """Test generate_async routes to the correct engine and extracts content."""
+class TestEngineRegistryGenerateAsync:
+    """Test model_call routes to the correct engine."""
 
     @pytest.mark.asyncio
     async def test_generate_from_correct_engine(self, manager):
-        """Calls the named engine and returns choices[0].message.content."""
+        """Calls the named engine's chat_completion() and returns its result."""
         messages = [{"role": "user", "content": "Hi"}]
-        mock_response = {"choices": [{"message": {"role": "assistant", "content": "Hello world"}}]}
-        engine = manager._get_model_engine("main")
-        engine.call = AsyncMock(return_value=mock_response)
+        engine = manager._get_engine("main", ModelEngine)
+        engine.chat_completion = AsyncMock(return_value="Hello world")
 
-        result = await manager.generate_async("main", messages)
+        result = await manager.model_call("main", messages)
         assert result == "Hello world"
-        engine.call.assert_called_once_with(messages)
+        engine.chat_completion.assert_called_once_with(messages)
 
     @pytest.mark.asyncio
     async def test_passes_kwargs_to_engine(self, manager):
-        """Extra kwargs (temperature, max_tokens) are forwarded to engine.call()."""
+        """Extra kwargs (temperature, max_tokens) are forwarded to engine.chat_completion()."""
         messages = [{"role": "user", "content": "Hi"}]
-        mock_response = {"choices": [{"message": {"role": "assistant", "content": "ok"}}]}
-        engine = manager._get_model_engine("main")
-        engine.call = AsyncMock(return_value=mock_response)
+        engine = manager._get_engine("main", ModelEngine)
+        engine.chat_completion = AsyncMock(return_value="ok")
 
-        await manager.generate_async("main", messages, temperature=0.5, max_tokens=100)
+        await manager.model_call("main", messages, temperature=0.5, max_tokens=100)
 
-        call_kwargs = engine.call.call_args[1]
+        call_kwargs = engine.chat_completion.call_args[1]
         assert call_kwargs["temperature"] == 0.5
         assert call_kwargs["max_tokens"] == 100
 
@@ -182,39 +210,40 @@ class TestModelManagerGenerateAsync:
     async def test_raises_key_error_for_unknown_model_type(self, manager):
         """Raises KeyError when the model type doesn't exist."""
         with pytest.raises(KeyError):
-            await manager.generate_async("nonexistent", [{"role": "user", "content": "Hi"}])
+            await manager.model_call("nonexistent", [{"role": "user", "content": "Hi"}])
 
 
-class TestModelManagerStartErrors:
-    """Test ModelManager start() error handling and rollback."""
+class TestEngineRegistryStartErrors:
+    """Test EngineRegistry start() error handling and rollback."""
 
     @pytest.mark.asyncio
     async def test_start_rolls_back_on_engine_failure(self, manager):
         """When one engine fails to start, already-started engines are stopped."""
-        engines = list(manager._engines.values())
+        failing_engine = "jailbreak_detection"
 
-        # First two engines start OK, third raises
-        engines[0].start = AsyncMock()
-        engines[0].stop = AsyncMock()
-        engines[1].start = AsyncMock()
-        engines[1].stop = AsyncMock()
-        engines[2].start = AsyncMock(side_effect=RuntimeError("Error starting model"))
-        engines[2].stop = AsyncMock()
+        for name, engine in manager._engines.items():
+            if name == failing_engine:
+                engine.start = AsyncMock(side_effect=RuntimeError("Error starting model"))
+            else:
+                engine.start = AsyncMock()
+                engine.stop = AsyncMock()
 
-        with pytest.raises(RuntimeError, match="Failed to start engines"):
+        with pytest.raises(RuntimeError, match="Failed to start engine"):
             await manager.start()
 
-        # Successfully-started engines should have been rolled back
-        engines[0].stop.assert_called_once()
-        engines[1].stop.assert_called_once()
+        # Engines before the failing one should have been rolled back
+        engine_names = list(manager._engines.keys())
+        failed_idx = engine_names.index(failing_engine)
+        for i, name in enumerate(engine_names):
+            if i < failed_idx:
+                manager._engines[name].stop.assert_called_once()
 
-        # Manager should not be running
         assert not manager._running
 
     @pytest.mark.asyncio
     async def test_start_error_message_includes_engine_type(self, manager):
         """Error message includes which engine types failed."""
-        engine = manager._get_model_engine("main")
+        engine = manager._get_engine("main", ModelEngine)
         engine.start = AsyncMock(side_effect=RuntimeError("connection refused"))
 
         # Mock other engines to succeed
@@ -229,30 +258,32 @@ class TestModelManagerStartErrors:
     @pytest.mark.asyncio
     async def test_start_rollback_swallows_stop_errors(self, manager):
         """Rollback continues even if stopping a started engine raises."""
-        engines = list(manager._engines.items())
+        failing_engine = "jailbreak_detection"
+        stop_error_engine = "main"
 
-        # First engine starts OK but stop raises during rollback
-        engines[0][1].start = AsyncMock()
-        engines[0][1].stop = AsyncMock(side_effect=RuntimeError("stop failed"))
+        for name, engine in manager._engines.items():
+            if name == failing_engine:
+                engine.start = AsyncMock(side_effect=RuntimeError("start failed"))
+            elif name == stop_error_engine:
+                engine.start = AsyncMock()
+                engine.stop = AsyncMock(side_effect=RuntimeError("stop failed"))
+            else:
+                engine.start = AsyncMock()
+                engine.stop = AsyncMock()
 
-        # Second engine starts OK
-        engines[1][1].start = AsyncMock()
-        engines[1][1].stop = AsyncMock()
-
-        # Third engine fails to start
-        engines[2][1].start = AsyncMock(side_effect=RuntimeError("start failed"))
-        engines[2][1].stop = AsyncMock()
-
-        with pytest.raises(RuntimeError, match="Failed to start engines"):
+        with pytest.raises(RuntimeError, match="Failed to start engine"):
             await manager.start()
 
-        # Both started engines should have had stop() called (even if one raises)
-        engines[0][1].stop.assert_called_once()
-        engines[1][1].stop.assert_called_once()
+        # All started engines should have had stop() called (even if one raises)
+        engine_names = list(manager._engines.keys())
+        failed_idx = engine_names.index(failing_engine)
+        for i, name in enumerate(engine_names):
+            if i < failed_idx:
+                manager._engines[name].stop.assert_called_once()
 
 
-class TestModelManagerStopErrors:
-    """Test ModelManager stop() error handling."""
+class TestEngineRegistryStopErrors:
+    """Test EngineRegistry stop() error handling."""
 
     @pytest.mark.asyncio
     async def test_stop_raises_on_engine_error(self, manager):
@@ -263,7 +294,7 @@ class TestModelManagerStopErrors:
         await manager.start()
 
         # One engine fails to stop
-        engine = manager._get_model_engine("main")
+        engine = manager._get_engine("main", ModelEngine)
         engine.stop = AsyncMock(side_effect=RuntimeError("close failed"))
         for engine_type, engine in manager._engines.items():
             if engine_type != "main":
@@ -280,7 +311,7 @@ class TestModelManagerStopErrors:
 
         await manager.start()
 
-        engine = manager._get_model_engine("content_safety")
+        engine = manager._get_engine("content_safety", ModelEngine)
         engine.stop = AsyncMock(side_effect=RuntimeError("timeout"))
         for engine_type, engine in manager._engines.items():
             if engine_type != "content_safety":
@@ -308,7 +339,7 @@ class TestModelManagerStopErrors:
             engine.stop.assert_called_once()
 
 
-class TestModelManagerContextManager:
+class TestEngineRegistryContextManager:
     """Test async context manager calls start/stop correctly."""
 
     @pytest.mark.asyncio
@@ -327,34 +358,34 @@ class TestModelManagerContextManager:
             engine.stop.assert_called_once()
 
 
-class TestModelManagerGetApiEngine:
+class TestEngineRegistryGetApiEngine:
     """Test API engine lookup by name."""
 
     def test_get_existing_api_engine(self, manager):
         """Returns the jailbreak detection API engine."""
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         assert api_engine is not None
         assert "jailbreak" in api_engine.url
 
     def test_get_missing_api_engine_raises_key_error(self, manager):
         """Raises KeyError for an unconfigured API engine name."""
-        with pytest.raises(KeyError, match="No API engine configured with name 'nonexistent'"):
-            manager._get_api_engine("nonexistent")
+        with pytest.raises(KeyError, match="No engine configured with name 'nonexistent'"):
+            manager._get_engine("nonexistent", APIEngine)
 
     def test_key_error_message_lists_available_engines(self, manager):
         """KeyError message includes available API engine names."""
         with pytest.raises(KeyError) as exc_info:
-            manager._get_api_engine("missing")
+            manager._get_engine("missing", APIEngine)
         assert "jailbreak_detection" in str(exc_info.value)
 
 
-class TestModelManagerApiCall:
+class TestEngineRegistryApiCall:
     """Test api_call routes to the correct API engine."""
 
     @pytest.mark.asyncio
     async def test_calls_correct_api_engine(self, manager):
         """api_call delegates to the named API engine and returns its response."""
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         mock_response = {"jailbreak": False, "score": -0.95}
         api_engine.call = AsyncMock(return_value=mock_response)
 
@@ -366,7 +397,7 @@ class TestModelManagerApiCall:
     @pytest.mark.asyncio
     async def test_passes_kwargs_to_api_engine(self, manager):
         """Extra kwargs are forwarded to the API engine's call()."""
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         api_engine.call = AsyncMock(return_value={"jailbreak": False, "score": -0.80})
 
         await manager.api_call("jailbreak_detection", {"input": "test"}, extra_param="value")
@@ -380,28 +411,29 @@ class TestModelManagerApiCall:
             await manager.api_call("nonexistent", {"input": "test"})
 
 
-class TestModelManagerApiEngineStartErrors:
+class TestEngineRegistryApiEngineStartErrors:
     """Test start() error handling for API engines."""
 
     @pytest.mark.asyncio
     async def test_start_rolls_back_on_api_engine_failure(self, manager):
         """When an API engine fails to start, all started engines are rolled back."""
-        # Mock model engines to succeed
+        # Mock all engines to succeed
         for engine in manager._engines.values():
             engine.start = AsyncMock()
             engine.stop = AsyncMock()
 
-        # Mock API engine to fail
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        # Override jailbreak API engine to fail
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         api_engine.start = AsyncMock(side_effect=RuntimeError("API unreachable"))
         api_engine.stop = AsyncMock()
 
-        with pytest.raises(RuntimeError, match="Failed to start engines"):
+        with pytest.raises(RuntimeError, match="Failed to start engine"):
             await manager.start()
 
-        # Model engines that started should have been rolled back
-        for engine in manager._engines.values():
-            engine.stop.assert_called_once()
+        # Engines that started successfully should have been rolled back
+        for name, engine in manager._engines.items():
+            if name != "jailbreak_detection":
+                engine.stop.assert_called_once()
 
         assert not manager._running
 
@@ -412,7 +444,7 @@ class TestModelManagerApiEngineStartErrors:
             engine.start = AsyncMock()
             engine.stop = AsyncMock()
 
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         api_engine.start = AsyncMock(side_effect=RuntimeError("timeout"))
         api_engine.stop = AsyncMock()
 
@@ -420,7 +452,7 @@ class TestModelManagerApiEngineStartErrors:
             await manager.start()
 
 
-class TestModelManagerApiEngineStopErrors:
+class TestEngineRegistryApiEngineStopErrors:
     """Test stop() error handling for API engines."""
 
     @pytest.mark.asyncio
@@ -430,7 +462,7 @@ class TestModelManagerApiEngineStopErrors:
             engine.start = AsyncMock()
             engine.stop = AsyncMock()
 
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         api_engine.start = AsyncMock()
         api_engine.stop = AsyncMock(side_effect=RuntimeError("close failed"))
 
@@ -446,7 +478,7 @@ class TestModelManagerApiEngineStopErrors:
             engine.start = AsyncMock()
             engine.stop = AsyncMock()
 
-        api_engine = manager._get_api_engine("jailbreak_detection")
+        api_engine = manager._get_engine("jailbreak_detection", APIEngine)
         api_engine.start = AsyncMock()
         api_engine.stop = AsyncMock(side_effect=RuntimeError("timeout"))
 
@@ -456,43 +488,43 @@ class TestModelManagerApiEngineStopErrors:
             await manager.stop()
 
 
-class TestModelManagerStreamAsync:
-    """Test stream_async routes to the correct engine and yields chunks."""
+class TestEngineRegistryStreamModelCall:
+    """Test stream_model_call routes to the correct engine and yields chunks."""
 
     @pytest.mark.asyncio
     async def test_streams_chunks_from_correct_engine(self, manager):
-        """Calls the named engine's stream_call and yields all chunks."""
+        """Calls the named engine's stream_chat_completion and yields all chunks."""
         messages = [{"role": "user", "content": "Hi"}]
 
-        async def mock_stream_call(msgs, **kwargs):
+        async def mock_stream_chat_completion(msgs, **kwargs):
             """Mock stream yielding two chunks."""
             for chunk in ["Hello", " world"]:
                 yield chunk
 
-        engine = manager._get_model_engine("main")
-        engine.stream_call = mock_stream_call
+        engine = manager._get_engine("main", ModelEngine)
+        engine.stream_chat_completion = mock_stream_chat_completion
 
         chunks = []
-        async for chunk in manager.stream_async("main", messages):
+        async for chunk in manager.stream_model_call("main", messages):
             chunks.append(chunk)
 
         assert chunks == ["Hello", " world"]
 
     @pytest.mark.asyncio
     async def test_forwards_kwargs_to_engine(self, manager):
-        """Extra kwargs are forwarded to engine.stream_call()."""
+        """Extra kwargs are forwarded to engine.stream_chat_completion()."""
         messages = [{"role": "user", "content": "Hi"}]
         captured_kwargs = {}
 
-        async def mock_stream_call(msgs, **kwargs):
+        async def mock_stream_chat_completion(msgs, **kwargs):
             """Mock stream that records kwargs."""
             captured_kwargs.update(kwargs)
             yield "ok"
 
-        engine = manager._get_model_engine("main")
-        engine.stream_call = mock_stream_call
+        engine = manager._get_engine("main", ModelEngine)
+        engine.stream_chat_completion = mock_stream_chat_completion
 
-        async for _ in manager.stream_async("main", messages, temperature=0.7):
+        async for _ in manager.stream_model_call("main", messages, temperature=0.7):
             pass
 
         assert captured_kwargs["temperature"] == 0.7
@@ -501,5 +533,4 @@ class TestModelManagerStreamAsync:
     async def test_raises_key_error_for_unknown_model_type(self, manager):
         """Raises KeyError when the model type doesn't exist."""
         with pytest.raises(KeyError):
-            async for _ in manager.stream_async("nonexistent", [{"role": "user", "content": "Hi"}]):
-                pass
+            await anext(manager.stream_model_call("nonexistent", [{"role": "user", "content": "Hi"}]))

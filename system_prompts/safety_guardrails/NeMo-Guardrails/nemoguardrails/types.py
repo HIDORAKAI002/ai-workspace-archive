@@ -131,7 +131,7 @@ class ChatMessage:
         captured into ``provider_metadata``.
         """
 
-        raw_role = d.get("role")
+        raw_role = d.get("role") or d.get("type")
         if raw_role is None:
             raise ValueError("Missing required key: 'role'")
         role = _ROLE_ALIASES.get(raw_role)
@@ -228,7 +228,7 @@ class LLMModel(Protocol):
     max_tokens).
     """
 
-    async def generate(
+    async def generate_async(
         self,
         prompt: Union[str, List["ChatMessage"]],
         *,
@@ -236,7 +236,7 @@ class LLMModel(Protocol):
         **kwargs,
     ) -> "LLMResponse": ...
 
-    def stream(
+    def stream_async(
         self,
         prompt: Union[str, List["ChatMessage"]],
         *,

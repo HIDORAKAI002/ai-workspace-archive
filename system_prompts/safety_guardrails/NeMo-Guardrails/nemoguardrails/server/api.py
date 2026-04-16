@@ -76,7 +76,7 @@ class GuardrailsApp(FastAPI):
 # backends and storage engines.
 registered_loggers: List[Callable] = []
 
-api_description = """Guardrails Sever API."""
+api_description = """Guardrails Server API."""
 
 # The headers for each request
 api_request_headers: contextvars.ContextVar = contextvars.ContextVar("headers")
@@ -302,7 +302,7 @@ def _update_models_in_config(config: RailsConfig, main_model: Model) -> RailsCon
     return config.model_copy(update={"models": models})
 
 
-def _get_rails(config_ids: List[str], model_name: Optional[str] = None) -> LLMRails:
+async def _get_rails(config_ids: List[str], model_name: Optional[str] = None) -> LLMRails:
     """Returns the rails instance for the given config id and model.
 
     Args:
@@ -371,9 +371,9 @@ def _get_rails(config_ids: List[str], model_name: Optional[str] = None) -> LLMRa
 
 class ChunkErrorMetadata(BaseModel):
     message: str
-    type: str
-    param: str
-    code: str
+    type: Optional[str] = None
+    param: Optional[str] = None
+    code: Optional[str] = None
 
 
 class ChunkError(BaseModel):
@@ -477,7 +477,7 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
             )
 
     try:
-        llm_rails = _get_rails(config_ids, model_name=body.model)
+        llm_rails = await _get_rails(config_ids, model_name=body.model)
 
     except ValueError as ex:
         log.exception(ex)

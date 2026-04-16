@@ -139,8 +139,6 @@ class LangChainLLMAdapter:
 
     @property
     def provider_url(self) -> Optional[str]:
-        # temp: uses _BASE_URL_ATTRIBUTES which duplicates utils.py BASE_URL_ATTRIBUTES.
-        # utils.py copy will be removed in stack-3 when it switches to model.provider_url.
         for attr in _BASE_URL_ATTRIBUTES:
             value = getattr(self._llm, attr, None)
             if value:
@@ -186,7 +184,7 @@ class LangChainLLMAdapter:
             return chatmessages_to_langchain_messages(prompt)
         return prompt
 
-    async def generate(
+    async def generate_async(
         self,
         prompt: Union[str, List[ChatMessage]],
         *,
@@ -198,7 +196,7 @@ class LangChainLLMAdapter:
         response = await llm.ainvoke(messages, stop=stop)
         return _langchain_response_to_llm_response(response)
 
-    async def stream(
+    async def stream_async(
         self,
         prompt: Union[str, List[ChatMessage]],
         *,
@@ -218,7 +216,7 @@ class LangChainFramework:
         provider_name: str,
         model_kwargs: Optional[Dict[str, Any]] = None,
     ) -> LLMModel:
-        from nemoguardrails.llm.models.langchain_initializer import (
+        from nemoguardrails.integrations.langchain.langchain_initializer import (
             init_langchain_model,
         )
 

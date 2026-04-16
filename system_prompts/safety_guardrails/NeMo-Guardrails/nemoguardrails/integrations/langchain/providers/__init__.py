@@ -13,7 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(0.24.0): remove this file and its test in TestMovedModuleStubs
-raise ImportError(
-    "nemoguardrails.llm.helpers has moved to nemoguardrails.integrations.langchain.helpers. Please update your imports."
+from .providers import (
+    get_chat_provider_names,
+    get_community_chat_provider_names,
+    get_llm_provider_names,
+    register_chat_provider,
+    register_llm_provider,
 )
+
+__all__ = [
+    "get_chat_provider_names",
+    "get_community_chat_provider_names",
+    "get_llm_provider_names",
+    "register_chat_provider",
+    "register_llm_provider",
+]

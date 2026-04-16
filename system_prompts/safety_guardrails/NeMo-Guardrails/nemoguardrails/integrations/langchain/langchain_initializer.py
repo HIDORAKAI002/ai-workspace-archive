@@ -26,25 +26,28 @@ from langchain.chat_models import init_chat_model
 # from langchain_core._api.deprecation import LangChainDeprecationWarning
 from langchain_core.language_models import BaseChatModel, BaseLLM
 
-from nemoguardrails.llm.providers.providers import (
+from nemoguardrails.integrations.langchain.providers.providers import (
     _get_chat_completion_provider,
     _get_text_completion_provider,
     _parse_version,
 )
+from nemoguardrails.llm.models.initializer import ModelInitializationError
 
 log = logging.getLogger(__name__)
+
+__all__ = [
+    "ModelInitializationError",
+    "ModelInitMethod",
+    "ModelInitializer",
+    "init_langchain_model",
+    "try_initialization_method",
+]
 
 
 # Suppress specific LangChain warnings
 # warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
 # warnings.filterwarnings("ignore", category=LangChainBetaWarning)
 warnings.filterwarnings("ignore", module="langchain_nvidia_ai_endpoints._common")
-
-
-class ModelInitializationError(Exception):
-    """Raised when model initialization fails."""
-
-    pass
 
 
 ModelInitMethod = Callable[[str, str, Dict[str, Any]], Optional[Union[BaseChatModel, BaseLLM]]]

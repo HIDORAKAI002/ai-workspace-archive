@@ -24,11 +24,12 @@ import asyncio
 import json
 import logging
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import suppress
 from typing import Optional, Union
 
 from nemoguardrails.exceptions import StreamingNotSupportedError
+from nemoguardrails.guardrails.engine_registry import EngineRegistry
 from nemoguardrails.guardrails.guardrails_types import (
     LLMMessage,
     LLMMessages,
@@ -37,8 +38,8 @@ from nemoguardrails.guardrails.guardrails_types import (
     set_new_request_id,
     truncate,
 )
-from nemoguardrails.guardrails.model_manager import ModelManager
 from nemoguardrails.guardrails.rails_manager import RailsManager
+from nemoguardrails.llm.taskmanager import LLMTaskManager
 from nemoguardrails.rails.llm.buffer import get_buffer_strategy
 from nemoguardrails.rails.llm.config import RailsConfig
 from nemoguardrails.rails.llm.options import GenerationOptions
@@ -59,14 +60,19 @@ class IORails:
     """Workflow engine for accelerated Input/Output rails inference."""
 
     def __init__(self, config: RailsConfig) -> None:
+        """Build the engine registry and rails manager from the given config."""
         self._running = False
         self.config = config
 
-        # Model Manager has one or more ModelEngine inside. Each ModelEngine calls a single model or API
-        self.model_manager = ModelManager(config)
-
-        # Rails Manager is responsible for running rails by making calls to Model Manager
-        self.rails_manager = RailsManager(config, self.model_manager)
+        self.engine_registry = EngineRegistry(config.models, config.rails.config)
+        self.rails_manager = RailsManager(
+            engine_registry=self.engine_registry,
+            task_manager=LLMTaskManager(config),
+            input_flows=config.rails.input.flows,
+            output_flows=config.rails.output.flows,
+            input_parallel=config.rails.input.parallel or False,
+            output_parallel=config.rails.output.parallel or False,
+        )
 
         # Semaphore for streaming concurrency control / load shedding
         self._stream_semaphore = asyncio.Semaphore(STREAM_MAX_CONCURRENCY)
@@ -85,7 +91,7 @@ class IORails:
         # When starting up, make sure self._running is always set to True even on exceptions.
         # This allows the stop() method to clean up any state
         try:
-            await self.model_manager.start()
+            await self.engine_registry.start()
         finally:
             self._running = True
 
@@ -94,9 +100,9 @@ class IORails:
         if not self._running:
             return
 
-        # If any exceptions are thrown when stopping ModelManager, set the _running to False
+        # If any exceptions are thrown when stopping EngineRegistry, set the _running to False
         try:
-            await self.model_manager.stop()
+            await self.engine_registry.stop()
         finally:
             self._running = False
 
@@ -145,7 +151,7 @@ class IORails:
             if isinstance(options, GenerationOptions) and options.llm_params:
                 llm_kwargs = options.llm_params
 
-            response_text = await self.model_manager.generate_async("main", messages, **llm_kwargs)
+            response_text = await self.engine_registry.model_call("main", messages, **llm_kwargs)
             log.debug("[%s] Main LLM response: %s", req_id, truncate(response_text))
 
             # Step 3: Check output rails
@@ -244,7 +250,7 @@ class IORails:
 
                 # Step 2: Stream main LLM
                 log.info("[%s] Streaming main LLM", req_id)
-                async for chunk in self.model_manager.stream_async("main", messages, **llm_kwargs):
+                async for chunk in self.engine_registry.stream_model_call("main", messages, **llm_kwargs):
                     await streaming_handler.push_chunk(chunk)
 
                 await streaming_handler.push_chunk(END_OF_STREAM)  # type: ignore[arg-type]
@@ -327,7 +333,7 @@ class IORails:
         self,
         streaming_handler: AsyncIterator[Union[str, dict]],
         messages: LLMMessages,
-    ) -> AsyncIterator[Union[str, dict]]:
+    ) -> AsyncGenerator[Union[str, dict], None]:
         """Buffer streamed chunks and run output rails on each batch.
 
         Uses the same ``RollingBuffer`` and ``stream_first`` semantics as
@@ -372,6 +378,7 @@ class IORails:
                     "error": {
                         "message": f"Blocked by output rails: {output_result.reason}",
                         "type": "guardrails_violation",
+                        "param": "output_rails",
                         "code": "content_blocked",
                     }
                 }
