@@ -1,24 +1,39 @@
-use crate::client::admin_client::AdminClient;
-use crate::client::chroma_client::{ChromaClient, ChromaClientError};
-use crate::client::collection::CollectionAPIError;
 use crate::commands::browse::BrowseError;
 use crate::commands::db::get_db_name;
 use crate::commands::install::InstallError;
 use crate::config_store::{ConfigStore, FileConfigStore};
 use crate::terminal::{SystemTerminal, Terminal};
 use crate::utils::{
-    parse_host, parse_local, parse_path, AddressBook, CliError, Environment, ErrorResponse,
-    Profile, UtilsError,
+    cloud_client, connect_local, CliError, ErrorResponse, LocalChromaArgs, Profile, UtilsError,
 };
-use chroma_types::{CollectionConfiguration, IncludeList};
+use chroma::client::Database;
+use chroma::ChromaHttpClient;
+use chroma_types::operator::Key;
+use chroma_types::plan::SearchPayload;
 use clap::Parser;
 use crossterm::style::Stylize;
 use futures::{stream, StreamExt};
 use indicatif::{ProgressBar, ProgressStyle};
+use std::fmt::{self, Display};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::task::JoinHandle;
+
+#[derive(Debug)]
+enum Environment {
+    Local,
+    Cloud,
+}
+
+impl Display for Environment {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Environment::Local => write!(f, "Local"),
+            Environment::Cloud => write!(f, "Cloud"),
+        }
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum CopyError {
@@ -91,52 +106,44 @@ fn start_copy_prompt(collections_num: usize) -> String {
     format!("Copying {} collection(s)", collections_num)
 }
 
+fn verify_db_exists(dbs: &[Database], name: &str) -> Result<(), CliError> {
+    if !dbs.iter().any(|db| db.name == name) {
+        return Err(CliError::Db(crate::commands::db::DbError::DbNotFound(
+            name.to_string(),
+        )));
+    }
+    Ok(())
+}
+
 async fn get_cloud_client(
     profile: Profile,
     db_name: Option<String>,
     from: bool,
     term: &mut dyn Terminal,
-) -> Result<ChromaClient, CliError> {
-    let host = AddressBook::cloud().frontend_url;
-    let admin_client = AdminClient::from_profile(host, &profile);
+) -> Result<ChromaHttpClient, CliError> {
+    let client = cloud_client(&profile)?;
 
     if let Some(db_name) = db_name {
-        let _verified = admin_client.get_database(db_name.clone()).await?;
-        return Ok(ChromaClient::with_admin_client(admin_client, db_name));
+        let dbs = client.list_databases().await?;
+        verify_db_exists(&dbs, &db_name)?;
+        client.set_database_name(db_name);
+        return Ok(client);
     }
 
-    let databases = admin_client.list_databases().await?;
+    let databases = client.list_databases().await?;
     match databases.len() {
         0 => Err(BrowseError::NoDBs.into()),
-        1 => Ok(ChromaClient::with_admin_client(
-            admin_client,
-            databases[0].name.clone(),
-        )),
+        1 => {
+            client.set_database_name(&databases[0].name);
+            Ok(client)
+        }
         _ => {
             let input_name = get_db_name(&databases, &select_db_prompt(from), term)?;
-            let _verified = admin_client.get_database(input_name.clone()).await?;
-            Ok(ChromaClient::with_admin_client(admin_client, input_name))
+            verify_db_exists(&databases, &input_name)?;
+            client.set_database_name(input_name);
+            Ok(client)
         }
     }
-}
-
-async fn get_local_client(
-    host: &Option<String>,
-    path: &Option<String>,
-) -> Result<(ChromaClient, Option<JoinHandle<()>>), CliError> {
-    let (admin_client, handle) = if host.is_some() {
-        (parse_host(host.clone().unwrap_or_default()).await?, None)
-    } else if path.is_some() {
-        let (client, handle) = parse_path(path.clone().unwrap_or_default()).await?;
-        (client, Some(handle))
-    } else {
-        let client = parse_local().await?;
-        (client, None)
-    };
-
-    let chroma_client =
-        ChromaClient::with_admin_client(admin_client, String::from("default_database"));
-    Ok((chroma_client, handle))
 }
 
 async fn get_chroma_clients(
@@ -145,8 +152,12 @@ async fn get_chroma_clients(
     target: Environment,
     profile: Profile,
     term: &mut dyn Terminal,
-) -> Result<(ChromaClient, ChromaClient, Option<JoinHandle<()>>), CliError> {
-    let (local_client, handle) = get_local_client(&args.host, &args.path).await?;
+) -> Result<(ChromaHttpClient, ChromaHttpClient, Option<JoinHandle<()>>), CliError> {
+    let local_args = LocalChromaArgs {
+        host: args.host.clone(),
+        path: args.path.clone(),
+    };
+    let (local_client, handle) = connect_local(local_args).await?;
     let cloud_client = get_cloud_client(profile, args.db.clone(), args.from_cloud, term).await?;
 
     match (source, target) {
@@ -190,8 +201,8 @@ fn get_target_and_destination(
 }
 
 async fn copy_collections(
-    source: ChromaClient,
-    target: ChromaClient,
+    source: ChromaHttpClient,
+    target: ChromaHttpClient,
     collections: Vec<String>,
     all: bool,
     step: u32,
@@ -199,17 +210,11 @@ async fn copy_collections(
     term: &mut dyn Terminal,
 ) -> Result<(), CliError> {
     let collections = if all {
-        source
-            .list_collections()
-            .await
-            .map_err(|_| ChromaClientError::ListCollections)?
+        source.list_collections(10000, None).await?
     } else {
         let mut source_collections = vec![];
         for collection in collections {
-            let source_collection = source
-                .get_collection(collection.clone())
-                .await
-                .map_err(|_| ChromaClientError::CollectionGet(collection))?;
+            let source_collection = source.get_collection(&collection).await?;
             source_collections.push(source_collection);
         }
         source_collections
@@ -227,31 +232,26 @@ async fn copy_collections(
     term.println("Verifying collections...");
     // Verify that collections don't exist on target
     for collection in collections.clone() {
-        if target.get_collection(collection.name.clone()).await.is_ok() {
-            return Err(CopyError::CollectionAlreadyExists(collection.name.clone()).into());
+        if target.get_collection(collection.name()).await.is_ok() {
+            return Err(CopyError::CollectionAlreadyExists(collection.name().to_string()).into());
         }
     }
 
     for collection in collections {
-        let size = collection
-            .count()
-            .await
-            .map_err(|_| CollectionAPIError::Count(collection.name.clone()))?;
+        let size = collection.count().await?;
 
         let offsets: Vec<u32> = (0..size).step_by(step as usize).collect();
         let records_added = Arc::new(AtomicUsize::new(0));
 
         let target_collection = target
             .create_collection(
-                collection.name.clone(),
-                collection.metadata.clone(),
-                Some(CollectionConfiguration::from(collection.config.clone())),
-                collection.schema.clone(),
+                collection.name(),
+                collection.schema().clone(),
+                collection.metadata().clone(),
             )
-            .await
-            .map_err(|_| ChromaClientError::CreateCollection(collection.name.clone()))?;
+            .await?;
 
-        term.println(&format!("Copying collection: {}", collection.name));
+        term.println(&format!("Copying collection: {}", collection.name()));
 
         let collection_progress = ProgressBar::new(size as u64);
         collection_progress.set_style(
@@ -268,34 +268,34 @@ async fn copy_collections(
             let collection_progress = collection_progress.clone();
 
             async move {
-                let records = collection
-                    .get(
-                        None,
-                        None,
-                        None,
-                        Some(IncludeList::all()),
-                        Some(step),
-                        Some(offset),
-                    )
-                    .await
-                    .map_err(|_| ChromaClientError::CollectionGet(collection.name.clone()))?;
+                let search = SearchPayload::default().limit(Some(step), offset).select([
+                    Key::Document,
+                    Key::Embedding,
+                    Key::Metadata,
+                ]);
 
-                if records.ids.is_empty() {
+                let response = collection.search(vec![search]).await?;
+
+                let ids = response.ids.into_iter().next().unwrap_or_default();
+                if ids.is_empty() {
                     return Ok::<(), CliError>(());
                 }
 
-                let num_records = records.ids.len();
+                let num_records = ids.len();
+                let documents = response.documents.into_iter().next().flatten();
+                let embeddings: Vec<Vec<f32>> = response
+                    .embeddings
+                    .into_iter()
+                    .next()
+                    .flatten()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .flatten()
+                    .collect();
+                let metadatas = response.metadatas.into_iter().next().flatten();
 
                 target_collection
-                    .add(
-                        records.ids,
-                        records
-                            .embeddings
-                            .ok_or_else(|| CollectionAPIError::Add(collection.name.clone()))?,
-                        records.documents,
-                        records.uris,
-                        records.metadatas,
-                    )
+                    .add(ids, embeddings, documents, None, metadatas)
                     .await
                     .map_err(|e| {
                         if e.to_string().to_lowercase().contains("quota") {
@@ -304,7 +304,7 @@ async fn copy_collections(
                                 .message;
                             return CliError::Utils(UtilsError::Quota(msg));
                         }
-                        CliError::Collection(CollectionAPIError::Add(collection.name.clone()))
+                        CliError::ChromaClient(e)
                     })?;
 
                 let current_added =
@@ -354,4 +354,82 @@ pub fn copy(args: CopyArgs) -> Result<(), CliError> {
         Ok::<(), CliError>(())
     })?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::terminal::test_terminal::TestTerminal;
+
+    fn default_args() -> CopyArgs {
+        CopyArgs {
+            all: false,
+            collections: vec![],
+            from_local: false,
+            from_cloud: false,
+            to_local: false,
+            to_cloud: false,
+            db: None,
+            host: None,
+            path: None,
+            batch: 100,
+            concurrent: 5,
+        }
+    }
+
+    #[test]
+    fn test_get_target_and_destination_from_cloud() {
+        let mut args = default_args();
+        args.from_cloud = true;
+        let mut term = TestTerminal::new();
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Cloud));
+        assert!(matches!(target, Environment::Local));
+    }
+
+    #[test]
+    fn test_get_target_and_destination_from_local() {
+        let mut args = default_args();
+        args.from_local = true;
+        let mut term = TestTerminal::new();
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Local));
+        assert!(matches!(target, Environment::Cloud));
+    }
+
+    #[test]
+    fn test_get_target_and_destination_to_cloud() {
+        let mut args = default_args();
+        args.to_cloud = true;
+        let mut term = TestTerminal::new();
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Local));
+        assert!(matches!(target, Environment::Cloud));
+    }
+
+    #[test]
+    fn test_get_target_and_destination_to_local() {
+        let mut args = default_args();
+        args.to_local = true;
+        let mut term = TestTerminal::new();
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Cloud));
+        assert!(matches!(target, Environment::Local));
+    }
+
+    #[test]
+    fn test_get_target_and_destination_interactive() {
+        let args = default_args();
+        // Select index 0 = Cloud (source), so target = Local
+        let mut term = TestTerminal::new().with_inputs(vec!["0"]);
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Cloud));
+        assert!(matches!(target, Environment::Local));
+
+        // Select index 1 = Local (source), so target = Cloud
+        let mut term = TestTerminal::new().with_inputs(vec!["1"]);
+        let (source, target) = get_target_and_destination(&args, &mut term).unwrap();
+        assert!(matches!(source, Environment::Local));
+        assert!(matches!(target, Environment::Cloud));
+    }
 }
