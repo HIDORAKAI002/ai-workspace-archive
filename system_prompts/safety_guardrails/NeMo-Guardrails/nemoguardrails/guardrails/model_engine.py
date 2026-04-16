@@ -24,19 +24,19 @@ import json
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from typing import Any, NamedTuple, Optional, cast
 
 import aiohttp
-from aiohttp_retry import ExponentialRetry, RetryClient
+from aiohttp_retry import RetryClient
 
 from nemoguardrails.guardrails._http import (
     DEFAULT_MAX_ATTEMPTS,
     DEFAULT_TIMEOUT_CONNECT,
     DEFAULT_TIMEOUT_TOTAL,
-    RETRYABLE_STATUS_CODES,
     safe_read_body,
 )
+from nemoguardrails.guardrails.base_engine import BaseEngine
 from nemoguardrails.guardrails.guardrails_types import LLMMessages, get_request_id, truncate
 from nemoguardrails.rails.llm.config import Model
 
@@ -69,7 +69,7 @@ class ModelEngineError(Exception):
         super().__init__(message)
 
 
-class ModelEngine:
+class ModelEngine(BaseEngine):
     """Wraps a single Model config and makes HTTP calls to its endpoint.
 
     Each ModelEngine owns its own RetryClient with per-model timeout,
@@ -77,47 +77,18 @@ class ModelEngine:
     """
 
     def __init__(self, model_config: Model) -> None:
+        """Resolve base URL, API key, and retry settings from the model config."""
         self.model_config = model_config
         self.model_name: str = model_config.model or ""
         self.base_url: str = self._resolve_base_url()
         self.api_key: Optional[str] = self._resolve_api_key(model_config.engine)
 
-        # Configurable from model parameters
         params = model_config.parameters or {}
-        self._timeout = aiohttp.ClientTimeout(
-            total=float(params.get("timeout", DEFAULT_TIMEOUT_TOTAL)),
-            connect=float(params.get("timeout_connect", DEFAULT_TIMEOUT_CONNECT)),
+        super().__init__(
+            timeout_total=float(params.get("timeout") or DEFAULT_TIMEOUT_TOTAL),
+            timeout_connect=float(params.get("timeout_connect") or DEFAULT_TIMEOUT_CONNECT),
+            max_attempts=int(params.get("max_attempts") or DEFAULT_MAX_ATTEMPTS),
         )
-        self._retry_options = ExponentialRetry(
-            attempts=int(params.get("max_attempts", DEFAULT_MAX_ATTEMPTS)),
-            statuses=set(RETRYABLE_STATUS_CODES),
-            exceptions={aiohttp.ClientConnectionError},
-        )
-        self._client: Optional[RetryClient] = None
-        self._running = False
-
-    async def start(self) -> None:
-        """Create this engine's RetryClient. Call this during service startup."""
-        if self._running:
-            return
-
-        self._client = RetryClient(
-            retry_options=self._retry_options,
-            client_session=aiohttp.ClientSession(timeout=self._timeout),
-        )
-        self._running = True
-
-    async def stop(self) -> None:
-        """Close this engine's RetryClient. Call this during service shutdown."""
-        if not self._running:
-            return
-
-        try:
-            if self._client:
-                await self._client.close()
-                self._client = None
-        finally:
-            self._running = False
 
     def _resolve_base_url(self) -> str:
         """Resolve the base URL from model parameters or engine type."""
@@ -207,8 +178,6 @@ class ModelEngine:
             model_name=self.model_name,
         )
 
-    # -- Public request methods ------------------------------------------
-
     async def call(
         self,
         messages: LLMMessages,
@@ -261,7 +230,7 @@ class ModelEngine:
         self,
         messages: LLMMessages,
         **kwargs: Any,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncGenerator[str, None]:
         """Make a streaming POST request to the /v1/chat/completions endpoint.
 
         Sends ``stream=True`` and yields content-delta strings as they arrive
@@ -339,11 +308,38 @@ class ModelEngine:
         except Exception as exc:
             raise self._wrap_exception(exc, req_id, t0, label="Stream request") from exc
 
-    async def __aenter__(self):
-        """Context manager (used for testing rather than long-lived instance)"""
-        await self.start()
-        return self
+    async def chat_completion(self, messages: LLMMessages, **kwargs: Any) -> str:
+        """Generate a chat completion and return the response content string.
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Context manager (used for testing rather than long-lived instance)"""
-        await self.stop()
+        Calls the /v1/chat/completions endpoint and extracts the assistant
+        message content from the OpenAI-format response.
+
+        Raises:
+            ModelEngineError: If the request fails or the response format is unexpected.
+        """
+        response = await self.call(messages, **kwargs)
+        try:
+            content = response["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ModelEngineError(
+                f"Unexpected response format from model '{self.model_name}': {exc}",
+                model_name=self.model_name,
+            ) from exc
+        if not isinstance(content, str):
+            raise ModelEngineError(
+                f"Expected string content from model '{self.model_name}', got {type(content).__name__}",
+                model_name=self.model_name,
+            )
+        return content
+
+    async def stream_chat_completion(self, messages: LLMMessages, **kwargs: Any) -> AsyncGenerator[str, None]:
+        """Stream a chat completion and yield content-delta strings.
+
+        Calls the /v1/chat/completions endpoint with streaming enabled and
+        yields content strings as they arrive.
+
+        Raises:
+            ModelEngineError: If the request fails after all retries.
+        """
+        async for chunk in self.stream_call(messages, **kwargs):
+            yield chunk

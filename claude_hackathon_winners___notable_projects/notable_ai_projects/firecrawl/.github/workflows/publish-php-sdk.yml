@@ -1,0 +1,55 @@
+name: Publish PHP SDK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/php-sdk/**'
+
+jobs:
+  publish:
+    name: Publish to Packagist
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install version check dependencies
+        run: pip install requests packaging
+
+      - name: Run version check script
+        id: version_check
+        run: |
+          VERSION_INCREMENTED=$(python .github/scripts/check_version_has_incremented.py php ./apps/php-sdk firecrawl/firecrawl-php)
+          echo "VERSION_INCREMENTED=$VERSION_INCREMENTED" >> $GITHUB_ENV
+
+      - name: Set up PHP
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Install dependencies
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        working-directory: ./apps/php-sdk
+        run: composer install --no-dev --prefer-dist --no-interaction
+
+      - name: Validate composer.json
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        working-directory: ./apps/php-sdk
+        run: composer validate --strict
+
+      - name: Notify Packagist
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        run: |
+          curl -sfS -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"repository":{"url":"https://github.com/firecrawl/firecrawl"}}'

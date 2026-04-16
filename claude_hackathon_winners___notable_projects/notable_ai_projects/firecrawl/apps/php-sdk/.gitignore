@@ -1,0 +1,8 @@
+/vendor/
+/node_modules/
+composer.lock
+.phpunit.result.cache
+.php-cs-fixer.cache
+.phpstan-cache
+phpstan.neon
+.env

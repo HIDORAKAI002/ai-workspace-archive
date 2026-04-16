@@ -24,8 +24,6 @@ LLM responses with programmable guardrails.
 import logging
 from typing import AsyncIterator, Optional, Tuple, Union, cast, overload
 
-from langchain_core.language_models import BaseChatModel, BaseLLM
-
 from nemoguardrails.guardrails import configure_logging
 from nemoguardrails.guardrails.async_work_queue import AsyncWorkQueue
 from nemoguardrails.guardrails.guardrails_types import LLMMessages
@@ -34,6 +32,7 @@ from nemoguardrails.logging.explain import ExplainInfo
 from nemoguardrails.rails.llm.config import RailsConfig, _get_flow_name
 from nemoguardrails.rails.llm.llmrails import LLMRails
 from nemoguardrails.rails.llm.options import GenerationResponse
+from nemoguardrails.types import LLMModel
 
 # Queue configuration constants
 MAX_QUEUE_SIZE = 256
@@ -54,7 +53,7 @@ class Guardrails:
     def __init__(
         self,
         config: RailsConfig,
-        llm: Optional[Union[BaseLLM, BaseChatModel]] = None,
+        llm: Optional[LLMModel] = None,
         verbose: bool = False,
         *,
         use_iorails: bool = True,  # False -> fall back to LLMRails instead
@@ -180,17 +179,30 @@ class Guardrails:
     def stream_async(
         self, prompt: str | None = None, messages: LLMMessages | None = None, **kwargs
     ) -> AsyncIterator[str | dict]:
-        """Generate an LLM response asynchronously with streaming support.
-        Only supported when using LLMRails
-        """
-
-        if isinstance(self.rails_engine, IORails):
-            raise NotImplementedError("IORails doesn't support stream_async()")
+        """Generate an LLM response asynchronously with streaming support."""
 
         stream_messages = self._convert_to_messages(prompt, messages)
-        # self.rails_engine must be LLMRails since we raise above if we're using IORails
+
+        async def _with_startup(iterator: AsyncIterator[str | dict]) -> AsyncIterator[str | dict]:
+            await self._ensure_started()
+            async for chunk in iterator:
+                yield chunk
+
+        if isinstance(self.rails_engine, IORails):
+            # IORails.stream_async() only accepts messages, options, include_metadata
+            unsupported = set(kwargs) - {"options", "include_metadata"}
+            if unsupported:
+                log.warning("IORails stream_async: ignoring unsupported kwargs: %s", unsupported)
+            return _with_startup(
+                self.rails_engine.stream_async(
+                    messages=stream_messages,
+                    options=kwargs.get("options"),
+                    include_metadata=kwargs.get("include_metadata", False),
+                )
+            )
+
         llmrails = cast(LLMRails, self.rails_engine)
-        return llmrails.stream_async(messages=stream_messages, **kwargs)
+        return _with_startup(llmrails.stream_async(messages=stream_messages, **kwargs))
 
     def explain(self) -> ExplainInfo:
         """Get the latest ExplainInfo object for debugging.
@@ -204,7 +216,7 @@ class Guardrails:
         llmrails = cast(LLMRails, self.rails_engine)
         return llmrails.explain()
 
-    def update_llm(self, llm: Union[BaseLLM, BaseChatModel]) -> None:
+    def update_llm(self, llm: LLMModel) -> None:
         """Replace the main LLM with a new one.
         Only supported for LLMRails, since IORails doesn't take LLM as argument
         """

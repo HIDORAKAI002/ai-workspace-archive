@@ -1,0 +1,307 @@
+using System.Text.Json;
+using Firecrawl.Models;
+using Xunit;
+
+namespace Firecrawl.Tests;
+
+public class ModelsTests
+{
+    private static readonly JsonSerializerOptions JsonOptions = FirecrawlHttpClient.JsonOptions;
+
+    [Fact]
+    public void ScrapeOptions_SerializesCorrectly()
+    {
+        var options = new ScrapeOptions
+        {
+            Formats = new List<object> { "markdown", "html" },
+            OnlyMainContent = true,
+            Timeout = 30000,
+            Mobile = false
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.Contains("\"formats\"", json);
+        Assert.Contains("\"markdown\"", json);
+        Assert.Contains("\"html\"", json);
+        Assert.Contains("\"onlyMainContent\":true", json);
+        Assert.Contains("\"timeout\":30000", json);
+        Assert.Contains("\"mobile\":false", json);
+    }
+
+    [Fact]
+    public void ScrapeOptions_OmitsNullProperties()
+    {
+        var options = new ScrapeOptions
+        {
+            Formats = new List<object> { "markdown" }
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.Contains("\"formats\"", json);
+        Assert.DoesNotContain("\"timeout\"", json);
+        Assert.DoesNotContain("\"mobile\"", json);
+        Assert.DoesNotContain("\"headers\"", json);
+    }
+
+    [Fact]
+    public void CrawlOptions_SerializesCorrectly()
+    {
+        var options = new CrawlOptions
+        {
+            Limit = 100,
+            MaxDiscoveryDepth = 3,
+            Sitemap = "include",
+            ExcludePaths = new List<string> { "/admin/*" }
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.Contains("\"limit\":100", json);
+        Assert.Contains("\"maxDiscoveryDepth\":3", json);
+        Assert.Contains("\"sitemap\":\"include\"", json);
+        Assert.Contains("\"/admin/*\"", json);
+    }
+
+    [Fact]
+    public void MapOptions_SerializesCorrectly()
+    {
+        var options = new MapOptions
+        {
+            Search = "pricing",
+            Limit = 10,
+            IncludeSubdomains = true
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.Contains("\"search\":\"pricing\"", json);
+        Assert.Contains("\"limit\":10", json);
+        Assert.Contains("\"includeSubdomains\":true", json);
+    }
+
+    [Fact]
+    public void SearchOptions_SerializesCorrectly()
+    {
+        var options = new SearchOptions
+        {
+            Limit = 5,
+            Location = "US",
+            Tbs = "qdr:w"
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.Contains("\"limit\":5", json);
+        Assert.Contains("\"location\":\"US\"", json);
+        Assert.Contains("\"tbs\":\"qdr:w\"", json);
+    }
+
+    [Fact]
+    public void BatchScrapeOptions_IdempotencyKey_NotSerialized()
+    {
+        var options = new BatchScrapeOptions
+        {
+            IdempotencyKey = "my-key-123",
+            IgnoreInvalidURLs = true
+        };
+
+        var json = JsonSerializer.Serialize(options, JsonOptions);
+        Assert.DoesNotContain("idempotencyKey", json);
+        Assert.DoesNotContain("my-key-123", json);
+        Assert.Contains("\"ignoreInvalidURLs\":true", json);
+    }
+
+    [Fact]
+    public void Document_DeserializesCorrectly()
+    {
+        var json = """
+        {
+            "markdown": "# Hello World",
+            "html": "<h1>Hello World</h1>",
+            "metadata": {
+                "title": "Test",
+                "sourceURL": "https://example.com"
+            },
+            "warning": null
+        }
+        """;
+
+        var doc = JsonSerializer.Deserialize<Document>(json, JsonOptions);
+        Assert.NotNull(doc);
+        Assert.Equal("# Hello World", doc.Markdown);
+        Assert.Equal("<h1>Hello World</h1>", doc.Html);
+        Assert.NotNull(doc.Metadata);
+        Assert.Null(doc.Warning);
+    }
+
+    [Fact]
+    public void Document_IgnoresUnknownProperties()
+    {
+        var json = """
+        {
+            "markdown": "# Test",
+            "futureField": "should be ignored",
+            "anotherNewField": 42
+        }
+        """;
+
+        var doc = JsonSerializer.Deserialize<Document>(json, JsonOptions);
+        Assert.NotNull(doc);
+        Assert.Equal("# Test", doc.Markdown);
+    }
+
+    [Fact]
+    public void CrawlJob_IsDone_Completed()
+    {
+        var job = new CrawlJob { Status = "completed" };
+        Assert.True(job.IsDone);
+    }
+
+    [Fact]
+    public void CrawlJob_IsDone_Failed()
+    {
+        var job = new CrawlJob { Status = "failed" };
+        Assert.True(job.IsDone);
+    }
+
+    [Fact]
+    public void CrawlJob_IsDone_Cancelled()
+    {
+        var job = new CrawlJob { Status = "cancelled" };
+        Assert.True(job.IsDone);
+    }
+
+    [Fact]
+    public void CrawlJob_NotDone_Scraping()
+    {
+        var job = new CrawlJob { Status = "scraping" };
+        Assert.False(job.IsDone);
+    }
+
+    [Fact]
+    public void BatchScrapeJob_IsDone_Completed()
+    {
+        var job = new BatchScrapeJob { Status = "completed" };
+        Assert.True(job.IsDone);
+    }
+
+    [Fact]
+    public void BatchScrapeJob_NotDone_Scraping()
+    {
+        var job = new BatchScrapeJob { Status = "scraping" };
+        Assert.False(job.IsDone);
+    }
+
+    [Fact]
+    public void CrawlJob_DeserializesCorrectly()
+    {
+        var json = """
+        {
+            "id": "crawl-123",
+            "status": "completed",
+            "completed": 5,
+            "total": 5,
+            "creditsUsed": 5,
+            "data": [
+                { "markdown": "# Page 1" },
+                { "markdown": "# Page 2" }
+            ],
+            "next": null
+        }
+        """;
+
+        var job = JsonSerializer.Deserialize<CrawlJob>(json, JsonOptions);
+        Assert.NotNull(job);
+        Assert.Equal("crawl-123", job.Id);
+        Assert.Equal("completed", job.Status);
+        Assert.Equal(5, job.Completed);
+        Assert.Equal(5, job.Total);
+        Assert.True(job.IsDone);
+        Assert.NotNull(job.Data);
+        Assert.Equal(2, job.Data.Count);
+    }
+
+    [Fact]
+    public void JsonFormat_HasCorrectType()
+    {
+        var format = new JsonFormat
+        {
+            Prompt = "Extract the main content",
+            Schema = new Dictionary<string, object>
+            {
+                ["type"] = "object",
+                ["properties"] = new Dictionary<string, object>
+                {
+                    ["title"] = new Dictionary<string, object> { ["type"] = "string" }
+                }
+            }
+        };
+
+        var json = JsonSerializer.Serialize(format, JsonOptions);
+        Assert.Contains("\"type\":\"json\"", json);
+        Assert.Contains("\"prompt\"", json);
+        Assert.Contains("\"schema\"", json);
+    }
+
+    [Fact]
+    public void WebhookConfig_SerializesCorrectly()
+    {
+        var config = new WebhookConfig
+        {
+            Url = "https://example.com/webhook",
+            Events = new List<string> { "completed", "failed" }
+        };
+
+        var json = JsonSerializer.Serialize(config, JsonOptions);
+        Assert.Contains("\"url\":\"https://example.com/webhook\"", json);
+        Assert.Contains("\"completed\"", json);
+        Assert.Contains("\"failed\"", json);
+    }
+
+    [Fact]
+    public void LocationConfig_SerializesCorrectly()
+    {
+        var config = new LocationConfig
+        {
+            Country = "US",
+            Languages = new List<string> { "en" }
+        };
+
+        var json = JsonSerializer.Serialize(config, JsonOptions);
+        Assert.Contains("\"country\":\"US\"", json);
+        Assert.Contains("\"en\"", json);
+    }
+
+    [Fact]
+    public void CrawlResponse_DeserializesCorrectly()
+    {
+        var json = """
+        {
+            "success": true,
+            "id": "crawl-abc",
+            "url": "https://api.firecrawl.dev/v2/crawl/crawl-abc"
+        }
+        """;
+
+        var response = JsonSerializer.Deserialize<CrawlResponse>(json, JsonOptions);
+        Assert.NotNull(response);
+        Assert.True(response.Success);
+        Assert.Equal("crawl-abc", response.Id);
+    }
+
+    [Fact]
+    public void BatchScrapeResponse_DeserializesCorrectly()
+    {
+        var json = """
+        {
+            "success": true,
+            "id": "batch-abc",
+            "invalidURLs": ["not-a-url"]
+        }
+        """;
+
+        var response = JsonSerializer.Deserialize<BatchScrapeResponse>(json, JsonOptions);
+        Assert.NotNull(response);
+        Assert.True(response.Success);
+        Assert.Equal("batch-abc", response.Id);
+        Assert.NotNull(response.InvalidURLs);
+        Assert.Single(response.InvalidURLs);
+    }
+}
