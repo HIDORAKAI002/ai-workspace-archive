@@ -713,7 +713,7 @@ Setup:
 	p.add_argument('text', help='Text to type')
 
 	# input <index> <text>
-	p = subparsers.add_parser('input', help='Type text into specific element')
+	p = subparsers.add_parser('input', help='Clear-then-type into specific element; pass "" to clear only')
 	p.add_argument('index', type=int, help='Element index')
 	p.add_argument('text', help='Text to type')
 

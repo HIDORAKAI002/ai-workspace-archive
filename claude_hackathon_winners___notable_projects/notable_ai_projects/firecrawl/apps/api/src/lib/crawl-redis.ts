@@ -566,6 +566,7 @@ export function crawlToCrawler(
       (getScrapeZDR(teamFlags) === "forced" || sc.zeroDataRetention) ?? false,
     location: sc.scrapeOptions?.location,
     headers: sc.scrapeOptions?.headers,
+    robotsUserAgent: sc.crawlerOptions?.robotsUserAgent,
   });
 
   if (sc.robots !== undefined) {

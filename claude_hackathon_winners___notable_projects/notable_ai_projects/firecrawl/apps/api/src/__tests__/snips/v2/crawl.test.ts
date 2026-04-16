@@ -128,8 +128,7 @@ describe("Crawl tests", () => {
       expect(results.success).toBe(true);
       if (results.success) {
         for (const page of results.data) {
-          const pageUrl =
-            page.metadata.url ?? page.metadata.sourceURL ?? base;
+          const pageUrl = page.metadata.url ?? page.metadata.sourceURL ?? base;
           const normalized = normalizeUrlForCompare(pageUrl);
           expect(
             normalized === baseNormalized || sitemapUrls.has(normalized),
@@ -525,6 +524,31 @@ describe("Crawl tests", () => {
         expect(results.warning).toContain("robots.txt");
         expect(results.warning).toContain("/scrape endpoint");
       }
+    },
+    10 * scrapeTimeout,
+  );
+
+  concurrentIf(TEST_PRODUCTION)(
+    "accepts robotsUserAgent parameter",
+    async () => {
+      const robotsIdentity = await idmux({
+        name: "crawl/robotsUserAgent",
+        credits: 10000,
+        flags: { ignoreRobots: "allowed" },
+      });
+
+      const results = await crawl(
+        {
+          url: base,
+          limit: 3,
+          robotsUserAgent: "MyCustomBot",
+        },
+        robotsIdentity,
+      );
+
+      expect(results.success).toBe(true);
+      expect(results.status).toBe("completed");
+      expect(results.completed).toBeGreaterThan(0);
     },
     10 * scrapeTimeout,
   );

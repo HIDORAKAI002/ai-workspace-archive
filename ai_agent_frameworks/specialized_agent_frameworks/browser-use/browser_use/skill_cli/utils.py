@@ -268,7 +268,7 @@ def list_chrome_profiles() -> list[dict[str, str]]:
 		return []
 
 	try:
-		with open(local_state_path) as f:
+		with open(local_state_path, encoding='utf-8') as f:
 			local_state = json.load(f)
 
 		info_cache = local_state.get('profile', {}).get('info_cache', {})
