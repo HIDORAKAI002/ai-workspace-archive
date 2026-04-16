@@ -561,6 +561,48 @@ export class ControlPlaneClient {
   }
 
   /**
+   * List memory units for a bank with optional filters.
+   */
+  async listMemories(
+    bankId: string,
+    options?: {
+      type?: string;
+      q?: string;
+      consolidationState?: "failed" | "pending" | "done";
+      limit?: number;
+      offset?: number;
+    }
+  ) {
+    const params = new URLSearchParams({ bank_id: bankId });
+    if (options?.type) params.set("type", options.type);
+    if (options?.q) params.set("q", options.q);
+    if (options?.consolidationState) params.set("consolidation_state", options.consolidationState);
+    if (options?.limit !== undefined) params.set("limit", String(options.limit));
+    if (options?.offset !== undefined) params.set("offset", String(options.offset));
+    return this.fetchApi<{
+      items: Array<{
+        id: string;
+        text: string;
+        context: string;
+        date: string;
+        fact_type: string;
+        mentioned_at: string | null;
+        occurred_start: string | null;
+        occurred_end: string | null;
+        entities: string;
+        chunk_id: string | null;
+        proof_count: number;
+        tags: string[];
+        consolidated_at: string | null;
+        consolidation_failed_at: string | null;
+      }>;
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`/api/list?${params.toString()}`);
+  }
+
+  /**
    * Get chunk
    */
   async getChunk(chunkId: string) {

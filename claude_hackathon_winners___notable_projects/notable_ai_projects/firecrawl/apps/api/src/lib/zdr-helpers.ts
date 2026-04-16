@@ -38,3 +38,14 @@ export function getIgnoreRobots(flags: TeamFlags | undefined): OrgFlagMode {
   if (flags?.ignoreRobots === "allowed") return "allowed";
   return "disabled";
 }
+
+/**
+ * Resolves the effective customRobotsAgent mode from team flags.
+ * Only supports "disabled" (default) and "allowed" — no "forced" mode.
+ */
+export function getCustomRobotsAgent(
+  flags: TeamFlags | undefined,
+): "disabled" | "allowed" {
+  if (flags?.customRobotsAgent === "allowed") return "allowed";
+  return "disabled";
+}

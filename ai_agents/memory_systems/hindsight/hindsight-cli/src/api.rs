@@ -513,7 +513,7 @@ impl ApiClient {
         self.runtime.block_on(async {
             let response = self
                 .client
-                .list_memories(bank_id, limit, offset, q, type_filter, None)
+                .list_memories(bank_id, None, limit, offset, q, type_filter, None)
                 .await?;
             Ok(response.into_inner())
         })

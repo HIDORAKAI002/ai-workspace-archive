@@ -1282,6 +1282,7 @@ export type AuthCreditUsageChunk = {
 
 export type TeamFlags = {
   ignoreRobots?: "disabled" | "allowed" | "forced";
+  customRobotsAgent?: "disabled" | "allowed";
   unblockedDomains?: string[];
   forceZDR?: boolean;
   allowZDR?: boolean;

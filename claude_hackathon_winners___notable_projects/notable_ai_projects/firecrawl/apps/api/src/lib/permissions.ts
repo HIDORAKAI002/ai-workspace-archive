@@ -1,5 +1,9 @@
 import { TeamFlags } from "../controllers/v2/types";
-import { getScrapeZDR, getIgnoreRobots } from "./zdr-helpers";
+import {
+  getScrapeZDR,
+  getIgnoreRobots,
+  getCustomRobotsAgent,
+} from "./zdr-helpers";
 
 type LocationOptions = { country?: string };
 
@@ -44,10 +48,11 @@ export function checkPermissions(
       error: `The ignoreRobotsTxt parameter is an enterprise feature. Contact ${SUPPORT_EMAIL} to explore whether it can be enabled for your team.`,
     };
   }
+  // customRobotsAgent perms — separate flag for robotsUserAgent
+  const customAgentMode = getCustomRobotsAgent(flags);
   if (
     request.crawlerOptions?.robotsUserAgent &&
-    robotsMode !== "allowed" &&
-    robotsMode !== "forced"
+    customAgentMode !== "allowed"
   ) {
     return {
       error: `The robotsUserAgent parameter is an enterprise feature. Contact ${SUPPORT_EMAIL} to explore whether it can be enabled for your team.`,

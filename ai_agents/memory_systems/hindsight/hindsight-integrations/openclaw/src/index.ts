@@ -58,6 +58,14 @@ let initPromise: Promise<void> | null = null;
 let isInitialized = false;
 let usingExternalApi = false; // Track if using external API (skip daemon management)
 
+// Capability detected once per service.start() against `<apiUrl>/version`.
+// `true` when the Hindsight API supports `update_mode: 'append'` (added in
+// 0.5.0 — see vectorize-io/hindsight#932). When false, retain falls back to a
+// per-turn document id so prior turns aren't silently overwritten.
+let supportsUpdateModeAppend = false;
+let appendCapabilityProbed = false;
+const MIN_VERSION_FOR_UPDATE_MODE_APPEND = "0.5.0";
+
 // Store the current plugin config for bank ID derivation
 let currentPluginConfig: PluginConfig | null = null;
 
@@ -99,6 +107,7 @@ function scopeClient(c: HindsightClient, bankId: string): BankScopedClient {
         documentId: req.documentId,
         metadata: toStringMetadata(req.metadata),
         tags: req.tags,
+        updateMode: req.updateMode,
         async: true,
       });
     },
@@ -205,6 +214,7 @@ async function flushRetainQueue(): Promise<void> {
           documentId: item.documentId,
           metadata: toStringMetadata(item.metadata),
           tags: item.tags,
+          updateMode: item.updateMode,
           async: true,
         });
 
@@ -275,6 +285,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
   debug("[Hindsight] Attempting lazy re-initialization...");
   try {
     await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
+    await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
     const llmConfig = detectLLMConfig(config);
     clientOptions = buildClientOptions(llmConfig, config, externalApi);
@@ -1126,6 +1137,96 @@ export function buildClientOptions(
  * Health check for external Hindsight API.
  * Retries up to 3 times with 2s delay — container DNS may not be ready on first boot.
  */
+/**
+ * Compare two semver-shaped strings ("0.5.0", "0.4.22"). Returns true when
+ * `actual >= minimum`. Tolerates pre-release suffixes (treats them as the
+ * same major.minor.patch as the bare version — good enough for capability
+ * gating).
+ */
+export function meetsMinimumVersion(actual: string, minimum: string): boolean {
+  const parse = (v: string): number[] =>
+    v
+      .split("-")[0]
+      .split(".")
+      .map((part) => Number.parseInt(part, 10))
+      .map((n) => (Number.isFinite(n) ? n : 0));
+  const a = parse(actual);
+  const m = parse(minimum);
+  for (let i = 0; i < Math.max(a.length, m.length); i++) {
+    const av = a[i] ?? 0;
+    const mv = m[i] ?? 0;
+    if (av > mv) return true;
+    if (av < mv) return false;
+  }
+  return true;
+}
+
+/**
+ * Probe `<apiUrl>/version` once at service.start to learn the running
+ * Hindsight API version. Returns `null` (treated as "no append support") if
+ * the endpoint is unreachable or returns malformed payload — conservative
+ * fallback path is the right call when we can't be sure.
+ */
+async function fetchHindsightApiVersion(
+  apiUrl: string,
+  apiToken?: string | null
+): Promise<string | null> {
+  const versionUrl = `${apiUrl.replace(/\/$/, "")}/version`;
+  try {
+    const headers: Record<string, string> = { "User-Agent": USER_AGENT };
+    if (apiToken) headers["Authorization"] = `Bearer ${apiToken}`;
+    const response = await fetch(versionUrl, {
+      signal: AbortSignal.timeout(5000),
+      headers,
+    });
+    if (!response.ok) {
+      debug(`[Hindsight] /version returned HTTP ${response.status}; assuming legacy`);
+      return null;
+    }
+    const data = (await response.json()) as { api_version?: unknown };
+    const v = typeof data.api_version === "string" ? data.api_version : null;
+    if (!v) {
+      debug(`[Hindsight] /version payload missing api_version; assuming legacy`);
+    }
+    return v;
+  } catch (error) {
+    debug(`[Hindsight] /version probe failed: ${String(error)}; assuming legacy`);
+    return null;
+  }
+}
+
+/**
+ * Probe `/version` and update the module-level `supportsUpdateModeAppend`
+ * capability flag accordingly. Logs a one-time WARN block when the API is
+ * older than 0.5.0 — without `update_mode: 'append'`, every retain on the
+ * same session id silently overwrites prior turns server-side.
+ *
+ * Called from the same code paths as the health check, so capability is
+ * always re-evaluated when the plugin (re)connects to the API.
+ */
+async function detectAppendCapability(apiUrl: string, apiToken?: string | null): Promise<void> {
+  const version = await fetchHindsightApiVersion(apiUrl, apiToken);
+  const supported =
+    version !== null && meetsMinimumVersion(version, MIN_VERSION_FOR_UPDATE_MODE_APPEND);
+  const transitionedToUnsupported = supportsUpdateModeAppend && !supported;
+  const firstProbe = !appendCapabilityProbed;
+  appendCapabilityProbed = true;
+  supportsUpdateModeAppend = supported;
+  if (supported) {
+    debug(`[Hindsight] API version ${version} supports update_mode=append`);
+    return;
+  }
+  // Warn on the first probe when unsupported, and on any transition from
+  // supported -> unsupported. Stay silent on subsequent re-probes that
+  // confirm the same unsupported state.
+  if (!firstProbe && !transitionedToUnsupported) return;
+  log.warn(
+    `[Hindsight] ⚠️  API at ${apiUrl} reports version "${version ?? "unknown"}", which is older than ${MIN_VERSION_FOR_UPDATE_MODE_APPEND}. ` +
+      `Falling back to per-turn document ids — each retain becomes its own document instead of accumulating into one per-session document. ` +
+      `Upgrade Hindsight to ${MIN_VERSION_FOR_UPDATE_MODE_APPEND} or newer to enable session-scoped retention with update_mode=append.`
+  );
+}
+
 async function checkExternalApiHealth(apiUrl: string, apiToken?: string | null): Promise<void> {
   const healthUrl = `${apiUrl.replace(/\/$/, "")}/health`;
   const maxRetries = 3;
@@ -1400,6 +1501,7 @@ export default function (api: MoltbotPluginAPI) {
               // External API mode - check health, skip daemon startup
               debug("[Hindsight] External API mode - skipping local daemon...");
               await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
+              await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
               // Initialize client for external API
               debug("[Hindsight] Creating HindsightClient (external API)...");
@@ -1510,6 +1612,7 @@ export default function (api: MoltbotPluginAPI) {
           if (externalApi.apiUrl && isInitialized) {
             try {
               await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
+              await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
               debug("[Hindsight] External API is healthy");
               return;
             } catch (error) {
@@ -1554,6 +1657,7 @@ export default function (api: MoltbotPluginAPI) {
             usingExternalApi = true;
 
             await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
+            await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
             clientOptions = buildClientOptions(llmConfig, reinitPluginConfig, externalApi);
             banksWithMissionSet.clear();
@@ -2168,6 +2272,7 @@ ${memoriesFormatted}
               ? (pluginConfig.retainEveryNTurns ?? 1) + (pluginConfig.retainOverlapTurns ?? 0)
               : undefined,
             tags: inlineRetainTags,
+            appendSupported: supportsUpdateModeAppend,
           }
         );
 
@@ -2256,6 +2361,15 @@ export function buildRetainRequest(
     windowTurns?: number;
     turnIndex?: number;
     tags?: string[];
+    /**
+     * Whether the live Hindsight API supports `update_mode: 'append'`. When
+     * true with `retainDocumentScope: 'session'`, the request gets a stable
+     * per-session document id and `updateMode: 'append'` so each retain
+     * concatenates to the existing document. When false, falls back to a
+     * unique per-turn document id so prior turns aren't overwritten.
+     * Defaults to false (conservative).
+     */
+    appendSupported?: boolean;
   }
 ): RetainRequest {
   const resolvedCtx = resolveSessionIdentity(effectiveCtx);
@@ -2265,10 +2379,13 @@ export function buildRetainRequest(
   const documentBase = getSessionDocumentBase(resolvedCtx);
   const documentScope = pluginConfig.retainDocumentScope ?? "session";
   const documentKind = retentionScope === "window" ? "window" : "turn";
-  const documentId =
-    documentScope === "session"
-      ? documentBase
-      : `${documentBase}:${documentKind}:${String(turnIndex).padStart(6, "0")}`;
+  // Session-scope only stays session-scope when the API can append; otherwise
+  // every retain on the same id silently overwrites prior turns (behavior
+  // pre-#932). Force per-turn ids on legacy APIs.
+  const useSessionScopedDoc = documentScope === "session" && options?.appendSupported === true;
+  const documentId = useSessionScopedDoc
+    ? documentBase
+    : `${documentBase}:${documentKind}:${String(turnIndex).padStart(6, "0")}`;
   const provider = effectiveCtx?.messageProvider || parsedSession.provider;
   const channelId = sanitizeChannelId(effectiveCtx?.channelId, provider) || parsedSession.channel;
   const channelType = effectiveCtx?.messageProvider;
@@ -2297,6 +2414,7 @@ export function buildRetainRequest(
       ...(options?.windowTurns !== undefined ? { window_turns: String(options.windowTurns) } : {}),
     },
     tags: mergedTags.length > 0 ? mergedTags : undefined,
+    updateMode: useSessionScopedDoc ? "append" : undefined,
   };
 }
 

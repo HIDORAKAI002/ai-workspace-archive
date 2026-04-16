@@ -630,13 +630,26 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   console.log(args.json ? JSON.stringify(summary, null, 2) : JSON.stringify(summary));
 }
 
+function resolveSymlinks(path: string): string {
+  const seen = new Set<string>();
+  let current = path;
+  while (true) {
+    if (seen.has(current)) return current;
+    seen.add(current);
+    let target: string;
+    try {
+      target = realpathSync(current);
+    } catch {
+      return current;
+    }
+    if (target === current) return current;
+    current = target;
+  }
+}
+
 function canonicalizeExecutionPath(path: string): string {
   const resolved = resolve(path);
-  try {
-    return realpathSync(resolved);
-  } catch {
-    return resolved;
-  }
+  return resolveSymlinks(resolved);
 }
 
 export function isDirectExecution(

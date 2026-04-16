@@ -382,7 +382,10 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 	// TODO: configure http transport for efficient intra-cluster comm
 	remoteIndexClient := clients.NewRemoteIndex(appState.ClusterHttpClient)
 	remoteNodesClient := clients.NewRemoteNode(appState.ClusterHttpClient)
-	restReplicationClient := clients.NewReplicationClient(appState.ClusterHttpClient)
+	restReplicationClient, err := clients.NewReplicationClient(appState.ClusterHttpClient)
+	if err != nil {
+		appState.Logger.WithField("action", "startup").Fatalf("failed to create replication client: %v", err)
+	}
 
 	// Set up gRPC connection manager (needed for both file replication and replication gRPC client)
 	grpcConfig := appState.ServerConfig.Config.GRPC

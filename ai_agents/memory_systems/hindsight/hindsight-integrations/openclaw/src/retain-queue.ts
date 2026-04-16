@@ -24,6 +24,7 @@ export interface QueuedRetainPayload {
   documentId?: string;
   metadata?: Record<string, unknown>;
   tags?: string[];
+  updateMode?: "replace" | "append";
 }
 
 export interface QueuedRetain {
@@ -33,6 +34,7 @@ export interface QueuedRetain {
   documentId: string;
   metadata: Record<string, unknown>;
   tags?: string[];
+  updateMode?: "replace" | "append";
   createdAt: string; // ISO 8601
 }
 
@@ -63,6 +65,7 @@ export class RetainQueue {
       documentId: request.documentId || "conversation",
       metadata: metadata || request.metadata || {},
       tags: request.tags,
+      updateMode: request.updateMode,
       createdAt: new Date().toISOString(),
     };
     appendFileSync(this.filePath, JSON.stringify(item) + "\n", "utf8");

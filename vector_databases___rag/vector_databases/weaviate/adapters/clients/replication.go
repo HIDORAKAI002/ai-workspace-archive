@@ -57,17 +57,23 @@ const (
 
 type replicationClient struct {
 	retryClient
+	zstdEncoder *zstd.Encoder
 }
 
 var _ (replica.Client) = (*replicationClient)(nil)
 
-func NewReplicationClient(httpClient *http.Client) *replicationClient {
+func NewReplicationClient(httpClient *http.Client) (*replicationClient, error) {
+	enc, err := zstd.NewWriter(nil)
+	if err != nil {
+		return nil, fmt.Errorf("create zstd encoder: %w", err)
+	}
 	return &replicationClient{
 		retryClient: retryClient{
 			client:  httpClient,
 			retryer: newRetryer(),
 		},
-	}
+		zstdEncoder: enc,
+	}, nil
 }
 
 // FetchObject fetches one object it exits
@@ -190,12 +196,7 @@ func (c *replicationClient) HashTreeLevel(ctx context.Context,
 		return nil, fmt.Errorf("marshal hashtree level input: %w", err)
 	}
 
-	enc, err := zstd.NewWriter(nil)
-	if err != nil {
-		return nil, fmt.Errorf("create zstd encoder: %w", err)
-	}
-	defer enc.Close()
-	bodyBytes := enc.EncodeAll(body, make([]byte, 0, len(body)))
+	bodyBytes := c.zstdEncoder.EncodeAll(body, make([]byte, 0, len(body)))
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeoutUnit*20)
 	defer cancel()
@@ -254,12 +255,7 @@ func (c *replicationClient) OverwriteObjects(ctx context.Context,
 		return nil, fmt.Errorf("encode request: %w", err)
 	}
 
-	enc, err := zstd.NewWriter(nil)
-	if err != nil {
-		return nil, fmt.Errorf("create zstd encoder: %w", err)
-	}
-	defer enc.Close()
-	bodyCompressed := enc.EncodeAll(body, make([]byte, 0, len(body)))
+	bodyCompressed := c.zstdEncoder.EncodeAll(body, make([]byte, 0, len(body)))
 
 	req, err := newHttpReplicaRequest(
 		ctx, http.MethodPut, host, index, shard,

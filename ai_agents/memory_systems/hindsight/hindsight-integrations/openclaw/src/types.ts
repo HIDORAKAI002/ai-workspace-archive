@@ -133,6 +133,14 @@ export interface RetainRequest {
   documentId?: string;
   metadata?: Record<string, unknown>;
   tags?: string[];
+  /**
+   * `'append'` concatenates this content to the existing document text
+   * (Hindsight ≥ 0.5 only — older versions silently ignore the field and
+   * overwrite). The plugin only sets this when capability detection at
+   * service.start() confirmed support; otherwise it falls back to a
+   * per-turn document id and leaves this unset.
+   */
+  updateMode?: "replace" | "append";
 }
 
 /**
