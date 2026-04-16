@@ -22,6 +22,7 @@ import {
   type ToolSet,
   type UIMessage,
   LanguageModel,
+  experimental_filterActiveTools as filterActiveTools,
 } from 'ai';
 import {
   convertToLanguageModelPrompt,
@@ -715,13 +716,6 @@ export type WorkflowAgentStreamOptions<
       | Array<StopCondition<NoInfer<ToolSet>, any>>;
 
     /**
-     * Maximum number of sequential LLM calls (steps), e.g. when you use tool calls.
-     * A maximum number can be set to prevent infinite loops in the case of misconfigured tools.
-     * By default, it's unlimited (the agent loops until completion).
-     */
-    maxSteps?: number;
-
-    /**
      * The tool choice strategy. Default: 'auto'.
      * Overrides the toolChoice from the constructor if provided.
      */
@@ -1360,7 +1354,10 @@ export class WorkflowAgent<TBaseTools extends ToolSet = ToolSet> {
     const effectiveActiveTools = options.activeTools ?? this.activeTools;
     const effectiveTools =
       effectiveActiveTools && effectiveActiveTools.length > 0
-        ? filterTools(this.tools, effectiveActiveTools as string[])
+        ? (filterActiveTools({
+            tools: this.tools,
+            activeTools: effectiveActiveTools as string[],
+          }) ?? this.tools)
         : this.tools;
 
     // Initialize context
@@ -1471,7 +1468,7 @@ export class WorkflowAgent<TBaseTools extends ToolSet = ToolSet> {
       writable: options.writable,
       prompt: modelPrompt,
       stopConditions: options.stopWhen ?? this.stopWhen,
-      maxSteps: options.maxSteps,
+
       onStepFinish: mergedOnStepFinish,
       onStepStart: mergedOnStepStart,
       onError: options.onError,
@@ -1977,19 +1974,6 @@ function aggregateUsage(steps: StepResult<any, any>[]): LanguageModelUsage {
     outputTokens,
     totalTokens: inputTokens + outputTokens,
   } as LanguageModelUsage;
-}
-
-function filterTools<TTools extends ToolSet>(
-  tools: TTools,
-  activeTools: string[],
-): ToolSet {
-  const filtered: ToolSet = {};
-  for (const toolName of activeTools) {
-    if (toolName in tools) {
-      filtered[toolName] = tools[toolName];
-    }
-  }
-  return filtered;
 }
 
 // Matches AI SDK's getErrorMessage from @ai-sdk/provider-utils
