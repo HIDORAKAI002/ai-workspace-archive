@@ -31,7 +31,10 @@ export async function crawlController(
   const preNormalizedBody = req.body;
   req.body = crawlRequestSchema.parse(req.body);
 
-  const permissions = checkPermissions(req.body, req.acuc?.flags);
+  const permissions = checkPermissions(
+    { ...req.body, crawlerOptions: req.body },
+    req.acuc?.flags,
+  );
   if (permissions.error) {
     return res.status(403).json({
       success: false,

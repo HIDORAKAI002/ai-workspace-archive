@@ -482,6 +482,8 @@ export interface CrawlOptions {
   crawlEntireDomain?: boolean;
   allowExternalLinks?: boolean;
   allowSubdomains?: boolean;
+  ignoreRobotsTxt?: boolean;
+  robotsUserAgent?: string | null;
   delay?: number | null;
   maxConcurrency?: number | null;
   webhook?: string | WebhookConfig | null;
