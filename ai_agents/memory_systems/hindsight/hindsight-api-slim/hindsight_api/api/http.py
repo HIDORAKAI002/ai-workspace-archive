@@ -1454,6 +1454,7 @@ class BankStatsResponse(BaseModel):
                 "failed_operations": 0,
                 "last_consolidated_at": "2024-01-15T10:30:00Z",
                 "pending_consolidation": 0,
+                "failed_consolidation": 0,
                 "total_observations": 45,
             }
         }
@@ -1476,6 +1477,10 @@ class BankStatsResponse(BaseModel):
     # Consolidation stats
     last_consolidated_at: str | None = Field(default=None, description="When consolidation last ran (ISO format)")
     pending_consolidation: int = Field(default=0, description="Number of memories not yet processed into observations")
+    failed_consolidation: int = Field(
+        default=0,
+        description="Number of source memories (world/experience) whose consolidation permanently failed and can be retried via the consolidation recovery endpoint.",
+    )
     total_observations: int = Field(default=0, description="Total number of observations")
 
 
@@ -2893,6 +2898,7 @@ def _register_routes(app: FastAPI):
         bank_id: str,
         type: str | None = None,
         q: str | None = None,
+        consolidation_state: str | None = None,
         limit: int = 100,
         offset: int = 0,
         request_context: RequestContext = Depends(get_request_context),
@@ -2907,6 +2913,8 @@ def _register_routes(app: FastAPI):
             bank_id: Memory Bank ID (from path)
             type: Filter by fact type (world, experience, opinion)
             q: Search query for full-text search (searches text and context)
+            consolidation_state: Filter by consolidation state for source memories
+                (world/experience). One of 'failed', 'pending', or 'done'.
             limit: Maximum number of results (default: 100)
             offset: Offset for pagination (default: 0)
         """
@@ -2915,11 +2923,14 @@ def _register_routes(app: FastAPI):
                 bank_id=bank_id,
                 fact_type=type,
                 search_query=q,
+                consolidation_state=consolidation_state,
                 limit=limit,
                 offset=offset,
                 request_context=request_context,
             )
             return data
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)
         except (AuthenticationError, HTTPException):
@@ -3377,6 +3388,7 @@ def _register_routes(app: FastAPI):
                 operations_by_status=ops,
                 last_consolidated_at=stats["last_consolidated_at"],
                 pending_consolidation=stats["pending_consolidation"],
+                failed_consolidation=stats.get("failed_consolidation", 0),
                 total_observations=stats["total_observations"],
             )
         except OperationValidationError as e:

@@ -168,6 +168,14 @@ paths:
         style: form
       - explode: true
         in: query
+        name: consolidation_state
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
         name: limit
         required: false
         schema:
@@ -3559,6 +3567,7 @@ components:
       description: Response model for bank statistics endpoint.
       example:
         bank_id: user123
+        failed_consolidation: 0
         failed_operations: 0
         last_consolidated_at: 2024-01-15T10:30:00Z
         links_breakdown:
@@ -3633,6 +3642,12 @@ components:
           default: 0
           description: Number of memories not yet processed into observations
           title: Pending Consolidation
+          type: integer
+        failed_consolidation:
+          default: 0
+          description: Number of source memories (world/experience) whose consolidation
+            permanently failed and can be retried via the consolidation recovery endpoint.
+          title: Failed Consolidation
           type: integer
         total_observations:
           default: 0

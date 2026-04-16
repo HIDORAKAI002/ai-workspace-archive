@@ -386,6 +386,12 @@ export type BankStatsResponse = {
    */
   pending_consolidation?: number;
   /**
+   * Failed Consolidation
+   *
+   * Number of source memories (world/experience) whose consolidation permanently failed and can be retried via the consolidation recovery endpoint.
+   */
+  failed_consolidation?: number;
+  /**
    * Total Observations
    *
    * Total number of observations
@@ -3399,6 +3405,10 @@ export type ListMemoriesData = {
      * Q
      */
     q?: string | null;
+    /**
+     * Consolidation State
+     */
+    consolidation_state?: string | null;
     /**
      * Limit
      */

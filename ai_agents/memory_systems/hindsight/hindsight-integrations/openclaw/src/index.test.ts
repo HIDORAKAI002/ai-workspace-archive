@@ -10,6 +10,7 @@ import {
   composeRecallQuery,
   truncateRecallQuery,
   buildRetainRequest,
+  meetsMinimumVersion,
   parseSessionKey,
   extractTelegramDirectSenderId,
   resolveSessionIdentity,
@@ -323,7 +324,7 @@ describe("inline retain tag helpers", () => {
 });
 
 describe("buildRetainRequest", () => {
-  it("adds configured source metadata and retain tags", () => {
+  it("uses session-scoped doc id + update_mode=append when API supports it", () => {
     const request = buildRetainRequest(
       "hello world",
       2,
@@ -338,7 +339,8 @@ describe("buildRetainRequest", () => {
         retainSource: "openclaw",
         retainTags: ["source_system:openclaw", "agent:agentname"],
       },
-      1700000000000
+      1700000000000,
+      { appendSupported: true }
     );
 
     expect(request).toEqual({
@@ -359,7 +361,42 @@ describe("buildRetainRequest", () => {
         sender_id: "user:456",
       },
       tags: ["source_system:openclaw", "agent:agentname"],
+      updateMode: "append",
     });
+  });
+
+  it("falls back to per-turn doc id when appendSupported is false (older API)", () => {
+    const request = buildRetainRequest(
+      "hello world",
+      2,
+      {
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        messageProvider: "discord",
+      },
+      { retainSource: "openclaw" },
+      1700000000000,
+      { turnIndex: 4, appendSupported: false }
+    );
+    expect(request.documentId).toBe("openclaw:agent:main:main:turn:000004");
+    expect(request.updateMode).toBeUndefined();
+  });
+
+  it("defaults to per-turn fallback when appendSupported flag is omitted (conservative)", () => {
+    const request = buildRetainRequest(
+      "hello world",
+      2,
+      {
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        messageProvider: "discord",
+      },
+      { retainSource: "openclaw" },
+      1700000000000,
+      { turnIndex: 6 }
+    );
+    expect(request.documentId).toBe("openclaw:agent:main:main:turn:000006");
+    expect(request.updateMode).toBeUndefined();
   });
 
   it("uses per-turn document ids when retainDocumentScope is 'turn'", () => {
@@ -1087,5 +1124,39 @@ describe("waitForReady (CLI mode)", () => {
   it("getClient returns null when service.start not called", () => {
     const hindsight = (global as any).__hindsightClient;
     expect(hindsight.getClient()).toBeNull();
+  });
+});
+
+describe("meetsMinimumVersion", () => {
+  it("treats equal versions as supported", () => {
+    expect(meetsMinimumVersion("0.5.0", "0.5.0")).toBe(true);
+  });
+
+  it("returns true for newer major/minor/patch", () => {
+    expect(meetsMinimumVersion("0.5.1", "0.5.0")).toBe(true);
+    expect(meetsMinimumVersion("0.6.0", "0.5.0")).toBe(true);
+    expect(meetsMinimumVersion("1.0.0", "0.5.0")).toBe(true);
+  });
+
+  it("returns false for older versions", () => {
+    expect(meetsMinimumVersion("0.4.22", "0.5.0")).toBe(false);
+    expect(meetsMinimumVersion("0.4.0", "0.5.0")).toBe(false);
+    expect(meetsMinimumVersion("0.0.1", "0.5.0")).toBe(false);
+  });
+
+  it("ignores pre-release suffixes (treats them as the bare version)", () => {
+    expect(meetsMinimumVersion("0.5.0-beta.1", "0.5.0")).toBe(true);
+    expect(meetsMinimumVersion("0.4.99-rc.1", "0.5.0")).toBe(false);
+  });
+
+  it("treats missing patch / minor as zero", () => {
+    expect(meetsMinimumVersion("0.5", "0.5.0")).toBe(true);
+    expect(meetsMinimumVersion("1", "0.5.0")).toBe(true);
+    expect(meetsMinimumVersion("0.4", "0.5.0")).toBe(false);
+  });
+
+  it("returns false for malformed versions instead of throwing", () => {
+    expect(meetsMinimumVersion("garbage", "0.5.0")).toBe(false);
+    expect(meetsMinimumVersion("", "0.5.0")).toBe(false);
   });
 });
