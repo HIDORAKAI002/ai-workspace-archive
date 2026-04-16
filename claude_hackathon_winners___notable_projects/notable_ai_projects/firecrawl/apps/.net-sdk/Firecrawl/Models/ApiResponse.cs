@@ -1,0 +1,15 @@
+using System.Text.Json.Serialization;
+
+namespace Firecrawl.Models;
+
+/// <summary>
+/// Internal wrapper for API responses that contain a "data" field.
+/// </summary>
+internal class ApiResponse<T>
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    [JsonPropertyName("data")]
+    public T? Data { get; set; }
+}

@@ -15,6 +15,7 @@
 
 """Unit tests for model_engine module."""
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -188,6 +189,14 @@ class TestModelEngineConfig:
         assert engine.model_name == "param-model"
 
     @patch.dict("os.environ", {"NVIDIA_API_KEY": "key"})
+    def test_null_timeout_falls_back_to_default(self):
+        """Explicit None for timeout/timeout_connect/max_attempts uses defaults."""
+        engine = ModelEngine(_make_model(parameters={"timeout": None, "timeout_connect": None, "max_attempts": None}))
+        assert engine._timeout.total == DEFAULT_TIMEOUT_TOTAL
+        assert engine._timeout.connect == DEFAULT_TIMEOUT_CONNECT
+        assert engine._retry_options.attempts == DEFAULT_MAX_ATTEMPTS
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "key"})
     def test_client_initially_none(self):
         """RetryClient is not created until start() is called."""
         engine = ModelEngine(_make_model())
@@ -239,6 +248,46 @@ class TestModelEngineLifecycle:
         await engine.stop()
         await engine.stop()  # second stop is a no-op
         assert engine._running is False
+
+
+class TestModelEngineConcurrentLifecycle:
+    """Test that the asyncio.Lock in BaseEngine protects stop() from races.
+
+    start() has no await in its critical section so it's effectively atomic
+    in asyncio's cooperative model. stop() has `await client.close()` which
+    creates a real interleaving window — the lock prevents double-close.
+    """
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "key"})
+    @pytest.mark.asyncio
+    async def test_concurrent_stop_closes_client_once(self):
+        """Two concurrent stop() calls only close the client once."""
+        engine = ModelEngine(_make_model())
+        await engine.start()
+
+        close_mock = AsyncMock()
+        engine._client.close = close_mock
+
+        await asyncio.gather(engine.stop(), engine.stop())
+
+        assert not engine._running
+        assert engine._client is None
+        close_mock.assert_awaited_once()
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "key"})
+    @pytest.mark.asyncio
+    async def test_concurrent_start_stop_does_not_leak(self):
+        """Concurrent start() and stop() leave the engine in a consistent state."""
+        engine = ModelEngine(_make_model())
+        await engine.start()
+        assert engine._running
+
+        await asyncio.gather(engine.stop(), engine.start())
+
+        # Engine should be in a consistent state — clean up if still running
+        assert (engine._running and engine._client is not None) or (not engine._running and engine._client is None)
+        if engine._running:
+            await engine.stop()
 
 
 class TestModelEngineContextManager:
@@ -512,8 +561,7 @@ class TestModelEngineStreamCall:
         engine._running = True
 
         with pytest.raises(ModelEngineError) as exc_info:
-            async for _ in engine.stream_call([{"role": "user", "content": "Hi"}]):
-                pass
+            await anext(engine.stream_call([{"role": "user", "content": "Hi"}]))
 
         assert exc_info.value.status == 500
 
@@ -524,8 +572,7 @@ class TestModelEngineStreamCall:
         engine = ModelEngine(_make_model())
 
         with pytest.raises(ModelEngineError, match="has not been started"):
-            async for _ in engine.stream_call([{"role": "user", "content": "Hi"}]):
-                pass
+            await anext(engine.stream_call([{"role": "user", "content": "Hi"}]))
 
     @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
     @pytest.mark.asyncio
@@ -638,8 +685,7 @@ class TestModelEngineStreamCall:
         engine._running = True
 
         with pytest.raises(ModelEngineError, match="connection dropped"):
-            async for _ in engine.stream_call([{"role": "user", "content": "Hi"}]):
-                pass
+            await anext(engine.stream_call([{"role": "user", "content": "Hi"}]))
 
     @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
     @pytest.mark.asyncio
@@ -665,6 +711,66 @@ class TestModelEngineStreamCall:
 
         assert chunks == ["ok"]
 
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_stream_call_eof_without_done(self):
+        """Stream ends gracefully when readline() returns empty bytes (no [DONE] marker)."""
+        engine = ModelEngine(_make_model())
+
+        raw_lines = [
+            b'data: {"choices": [{"delta": {"content": "Hi"}}]}\n\n',
+            # No "data: [DONE]" — readline() will return b"" next
+        ]
+        mock_response = self._mock_streaming_response(raw_lines)
+
+        mock_client = AsyncMock()
+        mock_client.post = MagicMock(return_value=mock_response)
+        engine._client = mock_client
+        engine._running = True
+
+        chunks = []
+        async for chunk in engine.stream_call([{"role": "user", "content": "Hi"}]):
+            chunks.append(chunk)
+
+        assert chunks == ["Hi"]
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_stream_call_skips_blank_lines(self):
+        """Blank lines (whitespace-only) between SSE events are skipped."""
+        engine = ModelEngine(_make_model())
+
+        # Build lines manually to include real blank lines the helper would strip
+        line_data = [
+            b'data: {"choices": [{"delta": {"content": "Hi"}}]}\n',
+            b"   \n",  # whitespace-only line — empty after strip()
+            b'data: {"choices": [{"delta": {"content": "!"}}]}\n',
+            b"data: [DONE]\n",
+        ]
+        line_iter = iter(line_data)
+
+        async def _readline():
+            return next(line_iter, b"")
+
+        mock_content = MagicMock()
+        mock_content.readline = _readline
+
+        mock_response = AsyncMock()
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.status = 200
+        mock_response.content = mock_content
+
+        mock_client = AsyncMock()
+        mock_client.post = MagicMock(return_value=mock_response)
+        engine._client = mock_client
+        engine._running = True
+
+        chunks = []
+        async for chunk in engine.stream_call([{"role": "user", "content": "Hi"}]):
+            chunks.append(chunk)
+
+        assert chunks == ["Hi", "!"]
+
 
 class TestModelEngineConstants:
     """Test values of model-engine-specific constants."""
@@ -677,3 +783,122 @@ class TestModelEngineConstants:
     def test_chat_completions_endpoint(self):
         """Endpoint path matches OpenAI-compatible chat completions."""
         assert _CHAT_COMPLETIONS_ENDPOINT == "/v1/chat/completions"
+
+
+class TestModelEngineStreamChatCompletion:
+    """Test ModelEngine.stream_chat_completion() delegates to stream_call()."""
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_yields_chunks_from_stream_call(self):
+        """stream_chat_completion() yields all chunks from stream_call()."""
+        engine = ModelEngine(_make_model())
+
+        async def mock_stream_call(msgs, **kwargs):
+            for chunk in ["Hello", " world"]:
+                yield chunk
+
+        engine.stream_call = mock_stream_call
+
+        chunks = []
+        async for chunk in engine.stream_chat_completion([{"role": "user", "content": "Hi"}]):
+            chunks.append(chunk)
+
+        assert chunks == ["Hello", " world"]
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_forwards_kwargs_to_stream_call(self):
+        """stream_chat_completion() passes kwargs through to stream_call()."""
+        engine = ModelEngine(_make_model())
+        captured_kwargs = {}
+
+        async def mock_stream_call(msgs, **kwargs):
+            captured_kwargs.update(kwargs)
+            yield "ok"
+
+        engine.stream_call = mock_stream_call
+
+        async for _ in engine.stream_chat_completion(
+            [{"role": "user", "content": "Hi"}], temperature=0.7, max_tokens=50
+        ):
+            pass
+
+        assert captured_kwargs["temperature"] == 0.7
+        assert captured_kwargs["max_tokens"] == 50
+
+
+class TestModelEngineChatCompletion:
+    """Test ModelEngine.chat_completion() extracts content from OpenAI-format response."""
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_returns_content_string(self):
+        """chat_completion() returns the assistant message content from the response."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": [{"message": {"role": "assistant", "content": "Hello!"}}]})
+
+        result = await engine.chat_completion([{"role": "user", "content": "Hi"}])
+        assert result == "Hello!"
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_forwards_kwargs_to_call(self):
+        """chat_completion() passes kwargs through to call()."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": [{"message": {"content": "ok"}}]})
+
+        await engine.chat_completion([{"role": "user", "content": "Hi"}], temperature=0.5, max_tokens=100)
+        call_kwargs = engine.call.call_args[1]
+        assert call_kwargs["temperature"] == 0.5
+        assert call_kwargs["max_tokens"] == 100
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_raises_on_missing_choices(self):
+        """chat_completion() raises ModelEngineError when 'choices' key is missing."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={})
+
+        with pytest.raises(ModelEngineError, match="Unexpected response format"):
+            await engine.chat_completion([{"role": "user", "content": "Hi"}])
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_raises_on_empty_choices(self):
+        """chat_completion() raises ModelEngineError when choices list is empty."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": []})
+
+        with pytest.raises(ModelEngineError, match="Unexpected response format"):
+            await engine.chat_completion([{"role": "user", "content": "Hi"}])
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_raises_on_missing_message(self):
+        """chat_completion() raises ModelEngineError when 'message' key is missing from choice."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": [{}]})
+
+        with pytest.raises(ModelEngineError, match="Unexpected response format"):
+            await engine.chat_completion([{"role": "user", "content": "Hi"}])
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_raises_on_missing_content(self):
+        """chat_completion() raises ModelEngineError when 'content' key is missing from message."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": [{"message": {}}]})
+
+        with pytest.raises(ModelEngineError, match="Unexpected response format"):
+            await engine.chat_completion([{"role": "user", "content": "Hi"}])
+
+    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
+    @pytest.mark.asyncio
+    async def test_raises_on_null_content(self):
+        """chat_completion() raises ModelEngineError when content is None (e.g. tool_calls response)."""
+        engine = ModelEngine(_make_model())
+        engine.call = AsyncMock(return_value={"choices": [{"message": {"content": None}}]})
+
+        with pytest.raises(ModelEngineError, match="Expected string content"):
+            await engine.chat_completion([{"role": "user", "content": "Hi"}])

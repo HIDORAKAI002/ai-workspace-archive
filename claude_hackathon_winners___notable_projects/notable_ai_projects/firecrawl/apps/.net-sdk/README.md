@@ -1,0 +1,222 @@
+# Firecrawl .NET SDK
+
+.NET SDK for the [Firecrawl API](https://firecrawl.dev) — web scraping, crawling, and data extraction.
+
+## Installation
+
+```bash
+dotnet add package firecrawl-dotnet
+```
+
+## Quick Start
+
+```csharp
+using Firecrawl;
+using Firecrawl.Models;
+
+// Create a client
+var client = new FirecrawlClient("fc-your-api-key");
+
+// Scrape a single page
+var doc = await client.ScrapeAsync("https://example.com",
+    new ScrapeOptions { Formats = new List<object> { "markdown" } });
+
+Console.WriteLine(doc.Markdown);
+```
+
+## Configuration
+
+### API Key
+
+The API key can be provided in two ways (in order of precedence):
+
+1. Constructor parameter: `new FirecrawlClient("fc-your-api-key")`
+2. Environment variable: `FIRECRAWL_API_KEY`
+
+```csharp
+// From environment variable
+var client = new FirecrawlClient();
+
+// Explicit API key
+var client = new FirecrawlClient(apiKey: "fc-your-api-key");
+
+// Custom API URL (for self-hosted instances)
+var client = new FirecrawlClient(
+    apiKey: "fc-your-api-key",
+    apiUrl: "https://your-firecrawl-instance.com");
+
+// Custom HttpClient
+var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+var client = new FirecrawlClient(
+    apiKey: "fc-your-api-key",
+    httpClient: httpClient);
+```
+
+## Usage
+
+### Scrape
+
+```csharp
+// Basic scrape
+var doc = await client.ScrapeAsync("https://example.com");
+
+// Scrape with options
+var doc = await client.ScrapeAsync("https://example.com",
+    new ScrapeOptions
+    {
+        Formats = new List<object> { "markdown", "html" },
+        OnlyMainContent = true,
+        WaitFor = 5000
+    });
+
+Console.WriteLine(doc.Markdown);
+Console.WriteLine(doc.Html);
+```
+
+### Crawl
+
+```csharp
+// Crawl with auto-polling (waits for completion)
+var job = await client.CrawlAsync("https://example.com",
+    new CrawlOptions
+    {
+        Limit = 50,
+        MaxDiscoveryDepth = 3,
+        ExcludePaths = new List<string> { "/admin/*" }
+    });
+
+foreach (var page in job.Data!)
+{
+    Console.WriteLine(page.Markdown);
+}
+
+// Start crawl without waiting
+var response = await client.StartCrawlAsync("https://example.com",
+    new CrawlOptions { Limit = 100 });
+
+// Check status later
+var status = await client.GetCrawlStatusAsync(response.Id!);
+Console.WriteLine($"Status: {status.Status}, Progress: {status.Completed}/{status.Total}");
+
+// Cancel a crawl
+await client.CancelCrawlAsync(response.Id!);
+```
+
+### Batch Scrape
+
+```csharp
+// Batch scrape with auto-polling
+var urls = new List<string>
+{
+    "https://example.com/page1",
+    "https://example.com/page2",
+    "https://example.com/page3"
+};
+
+var job = await client.BatchScrapeAsync(urls,
+    new BatchScrapeOptions
+    {
+        Options = new ScrapeOptions
+        {
+            Formats = new List<object> { "markdown" }
+        }
+    });
+
+foreach (var doc in job.Data!)
+{
+    Console.WriteLine(doc.Markdown);
+}
+```
+
+### Map (URL Discovery)
+
+```csharp
+// Discover URLs on a website
+var data = await client.MapAsync("https://example.com",
+    new MapOptions
+    {
+        Search = "pricing",
+        Limit = 100
+    });
+
+foreach (var url in data.Links!)
+{
+    Console.WriteLine(url);
+}
+```
+
+### Search
+
+```csharp
+// Web search
+var results = await client.SearchAsync("firecrawl web scraping",
+    new SearchOptions
+    {
+        Limit = 5,
+        Location = "US"
+    });
+```
+
+### Usage & Metrics
+
+```csharp
+// Check concurrency
+var concurrency = await client.GetConcurrencyAsync();
+Console.WriteLine($"Current: {concurrency.Current}, Max: {concurrency.MaxConcurrency}");
+
+// Check credit usage
+var usage = await client.GetCreditUsageAsync();
+Console.WriteLine($"Remaining credits: {usage.RemainingCredits}");
+```
+
+## Error Handling
+
+```csharp
+using Firecrawl.Exceptions;
+
+try
+{
+    var doc = await client.ScrapeAsync("https://example.com");
+}
+catch (AuthenticationException ex)
+{
+    // 401 - Invalid API key
+    Console.WriteLine($"Auth error: {ex.Message}");
+}
+catch (RateLimitException ex)
+{
+    // 429 - Too many requests
+    Console.WriteLine($"Rate limited: {ex.Message}");
+}
+catch (JobTimeoutException ex)
+{
+    // Async job timed out
+    Console.WriteLine($"Job {ex.JobId} timed out after {ex.TimeoutSeconds}s");
+}
+catch (FirecrawlException ex)
+{
+    // General API error
+    Console.WriteLine($"Error {ex.StatusCode}: {ex.Message}");
+}
+```
+
+## Requirements
+
+- .NET 8.0 or later
+
+## Development
+
+```bash
+# Restore dependencies
+dotnet restore
+
+# Build
+dotnet build
+
+# Run tests
+dotnet test
+```
+
+## License
+
+MIT

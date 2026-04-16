@@ -32,15 +32,15 @@ from nemoguardrails.guardrails.actions.content_safety_action import (
 )
 from nemoguardrails.guardrails.actions.jailbreak_detection_action import JailbreakDetectionAction
 from nemoguardrails.guardrails.actions.topic_safety_action import TopicSafetyInputAction
+from nemoguardrails.guardrails.engine_registry import EngineRegistry
 from nemoguardrails.guardrails.guardrails_types import (
     RailDirection,
     RailResult,
     get_request_id,
 )
-from nemoguardrails.guardrails.model_manager import ModelManager
 from nemoguardrails.guardrails.rail_action import RailAction
 from nemoguardrails.llm.taskmanager import LLMTaskManager
-from nemoguardrails.rails.llm.config import RailsConfig, _get_flow_name
+from nemoguardrails.rails.llm.config import _get_flow_name
 
 log = logging.getLogger(__name__)
 
@@ -64,17 +64,25 @@ class RailsManager:
     them sequentially or in parallel.
     """
 
-    def __init__(self, config: RailsConfig, model_manager: ModelManager) -> None:
-        self.model_manager = model_manager
-        self.task_manager = LLMTaskManager(config)
+    def __init__(
+        self,
+        *,
+        engine_registry: EngineRegistry,
+        task_manager: LLMTaskManager,
+        input_flows: list[str],
+        output_flows: list[str],
+        input_parallel: bool = False,
+        output_parallel: bool = False,
+    ) -> None:
+        """Build RailAction instances for each configured input and output flow."""
+        self.engine_registry = engine_registry
+        self.task_manager = task_manager
 
-        # Determine which input/output rails are enabled
-        self.input_flows: list[str] = list(config.rails.input.flows)
-        self.output_flows: list[str] = list(config.rails.output.flows)
+        self.input_flows: list[str] = list(input_flows)
+        self.output_flows: list[str] = list(output_flows)
 
-        # Parallel execution flags (Optional[bool] in config, coerce to bool)
-        self.input_parallel: bool = config.rails.input.parallel or False
-        self.output_parallel: bool = config.rails.output.parallel or False
+        self.input_parallel: bool = input_parallel
+        self.output_parallel: bool = output_parallel
 
         # Build action instances for each configured flow
         self._actions: dict[str, RailAction] = {}
@@ -96,7 +104,7 @@ class RailsManager:
         if action_cls is None:
             available = sorted(_ACTION_CLASSES.keys())
             raise RuntimeError(f"Rail flow '{base_name}' not supported. Available: {available}")
-        return action_cls(self.model_manager, self.task_manager)
+        return action_cls(self.engine_registry, self.task_manager)
 
     async def is_input_safe(self, messages: list[dict]) -> RailResult:
         """Run all enabled input rails, short-circuiting on the first failure.
