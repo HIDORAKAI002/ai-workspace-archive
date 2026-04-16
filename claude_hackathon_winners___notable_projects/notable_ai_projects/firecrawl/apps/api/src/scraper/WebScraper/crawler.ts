@@ -169,7 +169,10 @@ export class WebCrawler {
         maxDiscoveryDepth: this.maxDiscoveryDepth,
       });
       sitemapLinks.forEach(link => {
-        denialReasons.set(link, `This URL was not crawled because the maximum discovery depth (${this.maxDiscoveryDepth}) has been reached. Discovery depth counts how many 'hops' from the starting URL a page is. To crawl more pages, increase the maxDiscoveryDepth value in your crawl request.`);
+        denialReasons.set(
+          link,
+          `This URL was not crawled because the maximum discovery depth (${this.maxDiscoveryDepth}) has been reached. Discovery depth counts how many 'hops' from the starting URL a page is. To crawl more pages, increase the maxDiscoveryDepth value in your crawl request.`,
+        );
       });
       return { links: [], denialReasons };
     }
@@ -613,13 +616,7 @@ export class WebCrawler {
             maxAge,
           ),
           ...robotsSitemaps.map(x =>
-            this.tryFetchSitemapLinks(
-              x,
-              _urlsHandler,
-              abort,
-              mock,
-              maxAge,
-            ),
+            this.tryFetchSitemapLinks(x, _urlsHandler, abort, mock, maxAge),
           ),
         ]).then(results => results.reduce((a, x) => a + x, 0)),
         timeoutPromise,
