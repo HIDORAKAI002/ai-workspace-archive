@@ -19,6 +19,8 @@ var _ MappedNullable = &MentalModelTriggerInput{}
 
 // MentalModelTriggerInput Trigger settings for a mental model.
 type MentalModelTriggerInput struct {
+	// Refresh mode. 'full' (default) regenerates the mental model content from scratch on each refresh. 'delta' performs surgical edits against the existing content: unchanged sections are preserved byte-for-byte, stale content is removed, new content is added. If the mental model has no existing content, or if the source_query has changed since the last refresh, delta mode falls back to a full regeneration automatically.
+	Mode *string `json:"mode,omitempty"`
 	// If true, refresh this mental model after observations consolidation (real-time mode)
 	RefreshAfterConsolidation *bool `json:"refresh_after_consolidation,omitempty"`
 	FactTypes []string `json:"fact_types,omitempty"`
@@ -38,6 +40,8 @@ type MentalModelTriggerInput struct {
 // will change when the set of required properties is changed
 func NewMentalModelTriggerInput() *MentalModelTriggerInput {
 	this := MentalModelTriggerInput{}
+	var mode string = "full"
+	this.Mode = &mode
 	var refreshAfterConsolidation bool = false
 	this.RefreshAfterConsolidation = &refreshAfterConsolidation
 	var excludeMentalModels bool = false
@@ -50,11 +54,45 @@ func NewMentalModelTriggerInput() *MentalModelTriggerInput {
 // but it doesn't guarantee that properties required by API are set
 func NewMentalModelTriggerInputWithDefaults() *MentalModelTriggerInput {
 	this := MentalModelTriggerInput{}
+	var mode string = "full"
+	this.Mode = &mode
 	var refreshAfterConsolidation bool = false
 	this.RefreshAfterConsolidation = &refreshAfterConsolidation
 	var excludeMentalModels bool = false
 	this.ExcludeMentalModels = &excludeMentalModels
 	return &this
+}
+
+// GetMode returns the Mode field value if set, zero value otherwise.
+func (o *MentalModelTriggerInput) GetMode() string {
+	if o == nil || IsNil(o.Mode) {
+		var ret string
+		return ret
+	}
+	return *o.Mode
+}
+
+// GetModeOk returns a tuple with the Mode field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MentalModelTriggerInput) GetModeOk() (*string, bool) {
+	if o == nil || IsNil(o.Mode) {
+		return nil, false
+	}
+	return o.Mode, true
+}
+
+// HasMode returns a boolean if a field has been set.
+func (o *MentalModelTriggerInput) HasMode() bool {
+	if o != nil && !IsNil(o.Mode) {
+		return true
+	}
+
+	return false
+}
+
+// SetMode gets a reference to the given string and assigns it to the Mode field.
+func (o *MentalModelTriggerInput) SetMode(v string) {
+	o.Mode = &v
 }
 
 // GetRefreshAfterConsolidation returns the RefreshAfterConsolidation field value if set, zero value otherwise.
@@ -398,6 +436,9 @@ func (o MentalModelTriggerInput) MarshalJSON() ([]byte, error) {
 
 func (o MentalModelTriggerInput) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Mode) {
+		toSerialize["mode"] = o.Mode
+	}
 	if !IsNil(o.RefreshAfterConsolidation) {
 		toSerialize["refresh_after_consolidation"] = o.RefreshAfterConsolidation
 	}

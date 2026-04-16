@@ -94,21 +94,18 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 /**
- * Map a 0..1 value to a Hindsight brand gradient.
- * 0 = few links (teal #009296), 1 = hub (blue #0074d9).
- * Passes through a brighter midpoint for contrast.
+ * Map a 0..1 value to a perceptually monotonic cool→warm ramp.
+ * 0 = cool blue (low / older / few links), 1 = warm orange-red (high / newer / many).
+ * Mid passes through a desaturated lavender so brightness stays roughly monotonic
+ * — viewers should read the position on the bar at a glance without consulting
+ * the legend.
  */
 function heatColor(t: number): string {
   const v = Math.max(0, Math.min(1, t));
-
-  // Cool-to-hot ramp with strong contrast between stops so low/high reads at a
-  // glance. Previously a teal→cyan→blue ramp, but all three blues looked alike.
-  // deep indigo → magenta → orange → gold (sunset-style)
   const stops = [
-    [60, 90, 180], // cool indigo
-    [170, 70, 190], // magenta
-    [240, 120, 70], // vivid orange
-    [255, 210, 90], // warm gold
+    [56, 130, 220], // cool blue
+    [170, 130, 200], // muted lavender bridge
+    [240, 100, 60], // warm orange-red
   ];
   const seg = v * (stops.length - 1);
   const i = Math.min(Math.floor(seg), stops.length - 2);
@@ -562,40 +559,48 @@ export function Constellation({
     ctx.font = FONT_BOLD;
     ctx.fillStyle = isDark ? "#a1a1aa" : "#52525b";
     ctx.fillText((heatLegendLabel || "LINKS").toUpperCase(), 12, 36);
-    const gradW = 80;
+    const [heatLo, heatHi] = heatLegendEndpoints || ["few", "many"];
+    // Size the bar so both endpoint labels fit without overlap (e.g. ISO dates
+    // are wider than "few"/"many"). Min 80px keeps the visual weight stable.
+    ctx.font = MONO;
+    const heatLoW = ctx.measureText(heatLo).width;
+    const heatHiW = ctx.measureText(heatHi).width;
+    const gradW = Math.max(80, heatLoW + heatHiW + 12);
     for (let gx = 0; gx < gradW; gx++) {
       ctx.fillStyle = heatColor(gx / gradW);
       ctx.fillRect(12 + gx, 42, 1, 6);
     }
-    ctx.font = MONO;
     ctx.fillStyle = isDark ? "#a1a1aa" : "#71717a";
-    const [heatLo, heatHi] = heatLegendEndpoints || ["few", "many"];
     ctx.fillText(heatLo, 12, 60);
     ctx.textAlign = "right";
     ctx.fillText(heatHi, 12 + gradW, 60);
 
     // Node-size legend — only shown when the caller maps size to a real dimension.
+    // Layout: "few • • ● many" so the labels bracket the dots without overlap.
     if (sizeLegendLabel) {
       ctx.textAlign = "left";
       ctx.font = FONT_BOLD;
       ctx.fillStyle = isDark ? "#a1a1aa" : "#52525b";
       ctx.fillText(sizeLegendLabel.toUpperCase(), 12, 82);
+      ctx.font = MONO;
+      const labelColor = isDark ? "#a1a1aa" : "#71717a";
+      ctx.fillStyle = labelColor;
+      ctx.fillText("few", 12, 98);
+      const fewW = ctx.measureText("few").width;
+      const dotsStart = 12 + fewW + 8;
       const dotColor = isDark ? "#a1a1aa" : "#52525b";
       ctx.fillStyle = dotColor;
       ctx.beginPath();
-      ctx.arc(16, 94, 2, 0, Math.PI * 2);
+      ctx.arc(dotsStart + 2, 94, 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(28, 94, 4, 0, Math.PI * 2);
+      ctx.arc(dotsStart + 14, 94, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(44, 94, 6, 0, Math.PI * 2);
+      ctx.arc(dotsStart + 30, 94, 6, 0, Math.PI * 2);
       ctx.fill();
-      ctx.font = MONO;
-      ctx.fillStyle = isDark ? "#a1a1aa" : "#71717a";
-      ctx.fillText("few", 56, 98);
-      ctx.textAlign = "right";
-      ctx.fillText("many", 92, 98);
+      ctx.fillStyle = labelColor;
+      ctx.fillText("many", dotsStart + 42, 98);
     }
 
     // Instructions
@@ -760,10 +765,9 @@ export function Constellation({
         const factType = meta?.fact_type || node.group || "memory";
         const context = meta?.context && meta.context !== "N/A" ? meta.context : null;
         const tags: string[] = Array.isArray(meta?.tags) ? meta.tags : [];
-        const date = meta?.date && meta.date !== "N/A" ? meta.date : null;
         const occurredStart = meta?.occurred_start || null;
         const occurredEnd = meta?.occurred_end || null;
-        const createdAt = meta?.created_at || null;
+        const mentionedAt = meta?.mentioned_at || null;
         const proofCount = meta?.proof_count || null;
         const documentId = meta?.document_id || null;
 
@@ -789,18 +793,19 @@ export function Constellation({
           html += `<div style="${rowStyle}"><span style="${labelStyle}">Context</span><span style="${valStyle}">${context}</span></div>`;
         }
 
-        if (date) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Date</span><span style="${valStyle}">${date}</span></div>`;
-        } else if (occurredStart) {
-          const timeRange =
-            occurredEnd && occurredEnd !== occurredStart
-              ? `${occurredStart.slice(0, 10)} → ${occurredEnd.slice(0, 10)}`
-              : occurredStart.slice(0, 10);
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Occurred</span><span style="${valStyle}">${timeRange}</span></div>`;
+        // Format ISO timestamp as "YYYY-MM-DD HH:MM" — keeps the row compact
+        // while still surfacing the time-of-day the user asked for.
+        const fmtTs = (iso: string) => iso.slice(0, 16).replace("T", " ");
+
+        if (occurredStart) {
+          const start = fmtTs(occurredStart);
+          const end = occurredEnd ? fmtTs(occurredEnd) : null;
+          const occurredDisplay = end && end !== start ? `${start} → ${end}` : start;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">Occurred</span><span style="${valStyle}">${occurredDisplay}</span></div>`;
         }
 
-        if (createdAt) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Created</span><span style="${valStyle}">${createdAt.slice(0, 16).replace("T", " ")}</span></div>`;
+        if (mentionedAt) {
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">Mentioned</span><span style="${valStyle}">${fmtTs(mentionedAt)}</span></div>`;
         }
 
         if (proofCount && proofCount > 1) {

@@ -657,6 +657,9 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             # cause dependency collisions.
             unsupported_python_versions=AvailablePythonVersion.get_all_except_default(),
             retries=0,
+            # automation validates public API consistency across all published packages,
+            # so it must run whenever any published package changes.
+            force_run_fn=BuildkiteContext.has_published_python_package_changes,
         ),
         PackageSpec(oss_path("python_modules/dagster-webserver"), pytest_extra_cmds=ui_extra_cmds),
         PackageSpec(

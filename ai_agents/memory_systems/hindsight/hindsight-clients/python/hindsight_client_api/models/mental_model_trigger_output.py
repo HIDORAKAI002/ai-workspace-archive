@@ -27,6 +27,7 @@ class MentalModelTriggerOutput(BaseModel):
     """
     Trigger settings for a mental model.
     """ # noqa: E501
+    mode: Optional[StrictStr] = Field(default='full', description="Refresh mode. 'full' (default) regenerates the mental model content from scratch on each refresh. 'delta' performs surgical edits against the existing content: unchanged sections are preserved byte-for-byte, stale content is removed, new content is added. If the mental model has no existing content, or if the source_query has changed since the last refresh, delta mode falls back to a full regeneration automatically.")
     refresh_after_consolidation: Optional[StrictBool] = Field(default=False, description="If true, refresh this mental model after observations consolidation (real-time mode)")
     fact_types: Optional[List[StrictStr]] = None
     exclude_mental_models: Optional[StrictBool] = Field(default=False, description="If true, exclude all mental models from the reflect loop (skip search_mental_models tool).")
@@ -36,7 +37,17 @@ class MentalModelTriggerOutput(BaseModel):
     include_chunks: Optional[StrictBool] = None
     recall_max_tokens: Optional[StrictInt] = None
     recall_chunks_max_tokens: Optional[StrictInt] = None
-    __properties: ClassVar[List[str]] = ["refresh_after_consolidation", "fact_types", "exclude_mental_models", "exclude_mental_model_ids", "tags_match", "tag_groups", "include_chunks", "recall_max_tokens", "recall_chunks_max_tokens"]
+    __properties: ClassVar[List[str]] = ["mode", "refresh_after_consolidation", "fact_types", "exclude_mental_models", "exclude_mental_model_ids", "tags_match", "tag_groups", "include_chunks", "recall_max_tokens", "recall_chunks_max_tokens"]
+
+    @field_validator('mode')
+    def mode_validate_enum(cls, value):
+        """Validates the enum"""
+        if value is None:
+            return value
+
+        if value not in set(['full', 'delta']):
+            raise ValueError("must be one of enum values ('full', 'delta')")
+        return value
 
     @field_validator('fact_types')
     def fact_types_validate_enum(cls, value):
@@ -152,6 +163,7 @@ class MentalModelTriggerOutput(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "mode": obj.get("mode") if obj.get("mode") is not None else 'full',
             "refresh_after_consolidation": obj.get("refresh_after_consolidation") if obj.get("refresh_after_consolidation") is not None else False,
             "fact_types": obj.get("fact_types"),
             "exclude_mental_models": obj.get("exclude_mental_models") if obj.get("exclude_mental_models") is not None else False,

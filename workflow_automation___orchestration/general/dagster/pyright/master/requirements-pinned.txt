@@ -540,7 +540,6 @@ progressbar2==4.5.0
 -e examples/docs_projects/project_components_pdf_extraction
 -e examples/docs_projects/project_dagster_modal_pipes
 -e examples/docs_projects/project_dbt
--e examples/docs_projects/project_dspy
 -e examples/docs_projects/project_elt_pipeline
 -e examples/docs_projects/project_llm_fine_tune
 -e examples/docs_projects/project_ml

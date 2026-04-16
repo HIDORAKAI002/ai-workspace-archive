@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "firecrawl/firecrawl-php",
+    "name": "firecrawl/firecrawl-sdk",
     "description": "PHP SDK for the Firecrawl v2 API with Laravel support",
     "license": "MIT",
     "type": "library",

@@ -41,6 +41,15 @@ type BankTemplateConfig struct {
 	MaxObservationsPerScope NullableInt32 `json:"max_observations_per_scope,omitempty"`
 	ReflectSourceFactsMaxTokens NullableInt32 `json:"reflect_source_facts_max_tokens,omitempty"`
 	LlmGeminiSafetySettings []interface{} `json:"llm_gemini_safety_settings,omitempty"`
+	RecallBudgetFunction NullableString `json:"recall_budget_function,omitempty"`
+	RecallBudgetFixedLow NullableInt32 `json:"recall_budget_fixed_low,omitempty"`
+	RecallBudgetFixedMid NullableInt32 `json:"recall_budget_fixed_mid,omitempty"`
+	RecallBudgetFixedHigh NullableInt32 `json:"recall_budget_fixed_high,omitempty"`
+	RecallBudgetAdaptiveLow NullableFloat32 `json:"recall_budget_adaptive_low,omitempty"`
+	RecallBudgetAdaptiveMid NullableFloat32 `json:"recall_budget_adaptive_mid,omitempty"`
+	RecallBudgetAdaptiveHigh NullableFloat32 `json:"recall_budget_adaptive_high,omitempty"`
+	RecallBudgetMin NullableInt32 `json:"recall_budget_min,omitempty"`
+	RecallBudgetMax NullableInt32 `json:"recall_budget_max,omitempty"`
 }
 
 // NewBankTemplateConfig instantiates a new BankTemplateConfig object
@@ -948,6 +957,384 @@ func (o *BankTemplateConfig) SetLlmGeminiSafetySettings(v []interface{}) {
 	o.LlmGeminiSafetySettings = v
 }
 
+// GetRecallBudgetFunction returns the RecallBudgetFunction field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetFunction() string {
+	if o == nil || IsNil(o.RecallBudgetFunction.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.RecallBudgetFunction.Get()
+}
+
+// GetRecallBudgetFunctionOk returns a tuple with the RecallBudgetFunction field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetFunctionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetFunction.Get(), o.RecallBudgetFunction.IsSet()
+}
+
+// HasRecallBudgetFunction returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetFunction() bool {
+	if o != nil && o.RecallBudgetFunction.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetFunction gets a reference to the given NullableString and assigns it to the RecallBudgetFunction field.
+func (o *BankTemplateConfig) SetRecallBudgetFunction(v string) {
+	o.RecallBudgetFunction.Set(&v)
+}
+// SetRecallBudgetFunctionNil sets the value for RecallBudgetFunction to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetFunctionNil() {
+	o.RecallBudgetFunction.Set(nil)
+}
+
+// UnsetRecallBudgetFunction ensures that no value is present for RecallBudgetFunction, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetFunction() {
+	o.RecallBudgetFunction.Unset()
+}
+
+// GetRecallBudgetFixedLow returns the RecallBudgetFixedLow field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetFixedLow() int32 {
+	if o == nil || IsNil(o.RecallBudgetFixedLow.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallBudgetFixedLow.Get()
+}
+
+// GetRecallBudgetFixedLowOk returns a tuple with the RecallBudgetFixedLow field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetFixedLowOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetFixedLow.Get(), o.RecallBudgetFixedLow.IsSet()
+}
+
+// HasRecallBudgetFixedLow returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetFixedLow() bool {
+	if o != nil && o.RecallBudgetFixedLow.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetFixedLow gets a reference to the given NullableInt32 and assigns it to the RecallBudgetFixedLow field.
+func (o *BankTemplateConfig) SetRecallBudgetFixedLow(v int32) {
+	o.RecallBudgetFixedLow.Set(&v)
+}
+// SetRecallBudgetFixedLowNil sets the value for RecallBudgetFixedLow to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetFixedLowNil() {
+	o.RecallBudgetFixedLow.Set(nil)
+}
+
+// UnsetRecallBudgetFixedLow ensures that no value is present for RecallBudgetFixedLow, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetFixedLow() {
+	o.RecallBudgetFixedLow.Unset()
+}
+
+// GetRecallBudgetFixedMid returns the RecallBudgetFixedMid field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetFixedMid() int32 {
+	if o == nil || IsNil(o.RecallBudgetFixedMid.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallBudgetFixedMid.Get()
+}
+
+// GetRecallBudgetFixedMidOk returns a tuple with the RecallBudgetFixedMid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetFixedMidOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetFixedMid.Get(), o.RecallBudgetFixedMid.IsSet()
+}
+
+// HasRecallBudgetFixedMid returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetFixedMid() bool {
+	if o != nil && o.RecallBudgetFixedMid.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetFixedMid gets a reference to the given NullableInt32 and assigns it to the RecallBudgetFixedMid field.
+func (o *BankTemplateConfig) SetRecallBudgetFixedMid(v int32) {
+	o.RecallBudgetFixedMid.Set(&v)
+}
+// SetRecallBudgetFixedMidNil sets the value for RecallBudgetFixedMid to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetFixedMidNil() {
+	o.RecallBudgetFixedMid.Set(nil)
+}
+
+// UnsetRecallBudgetFixedMid ensures that no value is present for RecallBudgetFixedMid, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetFixedMid() {
+	o.RecallBudgetFixedMid.Unset()
+}
+
+// GetRecallBudgetFixedHigh returns the RecallBudgetFixedHigh field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetFixedHigh() int32 {
+	if o == nil || IsNil(o.RecallBudgetFixedHigh.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallBudgetFixedHigh.Get()
+}
+
+// GetRecallBudgetFixedHighOk returns a tuple with the RecallBudgetFixedHigh field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetFixedHighOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetFixedHigh.Get(), o.RecallBudgetFixedHigh.IsSet()
+}
+
+// HasRecallBudgetFixedHigh returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetFixedHigh() bool {
+	if o != nil && o.RecallBudgetFixedHigh.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetFixedHigh gets a reference to the given NullableInt32 and assigns it to the RecallBudgetFixedHigh field.
+func (o *BankTemplateConfig) SetRecallBudgetFixedHigh(v int32) {
+	o.RecallBudgetFixedHigh.Set(&v)
+}
+// SetRecallBudgetFixedHighNil sets the value for RecallBudgetFixedHigh to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetFixedHighNil() {
+	o.RecallBudgetFixedHigh.Set(nil)
+}
+
+// UnsetRecallBudgetFixedHigh ensures that no value is present for RecallBudgetFixedHigh, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetFixedHigh() {
+	o.RecallBudgetFixedHigh.Unset()
+}
+
+// GetRecallBudgetAdaptiveLow returns the RecallBudgetAdaptiveLow field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveLow() float32 {
+	if o == nil || IsNil(o.RecallBudgetAdaptiveLow.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.RecallBudgetAdaptiveLow.Get()
+}
+
+// GetRecallBudgetAdaptiveLowOk returns a tuple with the RecallBudgetAdaptiveLow field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveLowOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetAdaptiveLow.Get(), o.RecallBudgetAdaptiveLow.IsSet()
+}
+
+// HasRecallBudgetAdaptiveLow returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetAdaptiveLow() bool {
+	if o != nil && o.RecallBudgetAdaptiveLow.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetAdaptiveLow gets a reference to the given NullableFloat32 and assigns it to the RecallBudgetAdaptiveLow field.
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveLow(v float32) {
+	o.RecallBudgetAdaptiveLow.Set(&v)
+}
+// SetRecallBudgetAdaptiveLowNil sets the value for RecallBudgetAdaptiveLow to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveLowNil() {
+	o.RecallBudgetAdaptiveLow.Set(nil)
+}
+
+// UnsetRecallBudgetAdaptiveLow ensures that no value is present for RecallBudgetAdaptiveLow, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetAdaptiveLow() {
+	o.RecallBudgetAdaptiveLow.Unset()
+}
+
+// GetRecallBudgetAdaptiveMid returns the RecallBudgetAdaptiveMid field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveMid() float32 {
+	if o == nil || IsNil(o.RecallBudgetAdaptiveMid.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.RecallBudgetAdaptiveMid.Get()
+}
+
+// GetRecallBudgetAdaptiveMidOk returns a tuple with the RecallBudgetAdaptiveMid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveMidOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetAdaptiveMid.Get(), o.RecallBudgetAdaptiveMid.IsSet()
+}
+
+// HasRecallBudgetAdaptiveMid returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetAdaptiveMid() bool {
+	if o != nil && o.RecallBudgetAdaptiveMid.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetAdaptiveMid gets a reference to the given NullableFloat32 and assigns it to the RecallBudgetAdaptiveMid field.
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveMid(v float32) {
+	o.RecallBudgetAdaptiveMid.Set(&v)
+}
+// SetRecallBudgetAdaptiveMidNil sets the value for RecallBudgetAdaptiveMid to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveMidNil() {
+	o.RecallBudgetAdaptiveMid.Set(nil)
+}
+
+// UnsetRecallBudgetAdaptiveMid ensures that no value is present for RecallBudgetAdaptiveMid, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetAdaptiveMid() {
+	o.RecallBudgetAdaptiveMid.Unset()
+}
+
+// GetRecallBudgetAdaptiveHigh returns the RecallBudgetAdaptiveHigh field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveHigh() float32 {
+	if o == nil || IsNil(o.RecallBudgetAdaptiveHigh.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.RecallBudgetAdaptiveHigh.Get()
+}
+
+// GetRecallBudgetAdaptiveHighOk returns a tuple with the RecallBudgetAdaptiveHigh field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetAdaptiveHighOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetAdaptiveHigh.Get(), o.RecallBudgetAdaptiveHigh.IsSet()
+}
+
+// HasRecallBudgetAdaptiveHigh returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetAdaptiveHigh() bool {
+	if o != nil && o.RecallBudgetAdaptiveHigh.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetAdaptiveHigh gets a reference to the given NullableFloat32 and assigns it to the RecallBudgetAdaptiveHigh field.
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveHigh(v float32) {
+	o.RecallBudgetAdaptiveHigh.Set(&v)
+}
+// SetRecallBudgetAdaptiveHighNil sets the value for RecallBudgetAdaptiveHigh to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetAdaptiveHighNil() {
+	o.RecallBudgetAdaptiveHigh.Set(nil)
+}
+
+// UnsetRecallBudgetAdaptiveHigh ensures that no value is present for RecallBudgetAdaptiveHigh, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetAdaptiveHigh() {
+	o.RecallBudgetAdaptiveHigh.Unset()
+}
+
+// GetRecallBudgetMin returns the RecallBudgetMin field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetMin() int32 {
+	if o == nil || IsNil(o.RecallBudgetMin.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallBudgetMin.Get()
+}
+
+// GetRecallBudgetMinOk returns a tuple with the RecallBudgetMin field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetMinOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetMin.Get(), o.RecallBudgetMin.IsSet()
+}
+
+// HasRecallBudgetMin returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetMin() bool {
+	if o != nil && o.RecallBudgetMin.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetMin gets a reference to the given NullableInt32 and assigns it to the RecallBudgetMin field.
+func (o *BankTemplateConfig) SetRecallBudgetMin(v int32) {
+	o.RecallBudgetMin.Set(&v)
+}
+// SetRecallBudgetMinNil sets the value for RecallBudgetMin to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetMinNil() {
+	o.RecallBudgetMin.Set(nil)
+}
+
+// UnsetRecallBudgetMin ensures that no value is present for RecallBudgetMin, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetMin() {
+	o.RecallBudgetMin.Unset()
+}
+
+// GetRecallBudgetMax returns the RecallBudgetMax field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BankTemplateConfig) GetRecallBudgetMax() int32 {
+	if o == nil || IsNil(o.RecallBudgetMax.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RecallBudgetMax.Get()
+}
+
+// GetRecallBudgetMaxOk returns a tuple with the RecallBudgetMax field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BankTemplateConfig) GetRecallBudgetMaxOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallBudgetMax.Get(), o.RecallBudgetMax.IsSet()
+}
+
+// HasRecallBudgetMax returns a boolean if a field has been set.
+func (o *BankTemplateConfig) HasRecallBudgetMax() bool {
+	if o != nil && o.RecallBudgetMax.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallBudgetMax gets a reference to the given NullableInt32 and assigns it to the RecallBudgetMax field.
+func (o *BankTemplateConfig) SetRecallBudgetMax(v int32) {
+	o.RecallBudgetMax.Set(&v)
+}
+// SetRecallBudgetMaxNil sets the value for RecallBudgetMax to be an explicit nil
+func (o *BankTemplateConfig) SetRecallBudgetMaxNil() {
+	o.RecallBudgetMax.Set(nil)
+}
+
+// UnsetRecallBudgetMax ensures that no value is present for RecallBudgetMax, not even an explicit nil
+func (o *BankTemplateConfig) UnsetRecallBudgetMax() {
+	o.RecallBudgetMax.Unset()
+}
+
 func (o BankTemplateConfig) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -1023,6 +1410,33 @@ func (o BankTemplateConfig) ToMap() (map[string]interface{}, error) {
 	}
 	if o.LlmGeminiSafetySettings != nil {
 		toSerialize["llm_gemini_safety_settings"] = o.LlmGeminiSafetySettings
+	}
+	if o.RecallBudgetFunction.IsSet() {
+		toSerialize["recall_budget_function"] = o.RecallBudgetFunction.Get()
+	}
+	if o.RecallBudgetFixedLow.IsSet() {
+		toSerialize["recall_budget_fixed_low"] = o.RecallBudgetFixedLow.Get()
+	}
+	if o.RecallBudgetFixedMid.IsSet() {
+		toSerialize["recall_budget_fixed_mid"] = o.RecallBudgetFixedMid.Get()
+	}
+	if o.RecallBudgetFixedHigh.IsSet() {
+		toSerialize["recall_budget_fixed_high"] = o.RecallBudgetFixedHigh.Get()
+	}
+	if o.RecallBudgetAdaptiveLow.IsSet() {
+		toSerialize["recall_budget_adaptive_low"] = o.RecallBudgetAdaptiveLow.Get()
+	}
+	if o.RecallBudgetAdaptiveMid.IsSet() {
+		toSerialize["recall_budget_adaptive_mid"] = o.RecallBudgetAdaptiveMid.Get()
+	}
+	if o.RecallBudgetAdaptiveHigh.IsSet() {
+		toSerialize["recall_budget_adaptive_high"] = o.RecallBudgetAdaptiveHigh.Get()
+	}
+	if o.RecallBudgetMin.IsSet() {
+		toSerialize["recall_budget_min"] = o.RecallBudgetMin.Get()
+	}
+	if o.RecallBudgetMax.IsSet() {
+		toSerialize["recall_budget_max"] = o.RecallBudgetMax.Get()
 	}
 	return toSerialize, nil
 }

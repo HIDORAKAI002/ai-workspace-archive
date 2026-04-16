@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-dotnet add package firecrawl-dotnet
+dotnet add package firecrawl-sdk
 ```
 
 ## Quick Start
