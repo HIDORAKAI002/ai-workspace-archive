@@ -691,7 +691,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Community SDKs
 
-- [Go SDK](https://github.com/mendableai/firecrawl-go)
+- [Go SDK](https://github.com/firecrawl/firecrawl/tree/main/apps/go-sdk)
 
 ---
 

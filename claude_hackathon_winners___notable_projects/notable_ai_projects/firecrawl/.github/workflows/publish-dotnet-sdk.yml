@@ -27,7 +27,7 @@ jobs:
       - name: Run version check script
         id: version_check
         run: |
-          VERSION_INCREMENTED=$(python .github/scripts/check_version_has_incremented.py dotnet ./apps/.net-sdk/Firecrawl firecrawl-dotnet)
+          VERSION_INCREMENTED=$(python .github/scripts/check_version_has_incremented.py dotnet ./apps/.net-sdk/Firecrawl firecrawl-sdk)
           echo "VERSION_INCREMENTED=$VERSION_INCREMENTED" >> $GITHUB_ENV
 
       - name: Set up .NET 8
