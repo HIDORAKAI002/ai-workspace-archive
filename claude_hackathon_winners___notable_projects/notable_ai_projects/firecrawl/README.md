@@ -654,10 +654,44 @@ end
 {:ok, response} = Firecrawl.map_urls(url: "https://example.com")
 ```
 
+### Rust
+
+Add the dependency:
+```toml
+[dependencies]
+firecrawl = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+```
+```rust
+use firecrawl::{Client, ScrapeOptions, Format, CrawlOptions};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::new("fc-YOUR_API_KEY")?;
+
+    // Scrape a URL
+    let document = client.scrape("https://firecrawl.dev", None).await?;
+    println!("{:?}", document.markdown);
+
+    // Crawl a website
+    let options = CrawlOptions {
+        limit: Some(50),
+        ..Default::default()
+    };
+    let result = client.crawl("https://docs.firecrawl.dev", options).await?;
+    println!("Crawled {} pages", result.data.len());
+
+    // Search the web
+    let response = client.search("best web scraping tools 2024", None).await?;
+    println!("{:?}", response.data);
+
+    Ok(())
+}
+```
+
 ### Community SDKs
 
 - [Go SDK](https://github.com/mendableai/firecrawl-go)
-- [Rust SDK](https://docs.firecrawl.dev/sdks/rust)
 
 ---
 

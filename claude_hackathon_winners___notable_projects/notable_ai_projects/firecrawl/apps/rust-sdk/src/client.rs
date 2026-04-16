@@ -17,7 +17,7 @@ const CLOUD_API_URL: &str = "https://api.firecrawl.dev";
 /// # Example
 ///
 /// ```no_run
-/// use firecrawl::v2::Client;
+/// use firecrawl::Client;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -51,7 +51,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::Client;
+    /// use firecrawl::Client;
     ///
     /// let client = Client::new("your-api-key").unwrap();
     /// ```
@@ -73,7 +73,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::Client;
+    /// use firecrawl::Client;
     ///
     /// // Self-hosted without authentication
     /// let client = Client::new_selfhosted("http://localhost:3000", None::<&str>).unwrap();
@@ -164,9 +164,6 @@ impl Client {
             .and_then(|response_json| {
                 serde_json::from_str::<Value>(&response_json)
                     .map_err(FirecrawlError::ResponseParseError)
-                    .inspect(|data| {
-                        tracing::debug!("Response JSON: {:#?}", data);
-                    })
             })
             .and_then(|response_value| {
                 // Check for success field, or allow responses without it for status checks

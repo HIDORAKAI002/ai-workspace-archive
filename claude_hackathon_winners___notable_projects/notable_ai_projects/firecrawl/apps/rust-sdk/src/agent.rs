@@ -6,8 +6,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::client::Client;
-use super::types::{AgentModel, AgentWebhookConfig};
+use crate::client::Client;
+use crate::types::{AgentModel, AgentWebhookConfig};
 use crate::FirecrawlError;
 
 /// Options for running an agent task.
@@ -111,7 +111,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::{Client, AgentOptions};
+    /// use firecrawl::{Client, AgentOptions};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -160,7 +160,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::Client;
+    /// use firecrawl::Client;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -209,7 +209,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::{Client, AgentOptions, AgentModel};
+    /// use firecrawl::{Client, AgentOptions, AgentModel};
     /// use serde_json::json;
     ///
     /// #[tokio::main]
@@ -305,7 +305,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::Client;
+    /// use firecrawl::Client;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -358,7 +358,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// use firecrawl::v2::Client;
+    /// use firecrawl::Client;
     /// use serde::Deserialize;
     /// use serde_json::json;
     ///
