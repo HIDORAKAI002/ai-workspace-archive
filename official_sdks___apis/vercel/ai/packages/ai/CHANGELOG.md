@@ -1,5 +1,18 @@
 # ai
 
+## 7.0.0-beta.99
+
+### Patch Changes
+
+- 2a9c144: feat(ai): add toolNeedsApproval option
+
+## 7.0.0-beta.98
+
+### Patch Changes
+
+- Updated dependencies [5df9b6f]
+  - @ai-sdk/gateway@4.0.0-beta.54
+
 ## 7.0.0-beta.97
 
 ### Patch Changes
