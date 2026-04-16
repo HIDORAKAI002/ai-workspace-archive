@@ -534,7 +534,7 @@ describe("Crawl tests", () => {
       const robotsIdentity = await idmux({
         name: "crawl/robotsUserAgent",
         credits: 10000,
-        flags: { ignoreRobots: "allowed" },
+        flags: { customRobotsAgent: "allowed" },
       });
 
       const results = await crawl(

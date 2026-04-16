@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-16 20:59 IST] Auto-Sync
+- **39 Repositories Updated:** MCP TypeScript SDK, Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Promptfoo, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, Jenqyang/Awesome-AI-Agents, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-16 14:36 IST] Auto-Sync
 - **33 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, GitHub MCP Server, Awesome ChatGPT Prompts, Promptfoo, NVIDIA NeMo Guardrails, Dify, Activepieces, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, traceloop/openllmetry, firecrawl/firecrawl, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, microsoft/VibeVoice, shanraisshan/claude-code-best-practice, mastra-ai/mastra
 

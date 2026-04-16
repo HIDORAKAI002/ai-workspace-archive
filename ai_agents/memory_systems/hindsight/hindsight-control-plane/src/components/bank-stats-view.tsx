@@ -14,7 +14,27 @@ import {
   Brain,
   CheckCircle2,
   AlertCircle,
+  XCircle,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   AreaChart,
   Area,
@@ -46,6 +66,7 @@ interface BankStats {
   operations_by_status?: Record<string, number>;
   last_consolidated_at: string | null;
   pending_consolidation: number;
+  failed_consolidation: number;
   total_observations: number;
 }
 
@@ -441,14 +462,19 @@ function OperationsCard({ byStatus }: { byStatus: Record<string, number> }) {
 function ConsolidationCard({
   done,
   pending,
+  failed,
   total,
   lastConsolidatedAt,
 }: {
   done: number;
   pending: number;
+  failed: number;
   total: number;
   lastConsolidatedAt: string | null;
 }) {
+  const [failedOpen, setFailedOpen] = useState(false);
+  const hasFailed = failed > 0;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -456,7 +482,7 @@ function ConsolidationCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <ProgressRow done={done} total={total} doneColor={CHART_COLORS.success} />
-        <div className="grid grid-cols-3 gap-3 pt-1">
+        <div className="grid grid-cols-4 gap-3 pt-1">
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
@@ -481,6 +507,40 @@ function ConsolidationCard({
               className="text-base font-semibold tabular-nums text-foreground block"
             />
           </div>
+          <button
+            type="button"
+            onClick={() => hasFailed && setFailedOpen(true)}
+            disabled={!hasFailed}
+            className={`text-left space-y-0.5 rounded-md -mx-1 px-1 py-0.5 transition-colors ${
+              hasFailed
+                ? "cursor-pointer hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                : "cursor-default"
+            }`}
+            title={hasFailed ? "View failed memories" : undefined}
+          >
+            <div className="flex items-center gap-1.5">
+              <XCircle
+                className={`w-3 h-3 ${
+                  hasFailed ? "text-red-600 dark:text-red-400" : "text-muted-foreground/50"
+                }`}
+              />
+              <span
+                className={`text-[10px] uppercase tracking-wider font-medium ${
+                  hasFailed ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+                }`}
+              >
+                Failed
+              </span>
+            </div>
+            <span
+              className={`text-base font-semibold tabular-nums block ${
+                hasFailed ? "text-red-600 dark:text-red-400" : "text-foreground"
+              }`}
+            >
+              <CompactNumber value={failed} />
+              {hasFailed && <ExternalLink className="inline w-3 h-3 ml-1 opacity-70" />}
+            </span>
+          </button>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-muted-foreground" />
@@ -494,7 +554,135 @@ function ConsolidationCard({
           </div>
         </div>
       </CardContent>
+      <FailedConsolidationsDialog open={failedOpen} onOpenChange={setFailedOpen} />
     </Card>
+  );
+}
+
+interface FailedMemoryItem {
+  id: string;
+  text: string;
+  context: string;
+  fact_type: string;
+  consolidation_failed_at: string | null;
+}
+
+function FailedConsolidationsDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+}) {
+  const { currentBank } = useBank();
+  const [items, setItems] = useState<FailedMemoryItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(() => {
+    if (!open || !currentBank) return;
+    let cancelled = false;
+    setLoading(true);
+    client
+      .listMemories(currentBank, { consolidationState: "failed", limit: 200 })
+      .then((res) => {
+        if (cancelled) return;
+        setItems(res.items as FailedMemoryItem[]);
+        setTotal(res.total);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, currentBank, refreshTick]);
+
+  const handleRecover = async () => {
+    if (!currentBank) return;
+    setRecovering(true);
+    try {
+      const res = await client.recoverConsolidation(currentBank);
+      // The backend recovery endpoint only clears consolidation_failed_at; it does
+      // not queue a consolidation task. Kick one off here so the reset memories
+      // are actually picked up by the worker instead of sitting in pending state.
+      if (res.retried_count > 0) {
+        await client.triggerConsolidation(currentBank);
+      }
+      toast.success(
+        `Queued ${res.retried_count} memor${res.retried_count === 1 ? "y" : "ies"} for re-consolidation`
+      );
+      setRefreshTick((t) => t + 1);
+    } catch {
+      // toast shown by interceptor
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+            Failed consolidations
+          </DialogTitle>
+          <DialogDescription>
+            Source memories whose consolidation permanently failed. Recovery resets them so they are
+            retried on the next consolidation run.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-between gap-2 py-2">
+          <span className="text-sm text-muted-foreground">
+            {loading ? "Loading…" : `${total} failed`}
+          </span>
+          <Button size="sm" onClick={handleRecover} disabled={recovering || loading || total === 0}>
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${recovering ? "animate-spin" : ""}`} />
+            Recover all
+          </Button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-auto border border-border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[140px]">Failed at</TableHead>
+                <TableHead className="w-[100px]">Type</TableHead>
+                <TableHead>Text</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.length === 0 && !loading && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                    No failed consolidations.
+                  </TableCell>
+                </TableRow>
+              )}
+              {items.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatRelativeTime(row.consolidation_failed_at)}
+                  </TableCell>
+                  <TableCell className="text-xs capitalize">{row.fact_type}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="line-clamp-2">{row.text}</div>
+                    {row.context && (
+                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {row.context}
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -744,6 +932,7 @@ export function BankStatsView() {
           <ConsolidationCard
             done={consolidatedDone}
             pending={stats.pending_consolidation}
+            failed={stats.failed_consolidation ?? 0}
             total={stats.total_nodes}
             lastConsolidatedAt={stats.last_consolidated_at}
           />

@@ -362,7 +362,13 @@ export class HindsightClient {
      */
     async listMemories(
         bankId: string,
-        options?: { limit?: number; offset?: number; type?: string; q?: string }
+        options?: {
+            limit?: number;
+            offset?: number;
+            type?: string;
+            q?: string;
+            consolidationState?: 'failed' | 'pending' | 'done';
+        }
     ): Promise<ListMemoryUnitsResponse> {
         const response = await sdk.listMemories({
             client: this.client,
@@ -372,6 +378,7 @@ export class HindsightClient {
                 offset: options?.offset,
                 type: options?.type,
                 q: options?.q,
+                consolidation_state: options?.consolidationState,
             },
         });
 

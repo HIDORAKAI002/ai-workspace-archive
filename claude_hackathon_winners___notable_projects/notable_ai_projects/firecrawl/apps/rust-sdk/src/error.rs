@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::crawl::CrawlStatus;
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FirecrawlAPIError {
     /// Always false.
@@ -40,8 +38,8 @@ pub enum FirecrawlError {
     ResponseParseError(serde_json::Error),
     #[error("{0} failed: {1}")]
     APIError(String, FirecrawlAPIError),
-    #[error("Crawl job failed: {0}")]
-    CrawlJobFailed(String, CrawlStatus),
-    #[error("Missuse: {0}")]
-    Missuse(String),
+    #[error("Job failed: {0} (status: {1:?})")]
+    JobFailed(String, crate::types::JobStatus),
+    #[error("Misuse: {0}")]
+    Misuse(String),
 }

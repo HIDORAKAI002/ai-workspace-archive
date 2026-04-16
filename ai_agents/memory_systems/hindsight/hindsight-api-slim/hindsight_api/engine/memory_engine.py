@@ -823,16 +823,19 @@ class MemoryEngine(MemoryEngineInterface):
                 logger.warning(f"[FILE_CONVERT_RETAIN] on_file_convert_complete hook failed: {e}")
 
         # Build retain task payload
-        retain_contents = [
-            {
-                "content": markdown_content,
-                "document_id": document_id,
-                "context": task_dict.get("context"),
-                "metadata": task_dict.get("metadata", {}),
-                "tags": task_dict.get("tags", []),
-                "timestamp": task_dict.get("timestamp"),
-            }
-        ]
+        retain_content: dict[str, Any] = {
+            "content": markdown_content,
+            "document_id": document_id,
+            "context": task_dict.get("context"),
+            "metadata": task_dict.get("metadata", {}),
+            "tags": task_dict.get("tags", []),
+        }
+        file_timestamp = task_dict.get("timestamp")
+        if file_timestamp == "unset":
+            retain_content["event_date"] = None
+        elif file_timestamp:
+            retain_content["event_date"] = file_timestamp
+        retain_contents = [retain_content]
         document_tags = task_dict.get("document_tags")
 
         retain_task_payload: dict[str, Any] = {"contents": retain_contents}
@@ -854,26 +857,37 @@ class MemoryEngine(MemoryEngineInterface):
             "file_content_type": task_dict["content_type"],
         }
 
-        # In one transaction: create the retain async operation AND mark this conversion as completed
+        # Include task_payload in the INSERT atomically. Previously this was a
+        # two-step process (INSERT without payload, then UPDATE to set it) which
+        # left null-payload rows when a crash or timeout occurred between the two
+        # statements. The worker claim query filters on `task_payload IS NOT NULL`,
+        # so those orphaned rows became permanently stuck as unclaimed pending tasks.
         retain_operation_id = uuid.uuid4()
+        full_retain_payload = {
+            "type": "batch_retain",
+            "operation_id": str(retain_operation_id),
+            "bank_id": bank_id,
+            **retain_task_payload,
+        }
+        payload_json = json.dumps(full_retain_payload, default=_json_default)
+
         pool = await self._get_pool()
         async with acquire_with_retry(pool) as conn:
             async with conn.transaction():
-                # Create the retain operation record
                 await conn.execute(
                     f"""
                     INSERT INTO {fq_table("async_operations")}
-                    (operation_id, bank_id, operation_type, result_metadata, status)
-                    VALUES ($1, $2, $3, $4, $5)
+                    (operation_id, bank_id, operation_type, result_metadata, status, task_payload)
+                    VALUES ($1, $2, $3, $4, $5, $6::jsonb)
                     """,
                     retain_operation_id,
                     bank_id,
                     "retain",
                     json.dumps({}),
                     "pending",
+                    payload_json,
                 )
 
-                # Mark this file_convert_retain operation as completed
                 if operation_id:
                     await conn.execute(
                         f"""
@@ -884,13 +898,9 @@ class MemoryEngine(MemoryEngineInterface):
                         uuid.UUID(operation_id),
                     )
 
-        # Submit the retain task to the task backend (outside the transaction)
-        full_retain_payload = {
-            "type": "batch_retain",
-            "operation_id": str(retain_operation_id),
-            "bank_id": bank_id,
-            **retain_task_payload,
-        }
+        # For SyncTaskBackend: executes the retain task inline.
+        # For BrokerTaskBackend: no-op (submit_task's UPDATE skips rows whose
+        # task_payload is already set, which it is after the INSERT above).
         await self._task_backend.submit_task(full_retain_payload)
 
         logger.info(
@@ -3708,16 +3718,20 @@ class MemoryEngine(MemoryEngineInterface):
                     f"SELECT COUNT(*) FROM {fq_table('memory_units')} WHERE document_id = $1", document_id
                 )
 
-                # Invalidate observations referencing these memories before deletion
-                if unit_ids:
-                    invalidated_obs = await self._delete_stale_observations_for_memories(conn, bank_id, unit_ids)
-
-                # Delete document (cascades to memory_units and all their links)
+                # Delete document first (cascades to memory_units and all their links).
+                # Running the stale-observation sweep AFTER the delete ensures we also
+                # catch observations inserted concurrently by consolidation — otherwise
+                # an insert that commits between the sweep and the delete would leave an
+                # orphan referencing the just-deleted source memory.
                 deleted = await conn.fetchval(
                     f"DELETE FROM {fq_table('documents')} WHERE id = $1 AND bank_id = $2 RETURNING id",
                     document_id,
                     bank_id,
                 )
+
+                # Invalidate observations referencing these (now-deleted) memories
+                if unit_ids:
+                    invalidated_obs = await self._delete_stale_observations_for_memories(conn, bank_id, unit_ids)
 
                 result = {
                     "document_deleted": 1 if deleted else 0,
@@ -3914,16 +3928,20 @@ class MemoryEngine(MemoryEngineInterface):
                 bank_id = row["bank_id"] if row else None
                 fact_type = row["fact_type"] if row else None
 
-                # Invalidate observations before deletion (only for source memory types)
+                # Delete the memory unit first (cascades to links and associations).
+                # The stale-observation sweep runs AFTER the delete so it also catches
+                # observations inserted concurrently by consolidation (otherwise a
+                # racing insert committed between the sweep and the delete would
+                # leave an orphan referencing this just-deleted source memory).
+                deleted = await conn.fetchval(
+                    f"DELETE FROM {fq_table('memory_units')} WHERE id = $1 RETURNING id", unit_id
+                )
+
+                # Invalidate observations referencing this (now-deleted) source memory
                 if bank_id and fact_type in ("experience", "world"):
                     invalidated_obs = await self._delete_stale_observations_for_memories(conn, bank_id, [unit_id])
                     if invalidated_obs > 0:
                         bank_id_for_consolidation = bank_id
-
-                # Delete the memory unit (cascades to links and associations)
-                deleted = await conn.fetchval(
-                    f"DELETE FROM {fq_table('memory_units')} WHERE id = $1 RETURNING id", unit_id
-                )
 
                 result = {
                     "success": deleted is not None,
@@ -3988,7 +4006,11 @@ class MemoryEngine(MemoryEngineInterface):
             async with conn.transaction():
                 try:
                     if fact_type:
-                        # For source memory types, clean up observations before deletion
+                        # For source memory types, capture ids so we can invalidate
+                        # dependent observations AFTER the delete below. Running the
+                        # stale-observation sweep post-delete ensures we also catch
+                        # observations inserted concurrently by consolidation.
+                        unit_ids: list[str] = []
                         if fact_type in ("experience", "world"):
                             unit_id_rows = await conn.fetch(
                                 f"SELECT id FROM {fq_table('memory_units')} WHERE bank_id = $1 AND fact_type = $2",
@@ -3996,10 +4018,6 @@ class MemoryEngine(MemoryEngineInterface):
                                 fact_type,
                             )
                             unit_ids = [str(row["id"]) for row in unit_id_rows]
-                            if unit_ids:
-                                invalidated_obs = await self._delete_stale_observations_for_memories(
-                                    conn, bank_id, unit_ids
-                                )
 
                         # Delete only memories of a specific fact type
                         units_count = await conn.fetchval(
@@ -4012,6 +4030,11 @@ class MemoryEngine(MemoryEngineInterface):
                             bank_id,
                             fact_type,
                         )
+
+                        if unit_ids:
+                            invalidated_obs = await self._delete_stale_observations_for_memories(
+                                conn, bank_id, unit_ids
+                            )
 
                         # Note: We don't delete entities when fact_type is specified,
                         # as they may be referenced by other memory units
@@ -4660,6 +4683,7 @@ class MemoryEngine(MemoryEngineInterface):
         *,
         fact_type: str | None = None,
         search_query: str | None = None,
+        consolidation_state: str | None = None,
         limit: int = 100,
         offset: int = 0,
         request_context: "RequestContext",
@@ -4671,6 +4695,11 @@ class MemoryEngine(MemoryEngineInterface):
             bank_id: Filter by bank ID
             fact_type: Filter by fact type (world, experience)
             search_query: Full-text search query (searches text and context fields)
+            consolidation_state: Optional filter on consolidation state. One of
+                'failed' (consolidation permanently failed and awaiting recovery),
+                'pending' (not yet consolidated, no failure), or
+                'done' (successfully consolidated). Only applies to source memory
+                types (world/experience).
             limit: Maximum number of results to return
             offset: Offset for pagination
             request_context: Request context for authentication.
@@ -4707,6 +4736,24 @@ class MemoryEngine(MemoryEngineInterface):
                 query_conditions.append(f"(text ILIKE ${param_count} OR context ILIKE ${param_count})")
                 query_params.append(f"%{search_query}%")
 
+            if consolidation_state:
+                state = consolidation_state.lower()
+                if state == "failed":
+                    query_conditions.append(
+                        "consolidation_failed_at IS NOT NULL AND fact_type IN ('experience', 'world')"
+                    )
+                elif state == "pending":
+                    query_conditions.append(
+                        "consolidated_at IS NULL AND consolidation_failed_at IS NULL "
+                        "AND fact_type IN ('experience', 'world')"
+                    )
+                elif state == "done":
+                    query_conditions.append("consolidated_at IS NOT NULL AND fact_type IN ('experience', 'world')")
+                else:
+                    raise ValueError(
+                        f"Invalid consolidation_state '{consolidation_state}': expected 'failed', 'pending', or 'done'."
+                    )
+
             where_clause = "WHERE " + " AND ".join(query_conditions) if query_conditions else ""
 
             # Get total count
@@ -4729,7 +4776,7 @@ class MemoryEngine(MemoryEngineInterface):
 
             units = await conn.fetch(
                 f"""
-                SELECT id, text, event_date, context, fact_type, mentioned_at, occurred_start, occurred_end, chunk_id, proof_count, tags
+                SELECT id, text, event_date, context, fact_type, mentioned_at, occurred_start, occurred_end, chunk_id, proof_count, tags, consolidated_at, consolidation_failed_at
                 FROM {fq_table("memory_units")}
                 {where_clause}
                 ORDER BY mentioned_at DESC NULLS LAST, created_at DESC
@@ -4783,6 +4830,10 @@ class MemoryEngine(MemoryEngineInterface):
                         "chunk_id": row["chunk_id"] if row["chunk_id"] else None,
                         "proof_count": row["proof_count"] if row["proof_count"] is not None else 1,
                         "tags": list(row["tags"]) if row["tags"] else [],
+                        "consolidated_at": row["consolidated_at"].isoformat() if row["consolidated_at"] else None,
+                        "consolidation_failed_at": (
+                            row["consolidation_failed_at"].isoformat() if row["consolidation_failed_at"] else None
+                        ),
                     }
                 )
 
@@ -6276,7 +6327,8 @@ class MemoryEngine(MemoryEngineInterface):
                 f"""
                 SELECT
                     MAX(consolidated_at) as last_consolidated_at,
-                    COUNT(*) FILTER (WHERE consolidated_at IS NULL AND fact_type IN ('experience', 'world')) as pending
+                    COUNT(*) FILTER (WHERE consolidated_at IS NULL AND fact_type IN ('experience', 'world')) as pending,
+                    COUNT(*) FILTER (WHERE consolidation_failed_at IS NOT NULL AND fact_type IN ('experience', 'world')) as failed
                 FROM {fq_table("memory_units")}
                 WHERE bank_id = $1
                 """,
@@ -6300,6 +6352,7 @@ class MemoryEngine(MemoryEngineInterface):
                 "total_documents": doc_count_row["count"] if doc_count_row else 0,
                 "last_consolidated_at": last_consolidated_at.isoformat() if last_consolidated_at else None,
                 "pending_consolidation": consolidation_row["pending"] if consolidation_row else 0,
+                "failed_consolidation": consolidation_row["failed"] if consolidation_row else 0,
                 "total_observations": node_counts.get("observation", 0),
             }
 
@@ -8157,8 +8210,9 @@ class MemoryEngine(MemoryEngineInterface):
             )
 
         # For SyncTaskBackend: executes the task immediately.
-        # For BrokerTaskBackend: does an idempotent UPDATE (payload already set above),
-        # kept for symmetry and to support any future notification mechanisms.
+        # For BrokerTaskBackend: no-op (submit_task's UPDATE skips rows whose
+        # task_payload is already set, which it is after the INSERT above). The call
+        # is kept for symmetry and to support any future notification mechanisms.
         await self._task_backend.submit_task(full_payload)
 
         logger.info(f"{operation_type} task queued for bank_id={bank_id}, operation_id={operation_id}")

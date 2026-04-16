@@ -560,3 +560,54 @@ async def test_get_operation_status_include_payload(memory, request_context):
     assert payload.get("bank_id") == bank_id
     assert payload.get("contents")
     assert payload["contents"][0]["content"] == "Payload roundtrip test item."
+
+
+@pytest.mark.asyncio
+async def test_submit_async_operation_leaves_claimable_row_when_submit_task_fails(memory):
+    """Regression for the crash-window orphan bug fixed in #1091.
+
+    Previously, _submit_async_operation INSERTed the async_operations row without
+    task_payload, then called submit_task as a separate step to fill it in. If
+    submit_task failed (crash, timeout, dropped connection) after the INSERT
+    committed, the row was left with task_payload IS NULL and became permanently
+    stuck because the worker claim query filters on task_payload IS NOT NULL.
+
+    With the atomic INSERT, even if submit_task raises afterwards the row is born
+    claimable. This test simulates the crash by forcing submit_task to raise.
+    """
+    bank_id = f"test_orphan_prevention_{uuid.uuid4().hex[:8]}"
+    pool = await memory._get_pool()
+    await _ensure_bank(pool, bank_id)
+
+    async def failing_submit_task(_task_dict):
+        raise RuntimeError("Simulated crash between INSERT and submit_task")
+
+    memory._task_backend.submit_task = failing_submit_task  # type: ignore[method-assign]
+
+    with pytest.raises(RuntimeError, match="Simulated crash"):
+        await memory._submit_async_operation(
+            bank_id=bank_id,
+            operation_type="retain",
+            task_type="batch_retain",
+            task_payload={"contents": [{"content": "hello", "document_id": "d1"}]},
+        )
+
+    rows = await pool.fetch(
+        """
+        SELECT status, task_payload
+        FROM async_operations
+        WHERE bank_id = $1 AND operation_type = 'retain'
+        """,
+        bank_id,
+    )
+    assert len(rows) == 1, f"Expected exactly one retain row for bank_id={bank_id}, got {len(rows)}"
+    row = rows[0]
+    assert row["status"] == "pending"
+    assert row["task_payload"] is not None, (
+        "task_payload must be set atomically by the INSERT — a NULL here means "
+        "the worker claim query (task_payload IS NOT NULL) will never pick this row up"
+    )
+    payload = json.loads(row["task_payload"])
+    assert payload["type"] == "batch_retain"
+    assert payload["bank_id"] == bank_id
+    assert payload["contents"] == [{"content": "hello", "document_id": "d1"}]

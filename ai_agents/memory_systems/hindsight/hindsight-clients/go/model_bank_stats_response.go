@@ -36,6 +36,8 @@ type BankStatsResponse struct {
 	LastConsolidatedAt NullableString `json:"last_consolidated_at,omitempty"`
 	// Number of memories not yet processed into observations
 	PendingConsolidation *int32 `json:"pending_consolidation,omitempty"`
+	// Number of source memories (world/experience) whose consolidation permanently failed and can be retried via the consolidation recovery endpoint.
+	FailedConsolidation *int32 `json:"failed_consolidation,omitempty"`
 	// Total number of observations
 	TotalObservations *int32 `json:"total_observations,omitempty"`
 }
@@ -60,6 +62,8 @@ func NewBankStatsResponse(bankId string, totalNodes int32, totalLinks int32, tot
 	this.FailedOperations = failedOperations
 	var pendingConsolidation int32 = 0
 	this.PendingConsolidation = &pendingConsolidation
+	var failedConsolidation int32 = 0
+	this.FailedConsolidation = &failedConsolidation
 	var totalObservations int32 = 0
 	this.TotalObservations = &totalObservations
 	return &this
@@ -72,6 +76,8 @@ func NewBankStatsResponseWithDefaults() *BankStatsResponse {
 	this := BankStatsResponse{}
 	var pendingConsolidation int32 = 0
 	this.PendingConsolidation = &pendingConsolidation
+	var failedConsolidation int32 = 0
+	this.FailedConsolidation = &failedConsolidation
 	var totalObservations int32 = 0
 	this.TotalObservations = &totalObservations
 	return &this
@@ -423,6 +429,38 @@ func (o *BankStatsResponse) SetPendingConsolidation(v int32) {
 	o.PendingConsolidation = &v
 }
 
+// GetFailedConsolidation returns the FailedConsolidation field value if set, zero value otherwise.
+func (o *BankStatsResponse) GetFailedConsolidation() int32 {
+	if o == nil || IsNil(o.FailedConsolidation) {
+		var ret int32
+		return ret
+	}
+	return *o.FailedConsolidation
+}
+
+// GetFailedConsolidationOk returns a tuple with the FailedConsolidation field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BankStatsResponse) GetFailedConsolidationOk() (*int32, bool) {
+	if o == nil || IsNil(o.FailedConsolidation) {
+		return nil, false
+	}
+	return o.FailedConsolidation, true
+}
+
+// HasFailedConsolidation returns a boolean if a field has been set.
+func (o *BankStatsResponse) HasFailedConsolidation() bool {
+	if o != nil && !IsNil(o.FailedConsolidation) {
+		return true
+	}
+
+	return false
+}
+
+// SetFailedConsolidation gets a reference to the given int32 and assigns it to the FailedConsolidation field.
+func (o *BankStatsResponse) SetFailedConsolidation(v int32) {
+	o.FailedConsolidation = &v
+}
+
 // GetTotalObservations returns the TotalObservations field value if set, zero value otherwise.
 func (o *BankStatsResponse) GetTotalObservations() int32 {
 	if o == nil || IsNil(o.TotalObservations) {
@@ -483,6 +521,9 @@ func (o BankStatsResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.PendingConsolidation) {
 		toSerialize["pending_consolidation"] = o.PendingConsolidation
+	}
+	if !IsNil(o.FailedConsolidation) {
+		toSerialize["failed_consolidation"] = o.FailedConsolidation
 	}
 	if !IsNil(o.TotalObservations) {
 		toSerialize["total_observations"] = o.TotalObservations

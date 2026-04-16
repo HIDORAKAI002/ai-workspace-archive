@@ -5,6 +5,7 @@ Covers the new fields exposed by GET /v1/default/banks/{bank_id}/stats
 (operations_by_status) and the new endpoint
 GET /v1/default/banks/{bank_id}/stats/memories-timeseries.
 """
+import uuid
 from datetime import datetime
 
 import httpx
@@ -25,6 +26,23 @@ async def api_client(memory):
 @pytest.fixture
 def test_bank_id():
     return f"stats_test_{datetime.now().timestamp()}"
+
+
+async def _insert_memory(memory, bank_id: str, text: str, *, failed: bool = False) -> str:
+    """Insert a single experience memory, optionally marked as consolidation-failed."""
+    mem_id = uuid.uuid4()
+    async with memory._pool.acquire() as conn:
+        await conn.execute(
+            """
+            INSERT INTO memory_units (id, bank_id, text, fact_type, created_at, consolidation_failed_at)
+            VALUES ($1, $2, $3, 'experience', now(), CASE WHEN $4 THEN now() ELSE NULL END)
+            """,
+            mem_id,
+            bank_id,
+            text,
+            failed,
+        )
+    return str(mem_id)
 
 
 @pytest.mark.asyncio
@@ -166,5 +184,59 @@ async def test_memories_timeseries_reflects_retained_memories(api_client, test_b
         # Those memories should land in the most-recent bucket.
         latest = body["buckets"][-1]
         assert latest["world"] + latest["experience"] + latest["observation"] >= 2
+    finally:
+        await api_client.delete(f"/v1/default/banks/{test_bank_id}")
+
+
+@pytest.mark.asyncio
+async def test_bank_stats_reports_failed_consolidation(api_client, memory, test_bank_id):
+    """/stats must surface the count of memories with consolidation_failed_at set."""
+    try:
+        await _insert_memory(memory, test_bank_id, "Alice failed 1.", failed=True)
+        await _insert_memory(memory, test_bank_id, "Alice failed 2.", failed=True)
+        await _insert_memory(memory, test_bank_id, "Alice pending.", failed=False)
+
+        response = await api_client.get(f"/v1/default/banks/{test_bank_id}/stats")
+        assert response.status_code == 200
+        stats = response.json()
+
+        assert stats["failed_consolidation"] == 2
+        # The two failed memories also count as "not-yet-consolidated".
+        assert stats["pending_consolidation"] >= 3
+    finally:
+        await api_client.delete(f"/v1/default/banks/{test_bank_id}")
+
+
+@pytest.mark.asyncio
+async def test_list_memories_filter_by_consolidation_state_failed(api_client, memory, test_bank_id):
+    """?consolidation_state=failed returns only memories with consolidation_failed_at set."""
+    try:
+        failed_id = await _insert_memory(memory, test_bank_id, "Broken item.", failed=True)
+        await _insert_memory(memory, test_bank_id, "Healthy item.", failed=False)
+
+        response = await api_client.get(
+            f"/v1/default/banks/{test_bank_id}/memories/list",
+            params={"consolidation_state": "failed"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+
+        ids = [item["id"] for item in body["items"]]
+        assert failed_id in ids
+        assert body["total"] == 1
+        assert body["items"][0]["consolidation_failed_at"] is not None
+    finally:
+        await api_client.delete(f"/v1/default/banks/{test_bank_id}")
+
+
+@pytest.mark.asyncio
+async def test_list_memories_filter_by_consolidation_state_rejects_unknown(api_client, test_bank_id):
+    """An invalid consolidation_state value must return a 400 (not 500)."""
+    try:
+        response = await api_client.get(
+            f"/v1/default/banks/{test_bank_id}/memories/list",
+            params={"consolidation_state": "bogus"},
+        )
+        assert response.status_code == 400
     finally:
         await api_client.delete(f"/v1/default/banks/{test_bank_id}")

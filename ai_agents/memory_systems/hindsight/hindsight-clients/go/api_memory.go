@@ -721,6 +721,7 @@ type ApiListMemoriesRequest struct {
 	bankId string
 	type_ *string
 	q *string
+	consolidationState *string
 	limit *int32
 	offset *int32
 	authorization *string
@@ -733,6 +734,11 @@ func (r ApiListMemoriesRequest) Type_(type_ string) ApiListMemoriesRequest {
 
 func (r ApiListMemoriesRequest) Q(q string) ApiListMemoriesRequest {
 	r.q = &q
+	return r
+}
+
+func (r ApiListMemoriesRequest) ConsolidationState(consolidationState string) ApiListMemoriesRequest {
+	r.consolidationState = &consolidationState
 	return r
 }
 
@@ -799,6 +805,9 @@ func (a *MemoryAPIService) ListMemoriesExecute(r ApiListMemoriesRequest) (*ListM
 	}
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "form", "")
+	}
+	if r.consolidationState != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "consolidation_state", r.consolidationState, "form", "")
 	}
 	if r.limit != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")

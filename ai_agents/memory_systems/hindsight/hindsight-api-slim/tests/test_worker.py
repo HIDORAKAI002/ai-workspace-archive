@@ -137,6 +137,55 @@ class TestBrokerTaskBackend:
         payload = json.loads(row["task_payload"])
         assert payload["node_ids"] == ["node1", "node2"]
 
+    @pytest.mark.asyncio
+    async def test_submit_task_preserves_existing_payload(self, pool, clean_operations):
+        """Callers now INSERT task_payload atomically, then call submit_task as a
+        no-op for the BrokerTaskBackend path. submit_task must not overwrite a
+        payload that is already set, otherwise a stale updated_at bump on a
+        possibly-already-processing row reintroduces noise the fix aimed to remove.
+        """
+        operation_id = uuid.uuid4()
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        original_payload = {"type": "test_task", "bank_id": bank_id, "version": "inserted"}
+        await pool.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload)
+            VALUES ($1, $2, 'test_operation', 'pending', $3::jsonb)
+            """,
+            operation_id,
+            bank_id,
+            json.dumps(original_payload),
+        )
+
+        row_before = await pool.fetchrow(
+            "SELECT updated_at FROM async_operations WHERE operation_id = $1",
+            operation_id,
+        )
+
+        backend = BrokerTaskBackend(pool_getter=lambda: pool)
+        await backend.initialize()
+
+        await backend.submit_task(
+            {
+                "operation_id": str(operation_id),
+                "type": "test_task",
+                "bank_id": bank_id,
+                "version": "resubmitted",
+            }
+        )
+
+        row_after = await pool.fetchrow(
+            "SELECT task_payload, updated_at FROM async_operations WHERE operation_id = $1",
+            operation_id,
+        )
+        payload = json.loads(row_after["task_payload"])
+        assert payload["version"] == "inserted", "submit_task must not overwrite an existing payload"
+        assert row_after["updated_at"] == row_before["updated_at"], (
+            "submit_task must not bump updated_at when payload was already set"
+        )
+
 
 class TestWorkerPoller:
     """Tests for WorkerPoller task claiming and execution."""

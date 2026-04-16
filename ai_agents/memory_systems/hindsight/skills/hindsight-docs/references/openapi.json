@@ -256,6 +256,22 @@
             }
           },
           {
+            "name": "consolidation_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consolidation State"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -5259,6 +5275,12 @@
             "description": "Number of memories not yet processed into observations",
             "default": 0
           },
+          "failed_consolidation": {
+            "type": "integer",
+            "title": "Failed Consolidation",
+            "description": "Number of source memories (world/experience) whose consolidation permanently failed and can be retried via the consolidation recovery endpoint.",
+            "default": 0
+          },
           "total_observations": {
             "type": "integer",
             "title": "Total Observations",
@@ -5283,6 +5305,7 @@
         "description": "Response model for bank statistics endpoint.",
         "example": {
           "bank_id": "user123",
+          "failed_consolidation": 0,
           "failed_operations": 0,
           "last_consolidated_at": "2024-01-15T10:30:00Z",
           "links_breakdown": {
