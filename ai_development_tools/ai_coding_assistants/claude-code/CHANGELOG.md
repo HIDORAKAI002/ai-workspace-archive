@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.112
+
+- Fixed "claude-opus-4-7 is temporarily unavailable" for auto mode
+
 ## 2.1.111
 
 - Claude Opus 4.7 xhigh is now available! Use /effort to tune speed vs. intelligence
