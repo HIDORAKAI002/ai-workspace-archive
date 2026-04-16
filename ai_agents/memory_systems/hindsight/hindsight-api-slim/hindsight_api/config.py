@@ -393,6 +393,17 @@ ENV_RECALL_INCLUDE_CHUNKS = "HINDSIGHT_API_RECALL_INCLUDE_CHUNKS"
 ENV_RECALL_MAX_TOKENS = "HINDSIGHT_API_RECALL_MAX_TOKENS"
 ENV_RECALL_CHUNKS_MAX_TOKENS = "HINDSIGHT_API_RECALL_CHUNKS_MAX_TOKENS"
 
+# Recall budget mapping (budget enum -> thinking_budget integer)
+ENV_RECALL_BUDGET_FUNCTION = "HINDSIGHT_API_RECALL_BUDGET_FUNCTION"
+ENV_RECALL_BUDGET_FIXED_LOW = "HINDSIGHT_API_RECALL_BUDGET_FIXED_LOW"
+ENV_RECALL_BUDGET_FIXED_MID = "HINDSIGHT_API_RECALL_BUDGET_FIXED_MID"
+ENV_RECALL_BUDGET_FIXED_HIGH = "HINDSIGHT_API_RECALL_BUDGET_FIXED_HIGH"
+ENV_RECALL_BUDGET_ADAPTIVE_LOW = "HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_LOW"
+ENV_RECALL_BUDGET_ADAPTIVE_MID = "HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_MID"
+ENV_RECALL_BUDGET_ADAPTIVE_HIGH = "HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_HIGH"
+ENV_RECALL_BUDGET_MIN = "HINDSIGHT_API_RECALL_BUDGET_MIN"
+ENV_RECALL_BUDGET_MAX = "HINDSIGHT_API_RECALL_BUDGET_MAX"
+
 # Audit log settings
 ENV_AUDIT_LOG_ENABLED = "HINDSIGHT_API_AUDIT_LOG_ENABLED"
 ENV_AUDIT_LOG_ACTIONS = "HINDSIGHT_API_AUDIT_LOG_ACTIONS"
@@ -597,6 +608,22 @@ DEFAULT_RECALL_INCLUDE_CHUNKS = True  # Whether internal recall (e.g. mental mod
 DEFAULT_RECALL_MAX_TOKENS = 2048  # Token budget for facts returned by internal recall
 DEFAULT_RECALL_CHUNKS_MAX_TOKENS = 1000  # Token budget for raw chunks returned by internal recall
 
+# Recall budget mapping
+# "fixed": thinking_budget = recall_budget_fixed_<level> (preserves legacy behavior)
+# "adaptive": thinking_budget = round(max_tokens * recall_budget_adaptive_<level>),
+#             clamped to [recall_budget_min, recall_budget_max]
+RECALL_BUDGET_FUNCTIONS = ("fixed", "adaptive")
+DEFAULT_RECALL_BUDGET_FUNCTION = "fixed"
+DEFAULT_RECALL_BUDGET_FIXED_LOW = 100
+DEFAULT_RECALL_BUDGET_FIXED_MID = 300
+DEFAULT_RECALL_BUDGET_FIXED_HIGH = 1000
+# Adaptive defaults chosen to roughly match fixed defaults at max_tokens=4096
+DEFAULT_RECALL_BUDGET_ADAPTIVE_LOW = 0.025
+DEFAULT_RECALL_BUDGET_ADAPTIVE_MID = 0.075
+DEFAULT_RECALL_BUDGET_ADAPTIVE_HIGH = 0.25
+DEFAULT_RECALL_BUDGET_MIN = 20  # Floor for the adaptive function
+DEFAULT_RECALL_BUDGET_MAX = 2000  # Ceiling for the adaptive function
+
 # Disposition defaults (None = not set, fall back to bank DB value or 3)
 DEFAULT_DISPOSITION_SKEPTICISM = None
 DEFAULT_DISPOSITION_LITERALISM = None
@@ -702,6 +729,18 @@ def _validate_extraction_mode(mode: str) -> str:
         )
         return DEFAULT_RETAIN_EXTRACTION_MODE
     return mode_lower
+
+
+def _validate_recall_budget_function(function: str) -> str:
+    """Validate and normalize recall budget function."""
+    function_lower = function.lower()
+    if function_lower not in RECALL_BUDGET_FUNCTIONS:
+        logger.warning(
+            f"Invalid recall budget function '{function}', must be one of {RECALL_BUDGET_FUNCTIONS}. "
+            f"Defaulting to '{DEFAULT_RECALL_BUDGET_FUNCTION}'."
+        )
+        return DEFAULT_RECALL_BUDGET_FUNCTION
+    return function_lower
 
 
 def _get_default_model_for_provider(provider: str) -> str:
@@ -955,6 +994,20 @@ class HindsightConfig:
     recall_max_tokens: int
     recall_chunks_max_tokens: int
 
+    # Recall budget mapping: how the Budget enum (LOW/MID/HIGH) maps to thinking_budget integer.
+    # function="fixed": use the recall_budget_fixed_* values directly (legacy behavior).
+    # function="adaptive": compute round(max_tokens * recall_budget_adaptive_*),
+    #                      clamped to [recall_budget_min, recall_budget_max].
+    recall_budget_function: str
+    recall_budget_fixed_low: int
+    recall_budget_fixed_mid: int
+    recall_budget_fixed_high: int
+    recall_budget_adaptive_low: float
+    recall_budget_adaptive_mid: float
+    recall_budget_adaptive_high: float
+    recall_budget_min: int
+    recall_budget_max: int
+
     # Disposition settings (hierarchical - can be overridden per bank; None = fall back to DB)
     disposition_skepticism: int | None
     disposition_literalism: int | None
@@ -1072,6 +1125,16 @@ class HindsightConfig:
         "recall_include_chunks",
         "recall_max_tokens",
         "recall_chunks_max_tokens",
+        # Recall budget mapping (Budget enum -> thinking_budget integer)
+        "recall_budget_function",
+        "recall_budget_fixed_low",
+        "recall_budget_fixed_mid",
+        "recall_budget_fixed_high",
+        "recall_budget_adaptive_low",
+        "recall_budget_adaptive_mid",
+        "recall_budget_adaptive_high",
+        "recall_budget_min",
+        "recall_budget_max",
         # Disposition settings
         "disposition_skepticism",
         "disposition_literalism",
@@ -1567,6 +1630,25 @@ class HindsightConfig:
             recall_chunks_max_tokens=int(
                 os.getenv(ENV_RECALL_CHUNKS_MAX_TOKENS, str(DEFAULT_RECALL_CHUNKS_MAX_TOKENS))
             ),
+            recall_budget_function=_validate_recall_budget_function(
+                os.getenv(ENV_RECALL_BUDGET_FUNCTION, DEFAULT_RECALL_BUDGET_FUNCTION)
+            ),
+            recall_budget_fixed_low=int(os.getenv(ENV_RECALL_BUDGET_FIXED_LOW, str(DEFAULT_RECALL_BUDGET_FIXED_LOW))),
+            recall_budget_fixed_mid=int(os.getenv(ENV_RECALL_BUDGET_FIXED_MID, str(DEFAULT_RECALL_BUDGET_FIXED_MID))),
+            recall_budget_fixed_high=int(
+                os.getenv(ENV_RECALL_BUDGET_FIXED_HIGH, str(DEFAULT_RECALL_BUDGET_FIXED_HIGH))
+            ),
+            recall_budget_adaptive_low=float(
+                os.getenv(ENV_RECALL_BUDGET_ADAPTIVE_LOW, str(DEFAULT_RECALL_BUDGET_ADAPTIVE_LOW))
+            ),
+            recall_budget_adaptive_mid=float(
+                os.getenv(ENV_RECALL_BUDGET_ADAPTIVE_MID, str(DEFAULT_RECALL_BUDGET_ADAPTIVE_MID))
+            ),
+            recall_budget_adaptive_high=float(
+                os.getenv(ENV_RECALL_BUDGET_ADAPTIVE_HIGH, str(DEFAULT_RECALL_BUDGET_ADAPTIVE_HIGH))
+            ),
+            recall_budget_min=int(os.getenv(ENV_RECALL_BUDGET_MIN, str(DEFAULT_RECALL_BUDGET_MIN))),
+            recall_budget_max=int(os.getenv(ENV_RECALL_BUDGET_MAX, str(DEFAULT_RECALL_BUDGET_MAX))),
             # Disposition settings (None = fall back to DB value)
             disposition_skepticism=int(os.getenv(ENV_DISPOSITION_SKEPTICISM))
             if os.getenv(ENV_DISPOSITION_SKEPTICISM)

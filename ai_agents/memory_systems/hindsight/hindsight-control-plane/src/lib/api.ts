@@ -91,6 +91,7 @@ export interface MentalModel {
   tags: string[];
   max_tokens: number;
   trigger: {
+    mode?: "full" | "delta";
     refresh_after_consolidation: boolean;
     fact_types?: Array<"world" | "experience" | "observation">;
     exclude_mental_models?: boolean;
@@ -952,6 +953,7 @@ export class ControlPlaneClient {
         tags: string[];
         max_tokens: number;
         trigger: {
+          mode?: "full" | "delta";
           refresh_after_consolidation: boolean;
           fact_types?: Array<"world" | "experience" | "observation">;
           exclude_mental_models?: boolean;
@@ -985,6 +987,7 @@ export class ControlPlaneClient {
       tags?: string[];
       max_tokens?: number;
       trigger?: {
+        mode?: "full" | "delta";
         refresh_after_consolidation: boolean;
         fact_types?: Array<"world" | "experience" | "observation">;
         exclude_mental_models?: boolean;
@@ -1026,6 +1029,7 @@ export class ControlPlaneClient {
       max_tokens?: number;
       tags?: string[];
       trigger?: {
+        mode?: "full" | "delta";
         refresh_after_consolidation: boolean;
         fact_types?: Array<"world" | "experience" | "observation">;
         exclude_mental_models?: boolean;

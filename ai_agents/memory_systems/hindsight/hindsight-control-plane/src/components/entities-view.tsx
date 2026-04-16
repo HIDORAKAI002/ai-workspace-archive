@@ -192,7 +192,7 @@ export function EntitiesView() {
       if (!recencyLookup) return 0.5;
       const t = recencyLookup.times.get(node.id);
       if (t === undefined) return 0;
-      return Math.sqrt((t - recencyLookup.minT) / (recencyLookup.maxT - recencyLookup.minT));
+      return (t - recencyLookup.minT) / (recencyLookup.maxT - recencyLookup.minT);
     },
     [recencyLookup]
   );
@@ -255,8 +255,15 @@ export function EntitiesView() {
               onNodeClick={handleConstellationNodeClick}
               nodeSizeFn={nodeSizeFn}
               nodeHeatFn={recencyLookup ? nodeHeatFn : undefined}
-              heatLegendLabel={recencyLookup ? "recency" : undefined}
-              heatLegendEndpoints={recencyLookup ? ["older", "newer"] : undefined}
+              heatLegendLabel={recencyLookup ? "recency · last co-occurrence" : undefined}
+              heatLegendEndpoints={
+                recencyLookup
+                  ? [
+                      new Date(recencyLookup.minT).toISOString().slice(0, 10),
+                      new Date(recencyLookup.maxT).toISOString().slice(0, 10),
+                    ]
+                  : undefined
+              }
               sizeLegendLabel="co-occurrences"
               compactLabels
             />

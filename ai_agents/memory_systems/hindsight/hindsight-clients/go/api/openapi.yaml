@@ -3750,6 +3750,33 @@ components:
           items: {}
           nullable: true
           type: array
+        recall_budget_function:
+          nullable: true
+          type: string
+        recall_budget_fixed_low:
+          nullable: true
+          type: integer
+        recall_budget_fixed_mid:
+          nullable: true
+          type: integer
+        recall_budget_fixed_high:
+          nullable: true
+          type: integer
+        recall_budget_adaptive_low:
+          nullable: true
+          type: number
+        recall_budget_adaptive_mid:
+          nullable: true
+          type: number
+        recall_budget_adaptive_high:
+          nullable: true
+          type: number
+        recall_budget_min:
+          nullable: true
+          type: integer
+        recall_budget_max:
+          nullable: true
+          type: integer
       title: BankTemplateConfig
     BankTemplateDirective:
       description: |-
@@ -5100,6 +5127,7 @@ components:
           created_at: created_at
           id: id
           trigger:
+            mode: full
             refresh_after_consolidation: false
             recall_chunks_max_tokens: 1
             tag_groups:
@@ -5136,6 +5164,7 @@ components:
           created_at: created_at
           id: id
           trigger:
+            mode: full
             refresh_after_consolidation: false
             recall_chunks_max_tokens: 1
             tag_groups:
@@ -5183,6 +5212,7 @@ components:
         created_at: created_at
         id: id
         trigger:
+          mode: full
           refresh_after_consolidation: false
           recall_chunks_max_tokens: 1
           tag_groups:
@@ -5256,6 +5286,19 @@ components:
     MentalModelTrigger-Input:
       description: Trigger settings for a mental model.
       properties:
+        mode:
+          default: full
+          description: "Refresh mode. 'full' (default) regenerates the mental model\
+            \ content from scratch on each refresh. 'delta' performs surgical edits\
+            \ against the existing content: unchanged sections are preserved byte-for-byte,\
+            \ stale content is removed, new content is added. If the mental model\
+            \ has no existing content, or if the source_query has changed since the\
+            \ last refresh, delta mode falls back to a full regeneration automatically."
+          enum:
+          - full
+          - delta
+          title: Mode
+          type: string
         refresh_after_consolidation:
           default: false
           description: "If true, refresh this mental model after observations consolidation\
@@ -5308,6 +5351,7 @@ components:
     MentalModelTrigger-Output:
       description: Trigger settings for a mental model.
       example:
+        mode: full
         refresh_after_consolidation: false
         recall_chunks_max_tokens: 1
         tag_groups:
@@ -5330,6 +5374,19 @@ components:
         exclude_mental_models: false
         recall_max_tokens: 6
       properties:
+        mode:
+          default: full
+          description: "Refresh mode. 'full' (default) regenerates the mental model\
+            \ content from scratch on each refresh. 'delta' performs surgical edits\
+            \ against the existing content: unchanged sections are preserved byte-for-byte,\
+            \ stale content is removed, new content is added. If the mental model\
+            \ has no existing content, or if the source_query has changed since the\
+            \ last refresh, delta mode falls back to a full regeneration automatically."
+          enum:
+          - full
+          - delta
+          title: Mode
+          type: string
         refresh_after_consolidation:
           default: false
           description: "If true, refresh this mental model after observations consolidation\
