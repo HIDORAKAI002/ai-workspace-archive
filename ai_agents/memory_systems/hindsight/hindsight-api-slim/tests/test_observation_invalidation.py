@@ -264,6 +264,111 @@ class TestDeleteDocumentObservationCleanup:
 
 
 # ---------------------------------------------------------------------------
+# Tests: document upsert via retain pipeline (regression for orphan observations)
+# ---------------------------------------------------------------------------
+
+class TestDocumentUpsertObservationCleanup:
+    """Regression: re-ingesting a document via the retain pipeline must clean up
+    observations derived from the outgoing memory_units, the same way the
+    explicit ``MemoryEngine.delete_document`` API does.
+
+    Before the fix, ``fact_storage.handle_document_tracking`` deleted the
+    document via FK cascade — removing the source memory_units silently — but
+    never invalidated the dependent observations. They became orphans whose
+    ``source_memory_ids`` arrays pointed at IDs that no longer existed in
+    ``memory_units``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_upsert_document_removes_observations_from_outgoing_memories(
+        self, memory: MemoryEngine, request_context: RequestContext
+    ):
+        from hindsight_api.engine.retain.fact_storage import handle_document_tracking
+
+        bank_id = f"test-upsert-obs-cleanup-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(memory, bank_id, request_context)
+
+        pool = await memory._get_pool()
+        doc_id = str(uuid.uuid4())
+
+        # Pre-populate: one document, two source memories under it, one
+        # standalone memory not in the document, and an observation that joins
+        # all three. After the upsert, the two doc memories should be gone
+        # (cascade) AND the observation should be invalidated (the bug we're
+        # fixing). The standalone memory should be reset for re-consolidation.
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO documents (id, bank_id, original_text, content_hash, created_at, updated_at)
+                VALUES ($1, $2, 'old version', 'hash-old', NOW(), NOW())
+                """,
+                doc_id,
+                bank_id,
+            )
+            doc_mem_a = uuid.uuid4()
+            doc_mem_b = uuid.uuid4()
+            for mem_id, text in [(doc_mem_a, "Old fact A."), (doc_mem_b, "Old fact B.")]:
+                await conn.execute(
+                    """
+                    INSERT INTO memory_units (id, bank_id, text, fact_type, event_date, document_id,
+                                              created_at, updated_at, consolidated_at)
+                    VALUES ($1, $2, $3, 'experience', NOW(), $4, NOW(), NOW(), NOW())
+                    """,
+                    mem_id,
+                    bank_id,
+                    text,
+                    doc_id,
+                )
+            standalone_mem = await _insert_memory(conn, bank_id, "Standalone fact C.")
+            obs_id = await _insert_observation(
+                conn,
+                bank_id,
+                "Aggregated observation joining doc + standalone facts.",
+                [doc_mem_a, doc_mem_b, standalone_mem],
+            )
+
+        # Trigger the upsert path directly. ``handle_document_tracking`` is
+        # what the retain orchestrator calls on every document re-ingest.
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await handle_document_tracking(
+                    conn,
+                    bank_id=bank_id,
+                    document_id=doc_id,
+                    combined_content="new version replacing old facts",
+                    is_first_batch=True,
+                    retain_params=None,
+                    document_tags=None,
+                )
+
+        async with pool.acquire() as conn:
+            obs_ids = await _get_observation_ids(conn, bank_id)
+            assert str(obs_id) not in obs_ids, (
+                "Observation derived from the outgoing memory_units should have been "
+                "deleted during the upsert (regression: orphan observations were "
+                "previously left behind because handle_document_tracking didn't call "
+                "delete_stale_observations_for_memories)"
+            )
+
+            # The standalone memory survives (different document_id) and should
+            # be reset for re-consolidation since one of its observations was
+            # invalidated by the upsert.
+            consolidated_at = await _get_consolidated_at(conn, standalone_mem)
+            assert consolidated_at is None, (
+                "Surviving co-source memory should be reset for re-consolidation"
+            )
+
+            # The two doc-scoped memories are gone via FK cascade.
+            doc_mem_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM memory_units WHERE id = ANY($1::uuid[])",
+                [doc_mem_a, doc_mem_b],
+            )
+            assert doc_mem_count == 0
+
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+# ---------------------------------------------------------------------------
 # Tests: delete_bank with fact_type filter
 # ---------------------------------------------------------------------------
 

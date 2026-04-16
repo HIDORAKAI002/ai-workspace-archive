@@ -183,6 +183,7 @@ from .entity_resolver import EntityResolver
 from .llm_wrapper import LLMConfig, requires_api_key, sanitize_llm_output
 from .query_analyzer import QueryAnalyzer
 from .reflect import run_reflect_agent
+from .reflect.prompts import DELTA_SYSTEM_PROMPT, build_delta_prompt
 from .reflect.tools import tool_expand, tool_recall, tool_search_mental_models, tool_search_observations
 from .response_models import (
     VALID_RECALL_FACT_TYPES,
@@ -210,6 +211,39 @@ class Budget(str, Enum):
     LOW = "low"
     MID = "mid"
     HIGH = "high"
+
+
+def _resolve_thinking_budget(config_dict: dict, budget: "Budget | None", max_tokens: int) -> int:
+    """
+    Map a Budget enum level to the integer thinking_budget passed to retrieval.
+
+    Reads the bank-resolved config to decide between two functions:
+    - "fixed": returns recall_budget_fixed_<level> directly (legacy default).
+    - "adaptive": returns round(max_tokens * recall_budget_adaptive_<level>),
+                  clamped to [recall_budget_min, recall_budget_max].
+
+    A None budget falls back to MID (preserves legacy default).
+    """
+    effective_budget = budget if budget is not None else Budget.MID
+    function = config_dict.get("recall_budget_function", "fixed")
+
+    if function == "adaptive":
+        ratios = {
+            Budget.LOW: config_dict.get("recall_budget_adaptive_low", 0.025),
+            Budget.MID: config_dict.get("recall_budget_adaptive_mid", 0.075),
+            Budget.HIGH: config_dict.get("recall_budget_adaptive_high", 0.25),
+        }
+        raw = round(max_tokens * float(ratios[effective_budget]))
+        floor = int(config_dict.get("recall_budget_min", 20))
+        ceiling = int(config_dict.get("recall_budget_max", 2000))
+        return max(floor, min(ceiling, raw))
+
+    fixed = {
+        Budget.LOW: config_dict.get("recall_budget_fixed_low", 100),
+        Budget.MID: config_dict.get("recall_budget_fixed_mid", 300),
+        Budget.HIGH: config_dict.get("recall_budget_fixed_high", 1000),
+    }
+    return int(fixed[effective_budget])
 
 
 def utcnow():
@@ -967,14 +1001,20 @@ class MemoryEngine(MemoryEngineInterface):
         """
         Handler for refresh_mental_model tasks.
 
-        Re-runs the source query through reflect and updates the mental model content.
+        Delegates to ``refresh_mental_model`` so async (worker-driven) refreshes
+        and synchronous refreshes share the same code path — including the
+        structured-delta logic. Previously this handler had its own copy of the
+        reflect+update pipeline, which silently bypassed structured delta when
+        the UI/worker queued the task. The duplication caused the original
+        "delta refresh produced full-document drift" bug to persist even after
+        delta was implemented on the synchronous path.
 
         Args:
             task_dict: Dict with 'bank_id', 'mental_model_id', 'operation_id'
 
         Raises:
             ValueError: If required fields are missing
-            Exception: Any exception from reflect/update (propagates to execute_task for retry)
+            Exception: Any exception from refresh_mental_model (propagates for retry)
         """
         bank_id = task_dict.get("bank_id")
         mental_model_id = task_dict.get("mental_model_id")
@@ -994,97 +1034,33 @@ class MemoryEngine(MemoryEngineInterface):
             api_key_id=task_dict.get("_api_key_id"),
         )
 
-        # Get the current mental model to get source_query
-        mental_model = await self.get_mental_model(bank_id, mental_model_id, request_context=internal_context)
-        if not mental_model:
-            raise ValueError(f"Mental model {mental_model_id} not found in bank {bank_id}")
-
-        source_query = mental_model["source_query"]
-
-        # Read reflect options from trigger (if stored)
-        trigger_data = mental_model.get("trigger") or {}
-        fact_types = trigger_data.get("fact_types")
-        exclude_mental_models = trigger_data.get("exclude_mental_models", False)
-        stored_exclude_ids: list[str] = trigger_data.get("exclude_mental_model_ids") or []
-        recall_include_chunks_override = trigger_data.get("include_chunks")
-        recall_max_tokens_override = trigger_data.get("recall_max_tokens")
-        recall_chunks_max_tokens_override = trigger_data.get("recall_chunks_max_tokens")
-
-        tag_filtering = _resolve_refresh_tag_filtering(mental_model.get("tags"), trigger_data)
-
-        # Run reflect to generate new content, excluding the mental model being refreshed
-        # Always add self to excluded IDs to prevent circular reference
-        reflect_result = await self.reflect_async(
-            bank_id=bank_id,
-            query=source_query,
-            request_context=internal_context,
-            tags=tag_filtering.tags,
-            tags_match=tag_filtering.tags_match,
-            tag_groups=tag_filtering.tag_groups,
-            fact_types=fact_types,
-            exclude_mental_models=exclude_mental_models,
-            exclude_mental_model_ids=list({*stored_exclude_ids, mental_model_id}),
-            recall_include_chunks=recall_include_chunks_override,
-            recall_max_tokens_override=recall_max_tokens_override,
-            recall_chunks_max_tokens_override=recall_chunks_max_tokens_override,
-        )
-
-        generated_content = reflect_result.text or "No content generated"
-
-        # Build reflect_response payload to store
-        # based_on contains MemoryFact objects for most types, but plain dicts for directives
-        based_on_serialized: dict[str, list[dict[str, Any]]] = {}
-        for fact_type, facts in reflect_result.based_on.items():
-            serialized_facts = []
-            for fact in facts:
-                if isinstance(fact, dict):
-                    # Plain dict (e.g., directives with id, name, content)
-                    serialized_facts.append(
-                        {
-                            "id": str(fact["id"]),
-                            "text": fact.get("text", fact.get("content", fact.get("name", ""))),
-                            "type": fact_type,
-                        }
-                    )
-                else:
-                    # MemoryFact object with .id and .text attributes
-                    serialized_facts.append(
-                        {
-                            "id": str(fact.id),
-                            "text": fact.text,
-                            "type": fact_type,
-                        }
-                    )
-            based_on_serialized[fact_type] = serialized_facts
-
-        reflect_response = {
-            "text": reflect_result.text,
-            "based_on": based_on_serialized,
-        }
-
-        # Update the mental model with the generated content and reflect_response
-        await self.update_mental_model(
+        refreshed = await self.refresh_mental_model(
             bank_id=bank_id,
             mental_model_id=mental_model_id,
-            content=generated_content,
-            reflect_response=reflect_response,
             request_context=internal_context,
         )
+        if refreshed is None:
+            raise ValueError(f"Mental model {mental_model_id} not found in bank {bank_id}")
+
+        # Compute facts/mental_models counts for the post-op validator hook.
+        # refresh_mental_model already persisted everything; the hook only needs
+        # tallies that derive from the stored reflect_response payload.
+        rr = refreshed.get("reflect_response") or {}
+        based_on = rr.get("based_on") or {}
+        facts_used = 0
+        mental_models_used = 0
+        for fact_type, facts in based_on.items():
+            n = len(facts) if facts else 0
+            if fact_type in ("mental_models", "mental-models"):
+                mental_models_used += n
+            else:
+                facts_used += n
+        source_query = refreshed.get("source_query") or ""
+        generated_content = refreshed.get("content") or ""
 
         # Call post-operation hook if validator is configured
         if self._operation_validator:
             from hindsight_api.extensions.operation_validator import MentalModelRefreshResult
-
-            # Count facts and mental models from based_on
-            facts_used = 0
-            mental_models_used = 0
-            if reflect_result.based_on:
-                for fact_type, facts in reflect_result.based_on.items():
-                    if facts:
-                        if fact_type == "mental_models":
-                            mental_models_used += len(facts)
-                        else:
-                            facts_used += len(facts)
 
             # Estimate tokens
             query_tokens = len(source_query) // 4 if source_query else 0
@@ -2604,10 +2580,11 @@ class MemoryEngine(MemoryEngineInterface):
                 if result.tag_groups is not None:
                     tag_groups = result.tag_groups
 
-        # Map budget enum to thinking_budget number (default to MID if None)
-        budget_mapping = {Budget.LOW: 100, Budget.MID: 300, Budget.HIGH: 1000}
-        effective_budget = budget if budget is not None else Budget.MID
-        thinking_budget = budget_mapping[effective_budget]
+        # Map budget enum to thinking_budget number using bank-resolved config.
+        # Function "fixed" preserves legacy {LOW: 100, MID: 300, HIGH: 1000}; function "adaptive"
+        # derives from max_tokens and clamps to [recall_budget_min, recall_budget_max].
+        budget_config_dict = await self._config_resolver.get_bank_config(bank_id, request_context)
+        thinking_budget = _resolve_thinking_budget(budget_config_dict, budget, max_tokens)
 
         # Log recall start with tags if present (skip if quiet mode for internal operations)
         if not _quiet:
@@ -6567,82 +6544,15 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         fact_ids: list[str],
     ) -> int:
+        """Thin wrapper that delegates to ``fact_storage.delete_stale_observations_for_memories``.
+
+        Kept on the engine class so the existing call sites here and the
+        retain pipeline both end up running the same SQL. See the free
+        function for the full contract.
         """
-        Handle cleanup of observations when source memories are deleted.
+        from .retain.fact_storage import delete_stale_observations_for_memories
 
-        For each observation referencing any of the deleted fact IDs:
-        1. Delete the observation (its text is stale without those source memories)
-        2. Reset consolidated_at=NULL on the remaining source memories so they get re-consolidated
-
-        Must be called within an active transaction, before the source memories are deleted.
-
-        Args:
-            conn: Database connection (must be in an active transaction)
-            bank_id: Bank identifier
-            fact_ids: List of fact IDs (as strings) that are being deleted
-
-        Returns:
-            Number of observations deleted
-        """
-        if not fact_ids:
-            return 0
-
-        import uuid as uuid_module
-
-        fact_uuids = [uuid_module.UUID(fid) for fid in fact_ids]
-
-        # Find all observations referencing any of the deleted facts
-        affected_obs = await conn.fetch(
-            f"""
-            SELECT id, source_memory_ids
-            FROM {fq_table("memory_units")}
-            WHERE bank_id = $1
-              AND fact_type = 'observation'
-              AND source_memory_ids && $2::uuid[]
-            """,
-            bank_id,
-            fact_uuids,
-        )
-
-        if not affected_obs:
-            return 0
-
-        # Collect observation IDs to delete and remaining source memory IDs to reset
-        deleted_set = {str(uid) for uid in fact_uuids}
-        obs_ids = [obs["id"] for obs in affected_obs]
-        seen_remaining: set[str] = set()
-        remaining_source_ids: list[uuid_module.UUID] = []
-
-        for obs in affected_obs:
-            for src_id in obs["source_memory_ids"] or []:
-                src_str = str(src_id)
-                if src_str not in deleted_set and src_str not in seen_remaining:
-                    remaining_source_ids.append(src_id)
-                    seen_remaining.add(src_str)
-
-        # Delete the stale observations
-        await conn.execute(
-            f"DELETE FROM {fq_table('memory_units')} WHERE id = ANY($1::uuid[])",
-            obs_ids,
-        )
-
-        # Reset consolidated_at on remaining source memories so they get re-consolidated
-        if remaining_source_ids:
-            await conn.execute(
-                f"""
-                UPDATE {fq_table("memory_units")}
-                SET consolidated_at = NULL
-                WHERE id = ANY($1::uuid[])
-                  AND fact_type IN ('experience', 'world')
-                """,
-                remaining_source_ids,
-            )
-
-        logger.info(
-            f"[OBSERVATIONS] Deleted {len(obs_ids)} observations, reset {len(remaining_source_ids)} "
-            f"source memories for re-consolidation in bank {bank_id}"
-        )
-        return len(obs_ids)
+        return await delete_stale_observations_for_memories(conn, bank_id, fact_ids)
 
     # =========================================================================
     # MENTAL MODELS (CONSOLIDATED) - Read-only access to auto-consolidated mental models
@@ -6848,7 +6758,7 @@ class MemoryEngine(MemoryEngineInterface):
                 f"""
                 SELECT id, bank_id, name, source_query, content, tags,
                        last_refreshed_at, created_at, reflect_response,
-                       max_tokens, trigger
+                       max_tokens, trigger, structured_content
                 FROM {fq_table("mental_models")}
                 WHERE bank_id = $1 {tag_filter}
                 ORDER BY last_refreshed_at DESC
@@ -6898,7 +6808,7 @@ class MemoryEngine(MemoryEngineInterface):
                 f"""
                 SELECT id, bank_id, name, source_query, content, tags,
                        last_refreshed_at, created_at, reflect_response,
-                       max_tokens, trigger
+                       max_tokens, trigger, structured_content
                 FROM {fq_table("mental_models")}
                 WHERE bank_id = $1 AND id = $2
                 """,
@@ -7017,7 +6927,7 @@ class MemoryEngine(MemoryEngineInterface):
                     VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 2048), COALESCE($9, '{{"refresh_after_consolidation": false}}'::jsonb))
                     RETURNING id, bank_id, name, source_query, content, tags,
                               last_refreshed_at, created_at, reflect_response,
-                              max_tokens, trigger
+                              max_tokens, trigger, structured_content
                     """,
                     mental_model_id,
                     bank_id,
@@ -7037,7 +6947,7 @@ class MemoryEngine(MemoryEngineInterface):
                     VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 2048), COALESCE($8, '{{"refresh_after_consolidation": false}}'::jsonb))
                     RETURNING id, bank_id, name, source_query, content, tags,
                               last_refreshed_at, created_at, reflect_response,
-                              max_tokens, trigger
+                              max_tokens, trigger, structured_content
                     """,
                     bank_id,
                     name,
@@ -7092,6 +7002,47 @@ class MemoryEngine(MemoryEngineInterface):
             recall_include_chunks_override = trigger_data.get("include_chunks")
             recall_max_tokens_override = trigger_data.get("recall_max_tokens")
             recall_chunks_max_tokens_override = trigger_data.get("recall_chunks_max_tokens")
+            refresh_mode = trigger_data.get("mode") or "full"
+
+            current_content = (mental_model.get("content") or "").strip()
+            current_source_query = mental_model["source_query"]
+
+            # Delta mode requires both existing content and an unchanged source_query.
+            # When either condition fails, we fall back to a full regeneration: a
+            # surgical edit has nothing to edit, or the topic itself has shifted.
+            # The tracking column is only read when delta is requested so full-mode
+            # refreshes don't pay for an extra query (and mock-based unit tests that
+            # stub out the DB don't hit an unexpected pool access).
+            use_delta = False
+            stored_structured_content: dict[str, Any] | None = None
+            if refresh_mode == "delta" and current_content:
+                pool = await self._get_pool()
+                async with acquire_with_retry(pool) as conn:
+                    tracking_row = await conn.fetchrow(
+                        f"SELECT last_refreshed_source_query, structured_content "
+                        f"FROM {fq_table('mental_models')} "
+                        f"WHERE bank_id = $1 AND id = $2",
+                        bank_id,
+                        mental_model_id,
+                    )
+                last_refreshed_source_query: str | None = (
+                    tracking_row["last_refreshed_source_query"] if tracking_row else None
+                )
+                # Use delta when the user has content to anchor on AND the topic
+                # hasn't shifted. The first delta refresh (no tracking row yet)
+                # still uses the existing markdown as the baseline — users who
+                # write a doc and then enable delta mode expect their content to
+                # be the starting point, not discarded by a one-time full rebuild.
+                use_delta = last_refreshed_source_query is None or last_refreshed_source_query == current_source_query
+                if tracking_row is not None:
+                    raw_struct = tracking_row["structured_content"]
+                    if isinstance(raw_struct, str):
+                        try:
+                            stored_structured_content = json.loads(raw_struct)
+                        except json.JSONDecodeError:
+                            stored_structured_content = None
+                    else:
+                        stored_structured_content = raw_struct
 
             tag_filtering = _resolve_refresh_tag_filtering(mental_model.get("tags"), trigger_data)
 
@@ -7153,12 +7104,163 @@ class MemoryEngine(MemoryEngineInterface):
                 "mental_models": [],  # Mental models are included in based_on["mental-models"]
             }
 
-            # Update the mental model with new content and reflect_response
+            # Delta-mode path: emit structured operations against the existing
+            # structured doc, apply them, then re-render to markdown. Sections
+            # not mentioned by any operation are physically untouched, so prose
+            # drift is structurally impossible. Falls back to the full candidate
+            # markdown if either the structuring or the LLM op call fails.
+            from .reflect.delta_ops import (
+                DeltaOperationList,
+                apply_operations,
+            )
+            from .reflect.prompts import (
+                STRUCTURED_DELTA_SYSTEM_PROMPT,
+                build_structured_delta_prompt,
+            )
+            from .reflect.structured_doc import (
+                StructuredDocument,
+                parse_markdown,
+                render_document,
+            )
+
+            final_content = reflect_result.text
+            final_structured: StructuredDocument | None = None
+            delta_applied = False
+            applied_ops_summary: list[dict[str, Any]] = []
+            skipped_ops_summary: list[dict[str, Any]] = []
+
+            if use_delta:
+                # Use the previously stored structured doc when available; otherwise
+                # parse the existing markdown so the very first delta refresh can
+                # still operate without waiting for a full rebuild.
+                try:
+                    if stored_structured_content is not None:
+                        current_doc = StructuredDocument.model_validate(stored_structured_content)
+                    else:
+                        current_doc = parse_markdown(current_content)
+                except Exception as exc:
+                    logger.warning(
+                        f"[MENTAL_MODELS] Could not load structured doc for {mental_model_id} "
+                        f"({exc}); falling back to full synthesis"
+                    )
+                    current_doc = None
+
+                if current_doc is not None:
+                    supporting_facts: list[dict[str, Any]] = []
+                    for _ftype, facts in based_on_serialized_payload.items():
+                        supporting_facts.extend(facts)
+
+                    # Op JSON is denser than the rendered markdown — each op
+                    # carries the section_id, op type, and a full block payload
+                    # whose ``text`` may quote the original passage. Budget 1.5×
+                    # the document cap so the model can express several edits
+                    # without truncating mid-string. The cap is also surfaced in
+                    # the prompt so the model can self-trim if needed.
+                    doc_max_tokens = mental_model.get("max_tokens") or 2048
+                    delta_max_tokens = max(2048, int(doc_max_tokens * 1.5))
+                    user_prompt = build_structured_delta_prompt(
+                        current_document_json=current_doc.model_dump_json(indent=2),
+                        candidate_markdown=reflect_result.text,
+                        supporting_facts=supporting_facts,
+                        source_query=current_source_query,
+                        max_output_tokens=delta_max_tokens,
+                    )
+                    try:
+                        # Text-mode call (not structured-output) because Pydantic's
+                        # discriminated-union JSON schema isn't accepted by every
+                        # provider — Gemini in particular rejects ``oneOf`` /
+                        # ``discriminator``. We parse + validate the JSON ourselves
+                        # so the same prompt works against any LLM.
+                        raw = await self._reflect_llm_config.call(
+                            messages=[
+                                {"role": "system", "content": STRUCTURED_DELTA_SYSTEM_PROMPT},
+                                {"role": "user", "content": user_prompt},
+                            ],
+                            max_completion_tokens=delta_max_tokens,
+                            temperature=0.0,
+                            scope="mental_model_delta_ops",
+                        )
+                        op_list: DeltaOperationList
+                        if isinstance(raw, DeltaOperationList):
+                            op_list = raw
+                        elif isinstance(raw, dict):
+                            op_list = DeltaOperationList.model_validate(raw)
+                        else:
+                            text = (raw or "").strip()
+                            # Strip optional fenced code block.
+                            if text.startswith("```"):
+                                text = text.split("\n", 1)[1] if "\n" in text else ""
+                                if text.endswith("```"):
+                                    text = text[:-3].rstrip()
+                            op_list = DeltaOperationList.model_validate_json(text)
+                        outcome = apply_operations(current_doc, op_list.operations)
+                        final_structured = outcome.document
+                        final_content = render_document(outcome.document)
+                        applied_ops_summary = outcome.applied
+                        skipped_ops_summary = outcome.skipped
+                        delta_applied = True
+                        logger.info(
+                            f"[MENTAL_MODELS] Delta refresh for {mental_model_id}: "
+                            f"applied {len(applied_ops_summary)} op(s), "
+                            f"skipped {len(skipped_ops_summary)}"
+                        )
+                    except Exception as exc:
+                        logger.warning(
+                            f"[MENTAL_MODELS] Structured delta failed for {mental_model_id} "
+                            f"({exc}); falling back to full synthesis"
+                        )
+
+                reflect_response_payload["delta_applied"] = delta_applied
+                if delta_applied:
+                    reflect_response_payload["delta_operations_applied"] = applied_ops_summary
+                    reflect_response_payload["delta_operations_skipped"] = skipped_ops_summary
+
+            # Refuse to overwrite existing content with an empty render.
+            # The reflect agent can return an empty answer (small models, all
+            # tool-call retries failing, transient provider errors) and the
+            # delta merge can also fall back to that empty candidate. Writing
+            # "" to the DB would destroy the working document — and since the
+            # next refresh sees current_content == "" it would also skip the
+            # delta path, compounding the problem. Preserve what's there and
+            # surface the failure via reflect_response.
+            if not final_content.strip() and current_content:
+                logger.warning(
+                    f"[MENTAL_MODELS] Refresh for {mental_model_id} produced empty content; "
+                    "preserving previous content (likely an upstream LLM failure)"
+                )
+                reflect_response_payload["refresh_skipped"] = "empty_candidate"
+                # Persist the reflect_response (so the failure is auditable) and
+                # the source-query tracking, but do NOT touch content/structured.
+                return await self.update_mental_model(
+                    bank_id,
+                    mental_model_id,
+                    reflect_response=reflect_response_payload,
+                    last_refreshed_source_query=current_source_query,
+                    request_context=request_context,
+                )
+
+            # When delta is not applied (full mode, or delta fallback), parse the
+            # candidate markdown so the next refresh has a structured baseline to
+            # operate against.
+            if final_structured is None:
+                try:
+                    final_structured = parse_markdown(final_content)
+                except Exception as exc:
+                    logger.warning(
+                        f"[MENTAL_MODELS] Could not parse final markdown into structured form "
+                        f"for {mental_model_id} ({exc}); leaving structured_content unchanged"
+                    )
+
+            # Update the mental model with new content and reflect_response.
+            # Passing last_refreshed_source_query records the query used for this
+            # refresh so a future delta-mode run can detect a topic change.
             return await self.update_mental_model(
                 bank_id,
                 mental_model_id,
-                content=reflect_result.text,
+                content=final_content,
                 reflect_response=reflect_response_payload,
+                last_refreshed_source_query=current_source_query,
+                structured_content=(final_structured.model_dump() if final_structured is not None else None),
                 request_context=request_context,
             )
 
@@ -7174,6 +7276,8 @@ class MemoryEngine(MemoryEngineInterface):
         tags: list[str] | None = None,
         trigger: dict[str, Any] | None = None,
         reflect_response: dict[str, Any] | None = None,
+        last_refreshed_source_query: str | None = None,
+        structured_content: dict[str, Any] | None = None,
         request_context: "RequestContext",
     ) -> dict[str, Any] | None:
         """Update a pinned mental model.
@@ -7281,6 +7385,16 @@ class MemoryEngine(MemoryEngineInterface):
                 params.append(json.dumps(trigger))
                 param_idx += 1
 
+            if last_refreshed_source_query is not None:
+                updates.append(f"last_refreshed_source_query = ${param_idx}")
+                params.append(last_refreshed_source_query)
+                param_idx += 1
+
+            if structured_content is not None:
+                updates.append(f"structured_content = ${param_idx}")
+                params.append(json.dumps(structured_content))
+                param_idx += 1
+
             if not updates:
                 return None
 
@@ -7290,7 +7404,7 @@ class MemoryEngine(MemoryEngineInterface):
                 WHERE bank_id = $1 AND id = $2
                 RETURNING id, bank_id, name, source_query, content, tags,
                           last_refreshed_at, created_at, reflect_response,
-                          max_tokens, trigger
+                          max_tokens, trigger, structured_content
             """
 
             row = await conn.fetchrow(query, *params)
@@ -7439,6 +7553,14 @@ class MemoryEngine(MemoryEngineInterface):
                 except json.JSONDecodeError:
                     reflect_response = None
             result["reflect_response"] = reflect_response
+
+            structured_content = row.get("structured_content")
+            if isinstance(structured_content, str):
+                try:
+                    structured_content = json.loads(structured_content)
+                except json.JSONDecodeError:
+                    structured_content = None
+            result["structured_content"] = structured_content
 
         return result
 

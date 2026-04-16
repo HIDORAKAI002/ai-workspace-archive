@@ -1224,6 +1224,16 @@ async def _consolidate_batch_with_llm(
     max_attempts = config.consolidation_max_attempts
     inner_max_retries = config.consolidation_llm_max_retries
     last_exc: Exception | None = None
+    # Pre-compute a stable identifier set for the batch so failure logs name the
+    # exact memories whose consolidation is failing — without this, an opaque
+    # "LLM batch call failed" line gives operators no way to find the offending
+    # input until adaptive bisection narrows the batch down to a single memory.
+    memory_ids = [str(m.get("id")) for m in memories]
+    if len(memory_ids) <= 5:
+        ids_label = ", ".join(memory_ids)
+    else:
+        ids_label = f"{', '.join(memory_ids[:3])}, ... +{len(memory_ids) - 3} more"
+    batch_label = f"{len(memory_ids)} memories [{ids_label}]"
     for attempt in range(1, max_attempts + 1):
         try:
             call_kwargs: dict[str, Any] = {
@@ -1252,10 +1262,13 @@ async def _consolidate_batch_with_llm(
             )
         except Exception as exc:
             last_exc = exc
-            logger.warning(f"[CONSOLIDATION] LLM batch call failed (attempt {attempt}/{max_attempts}): {exc}")
+            logger.warning(
+                f"[CONSOLIDATION] LLM batch call failed (attempt {attempt}/{max_attempts}) for {batch_label}: {exc}"
+            )
 
     logger.error(
-        f"[CONSOLIDATION] LLM batch call failed after {max_attempts} attempts, skipping batch. Last error: {last_exc}"
+        f"[CONSOLIDATION] LLM batch call failed after {max_attempts} attempts for {batch_label}, "
+        f"skipping batch. Last error: {last_exc}"
     )
     return _BatchLLMResult(obs_count=len(union_observations), prompt_chars=len(prompt), failed=True)
 

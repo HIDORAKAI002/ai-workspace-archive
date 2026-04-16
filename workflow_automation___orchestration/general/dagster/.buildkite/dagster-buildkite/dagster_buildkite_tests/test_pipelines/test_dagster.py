@@ -215,3 +215,37 @@ def test_docstring_validation_steps(packages):
         packages,
     )
     assert get_step_skip(steps, "docstring validation") is not None
+
+
+def test_automation_runs_on_published_package_changes(packages):
+    # No changes: skipped
+    steps = _build_steps([], packages)
+    assert get_step_skip(steps, "automation") is not None
+
+    # dagster core source change: runs (published package)
+    steps = _build_steps(
+        [oss_path("python_modules/dagster/dagster/_core/pipes/utils.py")],
+        packages,
+    )
+    assert get_step_skip(steps, "automation") is None
+
+    # dagster-pipes source change: runs (published package)
+    steps = _build_steps(
+        [oss_path("python_modules/dagster-pipes/dagster_pipes/some_module.py")],
+        packages,
+    )
+    assert get_step_skip(steps, "automation") is None
+
+    # dagster library source change: runs (published package)
+    steps = _build_steps(
+        [oss_path("python_modules/libraries/dagster-aws/dagster_aws/some_module.py")],
+        packages,
+    )
+    assert get_step_skip(steps, "automation") is None
+
+    # Non-published package change (e.g. docs-only): skipped
+    steps = _build_steps(
+        [oss_path("docs/content/some_page.mdx")],
+        packages,
+    )
+    assert get_step_skip(steps, "automation") is not None

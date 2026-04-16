@@ -17,8 +17,8 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
@@ -49,7 +49,16 @@ class BankTemplateConfig(BaseModel):
     max_observations_per_scope: Optional[StrictInt] = None
     reflect_source_facts_max_tokens: Optional[StrictInt] = None
     llm_gemini_safety_settings: Optional[List[Any]] = None
-    __properties: ClassVar[List[str]] = ["reflect_mission", "retain_mission", "retain_extraction_mode", "retain_custom_instructions", "retain_chunk_size", "enable_observations", "observations_mission", "disposition_skepticism", "disposition_literalism", "disposition_empathy", "entity_labels", "entities_allow_free_form", "retain_default_strategy", "retain_strategies", "retain_chunk_batch_size", "mcp_enabled_tools", "consolidation_llm_batch_size", "consolidation_source_facts_max_tokens", "consolidation_source_facts_max_tokens_per_observation", "max_observations_per_scope", "reflect_source_facts_max_tokens", "llm_gemini_safety_settings"]
+    recall_budget_function: Optional[StrictStr] = None
+    recall_budget_fixed_low: Optional[StrictInt] = None
+    recall_budget_fixed_mid: Optional[StrictInt] = None
+    recall_budget_fixed_high: Optional[StrictInt] = None
+    recall_budget_adaptive_low: Optional[Union[StrictFloat, StrictInt]] = None
+    recall_budget_adaptive_mid: Optional[Union[StrictFloat, StrictInt]] = None
+    recall_budget_adaptive_high: Optional[Union[StrictFloat, StrictInt]] = None
+    recall_budget_min: Optional[StrictInt] = None
+    recall_budget_max: Optional[StrictInt] = None
+    __properties: ClassVar[List[str]] = ["reflect_mission", "retain_mission", "retain_extraction_mode", "retain_custom_instructions", "retain_chunk_size", "enable_observations", "observations_mission", "disposition_skepticism", "disposition_literalism", "disposition_empathy", "entity_labels", "entities_allow_free_form", "retain_default_strategy", "retain_strategies", "retain_chunk_batch_size", "mcp_enabled_tools", "consolidation_llm_batch_size", "consolidation_source_facts_max_tokens", "consolidation_source_facts_max_tokens_per_observation", "max_observations_per_scope", "reflect_source_facts_max_tokens", "llm_gemini_safety_settings", "recall_budget_function", "recall_budget_fixed_low", "recall_budget_fixed_mid", "recall_budget_fixed_high", "recall_budget_adaptive_low", "recall_budget_adaptive_mid", "recall_budget_adaptive_high", "recall_budget_min", "recall_budget_max"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -200,6 +209,51 @@ class BankTemplateConfig(BaseModel):
         if self.llm_gemini_safety_settings is None and "llm_gemini_safety_settings" in self.model_fields_set:
             _dict['llm_gemini_safety_settings'] = None
 
+        # set to None if recall_budget_function (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_function is None and "recall_budget_function" in self.model_fields_set:
+            _dict['recall_budget_function'] = None
+
+        # set to None if recall_budget_fixed_low (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_fixed_low is None and "recall_budget_fixed_low" in self.model_fields_set:
+            _dict['recall_budget_fixed_low'] = None
+
+        # set to None if recall_budget_fixed_mid (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_fixed_mid is None and "recall_budget_fixed_mid" in self.model_fields_set:
+            _dict['recall_budget_fixed_mid'] = None
+
+        # set to None if recall_budget_fixed_high (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_fixed_high is None and "recall_budget_fixed_high" in self.model_fields_set:
+            _dict['recall_budget_fixed_high'] = None
+
+        # set to None if recall_budget_adaptive_low (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_adaptive_low is None and "recall_budget_adaptive_low" in self.model_fields_set:
+            _dict['recall_budget_adaptive_low'] = None
+
+        # set to None if recall_budget_adaptive_mid (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_adaptive_mid is None and "recall_budget_adaptive_mid" in self.model_fields_set:
+            _dict['recall_budget_adaptive_mid'] = None
+
+        # set to None if recall_budget_adaptive_high (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_adaptive_high is None and "recall_budget_adaptive_high" in self.model_fields_set:
+            _dict['recall_budget_adaptive_high'] = None
+
+        # set to None if recall_budget_min (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_min is None and "recall_budget_min" in self.model_fields_set:
+            _dict['recall_budget_min'] = None
+
+        # set to None if recall_budget_max (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_budget_max is None and "recall_budget_max" in self.model_fields_set:
+            _dict['recall_budget_max'] = None
+
         return _dict
 
     @classmethod
@@ -233,7 +287,16 @@ class BankTemplateConfig(BaseModel):
             "consolidation_source_facts_max_tokens_per_observation": obj.get("consolidation_source_facts_max_tokens_per_observation"),
             "max_observations_per_scope": obj.get("max_observations_per_scope"),
             "reflect_source_facts_max_tokens": obj.get("reflect_source_facts_max_tokens"),
-            "llm_gemini_safety_settings": obj.get("llm_gemini_safety_settings")
+            "llm_gemini_safety_settings": obj.get("llm_gemini_safety_settings"),
+            "recall_budget_function": obj.get("recall_budget_function"),
+            "recall_budget_fixed_low": obj.get("recall_budget_fixed_low"),
+            "recall_budget_fixed_mid": obj.get("recall_budget_fixed_mid"),
+            "recall_budget_fixed_high": obj.get("recall_budget_fixed_high"),
+            "recall_budget_adaptive_low": obj.get("recall_budget_adaptive_low"),
+            "recall_budget_adaptive_mid": obj.get("recall_budget_adaptive_mid"),
+            "recall_budget_adaptive_high": obj.get("recall_budget_adaptive_high"),
+            "recall_budget_min": obj.get("recall_budget_min"),
+            "recall_budget_max": obj.get("recall_budget_max")
         })
         return _obj
 

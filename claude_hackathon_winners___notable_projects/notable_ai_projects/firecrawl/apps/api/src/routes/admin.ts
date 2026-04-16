@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "../config";
 import { redisHealthController } from "../controllers/v0/admin/redis-health";
+import { autumnHealthController } from "../controllers/v0/admin/autumn-health";
 import { authMiddleware, checkCreditsMiddleware, wrap } from "./shared";
 import { acucCacheClearController } from "../controllers/v0/admin/acuc-cache-clear";
 import { checkFireEngine } from "../controllers/v0/admin/check-fire-engine";
@@ -25,6 +26,11 @@ export const adminRouter = express.Router();
 adminRouter.get(
   `/admin/${config.BULL_AUTH_KEY}/redis-health`,
   redisHealthController,
+);
+
+adminRouter.get(
+  `/admin/${config.BULL_AUTH_KEY}/autumn-health`,
+  autumnHealthController,
 );
 
 adminRouter.post(

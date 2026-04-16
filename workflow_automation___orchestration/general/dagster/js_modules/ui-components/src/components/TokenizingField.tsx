@@ -384,7 +384,6 @@ export const TokenizingField = ({
                   data-idx={idx}
                   key={suggestion.text}
                   text={renderSuggestion(suggestion)}
-                  shouldDismissPopover={false}
                   active={active?.idx === idx}
                   onMouseDown={(e: React.MouseEvent<any>) => {
                     e.preventDefault();

@@ -160,24 +160,87 @@ function BasedOnList({
   );
 }
 
-type LineDiff = { type: "same" | "removed" | "added"; text: string };
+type LineKind = "same" | "removed" | "added";
+type LineDiff = { type: LineKind; text: string };
+type TokenSpan = { type: LineKind; text: string };
+type AnnotatedLine = { type: LineKind; spans: TokenSpan[] };
 
-function diffLines(a: string, b: string): { left: LineDiff[]; right: LineDiff[] } {
+/** Tokenise into words, whitespace, and single punctuation marks so the
+ *  per-character diff aligns on natural boundaries instead of mid-word. */
+function tokenize(s: string): string[] {
+  return s.match(/\s+|[A-Za-z0-9_]+|[^\s\w]/g) || [];
+}
+
+/** Normalize a token for equality: collapse runs of whitespace so that
+ *  reflowing whitespace doesn't show as a diff. */
+function normToken(t: string): string {
+  return /^\s+$/.test(t) ? " " : t;
+}
+
+/** Word-level LCS over two single lines, returning inline spans for
+ *  before/after. Pure-whitespace differences are folded into "same" so
+ *  the diff highlights actual content changes only. */
+function diffTokensInline(a: string, b: string): { left: TokenSpan[]; right: TokenSpan[] } {
+  const aTok = tokenize(a);
+  const bTok = tokenize(b);
+  const m = aTok.length;
+  const n = bTok.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] =
+        normToken(aTok[i - 1]) === normToken(bTok[j - 1])
+          ? dp[i - 1][j - 1] + 1
+          : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+
+  const left: TokenSpan[] = [];
+  const right: TokenSpan[] = [];
+  let i = m;
+  let j = n;
+  const leftStack: TokenSpan[] = [];
+  const rightStack: TokenSpan[] = [];
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && normToken(aTok[i - 1]) === normToken(bTok[j - 1])) {
+      leftStack.push({ type: "same", text: aTok[i - 1] });
+      rightStack.push({ type: "same", text: bTok[j - 1] });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      // Whitespace-only insertions render as "same" so reflow noise is hidden.
+      const t = bTok[j - 1];
+      rightStack.push({ type: /^\s+$/.test(t) ? "same" : "added", text: t });
+      j--;
+    } else {
+      const t = aTok[i - 1];
+      leftStack.push({ type: /^\s+$/.test(t) ? "same" : "removed", text: t });
+      i--;
+    }
+  }
+  while (leftStack.length) left.push(leftStack.pop()!);
+  while (rightStack.length) right.push(rightStack.pop()!);
+  return { left, right };
+}
+
+function diffLines(a: string, b: string): { left: AnnotatedLine[]; right: AnnotatedLine[] } {
   const aLines = a.split("\n");
   const bLines = b.split("\n");
   const m = aLines.length;
   const n = bLines.length;
   const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
       dp[i][j] =
         aLines[i - 1] === bLines[j - 1]
           ? dp[i - 1][j - 1] + 1
           : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
 
   const ops: LineDiff[] = [];
-  let i = m,
-    j = n;
+  let i = m;
+  let j = n;
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
       ops.push({ type: "same", text: aLines[i - 1] });
@@ -193,35 +256,63 @@ function diffLines(a: string, b: string): { left: LineDiff[]; right: LineDiff[] 
   }
   ops.reverse();
 
-  const left: LineDiff[] = [];
-  const right: LineDiff[] = [];
+  const left: AnnotatedLine[] = [];
+  const right: AnnotatedLine[] = [];
   let k = 0;
   while (k < ops.length) {
     const op = ops[k];
     if (op.type === "same") {
-      left.push(op);
-      right.push(op);
+      left.push({ type: "same", spans: [{ type: "same", text: op.text }] });
+      right.push({ type: "same", spans: [{ type: "same", text: op.text }] });
       k++;
-    } else {
-      const removed: string[] = [];
-      const added: string[] = [];
-      while (k < ops.length && ops[k].type !== "same") {
-        if (ops[k].type === "removed") removed.push(ops[k].text);
-        else added.push(ops[k].text);
-        k++;
-      }
-      const maxLen = Math.max(removed.length, added.length);
-      for (let r = 0; r < maxLen; r++) {
-        left.push(
-          r < removed.length ? { type: "removed", text: removed[r] } : { type: "same", text: "" }
-        );
-        right.push(
-          r < added.length ? { type: "added", text: added[r] } : { type: "same", text: "" }
-        );
+      continue;
+    }
+    // Collect a contiguous run of removed/added lines and pair them up so
+    // we can emit per-token inline diffs for the overlap.
+    const removed: string[] = [];
+    const added: string[] = [];
+    while (k < ops.length && ops[k].type !== "same") {
+      if (ops[k].type === "removed") removed.push(ops[k].text);
+      else added.push(ops[k].text);
+      k++;
+    }
+    const maxLen = Math.max(removed.length, added.length);
+    for (let r = 0; r < maxLen; r++) {
+      const r0 = r < removed.length ? removed[r] : null;
+      const a0 = r < added.length ? added[r] : null;
+      if (r0 !== null && a0 !== null) {
+        const inline = diffTokensInline(r0, a0);
+        // Demote whole-line classification to "same" if every span is
+        // already "same" (purely whitespace-only difference).
+        const leftKind: LineKind = inline.left.some((s) => s.type !== "same") ? "removed" : "same";
+        const rightKind: LineKind = inline.right.some((s) => s.type !== "same") ? "added" : "same";
+        left.push({ type: leftKind, spans: inline.left });
+        right.push({ type: rightKind, spans: inline.right });
+      } else if (r0 !== null) {
+        left.push({ type: "removed", spans: [{ type: "removed", text: r0 }] });
+        right.push({ type: "same", spans: [{ type: "same", text: "" }] });
+      } else if (a0 !== null) {
+        left.push({ type: "same", spans: [{ type: "same", text: "" }] });
+        right.push({ type: "added", spans: [{ type: "added", text: a0 }] });
       }
     }
   }
   return { left, right };
+}
+
+function renderSpans(spans: TokenSpan[], side: "left" | "right") {
+  return spans.map((s, i) => {
+    if (s.type === "same") return <span key={i}>{s.text}</span>;
+    const cls =
+      side === "left"
+        ? "bg-red-500/25 text-red-800 dark:text-red-300 rounded-sm px-0.5"
+        : "bg-green-500/25 text-green-800 dark:text-green-300 rounded-sm px-0.5";
+    return (
+      <span key={i} className={cls}>
+        {s.text}
+      </span>
+    );
+  });
 }
 
 function SideBySideDiff({ before, after }: { before: string; after: string }) {
@@ -239,12 +330,10 @@ function SideBySideDiff({ before, after }: { before: string; after: string }) {
           <div
             key={idx}
             className={`px-3 py-0.5 whitespace-pre-wrap leading-5 min-h-[1.25rem] ${
-              line.type === "removed"
-                ? "bg-red-500/10 text-red-700 dark:text-red-400"
-                : "text-foreground"
+              line.type === "removed" ? "bg-red-500/5" : ""
             }`}
           >
-            {line.text}
+            {renderSpans(line.spans, "left")}
           </div>
         ))}
       </div>
@@ -256,12 +345,10 @@ function SideBySideDiff({ before, after }: { before: string; after: string }) {
           <div
             key={idx}
             className={`px-3 py-0.5 whitespace-pre-wrap leading-5 min-h-[1.25rem] ${
-              line.type === "added"
-                ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                : "text-foreground"
+              line.type === "added" ? "bg-green-500/5" : ""
             }`}
           >
-            {line.text}
+            {renderSpans(line.spans, "right")}
           </div>
         ))}
       </div>
@@ -637,7 +724,7 @@ export function MentalModelDetailModal({
                 </Button>
               )}
               {mentalModel?.trigger?.refresh_after_consolidation && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
                   <Zap className="w-3 h-3" />
                   Auto refresh
                 </span>
@@ -909,6 +996,16 @@ function ConfigurationTab({ mentalModel }: { mentalModel: MentalModel }) {
       </InfoCard>
 
       <InfoCard title="Refresh Trigger" icon={<Zap className="w-3.5 h-3.5" />}>
+        <Metadata
+          label="Refresh mode"
+          value={
+            t.mode === "delta" ? (
+              <Pill label="Delta" color="bg-purple-500/10 text-purple-600 dark:text-purple-400" />
+            ) : (
+              <Pill label="Full" />
+            )
+          }
+        />
         <Metadata
           label="Auto-refresh after consolidation"
           value={

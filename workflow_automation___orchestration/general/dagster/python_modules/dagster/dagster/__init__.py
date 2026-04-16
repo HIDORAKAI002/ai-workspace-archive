@@ -536,6 +536,7 @@ from dagster._core.pipes.context import (
 from dagster._core.pipes.subprocess import PipesSubprocessClient as PipesSubprocessClient
 from dagster._core.pipes.utils import (
     PipesBlobStoreMessageReader as PipesBlobStoreMessageReader,
+    PipesCompositeMessageReader as PipesCompositeMessageReader,
     PipesEnvContextInjector as PipesEnvContextInjector,
     PipesFileContextInjector as PipesFileContextInjector,
     PipesFileMessageReader as PipesFileMessageReader,

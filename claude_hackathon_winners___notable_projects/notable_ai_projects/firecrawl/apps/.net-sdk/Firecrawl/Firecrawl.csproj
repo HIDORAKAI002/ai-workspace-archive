@@ -7,7 +7,7 @@
     <RootNamespace>Firecrawl</RootNamespace>
 
     <!-- NuGet package metadata -->
-    <PackageId>firecrawl-dotnet</PackageId>
+    <PackageId>firecrawl-sdk</PackageId>
     <Version>1.0.0</Version>
     <Authors>Firecrawl</Authors>
     <Company>Firecrawl</Company>

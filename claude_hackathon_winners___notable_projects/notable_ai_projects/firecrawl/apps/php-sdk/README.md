@@ -10,7 +10,7 @@ PHP SDK for the [Firecrawl](https://firecrawl.dev) v2 API with first-class Larav
 ## Installation
 
 ```bash
-composer require firecrawl/firecrawl-php
+composer require firecrawl/firecrawl-sdk
 ```
 
 ## Quick Start

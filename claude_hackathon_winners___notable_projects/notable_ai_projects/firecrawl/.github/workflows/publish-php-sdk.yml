@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,7 +29,7 @@ jobs:
       - name: Run version check script
         id: version_check
         run: |
-          VERSION_INCREMENTED=$(python .github/scripts/check_version_has_incremented.py php ./apps/php-sdk firecrawl/firecrawl-php)
+          VERSION_INCREMENTED=$(python .github/scripts/check_version_has_incremented.py php ./apps/php-sdk firecrawl/firecrawl-sdk)
           echo "VERSION_INCREMENTED=$VERSION_INCREMENTED" >> $GITHUB_ENV
 
       - name: Set up PHP
@@ -47,9 +49,22 @@ jobs:
         working-directory: ./apps/php-sdk
         run: composer validate --strict
 
+      - name: Set up SSH for firecrawl-php
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PHP_SDK_DEPLOY_KEY }}
+
+      - name: Subtree split and push to firecrawl-php
+        if: ${{ env.VERSION_INCREMENTED == 'true' }}
+        run: |
+          git subtree split --prefix=apps/php-sdk -b php-sdk-split
+          git remote add php-sdk git@github.com:firecrawl/firecrawl-php.git
+          git push php-sdk php-sdk-split:main --force
+
       - name: Notify Packagist
         if: ${{ env.VERSION_INCREMENTED == 'true' }}
         run: |
           curl -sfS -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"repository":{"url":"https://github.com/firecrawl/firecrawl"}}'
+            -d '{"repository":{"url":"https://github.com/firecrawl/firecrawl-php"}}'

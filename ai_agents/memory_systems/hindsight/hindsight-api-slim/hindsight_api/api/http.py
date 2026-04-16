@@ -1561,6 +1561,16 @@ class UpdateDirectiveRequest(BaseModel):
 class MentalModelTrigger(BaseModel):
     """Trigger settings for a mental model."""
 
+    mode: Literal["full", "delta"] = Field(
+        default="full",
+        description=(
+            "Refresh mode. 'full' (default) regenerates the mental model content from scratch on each refresh. "
+            "'delta' performs surgical edits against the existing content: unchanged sections are preserved "
+            "byte-for-byte, stale content is removed, new content is added. If the mental model has no existing "
+            "content, or if the source_query has changed since the last refresh, delta mode falls back to a full "
+            "regeneration automatically."
+        ),
+    )
     refresh_after_consolidation: bool = Field(
         default=False,
         description="If true, refresh this mental model after observations consolidation (real-time mode)",
@@ -1799,6 +1809,31 @@ class BankTemplateConfig(BaseModel):
     )
     llm_gemini_safety_settings: list | None = Field(
         default=None, description="Per-bank Gemini/VertexAI safety filter settings"
+    )
+    recall_budget_function: str | None = Field(
+        default=None, description="Recall budget mapping function: 'fixed' or 'adaptive'"
+    )
+    recall_budget_fixed_low: int | None = Field(
+        default=None, description="Fixed thinking_budget for budget=low (function='fixed')"
+    )
+    recall_budget_fixed_mid: int | None = Field(
+        default=None, description="Fixed thinking_budget for budget=mid (function='fixed')"
+    )
+    recall_budget_fixed_high: int | None = Field(
+        default=None, description="Fixed thinking_budget for budget=high (function='fixed')"
+    )
+    recall_budget_adaptive_low: float | None = Field(
+        default=None, description="Ratio of max_tokens for budget=low (function='adaptive')"
+    )
+    recall_budget_adaptive_mid: float | None = Field(
+        default=None, description="Ratio of max_tokens for budget=mid (function='adaptive')"
+    )
+    recall_budget_adaptive_high: float | None = Field(
+        default=None, description="Ratio of max_tokens for budget=high (function='adaptive')"
+    )
+    recall_budget_min: int | None = Field(default=None, description="Floor for the adaptive function (after clamping)")
+    recall_budget_max: int | None = Field(
+        default=None, description="Ceiling for the adaptive function (after clamping)"
     )
 
     def get_config_updates(self) -> dict[str, Any]:

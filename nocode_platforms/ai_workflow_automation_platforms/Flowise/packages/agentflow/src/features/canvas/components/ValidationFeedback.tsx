@@ -151,6 +151,7 @@ function ValidationFeedbackComponent({ nodes, edges, availableNodes, setNodes }:
                         title='Validate flow'
                         onClick={handleToggle}
                         sx={{
+                            zIndex: 10,
                             color: 'white',
                             backgroundColor: 'primary.main',
                             '&:hover': {
@@ -171,7 +172,7 @@ function ValidationFeedbackComponent({ nodes, edges, availableNodes, setNodes }:
                                 right: 0,
                                 mt: 1.5,
                                 width: 400,
-                                zIndex: 1200
+                                zIndex: 10
                             }}
                         >
                             <Box sx={{ p: 2 }}>
