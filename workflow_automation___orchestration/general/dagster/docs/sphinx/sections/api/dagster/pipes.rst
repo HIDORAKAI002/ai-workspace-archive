@@ -64,6 +64,8 @@ Message readers read messages (and optionally log files) from an externally acce
 
 .. autoclass:: PipesBlobStoreMessageReader
 
+.. autoclass:: PipesCompositeMessageReader
+
 .. autoclass:: PipesFileMessageReader
 
 .. autoclass:: PipesTempFileMessageReader

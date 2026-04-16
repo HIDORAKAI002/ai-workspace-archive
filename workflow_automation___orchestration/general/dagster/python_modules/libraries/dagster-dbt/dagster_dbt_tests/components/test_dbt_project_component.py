@@ -827,7 +827,7 @@ def test_upstream_source_metadata_flows_to_stub_asset() -> None:
     assert source_spec.metadata.get(SYSTEM_METADATA_KEY_AUTO_CREATED_STUB_ASSET) is True
 
     # Should have the table_name metadata from the source definition that enables remapping
-    table_name = "master_jaffle_shop.main.raw_customers"
+    table_name = "master_jaffle_shop.main.source_raw_customers"
     assert source_spec.metadata["dagster/table_name"] == table_name
 
     # Now build defs with something matching that table name and verify key is remapped

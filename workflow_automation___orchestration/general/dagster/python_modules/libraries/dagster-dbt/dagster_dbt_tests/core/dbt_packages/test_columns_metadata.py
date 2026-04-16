@@ -51,15 +51,11 @@ def _isolated_duckdb_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
     qualifies tables as ``{stem}.main.<table>``. Changing the stem would leave the
     compiled references dangling.
 
-    The session-built DB file is copied into tmp_path when present. Several tests in
-    this module run ``dbt build`` against ``test_metadata_path`` and rely on the
-    source tables (seeded at session setup) already existing: ``stg_customers.sql``
-    references ``raw_customers`` via ``source()`` rather than ``ref()``, so dbt's
-    threaded scheduler does not encode a seed→model edge. On a fresh empty DB the
-    view can race ahead of the seed. Starting each test from a copy of the
-    session-built DB preserves the pre-seeded state while keeping per-test isolation
-    for the lock issue above. ``tmp_path`` is cleaned up by pytest, so this adds no
-    persistent disk footprint.
+    The session-built DB file is copied into tmp_path when present. The
+    ``source_raw_customers`` table (created by ``init_db.py`` at session setup) must
+    exist before ``stg_customers.sql`` can be built — copying the session DB
+    preserves it. ``tmp_path`` is cleaned up by pytest, so this adds no persistent
+    disk footprint.
     """
     db_file_name = os.environ["DAGSTER_DBT_PYTEST_XDIST_DUCKDB_DBFILE_NAME"]
     db_path = tmp_path / f"{db_file_name}.duckdb"
@@ -660,11 +656,8 @@ def test_column_lineage(
     manifest["metadata"]["adapter_type"] = sql_dialect
 
     dbt = DbtCliResource(project_dir=os.fspath(test_metadata_path))
-    # Seed explicitly before building. `stg_customers` references `raw_customers` via
-    # ``source()`` rather than ``ref()``, so dbt does not encode a seed→model edge in the
-    # DAG. With a fresh per-test DuckDB file and multi-threaded execution, the view can
-    # race ahead of the seed and fail with "raw_customers does not exist". Running the
-    # seed first guarantees the source table exists before any view is built.
+    # Pre-build so column metadata (types, lineage) is available for the
+    # fetch_column_metadata assertions below.
     dbt.cli(["--quiet", "seed"]).wait()
     dbt.cli(["--quiet", "build", "--exclude", "resource_type:test"]).wait()
 
