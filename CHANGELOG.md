@@ -1,5 +1,11 @@
 # Archive Sync Changelog
 
+## [2026-04-18 04:55 IST] Auto-Sync
+- **33 Repositories Updated:** MCP Official Servers, Promptfoo, Windmill, Directus, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, weaviate/weaviate, arize-ai/phoenix, firecrawl/firecrawl, chenglou/pretext, google-gemini/gemini-cli, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nikopueringer/CorridorKey
+
+## [2026-04-17 22:31 IST] Auto-Sync
+- **38 Repositories Updated:** Keboola MCP, Langfuse, Promptfoo, Dify, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, openai/openai-agents-python, mastra-ai/mastra, deepset-ai/haystack, Upsonic, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, open-telemetry/opentelemetry-python, firecrawl/firecrawl, chenglou/pretext, vercel/ai, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-17 16:08 IST] Auto-Sync
 - **26 Repositories Updated:** Public APIs Directory, Keboola MCP, Awesome ChatGPT Prompts, AI Tools System Prompts, Promptfoo, Dify, Activepieces, Trigger.dev, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nikopueringer/CorridorKey
 

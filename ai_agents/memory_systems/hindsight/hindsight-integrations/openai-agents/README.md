@@ -63,6 +63,30 @@ The agent gets three tools:
 - **`hindsight_recall`** — Search long-term memory for relevant facts
 - **`hindsight_reflect`** — Synthesize a reasoned answer from memories
 
+## Auto-Inject Memories with `memory_instructions()`
+
+Instead of relying on the agent to call `hindsight_recall` explicitly, you can auto-inject relevant memories into the system prompt on every turn:
+
+```python
+from hindsight_openai_agents import create_hindsight_tools, memory_instructions
+
+agent = Agent(
+    name="assistant",
+    instructions=memory_instructions(
+        client=client,
+        bank_id="user-123",
+        base_instructions="You are a helpful assistant with long-term memory.",
+    ),
+    tools=create_hindsight_tools(
+        client=client,
+        bank_id="user-123",
+        include_recall=False,  # recall handled by memory_instructions
+    ),
+)
+```
+
+`memory_instructions()` returns an async callable compatible with `Agent(instructions=...)`. On each turn it recalls relevant memories and appends them to your base instructions. If recall fails or returns nothing, it gracefully falls back to `base_instructions` alone.
+
 ## Selecting Tools
 
 Include only the tools you need:
@@ -139,10 +163,59 @@ tools = create_hindsight_tools(
 | `include_recall` | `True` | Include the recall (search) tool |
 | `include_reflect` | `True` | Include the reflect (synthesize) tool |
 
+## Production Patterns
+
+### Error Handling
+
+Tools surface errors to the agent as tool error results. The OpenAI Agents SDK catches exceptions from tools automatically and returns them as error strings, allowing the agent to handle failures gracefully:
+
+```python
+from hindsight_openai_agents.errors import HindsightError
+
+# The agent will see error messages and can decide how to proceed
+result = await Runner.run(agent, "What do you remember about me?")
+print(result.final_output)
+```
+
+### Bank Lifecycle
+
+Create banks before first use and clean up when done:
+
+```python
+async def main():
+    client = Hindsight(base_url="http://localhost:8888")
+
+    # Create bank (idempotent)
+    await client.acreate_bank(bank_id="user-123")
+
+    tools = create_hindsight_tools(client=client, bank_id="user-123")
+    # ... use tools ...
+
+    # Optional: delete bank when no longer needed
+    await client.adelete_bank(bank_id="user-123")
+```
+
+### Multi-Agent Workflows
+
+Give each agent its own memory bank, or share a bank across agents:
+
+```python
+# Per-agent memory
+researcher_tools = create_hindsight_tools(client=client, bank_id="researcher-memory")
+writer_tools = create_hindsight_tools(client=client, bank_id="writer-memory")
+
+# Shared memory across agents
+shared_tools = create_hindsight_tools(
+    client=client,
+    bank_id="team-shared",
+    tags=["team:content"],
+)
+```
+
 ## Requirements
 
 - Python >= 3.10
-- openai-agents >= 0.1.0
+- openai-agents >= 0.7.0
 - hindsight-client >= 0.4.0
 
 ## Documentation

@@ -5,9 +5,11 @@ from typing import TYPE_CHECKING
 
 from dagster_rest_resources.gql_client import IGraphQLClient
 from dagster_rest_resources.graphql_adapter.issue import (
+    add_link_to_issue_via_graphql,
     create_issue_via_graphql,
     get_issue_via_graphql,
     list_issues_via_graphql,
+    remove_link_from_issue_via_graphql,
     update_issue_via_graphql,
 )
 
@@ -63,4 +65,32 @@ class DgApiIssueApi:
             title=title,
             description=description,
             context=context,
+        )
+
+    def add_link_to_issue(
+        self,
+        issue_id: str,
+        run_id: str | None = None,
+        asset_key: list[str] | None = None,
+    ) -> "DgApiIssue":
+        """Add a run or asset link to an issue."""
+        return add_link_to_issue_via_graphql(
+            self.client,
+            issue_id=issue_id,
+            run_id=run_id,
+            asset_key=asset_key,
+        )
+
+    def remove_link_from_issue(
+        self,
+        issue_id: str,
+        run_id: str | None = None,
+        asset_key: list[str] | None = None,
+    ) -> "DgApiIssue":
+        """Remove a run or asset link from an issue."""
+        return remove_link_from_issue_via_graphql(
+            self.client,
+            issue_id=issue_id,
+            run_id=run_id,
+            asset_key=asset_key,
         )

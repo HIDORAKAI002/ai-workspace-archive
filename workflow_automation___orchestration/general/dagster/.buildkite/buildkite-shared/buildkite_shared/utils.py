@@ -47,12 +47,13 @@ BUILDKITE_TEST_IMAGE_VERSION: str = get_image_version("buildkite-test")
 
 
 def discover_git_repo_root() -> str:
-    # Walk up the directory tree until we find a .git directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Walk up the directory tree until we find a .git entry.
+    # Use Path.exists (not is_dir) because .git is a file in worktrees.
+    current_dir = Path(__file__).resolve().parent
     while True:
-        if os.path.isdir(os.path.join(current_dir, ".git")):
-            return current_dir
-        parent_dir = os.path.dirname(current_dir)
+        if (current_dir / ".git").exists():
+            return str(current_dir)
+        parent_dir = current_dir.parent
         if parent_dir == current_dir:
             raise Exception("Could not find git repository root")
         current_dir = parent_dir

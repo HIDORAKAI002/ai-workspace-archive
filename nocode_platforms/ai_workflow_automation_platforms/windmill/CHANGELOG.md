@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.687.0](https://github.com/windmill-labs/windmill/compare/v1.686.0...v1.687.0) (2026-04-17)
+
+
+### Features
+
+* add disable_password_login global setting ([#8873](https://github.com/windmill-labs/windmill/issues/8873)) ([0cfa131](https://github.com/windmill-labs/windmill/commit/0cfa131254a517331124a83ae21fbe6508a8c24f))
+* add GitHub as a native trigger service ([#8856](https://github.com/windmill-labs/windmill/issues/8856)) ([4f998cc](https://github.com/windmill-labs/windmill/commit/4f998cc231119ba0ba5224223222b1d4d5976e22))
+
+
+### Bug Fixes
+
+* default null script/flow schema to empty in bg runnable ([#8872](https://github.com/windmill-labs/windmill/issues/8872)) ([1d2d12a](https://github.com/windmill-labs/windmill/commit/1d2d12a27de5731b6bf3e4dae14025ec87b7b4b8))
+* mint fresh Google channel IDs on update/renew ([#8870](https://github.com/windmill-labs/windmill/issues/8870)) ([ad2e855](https://github.com/windmill-labs/windmill/commit/ad2e855a83c94299c6fa9f572acb7e4688346e2e))
+
+## [1.686.0](https://github.com/windmill-labs/windmill/compare/v1.685.0...v1.686.0) (2026-04-17)
+
+
+### Features
+
+* add empty inline script warnings to flow chat ([#8853](https://github.com/windmill-labs/windmill/issues/8853)) ([51b09ac](https://github.com/windmill-labs/windmill/commit/51b09ace45440acd055f95b16c4ad6451ea5c8d5))
+* generate tsconfig.json during wmill init for IDE type support ([#8855](https://github.com/windmill-labs/windmill/issues/8855)) ([0b6874f](https://github.com/windmill-labs/windmill/commit/0b6874fb0d356e7f71b3914066af310e746b4b97))
+* migrate slack OAuth to v2 ([#8859](https://github.com/windmill-labs/windmill/issues/8859)) ([b1a4c78](https://github.com/windmill-labs/windmill/commit/b1a4c780dcfc06766b79683d37f1ae66e021adf9))
+
+
+### Bug Fixes
+
+* fix otel tracing on nativets ([172a7d1](https://github.com/windmill-labs/windmill/commit/172a7d16dbac420ba1b0174d8e7eee7ba78406cd))
+* include app owner in GitHub App URL for GHE Cloud ([#8846](https://github.com/windmill-labs/windmill/issues/8846)) ([e9ea06f](https://github.com/windmill-labs/windmill/commit/e9ea06f4c2b35dad2177a2fafc727463e2ce9f4e))
+* serve populated jwks at /.well-known/jwks.json for vault ([#8865](https://github.com/windmill-labs/windmill/issues/8865)) ([8514347](https://github.com/windmill-labs/windmill/commit/85143477841498fb8e8c947feb89d58d06d425d3))
+* update on_behalf_of_email in app policy on offboarding ([#8858](https://github.com/windmill-labs/windmill/issues/8858)) ([d99a176](https://github.com/windmill-labs/windmill/commit/d99a176b6ace181d5c99140a33e237bc8646fdc3))
+
 ## [1.685.0](https://github.com/windmill-labs/windmill/compare/v1.684.1...v1.685.0) (2026-04-16)
 
 

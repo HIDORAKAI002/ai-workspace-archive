@@ -72,11 +72,20 @@ export interface ReflectFact {
 }
 
 /**
+ * Nested based_on structure from Hindsight reflect
+ */
+export interface ReflectBasedOn {
+  memories?: ReflectFact[];
+  mental_models?: Array<{ id: string; name: string; content?: string | null }>;
+  directives?: Array<{ id: string; content: string }>;
+}
+
+/**
  * Reflect response from Hindsight
  */
 export interface ReflectResponse {
   text: string;
-  based_on?: ReflectFact[];
+  based_on?: ReflectBasedOn | null;
 }
 
 /**
@@ -100,15 +109,15 @@ export interface MentalModelTrigger {
  * Mental model response from Hindsight
  */
 export interface MentalModelResponse {
-  mental_model_id: string;
+  id: string;
   bank_id: string;
-  name?: string;
-  content?: string;
-  source_query?: string;
+  name: string;
+  content?: string | null;
+  source_query?: string | null;
   tags?: string[];
-  created_at: string;
-  updated_at: string;
-  trigger?: MentalModelTrigger;
+  created_at?: string | null;
+  updated_at?: string | null;
+  trigger?: MentalModelTrigger | null;
 }
 
 /**
@@ -306,10 +315,10 @@ export function createHindsightTools({
   type RecallOutput = { results: RecallResult[]; entities?: Record<string, EntityState> | null };
 
   type ReflectInput = z.infer<typeof reflectParams>;
-  type ReflectOutput = { text: string; basedOn?: ReflectFact[] };
+  type ReflectOutput = { text: string; basedOn?: ReflectBasedOn | null };
 
   type GetMentalModelInput = z.infer<typeof getMentalModelParams>;
-  type GetMentalModelOutput = { content: string; name?: string; updatedAt: string };
+  type GetMentalModelOutput = { content: string; name: string; updatedAt?: string | null };
 
   type GetDocumentInput = z.infer<typeof getDocumentParams>;
   type GetDocumentOutput = {

@@ -18,7 +18,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/go-openapi/swag"
@@ -608,37 +607,11 @@ type Export struct {
 	DefaultBucket *runtime.DynamicValue[string] `json:"default_bucket" yaml:"default_bucket"`
 
 	// DefaultPath is the default path prefix within the bucket or filesystem for exports.
+	// Defaults to empty string (no prefix). Each backup module provides a separate
+	// export backend that does not inherit the backup path (e.g. BACKUP_S3_PATH),
+	// so this value is used directly.
 	// Env: EXPORT_DEFAULT_PATH, runtime config: export_default_path.
 	DefaultPath *runtime.DynamicValue[string] `json:"default_path" yaml:"default_path"`
-
-	// IsDefaultPathSet tracks whether DefaultPath was explicitly configured by the
-	// operator (vs. implicitly defaulted to the empty string). It is used to
-	// require an explicit path decision at export time — where an empty string
-	// is a valid, conscious choice (no prefix), but a missing value is not.
-	//
-	// This is a derived internal flag, not a user-facing knob: it is set
-	// automatically when DefaultPath is provided via EXPORT_DEFAULT_PATH, via
-	// the startup config file, or via a runtime override. It is intentionally
-	// a plain *atomic.Bool rather than a DynamicValue and is absent from
-	// WeaviateRuntimeConfig, so an operator cannot flip it independently of
-	// DefaultPath.
-	//
-	// Sources that flip it:
-	//  - parseExportConfig (environment.go): sets true if EXPORT_DEFAULT_PATH is
-	//    present or if the startup YAML/JSON config pre-populated DefaultPath.
-	//  - postInitRuntimeOverrides (configure_api.go): after runtime config
-	//    hook registration, syncs the flag if runtime config loaded a
-	//    non-empty DefaultPath (the initial load inside NewConfigManager
-	//    runs before hooks are registered — see the manual sync there).
-	//  - "ExportDefaultPath" hook (configure_api.go): flips it on subsequent
-	//    runtime config reloads when DefaultPath actually changes.
-	//
-	// Known limitation: an operator with no env/YAML config who sets
-	// `export_default_path: ""` only via the runtime config file at startup
-	// will not flip the flag, because the hook fires only on value changes
-	// and "" equals the startup default. Any non-empty value works, or set
-	// EXPORT_DEFAULT_PATH="" at startup.
-	IsDefaultPathSet *atomic.Bool `json:"-" yaml:"-"`
 }
 
 const (

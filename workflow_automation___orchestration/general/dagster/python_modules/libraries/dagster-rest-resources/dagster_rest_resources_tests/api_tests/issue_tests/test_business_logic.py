@@ -21,6 +21,7 @@ class TestIssueDataProcessing:
                 description=f"Test issue for status {status.value}.",
                 status=status,
                 created_by_email="test@example.com",
+                linked_objects=[],
             )
             for status in DgApiIssueStatus
         ]
@@ -38,6 +39,7 @@ class TestIssueDataProcessing:
             description="Test description.",
             status=DgApiIssueStatus.OPEN,
             created_by_email="test@example.com",
+            linked_objects=[],
         )
         issue_list = DgApiIssueList(items=[issue], cursor="abc123", has_more=True)
 
@@ -53,8 +55,8 @@ class TestIssueDataProcessing:
             description="Test.",
             status=DgApiIssueStatus.OPEN,
             created_by_email="test@example.com",
+            linked_objects=[],
         )
 
-        assert issue.run_id is None
-        assert issue.asset_key is None
+        assert issue.linked_objects == []
         assert issue.context is None

@@ -220,6 +220,51 @@ class K8sRunLauncher(RunLauncher, ConfigurableClass):
     def get_container_context_for_run(self, dagster_run: DagsterRun) -> K8sContainerContext:
         return K8sContainerContext.create_for_run(dagster_run, self, include_run_tags=True)
 
+    def _report_run_worker_creating(self, run: DagsterRun, job_name: str, namespace: str) -> None:
+        self._instance.report_engine_event(
+            "Creating Kubernetes run worker job",
+            run,
+            EngineEventData(
+                {
+                    "Kubernetes Job name": job_name,
+                    "Kubernetes Namespace": namespace,
+                    "Run ID": run.run_id,
+                }
+            ),
+            cls=self.__class__,
+        )
+
+    def _report_run_worker_created(self, run: DagsterRun) -> None:
+        self._instance.report_engine_event(
+            "Kubernetes run worker job created",
+            run,
+            cls=self.__class__,
+        )
+
+    def _report_run_terminated(self, run: DagsterRun) -> None:
+        self._instance.report_engine_event(
+            message="Run was terminated successfully.",
+            dagster_run=run,
+            cls=self.__class__,
+        )
+
+    def _report_run_termination_failed(self, run: DagsterRun, result: object) -> None:
+        self._instance.report_engine_event(
+            message=f"Run was not terminated successfully; delete_job returned {result}",
+            dagster_run=run,
+            cls=self.__class__,
+        )
+
+    def _report_run_termination_error(self, run: DagsterRun) -> None:
+        self._instance.report_engine_event(
+            message="Run was not terminated successfully; encountered error in delete_job",
+            dagster_run=run,
+            engine_event_data=EngineEventData.engine_error(
+                serializable_error_info_from_exc_info(sys.exc_info())
+            ),
+            cls=self.__class__,
+        )
+
     def _launch_k8s_job_with_args(
         self, job_name: str, args: Sequence[str] | None, run: DagsterRun
     ) -> None:
@@ -271,25 +316,10 @@ class K8sRunLauncher(RunLauncher, ConfigurableClass):
 
         namespace = check.not_none(container_context.namespace)
 
-        self._instance.report_engine_event(
-            "Creating Kubernetes run worker job",
-            run,
-            EngineEventData(
-                {
-                    "Kubernetes Job name": job_name,
-                    "Kubernetes Namespace": namespace,
-                    "Run ID": run.run_id,
-                }
-            ),
-            cls=self.__class__,
-        )
+        self._report_run_worker_creating(run, job_name, namespace)
 
         self._api_client.create_namespaced_job_with_retries(body=job, namespace=namespace)
-        self._instance.report_engine_event(
-            "Kubernetes run worker job created",
-            run,
-            cls=self.__class__,
-        )
+        self._report_run_worker_created(run)
 
     def launch_run(self, context: LaunchRunContext) -> None:
         run = context.dagster_run
@@ -350,27 +380,12 @@ class K8sRunLauncher(RunLauncher, ConfigurableClass):
                 job_name=job_name, namespace=container_context.namespace
             )
             if termination_result:
-                self._instance.report_engine_event(
-                    message="Run was terminated successfully.",
-                    dagster_run=run,
-                    cls=self.__class__,
-                )
+                self._report_run_terminated(run)
             else:
-                self._instance.report_engine_event(
-                    message=f"Run was not terminated successfully; delete_job returned {termination_result}",
-                    dagster_run=run,
-                    cls=self.__class__,
-                )
+                self._report_run_termination_failed(run, termination_result)
             return termination_result
         except Exception:
-            self._instance.report_engine_event(
-                message="Run was not terminated successfully; encountered error in delete_job",
-                dagster_run=run,
-                engine_event_data=EngineEventData.engine_error(
-                    serializable_error_info_from_exc_info(sys.exc_info())
-                ),
-                cls=self.__class__,
-            )
+            self._report_run_termination_error(run)
 
     @property
     def supports_check_run_worker_health(self):
