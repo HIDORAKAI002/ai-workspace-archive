@@ -203,7 +203,7 @@ test(`extension not installed timeout`, async ({ startExtensionClient, server })
     name: 'browser_navigate',
     arguments: { url: server.HELLO_WORLD },
   })).toHaveResponse({
-    error: expect.stringContaining('Extension connection timeout. Make sure the "Playwright MCP Bridge" extension is installed.'),
+    error: expect.stringMatching(/Extension connection timeout. Make sure the "Playwright.* is installed\./),
     isError: true,
   });
 
@@ -308,4 +308,36 @@ test(`bypass connection dialog with token`, async ({ browserWithExtension, start
   expect(await navigateResponse).toHaveResponse({
     snapshot: expect.stringContaining(`- generic [active] [ref=e1]: Hello, world!`),
   });
+});
+
+test(`pending connection closed when client disconnects`, async ({ startExtensionClient, server }) => {
+  const { browserContext, client } = await startExtensionClient();
+
+  const confirmationPagePromise = browserContext.waitForEvent('page', page => {
+    return page.url().startsWith(`chrome-extension://${extensionId}/connect.html`);
+  });
+
+  client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  }).catch(() => {});
+
+  const selectorPage = await confirmationPagePromise;
+  // Wait for the tab list to appear so we know the relay connection is established.
+  await selectorPage.locator('.tab-item').first().waitFor();
+
+  // Close the MCP client, which tears down the relay WebSocket.
+  await client.close();
+
+  await expect(selectorPage.locator('.status-banner')).toContainText('Pending client connection closed.');
+  await expect(selectorPage).toHaveTitle('Playwright Extension');
+
+  // The connect tab should be removed from the Playwright group.
+  await expect.poll(async () => {
+    return selectorPage.evaluate(async () => {
+      const chrome = (window as any).chrome;
+      const tab = await chrome.tabs.getCurrent();
+      return tab?.groupId ?? -1;
+    });
+  }).toBe(-1);
 });

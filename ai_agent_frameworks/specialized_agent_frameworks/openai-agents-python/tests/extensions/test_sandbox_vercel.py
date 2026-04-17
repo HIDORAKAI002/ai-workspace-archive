@@ -524,7 +524,7 @@ async def test_vercel_exec_read_write_and_port_resolution(monkeypatch: pytest.Mo
 
 
 @pytest.mark.asyncio
-async def test_vercel_start_creates_workspace_root_before_manifest_apply(
+async def test_vercel_start_uses_base_session_contract_and_materializes_workspace(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     vercel_module = _load_vercel_module(monkeypatch)
@@ -541,15 +541,14 @@ async def test_vercel_start_creates_workspace_root_before_manifest_apply(
     await session.start()
     payload = await session.read(Path("notes.txt"))
 
-    assert sandbox.run_command_calls[:2] == [
-        ("mkdir", ["-p", "--", "/workspace"], None),
-        ("test", ["-d", "/workspace"], None),
-    ]
+    assert sandbox.run_command_calls[0] == ("mkdir", ["-p", "--", "/workspace"], None)
+    assert ("mkdir", ["-p", "/workspace"], "/workspace") in sandbox.run_command_calls
+    assert session.state.workspace_root_ready is True
     assert payload.read() == b"payload"
 
 
 @pytest.mark.asyncio
-async def test_vercel_start_treats_manifest_root_as_literal_path(
+async def test_vercel_start_materializes_entries_under_literal_manifest_root(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     vercel_module = _load_vercel_module(monkeypatch)
@@ -568,28 +567,50 @@ async def test_vercel_start_treats_manifest_root_as_literal_path(
     await session.start()
     payload = await session.read(Path("notes.txt"))
 
-    assert sandbox.run_command_calls[:2] == [
-        ("mkdir", ["-p", "--", "/workspace/my app"], None),
-        ("test", ["-d", "/workspace/my app"], None),
+    assert sandbox.run_command_calls[0] == ("mkdir", ["-p", "--", "/workspace/my app"], None)
+    assert ("mkdir", ["-p", "/workspace/my app"], "/workspace/my app") in sandbox.run_command_calls
+    assert sandbox.write_files_calls == [
+        [{"path": "/workspace/my app/notes.txt", "content": b"payload"}]
     ]
     assert payload.read() == b"payload"
 
 
 @pytest.mark.asyncio
-async def test_vercel_create_rejects_manifest_root_outside_provider_workspace(
+async def test_vercel_start_bootstraps_arbitrary_absolute_root_before_using_it_as_cwd(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vercel_module = _load_vercel_module(monkeypatch)
+
+    state = vercel_module.VercelSandboxSessionState(
+        session_id="00000000-0000-0000-0000-000000000014",
+        manifest=Manifest(root="/tmp/outside", entries={"notes.txt": File(content=b"payload")}),
+        snapshot=NoopSnapshot(id="snapshot"),
+        sandbox_id="sandbox-start-outside",
+    )
+    sandbox = _FakeAsyncSandbox(sandbox_id="sandbox-start-outside")
+    session = vercel_module.VercelSandboxSession.from_state(state, sandbox=sandbox)
+
+    await session.start()
+    payload = await session.read(Path("notes.txt"))
+
+    assert sandbox.run_command_calls[0] == ("mkdir", ["-p", "--", "/tmp/outside"], None)
+    assert ("mkdir", ["-p", "/tmp/outside"], "/tmp/outside") in sandbox.run_command_calls
+    assert payload.read() == b"payload"
+
+
+@pytest.mark.asyncio
+async def test_vercel_create_allows_manifest_root_outside_provider_workspace(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     vercel_module = _load_vercel_module(monkeypatch)
     client = vercel_module.VercelSandboxClient()
 
-    with pytest.raises(ConfigurationError) as exc_info:
-        await client.create(
-            manifest=Manifest(root="/tmp/outside"),
-            options=vercel_module.VercelSandboxClientOptions(),
-        )
+    session = await client.create(
+        manifest=Manifest(root="/tmp/outside"),
+        options=vercel_module.VercelSandboxClientOptions(),
+    )
 
-    assert exc_info.value.context["backend"] == "vercel"
-    assert exc_info.value.context["manifest_root"] == "/tmp/outside"
+    assert session._inner.state.manifest.root == "/tmp/outside"
 
 
 @pytest.mark.asyncio
