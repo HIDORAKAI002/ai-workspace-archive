@@ -19,8 +19,10 @@ import os
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from enum import Enum
+from queue import Queue
 from typing import Any, Callable
 
 import numpy as np
@@ -201,7 +203,7 @@ class CorridorKeyService:
                 "free": (total_bytes - reserved) / (1024**3),
                 "name": torch.cuda.get_device_name(0),
             }
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             logger.debug(f"VRAM query failed: {e}")
             return {}
 
@@ -234,7 +236,7 @@ class CorridorKeyService:
                 obj.to("cpu")
             elif hasattr(obj, "cpu"):
                 obj.cpu()
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             logger.debug(f"Model offload warning: {e}")
 
     def _ensure_model(self, needed: _ActiveModel) -> None:
@@ -529,6 +531,38 @@ class CorridorKeyService:
 
     # --- Processing ---
 
+    def _prefetch_frames(
+        self,
+        clip: ClipEntry,
+        frame_indices,
+        input_files: list[str],
+        alpha_files: list[str],
+        input_cap,
+        alpha_cap,
+        input_is_linear: bool,
+        prefetch_queue: Queue,
+        job: GPUJob | None,
+    ) -> None:
+        """Read frames ahead of GPU processing in a background thread."""
+        for i in frame_indices:
+            if job and job.is_cancelled:
+                break
+            try:
+                img, stem, is_linear = self._read_input_frame(
+                    clip,
+                    i,
+                    input_files,
+                    input_cap,
+                    input_is_linear,
+                )
+                mask = self._read_alpha_frame(clip, i, alpha_files, alpha_cap)
+            except Exception as e:
+                prefetch_queue.put((i, None, None, f"{i:05d}", input_is_linear, str(e)))
+                continue
+            prefetch_queue.put((i, img, mask, stem, is_linear, None))
+
+        prefetch_queue.put(None)
+
     def run_inference(
         self,
         clip: ClipEntry,
@@ -607,47 +641,71 @@ class CorridorKeyService:
             frame_indices = range(num_frames)
             range_count = num_frames
 
-        try:
-            for progress_i, i in enumerate(frame_indices):
-                # Check cancellation between frames
-                if job and job.is_cancelled:
-                    raise JobCancelledError(clip.name, i)
+        prefetch_q: Queue = Queue(maxsize=3)
+        write_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ck-write")
+        write_futures = []
 
-                # Report progress every frame (enables responsive cancel + timer)
+        prefetch_thread = threading.Thread(
+            target=self._prefetch_frames,
+            args=(
+                clip,
+                frame_indices,
+                input_files,
+                alpha_files,
+                input_cap,
+                alpha_cap,
+                params.input_is_linear,
+                prefetch_q,
+                job,
+            ),
+            daemon=True,
+        )
+        prefetch_thread.start()
+
+        try:
+            progress_i = 0
+            while True:
+                if job and job.is_cancelled:
+                    raise JobCancelledError(clip.name, progress_i)
+
+                item = prefetch_q.get()
+                if item is None:
+                    break
+
+                i, img, mask, input_stem, is_linear, read_error = item
+
                 if on_progress:
                     on_progress(clip.name, progress_i, range_count)
 
+                if read_error:
+                    skipped.append(i)
+                    results.append(FrameResult(i, input_stem, False, read_error))
+                    if on_warning:
+                        on_warning(read_error)
+                    progress_i += 1
+                    continue
+
+                if img is None:
+                    skipped.append(i)
+                    results.append(FrameResult(i, f"{i:05d}", False, "video read failed"))
+                    progress_i += 1
+                    continue
+
+                if input_stem in skip_stems:
+                    results.append(FrameResult(i, input_stem, True, "resumed (skipped)"))
+                    progress_i += 1
+                    continue
+
+                if mask is None:
+                    skipped.append(i)
+                    results.append(FrameResult(i, input_stem, False, "alpha read failed"))
+                    progress_i += 1
+                    continue
+
+                if mask.shape[:2] != img.shape[:2]:
+                    mask = cv2.resize(mask, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
+
                 try:
-                    # Read input
-                    img, input_stem, is_linear = self._read_input_frame(
-                        clip,
-                        i,
-                        input_files,
-                        input_cap,
-                        params.input_is_linear,
-                    )
-                    if img is None:
-                        skipped.append(i)
-                        results.append(FrameResult(i, f"{i:05d}", False, "video read failed"))
-                        continue
-
-                    # Resume: skip frames that already have outputs
-                    if input_stem in skip_stems:
-                        results.append(FrameResult(i, input_stem, True, "resumed (skipped)"))
-                        continue
-
-                    # Read alpha
-                    mask = self._read_alpha_frame(clip, i, alpha_files, alpha_cap)
-                    if mask is None:
-                        skipped.append(i)
-                        results.append(FrameResult(i, input_stem, False, "alpha read failed"))
-                        continue
-
-                    # Resize mask if dimensions don't match input
-                    if mask.shape[:2] != img.shape[:2]:
-                        mask = cv2.resize(mask, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
-
-                    # Process (GPU-locked — process_frame mutates model hooks)
                     t_frame = time.monotonic()
                     with self._gpu_lock:
                         res = engine.process_frame(
@@ -661,29 +719,49 @@ class CorridorKeyService:
                             refiner_scale=params.refiner_scale,
                         )
                     logger.debug(f"Clip '{clip.name}' frame {i}: process_frame {time.monotonic() - t_frame:.3f}s")
-
-                    # Write outputs
-                    self._write_outputs(res, dirs, input_stem, clip.name, i, cfg)
-                    results.append(FrameResult(i, input_stem, True))
-
                 except FrameReadError as e:
                     logger.warning(str(e))
                     skipped.append(i)
-                    results.append(FrameResult(i, f"{i:05d}", False, str(e)))
+                    results.append(FrameResult(i, input_stem, False, str(e)))
                     if on_warning:
                         on_warning(str(e))
+                    progress_i += 1
+                    continue
 
-                except WriteFailureError as e:
-                    logger.error(str(e))
-                    results.append(FrameResult(i, f"{i:05d}", False, str(e)))
-                    if on_warning:
-                        on_warning(str(e))
+                write_future = write_pool.submit(
+                    self._write_outputs,
+                    res,
+                    dirs,
+                    input_stem,
+                    clip.name,
+                    i,
+                    cfg,
+                )
+                write_futures.append((i, input_stem, write_future))
+                results.append(FrameResult(i, input_stem, True))
+                progress_i += 1
 
             # Final progress
             if on_progress:
                 on_progress(clip.name, range_count, range_count)
 
+            for i, _stem, fut in write_futures:
+                try:
+                    fut.result()
+                except WriteFailureError as e:
+                    logger.error(str(e))
+
+                    for r in results:
+                        if r.frame_index == i and r.success:
+                            r.success = False
+                            r.warning = str(e)
+                            break
+                    if on_warning:
+                        on_warning(str(e))
+
         finally:
+            prefetch_thread.join(timeout=5)
+            write_pool.shutdown(wait=True)
             if input_cap:
                 input_cap.release()
             if alpha_cap:
