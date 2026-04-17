@@ -1,7 +1,23 @@
-import type { BuiltinToolManifest } from '@lobechat/types';
+import type { BuiltinToolManifest, HumanInterventionRule } from '@lobechat/types';
 
 import { toolSystemPrompt } from './toolSystemRole';
 import { WebOnboardingApiName, WebOnboardingIdentifier } from './types';
+
+const agentIdentityConfirmationRules: HumanInterventionRule[] = [
+  {
+    match: {
+      agentName: { pattern: '\\S', type: 'regex' },
+    },
+    policy: 'always',
+  },
+  {
+    match: {
+      agentEmoji: { pattern: '\\S', type: 'regex' },
+    },
+    policy: 'always',
+  },
+  { policy: 'never' },
+] satisfies HumanInterventionRule[];
 
 export const WebOnboardingManifest: BuiltinToolManifest = {
   api: [
@@ -17,7 +33,8 @@ export const WebOnboardingManifest: BuiltinToolManifest = {
     },
     {
       description:
-        'Persist structured onboarding fields. Use for agentName and agentEmoji (updates inbox agent title/avatar), fullName, interests, and responseLanguage.',
+        'Persist structured onboarding fields. Use for agentName and agentEmoji (updates inbox agent title/avatar and requires user confirmation), fullName, interests, and responseLanguage.',
+      humanIntervention: agentIdentityConfirmationRules,
       name: WebOnboardingApiName.saveUserQuestion,
       parameters: {
         additionalProperties: false,
@@ -73,7 +90,7 @@ export const WebOnboardingManifest: BuiltinToolManifest = {
     },
     {
       description:
-        'Update a document by type with full content. Use "soul" for SOUL.md (agent identity + base template only, no user info), or "persona" for user persona (user identity, work style, context, pain points only, no agent info).',
+        'Update a document by type with full content. Use "soul" for SOUL.md (agent identity + base template only, no user info), or "persona" for user persona (user identity, work style, context, pain points only, no agent info). Prefer patchDocument for small edits.',
       name: WebOnboardingApiName.updateDocument,
       parameters: {
         properties: {
@@ -88,6 +105,47 @@ export const WebOnboardingManifest: BuiltinToolManifest = {
           },
         },
         required: ['type', 'content'],
+        type: 'object',
+      },
+    },
+    {
+      description:
+        "Apply byte-exact SEARCH/REPLACE hunks to a document. Preferred over updateDocument for small edits because it avoids resending the full document. Each hunk's search must match the current document exactly (whitespace, punctuation, casing). If the search appears multiple times, add surrounding context to make it unique or set replaceAll=true. On failure (HUNK_NOT_FOUND / HUNK_AMBIGUOUS), adjust and retry; do not fall back to updateDocument unless many hunks are needed.",
+      name: WebOnboardingApiName.patchDocument,
+      parameters: {
+        properties: {
+          hunks: {
+            description: 'Ordered list of SEARCH/REPLACE hunks applied sequentially.',
+            items: {
+              additionalProperties: false,
+              properties: {
+                replace: {
+                  description: 'Replacement text; may be empty to delete the matched region.',
+                  type: 'string',
+                },
+                replaceAll: {
+                  description:
+                    'Replace every occurrence of search. Defaults to false; leave unset unless you explicitly want a global replace.',
+                  type: 'boolean',
+                },
+                search: {
+                  description: 'Byte-exact substring to locate in the current document.',
+                  type: 'string',
+                },
+              },
+              required: ['search', 'replace'],
+              type: 'object',
+            },
+            minItems: 1,
+            type: 'array',
+          },
+          type: {
+            description: 'Document type to patch.',
+            enum: ['soul', 'persona'],
+            type: 'string',
+          },
+        },
+        required: ['type', 'hunks'],
         type: 'object',
       },
     },

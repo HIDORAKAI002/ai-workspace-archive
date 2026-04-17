@@ -1,8 +1,9 @@
+import { isDesktop } from '@lobechat/const';
 import { Icon } from '@lobehub/ui';
 import { GroupBotSquareIcon } from '@lobehub/ui/icons';
 import { App } from 'antd';
 import { type ItemType } from 'antd/es/menu/interface';
-import { BotIcon, FileTextIcon, FolderCogIcon, FolderPlus } from 'lucide-react';
+import { BotIcon, FileTextIcon, FolderCogIcon, FolderPlus, TerminalSquareIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,8 @@ import { useAgentStore } from '@/store/agent';
 import { useAgentGroupStore } from '@/store/agentGroup';
 import { useHomeStore } from '@/store/home';
 import { usePageStore } from '@/store/page';
+import { useUserStore } from '@/store/user';
+import { labPreferSelectors } from '@/store/user/selectors';
 
 interface CreateAgentOptions {
   groupId?: string;
@@ -35,6 +38,7 @@ export const useCreateMenuItems = () => {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const groupTemplates = useGroupTemplates();
+  const enableHeterogeneousAgent = useUserStore(labPreferSelectors.enableHeterogeneousAgent);
 
   const [storeCreateAgent] = useAgentStore((s) => [s.createAgent]);
   const [addGroup, refreshAgentList, switchToGroup] = useHomeStore((s) => [
@@ -192,6 +196,37 @@ export const useCreateMenuItems = () => {
     [mutateGroup],
   );
 
+  /**
+   * Create a Claude Code agent with ACP provider pre-configured.
+   *
+   * Bypasses `mutateAgent` so we skip its default /profile redirect —
+   * CC agents land straight on the chat page since their config is fixed.
+   */
+  const createClaudeCodeAgent = useCallback(
+    async (options?: CreateAgentOptions) => {
+      const result = await storeCreateAgent({
+        config: {
+          agencyConfig: {
+            heterogeneousProvider: {
+              command: 'claude',
+              type: 'claudecode' as const,
+            },
+          },
+          avatar:
+            'https://registry.npmmirror.com/@lobehub/icons-static-avatar/latest/files/avatars/claude.webp',
+          systemRole:
+            'You are Claude Code, an AI coding agent. Help users with code-related tasks.',
+          title: 'Claude Code',
+        },
+        groupId: options?.groupId,
+      });
+      await refreshAgentList();
+      navigate(`/agent/${result.agentId}`);
+      options?.onSuccess?.();
+    },
+    [storeCreateAgent, refreshAgentList, navigate],
+  );
+
   const agentModal = useOptionalAgentModal();
   const openCreateModal = agentModal?.openCreateModal;
 
@@ -215,6 +250,25 @@ export const useCreateMenuItems = () => {
       },
     }),
     [t, createAgent, openCreateModal],
+  );
+
+  /**
+   * Create Claude Code agent menu item (Desktop only)
+   */
+  const createClaudeCodeMenuItem = useCallback(
+    (options?: CreateAgentOptions): ItemType | null => {
+      if (!isDesktop || !enableHeterogeneousAgent) return null;
+      return {
+        icon: <Icon icon={TerminalSquareIcon} />,
+        key: 'newClaudeCodeAgent',
+        label: t('newClaudeCodeAgent'),
+        onClick: async (info) => {
+          info.domEvent?.stopPropagation();
+          await createClaudeCodeAgent(options);
+        },
+      };
+    },
+    [t, createClaudeCodeAgent, enableHeterogeneousAgent],
   );
 
   /**
@@ -308,6 +362,8 @@ export const useCreateMenuItems = () => {
     configMenuItem,
     createAgent,
     createAgentMenuItem,
+    createClaudeCodeAgent,
+    createClaudeCodeMenuItem,
     createEmptyGroup,
     createGroupChatMenuItem,
     createGroupFromTemplate,

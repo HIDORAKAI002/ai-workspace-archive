@@ -5,7 +5,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import ModeSwitch from './ModeSwitch';
 
-const mockConfig = vi.hoisted(() => ({ agentOnboardingEnabled: true }));
+const mockConfig = vi.hoisted(() => ({
+  agentOnboardingEnabled: true,
+  desktop: false,
+  serverConfigInit: true,
+}));
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -20,24 +24,48 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('@/routes/onboarding/config', () => ({
-  get AGENT_ONBOARDING_ENABLED() {
-    return mockConfig.agentOnboardingEnabled;
+interface RenderModeSwitchOptions {
+  actions?: ReactNode;
+  desktop?: boolean;
+  enabled: boolean;
+  entry?: string;
+  serverConfigInit?: boolean;
+  showLabel?: boolean;
+}
+
+vi.mock('@lobechat/const', () => ({
+  get isDesktop() {
+    return mockConfig.desktop;
+  },
+}));
+
+vi.mock('@/store/serverConfig', () => ({
+  useServerConfigStore: <T,>(
+    selector: (state: {
+      featureFlags: {
+        enableAgentOnboarding: boolean;
+      };
+      serverConfigInit: boolean;
+    }) => T,
+  ) => {
+    return selector({
+      featureFlags: { enableAgentOnboarding: mockConfig.agentOnboardingEnabled },
+      serverConfigInit: mockConfig.serverConfigInit,
+    });
   },
 }));
 
 const renderModeSwitch = ({
   actions,
+  desktop = false,
   enabled,
   entry = '/onboarding/agent',
+  serverConfigInit = true,
   showLabel,
-}: {
-  actions?: ReactNode;
-  enabled: boolean;
-  entry?: string;
-  showLabel?: boolean;
-}) => {
+}: RenderModeSwitchOptions) => {
   mockConfig.agentOnboardingEnabled = enabled;
+  mockConfig.desktop = desktop;
+  mockConfig.serverConfigInit = serverConfigInit;
 
   render(
     <MemoryRouter initialEntries={[entry]}>
@@ -49,6 +77,8 @@ const renderModeSwitch = ({
 afterEach(() => {
   cleanup();
   mockConfig.agentOnboardingEnabled = true;
+  mockConfig.desktop = false;
+  mockConfig.serverConfigInit = true;
 });
 
 describe('ModeSwitch', () => {
@@ -68,6 +98,13 @@ describe('ModeSwitch', () => {
     expect(screen.queryByText('Choose your onboarding mode')).not.toBeInTheDocument();
   });
 
+  it('hides the onboarding switch until server config is initialized', () => {
+    renderModeSwitch({ enabled: true, serverConfigInit: false });
+
+    expect(screen.queryByRole('radio', { name: 'Conversational' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Classic' })).not.toBeInTheDocument();
+  });
+
   it('keeps action buttons visible when agent onboarding is disabled', () => {
     renderModeSwitch({
       actions: <button type="button">Restart</button>,
@@ -75,6 +112,13 @@ describe('ModeSwitch', () => {
     });
 
     expect(screen.getByRole('button', { name: 'Restart' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Conversational' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Classic' })).not.toBeInTheDocument();
+  });
+
+  it('does not render the switch on desktop builds', () => {
+    renderModeSwitch({ desktop: true, enabled: true });
+
     expect(screen.queryByRole('radio', { name: 'Conversational' })).not.toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: 'Classic' })).not.toBeInTheDocument();
   });
