@@ -247,6 +247,7 @@ async def run_consolidation_job(
 
     perf = ConsolidationPerfLog(bank_id)
     max_memories_per_batch = config.consolidation_batch_size
+    max_memories_per_round = config.consolidation_max_memories_per_round
     llm_batch_size = max(1, config.consolidation_llm_batch_size)
 
     # Check if consolidation is enabled
@@ -309,8 +310,17 @@ async def run_consolidation_job(
     # Track all unique tags from consolidated memories for mental model refresh filtering
     consolidated_tags: set[str] = set()
 
+    round_limit_enabled = max_memories_per_round > 0
+    round_remaining = max_memories_per_round if round_limit_enabled else float("inf")
+    hit_round_limit = False
+
     llm_batch_num = 0
     while True:
+        # Cap fetch size by remaining round budget
+        fetch_limit = (
+            min(max_memories_per_batch, int(round_remaining)) if round_limit_enabled else max_memories_per_batch
+        )
+
         # Fetch next batch of unconsolidated memories
         async with pool.acquire() as conn:
             t0 = time.time()
@@ -327,7 +337,7 @@ async def run_consolidation_job(
                 LIMIT $2
                 """,
                 bank_id,
-                max_memories_per_batch,
+                fetch_limit,
             )
             perf.record_timing("fetch_memories", time.time() - t0)
 
@@ -552,6 +562,25 @@ async def run_consolidation_job(
                 f" | avg={llm_batch_time / len(llm_batch):.3f}s/memory"
             )
 
+        # Update round budget after processing this DB fetch batch
+        if round_limit_enabled:
+            round_remaining -= len(memories)
+            if round_remaining <= 0:
+                hit_round_limit = True
+                break
+
+    # Re-submit consolidation if we hit the round limit and there's likely more work
+    if hit_round_limit:
+        remaining = total_count - stats["memories_processed"]
+        logger.info(
+            f"[CONSOLIDATION] bank={bank_id} hit round limit of {max_memories_per_round} memories,"
+            f" ~{remaining} remaining. Re-queuing consolidation."
+        )
+        try:
+            await memory_engine.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+        except Exception as e:
+            logger.warning(f"[CONSOLIDATION] bank={bank_id} failed to re-queue consolidation: {e}")
+
     # Build summary
     perf.log(
         f"[3] Results: {stats['memories_processed']} memories -> "
@@ -580,16 +609,21 @@ async def run_consolidation_job(
     if timing_parts:
         perf.log(f"[4] Timing breakdown: {', '.join(timing_parts)}")
 
-    # Trigger mental model refreshes for models with refresh_after_consolidation=true
-    # SECURITY: Only refresh mental models with matching tags (or all if no tags were consolidated)
-    mental_models_refreshed = await _trigger_mental_model_refreshes(
-        memory_engine=memory_engine,
-        bank_id=bank_id,
-        request_context=request_context,
-        consolidated_tags=list(consolidated_tags) if consolidated_tags else None,
-        perf=perf,
-    )
-    stats["mental_models_refreshed"] = mental_models_refreshed
+    # Trigger mental model refreshes only on the final round (when all memories are processed).
+    # If we hit the round limit and re-queued, skip MM refresh — the next round will handle it.
+    if hit_round_limit:
+        stats["mental_models_refreshed"] = 0
+        logger.info(f"[CONSOLIDATION] bank={bank_id} skipping mental model refresh (round limit hit, re-queued)")
+    else:
+        # SECURITY: Only refresh mental models with matching tags (or all if no tags were consolidated)
+        mental_models_refreshed = await _trigger_mental_model_refreshes(
+            memory_engine=memory_engine,
+            bank_id=bank_id,
+            request_context=request_context,
+            consolidated_tags=list(consolidated_tags) if consolidated_tags else None,
+            perf=perf,
+        )
+        stats["mental_models_refreshed"] = mental_models_refreshed
 
     perf.flush()
 

@@ -46,6 +46,7 @@ VALID_INTEGRATIONS = [
     "paperclip",
     "opencode",
     "cloudflare-oauth-proxy",
+    "openai-agents",
 ]
 
 
@@ -619,6 +620,7 @@ def _get_package_name(integration: str) -> str:
         "paperclip": "@vectorize-io/hindsight-paperclip",
         "opencode": "@vectorize-io/opencode-hindsight",
         "cloudflare-oauth-proxy": "hindsight-cloudflare-oauth-proxy",
+        "openai-agents": "hindsight-openai-agents",
     }
     return packages[integration]
 

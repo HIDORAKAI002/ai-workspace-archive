@@ -1,5 +1,7 @@
 ---
 sidebar_position: 13
+title: "OpenAI Agents SDK Persistent Memory with Hindsight | Integration"
+description: "Add long-term memory to OpenAI Agents SDK agents with Hindsight. Provides FunctionTool instances for retain, recall, and reflect that plug directly into the Agents SDK async runtime."
 ---
 
 # OpenAI Agents SDK

@@ -9,6 +9,8 @@ describe("createHindsightTools", () => {
       retain: vi.fn(),
       recall: vi.fn(),
       reflect: vi.fn(),
+      getMentalModel: vi.fn(),
+      getDocument: vi.fn(),
     };
   });
 
@@ -229,7 +231,7 @@ describe("createHindsightTools", () => {
       const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({
         text: "Reflection result",
-        based_on: [{ id: "fact-1", text: "Supporting fact" }],
+        based_on: { memories: [{ id: "fact-1", text: "Supporting fact" }] },
       });
 
       const result = await tools.reflect.execute({ query: "What are my preferences?" });
@@ -239,7 +241,7 @@ describe("createHindsightTools", () => {
         budget: "mid",
       });
       expect(result.text).toBe("Reflection result");
-      expect(result.basedOn).toHaveLength(1);
+      expect(result.basedOn?.memories).toHaveLength(1);
     });
 
     it("should pass agent-provided context", async () => {
@@ -284,10 +286,12 @@ describe("createHindsightTools", () => {
 
     it("should include basedOn facts when present", async () => {
       const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
-      const basedOn = [
-        { id: "fact-1", text: "User prefers spicy food", type: "preference" },
-        { id: "fact-2", text: "User is allergic to nuts", type: "health" },
-      ];
+      const basedOn = {
+        memories: [
+          { id: "fact-1", text: "User prefers spicy food", type: "preference" },
+          { id: "fact-2", text: "User is allergic to nuts", type: "health" },
+        ],
+      };
       vi.mocked(mockClient.reflect).mockResolvedValue({
         text: "Based on your history, you prefer spicy Asian cuisine",
         based_on: basedOn,
@@ -296,6 +300,132 @@ describe("createHindsightTools", () => {
       const result = await tools.reflect.execute({ query: "What do I like?" });
 
       expect(result.basedOn).toEqual(basedOn);
+    });
+
+    it("should pass through based_on with mental_models and directives", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const basedOn = {
+        memories: [{ id: "fact-1", text: "User likes coffee" }],
+        mental_models: [{ id: "mm-1", name: "Preferences", content: "Likes coffee" }],
+        directives: [{ id: "dir-1", content: "Be concise" }],
+      };
+      vi.mocked(mockClient.reflect).mockResolvedValue({
+        text: "You like coffee",
+        based_on: basedOn,
+      });
+
+      const result = await tools.reflect.execute({ query: "What do I like?" });
+
+      expect(result.basedOn?.memories).toHaveLength(1);
+      expect(result.basedOn?.mental_models).toHaveLength(1);
+      expect(result.basedOn?.directives).toHaveLength(1);
+    });
+
+    it("should handle null based_on", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.reflect).mockResolvedValue({
+        text: "No memories found",
+        based_on: null,
+      });
+
+      const result = await tools.reflect.execute({ query: "Test" });
+
+      expect(result.text).toBe("No memories found");
+      expect(result.basedOn).toBeNull();
+    });
+  });
+
+  describe("getMentalModel tool", () => {
+    it("should call client.getMentalModel with bankId and mentalModelId", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getMentalModel).mockResolvedValue({
+        id: "mm-123",
+        bank_id: "test-bank",
+        name: "User Preferences",
+        content: "Likes functional programming",
+        source_query: "What are user preferences?",
+        tags: ["preferences"],
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-02T00:00:00Z",
+      });
+
+      const result = await tools.getMentalModel.execute({ mentalModelId: "mm-123" });
+
+      expect(mockClient.getMentalModel).toHaveBeenCalledWith("test-bank", "mm-123");
+      expect(result.content).toBe("Likes functional programming");
+      expect(result.name).toBe("User Preferences");
+      expect(result.updatedAt).toBe("2024-01-02T00:00:00Z");
+    });
+
+    it("should handle null content with fallback", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getMentalModel).mockResolvedValue({
+        id: "mm-123",
+        bank_id: "test-bank",
+        name: "Empty Model",
+        content: null,
+        created_at: null,
+        updated_at: null,
+      });
+
+      const result = await tools.getMentalModel.execute({ mentalModelId: "mm-123" });
+
+      expect(result.content).toBe("No content available yet.");
+      expect(result.name).toBe("Empty Model");
+      expect(result.updatedAt).toBeNull();
+    });
+
+    it("should propagate errors from client.getMentalModel", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getMentalModel).mockRejectedValue(new Error("Not found"));
+
+      await expect(tools.getMentalModel.execute({ mentalModelId: "mm-bad" })).rejects.toThrow(
+        "Not found"
+      );
+    });
+  });
+
+  describe("getDocument tool", () => {
+    it("should call client.getDocument with bankId and documentId", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getDocument).mockResolvedValue({
+        id: "doc-123",
+        bank_id: "test-bank",
+        original_text: "Hello world",
+        content_hash: "abc123",
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-02T00:00:00Z",
+        memory_unit_count: 3,
+        tags: ["greeting"],
+      });
+
+      const result = await tools.getDocument.execute({ documentId: "doc-123" });
+
+      expect(mockClient.getDocument).toHaveBeenCalledWith("test-bank", "doc-123");
+      expect(result).toEqual({
+        originalText: "Hello world",
+        id: "doc-123",
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-02T00:00:00Z",
+      });
+    });
+
+    it("should return null when document not found", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getDocument).mockResolvedValue(null);
+
+      const result = await tools.getDocument.execute({ documentId: "doc-missing" });
+
+      expect(result).toBeNull();
+    });
+
+    it("should propagate errors from client.getDocument", async () => {
+      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      vi.mocked(mockClient.getDocument).mockRejectedValue(new Error("Server error"));
+
+      await expect(tools.getDocument.execute({ documentId: "doc-bad" })).rejects.toThrow(
+        "Server error"
+      );
     });
   });
 
