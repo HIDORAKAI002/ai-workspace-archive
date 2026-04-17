@@ -14,13 +14,13 @@ Basic usage::
     agent = Agent(name="assistant", tools=tools)
 """
 
+from ._version import __version__
 from .config import (
     HindsightOpenAIAgentsConfig,
     configure,
     get_config,
     reset_config,
 )
-from ._version import __version__
 from .errors import HindsightError
 from .tools import create_hindsight_tools, memory_instructions
 

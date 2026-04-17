@@ -186,8 +186,8 @@
     "language_code": "hi"
   },
   "03-GettingStarted/05-stdio-server/README.md": {
-    "original_hash": "68c6ec23063b38b455e030281ffd6349",
-    "translation_date": "2026-03-04T09:00:36+00:00",
+    "original_hash": "a5463f3f7f4d157c641d2a0163283081",
+    "translation_date": "2026-04-12T08:35:56+00:00",
     "source_file": "03-GettingStarted/05-stdio-server/README.md",
     "language_code": "hi"
   },
@@ -522,9 +522,15 @@
     "language_code": "hi"
   },
   "05-AdvancedTopics/README.md": {
-    "original_hash": "e057797775564477be2359e65cafd115",
-    "translation_date": "2026-02-08T12:26:44+00:00",
+    "original_hash": "8474d2b783c0cedd3c9e8f994afb96c3",
+    "translation_date": "2026-04-12T08:34:39+00:00",
     "source_file": "05-AdvancedTopics/README.md",
+    "language_code": "hi"
+  },
+  "05-AdvancedTopics/mcp-adversarial-agents/README.md": {
+    "original_hash": "99f63ae76f32e5943c8f00fdfb157940",
+    "translation_date": "2026-04-12T08:38:00+00:00",
+    "source_file": "05-AdvancedTopics/mcp-adversarial-agents/README.md",
     "language_code": "hi"
   },
   "05-AdvancedTopics/mcp-contextengineering/README.md": {
@@ -840,8 +846,8 @@
     "language_code": "hi"
   },
   "README.md": {
-    "original_hash": "e32b42f961d407018b43101bec24165d",
-    "translation_date": "2026-04-06T20:17:19+00:00",
+    "original_hash": "775abcbde87fa2a5333459a6b3516291",
+    "translation_date": "2026-04-12T08:33:38+00:00",
     "source_file": "README.md",
     "language_code": "hi"
   },
@@ -858,14 +864,14 @@
     "language_code": "hi"
   },
   "changelog.md": {
-    "original_hash": "a67a5e6e614ac5383c708c8eb869b706",
-    "translation_date": "2026-02-08T12:22:39+00:00",
+    "original_hash": "f21295ca9afa7266c4b84780e6e8aa5b",
+    "translation_date": "2026-04-12T08:32:02+00:00",
     "source_file": "changelog.md",
     "language_code": "hi"
   },
   "study_guide.md": {
-    "original_hash": "0afa28229391c5908c1380afb3eee3e1",
-    "translation_date": "2026-02-08T12:19:14+00:00",
+    "original_hash": "db167884425a24ec8baa57bd8013b177",
+    "translation_date": "2026-04-12T08:34:17+00:00",
     "source_file": "study_guide.md",
     "language_code": "hi"
   }

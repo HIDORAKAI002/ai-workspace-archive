@@ -559,6 +559,13 @@ export const topicRouter = router({
           boundDeviceId: z.string().optional(),
           ccSessionId: z.string().optional(),
           model: z.string().optional(),
+          onboardingFeedback: z
+            .object({
+              comment: z.string().max(500).optional(),
+              rating: z.enum(['good', 'bad']),
+              submittedAt: z.string(),
+            })
+            .optional(),
           provider: z.string().optional(),
           runningOperation: z
             .object({

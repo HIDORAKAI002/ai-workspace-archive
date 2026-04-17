@@ -531,6 +531,7 @@ Google's `gemini-embedding-001` produces 3072 dimensions natively but supports c
 | `HINDSIGHT_API_RERANKER_TEI_URL` | TEI server URL | - |
 | `HINDSIGHT_API_RERANKER_TEI_BATCH_SIZE` | Batch size for TEI reranking | `128` |
 | `HINDSIGHT_API_RERANKER_TEI_MAX_CONCURRENT` | Max concurrent TEI reranking requests | `8` |
+| `HINDSIGHT_API_RERANKER_TEI_HTTP_TIMEOUT` | HTTP request timeout for TEI reranker (seconds). Increase when using a slower CPU-based reranker under load. | `30.0` |
 | `HINDSIGHT_API_RERANKER_OPENROUTER_API_KEY` | OpenRouter API key for reranking (falls back to `HINDSIGHT_API_OPENROUTER_API_KEY`, then `HINDSIGHT_API_LLM_API_KEY`) | - |
 | `HINDSIGHT_API_RERANKER_OPENROUTER_MODEL` | OpenRouter rerank model | `cohere/rerank-v3.5` |
 | `HINDSIGHT_API_RERANKER_COHERE_API_KEY` | Cohere API key for reranking | - |
@@ -688,6 +689,7 @@ For advanced authentication (JWT, OAuth, multi-tenant schemas), implement a cust
 | `HINDSIGHT_API_WORKERS` | Number of uvicorn worker processes | `1` |
 | `HINDSIGHT_API_LOG_LEVEL` | Log level: `debug`, `info`, `warning`, `error` | `info` |
 | `HINDSIGHT_API_LOG_FORMAT` | Log format: `text` or `json` (structured logging for cloud platforms) | `text` |
+| `HINDSIGHT_API_LOG_JSON_FIELDS` | Comma-separated allowlist of JSON log fields to emit (e.g. `severity,message,tenant`). Available: `severity`, `message`, `timestamp`, `logger`, `tenant`, `exception`. Empty = all fields. | `""` (all) |
 | `HINDSIGHT_API_MCP_ENABLED` | Enable MCP server at `/mcp/{bank_id}/` | `true` |
 
 ### Retrieval
@@ -705,6 +707,27 @@ For advanced authentication (JWT, OAuth, multi-tenant schemas), implement a cust
 #### Graph Retrieval Algorithm
 
 - **`link_expansion`** (default): Fast graph expansion from semantic seeds via entity co-occurrence, semantic kNN, and causal links. Target latency under 100ms.
+
+#### Recall budget mapping
+
+The recall request takes a `budget` parameter (`low` / `mid` / `high`, default `mid`) that maps to an integer `thinking_budget` used by every retrieval method (semantic, BM25, graph, temporal). These knobs control that mapping. They are hierarchical — overridable per bank via the [config API](#hierarchical-configuration).
+
+Two functions are available:
+
+- **`fixed`** (default — preserves legacy behavior): `thinking_budget = recall_budget_fixed_<level>` (independent of `max_tokens`).
+- **`adaptive`**: `thinking_budget = round(max_tokens * recall_budget_adaptive_<level>)`, clamped to `[recall_budget_min, recall_budget_max]`. Useful when callers vary `max_tokens` and you want retrieval breadth to scale with the requested output size.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HINDSIGHT_API_RECALL_BUDGET_FUNCTION` | Mapping function: `fixed` or `adaptive`. | `fixed` |
+| `HINDSIGHT_API_RECALL_BUDGET_FIXED_LOW` | Items per retrieval method per fact type when `budget=low` and function is `fixed`. | `100` |
+| `HINDSIGHT_API_RECALL_BUDGET_FIXED_MID` | Items per retrieval method per fact type when `budget=mid` and function is `fixed`. | `300` |
+| `HINDSIGHT_API_RECALL_BUDGET_FIXED_HIGH` | Items per retrieval method per fact type when `budget=high` and function is `fixed`. | `1000` |
+| `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_LOW` | Ratio of request `max_tokens` used when `budget=low` and function is `adaptive`. | `0.025` |
+| `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_MID` | Ratio of request `max_tokens` used when `budget=mid` and function is `adaptive`. | `0.075` |
+| `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_HIGH` | Ratio of request `max_tokens` used when `budget=high` and function is `adaptive`. | `0.25` |
+| `HINDSIGHT_API_RECALL_BUDGET_MIN` | Floor for the adaptive function (after clamping). | `20` |
+| `HINDSIGHT_API_RECALL_BUDGET_MAX` | Ceiling for the adaptive function (after clamping). | `2000` |
 
 ### Retain
 
@@ -994,6 +1017,7 @@ Observations are deduplicated, evidence-grounded knowledge consolidated from mul
 | `HINDSIGHT_API_ENABLE_OBSERVATION_HISTORY` | Track history of changes to each observation (previous content + timestamp). Disable to reduce storage if audit trails are not needed. | `true` |
 | `HINDSIGHT_API_CONSOLIDATION_MAX_ATTEMPTS` | Outer retry attempts for the consolidation LLM batch call. Each attempt uses the inner retry budget (`HINDSIGHT_API_CONSOLIDATION_LLM_MAX_RETRIES`). Worst-case API calls per batch = `MAX_ATTEMPTS × (LLM_MAX_RETRIES + 1)`. | `3` |
 | `HINDSIGHT_API_CONSOLIDATION_BATCH_SIZE` | Memories to load per batch (internal optimization) | `50` |
+| `HINDSIGHT_API_CONSOLIDATION_MAX_MEMORIES_PER_ROUND` | Maximum memories processed per consolidation round. When the limit is reached, the job yields its worker slot and re-queues itself so other banks get fair scheduling. Mental model refreshes only run on the final round. `0` = unlimited. Configurable per bank. | `100` |
 | `HINDSIGHT_API_CONSOLIDATION_MAX_TOKENS` | Max tokens for recall when finding related observations during consolidation | `1024` |
 | `HINDSIGHT_API_CONSOLIDATION_LLM_BATCH_SIZE` | Number of facts sent to the LLM in a single consolidation call. Higher values reduce LLM calls and improve throughput at the cost of larger prompts. Set to `1` to disable batching. Configurable per bank. | `8` |
 | `HINDSIGHT_API_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS` | Total token budget for source facts included with observations in the consolidation prompt. `-1` = unlimited. Configurable per bank. | `-1` |
