@@ -2206,9 +2206,6 @@ func initRuntimeOverrides(appState *state.State) *configRuntime.ConfigManager[co
 		registered.ExportDefaultBucket = appState.ServerConfig.Config.Export.DefaultBucket
 		registered.ExportDefaultPath = appState.ServerConfig.Config.Export.DefaultPath
 		registered.ExportParallelism = appState.ServerConfig.Config.ExportParallelism
-		// Note: Export.IsDefaultPathSet is intentionally not exposed as a runtime
-		// override — it is a derived internal flag, flipped via the
-		// "ExportDefaultPath" hook registered in postInitRuntimeOverrides.
 
 		if appState.ServerConfig.Config.Authentication.OIDC.Enabled {
 			registered.OIDCIssuer = appState.ServerConfig.Config.Authentication.OIDC.Issuer
@@ -2262,17 +2259,6 @@ func postInitRuntimeOverrides(appState *state.State, cm *configRuntime.ConfigMan
 		if appState.ServerConfig.Config.Authentication.OIDC.Enabled {
 			hooks["OIDC"] = appState.OIDC.Init
 		}
-		// Flip Export.IsDefaultPathSet whenever ExportDefaultPath is updated via
-		// a runtime override. IsDefaultPathSet is a derived internal flag (not
-		// exposed in WeaviateRuntimeConfig) but it must track "has the path
-		// been explicitly configured?" across runtime reloads too, not just at
-		// startup. Without this, an operator configuring exports for the
-		// first time via the runtime config file would update DefaultPath but
-		// the path-set check in the scheduler would still reject requests.
-		hooks["ExportDefaultPath"] = func() error {
-			appState.ServerConfig.Config.Export.IsDefaultPathSet.Store(true)
-			return nil
-		}
 		maps.Copy(hooks, appState.Crons.RuntimeConfigHooks())
 
 		appState.Logger.Log(logrus.InfoLevel, "registereing OIDC runtime overrides hooks")
@@ -2280,18 +2266,6 @@ func postInitRuntimeOverrides(appState *state.State, cm *configRuntime.ConfigMan
 		// reload current overrides file to take into account additional settings
 		if err := cm.ReloadConfig(); err != nil {
 			appState.Logger.WithField("action", "startup").Errorf("could not reload config: %v", err)
-		}
-		// Manual sync for Export.IsDefaultPathSet: the initial loadConfig inside
-		// NewConfigManager runs before hooks are registered, and the forced
-		// ReloadConfig above sees oldV == newV (it's re-applying the same
-		// values), so the "ExportDefaultPath" hook cannot have fired yet for
-		// the startup runtime config. If the runtime config did set a
-		// non-empty export_default_path, sync the flag now so the scheduler
-		// accepts requests. The empty-string-via-runtime-config case at
-		// startup is a documented limitation — operators who want the empty
-		// prefix should set EXPORT_DEFAULT_PATH="" at startup instead.
-		if appState.ServerConfig.Config.Export.DefaultPath.Get() != "" {
-			appState.ServerConfig.Config.Export.IsDefaultPathSet.Store(true)
 		}
 		// start runtime config background check
 		enterrors.GoWrapper(func() {

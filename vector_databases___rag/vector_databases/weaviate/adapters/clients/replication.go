@@ -24,6 +24,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -57,23 +58,39 @@ const (
 
 type replicationClient struct {
 	retryClient
-	zstdEncoder *zstd.Encoder
+	zstdEncoderPool sync.Pool
 }
 
-var _ (replica.Client) = (*replicationClient)(nil)
+var _ replica.Client = (*replicationClient)(nil)
 
 func NewReplicationClient(httpClient *http.Client) (*replicationClient, error) {
+	// Verify encoder creation works at startup before returning the client.
 	enc, err := zstd.NewWriter(nil)
 	if err != nil {
 		return nil, fmt.Errorf("create zstd encoder: %w", err)
 	}
-	return &replicationClient{
+	c := &replicationClient{
 		retryClient: retryClient{
 			client:  httpClient,
 			retryer: newRetryer(),
 		},
-		zstdEncoder: enc,
-	}, nil
+	}
+	// zstdEncoderPool reuses *zstd.Encoder instances across goroutines.
+	// A pool is required because zstd.Encoder is not safe for concurrent use:
+	// each caller acquires an exclusive encoder via Get, runs EncodeAll, then
+	// returns it with Put. New returns nil on failure; call sites guard with
+	// an ok+nil check and fall back to creating a fresh encoder.
+	c.zstdEncoderPool = sync.Pool{
+		New: func() any {
+			e, err := zstd.NewWriter(nil)
+			if err != nil {
+				return nil
+			}
+			return e
+		},
+	}
+	c.zstdEncoderPool.Put(enc)
+	return c, nil
 }
 
 // FetchObject fetches one object it exits
@@ -196,7 +213,15 @@ func (c *replicationClient) HashTreeLevel(ctx context.Context,
 		return nil, fmt.Errorf("marshal hashtree level input: %w", err)
 	}
 
-	bodyBytes := c.zstdEncoder.EncodeAll(body, make([]byte, 0, len(body)))
+	enc, ok := c.zstdEncoderPool.Get().(*zstd.Encoder)
+	if !ok || enc == nil {
+		enc, err = zstd.NewWriter(nil)
+		if err != nil {
+			return nil, fmt.Errorf("create zstd encoder: %w", err)
+		}
+	}
+	bodyBytes := enc.EncodeAll(body, make([]byte, 0, len(body)))
+	c.zstdEncoderPool.Put(enc)
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeoutUnit*20)
 	defer cancel()
@@ -255,7 +280,15 @@ func (c *replicationClient) OverwriteObjects(ctx context.Context,
 		return nil, fmt.Errorf("encode request: %w", err)
 	}
 
-	bodyCompressed := c.zstdEncoder.EncodeAll(body, make([]byte, 0, len(body)))
+	enc, ok := c.zstdEncoderPool.Get().(*zstd.Encoder)
+	if !ok || enc == nil {
+		enc, err = zstd.NewWriter(nil)
+		if err != nil {
+			return nil, fmt.Errorf("create zstd encoder: %w", err)
+		}
+	}
+	bodyCompressed := enc.EncodeAll(body, make([]byte, 0, len(body)))
+	c.zstdEncoderPool.Put(enc)
 
 	req, err := newHttpReplicaRequest(
 		ctx, http.MethodPut, host, index, shard,
