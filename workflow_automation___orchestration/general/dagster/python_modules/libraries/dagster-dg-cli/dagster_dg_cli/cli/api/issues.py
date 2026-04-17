@@ -253,13 +253,133 @@ def update_issue_command(
         click.echo(output)
 
 
+@click.command(name="add-link", cls=DgClickCommand)
+@click.argument("issue_id", type=str)
+@click.option(
+    "--run-id",
+    type=str,
+    default=None,
+    help="Run ID to link to the issue",
+)
+@click.option(
+    "--asset-key",
+    type=str,
+    default=None,
+    help="Asset key to link to the issue (slash-separated path, e.g. 'my/asset')",
+)
+@click.option(
+    "--json",
+    "output_json",
+    is_flag=True,
+    help="Output in JSON format for machine readability",
+)
+@dg_response_schema(module="dagster_rest_resources.schemas.issue", cls="DgApiIssue")
+@dg_api_options(deployment_scoped=True)
+@cli_telemetry_wrapper
+@click.pass_context
+def add_link_issue_command(
+    ctx: click.Context,
+    issue_id: str,
+    run_id: str | None,
+    asset_key: str | None,
+    output_json: bool,
+    organization: str,
+    deployment: str,
+    api_token: str,
+    view_graphql: bool,
+) -> None:
+    """Add a run or asset link to an issue."""
+    from dagster_rest_resources.api.issue import DgApiIssueApi
+
+    if run_id is None and asset_key is None:
+        raise click.UsageError("At least one of --run-id or --asset-key must be provided.")
+
+    config = DagsterPlusCliConfig.create_for_deployment(
+        deployment=deployment,
+        organization=organization,
+        user_token=api_token,
+    )
+    client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
+    api = DgApiIssueApi(client)
+
+    with handle_api_errors(ctx, output_json):
+        issue = api.add_link_to_issue(
+            issue_id=issue_id,
+            run_id=run_id,
+            asset_key=asset_key.split("/") if asset_key else None,
+        )
+        output = format_issue(issue, as_json=output_json)
+        click.echo(output)
+
+
+@click.command(name="remove-link", cls=DgClickCommand)
+@click.argument("issue_id", type=str)
+@click.option(
+    "--run-id",
+    type=str,
+    default=None,
+    help="Run ID to unlink from the issue",
+)
+@click.option(
+    "--asset-key",
+    type=str,
+    default=None,
+    help="Asset key to unlink from the issue (slash-separated path, e.g. 'my/asset')",
+)
+@click.option(
+    "--json",
+    "output_json",
+    is_flag=True,
+    help="Output in JSON format for machine readability",
+)
+@dg_response_schema(module="dagster_rest_resources.schemas.issue", cls="DgApiIssue")
+@dg_api_options(deployment_scoped=True)
+@cli_telemetry_wrapper
+@click.pass_context
+def remove_link_issue_command(
+    ctx: click.Context,
+    issue_id: str,
+    run_id: str | None,
+    asset_key: str | None,
+    output_json: bool,
+    organization: str,
+    deployment: str,
+    api_token: str,
+    view_graphql: bool,
+) -> None:
+    """Remove a run or asset link from an issue."""
+    from dagster_rest_resources.api.issue import DgApiIssueApi
+
+    if run_id is None and asset_key is None:
+        raise click.UsageError("At least one of --run-id or --asset-key must be provided.")
+
+    config = DagsterPlusCliConfig.create_for_deployment(
+        deployment=deployment,
+        organization=organization,
+        user_token=api_token,
+    )
+    client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
+    api = DgApiIssueApi(client)
+
+    with handle_api_errors(ctx, output_json):
+        issue = api.remove_link_from_issue(
+            issue_id=issue_id,
+            run_id=run_id,
+            asset_key=asset_key.split("/") if asset_key else None,
+        )
+        output = format_issue(issue, as_json=output_json)
+        click.echo(output)
+
+
 @click.group(
     name="issue",
     cls=DgClickGroup,
     commands={
+        "add-link": add_link_issue_command,
         "create": create_issue_command,
         "get": get_issue_command,
         "list": list_issues_command,
+        "remove-link": remove_link_issue_command,
         "update": update_issue_command,
     },
 )

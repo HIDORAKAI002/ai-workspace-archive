@@ -81,6 +81,15 @@ Your user account needs these Unity Catalog privileges:
 8. Click **Generate**
 9. Copy the token immediately - it won't be shown again
 
+### Optional: Enable lineage tracking
+
+To compute table lineage from Databricks query history, additional configuration is required regardless of whether you chose Option A or Option B:
+
+- The service principal or user tied to the credentials used for the connection must have access to the metastore system tables. This typically requires one of:
+  - **Metastore admin** privileges, or
+  - **Account admin** privileges, which are required when the metastore was created by default at account creation time
+- The **warehouse ID** of a SQL warehouse that the above identity can access must be provided when configuring the connection (see [Step 3](#step-3-create-the-databricks-connection)). Lineage queries are executed against this warehouse.
+
 ## Step 2: Store access token in Dagster+
 
 1. In Dagster+, navigate to **Deployment** > **Environment variables**
@@ -104,6 +113,10 @@ Your user account needs these Unity Catalog privileges:
   - Format: `https://dbc-1234abcd-56ef.cloud.databricks.com`
   - Find this in your browser address bar when logged into Databricks
 - **Personal access token environment variable**: Name of the Dagster+ environment variable containing your token (e.g., `DATABRICKS_CONNECTION_TOKEN`)
+
+### Optional: Warehouse ID for lineage tracking
+
+- **Warehouse ID**: ID of the SQL warehouse used to execute lineage queries against the metastore system tables. Required to enable lineage tracking. For the permissions the connection identity must have, see [Enable lineage tracking](#optional-enable-lineage-tracking).
 
 ### Optional: Configure asset filtering
 

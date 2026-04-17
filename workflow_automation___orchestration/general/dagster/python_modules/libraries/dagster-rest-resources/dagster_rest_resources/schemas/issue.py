@@ -13,6 +13,18 @@ class DgApiIssueStatus(str, Enum):
     TRIAGE = "TRIAGE"
 
 
+class DgApiIssueLinkedRun(BaseModel):
+    """A run linked to an issue."""
+
+    run_id: str
+
+
+class DgApiIssueLinkedAsset(BaseModel):
+    """An asset linked to an issue."""
+
+    asset_key: str  # Slash-separated asset key (e.g., "my/asset/key")
+
+
 class DgApiIssue(BaseModel):
     """Single issue model."""
 
@@ -21,8 +33,7 @@ class DgApiIssue(BaseModel):
     description: str
     status: DgApiIssueStatus
     created_by_email: str
-    run_id: str | None = None
-    asset_key: list[str] | None = None
+    linked_objects: list[DgApiIssueLinkedRun | DgApiIssueLinkedAsset]
     context: str | None = None
 
 

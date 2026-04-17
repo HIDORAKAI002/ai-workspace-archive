@@ -216,11 +216,18 @@ class BuildkiteContext(Generic[T_Config]):
     ) -> bool:
         for path in self.changed_files:
             abs_path = self.repo_path / path
-            if (
+            if not (
                 _path_is_relative_to(abs_path, package.directory)
                 and path.suffix in _PACKAGE_CHANGE_DETECTION_FILETYPES
-                and (include_test_files or "_tests/" not in str(path))
             ):
+                continue
+            if include_test_files:
+                return True
+            # Check for _tests/ only in the path relative to the package
+            # directory, not the full repo path. Otherwise directories like
+            # "integration_tests/" in the repo prefix cause false positives.
+            rel_path = abs_path.relative_to(package.directory)
+            if "_tests/" not in str(rel_path):
                 return True
         return False
 

@@ -982,6 +982,8 @@ def format_sensor(sensor: "DgApiSensor", as_json: bool) -> str:
 
 def format_issue(issue: "DgApiIssue", as_json: bool) -> str:
     """Format a single issue for output."""
+    from dagster_rest_resources.schemas.issue import DgApiIssueLinkedAsset, DgApiIssueLinkedRun
+
     if as_json:
         return issue.model_dump_json(indent=2)
 
@@ -991,10 +993,19 @@ def format_issue(issue: "DgApiIssue", as_json: bool) -> str:
         ("Created By", issue.created_by_email),
     ]
 
-    if issue.run_id is not None:
-        fields.append(("Run ID", issue.run_id))
-    if issue.asset_key is not None:
-        fields.append(("Asset Key", str(issue.asset_key)))
+    run_ids = []
+    asset_keys = []
+    if issue.linked_objects:
+        for linked_object in issue.linked_objects:
+            if isinstance(linked_object, DgApiIssueLinkedRun):
+                run_ids.append(linked_object.run_id)
+            elif isinstance(linked_object, DgApiIssueLinkedAsset):
+                asset_keys.append(linked_object.asset_key)
+
+    if run_ids:
+        fields.append(("Run IDs", ", ".join(run_ids)))
+    if asset_keys:
+        fields.append(("Asset Keys", ", ".join(asset_keys)))
 
     fields.append(("Description", issue.description))
 
