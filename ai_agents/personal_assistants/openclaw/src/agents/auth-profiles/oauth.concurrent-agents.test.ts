@@ -18,6 +18,12 @@ async function loadOAuthModuleForTest() {
   ({ resolveApiKeyForProfile, resetOAuthRefreshQueuesForTest } = await import("./oauth.js"));
 }
 
+function resolveApiKeyForProfileInTest(
+  params: Omit<Parameters<typeof resolveApiKeyForProfile>[0], "cfg">,
+) {
+  return resolveApiKeyForProfile({ cfg: {}, ...params });
+}
+
 const {
   refreshProviderOAuthCredentialWithPluginMock,
   formatProviderAuthProfileApiKeyWithPluginMock,
@@ -35,10 +41,20 @@ vi.mock("../cli-credentials.js", () => ({
   writeCodexCliCredentials: () => true,
 }));
 
+vi.mock("@mariozechner/pi-ai/oauth", () => ({
+  getOAuthApiKey: vi.fn(async () => null),
+  getOAuthProviders: () => [{ id: "openai-codex" }],
+}));
+
 vi.mock("../../plugins/provider-runtime.runtime.js", () => ({
   formatProviderAuthProfileApiKeyWithPlugin: (params: { context?: { access?: string } }) =>
     formatProviderAuthProfileApiKeyWithPluginMock() ?? params?.context?.access,
   refreshProviderOAuthCredentialWithPlugin: refreshProviderOAuthCredentialWithPluginMock,
+}));
+
+vi.mock("./external-auth.js", () => ({
+  overlayExternalAuthProfiles: <T>(store: T) => store,
+  shouldPersistExternalAuthProfile: () => true,
 }));
 
 vi.mock("./doctor.js", () => ({
@@ -48,11 +64,17 @@ vi.mock("./doctor.js", () => ({
 // External-CLI sync does real I/O against the user's Codex/MiniMax CLI
 // credential files; it is slow and can pollute test state. Stub it to a no-op
 // so the suite only exercises in-repo auth-profile logic.
-vi.mock("./external-cli-sync.js", () => ({
-  syncExternalCliCredentials: () => false,
-  readManagedExternalCliCredential: () => null,
-  areOAuthCredentialsEquivalent: (a: unknown, b: unknown) => a === b,
-}));
+vi.mock("./external-cli-sync.js", async () => {
+  const actual =
+    await vi.importActual<typeof import("./external-cli-sync.js")>("./external-cli-sync.js");
+  return {
+    ...actual,
+    syncExternalCliCredentials: () => false,
+    readManagedExternalCliCredential: () => null,
+    resolveExternalCliAuthProfiles: () => [],
+    areOAuthCredentialsEquivalent: (a: unknown, b: unknown) => a === b,
+  };
+});
 
 function createExpiredOauthStore(params: {
   profileId: string;
@@ -79,7 +101,11 @@ function createExpiredOauthStore(params: {
 }
 
 describe("resolveApiKeyForProfile cross-agent refresh coordination (#26322)", () => {
-  const envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+  const envSnapshot = captureEnv([
+    "OPENCLAW_STATE_DIR",
+    "OPENCLAW_AGENT_DIR",
+    "PI_CODING_AGENT_DIR",
+  ]);
   let tempRoot = "";
   let mainAgentDir = "";
 
@@ -93,6 +119,8 @@ describe("resolveApiKeyForProfile cross-agent refresh coordination (#26322)", ()
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-oauth-concurrent-"));
     process.env.OPENCLAW_STATE_DIR = tempRoot;
     mainAgentDir = path.join(tempRoot, "agents", "main", "agent");
+    process.env.OPENCLAW_AGENT_DIR = mainAgentDir;
+    process.env.PI_CODING_AGENT_DIR = mainAgentDir;
     await fs.mkdir(mainAgentDir, { recursive: true });
     await loadOAuthModuleForTest();
     // Drop any refresh-queue entries left behind by a prior timed-out test.
@@ -150,7 +178,7 @@ describe("resolveApiKeyForProfile cross-agent refresh coordination (#26322)", ()
     // performed; the remaining 19 adopt the resulting fresh credentials.
     const results = await Promise.all(
       subAgents.map((agentDir) =>
-        resolveApiKeyForProfile({
+        resolveApiKeyForProfileInTest({
           store: ensureAuthProfileStore(agentDir),
           profileId,
           agentDir,
@@ -165,6 +193,5 @@ describe("resolveApiKeyForProfile cross-agent refresh coordination (#26322)", ()
       expect(result?.apiKey).toBe("cross-agent-refreshed-access");
       expect(result?.provider).toBe(provider);
     }
-  }, // Generous timeout; the fix should complete well under 5s in practice.
-  60_000);
+  }, 60_000); // Generous timeout; the fix should complete well under 5s in practice.
 });
