@@ -60,9 +60,9 @@ const (
 )
 
 // zstdDecoderPool pools *zstd.Decoder instances to avoid the allocation cost
-// of zstd.NewReader on every compressed request. When the pool is empty, New
-// returns nil; the call site falls back to newZstdDecoder() to surface the
-// construction error explicitly.
+// of zstd.NewReader on every compressed request. New returns nil only when
+// zstd.NewReader fails during construction; the call site detects this and
+// falls back to newZstdDecoder() to surface the error explicitly.
 var zstdDecoderPool = sync.Pool{
 	New: func() any {
 		dec, err := zstd.NewReader(nil)
@@ -653,14 +653,16 @@ func readRequestBodyWithOptionalCompression(
 		}
 	}
 	if err := zstdr.Reset(body); err != nil {
-		// decoder is closed; discard it, pool.New will allocate a fresh one
+		zstdr.Close()
 		return nil, fmt.Errorf("reset zstd decoder: %w", err)
 	}
 	defer func() {
 		if err := zstdr.Reset(nil); err == nil {
 			zstdDecoderPool.Put(zstdr)
+		} else {
+			// decoder is closed/broken; close it before discarding
+			zstdr.Close()
 		}
-		// if Reset(nil) errors the decoder is closed; drop it, pool.New will create a fresh one
 	}()
 
 	b, err := io.ReadAll(zstdr)

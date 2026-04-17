@@ -56,7 +56,8 @@ use windmill_common::{
         CRITICAL_ALERTS_ON_DB_OVERSIZE_SETTING, CRITICAL_ALERTS_ON_TOKEN_EXPIRY_SETTING,
         CRITICAL_ALERT_MUTE_UI_SETTING, CRITICAL_ERROR_CHANNELS_SETTING,
         DEFAULT_TAGS_PER_WORKSPACE_SETTING, DEFAULT_TAGS_WORKSPACES_SETTING,
-        EXPOSE_DEBUG_METRICS_SETTING, EXPOSE_METRICS_SETTING, EXTRA_PIP_INDEX_URL_SETTING,
+        DISABLE_PASSWORD_LOGIN, DISABLE_PASSWORD_LOGIN_SETTING, EXPOSE_DEBUG_METRICS_SETTING,
+        EXPOSE_METRICS_SETTING, EXTRA_PIP_INDEX_URL_SETTING,
         FORK_WORKSPACE_TAG_APPEND_FORK_SUFFIX_SETTING, HUB_API_SECRET_SETTING,
         HUB_BASE_URL_SETTING, INSTANCE_PYTHON_VERSION_SETTING, JOB_DEFAULT_TIMEOUT_SECS_SETTING,
         JOB_ISOLATION_SETTING, JWT_SECRET_SETTING, KEEP_JOB_DIR_SETTING, LICENSE_KEY_SETTING,
@@ -249,6 +250,7 @@ pub async fn initial_load(
     if server_mode {
         if let Some(db) = conn.as_sql() {
             load_require_preexisting_user(db).await;
+            load_disable_password_login(db).await;
             if let Err(e) = reload_critical_alerts_on_db_oversize(db).await {
                 tracing::error!(
                     "Error reloading critical alerts on db oversize setting: {:?}",
@@ -911,6 +913,18 @@ pub async fn load_require_preexisting_user(db: &DB) {
         }
         Err(e) => {
             tracing::error!("Error loading keep job dir metrics: {e:#}");
+        }
+        _ => (),
+    };
+}
+
+pub async fn load_disable_password_login(db: &DB) {
+    let value = load_value_from_global_settings(db, DISABLE_PASSWORD_LOGIN_SETTING).await;
+    match value {
+        Ok(Some(serde_json::Value::Bool(t))) => DISABLE_PASSWORD_LOGIN.store(t, Ordering::Relaxed),
+        Ok(None) => DISABLE_PASSWORD_LOGIN.store(false, Ordering::Relaxed),
+        Err(e) => {
+            tracing::error!("Error loading disable_password_login setting: {e:#}");
         }
         _ => (),
     };

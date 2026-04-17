@@ -3,34 +3,47 @@
 from typing import Any
 
 from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.schemas.issue import DgApiIssue, DgApiIssueList, DgApiIssueStatus
+from dagster_rest_resources.schemas.issue import (
+    DgApiIssue,
+    DgApiIssueLinkedAsset,
+    DgApiIssueLinkedRun,
+    DgApiIssueList,
+    DgApiIssueStatus,
+)
 
-CREATE_ISSUE_MUTATION = """
+ISSUE_FRAGMENT = """
+fragment IssueFragment on Issue {
+    id
+    title
+    description
+    status
+    context
+    linkedObjects {
+        ... on Run {
+            __typename
+            id
+        }
+        ... on Asset {
+            __typename
+            key {
+                path
+            }
+        }
+    }
+    createdBy {
+        email
+    }
+}
+"""
+
+CREATE_ISSUE_MUTATION = (
+    """
 mutation CliCreateIssueMutation($title: String!, $description: String!, $chatId: Int) {
     createIssue(title: $title, description: $description, chatId: $chatId) {
         ... on CreateIssueSuccess {
             __typename
             issue {
-                id
-                title
-                description
-                status
-                context
-                origin {
-                    ... on Run {
-                        __typename
-                        id
-                    }
-                    ... on Asset {
-                        __typename
-                        key {
-                            path
-                        }
-                    }
-                }
-                createdBy {
-                    email
-                }
+                ... IssueFragment
             }
         }
         ... on UnauthorizedError {
@@ -44,33 +57,17 @@ mutation CliCreateIssueMutation($title: String!, $description: String!, $chatId:
     }
 }
 """
+    + ISSUE_FRAGMENT
+)
 
-UPDATE_ISSUE_MUTATION = """
+UPDATE_ISSUE_MUTATION = (
+    """
 mutation CliUpdateIssueMutation($issueId: String!, $status: IssueStatus, $title: String, $description: String, $context: String) {
     updateIssue(issueId: $issueId, status: $status, title: $title, description: $description, context: $context) {
         ... on UpdateIssueSuccess {
             __typename
             issue {
-                id
-                title
-                description
-                status
-                context
-                origin {
-                    ... on Run {
-                        __typename
-                        id
-                    }
-                    ... on Asset {
-                        __typename
-                        key {
-                            path
-                        }
-                    }
-                }
-                createdBy {
-                    email
-                }
+                ... IssueFragment
             }
         }
         ... on UnauthorizedError {
@@ -84,32 +81,16 @@ mutation CliUpdateIssueMutation($issueId: String!, $status: IssueStatus, $title:
     }
 }
 """
+    + ISSUE_FRAGMENT
+)
 
-GET_ISSUE_WITH_CONTEXT_QUERY = """
+GET_ISSUE_WITH_CONTEXT_QUERY = (
+    """
 query FetchIssue($issueId: String!) {
     issue(issueId: $issueId) {
         ... on Issue {
             __typename
-            id
-            title
-            description
-            status
-            context
-            origin {
-                ... on Run {
-                    __typename
-                    id
-                }
-                ... on Asset {
-                    __typename
-                    key {
-                        path
-                    }
-                }
-            }
-            createdBy {
-                email
-            }
+            ... IssueFragment
         }
         ... on UnauthorizedError {
             __typename
@@ -122,6 +103,8 @@ query FetchIssue($issueId: String!) {
     }
 }
 """
+    + ISSUE_FRAGMENT
+)
 
 LIST_ISSUES_QUERY = """
 query FetchIssues($limit: Int!, $cursor: String, $filters: IssuesFilter) {
@@ -150,6 +133,54 @@ query FetchIssues($limit: Int!, $cursor: String, $filters: IssuesFilter) {
     }
 }
 """
+
+
+ADD_LINK_TO_ISSUE_MUTATION = (
+    """
+mutation CliAddLinkToIssueMutation($issueId: String!, $linkedObject: IssueLinkedObjectInput!) {
+    addLinkToIssue(issueId: $issueId, linkedObject: $linkedObject) {
+        ... on UpdateIssueSuccess {
+            __typename
+            issue {
+                ... IssueFragment
+            }
+        }
+        ... on UnauthorizedError {
+            __typename
+            message
+        }
+        ... on PythonError {
+            __typename
+            message
+        }
+    }
+}
+"""
+    + ISSUE_FRAGMENT
+)
+REMOVE_LINK_FROM_ISSUE_MUTATION = (
+    """
+mutation CliRemoveLinkFromIssueMutation($issueId: String!, $linkedObject: IssueLinkedObjectInput!) {
+    removeLinkFromIssue(issueId: $issueId, linkedObject: $linkedObject) {
+        ... on UpdateIssueSuccess {
+            __typename
+            issue {
+                ... IssueFragment
+            }
+        }
+        ... on UnauthorizedError {
+            __typename
+            message
+        }
+        ... on PythonError {
+            __typename
+            message
+        }
+    }
+}
+"""
+    + ISSUE_FRAGMENT
+)
 
 
 def get_issue_via_graphql(client: IGraphQLClient, issue_id: str) -> DgApiIssue:
@@ -207,6 +238,7 @@ def list_issues_via_graphql(
                 description="",
                 status=DgApiIssueStatus(issue_data["status"]),
                 created_by_email=issue_data["createdBy"]["email"],
+                linked_objects=[],
             )
         )
 
@@ -220,14 +252,14 @@ def list_issues_via_graphql(
 def _parse_issue_from_graphql(issue: dict[str, Any]) -> DgApiIssue:
     """Parse an issue dict from a GraphQL response into a DgApiIssue."""
     context = issue.get("context")
-    run_id = None
-    asset_key = None
-    origin = issue.get("origin")
-    if origin:
-        if origin.get("__typename") == "Run":
-            run_id = origin["id"]
-        elif origin.get("__typename") == "Asset":
-            asset_key = origin["key"]["path"]
+    linked_objects = []
+    for linked_object in issue.get("linkedObjects", []):
+        if linked_object.get("__typename") == "Run":
+            linked_objects.append(DgApiIssueLinkedRun(run_id=linked_object["id"]))
+        elif linked_object.get("__typename") == "Asset":
+            linked_objects.append(
+                DgApiIssueLinkedAsset(asset_key="/".join(linked_object["key"]["path"]))
+            )
 
     return DgApiIssue(
         id=issue["id"],
@@ -235,8 +267,7 @@ def _parse_issue_from_graphql(issue: dict[str, Any]) -> DgApiIssue:
         description=issue["description"],
         status=DgApiIssueStatus(issue["status"]),
         created_by_email=issue["createdBy"]["email"],
-        run_id=run_id,
-        asset_key=asset_key,
+        linked_objects=linked_objects,
         context=context,
     )
 
@@ -258,6 +289,58 @@ def create_issue_via_graphql(
         raise Exception(f"Unexpected response type: {typename}")
 
     return _parse_issue_from_graphql(create_result["issue"])
+
+
+def add_link_to_issue_via_graphql(
+    client: IGraphQLClient,
+    issue_id: str,
+    run_id: str | None = None,
+    asset_key: list[str] | None = None,
+) -> DgApiIssue:
+    """Add a run or asset link to an issue via GraphQL."""
+    linked_object: dict[str, Any] = {}
+    if run_id is not None:
+        linked_object["runId"] = run_id
+    if asset_key is not None:
+        linked_object["assetKey"] = {"path": asset_key}
+
+    variables: dict[str, Any] = {"issueId": issue_id, "linkedObject": linked_object}
+    result = client.execute(ADD_LINK_TO_ISSUE_MUTATION, variables=variables)
+    add_result = result["addLinkToIssue"]
+
+    typename = add_result.get("__typename")
+    if typename in ("UnauthorizedError", "PythonError"):
+        raise Exception(add_result["message"])
+    if typename != "UpdateIssueSuccess":
+        raise Exception(f"Unexpected response type: {typename}")
+
+    return _parse_issue_from_graphql(add_result["issue"])
+
+
+def remove_link_from_issue_via_graphql(
+    client: IGraphQLClient,
+    issue_id: str,
+    run_id: str | None = None,
+    asset_key: list[str] | None = None,
+) -> DgApiIssue:
+    """Remove a run or asset link from an issue via GraphQL."""
+    linked_object: dict[str, Any] = {}
+    if run_id is not None:
+        linked_object["runId"] = run_id
+    if asset_key is not None:
+        linked_object["assetKey"] = {"path": asset_key}
+
+    variables: dict[str, Any] = {"issueId": issue_id, "linkedObject": linked_object}
+    result = client.execute(REMOVE_LINK_FROM_ISSUE_MUTATION, variables=variables)
+    remove_result = result["removeLinkFromIssue"]
+
+    typename = remove_result.get("__typename")
+    if typename in ("UnauthorizedError", "PythonError"):
+        raise Exception(remove_result["message"])
+    if typename != "UpdateIssueSuccess":
+        raise Exception(f"Unexpected response type: {typename}")
+
+    return _parse_issue_from_graphql(remove_result["issue"])
 
 
 def update_issue_via_graphql(

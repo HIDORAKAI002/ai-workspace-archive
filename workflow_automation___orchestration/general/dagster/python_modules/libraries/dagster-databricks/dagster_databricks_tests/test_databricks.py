@@ -1,5 +1,6 @@
 from importlib.metadata import version
 from unittest import mock
+from unittest.mock import MagicMock
 
 import dagster
 import dagster_databricks
@@ -15,6 +16,7 @@ from dagster_databricks.databricks import (
     WorkspaceClientFactory,
 )
 from dagster_databricks.resources import AzureServicePrincipalCredentials, OauthCredentials
+from databricks.sdk.core import CredentialsStrategy
 from databricks.sdk.service import compute, jobs
 from pytest_mock import MockerFixture
 
@@ -278,11 +280,15 @@ class TestGetAuthType:
     @pytest.mark.parametrize(
         "input_params, expected",
         [
-            (("my_token", None, None, None, None, None), AuthTypeEnum.PAT),
-            ((None, "client_id", "client_secret", None, None, None), AuthTypeEnum.OAUTH_M2M),
+            (("my_token", None, None, None, None, None, None), AuthTypeEnum.PAT),
+            ((None, "client_id", "client_secret", None, None, None, None), AuthTypeEnum.OAUTH_M2M),
             (
-                (None, None, None, "client_id", "client_secret", "tenant_id"),
+                (None, None, None, "client_id", "client_secret", "tenant_id", None),
                 AuthTypeEnum.AZURE_CLIENT_SECRET,
+            ),
+            (
+                (None, None, None, None, None, None, MagicMock(spec=CredentialsStrategy)),
+                AuthTypeEnum.CUSTOM,
             ),
         ],
     )
@@ -346,3 +352,33 @@ class TestDatabricksClientHasCredentials:
         assert client.azure_credentials.azure_tenant_id == "test-tenant-id"  # pyright: ignore[reportOptionalMemberAccess]
         assert client.token is None
         assert client.oauth_credentials is None
+
+    def test_given_credentials_strategy_instantiates_correctly(self):
+        mock_strategy = MagicMock(spec=CredentialsStrategy)
+        client = DatabricksClientResource(
+            host="https://some.host",
+            credentials_strategy=mock_strategy,
+        )
+        assert client.credentials_strategy is mock_strategy
+        assert client.token is None
+        assert client.oauth_credentials is None
+        assert client.azure_credentials is None
+
+    def test_given_credentials_strategy_and_token_raises_at_get_client(self):
+        mock_strategy = MagicMock(spec=CredentialsStrategy)
+        # Pydantic construction succeeds — mutual exclusion between credentials_strategy
+        # and serializable credentials is enforced downstream in WorkspaceClientFactory.
+        client = DatabricksClientResource(
+            host="https://some.host",
+            token="something",
+            credentials_strategy=mock_strategy,
+        )
+        with pytest.raises(ValueError, match="Can only provide one of"):
+            client.get_client()
+
+    def test_given_no_credentials_raises_ValueError_at_get_client(self):
+        # Construction succeeds — no credentials present is only caught at get_client() time
+        # because credentials_strategy cannot be inspected during Pydantic validation.
+        client = DatabricksClientResource(host="https://some.host")
+        with pytest.raises(ValueError, match="Must provide one of"):
+            client.get_client()

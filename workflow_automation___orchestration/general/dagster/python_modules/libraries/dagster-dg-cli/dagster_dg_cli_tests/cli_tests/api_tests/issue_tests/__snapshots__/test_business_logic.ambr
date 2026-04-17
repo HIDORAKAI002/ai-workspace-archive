@@ -1,12 +1,47 @@
 # serializer version: 1
+# name: TestAddLinkToIssueGraphQLVariables.test_with_asset_key[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'assetKey': dict({
+        'path': list([
+          'my',
+          'asset',
+        ]),
+      }),
+    }),
+  })
+# ---
+# name: TestAddLinkToIssueGraphQLVariables.test_with_both[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'assetKey': dict({
+        'path': list([
+          'my',
+          'asset',
+        ]),
+      }),
+      'runId': 'run-abc-456',
+    }),
+  })
+# ---
+# name: TestAddLinkToIssueGraphQLVariables.test_with_run_id[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'runId': 'run-abc-456',
+    }),
+  })
+# ---
 # name: TestFormatIssues.test_format_created_issue_json_output[0]
   dict({
-    'asset_key': None,
     'context': None,
     'created_by_email': 'creator@example.com',
     'description': 'Pipeline failed unexpectedly.',
     'id': 'new-issue-uuid-abc',
-    'run_id': None,
+    'linked_objects': list([
+    ]),
     'status': 'OPEN',
     'title': 'New pipeline issue',
   })
@@ -43,7 +78,7 @@
   Title:       Run failure issue
   Status:      OPEN
   Created By:  ops@example.com
-  Run ID:      run-failing-456
+  Run IDs:     run-failing-456
   Description: This issue is linked to a specific run.
   '''
 # ---
@@ -53,34 +88,38 @@
     'has_more': False,
     'items': list([
       dict({
-        'asset_key': list([
-          'my_asset',
-        ]),
         'context': None,
         'created_by_email': 'alice@example.com',
         'description': 'The asset failed to materialize due to a connection error.',
         'id': 'issue-1-uuid-12345',
-        'run_id': 'run-abc-123',
+        'linked_objects': list([
+          dict({
+            'run_id': 'run-abc-123',
+          }),
+          dict({
+            'asset_key': 'my_asset',
+          }),
+        ]),
         'status': 'OPEN',
         'title': 'Asset materialization failed',
       }),
       dict({
-        'asset_key': None,
         'context': None,
         'created_by_email': 'bob@example.com',
         'description': 'The daily schedule did not execute as expected.',
         'id': 'issue-2-uuid-67890',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'CLOSED',
         'title': 'Schedule missed execution',
       }),
       dict({
-        'asset_key': None,
         'context': 'Stack trace: ...',
         'created_by_email': 'carol@example.com',
         'description': 'Sensor encountered an unhandled exception.',
         'id': 'issue-3-uuid-abcdef',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'OPEN',
         'title': 'Sensor error',
       }),
@@ -101,12 +140,12 @@
     'has_more': True,
     'items': list([
       dict({
-        'asset_key': None,
         'context': None,
         'created_by_email': 'dave@example.com',
         'description': 'Description for first paginated issue.',
         'id': 'issue-page-1-uuid',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'OPEN',
         'title': 'First paginated issue',
       }),
@@ -122,15 +161,18 @@
 # ---
 # name: TestFormatIssues.test_format_single_issue_json_output[0]
   dict({
-    'asset_key': list([
-      'namespace',
-      'my_critical_asset',
-    ]),
     'context': 'Additional diagnostic information here.',
     'created_by_email': 'engineer@example.com',
     'description': 'The pipeline failed with a critical error during execution.',
     'id': 'single-issue-uuid-xyz',
-    'run_id': 'run-xyz-789',
+    'linked_objects': list([
+      dict({
+        'run_id': 'run-xyz-789',
+      }),
+      dict({
+        'asset_key': 'namespace/my_critical_asset',
+      }),
+    ]),
     'status': 'OPEN',
     'title': 'Critical pipeline failure',
   })
@@ -140,20 +182,20 @@
   Title:              Critical pipeline failure
   Status:             OPEN
   Created By:         engineer@example.com
-  Run ID:             run-xyz-789
-  Asset Key:          ['namespace', 'my_critical_asset']
+  Run IDs:            run-xyz-789
+  Asset Keys:         namespace/my_critical_asset
   Description:        The pipeline failed with a critical error during execution.
   Additional Context: Additional diagnostic information here.
   '''
 # ---
 # name: TestFormatIssues.test_format_updated_issue_json_output[0]
   dict({
-    'asset_key': None,
     'context': None,
     'created_by_email': 'owner@example.com',
     'description': 'Updated description after investigation.',
     'id': 'existing-issue-uuid-xyz',
-    'run_id': None,
+    'linked_objects': list([
+    ]),
     'status': 'CLOSED',
     'title': 'Updated issue title',
   })
@@ -168,12 +210,12 @@
 # ---
 # name: TestFormatIssues.test_format_updated_issue_with_context_json_output[0]
   dict({
-    'asset_key': None,
     'context': 'New context added during update.',
     'created_by_email': 'owner@example.com',
     'description': 'Updated description after investigation.',
     'id': 'existing-issue-uuid-xyz',
-    'run_id': None,
+    'linked_objects': list([
+    ]),
     'status': 'OPEN',
     'title': 'Updated issue title',
   })
@@ -193,32 +235,32 @@
     'has_more': False,
     'items': list([
       dict({
-        'asset_key': None,
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status OPEN.',
         'id': 'issue-open-uuid',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'OPEN',
         'title': 'Issue with status OPEN',
       }),
       dict({
-        'asset_key': None,
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status CLOSED.',
         'id': 'issue-closed-uuid',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'CLOSED',
         'title': 'Issue with status CLOSED',
       }),
       dict({
-        'asset_key': None,
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status TRIAGE.',
         'id': 'issue-triage-uuid',
-        'run_id': None,
+        'linked_objects': list([
+        ]),
         'status': 'TRIAGE',
         'title': 'Issue with status TRIAGE',
       }),
@@ -283,5 +325,40 @@
       ]),
     }),
     'limit': 10,
+  })
+# ---
+# name: TestRemoveLinkFromIssueGraphQLVariables.test_with_asset_key[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'assetKey': dict({
+        'path': list([
+          'my',
+          'asset',
+        ]),
+      }),
+    }),
+  })
+# ---
+# name: TestRemoveLinkFromIssueGraphQLVariables.test_with_both[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'assetKey': dict({
+        'path': list([
+          'my',
+          'asset',
+        ]),
+      }),
+      'runId': 'run-abc-456',
+    }),
+  })
+# ---
+# name: TestRemoveLinkFromIssueGraphQLVariables.test_with_run_id[0]
+  dict({
+    'issueId': 'issue-uuid-123',
+    'linkedObject': dict({
+      'runId': 'run-abc-456',
+    }),
   })
 # ---
