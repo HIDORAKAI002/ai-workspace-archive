@@ -103,6 +103,8 @@ export enum PlanFeatureTypes {
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
+  /** On-prem: core EE capability flag — true for all paid plans, false for free */
+  FEATURE_EE_CORE = 'feature_ee_core',
 }
 
 export enum PlanTitles {
@@ -113,6 +115,7 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
+  FREE = 'Free',
   SELF_HOSTED_STARTER = 'Self-hosted Starter',
   SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
@@ -155,6 +158,10 @@ export const PlanMeta = {
     chartFillColor: 'var(--color-gray-500, #6A7184)',
     badgeBgColor: 'var(--free-plan-badge-bg-color, #F4F4F5)',
     badgeTextColor: 'var(--free-plan-badge-text-color, #1F293A)',
+    // Static (theme-independent) badge colors — used by upgrade pills that
+    // must read identically in light + dark. No CSS var, no dark-mode flip.
+    staticBadgeBgColor: '#F4F4F5',
+    staticBadgeTextColor: '#1F293A',
   },
   [PlanTitles.PLUS]: {
     title: PlanTitles.PLUS,
@@ -167,6 +174,8 @@ export const PlanMeta = {
     chartFillColor: 'var(--plus-plan-chart-fill-color, #207399)',
     badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
     badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
+    staticBadgeBgColor: '#D7F2FF',
+    staticBadgeTextColor: '#207399',
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
@@ -179,18 +188,22 @@ export const PlanMeta = {
     chartFillColor: 'var(--business-plan-chart-fill-color, #972377)',
     badgeBgColor: 'var(--business-plan-badge-bg-color, #FFF0FB)',
     badgeTextColor: 'var(--business-plan-badge-text-color, #C44DA0)',
+    staticBadgeBgColor: '#FFF0FB',
+    staticBadgeTextColor: '#C44DA0',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
-    color: 'var(--enterprise-plan-color, #FFF5EF)',
-    accent: 'var(--enterprise-plan-accent, #663B1F)',
-    primary: 'var(--enterprise-plan-primary, #C86827)',
-    bgLight: 'var(--enterprise-plan-bg-light, #FFF5EF)',
-    bgDark: 'var(--enterprise-plan-bg-dark, #FEE6D6)',
-    border: 'var(--enterprise-plan-border, #FDCDAD)',
-    chartFillColor: 'var(--enterprise-plan-chart-fill-color, #C86827)',
-    badgeBgColor: 'var(--enterprise-plan-badge-bg-color, #FEE6D6)',
-    badgeTextColor: 'var(--enterprise-plan-badge-text-color, #C86827)',
+    color: 'var(--enterprise-plan-color, #EAF7F7)',
+    accent: 'var(--enterprise-plan-accent, #8FC8C8)',
+    primary: 'var(--enterprise-plan-primary, #0D5A5A)',
+    bgLight: 'var(--enterprise-plan-bg-light, #EAF7F7)',
+    bgDark: 'var(--enterprise-plan-bg-dark, #CFEAEA)',
+    border: 'var(--enterprise-plan-border, #8FC8C8)',
+    chartFillColor: 'var(--enterprise-plan-chart-fill-color, #0D5A5A)',
+    badgeBgColor: 'var(--enterprise-plan-badge-bg-color, #CFEAEA)',
+    badgeTextColor: 'var(--enterprise-plan-badge-text-color, #0D5A5A)',
+    staticBadgeBgColor: '#CFEAEA',
+    staticBadgeTextColor: '#0D5A5A',
   },
 } as const;
 
@@ -362,6 +375,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
+  [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
 };
 
 export const getUpgradeMessage = (

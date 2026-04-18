@@ -83,6 +83,10 @@ export class ExportService {
     return serializedScripts;
   }
 
+  async serializeDocuments(_context: NcContext) {
+    return [];
+  }
+
   async serializeWorkflows(_context: NcContext, _param: any, _req: NcRequest) {
     return [];
   }
@@ -873,9 +877,18 @@ export class ExportService {
     const refView =
       view ?? (await View.getFirstCollaborativeView(context, model.id));
 
+    if (!refView) {
+      this.debugLog(
+        `no collaborative view found for model ${model.id} — skipping data export`,
+      );
+      dataStream.push(null);
+      linkStream?.push(null);
+      return;
+    }
+
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
-      const hideSystemFields = view.show_system_fields
+      const hideSystemFields = refView.show_system_fields
         ? // at minimum filter mm fields used in Links field
           model.columns
             .filter(
@@ -898,8 +911,10 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isMMOrMMLike(col))
-      : model.columns.filter((col) => isMMOrMMLike(col));
+          .filter((col) => isMMOrMMLike(col) && !isCrossBaseLink(col))
+      : model.columns.filter(
+          (col) => isMMOrMMLike(col) && !isCrossBaseLink(col),
+        );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 

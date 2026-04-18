@@ -713,9 +713,24 @@ describe("provider attribution", () => {
     expect(
       resolveProviderRequestCapabilities({
         provider: "ollama",
-        modelId: "kimi-k2.5:cloud",
+        api: "openai-completions",
+        baseUrl: "http://127.0.0.1:11434/v1",
         capability: "llm",
         transport: "stream",
+      }),
+    ).toMatchObject({
+      endpointClass: "local",
+      supportsNativeStreamingUsageCompat: true,
+    });
+
+    expect(
+      resolveProviderRequestCapabilities({
+        provider: "ollama",
+        api: "openai-completions",
+        baseUrl: "http://127.0.0.1:11434/v1",
+        capability: "llm",
+        transport: "stream",
+        modelId: "kimi-k2.5:cloud",
       }),
     ).toMatchObject({
       compatibilityFamily: "moonshot",
@@ -904,6 +919,28 @@ describe("provider attribution", () => {
           knownProviderFamily: "generic",
           endpointClass: "modelstudio-native",
           isKnownNativeEndpoint: true,
+          allowsOpenAIServiceTier: false,
+          supportsOpenAIReasoningCompatPayload: false,
+          allowsResponsesStore: false,
+          supportsResponsesStoreField: false,
+          shouldStripResponsesPromptCache: false,
+          allowsAnthropicServiceTier: false,
+          supportsNativeStreamingUsageCompat: true,
+        },
+      },
+      {
+        name: "Ollama OpenAI-compatible completions",
+        input: {
+          provider: "ollama",
+          api: "openai-completions",
+          baseUrl: "http://127.0.0.1:11434/v1",
+          capability: "llm" as const,
+          transport: "stream" as const,
+        },
+        expected: {
+          knownProviderFamily: "ollama",
+          endpointClass: "local",
+          isKnownNativeEndpoint: false,
           allowsOpenAIServiceTier: false,
           supportsOpenAIReasoningCompatPayload: false,
           allowsResponsesStore: false,

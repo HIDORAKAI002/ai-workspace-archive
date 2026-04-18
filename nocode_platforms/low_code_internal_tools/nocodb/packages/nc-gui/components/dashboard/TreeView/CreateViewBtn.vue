@@ -20,8 +20,7 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } =
-  useEeConfig()
+const { blockListView, blockTimelineView, showEEFeatures, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -198,6 +197,26 @@ async function onOpenModal({
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
           </div>
         </NcMenuItem>
+        <NcMenuItem
+          v-if="isEeUI && showEEFeatures"
+          inner-class="w-full"
+          data-testid="sidebar-view-create-map"
+          @click="
+            () => {
+              isOpen = false
+              onOpenModal({ type: ViewTypes.MAP })
+            }
+          "
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+              <div>{{ $t('objects.viewType.map') }}</div>
+            </div>
+
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+          </div>
+        </NcMenuItem>
         <NcTooltip
           v-if="isListViewEnabled"
           :title="$t('tooltip.listViewOnlyPg')"
@@ -238,40 +257,6 @@ async function onOpenModal({
             </div>
           </NcMenuItem>
         </NcTooltip>
-        <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
-          inner-class="w-full"
-          data-testid="sidebar-view-create-map"
-          @click="
-            () => {
-              isOpen = false
-              showUpgradeToUseMapView({
-                successCallback: () => {
-                  onOpenModal({ type: ViewTypes.MAP })
-                },
-              })
-            }
-          "
-        >
-          <div class="item">
-            <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-              <div>{{ $t('objects.viewType.map') }}</div>
-            </div>
-
-            <template v-if="blockMapView">
-              <PaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                :plan-title="PlanTitles.BUSINESS"
-                remove-click
-                show-as-lock
-              />
-            </template>
-            <template v-else>
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-            </template>
-          </div>
-        </NcMenuItem>
         <NcMenuItem
           v-if="isEeUI && showEEFeatures"
           inner-class="w-full"
