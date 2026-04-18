@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- CJK text followed by opening bracket annotations now wraps like browsers instead of leaving the opening bracket on the previous line (#148).
+
 ## 0.0.5 - 2026-04-09
 
 ### Added
