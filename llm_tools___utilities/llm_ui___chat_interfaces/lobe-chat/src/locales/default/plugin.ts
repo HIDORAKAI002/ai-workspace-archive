@@ -263,6 +263,7 @@ export default {
   'builtins.lobe-web-onboarding.apiName.readDocument': 'Read document',
   'builtins.lobe-web-onboarding.apiName.saveUserQuestion': 'Save user question',
   'builtins.lobe-web-onboarding.apiName.updateDocument': 'Update document',
+  'builtins.lobe-web-onboarding.apiName.writeDocument': 'Write document',
   'builtins.lobe-web-onboarding.title': 'User Onboarding',
   'builtins.lobe-topic-reference.apiName.getTopicContext': 'Get Topic Context',
   'builtins.lobe-topic-reference.title': 'Topic Reference',

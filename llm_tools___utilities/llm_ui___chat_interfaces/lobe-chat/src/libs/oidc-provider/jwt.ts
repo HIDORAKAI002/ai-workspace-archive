@@ -89,7 +89,9 @@ const getVerificationKey = async () => {
     return await importJWK(publicKeyJwk, 'RS256');
   } catch (error) {
     log('Failed to get JWKS public key: %O', error);
-    throw new Error(`JWKS_KEY public key retrieval failed: ${(error as Error).message}`, { cause: error });
+    throw new Error(`JWKS_KEY public key retrieval failed: ${(error as Error).message}`, {
+      cause: error,
+    });
   }
 };
 
