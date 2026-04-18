@@ -1,18 +1,12 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ModelDefinitionConfig } from "openclaw/plugin-sdk/provider-onboard";
+import { type OpenClawConfig, withFetchPreconnect } from "openclaw/plugin-sdk/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
-import type { ModelDefinitionConfig } from "../config/types.models.js";
-import {
-  normalizePluginDiscoveryResult,
-  runProviderCatalog,
-} from "../plugins/provider-discovery.js";
-import type { ProviderPlugin } from "../plugins/types.js";
-import { loadBundledPluginPublicSurfaceSync } from "../test-utils/bundled-plugin-public-surface.js";
-import { withFetchPreconnect } from "../test-utils/fetch-mock.js";
-import { OLLAMA_LOCAL_AUTH_MARKER } from "./model-auth-markers.js";
-import type { ProviderConfig } from "./models-config.providers.secrets.js";
+import { ollamaProviderDiscovery } from "./provider-discovery.js";
+
+const OLLAMA_LOCAL_AUTH_MARKER = "ollama-local";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -48,39 +42,14 @@ describe("Ollama provider", () => {
     }
   }
 
-  let ollamaCatalogProvider: ProviderPlugin | undefined;
-
-  function loadOllamaCatalogProvider(): ProviderPlugin | undefined {
-    if (ollamaCatalogProvider) {
-      return ollamaCatalogProvider;
-    }
-    const surface = loadBundledPluginPublicSurfaceSync<{
-      default?: ProviderPlugin;
-      ollamaProviderDiscovery?: ProviderPlugin;
-    }>({
-      pluginId: "ollama",
-      artifactBasename: "provider-discovery.js",
-    });
-    ollamaCatalogProvider = surface.default ?? surface.ollamaProviderDiscovery;
-    return ollamaCatalogProvider;
-  }
-
-  async function runOllamaCatalog(params: {
-    config?: OpenClawConfig;
-    env?: NodeJS.ProcessEnv;
-  }): Promise<ProviderConfig | undefined> {
-    const provider = loadOllamaCatalogProvider();
-    if (!provider) {
-      return undefined;
-    }
+  async function runOllamaCatalog(params: { config?: OpenClawConfig; env?: NodeJS.ProcessEnv }) {
     const env: NodeJS.ProcessEnv = {
       ...process.env,
       VITEST: "1",
       NODE_ENV: "test",
       ...params.env,
     };
-    const result = await runProviderCatalog({
-      provider,
+    const result = await ollamaProviderDiscovery.discovery.run({
       config: params.config ?? {},
       agentDir: createAgentDir(),
       env,
@@ -93,9 +62,7 @@ describe("Ollama provider", () => {
         source: env.OLLAMA_API_KEY?.trim() ? "env" : "none",
       }),
     });
-    return normalizePluginDiscoveryResult({ provider, result }).ollama as
-      | ProviderConfig
-      | undefined;
+    return result && "provider" in result ? result.provider : undefined;
   }
 
   async function withoutAmbientOllamaEnv<T>(run: () => Promise<T>): Promise<T> {
