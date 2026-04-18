@@ -118,6 +118,7 @@ export class UiPostOperations
     'nestedDataUnlink' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
     'nestedDataBulkCopyPasteOrDeleteAll' as const,
+    'nestedDataBulkLinkByDisplayValue' as const,
     'linkFilterCreate' as const,
     'widgetFilterCreate' as const,
     'rowColorConditionsFilterCreate' as const,
@@ -528,6 +529,18 @@ export class UiPostOperations
             user: req.user,
           },
         );
+      case 'nestedDataBulkLinkByDisplayValue':
+        return await this.dataTableService.nestedBulkLinkByDisplayValue(
+          context,
+          {
+            modelId: req.query.tableId as string,
+            query: req.query,
+            viewId: req.query.viewId as string,
+            data: payload,
+            cookie: req,
+            user: req.user,
+          },
+        );
       case 'bulkAggregate':
         context.cache = true;
         return await this.dataTableService.bulkAggregate(context, {
@@ -696,7 +709,6 @@ export class UiPostOperations
           extensionId: req.query.extensionId,
           req,
         });
-
     }
   }
 }

@@ -543,7 +543,7 @@ const enabledOptions = computed(() => {
           </span>
         </NcTooltip>
         <div v-if="!isEditing" class="flex items-center">
-          <NcTooltip v-if="table.description?.length" placement="bottom">
+          <NcTooltip v-if="table.description?.length" overlay-class-name="nc-tooltip-scrollable" placement="bottom">
             <template #title>
               <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>
             </template>
@@ -670,22 +670,31 @@ const enabledOptions = computed(() => {
                                 isOptionsOpen = false
                               }
                             "
+                            show-as-lock
                           />
                         </div>
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
-                  <NcMenuItem
+                  <PaymentUpgradeBadgeProvider
                     v-if="enabledOptions.tableRowLevelSecurity"
-                    :data-testid="`sidebar-table-rls-${table.title}`"
-                    class="nc-table-rls"
-                    @click="onRowLevelSecurity"
+                    :feature="PlanFeatureTypes.FEATURE_RLS"
                   >
-                    <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
-                      <GeneralIcon icon="ncShield" class="opacity-80" />
-                      <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
-                    </div>
-                  </NcMenuItem>
+                    <template #default="{ click }">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-rls-${table.title}`"
+                        class="nc-table-rls"
+                        @click="click(PlanFeatureTypes.FEATURE_RLS, onRowLevelSecurity)"
+                      >
+                        <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncShield" class="opacity-80" />
+                          <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
+
+                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_RLS" remove-click show-as-lock />
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
                   <PaymentUpgradeBadgeProvider
                     v-if="enabledOptions.tableDateDependency"
                     :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
@@ -703,6 +712,7 @@ const enabledOptions = computed(() => {
                             :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
                             :title="$t('upgrade.upgradeToUseDateDependency')"
                             :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                            show-as-lock
                           />
                         </div>
                       </NcMenuItem>
