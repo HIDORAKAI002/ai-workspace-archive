@@ -43,6 +43,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewExtension = computed(() => false)
 
+  const blockExtensions = computed(() => false)
+
   const blockAddNewAttachment = computed(() => false)
 
   const blockAddNewExternalSource = computed(() => false)
@@ -87,6 +89,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAiButtonField = computed(() => true)
 
   const blockAiChat = computed(() => true)
+
+  const blockAiIntegrations = computed(() => true)
 
   const blockDocAi = computed(() => true)
 
@@ -210,6 +214,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseAiChat = (..._args: any[]) => {}
 
+  const showUpgradeToUseAiIntegrations = (..._args: any[]) => {}
+
   const showUpgradeToUseDocAi = (..._args: any[]) => {}
 
   const showUpgradeToUseButtonVisibility = (..._args: any[]) => {}
@@ -232,7 +238,15 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRecordTemplates = computed(() => false)
 
+  const blockRls = computed(() => true)
+
   const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
+
+  const showUpgradeToUseRls = (..._args: any[]) => {}
+
+  const showUpgradeToDuplicateTableToOtherWs = (..._args: any[]) => {}
+
+  const showUpgradeToDuplicateTableToOtherBase = (..._args: any[]) => {}
 
   const blockFormScheduling = computed(() => true)
 
@@ -251,6 +265,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseDateDependency = (..._args: any[]) => {}
 
+  const showUpgradeToUseExtensions = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
 
   const showEEFeatures = computed(() => false)
@@ -265,11 +281,29 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeForEEFeature = (..._args: any[]) => {}
 
+  const blockSSO = computed(() => true)
+
   const showUpgradeToUseSSO = (..._args: any[]) => {}
 
   const blockScim = computed(() => true)
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
+
+  const blockSnapshots = computed(() => true)
+
+  const showUpgradeToUseSnapshots = (..._args: any[]) => {}
+
+  const blockCustomUrls = computed(() => true)
+
+  const showUpgradeToUseCustomUrls = (..._args: any[]) => {}
+
+  const blockScripts = computed(() => true)
+
+  const showUpgradeToUseScripts = (..._args: any[]) => {}
+
+  const blockWorkflows = computed(() => true)
+
+  const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -354,6 +388,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiIntegrations,
+    showUpgradeToUseAiIntegrations,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,
@@ -369,13 +405,17 @@ export const useEeConfig = createSharedComposable(() => {
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
     blockSync,
+    blockRls,
     blockUnique,
     blockUuidField,
     blockAutoNumberField,
     showUpgradeToUseSync,
+    showUpgradeToUseRls,
     showUpgradeToUseUnique,
     showUpgradeToUseUuidField,
     showUpgradeToUseAutoNumberField,
+    showUpgradeToDuplicateTableToOtherWs,
+    showUpgradeToDuplicateTableToOtherBase,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
@@ -390,6 +430,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseMapView,
     blockDateDependency,
     showUpgradeToUseDateDependency,
+    blockExtensions,
+    showUpgradeToUseExtensions,
     isEEFeatureBlocked,
     showEEFeatures,
     blockWorkspaceCreate,
@@ -397,8 +439,17 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,
+    blockSSO,
     showUpgradeToUseSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockSnapshots,
+    showUpgradeToUseSnapshots,
+    blockCustomUrls,
+    showUpgradeToUseCustomUrls,
+    blockScripts,
+    showUpgradeToUseScripts,
+    blockWorkflows,
+    showUpgradeToUseWorkflows,
   }
 })

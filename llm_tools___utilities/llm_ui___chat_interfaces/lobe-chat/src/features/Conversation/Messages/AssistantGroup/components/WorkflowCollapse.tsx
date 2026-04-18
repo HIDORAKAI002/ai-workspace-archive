@@ -1,7 +1,7 @@
 import { type ChatToolPayloadWithResult } from '@lobechat/types';
 import { Accordion, AccordionItem, Block, Flexbox, Icon, Text } from '@lobehub/ui';
 import { cssVar } from 'antd-style';
-import { Check, HandIcon, Maximize2, Minimize2, X } from 'lucide-react';
+import { AlertTriangle, Check, HandIcon, Maximize2, Minimize2, X } from 'lucide-react';
 import { AnimatePresence, m as motion } from 'motion/react';
 import { type Key, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,9 +25,9 @@ import {
 import {
   areWorkflowToolsComplete,
   formatReasoningDuration,
+  getWorkflowCompletionStatus,
   getWorkflowStreamingHeadlineState,
   getWorkflowSummaryText,
-  hasToolError,
   shapeProseForWorkflowHeadline,
 } from '../toolDisplayNames';
 import type { RenderableAssistantContentBlock } from './types';
@@ -137,7 +137,7 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
 
     const allComplete = toolsPhaseComplete && (workflowChromeComplete || !isGenerating);
     const summaryText = useMemo(() => getWorkflowSummaryText(blocks), [blocks]);
-    const errorPresent = hasToolError(allTools);
+    const completionStatus = useMemo(() => getWorkflowCompletionStatus(allTools), [allTools]);
 
     /** Sum of per-round model output duration (not reasoning-only); see ModelPerformance.duration */
     const totalWorkflowMs = useMemo(
@@ -289,33 +289,48 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
       threshold: WORKFLOW_EXPANDED_SCROLL_THRESHOLD_PX,
     });
 
-    const statusIcon = streaming ? (
-      pendingInterventionPresent ? (
-        <Icon color={cssVar.colorInfo} icon={HandIcon} />
-      ) : (
-        <NeuralNetworkLoading size={16} />
-      )
-    ) : errorPresent ? (
-      <Icon color={cssVar.colorError} icon={X} />
-    ) : (
-      <Icon color={cssVar.colorSuccess} icon={Check} />
-    );
+    const getStatusIcon = (): React.ReactNode => {
+      if (streaming) {
+        return pendingInterventionPresent ? (
+          <Icon color={cssVar.colorInfo} icon={HandIcon} />
+        ) : (
+          <NeuralNetworkLoading size={16} />
+        );
+      }
+
+      switch (completionStatus) {
+        case 'error': {
+          return <Icon color={cssVar.colorError} icon={X} />;
+        }
+        case 'partial': {
+          return <Icon color={cssVar.colorWarning} icon={AlertTriangle} />;
+        }
+        default: {
+          return <Icon color={cssVar.colorSuccess} icon={Check} />;
+        }
+      }
+    };
 
     const showExpandToggle = expandLevel !== 'collapsed';
     const expandToggleLabel =
-      expandLevel === 'semi'
-        ? t('workflow.expandFull', { defaultValue: 'Expand fully' })
-        : t('workflow.collapse', { defaultValue: 'Collapse' });
+      expandLevel === 'semi' ? t('workflow.expandFull') : t('workflow.collapse');
 
     const expandToggleIcon = expandLevel === 'semi' ? Maximize2 : Minimize2;
 
-    const handleToggleExpand = (e: React.MouseEvent) => {
+    const handleToggleExpand = (e: React.MouseEvent | React.KeyboardEvent) => {
       e.stopPropagation();
       if (expandLevel === 'semi') {
         setExpandLevel('full');
         userOpenedRef.current = true;
       } else {
         setExpandLevel('semi');
+      }
+    };
+
+    const handleToggleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleToggleExpand(e);
       }
     };
 
@@ -331,7 +346,7 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
           variant="outlined"
           width={24}
         >
-          {statusIcon}
+          {getStatusIcon()}
         </Block>
         {streaming ? (
           <Flexbox
@@ -410,15 +425,18 @@ const WorkflowCollapse = memo<WorkflowCollapseProps>(
               exit={{ opacity: 0, scale: 0.9, x: 4 }}
               initial={{ opacity: 0, scale: 0.9, x: 4 }}
               role="button"
+              tabIndex={0}
               title={expandToggleLabel}
               transition={WORKFLOW_EXPAND_TOGGLE_TRANSITION}
               style={{
                 cursor: 'pointer',
                 flex: 'none',
                 marginInlineStart: 8,
+                outline: 'none',
                 padding: 2,
               }}
               onClick={handleToggleExpand}
+              onKeyDown={handleToggleKeyDown}
             >
               <AnimatePresence initial={false} mode="wait">
                 <motion.span

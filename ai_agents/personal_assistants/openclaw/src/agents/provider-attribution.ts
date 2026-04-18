@@ -132,6 +132,10 @@ const OPENAI_RESPONSES_APIS = new Set([
 const OPENAI_RESPONSES_PROVIDERS = new Set(["openai", "azure-openai", "azure-openai-responses"]);
 const MOONSHOT_COMPAT_PROVIDERS = new Set(["moonshot", "kimi"]);
 
+function isOllamaMoonshotCompatModel(modelId: string | null | undefined): boolean {
+  return /^kimi-k2\.5(?::|$)/i.test(modelId?.trim() ?? "");
+}
+
 function formatOpenClawUserAgent(version: string): string {
   return `${OPENCLAW_ATTRIBUTION_ORIGINATOR}/${version}`;
 }
@@ -549,7 +553,6 @@ export function resolveProviderRequestCapabilities(
   const policy = resolveProviderRequestPolicy(input, env);
   const provider = policy.provider;
   const api = normalizeOptionalLowercaseString(input.api);
-  const normalizedModelId = normalizeOptionalLowercaseString(input.modelId);
   const endpointClass = policy.endpointClass;
   const isKnownNativeEndpoint =
     endpointClass === "anthropic-public" ||
@@ -572,12 +575,11 @@ export function resolveProviderRequestCapabilities(
     endpointClass === "google-vertex";
 
   let compatibilityFamily: ProviderRequestCompatibilityFamily | undefined;
-  if (provider && MOONSHOT_COMPAT_PROVIDERS.has(provider)) {
-    compatibilityFamily = "moonshot";
-  } else if (
-    provider === "ollama" &&
-    normalizedModelId?.startsWith("kimi-k") &&
-    normalizedModelId.includes(":cloud")
+  const isOllamaOpenAICompletions = provider === "ollama" && api === "openai-completions";
+  if (
+    provider &&
+    (MOONSHOT_COMPAT_PROVIDERS.has(provider) ||
+      (provider === "ollama" && isOllamaMoonshotCompatModel(input.modelId)))
   ) {
     compatibilityFamily = "moonshot";
   }
@@ -636,7 +638,9 @@ export function resolveProviderRequestCapabilities(
     // Native endpoint class is the real signal here. Users can point a generic
     // provider key at Moonshot or DashScope and still need streaming usage.
     supportsNativeStreamingUsageCompat:
-      endpointClass === "moonshot-native" || endpointClass === "modelstudio-native",
+      endpointClass === "moonshot-native" ||
+      endpointClass === "modelstudio-native" ||
+      isOllamaOpenAICompletions,
     compatibilityFamily,
   };
 }

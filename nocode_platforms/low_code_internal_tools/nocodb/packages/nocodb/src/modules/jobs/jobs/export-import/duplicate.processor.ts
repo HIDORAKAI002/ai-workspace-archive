@@ -98,6 +98,7 @@ export class DuplicateProcessor {
       excludeScripts?: boolean;
       excludeDashboards?: boolean;
       excludeWorkflows?: boolean;
+      excludeDocuments?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -184,6 +185,19 @@ export class DuplicateProcessor {
         );
       }
 
+      let exportedDocuments = null;
+
+      if (!options?.excludeDocuments) {
+        exportedDocuments =
+          await this.exportService.serializeDocuments(context);
+
+        elapsedTime(
+          hrTime,
+          `serialize documents for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
       let exportedDashboards = null;
 
       if (!options.excludeDashboards) {
@@ -224,6 +238,15 @@ export class DuplicateProcessor {
           user,
           baseId: targetBase.id,
           data: exportedScripts,
+          req: req,
+        });
+      }
+
+      if (exportedDocuments?.length) {
+        await this.importService.importDocuments(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedDocuments,
           req: req,
         });
       }
@@ -1030,14 +1053,17 @@ export class DuplicateProcessor {
         let error = null;
 
         this.exportService
-          .streamModelDataAsCsv(targetContext, {
-            dataStream,
-            linkStream,
-            baseId: sourceProject.id,
-            modelId: sourceModel.id,
-            handledMmList: handledLinks,
-            _fieldIds: fields,
-          })
+          .streamModelDataAsCsv(
+            { ...sourceContext, base_id: sourceModel.base_id },
+            {
+              dataStream,
+              linkStream,
+              baseId: sourceProject.id,
+              modelId: sourceModel.id,
+              handledMmList: handledLinks,
+              _fieldIds: fields,
+            },
+          )
           .catch((e) => {
             this.debugLog(e);
             dataStream.push(null);
