@@ -32,6 +32,8 @@ export default {
   'tab.closeLeftTabs': 'Close Tabs to the Left',
   'tab.closeOtherTabs': 'Close Other Tabs',
   'tab.closeRightTabs': 'Close Tabs to the Right',
+  'tab.newTab': 'New Tab',
+  'tab.running': 'Agent is running',
   'proxy.auth': 'Authentication Required',
   'proxy.authDesc': 'If the proxy server requires a username and password',
   'proxy.authSettings': 'Authentication Settings',
