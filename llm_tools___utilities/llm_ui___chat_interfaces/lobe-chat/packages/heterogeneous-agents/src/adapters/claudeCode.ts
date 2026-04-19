@@ -34,6 +34,12 @@
  * - `tool_result` blocks are in `type: 'user'` events, not assistant events
  */
 
+import {
+  ClaudeCodeApiName,
+  type ClaudeCodeTodoItem,
+  type TodoWriteArgs,
+} from '@lobechat/builtin-tool-claude-code';
+
 import type {
   AgentCLIPreset,
   AgentEventAdapter,
@@ -41,7 +47,75 @@ import type {
   StreamChunkData,
   ToolCallPayload,
   ToolResultData,
+  UsageData,
 } from '../types';
+
+/**
+ * CC's TodoWrite is a declarative state-write tool: its `tool_use.input` IS
+ * the target todos list, and the `tool_result` content is just a confirmation
+ * string. Translating the input into the shared `StepContextTodos` shape lets
+ * the Gateway/ACP-aligned `pluginState.todos` contract light up the
+ * TodoProgress card without any CC-specific knowledge leaking into selectors
+ * or executors.
+ *
+ * Word mapping: CC `pending|in_progress|completed` → shared `todo|processing|completed`.
+ * Text field: use `activeForm` while in progress (present-continuous is what
+ * the header surfaces), fall back to `content` for every other state.
+ */
+const synthesizeTodoWritePluginState = (
+  args: TodoWriteArgs,
+): {
+  todos: {
+    items: Array<{ status: 'todo' | 'processing' | 'completed'; text: string }>;
+    updatedAt: string;
+  };
+} => {
+  const items = (args.todos || []).map((todo: ClaudeCodeTodoItem) => {
+    const status =
+      todo.status === 'in_progress'
+        ? 'processing'
+        : todo.status === 'pending'
+          ? 'todo'
+          : 'completed';
+    const text = todo.status === 'in_progress' ? todo.activeForm || todo.content : todo.content;
+    return { status, text } as const;
+  });
+  return { todos: { items, updatedAt: new Date().toISOString() } };
+};
+
+/**
+ * Convert a raw Anthropic-shape usage object (per-turn or grand-total from
+ * Claude Code's `result` event) into the provider-agnostic `UsageData` shape.
+ * Returns undefined when no tokens were consumed, so callers can skip empty
+ * events without a null-check cascade.
+ */
+const toUsageData = (
+  raw:
+    | {
+        cache_creation_input_tokens?: number;
+        cache_read_input_tokens?: number;
+        input_tokens?: number;
+        output_tokens?: number;
+      }
+    | null
+    | undefined,
+): UsageData | undefined => {
+  if (!raw) return undefined;
+  const inputCacheMissTokens = raw.input_tokens || 0;
+  const inputCachedTokens = raw.cache_read_input_tokens || 0;
+  const inputWriteCacheTokens = raw.cache_creation_input_tokens || 0;
+  const totalInputTokens = inputCacheMissTokens + inputCachedTokens + inputWriteCacheTokens;
+  const totalOutputTokens = raw.output_tokens || 0;
+  if (totalInputTokens + totalOutputTokens === 0) return undefined;
+  return {
+    inputCacheMissTokens,
+    inputCachedTokens: inputCachedTokens || undefined,
+    inputWriteCacheTokens: inputWriteCacheTokens || undefined,
+    totalInputTokens,
+    totalOutputTokens,
+    totalTokens: totalInputTokens + totalOutputTokens,
+  };
+};
 
 // ─── CLI Preset ───
 
@@ -72,10 +146,14 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
   private stepIndex = 0;
   /** Track current message.id to detect step boundaries */
   private currentMessageId: string | undefined;
-  /** Track which message.id has already emitted usage (dedup) */
-  private usageEmittedForMessageId: string | undefined;
   /** message.id of the stream_event delta flow currently in flight */
   private currentStreamEventMessageId: string | undefined;
+  /**
+   * Latest model seen for the in-flight message.id — captured from
+   * `message_start` (partial mode) or `assistant` events, emitted alongside
+   * authoritative usage on `message_delta`.
+   */
+  private currentStreamEventModel: string | undefined;
   /** message.ids whose text has already been streamed as deltas — skip the full-block emission */
   private messagesWithStreamedText = new Set<string>();
   /** message.ids whose thinking has already been streamed as deltas — skip the full-block emission */
@@ -88,6 +166,14 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
    * until the next `fetchAndReplaceMessages`.
    */
   private toolCallsByMessageId = new Map<string, ToolCallPayload[]>();
+  /**
+   * Cached TodoWrite inputs keyed by tool_use.id. Populated in `handleAssistant`
+   * when a TodoWrite tool_use block arrives and drained in `handleUser` at
+   * tool_result time so the synthesized pluginState can travel with the result
+   * event. Entries are deleted immediately after emit to keep long sessions
+   * bounded.
+   */
+  private todoWriteInputs = new Map<string, TodoWriteArgs>();
 
   adapt(raw: any): HeterogeneousAgentEvent[] {
     if (!raw || typeof raw !== 'object') return [];
@@ -146,20 +232,13 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
 
     events.push(...this.openMainMessage(messageId, raw.message?.model));
 
-    // Per-turn model + usage snapshot — emitted as 'step_complete'-like
-    // metadata event so executor can track latest model and accumulated usage.
-    // DEDUP: same message.id carries identical usage on every content block
-    // (thinking, text, tool_use). Only emit once per message.id.
-    if ((raw.message?.model || raw.message?.usage) && messageId !== this.usageEmittedForMessageId) {
-      this.usageEmittedForMessageId = messageId;
-      events.push(
-        this.makeEvent('step_complete', {
-          model: raw.message?.model,
-          phase: 'turn_metadata',
-          usage: raw.message?.usage,
-        }),
-      );
-    }
+    // Track the latest model — emitted alongside authoritative usage on the
+    // matching `message_delta`. We deliberately do NOT emit turn_metadata
+    // here: under `--include-partial-messages` (our default), every
+    // content-block `assistant` event echoes a STALE usage snapshot from
+    // `message_start` (e.g. `output_tokens: 8`); the per-turn total only
+    // arrives on `stream_event: message_delta`.
+    if (raw.message?.model) this.currentStreamEventModel = raw.message.model;
 
     // Each content array here is usually ONE block (thinking OR tool_use OR text)
     // but we handle multiple defensively.
@@ -187,6 +266,9 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
           };
           newToolCalls.push(toolPayload);
           this.pendingToolCalls.add(block.id);
+          if (block.name === ClaudeCodeApiName.TodoWrite && block.input) {
+            this.todoWriteInputs.set(block.id, block.input as TodoWriteArgs);
+          }
           break;
         }
       }
@@ -250,11 +332,29 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
                 .join('\n')
             : JSON.stringify(block.content || '');
 
+      // Synthesize pluginState for tools whose input IS the target state.
+      // TodoWrite is currently the only such tool; future CC tools (Task,
+      // Skill activation, …) extend this same collection point.
+      //
+      // Guard on `is_error`: a failed TodoWrite means the snapshot was never
+      // applied on CC's side, so we must not persist it here either. Since
+      // `selectTodosFromMessages` picks the latest `pluginState.todos` from
+      // any producer, leaking a failed write would overwrite the live todo
+      // UI with changes that never actually happened. Drain the cache either
+      // way so a retry with a fresh tool_use id doesn't inherit stale args.
+      const cachedTodoArgs = this.todoWriteInputs.get(toolCallId);
+      if (cachedTodoArgs) this.todoWriteInputs.delete(toolCallId);
+      const pluginState =
+        cachedTodoArgs && !block.is_error
+          ? synthesizeTodoWritePluginState(cachedTodoArgs)
+          : undefined;
+
       // Emit tool_result for executor to persist content to tool message
       events.push(
         this.makeEvent('tool_result', {
           content: resultContent,
           isError: !!block.is_error,
+          pluginState,
           toolCallId,
         } satisfies ToolResultData),
       );
@@ -270,14 +370,18 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
   }
 
   private handleResult(raw: any): HeterogeneousAgentEvent[] {
-    // Emit authoritative usage from result event (overrides per-turn accumulation)
+    // Emit authoritative grand-total usage from CC's result event. The
+    // executor currently ignores this phase (it persists per-turn via
+    // turn_metadata), but we still emit it so other consumers — cost
+    // displays, logs — can read the normalized total.
     const events: HeterogeneousAgentEvent[] = [];
-    if (raw.usage) {
+    const usage = toUsageData(raw.usage);
+    if (usage) {
       events.push(
         this.makeEvent('step_complete', {
           costUsd: raw.total_cost_usd,
           phase: 'result_usage',
-          usage: raw.usage,
+          usage,
         }),
       );
     }
@@ -310,6 +414,7 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
       case 'message_start': {
         const msgId: string | undefined = event.message?.id;
         this.currentStreamEventMessageId = msgId;
+        if (event.message?.model) this.currentStreamEventModel = event.message.model;
         return this.openMainMessage(msgId, event.message?.model);
       }
       case 'content_block_delta': {
@@ -325,6 +430,22 @@ export class ClaudeCodeAdapter implements AgentEventAdapter {
           return [this.makeChunkEvent({ chunkType: 'reasoning', reasoning: delta.thinking })];
         }
         return [];
+      }
+      case 'message_delta': {
+        // Authoritative per-turn usage. CC echoes stale message_start usage on
+        // every `assistant` event, so `handleAssistant` deliberately skips the
+        // emission and lets this branch own it. `message_delta.usage` carries
+        // the full final usage (input + cache + final output_tokens).
+        const usage = toUsageData(event.usage);
+        if (!usage) return [];
+        return [
+          this.makeEvent('step_complete', {
+            model: this.currentStreamEventModel,
+            phase: 'turn_metadata',
+            provider: 'claude-code',
+            usage,
+          }),
+        ];
       }
       default: {
         return [];
