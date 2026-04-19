@@ -135,12 +135,17 @@ interface ToolPersistenceState {
  * - assistant.tools[].result_msg_id is set to the created tool message id, so
  *   the UI's parse() step can link tool messages back to the assistant turn
  *   (otherwise they render as orphan warnings).
+ * - Carries the latest accumulated text/reasoning into the same UPDATE, so DB
+ *   stays in sync with what's been streamed. Without this, gateway handler's
+ *   `tool_end → fetchAndReplaceMessages` would read a tools-only/no-content
+ *   row and clobber the in-memory streamed text in the UI.
  */
 const persistNewToolCalls = async (
   incoming: ToolCallPayload[],
   state: ToolPersistenceState,
   assistantMessageId: string,
   context: ConversationContext,
+  snapshot: { content: string; reasoning: string },
 ) => {
   const freshTools = incoming.filter((t) => !state.persistedIds.has(t.id));
   if (freshTools.length === 0) return;
@@ -148,6 +153,13 @@ const persistNewToolCalls = async (
   // Mark all fresh tools as persisted up front, so re-entrant calls (from
   // Claude Code echoing tool_use blocks) are safely deduped.
   for (const tool of freshTools) state.persistedIds.add(tool.id);
+
+  const buildUpdate = (): Record<string, any> => {
+    const update: Record<string, any> = { tools: state.payloads };
+    if (snapshot.content) update.content = snapshot.content;
+    if (snapshot.reasoning) update.reasoning = { content: snapshot.reasoning };
+    return update;
+  };
 
   // ─── PHASE 1: Write tools[] to assistant FIRST, WITHOUT result_msg_id ───
   //
@@ -161,11 +173,10 @@ const persistNewToolCalls = async (
   // No orphan window.
   for (const tool of freshTools) state.payloads.push({ ...tool } as ChatToolPayload);
   try {
-    await messageService.updateMessage(
-      assistantMessageId,
-      { tools: state.payloads },
-      { agentId: context.agentId, topicId: context.topicId },
-    );
+    await messageService.updateMessage(assistantMessageId, buildUpdate(), {
+      agentId: context.agentId,
+      topicId: context.topicId,
+    });
   } catch (err) {
     console.error('[HeterogeneousAgent] Failed to pre-register assistant tools:', err);
   }
@@ -201,11 +212,10 @@ const persistNewToolCalls = async (
   // ─── PHASE 3: Re-write assistant.tools[] with the result_msg_ids ───
   // Without this, the UI can't hydrate tool results back into the inspector.
   try {
-    await messageService.updateMessage(
-      assistantMessageId,
-      { tools: state.payloads },
-      { agentId: context.agentId, topicId: context.topicId },
-    );
+    await messageService.updateMessage(assistantMessageId, buildUpdate(), {
+      agentId: context.agentId,
+      topicId: context.topicId,
+    });
   } catch (err) {
     console.error('[HeterogeneousAgent] Failed to finalize assistant tools:', err);
   }
@@ -213,6 +223,11 @@ const persistNewToolCalls = async (
 
 /**
  * Update a tool message's content in DB when tool_result arrives.
+ *
+ * `pluginState` (when provided by the adapter) is written in the same request
+ * as `content` so downstream consumers observe a single atomic update —
+ * critical for `selectTodosFromMessages` which reads both role=tool and
+ * `pluginState.todos` in one pass.
  */
 const persistToolResult = async (
   toolCallId: string,
@@ -220,6 +235,7 @@ const persistToolResult = async (
   isError: boolean,
   state: ToolPersistenceState,
   context: ConversationContext,
+  pluginState?: Record<string, any>,
 ) => {
   const toolMsgId = state.toolMsgIdByCallId.get(toolCallId);
   if (!toolMsgId) {
@@ -233,6 +249,7 @@ const persistToolResult = async (
       {
         content,
         pluginError: isError ? { message: content } : undefined,
+        pluginState,
       },
       {
         agentId: context.agentId,
@@ -297,14 +314,10 @@ export const executeHeterogeneousAgent = async (
   /** Content accumulators — reset on each new step */
   let accumulatedContent = '';
   let accumulatedReasoning = '';
-  /** Extracted model + usage from each assistant event (used for final write) */
+  /** Latest model string — updated per turn, written alongside content on step boundaries. */
   let lastModel: string | undefined;
-  const accumulatedUsage: Record<string, number> = {
-    cache_creation_input_tokens: 0,
-    cache_read_input_tokens: 0,
-    input_tokens: 0,
-    output_tokens: 0,
-  };
+  /** Adapter/CLI provider (e.g. `claude-code`) — carried on every turn_metadata. */
+  let lastProvider: string | undefined;
   /**
    * Deferred terminal event (agent_runtime_end or error). We don't forward
    * these to the gateway handler immediately because handler triggers
@@ -371,44 +384,46 @@ export const executeHeterogeneousAgent = async (
         for (const event of events) {
           // ─── tool_result: update tool message content in DB (ACP-only) ───
           if (event.type === 'tool_result') {
-            const { content, isError, toolCallId } = event.data as {
+            const { content, isError, pluginState, toolCallId } = event.data as {
               content: string;
               isError?: boolean;
+              pluginState?: Record<string, any>;
               toolCallId: string;
             };
             persistQueue = persistQueue.then(() =>
-              persistToolResult(toolCallId, content, !!isError, toolState, context),
+              persistToolResult(toolCallId, content, !!isError, toolState, context, pluginState),
             );
             // Don't forward — the tool_end that follows triggers fetchAndReplaceMessages
             // which reads the updated content from DB.
             continue;
           }
 
-          // ─── step_complete with result_usage: authoritative total from CC result event ───
-          if (event.type === 'step_complete' && event.data?.phase === 'result_usage') {
-            if (event.data.usage) {
-              // Override (not accumulate) — result event has the correct totals
-              accumulatedUsage.input_tokens = event.data.usage.input_tokens || 0;
-              accumulatedUsage.output_tokens = event.data.usage.output_tokens || 0;
-              accumulatedUsage.cache_creation_input_tokens =
-                event.data.usage.cache_creation_input_tokens || 0;
-              accumulatedUsage.cache_read_input_tokens =
-                event.data.usage.cache_read_input_tokens || 0;
-            }
-            continue;
-          }
-
-          // ─── step_complete with turn_metadata: capture model + usage ───
+          // ─── step_complete with turn_metadata: persist per-step usage ───
+          // `turn_metadata.usage` is the per-turn delta (deduped by adapter per
+          // message.id) and already normalized to the MessageMetadata.usage
+          // shape — write it straight through to the current step's assistant
+          // message. Queue the write so it lands after any in-flight
+          // stream_start(newStep) that may still be swapping
+          // `currentAssistantMessageId` to the new step's message.
+          //
+          // `result_usage` (grand total across all turns) is intentionally
+          // ignored — applying it would overwrite the last step with the sum
+          // of all prior steps. Sum of turn_metadata equals result_usage for
+          // a healthy run.
           if (event.type === 'step_complete' && event.data?.phase === 'turn_metadata') {
             if (event.data.model) lastModel = event.data.model;
-            if (event.data.usage) {
-              // Accumulate token usage across turns (deduped by adapter per message.id)
-              accumulatedUsage.input_tokens += event.data.usage.input_tokens || 0;
-              accumulatedUsage.output_tokens += event.data.usage.output_tokens || 0;
-              accumulatedUsage.cache_creation_input_tokens +=
-                event.data.usage.cache_creation_input_tokens || 0;
-              accumulatedUsage.cache_read_input_tokens +=
-                event.data.usage.cache_read_input_tokens || 0;
+            if (event.data.provider) lastProvider = event.data.provider;
+            const turnUsage = event.data.usage;
+            if (turnUsage) {
+              persistQueue = persistQueue.then(async () => {
+                await messageService
+                  .updateMessage(
+                    currentAssistantMessageId,
+                    { metadata: { usage: turnUsage } },
+                    { agentId: context.agentId, topicId: context.topicId },
+                  )
+                  .catch(console.error);
+              });
             }
             // Don't forward turn metadata — it's internal bookkeeping
             continue;
@@ -423,6 +438,7 @@ export const executeHeterogeneousAgent = async (
             const prevContent = accumulatedContent;
             const prevReasoning = accumulatedReasoning;
             const prevModel = lastModel;
+            const prevProvider = lastProvider;
 
             // Reset content accumulators synchronously so new-step chunks go to fresh state
             accumulatedContent = '';
@@ -440,6 +456,7 @@ export const executeHeterogeneousAgent = async (
               if (prevContent) prevUpdate.content = prevContent;
               if (prevReasoning) prevUpdate.reasoning = { content: prevReasoning };
               if (prevModel) prevUpdate.model = prevModel;
+              if (prevProvider) prevUpdate.provider = prevProvider;
               if (Object.keys(prevUpdate).length > 0) {
                 await messageService
                   .updateMessage(currentAssistantMessageId, prevUpdate, {
@@ -462,6 +479,7 @@ export const executeHeterogeneousAgent = async (
                 content: '',
                 model: lastModel,
                 parentId: stepParentId,
+                provider: lastProvider,
                 role: 'assistant',
                 topicId: context.topicId ?? undefined,
               });
@@ -508,8 +526,23 @@ export const executeHeterogeneousAgent = async (
             if (chunk?.chunkType === 'tools_calling') {
               const tools = chunk.toolsCalling as ToolCallPayload[];
               if (tools?.length) {
+                // Snapshot accumulators sync — must travel with the same step's
+                // assistantMessageId. A late-bound getter would read NEW step's
+                // content if a step transition lands between scheduling and
+                // execution, while assistantMessageId would still be the OLD
+                // one (also captured sync) → cross-step contamination.
+                const snapshot = {
+                  content: accumulatedContent,
+                  reasoning: accumulatedReasoning,
+                };
                 persistQueue = persistQueue.then(() =>
-                  persistNewToolCalls(tools, toolState, currentAssistantMessageId, context),
+                  persistNewToolCalls(
+                    tools,
+                    toolState,
+                    currentAssistantMessageId,
+                    context,
+                    snapshot,
+                  ),
                 );
               }
             }
@@ -547,33 +580,14 @@ export const executeHeterogeneousAgent = async (
         // Wait for all tool persistence to finish before writing final state
         await persistQueue.catch(console.error);
 
-        // Persist final content + reasoning + model + usage to the assistant message
-        // BEFORE the terminal event triggers fetchAndReplaceMessages.
+        // Persist final content + reasoning + model for the last step BEFORE the
+        // terminal event triggers fetchAndReplaceMessages. Usage for this step
+        // was already written per-turn via the turn_metadata branch.
         const updateValue: Record<string, any> = {};
         if (accumulatedContent) updateValue.content = accumulatedContent;
         if (accumulatedReasoning) updateValue.reasoning = { content: accumulatedReasoning };
         if (lastModel) updateValue.model = lastModel;
-        const inputCacheMiss = accumulatedUsage.input_tokens;
-        const inputCached = accumulatedUsage.cache_read_input_tokens;
-        const inputWriteCache = accumulatedUsage.cache_creation_input_tokens;
-        const totalInputTokens = inputCacheMiss + inputCached + inputWriteCache;
-        const totalOutputTokens = accumulatedUsage.output_tokens;
-
-        if (totalInputTokens + totalOutputTokens > 0) {
-          updateValue.metadata = {
-            // Use nested `usage` — the flat fields on MessageMetadata are deprecated.
-            // Shape mirrors the anthropic usage converter so CC CLI and Gateway turns
-            // render identically in pricing/usage UI.
-            usage: {
-              inputCacheMissTokens: inputCacheMiss,
-              inputCachedTokens: inputCached || undefined,
-              inputWriteCacheTokens: inputWriteCache || undefined,
-              totalInputTokens,
-              totalOutputTokens,
-              totalTokens: totalInputTokens + totalOutputTokens,
-            },
-          };
-        }
+        if (lastProvider) updateValue.provider = lastProvider;
 
         if (Object.keys(updateValue).length > 0) {
           await messageService
