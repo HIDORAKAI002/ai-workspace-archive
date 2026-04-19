@@ -161,6 +161,31 @@ const ccResult = (isError = false, result = 'done') => ({
   type: 'result',
 });
 
+/**
+ * `stream_event: message_start` — primes adapter's in-flight message.id so a
+ * following `message_delta` (which has no message.id of its own) can attach
+ * its authoritative usage to the correct turn.
+ */
+const ccMessageStart = (msgId: string, model = 'claude-sonnet-4-6') => ({
+  event: { message: { id: msgId, model }, type: 'message_start' },
+  type: 'stream_event',
+});
+
+/**
+ * `stream_event: message_delta` — the authoritative per-turn usage under
+ * `--include-partial-messages` (CC's `assistant` events only echo a stale
+ * message_start snapshot, so turn_metadata is driven off this event).
+ */
+const ccMessageDelta = (usage: {
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+  input_tokens?: number;
+  output_tokens?: number;
+}) => ({
+  event: { type: 'message_delta', usage },
+  type: 'stream_event',
+});
+
 // ─── Tests ───
 
 describe('heterogeneousAgentExecutor DB persistence', () => {
@@ -358,14 +383,21 @@ describe('heterogeneousAgentExecutor DB persistence', () => {
 
       await runWithEvents([
         ccInit(),
-        // Step 1: tool_use Read
+        // Step 1: tool_use Read (message_start primes turn + model/provider
+        // so the executor can stamp step 2's createMessage with them)
+        ccMessageStart('msg_01'),
         ccToolUse('msg_01', 'toolu_1', 'Read', { file_path: '/a.ts' }),
+        ccMessageDelta({ input_tokens: 10, output_tokens: 5 }),
         ccToolResult('toolu_1', 'content of a.ts'),
         // Step 2 (new message.id): tool_use Write
+        ccMessageStart('msg_02'),
         ccToolUse('msg_02', 'toolu_2', 'Write', { file_path: '/b.ts', content: 'new' }),
+        ccMessageDelta({ input_tokens: 20, output_tokens: 10 }),
         ccToolResult('toolu_2', 'file written'),
         // Step 3 (new message.id): final text
+        ccMessageStart('msg_03'),
         ccText('msg_03', 'All done!'),
+        ccMessageDelta({ input_tokens: 30, output_tokens: 15 }),
         ccResult(),
       ]);
 
@@ -384,6 +416,9 @@ describe('heterogeneousAgentExecutor DB persistence', () => {
       // The parentId should be the tool message ID from step 1
       const tool1Id = createdIds.find((id) => id.startsWith('tool-'));
       expect(step2Assistant![0].parentId).toBe(tool1Id);
+      // createMessage should carry the adapter provider so step 2's assistant
+      // lands in DB with provider set from the start (no later backfill needed).
+      expect(step2Assistant![0].provider).toBe('claude-code');
     });
 
     it('should fall back to assistant parentId when step has no tools', async () => {
@@ -414,28 +449,33 @@ describe('heterogeneousAgentExecutor DB persistence', () => {
   // ────────────────────────────────────────────────────
 
   describe('final content writes (onComplete)', () => {
-    it('should write accumulated content + model to the final assistant message', async () => {
+    it('should write accumulated content + model + provider to the final assistant message', async () => {
       await runWithEvents([
         ccInit(),
+        // message_start carries the model for this turn; individual assistant
+        // content-block events echo the same model, so the final write should
+        // stamp `claude-opus-4-6` (not the init-default sonnet).
+        ccMessageStart('msg_01', 'claude-opus-4-6'),
         ccAssistant('msg_01', [{ text: 'Hello ', type: 'text' }], {
           model: 'claude-opus-4-6',
-          usage: { input_tokens: 100, output_tokens: 10 },
         }),
         ccAssistant('msg_01', [{ text: 'world!', type: 'text' }], {
-          usage: { input_tokens: 100, output_tokens: 20 },
+          model: 'claude-opus-4-6',
         }),
+        // message_delta fires the authoritative turn_metadata (with model from
+        // the adapter's in-flight state)
+        ccMessageDelta({ input_tokens: 100, output_tokens: 20 }),
         ccResult(),
       ]);
 
-      // Final updateMessage should include accumulated content + model
       const finalWrite = mockUpdateMessage.mock.calls.find(
         ([id, val]: any) => id === 'ast-initial' && val.content === 'Hello world!',
       );
       expect(finalWrite).toBeDefined();
-      // lastModel is set from step_complete(turn_metadata). With usage dedup,
-      // only the FIRST event per message.id emits turn_metadata, so model stays
-      // as 'claude-opus-4-6' from the first event.
       expect(finalWrite![1].model).toBe('claude-opus-4-6');
+      // provider is emitted by the CC adapter on turn_metadata so it rides
+      // along with the final content/model write.
+      expect(finalWrite![1].provider).toBe('claude-code');
     });
 
     it('should write accumulated reasoning', async () => {
@@ -453,40 +493,95 @@ describe('heterogeneousAgentExecutor DB persistence', () => {
       expect(finalWrite![1].reasoning.content).toBe('Let me think about this.');
     });
 
-    it('should accumulate usage across turns into metadata', async () => {
+    it('should persist per-step usage to each step assistant message, not accumulated', async () => {
+      // Deterministic ids for new-step assistant messages so we can assert per-message usage.
+      let astStepCounter = 0;
+      mockCreateMessage.mockImplementation(async (params: any) => {
+        if (params.role === 'assistant') {
+          astStepCounter++;
+          return { id: `ast-step-${astStepCounter}` };
+        }
+        return { id: `tool-${Date.now()}` };
+      });
+
+      // Realistic CC partial-messages flow: message_start primes the turn,
+      // assistant events echo a stale usage, message_delta carries the final.
       await runWithEvents([
         ccInit(),
-        ccAssistant('msg_01', [{ text: 'a', type: 'text' }], {
-          usage: {
-            cache_creation_input_tokens: 50,
-            cache_read_input_tokens: 200,
-            input_tokens: 100,
-            output_tokens: 50,
-          },
-        }),
+        ccMessageStart('msg_01'),
+        ccAssistant('msg_01', [{ text: 'a', type: 'text' }]),
         ccToolUse('msg_01', 'toolu_1', 'Bash', {}),
-        ccToolResult('toolu_1', 'ok'),
-        ccAssistant('msg_02', [{ text: 'b', type: 'text' }], {
-          usage: { input_tokens: 300, output_tokens: 80 },
+        ccMessageDelta({
+          cache_creation_input_tokens: 50,
+          cache_read_input_tokens: 200,
+          input_tokens: 100,
+          output_tokens: 50,
         }),
+        ccToolResult('toolu_1', 'ok'),
+        ccMessageStart('msg_02'),
+        ccAssistant('msg_02', [{ text: 'b', type: 'text' }]),
+        ccMessageDelta({ input_tokens: 300, output_tokens: 80 }),
         ccResult(),
       ]);
 
-      // Find the final write that has usage metadata
-      const finalWrite = mockUpdateMessage.mock.calls.find(
+      const usageWrites = mockUpdateMessage.mock.calls.filter(
         ([, val]: any) => val.metadata?.usage?.totalTokens,
       );
-      expect(finalWrite).toBeDefined();
-      const usage = finalWrite![1].metadata.usage;
-      // 100 + 300 input + 200 cache_read + 50 cache_create = 650 input total
-      expect(usage.totalInputTokens).toBe(650);
-      // 50 + 80 = 130 output
-      expect(usage.totalOutputTokens).toBe(130);
-      expect(usage.totalTokens).toBe(780);
-      // Breakdown for pricing UI (must match anthropic usage converter shape)
-      expect(usage.inputCacheMissTokens).toBe(400);
-      expect(usage.inputCachedTokens).toBe(200);
-      expect(usage.inputWriteCacheTokens).toBe(50);
+      // One usage write per step (msg_01 → ast-initial, msg_02 → ast-step-1)
+      expect(usageWrites.length).toBe(2);
+
+      const step1 = usageWrites.find(([id]: any) => id === 'ast-initial');
+      expect(step1).toBeDefined();
+      const u1 = step1![1].metadata.usage;
+      // msg_01: 100 input (miss) + 200 cached + 50 cache_create = 350; 50 output
+      expect(u1.totalInputTokens).toBe(350);
+      expect(u1.totalOutputTokens).toBe(50);
+      expect(u1.totalTokens).toBe(400);
+      expect(u1.inputCacheMissTokens).toBe(100);
+      expect(u1.inputCachedTokens).toBe(200);
+      expect(u1.inputWriteCacheTokens).toBe(50);
+
+      const step2 = usageWrites.find(([id]: any) => id === 'ast-step-1');
+      expect(step2).toBeDefined();
+      const u2 = step2![1].metadata.usage;
+      // msg_02: 300 input (miss, no cache); 80 output
+      expect(u2.totalInputTokens).toBe(300);
+      expect(u2.totalOutputTokens).toBe(80);
+      expect(u2.totalTokens).toBe(380);
+      expect(u2.inputCacheMissTokens).toBe(300);
+      // No cache tokens for this turn — these fields should be absent
+      expect(u2.inputCachedTokens).toBeUndefined();
+      expect(u2.inputWriteCacheTokens).toBeUndefined();
+    });
+
+    it('should ignore stale usage on assistant events (from message_start echo)', async () => {
+      // Regression for LOBE-7258-style bug: under partial-messages mode, CC
+      // echoes a stale message_start usage (e.g. output_tokens: 1) on every
+      // content-block assistant event. If the adapter picked that up, the DB
+      // would record output_tokens=1 instead of the real total. This verifies
+      // the stale snapshot is ignored and only the message_delta total lands.
+      await runWithEvents([
+        ccInit(),
+        ccMessageStart('msg_01'),
+        // All assistant events below carry the STALE placeholder usage
+        ccAssistant('msg_01', [{ text: 'hi', type: 'text' }], {
+          usage: { input_tokens: 6, output_tokens: 1 }, // stale
+        }),
+        ccAssistant('msg_01', [{ id: 'tu', input: {}, name: 'Read', type: 'tool_use' }], {
+          usage: { input_tokens: 6, output_tokens: 1 }, // stale echo
+        }),
+        // Authoritative final usage arrives on message_delta
+        ccMessageDelta({ input_tokens: 6, output_tokens: 265 }),
+        ccToolResult('tu', 'ok'),
+        ccResult(),
+      ]);
+
+      const usageWrites = mockUpdateMessage.mock.calls.filter(
+        ([, val]: any) => val.metadata?.usage?.totalTokens,
+      );
+      expect(usageWrites.length).toBe(1);
+      expect(usageWrites[0][1].metadata.usage.totalOutputTokens).toBe(265); // not 1
+      expect(usageWrites[0][1].metadata.usage.totalInputTokens).toBe(6);
     });
   });
 
@@ -832,6 +927,41 @@ describe('heterogeneousAgentExecutor DB persistence', () => {
       expect(grep3Create![0].parentId).toBe(turn5AssistantId);
       expect(glob1Create![0].parentId).toBe(turn5AssistantId);
       expect(glob2Create![0].parentId).toBe(turn5AssistantId);
+    });
+
+    /**
+     * Regression: when a turn has text BEFORE tool_use under the same message.id,
+     * the tools[] write must carry the accumulated content too. Otherwise the
+     * gateway handler's `tool_end → fetchAndReplaceMessages` reads a tools-only
+     * row and clobbers the in-memory streamed text in the UI.
+     */
+    it('should persist accumulated text alongside tools when turn has text + tool_use', async () => {
+      const writes: Array<{ assistantId: string; content?: string; toolIds?: string[] }> = [];
+      mockUpdateMessage.mockImplementation(async (id: string, val: any) => {
+        if (val.tools) {
+          writes.push({
+            assistantId: id,
+            content: val.content,
+            toolIds: val.tools.map((t: any) => t.id),
+          });
+        }
+      });
+
+      await runWithEvents([
+        ccInit(),
+        // text streams first, then tool_use — same msg.id
+        ccText('msg_01', 'Let me check the file...'),
+        ccToolUse('msg_01', 'toolu_read', 'Read', { file_path: '/a.ts' }),
+        ccToolResult('toolu_read', 'file content'),
+        ccResult(),
+      ]);
+
+      const toolWrites = writes.filter((w) => w.toolIds?.includes('toolu_read'));
+      expect(toolWrites.length).toBeGreaterThanOrEqual(1);
+      // Every tools[] write for this assistant must carry the accumulated text
+      for (const w of toolWrites) {
+        expect(w.content).toBe('Let me check the file...');
+      }
     });
   });
 
