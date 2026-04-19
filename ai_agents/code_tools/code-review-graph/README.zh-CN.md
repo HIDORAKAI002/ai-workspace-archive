@@ -133,7 +133,7 @@ Build the code review graph for this project
 | **23 种语言 + 笔记本** | Python, TypeScript/TSX, JavaScript, Vue, Svelte, Go, Rust, Java, Scala, C#, Ruby, Kotlin, Swift, PHP, Solidity, C/C++, Dart, R, Perl, Lua, Zig, PowerShell, Julia, Jupyter/Databricks (.ipynb) |
 | **影响半径分析** | 精确展示任何变更所影响的函数、类和文件 |
 | **自动更新钩子** | 每次文件编辑和 git 提交时自动更新图，无需手动干预 |
-| **语义搜索** | 可选的向量嵌入，支持 sentence-transformers、Google Gemini 或 MiniMax |
+| **语义搜索** | 可选的向量嵌入，支持 sentence-transformers、Google Gemini、MiniMax，或任何 OpenAI 兼容端点（真实 OpenAI、Azure、new-api、LiteLLM、vLLM、LocalAI） |
 | **交互式可视化** | D3.js 力导向图，支持搜索、社区图例切换和按度数缩放的节点 |
 | **Hub 与 Bridge 检测** | 查找连接最多的节点和通过介数中心性发现架构瓶颈 |
 | **异常评分** | 检测意外耦合：跨社区、跨语言、外围到核心的边 |
@@ -269,6 +269,24 @@ pip install code-review-graph[eval]                # 评估基准测试 (matplot
 pip install code-review-graph[wiki]                # 使用 LLM 摘要生成 Wiki (ollama)
 pip install code-review-graph[all]                 # 所有可选依赖
 ```
+
+OpenAI 兼容嵌入（真实 OpenAI、Azure，或自建网关如 new-api / LiteLLM / vLLM / LocalAI / Ollama openai 模式）无需额外安装 —— 只需设置环境变量并在 `embed_graph` 中传入 `provider="openai"`：
+
+```bash
+export CRG_OPENAI_BASE_URL=http://127.0.0.1:3000/v1     # 或 https://api.openai.com/v1
+export CRG_OPENAI_API_KEY=sk-...
+export CRG_OPENAI_MODEL=text-embedding-3-small          # 取决于你网关提供的模型
+# 可选：
+export CRG_OPENAI_DIMENSION=1536                        # 固定维度（v3 模型支持维度缩减）
+export CRG_OPENAI_BATCH_SIZE=100                        # 某些网关有更严格的批次限制时下调
+                                                        # （如 Qwen text-embedding-v4 上限为 10）
+```
+
+当 base URL 指向 localhost（`127.0.0.1`、`localhost`、`0.0.0.0`、`::1`）时，会自动跳过云出口警告。
+
+> **模型选择提示。** 避免用 `-preview` / `-beta` / `-exp` 结尾的 model ID（例如 `google/gemini-embedding-2-preview`）做长期使用——preview 模型可能更换权重（维度一变就要全量 re-embed）或被无预警下架。建议改用正式 GA 模型：`text-embedding-3-small` / `text-embedding-3-large`（OpenAI）、`Qwen/Qwen3-Embedding-8B`（经 vLLM / LocalAI 自宿主）、或 `gemini-embedding-001`（经原生 Gemini provider，需要 `GOOGLE_API_KEY`）。
+>
+> 另外请注意：目前 `code-review-graph` 只嵌入**函数签名**（每节点约 10 tokens，例如 `"parse_file function (path: str) returns Tree"`）。那些靠长 context 理解函数 body 来拉开差距的模型（Gemini 2 或 Qwen3-8B 在 MTEB-code 的 SOTA 分数）在这个输入长度下跟小模型的品质差距会小很多。Body / docstring 嵌入已列为后续增强任务。
 
 </details>
 

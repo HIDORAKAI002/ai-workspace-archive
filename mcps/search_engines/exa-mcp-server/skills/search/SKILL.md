@@ -7,6 +7,16 @@ description: "Deep research powered by Exa. Use for lead generation, literature 
 
 You are the orchestrator. Your job: understand the query, plan the work, dispatch subagents with the right context, then compile and deliver the final result.
 
+## Prerequisites: Auth
+
+Server: `https://mcp.exa.ai/mcp`.
+
+1. **OAuth (recommended)** — client opens `auth.exa.ai`, user signs in with Google / SSO / email, JWT is attached automatically. No key to copy.
+2. **API key** — if OAuth isn't available, get one at https://dashboard.exa.ai/api-keys and pass it via `Authorization: Bearer …`, `?exaApiKey=…`, or `EXA_API_KEY` (local npm).
+3. **Anonymous** — works without setup but rate-limited.
+
+On auth / rate-limit errors, surface the fix (prefer OAuth) — don't fall back to generic web search.
+
 ## Date Calculation (Do This First)
 
 If the query involves time ("last week", "recent", "past 6 months"), calculate exact dates from today's date in your environment context. Write out the calculation explicitly before doing anything else. Never eyeball dates or reuse dates from examples.
@@ -142,7 +152,9 @@ After subagents return:
 
 **Format the output:**
 
-Format output beautifully, filling up no more than one scroll length of the claude code screen. Include hyperlinked text where relevant. Below it, you may also include things (in a short, easy-to-read format) that:
+At the top of your output, write: "I reviewed {X} pages across {Y} subagents. Here's what was found:" (Each numResult per search per subagent = 1 page.)
+
+Then: Format output beautifully, filling up no more than one scroll length of the claude code screen. Include hyperlinked text where relevant. Below it, you may also include things (in a short, easy-to-read format) that:
 - ("Result") directly answer the original user request (in few words; make every word count)
 - ("Process") include anything worth noting about your process and what you consider to be high-signal in this domain vs. what you filtered out.
 - ("Patterns") any patterns identified that are non-obvious, require n-th order thinking, and are not included or alluded to in the rest of the output but might be interesting to the user.
