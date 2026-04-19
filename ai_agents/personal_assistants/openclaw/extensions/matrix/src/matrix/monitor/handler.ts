@@ -14,6 +14,7 @@ import type {
   MatrixStreamingMode,
   ReplyToMode,
 } from "../../types.js";
+import { resolveMatrixAccountAllowlistConfig } from "../account-config.js";
 import { formatMatrixErrorMessage } from "../errors.js";
 import { isMatrixMediaSizeLimitError } from "../media-errors.js";
 import {
@@ -33,9 +34,11 @@ import {
 import type { LocationMessageEventContent, MatrixClient } from "../sdk.js";
 import { MATRIX_OPENCLAW_FINALIZED_PREVIEW_KEY } from "../send/types.js";
 import { resolveMatrixStoredSessionMeta } from "../session-store-metadata.js";
+import { isMatrixQualifiedUserId } from "../target-ids.js";
 import { resolveMatrixMonitorAccessState } from "./access-state.js";
 import { resolveMatrixAckReactionConfig } from "./ack-config.js";
-import { resolveMatrixAllowListMatch } from "./allowlist.js";
+import { normalizeMatrixUserId, resolveMatrixAllowListMatch } from "./allowlist.js";
+import type { MatrixResolvedAllowlistEntry } from "./config.js";
 import type { MatrixInboundEventDeduper } from "./inbound-dedupe.js";
 import { resolveMatrixLocation, type MatrixLocationPayload } from "./location.js";
 import { downloadMatrixMedia } from "./media.js";
@@ -151,7 +154,9 @@ export type MatrixMonitorHandlerParams = {
   logger: RuntimeLogger;
   logVerboseMessage: (message: string) => void;
   allowFrom: string[];
+  allowFromResolvedEntries?: readonly MatrixResolvedAllowlistEntry[];
   groupAllowFrom?: string[];
+  groupAllowFromResolvedEntries?: readonly MatrixResolvedAllowlistEntry[];
   roomsConfig?: Record<string, MatrixRoomConfig>;
   accountAllowBots?: boolean | "mentions";
   configuredBotUserIds?: ReadonlySet<string>;
@@ -187,6 +192,61 @@ export type MatrixMonitorHandlerParams = {
   getMemberDisplayName: (roomId: string, userId: string) => Promise<string>;
   needsRoomAliasesForConfig: boolean;
 };
+
+function normalizeConfiguredMatrixAllowlistEntries(
+  entries?: ReadonlyArray<string | number>,
+): string[] {
+  const normalized: string[] = [];
+  for (const entry of entries ?? []) {
+    const trimmed = String(entry).trim();
+    if (trimmed) {
+      normalized.push(trimmed);
+    }
+  }
+  return normalized;
+}
+
+function isMatrixHotReloadAllowlistEntry(entry: string): boolean {
+  if (entry === "*") {
+    return true;
+  }
+  return isMatrixQualifiedUserId(normalizeMatrixUserId(entry));
+}
+
+function resolveEffectiveMatrixLiveAllowlist(params: {
+  liveEntries?: ReadonlyArray<string | number>;
+  startupResolvedEntries?: readonly MatrixResolvedAllowlistEntry[];
+}): string[] {
+  const liveEntries = normalizeConfiguredMatrixAllowlistEntries(params.liveEntries);
+  const liveInputs = new Set(liveEntries);
+  const effective: string[] = [];
+  const seen = new Set<string>();
+  const add = (entry: string) => {
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      return;
+    }
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    effective.push(trimmed);
+  };
+
+  for (const entry of liveEntries) {
+    if (isMatrixHotReloadAllowlistEntry(entry)) {
+      add(entry);
+    }
+  }
+  for (const entry of params.startupResolvedEntries ?? []) {
+    if (liveInputs.has(entry.input)) {
+      add(entry.id);
+    }
+  }
+
+  return effective;
+}
 
 function resolveMatrixMentionPrecheckText(params: {
   eventType: string;
@@ -354,8 +414,8 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
     runtime,
     logger,
     logVerboseMessage,
-    allowFrom,
-    groupAllowFrom = [],
+    allowFromResolvedEntries = [],
+    groupAllowFromResolvedEntries = [],
     roomsConfig,
     accountAllowBots,
     configuredBotUserIds = new Set<string>(),
@@ -638,10 +698,22 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
         };
         const storeAllowFrom = isDirectMessage ? await readStoreAllowFrom() : [];
         const roomUsers = roomConfig?.users ?? [];
+        const liveAccountAllowlists = resolveMatrixAccountAllowlistConfig({
+          cfg: core.config.loadConfig() as CoreConfig,
+          accountId,
+        });
+        const liveDmAllowFrom = resolveEffectiveMatrixLiveAllowlist({
+          liveEntries: liveAccountAllowlists.dmAllowFrom,
+          startupResolvedEntries: allowFromResolvedEntries,
+        });
+        const liveGroupAllowFrom = resolveEffectiveMatrixLiveAllowlist({
+          liveEntries: liveAccountAllowlists.groupAllowFrom,
+          startupResolvedEntries: groupAllowFromResolvedEntries,
+        });
         const accessState = resolveMatrixMonitorAccessState({
-          allowFrom,
+          allowFrom: liveDmAllowFrom,
           storeAllowFrom,
-          groupAllowFrom,
+          groupAllowFrom: liveGroupAllowFrom,
           roomUsers,
           senderId,
           isRoom,

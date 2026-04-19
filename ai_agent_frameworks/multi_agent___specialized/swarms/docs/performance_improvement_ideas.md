@@ -61,7 +61,7 @@ A comprehensive catalog of performance, reliability, and feature improvement ide
 
 | # | Improvement | Description |
 |---|-------------|-------------|
-| 1 | **Async with `uvloop`/`asyncio`** | Replace `ThreadPoolExecutor` with native async execution. The codebase already has `run_agents_concurrently_uvloop` but ConcurrentWorkflow doesn't use it. LLM API calls are I/O-bound, making async ideal. |
+| 1 | **Async with `asyncio`** | Replace `ThreadPoolExecutor` with native async execution. LLM API calls are I/O-bound, making async ideal. |
 | 2 | **Adaptive worker pool sizing** | Currently hardcoded at 95% of CPU cores. For 3 agents that's wasteful; for 200 agents it's a bottleneck. Scale workers to `min(agent_count, cpu_cores)`. |
 | 3 | **Connection pooling per LLM provider** | Multiple agents hitting the same API endpoint should share HTTP connections to reduce TLS handshake overhead. |
 
