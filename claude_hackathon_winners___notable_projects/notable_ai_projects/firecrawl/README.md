@@ -397,6 +397,7 @@ result = app.agent(
 )
 ```
 
+
 **When to use Pro:**
 - Comparing data across multiple websites
 - Extracting from sites with complex navigation or auth

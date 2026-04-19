@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-20 01:28 IST] Auto-Sync
+- **18 Repositories Updated:** Playwright MCP, Exa MCP Server, Promptfoo, Dify, Activepieces, Trigger.dev, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Swarms, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, firecrawl/firecrawl, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, bytedance/deer-flow
+
 ## [2026-04-19 19:06 IST] Auto-Sync
 - **13 Repositories Updated:** Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, traceloop/openllmetry, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice
 
