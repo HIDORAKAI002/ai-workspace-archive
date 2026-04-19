@@ -56,9 +56,7 @@ from swarms.structs.multi_agent_exec import (
     run_agents_concurrently,
     run_agents_concurrently_async,
     run_agents_concurrently_multiprocess,
-    run_agents_concurrently_uvloop,
     run_agents_with_different_tasks,
-    run_agents_with_tasks_uvloop,
     run_single_agent,
 )
 from swarms.structs.multi_agent_router import MultiAgentRouter
@@ -136,9 +134,7 @@ __all__ = [
     "run_agents_concurrently",
     "run_agents_concurrently_async",
     "run_agents_concurrently_multiprocess",
-    "run_agents_concurrently_uvloop",
     "run_agents_with_different_tasks",
-    "run_agents_with_tasks_uvloop",
     "run_single_agent",
     "GroupChat",
     "expertise_based",
