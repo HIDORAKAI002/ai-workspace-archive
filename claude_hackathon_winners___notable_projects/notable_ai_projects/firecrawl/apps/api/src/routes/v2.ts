@@ -457,3 +457,4 @@ if (isX402Enabled()) {
     wrap(x402SearchController),
   );
 }
+
