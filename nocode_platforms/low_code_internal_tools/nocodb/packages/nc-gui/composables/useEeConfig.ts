@@ -266,6 +266,11 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseDateDependency = (..._args: any[]) => {}
 
   const showUpgradeToUseExtensions = (..._args: any[]) => {}
+  const blockMfa = computed(() => true)
+  const showUpgradeToUseMfa = (..._args: any[]) => {}
+
+  const blockForce2fa = computed(() => true)
+  const showUpgradeToUseForce2fa = (..._args: any[]) => {}
 
   const isEEFeatureBlocked = computed(() => true)
 
@@ -288,6 +293,10 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScim = computed(() => true)
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
+
+  const blockTrashSettings = computed(() => true)
+
+  const showUpgradeToUseTrashSettings = (..._args: any[]) => {}
 
   const blockSnapshots = computed(() => true)
 
@@ -451,5 +460,11 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
+    blockTrashSettings,
+    showUpgradeToUseTrashSettings,
+    blockMfa,
+    showUpgradeToUseMfa,
+    blockForce2fa,
+    showUpgradeToUseForce2fa,
   }
 })

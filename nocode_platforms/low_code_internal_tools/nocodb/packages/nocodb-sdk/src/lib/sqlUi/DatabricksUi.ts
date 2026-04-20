@@ -1,6 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
@@ -183,6 +183,30 @@ export class DatabricksUi implements SqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: 'false',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
         uip: '',
         uicn: '',
         system: true,
@@ -690,6 +714,9 @@ export class DatabricksUi implements SqlUi {
       case 'Order':
         colProp.dt = 'decimal';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
+        break;
       default:
         colProp.dt = 'string';
         break;
@@ -796,6 +823,9 @@ export class DatabricksUi implements SqlUi {
         return ['string'];
       case 'JSON':
         return ['string'];
+
+      case UITypes.Deleted:
+        return ['boolean'];
 
       default:
         return dbTypes;
