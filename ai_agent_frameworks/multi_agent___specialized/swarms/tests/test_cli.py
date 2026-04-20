@@ -453,7 +453,9 @@ class TestRunAutoswarm:
         mock_err.assert_called_once()
         assert "Model name cannot be empty" in str(mock_err.call_args)
 
-    @patch("swarms.agents.auto_generate_swarm_config.write_autoswarm_file")
+    @patch(
+        "swarms.agents.auto_generate_swarm_config.write_autoswarm_file"
+    )
     @patch("swarms.cli.main.generate_swarm_config")
     def test_no_run_skips_execution(
         self, mock_gen, mock_write, tmp_path
