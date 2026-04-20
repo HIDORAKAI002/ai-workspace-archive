@@ -13,5 +13,3 @@ requests
 litellm==1.76.1
 mcp
 schedule
-uvloop; sys_platform == 'linux' or sys_platform == 'darwin' # linux or macos only
-winloop; sys_platform == 'win32' # windows only
