@@ -375,6 +375,140 @@ def decommission_worker(
         typer.echo(f"No tasks found for worker '{worker_id}'")
 
 
+async def _decommission_all_workers(db_url: str, schema: str = "public") -> list[dict[str, Any]]:
+    """Release all processing tasks from all workers, setting them back to pending status."""
+    is_pg0, instance_name, _ = parse_pg0_url(db_url)
+    if is_pg0:
+        typer.echo(f"Starting embedded PostgreSQL (instance: {instance_name})...")
+    resolved_url = await resolve_database_url(db_url)
+
+    conn = await asyncpg.connect(resolved_url)
+    try:
+        table = _fq_table("async_operations", schema)
+        rows = await conn.fetch(
+            f"""
+            UPDATE {table}
+            SET status = 'pending', worker_id = NULL, claimed_at = NULL, updated_at = now()
+            WHERE status = 'processing'
+            RETURNING operation_id, worker_id, operation_type
+            """,
+        )
+        return [dict(r) for r in rows]
+    finally:
+        await conn.close()
+
+
+@app.command(name="decommission-workers")
+def decommission_workers(
+    schema: str = typer.Option("public", "--schema", "-s", help="Database schema"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
+):
+    """Release all processing tasks from all workers (sets status back to pending).
+
+    Use this command to recover from situations where one or more workers have crashed
+    or been removed without graceful shutdown. All tasks currently in 'processing' status
+    will be released back to the queue regardless of which worker owns them.
+    """
+    config = HindsightConfig.from_env()
+
+    if not config.database_url:
+        typer.echo("Error: Database URL not configured.", err=True)
+        typer.echo("Set HINDSIGHT_API_DATABASE_URL environment variable.", err=True)
+        raise typer.Exit(1)
+
+    if not yes:
+        typer.confirm(
+            "This will release ALL processing tasks from ALL workers back to pending. Continue?",
+            abort=True,
+        )
+
+    typer.echo(f"Decommissioning all workers (schema: {schema})...")
+
+    released = asyncio.run(_decommission_all_workers(config.database_url, schema))
+
+    if released:
+        # Group by worker_id for summary
+        by_worker: dict[str, int] = {}
+        for row in released:
+            wid = row["worker_id"] or "unknown"
+            by_worker[wid] = by_worker.get(wid, 0) + 1
+
+        typer.echo(f"Released {len(released)} task(s):")
+        for wid, count in by_worker.items():
+            typer.echo(f"  {wid}: {count} task(s)")
+    else:
+        typer.echo("No processing tasks found")
+
+
+async def _worker_status(db_url: str, schema: str = "public") -> list[dict[str, Any]]:
+    """Get all processing tasks grouped by worker with their last update time."""
+    is_pg0, instance_name, _ = parse_pg0_url(db_url)
+    if is_pg0:
+        typer.echo(f"Starting embedded PostgreSQL (instance: {instance_name})...")
+    resolved_url = await resolve_database_url(db_url)
+
+    conn = await asyncpg.connect(resolved_url)
+    try:
+        table = _fq_table("async_operations", schema)
+        rows = await conn.fetch(
+            f"""
+            SELECT worker_id, operation_id, operation_type, bank_id,
+                   claimed_at, updated_at,
+                   now() - claimed_at AS running_for,
+                   now() - updated_at AS last_update_ago
+            FROM {table}
+            WHERE status = 'processing'
+            ORDER BY worker_id, claimed_at
+            """,
+        )
+        return [dict(r) for r in rows]
+    finally:
+        await conn.close()
+
+
+@app.command(name="worker-status")
+def worker_status(
+    schema: str = typer.Option("public", "--schema", "-s", help="Database schema"),
+):
+    """Show all currently processing tasks grouped by worker.
+
+    Displays each worker's active tasks with operation type, bank, how long
+    the task has been running, and when it was last updated. Useful for
+    identifying dead workers with orphaned tasks.
+    """
+    config = HindsightConfig.from_env()
+
+    if not config.database_url:
+        typer.echo("Error: Database URL not configured.", err=True)
+        typer.echo("Set HINDSIGHT_API_DATABASE_URL environment variable.", err=True)
+        raise typer.Exit(1)
+
+    rows = asyncio.run(_worker_status(config.database_url, schema))
+
+    if not rows:
+        typer.echo("No processing tasks found")
+        return
+
+    # Group by worker_id
+    by_worker: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        wid = row["worker_id"] or "unknown"
+        by_worker.setdefault(wid, []).append(row)
+
+    typer.echo(f"Processing tasks across {len(by_worker)} worker(s):\n")
+    for wid, tasks in by_worker.items():
+        typer.echo(f"Worker: {wid} ({len(tasks)} task(s))")
+        for task in tasks:
+            op_id = str(task["operation_id"])[:8]
+            running_for = task["running_for"]
+            last_update = task["last_update_ago"]
+            typer.echo(
+                f"  {op_id}  {task['operation_type']:<20s} bank={task['bank_id']}"
+                f"  running={running_for}  last_update={last_update} ago"
+            )
+        typer.echo("")
+
+
 def main():
     app()
 

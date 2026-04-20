@@ -8,6 +8,12 @@ import PageHero from '@site/src/components/PageHero';
 
 [← Vercel AI SDK integration](/sdks/integrations/ai-sdk)
 
+## [0.5.1](https://github.com/vectorize-io/hindsight/tree/integrations/ai-sdk/v0.5.1)
+
+**Bug Fixes**
+
+- Fixed AI-SDK reflection tool type definitions to match the OpenAPI spec for more reliable integration behavior.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}><img src="https://github.com/nicoloboschi.png?size=40" alt="@nicoloboschi" width="18" height="18" style={{borderRadius: "50%"}} />@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/3d6b3805" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>3d6b3805</a>
+
 ## [0.5.0](https://github.com/vectorize-io/hindsight/tree/integrations/ai-sdk/v0.5.0)
 
 **Bug Fixes**
