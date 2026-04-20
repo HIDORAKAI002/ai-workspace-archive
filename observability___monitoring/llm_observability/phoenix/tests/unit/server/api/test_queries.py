@@ -2244,6 +2244,7 @@ class TestApplyChatTemplate:
                 "variables": {"name": "Alice"},
             },
             "inputMapping": {
+                "literalMapping": {},
                 "pathMapping": {"name": "[[[invalid jsonpath"},
             },
         }

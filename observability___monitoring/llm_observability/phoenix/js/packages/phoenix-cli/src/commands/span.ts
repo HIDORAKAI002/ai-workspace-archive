@@ -54,6 +54,7 @@ interface SpanListOptions {
   name?: string[];
   traceId?: string[];
   parentId?: string;
+  attribute?: string[];
   includeAnnotations?: boolean;
   includeNotes?: boolean;
 }
@@ -92,6 +93,7 @@ async function fetchSpansForProject(
     names?: string[];
     spanKinds?: string[];
     statusCodes?: string[];
+    attributes?: string[];
     limit: number;
   }
 ): Promise<Span[]> {
@@ -117,6 +119,7 @@ async function fetchSpansForProject(
             name: options.names,
             span_kind: options.spanKinds,
             status_code: options.statusCodes,
+            attribute: options.attributes,
           },
         },
       }
@@ -216,6 +219,7 @@ async function spanListHandler(
         names: options.name,
         spanKinds: options.spanKind,
         statusCodes: options.statusCode,
+        attributes: options.attribute,
       }
     );
 
@@ -372,6 +376,10 @@ export function createSpanListCommand(): Command {
     .option(
       "--parent-id <id>",
       'Filter by parent span ID (use "null" for root spans only)'
+    )
+    .option(
+      "--attribute <filters...>",
+      'Filter by attribute key-value pairs (e.g., "llm.model_name:gpt-4"). Split is on the first ":" only, so values may contain colons (e.g., "session.id:sess:abc:123"). Repeat to AND multiple filters. To match a value that looks like a number or boolean as a string, JSON-quote it (e.g., \'user.id:"12345"\'). Requires Phoenix server >= 14.9.0.'
     )
     .option("--include-annotations", "Include span annotations in the output")
     .option("--include-notes", "Include span notes in the output")

@@ -125,23 +125,7 @@ def _force_disconnect_external_containers(docker_compose_yml, docker_env):
     are still connected to a compose-managed network. This preemptively cleans those up so
     that `docker compose down` can remove networks without error.
     """
-    network_name = network_name_from_yml(docker_compose_yml)
-    try:
-        output = subprocess.check_output(
-            [
-                "docker",
-                "network",
-                "inspect",
-                network_name,
-                "--format",
-                "{{range .Containers}}{{.Name}} {{end}}",
-            ],
-            env=docker_env,
-            stderr=subprocess.DEVNULL,
-        )
-        connected = output.decode().split()
-    except subprocess.CalledProcessError:
-        return  # Network doesn't exist or already removed
+    network_names = network_names_from_yml(docker_compose_yml)
 
     # Get the list of containers managed by this compose file
     try:
@@ -154,16 +138,34 @@ def _force_disconnect_external_containers(docker_compose_yml, docker_env):
     except subprocess.CalledProcessError:
         compose_containers = set()
 
-    for container in connected:
-        if container and container not in compose_containers:
-            logging.info(
-                f"Force-disconnecting external container {container} from network {network_name}"
-            )
-            subprocess.run(
-                ["docker", "network", "disconnect", "--force", network_name, container],
+    for network_name in network_names:
+        try:
+            output = subprocess.check_output(
+                [
+                    "docker",
+                    "network",
+                    "inspect",
+                    network_name,
+                    "--format",
+                    "{{range .Containers}}{{.Name}} {{end}}",
+                ],
                 env=docker_env,
-                check=False,
+                stderr=subprocess.DEVNULL,
             )
+            connected = output.decode().split()
+        except subprocess.CalledProcessError:
+            continue  # Network doesn't exist or already removed
+
+        for container in connected:
+            if container and container not in compose_containers:
+                logging.info(
+                    f"Force-disconnecting external container {container} from network {network_name}"
+                )
+                subprocess.run(
+                    ["docker", "network", "disconnect", "--force", network_name, container],
+                    env=docker_env,
+                    check=False,
+                )
 
 
 def docker_compose_down(docker_compose_yml, context, service, env_file):
@@ -190,7 +192,12 @@ def docker_compose_down(docker_compose_yml, context, service, env_file):
             "--remove-orphans",
         ]
 
-    subprocess.check_call(compose_command, env=docker_env)
+    result = subprocess.run(compose_command, env=docker_env, check=False)
+    if result.returncode != 0:
+        logging.warning(
+            "docker compose down exited with status %d",
+            result.returncode,
+        )
 
 
 def list_containers():
@@ -279,17 +286,24 @@ def default_docker_compose_yml(default_directory) -> str:
         return os.path.join(default_directory, "docker-compose.yml")
 
 
-def network_name_from_yml(docker_compose_yml) -> str:
+def network_names_from_yml(docker_compose_yml) -> list[str]:
     with open(docker_compose_yml) as f:
         config = yaml.safe_load(f)
     if "name" in config:
-        name = config["name"]
+        project_name = config["name"]
     else:
         dirname = os.path.dirname(docker_compose_yml)
-        name = os.path.basename(dirname)
+        project_name = os.path.basename(dirname)
     if "networks" in config:
-        network_name = next(iter(config["networks"].keys()))
+        return [
+            config["networks"][key].get("name", f"{project_name}_{key}")
+            if isinstance(config["networks"][key], dict)
+            else f"{project_name}_{key}"
+            for key in config["networks"]
+        ]
     else:
-        network_name = "default"
+        return [f"{project_name}_default"]
 
-    return f"{name}_{network_name}"
+
+def network_name_from_yml(docker_compose_yml) -> str:
+    return network_names_from_yml(docker_compose_yml)[0]

@@ -37,8 +37,11 @@ import {
 } from "../../lib/scrape-interact/scrape-replay";
 import {
   executePromptViaBrowserAgent,
+  executeCodeViaBrowserSession,
   AgentResult,
 } from "../../lib/scrape-interact/browser-agent";
+import { sanitizeUrlForTrace } from "../../lib/scrape-interact/langsmith";
+import { getScrapeZDR } from "../../lib/zdr-helpers";
 import { RequestWithAuth, ScrapeOptions } from "./types";
 import { billTeam } from "../../services/billing/credit_billing";
 import { enqueueBrowserSessionActivity } from "../../lib/browser-session-activity";
@@ -217,6 +220,36 @@ export async function scrapeInteractController(
   updateBrowserSessionActivity(session.id).catch(() => {});
 
   // --- Execute: prompt-based agent loop OR direct code ---
+  //
+  // Skip LangSmith tracing entirely for teams with forced zero-data-retention,
+  // matching how tracking.ts skips ClickHouse writes. The trace would otherwise
+  // ship the full prompt, tool I/O, and page snapshots to a third party.
+  const zdrForced = getScrapeZDR(req.acuc?.flags) === "forced";
+
+  // Upstream context from the scrape job — interact extends scrape, so
+  // every run carries the URL / wait / actions / origin that set the stage
+  // for what the agent does on top of it. URLs are stripped of query
+  // strings to avoid leaking PII into LangSmith.
+  const scrapeOptions = (scrape.options ?? {}) as {
+    origin?: string;
+  };
+  const traceScrapeContext = {
+    scrapeUrl: sanitizeUrlForTrace(scrape.url),
+    targetUrl: sanitizeUrlForTrace(replayContext.targetUrl),
+    scrapeWaitForMs: replayContext.waitForMs,
+    scrapeActions: replayContext.actions.length,
+    scrapeOrigin:
+      typeof scrapeOptions.origin === "string"
+        ? scrapeOptions.origin
+        : undefined,
+  };
+
+  // Identity fields below team_id — optional, normalized from null → undefined
+  // so LangSmith metadata filters don't match empty strings.
+  const traceIdentity = {
+    orgId: req.auth.org_id ?? undefined,
+    subUserId: req.acuc?.sub_user_id ?? undefined,
+  };
 
   let execResult: BrowserServiceExecResponse | AgentResult;
 
@@ -231,6 +264,14 @@ export async function scrapeInteractController(
         session.browser_id,
         timeout,
         logger,
+        {
+          sessionId: session.id,
+          scrapeId,
+          teamId: req.auth.team_id,
+          ...traceIdentity,
+          zeroDataRetention: zdrForced,
+          ...traceScrapeContext,
+        },
       );
     } catch (err) {
       logger.error("Agent loop failed", { error: err });
@@ -253,10 +294,17 @@ export async function scrapeInteractController(
     logger.info("Executing code in browser session", { language, timeout });
 
     try {
-      execResult = await browserServiceRequest<BrowserServiceExecResponse>(
-        "POST",
-        `/browsers/${session.browser_id}/exec`,
+      execResult = await executeCodeViaBrowserSession(
+        session.browser_id,
         { code: rawCode!, language, timeout, origin },
+        {
+          sessionId: session.id,
+          scrapeId,
+          teamId: req.auth.team_id,
+          ...traceIdentity,
+          zeroDataRetention: zdrForced,
+          ...traceScrapeContext,
+        },
       );
     } catch (err) {
       logger.error("Failed to execute code via browser service", {

@@ -51,6 +51,7 @@ These tokens are available for **every** notification type.
 | `{{alert_policy_name}}`        | Name of the alert policy that triggered.             | `Critical Alerts`                |
 | `{{alert_policy_id}}`          | Unique ID of the alert policy.                       | `abc123-def456`                  |
 | `{{alert_policy_description}}` | Description of the alert policy.                     | `Alerts when production jobs...` |
+| `{{alert_id}}`                 | Unique ID of the alert.                              | `abc123-def456`                  |
 | `{{notification_type}}`        | Type of notification event (e.g., `JOB`, `TICK`).    | `JOB`                            |
 | `{{is_sample}}`                | `true` if this is a test/sample notification.        | `false`                          |
 
@@ -136,3 +137,10 @@ Available for **Asset Health** and **Freshness** events.
 | Token           | Description                        |
 | :-------------- | :--------------------------------- |
 | `{{agent_url}}` | URL to the agents page in Dagster. |
+
+### Metric monitor tokens
+
+| Token             | Description                          |
+| :---------------- | :----------------------------------- |
+| `{{metric_name}}` | Name of the monitored metric.        |
+| `{{target_desc}}` | Description of the monitored target. |

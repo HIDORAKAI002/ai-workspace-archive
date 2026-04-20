@@ -201,7 +201,7 @@ FP4_GEMM_RUNNER_BACKEND_CHOICES = [
     "flashinfer_trtllm",
 ]
 
-RADIX_EVICTION_POLICY_CHOICES = ["lru", "lfu", "slru"]
+RADIX_EVICTION_POLICY_CHOICES = ["lru", "lfu", "slru", "priority"]
 
 RL_ON_POLICY_TARGET_CHOICES = ["fsdp"]
 
@@ -509,6 +509,8 @@ class ServerArgs:
     speculative_moe_runner_backend: Optional[str] = None
     speculative_moe_a2a_backend: Optional[str] = None
     speculative_draft_model_quantization: Optional[str] = None
+    speculative_adaptive: bool = False
+    speculative_adaptive_config: Optional[str] = None
 
     # Speculative decoding (ngram)
     speculative_ngram_min_bfs_breadth: int = 1
@@ -2780,6 +2782,11 @@ class ServerArgs:
                 not self.enable_aiter_allreduce_fusion
             ), "Aiter allreduce fusion is not supported with context parallelism"
 
+        if self.attn_cp_size != self.moe_dp_size:
+            assert (
+                self.moe_dp_size == 1
+            ), "attn_cp_size != moe_dp_size is only supported when moe_dp_size == 1"
+
     def _handle_data_parallelism(self):
         if self.dp_size == 1:
             self.enable_dp_attention = False
@@ -3449,6 +3456,22 @@ class ServerArgs:
                 raise ValueError(
                     "Currently ngram speculative decoding does not support dp attention."
                 )
+
+        if self.speculative_adaptive:
+            if self.speculative_algorithm not in ("EAGLE", "EAGLE3"):
+                logger.warning(
+                    "speculative_adaptive is only supported with EAGLE/EAGLE3 and topk=1. "
+                    f"Current algorithm={self.speculative_algorithm}. "
+                    "Falling back to static params."
+                )
+                self.speculative_adaptive = False
+            elif self.speculative_eagle_topk != 1:
+                logger.warning(
+                    "speculative_adaptive is only supported with topk=1. "
+                    f"Current topk={self.speculative_eagle_topk}. "
+                    "Falling back to static params."
+                )
+                self.speculative_adaptive = False
 
     def _handle_load_format(self):
         if (
@@ -4391,7 +4414,7 @@ class ServerArgs:
             type=str,
             choices=RADIX_EVICTION_POLICY_CHOICES,
             default=ServerArgs.radix_eviction_policy,
-            help="The eviction policy of radix trees. 'lru' stands for Least Recently Used, 'lfu' stands for Least Frequently Used, and 'slru' stands for Segmented Least Recently Used.",
+            help="The eviction policy of radix trees. 'lru' stands for Least Recently Used, 'lfu' stands for Least Frequently Used, 'slru' stands for Segmented Least Recently Used, and 'priority' evicts lower-priority requests first.",
         )
         parser.add_argument(
             "--enable-prefill-delayer",
@@ -5284,6 +5307,18 @@ class ServerArgs:
             type=int,
             default=ServerArgs.speculative_ngram_external_corpus_max_tokens,
             help="Fail startup if the tokenized external ngram corpus exceeds this many tokens. Tune this based on your CPU memory budget.",
+        )
+        parser.add_argument(
+            "--speculative-adaptive",
+            action="store_true",
+            help="Enable adaptive speculative decoding that dynamically adjusts num_steps based on acceptance rate.",
+            default=ServerArgs.speculative_adaptive,
+        )
+        parser.add_argument(
+            "--speculative-adaptive-config",
+            type=str,
+            help="Path to a JSON config file for adaptive speculative decoding tuning knobs ",
+            default=ServerArgs.speculative_adaptive_config,
         )
 
         # Multi-layer Eagle speculative decoding

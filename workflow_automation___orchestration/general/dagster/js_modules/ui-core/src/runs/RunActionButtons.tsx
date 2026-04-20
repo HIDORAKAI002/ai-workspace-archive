@@ -13,6 +13,7 @@ import {useJobReexecution} from './useJobReExecution';
 import {GraphQueryItem, filterByQuery} from '../app/GraphQueryImpl';
 import {DEFAULT_DISABLED_REASON} from '../app/Permissions';
 import {ReexecutionStrategy} from '../graphql/types';
+import {isNewTabClick} from '../hooks/useOpenInNewTab';
 import {LaunchButtonConfiguration, LaunchButtonDropdown} from '../launchpad/LaunchButton';
 import {filterRunSelectionByQuery} from '../run-selection/AntlrRunSelection';
 import {useRepositoryForRunWithParentSnapshot} from '../workspace/useRepositoryForRun';
@@ -142,7 +143,10 @@ export const RunActionButtons = (props: RunActionButtonsProps) => {
     title: 'All steps in root run',
     tooltip: 'Re-execute the pipeline run from scratch. Shift-click to adjust tags.',
     disabled: !canRunAllSteps(run),
-    onClick: (e) => reexecute.onClick(run, ReexecutionStrategy.ALL_STEPS, e.shiftKey),
+    onClick: (e) => {
+      const openInNewTab = isNewTabClick(e);
+      return reexecute.onClick(run, ReexecutionStrategy.ALL_STEPS, e.shiftKey, {openInNewTab});
+    },
   };
 
   const same: LaunchButtonConfiguration = {
@@ -216,7 +220,10 @@ export const RunActionButtons = (props: RunActionButtonsProps) => {
     tooltip: !fromFailureEnabled
       ? 'Retry is only enabled when the pipeline has failed.'
       : 'Retry the pipeline run, skipping steps that completed successfully. Shift-click to adjust tags.',
-    onClick: (e) => reexecute.onClick(run, ReexecutionStrategy.FROM_FAILURE, e.shiftKey),
+    onClick: (e) => {
+      const openInNewTab = isNewTabClick(e);
+      return reexecute.onClick(run, ReexecutionStrategy.FROM_FAILURE, e.shiftKey, {openInNewTab});
+    },
   };
 
   const fromAssetFailure: LaunchButtonConfiguration = {
@@ -226,7 +233,12 @@ export const RunActionButtons = (props: RunActionButtonsProps) => {
     tooltip: !fromFailureEnabled
       ? 'Retry is only enabled when the pipeline has failed.'
       : 'Retry the pipeline run, selecting only assets that did not complete successfully. Shift-click to adjust tags.',
-    onClick: (e) => reexecute.onClick(run, ReexecutionStrategy.FROM_ASSET_FAILURE, e.shiftKey),
+    onClick: (e) => {
+      const openInNewTab = isNewTabClick(e);
+      return reexecute.onClick(run, ReexecutionStrategy.FROM_ASSET_FAILURE, e.shiftKey, {
+        openInNewTab,
+      });
+    },
   };
 
   if (!artifactsPersisted) {

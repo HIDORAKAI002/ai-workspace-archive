@@ -66,15 +66,18 @@ export const HeaderCell = ({
 export const RowCell = ({
   children,
   style,
+  className,
 }: {
   children?: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
 }) => (
   <CellBox
     padding={12}
     flex={{direction: 'column', justifyContent: 'flex-start'}}
     style={{...(style || {})}}
     border="right"
+    className={className}
   >
     {children}
   </CellBox>

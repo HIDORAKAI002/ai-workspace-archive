@@ -34,7 +34,7 @@ from ..config import (
 from ..metrics import get_metrics_collector
 from ..tracing import create_operation_span
 from ..utils import mask_network_location
-from ..worker.exceptions import RetryTaskAt
+from ..worker.exceptions import DeferOperation, RetryTaskAt
 from ..worker.stage import set_stage
 from .audit import AuditLogger, audit_context
 from .db_budget import budgeted_operation
@@ -1166,6 +1166,14 @@ class MemoryEngine(MemoryEngineInterface):
 
             except RetryTaskAt:
                 # Task-owned retry: let the poller handle scheduling
+                raise
+            except DeferOperation:
+                # Task-owned defer: let the poller handle re-scheduling without
+                # bumping retry_count or writing error_message. Pairs with the
+                # DeferOperation catch in poller._execute_task_inner (PR #1105);
+                # without this passthrough, the generic-exception branch below
+                # would convert a legitimate defer into a 60-second RetryTaskAt
+                # and lose the "not a failure" semantics entirely.
                 raise
             except Exception as e:
                 logger.error(f"Task execution failed: {task_type}, error: {e}")

@@ -57,6 +57,82 @@ from .utils import (
 
 DEFAULT_SPAN_LIMIT = 1000
 
+
+def _parse_attribute(filter_str: str) -> sa.ColumnElement[bool]:
+    """Parse an ``attribute`` query-param value into a SQLAlchemy
+    filter clause.
+
+    The expected format is ``key:value`` where *key* is a dot-separated
+    attribute path (e.g. ``llm.model_name``) and *value* is the string
+    representation of the value to match.  The split is performed on the
+    **first** ``:`` only, so values may contain additional colons.
+
+    The value is parsed with ``json.loads()`` to determine its type:
+    - ``bool`` → ``.as_boolean() == val``
+    - ``int`` → ``CAST(col, Text) IN ('<n>', '<n>.0')`` so a whole-number
+      query matches both int and whole-number-float storage (the TS client
+      cannot distinguish ``1`` from ``1.0`` on the wire)
+    - ``float``, ``str`` (or parse failure) → type-aware JSON text comparison
+    - ``None``, ``list``, or ``dict`` → HTTP 422
+
+    Raises :class:`HTTPException` (422) when the separator is missing,
+    the key is empty, the value is empty, or the value parses to an
+    unsupported type (None, list, dict).
+    """
+    if ":" not in filter_str:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid attribute '{filter_str}': expected format 'key:value'",
+        )
+    key, value = filter_str.split(":", 1)
+    if not key:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid attribute: key must not be empty",
+        )
+    if not value:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid attribute: value must not be empty",
+        )
+    key_parts = key.split(".")
+    col = models.Span.attributes[key_parts]
+    try:
+        parsed = json.loads(value)
+    except (json.JSONDecodeError, ValueError):
+        parsed = value
+    if isinstance(parsed, bool):
+        clause: sa.ColumnElement[bool] = col.as_boolean() == parsed
+    elif isinstance(parsed, int):
+        clause = sa.cast(col, sa.Text).in_([json.dumps(parsed), json.dumps(float(parsed))])
+    elif isinstance(parsed, (float, str)):
+        clause = sa.cast(col, sa.Text) == json.dumps(parsed)
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Invalid attribute value '{value}': must be a string, integer, float, or boolean."
+                " To match a string that looks like a number or boolean,"
+                ' JSON-quote the value: `key:"12345"`.'
+            ),
+        )
+    return clause
+
+
+_ATTRIBUTE_PARAM_DESCRIPTION = (
+    "Filter spans by `key:value`. Key is a dot-path (e.g. `user.id`, "
+    "`metadata.tier`). Value is JSON-parsed: `k:12345` is int, `k:true` "
+    "is bool, otherwise string (`k:user-42`). To match a numeric- or "
+    'boolean-looking STRING, JSON-quote it: `user.id:"12345"` '
+    "(URL-encoded `%2212345%22`). Split is on the first `:` only, so "
+    "values may contain colons (`session.id:sess:abc:123`, ISO "
+    "timestamps). Repeat the param to AND filters. List-valued "
+    "attributes (e.g. `tag.tags`) cannot be matched here. Returns 422 "
+    "on malformed input (missing colon, empty key/value, or list/dict/"
+    "null value)."
+)
+
+
 router = APIRouter(tags=["spans"])
 
 
@@ -672,6 +748,10 @@ async def span_search_otlpv1(
         default=None,
         description="Filter by status code(s). Values: OK, ERROR, UNSET",
     ),
+    attribute: Optional[list[str]] = Query(
+        default=None,
+        description=_ATTRIBUTE_PARAM_DESCRIPTION,
+    ),
 ) -> OtlpSpansResponseBody:
     """Search spans with minimal filters instead of the old SpanQuery DSL."""
 
@@ -712,6 +792,9 @@ async def span_search_otlpv1(
                 )
             )
         )
+    if attribute:
+        for af in attribute:
+            stmt = stmt.where(_parse_attribute(af))
 
     if cursor:
         try:
@@ -849,6 +932,10 @@ async def span_search(
         default=None,
         description="Filter by status code(s). Values: OK, ERROR, UNSET",
     ),
+    attribute: Optional[list[str]] = Query(
+        default=None,
+        description=_ATTRIBUTE_PARAM_DESCRIPTION,
+    ),
 ) -> SpansResponseBody:
     async with request.app.state.db.read() as session:
         project = await get_project_by_identifier(session, project_identifier)
@@ -895,6 +982,9 @@ async def span_search(
                 )
             )
         )
+    if attribute:
+        for af in attribute:
+            stmt = stmt.where(_parse_attribute(af))
 
     if cursor:
         try:
