@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "swarms"
-version = "10.0.1"
+version = "11.0.0"
 description = "Swarms - TGSC"
 license = "MIT"
 authors = ["Kye Gomez <kye@swarms.world>"]
@@ -73,8 +73,6 @@ httpx = "*"
 requests = "*"
 mcp = "*"
 schedule = "*"
-uvloop = {version = "*", markers = "sys_platform == 'linux' or sys_platform == 'darwin'"}
-winloop = {version = "*", markers = "sys_platform == 'win32'"}
 
 [tool.poetry.scripts]
 swarms = "swarms.cli.main:main"
