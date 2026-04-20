@@ -31,7 +31,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Constants
 DAEMON_STARTUP_TIMEOUT = 180  # seconds
-DEFAULT_DAEMON_IDLE_TIMEOUT = 300  # 5 minutes
+DEFAULT_DAEMON_IDLE_TIMEOUT = 0  # 0 = disabled (no auto-exit)
 
 
 class DaemonEmbedManager(EmbedManager):
