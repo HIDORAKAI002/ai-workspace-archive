@@ -556,36 +556,46 @@
   },
   {
     "source": "/dagster-plus/insights/asset-metadata",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/custom-metrics",
+    "permanent": true
+  },
+  {
+    "source": "/guides/observe/insights/asset-metadata",
+    "destination": "/guides/observe/insights/custom-metrics",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/integrating-external-metrics",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/custom-metrics",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/integrating-bigquery",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/google-bigquery",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/integrating-bigquery-and-dbt",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/google-bigquery",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/integrating-snowflake",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/snowflake",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/integrating-snowflake-and-dbt",
-    "destination": "/guides/observe/insights",
+    "destination": "/guides/observe/insights/snowflake",
     "permanent": true
   },
   {
     "source": "/dagster-plus/insights/exporting-insights-metrics",
+    "destination": "/guides/observe/insights",
+    "permanent": true
+  },
+  {
+    "source": "/guides/observe/insights/export-metrics",
     "destination": "/guides/observe/insights",
     "permanent": true
   },

@@ -576,7 +576,7 @@ const Grid = styled.div`
   grid-template-columns: repeat(2, 1fr);
   padding-bottom: 12px;
   border-bottom: 1px solid ${Colors.keylineDefault()};
-  ${Subheading} {
+  .subheadingGlobal {
     padding-bottom: 4px;
     display: block;
   }
@@ -592,7 +592,7 @@ const ComputedCursorGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   padding-bottom: 12px;
-  ${Subheading} {
+  .subheadingGlobal {
     padding-bottom: 4px;
     display: block;
   }

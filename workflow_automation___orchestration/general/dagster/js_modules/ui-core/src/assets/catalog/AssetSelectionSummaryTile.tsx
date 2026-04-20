@@ -103,13 +103,7 @@ const AssetSelectionSummaryTileWithHealthStatus = React.memo(
   }) => {
     return (
       <Link to={link} className={styles.tileLink}>
-        <Box
-          border="all"
-          style={{
-            minWidth: TILE_WIDTH,
-          }}
-          className={clsx(styles.tile, loading && styles.tileLoading)}
-        >
+        <Box border="all" className={clsx(styles.tile, loading && styles.tileLoading)}>
           <div className={styles.header}>
             <div>{icon}</div>
             <div className={styles.title}>
@@ -156,13 +150,7 @@ export const JobTile = ({name, repoAddress}: {name: string; repoAddress: RepoAdd
   const link = workspacePathFromAddress(repoAddress, `/jobs/${name}`);
   return (
     <Link to={link} className={styles.tileLink}>
-      <Box
-        border="all"
-        style={{
-          minWidth: TILE_WIDTH,
-        }}
-        className={styles.tile}
-      >
+      <Box border="all" className={styles.tile}>
         <div className={styles.header}>
           <Box
             flex={{direction: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 4}}

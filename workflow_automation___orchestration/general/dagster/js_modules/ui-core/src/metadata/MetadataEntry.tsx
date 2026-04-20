@@ -383,7 +383,7 @@ export const TableMetadataEntryComponent = ({entry}: {entry: TableMetadataEntryF
   return (
     <Box flex={{direction: 'column', gap: 8}}>
       <MetadataEntryAction onClick={() => setShowSchema(true)}>Show schema</MetadataEntryAction>
-      <Table style={{borderRight: `1px solid ${Colors.keylineDefault()}`}} $compact>
+      <Table style={{borderRight: `1px solid ${Colors.keylineDefault()}`}} compact>
         <thead>
           <tr>
             {schema.columns.map((column) => (

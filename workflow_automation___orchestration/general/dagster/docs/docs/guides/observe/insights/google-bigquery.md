@@ -1,7 +1,7 @@
 ---
 description: Track Google BigQuery usage in the Dagster+ Insights UI or by using the dagster-cloud package.
 sidebar_label: Google BigQuery
-sidebar_position: 4000
+sidebar_position: 1000
 title: Track Google BigQuery usage with Dagster+ Insights
 ---
 
