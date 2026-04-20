@@ -1708,17 +1708,23 @@ class MemoryEngine(MemoryEngineInterface):
             await loop.run_in_executor(None, self.query_analyzer.load)
 
         async def verify_llm():
-            """Verify LLM connections are working for all unique configs."""
+            """Verify LLM connections are working for all unique configs.
+
+            Failures are logged as warnings instead of raising — the server will
+            still start so queued operations can be processed once the LLM
+            provider becomes available (e.g. after a quota reset).
+            """
             if not self._skip_llm_verification:
-                # Verify default config
-                await self._llm_config.verify_connection()
+                configs_to_verify: list[tuple[str, LLMConfig]] = [("default", self._llm_config)]
+
                 # Verify retain config if different from default
                 retain_is_different = (
                     self._retain_llm_config.provider != self._llm_config.provider
                     or self._retain_llm_config.model != self._llm_config.model
                 )
                 if retain_is_different:
-                    await self._retain_llm_config.verify_connection()
+                    configs_to_verify.append(("retain", self._retain_llm_config))
+
                 # Verify reflect config if different from default and retain
                 reflect_is_different = (
                     self._reflect_llm_config.provider != self._llm_config.provider
@@ -1728,7 +1734,8 @@ class MemoryEngine(MemoryEngineInterface):
                     or self._reflect_llm_config.model != self._retain_llm_config.model
                 )
                 if reflect_is_different:
-                    await self._reflect_llm_config.verify_connection()
+                    configs_to_verify.append(("reflect", self._reflect_llm_config))
+
                 # Verify consolidation config if different from all others
                 consolidation_is_different = (
                     (
@@ -1745,7 +1752,19 @@ class MemoryEngine(MemoryEngineInterface):
                     )
                 )
                 if consolidation_is_different:
-                    await self._consolidation_llm_config.verify_connection()
+                    configs_to_verify.append(("consolidation", self._consolidation_llm_config))
+
+                for config_name, llm_config in configs_to_verify:
+                    try:
+                        await llm_config.verify_connection()
+                    except Exception as e:
+                        logger.warning(
+                            "LLM connection verification failed for '%s' config: %s. "
+                            "Server will start but LLM-dependent operations may fail "
+                            "until the provider is available.",
+                            config_name,
+                            e,
+                        )
 
         # Build list of initialization tasks
         init_tasks = [
@@ -7948,11 +7967,13 @@ class MemoryEngine(MemoryEngineInterface):
                 db_status = row["status"]
                 api_status = "pending" if db_status in ("pending", "processing") else db_status
 
+                result_metadata = json.loads(row["result_metadata"]) if row["result_metadata"] else {}
+
                 operation_list.append(
                     {
                         "id": str(row["operation_id"]),
                         "task_type": row["operation_type"],
-                        "items_count": 0,
+                        "items_count": result_metadata.get("items_count", 0),
                         "document_id": None,
                         "created_at": row["created_at"].isoformat(),
                         "status": api_status,

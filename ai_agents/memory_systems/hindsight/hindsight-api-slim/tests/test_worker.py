@@ -2220,3 +2220,271 @@ class TestClaimBatchRotation:
         await poller.claim_batch()
         # Pass 1: 1 from "b" (only one with work). Pass 2: 2 more from "b".
         assert serviced == ["b", "b", "b"]
+
+
+class TestDecommissionAllWorkers:
+    """Tests for decommission-workers (all workers) functionality."""
+
+    @pytest.mark.asyncio
+    async def test_decommission_all_releases_all_processing_tasks(self, pool, clean_operations):
+        """Test that decommissioning all workers releases tasks from every worker."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Create tasks for multiple workers
+        for worker in ["worker-a", "worker-b", "worker-c"]:
+            for i in range(2):
+                op_id = uuid.uuid4()
+                payload = json.dumps({"type": "test_task", "index": i, "bank_id": bank_id})
+                await pool.execute(
+                    """
+                    INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload, worker_id, claimed_at)
+                    VALUES ($1, $2, 'test', 'processing', $3::jsonb, $4, now())
+                    """,
+                    op_id,
+                    bank_id,
+                    payload,
+                    worker,
+                )
+
+        # Decommission all
+        result = await pool.fetch(
+            """
+            UPDATE async_operations
+            SET status = 'pending', worker_id = NULL, claimed_at = NULL, updated_at = now()
+            WHERE status = 'processing' AND bank_id = $1
+            RETURNING operation_id, worker_id, operation_type
+            """,
+            bank_id,
+        )
+
+        assert len(result) == 6
+
+        # All should be pending now
+        rows = await pool.fetch(
+            "SELECT status, worker_id, claimed_at FROM async_operations WHERE bank_id = $1",
+            bank_id,
+        )
+        for row in rows:
+            assert row["status"] == "pending"
+            assert row["worker_id"] is None
+            assert row["claimed_at"] is None
+
+    @pytest.mark.asyncio
+    async def test_decommission_all_does_not_affect_pending_or_completed(self, pool, clean_operations):
+        """Test that decommissioning all workers only touches 'processing' tasks."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Create a pending task
+        pending_id = uuid.uuid4()
+        await pool.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload)
+            VALUES ($1, $2, 'test', 'pending', '{"type":"test","bank_id":"x"}'::jsonb)
+            """,
+            pending_id,
+            bank_id,
+        )
+
+        # Create a completed task
+        completed_id = uuid.uuid4()
+        await pool.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload, completed_at)
+            VALUES ($1, $2, 'test', 'completed', '{"type":"test","bank_id":"x"}'::jsonb, now())
+            """,
+            completed_id,
+            bank_id,
+        )
+
+        # Create a processing task
+        processing_id = uuid.uuid4()
+        await pool.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload, worker_id, claimed_at)
+            VALUES ($1, $2, 'test', 'processing', '{"type":"test","bank_id":"x"}'::jsonb, 'dead-worker', now())
+            """,
+            processing_id,
+            bank_id,
+        )
+
+        # Decommission all
+        result = await pool.fetch(
+            """
+            UPDATE async_operations
+            SET status = 'pending', worker_id = NULL, claimed_at = NULL, updated_at = now()
+            WHERE status = 'processing' AND bank_id = $1
+            RETURNING operation_id
+            """,
+            bank_id,
+        )
+
+        assert len(result) == 1
+        assert result[0]["operation_id"] == processing_id
+
+        # Pending task unchanged
+        pending_row = await pool.fetchrow(
+            "SELECT status FROM async_operations WHERE operation_id = $1", pending_id
+        )
+        assert pending_row["status"] == "pending"
+
+        # Completed task unchanged
+        completed_row = await pool.fetchrow(
+            "SELECT status FROM async_operations WHERE operation_id = $1", completed_id
+        )
+        assert completed_row["status"] == "completed"
+
+    @pytest.mark.asyncio
+    async def test_decommission_all_returns_empty_when_no_processing(self, pool, clean_operations):
+        """Test decommissioning when there are no processing tasks."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Only pending tasks
+        for i in range(3):
+            op_id = uuid.uuid4()
+            payload = json.dumps({"type": "test_task", "index": i, "bank_id": bank_id})
+            await pool.execute(
+                """
+                INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload)
+                VALUES ($1, $2, 'test', 'pending', $3::jsonb)
+                """,
+                op_id,
+                bank_id,
+                payload,
+            )
+
+        result = await pool.fetch(
+            """
+            UPDATE async_operations
+            SET status = 'pending', worker_id = NULL, claimed_at = NULL, updated_at = now()
+            WHERE status = 'processing' AND bank_id = $1
+            RETURNING operation_id
+            """,
+            bank_id,
+        )
+
+        assert len(result) == 0
+
+
+class TestWorkerStatus:
+    """Tests for worker-status functionality."""
+
+    @pytest.mark.asyncio
+    async def test_worker_status_shows_processing_tasks(self, pool, clean_operations):
+        """Test that worker status returns all processing tasks with their details."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Create processing tasks for two workers
+        for worker, op_type in [("worker-x", "retain"), ("worker-x", "consolidation"), ("worker-y", "retain")]:
+            op_id = uuid.uuid4()
+            payload = json.dumps({"type": "test_task", "bank_id": bank_id})
+            await pool.execute(
+                """
+                INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload, worker_id, claimed_at)
+                VALUES ($1, $2, $3, 'processing', $4::jsonb, $5, now())
+                """,
+                op_id,
+                bank_id,
+                op_type,
+                payload,
+                worker,
+            )
+
+        rows = await pool.fetch(
+            """
+            SELECT worker_id, operation_id, operation_type, bank_id,
+                   claimed_at, updated_at,
+                   now() - claimed_at AS running_for,
+                   now() - updated_at AS last_update_ago
+            FROM async_operations
+            WHERE status = 'processing' AND bank_id = $1
+            ORDER BY worker_id, claimed_at
+            """,
+            bank_id,
+        )
+
+        assert len(rows) == 3
+
+        # Verify all expected columns are present
+        for row in rows:
+            assert row["worker_id"] in ("worker-x", "worker-y")
+            assert row["operation_type"] in ("retain", "consolidation")
+            assert row["bank_id"] == bank_id
+            assert row["claimed_at"] is not None
+            assert row["updated_at"] is not None
+            assert row["running_for"] is not None
+            assert row["last_update_ago"] is not None
+
+        # Verify grouping: worker-x has 2, worker-y has 1
+        worker_x_rows = [r for r in rows if r["worker_id"] == "worker-x"]
+        worker_y_rows = [r for r in rows if r["worker_id"] == "worker-y"]
+        assert len(worker_x_rows) == 2
+        assert len(worker_y_rows) == 1
+
+    @pytest.mark.asyncio
+    async def test_worker_status_excludes_non_processing(self, pool, clean_operations):
+        """Test that worker status only shows processing tasks, not pending/completed/failed."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Create tasks in various statuses
+        for status in ["pending", "processing", "completed", "failed"]:
+            op_id = uuid.uuid4()
+            payload = json.dumps({"type": "test_task", "bank_id": bank_id})
+            worker = "status-worker" if status == "processing" else None
+            claimed = "now()" if status == "processing" else "NULL"
+            await pool.execute(
+                f"""
+                INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload, worker_id, claimed_at)
+                VALUES ($1, $2, 'test', $3, $4::jsonb, $5, {claimed})
+                """,
+                op_id,
+                bank_id,
+                status,
+                payload,
+                worker,
+            )
+
+        rows = await pool.fetch(
+            """
+            SELECT worker_id, operation_type, bank_id
+            FROM async_operations
+            WHERE status = 'processing' AND bank_id = $1
+            """,
+            bank_id,
+        )
+
+        assert len(rows) == 1
+        assert rows[0]["worker_id"] == "status-worker"
+
+    @pytest.mark.asyncio
+    async def test_worker_status_empty_when_no_processing(self, pool, clean_operations):
+        """Test that worker status returns empty when no tasks are processing."""
+        bank_id = f"test-worker-{uuid.uuid4().hex[:8]}"
+        await _ensure_bank(pool, bank_id)
+
+        # Only pending tasks
+        op_id = uuid.uuid4()
+        payload = json.dumps({"type": "test_task", "bank_id": bank_id})
+        await pool.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, status, task_payload)
+            VALUES ($1, $2, 'test', 'pending', $3::jsonb)
+            """,
+            op_id,
+            bank_id,
+            payload,
+        )
+
+        rows = await pool.fetch(
+            """
+            SELECT worker_id FROM async_operations
+            WHERE status = 'processing' AND bank_id = $1
+            """,
+            bank_id,
+        )
+
+        assert len(rows) == 0

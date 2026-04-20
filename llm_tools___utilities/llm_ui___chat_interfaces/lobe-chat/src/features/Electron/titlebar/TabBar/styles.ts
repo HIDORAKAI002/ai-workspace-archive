@@ -27,6 +27,18 @@ export const useStyles = createStaticStyles(({ css, cssVar }) => ({
     background: ${cssVar.gold};
     box-shadow: 0 0 6px ${cssVar.gold};
   `,
+  unreadDot: css`
+    position: absolute;
+    inset-block-end: -2px;
+    inset-inline-end: -2px;
+
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid ${cssVar.colorBgLayout};
+    border-radius: 50%;
+
+    background: ${cssVar.colorInfo};
+  `,
   container: css`
     flex: 1;
     min-width: 0;
@@ -58,10 +70,10 @@ export const useStyles = createStaticStyles(({ css, cssVar }) => ({
     }
   `,
   tabActive: css`
-    background-color: ${cssVar.colorFillSecondary};
+    background-color: ${cssVar.colorBgContainer};
 
     &:hover {
-      background-color: ${cssVar.colorFill};
+      background-color: ${cssVar.colorBgContainer};
     }
   `,
   tabIcon: css`
