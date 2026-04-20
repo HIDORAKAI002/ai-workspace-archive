@@ -287,6 +287,15 @@ async function processJob(job: NuQJob<ScrapeJobSingleUrls>) {
         (doc.warning ? " " + doc.warning : "");
     }
 
+    if (
+      job.data.billing?.endpoint === "scrape" &&
+      (job.data.scrapeOptions.actions?.length ?? 0) > 0
+    ) {
+      doc.warning =
+        "You're using the actions parameter. For a more reliable and flexible experience, try the /interact endpoint instead." +
+        (doc.warning ? " " + doc.warning : "");
+    }
+
     const data = {
       success: true,
       result: {

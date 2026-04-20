@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { PDFProcessorResult } from "./types";
 import { safeMarkdownToHtml } from "./markdownToHtml";
 import {
+  createPdfCacheKey,
   getPdfResultFromCache,
   savePdfResultToCache,
 } from "../../../../lib/gcs-pdf-cache";
@@ -42,6 +43,29 @@ export async function scrapePDFWithFirePDF(
     pagesProcessed,
   });
 
+  const zdr = meta.internalOptions.zeroDataRetention === true;
+  const pdfSha256 = createPdfCacheKey(base64Content);
+
+  // Explicit deadline contract with fire-pdf (mirrors mineru-api):
+  //   timeout    — remaining scrape-tier budget in ms (from AbortManager)
+  //   created_at — epoch ms when we handed the budget over to fire-pdf
+  //
+  // fire-pdf computes remaining = timeout - (now - created_at) and can
+  // return 503 if the budget is spent. Previously it only saw the abort
+  // signal from the HTTP connection, which it didn't observe — so work
+  // kept running past the caller's timeout and the user got a late
+  // failure instead of a fast deadline-exceeded response.
+  //
+  // scrapeTimeout() returns undefined if no scrape-tier deadline is set
+  // (e.g., internal tests, CLI). Don't send timeout in that case so
+  // fire-pdf applies its own default.
+  const fireScrapeTimeout = meta.abort.scrapeTimeout();
+  const deadlineFields: { timeout?: number; created_at?: number } = {};
+  if (fireScrapeTimeout !== undefined && fireScrapeTimeout > 0) {
+    deadlineFields.timeout = Math.floor(fireScrapeTimeout);
+    deadlineFields.created_at = Date.now();
+  }
+
   const resp = await robustFetch({
     url: `${config.FIRE_PDF_BASE_URL}/ocr`,
     method: "POST",
@@ -52,6 +76,17 @@ export async function scrapePDFWithFirePDF(
       pdf: base64Content,
       scrape_id: meta.id,
       ...(maxPages !== undefined && { max_pages: maxPages }),
+      // Enrichment for the fire-pdf jobs DB / dashboard. fire-pdf treats
+      // these as optional — older fire-pdf builds will ignore unknown fields.
+      team_id: meta.internalOptions.teamId,
+      ...(meta.internalOptions.crawlId && {
+        crawl_id: meta.internalOptions.crawlId,
+      }),
+      ...(zdr ? {} : { url: meta.rewrittenUrl ?? meta.url }),
+      pdf_sha256: pdfSha256,
+      source: "firecrawl",
+      zdr,
+      ...deadlineFields,
     },
     logger,
     schema: z.object({

@@ -404,6 +404,22 @@ export async function scrapePDF(meta: Meta): Promise<EngineScrapeResult> {
           meta.logger.warn("FirePDF failed -- falling back to MinerU", {
             method: "scrapePDF/firePDF",
             error,
+            event: "pdf_engine_fallback",
+            scrape_id: meta.id,
+            team_id: meta.internalOptions.teamId,
+            from_engine: "firepdf",
+            to_engine: "mineru",
+            // Coerce both to strings defensively — if someone throws a
+            // non-Error (e.g. a plain object or primitive), `.name` /
+            // `.message` could be undefined or non-string, and `.slice` would
+            // throw inside the fallback logger, masking the original failure.
+            error_class:
+              (error as { name?: unknown })?.name != null
+                ? String((error as { name?: unknown }).name)
+                : undefined,
+            error_message: String(
+              (error as { message?: unknown })?.message ?? "",
+            ).slice(0, 500),
           });
         }
       }

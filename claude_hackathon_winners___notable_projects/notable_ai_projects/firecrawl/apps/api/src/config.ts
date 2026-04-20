@@ -203,6 +203,12 @@ const configSchema = z.object({
   OLLAMA_BASE_URL: z.string().optional(),
   VERTEX_CREDENTIALS: z.string().optional(),
 
+  // LangSmith (tracing for interact agent)
+  LANGSMITH_API_KEY: z.string().optional(),
+  LANGSMITH_PROJECT: z.string().optional(),
+  LANGSMITH_ENDPOINT: z.string().optional(),
+  LANGSMITH_TRACING: z.stringbool().optional(),
+
   // Rate Limiting
   RATE_LIMIT_TEST_API_KEY_SCRAPE: z.coerce.number().optional(),
   RATE_LIMIT_TEST_API_KEY_CRAWL: z.coerce.number().optional(),
