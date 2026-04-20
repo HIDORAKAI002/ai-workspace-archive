@@ -42,7 +42,7 @@ import type { MatrixResolvedAllowlistEntry } from "./config.js";
 import type { MatrixInboundEventDeduper } from "./inbound-dedupe.js";
 import { resolveMatrixLocation, type MatrixLocationPayload } from "./location.js";
 import { downloadMatrixMedia } from "./media.js";
-import { resolveMentions } from "./mentions.js";
+import { resolveMentions, stripMatrixMentionPrefix } from "./mentions.js";
 import { deliverMatrixReplies } from "./replies.js";
 import { createMatrixReplyContextResolver } from "./reply-context.js";
 import { createRoomHistoryTracker } from "./room-history.js";
@@ -935,8 +935,16 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
           surface: "matrix",
         });
         const useAccessGroups = cfg.commands?.useAccessGroups !== false;
+        // Keep mention stripping on the command-only path so history and agent
+        // prompt text continue to see the original Matrix message.
+        const commandCheckText = stripMatrixMentionPrefix({
+          text: mentionPrecheckText,
+          userId: selfUserId,
+          displayName: selfDisplayName,
+          mentionRegexes: agentMentionRegexes,
+        });
         const hasControlCommandInMessage = core.channel.text.hasControlCommand(
-          mentionPrecheckText,
+          commandCheckText,
           cfg,
         );
         const commandGate = resolveControlCommandGate({
@@ -1068,6 +1076,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
           await commitInboundEventIfClaimed();
           return undefined;
         }
+        const commandBodyText = hasControlCommandInMessage ? commandCheckText : bodyText;
         const senderName = await getSenderName();
         if (_configuredBinding) {
           const { ensureConfiguredAcpBindingReady } = await loadAcpBindingRuntime();
@@ -1115,6 +1124,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
           inboundHistory,
           senderName,
           bodyText,
+          commandBodyText,
           media,
           locationPayload,
           messageId: _messageId,
@@ -1168,6 +1178,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
         inboundHistory,
         senderName,
         bodyText,
+        commandBodyText,
         media,
         locationPayload,
         messageId: _messageId,
@@ -1286,7 +1297,9 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
       const ctxPayload = core.channel.reply.finalizeInboundContext({
         Body: body,
         RawBody: bodyText,
-        CommandBody: bodyText,
+        CommandBody: commandBodyText,
+        BodyForAgent: bodyText,
+        BodyForCommands: commandBodyText,
         InboundHistory: inboundHistory && inboundHistory.length > 0 ? inboundHistory : undefined,
         From: isDirectMessage ? `matrix:${senderId}` : `matrix:channel:${roomId}`,
         To: `room:${roomId}`,
