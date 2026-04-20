@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-21 03:02 IST] Auto-Sync
+- **36 Repositories Updated:** BigQuery MCP, Supabase MCP, Kubernetes MCP Server, Langfuse, Promptfoo, n8n, Flowise, Activepieces, Trigger.dev, Windmill, Directus, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, RooCodeInc/Roo-Code, arize-ai/phoenix, firecrawl/firecrawl, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-20 20:37 IST] Auto-Sync
 - **37 Repositories Updated:** MCP TypeScript SDK, Kubernetes MCP Server, Langfuse, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Plane, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, openlit/openlit, open-telemetry/opentelemetry-python, microsoft/ai-agents-for-beginners, firecrawl/firecrawl, vercel/ai, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 
