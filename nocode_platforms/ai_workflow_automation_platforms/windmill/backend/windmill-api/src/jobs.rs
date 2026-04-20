@@ -2085,6 +2085,7 @@ async fn list_queue_jobs(
 #[derive(Deserialize)]
 pub struct CancelSelectionQuery {
     force_cancel: Option<bool>,
+    all_workspaces: Option<bool>,
 }
 
 async fn cancel_selection(
@@ -2097,23 +2098,53 @@ async fn cancel_selection(
 ) -> error::JsonResult<Vec<Uuid>> {
     let mut tx = user_db.begin(&authed).await?;
     let tags = get_scope_tags(&authed).map(|v| v.iter().map(|s| s.to_string()).collect_vec());
-    let jobs_to_cancel = sqlx::query_scalar!(
-            "SELECT j.id AS \"id!\" FROM v2_job j LEFT JOIN v2_job_queue q USING (id) WHERE j.id = ANY($1) AND j.trigger_kind IS DISTINCT FROM 'schedule'::job_trigger_kind AND ($2::text[] IS NULL OR j.tag = ANY($2))",
+    // Only honor all_workspaces when the path workspace is "admins", matching
+    // the convention used by count_queue_jobs / count_completed_jobs_detail.
+    // Outside the admins workspace, always scope to the path w_id so a client
+    // cannot drop workspace scoping by passing all_workspaces=true.
+    let all_workspaces = w_id == "admins" && query.all_workspaces.unwrap_or(false);
+    let path_w_id = if all_workspaces {
+        None
+    } else {
+        Some(w_id.as_str())
+    };
+    let rows = sqlx::query!(
+            "SELECT j.id AS \"id!\", j.workspace_id AS \"workspace_id!\" FROM v2_job j LEFT JOIN v2_job_queue q USING (id) WHERE j.id = ANY($1) AND j.trigger_kind IS DISTINCT FROM 'schedule'::job_trigger_kind AND ($2::text[] IS NULL OR j.tag = ANY($2)) AND ($3::text IS NULL OR j.workspace_id = $3)",
             &jobs,
-            tags.as_ref().map(|v| v.as_slice())
+            tags.as_ref().map(|v| v.as_slice()),
+            path_w_id
         )
         .fetch_all(&mut *tx)
         .await?;
     tx.commit().await?;
 
-    cancel_jobs(
-        jobs_to_cancel,
-        &db,
-        authed.username.as_str(),
-        w_id.as_str(),
-        query.force_cancel.unwrap_or(false),
-    )
-    .await
+    // cancel_jobs enforces workspace_id per row, so dispatch one call per
+    // workspace so cross-workspace selections (all_workspaces=true) aren't
+    // silently dropped. In single-workspace mode the SQL filter above ensures
+    // this collapses to a single call.
+    let mut jobs_by_workspace: HashMap<String, Vec<Uuid>> = HashMap::new();
+    for row in rows {
+        jobs_by_workspace
+            .entry(row.workspace_id)
+            .or_default()
+            .push(row.id);
+    }
+
+    let force_cancel = query.force_cancel.unwrap_or(false);
+    let mut cancelled = Vec::new();
+    for (workspace_id, ids) in jobs_by_workspace {
+        let Json(mut w_cancelled) = cancel_jobs(
+            ids,
+            &db,
+            authed.username.as_str(),
+            workspace_id.as_str(),
+            force_cancel,
+        )
+        .await?;
+        cancelled.append(&mut w_cancelled);
+    }
+
+    Ok(Json(cancelled))
 }
 
 async fn list_filtered_job_uuids(
