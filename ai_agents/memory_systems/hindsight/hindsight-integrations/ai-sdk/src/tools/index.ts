@@ -76,8 +76,8 @@ export interface ReflectFact {
  */
 export interface ReflectBasedOn {
   memories?: ReflectFact[];
-  mental_models?: Array<{ id: string; name: string; content?: string | null }>;
-  directives?: Array<{ id: string; content: string }>;
+  mental_models?: Array<{ id: string; text: string; context?: string | null }>;
+  directives?: Array<{ id: string; name: string; content: string }>;
 }
 
 /**

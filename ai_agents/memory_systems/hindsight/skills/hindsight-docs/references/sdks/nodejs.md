@@ -137,3 +137,37 @@ const response = await client.listMemories('my-bank', {
 });
 console.log(response)
 ```
+## Document Management
+
+### Get Document
+
+```typescript
+const doc = await client.getDocument('my-bank', 'conversation_001');
+if (doc) {
+    console.log(doc);  // null when document not found
+}
+```
+
+### List Documents
+
+```typescript
+const response = await client.listDocuments('my-bank', {
+    limit: 50,
+    offset: 0,
+});
+console.log(response);
+```
+
+### Update Document
+
+```typescript
+await client.updateDocument('my-bank', 'conversation_001', {
+    tags: ['important', 'meeting-notes'],
+});
+```
+
+### Delete Document
+
+```typescript
+await client.deleteDocument('my-bank', 'conversation_001');
+```

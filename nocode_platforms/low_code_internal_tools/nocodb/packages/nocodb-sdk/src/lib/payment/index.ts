@@ -33,6 +33,7 @@ export enum PlanLimitTypes {
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
   LIMIT_WORKSPACE = 'limit_workspace',
+  LIMIT_TRASH_RETENTION = 'limit_trash_retention',
 }
 
 export enum PlanFeatureTypes {
@@ -93,6 +94,8 @@ export enum PlanFeatureTypes {
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_LIST_VIEW = 'feature_list_view',
   FEATURE_TEAM_HIERARCHY = 'feature_team_hierarchy',
+  FEATURE_MFA = 'feature_mfa',
+  FEATURE_FORCE_2FA = 'feature_force_2fa',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
   FEATURE_AI_CHAT = 'feature_ai_chat',
   FEATURE_DOCS_APIS = 'feature_docs_apis',
@@ -105,6 +108,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
+  FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
 }
 
 export enum PlanTitles {
@@ -283,6 +287,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more document pages in a base.',
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
+  [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -363,6 +368,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_LIST_VIEW]: 'to use list view.',
   [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: 'to use team hierarchy.',
+  [PlanFeatureTypes.FEATURE_MFA]: 'to enable multi-factor authentication.',
+  [PlanFeatureTypes.FEATURE_FORCE_2FA]:
+    'to require two-factor authentication for all workspace members.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
   [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
   [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
@@ -376,6 +384,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
+  [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
+    'to configure per-table trash settings.',
 };
 
 export const getUpgradeMessage = (

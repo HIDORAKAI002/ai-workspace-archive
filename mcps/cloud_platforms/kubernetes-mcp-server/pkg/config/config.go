@@ -15,6 +15,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/containers/kubernetes-mcp-server/pkg/api"
 	"github.com/containers/kubernetes-mcp-server/pkg/output"
+	"github.com/containers/kubernetes-mcp-server/pkg/tokenexchange"
 	"github.com/containers/kubernetes-mcp-server/pkg/toolsets"
 	"k8s.io/klog/v2"
 )
@@ -65,6 +66,12 @@ type StaticConfig struct {
 	// AuthorizationURL is the URL of the OIDC authorization server.
 	// It is used for token validation and for STS token exchange.
 	AuthorizationURL string `toml:"authorization_url,omitempty"`
+	// SkipJWTVerification allows the server to accept JWTs without cryptographic
+	// signature verification when require_oauth is enabled but no authorization_url
+	// is configured (offline-only validation). Only use behind a trusted reverse proxy
+	// that performs token verification. When false (default), the server refuses to
+	// start if require_oauth is true and authorization_url is empty.
+	SkipJWTVerification bool `toml:"skip_jwt_verification,omitempty"`
 	// DisableDynamicClientRegistration indicates whether dynamic client registration is disabled.
 	// If true, the .well-known endpoints will not expose the registration endpoint.
 	DisableDynamicClientRegistration bool `toml:"disable_dynamic_client_registration,omitempty"`
@@ -157,6 +164,8 @@ type StaticConfig struct {
 	configDirPath string
 	// Internal: known provider strategies, set via WithProviderStrategies
 	providerStrategies []string
+	// Internal: known token exchange strategies, set via WithTokenExchangeStrategies
+	tokenExchangeStrategies []string
 }
 
 var _ api.BaseConfig = (*StaticConfig)(nil)
@@ -357,20 +366,6 @@ func ReadToml(configData []byte, opts ...ReadConfigOpt) (*StaticConfig, error) {
 		return nil, err
 	}
 
-	if fb := config.ConfirmationFallback; fb != "" && fb != "allow" && fb != "deny" {
-		return nil, fmt.Errorf("invalid confirmation_fallback %q: must be \"allow\" or \"deny\"", fb)
-	}
-
-	var ruleErrors []error
-	for i := range config.ConfirmationRules {
-		if ruleErr := config.ConfirmationRules[i].Validate(); ruleErr != nil {
-			ruleErrors = append(ruleErrors, fmt.Errorf("confirmation_rules[%d]: %w", i, ruleErr))
-		}
-	}
-	if len(ruleErrors) > 0 {
-		return nil, fmt.Errorf("invalid confirmation rules:\n%w", errors.Join(ruleErrors...))
-	}
-
 	return config, nil
 }
 
@@ -455,6 +450,16 @@ func (c *StaticConfig) WithProviderStrategies(strategies []string) *StaticConfig
 	return c
 }
 
+// WithTokenExchangeStrategies sets the known token exchange strategies for
+// validation. Callers that have access to the token exchange registry should
+// chain this before Validate so that token_exchange_strategy is checked:
+//
+//	cfg.WithTokenExchangeStrategies(tokenexchange.GetRegisteredStrategies()).Validate()
+func (c *StaticConfig) WithTokenExchangeStrategies(strategies []string) *StaticConfig {
+	c.tokenExchangeStrategies = strategies
+	return c
+}
+
 // Validate validates config-level invariants that must hold at both startup and
 // on SIGHUP reload.
 func (c *StaticConfig) Validate() error {
@@ -462,6 +467,9 @@ func (c *StaticConfig) Validate() error {
 	c.CertificateAuthority = strings.TrimSpace(c.CertificateAuthority)
 	c.TLSCert = strings.TrimSpace(c.TLSCert)
 	c.TLSKey = strings.TrimSpace(c.TLSKey)
+	c.StsAuthStyle = strings.TrimSpace(c.StsAuthStyle)
+	c.StsClientCertFile = strings.TrimSpace(c.StsClientCertFile)
+	c.StsClientKeyFile = strings.TrimSpace(c.StsClientKeyFile)
 	if output.FromString(c.ListOutput) == nil {
 		return fmt.Errorf("invalid output name: %s, valid names are: %s", c.ListOutput, strings.Join(output.Names, ", "))
 	}
@@ -488,6 +496,9 @@ func (c *StaticConfig) Validate() error {
 			klog.Warningf("authorization-url is using http://, this is not recommended production use")
 		}
 	}
+	if err := c.validateSkipJWTVerification(); err != nil {
+		return err
+	}
 	if c.CertificateAuthority != "" {
 		if _, err := os.Stat(c.CertificateAuthority); err != nil {
 			return fmt.Errorf("certificate-authority must be a valid file path: %w", err)
@@ -512,8 +523,85 @@ func (c *StaticConfig) Validate() error {
 	if err := c.ValidateClusterAuthMode(); err != nil {
 		return err
 	}
+	if err := c.validateTokenExchange(); err != nil {
+		return err
+	}
+	if err := c.validateConfirmation(); err != nil {
+		return err
+	}
 	if err := c.HTTP.Validate(); err != nil {
 		return err
+	}
+	return nil
+}
+
+// validateConfirmation validates confirmation-related fields:
+//   - confirmation_fallback must be "allow", "deny", or empty
+//   - each entry in confirmation_rules must be well-formed
+//     (tool-level xor kube-level, with at least one classifying field)
+func (c *StaticConfig) validateConfirmation() error {
+	if fb := c.ConfirmationFallback; fb != "" && fb != "allow" && fb != "deny" {
+		return fmt.Errorf("invalid confirmation_fallback %q: must be \"allow\" or \"deny\"", fb)
+	}
+	var ruleErrors []error
+	for i := range c.ConfirmationRules {
+		if ruleErr := c.ConfirmationRules[i].Validate(); ruleErr != nil {
+			ruleErrors = append(ruleErrors, fmt.Errorf("confirmation_rules[%d]: %w", i, ruleErr))
+		}
+	}
+	if len(ruleErrors) > 0 {
+		return fmt.Errorf("invalid confirmation rules:\n%w", errors.Join(ruleErrors...))
+	}
+	return nil
+}
+
+// validateSkipJWTVerification checks that the user has explicitly opted in to
+// skipping JWT signature verification when require_oauth is enabled but no
+// authorization_url is configured.
+func (c *StaticConfig) validateSkipJWTVerification() error {
+	if !c.RequireOAuth || c.AuthorizationURL != "" {
+		return nil
+	}
+	if c.SkipJWTVerification {
+		klog.Warningf("skip_jwt_verification is enabled: JWTs will be accepted without cryptographic signature verification. " +
+			"Only use this behind a trusted reverse proxy that performs token verification.")
+		return nil
+	}
+	return fmt.Errorf("require_oauth is enabled but authorization_url is not configured: " +
+		"JWTs cannot be cryptographically verified without an OIDC provider. " +
+		"Set authorization_url to an OIDC issuer, or set skip_jwt_verification=true " +
+		"if the server is behind a trusted reverse proxy that verifies tokens")
+}
+
+// validateTokenExchange validates token-exchange-related fields:
+//   - token_exchange_strategy must be a known strategy (when registry is provided)
+//   - sts_auth_style must be one of "params", "header", "assertion"
+//   - when sts_auth_style is "assertion", sts_client_cert_file and sts_client_key_file
+//     must both be set and reference existing files
+func (c *StaticConfig) validateTokenExchange() error {
+	if c.TokenExchangeStrategy != "" && len(c.tokenExchangeStrategies) > 0 {
+		if !slices.Contains(c.tokenExchangeStrategies, c.TokenExchangeStrategy) {
+			return fmt.Errorf("invalid token_exchange_strategy: %s, valid values are: %s", c.TokenExchangeStrategy, strings.Join(c.tokenExchangeStrategies, ", "))
+		}
+	}
+	switch c.StsAuthStyle {
+	case "", tokenexchange.AuthStyleParams, tokenexchange.AuthStyleHeader:
+		// valid
+	case tokenexchange.AuthStyleAssertion:
+		if c.StsClientCertFile == "" {
+			return fmt.Errorf("sts_client_cert_file is required when sts_auth_style is %q", tokenexchange.AuthStyleAssertion)
+		}
+		if c.StsClientKeyFile == "" {
+			return fmt.Errorf("sts_client_key_file is required when sts_auth_style is %q", tokenexchange.AuthStyleAssertion)
+		}
+		if _, err := os.Stat(c.StsClientCertFile); err != nil {
+			return fmt.Errorf("sts_client_cert_file must be a valid file path: %w", err)
+		}
+		if _, err := os.Stat(c.StsClientKeyFile); err != nil {
+			return fmt.Errorf("sts_client_key_file must be a valid file path: %w", err)
+		}
+	default:
+		return fmt.Errorf("invalid sts_auth_style %q: must be %q, %q, or %q", c.StsAuthStyle, tokenexchange.AuthStyleParams, tokenexchange.AuthStyleHeader, tokenexchange.AuthStyleAssertion)
 	}
 	return nil
 }

@@ -121,7 +121,7 @@ const AssetCatalogV2VirtualizedTableImpl = <
 
   return (
     <Container ref={containerRef}>
-      <Inner $totalHeight={totalHeight}>
+      <Inner totalHeight={totalHeight}>
         <div
           style={{
             position: 'absolute',

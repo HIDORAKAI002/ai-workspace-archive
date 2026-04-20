@@ -1,7 +1,7 @@
 ---
 description: Track Snowflake usage metrics with the Dagster+ Insights UI or the dagster-cloud package.
 sidebar_label: Snowflake
-sidebar_position: 3000
+sidebar_position: 2000
 title: Track Snowflake usage with Dagster+ Insights
 ---
 

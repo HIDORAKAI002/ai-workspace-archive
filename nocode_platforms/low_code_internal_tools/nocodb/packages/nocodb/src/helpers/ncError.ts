@@ -171,6 +171,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    return NcError._.systemMisconfigured(message, args);
+  }
+
   static formulaError(message: string, args?: NcErrorArgs): never {
     return NcError._.formulaError(message, args);
   }
@@ -236,6 +240,9 @@ export class NcError {
   }
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
+  }
+  static mfaSetupRequired(ncWorkspaceId: string): never {
+    return NcError._.mfaSetupRequired(ncWorkspaceId);
   }
   static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxPayloadLimitExceeded(limit, args);

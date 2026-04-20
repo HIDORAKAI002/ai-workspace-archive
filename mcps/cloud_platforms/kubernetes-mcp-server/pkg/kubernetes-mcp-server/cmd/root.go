@@ -28,6 +28,7 @@ import (
 	internaloauth "github.com/containers/kubernetes-mcp-server/pkg/oauth"
 	"github.com/containers/kubernetes-mcp-server/pkg/output"
 	"github.com/containers/kubernetes-mcp-server/pkg/telemetry"
+	"github.com/containers/kubernetes-mcp-server/pkg/tokenexchange"
 	"github.com/containers/kubernetes-mcp-server/pkg/toolsets"
 	"github.com/containers/kubernetes-mcp-server/pkg/version"
 )
@@ -77,6 +78,7 @@ const (
 	flagRequireOAuth         = "require-oauth"
 	flagOAuthAudience        = "oauth-audience"
 	flagAuthorizationURL     = "authorization-url"
+	flagSkipJWTVerification  = "skip-jwt-verification"
 	flagServerUrl            = "server-url"
 	flagCertificateAuthority = "certificate-authority"
 	flagDisableMultiCluster  = "disable-multi-cluster"
@@ -100,6 +102,7 @@ type MCPServerOptions struct {
 	RequireOAuth         bool
 	OAuthAudience        string
 	AuthorizationURL     string
+	SkipJWTVerification  bool
 	CertificateAuthority string
 	ServerURL            string
 	DisableMultiCluster  bool
@@ -162,6 +165,8 @@ func NewMCPServer(streams genericiooptions.IOStreams) *cobra.Command {
 	_ = cmd.Flags().MarkHidden(flagOAuthAudience)
 	cmd.Flags().StringVar(&o.AuthorizationURL, flagAuthorizationURL, o.AuthorizationURL, "OAuth authorization server URL for protected resource endpoint. If not provided, the Kubernetes API server host will be used. Only valid if require-oauth is enabled.")
 	_ = cmd.Flags().MarkHidden(flagAuthorizationURL)
+	cmd.Flags().BoolVar(&o.SkipJWTVerification, flagSkipJWTVerification, o.SkipJWTVerification, "Skip JWT cryptographic signature verification when require-oauth is enabled but no authorization-url is configured. Only use behind a trusted reverse proxy that verifies tokens.")
+	_ = cmd.Flags().MarkHidden(flagSkipJWTVerification)
 	cmd.Flags().StringVar(&o.ServerURL, flagServerUrl, o.ServerURL, "Server URL of this application. Optional. If set, this url will be served in protected resource metadata endpoint and tokens will be validated with this audience. If not set, expected audience is kubernetes-mcp-server. Only valid if require-oauth is enabled.")
 	_ = cmd.Flags().MarkHidden(flagServerUrl)
 	cmd.Flags().StringVar(&o.CertificateAuthority, flagCertificateAuthority, o.CertificateAuthority, "Certificate authority path to verify certificates. Optional. Only valid if require-oauth is enabled.")
@@ -233,6 +238,9 @@ func (m *MCPServerOptions) loadFlags(cmd *cobra.Command) {
 	if cmd.Flag(flagAuthorizationURL).Changed {
 		m.StaticConfig.AuthorizationURL = m.AuthorizationURL
 	}
+	if cmd.Flag(flagSkipJWTVerification).Changed {
+		m.StaticConfig.SkipJWTVerification = m.SkipJWTVerification
+	}
 	if cmd.Flag(flagServerUrl).Changed {
 		m.StaticConfig.ServerURL = m.ServerURL
 	}
@@ -276,7 +284,10 @@ func (m *MCPServerOptions) initializeLogging() {
 
 func (m *MCPServerOptions) Validate() error {
 	// Config-level validations (shared with SIGHUP reload)
-	if err := m.StaticConfig.WithProviderStrategies(kubernetes.GetRegisteredStrategies()).Validate(); err != nil {
+	if err := m.StaticConfig.
+		WithProviderStrategies(kubernetes.GetRegisteredStrategies()).
+		WithTokenExchangeStrategies(tokenexchange.GetRegisteredStrategies()).
+		Validate(); err != nil {
 		return err
 	}
 	// CLI-level validations (flag interactions that can't change on reload)

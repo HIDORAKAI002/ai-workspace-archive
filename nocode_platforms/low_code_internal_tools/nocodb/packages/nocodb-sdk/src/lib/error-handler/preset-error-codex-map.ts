@@ -92,6 +92,26 @@ export const presetErrorCodexMap: Partial<
     },
     code: 404,
   },
+  [NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED]: {
+    message: (tableTitle: string) =>
+      `Record trash is not supported for table '${tableTitle || 'unknown'}'`,
+    code: 422,
+  },
+  [NcErrorType.ERR_RECORD_RESTORE_CONFLICT]: {
+    message: (details: string) =>
+      `Cannot restore record — link conflict: ${details || 'unknown conflict'}`,
+    code: 409,
+  },
+  [NcErrorType.ERR_RECORD_NOT_TRASHED]: {
+    message: () =>
+      `Cannot permanently delete active records that are not in trash`,
+    code: 422,
+  },
+  [NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED]: {
+    message: (limit: string) =>
+      `Cannot process more than ${limit} records at a time`,
+    code: 422,
+  },
   [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
@@ -251,6 +271,11 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_SSO_GENERATED_TOKEN_REQUIRED]: {
     message: (_workspaceId: string) =>
       'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
+    code: 403,
+  },
+  [NcErrorType.ERR_MFA_SETUP_REQUIRED]: {
+    message: (_workspaceId: string) =>
+      'Two-factor authentication setup required for this workspace',
     code: 403,
   },
   [NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED]: {
@@ -438,5 +463,15 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE]: {
     message: 'System field cannot be modified',
     code: 422,
+  },
+  [NcErrorType.ERR_SYSTEM_MISCONFIGURED]: {
+    message: (message: string) =>
+      message || 'System is not configured correctly',
+    code: 500,
+  },
+  [NcErrorType.ERR_TOO_MANY_REQUESTS]: {
+    message: (message: string) =>
+      message || 'Too many requests. Please try again later.',
+    code: 429,
   },
 };

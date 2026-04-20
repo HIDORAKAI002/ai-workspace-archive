@@ -361,6 +361,13 @@ export class NcErrorBase {
     });
   }
 
+  systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYSTEM_MISCONFIGURED, {
+      params: message,
+      ...args,
+    });
+  }
+
   formulaError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_FORMULA, {
       params: message,
@@ -539,6 +546,11 @@ export class NcErrorBase {
         params: ncWorkspaceId,
       }
     );
+  }
+  mfaSetupRequired(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MFA_SETUP_REQUIRED, {
+      params: ncWorkspaceId,
+    });
   }
   maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
@@ -742,6 +754,13 @@ export class NcErrorBase {
 
   badRequest(message): never {
     throw new BadRequestV2(message);
+  }
+
+  tooManyRequests(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TOO_MANY_REQUESTS, {
+      customMessage: message,
+      ...args,
+    });
   }
 
   optionsNotExists(props: {
@@ -982,6 +1001,42 @@ export class NcErrorBase {
       params: id,
       ...args,
     });
+  }
+
+  tableTrashNotSupported(tableTitle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED,
+      {
+        params: tableTitle,
+        ...args,
+      }
+    );
+  }
+
+  recordRestoreConflict(details: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_RECORD_RESTORE_CONFLICT,
+      {
+        params: details,
+        ...args,
+      }
+    );
+  }
+
+  recordNotTrashed(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RECORD_NOT_TRASHED, {
+      ...args,
+    });
+  }
+
+  trashBatchLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED,
+      {
+        params: limit.toString(),
+        ...args,
+      },
+    );
   }
 
   methodNotAllowed(method: string, args?: NcErrorArgs): never {

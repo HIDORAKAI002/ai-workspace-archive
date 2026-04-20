@@ -1,6 +1,4 @@
 import { css } from "@emotion/react";
-import { Suspense } from "react";
-import { graphql, useLazyLoadQuery } from "react-relay";
 
 import {
   Card,
@@ -9,15 +7,22 @@ import {
   ExternalLink,
   Flex,
   Label,
-  Loading,
   Switch,
   Text,
   View,
 } from "@phoenix/components";
-import { AgentSettingsForm } from "@phoenix/components/agent";
+import {
+  AgentObservabilitySettings,
+  AgentSettingsForm,
+} from "@phoenix/components/agent";
+import { useAgentContext } from "@phoenix/contexts/AgentContext";
 import { usePreferencesContext } from "@phoenix/contexts/PreferencesContext";
 
-import type { SettingsAgentsPageQuery } from "./__generated__/SettingsAgentsPageQuery.graphql";
+const traceDetailsCSS = css`
+  summary {
+    cursor: pointer;
+  }
+`;
 
 function getProjectRedirectUrl(
   collectorEndpoint: string,
@@ -56,51 +61,48 @@ function AssistantAgentEnabledSwitch() {
 }
 
 function AssistantTraceCollectionInfo() {
-  const data = useLazyLoadQuery<SettingsAgentsPageQuery>(
-    graphql`
-      query SettingsAgentsPageQuery {
-        agentsConfig {
-          collectorEndpoint
-          assistantProjectName
-        }
-      }
-    `,
-    {}
+  const { collectorEndpoint, assistantProjectName } = useAgentContext(
+    (state) => state.agentsConfig
   );
-
-  const { collectorEndpoint, assistantProjectName } = data.agentsConfig;
   const projectRedirectUrl = collectorEndpoint
     ? getProjectRedirectUrl(collectorEndpoint, assistantProjectName)
     : null;
 
   return (
     <Flex direction="column" gap="size-200">
-      <Text>Assistant agent traces are collected to the project below.</Text>
-      <CopyField value={assistantProjectName}>
-        <Label>Assistant Project Name</Label>
-        <CopyInput />
-        <Text slot="description">
-          {projectRedirectUrl ? (
-            <>
-              View traces in{" "}
-              <ExternalLink href={projectRedirectUrl}>
-                {assistantProjectName}
-              </ExternalLink>
-            </>
-          ) : (
-            "The project where assistant agent traces are recorded"
-          )}
-        </Text>
-      </CopyField>
-      <CopyField value={collectorEndpoint ?? ""}>
-        <Label>Collector Endpoint</Label>
-        <CopyInput />
-        <Text slot="description">
-          {collectorEndpoint
-            ? "Traces are also exported to this remote collector"
-            : "No remote collector configured — traces are only persisted locally"}
-        </Text>
-      </CopyField>
+      <AgentObservabilitySettings />
+      <details css={traceDetailsCSS}>
+        <summary>Tracing Details</summary>
+        <View paddingTop="size-150">
+          <Flex direction="column" gap="size-200">
+            <CopyField value={assistantProjectName}>
+              <Label>Assistant Project Name</Label>
+              <CopyInput />
+              <Text slot="description">
+                {projectRedirectUrl ? (
+                  <>
+                    View traces in{" "}
+                    <ExternalLink href={projectRedirectUrl}>
+                      {assistantProjectName}
+                    </ExternalLink>
+                  </>
+                ) : (
+                  "The project where assistant agent traces are recorded"
+                )}
+              </Text>
+            </CopyField>
+            <CopyField value={collectorEndpoint ?? ""}>
+              <Label>Collector Endpoint</Label>
+              <CopyInput />
+              <Text slot="description">
+                {collectorEndpoint
+                  ? "This is the sharing destination used when trace sharing is turned on."
+                  : "Trace sharing is not configured for this Phoenix app."}
+              </Text>
+            </CopyField>
+          </Flex>
+        </View>
+      </details>
     </Flex>
   );
 }
@@ -124,9 +126,7 @@ export function SettingsAgentsPage() {
             width: 100%;
           `}
         >
-          <Suspense fallback={<Loading />}>
-            <AssistantTraceCollectionInfo />
-          </Suspense>
+          <AssistantTraceCollectionInfo />
           <AgentSettingsForm />
         </Flex>
       </View>

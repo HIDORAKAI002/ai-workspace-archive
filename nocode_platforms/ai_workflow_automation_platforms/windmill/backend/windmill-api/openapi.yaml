@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.687.0
+  version: 1.688.0
   title: Windmill API
 
   contact:
@@ -11165,6 +11165,10 @@ paths:
       parameters:
         - $ref: "#/components/parameters/WorkspaceId"
         - name: force_cancel
+          in: query
+          schema:
+            type: boolean
+        - name: all_workspaces
           in: query
           schema:
             type: boolean

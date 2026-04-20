@@ -60,6 +60,7 @@ export {
   isInUIType,
   hiddenColumnTypes,
   LinksVersion,
+  isDeletedCol,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
@@ -104,3 +105,4 @@ export * from '~/lib/v3';
 export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
 export * from '~/lib/docs';
+export * from '~/lib/accountNameValidation';

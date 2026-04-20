@@ -1,4 +1,5 @@
-import { RelationTypes, UITypes } from '~/lib';
+import { RelationTypes } from '~/lib/globals';
+import UITypes from '~/lib/UITypes';
 
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
@@ -40,6 +41,12 @@ enum AuditV1OperationTypes {
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
   USER_EMAIL_VERIFY = 'USER_EMAIL_VERIFY',
 
+  USER_MFA_SETUP = 'USER_MFA_SETUP',
+  USER_MFA_ENABLED = 'USER_MFA_ENABLED',
+  USER_MFA_DISABLED = 'USER_MFA_DISABLED',
+  USER_MFA_VERIFY = 'USER_MFA_VERIFY',
+  USER_MFA_BACKUP_CODE_USED = 'USER_MFA_BACKUP_CODE_USED',
+
   BASE_USER_INVITE = 'BASE_USER_INVITE',
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
@@ -74,6 +81,14 @@ enum AuditV1OperationTypes {
   DATA_BULK_ALL_UPDATE = 'DATA_BULK_ALL_UPDATE',
 
   DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
+
+  // Trash / soft-delete operations
+  DATA_SOFT_DELETE = 'DATA_SOFT_DELETE',
+  DATA_BULK_SOFT_DELETE = 'DATA_BULK_SOFT_DELETE',
+  DATA_RESTORE = 'DATA_RESTORE',
+  DATA_BULK_RESTORE = 'DATA_BULK_RESTORE',
+  DATA_PERMANENT_DELETE = 'DATA_PERMANENT_DELETE',
+  DATA_BULK_PERMANENT_DELETE = 'DATA_BULK_PERMANENT_DELETE',
 
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
@@ -410,7 +425,10 @@ export const auditV1OperationsCategory: Record<
 export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_INSERT
   | AuditV1OperationTypes.DATA_BULK_UPDATE
-  | AuditV1OperationTypes.DATA_BULK_DELETE;
+  | AuditV1OperationTypes.DATA_BULK_DELETE
+  | AuditV1OperationTypes.DATA_BULK_SOFT_DELETE
+  | AuditV1OperationTypes.DATA_BULK_RESTORE
+  | AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE;
 
 export interface UserSigninPayload {
   provider?: string;
@@ -434,6 +452,18 @@ export interface UserInvitePayload {
 export interface UserPasswordChangePayload {}
 
 export interface UserPasswordResetPayload {}
+
+export interface UserMfaSetupPayload {}
+
+export interface UserMfaEnabledPayload {}
+
+export interface UserMfaDisabledPayload {}
+
+export interface UserMfaVerifyPayload {
+  method?: 'totp' | 'backup_code';
+}
+
+export interface UserMfaBackupCodeUsedPayload {}
 
 export interface UserPasswordForgotPayload {}
 
@@ -1499,6 +1529,21 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_EMAIL_VERIFY]: (
     audit: AuditV1<UserEmailVerifyPayload>
   ) => `User '${audit.user}' verified email`,
+  [AuditV1OperationTypes.USER_MFA_SETUP]: (
+    audit: AuditV1<UserMfaSetupPayload>
+  ) => `User '${audit.user}' initiated 2FA setup`,
+  [AuditV1OperationTypes.USER_MFA_ENABLED]: (
+    audit: AuditV1<UserMfaEnabledPayload>
+  ) => `User '${audit.user}' enabled two-factor authentication`,
+  [AuditV1OperationTypes.USER_MFA_DISABLED]: (
+    audit: AuditV1<UserMfaDisabledPayload>
+  ) => `User '${audit.user}' disabled two-factor authentication`,
+  [AuditV1OperationTypes.USER_MFA_VERIFY]: (
+    audit: AuditV1<UserMfaVerifyPayload>
+  ) => `User '${audit.user}' verified 2FA${audit.details?.method === 'backup_code' ? ' using backup code' : ''}`,
+  [AuditV1OperationTypes.USER_MFA_BACKUP_CODE_USED]: (
+    audit: AuditV1<UserMfaBackupCodeUsedPayload>
+  ) => `User '${audit.user}' used a backup code to sign in`,
   [AuditV1OperationTypes.BASE_USER_INVITE]: (
     audit: AuditV1<BaseUserInvitePayload>
   ) => `User '${audit.user}' invited '${audit.details.user_email}' to base`,
@@ -1572,6 +1617,23 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
     _audit: AuditV1<DataCascadeUpdatePayload>
   ) => `Record was rescheduled to avoid overlap with a conflicting record`,
+  [AuditV1OperationTypes.DATA_SOFT_DELETE]: (
+    audit: AuditV1<DataDeletePayload>
+  ) => `Record with ID [${audit.row_id}] has been moved to trash`,
+  [AuditV1OperationTypes.DATA_RESTORE]: (audit: AuditV1<DataDeletePayload>) =>
+    `Record with ID [${audit.row_id}] has been restored from trash`,
+  [AuditV1OperationTypes.DATA_PERMANENT_DELETE]: (
+    audit: AuditV1<DataDeletePayload>
+  ) => `Record with ID [${audit.row_id}] has been permanently deleted`,
+  [AuditV1OperationTypes.DATA_BULK_SOFT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been moved to trash`,
+  [AuditV1OperationTypes.DATA_BULK_RESTORE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been restored from trash`,
+  [AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been permanently deleted`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>

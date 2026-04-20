@@ -62,14 +62,14 @@ Swarms delivers a comprehensive, enterprise-grade multi-agent infrastructure pla
 
 Swarms seamlessly integrates with industry-standard protocols and open specifications, unlocking powerful capabilities for tool integration, payment processing, distributed agent orchestration, and model interoperability.
 
-| Protocol | Description | Use Cases | Documentation |
-|----------|-------------|-----------|---------------|
-| **[MCP (Model Context Protocol)](https://docs.swarms.world/en/latest/swarms/examples/multi_mcp_agent/)** | Standardized protocol for AI agents to interact with external tools and services through MCP servers. Enables dynamic tool discovery and execution. | • Tool integration<br>• Multi-server connections<br>• External API access<br>• Database connectivity | [MCP Integration Guide](https://docs.swarms.world/en/latest/swarms/examples/multi_mcp_agent/) |
-| **[X402](https://docs.swarms.world/en/latest/examples/x402_payment_integration/)** | Cryptocurrency payment protocol for API endpoints. Enables monetization of agents with pay-per-use models. | • Agent monetization<br>• Payment gate protection<br>• Crypto payments<br>• Pay-per-use services | [X402 Quickstart](https://docs.swarms.world/en/latest/examples/x402_payment_integration/) |
-| **[AOP (Agent Orchestration Protocol)](https://docs.swarms.world/en/latest/examples/aop_medical/)** | Framework for deploying and managing agents as distributed services. Enables agent discovery, management, and execution through standardized protocols. | • Distributed agent deployment<br>• Agent discovery<br>• Service orchestration<br>• Scalable multi-agent systems | [AOP Reference](https://docs.swarms.world/en/latest/swarms/structs/aop/) |
-| **[Swarms Marketplace](https://swarms.world)** | Platform for discovering and sharing production-ready prompts, agents, and tools. Enables automatic prompt loading from the marketplace and publishing your own prompts directly from code. | • Prompt discovery and reuse<br>• One-line prompt loading<br>• Community prompt sharing<br>• Prompt monetization | [Marketplace Tutorial](https://docs.swarms.world/en/latest/swarms/examples/marketplace_prompt_loading/) |
-| **[Open Responses](https://www.openresponses.org/)** | Open-source specification and ecosystem for multi-provider, interoperable LLM interfaces based on the OpenAI Responses API. Provides a unified schema and tooling for calling language models, streaming results, and composing agentic workflows—independent of provider. | • Unified LLM interfaces<br>• Streaming outputs<br>• Multi-provider orchestration<br>• Interoperable agent workflows | [Open Responses Website](https://www.openresponses.org/) |
-| **[Agent Skills](https://docs.swarms.world/en/latest/swarms/agents/agent_skills/)** | Lightweight, markdown-based format for defining modular, reusable agent capabilities introduced by Anthropic. Enables specialization of agents without modifying code by loading skill definitions from simple SKILL.md files. | • Agent specialization<br>• Reusable skill libraries<br>• Code-free agent customization<br>• Claude Code compatibility | [Agent Skills Documentation](https://docs.swarms.world/en/latest/swarms/agents/agent_skills/) |
+| Protocol | Description | Documentation |
+|----------|-------------|---------------|
+| **[MCP (Model Context Protocol)](https://docs.swarms.world/en/latest/swarms/examples/multi_mcp_agent/)** | Standardized protocol for AI agents to interact with external tools and services through MCP servers. Enables dynamic tool discovery and execution. | [MCP Integration Guide](https://docs.swarms.world/en/latest/swarms/examples/multi_mcp_agent/) |
+| **[X402](https://docs.swarms.world/en/latest/examples/x402_payment_integration/)** | Cryptocurrency payment protocol for API endpoints. Enables monetization of agents with pay-per-use models. | [X402 Quickstart](https://docs.swarms.world/en/latest/examples/x402_payment_integration/) |
+| **[AOP (Agent Orchestration Protocol)](https://docs.swarms.world/en/latest/examples/aop_medical/)** | Framework for deploying and managing agents as distributed services. Enables agent discovery, management, and execution through standardized protocols. | [AOP Reference](https://docs.swarms.world/en/latest/swarms/structs/aop/) |
+| **[Swarms Marketplace](https://swarms.world)** | Platform for discovering and sharing production-ready prompts, agents, and tools. Enables automatic prompt loading from the marketplace and publishing your own prompts directly from code. | [Marketplace Tutorial](https://docs.swarms.world/en/latest/swarms/examples/marketplace_prompt_loading/) |
+| **[Open Responses](https://www.openresponses.org/)** | Open-source specification and ecosystem for multi-provider, interoperable LLM interfaces based on the OpenAI Responses API. Provides a unified schema and tooling for calling language models, streaming results, and composing agentic workflows—independent of provider. | [Open Responses Website](https://www.openresponses.org/) |
+| **[Agent Skills](https://docs.swarms.world/en/latest/swarms/agents/agent_skills/)** | Lightweight, markdown-based format for defining modular, reusable agent capabilities introduced by Anthropic. Enables specialization of agents without modifying code by loading skill definitions from simple SKILL.md files. | [Agent Skills Documentation](https://docs.swarms.world/en/latest/swarms/agents/agent_skills/) |
 
 
 ## Install
@@ -153,6 +153,44 @@ agent = Agent(
 agent.run("What are the key benefits of using a multi-agent system?")
 ```
 
+### Autonomous Agent with `max_loops="auto"`
+
+Setting `max_loops="auto"` lets the agent decide for itself when the task is complete — it keeps reasoning and acting until it reaches a stopping condition, rather than halting after a fixed number of iterations. This is the recommended mode for open-ended, multi-step tasks where the number of steps isn't known in advance.
+
+```python
+from swarms import Agent
+
+agent = Agent(
+    agent_name="Autonomous-Research-Agent",
+    agent_description="An autonomous agent that conducts multi-step research independently.",
+    system_prompt=(
+        "You are an autonomous research agent. Break down complex tasks into steps, "
+        "execute each step thoroughly, and signal completion only when the full task is done."
+    ),
+    model_name="gpt-5.4",
+    max_loops="auto",       # Agent decides when it's done — no fixed iteration cap
+    autosave=True,
+    verbose=True,
+)
+
+# The agent will keep looping — planning, executing, and reflecting — until it
+# determines the task is fully complete.
+result = agent.run(
+    "Research the current state of quantum computing, identify the top three "
+    "hardware approaches, and summarize the key challenges each faces."
+)
+print(result)
+```
+
+**When to use `max_loops="auto"`:**
+- Open-ended research or analysis tasks
+- Tasks that require iterative refinement (e.g., write → review → revise)
+- Any workflow where the number of steps depends on intermediate results
+
+**When to use a fixed `max_loops` value:**
+- Latency-sensitive or cost-sensitive production pipelines
+- Tasks with a well-defined, bounded number of steps
+
 ### Your First Swarm: Multi-Agent Collaboration
 
 A **Swarm** consists of multiple agents working together. This simple example creates a two-agent workflow for researching and writing a blog post. [Learn More About SequentialWorkflow](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/)
@@ -185,48 +223,6 @@ print(final_post)
 
 -----
 
-### AutoSwarmBuilder: Autonomous Agent Generation
-
-The `AutoSwarmBuilder` automatically generates specialized agents and their workflows based on your task description. Simply describe what you need, and it will create a complete multi-agent system with detailed prompts and optimal agent configurations. [Learn more about AutoSwarmBuilder](https://docs.swarms.world/en/latest/swarms/structs/auto_swarm_builder/)
-
-```python
-from swarms.structs.auto_swarm_builder import AutoSwarmBuilder
-import json
-
-# Initialize the AutoSwarmBuilder
-swarm = AutoSwarmBuilder(
-    name="My Swarm",
-    description="A swarm of agents",
-    verbose=True,
-    max_loops=1,
-    return_agents=True,
-    model_name="gpt-5.4",
-)
-
-# Let the builder automatically create agents and workflows
-result = swarm.run(
-    task="Create an accounting team to analyze crypto transactions, "
-         "there must be 5 agents in the team with extremely extensive prompts. "
-         "Make the prompts extremely detailed and specific and long and comprehensive. "
-         "Make sure to include all the details of the task in the prompts."
-)
-
-# The result contains the generated agents and their configurations
-print(json.dumps(result, indent=4))
-```
-
-The `AutoSwarmBuilder` provides:
-
-- **Automatic Agent Generation**: Creates specialized agents based on task requirements
-- **Intelligent Prompt Engineering**: Generates comprehensive, detailed prompts for each agent
-- **Optimal Workflow Design**: Determines the best agent interactions and workflow structure
-- **Production-Ready Configurations**: Returns fully configured agents ready for deployment
-- **Flexible Architecture**: Supports various swarm types and agent specializations
-
-This feature is perfect for rapid prototyping, complex task decomposition, and creating specialized agent teams without manual configuration.
-
------
-
 ## Available Multi-Agent Architectures
 
 `swarms` provides a variety of powerful, pre-built multi-agent architectures enabling you to orchestrate agents in various ways. Choose the right structure for your specific problem to build efficient and reliable production systems.
@@ -242,7 +238,6 @@ This feature is perfect for rapid prototyping, complex task decomposition, and c
 | **[ForestSwarm](https://docs.swarms.world/en/latest/swarms/structs/forest_swarm/)** | Dynamically selects the most suitable agent or tree of agents for a given task. | Task routing, optimizing for expertise, and complex decision-making trees. |
 | **[HierarchicalSwarm](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)** | Orchestrates agents with a director who creates plans and distributes tasks to specialized worker agents. | Complex project management, team coordination, and hierarchical decision-making with feedback loops. |
 | **[HeavySwarm](https://docs.swarms.world/en/latest/swarms/structs/heavy_swarm/)** | Implements a five-phase workflow with specialized agents (Research, Analysis, Alternatives, Verification) for comprehensive task analysis. | Complex research and analysis tasks, financial analysis, strategic planning, and comprehensive reporting. |
-| **[MAKER](https://docs.swarms.world/en/latest/swarms/structs/maker/)** | Long-horizon tasks decomposed into steps; each step uses first-to-ahead-by-k voting and red-flagging on micro-agent samples (from Meyerson et al., 2025). | Extremely long or fragile pipelines where you want statistical agreement and validation on every atomic step—not a hand-designed multi-agent graph. |
 | **[SwarmRouter](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)** | A universal orchestrator that provides a single interface to run any type of swarm with dynamic selection. | Simplifying complex workflows, switching between swarm strategies, and unified multi-agent management. |
 
 -----
@@ -440,6 +435,48 @@ print(f"Final Aggregated Output:\n{aggregated_output}\n")
 
 
 The `SwarmRouter` is a powerful tool for simplifying multi-agent orchestration. It provides a consistent and flexible way to deploy different collaborative strategies, allowing you to build more sophisticated applications with less code.
+
+-------
+
+### AutoSwarmBuilder: Autonomous Agent Generation
+
+The `AutoSwarmBuilder` automatically generates specialized agents and their workflows based on your task description. Simply describe what you need, and it will create a complete multi-agent system with detailed prompts and optimal agent configurations. [Learn more about AutoSwarmBuilder](https://docs.swarms.world/en/latest/swarms/structs/auto_swarm_builder/)
+
+```python
+from swarms.structs.auto_swarm_builder import AutoSwarmBuilder
+import json
+
+# Initialize the AutoSwarmBuilder
+swarm = AutoSwarmBuilder(
+    name="My Swarm",
+    description="A swarm of agents",
+    verbose=True,
+    max_loops=1,
+    return_agents=True,
+    model_name="gpt-5.4",
+)
+
+# Let the builder automatically create agents and workflows
+result = swarm.run(
+    task="Create an accounting team to analyze crypto transactions, "
+         "there must be 5 agents in the team with extremely extensive prompts. "
+         "Make the prompts extremely detailed and specific and long and comprehensive. "
+         "Make sure to include all the details of the task in the prompts."
+)
+
+# The result contains the generated agents and their configurations
+print(json.dumps(result, indent=4))
+```
+
+The `AutoSwarmBuilder` provides:
+
+- **Automatic Agent Generation**: Creates specialized agents based on task requirements
+- **Intelligent Prompt Engineering**: Generates comprehensive, detailed prompts for each agent
+- **Optimal Workflow Design**: Determines the best agent interactions and workflow structure
+- **Production-Ready Configurations**: Returns fully configured agents ready for deployment
+- **Flexible Architecture**: Supports various swarm types and agent specializations
+
+This feature is perfect for rapid prototyping, complex task decomposition, and creating specialized agent teams without manual configuration.
 
 -------
 

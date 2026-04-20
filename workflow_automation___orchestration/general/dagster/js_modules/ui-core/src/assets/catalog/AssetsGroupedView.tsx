@@ -238,7 +238,7 @@ const List = ({rows}: {rows: React.ReactNode[]}) => {
 
   return (
     <Container ref={scrollWrapperRef} style={{maxHeight: '600px', overflowY: 'auto'}}>
-      <Inner $totalHeight={totalHeight}>
+      <Inner totalHeight={totalHeight}>
         <div
           style={{
             position: 'absolute',

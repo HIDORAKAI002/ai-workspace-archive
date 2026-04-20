@@ -114,6 +114,11 @@ export enum AppEvents {
   USER_PASSWORD_FORGOT = 'user.password.forgot',
   USER_DELETE = 'user.delete',
   USER_EMAIL_VERIFICATION = 'user.email.verification',
+  USER_MFA_SETUP = 'user.mfa.setup',
+  USER_MFA_ENABLED = 'user.mfa.enabled',
+  USER_MFA_DISABLED = 'user.mfa.disabled',
+  USER_MFA_VERIFY = 'user.mfa.verify',
+  USER_MFA_BACKUP_CODE_USED = 'user.mfa.backup.code.used',
 
   TEAM_CREATE = 'team.create',
   TEAM_UPDATE = 'team.update',
@@ -352,6 +357,10 @@ export enum AppEvents {
 
   DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
   DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
+
+  RECORDS_SOFT_DELETE = 'records.soft.delete',
+  RECORDS_RESTORE = 'records.restore',
+  RECORDS_PERMANENT_DELETE = 'records.permanent.delete',
 }
 
 export enum ClickhouseTables {
