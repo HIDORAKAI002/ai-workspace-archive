@@ -142,6 +142,60 @@ class WorkerPoller:
         # Convert default schema to None for SQL compatibility (no prefix), keep others as-is
         return [t.schema if t.schema != DEFAULT_DATABASE_SCHEMA else None for t in tenants]
 
+    async def _scan_active_schemas(self, schemas: list[str | None]) -> set[str | None]:
+        """Find which schemas have pending work.
+
+        Tries a server-side PL/pgSQL function first (single DB round-trip,
+        ~200ms for 1400+ schemas). Falls back to per-schema Python EXISTS
+        queries if the function is not installed (~4ms each).
+
+        The server-side function should be installed in the ``public``
+        schema as::
+
+            CREATE OR REPLACE FUNCTION public.schemas_with_pending_work()
+            RETURNS SETOF text AS $$
+            DECLARE
+              r RECORD; has_work BOOLEAN;
+            BEGIN
+              FOR r IN SELECT nspname FROM pg_namespace
+                       WHERE nspname LIKE 'tenant_%' LOOP
+                BEGIN
+                  EXECUTE format(
+                    'SELECT EXISTS(SELECT 1 FROM %I.async_operations '
+                    'WHERE status = ''pending'' '
+                    'AND task_payload IS NOT NULL LIMIT 1)',
+                    r.nspname) INTO has_work;
+                  IF has_work THEN RETURN NEXT r.nspname; END IF;
+                EXCEPTION WHEN OTHERS THEN NULL;
+                END;
+              END LOOP;
+            END $$ LANGUAGE plpgsql STABLE;
+
+        In hindsight-cloud deployments this is installed by a Helm hook
+        job alongside ``total_pending_tasks()``.
+        """
+        async with self._pool.acquire() as conn:
+            try:
+                rows = await conn.fetch("SELECT * FROM schemas_with_pending_work()")
+                return {r[0] for r in rows}
+            except Exception:
+                pass
+
+            # Fallback: per-schema EXISTS checks from Python
+            active: set[str | None] = set()
+            for schema in schemas:
+                table = fq_table("async_operations", schema)
+                try:
+                    has_work = await conn.fetchval(
+                        f"SELECT EXISTS(SELECT 1 FROM {table} "
+                        f"WHERE status = 'pending' AND task_payload IS NOT NULL LIMIT 1)"
+                    )
+                    if has_work:
+                        active.add(schema)
+                except Exception:
+                    pass
+            return active
+
     async def _get_available_slots(self) -> tuple[int, int]:
         """
         Calculate available slots for claiming tasks.
@@ -221,19 +275,32 @@ class WorkerPoller:
         if not schemas:
             return []
 
-        # Rotate the schema order so no tenant is always first.
+        # Scan: find which schemas have pending work using a lightweight
+        # EXISTS check (no locks). Then only claim from those schemas
+        # using the expensive FOR UPDATE SKIP LOCKED query.
+        active_schemas = await self._scan_active_schemas(schemas)
+
+        if not active_schemas:
+            self._next_schema_idx = (self._next_schema_idx + 1) % len(schemas)
+            return []
+
+        # Build rotation list from active schemas only, preserving their
+        # original positions for correct offset advancement.
+        all_indexed = list(enumerate(schemas))
+        active_indexed = [(i, s) for i, s in all_indexed if s in active_schemas]
+
+        # Rotate so no tenant is always first.
         start = self._next_schema_idx % len(schemas)
-        rotated = list(enumerate(schemas))
-        rotated = rotated[start:] + rotated[:start]
+        rotated = [x for x in active_indexed if x[0] >= start] + [x for x in active_indexed if x[0] < start]
 
         all_tasks: list[ClaimedTask] = []
         remaining_non_consolidation = non_consolidation_available
         remaining_consolidation = consolidation_available
         last_serviced_idx: int | None = None
+        schemas_with_work: list[tuple[int, str | None]] = []
 
-        # Pass 1: fairness pass — at most 1 claim per pool per schema,
-        # so every tenant with pending work is considered before we
-        # return to a tenant we already claimed from.
+        # Pass 1: fairness pass — iterate only active schemas, cap at
+        # 1 claim per pool per schema.
         for orig_idx, schema in rotated:
             if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
                 break
@@ -251,15 +318,14 @@ class WorkerPoller:
 
             if tasks:
                 last_serviced_idx = orig_idx
+                schemas_with_work.append((orig_idx, schema))
 
             all_tasks.extend(tasks)
 
-        # Pass 2: capacity pass — fill any remaining slots from whichever
-        # schemas still have work. Preserves rotation order so a tenant
-        # earlier in the rotation doesn't monopolize again when only one
-        # tenant has more work.
-        if remaining_non_consolidation > 0 or remaining_consolidation > 0:
-            for orig_idx, schema in rotated:
+        # Pass 2: capacity pass — fill remaining slots from schemas
+        # that had work in pass 1 only.
+        if (remaining_non_consolidation > 0 or remaining_consolidation > 0) and schemas_with_work:
+            for orig_idx, schema in schemas_with_work:
                 if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
                     break
 
