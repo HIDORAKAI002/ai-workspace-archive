@@ -1,6 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
@@ -266,6 +266,30 @@ export class PgUi implements SqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: 'false',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
         uip: '',
         uicn: '',
         system: true,
@@ -1782,6 +1806,9 @@ export class PgUi implements SqlUi {
       case 'Order':
         colProp.dt = 'numeric';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
+        break;
       case 'UUID':
         colProp.dt = 'uuid';
         colProp.cdf = 'gen_random_uuid()';
@@ -2050,6 +2077,9 @@ export class PgUi implements SqlUi {
 
       case 'Order':
         return ['numeric'];
+
+      case UITypes.Deleted:
+        return ['boolean'];
 
       case 'Barcode':
         return ['character varying'];

@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-20 20:37 IST] Auto-Sync
+- **37 Repositories Updated:** MCP TypeScript SDK, Kubernetes MCP Server, Langfuse, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Plane, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, openlit/openlit, open-telemetry/opentelemetry-python, microsoft/ai-agents-for-beginners, firecrawl/firecrawl, vercel/ai, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-20 14:13 IST] Auto-Sync
 - **25 Repositories Updated:** Public APIs Directory, Keboola MCP, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, Swarms, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 

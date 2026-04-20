@@ -71,7 +71,7 @@ class HindsightEmbedded:
         llm_model: Model name to use
         llm_base_url: Optional custom base URL for LLM API
         database_url: Optional database URL override (default: profile-specific pg0)
-        idle_timeout: Seconds before daemon auto-exits when idle (default: 300)
+        idle_timeout: Seconds before daemon auto-exits when idle (default: 0, disabled)
         log_level: Daemon log level (default: "info")
         ui: Whether to start the control plane web UI alongside the daemon (default: False)
         ui_port: Port for the UI. Defaults to daemon_port + 10000.
@@ -86,7 +86,7 @@ class HindsightEmbedded:
         llm_model: str = "openai/gpt-oss-120b",
         llm_base_url: Optional[str] = None,
         database_url: Optional[str] = None,
-        idle_timeout: int = 300,
+        idle_timeout: int = 0,
         log_level: str = "info",
         ui: bool = False,
         ui_port: Optional[int] = None,
@@ -102,7 +102,7 @@ class HindsightEmbedded:
             llm_model: Model name to use
             llm_base_url: Optional custom base URL for LLM API
             database_url: Optional database URL override
-            idle_timeout: Seconds before daemon auto-exits when idle
+            idle_timeout: Seconds before daemon auto-exits when idle (0 = disabled)
             log_level: Daemon log level
             ui: Whether to start the control plane web UI alongside the daemon
             ui_port: Port for the UI (defaults to daemon_port + 10000)
