@@ -8,21 +8,27 @@ Promptfoo is an open-source framework for evaluating and testing LLM application
 
 ## Project Structure
 
-| Directory        | Purpose                       | Local Docs                |
-| ---------------- | ----------------------------- | ------------------------- |
-| `.agents/`       | Codex marketplace metadata    | `.agents/AGENTS.md`       |
-| `plugins/`       | Agent plugin bundles          | `plugins/AGENTS.md`       |
-| `src/`           | Core library                  | -                         |
-| `src/app/`       | Web UI (React 19/Vite/MUI v7) | `src/app/AGENTS.md`       |
-| `src/commands/`  | CLI commands                  | `src/commands/AGENTS.md`  |
-| `src/matchers/`  | Assertion matcher helpers     | `src/matchers/AGENTS.md`  |
-| `src/providers/` | LLM providers                 | `src/providers/AGENTS.md` |
-| `src/redteam/`   | Security testing              | `src/redteam/AGENTS.md`   |
-| `src/server/`    | Backend server                | `src/server/AGENTS.md`    |
-| `test/`          | Tests (Vitest)                | `test/AGENTS.md`          |
-| `site/`          | Docs site (Docusaurus)        | `site/AGENTS.md`          |
-| `examples/`      | Example configs               | `examples/AGENTS.md`      |
-| `drizzle/`       | DB migrations                 | `drizzle/AGENTS.md`       |
+| Directory           | Purpose                         | Local Docs                   |
+| ------------------- | ------------------------------- | ---------------------------- |
+| `.agents/`          | Codex marketplace metadata      | `.agents/AGENTS.md`          |
+| `.github/`          | GitHub Actions and workflows    | `.github/AGENTS.md`          |
+| `code-scan-action/` | Code scan GitHub Action wrapper | `code-scan-action/AGENTS.md` |
+| `docs/agents/`      | Reusable coding-agent docs      | `docs/agents/AGENTS.md`      |
+| `plugins/`          | Agent plugin bundles            | `plugins/AGENTS.md`          |
+| `src/`              | Core library                    | -                            |
+| `src/app/`          | Web UI (React 19/Vite/MUI v7)   | `src/app/AGENTS.md`          |
+| `src/assertions/`   | Assertion handlers              | `src/assertions/AGENTS.md`   |
+| `src/codeScan/`     | Code scan scanner               | `src/codeScan/AGENTS.md`     |
+| `src/commands/`     | CLI commands                    | `src/commands/AGENTS.md`     |
+| `src/matchers/`     | Assertion matcher helpers       | `src/matchers/AGENTS.md`     |
+| `src/providers/`    | LLM providers                   | `src/providers/AGENTS.md`    |
+| `src/redteam/`      | Security testing                | `src/redteam/AGENTS.md`      |
+| `src/server/`       | Backend server                  | `src/server/AGENTS.md`       |
+| `src/ui/`           | Terminal UI components          | `src/ui/AGENTS.md`           |
+| `test/`             | Tests (Vitest)                  | `test/AGENTS.md`             |
+| `site/`             | Docs site (Docusaurus)          | `site/AGENTS.md`             |
+| `examples/`         | Example configs                 | `examples/AGENTS.md`         |
+| `drizzle/`          | DB migrations                   | `drizzle/AGENTS.md`          |
 
 **Read the relevant AGENTS.md when working in that directory.**
 
@@ -112,7 +118,7 @@ PROMPTFOO_DISABLE_REMOTE_GENERATION=true npm run local -- eval -c config.yaml
 **Always use `--no-cache` during development** to ensure fresh results:
 
 ```bash
-npm run local -- eval -c examples/my-example/promptfooconfig.yaml --env-file .env --no-cache
+npm run local -- eval -c examples/my-example/promptfooconfig.yaml --no-cache
 ```
 
 **Export and inspect results** to verify pass/fail/errors:
@@ -131,6 +137,22 @@ lowered. This is the standard command for verifying a PR end-to-end.
 
 Keep local secrets in the repo's gitignored `.env` (or another path the user points at
 with `--env-file`); never echo them into logs or commit messages.
+
+## End-to-End Work Expectations
+
+When asked only to review or audit a PR, keep the work read-only: inspect the branch, diff, PR comments, and CI as needed; run non-mutating tests or QA when useful; and report findings without committing, pushing, or changing files unless the user explicitly asks for fixes.
+
+When asked to fix, improve, or land a PR, own the full loop: check out the branch, inspect the diff and PR comments, merge or rebase on current `origin/main` when requested, run focused tests, run the relevant real workflow, commit, push, and watch CI until it is green or the remaining failure is clearly unrelated.
+
+For behavior changes, do not stop at unit tests. Run the actual CLI or example with the local build. For eval and redteam work, prefer:
+
+```bash
+npm run local -- eval -c path/to/promptfooconfig.yaml --no-cache -o output.json
+```
+
+Add `--env-file .env` only when the eval needs local credentials and the file exists.
+
+Inspect exported JSON for `success`, `score`, `error`, provider outputs, traces, and redteam findings. If you claim a redteam ran, report the plugins, strategies, interesting failures, and the evidence reviewed.
 
 ## Debugging & Troubleshooting
 
@@ -172,7 +194,9 @@ npm run local -- eval -c config.yaml --no-cache
 
 **View results in web UI:** First check if the Web UI is running on port 3000, then ask user before starting. Use `npm run dev` for localhost:3000.
 
-**Cache:** Located at `~/.cache/promptfoo`. **NEVER delete or clear the cache without explicit permission.** Use `--no-cache` flag instead.
+**Cache:** Located at `~/.promptfoo/cache` by default, unless overridden with
+`PROMPTFOO_CACHE_PATH` or `PROMPTFOO_CONFIG_DIR`. **NEVER delete or clear the cache
+without explicit permission.** Use `--no-cache` flag instead.
 
 **Database:** Located at `~/.promptfoo/promptfoo.db` (SQLite). You may read from it but **NEVER delete it**.
 
@@ -318,6 +342,12 @@ See `test/AGENTS.md` for testing patterns.
 - **Reuse patterns** from similar files in the codebase
 - **Test both success and error cases** for all functionality
 - **Document provider configurations** following examples in existing code
+
+## Adversarial and Redteam Bias
+
+For security, model scanning, redteam, and coding-agent work, test like an attacker first. Look for false negatives, bypasses, hidden payloads, unsafe tool use, prompt injection, exfiltration, cache misuse, and evidence gaps. When a bypass is found, add a focused regression test before or alongside the fix.
+
+For demo/example apps used to show red teaming, do not harden away all interesting findings unless explicitly asked. A slightly vulnerable sample app is useful when the goal is to demonstrate Promptfoo's ability to find real breaks.
 
 ## Review Guidelines
 
