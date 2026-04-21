@@ -11,6 +11,7 @@ The `Conversation` class is a powerful and flexible tool for managing agent conv
 | **Metadata and Categories** | - Support for message metadata<br>- Message categorization (input/output)<br>- Role-based message tracking<br>- Custom message IDs |
 | **Data Export/Import**      | - JSON and YAML export formats<br>- Automatic saving and loading<br>- Conversation history management<br>- Batch operations support |
 | **Advanced Features**       | - Message search and filtering<br>- Conversation analytics<br>- Multi-agent support<br>- Error handling and fallbacks<br>- Type hints and validation |
+| **Persistent MEMORY.md**    | - Optional write-through persistence to a `MEMORY.md` file on disk<br>- Auto-preloads prior interaction log as a System preamble on construction<br>- One-call `compact()` collapses history into a summary and archives the prior transcript<br>- Static system_prompt/rules are kept out of the on-disk log so the file only grows with real interactions |
 
 
 ## 1. Class Definition
@@ -46,6 +47,7 @@ The class uses **in-memory storage** for fast and efficient conversation managem
 | export_method | str | Export format ("json" or "yaml") |
 | dynamic_context_window | bool | Enable dynamic context window management |
 | caching | bool | Enable caching features |
+| memory_md_path | Optional[str] | Absolute path to a `MEMORY.md` file. When set, the Conversation creates the file (with a header) if missing, preloads its contents as a System preamble, and write-throughs every subsequent `add()` to disk. See the [Persistent MEMORY.md](#persistent-memorymd) section below. |
 
 ## 2. Initialization Parameters
 
@@ -71,6 +73,7 @@ The class uses **in-memory storage** for fast and efficient conversation managem
 | export_method | str | "json" | Export format ("json" or "yaml") |
 | dynamic_context_window | bool | True | Enable dynamic context window management |
 | caching | bool | True | Enable caching features |
+| memory_md_path | Optional[str] | None | Path to a `MEMORY.md` file that persists interactions to disk. `None` disables persistence entirely. |
 
 
 ## 3. Methods
@@ -540,6 +543,102 @@ conversation = Conversation()
 conversation.add("user", "Hello")
 conversation.clear_memory()
 ```
+
+### `compact(summary: str, summary_role: str = "System")`
+
+Collapses the interaction history into a single summary message. Used by the `ContextCompressor` when token usage crosses the configured threshold, but callable directly whenever you want to shrink the active conversation.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| summary | str | The compressed summary content. |
+| summary_role | str | Role attached to the summary message. Defaults to `"System"`. |
+
+Behavior:
+
+- `conversation_history` is wiped, then re-seeded in order: `system_prompt` → `rules` → `custom_rules_prompt` (skills).
+- If `memory_md_path` is set, the current `MEMORY.md` is first copied to `<agent_folder>/archive/history_<timestamp>.md`, then the file is deleted and re-initialized with a fresh header. Raw chat logs are preserved in `archive/` and never wiped.
+- The summary is then appended as a single message via `add()`, so it lands in both `conversation_history` and the fresh `MEMORY.md`.
+
+Resulting in-memory state:
+
+```
+[0] System : <system_prompt>
+[1] User   : <rules>                 (if set)
+[2] User   : <custom_rules_prompt>   (if set)
+[3] System : <summary>
+```
+
+Example:
+
+```python
+conversation = Conversation(
+    system_prompt="You are a research agent.",
+    memory_md_path="/workspace/agents/Researcher/MEMORY.md",
+)
+conversation.add("User", "Analyze Q3 earnings")
+conversation.add("Researcher", "Revenue up 12%, net income...")
+
+conversation.compact(
+    summary="Researched Q3 earnings: revenue up 12%, net income up 8%."
+)
+```
+
+## Persistent MEMORY.md
+
+When `memory_md_path` is provided, the `Conversation` becomes disk-backed. This powers the agent-level `MEMORY.md` system described in the [Agent Memory](../agents/agent_memory.md) guide.
+
+### File layout
+
+```
+<memory_md_path>                              # active, append-updated
+<memory_md_path parent>/archive/
+    ├── history_2026-04-20_14-30-45.md        # snapshot before last compact()
+    └── ...
+```
+
+### Lifecycle
+
+| Step | When | What happens |
+|------|------|--------------|
+| Create | On construction | Parent folder is created. If `MEMORY.md` doesn't exist, a header (`# Agent Memory`, created timestamp, `## Interaction Log`) is written. Existing files are left untouched. |
+| Preload | On construction | If the file already has at least one `### ` block (i.e. a prior interaction), the full file is read and injected into `conversation_history` as a single `System`-role preamble message. This bypasses the write-through hook so it is not duplicated back to disk. |
+| Write-through | Every `add(role, content)` | After appending to `conversation_history`, a `### {role} — <iso-timestamp>` block is appended to `MEMORY.md`. Writes are serialized with a `threading.Lock`. |
+| Suppress | During `setup()` and `compact()` re-seed | The internal `_suppress_memory_md` flag is temporarily raised so that adding `system_prompt`, `rules`, and `custom_rules_prompt` to `conversation_history` does not re-write the static identity to the file on every construction. |
+| Archive | Start of `compact()` | The existing `MEMORY.md` is copied to `archive/history_<timestamp>.md` before the file is wiped. If the file only contains the header (no `### ` blocks), the archive step is skipped. |
+| Reset | End of `compact()` | `MEMORY.md` is deleted and re-created with a fresh header, then the summary message is appended. |
+
+### Timestamps in the LLM prompt
+
+When the Conversation is constructed with `time_enabled=True` (which the `Agent` class sets by default), every message dict carries an ISO-8601 `timestamp` field, and the serializer emits messages as:
+
+```
+[2026-04-20T18:33:12.441] User: what time did I ask you this?
+
+[2026-04-20T18:33:14.102] ResearchAgent: ...
+```
+
+Messages without a timestamp fall back to `Role: content` for backwards compatibility.
+
+### Disabling persistence
+
+Pass `memory_md_path=None` (the default) to keep the Conversation purely in-memory. You can also clear an existing persistence attachment at runtime:
+
+```python
+conversation.memory_md_path = None
+```
+
+Subsequent `add()` calls stay in-memory; the file on disk is untouched.
+
+### Internal helpers
+
+These are called automatically — you don't normally invoke them directly, but they are the public-ish seams if you need to extend the persistence layer:
+
+| Method | Purpose |
+|--------|---------|
+| `_init_memory_md()` | Creates the folder and seeds `MEMORY.md` with a header if missing. |
+| `_preload_memory_md()` | Reads `MEMORY.md` and appends its contents as a `System` preamble to `conversation_history` (bypasses the write-through hook). |
+| `_append_to_memory_md(role, content)` | Appends a single `### {role} — <timestamp>` block to `MEMORY.md` under a lock. Respects `_suppress_memory_md`. |
+| `_archive_memory_md()` | Copies the current `MEMORY.md` to `archive/history_<timestamp>.md`. Called by `compact()` before wiping. |
 
 ## 4. Examples
 
