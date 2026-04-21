@@ -17,7 +17,12 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 import tiktoken
 
 from .models import DirectiveInfo, LLMCall, ReflectAgentResult, TokenUsageSummary, ToolCall
-from .prompts import FINAL_SYSTEM_PROMPT, _extract_directive_rules, build_final_prompt, build_system_prompt_for_tools
+from .prompts import (
+    _extract_directive_rules,
+    build_final_prompt,
+    build_final_system_prompt,
+    build_system_prompt_for_tools,
+)
 from .tools_schema import get_reflect_tools
 
 
@@ -446,7 +451,7 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": FINAL_SYSTEM_PROMPT},
+                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -503,7 +508,7 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": FINAL_SYSTEM_PROMPT},
+                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -606,7 +611,7 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": FINAL_SYSTEM_PROMPT},
+                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -719,7 +724,7 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": FINAL_SYSTEM_PROMPT},
+                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
