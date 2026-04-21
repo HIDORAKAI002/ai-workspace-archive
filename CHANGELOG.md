@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-21 22:13 IST] Auto-Sync
+- **39 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Langfuse, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, ToolJet, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, tirth8205/code-review-graph
+
 ## [2026-04-21 15:49 IST] Auto-Sync
 - **31 Repositories Updated:** Public APIs Directory, Keboola MCP, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, Upsonic, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 
