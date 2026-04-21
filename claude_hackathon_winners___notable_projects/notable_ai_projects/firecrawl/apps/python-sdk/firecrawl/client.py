@@ -18,14 +18,15 @@ Usage:
 Check example.py for other usage examples.
 """
 
-from typing import Any, Dict, Optional, List, Union
+from pathlib import Path
+from typing import Any, Dict, Optional, List, Union, BinaryIO
 import logging
 
 
 from .v1 import V1FirecrawlApp, AsyncV1FirecrawlApp
 from .v2 import FirecrawlClient as V2FirecrawlClient
 from .v2.client_async import AsyncFirecrawlClient
-from .v2.types import Document
+from .v2.types import Document, ParseOptions, ScrapeOptions
 
 logger = logging.getLogger("firecrawl")
 
@@ -62,6 +63,7 @@ class V2Proxy:
             self.stop_interactive_browser = client_instance.stop_interactive_browser
             self.scrape_execute = self.interact
             self.delete_scrape_browser = self.stop_interaction
+            self.parse = client_instance.parse
             self.search = client_instance.search
             self.crawl = client_instance.crawl
             self.start_crawl = client_instance.start_crawl
@@ -139,6 +141,7 @@ class AsyncV2Proxy:
             self.stop_interactive_browser = client_instance.stop_interactive_browser
             self.scrape_execute = self.interact
             self.delete_scrape_browser = self.stop_interaction
+            self.parse = client_instance.parse
             self.search = client_instance.search
             self.crawl = client_instance.crawl
             self.start_crawl = client_instance.start_crawl
@@ -236,6 +239,7 @@ class Firecrawl:
         self.stop_interactive_browser = self._v2_client.stop_interactive_browser
         self.scrape_execute = self.interact
         self.delete_scrape_browser = self.stop_interaction
+        self.parse = self._v2_client.parse
         self.search = self._v2_client.search
         self.map = self._v2_client.map
 
@@ -276,6 +280,22 @@ class Firecrawl:
         self.list_browsers = self._v2_client.list_browsers
         
         self.watcher = self._v2_client.watcher
+
+    def parse(
+        self,
+        file: Union[str, Path, bytes, bytearray, BinaryIO],
+        *,
+        filename: Optional[str] = None,
+        content_type: Optional[str] = None,
+        options: Optional[ParseOptions] = None,
+    ) -> Document:
+        """Parse an uploaded file via the v2 parse endpoint."""
+        return self._v2_client.parse(
+            file,
+            filename=filename,
+            content_type=content_type,
+            options=options,
+        )
         
 class AsyncFirecrawl:
     """Async unified Firecrawl client (v2 by default, v1 under ``.v1``)."""
@@ -313,6 +333,7 @@ class AsyncFirecrawl:
         self.stop_interactive_browser = self._v2_client.stop_interactive_browser
         self.scrape_execute = self.interact
         self.delete_scrape_browser = self.stop_interaction
+        self.parse = self._v2_client.parse
         self.search = self._v2_client.search
         self.map = self._v2_client.map
 
@@ -352,6 +373,22 @@ class AsyncFirecrawl:
         self.list_browsers = self._v2_client.list_browsers
 
         self.watcher = self._v2_client.watcher
+
+    async def parse(
+        self,
+        file: Union[str, Path, bytes, bytearray, BinaryIO],
+        *,
+        filename: Optional[str] = None,
+        content_type: Optional[str] = None,
+        options: Optional[ParseOptions] = None,
+    ) -> Document:
+        """Parse an uploaded file via the v2 parse endpoint."""
+        return await self._v2_client.parse(
+            file,
+            filename=filename,
+            content_type=content_type,
+            options=options,
+        )
 
 # Export Firecrawl as an alias for FirecrawlApp
 FirecrawlApp = Firecrawl

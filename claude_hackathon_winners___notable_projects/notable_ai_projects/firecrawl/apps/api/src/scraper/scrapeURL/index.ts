@@ -40,6 +40,7 @@ import {
   PDFOCRRequiredError,
   IndexMissError,
   NoCachedDataError,
+  LockdownMissError,
   DNSResolutionError,
   ZDRViolationError,
   PDFPrefetchFailed,
@@ -56,6 +57,7 @@ import { ScrapeRetryTracker } from "./retryTracker";
 import { executeTransformers } from "./transformers";
 import { LLMRefusalError } from "./transformers/llmExtract";
 import { urlSpecificParams } from "./lib/urlSpecificParams";
+import { shouldCheckRobots } from "./shouldCheckRobots";
 import { loadMock, MockState } from "./lib/mock";
 import { CostTracking } from "../../lib/cost-tracking";
 import { getEngineForUrl } from "../WebScraper/utils/engine-forcing";
@@ -79,6 +81,10 @@ import {
 import { htmlTransform } from "./lib/removeUnwantedElements";
 import { postprocessors } from "./postprocessors";
 import { rewriteUrl } from "./lib/rewriteUrl";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { tmpdir } from "node:os";
+import { randomUUID } from "node:crypto";
 
 export type ScrapeUrlResponse =
   | {
@@ -121,6 +127,16 @@ export type Meta = {
       }
     | null
     | undefined; // undefined: no prefetch yet, null: prefetch came back empty
+  fetchPrefetch:
+    | {
+        url?: string;
+        status: number;
+        bodyBuffer: Buffer;
+        proxyUsed: "basic" | "stealth";
+        contentType?: string;
+      }
+    | null
+    | undefined; // undefined: no prefetch yet, null: prefetch came back empty
   costTracking: CostTracking;
   winnerEngine?: Engine;
   abortHandle?: NodeJS.Timeout;
@@ -132,6 +148,12 @@ function buildFeatureFlags(
   internalOptions: InternalOptions,
 ): Set<FeatureFlag> {
   const flags: Set<FeatureFlag> = new Set();
+
+  // Lockdown forces index-only engines and ignores every request-time feature.
+  // Return empty so the fallback threshold never filters index engines out.
+  if (options.lockdown) {
+    return flags;
+  }
 
   if (options.actions !== undefined && options.actions.length > 0) {
     flags.add("actions");
@@ -212,6 +234,71 @@ function buildFeatureFlags(
 // The meta object is usually immutable, except for the logs array, and in edge cases (e.g. a new feature is suddenly required)
 // Having a meta object that is treated as immutable helps the code stay clean and easily tracable,
 // while also retaining the benefits that WebScraper had from its OOP design.
+const DOCUMENT_EXTENSIONS = new Set([
+  ".docx",
+  ".doc",
+  ".odt",
+  ".rtf",
+  ".xlsx",
+  ".xls",
+]);
+
+const HTML_EXTENSIONS = new Set([".html", ".htm", ".xhtml"]);
+
+async function writeUploadedFileToTemp(
+  uploadedFilename: string,
+  uploadedBuffer: Buffer,
+  fallbackExtension: string,
+): Promise<string> {
+  const ext = path.extname(uploadedFilename).toLowerCase() || fallbackExtension;
+  const safeExt = ext.startsWith(".") ? ext : `.${ext}`;
+  const tempFilePath = path.join(
+    tmpdir(),
+    `parse-upload-${randomUUID()}${safeExt}`,
+  );
+  await writeFile(tempFilePath, uploadedBuffer);
+  return tempFilePath;
+}
+
+function isPdfUpload(filename: string, contentType?: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  const normalizedType = contentType?.toLowerCase() ?? "";
+  return (
+    ext === ".pdf" ||
+    normalizedType === "application/pdf" ||
+    normalizedType.startsWith("application/pdf;")
+  );
+}
+
+function isDocumentUpload(filename: string, contentType?: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  const normalizedType = contentType?.toLowerCase() ?? "";
+  return (
+    DOCUMENT_EXTENSIONS.has(ext) ||
+    normalizedType.includes(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ) ||
+    normalizedType.includes("application/vnd.ms-excel") ||
+    normalizedType.includes(
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ) ||
+    normalizedType.includes("application/msword") ||
+    normalizedType.includes("application/vnd.oasis.opendocument.text") ||
+    normalizedType.includes("application/rtf") ||
+    normalizedType.includes("text/rtf")
+  );
+}
+
+function isHtmlUpload(filename: string, contentType?: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  const normalizedType = contentType?.toLowerCase() ?? "";
+  return (
+    HTML_EXTENSIONS.has(ext) ||
+    normalizedType.includes("text/html") ||
+    normalizedType.includes("application/xhtml+xml")
+  );
+}
+
 async function buildMetaObject(
   id: string,
   url: string,
@@ -257,6 +344,56 @@ async function buildMetaObject(
         )
       : undefined;
 
+  let pdfPrefetch: Meta["pdfPrefetch"] = undefined;
+  let documentPrefetch: Meta["documentPrefetch"] = undefined;
+  let fetchPrefetch: Meta["fetchPrefetch"] = undefined;
+
+  if (internalOptions.uploadedFile) {
+    const { filename, buffer, contentType } = internalOptions.uploadedFile;
+    const prefetchUrl = rewriteUrl(url) ?? url;
+
+    if (isPdfUpload(filename, contentType)) {
+      const filePath = await writeUploadedFileToTemp(filename, buffer, ".pdf");
+      pdfPrefetch = {
+        filePath,
+        status: 200,
+        url: prefetchUrl,
+        proxyUsed: "basic",
+        contentType: contentType || "application/pdf",
+      };
+    } else if (isDocumentUpload(filename, contentType)) {
+      const ext = path.extname(filename).toLowerCase();
+      const fallbackExtension =
+        ext && DOCUMENT_EXTENSIONS.has(ext) ? ext : ".docx";
+      const filePath = await writeUploadedFileToTemp(
+        filename,
+        buffer,
+        fallbackExtension,
+      );
+      documentPrefetch = {
+        filePath,
+        status: 200,
+        url: prefetchUrl,
+        proxyUsed: "basic",
+        contentType:
+          contentType ||
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      };
+    } else if (isHtmlUpload(filename, contentType)) {
+      fetchPrefetch = {
+        url: prefetchUrl,
+        status: 200,
+        bodyBuffer: buffer,
+        proxyUsed: "basic",
+        contentType: contentType || "text/html; charset=utf-8",
+      };
+    } else {
+      throw new UnsupportedFileError(
+        contentType || path.extname(filename) || "unknown",
+      );
+    }
+  }
+
   return {
     id,
     url,
@@ -291,8 +428,9 @@ async function buildMetaObject(
       options.useMock !== undefined
         ? await loadMock(options.useMock, _logger)
         : null,
-    pdfPrefetch: undefined,
-    documentPrefetch: undefined,
+    pdfPrefetch,
+    documentPrefetch,
+    fetchPrefetch,
     costTracking,
   };
 }
@@ -325,6 +463,13 @@ export type InternalOptions = {
 
   isPreCrawl?: boolean; // Whether this scrape is part of a precrawl job
   agentIndexOnly?: boolean; // Pre-confirmation agent key: serve from index only, never touch web/Fire Engine
+  isParse?: boolean; // Whether this scrape originated from /v2/parse
+  uploadedFile?: {
+    buffer: Buffer;
+    filename: string;
+    contentType?: string;
+    kind?: "html" | "pdf" | "document";
+  };
 };
 
 type EngineScrapeResultWithContext = {
@@ -746,6 +891,9 @@ async function scrapeURLLoop(meta: Meta): Promise<ScrapeUrlResponse> {
         "engine.no_engines_left": true,
         "engine.engines_attempted": enginesAttempted.join(","),
       });
+      if (meta.options.lockdown) {
+        throw new LockdownMissError();
+      }
       throw new NoEnginesLeftError(fallbackList.map(x => x.engine));
     }
 
@@ -905,7 +1053,7 @@ export async function scrapeURL(
       });
     }
 
-    if (internalOptions.teamFlags?.checkRobotsOnScrape) {
+    if (shouldCheckRobots(options, internalOptions)) {
       await withSpan("scrape.robots_check", async robotsSpan => {
         const urlToCheck = meta.rewrittenUrl || meta.url;
         meta.logger.info("Checking robots.txt", { url: urlToCheck });

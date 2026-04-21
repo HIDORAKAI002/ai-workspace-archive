@@ -1,10 +1,15 @@
 import express from "express";
+import multer from "multer";
 import { config } from "../config";
 import { RateLimiterMode } from "../types";
 import expressWs from "express-ws";
 import { searchController } from "../controllers/v2/search";
 import { x402SearchController } from "../controllers/v2/x402-search";
 import { scrapeController } from "../controllers/v2/scrape";
+import {
+  parseController,
+  parseMultipartPayloadMiddleware,
+} from "../controllers/v2/parse";
 import { batchScrapeController } from "../controllers/v2/batch-scrape";
 import { crawlController } from "../controllers/v2/crawl";
 import { crawlParamsPreviewController } from "../controllers/v2/crawl-params-preview";
@@ -64,6 +69,37 @@ import {
 expressWs(express());
 
 export const v2Router = express.Router();
+
+const parseUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50 MB
+  },
+});
+
+const parseUploadMiddleware: express.RequestHandler = (req, res, next) => {
+  const upload = parseUpload.single("file");
+
+  upload(req, res, err => {
+    if (!err) {
+      return next();
+    }
+
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        success: false,
+        code: "BAD_REQUEST",
+        error: "Uploaded file exceeds maximum size of 50MB.",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      code: "BAD_REQUEST",
+      error: err.message || "Invalid multipart form-data request.",
+    });
+  });
+};
 
 // Add timing middleware to all v2 routes
 v2Router.use(requestTimingMiddleware("v2"));
@@ -190,6 +226,16 @@ v2Router.post(
   checkCreditsMiddleware(),
   blocklistMiddleware,
   wrap(searchController),
+);
+
+v2Router.post(
+  "/parse",
+  authMiddleware(RateLimiterMode.Scrape),
+  countryCheck,
+  parseUploadMiddleware,
+  parseMultipartPayloadMiddleware,
+  checkCreditsMiddleware(1),
+  wrap(parseController),
 );
 
 v2Router.post(
@@ -457,4 +503,3 @@ if (isX402Enabled()) {
     wrap(x402SearchController),
   );
 }
-

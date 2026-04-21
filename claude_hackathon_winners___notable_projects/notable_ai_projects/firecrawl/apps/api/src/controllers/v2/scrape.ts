@@ -314,6 +314,17 @@ export async function scrapeController(
             });
           }
 
+          if (e.code === "SCRAPE_LOCKDOWN_CACHE_MISS") {
+            setSpanAttributes(span, {
+              "scrape.status_code": 404,
+            });
+            return res.status(404).json({
+              success: false,
+              code: e.code,
+              error: e.message,
+            });
+          }
+
           if (e.code === "AGENT_INDEX_ONLY") {
             setSpanAttributes(span, {
               "scrape.status_code": 403,

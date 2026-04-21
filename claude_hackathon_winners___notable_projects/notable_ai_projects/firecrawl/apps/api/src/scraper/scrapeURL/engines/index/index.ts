@@ -32,6 +32,7 @@ export async function sendDocumentToIndex(meta: Meta, document: Document) {
 
   const shouldCache =
     meta.options.storeInCache &&
+    !meta.internalOptions.isParse &&
     !meta.internalOptions.zeroDataRetention &&
     meta.winnerEngine !== "index" &&
     meta.winnerEngine !== "index;documents" &&

@@ -5,8 +5,10 @@ Async v2 client mirroring the regular client surface using true async HTTP trans
 import os
 import asyncio
 import time
-from typing import Optional, List, Dict, Any, Union, Callable, Literal
+from pathlib import Path
+from typing import Optional, List, Dict, Any, Union, Callable, Literal, BinaryIO
 from .types import (
+    ParseOptions,
     ScrapeOptions,
     CrawlRequest,
     WebhookConfig,
@@ -39,6 +41,7 @@ from .utils.http_client import HttpClient
 from .utils.http_client_async import AsyncHttpClient
 
 from .methods.aio import scrape as async_scrape  # type: ignore[attr-defined]
+from .methods.aio import parse as async_parse  # type: ignore[attr-defined]
 from .methods.aio import batch as async_batch  # type: ignore[attr-defined]
 from .methods.aio import crawl as async_crawl  # type: ignore[attr-defined]
 from .methods.aio import search as async_search  # type: ignore[attr-defined]
@@ -144,6 +147,23 @@ class AsyncFirecrawlClient:
     async def delete_scrape_browser(self, job_id: str):
         """Deprecated alias for stop_interaction()."""
         return await self.stop_interaction(job_id)
+
+    async def parse(
+        self,
+        file: Union[str, Path, bytes, bytearray, BinaryIO],
+        *,
+        filename: Optional[str] = None,
+        content_type: Optional[str] = None,
+        options: Optional[ParseOptions] = None,
+    ):
+        return await async_parse.parse(
+            self.async_http_client,
+            file,
+            options=options,
+            filename=filename,
+            content_type=content_type,
+        )
+
 
     # Search
     async def search(

@@ -27,6 +27,7 @@ import {
   ProxySelectionError,
   AgentIndexOnlyError,
   NoCachedDataError,
+  LockdownMissError,
   ScrapeJobCancelledError,
   ScrapeRetryLimitError,
   BrandingNotSupportedError,
@@ -54,6 +55,7 @@ const errorMap: Record<ErrorCodes, any> = {
   SCRAPE_DOCUMENT_ANTIBOT_ERROR: DocumentAntibotError,
   SCRAPE_UNSUPPORTED_FILE_ERROR: UnsupportedFileError,
   SCRAPE_NO_CACHED_DATA: NoCachedDataError,
+  SCRAPE_LOCKDOWN_CACHE_MISS: LockdownMissError,
   SCRAPE_ACTION_ERROR: ActionError,
   SCRAPE_ACTIONS_NOT_SUPPORTED: ActionsNotSupportedError,
   SCRAPE_BRANDING_NOT_SUPPORTED: BrandingNotSupportedError,
@@ -67,6 +69,7 @@ const errorMap: Record<ErrorCodes, any> = {
   // Zod errors
   BAD_REQUEST: null,
   BAD_REQUEST_INVALID_JSON: null,
+  PARSE_UNSUPPORTED_OPTIONS: null,
 };
 
 export function serializeTransportableError(error: TransportableError) {

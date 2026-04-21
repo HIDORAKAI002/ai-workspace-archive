@@ -66,6 +66,22 @@ export type FormatOption =
   | AttributesFormat
   | QueryFormat;
 
+export type ParseFormatString = Exclude<
+  FormatString,
+  'screenshot' | 'changeTracking' | 'branding'
+>;
+
+export interface ParseFormat {
+  type: ParseFormatString;
+}
+
+export type ParseFormatOption =
+  | ParseFormatString
+  | ParseFormat
+  | JsonFormat
+  | AttributesFormat
+  | QueryFormat;
+
 export interface LocationConfig {
   country?: string;
   languages?: string[];
@@ -171,6 +187,36 @@ export interface ScrapeOptions {
   integration?: string;
   origin?: string;
 }
+
+export type ParseFileData =
+  | Blob
+  | File
+  | Buffer
+  | Uint8Array
+  | ArrayBuffer
+  | string;
+
+export interface ParseFile {
+  data: ParseFileData;
+  filename: string;
+  contentType?: string;
+}
+
+export type ParseOptions = Omit<
+  ScrapeOptions,
+  | 'formats'
+  | 'waitFor'
+  | 'mobile'
+  | 'actions'
+  | 'location'
+  | 'maxAge'
+  | 'minAge'
+  | 'storeInCache'
+  | 'proxy'
+> & {
+  formats?: ParseFormatOption[];
+  proxy?: 'basic' | 'auto';
+};
 
 export interface WebhookConfig {
   url: string;

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"strings"
 	"time"
 )
@@ -62,6 +64,126 @@ func (h *httpClient) getAbsolute(ctx context.Context, absoluteURL string) (json.
 func (h *httpClient) delete(ctx context.Context, path string) (json.RawMessage, error) {
 	url := h.baseURL + path
 	return h.doJSON(ctx, "DELETE", url, nil, nil)
+}
+
+// postMultipart sends a POST request with a multipart/form-data body. The extra
+// text `fields` are written first, followed by a single file part.
+func (h *httpClient) postMultipart(
+	ctx context.Context,
+	path string,
+	fields map[string]string,
+	fileField, fileName, fileContentType string,
+	fileContent []byte,
+) (json.RawMessage, error) {
+	url := h.baseURL + path
+
+	buildBody := func() (io.Reader, string, error) {
+		buf := &bytes.Buffer{}
+		writer := multipart.NewWriter(buf)
+
+		for k, v := range fields {
+			if err := writer.WriteField(k, v); err != nil {
+				return nil, "", err
+			}
+		}
+
+		partHeader := make(textproto.MIMEHeader)
+		partHeader.Set(
+			"Content-Disposition",
+			fmt.Sprintf(`form-data; name=%q; filename=%q`, fileField, fileName),
+		)
+		if fileContentType != "" {
+			partHeader.Set("Content-Type", fileContentType)
+		}
+		part, err := writer.CreatePart(partHeader)
+		if err != nil {
+			return nil, "", err
+		}
+		if _, err := part.Write(fileContent); err != nil {
+			return nil, "", err
+		}
+		if err := writer.Close(); err != nil {
+			return nil, "", err
+		}
+		return buf, writer.FormDataContentType(), nil
+	}
+
+	body, contentType, err := buildBody()
+	if err != nil {
+		return nil, &FirecrawlError{Message: fmt.Sprintf("failed to build multipart body: %v", err)}
+	}
+
+	var lastErr error
+	for attempt := 0; attempt <= h.maxRetries; attempt++ {
+		if attempt > 0 {
+			if err := h.sleepBackoff(ctx, attempt); err != nil {
+				return nil, err
+			}
+			body, contentType, err = buildBody()
+			if err != nil {
+				return nil, &FirecrawlError{Message: fmt.Sprintf("failed to rebuild multipart body: %v", err)}
+			}
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "POST", url, body)
+		if err != nil {
+			return nil, &FirecrawlError{Message: fmt.Sprintf("failed to create request: %v", err)}
+		}
+
+		req.Header.Set("Authorization", "Bearer "+h.apiKey)
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set("User-Agent", "firecrawl-go/"+Version)
+		for k, v := range h.extraHeaders {
+			req.Header.Set(k, v)
+		}
+
+		resp, err := h.client.Do(req)
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			lastErr = err
+			continue
+		}
+
+		respBody, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			return json.RawMessage(respBody), nil
+		}
+
+		errMsg, errCode := extractError(respBody, resp.StatusCode)
+
+		switch resp.StatusCode {
+		case 401:
+			return nil, &AuthenticationError{
+				FirecrawlError: FirecrawlError{StatusCode: 401, ErrorCode: errCode, Message: errMsg},
+			}
+		case 429:
+			return nil, &RateLimitError{
+				FirecrawlError: FirecrawlError{StatusCode: 429, ErrorCode: errCode, Message: errMsg},
+			}
+		}
+
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 && resp.StatusCode != 408 && resp.StatusCode != 409 {
+			return nil, &FirecrawlError{StatusCode: resp.StatusCode, ErrorCode: errCode, Message: errMsg}
+		}
+
+		lastErr = &FirecrawlError{StatusCode: resp.StatusCode, ErrorCode: errCode, Message: errMsg}
+	}
+
+	if lastErr != nil {
+		if fe, ok := lastErr.(*FirecrawlError); ok {
+			return nil, fe
+		}
+		return nil, &FirecrawlError{Message: fmt.Sprintf("request failed after %d retries: %v", h.maxRetries, lastErr)}
+	}
+	return nil, &FirecrawlError{Message: "request failed"}
 }
 
 func (h *httpClient) doJSON(ctx context.Context, method, url string, body interface{}, extraHeaders map[string]string) (json.RawMessage, error) {

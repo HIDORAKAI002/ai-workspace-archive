@@ -615,4 +615,63 @@ class ClientTest < Minitest::Test
     assert_equal "hi\n", result["stdout"]
     assert_equal 0, result["exitCode"]
   end
+
+  # ================================================================
+  # PARSE
+  # ================================================================
+
+  def test_parse_options_to_h
+    opts = Firecrawl::Models::ParseOptions.new(
+      formats: ["markdown"],
+      only_main_content: true,
+      timeout: 30000,
+      proxy: "auto"
+    )
+    h = opts.to_h
+    assert_equal ["markdown"], h["formats"]
+    assert_equal true, h["onlyMainContent"]
+    assert_equal 30000, h["timeout"]
+    assert_equal "auto", h["proxy"]
+  end
+
+  def test_parse_options_rejects_unsupported_format
+    assert_raises(ArgumentError) do
+      Firecrawl::Models::ParseOptions.new(formats: ["screenshot"])
+    end
+  end
+
+  def test_parse_options_rejects_invalid_proxy
+    assert_raises(ArgumentError) do
+      Firecrawl::Models::ParseOptions.new(proxy: "stealth")
+    end
+  end
+
+  def test_parse_file_rejects_empty_content
+    assert_raises(ArgumentError) do
+      Firecrawl::Models::ParseFile.new(filename: "doc.pdf", content: "")
+    end
+  end
+
+  def test_parse_sends_multipart_request
+    stub_request(:post, "#{BASE_URL}/v2/parse")
+      .with { |req|
+        req.headers["Content-Type"].to_s.start_with?("multipart/form-data") &&
+          req.body.include?('name="options"') &&
+          req.body.include?('name="file"; filename="doc.html"') &&
+          req.body.include?("<html>hi</html>")
+      }
+      .to_return(
+        status: 200,
+        body: JSON.generate(success: true, data: { markdown: "# Parsed", metadata: { sourceURL: "file://doc.html" } }),
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    file = Firecrawl::Models::ParseFile.new(
+      filename: "doc.html",
+      content: "<html>hi</html>",
+      content_type: "text/html"
+    )
+    doc = @client.parse(file, Firecrawl::Models::ParseOptions.new(formats: ["markdown"]))
+    assert_equal "# Parsed", doc.markdown
+  end
 end
