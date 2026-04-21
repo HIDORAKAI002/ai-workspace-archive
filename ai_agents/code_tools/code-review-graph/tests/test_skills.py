@@ -22,6 +22,7 @@ from code_review_graph.skills import (
     _detect_serve_command,
     _in_poetry_project,
     _in_uv_project,
+    _opencode_plugin_content,
     generate_cursor_hooks_config,
     generate_hooks_config,
     generate_skills,
@@ -30,6 +31,7 @@ from code_review_graph.skills import (
     install_cursor_hooks,
     install_git_hook,
     install_hooks,
+    install_opencode_plugin,
     install_platform_configs,
 )
 
@@ -1074,3 +1076,118 @@ class TestDetectServeCommand:
         monkeypatch.setattr("code_review_graph.skills.sys.executable", str(fake_python))
         monkeypatch.setattr("code_review_graph.skills.Path.home", staticmethod(lambda: tmp_path))
         assert _in_uv_project() is False
+
+
+class TestOpenCodePluginContent:
+    """Tests for _opencode_plugin_content()."""
+
+    def test_returns_non_empty_string(self):
+        content = _opencode_plugin_content()
+        assert isinstance(content, str)
+        assert len(content) > 100
+
+    def test_has_plugin_type_import(self):
+        content = _opencode_plugin_content()
+        assert "import type" in content
+        assert "@opencode-ai/plugin" in content
+
+    def test_has_default_export(self):
+        content = _opencode_plugin_content()
+        assert "export default" in content
+
+    def test_hooks_file_edited_event(self):
+        content = _opencode_plugin_content()
+        assert '"file.edited"' in content
+        assert "code-review-graph update --skip-flows" in content
+
+    def test_hooks_session_created_event(self):
+        content = _opencode_plugin_content()
+        assert '"session.created"' in content
+        assert "code-review-graph status" in content
+
+    def test_hooks_tool_execute_before_event(self):
+        content = _opencode_plugin_content()
+        assert '"tool.execute.before"' in content
+        assert "code-review-graph detect-changes --brief" in content
+
+    def test_has_git_commit_detection(self):
+        """Pre-commit hook should match git commit commands."""
+        content = _opencode_plugin_content()
+        assert "git" in content
+        assert "commit" in content
+
+    def test_all_handlers_have_try_catch(self):
+        """Every event handler must use try/catch for graceful failure."""
+        content = _opencode_plugin_content()
+        # Count the three event registrations and ensure catch blocks
+        assert content.count("} catch") >= 3
+
+
+class TestInstallOpenCodePlugin:
+    """Tests for install_opencode_plugin()."""
+
+    def test_creates_plugin_file(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_opencode_plugin()
+        plugin_path = tmp_path / ".config" / "opencode" / "plugins" / "crg-plugin.ts"
+        assert plugin_path.exists()
+        assert result == plugin_path
+
+    def test_plugin_file_has_correct_content(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_opencode_plugin()
+        content = result.read_text(encoding="utf-8")
+        assert "export default" in content
+        assert "file.edited" in content
+
+    def test_creates_parent_directories(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_opencode_plugin()
+        plugins_dir = tmp_path / ".config" / "opencode" / "plugins"
+        assert plugins_dir.is_dir()
+
+    def test_overwrites_existing_plugin(self, tmp_path):
+        plugins_dir = tmp_path / ".config" / "opencode" / "plugins"
+        plugins_dir.mkdir(parents=True)
+        old_plugin = plugins_dir / "crg-plugin.ts"
+        old_plugin.write_text("// old version")
+
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_opencode_plugin()
+
+        content = old_plugin.read_text()
+        assert "// old version" not in content
+        assert "export default" in content
+
+    def test_idempotent(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_opencode_plugin()
+            result = install_opencode_plugin()
+        content = result.read_text()
+        assert "export default" in content
+        # Only one default export in the file
+        assert content.count("export default") == 1
+
+    def test_plugin_is_typescript(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_opencode_plugin()
+        assert result.suffix == ".ts"
+
+    def test_preserves_other_plugins(self, tmp_path):
+        plugins_dir = tmp_path / ".config" / "opencode" / "plugins"
+        plugins_dir.mkdir(parents=True)
+        other_plugin = plugins_dir / "other-plugin.ts"
+        other_plugin.write_text("// other plugin")
+
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_opencode_plugin()
+
+        assert other_plugin.exists()
+        assert other_plugin.read_text() == "// other plugin"
+
+    def test_file_is_utf8(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_opencode_plugin()
+        # Should be readable as UTF-8 without errors
+        content = result.read_text(encoding="utf-8")
+        assert len(content) > 0

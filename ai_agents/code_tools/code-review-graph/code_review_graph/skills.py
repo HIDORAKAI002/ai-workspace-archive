@@ -981,3 +981,108 @@ def install_qoder_skills(repo_root: Path) -> Path | None:
         logger.info("Installed %d skill(s) to %s", installed_count, qoder_skills_dir)
         return qoder_skills_dir
     return None
+
+
+# --- OpenCode plugin ---
+
+
+def _opencode_plugin_content() -> str:
+    """Return TypeScript source for the OpenCode user-level plugin.
+
+    The plugin hooks into three OpenCode events to mirror the Claude Code
+    hook behaviors:
+
+    1. ``file.edited`` — runs ``code-review-graph update --skip-flows``
+    2. ``session.created`` — runs ``code-review-graph status``
+    3. ``tool.execute.before`` — when the tool is a shell command starting
+       with ``git commit``, runs ``code-review-graph detect-changes --brief``
+
+    All handlers use try/catch so errors never break the editor session.
+    The plugin uses Bun's ``$`` shell API (provided by OpenCode's plugin
+    context) for subprocess execution.
+    """
+    return """\
+import type { Plugin } from "@opencode-ai/plugin"
+
+/**
+ * code-review-graph plugin for OpenCode.
+ *
+ * Keeps the knowledge graph up-to-date and surfaces status
+ * information automatically during coding sessions.
+ *
+ * Installed by: code-review-graph install --platform opencode
+ */
+
+// Helper: run a shell command quietly, swallowing errors.
+async function run($: any, cmd: string): Promise<string> {
+  try {
+    const result = await $`${cmd}`.quiet()
+    return result.stdout?.toString().trim() ?? ""
+  } catch {
+    return ""
+  }
+}
+
+export default (app: any) => {
+  // 1. Auto-update graph after file edits
+  app.on("file.edited", async ({ $ }: { $: any }) => {
+    try {
+      await $`code-review-graph update --skip-flows`.quiet()
+    } catch {
+      // Swallow — graph may not be built yet for this project.
+    }
+  })
+
+  // 2. Show graph status when a new session starts
+  app.on("session.created", async ({ $ }: { $: any }) => {
+    try {
+      const result = await $`code-review-graph status`.quiet()
+      const output = result.stdout?.toString().trim()
+      if (output) {
+        console.log("[code-review-graph]", output)
+      }
+    } catch {
+      // Swallow — not every project has a graph.
+    }
+  })
+
+  // 3. Detect changes before git commit commands
+  app.on("tool.execute.before", async (ctx: any) => {
+    try {
+      const input = ctx?.input ?? ctx?.params ?? {}
+      const cmd =
+        input.command ?? input.cmd ?? input.content ?? ""
+      if (typeof cmd === "string" && /^git\\s+commit/i.test(cmd)) {
+        const result =
+          await ctx.$`code-review-graph detect-changes --brief`.quiet()
+        const output = result.stdout?.toString().trim()
+        if (output) {
+          console.log("[code-review-graph] Pre-commit analysis:\\n" + output)
+        }
+      }
+    } catch {
+      // Swallow — never block a commit.
+    }
+  })
+}
+"""
+
+
+def install_opencode_plugin() -> Path:
+    """Install the OpenCode user-level plugin for code-review-graph.
+
+    Writes ``~/.config/opencode/plugins/crg-plugin.ts``.  Creates the
+    directories if they don't exist.  If the file already exists it is
+    overwritten (the plugin is self-contained and idempotent).
+
+    Returns:
+        Path to the plugin file that was written.
+    """
+    plugins_dir = Path.home() / ".config" / "opencode" / "plugins"
+    plugin_path = plugins_dir / "crg-plugin.ts"
+
+    plugins_dir.mkdir(parents=True, exist_ok=True)
+    plugin_path.write_text(_opencode_plugin_content(), encoding="utf-8")
+    logger.info("Wrote OpenCode plugin: %s", plugin_path)
+
+    return plugin_path
