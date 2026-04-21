@@ -45,6 +45,8 @@ export const HIDDEN_METADATA_ENTRY_LABELS = new Set([
   'dagster_dbt/dagster_dbt_translator',
   'dagster_embedded_elt/dagster_sling_translator',
   'dagster_embedded_elt/sling_replication_config',
+  'dagster_sling/dagster_sling_translator',
+  'dagster_sling/sling_replication_config',
 ]);
 
 export type MetadataEntryLabelOnly = Pick<MetadataEntryFragment, '__typename' | 'label'>;

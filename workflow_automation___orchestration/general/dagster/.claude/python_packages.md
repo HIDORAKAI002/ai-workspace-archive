@@ -67,7 +67,6 @@ Quick reference for Python packages in the Dagster repository.
 **dagster-fivetran**: `python_modules/libraries/dagster-fivetran`
 **dagster-sling**: `python_modules/libraries/dagster-sling`
 **dagster-dlt**: `python_modules/libraries/dagster-dlt`
-**dagster-embedded-elt**: `python_modules/libraries/dagster-embedded-elt`
 **dagster-polytomic**: `python_modules/libraries/dagster-polytomic`
 
 ## migration tools

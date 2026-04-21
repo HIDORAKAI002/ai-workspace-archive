@@ -13,27 +13,35 @@ from dagster_rest_resources.schemas.asset_check import (
 
 ASSET_CHECKS_QUERY = """
 query AssetChecksQuery($assetKey: AssetKeyInput!) {
-    assetChecksOrError(assetKey: $assetKey) {
+    assetNodeOrError(assetKey: $assetKey) {
         __typename
-        ... on AssetChecks {
-            checks {
-                name
-                description
-                blocking
-                jobNames
-                canExecuteIndividually
-                assetKey {
-                    path
+        ... on AssetNode {
+            assetChecksOrError {
+                __typename
+                ... on AssetChecks {
+                    checks {
+                        name
+                        description
+                        blocking
+                        jobNames
+                        canExecuteIndividually
+                        assetKey {
+                            path
+                        }
+                    }
+                }
+                ... on AssetCheckNeedsMigrationError {
+                    message
+                }
+                ... on AssetCheckNeedsUserCodeUpgrade {
+                    message
+                }
+                ... on AssetCheckNeedsAgentUpgradeError {
+                    message
                 }
             }
         }
-        ... on NeedsMigration {
-            message
-        }
-        ... on NeedsUserCodeUpgrade {
-            message
-        }
-        ... on NeedsAgentUpgrade {
+        ... on AssetNotFoundError {
             message
         }
     }
@@ -78,7 +86,18 @@ def process_asset_checks_response(
     graphql_response: dict[str, Any], asset_key: str
 ) -> "DgApiAssetCheckList":
     """Process GraphQL response into DgApiAssetCheckList."""
-    checks_result = graphql_response.get("assetChecksOrError")
+    asset_node_result = graphql_response.get("assetNodeOrError")
+    if not asset_node_result:
+        raise Exception("No asset node data in GraphQL response")
+
+    asset_typename = asset_node_result.get("__typename")
+    if asset_typename == "AssetNotFoundError":
+        error_msg = asset_node_result.get("message", f"Asset not found: {asset_key}")
+        raise Exception(error_msg)
+    if asset_typename != "AssetNode":
+        raise Exception(f"Unexpected response type: {asset_typename}")
+
+    checks_result = asset_node_result.get("assetChecksOrError")
     if not checks_result:
         raise Exception("No asset checks data in GraphQL response")
 

@@ -60,7 +60,6 @@
 -e python_modules/libraries/dagster-duckdb-polars/
 -e python_modules/libraries/dagster-duckdb-pyspark/
 -e python_modules/libraries/dagster-duckdb/
--e python_modules/libraries/dagster-embedded-elt
 -e python_modules/libraries/dagster-fivetran/
 -e python_modules/libraries/dagster-gcp-pandas[test]
 -e python_modules/libraries/dagster-gcp-pyspark/

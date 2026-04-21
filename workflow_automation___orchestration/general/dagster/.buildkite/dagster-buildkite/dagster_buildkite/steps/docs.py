@@ -14,7 +14,7 @@ from buildkite_shared.uv import UV_PIN
 
 def build_repo_wide_format_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
     return (
-        CommandStepBuilder(":notebook: yarn format_check")
+        CommandStepBuilder(":notebook: yarn format_check", key="format-check")
         .on_test_image()
         .run(
             f"cd {oss_path('docs')}",

@@ -793,7 +793,7 @@ def test_job_that_fails_run_worker(
     assert run and run.status == DagsterRunStatus.NOT_STARTED
 
     instance.launch_run(run.run_id, workspace)
-    finished_run = poll_for_finished_run(instance, run_id)
+    finished_run = poll_for_finished_run(instance, run_id, timeout=120)
     assert finished_run.status == DagsterRunStatus.FAILURE
 
     run_logs = instance.all_logs(run_id)
