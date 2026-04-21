@@ -2,6 +2,7 @@
 
 import json
 import os
+import stat
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -17,13 +18,16 @@ from code_review_graph.skills import (
     _CLAUDE_MD_SECTION_MARKER,
     PLATFORMS,
     _build_server_entry,
+    _cursor_hook_scripts,
     _detect_serve_command,
     _in_poetry_project,
     _in_uv_project,
+    generate_cursor_hooks_config,
     generate_hooks_config,
     generate_skills,
     inject_claude_md,
     inject_platform_instructions,
+    install_cursor_hooks,
     install_git_hook,
     install_hooks,
     install_platform_configs,
@@ -659,6 +663,171 @@ class TestInstallPlatformConfigs:
         import shutil
         expected_cmd = "uvx" if shutil.which("uvx") else "code-review-graph"
         assert data["mcpServers"]["code-review-graph"]["command"] == expected_cmd
+
+
+class TestCursorHooksConfig:
+    """Tests for generate_cursor_hooks_config()."""
+
+    def test_has_version_1(self):
+        config = generate_cursor_hooks_config()
+        assert config["version"] == 1
+
+    def test_has_after_file_edit(self):
+        config = generate_cursor_hooks_config()
+        hooks = config["hooks"]["afterFileEdit"]
+        assert len(hooks) >= 1
+        assert "crg-update.sh" in hooks[0]["command"]
+        assert hooks[0]["timeout"] == 5
+
+    def test_has_session_start(self):
+        config = generate_cursor_hooks_config()
+        hooks = config["hooks"]["sessionStart"]
+        assert len(hooks) >= 1
+        assert "crg-session-start.sh" in hooks[0]["command"]
+        assert hooks[0]["timeout"] == 5
+
+    def test_has_before_shell_execution(self):
+        config = generate_cursor_hooks_config()
+        hooks = config["hooks"]["beforeShellExecution"]
+        assert len(hooks) >= 1
+        assert "crg-pre-commit.sh" in hooks[0]["command"]
+        assert hooks[0]["timeout"] == 10
+        assert hooks[0]["matcher"] == "^git\\s+commit"
+
+    def test_has_all_three_hook_types(self):
+        config = generate_cursor_hooks_config()
+        hook_types = set(config["hooks"].keys())
+        assert hook_types == {"afterFileEdit", "sessionStart", "beforeShellExecution"}
+
+    def test_commands_point_to_home_cursor_hooks(self):
+        config = generate_cursor_hooks_config()
+        from pathlib import Path
+
+        hooks_dir = str(Path.home() / ".cursor" / "hooks")
+        for event, entries in config["hooks"].items():
+            for entry in entries:
+                assert entry["command"].startswith(hooks_dir), (
+                    f"{event} command does not start with {hooks_dir}"
+                )
+
+
+class TestCursorHookScripts:
+    """Tests for _cursor_hook_scripts()."""
+
+    def test_returns_three_scripts(self):
+        scripts = _cursor_hook_scripts()
+        assert set(scripts.keys()) == {
+            "crg-update.sh",
+            "crg-session-start.sh",
+            "crg-pre-commit.sh",
+        }
+
+    def test_scripts_start_with_shebang(self):
+        scripts = _cursor_hook_scripts()
+        for name, content in scripts.items():
+            assert content.startswith("#!/usr/bin/env bash"), f"{name} missing shebang line"
+
+    def test_scripts_exit_zero(self):
+        """Each script must end with exit 0 for graceful failure."""
+        scripts = _cursor_hook_scripts()
+        for name, content in scripts.items():
+            assert "exit 0" in content, f"{name} missing 'exit 0'"
+
+    def test_scripts_consume_stdin(self):
+        """Each script must consume stdin (Cursor protocol)."""
+        scripts = _cursor_hook_scripts()
+        for name, content in scripts.items():
+            assert "cat > /dev/null" in content, f"{name} missing stdin consumption"
+
+    def test_update_script_runs_update(self):
+        scripts = _cursor_hook_scripts()
+        assert "code-review-graph update --skip-flows" in scripts["crg-update.sh"]
+
+    def test_session_start_script_runs_status(self):
+        scripts = _cursor_hook_scripts()
+        assert "code-review-graph status" in scripts["crg-session-start.sh"]
+
+    def test_pre_commit_script_runs_detect_changes(self):
+        scripts = _cursor_hook_scripts()
+        assert "code-review-graph detect-changes --brief" in scripts["crg-pre-commit.sh"]
+
+
+class TestInstallCursorHooks:
+    """Tests for install_cursor_hooks()."""
+
+    def test_creates_hooks_json(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_cursor_hooks()
+        hooks_json = tmp_path / ".cursor" / "hooks.json"
+        assert hooks_json.exists()
+        assert result == hooks_json
+        data = json.loads(hooks_json.read_text())
+        assert data["version"] == 1
+        assert "afterFileEdit" in data["hooks"]
+
+    def test_creates_hook_scripts(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_cursor_hooks()
+        hooks_dir = tmp_path / ".cursor" / "hooks"
+        assert (hooks_dir / "crg-update.sh").exists()
+        assert (hooks_dir / "crg-session-start.sh").exists()
+        assert (hooks_dir / "crg-pre-commit.sh").exists()
+
+    def test_scripts_are_executable(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_cursor_hooks()
+        hooks_dir = tmp_path / ".cursor" / "hooks"
+        for script in hooks_dir.iterdir():
+            mode = script.stat().st_mode
+            assert mode & stat.S_IXUSR, f"{script.name} not executable by owner"
+            assert mode & stat.S_IXGRP, f"{script.name} not executable by group"
+
+    def test_merges_with_existing_hooks_json(self, tmp_path):
+        cursor_dir = tmp_path / ".cursor"
+        cursor_dir.mkdir(parents=True)
+        existing = {
+            "version": 1,
+            "hooks": {
+                "afterFileEdit": [{"command": "/some/other/hook.sh", "timeout": 3}],
+                "stop": [{"command": "/some/stop-hook.sh", "timeout": 2}],
+            },
+        }
+        (cursor_dir / "hooks.json").write_text(json.dumps(existing))
+
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_cursor_hooks()
+
+        data = json.loads((cursor_dir / "hooks.json").read_text())
+        # Original hook preserved
+        commands = [h["command"] for h in data["hooks"]["afterFileEdit"]]
+        assert "/some/other/hook.sh" in commands
+        # Our hook added
+        assert any("crg-update.sh" in c for c in commands)
+        # Unrelated hook type preserved
+        assert "stop" in data["hooks"]
+
+    def test_no_duplicate_on_reinstall(self, tmp_path):
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            install_cursor_hooks()
+            install_cursor_hooks()
+
+        data = json.loads((tmp_path / ".cursor" / "hooks.json").read_text())
+        # Each event type should have exactly 1 crg hook
+        for event, entries in data["hooks"].items():
+            crg_hooks = [h for h in entries if "crg-" in h.get("command", "")]
+            assert len(crg_hooks) == 1, f"{event} has {len(crg_hooks)} crg hooks after reinstall"
+
+    def test_handles_corrupt_existing_json(self, tmp_path):
+        cursor_dir = tmp_path / ".cursor"
+        cursor_dir.mkdir(parents=True)
+        (cursor_dir / "hooks.json").write_text("not valid json{{{")
+
+        with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
+            result = install_cursor_hooks()
+
+        assert result.exists()
+        data = json.loads(result.read_text())
+        assert data["version"] == 1
 
 
 class TestKiroPlatform:
