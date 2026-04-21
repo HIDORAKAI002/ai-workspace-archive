@@ -320,7 +320,10 @@ export default {
   'searchAgentPlaceholder': 'Search agents...',
   'searchAgents': 'Search agents...',
   'selectedAgents': 'Selected agents',
+  'followUpPlaceholder': 'Follow up. @ to assign tasks to other agents.',
   'sendPlaceholder': 'Ask, create, or start a task, <hotkey><hotkey/>',
+  'sendPlaceholderWithAgentAssignment':
+    'Ask, create, or start a task. @ to assign tasks to other agents.',
   'sessionGroup.config': 'Category Management',
   'sessionGroup.confirmRemoveGroupAlert':
     'This category is about to be deleted. After deletion, the agents in this category will be moved to the default list. Please confirm your operation.',
