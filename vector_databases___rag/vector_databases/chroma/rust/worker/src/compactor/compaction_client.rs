@@ -52,6 +52,9 @@ pub enum CompactionCommand {
         /// Can be specified multiple times. If not specified, rebuilds all segments.
         #[arg(long = "segment", value_parser = ["metadata", "vector"])]
         segment_scopes: Vec<String>,
+        /// Specify which shard to rebuild (defaults to 0)
+        #[arg(long)]
+        shard: Option<u32>,
     },
     /// List all in-progress compaction jobs
     ListInProgressJobs,
@@ -88,7 +91,11 @@ impl CompactionClient {
                     return Err(CompactionClientError::Compactor(status.to_string()));
                 }
             }
-            CompactionCommand::Rebuild { id, segment_scopes } => {
+            CompactionCommand::Rebuild {
+                id,
+                segment_scopes,
+                shard,
+            } => {
                 let mut client = self.grpc_client().await?;
                 // Convert CLI strings to proto SegmentScope i32 values
                 let mut proto_scopes: Vec<i32> = segment_scopes
@@ -108,6 +115,7 @@ impl CompactionClient {
                             ids: id.iter().map(ToString::to_string).collect(),
                         }),
                         segment_scopes: proto_scopes,
+                        shard_index: *shard,
                     })
                     .await;
                 if let Err(status) = response {

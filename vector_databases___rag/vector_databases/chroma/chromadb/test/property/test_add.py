@@ -166,7 +166,7 @@ def _test_add(
     records_since_compaction_wait = 0
     has_waited_for_compaction = False
     min_records_between_compaction_waits = max(
-        MIN_RECORDS_BETWEEN_COMPACTION_WAITS, len(record_set["ids"]) // 10
+        MIN_RECORDS_BETWEEN_COMPACTION_WAITS, len(normalized_record_set["ids"]) // 10
     )
     print(f"starting min_records_between_compaction_waits={min_records_between_compaction_waits}")
 
@@ -174,10 +174,10 @@ def _test_add(
     # like [{"a": 1}, None, {"a": 3}]
     for batch in create_batches(
         api=client,
-        ids=cast(List[str], record_set["ids"]),
-        embeddings=cast(Embeddings, record_set["embeddings"]),
-        metadatas=cast(Metadatas, record_set["metadatas"]),
-        documents=cast(List[str], record_set["documents"]),
+        ids=cast(List[str], normalized_record_set["ids"]),
+        embeddings=cast(Embeddings, normalized_record_set["embeddings"]),
+        metadatas=cast(Metadatas, normalized_record_set["metadatas"]),
+        documents=cast(List[str], normalized_record_set["documents"]),
     ):
         print('adding', len(batch[0]))
         coll.add(*batch)
@@ -200,7 +200,7 @@ def _test_add(
         not NOT_CLUSTER_ONLY
         and always_compact
         and not has_waited_for_compaction
-        and len(normalized_record_set["ids"]) > MIN_RECORDS_BETWEEN_COMPACTION_WAITS
+        and len(normalized_record_set["ids"]) > 0
     ):
         print('final wait for compaction')
         current_version = wait_for_version_increase(
