@@ -172,6 +172,77 @@ hindsight-admin decommission-worker worker-1 --schema tenant_acme
 Worker IDs default to the hostname. In Kubernetes StatefulSets, this is the pod name (e.g., `hindsight-worker-0`). You can also set a custom ID with `HINDSIGHT_API_WORKER_ID` or `--worker-id`.
 :::
 
+
+### decommission-workers
+
+Release all currently-processing tasks from every worker, resetting them from "processing" back to "pending" status. Use this when one or more workers have crashed or been removed without graceful shutdown and you don't know which worker IDs to target.
+
+```bash
+hindsight-admin decommission-workers [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--schema`, `-s` | Database schema | `public` |
+| `--yes`, `-y` | Skip confirmation prompt | `false` |
+
+**Examples:**
+
+```bash
+# Release all processing tasks across all workers (with confirmation)
+hindsight-admin decommission-workers
+
+# Skip the confirmation prompt (useful in scripts)
+hindsight-admin decommission-workers --yes
+
+# Release tasks in a specific tenant schema
+hindsight-admin decommission-workers --schema tenant_acme
+```
+
+**When to Use:**
+
+- **Unknown dead workers**: Multiple workers crashed and you do not know their IDs
+- **Fleet-wide recovery**: After an infrastructure event where many workers went down
+- **"Just fix everything"**: A quick full-queue drain when per-worker cleanup is overkill
+
+:::warning Disruptive
+This releases **every** processing task regardless of worker, including tasks owned by healthy workers. Prefer `decommission-worker <WORKER_ID>` when you know which workers need cleanup.
+:::
+
+---
+
+### worker-status
+
+Show all currently-processing tasks grouped by worker, including operation type, bank, how long each task has been running, and when it was last updated. Useful for identifying orphaned tasks before decommissioning.
+
+```bash
+hindsight-admin worker-status [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--schema`, `-s` | Database schema | `public` |
+
+**Examples:**
+
+```bash
+# Show all processing tasks across all workers
+hindsight-admin worker-status
+
+# Show processing tasks for a specific tenant schema
+hindsight-admin worker-status --schema tenant_acme
+```
+
+**When to Use:**
+
+- **Before decommissioning**: Inspect which workers have stale tasks and how long they have been stuck
+- **Debugging throughput**: Diagnose why the queue is not draining (are tasks stuck in processing?)
+- **Worker health check**: Spot workers whose `last_update_ago` keeps growing, indicating a dead or unresponsive worker
+
 ---
 
 ## Environment Variables

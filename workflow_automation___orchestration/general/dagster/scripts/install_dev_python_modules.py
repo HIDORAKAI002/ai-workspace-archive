@@ -83,7 +83,6 @@ def main(
         "python_modules/libraries/dagster-gcp[test, dataproc]",
         "python_modules/libraries/dagster-gcp-pandas",
         "python_modules/libraries/dagster-gcp-pyspark",
-        "python_modules/libraries/dagster-embedded-elt",
         "python_modules/libraries/dagster-fivetran",
         "python_modules/libraries/dagster-k8s",
         "python_modules/libraries/dagster-celery-k8s",

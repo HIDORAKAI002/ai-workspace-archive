@@ -574,6 +574,7 @@ const baseScrapeOptions = z.strictObject({
   maxAge: z.int().gte(0).optional(),
   minAge: z.int().gte(0).optional(),
   storeInCache: z.boolean().prefault(true),
+  lockdown: z.boolean().prefault(false),
 
   profile: z
     .object({
@@ -642,6 +643,13 @@ const extractTransformImpl = <T extends ScrapeOptionsBase | undefined>(
     result = { ...result, timeout: 120000 };
   }
 
+  if (obj.lockdown && obj.maxAge === undefined) {
+    // 2 years in ms. Number.MAX_SAFE_INTEGER lands ~285,000 years which
+    // overflows Postgres TIMESTAMP arithmetic in the index lookup and silently
+    // returns no rows. 2 years covers any practical cache retention window.
+    result = { ...result, maxAge: 2 * 365 * 24 * 60 * 60 * 1000 };
+  }
+
   return result as T extends undefined ? undefined : T;
 };
 
@@ -677,6 +685,15 @@ export const scrapeOptions = strictWithMessage(baseScrapeOptions)
 export type BaseScrapeOptions = z.infer<typeof baseScrapeOptions>;
 
 export type ScrapeOptions = BaseScrapeOptions;
+
+export type UploadedParseFileKind = "html" | "pdf" | "document";
+
+export type UploadedParseFile = {
+  buffer: Buffer;
+  filename: string;
+  contentType?: string;
+  kind?: UploadedParseFileKind;
+};
 
 const ajv = new Ajv();
 const agentAjv = new Ajv();
@@ -833,6 +850,56 @@ export type ScrapeRequestInput = Omit<
   integration?: z.input<typeof integrationSchema> | null;
   zeroDataRetention?: boolean;
 };
+
+const uploadedParseFileSchema = z.custom<UploadedParseFile>(
+  value =>
+    typeof value === "object" &&
+    value !== null &&
+    "buffer" in value &&
+    Buffer.isBuffer((value as any).buffer) &&
+    "filename" in value &&
+    typeof (value as any).filename === "string" &&
+    (value as any).filename.trim().length > 0 &&
+    (!("contentType" in value) ||
+      (value as any).contentType === undefined ||
+      typeof (value as any).contentType === "string") &&
+    (!("kind" in value) ||
+      (value as any).kind === undefined ||
+      (value as any).kind === "html" ||
+      (value as any).kind === "pdf" ||
+      (value as any).kind === "document"),
+  {
+    error: "A file upload is required.",
+  },
+);
+
+const parseRequestSchemaBase = baseScrapeOptions.extend({
+  origin: z.string().optional().prefault("api"),
+  integration: integrationSchema.optional().transform(val => val || null),
+  zeroDataRetention: z.boolean().optional(),
+  __agentInterop: z
+    .object({
+      auth: z.string(),
+      requestId: z.string(),
+      shouldBill: z.boolean(),
+      boostConcurrency: z.boolean().optional(),
+    })
+    .optional(),
+  file: uploadedParseFileSchema,
+});
+
+export const parseRequestSchema = strictWithMessage(parseRequestSchemaBase)
+  .refine(waitForRefine, waitForRefineOpts)
+  .transform(x => {
+    const { file, ...scrapeLike } = x;
+    return {
+      ...extractTransformRequired(scrapeLike),
+      file,
+    };
+  });
+
+export type ParseRequest = z.infer<typeof parseRequestSchema>;
+export type ParseRequestInput = z.input<typeof parseRequestSchemaBase>;
 
 const batchScrapeRequestSchemaBase = baseScrapeOptions.extend({
   urls: URL.array().min(1),

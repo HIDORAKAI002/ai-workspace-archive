@@ -21,9 +21,7 @@ class AsyncHttpClient:
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
 
-        headers = {
-            "Content-Type": "application/json",
-        }
+        headers = {}
 
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
@@ -85,6 +83,48 @@ class AsyncHttpClient:
                 await asyncio.sleep(backoff_factor * (2 ** attempt))
 
         raise last_exception or Exception("Unexpected error in POST request")
+
+    async def post_multipart(
+        self,
+        endpoint: str,
+        data: Dict[str, Any],
+        files: Dict[str, Any],
+        headers: Optional[Dict[str, str]] = None,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        backoff_factor: Optional[float] = None,
+    ) -> httpx.Response:
+        if timeout is None:
+            timeout = self.timeout
+        if retries is None:
+            retries = self.max_retries
+        if backoff_factor is None:
+            backoff_factor = self.backoff_factor
+
+        last_exception = None
+        num_attempts = max(1, retries)
+
+        for attempt in range(num_attempts):
+            try:
+                response = await self._client.post(
+                    endpoint,
+                    data=data,
+                    files=files,
+                    headers={**self._headers(), **(headers or {})},
+                    timeout=timeout,
+                )
+                if response.status_code == 502:
+                    if attempt < num_attempts - 1:
+                        await asyncio.sleep(backoff_factor * (2 ** attempt))
+                        continue
+                return response
+            except httpx.HTTPError as e:
+                last_exception = e
+                if attempt == num_attempts - 1:
+                    raise e
+                await asyncio.sleep(backoff_factor * (2 ** attempt))
+
+        raise last_exception or Exception("Unexpected error in multipart POST request")
 
     async def get(
         self,

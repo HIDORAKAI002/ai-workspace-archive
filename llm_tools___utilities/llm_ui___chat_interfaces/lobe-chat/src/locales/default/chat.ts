@@ -265,7 +265,8 @@ export default {
   'operation.contextCompression': 'Context too long, compressing history...',
   'operation.execAgentRuntime': 'Preparing response',
   'operation.execClientTask': 'Executing task',
-  'operation.execHeterogeneousAgent': 'External agent running',
+  'operation.execHeterogeneousAgent': '{{name}} is running',
+  'operation.heterogeneousAgentFallback': 'External agent',
   'operation.execServerAgentRuntime':
     'Task is running in the server. You are safe to leave this page',
   'operation.sendMessage': 'Sending message',
@@ -319,7 +320,10 @@ export default {
   'searchAgentPlaceholder': 'Search agents...',
   'searchAgents': 'Search agents...',
   'selectedAgents': 'Selected agents',
+  'followUpPlaceholder': 'Follow up. @ to assign tasks to other agents.',
   'sendPlaceholder': 'Ask, create, or start a task, <hotkey><hotkey/>',
+  'sendPlaceholderWithAgentAssignment':
+    'Ask, create, or start a task. @ to assign tasks to other agents.',
   'sessionGroup.config': 'Category Management',
   'sessionGroup.confirmRemoveGroupAlert':
     'This category is about to be deleted. After deletion, the agents in this category will be moved to the default list. Please confirm your operation.',
@@ -436,7 +440,10 @@ export default {
   'task.status.fetchingDetails': 'Fetching details...',
   'task.status.initializing': 'Initializing task...',
   'task.subtask': 'Subtask',
+  'thread.closeSubagentThread': 'Collapse subagent conversation',
   'thread.divider': 'Subtopic',
+  'thread.openSubagentThread': 'View full subagent conversation',
+  'thread.subagentBadge': 'Subagent',
   'thread.threadMessageCount': '{{messageCount}} messages',
   'thread.title': 'Subtopic',
   'todoProgress.allCompleted': 'All tasks completed',

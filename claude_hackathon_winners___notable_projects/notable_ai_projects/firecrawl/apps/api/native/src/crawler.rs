@@ -33,6 +33,7 @@ pub struct FilterLinksCall {
   pub allow_backward_crawling: bool,
   pub ignore_robots_txt: bool,
   pub robots_txt: String,
+  pub robots_user_agent: Option<String>,
   pub allow_external_content_links: bool,
   pub allow_subdomains: bool,
 }
@@ -53,6 +54,7 @@ pub struct FilterUrlCall {
   pub excludes: Vec<String>,
   pub ignore_robots_txt: bool,
   pub robots_txt: String,
+  pub robots_user_agent: Option<String>,
   pub allow_external_content_links: bool,
   pub allow_subdomains: bool,
 }
@@ -227,6 +229,22 @@ fn is_external_main_page(url_str: &str) -> bool {
   }
 }
 
+fn build_robot(
+  ignore_robots_txt: bool,
+  robots_txt: &str,
+  robots_user_agent: Option<&str>,
+) -> Option<Robot> {
+  if ignore_robots_txt || robots_txt.is_empty() {
+    return None;
+  }
+  if let Some(ua) = robots_user_agent {
+    return Robot::new(ua, robots_txt.as_bytes()).ok();
+  }
+  Robot::new("FireCrawlAgent", robots_txt.as_bytes())
+    .ok()
+    .or_else(|| Robot::new("FirecrawlAgent", robots_txt.as_bytes()).ok())
+}
+
 fn _filter_links(data: FilterLinksCall) -> std::result::Result<FilterLinksResult, String> {
   let limit = data.limit.map_or(usize::MAX, |x| x.max(0) as usize);
   if limit == 0 {
@@ -252,13 +270,11 @@ fn _filter_links(data: FilterLinksCall) -> std::result::Result<FilterLinksResult
     .filter_map(|i| Regex::new(i).ok())
     .collect();
 
-  let robot = if !data.ignore_robots_txt && !data.robots_txt.is_empty() {
-    Robot::new("FireCrawlAgent", data.robots_txt.as_bytes())
-      .ok()
-      .or_else(|| Robot::new("FirecrawlAgent", data.robots_txt.as_bytes()).ok())
-  } else {
-    None
-  };
+  let robot = build_robot(
+    data.ignore_robots_txt,
+    &data.robots_txt,
+    data.robots_user_agent.as_deref(),
+  );
 
   let mut result_links = Vec::new();
   let mut denial_reasons = HashMap::new();
@@ -458,13 +474,11 @@ fn _filter_url(data: FilterUrlCall) -> std::result::Result<FilterUrlResult, Stri
     .filter_map(|e| Regex::new(e).ok())
     .collect();
 
-  let robot = if !data.ignore_robots_txt && !data.robots_txt.is_empty() {
-    Robot::new("FireCrawlAgent", data.robots_txt.as_bytes())
-      .ok()
-      .or_else(|| Robot::new("FirecrawlAgent", data.robots_txt.as_bytes()).ok())
-  } else {
-    None
-  };
+  let robot = build_robot(
+    data.ignore_robots_txt,
+    &data.robots_txt,
+    data.robots_user_agent.as_deref(),
+  );
 
   if is_internal_link(&url, &base_url) {
     // INTERNAL LINKS
@@ -895,6 +909,7 @@ mod tests {
       allow_backward_crawling: true,
       allow_external_content_links: false,
       allow_subdomains: false,
+      robots_user_agent: None,
     };
 
     let result = _filter_links(data).unwrap();
@@ -929,6 +944,7 @@ mod tests {
       allow_backward_crawling: true,
       allow_external_content_links: false,
       allow_subdomains: false,
+      robots_user_agent: None,
     };
 
     let result = _filter_links(data);
@@ -958,6 +974,7 @@ mod tests {
       allow_backward_crawling: true,
       allow_external_content_links: false,
       allow_subdomains: false,
+      robots_user_agent: None,
     };
 
     let result = _filter_links(data);
@@ -985,6 +1002,7 @@ mod tests {
       allow_backward_crawling: true,
       allow_external_content_links: false,
       allow_subdomains: false,
+      robots_user_agent: None,
     };
 
     let result = _filter_links(data);
@@ -1015,6 +1033,7 @@ mod tests {
       allow_backward_crawling: true,
       allow_external_content_links: false,
       allow_subdomains: true,
+      robots_user_agent: None,
     };
 
     let result = _filter_links(data).unwrap();
@@ -1039,6 +1058,44 @@ mod tests {
         .get("https://sub.example.com/blog")
         .unwrap(),
       "INCLUDE_PATTERN"
+    );
+  }
+
+  #[test]
+  fn test_filter_links_honors_custom_robots_user_agent() {
+    // robots.txt allows the default FireCrawlAgent but blocks CustomBot. Without
+    // a custom user-agent the link is allowed; with `robots_user_agent` wired
+    // through it must be filtered.
+    let robots_txt = "User-agent: *\nAllow: /\n\nUser-agent: CustomBot\nDisallow: /";
+
+    let base_call = |ua: Option<String>| FilterLinksCall {
+      links: vec!["https://example.com/page".to_string()],
+      limit: Some(10),
+      includes: vec![],
+      excludes: vec![],
+      ignore_robots_txt: false,
+      robots_txt: robots_txt.to_string(),
+      max_depth: 10,
+      base_url: "https://example.com".to_string(),
+      initial_url: "https://example.com".to_string(),
+      regex_on_full_url: false,
+      allow_backward_crawling: true,
+      allow_external_content_links: false,
+      allow_subdomains: false,
+      robots_user_agent: ua,
+    };
+
+    let default_result = _filter_links(base_call(None)).unwrap();
+    assert_eq!(default_result.links, vec!["https://example.com/page"]);
+
+    let custom_result = _filter_links(base_call(Some("CustomBot".to_string()))).unwrap();
+    assert!(custom_result.links.is_empty());
+    assert_eq!(
+      custom_result
+        .denial_reasons
+        .get("https://example.com/page")
+        .unwrap(),
+      "ROBOTS_TXT"
     );
   }
 

@@ -1,5 +1,6 @@
 package com.firecrawl.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.firecrawl.errors.FirecrawlException;
 import com.firecrawl.errors.JobTimeoutException;
 import com.firecrawl.models.*;
@@ -193,6 +194,56 @@ public class FirecrawlClient {
     @Deprecated
     public BrowserDeleteResponse deleteScrapeBrowser(String jobId) {
         return stopInteractiveBrowser(jobId);
+    }
+
+    /**
+     * Parses an uploaded file and returns the extracted document.
+     *
+     * @param file the file payload to parse
+     * @return the parsed document
+     */
+    public Document parse(ParseFile file) {
+        return parse(file, null);
+    }
+
+    /**
+     * Parses an uploaded file with scrape-compatible options.
+     *
+     * @param file the file payload to parse
+     * @param options parse options (parse-compatible subset)
+     * @return the parsed document
+     */
+    @SuppressWarnings("unchecked")
+    public Document parse(ParseFile file, ParseOptions options) {
+        Objects.requireNonNull(file, "Parse file is required");
+
+        Map<String, Object> optionsMap = new LinkedHashMap<>();
+        if (options != null) {
+            mergeOptions(optionsMap, options);
+        }
+
+        String optionsJson;
+        try {
+            optionsJson = http.objectMapper.writeValueAsString(optionsMap);
+        } catch (JsonProcessingException e) {
+            throw new FirecrawlException("Failed to serialize parse options", e);
+        }
+
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("options", optionsJson);
+
+        return extractData(
+                http.postMultipart(
+                        "/v2/parse",
+                        fields,
+                        "file",
+                        file.getContent(),
+                        file.getFilename(),
+                        file.getContentType(),
+                        Map.class
+                ),
+                Document.class
+        );
     }
 
     // ================================================================
@@ -713,6 +764,27 @@ public class FirecrawlClient {
     @Deprecated
     public CompletableFuture<BrowserDeleteResponse> deleteScrapeBrowserAsync(String jobId) {
         return stopInteractiveBrowserAsync(jobId);
+    }
+
+    /**
+     * Asynchronously parses an uploaded file with default options.
+     *
+     * @param file the file payload
+     * @return a CompletableFuture that resolves to the parsed Document
+     */
+    public CompletableFuture<Document> parseAsync(ParseFile file) {
+        return parseAsync(file, null);
+    }
+
+    /**
+     * Asynchronously parses an uploaded file.
+     *
+     * @param file the file payload
+     * @param options parse options
+     * @return a CompletableFuture that resolves to the parsed Document
+     */
+    public CompletableFuture<Document> parseAsync(ParseFile file, ParseOptions options) {
+        return CompletableFuture.supplyAsync(() -> parse(file, options), asyncExecutor);
     }
 
     /**

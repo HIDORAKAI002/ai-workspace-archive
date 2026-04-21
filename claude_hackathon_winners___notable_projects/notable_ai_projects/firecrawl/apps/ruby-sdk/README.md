@@ -63,6 +63,29 @@ doc = client.scrape("https://example.com",
 puts doc.html
 ```
 
+### Parse
+
+Upload a local file (`html`, `pdf`, `docx`, etc.) via multipart form data and
+parse it synchronously. Parse options intentionally exclude browser-only
+features such as change tracking, screenshot, branding, actions, wait_for,
+location, and mobile. The `proxy` option only accepts `"auto"` or `"basic"`.
+
+```ruby
+# From disk
+file = Firecrawl::Models::ParseFile.from_path("./document.pdf")
+
+# Or from memory
+file = Firecrawl::Models::ParseFile.new(
+  filename: "upload.html",
+  content: "<html>hi</html>",
+  content_type: "text/html"
+)
+
+doc = client.parse(file,
+  Firecrawl::Models::ParseOptions.new(formats: ["markdown"]))
+puts doc.markdown
+```
+
 ### Crawl
 
 ```ruby

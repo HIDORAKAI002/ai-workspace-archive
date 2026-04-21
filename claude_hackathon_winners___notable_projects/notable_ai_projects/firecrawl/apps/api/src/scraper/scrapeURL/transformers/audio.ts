@@ -42,6 +42,12 @@ export async function fetchAudio(
     return document;
   }
 
+  // Lockdown forbids any outbound request touching the target URL. The avgrab
+  // service fetches the source on our behalf, so we must skip it here.
+  if (meta.options.lockdown) {
+    return document;
+  }
+
   if (!config.AVGRAB_SERVICE_URL) {
     meta.logger.warn("AVGRAB_SERVICE_URL is not configured");
     document.warning =

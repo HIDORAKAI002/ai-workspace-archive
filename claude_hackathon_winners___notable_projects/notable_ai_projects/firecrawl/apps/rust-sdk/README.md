@@ -7,7 +7,7 @@ To install the Firecrawl Rust SDK, add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-firecrawl = "^0.1"
+firecrawl = "2.1.0"
 tokio = { version = "^1", features = ["full"] }
 ```
 
@@ -15,15 +15,14 @@ To add it in your codebase.
 
 ## Usage
 
-First, you need to obtain an API key from [firecrawl.dev](https://firecrawl.dev). Then, you need to initialize the `FirecrawlApp` like so:
+First, you need to obtain an API key from [firecrawl.dev](https://firecrawl.dev). Then, you need to initialize the `Client` like so:
 
 ```rust
-use firecrawl::FirecrawlApp;
+use firecrawl::Client;
 
 #[tokio::main]
 async fn main() {
-    // Initialize the FirecrawlApp with the API key
-    let app = FirecrawlApp::new("fc-YOUR-API-KEY").expect("Failed to initialize FirecrawlApp");
+    let client = Client::new("fc-YOUR-API-KEY").expect("Failed to initialize Client");
 
     // ...
 }
@@ -38,6 +37,34 @@ let scrape_result = app.scrape_url("https://firecrawl.dev", None).await;
 match scrape_result {
     Ok(data) => println!("Scrape result:\n{}", data.markdown),
     Err(e) => eprintln!("Scrape failed: {}", e),
+}
+```
+
+### Parsing uploaded files (v2)
+
+Use the v2 client `parse` method to upload local files (`html`, `pdf`, `docx`, etc.) as multipart form data.
+
+```rust
+use firecrawl::{Client, ParseFile, ParseFormat, ParseOptions};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::new("fc-YOUR-API-KEY")?;
+
+    let file = ParseFile::from_bytes(
+        "upload.html",
+        b"<!DOCTYPE html><html><body><h1>Rust Parse</h1></body></html>".to_vec(),
+    )
+    .with_content_type("text/html");
+
+    let options = ParseOptions {
+        formats: Some(vec![ParseFormat::Markdown]),
+        ..Default::default()
+    };
+
+    let doc = client.parse(file, Some(options)).await?;
+    println!("{:?}", doc.markdown);
+    Ok(())
 }
 ```
 
@@ -146,7 +173,7 @@ match map_result {
 Use a scrape job ID to keep interacting with the replayed browser context:
 
 ```rust
-use firecrawl::v2::{Client, ScrapeExecuteLanguage, ScrapeExecuteOptions};
+use firecrawl::{Client, ScrapeExecuteLanguage, ScrapeExecuteOptions};
 
 let client = Client::new("fc-YOUR-API-KEY")?;
 let job_id = "550e8400-e29b-41d4-a716-446655440000";
@@ -189,4 +216,4 @@ Contributions to the Firecrawl Rust SDK are welcome! If you find any issues or h
 
 ## License
 
-The Firecrawl Rust SDK is open-source and released under the [AGPL License](https://www.gnu.org/licenses/agpl-3.0.en.html).
+The Firecrawl Rust SDK is open-source and released under the [MIT License](https://opensource.org/licenses/MIT).

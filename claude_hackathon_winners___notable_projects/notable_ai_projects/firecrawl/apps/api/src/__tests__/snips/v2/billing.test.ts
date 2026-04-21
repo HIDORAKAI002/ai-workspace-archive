@@ -7,6 +7,7 @@ import {
   tokenUsageHistorical,
   idmux,
   map,
+  parse,
   scrape,
   search,
 } from "./lib";
@@ -88,6 +89,41 @@ describeIf(TEST_PRODUCTION)("Billing tests", () => {
       const rc2 = (await creditUsage(identity)).remainingCredits;
 
       expect(rc1 - rc2).toBe(12);
+    },
+    120000,
+  );
+
+  it.concurrent(
+    "bills parse correctly",
+    async () => {
+      const identity = await idmux({
+        name: "billing/bills parse correctly",
+        credits: 100,
+      });
+
+      const rc1 = (await creditUsage(identity)).remainingCredits;
+
+      const result = await parse(
+        {
+          options: {
+            formats: ["markdown"],
+          },
+          file: {
+            content:
+              "<!DOCTYPE html><html><body><h1>Parse Billing Test</h1></body></html>",
+            filename: "billing-parse.html",
+            contentType: "text/html",
+          },
+        },
+        identity,
+      );
+
+      expect(result.metadata.creditsUsed).toBe(1);
+
+      await sleepForBatchBilling();
+
+      const rc2 = (await creditUsage(identity)).remainingCredits;
+      expect(rc1 - rc2).toBe(1);
     },
     120000,
   );

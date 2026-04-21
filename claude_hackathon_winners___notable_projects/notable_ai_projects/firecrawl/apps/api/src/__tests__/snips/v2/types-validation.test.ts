@@ -449,6 +449,74 @@ describe("V2 Types Validation", () => {
 
       expect(() => scrapeRequestSchema.parse(input)).toThrow();
     });
+
+    describe("lockdown", () => {
+      it("should default lockdown to false", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.lockdown).toBe(false);
+      });
+
+      it("should accept lockdown: true", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+          lockdown: true,
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.lockdown).toBe(true);
+      });
+
+      it("should default maxAge to ~2 years when lockdown is true and maxAge is unset", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+          lockdown: true,
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.maxAge).toBe(2 * 365 * 24 * 60 * 60 * 1000);
+      });
+
+      it("should preserve maxAge when lockdown is true and maxAge is provided", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+          lockdown: true,
+          maxAge: 60000,
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.maxAge).toBe(60000);
+      });
+
+      it("should not set maxAge default when lockdown is false", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+          lockdown: false,
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.maxAge).toBeUndefined();
+      });
+
+      // lockdown takes precedence silently at the engine layer; other options are ignored, not rejected
+      it("should accept lockdown: true alongside any other options", () => {
+        const input: ScrapeRequestInput = {
+          url: "https://example.com",
+          lockdown: true,
+          actions: [{ type: "click", selector: "button" }],
+          headers: { "X-Custom": "value" },
+          profile: { name: "my-profile" },
+          proxy: "basic",
+          formats: [{ type: "markdown" }, { type: "changeTracking" }],
+        };
+
+        const result = scrapeRequestSchema.parse(input);
+        expect(result.lockdown).toBe(true);
+      });
+    });
   });
 
   describe("extractRequestSchema", () => {

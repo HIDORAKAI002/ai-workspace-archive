@@ -8,7 +8,7 @@
 
 use firecrawl::{
     AgentOptions, BatchScrapeOptions, Client, CrawlOptions, Format, JobStatus, MapOptions,
-    ScrapeOptions, SearchOptions, SitemapMode,
+    ParseFile, ParseFormat, ParseOptions, ScrapeOptions, SearchOptions, SitemapMode,
 };
 use serde_json::json;
 use std::env;
@@ -28,6 +28,28 @@ async fn test_scrape() {
         .await
         .expect("Scrape should succeed");
 
+    assert!(doc.markdown.is_some(), "Response should contain markdown");
+}
+
+#[tokio::test]
+#[ignore = "Requires API access"]
+async fn test_parse() {
+    let client = get_client();
+    let file = ParseFile::from_bytes(
+        "rust-parse-e2e.html",
+        b"<!DOCTYPE html><html><body><h1>Rust Parse E2E</h1></body></html>".to_vec(),
+    )
+    .with_content_type("text/html");
+
+    let options = ParseOptions {
+        formats: Some(vec![ParseFormat::Markdown]),
+        ..Default::default()
+    };
+
+    let doc = client
+        .parse(file, Some(options))
+        .await
+        .expect("Parse should succeed");
     assert!(doc.markdown.is_some(), "Response should contain markdown");
 }
 

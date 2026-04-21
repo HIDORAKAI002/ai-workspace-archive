@@ -73,7 +73,7 @@ A curated collection of **prompt examples** for AI chat models. Originally creat
 
 Learn prompt engineering with our **free, interactive guide** — 25+ chapters covering everything from basics to advanced techniques like chain-of-thought reasoning, few-shot learning, and AI agents.
 
-**[Start Reading →](https://fka.gumroad.com/l/art-of-chatgpt-prompting)**
+**[Start Reading →](https://fka.gumroad.com/l/art-of-chatgpt-prompting)** (Source: https://github.com/f/prompts.chat/tree/main/src/content/book)
 
 ---
 
