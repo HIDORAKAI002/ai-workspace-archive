@@ -2854,6 +2854,44 @@ def _register_get_bank_stats(mcp: FastMCP, memory: MemoryEngine, config: MCPTool
             return f'{{"error": "{e}"}}'
 
 
+async def _do_update_bank(
+    memory: MemoryEngine,
+    target_bank: str,
+    request_context: RequestContext,
+    *,
+    name: str | None = None,
+    mission: str | None = None,
+    config_updates: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Shared implementation for update_bank MCP tool variants.
+
+    Args:
+        name: Display name (stored in banks table).
+        mission: Deprecated alias for reflect_mission — mapped into config_updates.
+        config_updates: Arbitrary config overrides passed to config_resolver.update_bank_config().
+            Supports all configurable fields (retain_mission, disposition_*, etc.).
+            The config resolver validates keys and rejects non-configurable/credential fields.
+    """
+    # Update display name via engine (stored in DB banks table)
+    if name is not None:
+        await memory.update_bank(
+            target_bank,
+            name=name,
+            request_context=request_context,
+        )
+
+    # Merge deprecated mission alias into config_updates as reflect_mission
+    effective_config: dict[str, Any] = dict(config_updates) if config_updates else {}
+    if mission is not None and "reflect_mission" not in effective_config:
+        effective_config["reflect_mission"] = mission
+
+    if effective_config:
+        await memory._config_resolver.update_bank_config(target_bank, effective_config, request_context)
+
+    # Return updated profile
+    return await memory.get_bank_profile(target_bank, request_context=request_context)
+
+
 def _register_update_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
     """Register the update_bank tool."""
 
@@ -2863,16 +2901,37 @@ def _register_update_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
         async def update_bank(
             name: str | None = None,
             mission: str | None = None,
+            config_updates: dict[str, Any] | None = None,
             bank_id: str | None = None,
         ) -> str:
             """
-            Update a memory bank's metadata.
+            Update a memory bank's configuration.
 
-            Changes the name or mission of an existing bank.
+            Updates the bank's name and/or any bank-level configuration fields.
+            Only provided fields will be updated; omitted fields remain unchanged.
 
             Args:
-                name: New human-friendly name for the bank
-                mission: New mission describing who the agent is and what they're trying to accomplish
+                name: Human-friendly display name for the bank.
+                mission: Deprecated alias for config_updates.reflect_mission.
+                config_updates: Dictionary of configuration fields to update. Supports all
+                    bank-configurable fields including:
+                    - reflect_mission: Mission/context for Reflect operations.
+                    - retain_mission: Steers what gets extracted during retain().
+                    - retain_extraction_mode: 'concise' (default), 'verbose', or 'custom'.
+                    - retain_custom_instructions: Custom extraction prompt (active when mode is 'custom').
+                    - retain_chunk_size: Maximum token size for each content chunk.
+                    - retain_chunk_batch_size: Number of chunks to process in parallel.
+                    - enable_observations: Toggle observation consolidation after retain().
+                    - observations_mission: Controls observation synthesis rules.
+                    - disposition_skepticism: Critical evaluation level (1-5).
+                    - disposition_literalism: Literal vs. abstract interpretation (1-5).
+                    - disposition_empathy: Emotional context consideration (1-5).
+                    - entity_labels: Controlled vocabulary for entity classification.
+                    - entities_allow_free_form: Allow labels outside entity_labels.
+                    - recall_include_chunks: Include raw chunks in recall results.
+                    - recall_max_tokens: Max tokens for recall results.
+                    - mcp_enabled_tools: Tool allowlist for this bank.
+                    Any configurable field name is accepted (use Python field names).
                 bank_id: Optional bank (defaults to session bank). Use for cross-bank operations.
             """
             try:
@@ -2880,14 +2939,16 @@ def _register_update_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
                 if target_bank is None:
                     return '{"error": "No bank_id configured"}'
 
-                result = await memory.update_bank(
+                result = await _do_update_bank(
+                    memory,
                     target_bank,
+                    _get_request_context(config),
                     name=name,
                     mission=mission,
-                    request_context=_get_request_context(config),
+                    config_updates=config_updates,
                 )
                 return json.dumps(result, indent=2, default=str)
-            except OperationValidationError as e:
+            except (OperationValidationError, ValueError) as e:
                 logger.warning(f"Operation rejected: {e}")
                 return json.dumps({"error": str(e)})
             except Exception as e:
@@ -2900,29 +2961,52 @@ def _register_update_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
         async def update_bank(
             name: str | None = None,
             mission: str | None = None,
+            config_updates: dict[str, Any] | None = None,
         ) -> dict:
             """
-            Update this memory bank's metadata.
+            Update this memory bank's configuration.
 
-            Changes the name or mission of the bank.
+            Updates the bank's name and/or any bank-level configuration fields.
+            Only provided fields will be updated; omitted fields remain unchanged.
 
             Args:
-                name: New human-friendly name for the bank
-                mission: New mission describing who the agent is and what they're trying to accomplish
+                name: Human-friendly display name for the bank.
+                mission: Deprecated alias for config_updates.reflect_mission.
+                config_updates: Dictionary of configuration fields to update. Supports all
+                    bank-configurable fields including:
+                    - reflect_mission: Mission/context for Reflect operations.
+                    - retain_mission: Steers what gets extracted during retain().
+                    - retain_extraction_mode: 'concise' (default), 'verbose', or 'custom'.
+                    - retain_custom_instructions: Custom extraction prompt (active when mode is 'custom').
+                    - retain_chunk_size: Maximum token size for each content chunk.
+                    - retain_chunk_batch_size: Number of chunks to process in parallel.
+                    - enable_observations: Toggle observation consolidation after retain().
+                    - observations_mission: Controls observation synthesis rules.
+                    - disposition_skepticism: Critical evaluation level (1-5).
+                    - disposition_literalism: Literal vs. abstract interpretation (1-5).
+                    - disposition_empathy: Emotional context consideration (1-5).
+                    - entity_labels: Controlled vocabulary for entity classification.
+                    - entities_allow_free_form: Allow labels outside entity_labels.
+                    - recall_include_chunks: Include raw chunks in recall results.
+                    - recall_max_tokens: Max tokens for recall results.
+                    - mcp_enabled_tools: Tool allowlist for this bank.
+                    Any configurable field name is accepted (use Python field names).
             """
             try:
                 target_bank = config.bank_id_resolver()
                 if target_bank is None:
                     return {"error": "No bank_id configured"}
 
-                result = await memory.update_bank(
+                result = await _do_update_bank(
+                    memory,
                     target_bank,
+                    _get_request_context(config),
                     name=name,
                     mission=mission,
-                    request_context=_get_request_context(config),
+                    config_updates=config_updates,
                 )
                 return result
-            except OperationValidationError as e:
+            except (OperationValidationError, ValueError) as e:
                 logger.warning(f"Operation rejected: {e}")
                 return {"error": str(e)}
             except Exception as e:

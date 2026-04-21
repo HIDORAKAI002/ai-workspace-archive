@@ -18,6 +18,9 @@ _TIKTOKEN_ENCODING = tiktoken.get_encoding("cl100k_base")
 # The remainder covers the system prompt, question, bank context, and output tokens.
 _FINAL_PROMPT_CONTEXT_FRACTION = 0.8
 
+_DEFAULT_ROLE = "You are a reflection agent that answers questions by reasoning over retrieved memories."
+_DEFAULT_FINAL_ROLE = "You are a thoughtful assistant that synthesizes answers from retrieved memories."
+
 
 def _extract_directive_rules(directives: list[dict[str, Any]]) -> list[str]:
     """Extract directive rules as a list of strings."""
@@ -133,7 +136,9 @@ def build_system_prompt_for_tools(
 
     parts.extend(
         [
-            "You are a reflection agent that answers questions by reasoning over retrieved memories.",
+            mission.strip() if mission else _DEFAULT_ROLE,
+            "",
+            "Answer the user's question by reasoning over retrieved memories.",
             "",
         ]
     )
@@ -479,9 +484,9 @@ def build_final_prompt(
     return "\n".join(parts)
 
 
-FINAL_SYSTEM_PROMPT = """CRITICAL: You MUST ONLY use information from retrieved tool results. NEVER make up names, people, events, or entities.
+_FINAL_SYSTEM_PROMPT_BASE = """CRITICAL: You MUST ONLY use information from retrieved tool results. NEVER make up names, people, events, or entities.
 
-You are a thoughtful assistant that synthesizes answers from retrieved memories.
+{role_section}
 
 Your approach:
 - Reason over the retrieved memories to answer the question
@@ -508,6 +513,16 @@ CRITICAL: Output ONLY the final synthesized answer. Do NOT include:
 Just provide the direct answer with proper markdown formatting.
 
 CRITICAL: This is a NON-CONVERSATIONAL system. NEVER ask follow-up questions, offer to search again, suggest alternatives, or end with anything like "Would you like me to..." or "Let me know if...". The user cannot reply. Your answer must be complete and self-contained."""
+
+
+def build_final_system_prompt(mission: str | None = None) -> str:
+    """Build the final synthesis system prompt, using mission as role when set."""
+    role_section = mission.strip() if mission else _DEFAULT_FINAL_ROLE
+    return _FINAL_SYSTEM_PROMPT_BASE.format(role_section=role_section)
+
+
+# Backward-compatible constant for non-identity missions
+FINAL_SYSTEM_PROMPT = build_final_system_prompt()
 
 
 STRUCTURED_DELTA_SYSTEM_PROMPT = """You are computing a *minimal patch* to a structured document.
