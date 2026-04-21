@@ -83,6 +83,7 @@ intelligent automations.
 
 ## Table of contents
 
+- [Build with AI](#build-with-ai)
 - [Why CrewAI?](#why-crewai)
 - [Getting Started](#getting-started)
 - [Key Features](#key-features)
@@ -100,6 +101,22 @@ intelligent automations.
 - [Contribution](#contribution)
 - [Telemetry](#telemetry)
 - [License](#license)
+
+## Build with AI
+
+Using an AI coding agent? Teach it CrewAI best practices in one command:
+
+**Claude Code:**
+```shell
+/plugin marketplace add crewAIInc/skills
+```
+
+**Cursor, Codex, Windsurf, and others ([skills.sh](https://skills.sh/crewaiinc/skills)):**
+```shell
+npx skills add crewaiinc/skills
+```
+
+This installs the official [CrewAI Skills](https://github.com/crewAIInc/skills) — structured instructions that teach coding agents how to scaffold Flows, configure Crews, design agents and tasks, and follow CrewAI patterns.
 
 ## Why CrewAI?
 
