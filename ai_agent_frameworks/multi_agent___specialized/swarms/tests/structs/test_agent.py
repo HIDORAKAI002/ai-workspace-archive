@@ -511,16 +511,7 @@ class TestAgentFeatures:
             bulk_tasks
         ), "Bulk run should return same number of responses as tasks"
 
-        # Test response filtering
-        agent.add_response_filter("color")
-        filtered_response = agent.filtered_run(
-            "What is your favorite color?"
-        )
-        assert (
-            "[FILTERED]" in filtered_response
-        ), "Response filter not applied"
-
-        print("✓ Bulk and filtered operations test passed")
+        print("✓ Bulk operations test passed")
 
     async def test_async_operations(self):
         """Test asynchronous operations"""

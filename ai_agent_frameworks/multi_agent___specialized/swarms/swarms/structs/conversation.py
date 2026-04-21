@@ -2,6 +2,7 @@ import concurrent.futures
 import datetime
 import json
 import os
+import threading
 import traceback
 import uuid
 from typing import (
@@ -95,6 +96,7 @@ class Conversation:
         dynamic_context_window: bool = True,
         cache_enabled: bool = False,
         output_metadata: bool = False,
+        memory_md_path: Optional[str] = None,
     ):
 
         # Initialize all attributes first
@@ -119,6 +121,13 @@ class Conversation:
         self.dynamic_context_window = dynamic_context_window
         self.caching = cache_enabled
         self.output_metadata = output_metadata
+        self.memory_md_path = memory_md_path
+        self._memory_md_lock = threading.Lock()
+        # Suppress disk writes during initial setup so the static
+        # system_prompt and rules aren't re-appended to MEMORY.md on every
+        # construction. Only user tasks and agent responses added via
+        # later add() calls should be persisted.
+        self._suppress_memory_md = True
 
         if self.name is None:
             self.name = id
@@ -131,6 +140,13 @@ class Conversation:
 
         self.setup_file_path()
         self.setup()
+
+        # Re-enable MEMORY.md writes and preload any prior interaction log
+        # as a single System preamble message.
+        self._suppress_memory_md = False
+        if self.memory_md_path:
+            self._init_memory_md()
+            self._preload_memory_md()
 
     def setup_file_path(self):
         """Set up the file path for saving the conversation and load existing data if available."""
@@ -238,6 +254,197 @@ class Conversation:
         """Automatically save the conversation if autosave is enabled."""
         return self.export()
 
+    def _init_memory_md(self) -> None:
+        """Create the MEMORY.md folder and header file if they don't exist."""
+        parent = os.path.dirname(self.memory_md_path)
+        if parent:
+            os.makedirs(parent, mode=0o755, exist_ok=True)
+        if not os.path.exists(self.memory_md_path):
+            header = (
+                f"# Agent Memory\n\n"
+                f"**Conversation:** {self.name}\n"
+                f"**Created:** {datetime.datetime.now().isoformat()}\n\n"
+                f"---\n\n"
+                f"## Interaction Log\n\n"
+            )
+            try:
+                with open(
+                    self.memory_md_path, "w", encoding="utf-8"
+                ) as f:
+                    f.write(header)
+            except Exception as e:
+                logger.error(
+                    f"Failed to initialize {self.memory_md_path}: {e}"
+                )
+
+    def _preload_memory_md(self) -> None:
+        """Preload prior MEMORY.md content as a System preamble message.
+
+        Appends directly to ``conversation_history`` to avoid re-writing the
+        preload back into MEMORY.md via ``add_in_memory``.
+        """
+        try:
+            with open(
+                self.memory_md_path, "r", encoding="utf-8"
+            ) as f:
+                content = f.read()
+        except FileNotFoundError:
+            return
+        except Exception as e:
+            logger.error(f"Failed to read {self.memory_md_path}: {e}")
+            return
+
+        if "### " not in content:
+            return
+
+        self.conversation_history.append(
+            {
+                "role": "System",
+                "content": (
+                    "[Persistent Memory — MEMORY.md]\n"
+                    "The following is this conversation's persistent "
+                    "memory from prior sessions. Use it to continue "
+                    "context coherently.\n\n"
+                    f"{content}"
+                ),
+            }
+        )
+        self._str_cache = None
+
+    def compact(
+        self,
+        summary: str,
+        summary_role: str = "System",
+    ) -> None:
+        """Collapse the interaction history into a single summary.
+
+        The agent's static context is preserved in order:
+        ``system_prompt`` -> ``rules`` -> ``custom_rules_prompt`` (skills) ->
+        ``summary`` (replaces the raw interaction history). If
+        ``memory_md_path`` is configured, MEMORY.md is wiped and re-seeded
+        with a fresh header so the on-disk log stops growing across
+        compressions.
+
+        Args:
+            summary: The compressed summary content.
+            summary_role: Role attached to the summary message.
+        """
+        self._suppress_memory_md = True
+        try:
+            self.conversation_history = []
+            self._str_cache = None
+            if self.system_prompt is not None:
+                self.conversation_history.append(
+                    {
+                        "role": "System",
+                        "content": self.system_prompt,
+                    }
+                )
+            if self.rules is not None:
+                self.conversation_history.append(
+                    {
+                        "role": self.user or "User",
+                        "content": self.rules,
+                    }
+                )
+            if self.custom_rules_prompt is not None:
+                self.conversation_history.append(
+                    {
+                        "role": self.user or "User",
+                        "content": self.custom_rules_prompt,
+                    }
+                )
+        finally:
+            self._suppress_memory_md = False
+
+        if self.memory_md_path:
+            try:
+                self._archive_memory_md()
+                if os.path.exists(self.memory_md_path):
+                    os.remove(self.memory_md_path)
+                self._init_memory_md()
+            except Exception as e:
+                logger.error(
+                    f"Failed to reset {self.memory_md_path}: {e}"
+                )
+
+        self.add(summary_role, summary)
+
+    def _archive_memory_md(self) -> None:
+        """Copy the current MEMORY.md into an immutable archive file.
+
+        Called before a compaction wipes MEMORY.md so the raw chat logs
+        are never lost. Writes to
+        ``<agent_folder>/archive/history_<timestamp>.md``.
+        """
+        if not self.memory_md_path or not os.path.exists(
+            self.memory_md_path
+        ):
+            return
+
+        try:
+            with open(
+                self.memory_md_path, "r", encoding="utf-8"
+            ) as f:
+                content = f.read()
+        except Exception as e:
+            logger.error(
+                f"Failed to read {self.memory_md_path} for archive: {e}"
+            )
+            return
+
+        # Skip archive if the file only has the header (no interactions).
+        if "### " not in content:
+            return
+
+        agent_dir = os.path.dirname(self.memory_md_path)
+        archive_dir = os.path.join(agent_dir, "archive")
+        stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        archive_path = os.path.join(
+            archive_dir, f"history_{stamp}.md"
+        )
+
+        try:
+            os.makedirs(archive_dir, mode=0o755, exist_ok=True)
+            with open(archive_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            logger.info(
+                f"[Conversation] Archived prior MEMORY.md to {archive_path}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to archive MEMORY.md to {archive_path}: {e}"
+            )
+
+    def _append_to_memory_md(self, role: str, content: Any) -> None:
+        """Append a single message to the MEMORY.md interaction log."""
+        if getattr(self, "_suppress_memory_md", False):
+            return
+        if content is None:
+            return
+        content_str = (
+            content if isinstance(content, str) else str(content)
+        )
+        if not content_str.strip():
+            return
+
+        stamp = datetime.datetime.now().isoformat()
+        block = (
+            f"### {role} — {stamp}\n\n"
+            f"{content_str.strip()}\n\n"
+            f"---\n\n"
+        )
+        try:
+            with self._memory_md_lock:
+                with open(
+                    self.memory_md_path, "a", encoding="utf-8"
+                ) as f:
+                    f.write(block)
+        except Exception as e:
+            logger.error(
+                f"Failed to append to {self.memory_md_path}: {e}"
+            )
+
     def add_in_memory(
         self,
         role: str,
@@ -269,6 +476,10 @@ class Conversation:
         # Add message to conversation history
         self.conversation_history.append(message)
         self._str_cache = None
+
+        # Persist to MEMORY.md if enabled
+        if self.memory_md_path:
+            self._append_to_memory_md(role, content)
 
         # Handle token counting in a separate thread if enabled
         if self.token_count is True:
@@ -547,9 +758,15 @@ class Conversation:
         formatted_messages = []
 
         for message in self.conversation_history:
-            formatted_messages.append(
-                f"{message['role']}: {message['content']}"
-            )
+            timestamp = message.get("timestamp")
+            if timestamp:
+                formatted_messages.append(
+                    f"[{timestamp}] {message['role']}: {message['content']}"
+                )
+            else:
+                formatted_messages.append(
+                    f"{message['role']}: {message['content']}"
+                )
 
         return "\n\n".join(formatted_messages)
 

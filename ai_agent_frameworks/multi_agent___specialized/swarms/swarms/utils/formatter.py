@@ -364,6 +364,32 @@ class Formatter:
 
         return Text(f"{status_symbol} {status}", style=status_style)
 
+    def loading_status(
+        self,
+        message: str = "Thinking...",
+        spinner: str = "dots",
+        spinner_style: str = "bold yellow",
+    ):
+        """
+        Returns a Rich ``Status`` context manager that renders a spinner and
+        message while a long-running operation (e.g. an LLM call during an
+        interactive agent turn) is in flight.
+
+        Args:
+            message (str): Text shown next to the spinner.
+            spinner (str): Rich spinner name (e.g. ``"dots"``, ``"line"``, ``"arc"``).
+            spinner_style (str): Rich style applied to the spinner glyph.
+
+        Example:
+            >>> with formatter.loading_status("Agent is thinking..."):
+            ...     response = agent.call_llm(task=task_prompt)
+        """
+        return self.console.status(
+            f"[bold cyan]{message}[/bold cyan]",
+            spinner=spinner,
+            spinner_style=spinner_style,
+        )
+
     def _print_panel(
         self, content: str, title: str = "", style: str = "bold blue"
     ) -> None:

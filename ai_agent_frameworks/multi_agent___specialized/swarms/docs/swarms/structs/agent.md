@@ -57,7 +57,6 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `loop_interval` | `Optional[int]` | Interval (in seconds) between loops. |
 | `retry_attempts` | `Optional[int]` | Number of retry attempts for failed LLM calls. |
 | `retry_interval` | `Optional[int]` | Interval (in seconds) between retry attempts. |
-| `return_history` | `Optional[bool]` | Boolean indicating whether to return conversation history. |
 | `stopping_token` | `Optional[str]` | Token that stops the agent from looping when present in the response. |
 | `dynamic_loops` | `Optional[bool]` | Boolean indicating whether to dynamically determine the number of loops. |
 | `interactive` | `Optional[bool]` | Boolean indicating whether to run in interactive mode. |
@@ -86,32 +85,18 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `verbose` | `Optional[bool]` | Boolean indicating whether to print verbose output. |
 | `stopping_func` | `Optional[Callable]` | Callable function used as a stopping condition. |
 | `custom_exit_command` | `Optional[str]` | String representing a custom command for exiting the agent's loop. |
-| `custom_tools_prompt` | `Optional[Callable]` | Callable function for generating a custom prompt for tool usage. |
 | `tool_schema` | `ToolUsageType` | Data structure representing the schema for the agent's tools. |
 | `output_type` | `OutputType` | Type representing the expected output type of responses. |
-| `function_calling_type` | `str` | String representing the type of function calling. |
 | `output_cleaner` | `Optional[Callable]` | Callable function for cleaning the agent's output. |
-| `function_calling_format_type` | `Optional[str]` | String representing the format type for function calling. |
 | `list_base_models` | `Optional[List[BaseModel]]` | List of base models used for generating tool schemas. |
-| `metadata_output_type` | `str` | String representing the output type for metadata. |
-| `state_save_file_type` | `str` | String representing the file type for saving the agent's state. |
-| `tool_choice` | `str` | String representing the method for tool selection. |
 | `rules` | `str` | String representing the rules for the agent's behavior. |
 | `planning_prompt` | `Optional[str]` | String representing the prompt for planning. |
-| `custom_planning_prompt` | `str` | String representing a custom prompt for planning. |
-| `memory_chunk_size` | `int` | Integer representing the maximum size of memory chunks for long-term memory retrieval. |
-| `tool_system_prompt` | `str` | String representing the system prompt for tools |
 | `max_tokens` | `int` | Integer representing the maximum number of tokens |
 | `temperature` | `float` | Float representing the temperature for the LLM |
-| `timeout` | `Optional[int]` | Integer representing the timeout for operations in seconds |
 | `tags` | `Optional[List[str]]` | Optional list of strings for tagging the agent. |
 | `use_cases` | `Optional[List[Dict[str, str]]]` | Optional list of dictionaries describing use cases for the agent. |
 | `auto_generate_prompt` | `bool` | Boolean indicating whether to automatically generate prompts. |
-| `rag_every_loop` | `bool` | Boolean indicating whether to query RAG database for context on every loop |
 | `plan_enabled` | `bool` | Boolean indicating whether planning functionality is enabled |
-| `artifacts_on` | `bool` | Boolean indicating whether to save artifacts from agent execution |
-| `artifacts_output_path` | `str` | File path where artifacts should be saved |
-| `artifacts_file_extension` | `str` | File extension to use for saved artifacts |
 | `model_name` | `str` | String representing the name of the model to use |
 | `llm_args` | `dict` | Dictionary containing additional arguments for the LLM |
 | `load_state_path` | `str` | String representing the path to load state from |
@@ -124,7 +109,6 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `safety_prompt_on` | `bool` | Boolean indicating whether to enable safety prompts |
 | `random_models_on` | `bool` | Boolean indicating whether to randomly select models |
 | `mcp_config` | `Optional[MCPConnection]` | MCPConnection object containing MCP configuration |
-| `mcp_configs` | `Optional[MultipleMCPConnections]` | MultipleMCPConnections object for managing multiple MCP server connections |
 | `top_p` | `Optional[float]` | Float representing the top-p sampling parameter |
 | `llm_base_url` | `Optional[str]` | String representing the base URL for the LLM API |
 | `llm_api_key` | `Optional[str]` | String representing the API key for the LLM |
@@ -144,6 +128,7 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `publish_to_marketplace` | `bool` | Boolean indicating whether to publish the agent's prompt to the Swarms marketplace. |
 | `marketplace_prompt_id` | `Optional[str]` | Unique UUID identifier of a prompt from the Swarms marketplace. When provided, the agent will automatically fetch and load the prompt as the system prompt. |
 | `selected_tools` | `Optional[Union[str, List[str]]]` | Controls which tools are available in autonomous mode (`max_loops="auto"`). Use `"all"` for all tools or provide a list of specific tool names. Available tools: `"create_plan"`, `"think"`, `"subtask_done"`, `"complete_task"`, `"respond_to_user"`, `"create_file"`, `"update_file"`, `"read_file"`, `"list_directory"`, `"delete_file"`, `"run_bash"`, `"create_sub_agent"`, `"assign_task"`. |
+| `context_compression` | `bool` | Enables automatic context compression. When `True` (default) the agent instantiates a `ContextCompressor` that, at the top of every loop iteration, summarizes and collapses `MEMORY.md` once token usage crosses 90% of `context_length`. Works for both `max_loops="auto"` and integer `max_loops` runs. Set to `False` to disable. See [Agent Memory](../agents/agent_memory.md) for the full flow. |
 
 ## `Agent` Methods
 
@@ -165,12 +150,8 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `continuous_run_with_answer(task, img=None, correct_answer=None, max_attempts=10)` | Runs the agent until the correct answer is provided. | `task` (str): The task to perform.<br>`img` (str, optional): Image to process.<br>`correct_answer` (str): Expected answer.<br>`max_attempts` (int): Maximum attempts. | `response = agent.continuous_run_with_answer("Math problem", correct_answer="42")` |
 | `save()` | Saves the agent's history to a file. | None | `agent.save()` |
 | `load(file_path)` | Loads the agent's history from a file. | `file_path` (str): Path to the file. | `agent.load("agent_history.json")` |
-| `graceful_shutdown()` | Gracefully shuts down the system, saving the state. | None | `agent.graceful_shutdown()` |
 | `analyze_feedback()` | Analyzes the feedback for issues. | None | `agent.analyze_feedback()` |
 | `undo_last()` | Undoes the last response and returns the previous state. | None | `previous_state, message = agent.undo_last()` |
-| `add_response_filter(filter_word)` | Adds a response filter to filter out certain words. | `filter_word` (str): Word to filter. | `agent.add_response_filter("sensitive")` |
-| `apply_response_filters(response)` | Applies response filters to the given response. | `response` (str): Response to filter. | `filtered_response = agent.apply_response_filters(response)` |
-| `filtered_run(task)` | Runs a task with response filtering applied. | `task` (str): Task to run. | `response = agent.filtered_run("Generate a report")` |
 | `save_to_yaml(file_path)` | Saves the agent to a YAML file. | `file_path` (str): Path to save the YAML file. | `agent.save_to_yaml("agent_config.yaml")` |
 | `get_llm_parameters()` | Returns the parameters of the language model. | None | `llm_params = agent.get_llm_parameters()` |
 | `save_state(file_path, *args, **kwargs)` | Saves the current state of the agent to a JSON file. | `file_path` (str): Path to save the JSON file.<br>`*args`, `**kwargs`: Additional arguments. | `agent.save_state("agent_state.json")` |
@@ -566,11 +547,6 @@ agent.send_agent_message(agent_name="agent_name", message="message")
 
 # Ingest multiple documents into the agent's knowledge base
 agent.ingest_docs("your_pdf_path.pdf", "your_csv_path.csv")
-
-# Run the agent with a filtered system prompt
-agent.filtered_run(
-    "How can I establish a ROTH IRA to buy stocks and get a tax break? What are the criteria?"
-)
 
 # Run the agent with multiple system prompts
 agent.bulk_run(
@@ -1169,17 +1145,6 @@ previous_state, message = agent.undo_last()
 print(message)
 ```
 
-#### Response Filtering
-
-Filter specific words or phrases from agent responses. By adding response filters, you can automatically replace or remove sensitive content, profanity, or unwanted terms from the agent's output. Useful for content moderation, compliance, or customizing output formatting.
-
-```python
-# Response filtering
-agent.add_response_filter("report")
-response = agent.filtered_run("Generate a report on finance")
-print(response)
-```
-
 #### Saving and Loading State
 
 Save and restore agent state to persist conversations and configurations across sessions. The agent can save its current state to a JSON file and load it later to continue from where it left off. Essential for long-running tasks, debugging, or maintaining conversation continuity.
@@ -1314,9 +1279,7 @@ agent = Agent(
     
     # Memory and Context Management
     context_length=100000,
-    memory_chunk_size=3000,
     dynamic_context_window=True,
-    rag_every_loop=True,
     
     # Advanced Features
     auto_generate_prompt=True,
@@ -1329,12 +1292,8 @@ agent = Agent(
     tool_retry_attempts=5,
     tool_call_summary=True,
     show_tool_execution_output=True,
-    function_calling_format_type="OpenAI",
     
-    # Artifacts and Output
-    artifacts_on=True,
-    artifacts_output_path="./outputs",
-    artifacts_file_extension=".md",
+    # Output
     output_type="json",
     
     # LLM Configuration
@@ -1348,7 +1307,6 @@ agent = Agent(
     mcp_config=None,
     
     # Performance Settings
-    timeout=300,
     retry_attempts=3,
     retry_interval=2,
     
@@ -1427,9 +1385,6 @@ image_agent = Agent(
     system_prompt="You are an expert at analyzing images and extracting insights.",
     multi_modal=True,
     summarize_multiple_images=True,
-    artifacts_on=True,
-    artifacts_output_path="./image_analysis",
-    artifacts_file_extension=".txt"
 )
 
 # Process multiple images with summarization
@@ -1553,24 +1508,18 @@ response = agent.run("Tell me a story")
 
 ### Multiple MCP Connections
 
-Connect to multiple MCP servers simultaneously to access tools and resources from different sources. The agent can use tools from all connected servers, enabling integration with diverse external services and APIs through a unified interface.
+Connect to multiple MCP servers simultaneously by passing a list of URLs via `mcp_urls`. The agent can use tools from all connected servers, enabling integration with diverse external services and APIs through a unified interface.
 
 ```python
 from swarms import Agent
-from swarms.schemas.mcp_schemas import MultipleMCPConnections
-
-# Configure multiple MCP servers
-mcp_configs = MultipleMCPConnections(
-    connections=[
-        {"server_path": "http://localhost:8000", "server_name": "server1"},
-        {"server_path": "http://localhost:8001", "server_name": "server2"}
-    ]
-)
 
 agent = Agent(
     model_name="gpt-5.4",
-    mcp_configs=mcp_configs,
-    max_loops=1
+    mcp_urls=[
+        "http://localhost:8000",
+        "http://localhost:8001",
+    ],
+    max_loops=1,
 )
 
 response = agent.run("Use tools from both MCP servers")
@@ -1663,7 +1612,6 @@ The `run` method now supports several new parameters for advanced functionality:
 | `mcp_url`      | Connect to a single MCP server                      |
 | `mcp_urls`     | Connect to multiple MCP servers                     |
 | `mcp_config`   | Advanced MCP configuration options for a single server |
-| `mcp_configs`  | MultipleMCPConnections object for managing multiple MCP server connections |
 
 ### Advanced Reasoning and Safety
 
@@ -1689,18 +1637,9 @@ The `run` method now supports several new parameters for advanced functionality:
 
 | Parameter                | Description                                                              |
 |--------------------------|--------------------------------------------------------------------------|
-| `rag_every_loop`         | Query RAG database on every loop iteration                              |
-| `memory_chunk_size`      | Control memory chunk size for long-term memory                          |
 | `auto_generate_prompt`   | Automatically generate system prompts based on tasks                    |
 | `plan_enabled`           | Enable planning functionality for complex tasks                          |
-
-### Artifacts and Output Management
-
-| Parameter                | Description                                                              |
-|--------------------------|--------------------------------------------------------------------------|
-| `artifacts_on`           | Enable saving artifacts from agent execution                             |
-| `artifacts_output_path`  | Specify where to save artifacts                                          |
-| `artifacts_file_extension` | Control artifact file format                                            |
+| `context_compression`    | Auto-summarize MEMORY.md once token usage crosses 90% of context_length |
 
 ### Enhanced Tool Management
 
@@ -1709,7 +1648,6 @@ The `run` method now supports several new parameters for advanced functionality:
 | `tools_list_dictionary`  | Provide tool schemas in dictionary format                               |
 | `tool_call_summary`      | Enable automatic summarization of tool calls                            |
 | `show_tool_execution_output` | Control visibility of tool execution details                        |
-| `function_calling_format_type` | Specify function calling format (OpenAI, etc.)                     |
 
 ### Advanced LLM Configuration
 
@@ -1761,8 +1699,6 @@ The `run` method now supports several new parameters for advanced functionality:
 | `dynamic_context_window` & `tokens_checks`              | Optimize token usage with dynamic_context_window and tokens_checks methods.                      |
 | `concurrent` & `async` methods                          | Use concurrent and async methods for performance-critical applications.                          |
 | `analyze_feedback`                                      | Regularly review and analyze feedback using the analyze_feedback method.                         |
-| `artifacts_on`                                          | Use artifacts_on to save important outputs from agent execution.                                 |
-| `rag_every_loop`                                        | Enable rag_every_loop when continuous context from long-term memory is needed.                   |
 | `run_batched`                                           | Leverage run_batched for efficient processing of multiple related tasks.                         |
 | `mcp_url` or `mcp_urls`                                 | Use mcp_url or mcp_urls to extend agent capabilities with external tools.                        |
 | `react_on`                                              | Enable react_on for complex reasoning tasks requiring step-by-step analysis.                     |
