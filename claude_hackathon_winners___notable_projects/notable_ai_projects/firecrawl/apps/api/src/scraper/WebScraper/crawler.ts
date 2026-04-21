@@ -195,6 +195,7 @@ export class WebCrawler {
         allowBackwardCrawling: this.allowBackwardCrawling,
         ignoreRobotsTxt: this.ignoreRobotsTxt || skipRobots,
         robotsTxt: this.robotsTxt,
+        robotsUserAgent: this.robotsUserAgent,
         allowExternalContentLinks: this.allowExternalContentLinks,
         allowSubdomains: this.allowSubdomains,
       });
@@ -667,6 +668,7 @@ export class WebCrawler {
       excludes: this.excludes,
       ignoreRobotsTxt: this.ignoreRobotsTxt,
       robotsTxt: this.robotsTxt,
+      robotsUserAgent: this.robotsUserAgent,
       allowExternalContentLinks: this.allowExternalContentLinks,
       allowSubdomains: this.allowSubdomains,
     });
