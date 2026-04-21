@@ -1,4 +1,12 @@
-import { type FormatOption, type JsonFormat, type ScrapeOptions, type ScreenshotFormat, type ChangeTrackingFormat } from "../types";
+import {
+  type ChangeTrackingFormat,
+  type FormatOption,
+  type JsonFormat,
+  type ParseFormatOption,
+  type ParseOptions,
+  type ScrapeOptions,
+  type ScreenshotFormat,
+} from "../types";
 import { isZodSchema, zodSchemaToJsonSchema, looksLikeZodShape } from "../../utils/zodSchemaToJson";
 
 export function ensureValidFormats(formats?: FormatOption[]): void {
@@ -60,5 +68,84 @@ export function ensureValidScrapeOptions(options?: ScrapeOptions): void {
     throw new Error("waitFor must be non-negative");
   }
   ensureValidFormats(options.formats);
+}
+
+export function ensureValidParseFormats(formats?: ParseFormatOption[]): void {
+  if (!formats) return;
+
+  for (const fmt of formats) {
+    if (typeof fmt === "string") {
+      if (fmt === "json") {
+        throw new Error("json format must be an object with { type: 'json', prompt, schema }");
+      }
+      if (fmt === "screenshot") {
+        throw new Error("parse does not support screenshot format");
+      }
+      if (fmt === "changeTracking") {
+        throw new Error("parse does not support changeTracking format");
+      }
+      if (fmt === "branding") {
+        throw new Error("parse does not support branding format");
+      }
+      continue;
+    }
+
+    const type = (fmt as any).type;
+    if (type === "changeTracking") {
+      throw new Error("parse does not support changeTracking format");
+    }
+    if (type === "screenshot") {
+      throw new Error("parse does not support screenshot format");
+    }
+    if (type === "branding") {
+      throw new Error("parse does not support branding format");
+    }
+
+    if ((fmt as JsonFormat).type === "json") {
+      const j = fmt as JsonFormat;
+      if (!j.prompt && !j.schema) {
+        throw new Error("json format requires either 'prompt' or 'schema' (or both)");
+      }
+      const maybeSchema = j.schema;
+      if (isZodSchema(maybeSchema)) {
+        (j as any).schema = zodSchemaToJsonSchema(maybeSchema);
+      } else if (looksLikeZodShape(maybeSchema)) {
+        throw new Error(
+          "json format schema appears to be a Zod schema's .shape property. " +
+          "Pass the Zod schema directly (e.g., `schema: MySchema`) instead of `schema: MySchema.shape`. " +
+          "The SDK will automatically convert Zod schemas to JSON Schema format."
+        );
+      }
+    }
+  }
+}
+
+export function ensureValidParseOptions(options?: ParseOptions): void {
+  if (!options) return;
+  if (options.timeout != null && options.timeout <= 0) {
+    throw new Error("timeout must be positive");
+  }
+
+  const raw = options as Record<string, unknown>;
+  if (raw.waitFor !== undefined) {
+    throw new Error("parse does not support waitFor");
+  }
+  if (raw.actions !== undefined) {
+    throw new Error("parse does not support actions");
+  }
+  if (raw.location !== undefined) {
+    throw new Error("parse does not support location overrides");
+  }
+  if (raw.mobile !== undefined) {
+    throw new Error("parse does not support mobile rendering");
+  }
+  if (raw.maxAge !== undefined || raw.minAge !== undefined || raw.storeInCache !== undefined) {
+    throw new Error("parse does not support cache/index options");
+  }
+  if (raw.proxy !== undefined && raw.proxy !== "basic" && raw.proxy !== "auto") {
+    throw new Error("parse only supports proxy values of 'basic' or 'auto'");
+  }
+
+  ensureValidParseFormats(options.formats);
 }
 

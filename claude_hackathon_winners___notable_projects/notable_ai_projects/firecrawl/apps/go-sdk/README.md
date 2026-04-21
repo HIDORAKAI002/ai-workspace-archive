@@ -108,6 +108,27 @@ resp, err := client.Interact(ctx, scrapeJobID, "document.title", &firecrawl.Inte
 deleteResp, err := client.StopInteractiveBrowser(ctx, scrapeJobID)
 ```
 
+### Parse
+
+Upload a local file (`html`, `pdf`, `docx`, etc.) via multipart form data and
+parse it synchronously. Parse options intentionally exclude browser-only
+features such as change tracking, screenshot, branding, actions, waitFor,
+location, and mobile. The `Proxy` option only accepts `"auto"` or `"basic"`.
+
+```go
+// From disk
+file, err := firecrawl.NewParseFileFromPath("./document.pdf")
+
+// Or from memory
+file := firecrawl.NewParseFileFromBytes("upload.html", []byte("<html>hi</html>"))
+file.ContentType = "text/html"
+
+doc, err := client.Parse(ctx, file, &firecrawl.ParseOptions{
+	Formats: []string{"markdown"},
+})
+fmt.Println(doc.Markdown)
+```
+
 ### Crawl
 
 Crawl a website and get content from multiple pages.
@@ -350,7 +371,7 @@ The workflow is idempotent: if the tag already exists, it is a no-op.
 ### Consuming a specific version
 
 ```bash
-go get github.com/firecrawl/firecrawl/apps/go-sdk@v1.0.0
+go get github.com/firecrawl/firecrawl/apps/go-sdk@v1.1.0
 ```
 
 Users pin via the semantic version suffix; they never reference the

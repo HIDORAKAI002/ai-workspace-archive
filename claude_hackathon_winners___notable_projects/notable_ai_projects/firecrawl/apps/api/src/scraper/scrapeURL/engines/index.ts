@@ -450,6 +450,10 @@ const engineOptions: {
 };
 
 export function shouldUseIndex(meta: Meta) {
+  if (meta.internalOptions.isParse) {
+    return false;
+  }
+
   // Skip index if screenshot format has custom viewport or quality settings
   const screenshotFormat = hasFormatOfType(meta.options.formats, "screenshot");
   const hasCustomScreenshotSettings =
@@ -500,7 +504,12 @@ export async function buildFallbackList(meta: Meta): Promise<
       : []),
   ];
 
-  if (meta.internalOptions.agentIndexOnly) {
+  if (meta.options.lockdown) {
+    const indexEngines: Engine[] = useIndex ? ["index", "index;documents"] : [];
+    _engines.length = 0;
+    _engines.push(...indexEngines);
+    meta.internalOptions.forceEngine = indexEngines;
+  } else if (meta.internalOptions.agentIndexOnly) {
     const indexEngines: Engine[] = useIndex ? ["index", "index;documents"] : [];
     _engines.length = 0;
     _engines.push(...indexEngines);

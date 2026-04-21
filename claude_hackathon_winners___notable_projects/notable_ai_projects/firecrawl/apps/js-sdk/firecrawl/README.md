@@ -46,6 +46,26 @@ const url = 'https://example.com';
 const scrapedData = await app.scrape(url);
 ```
 
+### Parsing uploaded files
+
+Use `parse` to upload a file (`html`, `pdf`, `docx`, etc.) as multipart form data and process it through the same parsing pipeline.
+Parse does not support browser-only formats/options like `changeTracking`, `screenshot`, `branding`, `actions`, `waitFor`, `location`, or `mobile`.
+
+```js
+const parsed = await app.parse(
+  {
+    data: '<html><body><h1>Hello parse</h1></body></html>',
+    filename: 'upload.html',
+    contentType: 'text/html',
+  },
+  {
+    formats: ['markdown'],
+  }
+);
+
+console.log(parsed.markdown);
+```
+
 ### Crawling a Website
 
 To crawl a website with error handling, use the `crawl` method. It takes the starting URL and optional parameters, including limits and per‑page `scrapeOptions`.

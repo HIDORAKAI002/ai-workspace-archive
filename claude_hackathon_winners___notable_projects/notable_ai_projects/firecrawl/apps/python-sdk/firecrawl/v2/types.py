@@ -563,6 +563,11 @@ class ScrapeOptions(BaseModel):
         )
 
 
+# Parse accepts a strict subset of scrape options; unsupported fields are
+# rejected by parse-specific request preparation.
+ParseOptions = ScrapeOptions
+
+
 class ScrapeRequest(BaseModel):
     """Request for scraping a single URL."""
 

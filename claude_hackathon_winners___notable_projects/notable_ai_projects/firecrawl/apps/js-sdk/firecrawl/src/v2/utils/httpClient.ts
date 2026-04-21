@@ -25,7 +25,6 @@ export class HttpClient {
       baseURL: this.apiUrl,
       timeout: options.timeoutMs ?? 300000,
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
       },
       transitional: { clarifyTimeoutError: true },
@@ -50,16 +49,35 @@ export class HttpClient {
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const cfg: AxiosRequestConfig = { ...config };
-        // For POST/PUT, ensure origin is present in JSON body too
-        if (cfg.method && ["post", "put", "patch"].includes(cfg.method.toLowerCase())) {
+        const isFormDataBody =
+          typeof FormData !== "undefined" && cfg.data instanceof FormData;
+        const isPlainObjectBody =
+          !isFormDataBody &&
+          cfg.data != null &&
+          typeof cfg.data === "object" &&
+          !Array.isArray(cfg.data);
+
+        // For JSON POST/PUT/PATCH, ensure origin is present in body
+        if (
+          isPlainObjectBody &&
+          cfg.method &&
+          ["post", "put", "patch"].includes(cfg.method.toLowerCase())
+        ) {
           const data = (cfg.data ?? {}) as Record<string, unknown>;
           cfg.data = { ...data, origin: typeof data.origin === "string" && data.origin.includes("mcp") ? data.origin : `js-sdk@${version}` };
-          
+
           // If timeout is specified in the body, use it to override the request timeout
           if (typeof data.timeout === "number") {
             cfg.timeout = data.timeout + 5000;
           }
         }
+
+        if (isFormDataBody) {
+          cfg.headers = { ...(cfg.headers || {}) };
+          delete (cfg.headers as Record<string, unknown>)["Content-Type"];
+          delete (cfg.headers as Record<string, unknown>)["content-type"];
+        }
+
         const res = await this.instance.request<T>(cfg);
         if (res.status === 502 && attempt < this.maxRetries - 1) {
           await this.sleep(this.backoffFactor * Math.pow(2, attempt));
@@ -85,6 +103,21 @@ export class HttpClient {
 
   post<T = any>(endpoint: string, body: Record<string, unknown>, headers?: Record<string, string>) {
     return this.request<T>({ method: "post", url: endpoint, data: body, headers });
+  }
+
+  postMultipart<T = any>(
+    endpoint: string,
+    formData: FormData,
+    headers?: Record<string, string>,
+    timeoutMs?: number,
+  ) {
+    return this.request<T>({
+      method: "post",
+      url: endpoint,
+      data: formData,
+      headers,
+      timeout: timeoutMs,
+    });
   }
 
   get<T = any>(endpoint: string, headers?: Record<string, string>) {

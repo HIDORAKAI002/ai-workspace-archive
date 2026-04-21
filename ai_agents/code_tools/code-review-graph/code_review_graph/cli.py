@@ -232,6 +232,7 @@ def _handle_init(args: argparse.Namespace) -> None:
         install_cursor_hooks,
         install_git_hook,
         install_hooks,
+        install_opencode_plugin,
         install_qoder_skills,
     )
 
@@ -281,6 +282,14 @@ def _handle_init(args: argparse.Namespace) -> None:
                 print(f"Installed Cursor hooks in {hooks_path}")
             except Exception as exc:
                 logger.warning("Could not install Cursor hooks: %s", exc)
+
+    # OpenCode plugin (user-level, gated by same detect() as MCP config)
+    if not skip_hooks and target in ("all", "opencode") and PLATFORMS["opencode"]["detect"]():
+        try:
+            plugin_path = install_opencode_plugin()
+            print(f"Installed OpenCode plugin in {plugin_path}")
+        except Exception as exc:
+            logger.warning("Could not install OpenCode plugin: %s", exc)
 
     print()
     print("Next steps:")

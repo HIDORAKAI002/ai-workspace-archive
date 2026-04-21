@@ -149,6 +149,16 @@ impl Client {
         headers
     }
 
+    /// Prepares headers for multipart requests (without a fixed content type).
+    pub(crate) fn prepare_multipart_headers(
+        &self,
+        idempotency_key: Option<&String>,
+    ) -> reqwest::header::HeaderMap {
+        let mut headers = self.prepare_headers(idempotency_key);
+        headers.remove(reqwest::header::CONTENT_TYPE);
+        headers
+    }
+
     /// Handles API responses, parsing JSON and handling errors.
     pub(crate) async fn handle_response<T: DeserializeOwned>(
         &self,

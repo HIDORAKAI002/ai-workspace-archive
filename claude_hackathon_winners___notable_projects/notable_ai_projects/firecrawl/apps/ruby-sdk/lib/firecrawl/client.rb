@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 module Firecrawl
   # Client for the Firecrawl v2 API.
   #
@@ -104,6 +106,34 @@ module Firecrawl
       raise ArgumentError, "Job ID is required" if job_id.nil?
 
       @http.delete("/v2/scrape/#{job_id}/interact")
+    end
+
+    # ================================================================
+    # PARSE
+    # ================================================================
+
+    # Parses an uploaded file and returns the extracted document.
+    #
+    # @param file [Models::ParseFile] file payload to upload
+    # @param options [Models::ParseOptions, nil] parse configuration
+    # @return [Models::Document]
+    def parse(file, options = nil)
+      raise ArgumentError, "File is required" if file.nil?
+      unless file.is_a?(Models::ParseFile)
+        raise ArgumentError, "File must be a Firecrawl::Models::ParseFile"
+      end
+
+      options_hash = options.nil? ? {} : options.to_h
+      raw = @http.post_multipart(
+        "/v2/parse",
+        fields: { "options" => JSON.generate(options_hash) },
+        file_field: "file",
+        filename: file.filename,
+        content: file.content,
+        content_type: file.content_type,
+      )
+      data = raw["data"] || raw
+      Models::Document.new(data)
     end
 
     # ================================================================

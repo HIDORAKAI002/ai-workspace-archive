@@ -2,6 +2,7 @@
 
 require "net/http"
 require "json"
+require "securerandom"
 require "uri"
 
 module Firecrawl
@@ -58,9 +59,53 @@ module Firecrawl
       execute_with_retry(uri, request)
     end
 
+    # Sends a POST request with a multipart/form-data body.
+    #
+    # @param path [String] API path
+    # @param fields [Hash{String=>String}] additional form fields to include
+    # @param file_field [String] form field name for the file part (e.g. "file")
+    # @param filename [String] filename to send with the file part
+    # @param content [String] raw bytes for the file part
+    # @param content_type [String, nil] optional MIME type for the file part
+    def post_multipart(path, fields:, file_field:, filename:, content:, content_type: nil)
+      uri = URI("#{@base_url}#{path}")
+      boundary = "----FirecrawlBoundary#{SecureRandom.hex(16)}"
+      body = build_multipart_body(boundary, fields, file_field, filename, content, content_type)
+
+      builder = lambda do
+        request = Net::HTTP::Post.new(uri)
+        request["Authorization"] = "Bearer #{@api_key}"
+        request["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+        request.body = body
+        request
+      end
+
+      execute_with_retry(uri, builder.call, request_builder: builder)
+    end
+
     private
 
-    def execute_with_retry(uri, request)
+    def build_multipart_body(boundary, fields, file_field, filename, content, content_type)
+      parts = +""
+      fields.each do |name, value|
+        parts << "--#{boundary}\r\n"
+        parts << %(Content-Disposition: form-data; name="#{name}"\r\n\r\n)
+        parts << value.to_s
+        parts << "\r\n"
+      end
+
+      parts << "--#{boundary}\r\n"
+      safe_file_field = file_field.to_s.gsub(/[\r\n"]/, "_")
+      safe_filename = filename.to_s.gsub(/[\r\n"]/, "_")
+      parts << %(Content-Disposition: form-data; name="#{safe_file_field}"; filename="#{safe_filename}"\r\n)
+      parts << "Content-Type: #{content_type || "application/octet-stream"}\r\n\r\n"
+      parts.force_encoding(Encoding::ASCII_8BIT)
+      parts << content.to_s.dup.force_encoding(Encoding::ASCII_8BIT)
+      parts << "\r\n--#{boundary}--\r\n"
+      parts
+    end
+
+    def execute_with_retry(uri, request, request_builder: nil)
       attempt = 0
       loop do
         response = perform_request(uri, request)
@@ -89,6 +134,7 @@ module Firecrawl
         if attempt < @max_retries
           attempt += 1
           sleep_with_backoff(attempt)
+          request = request_builder.call if request_builder
           next
         end
 
@@ -98,6 +144,7 @@ module Firecrawl
         if attempt < @max_retries
           attempt += 1
           sleep_with_backoff(attempt)
+          request = request_builder.call if request_builder
           retry
         end
         raise FirecrawlError.new("Request failed: #{e.message}")

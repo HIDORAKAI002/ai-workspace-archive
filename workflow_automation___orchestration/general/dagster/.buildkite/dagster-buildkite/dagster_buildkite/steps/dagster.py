@@ -79,7 +79,7 @@ def build_repo_wide_ruff_steps(ctx: BuildkiteContext) -> list[CommandStepConfigu
 
 def build_repo_wide_prettier_steps(ctx: BuildkiteContext) -> list[CommandStepConfiguration]:
     return [
-        CommandStepBuilder(":prettier: prettier", retry_automatically=False)
+        CommandStepBuilder(":prettier: prettier", key="prettier", retry_automatically=False)
         .on_test_image()
         .run(
             f"make -C {oss_path('.')} install_prettier",

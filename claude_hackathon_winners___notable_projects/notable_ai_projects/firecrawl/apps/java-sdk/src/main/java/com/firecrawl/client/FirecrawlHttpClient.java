@@ -87,6 +87,48 @@ class FirecrawlHttpClient {
     }
 
     /**
+     * Sends a POST multipart/form-data request.
+     */
+    <T> T postMultipart(
+            String path,
+            Map<String, String> fields,
+            String fileFieldName,
+            byte[] fileContent,
+            String filename,
+            String contentType,
+            Class<T> responseType
+    ) {
+        String url = baseUrl + path;
+        MultipartBody.Builder multipart = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+
+        for (Map.Entry<String, String> entry : fields.entrySet()) {
+            multipart.addFormDataPart(entry.getKey(), entry.getValue());
+        }
+
+        MediaType mediaType;
+        if (contentType != null && !contentType.isBlank()) {
+            try {
+                mediaType = MediaType.get(contentType);
+            } catch (IllegalArgumentException ignored) {
+                mediaType = MediaType.get("application/octet-stream");
+            }
+        } else {
+            mediaType = MediaType.get("application/octet-stream");
+        }
+        RequestBody fileBody = RequestBody.create(fileContent, mediaType);
+        multipart.addFormDataPart(fileFieldName, filename, fileBody);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer " + apiKey)
+                .post(multipart.build())
+                .build();
+
+        return executeWithRetry(request, responseType);
+    }
+
+    /**
      * Sends a GET request.
      */
     <T> T get(String path, Class<T> responseType) {

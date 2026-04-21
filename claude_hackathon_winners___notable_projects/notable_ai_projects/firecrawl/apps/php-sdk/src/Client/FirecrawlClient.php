@@ -24,6 +24,8 @@ use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\Document;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\MapOptions;
+use Firecrawl\Models\ParseFile;
+use Firecrawl\Models\ParseOptions;
 use Firecrawl\Models\ScrapeOptions;
 use Firecrawl\Models\SearchData;
 use Firecrawl\Models\SearchOptions;
@@ -146,6 +148,28 @@ final class FirecrawlClient
         return BrowserDeleteResponse::fromArray(
             $this->http->delete("/v2/scrape/{$jobId}/interact"),
         );
+    }
+
+    // ================================================================
+    // PARSE
+    // ================================================================
+
+    /**
+     * Parse an uploaded file and return the extracted document.
+     */
+    public function parse(ParseFile $file, ?ParseOptions $options = null): Document
+    {
+        $optionsArray = $options?->toArray() ?? [];
+        $response = $this->http->postMultipart(
+            '/v2/parse',
+            ['options' => json_encode($optionsArray, JSON_THROW_ON_ERROR)],
+            'file',
+            $file->getFilename(),
+            $file->getContent(),
+            $file->getContentType(),
+        );
+
+        return Document::fromArray($response['data'] ?? $response);
     }
 
     // ================================================================
