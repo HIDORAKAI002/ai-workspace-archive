@@ -185,7 +185,7 @@ async function takeSnapshot(browserId: string): Promise<string> {
 // Main agent — tool-calling loop via AI SDK
 // ---------------------------------------------------------------------------
 
-export interface BrowserAgentTraceContext {
+interface BrowserAgentTraceContext {
   sessionId: string;
   scrapeId: string;
   teamId: string;

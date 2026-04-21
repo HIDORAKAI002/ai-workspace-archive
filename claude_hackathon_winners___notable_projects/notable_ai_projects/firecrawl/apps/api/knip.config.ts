@@ -3,7 +3,12 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   workspaces: {
     ".": {
-      entry: ["src/services/worker/**/*.ts", "src/services/**/*-worker.ts"],
+      entry: [
+        "src/services/worker/**/*.ts",
+        "src/services/**/*-worker.ts",
+        "src/**/*.test.ts",
+        "src/__tests__/**/*.ts",
+      ],
       project: ["src/**/*.ts"],
     },
   },
@@ -15,7 +20,7 @@ const config: KnipConfig = {
     "src/services/billing/issue_credits.ts",
     "src/services/billing/stripe.ts",
   ],
-  ignoreDependencies: ["openai", "undici-types", "stripe"],
+  ignoreDependencies: ["undici-types", "stripe"],
 };
 
 export default config;

@@ -7,6 +7,7 @@ import time
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from typing import (
     Any,
     Callable,
@@ -37,6 +38,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 from swarms.agents.ape_agent import auto_generate_prompt
+from swarms.agents.context_compressor import ContextCompressor
+from swarms.utils.workspace_utils import get_workspace_dir
 from swarms.artifacts.main_artifact import Artifact
 from swarms.prompts.agent_system_prompts import AGENT_SYSTEM_PROMPT_3
 from swarms.prompts.autonomous_agent_prompt import (
@@ -49,7 +52,6 @@ from swarms.prompts.multi_modal_autonomous_instruction_prompt import (
 )
 from swarms.prompts.react_base_prompt import REACT_SYS_PROMPT
 from swarms.prompts.safety_prompt import SAFETY_PROMPT
-from swarms.prompts.tools import tool_sop_prompt
 from swarms.schemas.agent_mcp_errors import (
     AgentMCPConnectionError,
     AgentMCPToolError,
@@ -57,10 +59,7 @@ from swarms.schemas.agent_mcp_errors import (
 from swarms.schemas.base_schemas import (
     AgentChatCompletionResponse,
 )
-from swarms.schemas.mcp_schemas import (
-    MCPConnection,
-    MultipleMCPConnections,
-)
+from swarms.schemas.mcp_schemas import MCPConnection
 from swarms.structs.agent_roles import agent_roles
 from swarms.structs.autonomous_loop_utils import (
     MAX_PLANNING_ATTEMPTS,
@@ -108,7 +107,6 @@ from swarms.tools.mcp_client_tools import (
 from swarms.tools.py_func_to_openai_func_str import (
     convert_multiple_functions_to_openai_function_schema,
 )
-from swarms.utils.dynamic_context_window import dynamic_auto_chunking
 from swarms.utils.fetch_prompts_marketplace import (
     fetch_prompts_from_marketplace,
 )
@@ -128,7 +126,6 @@ from swarms.utils.output_types import OutputType
 from swarms.utils.swarms_marketplace_utils import (
     add_prompt_to_marketplace,
 )
-from swarms.utils.workspace_utils import get_workspace_dir
 
 
 def stop_when_repeats(response: str) -> bool:
@@ -213,7 +210,6 @@ class Agent:
         loop_interval (int): The loop interval
         retry_attempts (int): The number of retry attempts
         retry_interval (int): The retry interval
-        return_history (bool): Return the history
         stopping_token (str): The stopping token
         dynamic_loops (bool): Enable dynamic loops
         interactive (bool): Enable interactive mode
@@ -242,30 +238,17 @@ class Agent:
         verbose (bool): Enable verbose mode
         stopping_func (Callable): The stopping function
         custom_exit_command (str): The custom exit command
-        custom_tools_prompt (Callable): The custom tools prompt
         tool_schema (ToolUsageType): The tool schema
         output_type (agent_output_type): The output type. Supported: 'str', 'string', 'list', 'json', 'dict', 'yaml', 'xml'.
-        function_calling_type (str): The function calling type
         output_cleaner (Callable): The output cleaner function
-        function_calling_format_type (str): The function calling format type
         list_base_models (List[BaseModel]): The list of base models
-        metadata_output_type (str): The metadata output type
-        state_save_file_type (str): The state save file type
-        tool_choice (str): The tool choice
         rules (str): The rules
         planning_prompt (str): The planning prompt
-        custom_planning_prompt (str): The custom planning prompt
-        memory_chunk_size (int): The memory chunk size
-        tool_system_prompt (str): The tool system prompt
         max_tokens (int): The maximum number of tokens
         temperature (float): The temperature
         workspace_dir (str, optional): Ignored - workspace directory is always read from
             the 'workspace_dir' environment variable. Defaults to 'agent_workspace' if
             the environment variable is not set.
-        timeout (int): The timeout
-        artifacts_on (bool): Enable artifacts
-        artifacts_output_path (str): The artifacts output path
-        artifacts_file_extension (str): The artifacts file extension (.pdf, .md, .txt, )
         marketplace_prompt_id (str): The unique UUID identifier of a prompt from the Swarms marketplace.
             When provided, the agent will automatically fetch and load the prompt from the marketplace
             as the system prompt. This enables one-line prompt loading from the Swarms marketplace.
@@ -291,15 +274,11 @@ class Agent:
         validate_response: Validate the response
         print_history_and_memory: Print the history and memory
         step: Step through the agent
-        graceful_shutdown: Gracefully shutdown the agent
         run_with_timeout: Run the agent with a timeout
         load_skills_metadata: Load Agent Skills metadata from directory
         load_full_skill: Load complete skill content (Tier 2 loading)
         analyze_feedback: Analyze the feedback
         undo_last: Undo the last response
-        add_response_filter: Add a response filter
-        apply_response_filters: Apply the response filters
-        filtered_run: Run the agent with filtered responses
         interactive_run: Run the agent in interactive mode
         streamed_generation: Stream the generation of the response
         save_state: Save the state
@@ -362,7 +341,6 @@ class Agent:
         loop_interval: Optional[int] = 0,
         retry_attempts: Optional[int] = 3,
         retry_interval: Optional[int] = 1,
-        return_history: Optional[bool] = False,
         stopping_token: Optional[str] = None,
         dynamic_loops: Optional[bool] = False,
         interactive: Optional[bool] = False,
@@ -390,31 +368,17 @@ class Agent:
         stopping_func: Optional[Callable] = None,
         custom_exit_command: Optional[str] = "exit",
         # [Tools]
-        custom_tools_prompt: Optional[Callable] = None,
         tool_schema: ToolUsageType = None,
         output_type: OutputType = "str-all-except-first",
-        function_calling_type: str = "json",
         output_cleaner: Optional[Callable] = None,
-        function_calling_format_type: Optional[str] = "OpenAI",
         list_base_models: Optional[List[BaseModel]] = None,
-        metadata_output_type: str = "json",
-        state_save_file_type: str = "json",
-        tool_choice: str = "auto",
         rules: str = None,  # type: ignore
         planning_prompt: Optional[str] = None,
-        custom_planning_prompt: str = None,
-        memory_chunk_size: int = 2000,
-        tool_system_prompt: str = tool_sop_prompt(),
         max_tokens: int = 4096,
         temperature: float = 0.5,
-        timeout: Optional[int] = None,
         tags: Optional[List[str]] = None,
         auto_generate_prompt: bool = False,
-        rag_every_loop: bool = False,
         plan_enabled: bool = False,
-        artifacts_on: bool = False,
-        artifacts_output_path: str = None,
-        artifacts_file_extension: str = None,
         model_name: str = "gpt-4.1",
         llm_args: dict = None,
         load_state_path: str = None,
@@ -427,7 +391,6 @@ class Agent:
         safety_prompt_on: bool = False,
         random_models_on: bool = False,
         mcp_config: Optional[MCPConnection] = None,
-        mcp_configs: Optional[MultipleMCPConnections] = None,
         top_p: Optional[float] = None,
         llm_base_url: Optional[str] = None,
         llm_api_key: Optional[str] = None,
@@ -448,7 +411,7 @@ class Agent:
         marketplace_prompt_id: Optional[str] = None,
         skills_dir: Optional[str] = None,
         selected_tools: Optional[Union[str, List[str]]] = "all",
-        max_subagent_depth: int = 3,
+        context_compression: bool = True,
         *args,
         **kwargs,
     ):
@@ -468,7 +431,6 @@ class Agent:
         self.interactive = interactive
         self.dashboard = dashboard
         self.saved_state_path = saved_state_path
-        self.return_history = return_history
         self.dynamic_temperature_enabled = dynamic_temperature_enabled
         self.dynamic_loops = dynamic_loops
         self.user_name = user_name
@@ -484,7 +446,6 @@ class Agent:
             f"{generate_api_key(prefix='agent-')}_state.json"
         )
         self.autosave = autosave
-        self.response_filters = []
         self.multi_modal = multi_modal
         self.tokenizer = tokenizer
         self.long_term_memory = long_term_memory
@@ -497,37 +458,21 @@ class Agent:
         self.custom_exit_command = custom_exit_command
         self.tool_schema = tool_schema
         self.output_type = output_type
-        self.function_calling_type = function_calling_type
         self.output_cleaner = output_cleaner
-        self.function_calling_format_type = (
-            function_calling_format_type
-        )
         self.list_base_models = list_base_models
-        self.metadata_output_type = metadata_output_type
-        self.state_save_file_type = state_save_file_type
-        self.tool_choice = tool_choice
         self.planning_prompt = planning_prompt
-        self.custom_planning_prompt = custom_planning_prompt
         self.rules = rules
-        self.custom_tools_prompt = custom_tools_prompt
-        self.memory_chunk_size = memory_chunk_size
-        self.tool_system_prompt = tool_system_prompt
         self.max_tokens = max_tokens
         self.temperature = temperature
         # Always use environment variable for workspace_dir, ignore user input
         # Fallback to default if environment variable is not set
         self.workspace_dir = get_workspace_dir()
-        self.timeout = timeout
         self.tags = tags
         self.use_cases = use_cases
         self.name = agent_name
         self.description = agent_description
         self.auto_generate_prompt = auto_generate_prompt
-        self.rag_every_loop = rag_every_loop
         self.plan_enabled = plan_enabled
-        self.artifacts_on = artifacts_on
-        self.artifacts_output_path = artifacts_output_path
-        self.artifacts_file_extension = artifacts_file_extension
         self.model_name = model_name
         self.llm_args = llm_args
         self.load_state_path = load_state_path
@@ -549,7 +494,6 @@ class Agent:
         self.reasoning_prompt_on = reasoning_prompt_on
         self.dynamic_context_window = dynamic_context_window
         self.show_tool_execution_output = show_tool_execution_output
-        self.mcp_configs = mcp_configs
         self.reasoning_effort = reasoning_effort
         self.thinking_tokens = thinking_tokens
         self.reasoning_enabled = reasoning_enabled
@@ -568,12 +512,19 @@ class Agent:
         self.context_length = 16000
 
         if self.max_loops == "auto":
-
             self.system_prompt += (
                 "\n\n" + get_autonomous_agent_prompt()
             )
+
+        # Context compression is available for both max_loops="auto" and
+        # integer max_loops runs. Gated purely on the user-facing boolean.
+        self.context_compression = context_compression
+        if self.context_compression:
+            self._context_compressor = ContextCompressor(
+                threshold=0.9
+            )
         else:
-            pass
+            self._context_compressor = None
 
         # Initialize autonomous loop tracking structures
         self.autonomous_subtasks = []  # List of subtasks from plan
@@ -590,7 +541,6 @@ class Agent:
         )
 
         # Async subagent support
-        self.max_subagent_depth = max_subagent_depth
         self._subagent_registry = None
 
         # Load prompt from marketplace if marketplace_prompt_id is provided
@@ -619,7 +569,9 @@ class Agent:
         # self.init_handling()
         self.setup_config()
 
-        # Initialize the short memory
+        # Initialize the short memory. The Conversation manages the
+        # persistent MEMORY.md file at
+        # $WORKSPACE_DIR/agents/{agent_name}-{id}/MEMORY.md.
         self.short_memory = self.short_memory_init()
 
         # Initialize the tools
@@ -1069,6 +1021,24 @@ class Agent:
             prompt += "\n\n"
             prompt += SAFETY_PROMPT
 
+        # Compute the persistent MEMORY.md path under the workspace dir.
+        # Key on agent_name only (not self.id) so memory is stable across
+        # process restarts — self.id defaults to a fresh uuid every run,
+        # which would otherwise create a new empty MEMORY.md each time.
+        # Conversation will create the folder, seed the header, preload any
+        # prior interactions as a system preamble, and append every future
+        # message automatically.
+        memory_md_path = None
+        try:
+            base = get_workspace_dir() or os.path.join(
+                os.getcwd(), "agent_workspace"
+            )
+            memory_md_path = os.path.join(
+                base, "agents", self.agent_name, "MEMORY.md"
+            )
+        except Exception as e:
+            logger.error(f"Failed to resolve MEMORY.md path: {e}")
+
         # Initialize the short term memory
         memory = Conversation(
             name=f"{self.agent_name}_id_{self.id}_conversation",
@@ -1081,6 +1051,7 @@ class Agent:
             dynamic_context_window=self.dynamic_context_window,
             tokenizer_model_name=self.model_name,
             context_length=self.context_length,
+            memory_md_path=memory_md_path,
         )
 
         return memory
@@ -1493,42 +1464,6 @@ class Agent:
             title=f"Agent {self.agent_name} Dashboard",
         )
 
-    def handle_rag_query(self, query: str):
-        """
-        Handle RAG query
-        """
-        try:
-            logger.info(
-                f"Agent: {self.agent_name} Querying RAG memory for: {query}"
-            )
-            output = self.long_term_memory.query(
-                query,
-            )
-
-            output = dynamic_auto_chunking(
-                content=output,
-                context_length=self.max_tokens,
-                tokenizer_model_name=self.model_name,
-            )
-
-            self.short_memory.add(
-                role="system",
-                content=(
-                    "[RAG Query Initiated]\n"
-                    "----------------------------------\n"
-                    f"Query:\n{query}\n\n"
-                    f"Retrieved Knowledge (RAG Output):\n{output}\n"
-                    "----------------------------------\n"
-                    "The above information was retrieved from the agent's long-term memory using Retrieval-Augmented Generation (RAG). "
-                    "Use this context to inform your next response or reasoning step."
-                ),
-            )
-        except AgentMemoryError as e:
-            logger.error(
-                f"Agent: {self.agent_name} Error handling RAG query: {e} Traceback: {traceback.format_exc()}"
-            )
-            raise e
-
     # Main function
     def _run(
         self,
@@ -1559,7 +1494,6 @@ class Agent:
         3. **Main Loop:**
            - Runs for max_loops iterations (or until stopping condition)
            - Each iteration:
-             * Handles RAG query if rag_every_loop=True
              * Applies dynamic temperature if enabled
              * Applies message transforms if configured
              * Calls LLM with task prompt
@@ -1657,13 +1591,6 @@ class Agent:
 
             self.short_memory.add(role=self.user_name, content=task)
 
-            # Handle RAG query only once
-            if (
-                self.long_term_memory is not None
-                and self.rag_every_loop is False
-            ):
-                self.handle_rag_query(task)
-
             if self.plan_enabled is True:
                 self.plan(task)
 
@@ -1685,16 +1612,14 @@ class Agent:
             ):
                 loop_count += 1
 
+                # Compress short-term memory if an auto-loop run has
+                # crossed the configured fraction of the context window.
+                if self._context_compressor is not None:
+                    self._context_compressor.maybe_compress(self)
+
                 # Autosave config at the start of each loop step
                 if self.autosave:
                     self._autosave_config_step(loop_count=loop_count)
-
-                # Handle RAG query every loop
-                if (
-                    self.long_term_memory is not None
-                    and self.rag_every_loop is True
-                ):
-                    self.handle_rag_query(task)
 
                 if (
                     isinstance(self.max_loops, int)
@@ -1742,23 +1667,37 @@ class Agent:
                 while attempt < self.retry_attempts and not success:
                     try:
 
-                        if img is not None:
-                            response = self.call_llm(
-                                task=task_prompt,
-                                img=img,
-                                current_loop=loop_count,
-                                streaming_callback=streaming_callback,
-                                *args,
-                                **kwargs,
+                        show_loading = (
+                            self.interactive
+                            and not self.streaming_on
+                            and not self.stream
+                        )
+                        loading_ctx = (
+                            formatter.loading_status(
+                                f"👾 Agent: {self.agent_name} is thinking..."
                             )
-                        else:
-                            response = self.call_llm(
-                                task=task_prompt,
-                                current_loop=loop_count,
-                                streaming_callback=streaming_callback,
-                                *args,
-                                **kwargs,
-                            )
+                            if show_loading
+                            else nullcontext()
+                        )
+
+                        with loading_ctx:
+                            if img is not None:
+                                response = self.call_llm(
+                                    task=task_prompt,
+                                    img=img,
+                                    current_loop=loop_count,
+                                    streaming_callback=streaming_callback,
+                                    *args,
+                                    **kwargs,
+                                )
+                            else:
+                                response = self.call_llm(
+                                    task=task_prompt,
+                                    current_loop=loop_count,
+                                    streaming_callback=streaming_callback,
+                                    *args,
+                                    **kwargs,
+                                )
 
                         # If streaming is enabled, then don't print the response
 
@@ -1926,9 +1865,19 @@ class Agent:
 
                     # logger.info("Interactive mode enabled.")
                     formatter.console.print()
-                    user_input = formatter.console.input(
-                        "[bold cyan]You[/bold cyan] [bold green]❯[/bold green] "
-                    )
+                    try:
+                        user_input = formatter.console.input(
+                            "[bold cyan]You[/bold cyan] [bold green]❯[/bold green] "
+                        )
+                    except (KeyboardInterrupt, EOFError):
+                        # Graceful exit on Ctrl+C / Ctrl+D during
+                        # interactive input. No traceback, no error.
+                        formatter.console.print()
+                        self.pretty_print(
+                            "Session ended by user. Goodbye.",
+                            loop_count=loop_count,
+                        )
+                        break
 
                     # User-defined exit command
                     if (
@@ -3657,11 +3606,6 @@ Subtask Breakdown:
         """
         return SafeLoaderUtils.preserve_instances(self)
 
-    def graceful_shutdown(self):
-        """Gracefully shutdown the system saving the state"""
-        logger.info("Shutting down the system...")
-        return self.save()
-
     def undo_last(self) -> Tuple[str, str]:
         """
         Response the last response and return the previous state
@@ -3683,43 +3627,6 @@ Subtask Breakdown:
         # Get the previous state
         previous_state = self.short_memory[-1]
         return previous_state, f"Restored to {previous_state}"
-
-    # Response Filtering
-    def add_response_filter(self, filter_word: str) -> None:
-        """
-        Add a response filter to filter out certain words from the response
-
-        Example:
-        agent.add_response_filter("Trump")
-        agent.run("Generate a report on Trump")
-
-
-        """
-        logger.info(f"Adding response filter: {filter_word}")
-        self.response_filters.append(filter_word)
-
-    def apply_response_filters(self, response: str) -> str:
-        """
-        Apply the response filters to the response
-
-        """
-        logger.info(
-            f"Applying response filters to response: {response}"
-        )
-        for word in self.response_filters:
-            response = response.replace(word, "[FILTERED]")
-        return response
-
-    def filtered_run(self, task: str) -> str:
-        """
-        # Feature 3: Response filtering
-        agent.add_response_filter("report")
-        response = agent.filtered_run("Generate a report on finance")
-        print(response)
-        """
-        logger.info(f"Running filtered task: {task}")
-        raw_response = self.run(task)
-        return self.apply_response_filters(raw_response)
 
     def save_to_yaml(self, file_path: str) -> None:
         """
@@ -4656,9 +4563,19 @@ Subtask Breakdown:
                 loop_count=0,
             )
             formatter.console.print()
-            task = formatter.console.input(
-                "[bold cyan]You[/bold cyan] [bold green]❯[/bold green] "
-            ).strip()
+            try:
+                task = formatter.console.input(
+                    "[bold cyan]You[/bold cyan] [bold green]❯[/bold green] "
+                ).strip()
+            except (KeyboardInterrupt, EOFError):
+                # Graceful exit on Ctrl+C / Ctrl+D before the first task
+                # has even been entered. No traceback, no error.
+                formatter.console.print()
+                self.pretty_print(
+                    "Session ended by user. Goodbye.",
+                    loop_count=0,
+                )
+                return None
 
             if not task:
                 raise ValueError(

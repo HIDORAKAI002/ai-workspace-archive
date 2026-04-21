@@ -12,6 +12,7 @@ const LANGSMITH_API_KEY = config.LANGSMITH_API_KEY?.trim() || undefined;
 // Opt-in: require both a key AND explicit LANGSMITH_TRACING=true. Having a
 // key alone shouldn't start shipping traces, since operators may set the key
 // for local experimentation and be surprised when prod starts tracing too.
+/** @public — consumed via dynamic require() in langsmith.test.ts */
 export const isLangSmithEnabled = Boolean(
   LANGSMITH_API_KEY && config.LANGSMITH_TRACING === true,
 );
@@ -131,6 +132,7 @@ if (isLangSmithEnabled) {
   }
 }
 
+/** @public — streamText/generateObject/streamObject consumed via dynamic require() in langsmith.test.ts */
 export const { generateText, streamText, generateObject, streamObject } =
   wrappedSDK;
 
