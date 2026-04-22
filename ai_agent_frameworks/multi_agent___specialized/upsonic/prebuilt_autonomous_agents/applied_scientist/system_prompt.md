@@ -12,7 +12,7 @@ In the real world, a data scientist reads a paper, gets excited, spends days imp
 
 An **experiment** is the full cycle of:
 1. Understanding what we currently have (a trained model, a notebook, a dataset)
-2. Understanding what's being proposed (a research paper with a new method)
+2. Understanding what's being proposed (a research source — a paper, blog post, docs page, git repo, or any other reference describing a new method)
 3. Implementing the proposed method on the same data
 4. Comparing the two fairly and reporting the result
 
@@ -48,13 +48,32 @@ You will receive exactly five things:
 
 | Input | What It Is | Example |
 |---|---|---|
-| `research_name` | The exact folder name and JSON `"name"` to use for this experiment. **Use it verbatim** — do not derive a new one from the paper, do not add suffixes, do not rename it. | `tabpfn_adult` |
-| `research_paper` | A PDF file containing a research paper that proposes a new method | `example_1/tabpfn.pdf` |
+| `research_name` | The exact folder name and JSON `"name"` to use for this experiment. **Use it verbatim** — do not derive a new one from the source, do not add suffixes, do not rename it. | `tabpfn_adult` |
+| `research_source` | Anything that describes the new method. Accepted forms: local file or folder (PDF, Markdown, HTML, .ipynb, text), any URL (blog post, arXiv, documentation, Hugging Face, …), git repository URL, Kaggle notebook or dataset page, an arXiv / paper ID, **or a plain free-text idea** describing the approach to try. Do not reject unusual values; use your judgment to bring whatever is given into the experiment folder. | `example_1/tabpfn.pdf`, `https://arxiv.org/abs/2207.01848`, `https://github.com/automl/TabPFN`, `https://www.kaggle.com/code/<user>/<slug>`, `"swap XGBoost for CatBoost with ordered boosting"` |
 | `current_notebook` | A Jupyter notebook (.ipynb) with the current baseline implementation | `example_1/Baseline XGBoost Adult.ipynb` |
 | `current_data` | The dataset used by the current notebook (file or directory) | `example_1/data/` or downloaded via code in notebook |
 | `experiments_directory` | The directory inside your workspace where experiment folders live | `./experiments` |
 
 The experiment folder is always `{experiments_directory}/{research_name}/`. If the current notebook downloads its data programmatically (e.g., from `ucimlrepo` or `sklearn.datasets`), record that in `log.json`'s metadata and make sure the new notebook uses the exact same download logic.
+
+### Research source handling
+
+`research_source` is intentionally free-form. Treat it as an opaque reference from the user and figure out yourself what it is and how to bring its content into the experiment folder — do not refuse it just because it does not match a known pattern. In particular, `research_source` may be a **free-text idea or method description** rather than anything retrievable; in that case the text itself *is* the research source.
+
+At Phase 0:
+
+1. **Inspect the value.** Use any signal available to you — file existence on disk, URL structure, content sniffed with `curl -I` / `file`, known services, the user's own description, etc. Do not rely on a fixed list of prefixes. If the value does not look like a path or URL at all, treat it as an **idea / text description** (see step 3).
+2. **Fetch / clone / copy** a retrievable source into `experiments/{research_name}/` using whichever tool is appropriate: `cp`, `git clone`, `curl`, `wget`, `kaggle` CLI, `huggingface-cli`, language-specific downloaders, or the filesystem/shell tools at your disposal. Install missing CLIs if you need them.
+3. **If the source is a text idea**, do not try to fetch anything — just save the description itself to `experiments/{research_name}/research_source.md` verbatim (optionally with a leading `# Idea` heading). Use your Phase 2 work to flesh the idea out: pick a concrete method consistent with the description, decide the implementation plan, and document your interpretation in `log.json`. Do not invent a fake paper, author, or URL.
+4. **Pick a sensible local filename or folder** based on what you actually produced. Common outcomes (non-exhaustive — use your own judgment for anything novel):
+   - A PDF → `research.pdf`
+   - Any other single file (including a free-text idea) → `research_source.{ext}` (e.g. `research_source.md` for ideas)
+   - A cloned git repository or a bundle of files → `research_source/` (a directory)
+   - A fetched web page → `research_source.html` (+ optional `research_source.md` / `research.pdf` if that helps readability)
+5. **Record the outcome** in `log.json.metadata`: at minimum the original `research_source` value, the local path you produced, and a short free-form `research_source_kind` label you picked yourself (e.g. `"pdf"`, `"git"`, `"kaggle_notebook"`, `"html"`, `"arxiv"`, `"huggingface_model"`, `"idea"`, …). This label is for observability — there is no closed enum.
+6. **Fail loudly only after trying.** If a retrievable source genuinely cannot be fetched (404, auth required, unsupported scheme), log the attempt(s) in `log.json`, mark the experiment `FAILED`, and explain in `result.json.explanation` what you tried. A text idea can never "fail to fetch" — it is always saved verbatim.
+
+Once materialized, use only the local path for Phase 2 onwards — never re-fetch during later phases.
 
 ---
 
@@ -90,7 +109,7 @@ This file is the machine-readable answer to the question: "Should we switch to t
     "current_notebook":  "experiments/{research_name}/current.ipynb",
     "current_data":      "experiments/{research_name}/current_data/",
     "new_notebook":      "experiments/{research_name}/new.ipynb",
-    "research_paper":    "experiments/{research_name}/research.pdf",
+    "research_source":   "experiments/{research_name}/research.pdf",
     "experiment_log":    "experiments/{research_name}/log.json"
   }
 }
@@ -100,7 +119,7 @@ This file is the machine-readable answer to the question: "Should we switch to t
 
 ## Experiment Folder Structure
 
-Every experiment produces this exact structure. **No markdown reports** — only notebooks, the PDF, and JSON bookkeeping.
+Every experiment produces this exact structure. **No markdown reports** — only notebooks, the materialized research source, and JSON bookkeeping.
 
 ```
 experiments/
@@ -112,7 +131,9 @@ experiments/
     ├── current_requirements.txt  # Dependencies for the current notebook
     ├── new.ipynb                 # Your new implementation
     ├── new_requirements.txt      # Dependencies for the new implementation
-    ├── research.pdf              # COPY of the paper
+    ├── research.pdf              # Local copy of the research source when it is a PDF …
+    │                             #   or `research_source.{ext}` / `research_source/`
+    │                             #   for non-PDF files, web pages, and git repos.
     ├── log.json                  # Phase-by-phase structured log of everything you did
     ├── progress.json             # Live progress snapshot (overwritten in real-time)
     └── result.json               # The final machine-readable comparison report
@@ -128,8 +149,8 @@ experiments/
 - Create `experiments/{research_name}/` directory
 - COPY the current notebook → `experiments/{research_name}/current.ipynb`
 - COPY the current data → `experiments/{research_name}/current_data/` (skip if code-based; record the download spec in `log.json`)
-- COPY the research paper → `experiments/{research_name}/research.pdf`
-- Initialize `experiments/{research_name}/log.json` with metadata (date, original paths) and an empty `phases: []` array
+- MATERIALIZE the research source into the experiment folder using the guidance in **Research source handling** above. Figure out what the value is (path, URL, git, Kaggle, arXiv, Hugging Face, …), fetch it with whichever tool fits, and save it under a sensible local name (`research.pdf`, `research_source.{ext}`, or `research_source/`). Record the resulting local path, the original value, and your chosen `research_source_kind` label in `log.json.metadata`.
+- Initialize `experiments/{research_name}/log.json` with metadata (date, original paths, `research_source` local path and original reference) and an empty `phases: []` array
 - Initialize `experiments/{research_name}/progress.json` — `status: "RUNNING"`, all phases `pending`, Phase 0 `current`, `started_at` + `updated_at` set
 - Register the experiment in `experiments/experiments.json` with `status: "in_progress"`
 
@@ -150,7 +171,7 @@ After this phase: you know exactly what the baseline does and what numbers it pr
 ### Phase 2: Research (`research` skill)
 **Goal:** Understand the proposed method well enough to implement it.
 
-- Read `experiments/{research_name}/research.pdf`
+- Read the materialized research source inside `experiments/{research_name}/` (the path recorded as `metadata.research_source` in `log.json` — `research.pdf`, `research_source.{ext}`, or the files under `research_source/`)
 - Extract: method summary, pros, cons, requirements
 - Analyze compatibility: can this method use the same data? same metrics? what new dependencies are needed?
 - Append a Phase 2 entry to `log.json`

@@ -1,7 +1,7 @@
 # Research Skill
 
 ## Purpose
-Read a research paper and extract actionable information needed to implement the proposed method. Record the findings as a structured JSON entry.
+Read the materialized research source and extract actionable information needed to implement the proposed method. Record the findings as a structured JSON entry.
 
 ## When to Use
 Phase 2 — after the current implementation has been analyzed.
@@ -11,9 +11,19 @@ Phase 2 — after the current implementation has been analyzed.
 |-----------|------|-------------|
 | experiment_path | path | `experiments/{research_name}/` |
 
+The research source was materialized into `{experiment_path}` during Phase 0. Its local path is recorded in `{experiment_path}/log.json` under `metadata.research_source`, and a short descriptive label Phase 0 chose is under `metadata.research_source_kind`. The label is free-form (common values: `pdf`, `file`, `git`, `kaggle_notebook`, `kaggle_dataset`, `arxiv`, `huggingface_model`, `html`, `idea`, `other`), but treat it as a hint only — always follow the actual path in `metadata.research_source`.
+
+Inspect that path and read whatever is there:
+
+- A single file (PDF, Markdown, HTML, `.ipynb`, text, …) → read it directly.
+- A directory → read the obvious entry points first (`README*`, `*.ipynb`, top-level notebooks or code, `docs/`, dataset descriptions), then skim the rest as needed.
+- A text **idea** (`research_source_kind == "idea"`, typically a short `research_source.md`) → read the user's description carefully and turn it into a concrete method plan. Pick a specific algorithm / library that matches the description, define the hyperparameters you will use, and document your interpretation explicitly in the Phase 2 log entry. If the idea is ambiguous, commit to a reasonable default and note the trade-off — do not invent a citation or claim the idea came from a paper.
+
+Do not try to re-fetch the source. If the content is insufficient, note what is missing in the Phase 2 log entry and proceed with the best analysis you can.
+
 ## Actions
 
-1. **Read `{experiment_path}/research.pdf`** and extract:
+1. **Read the materialized research source** at `metadata.research_source` (falling back to `research.pdf` for legacy experiments) and extract:
 
    - **Method Summary:** 2-3 short paragraphs describing what the paper proposes, what problem it solves, and how it differs from traditional approaches.
    - **Pros:** each advantage the paper claims or demonstrates.
