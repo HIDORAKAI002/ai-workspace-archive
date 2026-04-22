@@ -132,7 +132,7 @@ import {
   buildEmbeddedSystemPrompt,
   createSystemPromptOverride,
 } from "./system-prompt.js";
-import { collectAllowedToolNames, toSessionToolAllowlist } from "./tool-name-allowlist.js";
+import { collectAllowedToolNames } from "./tool-name-allowlist.js";
 import {
   logProviderToolSchemaDiagnostics,
   normalizeProviderToolSchemas,
@@ -839,14 +839,12 @@ export async function compactEmbeddedPiSessionDirect(
         contextTokenBudget: ctxInfo.tokens,
       });
 
-      const { customTools } = splitSdkTools({
+      const { builtInTools, customTools } = splitSdkTools({
         tools: effectiveTools,
         sandboxEnabled: !!sandbox?.enabled,
       });
-      // Pi treats `tools` as a name allowlist. Compaction uses the same custom
-      // tool path as normal turns, so pass names here to keep those tools active
-      // across compaction retries.
-      const sessionToolAllowlist = toSessionToolAllowlist(allowedToolNames);
+      // OpenClaw registers filtered tools through `customTools`; keep Pi's
+      // built-in tool list empty so the SDK does not re-enable defaults.
 
       const providerStreamFn = resolveCompactionProviderStream({
         effectiveModel,
@@ -884,7 +882,7 @@ export async function compactEmbeddedPiSessionDirect(
             modelRegistry,
             model: effectiveModel,
             thinkingLevel: mapThinkingLevel(thinkLevel),
-            tools: sessionToolAllowlist,
+            tools: builtInTools,
             customTools,
             sessionManager,
             settingsManager,
