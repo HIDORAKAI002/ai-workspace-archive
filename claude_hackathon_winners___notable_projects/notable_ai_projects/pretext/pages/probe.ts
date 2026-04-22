@@ -143,6 +143,8 @@ type ProbeBatchSpec = {
   }
 }
 
+type OracleBrowser = NonNullable<ProbeOracleCase['browsers']>[number]
+
 declare global {
   interface Window {
     __PROBE_REPORT__?: ProbeReport | ProbeBatchReport
@@ -233,6 +235,37 @@ function materializeCase(testCase: ProbeOracleCase, defaults: ProbeBatchSpec['de
     whiteSpace: testCase.whiteSpace ?? defaults.whiteSpace ?? 'normal',
     wordBreak: testCase.wordBreak ?? defaults.wordBreak ?? 'normal',
   }
+}
+
+function getCurrentOracleBrowser(): OracleBrowser | null {
+  const ua = navigator.userAgent
+  const vendor = navigator.vendor
+
+  if (ua.includes('Firefox/') || ua.includes('FxiOS/')) return 'firefox'
+  if (
+    vendor === 'Apple Computer, Inc.' &&
+    ua.includes('Safari/') &&
+    !ua.includes('Chrome/') &&
+    !ua.includes('Chromium/') &&
+    !ua.includes('CriOS/') &&
+    !ua.includes('FxiOS/') &&
+    !ua.includes('EdgiOS/')
+  ) {
+    return 'safari'
+  }
+  if (
+    ua.includes('Chrome/') ||
+    ua.includes('Chromium/') ||
+    ua.includes('CriOS/') ||
+    ua.includes('Edg/')
+  ) {
+    return 'chrome'
+  }
+  return null
+}
+
+function caseRunsInCurrentBrowser(testCase: ProbeOracleCase, browser: OracleBrowser | null): boolean {
+  return testCase.browsers === undefined || browser === null || testCase.browsers.includes(browser)
 }
 
 function applyConfig(config: ProbeConfig): void {
@@ -818,8 +851,10 @@ function runProbeBatch(batchSpec: ProbeBatchSpec): void {
   try {
     publishNavigationPhase('measuring', requestId)
     const results: NonNullable<ProbeBatchReport['results']> = []
+    const currentBrowser = getCurrentOracleBrowser()
 
     for (const testCase of batchSpec.cases) {
+      if (!caseRunsInCurrentBrowser(testCase, currentBrowser)) continue
       applyConfig(materializeCase(testCase, batchSpec.defaults))
       try {
         results.push({ label: testCase.label, report: buildProbeReport() })

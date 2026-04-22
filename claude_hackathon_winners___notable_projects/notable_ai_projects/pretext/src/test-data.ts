@@ -70,6 +70,7 @@ export type ProbeOracleCase = {
   dir?: 'ltr' | 'rtl'
   lang?: string
   method?: 'range' | 'span'
+  browsers?: readonly ('chrome' | 'safari' | 'firefox')[]
 }
 
 export type LetterSpacingOracleCase = ProbeOracleCase & {
@@ -331,6 +332,16 @@ export const KEEP_ALL_ORACLE_CASES: readonly ProbeOracleCase[] = [
     lang: 'zh',
   },
   {
+    label: 'safari ideographic punctuation keep-all boundary',
+    text: 'foo。bar日本語',
+    width: 120,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+    method: 'span',
+    browsers: ['safari'],
+  },
+  {
     label: 'korean no-space word',
     text: '한국어테스트 테스트입니다',
     width: 220,
@@ -339,9 +350,59 @@ export const KEEP_ALL_ORACLE_CASES: readonly ProbeOracleCase[] = [
     lang: 'ko',
   },
   {
-    label: 'mixed no-space cjk plus latin run',
+    label: 'mixed no-space cjk plus latin narrow',
     text: '日本語foo-bar',
     width: 110,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+  },
+  {
+    label: 'cjk leading latin hyphen boundary',
+    text: '日本語foo-bar',
+    width: 180,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+  },
+  {
+    label: 'mixed no-space latin plus cjk run',
+    text: 'abc日本語',
+    width: 140,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+  },
+  {
+    label: 'mixed no-space dotted latin plus cjk run',
+    text: 'foo.bar日本語',
+    width: 140,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+    method: 'range',
+    browsers: ['chrome'],
+  },
+  {
+    label: 'mixed no-space numeric plus cjk run',
+    text: '500円テスト',
+    width: 140,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+  },
+  {
+    label: 'mixed no-space hyphen boundary',
+    text: 'foo-bar日本語',
+    width: 180,
+    font: '18px serif',
+    lineHeight: 32,
+    lang: 'ja',
+  },
+  {
+    label: 'mixed no-space em dash boundary',
+    text: 'foo\u2014bar日本語',
+    width: 160,
     font: '18px serif',
     lineHeight: 32,
     lang: 'ja',

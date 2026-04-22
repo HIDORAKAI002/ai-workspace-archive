@@ -485,13 +485,15 @@ describe('prepare invariants', () => {
   })
 
   test('keeps no-space ascii punctuation chains together as one breakable segment', () => {
-    const prepared = prepareWithSegments('foo;bar foo:bar foo,bar as;lkdfjals;k', FONT)
+    const prepared = prepareWithSegments('foo;bar foo:bar foo,bar foo.bar as;lkdfjals;k', FONT)
     expect(prepared.segments).toEqual([
       'foo;bar',
       ' ',
       'foo:bar',
       ' ',
       'foo,bar',
+      ' ',
+      'foo.bar',
       ' ',
       'as;lkdfjals;k',
     ])
@@ -571,16 +573,20 @@ describe('prepare invariants', () => {
     expect(prepared.segments).toEqual(['foo\u00A0', '世', '界'])
   })
 
-  test('keep-all keeps CJK-leading no-space runs cohesive without swallowing preceding latin runs', () => {
+  test('keep-all keeps CJK-containing no-space runs cohesive with punctuation fallback boundaries', () => {
     expect(prepareWithSegments('中文，测试。', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['中文，', '测试。'])
     expect(prepareWithSegments('한국어테스트', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['한국어테스트'])
     expect(prepareWithSegments('漢'.repeat(256), FONT, { wordBreak: 'keep-all' }).segments).toEqual(['漢'.repeat(256)])
 
-    for (const text of ['日本語foo-bar', '日本語foo.bar', '日本語foo—bar']) {
+    for (const text of ['abc日本語', '123日本語', 'abc123日本語', 'foo_bar日本語', 'foo.bar日本語', '500円テスト', '日本語foo.bar']) {
       expect(prepareWithSegments(text, FONT, { wordBreak: 'keep-all' }).segments).toEqual([text])
     }
 
-    expect(prepareWithSegments('foo-bar日本語', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo-', 'bar', '日本語'])
+    expect(prepareWithSegments('日本語foo-bar', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['日本語foo-', 'bar'])
+    expect(prepareWithSegments('日本語foo—bar', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['日本語foo—', 'bar'])
+    expect(prepareWithSegments('foo-bar日本語', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo-', 'bar日本語'])
+    expect(prepareWithSegments('foo—bar日本語', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo', '—', 'bar日本語'])
+    expect(prepareWithSegments('foo?bar日本語', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo?', 'bar日本語'])
     expect(prepareWithSegments('foo\u00A0世界', FONT, { wordBreak: 'keep-all' }).segments).toEqual(['foo\u00A0', '世界'])
   })
 

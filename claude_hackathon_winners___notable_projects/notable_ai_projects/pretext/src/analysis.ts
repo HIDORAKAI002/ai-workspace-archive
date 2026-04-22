@@ -36,6 +36,7 @@ export type TextAnalysis = { normalized: string, chunks: AnalysisChunk[] } & Mer
 
 export type AnalysisProfile = {
   carryCJKAfterClosingQuote: boolean
+  breakKeepAllAfterPunctuation: boolean
 }
 
 const collapsibleWhitespaceRunRe = /[ \t\n\r\f]+/g
@@ -159,6 +160,13 @@ const keepAllGlueChars = new Set([
   '\uFEFF',
 ])
 
+const keepAllDashBreakChars = new Set([
+  '-',
+  '\u2010',
+  '\u2013',
+  '\u2014',
+])
+
 function containsCJKText(text: string): boolean {
   return isCJK(text)
 }
@@ -168,11 +176,17 @@ function endsWithKeepAllGlueText(text: string): boolean {
   return last !== null && keepAllGlueChars.has(last)
 }
 
-export function canContinueKeepAllTextRun(previousText: string): boolean {
-  return (
-    !endsWithLineStartProhibitedText(previousText) &&
-    !endsWithKeepAllGlueText(previousText)
-  )
+function endsWithKeepAllDashBreakText(text: string): boolean {
+  const last = getLastCodePoint(text)
+  return last !== null && keepAllDashBreakChars.has(last)
+}
+
+export function canContinueKeepAllTextRun(previousText: string, breakAfterPunctuation: boolean): boolean {
+  if (endsWithKeepAllGlueText(previousText)) return false
+  if (!breakAfterPunctuation) return true
+  if (endsWithLineStartProhibitedText(previousText)) return false
+  if (endsWithKeepAllDashBreakText(previousText)) return false
+  return true
 }
 
 export const kinsokuStart = new Set([
@@ -629,8 +643,8 @@ const numericJoinerChars = new Set([
   '\u2014',
 ])
 
-const asciiPunctuationChainSegmentRe = /^[A-Za-z0-9_]+[,:;]*$/
-const asciiPunctuationChainTrailingJoinersRe = /[,:;]+$/
+const asciiPunctuationChainSegmentRe = /^[A-Za-z0-9_]+[.,:;]*$/
+const asciiPunctuationChainTrailingJoinersRe = /[.,:;]+$/
 
 function segmentContainsDecimalDigit(text: string): boolean {
   for (const ch of text) {
@@ -1184,7 +1198,11 @@ function compileAnalysisChunks(segmentation: MergedSegmentation, whiteSpaceProfi
   return chunks
 }
 
-function mergeKeepAllTextSegments(segmentation: MergedSegmentation): MergedSegmentation {
+function mergeKeepAllTextSegments(
+  normalized: string,
+  segmentation: MergedSegmentation,
+  breakAfterPunctuation: boolean,
+): MergedSegmentation {
   if (segmentation.len <= 1) return segmentation
 
   const texts: string[] = []
@@ -1192,56 +1210,72 @@ function mergeKeepAllTextSegments(segmentation: MergedSegmentation): MergedSegme
   const kinds: SegmentBreakKind[] = []
   const starts: number[] = []
 
-  let pendingTextParts: string[] | null = null
-  let pendingWordLike = false
-  let pendingStart = 0
-  let pendingContainsCJK = false
-  let pendingCanContinue = false
+  let groupStart = -1
+  let groupContainsCJK = false
 
-  function flushPendingText(): void {
-    if (pendingTextParts === null) return
-    texts.push(joinTextParts(pendingTextParts))
-    isWordLike.push(pendingWordLike)
+  function pushOriginalText(index: number): void {
+    texts.push(segmentation.texts[index]!)
+    isWordLike.push(segmentation.isWordLike[index]!)
     kinds.push('text')
-    starts.push(pendingStart)
-    pendingTextParts = null
+    starts.push(segmentation.starts[index]!)
+  }
+
+  function pushMergedText(start: number, end: number): void {
+    let wordLike = false
+
+    for (let i = start; i < end; i++) {
+      wordLike = wordLike || segmentation.isWordLike[i]!
+    }
+
+    const sourceStart = segmentation.starts[start]!
+    const sourceEnd = end < segmentation.len ? segmentation.starts[end]! : normalized.length
+    texts.push(normalized.slice(sourceStart, sourceEnd))
+    isWordLike.push(wordLike)
+    kinds.push('text')
+    starts.push(sourceStart)
+  }
+
+  function flushGroup(end: number): void {
+    if (groupStart < 0) return
+
+    if (groupContainsCJK) {
+      if (groupStart + 1 === end) {
+        pushOriginalText(groupStart)
+      } else {
+        pushMergedText(groupStart, end)
+      }
+    } else {
+      for (let i = groupStart; i < end; i++) pushOriginalText(i)
+    }
+
+    groupStart = -1
+    groupContainsCJK = false
   }
 
   for (let i = 0; i < segmentation.len; i++) {
     const text = segmentation.texts[i]!
     const kind = segmentation.kinds[i]!
-    const wordLike = segmentation.isWordLike[i]!
-    const start = segmentation.starts[i]!
 
     if (kind === 'text') {
-      const textContainsCJK = containsCJKText(text)
-      const textCanContinue = canContinueKeepAllTextRun(text)
-
-      if (pendingTextParts !== null && pendingContainsCJK && pendingCanContinue) {
-        pendingTextParts.push(text)
-        pendingWordLike = pendingWordLike || wordLike
-        pendingContainsCJK = pendingContainsCJK || textContainsCJK
-        pendingCanContinue = textCanContinue
-        continue
+      if (
+        groupStart >= 0 &&
+        !canContinueKeepAllTextRun(segmentation.texts[i - 1]!, breakAfterPunctuation)
+      ) {
+        flushGroup(i)
       }
-
-      flushPendingText()
-      pendingTextParts = [text]
-      pendingWordLike = wordLike
-      pendingStart = start
-      pendingContainsCJK = textContainsCJK
-      pendingCanContinue = textCanContinue
+      if (groupStart < 0) groupStart = i
+      groupContainsCJK = groupContainsCJK || containsCJKText(text)
       continue
     }
 
-    flushPendingText()
+    flushGroup(i)
     texts.push(text)
-    isWordLike.push(wordLike)
+    isWordLike.push(segmentation.isWordLike[i]!)
     kinds.push(kind)
-    starts.push(start)
+    starts.push(segmentation.starts[i]!)
   }
 
-  flushPendingText()
+  flushGroup(segmentation.len)
 
   return {
     len: texts.length,
@@ -1273,9 +1307,10 @@ export function analyzeText(
       starts: [],
     }
   }
+  const mergedSegmentation = buildMergedSegmentation(normalized, profile, whiteSpaceProfile)
   const segmentation = wordBreak === 'keep-all'
-    ? mergeKeepAllTextSegments(buildMergedSegmentation(normalized, profile, whiteSpaceProfile))
-    : buildMergedSegmentation(normalized, profile, whiteSpaceProfile)
+    ? mergeKeepAllTextSegments(normalized, mergedSegmentation, profile.breakKeepAllAfterPunctuation)
+    : mergedSegmentation
   return {
     normalized,
     chunks: compileAnalysisChunks(segmentation, whiteSpaceProfile),
