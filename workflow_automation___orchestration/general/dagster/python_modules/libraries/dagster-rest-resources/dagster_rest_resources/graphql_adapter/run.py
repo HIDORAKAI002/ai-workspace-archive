@@ -37,7 +37,7 @@ def get_run_via_graphql(client: IGraphQLClient, run_id: str) -> DgApiRun:
     # Try/catch here is a temporary solution until we fix the GQL-- client.execute is throwing an
     # error if the run is not found, instead of returning the error in the response.
     try:
-        result = client.execute(RUN_METADATA_QUERY, variables)
+        result = client.execute_generic(RUN_METADATA_QUERY, variables=variables)
     except Exception:
         raise Exception(f"Run not found: {run_id}")
 
@@ -139,5 +139,5 @@ def list_runs_via_graphql(
     if run_filter:
         variables["filter"] = run_filter
 
-    result = client.execute(LIST_RUNS_QUERY, variables)
+    result = client.execute_generic(LIST_RUNS_QUERY, variables=variables)
     return process_runs_response(result)

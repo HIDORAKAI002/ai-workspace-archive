@@ -71,7 +71,7 @@ def list_agents_via_graphql(
     """Fetch agents using GraphQL.
     This is an implementation detail that can be replaced with REST calls later.
     """
-    result = client.execute(LIST_AGENTS_QUERY)
+    result = client.execute_generic(LIST_AGENTS_QUERY)
 
     agent_list = process_agents_response(result)
 
@@ -92,7 +92,7 @@ def get_agent_via_graphql(
 
     Note: Since there's no single 'agent' query, we fetch all agents and filter client-side.
     """
-    result = client.execute(LIST_AGENTS_QUERY)
+    result = client.execute_generic(LIST_AGENTS_QUERY)
     agent_list = process_agents_response(result)
 
     # Find the agent with matching ID

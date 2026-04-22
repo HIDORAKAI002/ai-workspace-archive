@@ -304,12 +304,12 @@ class TestAutoPagination:
     def test_no_filters_single_page(self):
         """Without filters, only one page is fetched."""
         client = MagicMock()
-        client.execute.return_value = _make_page(SAMPLE_EVENTS[:3], "c1", True)
+        client.execute_generic.return_value = _make_page(SAMPLE_EVENTS[:3], "c1", True)
 
         result = get_run_events_via_graphql(client, run_id="r1", limit=100)
         assert len(result["events"]) == 3
         assert result["hasMore"] is True
-        assert client.execute.call_count == 1
+        assert client.execute_generic.call_count == 1
 
     def test_filter_triggers_pagination(self):
         """With filters, pages are fetched until limit is reached."""
@@ -323,7 +323,7 @@ class TestAutoPagination:
         page2_events = [
             {"eventType": "STEP_FAILURE", "level": "ERROR", "stepKey": "s1", "message": "fail"},
         ]
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _make_page(page1_events, "c1", True),
             _make_page(page2_events, "c2", False),
         ]
@@ -332,7 +332,7 @@ class TestAutoPagination:
         assert len(result["events"]) == 1
         assert result["events"][0]["level"] == "ERROR"
         assert result["hasMore"] is False
-        assert client.execute.call_count == 2
+        assert client.execute_generic.call_count == 2
 
     def test_pagination_respects_limit(self):
         """Auto-pagination stops once limit matching events are collected."""
@@ -344,12 +344,14 @@ class TestAutoPagination:
             "message": "err",
         }
         # Each page returns 1 matching event, server always has more
-        client.execute.side_effect = [_make_page([error_event], f"c{i}", True) for i in range(5)]
+        client.execute_generic.side_effect = [
+            _make_page([error_event], f"c{i}", True) for i in range(5)
+        ]
 
         result = get_run_events_via_graphql(client, run_id="r1", limit=3, levels=("ERROR",))
         assert len(result["events"]) == 3
         assert result["hasMore"] is True
-        assert client.execute.call_count == 3
+        assert client.execute_generic.call_count == 3
 
     def test_pagination_max_pages_cap(self):
         """Auto-pagination stops at _MAX_PAGES even if limit not reached."""
@@ -358,14 +360,14 @@ class TestAutoPagination:
         no_match = [
             {"eventType": "PIPELINE_START", "level": "INFO", "stepKey": None, "message": "x"}
         ]
-        client.execute.return_value = _make_page(no_match, "cursor", True)
+        client.execute_generic.return_value = _make_page(no_match, "cursor", True)
 
         original = mod._MAX_PAGES  # noqa: SLF001
         mod._MAX_PAGES = 5  # lower cap for test speed  # noqa: SLF001
         try:
             result = get_run_events_via_graphql(client, run_id="r1", limit=100, levels=("ERROR",))
             assert len(result["events"]) == 0
-            assert client.execute.call_count == 5
+            assert client.execute_generic.call_count == 5
         finally:
             mod._MAX_PAGES = original  # noqa: SLF001
 

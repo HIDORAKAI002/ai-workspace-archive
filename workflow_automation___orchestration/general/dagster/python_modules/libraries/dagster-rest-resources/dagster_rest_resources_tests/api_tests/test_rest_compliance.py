@@ -1,5 +1,3 @@
-"""Test suite to ensure REST compliance for Dagster Plus API interfaces."""
-
 import inspect
 from types import UnionType
 from typing import Union, get_args, get_origin

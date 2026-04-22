@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: TestAddLinkToIssueGraphQLVariables.test_with_asset_key[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'assetKey': dict({
         'path': list([
@@ -14,7 +14,7 @@
 # ---
 # name: TestAddLinkToIssueGraphQLVariables.test_with_both[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'assetKey': dict({
         'path': list([
@@ -28,7 +28,7 @@
 # ---
 # name: TestAddLinkToIssueGraphQLVariables.test_with_run_id[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'runId': 'run-abc-456',
     }),
@@ -39,7 +39,7 @@
     'context': None,
     'created_by_email': 'creator@example.com',
     'description': 'Pipeline failed unexpectedly.',
-    'id': 'new-issue-uuid-abc',
+    'id': '1',
     'linked_objects': list([
     ]),
     'status': 'OPEN',
@@ -91,7 +91,7 @@
         'context': None,
         'created_by_email': 'alice@example.com',
         'description': 'The asset failed to materialize due to a connection error.',
-        'id': 'issue-1-uuid-12345',
+        'id': '1',
         'linked_objects': list([
           dict({
             'run_id': 'run-abc-123',
@@ -107,7 +107,7 @@
         'context': None,
         'created_by_email': 'bob@example.com',
         'description': 'The daily schedule did not execute as expected.',
-        'id': 'issue-2-uuid-67890',
+        'id': '2',
         'linked_objects': list([
         ]),
         'status': 'CLOSED',
@@ -117,7 +117,7 @@
         'context': 'Stack trace: ...',
         'created_by_email': 'carol@example.com',
         'description': 'Sensor encountered an unhandled exception.',
-        'id': 'issue-3-uuid-abcdef',
+        'id': '3',
         'linked_objects': list([
         ]),
         'status': 'OPEN',
@@ -128,22 +128,22 @@
 # ---
 # name: TestFormatIssues.test_format_issues_text_output[0]
   '''
-  STATUS  TITLE                         ID                   CREATED BY
-  OPEN    Asset materialization failed  issue-1-uuid-12345   alice@example.com
-  CLOSED  Schedule missed execution     issue-2-uuid-67890   bob@example.com
-  OPEN    Sensor error                  issue-3-uuid-abcdef  carol@example.com
+  STATUS  TITLE                         ID  CREATED BY
+  OPEN    Asset materialization failed  1   alice@example.com
+  CLOSED  Schedule missed execution     2   bob@example.com
+  OPEN    Sensor error                  3   carol@example.com
   '''
 # ---
 # name: TestFormatIssues.test_format_paginated_issues_json_output[0]
   dict({
-    'cursor': 'next-page-cursor-xyz',
+    'cursor': '1',
     'has_more': True,
     'items': list([
       dict({
         'context': None,
         'created_by_email': 'dave@example.com',
         'description': 'Description for first paginated issue.',
-        'id': 'issue-page-1-uuid',
+        'id': '1',
         'linked_objects': list([
         ]),
         'status': 'OPEN',
@@ -154,8 +154,8 @@
 # ---
 # name: TestFormatIssues.test_format_paginated_issues_text_output[0]
   '''
-  STATUS  TITLE                  ID                 CREATED BY
-  OPEN    First paginated issue  issue-page-1-uuid  dave@example.com
+  STATUS  TITLE                  ID  CREATED BY
+  OPEN    First paginated issue  1   dave@example.com
   Note: More issues available (use --cursor to paginate)
   '''
 # ---
@@ -164,7 +164,7 @@
     'context': 'Additional diagnostic information here.',
     'created_by_email': 'engineer@example.com',
     'description': 'The pipeline failed with a critical error during execution.',
-    'id': 'single-issue-uuid-xyz',
+    'id': '1',
     'linked_objects': list([
       dict({
         'run_id': 'run-xyz-789',
@@ -193,7 +193,7 @@
     'context': None,
     'created_by_email': 'owner@example.com',
     'description': 'Updated description after investigation.',
-    'id': 'existing-issue-uuid-xyz',
+    'id': '1',
     'linked_objects': list([
     ]),
     'status': 'CLOSED',
@@ -213,7 +213,7 @@
     'context': 'New context added during update.',
     'created_by_email': 'owner@example.com',
     'description': 'Updated description after investigation.',
-    'id': 'existing-issue-uuid-xyz',
+    'id': '1',
     'linked_objects': list([
     ]),
     'status': 'OPEN',
@@ -238,7 +238,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status OPEN.',
-        'id': 'issue-open-uuid',
+        'id': '1',
         'linked_objects': list([
         ]),
         'status': 'OPEN',
@@ -248,7 +248,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status CLOSED.',
-        'id': 'issue-closed-uuid',
+        'id': '2',
         'linked_objects': list([
         ]),
         'status': 'CLOSED',
@@ -258,7 +258,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status TRIAGE.',
-        'id': 'issue-triage-uuid',
+        'id': '3',
         'linked_objects': list([
         ]),
         'status': 'TRIAGE',
@@ -269,7 +269,7 @@
 # ---
 # name: TestListIssuesGraphQLVariables.test_combined_filters[0]
   dict({
-    'cursor': 'some-cursor',
+    'cursor': '3',
     'filters': dict({
       'createdAfter': 1700000000.0,
       'createdBefore': 1710000000.0,
@@ -329,7 +329,7 @@
 # ---
 # name: TestRemoveLinkFromIssueGraphQLVariables.test_with_asset_key[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'assetKey': dict({
         'path': list([
@@ -342,7 +342,7 @@
 # ---
 # name: TestRemoveLinkFromIssueGraphQLVariables.test_with_both[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'assetKey': dict({
         'path': list([
@@ -356,7 +356,7 @@
 # ---
 # name: TestRemoveLinkFromIssueGraphQLVariables.test_with_run_id[0]
   dict({
-    'issueId': 'issue-uuid-123',
+    'issueId': '1',
     'linkedObject': dict({
       'runId': 'run-abc-456',
     }),

@@ -24,9 +24,14 @@ class RecordingClient(IGraphQLClient):
         self.real_client = real_client
         self.recorded_responses = []
 
-    def execute(self, query: str, variables: Mapping[str, Any] | None = None) -> dict:
+    def execute_generic(
+        self,
+        query: str,
+        operation_name: str | None = None,
+        variables: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute query on real client and record the response."""
-        response = self.real_client.execute(query, variables)
+        response = self.real_client.execute_generic(query, operation_name, variables)
         self.recorded_responses.append(response)
         return response
 
@@ -113,7 +118,12 @@ def record_graphql_for_fixture(domain: str, fixture_name: str, command: str) -> 
             from dagster_dg_cli.cli.api.shared import get_config_or_error
 
             config = get_config_or_error()
-            real_client = DagsterPlusGraphQLClient.from_config(config)
+            real_client = DagsterPlusGraphQLClient(
+                url=config.organization_url,
+                api_token=config.user_token,
+                organization=config.organization,
+                deployment=config.default_deployment,
+            )
         except Exception as e:
             raise click.ClickException(
                 f"Failed to create GraphQL client for recording: {e}\n"

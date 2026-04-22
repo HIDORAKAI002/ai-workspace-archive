@@ -1550,7 +1550,10 @@ class TestAssetAwareEventLog(ExecutingGraphQLContextTestMatrix):
         assert len(materializations) == 1
         first_timestamp = int(materializations[0]["timestamp"])
 
-        as_of_timestamp = first_timestamp + 1
+        # Use +2 instead of +1 to account for a potential 1ms discrepancy between
+        # int() truncation in the GraphQL timestamp and datetime.fromtimestamp() rounding
+        # in the DB timestamp column.
+        as_of_timestamp = first_timestamp + 2
 
         time.sleep(1.1)
         _create_run(graphql_context, "asset_tag_job")

@@ -159,7 +159,7 @@ def get_run_events_via_graphql(
         if after_cursor:
             variables["afterCursor"] = after_cursor
 
-        result = client.execute(RUN_EVENTS_QUERY, variables)
+        result = client.execute_generic(RUN_EVENTS_QUERY, variables=variables)
         logs_result = result.get("logsForRun")
         if not logs_result:
             raise Exception("Empty response from GraphQL API")
@@ -188,7 +188,7 @@ def get_run_events_via_graphql(
         if cursor:
             variables["afterCursor"] = cursor
 
-        result = client.execute(RUN_EVENTS_QUERY, variables)
+        result = client.execute_generic(RUN_EVENTS_QUERY, variables=variables)
         logs_result = result.get("logsForRun")
         if not logs_result:
             raise Exception("Empty response from GraphQL API")

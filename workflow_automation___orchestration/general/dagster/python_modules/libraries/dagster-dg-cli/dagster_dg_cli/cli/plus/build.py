@@ -1,11 +1,15 @@
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 from dagster_dg_core.config import DgRawBuildConfig, merge_build_configs
 from dagster_dg_core.context import DgContext
 from dagster_shared import check
 from dagster_shared.plus.config import DagsterPlusCliConfig
+
+if TYPE_CHECKING:
+    from dagster_rest_resources.gql_client import IGraphQLClient
 
 from dagster_dg_cli.cli.plus.constants import DgPlusAgentPlatform, DgPlusAgentType
 from dagster_dg_cli.utils.plus.gql import DEPLOYMENT_INFO_QUERY
@@ -26,9 +30,9 @@ def get_dockerfile_path(
 
 
 def get_agent_type_and_platform_from_graphql(
-    gql_client,
+    gql_client: "IGraphQLClient",
 ) -> tuple[DgPlusAgentType, DgPlusAgentPlatform]:
-    result = gql_client.execute(DEPLOYMENT_INFO_QUERY)
+    result = gql_client.execute_generic(DEPLOYMENT_INFO_QUERY)
 
     agent_type = DgPlusAgentType(result["currentDeployment"]["agentType"])
 
@@ -59,7 +63,12 @@ def get_agent_type(cli_config: DagsterPlusCliConfig | None = None) -> DgPlusAgen
     if cli_config:
         from dagster_rest_resources.gql_client import DagsterPlusGraphQLClient
 
-        gql_client = DagsterPlusGraphQLClient.from_config(cli_config)
+        gql_client = DagsterPlusGraphQLClient(
+            url=cli_config.organization_url,
+            api_token=cli_config.user_token,
+            organization=cli_config.organization,
+            deployment=cli_config.default_deployment,
+        )
         return get_agent_type_and_platform_from_graphql(gql_client)[0]
 
     else:

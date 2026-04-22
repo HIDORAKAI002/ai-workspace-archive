@@ -14,7 +14,12 @@ class ReplayClient(DagsterPlusGraphQLClient):
         self.responses = responses
         self.call_index = 0
 
-    def execute(self, query: str, variables: Mapping[str, Any] | None = None) -> dict:
+    def execute_generic(
+        self,
+        query: str,
+        operation_name: str | None = None,
+        variables: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Return next recorded response."""
         if self.call_index >= len(self.responses):
             raise ValueError(f"Exhausted {len(self.responses)} responses")

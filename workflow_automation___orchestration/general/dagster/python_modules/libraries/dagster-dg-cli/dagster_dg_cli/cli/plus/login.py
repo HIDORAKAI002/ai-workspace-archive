@@ -55,8 +55,13 @@ def login_command(region: str | None) -> None:
     config.write()
     click.echo(f"Authorized for organization {new_org}\n")
 
-    gql_client = DagsterPlusGraphQLClient.from_config(config)
-    result = gql_client.execute(FULL_DEPLOYMENTS_QUERY)
+    gql_client = DagsterPlusGraphQLClient(
+        url=config.organization_url,
+        api_token=config.user_token,
+        organization=config.organization,
+        deployment=config.default_deployment,
+    )
+    result = gql_client.execute_generic(FULL_DEPLOYMENTS_QUERY)
     deployment_names = [d["deploymentName"] for d in result["fullDeployments"]]
 
     click.echo("Available deployments: " + ", ".join(deployment_names))

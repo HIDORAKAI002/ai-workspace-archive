@@ -444,7 +444,7 @@ def _fetch_assets_or_error(
     asset_keys: list[dict],
 ) -> list[dict]:
     """Execute an assetsOrError query and return the nodes list."""
-    result = client.execute(query, variables={"assetKeys": asset_keys})
+    result = client.execute_generic(query, variables={"assetKeys": asset_keys})
     assets_or_error = result.get("assetsOrError", {})
     if assets_or_error.get("__typename") == "PythonError":
         raise Exception(f"GraphQL error: {assets_or_error.get('message', 'Unknown error')}")
@@ -466,7 +466,7 @@ def _fetch_one_page_of_records(
     if limit is not None:
         variables["limit"] = limit
 
-    result = client.execute(ASSET_RECORDS_QUERY, variables=variables)
+    result = client.execute_generic(ASSET_RECORDS_QUERY, variables=variables)
     asset_records_or_error = result.get("assetRecordsOrError", {})
     if asset_records_or_error.get("__typename") == "PythonError":
         raise Exception(f"GraphQL error: {asset_records_or_error.get('message', 'Unknown error')}")
@@ -645,7 +645,7 @@ def get_asset_events_via_graphql(
 
     variables["limit"] = limit
 
-    result = client.execute(query, variables=variables)
+    result = client.execute_generic(query, variables=variables)
     assets_or_error = result.get("assetsOrError", {})
     if assets_or_error.get("__typename") == "PythonError":
         raise Exception(f"GraphQL error: {assets_or_error.get('message', 'Unknown error')}")
@@ -745,7 +745,7 @@ def get_asset_evaluations_via_graphql(
     if cursor:
         variables["cursor"] = cursor
 
-    result = client.execute(ASSET_CONDITION_EVALUATIONS_QUERY, variables=variables)
+    result = client.execute_generic(ASSET_CONDITION_EVALUATIONS_QUERY, variables=variables)
     records_or_error = result.get("assetConditionEvaluationRecordsOrError", {})
 
     if records_or_error.get("__typename") == "AutoMaterializeAssetEvaluationNeedsMigrationError":
@@ -818,7 +818,7 @@ def get_asset_partition_status_via_graphql(
 ) -> DgApiPartitionStats:
     """Fetch partition materialization stats for an asset."""
     variables = {"assetKey": {"path": asset_key_parts}}
-    result = client.execute(ASSET_PARTITION_STATUS_QUERY, variables)
+    result = client.execute_generic(ASSET_PARTITION_STATUS_QUERY, variables=variables)
 
     asset_node = result.get("assetNodeOrError")
     if not asset_node:

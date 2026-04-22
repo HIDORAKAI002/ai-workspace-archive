@@ -20,7 +20,7 @@ from dagster_dg_cli.cli.response_schema import dg_response_schema
     help="Output in JSON format for machine readability",
 )
 @dg_response_schema(
-    module="dagster_rest_resources.schemas.organization", cls="OrganizationSettings"
+    module="dagster_rest_resources.schemas.organization", cls="DgApiOrganizationSettings"
 )
 @dg_api_options(organization_scoped=True)
 @cli_telemetry_wrapper
@@ -91,9 +91,7 @@ def set_settings_command(
     api = DgApiOrganizationApi(client)
 
     with handle_api_errors(ctx, output_json):
-        from dagster_rest_resources.schemas.organization import OrganizationSettings
-
-        settings = api.update_organization_settings(OrganizationSettings(settings=settings_dict))
+        settings = api.update_organization_settings(settings_dict)
         output = format_organization_settings(settings, as_json=output_json)
         click.echo(output)
 

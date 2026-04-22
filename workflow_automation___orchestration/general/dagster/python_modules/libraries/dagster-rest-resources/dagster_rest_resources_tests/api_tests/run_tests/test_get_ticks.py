@@ -99,7 +99,7 @@ def _make_schedule_ticks_response(ticks):
 class TestFindSelectorForName:
     def test_finds_sensor(self):
         client = MagicMock()
-        client.execute.return_value = _REPOS_RESPONSE
+        client.execute_generic.return_value = _REPOS_RESPONSE
 
         selector = _find_selector_for_name(client, "my_sensor", "sensor")
         assert selector["sensorName"] == "my_sensor"
@@ -108,14 +108,14 @@ class TestFindSelectorForName:
 
     def test_finds_schedule(self):
         client = MagicMock()
-        client.execute.return_value = _REPOS_RESPONSE
+        client.execute_generic.return_value = _REPOS_RESPONSE
 
         selector = _find_selector_for_name(client, "my_schedule", "schedule")
         assert selector["scheduleName"] == "my_schedule"
 
     def test_not_found_raises(self):
         client = MagicMock()
-        client.execute.return_value = _REPOS_RESPONSE
+        client.execute_generic.return_value = _REPOS_RESPONSE
 
         try:
             _find_selector_for_name(client, "nonexistent", "sensor")
@@ -125,7 +125,7 @@ class TestFindSelectorForName:
 
     def test_multiple_matches_raises(self):
         client = MagicMock()
-        client.execute.return_value = {
+        client.execute_generic.return_value = {
             "repositoriesOrError": {
                 "__typename": "RepositoryConnection",
                 "nodes": [
@@ -178,18 +178,18 @@ class TestProcessTicksResponse:
 class TestGetSensorTicksViaGraphql:
     def test_basic_fetch(self):
         client = MagicMock()
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _REPOS_RESPONSE,
             _make_sensor_ticks_response(_SAMPLE_TICKS),
         ]
 
         result = get_sensor_ticks_via_graphql(client, sensor_name="my_sensor")
         assert len(result.items) == 3
-        assert client.execute.call_count == 2
+        assert client.execute_generic.call_count == 2
 
     def test_passes_filter_variables(self):
         client = MagicMock()
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _REPOS_RESPONSE,
             _make_sensor_ticks_response([]),
         ]
@@ -203,15 +203,15 @@ class TestGetSensorTicksViaGraphql:
         )
 
         # Second call is the ticks query
-        call_args = client.execute.call_args_list[1]
-        variables = call_args[0][1]
+        call_args = client.execute_generic.call_args_list[1]
+        variables = call_args.kwargs["variables"]
         assert variables["limit"] == 10
         assert variables["statuses"] == ["SUCCESS"]
         assert variables["beforeTimestamp"] == 1700000000.0
 
     def test_sensor_not_found(self):
         client = MagicMock()
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _REPOS_RESPONSE,
             {
                 "sensorOrError": {
@@ -231,7 +231,7 @@ class TestGetSensorTicksViaGraphql:
 class TestGetScheduleTicksViaGraphql:
     def test_basic_fetch(self):
         client = MagicMock()
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _REPOS_RESPONSE,
             _make_schedule_ticks_response(_SAMPLE_TICKS),
         ]

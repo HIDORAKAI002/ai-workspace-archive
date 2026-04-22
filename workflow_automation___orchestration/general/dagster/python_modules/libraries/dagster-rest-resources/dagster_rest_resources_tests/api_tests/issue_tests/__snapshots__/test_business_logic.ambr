@@ -8,7 +8,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status OPEN.',
-        'id': 'issue-open-uuid',
+        'id': '1',
         'linked_objects': list([
         ]),
         'status': 'OPEN',
@@ -18,7 +18,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status CLOSED.',
-        'id': 'issue-closed-uuid',
+        'id': '2',
         'linked_objects': list([
         ]),
         'status': 'CLOSED',
@@ -28,7 +28,7 @@
         'context': None,
         'created_by_email': 'test@example.com',
         'description': 'Test issue for status TRIAGE.',
-        'id': 'issue-triage-uuid',
+        'id': '3',
         'linked_objects': list([
         ]),
         'status': 'TRIAGE',

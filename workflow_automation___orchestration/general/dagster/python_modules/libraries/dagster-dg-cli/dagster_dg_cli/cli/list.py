@@ -497,11 +497,16 @@ def _get_dagster_plus_keys(
         return None
 
     scopes_for_key = defaultdict(lambda: DagsterPlusScopesForVariable(False, False, False))
-    gql_client = DagsterPlusGraphQLClient.from_config(config)
+    gql_client = DagsterPlusGraphQLClient(
+        url=config.organization_url,
+        api_token=config.user_token,
+        organization=config.organization,
+        deployment=config.default_deployment,
+    )
 
-    secrets_by_location = gql_client.execute(
+    secrets_by_location = gql_client.execute_generic(
         gql.GET_SECRETS_FOR_SCOPES_QUERY_NO_VALUE,
-        {
+        variables={
             "locationName": location_name,
             "scopes": {
                 "fullDeploymentScope": True,

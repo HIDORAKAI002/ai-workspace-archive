@@ -50,7 +50,12 @@ def _resolve_config_for_github_actions(
     agent_platform = None
     if plus_config:
         try:
-            gql_client = DagsterPlusGraphQLClient.from_config(plus_config)
+            gql_client = DagsterPlusGraphQLClient(
+                url=plus_config.organization_url,
+                api_token=plus_config.user_token,
+                organization=plus_config.organization,
+                deployment=plus_config.default_deployment,
+            )
             agent_type, agent_platform = get_agent_type_and_platform_from_graphql(gql_client)
         except Exception:
             pass

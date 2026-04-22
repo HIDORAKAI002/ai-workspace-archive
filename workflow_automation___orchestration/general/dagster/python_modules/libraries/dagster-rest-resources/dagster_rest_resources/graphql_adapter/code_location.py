@@ -98,13 +98,13 @@ def process_code_locations_response(
 
 def fetch_location_statuses(client: IGraphQLClient) -> dict[str, str]:
     """Fetch location statuses and return a name->loadStatus mapping."""
-    result = client.execute(LOCATION_STATUSES_QUERY, {})
+    result = client.execute_generic(LOCATION_STATUSES_QUERY, variables={})
     return process_location_statuses_response(result)
 
 
 def list_code_locations_via_graphql(client: IGraphQLClient) -> "DgApiCodeLocationList":
     """List code locations using GraphQL."""
-    result = client.execute(LIST_CODE_LOCATIONS_QUERY, {})
+    result = client.execute_generic(LIST_CODE_LOCATIONS_QUERY, variables={})
     statuses = fetch_location_statuses(client)
     return process_code_locations_response(result, statuses=statuses)
 
@@ -169,9 +169,9 @@ def add_code_location_via_graphql(
     document: "DgApiCodeLocationDocument",
 ) -> "DgApiAddCodeLocationResult":
     """Add or update a code location using GraphQL."""
-    result = client.execute(
+    result = client.execute_generic(
         ADD_OR_UPDATE_LOCATION_FROM_DOCUMENT_MUTATION,
-        {"document": document.to_document_dict()},
+        variables={"document": document.to_document_dict()},
     )
     response_data = result.get("addOrUpdateLocationFromDocument", {})
     return process_add_location_response(response_data)
@@ -218,9 +218,9 @@ def delete_code_location_via_graphql(
     location_name: str,
 ) -> "DgApiDeleteCodeLocationResult":
     """Delete a code location using GraphQL."""
-    result = client.execute(
+    result = client.execute_generic(
         DELETE_LOCATION_MUTATION,
-        {"locationName": location_name},
+        variables={"locationName": location_name},
     )
     response_data = result.get("deleteLocation", {})
     return process_delete_location_response(response_data)

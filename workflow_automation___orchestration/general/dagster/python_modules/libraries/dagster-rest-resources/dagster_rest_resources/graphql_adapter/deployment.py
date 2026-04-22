@@ -106,7 +106,7 @@ def get_deployment_settings_via_graphql(
     client: IGraphQLClient,
 ) -> "DeploymentSettings":
     """Fetch deployment settings using GraphQL."""
-    result = client.execute(GET_DEPLOYMENT_SETTINGS_QUERY)
+    result = client.execute_generic(GET_DEPLOYMENT_SETTINGS_QUERY)
     # execute() returns {"deploymentSettings": {"settings": {...}}},
     # unwrap the top-level query key before processing
     settings_data = result.get("deploymentSettings", {})
@@ -118,9 +118,9 @@ def set_deployment_settings_via_graphql(
     settings: dict[str, Any],
 ) -> "DeploymentSettings":
     """Set deployment settings using GraphQL."""
-    result = client.execute(
+    result = client.execute_generic(
         SET_DEPLOYMENT_SETTINGS_MUTATION,
-        {"deploymentSettings": settings},
+        variables={"deploymentSettings": settings},
     )
     return process_set_deployment_settings_response(result)
 
@@ -160,7 +160,7 @@ def list_deployments_via_graphql(
     """Fetch deployments using GraphQL.
     This is an implementation detail that can be replaced with REST calls later.
     """
-    result = client.execute(LIST_DEPLOYMENTS_QUERY)
+    result = client.execute_generic(LIST_DEPLOYMENTS_QUERY)
 
     deployment_list = process_deployments_response(result)
 
@@ -209,7 +209,7 @@ def list_branch_deployments_via_graphql(
     if pull_request_status is not None:
         variables["pullRequestStatus"] = pull_request_status
 
-    result = client.execute(LIST_BRANCH_DEPLOYMENTS_QUERY, variables)
+    result = client.execute_generic(LIST_BRANCH_DEPLOYMENTS_QUERY, variables=variables)
 
     # execute() returns {"branchDeployments": {"nodes": [...]}},
     # so we need to unwrap the top-level key
@@ -289,7 +289,9 @@ def delete_deployment_via_graphql(
     deployment_id: int,
 ) -> "Deployment":
     """Delete a deployment using GraphQL."""
-    result = client.execute(DELETE_DEPLOYMENT_MUTATION, {"deploymentId": deployment_id})
+    result = client.execute_generic(
+        DELETE_DEPLOYMENT_MUTATION, variables={"deploymentId": deployment_id}
+    )
     deployment_data = result.get("deleteDeployment", {})
     return process_delete_deployment_response(deployment_data)
 
@@ -302,6 +304,6 @@ def get_deployment_by_name_via_graphql(
     This is an implementation detail that can be replaced with REST calls later.
     """
     variables = {"deploymentName": name}
-    result = client.execute(GET_DEPLOYMENT_QUERY, variables)
+    result = client.execute_generic(GET_DEPLOYMENT_QUERY, variables=variables)
 
     return process_deployment_response(result)
