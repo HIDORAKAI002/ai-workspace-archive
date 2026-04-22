@@ -468,12 +468,32 @@ Get statistics for a memory bank (node/link counts).
 
 ### update_bank
 
-Update a memory bank's metadata.
+Update a memory bank's configuration. Updates the bank's name and/or any bank-level configuration fields — only provided fields are updated; omitted fields remain unchanged.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `name` | string | No | New human-friendly name for the bank |
-| `mission` | string | No | New mission describing who the agent is and what they're trying to accomplish |
+| `name` | string | No | Human-friendly display name for the bank |
+| `mission` | string | No | **Deprecated** — alias for `config_updates.reflect_mission` |
+| `config_updates` | object | No | Dictionary of configuration fields to update. Supports all bank-configurable fields (see below). Non-configurable or credential fields are rejected |
+
+The `config_updates` object accepts any bank-configurable field by its Python field name, including:
+
+- `reflect_mission` — mission/context for Reflect operations
+- `retain_mission` — steers what gets extracted during `retain()`
+- `retain_extraction_mode` — `concise` (default), `verbose`, or `custom`
+- `retain_custom_instructions` — custom extraction prompt (active when mode is `custom`)
+- `retain_chunk_size` — maximum token size for each content chunk
+- `retain_chunk_batch_size` — number of chunks to process in parallel
+- `enable_observations` — toggle observation consolidation after `retain()`
+- `observations_mission` — controls observation synthesis rules
+- `disposition_skepticism` — critical evaluation level (1–5)
+- `disposition_literalism` — literal vs. abstract interpretation (1–5)
+- `disposition_empathy` — emotional context consideration (1–5)
+- `entity_labels` — controlled vocabulary for entity classification
+- `entities_allow_free_form` — allow labels outside `entity_labels`
+- `recall_include_chunks` — include raw chunks in recall results
+- `recall_max_tokens` — max tokens for recall results
+- `mcp_enabled_tools` — tool allowlist for this bank
 
 ---
 

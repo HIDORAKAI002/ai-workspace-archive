@@ -100,6 +100,11 @@ export function DocumentsView() {
   const [tagInput, setTagInput] = useState("");
   const [savingTags, setSavingTags] = useState(false);
 
+  // Content editing state
+  const [editingContent, setEditingContent] = useState(false);
+  const [contentInput, setContentInput] = useState("");
+  const [savingContent, setSavingContent] = useState(false);
+
   // Delete confirmation dialog state
   const [documentToDelete, setDocumentToDelete] = useState<{
     id: string;
@@ -143,6 +148,8 @@ export function DocumentsView() {
     setSelectedDocument({ id: documentId }); // Set placeholder to show loading
     setEditingTags(false);
     setTagInput("");
+    setEditingContent(false);
+    setContentInput("");
 
     try {
       const doc: any = await client.getDocument(documentId, currentBank);
@@ -199,6 +206,56 @@ export function DocumentsView() {
   const cancelEditTags = () => {
     setEditingTags(false);
     setTagInput("");
+  };
+
+  const startEditContent = () => {
+    setContentInput(selectedDocument?.original_text ?? "");
+    setEditingContent(true);
+  };
+
+  const cancelEditContent = () => {
+    setEditingContent(false);
+    setContentInput("");
+  };
+
+  const saveDocumentContent = async () => {
+    if (!currentBank || !selectedDocument) return;
+
+    const newContent = contentInput;
+    if (!newContent.trim()) return;
+
+    const retainParams = selectedDocument.retain_params ?? {};
+    const item: Parameters<typeof client.retain>[0]["items"][number] = {
+      content: newContent,
+      document_id: selectedDocument.id,
+    };
+    if (retainParams.context) item.context = retainParams.context;
+    if (retainParams.event_date) item.timestamp = retainParams.event_date;
+    if (retainParams.metadata && Object.keys(retainParams.metadata).length > 0) {
+      item.metadata = retainParams.metadata;
+    }
+    if (selectedDocument.tags && selectedDocument.tags.length > 0) {
+      item.tags = selectedDocument.tags;
+    }
+
+    setSavingContent(true);
+    try {
+      await client.retain({
+        bank_id: currentBank,
+        items: [item],
+        async: false,
+      });
+      // Refresh the document and the list
+      const doc: any = await client.getDocument(selectedDocument.id, currentBank);
+      setSelectedDocument(doc);
+      setEditingContent(false);
+      setContentInput("");
+      loadDocuments(currentPage);
+    } catch (error) {
+      console.error("Error updating document content:", error);
+    } finally {
+      setSavingContent(false);
+    }
   };
 
   const saveDocumentTags = async () => {
@@ -279,6 +336,7 @@ export function DocumentsView() {
                   <TableRow>
                     <TableHead>Document ID</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Updated</TableHead>
                     <TableHead>Tags</TableHead>
                     <TableHead>Metadata</TableHead>
                     <TableHead>Size</TableHead>
@@ -301,6 +359,12 @@ export function DocumentsView() {
                           title={doc.created_at ? new Date(doc.created_at).toLocaleString() : ""}
                         >
                           {doc.created_at ? formatRelativeTime(doc.created_at) : "N/A"}
+                        </TableCell>
+                        <TableCell
+                          className="text-card-foreground"
+                          title={doc.updated_at ? new Date(doc.updated_at).toLocaleString() : ""}
+                        >
+                          {doc.updated_at ? formatRelativeTime(doc.updated_at) : "N/A"}
                         </TableCell>
                         <TableCell className="text-card-foreground">
                           {doc.tags && doc.tags.length > 0 ? (
@@ -341,7 +405,7 @@ export function DocumentsView() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center">
+                      <TableCell colSpan={7} className="text-center">
                         Click "Load Documents" to view data
                       </TableCell>
                     </TableRow>
@@ -452,7 +516,7 @@ export function DocumentsView() {
                   </div>
                 </div>
 
-                {/* Created & Memory Units */}
+                {/* Created, Updated & Memory Units */}
                 {selectedDocument.created_at && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-muted/50 rounded-lg">
@@ -463,6 +527,16 @@ export function DocumentsView() {
                         {new Date(selectedDocument.created_at).toLocaleString()}
                       </div>
                     </div>
+                    {selectedDocument.updated_at && (
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                          Updated
+                        </div>
+                        <div className="text-sm font-medium text-card-foreground">
+                          {new Date(selectedDocument.updated_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
                     <div className="p-4 bg-muted/50 rounded-lg">
                       <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
                         Memory Units
@@ -613,16 +687,69 @@ export function DocumentsView() {
                 </div>
 
                 {/* Original Text */}
-                {selectedDocument.original_text && (
+                {selectedDocument.original_text !== undefined && (
                   <div>
-                    <div className="text-xs font-bold text-muted-foreground uppercase mb-2">
-                      Original Text
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs font-bold text-muted-foreground uppercase">
+                        Original Text
+                      </div>
+                      {!editingContent && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={startEditContent}
+                          className="h-6 px-2 gap-1 text-xs"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Edit
+                        </Button>
+                      )}
                     </div>
-                    <div className="p-4 bg-muted/50 rounded-lg border border-border max-h-[400px] overflow-y-auto">
-                      <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed text-card-foreground">
-                        {selectedDocument.original_text}
-                      </pre>
-                    </div>
+                    {editingContent ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={contentInput}
+                          onChange={(e) => setContentInput(e.target.value)}
+                          className="w-full min-h-[300px] max-h-[500px] p-4 bg-muted/50 rounded-lg border border-border text-sm font-mono leading-relaxed text-card-foreground resize-y"
+                          autoFocus
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Saving will re-ingest this document via retain (upsert). Existing memory
+                          units for this document will be replaced.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={saveDocumentContent}
+                            disabled={savingContent || !contentInput.trim()}
+                            className="h-7 px-3 gap-1 text-xs"
+                          >
+                            {savingContent ? (
+                              <span className="animate-spin">⏳</span>
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                            Save
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={cancelEditContent}
+                            disabled={savingContent}
+                            className="h-7 px-3 gap-1 text-xs"
+                          >
+                            <X className="h-3 w-3" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border max-h-[400px] overflow-y-auto">
+                        <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed text-card-foreground">
+                          {selectedDocument.original_text}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -8,6 +8,7 @@ of the recall pipeline.
 
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 from .tags import TagGroup, TagsMatch
 from .types import GraphRetrievalTimings, RetrievalResult
@@ -45,6 +46,8 @@ class GraphRetriever(ABC):
         tags: list[str] | None = None,  # Visibility scope tags for filtering
         tags_match: TagsMatch = "any",  # How to match tags: 'any' (OR) or 'all' (AND)
         tag_groups: list[TagGroup] | None = None,  # Compound boolean tag filter groups
+        created_after: datetime | None = None,  # Only include memory_units created after this time
+        created_before: datetime | None = None,  # Only include memory_units created before this time
     ) -> tuple[list[RetrievalResult], GraphRetrievalTimings | None]:
         """
         Retrieve relevant facts via graph traversal.

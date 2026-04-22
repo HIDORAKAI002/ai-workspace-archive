@@ -654,7 +654,15 @@ async def run_reflect_agent(
 
         # No tool calls - LLM wants to respond with text
         if not result.tool_calls:
-            if result.content:
+            # When directives are present but no evidence has been gathered,
+            # the LLM tends to echo directive content verbatim as its answer.
+            # Fall through to the final-prompt path which doesn't include
+            # directives and handles "no data" gracefully.
+            has_gathered_evidence = (
+                bool(available_memory_ids) or bool(available_mental_model_ids) or bool(available_observation_ids)
+            )
+            directive_leak_risk = directives and not has_gathered_evidence
+            if result.content and not directive_leak_risk:
                 answer = _clean_answer_text(result.content.strip())
 
                 # The call_with_tools call above is intentionally uncapped so the

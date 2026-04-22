@@ -142,14 +142,37 @@ class HindsightEmbedded:
         self._memories_api: Optional[MemoriesAPI] = None
 
     def _ensure_started(self):
-        """Ensure daemon is running (thread-safe)."""
+        """Ensure daemon is running (thread-safe), restarting if crashed."""
         if self._started and self._client is not None:
-            return
+            if self._manager.is_running(self.profile):
+                return
+            # Daemon crashed — reset state and fall through to restart
+            logger.warning(
+                "Daemon for profile '%s' is no longer responsive, restarting...",
+                self.profile,
+            )
+            try:
+                self._client.close()
+            except Exception:
+                logger.debug("Error closing stale client", exc_info=True)
+            self._client = None
+            self._started = False
 
         with self._lock:
             # Double-check after acquiring lock
             if self._started and self._client is not None:
-                return
+                if self._manager.is_running(self.profile):
+                    return
+                logger.warning(
+                    "Daemon for profile '%s' is no longer responsive (lock path), restarting...",
+                    self.profile,
+                )
+                try:
+                    self._client.close()
+                except Exception:
+                    logger.debug("Error closing stale client", exc_info=True)
+                self._client = None
+                self._started = False
 
             if self._closed:
                 raise RuntimeError(
@@ -253,23 +276,10 @@ class HindsightEmbedded:
         This allows HindsightEmbedded to expose all HindsightClient methods
         without manually wrapping each one.
         """
-        # Ensure server is started before proxying
+        # Ensure server is started (and restart if crashed) before proxying
         self._ensure_started()
 
-        # Get the attribute from the underlying client
-        attr = getattr(self._client, name)
-
-        # If it's a callable, wrap it to ensure server is started
-        # (shouldn't be needed since _ensure_started already called, but defensive)
-        if callable(attr):
-
-            def wrapper(*args, **kwargs):
-                self._ensure_started()
-                return attr(*args, **kwargs)
-
-            return wrapper
-
-        return attr
+        return getattr(self._client, name)
 
     def __enter__(self):
         """Context manager entry - ensures server is started."""
@@ -394,11 +404,8 @@ class HindsightEmbedded:
         """
         Get the underlying Hindsight client for direct access.
 
-        WARNING: Using this property directly means daemon restarts won't be
-        handled automatically. Prefer using the API namespaces (banks, mental_models,
-        directives, memories) or direct method calls on HindsightEmbedded instead.
-
-        Ensures daemon is started before returning the client.
+        Ensures daemon is started (and restarts it if it has crashed) before
+        returning the client.
 
         Returns:
             Hindsight: The underlying client instance
@@ -409,9 +416,8 @@ class HindsightEmbedded:
 
             embedded = HindsightEmbedded(profile="myapp", ...)
 
-            # Direct access (not recommended - daemon crashes won't be handled)
             client = embedded.client
-            banks = client.list_banks()  # If daemon crashes, this will fail
+            banks = client.list_banks()
             ```
         """
         self._ensure_started()
@@ -425,8 +431,13 @@ class HindsightEmbedded:
 
     @property
     def is_running(self) -> bool:
-        """Check if the client is initialized."""
-        return self._started and not self._closed and self._client is not None
+        """Check if the client is initialized and the daemon is responsive."""
+        return (
+            self._started
+            and not self._closed
+            and self._client is not None
+            and self._manager.is_running(self.profile)
+        )
 
     @property
     def ui_url(self) -> str:

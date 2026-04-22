@@ -97,7 +97,7 @@ This ensures memories survive context window trimming.
       "recallTags": [],
       "recallTagsMatch": "any",
       "retainTags": [],
-      "retainEveryNTurns": 10,
+      "retainEveryNTurns": 3,
       "debug": false
     }]
   ]

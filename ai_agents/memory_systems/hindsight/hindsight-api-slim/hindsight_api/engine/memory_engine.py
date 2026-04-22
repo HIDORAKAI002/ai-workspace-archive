@@ -2514,6 +2514,8 @@ class MemoryEngine(MemoryEngineInterface):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
         _connection_budget: int | None = None,
         _quiet: bool = False,
     ) -> RecallResultModel:
@@ -2659,6 +2661,8 @@ class MemoryEngine(MemoryEngineInterface):
                             tags=tags,
                             tags_match=tags_match,
                             tag_groups=tag_groups,
+                            created_after=created_after,
+                            created_before=created_before,
                             connection_budget=_connection_budget,
                             quiet=_quiet,
                             include_source_facts=include_source_facts,
@@ -2787,6 +2791,8 @@ class MemoryEngine(MemoryEngineInterface):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
         connection_budget: int | None = None,
         quiet: bool = False,
         include_source_facts: bool = False,
@@ -2911,6 +2917,8 @@ class MemoryEngine(MemoryEngineInterface):
                         tags=tags,
                         tags_match=tags_match,
                         tag_groups=tag_groups,
+                        created_after=created_after,
+                        created_before=created_before,
                     )
                     parallel_duration = time.time() - parallel_start
             finally:
@@ -5509,6 +5517,8 @@ class MemoryEngine(MemoryEngineInterface):
         recall_include_chunks: bool | None = None,
         recall_max_tokens_override: int | None = None,
         recall_chunks_max_tokens_override: int | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
         _skip_span: bool = False,
     ) -> ReflectResult:
         """
@@ -5546,8 +5556,8 @@ class MemoryEngine(MemoryEngineInterface):
         if self._reflect_llm_config is None:
             raise ValueError("Memory LLM API key not set. Set HINDSIGHT_API_LLM_API_KEY environment variable.")
 
-        # Block reflect when LLM provider is "none"
-        if self._llm_config.provider == "none":
+        # Block reflect when the reflect LLM provider is "none"
+        if self._reflect_llm_config.provider == "none":
             from .providers.none_llm import LLMNotAvailableError
 
             raise LLMNotAvailableError(
@@ -5661,6 +5671,8 @@ class MemoryEngine(MemoryEngineInterface):
                 last_consolidated_at=last_consolidated_at,
                 pending_consolidation=pending_consolidation,
                 source_facts_max_tokens=reflect_source_facts_max_tokens,
+                created_after=created_after,
+                created_before=created_before,
             )
 
         # Determine which tools to enable based on fact_types and exclude_mental_models
@@ -5688,6 +5700,8 @@ class MemoryEngine(MemoryEngineInterface):
                 max_chunk_tokens=max_chunk_tokens,
                 fact_types=recall_fact_types if fact_types is not None else None,
                 include_chunks=effective_recall_include_chunks,
+                created_after=created_after,
+                created_before=created_before,
             )
 
         async def expand_fn(memory_ids: list[str], depth: str) -> dict[str, Any]:
@@ -7077,9 +7091,26 @@ class MemoryEngine(MemoryEngineInterface):
 
             # Run reflect with the source query, excluding the mental model being refreshed
             # Skip creating a nested "hindsight.reflect" span since we already have "hindsight.mental_model_refresh"
+            # Build context to guide the reflect agent: tell it what this mental
+            # model is about so it stays on-topic and produces high-quality content.
+            mm_name = mental_model.get("name") or mental_model_id
+            refresh_context = (
+                f'You are writing a document called "{mm_name}". '
+                f"ONLY include content that directly answers the topic query. "
+                f"Discard observations that are tangential or off-topic — retrieval may return "
+                f"loosely related content that does not belong in this document.\n\n"
+                f"Quality guidelines:\n"
+                f"- Preserve concrete examples, before/after pairs, and sample sentences "
+                f"from the observations. These teach more than abstract rules.\n"
+                f"- If observations contain illustrative examples (e.g. ✅/❌ pairs, "
+                f"rewrites, sample phrases), include them in your answer.\n"
+                f"- Structure the document around the topic, not around the sources."
+            )
+
             reflect_kwargs: dict[str, Any] = dict(
                 bank_id=bank_id,
                 query=mental_model["source_query"],
+                context=refresh_context,
                 request_context=request_context,
                 tags=tag_filtering.tags,
                 tags_match=tag_filtering.tags_match,
@@ -7097,6 +7128,17 @@ class MemoryEngine(MemoryEngineInterface):
             stored_max_tokens = mental_model.get("max_tokens")
             if stored_max_tokens is not None:
                 reflect_kwargs["max_tokens"] = stored_max_tokens
+
+            # Delta mode: scope recall to memories created since the last refresh
+            # so the agentic loop only retrieves genuinely new information.
+            if use_delta:
+                last_refreshed_at_raw = mental_model.get("last_refreshed_at")
+                if last_refreshed_at_raw is not None:
+                    if isinstance(last_refreshed_at_raw, str):
+                        reflect_kwargs["created_after"] = datetime.fromisoformat(last_refreshed_at_raw)
+                    else:
+                        reflect_kwargs["created_after"] = last_refreshed_at_raw
+
             reflect_result = await self.reflect_async(**reflect_kwargs)
 
             # Build reflect_response payload to store
@@ -7126,6 +7168,20 @@ class MemoryEngine(MemoryEngineInterface):
                             }
                         )
                 based_on_serialized_payload[fact_type] = serialized_facts
+
+            # In delta mode, based_on must accumulate: the mental model is
+            # grounded on ALL facts ever used, not just the latest delta's new
+            # ones. Merge previous based_on with current, deduplicating by id.
+            if use_delta:
+                prev_rr = mental_model.get("reflect_response") or {}
+                prev_based_on = prev_rr.get("based_on") or {}
+                for ftype, prev_facts in prev_based_on.items():
+                    if not isinstance(prev_facts, list):
+                        continue
+                    new_ids = {f["id"] for f in based_on_serialized_payload.get(ftype, [])}
+                    carried = [f for f in prev_facts if isinstance(f, dict) and f.get("id") not in new_ids]
+                    if carried:
+                        based_on_serialized_payload.setdefault(ftype, []).extend(carried)
 
             reflect_response_payload = {
                 "text": reflect_result.text,
@@ -7178,6 +7234,23 @@ class MemoryEngine(MemoryEngineInterface):
                     supporting_facts: list[dict[str, Any]] = []
                     for _ftype, facts in based_on_serialized_payload.items():
                         supporting_facts.extend(facts)
+
+                    # No new facts since last refresh — skip the delta LLM call
+                    # and preserve existing content unchanged.
+                    if not supporting_facts:
+                        logger.info(
+                            f"[MENTAL_MODELS] Delta refresh for {mental_model_id}: "
+                            "no new facts found, preserving content"
+                        )
+                        reflect_response_payload["delta_applied"] = False
+                        reflect_response_payload["delta_skipped_reason"] = "no_new_facts"
+                        return await self.update_mental_model(
+                            bank_id,
+                            mental_model_id,
+                            reflect_response=reflect_response_payload,
+                            last_refreshed_source_query=current_source_query,
+                            request_context=request_context,
+                        )
 
                     # Op JSON is denser than the rendered markdown — each op
                     # carries the section_id, op type, and a full block payload
@@ -7523,7 +7596,7 @@ class MemoryEngine(MemoryEngineInterface):
             tags_match = "any"  # default: untagged MM is "global", tagged MM matches any overlap
 
         params: list[Any] = [bank_id, last_refreshed_at]
-        where = ["bank_id = $1", "created_at > $2"]
+        where = ["bank_id = $1", "updated_at > $2"]
 
         if mm_tags:
             operator, include_untagged = _parse_tags_match(tags_match)

@@ -655,6 +655,52 @@ class TestContextOverflowBehavior:
         mock_llm.call.assert_called_once()
 
 
+class TestDirectiveLeakageOnEmptyBank:
+    """Test that directives don't leak into the answer when the bank has no data.
+
+    Uses a real LLM to verify the behaviour end-to-end.
+    """
+
+    @pytest.mark.asyncio
+    async def test_directive_not_echoed_on_empty_bank(self, memory, request_context):
+        """When a bank has a directive but zero memories, reflect must NOT
+        parrot the directive text back as its answer.
+        """
+        import uuid
+
+        directive_text = (
+            "When making SEO or content decisions, prefer observed performance data "
+            "over industry best practices. Always check the Content Performance page "
+            "before recommending a format or approach."
+        )
+
+        bank_id = f"test-directive-leak-{uuid.uuid4().hex[:8]}"
+        try:
+            # Ensure bank exists (auto-creates it), but retain nothing.
+            await memory.get_bank_profile(bank_id, request_context=request_context)
+
+            await memory.create_directive(
+                bank_id=bank_id,
+                name="SEO Directive",
+                content=directive_text,
+                request_context=request_context,
+            )
+
+            result = await memory.reflect_async(
+                bank_id=bank_id,
+                query="What content strategy should we use?",
+                request_context=request_context,
+            )
+
+            # The directive content must NOT leak into the answer.
+            assert directive_text not in result.text, (
+                f"Directive content leaked into the answer verbatim. "
+                f"Got: {result.text!r}"
+            )
+        finally:
+            await memory.delete_bank(bank_id, request_context=request_context)
+
+
 class TestContextOverflowIntegration:
     """Integration test: real LLM with a very small max_context_tokens.
 

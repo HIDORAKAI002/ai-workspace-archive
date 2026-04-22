@@ -177,6 +177,7 @@ ENV_EMBEDDINGS_TEI_URL = "HINDSIGHT_API_EMBEDDINGS_TEI_URL"
 ENV_EMBEDDINGS_OPENAI_API_KEY = "HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY"
 ENV_EMBEDDINGS_OPENAI_MODEL = "HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL"
 ENV_EMBEDDINGS_OPENAI_BASE_URL = "HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL"
+ENV_EMBEDDINGS_OPENAI_BATCH_SIZE = "HINDSIGHT_API_EMBEDDINGS_OPENAI_BATCH_SIZE"
 
 # Gemini/Vertex AI embeddings configuration
 ENV_EMBEDDINGS_GEMINI_API_KEY = "HINDSIGHT_API_EMBEDDINGS_GEMINI_API_KEY"
@@ -468,6 +469,7 @@ DEFAULT_EMBEDDINGS_LOCAL_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDINGS_LOCAL_FORCE_CPU = False  # Force CPU mode for local embeddings (avoids MPS/XPC issues on macOS)
 DEFAULT_EMBEDDINGS_LOCAL_TRUST_REMOTE_CODE = False  # Security: disabled by default, required for some models
 DEFAULT_EMBEDDINGS_OPENAI_MODEL = "text-embedding-3-small"
+DEFAULT_EMBEDDINGS_OPENAI_BATCH_SIZE = 100
 DEFAULT_EMBEDDINGS_GEMINI_MODEL = "gemini-embedding-001"
 DEFAULT_EMBEDDINGS_GEMINI_OUTPUT_DIMENSIONALITY = 768
 DEFAULT_EMBEDDING_DIMENSION = 384
@@ -723,6 +725,25 @@ class JsonFormatter(logging.Formatter):
 def _parse_str_list(value: str) -> list[str]:
     """Parse a comma-separated string into a non-empty list of stripped tokens."""
     return [v.strip() for v in value.split(",") if v.strip()]
+
+
+def _parse_positive_int(name: str, raw: str | None, default: int) -> int:
+    """
+    Parse an env var that must be a positive integer (>= 1).
+
+    Falls back to ``default`` when unset/empty. Raises ValueError on non-integer
+    or non-positive values so misconfiguration fails fast instead of triggering
+    infinite loops or zero-step range() calls downstream.
+    """
+    if raw is None or raw == "":
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError as e:
+        raise ValueError(f"{name} must be an integer, got {raw!r}") from e
+    if parsed < 1:
+        raise ValueError(f"{name} must be >= 1, got {parsed}")
+    return parsed
 
 
 def _validate_extraction_mode(mode: str) -> str:
@@ -1068,6 +1089,10 @@ class HindsightConfig:
     webhook_event_types: list[str]  # Event types to deliver globally
     webhook_delivery_poll_interval_seconds: int  # How often the delivery worker polls
 
+    # Defaulted fields (source-compatible additions — existing direct constructor callers keep working).
+    # Keep at the end of the dataclass; Python forbids non-default fields after default fields.
+    embeddings_openai_batch_size: int = DEFAULT_EMBEDDINGS_OPENAI_BATCH_SIZE
+
     # Class-level sets for configuration categorization
 
     # CREDENTIAL_FIELDS: Never exposed via API, never configurable per-tenant/bank
@@ -1376,6 +1401,11 @@ class HindsightConfig:
             in ("true", "1"),
             embeddings_tei_url=os.getenv(ENV_EMBEDDINGS_TEI_URL),
             embeddings_openai_base_url=os.getenv(ENV_EMBEDDINGS_OPENAI_BASE_URL) or None,
+            embeddings_openai_batch_size=_parse_positive_int(
+                ENV_EMBEDDINGS_OPENAI_BATCH_SIZE,
+                os.getenv(ENV_EMBEDDINGS_OPENAI_BATCH_SIZE),
+                DEFAULT_EMBEDDINGS_OPENAI_BATCH_SIZE,
+            ),
             # Cohere embeddings (with backward-compatible fallback to shared API key)
             embeddings_cohere_api_key=os.getenv(ENV_EMBEDDINGS_COHERE_API_KEY) or os.getenv(ENV_COHERE_API_KEY),
             embeddings_cohere_model=os.getenv(ENV_EMBEDDINGS_COHERE_MODEL, DEFAULT_EMBEDDINGS_COHERE_MODEL),

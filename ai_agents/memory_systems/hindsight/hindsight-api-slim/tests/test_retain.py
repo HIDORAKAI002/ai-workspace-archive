@@ -1,6 +1,7 @@
 """
 Test retain function and chunk storage.
 """
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -1117,6 +1118,57 @@ async def test_document_upsert_behavior(memory, request_context):
 
         print(f"✓ Document upsert created v1: {len(v1_units)} units, v2: {len(v2_units)} units")
 
+    finally:
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+@pytest.mark.asyncio
+async def test_document_upsert_preserves_created_at(memory, request_context):
+    """Re-ingesting a document keeps the original created_at; updated_at advances."""
+    bank_id = f"test_upsert_ts_{datetime.now(timezone.utc).timestamp()}"
+    document_id = "timestamp_doc"
+
+    try:
+        await memory.retain_async(
+            bank_id=bank_id,
+            content="Initial content about the project.",
+            document_id=document_id,
+            request_context=request_context,
+        )
+
+        async with memory._pool.acquire() as conn:
+            v1_row = await conn.fetchrow(
+                "SELECT created_at, updated_at FROM documents WHERE id = $1 AND bank_id = $2",
+                document_id,
+                bank_id,
+            )
+        assert v1_row is not None
+        v1_created = v1_row["created_at"]
+        v1_updated = v1_row["updated_at"]
+
+        # Small delay so updated_at can advance visibly
+        await asyncio.sleep(1.1)
+
+        await memory.retain_async(
+            bank_id=bank_id,
+            content="Updated content about the project, with more detail.",
+            document_id=document_id,
+            request_context=request_context,
+        )
+
+        async with memory._pool.acquire() as conn:
+            v2_row = await conn.fetchrow(
+                "SELECT created_at, updated_at FROM documents WHERE id = $1 AND bank_id = $2",
+                document_id,
+                bank_id,
+            )
+        assert v2_row is not None
+        assert v2_row["created_at"] == v1_created, (
+            f"created_at should be preserved across upsert (was {v1_created}, now {v2_row['created_at']})"
+        )
+        assert v2_row["updated_at"] > v1_updated, (
+            f"updated_at should advance on upsert (was {v1_updated}, now {v2_row['updated_at']})"
+        )
     finally:
         await memory.delete_bank(bank_id, request_context=request_context)
 

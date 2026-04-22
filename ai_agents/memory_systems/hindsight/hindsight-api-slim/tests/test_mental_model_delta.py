@@ -309,7 +309,7 @@ class TestDeltaRefreshPlumbing:
         system_msg = llm_calls[0]["messages"][0]["content"]
         user_msg = llm_calls[0]["messages"][1]["content"]
         # Prompt must include the structured doc + supporting facts + the system prompt.
-        assert "minimal patch" in system_msg.lower()
+        assert "integrating" in system_msg.lower()
         assert "operations" in system_msg.lower()
         assert "obs-bob" in user_msg
         assert "Bob joined" in user_msg
@@ -373,7 +373,12 @@ class TestDeltaRefreshPlumbing:
         normalised = first["content"]
 
         # Second refresh: zero ops again → same bytes as first refresh.
-        patch_reflect(memory, text="something completely different from existing")
+        # Must include at least one fact so the no-new-facts short-circuit doesn't fire.
+        patch_reflect(
+            memory,
+            text="something completely different from existing",
+            facts=[{"id": "obs-1", "text": "irrelevant", "type": "observation", "context": None}],
+        )
         patch_llm_call(memory, returns=[])
         second = await memory.refresh_mental_model(
             bank_id=bank_id, mental_model_id=mm["id"], request_context=request_context
@@ -423,7 +428,11 @@ class TestDeltaRefreshPlumbing:
         # Now the second refresh: LLM raises. Refresh must not crash; it should
         # store the candidate markdown.
         candidate = "# Team\n\nFallback candidate from reflect_async.\n"
-        patch_reflect(memory, text=candidate)
+        patch_reflect(
+            memory,
+            text=candidate,
+            facts=[{"id": "obs-new", "text": "some new fact", "type": "observation", "context": None}],
+        )
 
         async def boom(*, messages, **kwargs):
             raise RuntimeError("simulated provider 500")
@@ -482,7 +491,12 @@ class TestDeltaRefreshPlumbing:
         )
 
         # Reflect returns "" — this is the upstream failure mode.
-        patch_reflect(memory, text="")
+        # Must include at least one fact so the no-new-facts short-circuit doesn't fire.
+        patch_reflect(
+            memory,
+            text="",
+            facts=[{"id": "obs-new", "text": "some fact", "type": "observation", "context": None}],
+        )
 
         # Delta call also fails (mirrors the real groq behaviour where empty
         # supporting facts often produce empty / invalid JSON). Refresh then
