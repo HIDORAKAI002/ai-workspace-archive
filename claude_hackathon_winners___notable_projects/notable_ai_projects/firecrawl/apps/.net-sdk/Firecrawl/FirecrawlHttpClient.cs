@@ -57,31 +57,86 @@ internal class FirecrawlHttpClient
     {
         var url = _baseUrl + path;
         var json = JsonSerializer.Serialize(body, JsonOptions);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        if (extraHeaders != null)
+        HttpRequestMessage BuildRequest()
         {
-            foreach (var header in extraHeaders)
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+            ApplyStandardHeaders(request);
+
+            if (extraHeaders != null)
             {
-                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                foreach (var header in extraHeaders)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
             }
+
+            return request;
         }
 
-        return await ExecuteWithRetryAsync<T>(request, cancellationToken);
+        return await ExecuteWithRetryAsync<T>(BuildRequest, cancellationToken);
+    }
+
+    internal async Task<T> PostMultipartAsync<T>(
+        string path,
+        Dictionary<string, string> fields,
+        string fileField,
+        string fileName,
+        string fileContentType,
+        byte[] fileContent,
+        Dictionary<string, string>? extraHeaders = null,
+        CancellationToken cancellationToken = default)
+    {
+        var url = _baseUrl + path;
+
+        HttpRequestMessage BuildRequest()
+        {
+            var content = new MultipartFormDataContent();
+
+            foreach (var kv in fields)
+            {
+                var fieldContent = new StringContent(kv.Value, Encoding.UTF8);
+                fieldContent.Headers.ContentType = null;
+                content.Add(fieldContent, kv.Key);
+            }
+
+            var fileBytes = new ByteArrayContent(fileContent);
+            fileBytes.Headers.ContentType =
+                MediaTypeHeaderValue.Parse(string.IsNullOrWhiteSpace(fileContentType)
+                    ? "application/octet-stream"
+                    : fileContentType);
+            content.Add(fileBytes, fileField, fileName);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+            ApplyStandardHeaders(request);
+
+            if (extraHeaders != null)
+            {
+                foreach (var header in extraHeaders)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+
+            return request;
+        }
+
+        return await ExecuteWithRetryAsync<T>(BuildRequest, cancellationToken);
     }
 
     internal async Task<T> GetAsync<T>(string path, CancellationToken cancellationToken = default)
     {
         var url = _baseUrl + path;
-        var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        return await ExecuteWithRetryAsync<T>(request, cancellationToken);
+        HttpRequestMessage BuildRequest()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            ApplyStandardHeaders(request);
+            return request;
+        }
+
+        return await ExecuteWithRetryAsync<T>(BuildRequest, cancellationToken);
     }
 
     internal async Task<T> GetAbsoluteAsync<T>(string absoluteUrl, CancellationToken cancellationToken = default)
@@ -98,33 +153,47 @@ internal class FirecrawlHttpClient
                 "Refusing to send credentials to a different origin.");
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, absoluteUrl);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        HttpRequestMessage BuildRequest()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, absoluteUrl);
+            ApplyStandardHeaders(request);
+            return request;
+        }
 
-        return await ExecuteWithRetryAsync<T>(request, cancellationToken);
+        return await ExecuteWithRetryAsync<T>(BuildRequest, cancellationToken);
     }
 
     internal async Task<T> DeleteAsync<T>(string path, CancellationToken cancellationToken = default)
     {
         var url = _baseUrl + path;
-        var request = new HttpRequestMessage(HttpMethod.Delete, url);
+
+        HttpRequestMessage BuildRequest()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            ApplyStandardHeaders(request);
+            return request;
+        }
+
+        return await ExecuteWithRetryAsync<T>(BuildRequest, cancellationToken);
+    }
+
+    private void ApplyStandardHeaders(HttpRequestMessage request)
+    {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        return await ExecuteWithRetryAsync<T>(request, cancellationToken);
     }
 
     private async Task<T> ExecuteWithRetryAsync<T>(
-        HttpRequestMessage originalRequest,
+        Func<HttpRequestMessage> requestBuilder,
         CancellationToken cancellationToken)
     {
         var attempt = 0;
 
         while (true)
         {
-            // Clone the request for each attempt (HttpRequestMessage can only be sent once)
-            using var request = await CloneRequestAsync(originalRequest);
+            // Build a fresh request for each attempt (HttpRequestMessage can only be sent once,
+            // and multipart content is not cheaply cloneable).
+            using var request = requestBuilder();
 
             HttpResponseMessage? response = null;
             try
@@ -184,24 +253,6 @@ internal class FirecrawlHttpClient
                 response?.Dispose();
             }
         }
-    }
-
-    private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage original)
-    {
-        var clone = new HttpRequestMessage(original.Method, original.RequestUri);
-
-        if (original.Content != null)
-        {
-            var content = await original.Content.ReadAsStringAsync();
-            clone.Content = new StringContent(content, Encoding.UTF8, "application/json");
-        }
-
-        foreach (var header in original.Headers)
-        {
-            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
-        }
-
-        return clone;
     }
 
     private static string ExtractErrorMessage(string body, int statusCode)

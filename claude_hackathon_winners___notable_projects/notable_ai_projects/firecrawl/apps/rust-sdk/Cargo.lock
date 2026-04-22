@@ -250,7 +250,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "firecrawl"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "mockito",
  "reqwest",
@@ -1106,6 +1106,7 @@ dependencies = [
  "bytes",
  "encoding_rs",
  "futures-core",
+ "futures-util",
  "h2",
  "http",
  "http-body",
