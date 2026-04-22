@@ -682,6 +682,18 @@ describe('prepare invariants', () => {
 })
 
 describe('rich-inline invariants', () => {
+  test('letterSpacing applies inside rich-inline items', () => {
+    const spacing = 3
+    const prepared = prepareRichInline([
+      { text: 'AB', font: FONT, letterSpacing: spacing },
+    ])
+
+    expect(measureRichInlineStats(prepared, 200)).toEqual({
+      lineCount: 1,
+      maxLineWidth: measureWidth('AB', FONT) + spacing,
+    })
+  })
+
   test('non-materializing range walker matches range materialization', () => {
     const prepared = prepareRichInline([
       { text: 'Ship ', font: FONT },
@@ -761,6 +773,179 @@ describe('rich-inline invariants', () => {
 })
 
 describe('layout invariants', () => {
+  test('letterSpacing adds only inter-grapheme gaps, not trailing gaps', () => {
+    const spacing = 4
+
+    const single = layoutWithLines(
+      prepareWithSegments('A', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    )
+    expect(single.lines[0]!.width).toBeCloseTo(measureWidth('A', FONT), 5)
+
+    const pair = layoutWithLines(
+      prepareWithSegments('AB', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    )
+    expect(pair.lines[0]!.width).toBeCloseTo(measureWidth('AB', FONT) + spacing, 5)
+
+    const segmented = layoutWithLines(
+      prepareWithSegments('A B', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    )
+    expect(segmented.lines[0]!.width).toBeCloseTo(measureWidth('A B', FONT) + spacing * 2, 5)
+  })
+
+  test('letterSpacing zero preserves prepared widths', () => {
+    const base = prepareWithSegments('Hello World', FONT)
+    const zero = prepareWithSegments('Hello World', FONT, { letterSpacing: 0 })
+    expect(zero.widths).toEqual(base.widths)
+    expect(zero.breakableFitAdvances).toEqual(base.breakableFitAdvances)
+  })
+
+  test('letterSpacing trims the gap before hanging collapsible spaces', () => {
+    const spacing = 6
+    const lineAWidth = measureWidth('A', FONT)
+    const wrapped = layoutWithLines(
+      prepareWithSegments('A B', FONT, { letterSpacing: spacing }),
+      lineAWidth + 0.1,
+      LINE_HEIGHT,
+    )
+
+    expect(wrapped.lines.map(line => line.text)).toEqual(['A ', 'B'])
+    expect(wrapped.lines[0]!.width).toBeCloseTo(lineAWidth, 5)
+  })
+
+  test('letterSpacing restarts at grapheme line breaks inside a word', () => {
+    const spacing = 5
+    const prepared = prepareWithSegments('abcd', FONT, { letterSpacing: spacing })
+    const twoGraphemesWidth = measureWidth('ab', FONT) + spacing
+    const wrapped = layoutWithLines(prepared, twoGraphemesWidth + spacing + 0.1, LINE_HEIGHT)
+
+    expect(wrapped.lines.map(line => line.text)).toEqual(['ab', 'cd'])
+    expect(wrapped.lines[0]!.width).toBeCloseTo(twoGraphemesWidth, 5)
+    expect(wrapped.lines[1]!.width).toBeCloseTo(twoGraphemesWidth, 5)
+    expect(layout(prepared, twoGraphemesWidth + spacing + 0.1, LINE_HEIGHT).lineCount).toBe(wrapped.lineCount)
+  })
+
+  test('letterSpacing uses the trailing fit gap when wrapping inside a word', () => {
+    const spacing = 5
+    const text = 'abcd'
+    const prepared = prepareWithSegments(text, FONT, { letterSpacing: spacing })
+    const allPaintWidth = measureWidth(text, FONT) + spacing * (getSegmentGraphemes(text).length - 1)
+    const wrapped = layoutWithLines(prepared, allPaintWidth + spacing / 2, LINE_HEIGHT)
+
+    expect(wrapped.lines.map(line => line.text)).toEqual(['abc', 'd'])
+    expect(wrapped.lines[0]!.width).toBeCloseTo(measureWidth('abc', FONT) + spacing * 2, 5)
+  })
+
+  test('letterSpacing trailing fit gap respects combining graphemes', () => {
+    const spacing = 5
+    const text = 'Cafe\u0301 naive'
+    const prepared = prepareWithSegments(text, FONT, { letterSpacing: spacing })
+    const prefixPaintWidth = measureWidth('Cafe\u0301', FONT) + spacing * (getSegmentGraphemes('Cafe\u0301').length - 1)
+    const wrapped = layoutWithLines(prepared, prefixPaintWidth + spacing / 2, LINE_HEIGHT)
+
+    expect(wrapped.lines[0]!.text).toBe('Caf')
+  })
+
+  test('letterSpacing trailing fit gap applies to mixed-direction text', () => {
+    const spacing = 5
+    const text = 'abc אבג def'
+    const prepared = prepareWithSegments(text, FONT, { letterSpacing: spacing })
+    const prefixPaintWidth = measureWidth('abc', FONT) + spacing * 2
+    const wrapped = layoutWithLines(prepared, prefixPaintWidth + spacing / 2, LINE_HEIGHT)
+
+    expect(wrapped.lines[0]!.text).toBe('ab')
+  })
+
+  test('negative letterSpacing tightens inter-grapheme gaps', () => {
+    const spacing = -1.5
+    const line = layoutWithLines(
+      prepareWithSegments('AB', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    ).lines[0]!
+
+    expect(line.width).toBeCloseTo(measureWidth('AB', FONT) + spacing, 5)
+  })
+
+  test('letterSpacing applies across CJK segment boundaries', () => {
+    const spacing = 3
+    const line = layoutWithLines(
+      prepareWithSegments('春天', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    ).lines[0]!
+
+    expect(line.width).toBeCloseTo(measureWidth('春天', FONT) + spacing, 5)
+  })
+
+  test('letterSpacing applies through digits and punctuation', () => {
+    const spacing = 2
+    const text = '24×7, 7:00-9:00?'
+    const line = layoutWithLines(
+      prepareWithSegments(text, FONT, { letterSpacing: spacing }),
+      300,
+      LINE_HEIGHT,
+    ).lines[0]!
+    const gapCount = getSegmentGraphemes(text).length - 1
+
+    expect(line.width).toBeCloseTo(measureWidth(text, FONT) + spacing * gapCount, 5)
+  })
+
+  test('letterSpacing applies through RTL punctuation runs', () => {
+    const spacing = 2
+    const text = 'مرحبا، عالم؟'
+    const line = layoutWithLines(
+      prepareWithSegments(text, FONT, { letterSpacing: spacing }),
+      300,
+      LINE_HEIGHT,
+    ).lines[0]!
+    const gapCount = getSegmentGraphemes(text).length - 1
+
+    expect(line.width).toBeCloseTo(measureWidth(text, FONT) + spacing * gapCount, 5)
+  })
+
+  test('letterSpacing applies across emoji graphemes', () => {
+    const spacing = 2
+    const line = layoutWithLines(
+      prepareWithSegments('A😀B', FONT, { letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    ).lines[0]!
+
+    expect(line.width).toBeCloseTo(measureWidth('A😀B', FONT) + spacing * 2, 5)
+  })
+
+  test('letterSpacing stays line-local across hard breaks', () => {
+    const spacing = 4
+    const lines = layoutWithLines(
+      prepareWithSegments('A\nB', FONT, { whiteSpace: 'pre-wrap', letterSpacing: spacing }),
+      200,
+      LINE_HEIGHT,
+    ).lines
+
+    expect(lines.map(line => line.text)).toEqual(['A', 'B'])
+    expect(lines[0]!.width).toBeCloseTo(measureWidth('A', FONT), 5)
+    expect(lines[1]!.width).toBeCloseTo(measureWidth('B', FONT), 5)
+  })
+
+  test('letterSpacing participates in pre-wrap tab positioning', () => {
+    const spacing = 4
+    const text = 'A\tB'
+    const prepared = prepareWithSegments(text, FONT, { whiteSpace: 'pre-wrap', letterSpacing: spacing })
+    const line = layoutWithLines(prepared, 200, LINE_HEIGHT).lines[0]!
+    const aWidth = measureWidth('A', FONT)
+    const tabAdvance = nextTabAdvance(aWidth + spacing, measureWidth(' ', FONT))
+    const expected = aWidth + spacing + tabAdvance + spacing + measureWidth('B', FONT)
+
+    expect(line.text).toBe(text)
+    expect(line.width).toBeCloseTo(expected, 5)
+  })
+
   test('line count grows monotonically as width shrinks', () => {
     const prepared = prepare('The quick brown fox jumps over the lazy dog', FONT)
     let previous = 0

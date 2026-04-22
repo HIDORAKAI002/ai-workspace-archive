@@ -401,3 +401,42 @@ def test_embedded_ui_flag(llm_config):
 
     finally:
         client.close()
+
+
+def test_embedded_daemon_crash_recovery(llm_config):
+    """
+    Test that HindsightEmbedded recovers when the daemon crashes.
+
+    Simulates a crash by stopping the daemon, then verifies
+    that the next operation transparently restarts it.
+    """
+    profile = f"test_crash_{uuid.uuid4().hex[:8]}"
+    bank_id = f"bank_{uuid.uuid4().hex[:8]}"
+
+    client = HindsightEmbedded(profile=profile, log_level="info", **llm_config)
+
+    try:
+        # Start daemon and store a memory
+        result = client.retain(bank_id=bank_id, content="Before crash")
+        assert result.success, "Initial retain should succeed"
+        assert client.is_running, "Daemon should be running"
+
+        original_url = client.url
+
+        # Simulate daemon crash by stopping it
+        client._manager.stop(client.profile)
+        assert not client._manager.is_running(client.profile), (
+            "Daemon should be stopped after simulated crash"
+        )
+
+        # Next operation should transparently restart the daemon
+        result2 = client.retain(bank_id=bank_id, content="After crash recovery")
+        assert result2.success, "Retain after crash recovery should succeed"
+        assert client.is_running, "Daemon should be running again after recovery"
+
+        # Verify recall still works
+        recall_result = client.recall(bank_id=bank_id, query="crash")
+        assert isinstance(recall_result.results, list), "Recall should return results"
+
+    finally:
+        client.close()

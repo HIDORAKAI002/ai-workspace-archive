@@ -129,7 +129,7 @@ A practical starting point looks like this:
       "autoRecall": true,
       "autoRetain": true,
       "recallBudget": "mid",
-      "retainEveryNTurns": 10,
+      "retainEveryNTurns": 3,
       "debug": false
     }]
   ]

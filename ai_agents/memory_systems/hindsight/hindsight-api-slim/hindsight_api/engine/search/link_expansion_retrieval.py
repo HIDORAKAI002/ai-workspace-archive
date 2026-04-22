@@ -28,6 +28,8 @@ import asyncio
 import logging
 import math
 import time
+from datetime import datetime
+from typing import Any
 
 from ...config import get_config
 from ..db_utils import acquire_with_retry
@@ -49,6 +51,8 @@ async def _find_semantic_seeds(
     tags: list[str] | None = None,
     tags_match: TagsMatch = "any",
     tag_groups: list[TagGroup] | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
 ) -> list[RetrievalResult]:
     """Find semantic seeds via embedding search."""
     from .tags import build_tag_groups_where_clause, build_tags_where_clause_simple
@@ -56,10 +60,24 @@ async def _find_semantic_seeds(
     tags_clause = build_tags_where_clause_simple(tags, 6, match=tags_match)
     tag_groups_param_start = 6 + (1 if tags else 0)
     groups_clause, groups_params, _ = build_tag_groups_where_clause(tag_groups, tag_groups_param_start)
+
+    _next_idx = tag_groups_param_start + len(groups_params)
+    created_range_clause = ""
+    created_range_params: list[Any] = []
+    if created_after is not None:
+        created_range_params.append(created_after)
+        created_range_clause += f" AND updated_at > ${_next_idx}"
+        _next_idx += 1
+    if created_before is not None:
+        created_range_params.append(created_before)
+        created_range_clause += f" AND updated_at < ${_next_idx}"
+        _next_idx += 1
+
     params = [query_embedding_str, bank_id, fact_type, threshold, limit]
     if tags:
         params.append(tags)
     params.extend(groups_params)
+    params.extend(created_range_params)
 
     rows = await conn.fetch(
         f"""
@@ -73,6 +91,7 @@ async def _find_semantic_seeds(
           AND (1 - (embedding <=> $1::vector)) >= $4
           {tags_clause}
           {groups_clause}
+          {created_range_clause}
         ORDER BY embedding <=> $1::vector
         LIMIT $5
         """,
@@ -121,6 +140,8 @@ class LinkExpansionRetriever(GraphRetriever):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        created_after: "datetime | None" = None,
+        created_before: "datetime | None" = None,
     ) -> tuple[list[RetrievalResult], GraphRetrievalTimings | None]:
         """
         Retrieve facts by expanding links from seeds.
@@ -159,6 +180,8 @@ class LinkExpansionRetriever(GraphRetriever):
                     tags=tags,
                     tags_match=tags_match,
                     tag_groups=tag_groups,
+                    created_after=created_after,
+                    created_before=created_before,
                 )
                 timings.seeds_time = time.time() - seeds_start
                 logger.debug(

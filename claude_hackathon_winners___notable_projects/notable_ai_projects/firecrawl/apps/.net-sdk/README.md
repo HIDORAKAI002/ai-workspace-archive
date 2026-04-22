@@ -128,6 +128,36 @@ foreach (var doc in job.Data!)
 }
 ```
 
+### Parse
+
+Upload and parse a local file (HTML, PDF, DOCX, etc.) through the `/v2/parse`
+endpoint. Parse does not support browser-rendering options like `actions`,
+`waitFor`, `location`, `mobile`, or the `screenshot` / `branding` /
+`changeTracking` formats.
+
+```csharp
+using Firecrawl;
+using Firecrawl.Models;
+
+var client = new FirecrawlClient("fc-your-api-key");
+
+// From a file on disk
+var doc = await client.ParseAsync(
+    ParseFile.FromPath("report.pdf"),
+    new ParseOptions
+    {
+        Formats = new List<object> { "markdown" },
+        OnlyMainContent = true,
+    });
+
+Console.WriteLine(doc.Markdown);
+
+// From in-memory bytes
+byte[] html = File.ReadAllBytes("snapshot.html");
+var parsed = await client.ParseAsync(
+    ParseFile.FromBytes("snapshot.html", html, "text/html"));
+```
+
 ### Map (URL Discovery)
 
 ```csharp

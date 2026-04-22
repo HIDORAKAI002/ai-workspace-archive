@@ -237,10 +237,10 @@ function BankSelectorInner() {
     return result;
   };
 
-  const emptyFileMeta = () => ({
+  const emptyFileMeta = (documentId = "") => ({
     context: "",
     timestamp: "",
-    document_id: "",
+    document_id: documentId,
     tags: "",
     metadata: "",
     strategy: "",
@@ -251,7 +251,7 @@ function BankSelectorInner() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setSelectedFiles((prev) => [...prev, ...files]);
-    setFilesMetadata((prev) => [...prev, ...files.map(emptyFileMeta)]);
+    setFilesMetadata((prev) => [...prev, ...files.map((f) => emptyFileMeta(f.name))]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

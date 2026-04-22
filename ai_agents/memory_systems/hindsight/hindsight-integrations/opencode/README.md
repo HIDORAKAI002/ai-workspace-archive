@@ -92,7 +92,7 @@ Create `~/.hindsight/opencode.json` for persistent configuration:
   "hindsightApiUrl": "http://localhost:8888",
   "hindsightApiToken": "your-api-key",
   "recallBudget": "mid",
-  "retainEveryNTurns": 10,
+  "retainEveryNTurns": 3,
   "debug": false
 }
 ```

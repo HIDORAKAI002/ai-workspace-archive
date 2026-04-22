@@ -249,6 +249,56 @@ public class FirecrawlClient
     }
 
     // ================================================================
+    // PARSE
+    // ================================================================
+
+    /// <summary>
+    /// Parses an uploaded file (HTML, PDF, DOCX, etc.) via <c>/v2/parse</c>
+    /// and returns the extracted document.
+    /// </summary>
+    /// <param name="file">The file to upload.</param>
+    /// <param name="options">Optional parse options. Browser-only formats
+    /// (changeTracking, screenshot, branding), actions, waitFor, location,
+    /// and mobile are rejected.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task<Document> ParseAsync(
+        ParseFile file,
+        ParseOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        var filename = file.Filename?.Trim();
+        if (string.IsNullOrEmpty(filename))
+            throw new ArgumentException("filename cannot be empty", nameof(file));
+
+        if (file.Content is null || file.Content.Length == 0)
+            throw new ArgumentException("file content cannot be empty", nameof(file));
+
+        options?.Validate();
+
+        var optionsJson = JsonSerializer.Serialize(
+            options ?? new ParseOptions(),
+            FirecrawlHttpClient.JsonOptions);
+
+        var fields = new Dictionary<string, string>
+        {
+            ["options"] = optionsJson,
+        };
+
+        var response = await _http.PostMultipartAsync<ApiResponse<Document>>(
+            "/v2/parse",
+            fields,
+            fileField: "file",
+            fileName: filename,
+            fileContentType: file.ResolveContentType(),
+            fileContent: file.Content,
+            cancellationToken: cancellationToken);
+
+        return response.Data ?? throw new FirecrawlException("Parse response contained no data");
+    }
+
+    // ================================================================
     // MAP
     // ================================================================
 
