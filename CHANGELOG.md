@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-22 17:24 IST] Auto-Sync
+- **34 Repositories Updated:** Kubernetes MCP Server, Langfuse, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, Upsonic, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, open-telemetry/opentelemetry-python, firecrawl/firecrawl, chenglou/pretext, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-22 11:00 IST] Auto-Sync
 - **31 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Exa MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, google-gemini/gemini-cli, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
 

@@ -7,6 +7,7 @@ Handles insertion of facts into the database.
 import json
 import logging
 import uuid
+from datetime import datetime
 
 from ...config import get_config
 from ..memory_engine import fq_table
@@ -340,6 +341,7 @@ async def handle_document_tracking(
     # source memory_units but leaves observation rows pointing at IDs that
     # no longer exist (consolidated_at on co-source memories also stays
     # frozen). Same cleanup the explicit ``delete_document`` API performs.
+    preserved_created_at = None
     if is_first_batch:
         existing_unit_rows = await conn.fetch(
             f"""
@@ -366,14 +368,24 @@ async def handle_document_tracking(
             document_id,
             bank_id,
         )
-        await conn.fetchval(
-            f"DELETE FROM {fq_table('documents')} WHERE id = $1 AND bank_id = $2 RETURNING id",
+        # Capture created_at before deletion so re-ingestion preserves it.
+        preserved_created_at = await conn.fetchval(
+            f"DELETE FROM {fq_table('documents')} WHERE id = $1 AND bank_id = $2 RETURNING created_at",
             document_id,
             bank_id,
         )
 
     # Insert document (or update if exists from concurrent operations)
-    await _upsert_document_row(conn, bank_id, document_id, combined_content, content_hash, retain_params, document_tags)
+    await _upsert_document_row(
+        conn,
+        bank_id,
+        document_id,
+        combined_content,
+        content_hash,
+        retain_params,
+        document_tags,
+        preserved_created_at=preserved_created_at,
+    )
 
 
 async def upsert_document_metadata(
@@ -406,12 +418,19 @@ async def _upsert_document_row(
     content_hash: str,
     retain_params: dict | None = None,
     document_tags: list[str] | None = None,
+    preserved_created_at: datetime | None = None,
 ) -> None:
-    """Insert or update a document row."""
+    """Insert or update a document row.
+
+    When ``preserved_created_at`` is provided, it is used for ``created_at`` on
+    INSERT so that re-ingesting a document (which deletes + inserts the row)
+    keeps the original creation timestamp. ``updated_at`` is always set to
+    ``NOW()`` on both INSERT and the ON CONFLICT UPDATE branch.
+    """
     await conn.execute(
         f"""
-        INSERT INTO {fq_table("documents")} (id, bank_id, original_text, content_hash, retain_params, tags)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO {fq_table("documents")} (id, bank_id, original_text, content_hash, retain_params, tags, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, NOW()), NOW())
         ON CONFLICT (id, bank_id) DO UPDATE
         SET original_text = EXCLUDED.original_text,
             content_hash = EXCLUDED.content_hash,
@@ -425,6 +444,7 @@ async def _upsert_document_row(
         content_hash,
         json.dumps(retain_params) if retain_params else None,
         document_tags or [],
+        preserved_created_at,
     )
 
 

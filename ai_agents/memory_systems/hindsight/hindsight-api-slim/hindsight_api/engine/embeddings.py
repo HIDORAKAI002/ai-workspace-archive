@@ -1100,7 +1100,12 @@ def create_embeddings_from_env() -> Embeddings:
             )
         model = os.environ.get(ENV_EMBEDDINGS_OPENAI_MODEL, DEFAULT_EMBEDDINGS_OPENAI_MODEL)
         base_url = os.environ.get(ENV_EMBEDDINGS_OPENAI_BASE_URL) or None
-        return OpenAIEmbeddings(api_key=api_key, model=model, base_url=base_url)
+        return OpenAIEmbeddings(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            batch_size=config.embeddings_openai_batch_size,
+        )
     elif provider == "openrouter":
         api_key = config.embeddings_openrouter_api_key
         if not api_key:
@@ -1112,6 +1117,7 @@ def create_embeddings_from_env() -> Embeddings:
             api_key=api_key,
             model=config.embeddings_openrouter_model,
             base_url="https://openrouter.ai/api/v1",
+            batch_size=config.embeddings_openai_batch_size,
         )
     elif provider == "cohere":
         api_key = config.embeddings_cohere_api_key

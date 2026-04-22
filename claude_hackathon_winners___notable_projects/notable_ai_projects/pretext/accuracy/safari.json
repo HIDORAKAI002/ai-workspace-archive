@@ -4,17 +4,17 @@
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
     "devicePixelRatio": 2,
     "viewport": {
-      "innerWidth": 1512,
-      "innerHeight": 761,
-      "outerWidth": 1512,
-      "outerHeight": 851,
+      "innerWidth": 2560,
+      "innerHeight": 1224,
+      "outerWidth": 2560,
+      "outerHeight": 1314,
       "visualViewportScale": 1
     },
     "screen": {
-      "width": 1512,
-      "height": 982,
-      "availWidth": 1512,
-      "availHeight": 851,
+      "width": 2560,
+      "height": 1440,
+      "availWidth": 2560,
+      "availHeight": 1314,
       "colorDepth": 24,
       "pixelDepth": 24
     }
@@ -76825,5 +76825,5 @@
       "diff": 0
     }
   ],
-  "requestId": "1775742761908-9z88z1"
+  "requestId": "1776835267432-6sy9b1"
 }

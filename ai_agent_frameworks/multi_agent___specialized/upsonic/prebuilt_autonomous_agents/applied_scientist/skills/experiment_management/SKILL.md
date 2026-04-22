@@ -10,8 +10,8 @@ Set up and manage the experiment folder structure. This is Phase 0 — it runs b
 ## Input
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| research_name | string | The experiment name **as given by the caller**. Use it verbatim — do not rename it, do not re-derive it from the paper title. |
-| research_paper | path | Path to the PDF paper |
+| research_name | string | The experiment name **as given by the caller**. Use it verbatim — do not rename it, do not re-derive it from the source title. |
+| research_source | ref | A free-form reference describing the new method. The caller can pass anything that identifies the content — a local file path, any URL (blog post, arXiv, docs, Hugging Face page, …), a git repository, a Kaggle link, a paper ID, or **a plain text idea** describing the approach to try. Do not reject unusual values; investigate and fetch whatever was given, or, for pure text ideas, save the text verbatim. |
 | current_notebook | path | Path to the current baseline .ipynb |
 | current_data | path | Path to the current dataset (file or directory) |
 | experiments_directory | path | The directory (inside the workspace) where experiment folders live (e.g. `./experiments`). |
@@ -25,24 +25,40 @@ Set up and manage the experiment folder structure. This is Phase 0 — it runs b
    experiments/{research_name}/
    ```
 
-2. **Copy files (NEVER move, NEVER modify originals):**
+2. **Copy baseline files (NEVER move, NEVER modify originals):**
    ```bash
    cp {current_notebook} experiments/{research_name}/current.ipynb
    cp -r {current_data}  experiments/{research_name}/current_data/
-   cp {research_paper}   experiments/{research_name}/research.pdf
    ```
 
    If `current_data` is a code-based download (e.g. `fetch_ucirepo(id=2)`), leave `current_data/` empty and record the download spec in `log.json`'s metadata.
 
-3. **Create `log.json`** with the starting skeleton:
+3. **Materialize the research source.** `{research_source}` can be anything — a local file, a URL of any kind, a git or Kaggle link, an arXiv / paper ID, a Hugging Face page, **or a plain text idea** describing the method to try. Your job is to bring its content into the experiment folder using whatever tool fits:
+
+   - **Investigate first.** Check if the value is a path on disk (`ls` / `test -e`); if it looks like a URL, poke it with `curl -I`; look at the hostname; read any hint in the value itself. If the value does not look like a path or URL at all, treat it as a **text idea** (see below). Do not rely on a fixed detection list.
+   - **Retrievable source** → fetch it with the most appropriate tool: `cp`, `git clone --depth 1`, `curl -L` / `wget`, `kaggle kernels pull …` / `kaggle datasets download …`, `huggingface-cli`, an arXiv PDF helper, Python downloaders, or anything else available. Install a missing CLI with `pip install` / `uv pip install` if it is the right tool for this source.
+   - **Text idea** → do not fabricate a paper or URL. Save the description verbatim to `experiments/{research_name}/research_source.md` (optionally with a leading `# Idea` heading) and let Phase 2 turn it into a concrete implementation plan.
+   - **Pick a sensible local name** based on what you actually produced:
+     - A single PDF → `experiments/{research_name}/research.pdf`
+     - Any other single file (including a text idea) → `experiments/{research_name}/research_source.{ext}` (`.md` for ideas; preserve the real extension for files you copied)
+     - Multiple files or a cloned repo / dataset → `experiments/{research_name}/research_source/` (a directory)
+     - A fetched HTML page → `research_source.html`, optionally with a cleaned `research_source.md` and/or a linked `research.pdf`
+   - **Choose your own `research_source_kind` label** to describe what you did (e.g. `pdf`, `file`, `git`, `kaggle_notebook`, `kaggle_dataset`, `arxiv`, `huggingface_model`, `html`, `idea`, `other`). This label is just for observability — there is no closed enum.
+   - **If fetching fails**, try an alternative (different CLI, raw HTML fallback, `curl` instead of a specialized tool). Only after genuine failure, log the attempts in `log.json`, mark the experiment `FAILED`, and explain what you tried in `result.json.explanation`. A text idea can never "fail to fetch" — it is always saved verbatim.
+
+   Let `research_source_local` be whichever local path you produced. Use that path for Phase 2 onwards — never re-fetch.
+
+4. **Create `log.json`** with the starting skeleton:
    ```json
    {
      "name": "{research_name}",
      "metadata": {
        "date": "YYYY-MM-DD",
-       "original_notebook": "{current_notebook}",
-       "original_data":     "{current_data}",
-       "research_paper":    "{research_paper}"
+       "original_notebook":      "{current_notebook}",
+       "original_data":          "{current_data}",
+       "research_source":        "{research_source_local}",
+       "research_source_origin": "{research_source}",
+       "research_source_kind":   "a short label you pick, e.g. pdf, file, git, kaggle_notebook, kaggle_dataset, arxiv, huggingface_model, html, idea, other"
      },
      "phases": []
    }

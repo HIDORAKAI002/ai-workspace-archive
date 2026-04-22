@@ -68,7 +68,7 @@ const DEFAULTS: HindsightConfig = {
   // Retain
   autoRetain: true,
   retainMode: "full-session",
-  retainEveryNTurns: 10,
+  retainEveryNTurns: 3,
   retainOverlapTurns: 2,
   retainContext: "opencode",
   retainTags: [],
