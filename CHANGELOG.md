@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-22 11:00 IST] Auto-Sync
+- **31 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Exa MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, google-gemini/gemini-cli, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
+
 ## [2026-04-22 04:36 IST] Auto-Sync
 - **36 Repositories Updated:** Playwright MCP, Supabase MCP, Kubernetes MCP Server, Promptfoo, Langflow, Activepieces, Budibase, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, openai/openai-agents-python, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, RooCodeInc/Roo-Code, chroma-core/chroma, arize-ai/phoenix, openai/openai-cookbook, affaan-m/everything-claude-code, firecrawl/firecrawl, google-gemini/gemini-cli, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, tirth8205/code-review-graph
 

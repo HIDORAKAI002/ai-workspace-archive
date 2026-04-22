@@ -173,6 +173,8 @@ export type ChannelGroupAdapter = {
 export type ChannelStatusAdapter<ResolvedAccount, Probe = unknown, Audit = unknown> = {
   defaultRuntime?: ChannelAccountSnapshot;
   skipStaleSocketHealthCheck?: boolean;
+  /** Runtime `mode` values where `lastEventAt` can prove connected socket liveness. */
+  staleSocketHealthCheckModes?: readonly string[];
   buildChannelSummary?: BivariantCallback<
     (params: {
       account: ResolvedAccount;
@@ -367,6 +369,20 @@ export type ChannelHeartbeatAdapter = {
     accountId?: string | null;
     deps?: ChannelHeartbeatDeps;
   }) => Promise<{ ok: boolean; reason: string }>;
+  sendTyping?: (params: {
+    cfg: OpenClawConfig;
+    to: string;
+    accountId?: string | null;
+    threadId?: string | number | null;
+    deps?: ChannelHeartbeatDeps;
+  }) => Promise<void> | void;
+  clearTyping?: (params: {
+    cfg: OpenClawConfig;
+    to: string;
+    accountId?: string | null;
+    threadId?: string | number | null;
+    deps?: ChannelHeartbeatDeps;
+  }) => Promise<void> | void;
   resolveRecipients?: (params: {
     cfg: OpenClawConfig;
     opts?: { to?: string; all?: boolean; accountId?: string };
