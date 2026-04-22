@@ -21,9 +21,14 @@ def create_ci_api_token(description: str | None = None, **global_options: object
         )
     config = DagsterPlusCliConfig.get()
 
-    gql_client = DagsterPlusGraphQLClient.from_config(config)
+    gql_client = DagsterPlusGraphQLClient(
+        url=config.organization_url,
+        api_token=config.user_token,
+        organization=config.organization,
+        deployment=config.default_deployment,
+    )
 
-    token_data = gql_client.execute(
+    token_data = gql_client.execute_generic(
         gql.CREATE_AGENT_TOKEN_MUTATION, variables={"description": description}
     )
     click.echo(token_data["createAgentToken"]["token"])

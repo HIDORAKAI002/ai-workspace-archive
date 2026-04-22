@@ -295,12 +295,13 @@ class BuildkiteContext(Generic[T_Config]):
         )
 
     def has_published_python_package_changes(self) -> bool:
-        """True if any changed files are in a published (PyPI) Python package."""
-        published_package_root = oss_path("python_modules")
-        for path in self.changed_files:
-            if path.is_relative_to(published_package_root):
-                return True
-        return False
+        """True if any published (PyPI) Python package has non-test source changes."""
+        published_package_root = self.repo_path / oss_path("python_modules")
+        return any(
+            self.has_package_changes(name)
+            for name, pkg in self._packages.items()
+            if _path_is_relative_to(pkg.directory, published_package_root)
+        )
 
     # ########################
     # ##### TRANSFORMS

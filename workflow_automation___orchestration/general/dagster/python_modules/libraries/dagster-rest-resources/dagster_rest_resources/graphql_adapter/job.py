@@ -112,13 +112,13 @@ def process_repositories_response(graphql_response: dict[str, Any]) -> "DgApiJob
 
 def list_jobs_via_graphql(client: IGraphQLClient) -> "DgApiJobList":
     """Fetch jobs using GraphQL."""
-    result = client.execute(LIST_REPOSITORIES_QUERY)
+    result = client.execute_generic(LIST_REPOSITORIES_QUERY)
     return process_repositories_response(result)
 
 
 def get_job_by_name_via_graphql(client: IGraphQLClient, job_name: str) -> "DgApiJob":
     """Get job by name, searching across all repositories."""
-    result = client.execute(LIST_REPOSITORIES_QUERY)
+    result = client.execute_generic(LIST_REPOSITORIES_QUERY)
     all_jobs = process_repositories_response(result)
 
     matching_jobs = [job for job in all_jobs.items if job.name == job_name]

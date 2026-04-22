@@ -2586,7 +2586,7 @@ def create_app(
                 schema=schema,
                 tenant_extension=memory._tenant_extension,
                 max_slots=config.worker_max_slots,
-                consolidation_max_slots=config.worker_consolidation_max_slots,
+                slot_reservations=config.worker_slot_reservations,
             )
             poller_task = asyncio.create_task(poller.run())
             logging.info(f"Worker poller started (worker_id={worker_id})")

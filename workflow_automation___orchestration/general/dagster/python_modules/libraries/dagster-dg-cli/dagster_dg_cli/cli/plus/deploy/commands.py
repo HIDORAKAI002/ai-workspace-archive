@@ -533,7 +533,12 @@ def _fetch_secrets_for_location(
     """
     from dagster_rest_resources.gql_client import DagsterPlusGraphQLClient
 
-    client = DagsterPlusGraphQLClient.from_location_state(location_state, api_token, organization)
+    client = DagsterPlusGraphQLClient(
+        url=location_state.url,
+        api_token=api_token,
+        organization=organization,
+        deployment=location_state.deployment_name,
+    )
 
     # Select scope based on deployment type
     if location_state.is_branch_deployment:
@@ -541,7 +546,7 @@ def _fetch_secrets_for_location(
     else:
         scopes = {"fullDeploymentScope": True}
 
-    result = client.execute(
+    result = client.execute_generic(
         SECRETS_QUERY,
         variables={"onlyViewable": True, "scopes": scopes},
     )

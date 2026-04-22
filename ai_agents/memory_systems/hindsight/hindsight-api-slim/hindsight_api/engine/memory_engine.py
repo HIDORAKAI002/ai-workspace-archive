@@ -482,6 +482,7 @@ class MemoryEngine(MemoryEngineInterface):
         self._pool_max_size = pool_max_size if pool_max_size is not None else config.db_pool_max_size
         self._db_command_timeout = db_command_timeout if db_command_timeout is not None else config.db_command_timeout
         self._db_acquire_timeout = db_acquire_timeout if db_acquire_timeout is not None else config.db_acquire_timeout
+        self._db_statement_timeout = config.db_statement_timeout
         self._run_migrations = run_migrations
         self._retain_entity_lookup = config.retain_entity_lookup
 
@@ -1848,6 +1849,8 @@ class MemoryEngine(MemoryEngineInterface):
         # Create connection pool
         # For read-heavy workloads with many parallel think/search operations,
         # we need a larger pool. Read operations don't need strong isolation.
+        stmt_timeout_s = self._db_statement_timeout
+
         async def _init_connection(conn: asyncpg.Connection) -> None:
             # SET (not SET LOCAL) so it persists for the connection lifetime.
             # ef_search=200 improves HNSW recall quality for the per-fact_type
@@ -1856,6 +1859,12 @@ class MemoryEngine(MemoryEngineInterface):
                 await conn.execute("SET hnsw.ef_search = 200")
             except Exception:
                 logger.debug("Could not set hnsw.ef_search — extension may not support it")
+
+            # Server-side safety net for runaway queries. Migrations use a
+            # separate SQLAlchemy/psycopg2 engine, so long-running DDL is
+            # unaffected. 0 disables.
+            if stmt_timeout_s > 0:
+                await conn.execute(f"SET statement_timeout = '{stmt_timeout_s}s'")
 
         self._pool = await asyncpg.create_pool(
             self.db_url,

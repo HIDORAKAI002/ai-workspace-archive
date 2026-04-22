@@ -1,26 +1,49 @@
-"""Organization endpoints - REST-like interface."""
-
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any
+
+from typing_extensions import assert_never
 
 from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.graphql_adapter.organization import (
-    get_organization_settings_via_graphql,
-    set_organization_settings_via_graphql,
+from dagster_rest_resources.schemas.exception import (
+    DagsterPlusGraphqlError,
+    DagsterPlusUnauthorizedError,
 )
-
-if TYPE_CHECKING:
-    from dagster_rest_resources.schemas.organization import OrganizationSettings
+from dagster_rest_resources.schemas.organization import DgApiOrganizationSettings
 
 
 @dataclass(frozen=True)
 class DgApiOrganizationApi:
-    client: IGraphQLClient
+    _client: IGraphQLClient
 
-    def get_organization_settings(self) -> "OrganizationSettings":
-        return get_organization_settings_via_graphql(self.client)
+    def get_organization_settings(self) -> DgApiOrganizationSettings:
+
+        result = self._client.get_organization_settings().organization_settings
+        if result is None:
+            return DgApiOrganizationSettings(settings={})
+
+        return DgApiOrganizationSettings(settings=result.settings or {})
 
     def update_organization_settings(
-        self, settings: "OrganizationSettings"
-    ) -> "OrganizationSettings":
-        return set_organization_settings_via_graphql(self.client, settings.settings)
+        self,
+        settings: Mapping[str, Any],
+    ) -> "DgApiOrganizationSettings":
+        from dagster_rest_resources.__generated__.input_types import OrganizationSettingsInput
+
+        result = self._client.update_organization_settings(
+            OrganizationSettingsInput(settings=settings)
+        ).set_organization_settings
+
+        match result.typename__:
+            case "OrganizationSettings":
+                return DgApiOrganizationSettings(settings=result.settings or {})
+            case "UnauthorizedError":
+                raise DagsterPlusUnauthorizedError(
+                    f"Error setting organization settings: {result.message}"
+                )
+            case "PythonError":
+                raise DagsterPlusGraphqlError(
+                    f"Error setting organization settings: {result.message}"
+                )
+            case _ as unreachable:
+                assert_never(unreachable)

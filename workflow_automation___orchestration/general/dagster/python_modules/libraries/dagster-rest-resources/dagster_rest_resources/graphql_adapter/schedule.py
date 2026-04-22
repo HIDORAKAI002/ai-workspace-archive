@@ -230,10 +230,10 @@ def list_schedules_via_graphql(
                 "repositoryName": repository_name,
             }
         }
-        result = client.execute(LIST_SCHEDULES_QUERY, variables)
+        result = client.execute_generic(LIST_SCHEDULES_QUERY, variables=variables)
         return process_schedules_response(result)
     else:
-        result = client.execute(LIST_REPOSITORIES_QUERY)
+        result = client.execute_generic(LIST_REPOSITORIES_QUERY)
         return process_repositories_response(result)
 
 
@@ -253,7 +253,7 @@ def get_schedule_via_graphql(
     }
 
     try:
-        result = client.execute(GET_SCHEDULE_QUERY, variables)
+        result = client.execute_generic(GET_SCHEDULE_QUERY, variables=variables)
         if (
             result.get("data", {}).get("scheduleOrError", {}).get("__typename")
             == "ScheduleNotFoundError"
@@ -266,7 +266,7 @@ def get_schedule_via_graphql(
 
 def get_schedule_by_name_via_graphql(client: IGraphQLClient, schedule_name: str) -> "DgApiSchedule":
     """Get schedule by name, searching across all code locations."""
-    result = client.execute(LIST_REPOSITORIES_QUERY)
+    result = client.execute_generic(LIST_REPOSITORIES_QUERY)
     all_schedules = process_repositories_response(result)
 
     matching_schedules = [

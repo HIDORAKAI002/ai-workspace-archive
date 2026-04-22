@@ -23,7 +23,7 @@ Local version: 1.0.0
 Published version: 0.0.0  (0.0.0 means not yet published on RubyGems)
 true
 
-python .github/scripts/check_version_has_incremented.py dotnet ./apps/.net-sdk/Firecrawl firecrawl-sdk
+python .github/scripts/check_version_has_incremented.py dotnet ./apps/dot-net-sdk/Firecrawl firecrawl-sdk
 Local version: 1.0.0
 Published version: 0.0.0  (0.0.0 means not yet published on NuGet)
 true

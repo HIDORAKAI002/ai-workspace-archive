@@ -467,8 +467,8 @@
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[asset_error_partition_status_not_found_json]
   '''
-  {"error": "Asset not found: nonexistent/asset"}
-  Error: dg api asset get-partition-status: Asset not found: nonexistent/asset
+  {"error": "Error: Asset not found: nonexistent/asset"}
+  Error: dg api asset get-partition-status: Error: Asset not found: nonexistent/asset
   
   '''
 # ---

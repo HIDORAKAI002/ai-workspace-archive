@@ -8,6 +8,7 @@ from dagster._core.storage.defs_state.base import DefsStateStorage
 from dagster._serdes.config_class import ConfigurableClass, ConfigurableClassData
 from dagster_cloud_cli.core.artifacts import download_artifact, upload_artifact
 from dagster_cloud_cli.core.headers.auth import DagsterCloudInstanceScope
+from dagster_rest_resources.gql_client import IGraphQLClient
 from dagster_shared import check
 from dagster_shared.serdes.objects.models.defs_state_info import DefsStateInfo
 
@@ -48,7 +49,7 @@ class DagsterPlusCliDefsStateStorage(DefsStateStorage[T_DagsterInstance], Config
         url: str,
         api_token: str,
         deployment: str,
-        graphql_client,
+        graphql_client: IGraphQLClient,
         organization: str,
         inst_data: ConfigurableClassData | None = None,
     ):
@@ -69,7 +70,12 @@ class DagsterPlusCliDefsStateStorage(DefsStateStorage[T_DagsterInstance], Config
             location_state.url,
             api_token,
             location_state.deployment_name,
-            DagsterPlusGraphQLClient.from_location_state(location_state, api_token, organization),
+            DagsterPlusGraphQLClient(
+                url=location_state.url,
+                api_token=api_token,
+                organization=organization,
+                deployment=location_state.deployment_name,
+            ),
             organization,
         )
 
@@ -97,21 +103,16 @@ class DagsterPlusCliDefsStateStorage(DefsStateStorage[T_DagsterInstance], Config
         deployment = check.str_param(config_value.get("deployment"), "deployment")
         organization = check.str_param(config_value.get("organization"), "organization")
 
-        # Create graphql client from config
-        graphql_client = DagsterPlusGraphQLClient(
-            url=f"{url}/graphql",
-            headers={
-                "Dagster-Cloud-Api-Token": api_token,
-                "Dagster-Cloud-Organization": organization,
-                "Dagster-Cloud-Deployment": deployment,
-            },
-        )
-
         return cls(
             url=url,
             api_token=api_token,
             deployment=deployment,
-            graphql_client=graphql_client,
+            graphql_client=DagsterPlusGraphQLClient(
+                url=url,
+                api_token=api_token,
+                organization=organization,
+                deployment=deployment,
+            ),
             organization=organization,
             inst_data=inst_data,
         )
@@ -129,11 +130,11 @@ class DagsterPlusCliDefsStateStorage(DefsStateStorage[T_DagsterInstance], Config
         return self._deployment
 
     @property
-    def graphql_client(self) -> Any:
+    def graphql_client(self) -> IGraphQLClient:
         return self._graphql_client
 
     def _execute_query(self, query, variables=None):
-        return self.graphql_client.execute(query, variables=variables)
+        return self.graphql_client.execute_generic(query, variables=variables)
 
     def _get_artifact_key(self, key: str, version: str) -> str:
         return f"__state__/{self._sanitize_key(key)}/{version}"

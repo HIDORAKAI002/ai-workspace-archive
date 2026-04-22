@@ -63,7 +63,7 @@ class TestGetLogsCapturedEvents:
         """Only LogsCapturedEvent entries are returned."""
         mixed_events = _SAMPLE_NON_MATCHING_EVENTS + _SAMPLE_LOGS_CAPTURED_EVENTS
         client = MagicMock()
-        client.execute.return_value = _make_events_page(mixed_events, None, False)
+        client.execute_generic.return_value = _make_events_page(mixed_events, None, False)
 
         result = get_logs_captured_events(client, _RUN_ID)
         assert len(result) == 2
@@ -72,7 +72,9 @@ class TestGetLogsCapturedEvents:
     def test_step_key_filter(self):
         """step_key parameter filters to events containing that step."""
         client = MagicMock()
-        client.execute.return_value = _make_events_page(_SAMPLE_LOGS_CAPTURED_EVENTS, None, False)
+        client.execute_generic.return_value = _make_events_page(
+            _SAMPLE_LOGS_CAPTURED_EVENTS, None, False
+        )
 
         result = get_logs_captured_events(client, _RUN_ID, step_key="my_step")
         assert len(result) == 1
@@ -81,7 +83,7 @@ class TestGetLogsCapturedEvents:
     def test_auto_pagination(self):
         """Events are collected across multiple pages."""
         client = MagicMock()
-        client.execute.side_effect = [
+        client.execute_generic.side_effect = [
             _make_events_page(_SAMPLE_NON_MATCHING_EVENTS, "c1", True),
             _make_events_page(_SAMPLE_LOGS_CAPTURED_EVENTS[:1], "c2", True),
             _make_events_page(_SAMPLE_LOGS_CAPTURED_EVENTS[1:], None, False),
@@ -89,12 +91,14 @@ class TestGetLogsCapturedEvents:
 
         result = get_logs_captured_events(client, _RUN_ID)
         assert len(result) == 2
-        assert client.execute.call_count == 3
+        assert client.execute_generic.call_count == 3
 
     def test_empty_response(self):
         """Returns empty list when no LogsCapturedEvent found."""
         client = MagicMock()
-        client.execute.return_value = _make_events_page(_SAMPLE_NON_MATCHING_EVENTS, None, False)
+        client.execute_generic.return_value = _make_events_page(
+            _SAMPLE_NON_MATCHING_EVENTS, None, False
+        )
 
         result = get_logs_captured_events(client, _RUN_ID)
         assert result == []
@@ -109,7 +113,7 @@ class TestGetLogsCapturedEvents:
             "externalStdoutUrl": None,
             "externalStderrUrl": None,
         }
-        client.execute.return_value = _make_events_page([event_no_key], None, False)
+        client.execute_generic.return_value = _make_events_page([event_no_key], None, False)
 
         result = get_logs_captured_events(client, _RUN_ID)
         assert result == []
@@ -117,7 +121,7 @@ class TestGetLogsCapturedEvents:
     def test_error_typename_raises(self):
         """Non-EventConnection typename raises an exception."""
         client = MagicMock()
-        client.execute.return_value = {
+        client.execute_generic.return_value = {
             "logsForRun": {
                 "__typename": "RunNotFoundError",
                 "message": "Run not found",
@@ -137,7 +141,7 @@ class TestGetCapturedLogContent:
     def test_returns_content(self):
         """Content is returned from capturedLogs query."""
         client = MagicMock()
-        client.execute.return_value = {
+        client.execute_generic.return_value = {
             "capturedLogs": {
                 "stdout": "hello world\n",
                 "stderr": "warning: something\n",
@@ -153,12 +157,14 @@ class TestGetCapturedLogContent:
     def test_passes_cursor_and_max_bytes(self):
         """Cursor and max_bytes are passed as variables."""
         client = MagicMock()
-        client.execute.return_value = {"capturedLogs": {"stdout": "", "stderr": "", "cursor": None}}
+        client.execute_generic.return_value = {
+            "capturedLogs": {"stdout": "", "stderr": "", "cursor": None}
+        }
 
         get_captured_log_content(
             client, [_RUN_ID, "compute_logs", "my_step"], cursor="cur1", max_bytes=1024
         )
-        call_args = client.execute.call_args
+        call_args = client.execute_generic.call_args
         variables = call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get("variables")
         assert variables["cursor"] == "cur1"
         assert variables["limit"] == 1024
@@ -166,7 +172,7 @@ class TestGetCapturedLogContent:
     def test_empty_response(self):
         """Returns None values when capturedLogs is empty."""
         client = MagicMock()
-        client.execute.return_value = {"capturedLogs": None}
+        client.execute_generic.return_value = {"capturedLogs": None}
 
         result = get_captured_log_content(client, [_RUN_ID, "compute_logs", "my_step"])
         assert result["stdout"] is None
@@ -179,7 +185,7 @@ class TestGetCapturedLogMetadata:
     def test_returns_urls(self):
         """Download URLs are returned from capturedLogsMetadata query."""
         client = MagicMock()
-        client.execute.return_value = {
+        client.execute_generic.return_value = {
             "capturedLogsMetadata": {
                 "stdoutDownloadUrl": "https://example.com/stdout",
                 "stderrDownloadUrl": "https://example.com/stderr",
@@ -193,7 +199,7 @@ class TestGetCapturedLogMetadata:
     def test_empty_response(self):
         """Returns None values when metadata is empty."""
         client = MagicMock()
-        client.execute.return_value = {"capturedLogsMetadata": None}
+        client.execute_generic.return_value = {"capturedLogsMetadata": None}
 
         result = get_captured_log_metadata(client, [_RUN_ID, "compute_logs", "my_step"])
         assert result["stdoutDownloadUrl"] is None

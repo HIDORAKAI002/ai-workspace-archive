@@ -214,7 +214,7 @@ def list_secrets_via_graphql(
     if location_name:
         variables["locationName"] = location_name
 
-    result = client.execute(query, variables)
+    result = client.execute_generic(query, variables=variables)
 
     secret_list = process_secrets_response(result)
 
@@ -263,6 +263,6 @@ def get_secret_via_graphql(
     if location_name:
         variables["locationName"] = location_name
 
-    result = client.execute(query, variables)
+    result = client.execute_generic(query, variables=variables)
 
     return process_single_secret_response(result, secret_name)
