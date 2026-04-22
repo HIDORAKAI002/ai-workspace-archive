@@ -32,8 +32,10 @@ bun install
 - `bun run accuracy-snapshot:firefox`
 - `bun run benchmark-check` — Chrome benchmark snapshot
 - `bun run benchmark-check:safari`
-- `bun run pre-wrap-check` — compact browser oracle for `{ whiteSpace: 'pre-wrap' }`
-- `bun run keep-all-check` — compact browser oracle for `{ wordBreak: 'keep-all' }`, including mixed-script no-space canaries
+- `bun run pre-wrap-check` — compact batched browser oracle for `{ whiteSpace: 'pre-wrap' }`
+- `bun run keep-all-check` — compact batched browser oracle for `{ wordBreak: 'keep-all' }`, including mixed-script no-space canaries
+- `bun run letter-spacing-check` — compact batched browser oracle for `{ letterSpacing }`, using one posted-report probe per browser and covering narrow wraps, combining marks, bidi, CJK, emoji, digits, RTL punctuation, `pre-wrap`, and soft hyphens
+- `bun run letter-spacing-snapshot` — refresh `accuracy/letter-spacing.json` from the Chrome + Safari compact `{ letterSpacing }` oracle
 - `bun run probe-check` — smaller browser probe/diagnostic entrypoint
 - `bun run probe-check:safari`
   On a first-break mismatch, probe output now includes a small break trace.
@@ -78,6 +80,7 @@ Use these for the current checked-in picture:
 - [STATUS.md](STATUS.md) — short pointer doc for the main browser accuracy + benchmark snapshots
 - [status/dashboard.json](status/dashboard.json) — machine-readable main dashboard
 - [accuracy/chrome.json](accuracy/chrome.json), [accuracy/safari.json](accuracy/safari.json), [accuracy/firefox.json](accuracy/firefox.json) — raw browser accuracy rows
+- [accuracy/letter-spacing.json](accuracy/letter-spacing.json) — compact Chrome + Safari `{ letterSpacing }` oracle snapshot
 - [benchmarks/chrome.json](benchmarks/chrome.json), [benchmarks/safari.json](benchmarks/safari.json) — raw benchmark snapshots
 - [corpora/STATUS.md](corpora/STATUS.md) — short pointer doc for long-form corpora
 - [corpora/dashboard.json](corpora/dashboard.json) — machine-readable corpus dashboard

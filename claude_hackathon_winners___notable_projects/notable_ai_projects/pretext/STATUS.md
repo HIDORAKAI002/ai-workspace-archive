@@ -14,10 +14,12 @@ Use [corpora/STATUS.md](corpora/STATUS.md) for the long-form corpus canaries.
 - [accuracy/chrome.json](accuracy/chrome.json)
 - [accuracy/safari.json](accuracy/safari.json)
 - [accuracy/firefox.json](accuracy/firefox.json)
+- [accuracy/letter-spacing.json](accuracy/letter-spacing.json)
 
 Notes:
 - This is the checked-in `4 fonts x 8 sizes x 8 widths x 30 texts` browser sweep.
 - The public accuracy page is basically a regression gate now, not the main steering metric.
+- The letter-spacing snapshot is a compact Chrome + Safari oracle, not part of the full sweep matrix.
 
 ## Benchmark Snapshots
 

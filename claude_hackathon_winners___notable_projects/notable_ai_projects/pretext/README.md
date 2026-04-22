@@ -37,7 +37,7 @@ const prepared = prepare(textareaValue, '16px Inter', { whiteSpace: 'pre-wrap' }
 const { height } = layout(prepared, textareaWidth, 20)
 ```
 
-If you want CSS-like `word-break: keep-all`, pass `{ wordBreak: 'keep-all' }` to `prepare()` too.
+Other `prepare()` options are `{ wordBreak: 'keep-all' }` for CSS-like `word-break: keep-all`, and `{ letterSpacing: n }` to match CSS `letter-spacing` (`n` is treated as a px value).
 
 The returned height is the crucial last piece for unlocking web UIs:
 - proper virtualization/occlusion without guesstimates & caching
@@ -124,13 +124,13 @@ It is intentionally narrow:
 
 Use-case 1 APIs:
 ```ts
-prepare(text: string, font: string, options?: { whiteSpace?: 'normal' | 'pre-wrap', wordBreak?: 'normal' | 'keep-all' }): PreparedText // one-time text analysis + measurement pass, returns an opaque value to pass to `layout()`. Make sure `font` is synced with your css `font` declaration shorthand (e.g. size, weight, style, family) for the text you're measuring. `font` is the same format as what you'd use for `myCanvasContext.font = ...`, e.g. `16px Inter`.
+prepare(text: string, font: string, options?: { whiteSpace?: 'normal' | 'pre-wrap', wordBreak?: 'normal' | 'keep-all', letterSpacing?: number }): PreparedText // one-time text analysis + measurement pass, returns an opaque value to pass to `layout()`. Make sure `font` and `letterSpacing` are synced with your CSS for the text you're measuring. `font` is the same format as what you'd use for `myCanvasContext.font = ...`, e.g. `16px Inter`; `letterSpacing` is a CSS pixel value.
 layout(prepared: PreparedText, maxWidth: number, lineHeight: number): { height: number, lineCount: number } // calculates text height given a max width and lineHeight. Make sure `lineHeight` is synced with your css `line-height` declaration for the text you're measuring.
 ```
 
 Use-case 2 APIs:
 ```ts
-prepareWithSegments(text: string, font: string, options?: { whiteSpace?: 'normal' | 'pre-wrap', wordBreak?: 'normal' | 'keep-all' }): PreparedTextWithSegments // same as `prepare()`, but returns a richer structure for manual line layout needs
+prepareWithSegments(text: string, font: string, options?: { whiteSpace?: 'normal' | 'pre-wrap', wordBreak?: 'normal' | 'keep-all', letterSpacing?: number }): PreparedTextWithSegments // same as `prepare()`, but returns a richer structure for manual line layout needs
 layoutWithLines(prepared: PreparedTextWithSegments, maxWidth: number, lineHeight: number): { height: number, lineCount: number, lines: LayoutLine[] } // high-level api for manual layout needs. Accepts a fixed max width for all lines. Similar to `layout()`'s return, but additionally returns the lines info
 walkLineRanges(prepared: PreparedTextWithSegments, maxWidth: number, onLine: (line: LayoutLineRange) => void): number // low-level api for manual layout needs. Accepts a fixed max width for all lines. Calls `onLine` once per line with its actual calculated line width and start/end cursors, without building line text strings. Very useful for certain cases where you wanna speculatively test a few width and height boundaries (e.g. binary search a nice width value by repeatedly calling walkLineRanges and checking the line count, and therefore height, is "nice" too). You can have text messages shrinkwrap and balanced text layout this way. After walkLineRanges calls, you'd call layoutWithLines once, with your satisfying max width, to get the actual lines info.
 measureLineStats(prepared: PreparedTextWithSegments, maxWidth: number): { lineCount: number, maxLineWidth: number } // returns only how many lines this width produces, and how wide the widest one is. Avoids line/string allocations.
@@ -169,6 +169,7 @@ measureRichInlineStats(prepared: PreparedRichInline, maxWidth: number): { lineCo
 type RichInlineItem = {
   text: string // raw author text, including leading/trailing collapsible spaces
   font: string // canvas font shorthand for this item
+  letterSpacing?: number // extra horizontal spacing between graphemes, in CSS px
   break?: 'normal' | 'never' // `never` keeps the item atomic, like a chip
   extraWidth?: number // caller-owned horizontal chrome, e.g. padding + border width
 }
@@ -231,15 +232,16 @@ Pretext doesn't try to be a full font rendering engine (yet?). It currently targ
 - `word-break: normal` and `keep-all`
 - `overflow-wrap: break-word`. Very narrow widths can still break inside words, but only at grapheme boundaries.
 - `line-break: auto`
+- `letter-spacing` as a numeric pixel value passed to `prepare()` / `prepareWithSegments()`
 - Tabs follow the default browser-style `tab-size: 8`
 - `{ wordBreak: 'keep-all' }` is supported too. It behaves like you'd expect for CJK/Hangul text, while keeping the same `overflow-wrap: break-word` fallback for overlong runs.
 - `system-ui` is unsafe for `layout()` accuracy on macOS. Use a named font.
 - Runtime requires `Intl.Segmenter` and Canvas 2D text measurement. Browsers or runtimes without `Intl.Segmenter` are currently unsupported.
-- CSS text features outside the canvas `font` shorthand, such as `letter-spacing`, `font-optical-sizing`, `font-feature-settings`, and standalone `font-variation-settings`, are not modeled separately. Variable-font axes only help when the active axis is reflected in the canvas font string, for example via weight.
+- CSS text features outside the canvas `font` shorthand, such as `font-optical-sizing`, `font-feature-settings`, and standalone `font-variation-settings`, are not modeled separately. Variable-font axes only help when the active axis is reflected in the canvas font string, for example via weight.
 
 ## Develop
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for the dev setup and commands.
+See [DEVELOPMENT.md](https://github.com/chenglou/pretext/blob/main/DEVELOPMENT.md) for the dev setup and commands.
 
 ## Credits
 

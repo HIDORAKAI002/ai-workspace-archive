@@ -4,6 +4,7 @@ export type SegmentMetrics = {
   width: number
   containsCJK: boolean
   emojiCount?: number
+  breakableFitMode?: BreakableFitMode
   breakableFitAdvances?: number[] | null
 }
 
@@ -200,7 +201,10 @@ export function getSegmentBreakableFitAdvances(
   emojiCorrection: number,
   mode: BreakableFitMode,
 ): number[] | null {
-  if (metrics.breakableFitAdvances !== undefined) return metrics.breakableFitAdvances
+  if (metrics.breakableFitAdvances !== undefined && metrics.breakableFitMode === mode) {
+    return metrics.breakableFitAdvances
+  }
+  metrics.breakableFitMode = mode
 
   const graphemeSegmenter = getSharedGraphemeSegmenter()
   const graphemes: string[] = []
