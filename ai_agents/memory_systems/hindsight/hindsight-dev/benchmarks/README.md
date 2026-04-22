@@ -79,31 +79,29 @@ Tests consolidation throughput and identifies bottlenecks.
 NUM_MEMORIES=200 ./scripts/benchmarks/run-consolidation.sh
 ```
 
-### Retain Performance
+### System Performance Test
 
-Measures retain operation performance (throughput and token usage).
-
-**Prerequisites:** API server must be running (`./scripts/dev/start-api.sh`)
+Runs retain throughput and recall latency benchmarks using mock LLM + pg0.
+No external dependencies needed.
 
 ```bash
-# Basic usage
-./scripts/benchmarks/run-retain-perf.sh \
-    --document hindsight-dev/benchmarks/perf/test_data/sample_document.txt
+# Run all suites at default (small) scale
+./scripts/benchmarks/run-perf-test.sh
 
-# Save results to JSON
-./scripts/benchmarks/run-retain-perf.sh \
-    --document ./my_document.txt \
-    --bank-id my-test-bank \
-    --output results/retain_perf.json
+# Quick smoke test
+./scripts/benchmarks/run-perf-test.sh --scale tiny
+
+# Single suite
+./scripts/benchmarks/run-perf-test.sh --suite retain
+
+# Save results
+./scripts/benchmarks/run-perf-test.sh --output results.json
 ```
 
 **Options:**
-- `--document PATH` - Document file to retain (required)
-- `--bank-id ID` - Bank ID to use (default: perf-test)
-- `--context TEXT` - Optional context
-- `--api-url URL` - API URL (default: http://localhost:8000)
-- `--timeout SECONDS` - Request timeout (default: 300)
-- `--output PATH` - Save results to JSON file
+- `--scale {tiny,small,medium,large}` - Test scale (default: small)
+- `--suite {retain,recall}` - Run specific suite (default: all)
+- `--output PATH` - Save JSON results to file
 
 See [perf/README.md](perf/README.md) for detailed documentation.
 

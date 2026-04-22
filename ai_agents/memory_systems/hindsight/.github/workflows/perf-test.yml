@@ -1,0 +1,93 @@
+name: Performance Tests
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      scale:
+        description: "Test scale"
+        type: choice
+        options:
+          - tiny
+          - small
+          - medium
+          - large
+        default: large
+      suite:
+        description: "Suite to run (blank = all)"
+        type: choice
+        options:
+          - ""
+          - retain
+          - recall
+        default: ""
+      ref:
+        description: "Git ref to test (branch, tag, or SHA). Defaults to main."
+        type: string
+        default: ""
+
+concurrency:
+  group: perf-test
+  cancel-in-progress: true
+
+jobs:
+  perf-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.ref }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
+
+    - name: Pre-download models
+      working-directory: ./hindsight-api-slim
+      run: |
+        uv run --frozen --all-extras --index-strategy unsafe-best-match python -c "
+        from sentence_transformers import SentenceTransformer
+        print('Downloading embedding model...')
+        SentenceTransformer('BAAI/bge-small-en-v1.5')
+        print('Model downloaded successfully')
+        "
+
+    - name: Install hindsight-dev dependencies
+      run: |
+        cd hindsight-dev && uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Run perf tests
+      run: |
+        SUITE_ARG=""
+        if [ -n "${{ inputs.suite }}" ]; then
+          SUITE_ARG="--suite ${{ inputs.suite }}"
+        fi
+        ./scripts/benchmarks/run-perf-test.sh \
+          --scale ${{ inputs.scale || 'large' }} \
+          $SUITE_ARG \
+          --output perf-results.json
+
+    - name: Upload perf results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: perf-results-${{ github.sha }}
+        path: hindsight-dev/perf-results.json
+        retention-days: 90

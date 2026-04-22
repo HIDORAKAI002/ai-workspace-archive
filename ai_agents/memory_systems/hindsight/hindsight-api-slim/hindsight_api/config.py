@@ -375,6 +375,7 @@ ENV_DB_POOL_MIN_SIZE = "HINDSIGHT_API_DB_POOL_MIN_SIZE"
 ENV_DB_POOL_MAX_SIZE = "HINDSIGHT_API_DB_POOL_MAX_SIZE"
 ENV_DB_COMMAND_TIMEOUT = "HINDSIGHT_API_DB_COMMAND_TIMEOUT"
 ENV_DB_ACQUIRE_TIMEOUT = "HINDSIGHT_API_DB_ACQUIRE_TIMEOUT"
+ENV_DB_STATEMENT_TIMEOUT = "HINDSIGHT_API_DB_STATEMENT_TIMEOUT"
 
 # Worker configuration (distributed task processing)
 ENV_WORKER_ENABLED = "HINDSIGHT_API_WORKER_ENABLED"
@@ -383,7 +384,18 @@ ENV_WORKER_POLL_INTERVAL_MS = "HINDSIGHT_API_WORKER_POLL_INTERVAL_MS"
 ENV_WORKER_MAX_RETRIES = "HINDSIGHT_API_WORKER_MAX_RETRIES"
 ENV_WORKER_HTTP_PORT = "HINDSIGHT_API_WORKER_HTTP_PORT"
 ENV_WORKER_MAX_SLOTS = "HINDSIGHT_API_WORKER_MAX_SLOTS"
-ENV_WORKER_CONSOLIDATION_MAX_SLOTS = "HINDSIGHT_API_WORKER_CONSOLIDATION_MAX_SLOTS"
+
+# Per-operation-type slot reservations. Each entry maps an operation_type
+# (as stored in async_operations.operation_type) to its env var and default.
+# Adding a new operation type here is the ONLY change needed to make it
+# reservable via env var — config fields, from_env(), and the
+# worker_slot_reservations property all derive from this dict.
+WORKER_SLOT_RESERVATION_TYPES: dict[str, tuple[str, int]] = {
+    "consolidation": ("HINDSIGHT_API_WORKER_CONSOLIDATION_MAX_SLOTS", 2),
+    "retain": ("HINDSIGHT_API_WORKER_RETAIN_MAX_SLOTS", 0),
+    "file_convert_retain": ("HINDSIGHT_API_WORKER_FILE_CONVERT_RETAIN_MAX_SLOTS", 0),
+    "refresh_mental_model": ("HINDSIGHT_API_WORKER_REFRESH_MENTAL_MODEL_MAX_SLOTS", 0),
+}
 ENV_RETAIN_MAX_CONCURRENT = "HINDSIGHT_API_RETAIN_MAX_CONCURRENT"
 
 # Reflect agent settings
@@ -596,6 +608,7 @@ DEFAULT_DB_POOL_MIN_SIZE = 5
 DEFAULT_DB_POOL_MAX_SIZE = 100
 DEFAULT_DB_COMMAND_TIMEOUT = 60  # seconds
 DEFAULT_DB_ACQUIRE_TIMEOUT = 30  # seconds
+DEFAULT_DB_STATEMENT_TIMEOUT = 600  # seconds (Postgres statement_timeout applied on every pool connection; 0 disables)
 
 # Worker configuration (distributed task processing)
 DEFAULT_WORKER_ENABLED = True  # API runs worker by default (standalone mode)
@@ -604,7 +617,6 @@ DEFAULT_WORKER_POLL_INTERVAL_MS = 500  # Poll database every 500ms
 DEFAULT_WORKER_MAX_RETRIES = 3  # Max retries before marking task failed
 DEFAULT_WORKER_HTTP_PORT = 8889  # HTTP port for worker metrics/health
 DEFAULT_WORKER_MAX_SLOTS = 10  # Total concurrent tasks per worker
-DEFAULT_WORKER_CONSOLIDATION_MAX_SLOTS = 2  # Max concurrent consolidation tasks per worker
 DEFAULT_RETAIN_MAX_CONCURRENT = 4  # Max concurrent retain DB phases (HNSW reads + writes). Limits I/O contention.
 
 # Reflect agent settings
@@ -1054,6 +1066,7 @@ class HindsightConfig:
     db_pool_max_size: int
     db_command_timeout: int
     db_acquire_timeout: int
+    db_statement_timeout: int
 
     # Worker configuration (distributed task processing)
     worker_enabled: bool
@@ -1062,7 +1075,7 @@ class HindsightConfig:
     worker_max_retries: int
     worker_http_port: int
     worker_max_slots: int
-    worker_consolidation_max_slots: int
+    worker_slot_reservations: dict[str, int]
     retain_max_concurrent: int
 
     # Reflect agent settings
@@ -1273,6 +1286,16 @@ class HindsightConfig:
                 f"\n  2. Use a model that supports at least {self.retain_max_completion_tokens} output tokens"
                 f"\n     (current model: {self.retain_llm_model or self.llm_model}, "
                 f"provider: {self.retain_llm_provider or self.llm_provider})"
+            )
+
+        # Validate that sum of per-operation slot reservations does not exceed max_slots
+        total_reserved = sum(self.worker_slot_reservations.values())
+        if total_reserved > self.worker_max_slots:
+            reservation_details = ", ".join(f"{k}={v}" for k, v in self.worker_slot_reservations.items() if v > 0)
+            raise ValueError(
+                f"Sum of per-operation slot reservations ({total_reserved}: {reservation_details}) "
+                f"exceeds worker_max_slots ({self.worker_max_slots}). "
+                f"Reduce reservations or increase HINDSIGHT_API_WORKER_MAX_SLOTS."
             )
 
     @classmethod
@@ -1651,6 +1674,7 @@ class HindsightConfig:
             db_pool_max_size=int(os.getenv(ENV_DB_POOL_MAX_SIZE, str(DEFAULT_DB_POOL_MAX_SIZE))),
             db_command_timeout=int(os.getenv(ENV_DB_COMMAND_TIMEOUT, str(DEFAULT_DB_COMMAND_TIMEOUT))),
             db_acquire_timeout=int(os.getenv(ENV_DB_ACQUIRE_TIMEOUT, str(DEFAULT_DB_ACQUIRE_TIMEOUT))),
+            db_statement_timeout=int(os.getenv(ENV_DB_STATEMENT_TIMEOUT, str(DEFAULT_DB_STATEMENT_TIMEOUT))),
             # Worker configuration
             worker_enabled=os.getenv(ENV_WORKER_ENABLED, str(DEFAULT_WORKER_ENABLED)).lower() == "true",
             worker_id=os.getenv(ENV_WORKER_ID) or DEFAULT_WORKER_ID,
@@ -1658,9 +1682,11 @@ class HindsightConfig:
             worker_max_retries=int(os.getenv(ENV_WORKER_MAX_RETRIES, str(DEFAULT_WORKER_MAX_RETRIES))),
             worker_http_port=int(os.getenv(ENV_WORKER_HTTP_PORT, str(DEFAULT_WORKER_HTTP_PORT))),
             worker_max_slots=int(os.getenv(ENV_WORKER_MAX_SLOTS, str(DEFAULT_WORKER_MAX_SLOTS))),
-            worker_consolidation_max_slots=int(
-                os.getenv(ENV_WORKER_CONSOLIDATION_MAX_SLOTS, str(DEFAULT_WORKER_CONSOLIDATION_MAX_SLOTS))
-            ),
+            worker_slot_reservations={
+                op_type: int(os.getenv(env_var, str(default)))
+                for op_type, (env_var, default) in WORKER_SLOT_RESERVATION_TYPES.items()
+                if int(os.getenv(env_var, str(default))) > 0
+            },
             retain_max_concurrent=int(os.getenv(ENV_RETAIN_MAX_CONCURRENT, str(DEFAULT_RETAIN_MAX_CONCURRENT))),
             # Reflect agent settings
             reflect_max_iterations=int(os.getenv(ENV_REFLECT_MAX_ITERATIONS, str(DEFAULT_REFLECT_MAX_ITERATIONS))),

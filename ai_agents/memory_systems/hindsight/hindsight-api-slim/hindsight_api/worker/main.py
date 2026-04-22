@@ -18,7 +18,7 @@ import sys
 import warnings
 
 from ..config import get_config
-from ..engine.task_backend import SyncTaskBackend
+from ..engine.task_backend import WorkerTaskBackend
 from .poller import WorkerPoller
 
 # Filter deprecation warnings from third-party libraries
@@ -164,7 +164,11 @@ def main():
     print(f"  Poll interval: {args.poll_interval}ms")
     print(f"  Max retries: {args.max_retries}")
     print(f"  Max slots: {config.worker_max_slots}")
-    print(f"  Consolidation max slots: {config.worker_consolidation_max_slots}")
+    reservations = config.worker_slot_reservations
+    reservations_str = ", ".join(f"{k}={v}" for k, v in reservations.items()) if reservations else "none"
+    shared_pool = max(0, config.worker_max_slots - sum(reservations.values()))
+    print(f"  Slot reservations: {reservations_str}")
+    print(f"  Shared pool: {shared_pool}")
     print(f"  HTTP server: {args.http_host}:{args.http_port}")
     print()
 
@@ -191,11 +195,13 @@ def main():
             logger.info(f"Loaded operation validator: {operation_validator.__class__.__name__}")
 
         # Initialize MemoryEngine
-        # Workers use SyncTaskBackend because they execute tasks directly,
-        # they don't need to store tasks (they poll from DB)
+        # Workers use WorkerTaskBackend: submit_task is a no-op because the
+        # row already exists in async_operations.  Child tasks (e.g. consolidation
+        # triggered by retain) will be picked up by the poller on the next cycle
+        # instead of being executed inline, which avoids blocking the parent task.
         memory = MemoryEngine(
             run_migrations=False,  # Workers don't run migrations
-            task_backend=SyncTaskBackend(),
+            task_backend=WorkerTaskBackend(),
             tenant_extension=tenant_extension,
             operation_validator=operation_validator,
         )
@@ -222,7 +228,7 @@ def main():
             schema=schema,
             tenant_extension=tenant_extension,
             max_slots=config.worker_max_slots,
-            consolidation_max_slots=config.worker_consolidation_max_slots,
+            slot_reservations=config.worker_slot_reservations,
         )
 
         # Create the HTTP app for metrics/health
