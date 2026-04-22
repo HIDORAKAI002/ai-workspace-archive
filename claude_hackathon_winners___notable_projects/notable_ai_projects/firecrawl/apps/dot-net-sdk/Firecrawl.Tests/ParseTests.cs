@@ -162,11 +162,11 @@ public class ParseTests
         var contentType = handler.LastRequest.Content!.Headers.ContentType!;
         Assert.Equal("multipart/form-data", contentType.MediaType);
 
-        var rawBody = await handler.LastRequest.Content.ReadAsStringAsync();
-        Assert.Contains("name=\"options\"", rawBody);
+        var rawBody = handler.LastRequestBody!;
+        Assert.Matches("name=\"?options\"?", rawBody);
         Assert.Contains("\"markdown\"", rawBody);
-        Assert.Contains("name=\"file\"", rawBody);
-        Assert.Contains("filename=\"upload.html\"", rawBody);
+        Assert.Matches("name=\"?file\"?", rawBody);
+        Assert.Matches("filename=\"?upload\\.html\"?", rawBody);
         Assert.Contains("<html>hi</html>", rawBody);
 
         Assert.Equal("# Parsed", doc.Markdown);
@@ -206,6 +206,8 @@ public class ParseTests
 
         public HttpRequestMessage? LastRequest { get; private set; }
 
+        public string? LastRequestBody { get; private set; }
+
         public CapturingHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responder)
         {
             _responder = responder;
@@ -215,16 +217,11 @@ public class ParseTests
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            // Buffer the request body so we can inspect it after SendAsync.
+            // Read the request body eagerly because HttpClient disposes
+            // request.Content after SendAsync returns.
             if (request.Content != null)
             {
-                var buffered = await request.Content.ReadAsByteArrayAsync(cancellationToken);
-                var replay = new ByteArrayContent(buffered);
-                foreach (var header in request.Content.Headers)
-                {
-                    replay.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
-                request.Content = replay;
+                LastRequestBody = await request.Content.ReadAsStringAsync(cancellationToken);
             }
 
             LastRequest = request;
