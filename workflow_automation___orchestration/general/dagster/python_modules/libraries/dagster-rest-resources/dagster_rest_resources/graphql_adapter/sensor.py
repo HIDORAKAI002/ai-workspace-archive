@@ -217,10 +217,10 @@ def list_sensors_via_graphql(
                 "repositoryName": repository_name,
             }
         }
-        result = client.execute(LIST_SENSORS_QUERY, variables)
+        result = client.execute_generic(LIST_SENSORS_QUERY, variables=variables)
         return process_sensors_response(result)
     else:
-        result = client.execute(LIST_REPOSITORIES_QUERY)
+        result = client.execute_generic(LIST_REPOSITORIES_QUERY)
         return process_repositories_response(result)
 
 
@@ -240,7 +240,7 @@ def get_sensor_via_graphql(
     }
 
     try:
-        result = client.execute(GET_SENSOR_QUERY, variables)
+        result = client.execute_generic(GET_SENSOR_QUERY, variables=variables)
         if (
             result.get("data", {}).get("sensorOrError", {}).get("__typename")
             == "SensorNotFoundError"
@@ -253,7 +253,7 @@ def get_sensor_via_graphql(
 
 def get_sensor_by_name_via_graphql(client: IGraphQLClient, sensor_name: str) -> "DgApiSensor":
     """Get sensor by name, searching across all repositories."""
-    result = client.execute(LIST_REPOSITORIES_QUERY)
+    result = client.execute_generic(LIST_REPOSITORIES_QUERY)
     all_sensors = process_repositories_response(result)
 
     matching_sensors = [sensor for sensor in all_sensors.items if sensor.name == sensor_name]

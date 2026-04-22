@@ -113,6 +113,10 @@ function reportIsExact(report: ProbeReport): boolean {
   )
 }
 
+function caseRunsInBrowser(testCase: ProbeOracleCase, browser: AutomationBrowserKind): boolean {
+  return testCase.browsers === undefined || testCase.browsers.includes(browser)
+}
+
 async function runBrowser(browser: AutomationBrowserKind, port: number): Promise<boolean> {
   const lock = await acquireBrowserAutomationLock(browser)
   const reportBrowser: BrowserKind | null = browser === 'firefox' ? null : browser
@@ -150,6 +154,7 @@ async function runBrowser(browser: AutomationBrowserKind, port: number): Promise
       const batchResults = batchReport.results ?? []
       const reportsByLabel = new Map(batchResults.map(result => [result.label, result.report]))
       for (const testCase of KEEP_ALL_ORACLE_CASES) {
+        if (!caseRunsInBrowser(testCase, browser)) continue
         const report = reportsByLabel.get(testCase.label)
         if (report === undefined) {
           throw new Error(`Missing keep-all result for ${testCase.label}`)

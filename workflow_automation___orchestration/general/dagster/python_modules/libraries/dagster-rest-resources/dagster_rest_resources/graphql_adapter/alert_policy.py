@@ -84,7 +84,7 @@ def process_reconcile_response(graphql_response: dict[str, Any]) -> "AlertPolicy
 
 def list_alert_policies_via_graphql(client: IGraphQLClient) -> "AlertPolicyDocument":
     """Fetch alert policies using GraphQL."""
-    result = client.execute(LIST_ALERT_POLICIES_QUERY)
+    result = client.execute_generic(LIST_ALERT_POLICIES_QUERY)
     return process_alert_policies_response(result)
 
 
@@ -92,8 +92,8 @@ def reconcile_alert_policies_via_graphql(
     client: IGraphQLClient, document: list[dict[str, Any]]
 ) -> "AlertPolicySyncResult":
     """Reconcile alert policies from a document using GraphQL."""
-    result = client.execute(
+    result = client.execute_generic(
         RECONCILE_ALERT_POLICIES_MUTATION,
-        {"document": document},
+        variables={"document": document},
     )
     return process_reconcile_response(result)

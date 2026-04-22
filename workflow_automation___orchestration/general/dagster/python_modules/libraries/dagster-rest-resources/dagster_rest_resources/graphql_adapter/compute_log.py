@@ -78,7 +78,7 @@ def get_logs_captured_events(
         if cursor:
             variables["afterCursor"] = cursor
 
-        result = client.execute(LOGS_CAPTURED_EVENTS_QUERY, variables)
+        result = client.execute_generic(LOGS_CAPTURED_EVENTS_QUERY, variables=variables)
         logs_result = result.get("logsForRun")
         if not logs_result:
             raise Exception("Empty response from GraphQL API")
@@ -124,7 +124,7 @@ def get_captured_log_content(
     if max_bytes is not None:
         variables["limit"] = max_bytes
 
-    result = client.execute(CAPTURED_LOGS_QUERY, variables)
+    result = client.execute_generic(CAPTURED_LOGS_QUERY, variables=variables)
     captured = result.get("capturedLogs")
     if not captured:
         return {"stdout": None, "stderr": None, "cursor": None}
@@ -144,7 +144,7 @@ def get_captured_log_metadata(
 
     Returns dict with keys: stdoutDownloadUrl, stderrDownloadUrl.
     """
-    result = client.execute(CAPTURED_LOGS_METADATA_QUERY, {"logKey": log_key})
+    result = client.execute_generic(CAPTURED_LOGS_METADATA_QUERY, variables={"logKey": log_key})
     metadata = result.get("capturedLogsMetadata")
     if not metadata:
         return {"stdoutDownloadUrl": None, "stderrDownloadUrl": None}

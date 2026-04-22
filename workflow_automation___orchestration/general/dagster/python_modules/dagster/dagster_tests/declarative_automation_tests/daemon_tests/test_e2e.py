@@ -754,7 +754,11 @@ def test_500_eager_assets_user_code(capsys) -> None:
         get_grpc_workspace_request_context("500_eager_assets") as context,
         get_threadpool_executor() as executor,
     ):
-        freeze_dt = datetime.datetime(2024, 8, 16, 1, 35)
+        # Use the current real time at ~30 min past the hour. The gRPC child process
+        # uses real wall-clock time (freeze_time only patches the current process), so
+        # both must be in the same hour to see the same set of hourly partitions.
+        now = datetime.datetime.now()
+        freeze_dt = now.replace(minute=30, second=0, microsecond=0)
 
         for _ in range(2):
             clock_time = time.time()

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     )
     from dagster_rest_resources.schemas.issue import DgApiIssue, DgApiIssueList
     from dagster_rest_resources.schemas.job import DgApiJob, DgApiJobList
-    from dagster_rest_resources.schemas.organization import OrganizationSettings
+    from dagster_rest_resources.schemas.organization import DgApiOrganizationSettings
     from dagster_rest_resources.schemas.run import DgApiRun, DgApiRunList
     from dagster_rest_resources.schemas.run_event import RunEventList
     from dagster_rest_resources.schemas.saml import SamlOperationResult
@@ -174,7 +174,10 @@ def format_deployment_settings(settings: "DeploymentSettings", as_json: bool) ->
 # ---------------------------------------------------------------------------
 
 
-def format_organization_settings(settings: "OrganizationSettings", as_json: bool) -> str:
+def format_organization_settings(
+    settings: "DgApiOrganizationSettings",
+    as_json: bool,
+) -> str:
     """Format organization settings for output."""
     if as_json:
         return settings.model_dump_json(indent=2)

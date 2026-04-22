@@ -149,7 +149,7 @@ def _find_selector_for_name(
 
     Returns a dict with repositoryLocationName, repositoryName, and the entity name key.
     """
-    result = client.execute(_LIST_REPOSITORIES_QUERY)
+    result = client.execute_generic(_LIST_REPOSITORIES_QUERY)
     repos_result = result.get("repositoriesOrError")
     if not repos_result:
         raise Exception("Empty response from GraphQL API")
@@ -244,7 +244,7 @@ def get_sensor_ticks_via_graphql(
     if after_timestamp is not None:
         variables["afterTimestamp"] = after_timestamp
 
-    result = client.execute(SENSOR_TICKS_QUERY, variables)
+    result = client.execute_generic(SENSOR_TICKS_QUERY, variables=variables)
     sensor_result = result.get("sensorOrError")
     if not sensor_result:
         raise Exception("Empty response from GraphQL API")
@@ -284,7 +284,7 @@ def get_schedule_ticks_via_graphql(
     if after_timestamp is not None:
         variables["afterTimestamp"] = after_timestamp
 
-    result = client.execute(SCHEDULE_TICKS_QUERY, variables)
+    result = client.execute_generic(SCHEDULE_TICKS_QUERY, variables=variables)
     schedule_result = result.get("scheduleOrError")
     if not schedule_result:
         raise Exception("Empty response from GraphQL API")

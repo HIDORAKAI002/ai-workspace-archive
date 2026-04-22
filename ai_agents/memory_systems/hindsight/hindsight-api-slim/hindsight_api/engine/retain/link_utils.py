@@ -812,7 +812,6 @@ async def compute_semantic_links_ann(
                 bank_id,
                 fact_type,
                 top_k,
-                timeout=300,  # ANN on large banks can take minutes
             )
             logger.debug(f"[ANN] fact_type={fact_type}: {len(ft_rows)} rows in {time_mod.time() - t_query:.3f}s")
             rows.extend(ft_rows)

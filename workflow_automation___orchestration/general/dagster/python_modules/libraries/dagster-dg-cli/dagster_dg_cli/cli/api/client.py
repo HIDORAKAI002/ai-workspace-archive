@@ -48,7 +48,7 @@ def create_dg_api_graphql_client(
 
     # Check if we have a test context with custom factory
     if ctx.obj and isinstance(ctx.obj, DgApiTestContext) and ctx.obj.client_factory:
-        client = ctx.obj.client_factory(config)
+        return ctx.obj.client_factory(config)
     else:
         # For normal operation, validate token exists and create client
         if not config.user_token:
@@ -59,16 +59,25 @@ def create_dg_api_graphql_client(
                 "- Setting the DAGSTER_CLOUD_API_TOKEN environment variable"
             )
 
+        # Use debug client if requested
+        if view_graphql:
+            from dagster_rest_resources.gql_client import DebugGraphQLClient
+
+            def logger(msg: str) -> None:
+                click.echo(msg, err=True)
+
+            return DebugGraphQLClient(
+                url=config.organization_url,
+                api_token=config.user_token,
+                organization=config.organization,
+                deployment=config.default_deployment,
+                log=logger,
+            )
+
         # Normal operation: create real client from config
-        client = DagsterPlusGraphQLClient.from_config(config)
-
-    # Wrap with debug client if requested
-    if view_graphql:
-        from dagster_rest_resources.gql_client import DebugGraphQLClient
-
-        def logger(msg: str) -> None:
-            click.echo(msg, err=True)
-
-        client = DebugGraphQLClient(client, logger)
-
-    return client
+        return DagsterPlusGraphQLClient(
+            url=config.organization_url,
+            api_token=config.user_token,
+            organization=config.organization,
+            deployment=config.default_deployment,
+        )

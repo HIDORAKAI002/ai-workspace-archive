@@ -753,7 +753,6 @@ async def _run_final_semantic_ann(
         async with ann_semaphore:
             t0 = time.time()
             async with acquire_with_retry(pool) as conn:
-                await conn.execute("SET statement_timeout = '300s'")
                 ann_links = await compute_semantic_links_ann(
                     conn,
                     bank_id,
@@ -766,7 +765,6 @@ async def _run_final_semantic_ann(
                 if ann_links:
                     await _bulk_insert_links(conn, ann_links, bank_id=bank_id)
                 chunk_link_counts[chunk_idx] = len(ann_links)
-                await conn.execute("RESET statement_timeout")
             logger.info(
                 f"[streaming] Final ANN chunk {chunk_idx + 1}/{num_chunks}: "
                 f"{len(ann_links)} links in {time.time() - t0:.3f}s"

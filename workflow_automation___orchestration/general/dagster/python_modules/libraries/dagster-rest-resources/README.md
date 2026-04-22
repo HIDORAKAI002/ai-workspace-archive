@@ -61,8 +61,8 @@ REST-style method naming:
 
 Pydantic models for type safety:
 
-- `{Resource}` - Single resource model
-- `{Resource}ListResponse` - List response with pagination
+- `DgApi{Resource}` - Single resource model
+- `DgApi{Resource}List` - List of resource models
 
 ## Testing Strategy
 

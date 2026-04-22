@@ -213,7 +213,7 @@ class TestGetCodeLocationViaGraphql:
         }
 
         client = MagicMock()
-        client.execute.side_effect = [workspace_response, statuses_response]
+        client.execute_generic.side_effect = [workspace_response, statuses_response]
         return client
 
     def test_get_code_location_via_graphql_found(self):

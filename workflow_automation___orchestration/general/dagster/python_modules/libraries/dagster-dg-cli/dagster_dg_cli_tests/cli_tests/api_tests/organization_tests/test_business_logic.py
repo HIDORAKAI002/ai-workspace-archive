@@ -3,7 +3,7 @@
 import json
 
 from dagster_dg_cli.cli.api.formatters import format_organization_settings, format_saml_result
-from dagster_rest_resources.schemas.organization import OrganizationSettings
+from dagster_rest_resources.schemas.organization import DgApiOrganizationSettings
 from dagster_rest_resources.schemas.saml import SamlOperationResult
 
 
@@ -12,7 +12,7 @@ class TestFormatOrganizationSettings:
 
     def test_format_settings_text(self, snapshot):
         """Test formatting settings as YAML text."""
-        settings = OrganizationSettings(
+        settings = DgApiOrganizationSettings(
             settings={
                 "run_queue_config": {"max_concurrent_runs": 25},
                 "sso_default_role": "VIEWER",
@@ -23,7 +23,7 @@ class TestFormatOrganizationSettings:
 
     def test_format_settings_json(self, snapshot):
         """Test formatting settings as JSON."""
-        settings = OrganizationSettings(
+        settings = DgApiOrganizationSettings(
             settings={
                 "run_queue_config": {"max_concurrent_runs": 25},
                 "sso_default_role": "VIEWER",

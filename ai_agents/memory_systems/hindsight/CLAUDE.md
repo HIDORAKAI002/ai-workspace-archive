@@ -68,8 +68,9 @@ cd hindsight-control-plane && npm run dev
 ./scripts/benchmarks/run-locomo.sh
 
 # Performance benchmarks
+./scripts/benchmarks/run-perf-test.sh                      # System perf (mock LLM + pg0)
+./scripts/benchmarks/run-perf-test.sh --scale tiny          # Quick smoke test
 ./scripts/benchmarks/run-consolidation.sh
-./scripts/benchmarks/run-retain-perf.sh --document <path>  # Requires API server running
 
 # Results viewer
 ./scripts/benchmarks/start-visualizer.sh  # View results at localhost:8001

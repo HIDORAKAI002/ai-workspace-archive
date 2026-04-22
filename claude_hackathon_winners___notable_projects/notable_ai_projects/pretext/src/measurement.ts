@@ -11,6 +11,7 @@ export type SegmentMetrics = {
 export type EngineProfile = {
   lineFitEpsilon: number
   carryCJKAfterClosingQuote: boolean
+  breakKeepAllAfterPunctuation: boolean
   preferPrefixWidthsForBreakableRuns: boolean
   preferEarlySoftHyphenBreak: boolean
 }
@@ -77,6 +78,7 @@ export function getEngineProfile(): EngineProfile {
     cachedEngineProfile = {
       lineFitEpsilon: 0.005,
       carryCJKAfterClosingQuote: false,
+      breakKeepAllAfterPunctuation: true,
       preferPrefixWidthsForBreakableRuns: false,
       preferEarlySoftHyphenBreak: false,
     }
@@ -102,6 +104,7 @@ export function getEngineProfile(): EngineProfile {
   cachedEngineProfile = {
     lineFitEpsilon: isSafari ? 1 / 64 : 0.005,
     carryCJKAfterClosingQuote: isChromium,
+    breakKeepAllAfterPunctuation: !isSafari,
     preferPrefixWidthsForBreakableRuns: isSafari,
     preferEarlySoftHyphenBreak: isSafari,
   }

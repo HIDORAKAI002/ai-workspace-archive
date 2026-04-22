@@ -152,7 +152,7 @@ def list_asset_checks_via_graphql(client: IGraphQLClient, asset_key: str) -> "Dg
     """Fetch asset checks using GraphQL."""
     asset_key_parts = asset_key.split("/")
     variables = {"assetKey": {"path": asset_key_parts}}
-    result = client.execute(ASSET_CHECKS_QUERY, variables)
+    result = client.execute_generic(ASSET_CHECKS_QUERY, variables=variables)
     return process_asset_checks_response(result, asset_key)
 
 
@@ -174,5 +174,5 @@ def get_asset_check_executions_via_graphql(
     if cursor:
         variables["cursor"] = cursor
 
-    result = client.execute(ASSET_CHECK_EXECUTIONS_QUERY, variables)
+    result = client.execute_generic(ASSET_CHECK_EXECUTIONS_QUERY, variables=variables)
     return process_asset_check_executions_response(result, asset_key, check_name)

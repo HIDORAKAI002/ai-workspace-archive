@@ -729,7 +729,7 @@ async def cmd_generate(bank_id: str, scale: str, workers: int = 16, with_observa
         executor=engine.execute_task,
         poll_interval_ms=200,
         max_slots=workers,
-        consolidation_max_slots=0,
+        slot_reservations={},
     )
     poller_task = asyncio.create_task(poller.run())
     console.print("  Worker     : started\n")
@@ -778,6 +778,12 @@ async def cmd_generate(bank_id: str, scale: str, workers: int = 16, with_observa
 # ---------------------------------------------------------------------------
 
 
+class _RRFCrossEncoder:
+    """Stub cross encoder that reports itself as the RRF passthrough provider."""
+
+    provider_name = "rrf"
+
+
 class _RRFReranker:
     """
     Drop-in replacement for CrossEncoderReranker that uses RRF scores only.
@@ -785,6 +791,8 @@ class _RRFReranker:
     Eliminates cross-encoder (CPU-bound ML inference) so recall timings
     reflect pure DB interaction costs.
     """
+
+    cross_encoder = _RRFCrossEncoder()
 
     async def ensure_initialized(self) -> None:
         pass

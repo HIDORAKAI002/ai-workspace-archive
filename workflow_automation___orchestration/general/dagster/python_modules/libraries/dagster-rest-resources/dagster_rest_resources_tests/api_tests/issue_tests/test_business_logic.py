@@ -16,14 +16,14 @@ class TestIssueDataProcessing:
         """Test creating issues with all possible status values."""
         issues = [
             DgApiIssue(
-                id=f"issue-{status.value.lower()}-uuid",
+                id=str(i + 1),
                 title=f"Issue with status {status.value}",
                 description=f"Test issue for status {status.value}.",
                 status=status,
                 created_by_email="test@example.com",
                 linked_objects=[],
             )
-            for status in DgApiIssueStatus
+            for i, status in enumerate(DgApiIssueStatus)
         ]
 
         issue_list = DgApiIssueList(items=issues, cursor=None, has_more=False)
@@ -34,23 +34,23 @@ class TestIssueDataProcessing:
     def test_issue_list_pagination_fields(self):
         """Test IssueList properly tracks pagination fields."""
         issue = DgApiIssue(
-            id="test-issue",
+            id="1",
             title="Test",
             description="Test description.",
             status=DgApiIssueStatus.OPEN,
             created_by_email="test@example.com",
             linked_objects=[],
         )
-        issue_list = DgApiIssueList(items=[issue], cursor="abc123", has_more=True)
+        issue_list = DgApiIssueList(items=[issue], cursor="1", has_more=True)
 
         assert len(issue_list.items) == 1
-        assert issue_list.cursor == "abc123"
+        assert issue_list.cursor == "1"
         assert issue_list.has_more is True
 
     def test_issue_optional_fields_default_to_none(self):
         """Test that optional fields default to None."""
         issue = DgApiIssue(
-            id="test-issue",
+            id="1",
             title="Test",
             description="Test.",
             status=DgApiIssueStatus.OPEN,

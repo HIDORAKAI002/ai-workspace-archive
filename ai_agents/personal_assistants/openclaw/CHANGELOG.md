@@ -6,6 +6,7 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- Models/commands: add `/models add <provider> <modelId>` so you can register a model from chat and use it without restarting the gateway; keep `/models` as a simple provider browser while adding clearer add guidance and copy-friendly command examples. (#70211) Thanks @Takhoffman.
 - Pi/models: update the bundled pi packages to `0.68.1` and let the OpenCode Go catalog come from pi instead of plugin-maintained model aliases, adding the refreshed `opencode-go/kimi-k2.6`, Qwen, GLM, MiMo, and MiniMax entries.
 - CLI/doctor plugins: lazy-load doctor plugin paths and prefer installed plugin `dist/*` runtime entries over source-adjacent JavaScript fallbacks, reducing the measured `doctor --non-interactive` runtime by about 74% while keeping cold doctor startup on built plugin artifacts. (#69840) Thanks @gumadeiras.
 - WhatsApp/groups+direct: forward per-group and per-direct `systemPrompt` config into inbound context `GroupSystemPrompt` so configured per-chat behavioral instructions are injected on every turn. Supports `"*"` wildcard fallback and account-scoped overrides under `channels.whatsapp.accounts.<id>.{groups,direct}`; account maps fully replace root maps (no deep merge), matching the existing `requireMention` pattern. Closes #7011. (#59553) Thanks @Bluetegu.
@@ -14,20 +15,31 @@ Docs: https://docs.openclaw.ai
 - Tokenjuice: add bundled native OpenClaw support for tokenjuice as an opt-in plugin that compacts noisy `exec` and `bash` tool results in Pi embedded runs. (#69946) Thanks @vincentkoc.
 - Providers/Tencent: add the bundled Tencent Cloud provider plugin with TokenHub and Token Plan onboarding, docs, `hy3-preview` model catalog entries, and tiered Hy3 pricing metadata. (#68460) Thanks @JuniperSling.
 - TUI: add local embedded mode for running terminal chats without a Gateway while keeping plugin approval gates enforced. (#66767) Thanks @fuller-stack-dev.
-- CLI/Claude: keep compatible `claude-cli` runs on a warm stdio session and resume from the stored Claude session after Gateway restarts or idle exits. (#69679) Thanks @obviyus.
+- CLI/Claude: default `claude-cli` runs to warm stdio sessions, including custom configs that omit transport fields, and resume from the stored Claude session after Gateway restarts or idle exits. (#69679) Thanks @obviyus.
 
 ### Fixes
 
+- Hooks/Slack: standardize shared message hook routing fields (`threadId` / `replyToId`) and stop Slack outbound delivery from re-running `message_sending` inside the channel adapter, so plugins like thread-ownership make one outbound routing decision per reply. Thanks @vincentkoc.
+- Auto-reply/media: share one run-scoped reply media context between streamed block delivery and final payload filtering, so a local `MEDIA:` attachment is staged once and duplicate media sends are suppressed reliably. (#68111) Thanks @ayeshakhalid192007-dev.
+- Gateway/restart: preserve group and channel chat context when resuming an agent turn after a Gateway restart, so continuation replies keep the same prompt, routing, and tool-status behavior as the original conversation.
+- Gateway/pairing: shared-secret loopback CLI clients now silently auto-approve `metadata-upgrade` pairing (platform / device family refresh) instead of being disconnected with `1008 pairing required`. This matches the scope-upgrade and role-upgrade behavior added in #69431 and unblocks non-interactive CLI automation when a paired-device record has a stale platform string (e.g. device key replicated across hosts, install migrated between OSes, or platform-string format changed between OpenClaw versions). Browser / Control-UI clients keep the existing approval-required flow for metadata changes.
+- Gateway/pairing: treat any forwarded-header evidence (`Forwarded`, `X-Forwarded-*`, or `X-Real-IP`) as proxied WebSocket traffic before pairing locality checks, so reverse-proxy topologies cannot use the loopback shared-secret helper auto-pairing path.
+- Agents/OpenAI: treat exact `NO_REPLY` assistant output as a deliberate silent reply in embedded runs, so GPT-5.4 turns with signed reasoning plus a silent final no longer surface a false incomplete-turn error.
 - Gateway/pairing webchat: render `/pair qr` replies as structured media instead of raw markdown text, preserve inline reply threading and silent-control handling on media replies, avoid persisting sensitive QR images into transcript history, and keep local webchat media embedding behind internal-only trust markers. (#70047) Thanks @BunsDev.
 - Codex harness: default app-server runs to unchained local execution, so OpenAI heartbeats can use network and shell tools without stalling behind native Codex approvals or the workspace-write sandbox.
+- Codex harness: apply the GPT-5 behavior and heartbeat prompt overlay to native Codex app-server runs, so `codex/gpt-5.x` sessions get the same follow-through, tool-use, and proactive heartbeat guidance as OpenAI GPT-5 runs.
 - OpenAI/Responses: keep embedded OpenAI Responses runs on HTTP when `models.providers.openai.baseUrl` points at a local mock or other non-public endpoint, so mocked/custom endpoints no longer drift onto the hardcoded public websocket transport. (#69815) Thanks @vincentkoc.
 - Channels/config: require resolved runtime config on channel send/action/client helpers and block runtime helper `loadConfig()` calls, so SecretRefs are resolved at startup/boundaries instead of being re-read during sends.
+- Discord: pass resolved runtime config through guild and moderation action helpers, so thread-originated Discord commands can run channel, member, role, and guild actions without falling back to runtime config reads. (#70215) Thanks @szponeczek.
 - CLI/channels: preserve bundled setup promotion metadata when a loaded partial channel plugin omits it, so adding a non-default account still moves legacy single-account fields such as Telegram `streaming` into `accounts.default`.
 - Telegram: keep the sent-message ownership cache isolated per configured session store, so own-message reaction filtering remains correct with custom `session.store` paths.
+- Security/update: fail closed when exact pinned npm plugin or hook-pack updates detect integrity drift, and expose aborted plugin drift details in `openclaw update --json`.
 - Ollama: forward OpenClaw thinking control to native `/api/chat` requests as top-level `think`, so `/think off` and `openclaw agent --thinking off` suppress thinking on models such as qwen3 instead of idling until the watchdog fires. Fixes #69902. (#69967) Thanks @WZH8898.
 - Memory-core/dreaming: suppress the startup-only managed dreaming cron unavailable warning when the cron service is still attaching, while preserving the runtime warning if cron genuinely remains unavailable. Fixes #69939. (#69941) Thanks @Sanjays2402.
 - Mattermost: suppress reasoning-only payloads even when they arrive as blockquoted `> Reasoning:` text, preventing `/reasoning on` from leaking thinking into channel posts. (#69927) Thanks @lawrence3699.
 - Discord: read `channel.parentId` through a safe accessor in the slash-command, reaction, and model-picker paths so partial `GuildThreadChannel` prototype getters no longer throw `Cannot access rawData on partial Channel` when commands like `/new` run from inside a thread. Fixes #69861. (#69908) Thanks @neeravmakwana.
+- Discord: use safe channel name and parent accessors across voice command authorization, so `/vc` commands from partial Discord thread channels no longer crash on Carbon rawData getters. (#70199) Thanks @hanamizuki.
+- Discord: make auto-thread parent transcript inheritance opt-in via `channels.discord.thread.inheritParent`, keeping newly created Discord thread sessions isolated by default while preserving explicit inheritance for configured accounts. Fixes #69907. (#69986) Thanks @Blahdude.
 - Browser/Chrome MCP: reset cached existing-session control sessions when a `navigate_page` call times out, so one stuck navigation no longer poisons the browser profile until a gateway restart. (#69733) Thanks @ayeshakhalid192007-dev.
 - Browser/Chrome MCP: propagate click timeouts and abort signals to existing-session actions so a stuck click fails fast and reconnects instead of poisoning the browser tool until gateway restart. (#63524) Thanks @dongseok0.
 - Gateway/channel health: base stale-socket recovery on provider-proven transport activity instead of inbound app-event freshness, preventing quiet Slack, Discord, Telegram, Matrix, and local-style channels from being restarted solely because no user traffic arrived. (#69833) Thanks @bek91.
@@ -49,6 +61,12 @@ Docs: https://docs.openclaw.ai
 - CLI sessions: keep provider-owned CLI sessions through implicit daily expiry while preserving explicit reset behavior, and retain Claude CLI binding metadata across gateway agent requests. (#70106) Thanks @obviyus.
 - fix(config): accept truncateAfterCompaction (#68395). Thanks @MonkeyLeeT
 - CLI/Claude: keep Claude CLI session bindings stable across OAuth access-token refreshes, so gateway restarts continue the same Claude conversation instead of minting a fresh one. (#70132) Thanks @obviyus.
+- QQBot: add `INTERACTION` intent (`1 << 26`) to the gateway constants and include it in the `FULL_INTENTS` mask so interaction events are received. (#70143) Thanks @cxyhhhhh.
+- Gateway/restart: preserve one-shot continuation instructions across gateway restarts so agents can resume and reply back to the original chat after reboot. (#63406) Thanks @VACInc.
+- Gateway/restart: write restart sentinel files atomically so interrupted writes cannot leave a truncated sentinel behind. (#70225) Thanks @obviyus.
+- Pairing: remove stale pending requests for a device when that paired device is deleted, so an old repair approval cannot recreate the removed device from leftover state.
+- Security/dotenv: block workspace `.env` overrides for Matrix, Mattermost, IRC, and Synology endpoint settings so cloned workspaces cannot redirect bundled connector traffic through local endpoint config. (#70240) Thanks @drobison00.
+- Telegram: require the same `/models` authorization for group model-picker callbacks, so unauthorized participants can no longer browse or change the session model through inline buttons. (#70235) Thanks @drobison00.
 
 ## 2026.4.21
 
@@ -181,8 +199,8 @@ Docs: https://docs.openclaw.ai
 - Agents/subagents: include requested role and runtime timing on subagent failure payloads so parent agents can correlate failed or timed-out child work. (#68726) Thanks @BKF-Gitty.
 - Gateway/sessions: reject stale agent-scoped sessions after an agent is removed from config while preserving legacy default-agent main-session aliases. (#65986) Thanks @bittoby.
 - Doctor/gateway: surface pending device pairing requests, scope-upgrade approval drift, and stale device-token mismatch repair steps so `openclaw doctor --fix` no longer leaves pairing/auth setup failures unexplained. (#69210) Thanks @obviyus.
-- Cron/isolated-agent: preserve explicit `delivery.mode: "none"` message targets for isolated runs without inheriting implicit `last` routing, so agent-initiated Telegram sends keep their authored destination while bare `mode:none` jobs stay targetless. (#69153) Thanks @obviyus.
-- Cron/isolated-agent: keep `delivery.mode: "none"` account-only or thread-only configs from inheriting a stale implicit recipient, so isolated runs only resolve message routing when the job authored an explicit `to` target. (#69163) Thanks @obviyus.
+- Cron/isolated-agent: preserve explicit `delivery.mode: "none"` message targets for isolated runs without inheriting implicit `last` routing, so agent-initiated Telegram sends keep their authored destination while bare `mode:none` jobs stay targetless. (#69153) Thanks @davehappyminion and @nikilster.
+- Cron/isolated-agent: keep `delivery.mode: "none"` account-only or thread-only configs from inheriting a stale implicit recipient, so isolated runs only resolve message routing when the job authored an explicit `to` target. (#69163) Thanks @davehappyminion and @nikilster.
 - Gateway/TUI: retry session history while the local gateway is still finishing startup, so `openclaw tui` reconnects no longer fail on transient `chat.history unavailable during gateway startup` errors. (#69164) Thanks @shakkernerd.
 - BlueBubbles/reactions: fall back to `love` when an agent reacts with an emoji outside the iMessage tapback set (`love`/`like`/`dislike`/`laugh`/`emphasize`/`question`), so wider-vocabulary model reactions like `👀` still produce a visible tapback instead of failing the whole reaction request. Configured ack reactions still validate strictly via the new `normalizeBlueBubblesReactionInputStrict` path. (#64693) Thanks @zqchris.
 - BlueBubbles: prefer iMessage over SMS when both chats exist for the same handle, honor explicit `sms:` targets, and never silently downgrade iMessage-available recipients. (#61781) Thanks @rmartin.

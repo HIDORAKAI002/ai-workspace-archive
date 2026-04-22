@@ -70,6 +70,21 @@ class ClaimedTask:
     schema: str | None
 
 
+@dataclass
+class SlotAvailability:
+    """Available slot capacity across reserved and shared pools.
+
+    Each operation type with a reservation has its own reserved pool.
+    The shared pool (max_slots - sum of reservations) is usable by any type.
+    """
+
+    reserved: dict[str, int]
+    """Per-operation-type remaining reserved capacity."""
+
+    shared: int
+    """Remaining shared pool capacity (usable by any operation type)."""
+
+
 class WorkerPoller:
     """
     Polls PostgreSQL for pending tasks and executes them.
@@ -89,7 +104,7 @@ class WorkerPoller:
         schema: str | None = None,
         tenant_extension: "TenantExtension | None" = None,
         max_slots: int = 10,
-        consolidation_max_slots: int = 2,
+        slot_reservations: dict[str, int] | None = None,
     ):
         """
         Initialize the worker poller.
@@ -103,7 +118,10 @@ class WorkerPoller:
             tenant_extension: Extension for dynamic multi-tenant discovery. If None, creates a
                             DefaultTenantExtension with the configured schema.
             max_slots: Maximum concurrent tasks per worker
-            consolidation_max_slots: Maximum concurrent consolidation tasks per worker
+            slot_reservations: Per-operation-type reserved slot counts (e.g. {"consolidation": 2,
+                "retain": 3}). Reserved slots guarantee capacity for that operation type.
+                Remaining slots (max_slots - sum of reservations) form a shared pool usable
+                by any operation type. Defaults to {"consolidation": 2} if None.
         """
         self._pool = pool
         self._worker_id = worker_id
@@ -119,7 +137,9 @@ class WorkerPoller:
             tenant_extension = DefaultTenantExtension(config=config)
         self._tenant_extension = tenant_extension
         self._max_slots = max_slots
-        self._consolidation_max_slots = consolidation_max_slots
+        self._slot_reservations: dict[str, int] = (
+            slot_reservations if slot_reservations is not None else {"consolidation": 2}
+        )
         self._shutdown = asyncio.Event()
         self._current_tasks: set[asyncio.Task] = set()
         self._in_flight_count = 0
@@ -196,29 +216,37 @@ class WorkerPoller:
                     pass
             return active
 
-    async def _get_available_slots(self) -> tuple[int, int]:
+    async def _get_available_slots(self) -> SlotAvailability:
         """
         Calculate available slots for claiming tasks.
 
-        Consolidation has a reserved pool of ``consolidation_max_slots`` within
-        ``max_slots``. Non-consolidation tasks may use at most
-        ``max_slots - consolidation_max_slots`` slots, leaving the remainder
-        always available for consolidation. This prevents consolidation from
-        being starved when retain throughput continuously saturates the queue.
+        Each operation type can have reserved slots (via ``slot_reservations``).
+        Reserved slots guarantee capacity for that type — they cannot be used by
+        other types. The remaining slots (``max_slots - sum(reservations)``) form
+        a shared pool usable by any operation type on a first-come basis.
 
-        Returns:
-            (non_consolidation_available, consolidation_available) tuple
+        When an operation type's in-flight count exceeds its reservation, the
+        excess tasks are considered to be using shared pool slots.
         """
         async with self._in_flight_lock:
             total_in_flight = self._in_flight_count
-            consolidation_in_flight = self._in_flight_by_type.get("consolidation", 0)
+            in_flight_snapshot = dict(self._in_flight_by_type)
 
-        non_consolidation_in_flight = max(0, total_in_flight - consolidation_in_flight)
-        non_consolidation_max = max(0, self._max_slots - self._consolidation_max_slots)
-        non_consolidation_available = max(0, non_consolidation_max - non_consolidation_in_flight)
-        consolidation_available = max(0, self._consolidation_max_slots - consolidation_in_flight)
+        # Per-type reserved availability
+        reserved_available: dict[str, int] = {}
+        tasks_in_reserved = 0
+        for op_type, reserved in self._slot_reservations.items():
+            in_flight = in_flight_snapshot.get(op_type, 0)
+            reserved_available[op_type] = max(0, reserved - in_flight)
+            tasks_in_reserved += min(reserved, in_flight)
 
-        return non_consolidation_available, consolidation_available
+        # Shared pool: total slots minus reservations minus tasks using shared slots
+        sum_reservations = sum(self._slot_reservations.values())
+        shared_pool_size = max(0, self._max_slots - sum_reservations)
+        tasks_in_shared = max(0, total_in_flight - tasks_in_reserved)
+        shared_available = max(0, shared_pool_size - tasks_in_shared)
+
+        return SlotAvailability(reserved=reserved_available, shared=shared_available)
 
     async def wait_for_active_tasks(self, timeout: float = 10.0) -> bool:
         """
@@ -249,14 +277,14 @@ class WorkerPoller:
     async def claim_batch(self) -> list[ClaimedTask]:
         """
         Claim pending tasks atomically across all tenant schemas,
-        respecting slot limits (total and consolidation).
+        respecting per-operation-type slot reservations and shared pool limits.
 
         Uses FOR UPDATE SKIP LOCKED to ensure no conflicts with other workers.
 
         Schema iteration is round-robin to prevent one busy tenant from
         starving others. Each poll starts at ``self._next_schema_idx`` and
-        wraps around the full list. First pass caps at 1 claim per schema
-        so every tenant with pending work gets a fair chance; a second
+        wraps around the full list. First pass caps at 1 claim per pool per
+        schema so every tenant with pending work gets a fair chance; a second
         pass backfills remaining slots from any schema when there's spare
         capacity. After the call, the offset advances past the last
         schema we serviced (or by 1 if nothing was claimed) so the next
@@ -265,10 +293,10 @@ class WorkerPoller:
         Returns:
             List of ClaimedTask objects containing operation_id, task_dict, and schema
         """
-        # Calculate available slots (independent pools after reservation)
-        non_consolidation_available, consolidation_available = await self._get_available_slots()
+        # Calculate available slots (per-type reserved + shared pool)
+        availability = await self._get_available_slots()
 
-        if non_consolidation_available <= 0 and consolidation_available <= 0:
+        if all(v <= 0 for v in availability.reserved.values()) and availability.shared <= 0:
             return []
 
         schemas = await self._get_schemas()
@@ -294,27 +322,34 @@ class WorkerPoller:
         rotated = [x for x in active_indexed if x[0] >= start] + [x for x in active_indexed if x[0] < start]
 
         all_tasks: list[ClaimedTask] = []
-        remaining_non_consolidation = non_consolidation_available
-        remaining_consolidation = consolidation_available
+        remaining_reserved = dict(availability.reserved)
+        remaining_shared = availability.shared
         last_serviced_idx: int | None = None
         schemas_with_work: list[tuple[int, str | None]] = []
+
+        def _has_capacity() -> bool:
+            return any(v > 0 for v in remaining_reserved.values()) or remaining_shared > 0
+
+        def _account_tasks(tasks: list[ClaimedTask]) -> None:
+            nonlocal remaining_shared
+            for task in tasks:
+                op_type = task.task_dict.get("operation_type", "unknown")
+                if op_type in remaining_reserved and remaining_reserved[op_type] > 0:
+                    remaining_reserved[op_type] -= 1
+                else:
+                    remaining_shared -= 1
 
         # Pass 1: fairness pass — iterate only active schemas, cap at
         # 1 claim per pool per schema.
         for orig_idx, schema in rotated:
-            if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
+            if not _has_capacity():
                 break
 
-            nc_limit = min(1, remaining_non_consolidation)
-            c_limit = min(1, remaining_consolidation)
-            tasks = await self._claim_batch_for_schema(schema, nc_limit, c_limit)
+            fair_reserved = {t: min(1, v) for t, v in remaining_reserved.items() if v > 0}
+            fair_shared = min(1, remaining_shared) if remaining_shared > 0 else 0
+            tasks = await self._claim_batch_for_schema(schema, fair_reserved, fair_shared)
 
-            for task in tasks:
-                op_type = task.task_dict.get("operation_type", "unknown")
-                if op_type == "consolidation":
-                    remaining_consolidation -= 1
-                else:
-                    remaining_non_consolidation -= 1
+            _account_tasks(tasks)
 
             if tasks:
                 last_serviced_idx = orig_idx
@@ -324,19 +359,16 @@ class WorkerPoller:
 
         # Pass 2: capacity pass — fill remaining slots from schemas
         # that had work in pass 1 only.
-        if (remaining_non_consolidation > 0 or remaining_consolidation > 0) and schemas_with_work:
+        if _has_capacity() and schemas_with_work:
             for orig_idx, schema in schemas_with_work:
-                if remaining_non_consolidation <= 0 and remaining_consolidation <= 0:
+                if not _has_capacity():
                     break
 
-                tasks = await self._claim_batch_for_schema(schema, remaining_non_consolidation, remaining_consolidation)
+                tasks = await self._claim_batch_for_schema(
+                    schema, {t: v for t, v in remaining_reserved.items() if v > 0}, remaining_shared
+                )
 
-                for task in tasks:
-                    op_type = task.task_dict.get("operation_type", "unknown")
-                    if op_type == "consolidation":
-                        remaining_consolidation -= 1
-                    else:
-                        remaining_non_consolidation -= 1
+                _account_tasks(tasks)
 
                 if tasks:
                     last_serviced_idx = orig_idx
@@ -353,11 +385,11 @@ class WorkerPoller:
         return all_tasks
 
     async def _claim_batch_for_schema(
-        self, schema: str | None, non_consolidation_limit: int, consolidation_limit: int
+        self, schema: str | None, reserved_limits: dict[str, int], shared_limit: int
     ) -> list[ClaimedTask]:
-        """Claim tasks from a specific schema respecting slot limits."""
+        """Claim tasks from a specific schema respecting per-type and shared slot limits."""
         try:
-            return await self._claim_batch_for_schema_inner(schema, non_consolidation_limit, consolidation_limit)
+            return await self._claim_batch_for_schema_inner(schema, reserved_limits, shared_limit)
         except Exception as e:
             # Format schema for logging: custom schemas in quotes, None as-is
             schema_display = f'"{schema}"' if schema else str(schema)
@@ -365,67 +397,173 @@ class WorkerPoller:
             return []
 
     async def _claim_batch_for_schema_inner(
-        self, schema: str | None, non_consolidation_limit: int, consolidation_limit: int
+        self, schema: str | None, reserved_limits: dict[str, int], shared_limit: int
     ) -> list[ClaimedTask]:
-        """Inner implementation for claiming tasks from a specific schema with slot limits.
+        """Inner implementation for claiming tasks from a specific schema.
 
-        Non-consolidation and consolidation pools are independent: each is bounded by
-        its own limit and they do not borrow from each other.
+        Claims happen in two phases:
+        1. Reserved pools: one query per operation type that has reserved slots.
+           Consolidation queries always include bank-serialization (no two consolidation
+           tasks for the same bank simultaneously).
+        2. Shared pool: remaining capacity is filled by any operation type. Two queries
+           are used (non-consolidation + consolidation with bank serialization) to
+           preserve consolidation's bank-serialization constraint.
+
+        Within the same transaction, rows locked by earlier queries are excluded from
+        later queries via ``operation_id != ALL($excluded)`` since ``FOR UPDATE SKIP
+        LOCKED`` only skips rows locked by *other* transactions.
         """
         table = fq_table("async_operations", schema)
 
         async with self._pool.acquire() as conn:
             async with conn.transaction():
-                # 1. Claim non-consolidation tasks
-                non_consolidation_rows = []
-                if non_consolidation_limit > 0:
-                    non_consolidation_rows = await conn.fetch(
-                        f"""
-                        SELECT operation_id, task_payload, retry_count
-                        FROM {table}
-                        WHERE status = 'pending'
-                          AND task_payload IS NOT NULL
-                          AND operation_type != 'consolidation'
-                          AND (next_retry_at IS NULL OR next_retry_at <= NOW())
-                        ORDER BY created_at
-                        LIMIT $1
-                        FOR UPDATE SKIP LOCKED
-                        """,
-                        non_consolidation_limit,
-                    )
+                all_rows: list[Any] = []
+                claimed_ids: list[Any] = []
 
-                # 2. Claim consolidation tasks from their reserved pool
-                consolidation_rows = []
-                if consolidation_limit > 0:
-                    consolidation_rows = await conn.fetch(
-                        f"""
-                        SELECT operation_id, task_payload, retry_count
-                        FROM {table} AS pending
-                        WHERE status = 'pending'
-                          AND task_payload IS NOT NULL
-                          AND operation_type = 'consolidation'
-                          AND (next_retry_at IS NULL OR next_retry_at <= NOW())
-                          AND NOT EXISTS (
-                              SELECT 1 FROM {table} AS processing
-                              WHERE processing.bank_id = pending.bank_id
-                                AND processing.operation_type = 'consolidation'
-                                AND processing.status = 'processing'
-                          )
-                        ORDER BY created_at
-                        LIMIT $1
-                        FOR UPDATE SKIP LOCKED
-                        """,
-                        consolidation_limit,
-                    )
+                # --- Phase 1: claim from reserved pools ---
+                for op_type, limit in reserved_limits.items():
+                    if limit <= 0:
+                        continue
 
-                tagged_rows = [(row, False) for row in non_consolidation_rows] + [
-                    (row, True) for row in consolidation_rows
-                ]
+                    if op_type == "consolidation":
+                        rows = await conn.fetch(
+                            f"""
+                            SELECT operation_id, operation_type, task_payload, retry_count
+                            FROM {table} AS pending
+                            WHERE status = 'pending'
+                              AND task_payload IS NOT NULL
+                              AND operation_type = 'consolidation'
+                              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                              AND NOT EXISTS (
+                                  SELECT 1 FROM {table} AS processing
+                                  WHERE processing.bank_id = pending.bank_id
+                                    AND processing.operation_type = 'consolidation'
+                                    AND processing.status = 'processing'
+                              )
+                            ORDER BY created_at
+                            LIMIT $1
+                            FOR UPDATE SKIP LOCKED
+                            """,
+                            limit,
+                        )
+                    else:
+                        rows = await conn.fetch(
+                            f"""
+                            SELECT operation_id, operation_type, task_payload, retry_count
+                            FROM {table}
+                            WHERE status = 'pending'
+                              AND task_payload IS NOT NULL
+                              AND operation_type = $1
+                              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                            ORDER BY created_at
+                            LIMIT $2
+                            FOR UPDATE SKIP LOCKED
+                            """,
+                            op_type,
+                            limit,
+                        )
 
-                if not tagged_rows:
+                    for row in rows:
+                        claimed_ids.append(row["operation_id"])
+                        all_rows.append(row)
+
+                # --- Phase 2: claim from shared pool ---
+                remaining_shared = shared_limit
+                if remaining_shared > 0:
+                    # 2a. Non-consolidation tasks (any type except consolidation)
+                    if claimed_ids:
+                        rows = await conn.fetch(
+                            f"""
+                            SELECT operation_id, operation_type, task_payload, retry_count
+                            FROM {table}
+                            WHERE status = 'pending'
+                              AND task_payload IS NOT NULL
+                              AND operation_type != 'consolidation'
+                              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                              AND operation_id != ALL($1::uuid[])
+                            ORDER BY created_at
+                            LIMIT $2
+                            FOR UPDATE SKIP LOCKED
+                            """,
+                            claimed_ids,
+                            remaining_shared,
+                        )
+                    else:
+                        rows = await conn.fetch(
+                            f"""
+                            SELECT operation_id, operation_type, task_payload, retry_count
+                            FROM {table}
+                            WHERE status = 'pending'
+                              AND task_payload IS NOT NULL
+                              AND operation_type != 'consolidation'
+                              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                            ORDER BY created_at
+                            LIMIT $1
+                            FOR UPDATE SKIP LOCKED
+                            """,
+                            remaining_shared,
+                        )
+
+                    for row in rows:
+                        claimed_ids.append(row["operation_id"])
+                        all_rows.append(row)
+                    remaining_shared -= len(rows)
+
+                    # 2b. Consolidation tasks (with bank-serialization constraint)
+                    if remaining_shared > 0:
+                        if claimed_ids:
+                            rows = await conn.fetch(
+                                f"""
+                                SELECT operation_id, operation_type, task_payload, retry_count
+                                FROM {table} AS pending
+                                WHERE status = 'pending'
+                                  AND task_payload IS NOT NULL
+                                  AND operation_type = 'consolidation'
+                                  AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                                  AND operation_id != ALL($1::uuid[])
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM {table} AS processing
+                                      WHERE processing.bank_id = pending.bank_id
+                                        AND processing.operation_type = 'consolidation'
+                                        AND processing.status = 'processing'
+                                  )
+                                ORDER BY created_at
+                                LIMIT $2
+                                FOR UPDATE SKIP LOCKED
+                                """,
+                                claimed_ids,
+                                remaining_shared,
+                            )
+                        else:
+                            rows = await conn.fetch(
+                                f"""
+                                SELECT operation_id, operation_type, task_payload, retry_count
+                                FROM {table} AS pending
+                                WHERE status = 'pending'
+                                  AND task_payload IS NOT NULL
+                                  AND operation_type = 'consolidation'
+                                  AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM {table} AS processing
+                                      WHERE processing.bank_id = pending.bank_id
+                                        AND processing.operation_type = 'consolidation'
+                                        AND processing.status = 'processing'
+                                  )
+                                ORDER BY created_at
+                                LIMIT $1
+                                FOR UPDATE SKIP LOCKED
+                                """,
+                                remaining_shared,
+                            )
+
+                        for row in rows:
+                            claimed_ids.append(row["operation_id"])
+                            all_rows.append(row)
+
+                if not all_rows:
                     return []
 
-                operation_ids = [row["operation_id"] for row, _ in tagged_rows]
+                operation_ids = [row["operation_id"] for row in all_rows]
                 await conn.execute(
                     f"""
                     UPDATE {table}
@@ -437,15 +575,15 @@ class WorkerPoller:
                 )
 
                 result = []
-                for row, is_consolidation in tagged_rows:
+                for row in all_rows:
                     task_dict = json.loads(row["task_payload"])
                     task_dict["_retry_count"] = row["retry_count"]
                     task_dict["_operation_id"] = str(row["operation_id"])
-                    # The DB row knows the operation_type, but the JSON payload may not
-                    # carry it. Inject it so in-flight tracking and slot accounting
-                    # (which key off task_dict["operation_type"]) work correctly.
-                    if is_consolidation:
-                        task_dict["operation_type"] = "consolidation"
+                    # The DB column is authoritative for operation_type — inject it
+                    # into task_dict so in-flight tracking and slot accounting work.
+                    db_op_type = row["operation_type"]
+                    if db_op_type:
+                        task_dict["operation_type"] = db_op_type
                     result.append(
                         ClaimedTask(
                             operation_id=str(row["operation_id"]),
@@ -816,9 +954,13 @@ class WorkerPoller:
         """
         await self.recover_own_tasks()
 
+        reservations_str = (
+            ", ".join(f"{k}={v}" for k, v in self._slot_reservations.items()) if self._slot_reservations else "none"
+        )
+        shared_pool = max(0, self._max_slots - sum(self._slot_reservations.values()))
         logger.info(
             f"Worker {self._worker_id} starting polling loop "
-            f"(max_slots={self._max_slots}, consolidation_max_slots={self._consolidation_max_slots})"
+            f"(max_slots={self._max_slots}, reservations=[{reservations_str}], shared_pool={shared_pool})"
         )
 
         while not self._shutdown.is_set():
@@ -937,11 +1079,19 @@ class WorkerPoller:
                 in_flight_by_type = dict(self._in_flight_by_type)
                 active_tasks = dict(self._active_tasks)
 
-            consolidation_count = in_flight_by_type.get("consolidation", 0)
-            non_consolidation_in_flight = max(0, in_flight - consolidation_count)
-            non_consolidation_max = max(0, self._max_slots - self._consolidation_max_slots)
-            available_slots = max(0, non_consolidation_max - non_consolidation_in_flight)
-            available_consolidation_slots = max(0, self._consolidation_max_slots - consolidation_count)
+            # Compute per-type reserved availability and shared pool
+            tasks_in_reserved = 0
+            reserved_parts = []
+            for op_type, reserved in self._slot_reservations.items():
+                type_in_flight = in_flight_by_type.get(op_type, 0)
+                type_available = max(0, reserved - type_in_flight)
+                tasks_in_reserved += min(reserved, type_in_flight)
+                reserved_parts.append(f"{op_type}={type_in_flight}/{reserved}(avail={type_available})")
+            sum_reservations = sum(self._slot_reservations.values())
+            shared_pool_size = max(0, self._max_slots - sum_reservations)
+            tasks_in_shared = max(0, in_flight - tasks_in_reserved)
+            shared_available = max(0, shared_pool_size - tasks_in_shared)
+            reserved_str = ", ".join(reserved_parts) if reserved_parts else "none"
 
             # Build local processing breakdown (aggregate counts)
             task_groups: dict[tuple[str, str], int] = {}
@@ -1022,8 +1172,9 @@ class WorkerPoller:
             schemas_str = ", ".join(s if s else "default" for s in schemas)
             logger.info(
                 f"[WORKER_STATS] worker={self._worker_id} "
-                f"slots={in_flight}/{self._max_slots} (consolidation={consolidation_count}/{self._consolidation_max_slots}) | "
-                f"available={available_slots} (consolidation={available_consolidation_slots}) | "
+                f"slots={in_flight}/{self._max_slots} | "
+                f"reserved: [{reserved_str}] | "
+                f"shared={tasks_in_shared}/{shared_pool_size}(avail={shared_available}) | "
                 f"global: pending={global_pending} (schemas: {schemas_str}) | "
                 f"others: {others_str} | "
                 f"pool: {pool_str} | "

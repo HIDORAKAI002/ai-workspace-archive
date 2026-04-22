@@ -416,7 +416,7 @@ async def test_worker_batch_recovery(memory, request_context):
             schema=schema,
             tenant_extension=tenant_extension,
             max_slots=5,
-            consolidation_max_slots=2,
+            slot_reservations={"consolidation": 2},
         )
 
         # Run recovery
