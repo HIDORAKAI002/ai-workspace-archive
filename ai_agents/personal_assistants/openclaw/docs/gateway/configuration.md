@@ -572,6 +572,19 @@ Most fields hot-apply without downtime. In `hybrid` mode, restart-required chang
 `gateway.reload` and `gateway.remote` are exceptions — changing them does **not** trigger a restart.
 </Note>
 
+### Reload planning
+
+When you edit a source file that is referenced through `$include`, OpenClaw plans
+the reload from the source-authored layout, not the flattened in-memory view.
+That keeps hot-reload decisions (hot-apply vs restart) predictable even when a
+single top-level section lives in its own included file such as
+`plugins: { $include: "./plugins.json5" }`.
+
+If a reload cannot be planned safely — for example, because the source layout
+combines root includes with sibling overrides — OpenClaw fails closed, logs the
+reason, and leaves the current running config in place so you can fix the source
+shape instead of silently falling back to a flattened reload.
+
 ## Config RPC (programmatic updates)
 
 <Note>

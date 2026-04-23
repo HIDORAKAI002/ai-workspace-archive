@@ -109,6 +109,14 @@ Set these on the gateway host if you prefer env vars:
 
 Env vars apply only to the **default** account (`default`). Other accounts must use config values.
 
+<Note>
+`MATTERMOST_URL` is on the endpoint-block list and cannot be set from a
+workspace `.env` file. It must come from shell environment or the gateway
+process environment so that untrusted workspaces cannot redirect Mattermost
+traffic to a different server. See
+[Workspace `.env` files](/gateway/security) for the full list.
+</Note>
+
 ## Chat modes
 
 Mattermost responds to DMs automatically. Channel behavior is controlled by `chatmode`:
@@ -267,6 +275,7 @@ Notes:
 - `progress` shows a status preview while generating and only posts the final answer at completion.
 - `off` disables preview streaming.
 - If the stream cannot be finalized in place (for example the post was deleted mid-stream), OpenClaw falls back to sending a fresh final post so the reply is never lost.
+- Reasoning-only payloads are suppressed from channel posts, including text that arrives as a `> Reasoning:` blockquote. Set `/reasoning on` to see thinking in other surfaces; the Mattermost final post keeps the answer only.
 - See [Streaming](/concepts/streaming#preview-streaming-modes) for the channel-mapping matrix.
 
 ## Reactions (message tool)
@@ -351,7 +360,7 @@ Config:
 
 External scripts and webhooks can post buttons directly via the Mattermost REST API
 instead of going through the agent's `message` tool. Use `buildButtonAttachments()` from
-the extension when possible; if posting raw JSON, follow these rules:
+the plugin when possible; if posting raw JSON, follow these rules:
 
 **Payload structure:**
 
