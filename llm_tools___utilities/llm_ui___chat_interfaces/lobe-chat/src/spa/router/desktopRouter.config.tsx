@@ -46,6 +46,29 @@ export const desktopRoutes: RouteObject[] = [
                 ),
                 path: 'channel',
               },
+              {
+                children: [
+                  {
+                    element: dynamicElement(
+                      () => import('@/routes/(main)/agent/tasks'),
+                      'Desktop > Chat > Tasks',
+                    ),
+                    index: true,
+                  },
+                  {
+                    element: dynamicElement(
+                      () => import('@/routes/(main)/agent/tasks/[taskId]'),
+                      'Desktop > Chat > Task Detail',
+                    ),
+                    path: ':taskId',
+                  },
+                ],
+                element: dynamicLayout(
+                  () => import('@/routes/(main)/agent/tasks/_layout'),
+                  'Desktop > Chat > Tasks > Layout',
+                ),
+                path: 'tasks',
+              },
             ],
             element: dynamicLayout(
               () => import('@/routes/(main)/agent/_layout'),
@@ -512,6 +535,22 @@ export const desktopRoutes: RouteObject[] = [
         ),
         errorElement: <ErrorBoundary />,
         path: 'eval',
+      },
+
+      // Tasks routes (cross-agent)
+      {
+        children: [
+          {
+            element: dynamicElement(() => import('@/routes/(main)/tasks'), 'Desktop > Tasks'),
+            index: true,
+          },
+        ],
+        element: dynamicLayout(
+          () => import('@/routes/(main)/tasks/_layout'),
+          'Desktop > Tasks > Layout',
+        ),
+        errorElement: <ErrorBoundary resetPath="/" />,
+        path: 'tasks',
       },
 
       // Pages routes
