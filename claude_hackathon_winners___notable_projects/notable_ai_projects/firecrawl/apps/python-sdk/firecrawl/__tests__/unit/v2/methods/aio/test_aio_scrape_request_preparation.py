@@ -67,6 +67,7 @@ class TestAsyncScrapeRequestPreparation:
             proxy="basic",
             max_age=1000,
             store_in_cache=False,
+            lockdown=True,
         )
         payload = await _prepare_scrape_request("https://example.com", opts)
         assert payload["url"] == "https://example.com"
@@ -85,6 +86,7 @@ class TestAsyncScrapeRequestPreparation:
         assert payload["proxy"] == "basic"
         assert payload["maxAge"] == 1000
         assert payload["storeInCache"] is False
+        assert payload["lockdown"] is True
 
     @pytest.mark.asyncio
     async def test_interact_request_and_response_normalization(self):

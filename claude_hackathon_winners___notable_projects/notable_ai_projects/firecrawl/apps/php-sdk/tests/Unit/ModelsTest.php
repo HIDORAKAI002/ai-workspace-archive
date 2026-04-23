@@ -6,6 +6,7 @@ use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\BatchScrapeJob;
 use Firecrawl\Models\CrawlJob;
+use Firecrawl\Models\ScrapeOptions;
 
 it('hydrates CreditUsage from nested data key', function (): void {
     $response = [
@@ -87,4 +88,48 @@ it('preserves null creditsUsed in CrawlJob', function (): void {
     $job = CrawlJob::fromArray($raw);
 
     expect($job->getCreditsUsed())->toBeNull();
+});
+
+it('preserves positional integration in ScrapeOptions::with', function (): void {
+    $options = ScrapeOptions::with(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        'php-sdk',
+    );
+
+    expect($options->getStoreInCache())->toBeFalse();
+    expect($options->getIntegration())->toBe('php-sdk');
+    expect($options->getLockdown())->toBeNull();
+    expect($options->toArray())->toMatchArray([
+        'storeInCache' => false,
+        'integration' => 'php-sdk',
+    ]);
+});
+
+it('serializes lockdown in ScrapeOptions', function (): void {
+    $options = ScrapeOptions::with(
+        lockdown: true,
+        integration: 'php-sdk',
+    );
+
+    expect($options->getLockdown())->toBeTrue();
+    expect($options->toArray())->toMatchArray([
+        'lockdown' => true,
+        'integration' => 'php-sdk',
+    ]);
 });

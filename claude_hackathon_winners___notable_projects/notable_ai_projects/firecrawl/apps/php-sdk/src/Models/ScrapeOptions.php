@@ -32,6 +32,7 @@ final class ScrapeOptions
         private readonly ?string $proxy = null,
         private readonly ?int $maxAge = null,
         private readonly ?bool $storeInCache = null,
+        private readonly ?bool $lockdown = null,
         private readonly ?string $integration = null,
     ) {}
 
@@ -62,12 +63,13 @@ final class ScrapeOptions
         ?int $maxAge = null,
         ?bool $storeInCache = null,
         ?string $integration = null,
+        ?bool $lockdown = null,
     ): self {
         return new self(
             $formats, $headers, $includeTags, $excludeTags, $onlyMainContent,
             $timeout, $waitFor, $mobile, $parsers, $actions, $location,
             $skipTlsVerification, $removeBase64Images, $blockAds, $proxy,
-            $maxAge, $storeInCache, $integration,
+            $maxAge, $storeInCache, $lockdown, $integration,
         );
     }
 
@@ -100,6 +102,7 @@ final class ScrapeOptions
             'proxy' => $this->proxy,
             'maxAge' => $this->maxAge,
             'storeInCache' => $this->storeInCache,
+            'lockdown' => $this->lockdown,
             'integration' => $this->integration,
         ];
 
@@ -201,6 +204,11 @@ final class ScrapeOptions
     public function getStoreInCache(): ?bool
     {
         return $this->storeInCache;
+    }
+
+    public function getLockdown(): ?bool
+    {
+        return $this->lockdown;
     }
 
     public function getIntegration(): ?string

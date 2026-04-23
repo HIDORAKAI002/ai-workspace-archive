@@ -545,6 +545,7 @@ class ScrapeOptions(BaseModel):
     max_age: Optional[int] = None
     min_age: Optional[int] = None
     store_in_cache: Optional[bool] = None
+    lockdown: Optional[bool] = None
     profile: Optional[Dict[str, Any]] = None
     integration: Optional[str] = None
 

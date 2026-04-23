@@ -180,6 +180,7 @@ export interface ScrapeOptions {
   maxAge?: number;
   minAge?: number;
   storeInCache?: boolean;
+  lockdown?: boolean;
   profile?: {
     name: string;
     saveChanges?: boolean;
@@ -212,6 +213,7 @@ export type ParseOptions = Omit<
   | 'maxAge'
   | 'minAge'
   | 'storeInCache'
+  | 'lockdown'
   | 'proxy'
 > & {
   formats?: ParseFormatOption[];
