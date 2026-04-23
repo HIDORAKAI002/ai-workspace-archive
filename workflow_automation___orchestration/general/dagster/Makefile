@@ -8,25 +8,25 @@ export COREPACK_ENABLE_DOWNLOAD_PROMPT := 0
 #   exit status. Prefix the command with "-" to instruct make to continue to the next command
 #   regardless of the preceding command's exit status.
 
+# Targets with a justfile equivalent delegate to just. CI uses just directly
+# (the buildkite-test image no longer ships make). These wrappers exist for
+# local developer convenience.
+
 pyright:
-	ulimit -Sn 4096 # pyright build uses a lot of open files
-	python scripts/run-pyright.py --all
+	just pyright
 
 install_prettier:
-	npm install -g prettier
+	just install_prettier
 
 install_pyright:
-	uv pip install -e 'python_modules/dagster[pyright]' -e 'python_modules/dagster-pipes' -e 'python_modules/libraries/dagster-shared'
+	just install_pyright
 
 rebuild_pyright:
 	ulimit -Sn 4096 # pyright build uses a lot of open files
 	python scripts/run-pyright.py --all --rebuild
 
-# Skip typecheck so that this can be used to test if all requirements can successfully be resolved
-# in CI independently of typechecking.
 rebuild_pyright_pins:
-	ulimit -Sn 4096 # pyright build uses a lot of open files
-	python scripts/run-pyright.py --update-pins --skip-typecheck
+	just rebuild_pyright_pins
 
 quick_pyright:
 	python scripts/run-pyright.py --diff
@@ -39,21 +39,14 @@ ruff:
 	ruff format .
 
 check_ruff:
-	ruff check .
-	ruff format --check .
+	just check_ruff
 
 unsafe_ruff:
 	ruff check --fix --unsafe-fixes .
 	ruff format .
 
 check_prettier:
-#NOTE: excludes symlinked md files
-	prettier `git ls-files \
-	'python_modules/*.yml' 'python_modules/*.yaml' 'helm/*.yml' 'helm/*.yaml' \
-	'*.md' '.claude/*.md' \
-	':!:docs/*.md' ':!:helm/**/templates/*.yml' ':!:helm/**/templates/*.yaml' \
-	':!:README.md' ':!:GEMINI.md'` \
-	--check
+	just check_prettier
 
 prettier:
 	prettier `git ls-files \
@@ -89,8 +82,7 @@ sanity_check:
 	@! (uv pip list --exclude-editable | grep -e dagster | grep -v dagster-hex | grep -v dagster-hightouch)
 
 rebuild_ui: sanity_check
-	corepack enable
-	cd js_modules && yarn install && yarn workspace @dagster-io/app-oss build
+	just rebuild_ui
 
 rebuild_ui_with_profiling: sanity_check
 	cd js_modules; yarn install && yarn build-with-profiling

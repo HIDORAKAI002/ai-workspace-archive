@@ -3,7 +3,6 @@ import sys
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import kubernetes
 from dagster import _check as check
 from dagster._cli.api import ExecuteRunArgs
 from dagster._core.events import EngineEventData
@@ -18,7 +17,7 @@ from dagster._utils.error import serializable_error_info_from_exc_info
 from dagster_k8s.client import DagsterKubernetesClient
 from dagster_k8s.container_context import K8sContainerContext
 from dagster_k8s.job import DagsterK8sJobConfig, construct_dagster_k8s_job, get_job_name_from_run_id
-from dagster_k8s.utils import get_deployment_id_label
+from dagster_k8s.utils import get_deployment_id_label, load_kubernetes_config
 
 
 class K8sRunLauncher(RunLauncher, ConfigurableClass):
@@ -76,22 +75,12 @@ class K8sRunLauncher(RunLauncher, ConfigurableClass):
         self.job_namespace = check.str_param(job_namespace, "job_namespace")
 
         self.load_incluster_config = load_incluster_config
-        self.kubeconfig_file = kubeconfig_file
-        if load_incluster_config:
-            check.invariant(
-                kubeconfig_file is None,
-                "`kubeconfig_file` is set but `load_incluster_config` is True.",
-            )
-            kubernetes.config.load_incluster_config()
-        else:
-            check.opt_str_param(kubeconfig_file, "kubeconfig_file")
-            kubernetes.config.load_kube_config(kubeconfig_file)
-
-        # Override the SSL CA cert if a custom CA bundle is provided
-        if k8s_api_ssl_ca_cert_file:
-            config = kubernetes.client.Configuration.get_default_copy()
-            config.ssl_ca_cert = k8s_api_ssl_ca_cert_file
-            kubernetes.client.Configuration.set_default(config)
+        self.kubeconfig_file = check.opt_str_param(kubeconfig_file, "kubeconfig_file")
+        load_kubernetes_config(
+            load_incluster_config=load_incluster_config,
+            kubeconfig_file=kubeconfig_file,
+            k8s_api_ssl_ca_cert_file=k8s_api_ssl_ca_cert_file,
+        )
 
         self._api_client = DagsterKubernetesClient.production_client(
             core_api_override=k8s_client_core_api,

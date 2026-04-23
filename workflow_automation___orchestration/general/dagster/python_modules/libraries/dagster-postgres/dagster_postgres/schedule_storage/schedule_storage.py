@@ -49,7 +49,7 @@ class PostgresScheduleStorage(SqlScheduleStorage, ConfigurableClass):
     To use Postgres for all of the components of your instance storage, you can add the following
     block to your ``dagster.yaml``:
 
-    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deploying/dagster-pg.yaml
+    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deployment/oss/dagster-pg.yaml
        :caption: dagster.yaml
        :lines: 1-8
        :language: YAML
@@ -58,7 +58,7 @@ class PostgresScheduleStorage(SqlScheduleStorage, ConfigurableClass):
     configuring your schedule storage to use Postgres, you can add a block such as the following
     to your ``dagster.yaml``:
 
-    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deploying/dagster-pg-legacy.yaml
+    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deployment/oss/dagster-pg-legacy.yaml
        :caption: dagster.yaml
        :lines: 23-32
        :language: YAML

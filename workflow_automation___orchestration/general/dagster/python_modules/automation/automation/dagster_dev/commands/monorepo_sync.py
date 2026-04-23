@@ -18,6 +18,7 @@ from automation.dagster_dev.monorepo_sync.audit import (
     format_mismatch,
 )
 from automation.dagster_dev.monorepo_sync.config import SYNC_CONFIGS, SyncConfig, get_sync_config
+from automation.dagster_dev.monorepo_sync.git_helpers import git
 
 SYNC_CHOICES = ["dagster-inbound", "dagster-outbound", "skills-inbound", "skills-outbound", "all"]
 CHECK_CHOICES = ["completeness", "correctness", "all"]
@@ -93,55 +94,107 @@ def _run_checks(
 # ########################
 
 
-def _print_completeness_text(console: Console, result: CompletenessResult) -> None:
-    header = f"{result.direction.upper()} completeness: {result.source_repo_name} -> {result.dest_repo_name}"
-    console.print(f"\n[bold]{header}[/bold]")
-    console.print(f"  Synced commits: {result.synced_count}")
+def _has_completeness_errors(result: CompletenessResult) -> bool:
+    return bool(result.missing)
+
+
+def _has_correctness_errors(result: CorrectnessResult) -> bool:
+    return any(not m.known_incorrect for m in result.mismatches)
+
+
+def _print_completeness_summary(console: Console, result: CompletenessResult) -> None:
+    label = f"{result.direction.upper()} completeness: {result.source_repo_name} -> {result.dest_repo_name}"
+    passing = result.synced_count
+    total = result.synced_count + len(result.missing)
 
     if not result.missing:
-        console.print("  [green]All commits synced.[/green]")
-        return
+        console.print(
+            f"  [green]\u2713[/green] [bold]{label}[/bold] [green]({passing}/{total} commits)[/green]"
+        )
+    else:
+        console.print(
+            f"  [red]\u2717[/red] [bold]{label}[/bold] [red]({passing}/{total} commits)[/red]"
+        )
 
-    console.print(f"  [red]Missing {len(result.missing)} commit(s):[/red]")
-    for commit in result.missing[:10]:
-        console.print(f"    {format_commit_info_short(commit)}")
-    if len(result.missing) > 10:
-        console.print(f"    ... and {len(result.missing)} total")
 
-
-def _print_correctness_text(console: Console, result: CorrectnessResult) -> None:
-    header = f"{result.direction.upper()} correctness: {result.source_repo_name} -> {result.dest_repo_name}"
-    console.print(f"\n[bold]{header}[/bold]")
-    console.print(f"  Synced commits: {result.synced_count}")
-
+def _print_correctness_summary(console: Console, result: CorrectnessResult) -> None:
+    label = f"{result.direction.upper()} correctness: {result.source_repo_name} -> {result.dest_repo_name}"
     unknown = [m for m in result.mismatches if not m.known_incorrect]
-    known = [m for m in result.mismatches if m.known_incorrect]
+    passing = result.synced_count - len(unknown)
+    total = result.synced_count
 
-    if not result.mismatches:
-        console.print("  [green]All synced commits are correct.[/green]")
-        return
-
-    if unknown:
-        console.print(f"  [red]{len(unknown)} NEW mismatch(es):[/red]")
-        for m in unknown:
-            console.print(format_mismatch(m, result.source_repo_name, result.dest_repo_name))
-
-    if known:
-        console.print(f"  [dim]{len(known)} known mismatch(es) (already addressed):[/dim]")
-        for m in known:
-            console.print(
-                format_mismatch(m, result.source_repo_name, result.dest_repo_name),
-                style="dim",
-            )
+    if not unknown:
+        console.print(
+            f"  [green]\u2713[/green] [bold]{label}[/bold] [green]({passing}/{total} commits)[/green]"
+        )
+    else:
+        console.print(
+            f"  [red]\u2717[/red] [bold]{label}[/bold] [red]({passing}/{total} commits)[/red]"
+        )
 
 
-def _print_text(results: list[CompletenessResult | CorrectnessResult]) -> None:
+def _print_completeness_errors(console: Console, result: CompletenessResult) -> None:
+    label = f"{result.direction.upper()} completeness: {result.source_repo_name} -> {result.dest_repo_name}"
+    console.print(f"\n[bold]{label}[/bold] ({len(result.missing)} commits missing)")
+    for commit in result.missing[:10]:
+        console.print(f"  {format_commit_info_short(commit)}")
+        console.print(f"  https://github.com/{result.source_repo_name}/commit/{commit.hash}")
+    if len(result.missing) > 10:
+        console.print(f"  ... and {len(result.missing)} total")
+
+
+def _print_correctness_errors(console: Console, result: CorrectnessResult) -> None:
+    label = f"{result.direction.upper()} correctness: {result.source_repo_name} -> {result.dest_repo_name}"
+    unknown = [m for m in result.mismatches if not m.known_incorrect]
+
+    console.print(f"\n[bold]{label}[/bold] ({len(unknown)} commits mismatched)")
+
+    for m in unknown:
+        console.print(format_mismatch(m, result.source_repo_name, result.dest_repo_name))
+
+
+def _get_origin_master_info(repo_path: Path) -> tuple[str, str]:
+    """Return (short_hash, timestamp) for origin/master."""
+    raw = git(["log", "-1", "--format=%h\t%ci", "origin/master"], cwd=repo_path).strip()
+    short_hash, timestamp = raw.split("\t", 1)
+    return short_hash, timestamp
+
+
+def _print_text(
+    results: list[CompletenessResult | CorrectnessResult],
+    repo_paths: dict[str, Path],
+) -> None:
     console = Console()
+
+    # Repo info
+    console.print("Repositories:")
+    for repo_name, repo_path in repo_paths.items():
+        short_hash, timestamp = _get_origin_master_info(repo_path)
+        console.print(f"  [bold]{repo_name}[/bold] (origin/master: {short_hash}, {timestamp})")
+        console.print(f"    {repo_path}")
+
+    # Summary lines
+    console.print("\nTests:")
     for result in results:
         if isinstance(result, CompletenessResult):
-            _print_completeness_text(console, result)
+            _print_completeness_summary(console, result)
         elif isinstance(result, CorrectnessResult):
-            _print_correctness_text(console, result)
+            _print_correctness_summary(console, result)
+
+    # Error details
+    error_results = [
+        r
+        for r in results
+        if (isinstance(r, CompletenessResult) and _has_completeness_errors(r))
+        or (isinstance(r, CorrectnessResult) and _has_correctness_errors(r))
+    ]
+    if error_results:
+        console.print("\n===== Errors")
+        for result in error_results:
+            if isinstance(result, CompletenessResult):
+                _print_completeness_errors(console, result)
+            elif isinstance(result, CorrectnessResult):
+                _print_correctness_errors(console, result)
 
 
 # ########################
@@ -177,12 +230,12 @@ def monorepo_sync():
     help="Which sync pair to audit.",
 )
 @click.option(
-    "-c",
-    "--check",
+    "-p",
+    "--property",
     "check_name",
     type=click.Choice(CHECK_CHOICES, case_sensitive=False),
     default="all",
-    help="Which check to run.",
+    help="Which property to audit (completeness, correctness, or all).",
 )
 @click.option(
     "-f",
@@ -213,6 +266,12 @@ def monorepo_sync():
     default=None,
     help="Path to internal repo. If omitted, auto-detects from CWD.",
 )
+@click.option(
+    "--check",
+    is_flag=True,
+    default=False,
+    help="Exit with code 1 if any errors are detected.",
+)
 def audit(
     sync_name: str,
     check_name: str,
@@ -220,6 +279,7 @@ def audit(
     dagster_repo_path: str | None,
     skills_repo_path: str | None,
     internal_repo_path: str | None,
+    check: bool,
 ):
     """Audit completeness and correctness of copybara syncs.
 
@@ -229,7 +289,7 @@ def audit(
     Examples:
         dagster-dev monorepo-sync audit --dagster-repo /path/to/dagster --skills-repo /path/to/skills
 
-        dagster-dev monorepo-sync audit --dagster-repo /path/to/dagster -s dagster-outbound -c correctness
+        dagster-dev monorepo-sync audit --dagster-repo /path/to/dagster -s dagster-outbound -p correctness
 
         dagster-dev monorepo-sync audit --dagster-repo /path/to/dagster -f json
     """
@@ -254,6 +314,16 @@ def audit(
             raise click.ClickException("--skills-repo is required for skills-* syncs.")
         slug_to_repo["skills"] = Path(skills_repo_path)
 
+    # Build repo_name -> Path mapping for display
+    repo_paths: dict[str, Path] = {"dagster-io/internal": internal_repo}
+    for slug, public_repo in slug_to_repo.items():
+        slug_configs = [c for c in configs_to_run if c.public_repo_slug == slug]
+        # Get the public repo name from any config with this slug
+        for c in slug_configs:
+            repo_name = c.source_repo_name if c.direction == "inbound" else c.dest_repo_name
+            repo_paths[repo_name] = public_repo
+            break
+
     all_results: list[CompletenessResult | CorrectnessResult] = []
     for slug, public_repo in slug_to_repo.items():
         slug_configs = [c for c in configs_to_run if c.public_repo_slug == slug]
@@ -262,4 +332,16 @@ def audit(
     if output_format == "json":
         click.echo(_to_json(all_results))
     else:
-        _print_text(all_results)
+        _print_text(all_results, repo_paths)
+
+    if check:
+        has_errors = any(
+            (
+                _has_completeness_errors(r)
+                if isinstance(r, CompletenessResult)
+                else _has_correctness_errors(r)
+            )
+            for r in all_results
+        )
+        if has_errors:
+            raise SystemExit(1)

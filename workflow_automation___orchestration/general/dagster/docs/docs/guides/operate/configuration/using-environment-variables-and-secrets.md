@@ -209,8 +209,6 @@ Using environment variables, you define how your code should execute at runtime.
 
 In this example, we'll demonstrate how to use different I/O manager configurations for `local` and `production` environments using [configuration](/guides/operate/configuration/run-configuration) (specifically the configured API) and [resources](/guides/build/external-resources).
 
-This example is adapted from the [Transitioning data pipelines from development to production guide](/guides/operate/dev-to-prod):
-
 <CodeExample
   path="docs_snippets/docs_snippets/guides/operate/configuration/env_vars_and_secrets/per_env_config.py"
   title="src/<project_name>/defs/resources.py"

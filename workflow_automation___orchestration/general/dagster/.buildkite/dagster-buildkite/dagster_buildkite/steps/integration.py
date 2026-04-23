@@ -269,7 +269,6 @@ def build_integration_suite_steps(
         pytest_extra_cmds=pytest_extra_cmds,
         pytest_step_dependencies=test_project_depends_fn,
         pytest_tox_factors=pytest_tox_factors,
-        retries=2,
         timeout_in_minutes=30,
         queue=queue,
         force_run_fn=force_run_fn,

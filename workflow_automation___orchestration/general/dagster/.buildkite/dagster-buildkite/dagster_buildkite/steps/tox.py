@@ -50,7 +50,6 @@ def build_tox_step(
     extra_commands_post: list[str] | None = None,
     env_vars: list[str] | None = None,
     dependencies: list[str] | None = None,
-    retries: int | None = None,
     timeout_in_minutes: int | None = None,
     queue: BuildkiteQueue | None = None,
     skip_reason: str | None = None,
@@ -93,7 +92,6 @@ def build_tox_step(
         .on_test_image(python_version.value, env=env_vars or [])
         .run(*commands)
         .with_timeout(timeout_in_minutes)
-        .with_retry(retries)
         .depends_on(dependencies)
         .skip(skip_reason)
     )

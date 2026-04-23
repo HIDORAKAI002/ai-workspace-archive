@@ -595,6 +595,21 @@ class PipesThreadedMessageReader(PipesMessageReader):
         # only write logs after the process has completed).
         try:
             unstarted_log_readers = {**self.log_readers}
+            started_keys: set[str] = set()
+
+            def _discover_new_readers() -> None:
+                """Check for readers added via add_log_reader() since the last iteration."""
+                for key in list(self.log_readers.keys()):
+                    if key not in unstarted_log_readers and key not in started_keys:
+                        unstarted_log_readers[key] = self.log_readers[key]
+
+            def _start_readable_readers() -> None:
+                """Start any unstarted readers whose targets are now readable."""
+                for key in list(unstarted_log_readers.keys()):
+                    if unstarted_log_readers[key].target_is_readable(params):
+                        reader = unstarted_log_readers.pop(key)
+                        started_keys.add(key)
+                        reader.start(params, is_session_closed)
 
             while True:
                 if self.opened_payload is not None:
@@ -602,14 +617,8 @@ class PipesThreadedMessageReader(PipesMessageReader):
 
                 # periodically check for new readers which may be added after the
                 # external process has started and add them to the unstarted log readers
-                for key in self.log_readers:
-                    if key not in unstarted_log_readers:
-                        unstarted_log_readers[key] = self.log_readers[key]
-
-                for key in list(unstarted_log_readers.keys()).copy():
-                    if unstarted_log_readers[key].target_is_readable(params):
-                        reader = unstarted_log_readers.pop(key)
-                        reader.start(params, is_session_closed)
+                _discover_new_readers()
+                _start_readable_readers()
 
                 # In some cases logs might not be written out until after the external process has
                 # exited. That will leave us in this state, where some log readers have not been
@@ -619,6 +628,15 @@ class PipesThreadedMessageReader(PipesMessageReader):
                 if is_session_closed.is_set():
                     if wait_for_logs_start is None:
                         wait_for_logs_start = datetime.datetime.now()
+
+                    # Re-check for readers that may have been added between the
+                    # discovery pass above and is_session_closed being set. Since
+                    # add_log_reader() is called before is_session_closed is set
+                    # (both from the main thread), seeing is_session_closed=True
+                    # guarantees the new reader is in self.log_readers-- but we
+                    # may have read self.log_readers before it was added.
+                    _discover_new_readers()
+                    _start_readable_readers()
 
                     if not unstarted_log_readers:
                         return
