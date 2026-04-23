@@ -1335,6 +1335,9 @@ class DocumentResponse(BaseModel):
     created_at: str
     updated_at: str
     memory_unit_count: int
+    nodes_by_fact_type: dict[str, int] | None = Field(
+        default=None, description="Memory count per fact type (world, experience, observation)"
+    )
     tags: list[str] = FieldWithDefault(list, description="Tags associated with this document")
     document_metadata: dict[str, Any] | None = Field(default=None, description="Document metadata")
     retain_params: dict[str, Any] | None = Field(default=None, description="Parameters used during retain")
@@ -1406,6 +1409,23 @@ class ChunkResponse(BaseModel):
     chunk_index: int
     chunk_text: str
     created_at: str
+
+
+class ListChunksResponse(BaseModel):
+    """Response model for listing chunks of a document."""
+
+    items: list[ChunkResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class ReprocessDocumentResponse(BaseModel):
+    """Response model for reprocess document endpoint."""
+
+    success: bool
+    operation_id: str
+    items_count: int
 
 
 class DeleteResponse(BaseModel):
@@ -2931,12 +2951,22 @@ def _register_routes(app: FastAPI):
         q: str | None = None,
         tags: list[str] | None = Query(None),
         tags_match: str = "all_strict",
+        document_id: str | None = None,
+        chunk_id: str | None = None,
         request_context: RequestContext = Depends(get_request_context),
     ):
         """Get graph data from database, filtered by bank_id and optionally by type."""
         try:
             data = await app.state.memory.get_graph_data(
-                bank_id, type, limit=limit, q=q, tags=tags, tags_match=tags_match, request_context=request_context
+                bank_id,
+                type,
+                limit=limit,
+                q=q,
+                tags=tags,
+                tags_match=tags_match,
+                document_id=document_id,
+                chunk_id=chunk_id,
+                request_context=request_context,
             )
             return data
         except OperationValidationError as e:
@@ -4159,6 +4189,99 @@ def _register_routes(app: FastAPI):
 
             error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             logger.error(f"Error in /v1/default/banks/{bank_id}/documents: {error_detail}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/documents/{document_id:path}/chunks",
+        response_model=ListChunksResponse,
+        summary="List document chunks",
+        description="List all chunks for a given document, ordered by chunk index.",
+        operation_id="list_document_chunks",
+        tags=["Documents"],
+    )
+    async def api_list_document_chunks(
+        bank_id: str,
+        document_id: str,
+        limit: int = Query(default=100, ge=1, le=1000, description="Maximum number of chunks to return"),
+        offset: int = Query(default=0, ge=0, description="Offset for pagination"),
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        """
+        List all chunks for a document, ordered by chunk_index.
+
+        Args:
+            bank_id: Memory Bank ID (from path)
+            document_id: Document ID (from path)
+            limit: Maximum number of chunks to return (default: 100)
+            offset: Offset for pagination (default: 0)
+        """
+        try:
+            result = await app.state.memory.list_document_chunks(
+                bank_id=bank_id,
+                document_id=document_id,
+                limit=limit,
+                offset=offset,
+                request_context=request_context,
+            )
+            if result is None:
+                raise HTTPException(status_code=404, detail="Document not found")
+            return result
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            logger.error(f"Error in /v1/default/banks/{bank_id}/documents/{document_id}/chunks: {error_detail}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post(
+        "/v1/default/banks/{bank_id}/documents/{document_id:path}/reprocess",
+        response_model=ReprocessDocumentResponse,
+        summary="Reprocess document",
+        description="Re-run the retain pipeline on an existing document without changing its content. "
+        "This deletes the existing memory units and re-extracts facts using the current engine configuration. "
+        "Useful when the LLM model, chunking strategy, or extraction settings have changed.",
+        operation_id="reprocess_document",
+        tags=["Documents"],
+    )
+    @audited("reprocess_document")
+    async def api_reprocess_document(
+        bank_id: str,
+        document_id: str,
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        """
+        Reprocess a document by re-running retain with its existing content and parameters.
+
+        Args:
+            bank_id: Memory Bank ID (from path)
+            document_id: Document ID (from path)
+        """
+        try:
+            result = await app.state.memory.reprocess_document(
+                bank_id=bank_id,
+                document_id=document_id,
+                request_context=request_context,
+            )
+            if result is None:
+                raise HTTPException(status_code=404, detail="Document not found")
+            return ReprocessDocumentResponse(
+                success=True,
+                operation_id=result["operation_id"],
+                items_count=result["items_count"],
+            )
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            error_detail = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            logger.error(f"Error in /v1/default/banks/{bank_id}/documents/{document_id}/reprocess: {error_detail}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.get(

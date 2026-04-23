@@ -3684,9 +3684,12 @@ class MemoryEngine(MemoryEngineInterface):
                 f"""
                 SELECT d.id, d.bank_id, d.original_text, d.content_hash,
                        d.created_at, d.updated_at, d.tags, d.retain_params,
-                       COUNT(mu.id) as unit_count
+                       COUNT(mu.id) as unit_count,
+                       COUNT(mu.id) FILTER (WHERE mu.fact_type = 'world') as world_count,
+                       COUNT(mu.id) FILTER (WHERE mu.fact_type = 'experience') as experience_count,
+                       COUNT(mu.id) FILTER (WHERE mu.fact_type = 'observation') as observation_count
                 FROM {fq_table("documents")} d
-                LEFT JOIN {fq_table("memory_units")} mu ON mu.document_id = d.id
+                LEFT JOIN {fq_table("memory_units")} mu ON mu.document_id = d.id AND mu.bank_id = d.bank_id
                 WHERE d.id = $1 AND d.bank_id = $2
                 GROUP BY d.id, d.bank_id, d.original_text, d.content_hash,
                          d.created_at, d.updated_at, d.tags, d.retain_params
@@ -3712,6 +3715,11 @@ class MemoryEngine(MemoryEngineInterface):
                 "original_text": doc["original_text"],
                 "content_hash": doc["content_hash"],
                 "memory_unit_count": doc["unit_count"],
+                "nodes_by_fact_type": {
+                    "world": doc["world_count"],
+                    "experience": doc["experience_count"],
+                    "observation": doc["observation_count"],
+                },
                 "created_at": doc["created_at"].isoformat() if doc["created_at"] else None,
                 "updated_at": doc["updated_at"].isoformat() if doc["updated_at"] else None,
                 "tags": list(doc["tags"]) if doc["tags"] else [],
@@ -4343,6 +4351,8 @@ class MemoryEngine(MemoryEngineInterface):
         q: str | None = None,
         tags: list[str] | None = None,
         tags_match: str = "all_strict",
+        document_id: str | None = None,
+        chunk_id: str | None = None,
         request_context: "RequestContext",
     ):
         """
@@ -4355,6 +4365,8 @@ class MemoryEngine(MemoryEngineInterface):
             q: Full-text search query (searches text and context fields)
             tags: Filter by tags
             tags_match: Tag matching mode (default: all_strict)
+            document_id: Filter by document ID
+            chunk_id: Filter by chunk ID
             request_context: Request context for authentication.
 
         Returns:
@@ -4382,6 +4394,16 @@ class MemoryEngine(MemoryEngineInterface):
                 param_count += 1
                 query_conditions.append(f"fact_type = ${param_count}")
                 query_params.append(fact_type)
+
+            if document_id:
+                param_count += 1
+                query_conditions.append(f"document_id = ${param_count}")
+                query_params.append(document_id)
+
+            if chunk_id:
+                param_count += 1
+                query_conditions.append(f"chunk_id = ${param_count}")
+                query_params.append(chunk_id)
 
             if q:
                 param_count += 1
@@ -5299,6 +5321,151 @@ class MemoryEngine(MemoryEngineInterface):
                 "chunk_text": chunk["chunk_text"],
                 "created_at": chunk["created_at"].isoformat() if chunk["created_at"] else "",
             }
+
+    async def list_document_chunks(
+        self,
+        bank_id: str,
+        document_id: str,
+        *,
+        limit: int = 100,
+        offset: int = 0,
+        request_context: "RequestContext",
+    ) -> dict[str, Any]:
+        """
+        List all chunks for a given document, ordered by chunk_index.
+
+        Args:
+            bank_id: Bank ID
+            document_id: Document ID
+            limit: Maximum number of results
+            offset: Offset for pagination
+            request_context: Request context for authentication.
+
+        Returns:
+            Dict with items (list of chunks) and total count
+        """
+        await self._authenticate_tenant(request_context)
+        if self._operation_validator:
+            from hindsight_api.extensions import BankReadContext
+
+            ctx = BankReadContext(bank_id=bank_id, operation="list_document_chunks", request_context=request_context)
+            await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
+        pool = await self._get_pool()
+        async with acquire_with_retry(pool) as conn:
+            # Verify document exists
+            doc = await conn.fetchrow(
+                f"SELECT id FROM {fq_table('documents')} WHERE id = $1 AND bank_id = $2",
+                document_id,
+                bank_id,
+            )
+            if not doc:
+                return None
+
+            count_result = await conn.fetchrow(
+                f"""
+                SELECT COUNT(*) as total
+                FROM {fq_table("chunks")}
+                WHERE document_id = $1 AND bank_id = $2
+                """,
+                document_id,
+                bank_id,
+            )
+            total = count_result["total"]
+
+            chunks = await conn.fetch(
+                f"""
+                SELECT chunk_id, document_id, bank_id, chunk_index, chunk_text, created_at
+                FROM {fq_table("chunks")}
+                WHERE document_id = $1 AND bank_id = $2
+                ORDER BY chunk_index ASC
+                LIMIT $3 OFFSET $4
+                """,
+                document_id,
+                bank_id,
+                limit,
+                offset,
+            )
+
+            items = [
+                {
+                    "chunk_id": row["chunk_id"],
+                    "document_id": row["document_id"],
+                    "bank_id": row["bank_id"],
+                    "chunk_index": row["chunk_index"],
+                    "chunk_text": row["chunk_text"],
+                    "created_at": row["created_at"].isoformat() if row["created_at"] else "",
+                }
+                for row in chunks
+            ]
+
+            return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+    async def reprocess_document(
+        self,
+        bank_id: str,
+        document_id: str,
+        *,
+        request_context: "RequestContext",
+    ) -> dict[str, Any]:
+        """
+        Reprocess a document by re-running retain with its existing content and parameters.
+
+        Args:
+            bank_id: Bank ID
+            document_id: Document ID to reprocess
+            request_context: Request context for authentication.
+
+        Returns:
+            Dict with operation result or None if document not found
+        """
+        await self._authenticate_tenant(request_context)
+        if self._operation_validator:
+            from hindsight_api.extensions import BankWriteContext
+
+            ctx = BankWriteContext(bank_id=bank_id, operation="reprocess_document", request_context=request_context)
+            await self._validate_operation(self._operation_validator.validate_bank_write(ctx))
+
+        # Fetch the document
+        doc = await self.get_document(document_id, bank_id, request_context=request_context)
+        if not doc:
+            return None
+
+        original_text = doc.get("original_text")
+        if not original_text:
+            return None
+
+        # Rebuild the content dict from retain_params
+        retain_params = doc.get("retain_params") or {}
+        content_dict: dict[str, Any] = {
+            "content": original_text,
+            "document_id": document_id,
+            "update_mode": "replace",
+        }
+        if retain_params.get("context"):
+            content_dict["context"] = retain_params["context"]
+        if retain_params.get("event_date"):
+            content_dict["event_date"] = retain_params["event_date"]
+        if retain_params.get("metadata"):
+            content_dict["metadata"] = retain_params["metadata"]
+        if retain_params.get("entities"):
+            content_dict["entities"] = retain_params["entities"]
+
+        tags = doc.get("tags") or []
+        if tags:
+            content_dict["tags"] = tags
+        if retain_params.get("observation_scopes") is not None:
+            content_dict["observation_scopes"] = retain_params["observation_scopes"]
+
+        strategy = retain_params.get("strategy")
+
+        result = await self.submit_async_retain(
+            bank_id,
+            [content_dict],
+            strategy=strategy,
+            request_context=request_context,
+        )
+
+        return result
 
     # ==================== bank profile Methods ====================
 

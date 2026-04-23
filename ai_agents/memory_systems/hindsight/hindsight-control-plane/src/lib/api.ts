@@ -331,6 +331,8 @@ export class ControlPlaneClient {
     limit?: number;
     q?: string;
     tags?: string[];
+    document_id?: string;
+    chunk_id?: string;
   }) {
     const queryParams = new URLSearchParams();
     queryParams.append("bank_id", params.bank_id);
@@ -340,6 +342,8 @@ export class ControlPlaneClient {
     if (params.tags && params.tags.length > 0) {
       params.tags.forEach((tag) => queryParams.append("tags", tag));
     }
+    if (params.document_id) queryParams.append("document_id", params.document_id);
+    if (params.chunk_id) queryParams.append("chunk_id", params.chunk_id);
     return this.fetchApi(`/api/graph?${queryParams}`);
   }
 
@@ -502,6 +506,47 @@ export class ControlPlaneClient {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tags }),
+    });
+  }
+
+  /**
+   * List chunks for a document
+   */
+  async listDocumentChunks(params: {
+    document_id: string;
+    bank_id: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append("bank_id", params.bank_id);
+    if (params.limit) queryParams.append("limit", params.limit.toString());
+    if (params.offset) queryParams.append("offset", params.offset.toString());
+    return this.fetchApi<{
+      items: Array<{
+        chunk_id: string;
+        document_id: string;
+        bank_id: string;
+        chunk_index: number;
+        chunk_text: string;
+        created_at: string;
+      }>;
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`/api/documents/${params.document_id}/chunks?${queryParams}`);
+  }
+
+  /**
+   * Reprocess a document (re-run retain with existing content)
+   */
+  async reprocessDocument(documentId: string, bankId: string) {
+    return this.fetchApi<{
+      success: boolean;
+      operation_id: string;
+      items_count: number;
+    }>(`/api/documents/${encodeURIComponent(documentId)}/reprocess?bank_id=${bankId}`, {
+      method: "POST",
     });
   }
 

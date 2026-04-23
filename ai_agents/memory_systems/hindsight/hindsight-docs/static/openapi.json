@@ -165,6 +165,38 @@
             }
           },
           {
+            "name": "document_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "chunk_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chunk Id"
+            }
+          },
+          {
             "name": "authorization",
             "in": "header",
             "required": false,
@@ -2166,6 +2198,169 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ListDocumentsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/default/banks/{bank_id}/documents/{document_id}/chunks": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List document chunks",
+        "description": "List all chunks for a given document, ordered by chunk index.",
+        "operationId": "list_document_chunks",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Bank Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Maximum number of chunks to return",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Maximum number of chunks to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Offset for pagination",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Offset for pagination"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListChunksResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/default/banks/{bank_id}/documents/{document_id}/reprocess": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Reprocess document",
+        "description": "Re-run the retain pipeline on an existing document without changing its content. This deletes the existing memory units and re-extracts facts using the current engine configuration. Useful when the LLM model, chunking strategy, or extraction settings have changed.",
+        "operationId": "reprocess_document",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Bank Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReprocessDocumentResponse"
                 }
               }
             }
@@ -6837,6 +7032,21 @@
             "type": "integer",
             "title": "Memory Unit Count"
           },
+          "nodes_by_fact_type": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodes By Fact Type",
+            "description": "Memory count per fact type (world, experience, observation)"
+          },
           "tags": {
             "items": {
               "type": "string"
@@ -7472,6 +7682,38 @@
         "type": "object",
         "title": "IncludeOptions",
         "description": "Options for including additional data in recall results."
+      },
+      "ListChunksResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChunkResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "ListChunksResponse",
+        "description": "Response model for listing chunks of a document."
       },
       "ListDocumentsResponse": {
         "properties": {
@@ -9622,6 +9864,30 @@
         "type": "object",
         "title": "ReflectTrace",
         "description": "Execution trace of LLM and tool calls during reflection."
+      },
+      "ReprocessDocumentResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "operation_id": {
+            "type": "string",
+            "title": "Operation Id"
+          },
+          "items_count": {
+            "type": "integer",
+            "title": "Items Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "operation_id",
+          "items_count"
+        ],
+        "title": "ReprocessDocumentResponse",
+        "description": "Response model for reprocess document endpoint."
       },
       "RetainRequest": {
         "properties": {

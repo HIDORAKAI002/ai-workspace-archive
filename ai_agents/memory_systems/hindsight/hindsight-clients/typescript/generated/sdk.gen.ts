@@ -122,6 +122,9 @@ import type {
   ListDirectivesData,
   ListDirectivesErrors,
   ListDirectivesResponses,
+  ListDocumentChunksData,
+  ListDocumentChunksErrors,
+  ListDocumentChunksResponses,
   ListDocumentsData,
   ListDocumentsErrors,
   ListDocumentsResponses,
@@ -163,6 +166,9 @@ import type {
   RegenerateEntityObservationsData,
   RegenerateEntityObservationsErrors,
   RegenerateEntityObservationsResponses,
+  ReprocessDocumentData,
+  ReprocessDocumentErrors,
+  ReprocessDocumentResponses,
   ResetBankConfigData,
   ResetBankConfigErrors,
   ResetBankConfigResponses,
@@ -703,6 +709,40 @@ export const listDocuments = <ThrowOnError extends boolean = false>(
     ListDocumentsErrors,
     ThrowOnError
   >({ url: "/v1/default/banks/{bank_id}/documents", ...options });
+
+/**
+ * List document chunks
+ *
+ * List all chunks for a given document, ordered by chunk index.
+ */
+export const listDocumentChunks = <ThrowOnError extends boolean = false>(
+  options: Options<ListDocumentChunksData, ThrowOnError>,
+) =>
+  (options.client ?? client).get<
+    ListDocumentChunksResponses,
+    ListDocumentChunksErrors,
+    ThrowOnError
+  >({
+    url: "/v1/default/banks/{bank_id}/documents/{document_id}/chunks",
+    ...options,
+  });
+
+/**
+ * Reprocess document
+ *
+ * Re-run the retain pipeline on an existing document without changing its content. This deletes the existing memory units and re-extracts facts using the current engine configuration. Useful when the LLM model, chunking strategy, or extraction settings have changed.
+ */
+export const reprocessDocument = <ThrowOnError extends boolean = false>(
+  options: Options<ReprocessDocumentData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    ReprocessDocumentResponses,
+    ReprocessDocumentErrors,
+    ThrowOnError
+  >({
+    url: "/v1/default/banks/{bank_id}/documents/{document_id}/reprocess",
+    ...options,
+  });
 
 /**
  * Delete a document
