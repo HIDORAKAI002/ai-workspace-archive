@@ -24,7 +24,7 @@ unsafe result cancels remaining rails immediately.
 import asyncio
 import logging
 from collections.abc import Coroutine, Mapping
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from nemoguardrails.guardrails.actions.content_safety_action import (
     ContentSafetyInputAction,
@@ -39,8 +39,12 @@ from nemoguardrails.guardrails.guardrails_types import (
     get_request_id,
 )
 from nemoguardrails.guardrails.rail_action import RailAction
+from nemoguardrails.guardrails.telemetry import mark_rail_stop, rail_span
 from nemoguardrails.llm.taskmanager import LLMTaskManager
 from nemoguardrails.rails.llm.config import _get_flow_name
+
+if TYPE_CHECKING:
+    from opentelemetry.trace import Tracer
 
 log = logging.getLogger(__name__)
 
@@ -73,10 +77,16 @@ class RailsManager:
         output_flows: list[str],
         input_parallel: bool = False,
         output_parallel: bool = False,
+        tracer: Optional["Tracer"] = None,
     ) -> None:
-        """Build RailAction instances for each configured input and output flow."""
+        """Build RailAction instances for each configured input and output flow.
+
+        When *tracer* is provided, rail and action executions produce OTEL
+        spans; when ``None`` the span helpers become no-ops.
+        """
         self.engine_registry = engine_registry
         self.task_manager = task_manager
+        self._tracer = tracer
 
         self.input_flows: list[str] = list(input_flows)
         self.output_flows: list[str] = list(output_flows)
@@ -104,7 +114,7 @@ class RailsManager:
         if action_cls is None:
             available = sorted(_ACTION_CLASSES.keys())
             raise RuntimeError(f"Rail flow '{base_name}' not supported. Available: {available}")
-        return action_cls(self.engine_registry, self.task_manager)
+        return action_cls(self.engine_registry, self.task_manager, tracer=self._tracer)
 
     async def is_input_safe(self, messages: list[dict]) -> RailResult:
         """Run all enabled input rails, short-circuiting on the first failure.
@@ -115,7 +125,7 @@ class RailsManager:
         if not self.input_flows:
             return RailResult(is_safe=True)
 
-        rails = {flow: self._run_rail(flow, messages) for flow in self.input_flows}
+        rails = {flow: self._run_rail(flow, RailDirection.INPUT, messages) for flow in self.input_flows}
         if self.input_parallel:
             return await self._run_rails_parallel(rails, RailDirection.INPUT)
         return await self._run_rails_sequential(rails, RailDirection.INPUT)
@@ -129,7 +139,10 @@ class RailsManager:
         if not self.output_flows:
             return RailResult(is_safe=True)
 
-        rails = {flow: self._run_rail(flow, messages, bot_response=response) for flow in self.output_flows}
+        rails = {
+            flow: self._run_rail(flow, RailDirection.OUTPUT, messages, bot_response=response)
+            for flow in self.output_flows
+        }
         if self.output_parallel:
             return await self._run_rails_parallel(rails, RailDirection.OUTPUT)
         return await self._run_rails_sequential(rails, RailDirection.OUTPUT)
@@ -137,12 +150,16 @@ class RailsManager:
     async def _run_rail(
         self,
         flow: str,
+        direction: RailDirection,
         messages: list[dict],
         bot_response: Optional[str] = None,
     ) -> RailResult:
         """Dispatch a single rail flow to its RailAction instance."""
-        action = self._actions[flow]
-        return await action.run(flow, messages, bot_response)
+        with rail_span(self._tracer, flow, direction) as span:
+            action = self._actions[flow]
+            result = await action.run(flow, messages, bot_response)
+            mark_rail_stop(span, result.is_safe)
+            return result
 
     async def _run_rails_sequential(
         self,

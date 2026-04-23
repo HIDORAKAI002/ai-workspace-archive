@@ -21,10 +21,17 @@ from nemoguardrails.actions.llm.utils import (
     _log_completion,
     _store_reasoning_traces,
     _store_tool_calls,
+    _stream_llm_call,
     _update_token_stats_from_chunk,
     llm_call,
 )
-from nemoguardrails.context import llm_call_info_var, llm_stats_var, reasoning_trace_var, tool_calls_var
+from nemoguardrails.context import (
+    llm_call_info_var,
+    llm_response_metadata_var,
+    llm_stats_var,
+    reasoning_trace_var,
+    tool_calls_var,
+)
 from nemoguardrails.exceptions import LLMCallException
 from nemoguardrails.integrations.langchain.llm_adapter import (
     LangChainLLMAdapter,
@@ -32,6 +39,7 @@ from nemoguardrails.integrations.langchain.llm_adapter import (
 )
 from nemoguardrails.logging.explain import LLMCallInfo
 from nemoguardrails.logging.stats import LLMStats
+from nemoguardrails.streaming import StreamingHandler
 from nemoguardrails.types import ChatMessage, LLMResponse, LLMResponseChunk, Role, ToolCall, ToolCallFunction, UsageInfo
 
 
@@ -482,3 +490,150 @@ class TestLlmCallDictToChatMessageConversion:
         await llm_call(model, [])
 
         assert received_prompt == []
+
+
+def _make_chunk_model(chunks):
+    class _Model:
+        model_name = "test-model"
+        provider_name = "test"
+        provider_url = None
+
+        async def generate_async(self, prompt, *, stop=None, **kwargs):
+            return LLMResponse(content="")
+
+        async def stream_async(self, prompt, *, stop=None, **kwargs):
+            for c in chunks:
+                yield c
+
+    return _Model()
+
+
+class TestStreamLlmCallAccumulation:
+    @pytest.mark.asyncio
+    async def test_accumulates_tool_calls(self):
+        tc = [ToolCall(id="call_1", function=ToolCallFunction(name="get_weather", arguments={"city": "Paris"}))]
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(model="gpt-4o"),
+                LLMResponseChunk(delta_tool_calls=tc, finish_reason="tool_calls"),
+                LLMResponseChunk(usage=UsageInfo(input_tokens=10, output_tokens=5, total_tokens=15)),
+            ]
+        )
+
+        result = await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert result.tool_calls == tc
+        assert result.model == "gpt-4o"
+        assert result.finish_reason == "tool_calls"
+        assert result.usage.total_tokens == 15
+        assert tool_calls_var.get() is not None
+
+    @pytest.mark.asyncio
+    async def test_accumulates_reasoning(self):
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_reasoning="Let me ", model="gpt-4o"),
+                LLMResponseChunk(delta_reasoning="think..."),
+                LLMResponseChunk(delta_content="42", finish_reason="stop"),
+                LLMResponseChunk(usage=UsageInfo(input_tokens=5, output_tokens=3, total_tokens=8)),
+            ]
+        )
+
+        result = await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert result.content == "42"
+        assert result.reasoning == "Let me think..."
+        assert result.model == "gpt-4o"
+        assert result.finish_reason == "stop"
+        assert reasoning_trace_var.get() == "Let me think..."
+
+    @pytest.mark.asyncio
+    async def test_text_only(self):
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_content="Hello", model="gpt-4o"),
+                LLMResponseChunk(delta_content=" world", finish_reason="stop"),
+                LLMResponseChunk(usage=UsageInfo(input_tokens=5, output_tokens=2, total_tokens=7)),
+            ]
+        )
+
+        result = await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert result.content == "Hello world"
+        assert result.tool_calls is None
+        assert result.reasoning is None
+        assert result.model == "gpt-4o"
+        assert result.finish_reason == "stop"
+        assert result.usage.total_tokens == 7
+
+    @pytest.mark.asyncio
+    async def test_request_id_accumulated(self):
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_content="hi", request_id="req-123", model="gpt-4o"),
+                LLMResponseChunk(finish_reason="stop"),
+            ]
+        )
+
+        result = await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert result.request_id == "req-123"
+
+    @pytest.mark.asyncio
+    async def test_clears_tool_calls_var_when_none(self):
+        tool_calls_var.set([{"id": "stale", "type": "function", "function": {"name": "old", "arguments": {}}}])
+
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_content="no tools here", finish_reason="stop"),
+            ]
+        )
+
+        await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert tool_calls_var.get() is None
+
+    @pytest.mark.asyncio
+    async def test_clears_reasoning_var_when_none(self):
+        reasoning_trace_var.set("stale reasoning")
+
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_content="no reasoning", finish_reason="stop"),
+            ]
+        )
+
+        await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert reasoning_trace_var.get() is None
+
+    @pytest.mark.asyncio
+    async def test_provider_metadata_stored_flat(self):
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(
+                    delta_content="hi",
+                    provider_metadata={"system_fingerprint": "fp_abc"},
+                    finish_reason="stop",
+                ),
+            ]
+        )
+
+        await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        metadata = llm_response_metadata_var.get()
+        assert metadata == {"system_fingerprint": "fp_abc"}
+
+    @pytest.mark.asyncio
+    async def test_clears_metadata_var_when_none(self):
+        llm_response_metadata_var.set({"stale": True})
+
+        model = _make_chunk_model(
+            [
+                LLMResponseChunk(delta_content="no metadata", finish_reason="stop"),
+            ]
+        )
+
+        await _stream_llm_call(model, "test", StreamingHandler(), stop=None)
+
+        assert llm_response_metadata_var.get() is None

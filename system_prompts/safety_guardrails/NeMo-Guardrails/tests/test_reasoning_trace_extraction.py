@@ -13,15 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import AsyncMock
-
 import pytest
-from langchain_core.messages import AIMessage
 
 from nemoguardrails.actions.llm.utils import _store_reasoning_traces
 from nemoguardrails.context import reasoning_trace_var
-from nemoguardrails.integrations.langchain.llm_adapter import LangChainLLMAdapter
 from nemoguardrails.types import LLMResponse
+from tests.utils import FakeLLMModel
 
 
 class TestStoreReasoningTracesUnit:
@@ -133,17 +130,12 @@ class TestReasoningTraceIntegration:
     async def test_llm_call_extracts_reasoning_from_additional_kwargs(self):
         test_reasoning = "Let me think about this carefully..."
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content="The answer is 42",
-            additional_kwargs={"reasoning_content": test_reasoning},
-        )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content="The answer is 42", reasoning=test_reasoning)])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "What is the answer?")
+        result = await llm_call(fake_llm, "What is the answer?")
 
         assert result.content == "The answer is 42"
         stored_trace = reasoning_trace_var.get()
@@ -153,14 +145,12 @@ class TestReasoningTraceIntegration:
 
     @pytest.mark.asyncio
     async def test_llm_call_handles_missing_reasoning_content(self):
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(content="Regular response", additional_kwargs={})
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content="Regular response")])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "Hello")
+        result = await llm_call(fake_llm, "Hello")
 
         assert result.content == "Regular response"
         stored_trace = reasoning_trace_var.get()
@@ -172,12 +162,7 @@ class TestReasoningTraceIntegration:
     async def test_llm_call_with_message_list_extracts_reasoning(self):
         test_reasoning = "Analyzing the conversation context..."
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content="Here's my response",
-            additional_kwargs={"reasoning_content": test_reasoning},
-        )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content="Here's my response", reasoning=test_reasoning)])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
@@ -187,7 +172,7 @@ class TestReasoningTraceIntegration:
         ]
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), messages)
+        result = await llm_call(fake_llm, messages)
 
         assert result.content == "Here's my response"
         stored_trace = reasoning_trace_var.get()
@@ -200,34 +185,21 @@ class TestReasoningTraceIntegration:
         first_reasoning = "First analysis"
         second_reasoning = "Second analysis"
 
-        mock_llm = AsyncMock()
-        call_count = 0
-
-        async def mock_ainvoke(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return AIMessage(
-                    content="First response",
-                    additional_kwargs={"reasoning_content": first_reasoning},
-                )
-            else:
-                return AIMessage(
-                    content="Second response",
-                    additional_kwargs={"reasoning_content": second_reasoning},
-                )
-
-        mock_llm.ainvoke = mock_ainvoke
+        fake_llm = FakeLLMModel(
+            llm_responses=[
+                LLMResponse(content="First response", reasoning=first_reasoning),
+                LLMResponse(content="Second response", reasoning=second_reasoning),
+            ]
+        )
 
         from nemoguardrails.actions.llm.utils import llm_call
 
-        wrapped = LangChainLLMAdapter(mock_llm)
         reasoning_trace_var.set(None)
-        result1 = await llm_call(wrapped, "First query")
+        result1 = await llm_call(fake_llm, "First query")
         trace1 = reasoning_trace_var.get()
 
         reasoning_trace_var.set(None)
-        result2 = await llm_call(wrapped, "Second query")
+        result2 = await llm_call(fake_llm, "Second query")
         trace2 = reasoning_trace_var.get()
 
         assert trace1 == first_reasoning
@@ -239,22 +211,12 @@ class TestReasoningTraceIntegration:
     async def test_reasoning_content_with_other_additional_kwargs(self):
         test_reasoning = "Complex reasoning process"
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content="Response",
-            additional_kwargs={
-                "reasoning_content": test_reasoning,
-                "model": "test-model",
-                "finish_reason": "stop",
-                "other_metadata": {"key": "value"},
-            },
-        )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content="Response", reasoning=test_reasoning)])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "Query")
+        result = await llm_call(fake_llm, "Query")
 
         assert result.content == "Response"
         stored_trace = reasoning_trace_var.get()
@@ -266,17 +228,12 @@ class TestReasoningTraceIntegration:
     async def test_llm_call_extracts_reasoning_from_think_tags(self):
         test_reasoning = "Let me analyze this step by step"
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content=f"<think>{test_reasoning}</think>The answer is 42",
-            additional_kwargs={},
-        )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content=f"<think>{test_reasoning}</think>The answer is 42")])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "What is the answer?")
+        result = await llm_call(fake_llm, "What is the answer?")
 
         assert result.content == "The answer is 42"
         assert "<think>" not in result.content
@@ -290,17 +247,19 @@ class TestReasoningTraceIntegration:
         reasoning_from_kwargs = "This should be used"
         reasoning_from_tags = "This should be ignored"
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content=f"<think>{reasoning_from_tags}</think>Response",
-            additional_kwargs={"reasoning_content": reasoning_from_kwargs},
+        fake_llm = FakeLLMModel(
+            llm_responses=[
+                LLMResponse(
+                    content=f"<think>{reasoning_from_tags}</think>Response",
+                    reasoning=reasoning_from_kwargs,
+                )
+            ]
         )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "Query")
+        result = await llm_call(fake_llm, "Query")
 
         assert result.content == f"<think>{reasoning_from_tags}</think>Response"
         stored_trace = reasoning_trace_var.get()
@@ -314,17 +273,14 @@ class TestReasoningTraceIntegration:
 Step 2: Break down the problem
 Step 3: Formulate the answer"""
 
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content=f"<think>{multiline_reasoning}</think>Final answer",
-            additional_kwargs={},
+        fake_llm = FakeLLMModel(
+            llm_responses=[LLMResponse(content=f"<think>{multiline_reasoning}</think>Final answer")]
         )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "Question")
+        result = await llm_call(fake_llm, "Question")
 
         assert result.content == "Final answer"
         assert "<think>" not in result.content
@@ -335,17 +291,12 @@ Step 3: Formulate the answer"""
 
     @pytest.mark.asyncio
     async def test_llm_call_handles_incomplete_think_tags(self):
-        mock_llm = AsyncMock()
-        mock_response = AIMessage(
-            content="<think>This is incomplete",
-            additional_kwargs={},
-        )
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        fake_llm = FakeLLMModel(llm_responses=[LLMResponse(content="<think>This is incomplete")])
 
         from nemoguardrails.actions.llm.utils import llm_call
 
         reasoning_trace_var.set(None)
-        result = await llm_call(LangChainLLMAdapter(mock_llm), "Query")
+        result = await llm_call(fake_llm, "Query")
 
         assert result.content == "<think>This is incomplete"
         stored_trace = reasoning_trace_var.get()
