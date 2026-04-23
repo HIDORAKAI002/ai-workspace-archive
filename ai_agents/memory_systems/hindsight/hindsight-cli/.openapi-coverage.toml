@@ -29,6 +29,12 @@ get_memories_timeseries = "UI-only endpoint for the control plane stats chart"
 # Returns nodes/edges in cytoscape shape; not a useful CLI command.
 get_entity_graph = "UI-only endpoint for the control plane entity constellation"
 
+# Document chunks listing is a UI-only endpoint for the document detail dialog.
+list_document_chunks = "UI-only endpoint for the control plane document detail dialog"
+
+# Reprocess triggers an async retain re-run; exposed in the control plane UI only.
+reprocess_document = "UI-only endpoint for the control plane document detail dialog"
+
 # ---------------------------------------------------------------------------
 # Per-operation parameter skips
 # ---------------------------------------------------------------------------

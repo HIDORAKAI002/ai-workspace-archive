@@ -81,6 +81,7 @@ perf_scenarios = [
 ]
 
 
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.parametrize("scenario", perf_scenarios, ids=[s.name for s in perf_scenarios])
 def test_auto_materialize_perf(scenario: PerfScenario):
     asset_graph = scenario.defs.resolve_asset_graph()

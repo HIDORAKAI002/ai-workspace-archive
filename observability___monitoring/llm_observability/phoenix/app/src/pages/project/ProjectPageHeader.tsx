@@ -1,46 +1,50 @@
 import { css } from "@emotion/react";
-import type { ReactNode } from "react";
 import { Suspense } from "react";
 
-import { Flex, Loading, View } from "@phoenix/components";
+import { Loading, View } from "@phoenix/components";
 import { useFeatureFlag } from "@phoenix/contexts/FeatureFlagsContext";
 
 import type { ProjectStats_project$key } from "./__generated__/ProjectStats_project.graphql";
 import { ProjectStats } from "./ProjectStats";
 import { ProjectTraceCountSparkline } from "./ProjectTraceCountSparkline";
 
-export function ProjectPageHeader(props: {
+type ProjectPageHeaderProps = {
   project: ProjectStats_project$key;
-  /**
-   * the extra component displayed on the right side of the header
-   */
-  extra: ReactNode;
-}) {
-  const { extra } = props;
+};
+
+const headerViewProps = {
+  paddingStart: "size-200",
+  paddingEnd: "size-200",
+  paddingTop: "size-200",
+  paddingBottom: "size-50",
+  flex: "none",
+  overflow: "visible",
+} as const;
+
+export function ProjectPageHeader(props: ProjectPageHeaderProps) {
   const isTracingUxEnabled = useFeatureFlag("tracing_ux");
+  if (isTracingUxEnabled) {
+    return <TracingUxProjectPageHeader />;
+  }
+  return <LegacyProjectPageHeader {...props} />;
+}
+
+function TracingUxProjectPageHeader() {
   return (
-    <View
-      paddingStart="size-200"
-      paddingEnd="size-200"
-      paddingTop="size-200"
-      paddingBottom="size-50"
-      flex="none"
-      overflow="visible"
-    >
-      <Flex direction="row" justifyContent="space-between" alignItems="center">
-        {isTracingUxEnabled ? (
-          <Suspense fallback={<Loading size="S" />}>
-            <ProjectTraceCountSparkline />
-          </Suspense>
-        ) : (
-          <div css={statsScrollCSS}>
-            <ProjectStats project={props.project} />
-          </div>
-        )}
-        <View flex="none" paddingStart="size-100">
-          {extra}
-        </View>
-      </Flex>
+    <View {...headerViewProps}>
+      <Suspense fallback={<Loading size="S" />}>
+        <ProjectTraceCountSparkline />
+      </Suspense>
+    </View>
+  );
+}
+
+function LegacyProjectPageHeader({ project }: ProjectPageHeaderProps) {
+  return (
+    <View {...headerViewProps}>
+      <div css={statsScrollCSS}>
+        <ProjectStats project={project} />
+      </div>
     </View>
   );
 }

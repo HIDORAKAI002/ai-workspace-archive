@@ -167,10 +167,14 @@ If these use cases resonate with your agent system, here's how to start building
 First, try Hindsight locally:
 
 ```bash
-docker run -p 8000:8000 vectorize/hindsight
+export OPENAI_API_KEY=sk-xxx
+docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
+  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
+  ghcr.io/vectorize-io/hindsight:latest
 ```
 
-That's it. You have a running Hindsight agent memory system. Connect it to your agent framework (Claude Code, LangGraph, CrewAI, etc.) and start extracting facts from conversations.
+That's it. You have a running Hindsight agent memory system. Access the API at `http://localhost:8888` and the web UI at `http://localhost:9999`. Connect it to your agent framework (Claude Code, LangGraph, CrewAI, etc.) and start extracting facts from conversations.
 
 **Path 2: Cloud Deployment (Production Ready)**
 

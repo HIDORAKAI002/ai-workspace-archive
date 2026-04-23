@@ -79,29 +79,36 @@ Available for **Job** events (Success, Failure, Long-running).
 | `{{start_time}}`      | Start time of the run.                       | `Jan 8, 2026 10:00 AM`       |
 | `{{end_time}}`        | End time of the run.                         | `Jan 8, 2026 10:05 AM`       |
 
-### Asset materialization tokens
+### Asset event tokens
 
-Available for **Asset Materialization** events (Success/Failure/Check Failure).
+Available for **Asset Materialization**, **Asset Check**, and **Asset Freshness Policy** events. A single alert can span multiple assets and multiple event types, so the asset and event-type tokens expose collections.
 
-| Token                 | Description                             |
-| :-------------------- | :-------------------------------------- |
-| `{{run_id}}`          | Unique ID of the run.                   |
-| `{{run_link}}`        | URL to view the run in Dagster.         |
-| `{{failure_message}}` | Error message describing the failure.   |
-| `{{user_name}}`       | Name of the user who launched the run.  |
-| `{{user_email}}`      | Email of the user who launched the run. |
+| Token                        | Description                                                                   | Available for          | Example                                                        |
+| :--------------------------- | :---------------------------------------------------------------------------- | :--------------------- | :------------------------------------------------------------- |
+| `{{asset_keys}}`             | Comma-separated list of asset keys affected by this alert.                    | All                    | `orders, customers`                                            |
+| `{{asset_keys_json}}`        | JSON array of asset keys affected by this alert.                              | All                    | `["orders", "customers"]`                                      |
+| `{{event_types}}`            | Comma-separated human-readable labels of the asset event types in this alert. | All                    | `Asset materializations failed, Asset check executions failed` |
+| `{{event_type_counts_json}}` | JSON object mapping raw asset event type names to counts in this alert.       | All                    | `{"ASSET_MATERIALIZATION_FAILURE": 3}`                         |
+| `{{run_id}}`                 | Unique ID of the run that produced the event.                                 | Materialization, Check | `abc123`                                                       |
+| `{{run_link}}`               | URL to view the run in Dagster.                                               | Materialization, Check | `https://dagster.cloud/acme/prod/runs/abc123`                  |
+| `{{failure_message}}`        | Error message describing the failure.                                         | Materialization, Check | `Asset materialization failed`                                 |
+| `{{user_name}}`              | Name of the user who launched the run.                                        | Materialization, Check | `John Doe`                                                     |
+| `{{user_email}}`             | Email of the user who launched the run.                                       | Materialization, Check | `john@example.com`                                             |
+| `{{freshness_status}}`       | Freshness policy state (`PASS`, `WARN`, `FAIL`).                              | Freshness policy       | `FAIL`                                                         |
 
-### Asset health and freshness tokens
+### Asset health tokens
 
-Available for **Asset Health** and **Freshness** events.
+Available for **Asset Health** events.
 
-| Token                        | Description                                        | Context            |
-| :--------------------------- | :------------------------------------------------- | :----------------- |
-| `{{asset_key}}`              | Full asset key.                                    | All Asset Events   |
-| `{{health_status}}`          | Overall health status (`OK`, `DEGRADED`).          | Asset Health       |
-| `{{materialization_status}}` | Materialization status.                            | Asset Health       |
-| `{{checks_status}}`          | Asset checks status.                               | Asset Health       |
-| `{{freshness_status}}`       | Freshness state (`PASS`, `FAIL`, `UNKNOWN`, `OK`). | Freshness / Health |
+All status tokens can be one of: `HEALTHY`, `WARNING`, `DEGRADED`, `UNKNOWN`, or `NOT_APPLICABLE`.
+
+| Token                        | Description                    | Example    |
+| :--------------------------- | :----------------------------- | :--------- |
+| `{{asset_key}}`              | Full asset key.                | `orders`   |
+| `{{health_status}}`          | Overall health status.         | `DEGRADED` |
+| `{{materialization_status}}` | Materialization health status. | `HEALTHY`  |
+| `{{checks_status}}`          | Asset checks health status.    | `WARNING`  |
+| `{{freshness_status}}`       | Freshness health status.       | `UNKNOWN`  |
 
 ### Table schema tokens
 

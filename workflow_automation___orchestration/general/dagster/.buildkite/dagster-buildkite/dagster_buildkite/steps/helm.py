@@ -22,7 +22,6 @@ def build_helm_steps(ctx: BuildkiteContext) -> list[StepConfiguration]:
         # run helm schema tests only once, on the latest python version
         unsupported_python_versions=AvailablePythonVersion.get_all()[:-1],
         name="dagster-helm",
-        retries=2,
         force_run_fn=BuildkiteContext.has_helm_changes,
     )
 
@@ -63,7 +62,6 @@ def _build_lint_steps(
             f"helm lint {oss_path('helm/dagster')} --with-subcharts --strict",
         )
         .skip(_get_helm_step_skip_reason(ctx) or package_spec.get_skip_reason(ctx))
-        .with_retry(2)
         .build(),
         CommandStepBuilder("dagster dependency build")
         .on_test_image()

@@ -405,6 +405,158 @@ func (a *DocumentsAPIService) GetDocumentExecute(r ApiGetDocumentRequest) (*Docu
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiListDocumentChunksRequest struct {
+	ctx context.Context
+	ApiService *DocumentsAPIService
+	bankId string
+	documentId string
+	limit *int32
+	offset *int32
+	authorization *string
+}
+
+// Maximum number of chunks to return
+func (r ApiListDocumentChunksRequest) Limit(limit int32) ApiListDocumentChunksRequest {
+	r.limit = &limit
+	return r
+}
+
+// Offset for pagination
+func (r ApiListDocumentChunksRequest) Offset(offset int32) ApiListDocumentChunksRequest {
+	r.offset = &offset
+	return r
+}
+
+func (r ApiListDocumentChunksRequest) Authorization(authorization string) ApiListDocumentChunksRequest {
+	r.authorization = &authorization
+	return r
+}
+
+func (r ApiListDocumentChunksRequest) Execute() (*ListChunksResponse, *http.Response, error) {
+	return r.ApiService.ListDocumentChunksExecute(r)
+}
+
+/*
+ListDocumentChunks List document chunks
+
+List all chunks for a given document, ordered by chunk index.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param bankId
+ @param documentId
+ @return ApiListDocumentChunksRequest
+*/
+func (a *DocumentsAPIService) ListDocumentChunks(ctx context.Context, bankId string, documentId string) ApiListDocumentChunksRequest {
+	return ApiListDocumentChunksRequest{
+		ApiService: a,
+		ctx: ctx,
+		bankId: bankId,
+		documentId: documentId,
+	}
+}
+
+// Execute executes the request
+//  @return ListChunksResponse
+func (a *DocumentsAPIService) ListDocumentChunksExecute(r ApiListDocumentChunksRequest) (*ListChunksResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListChunksResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DocumentsAPIService.ListDocumentChunks")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/default/banks/{bank_id}/documents/{document_id}/chunks"
+	localVarPath = strings.Replace(localVarPath, "{"+"bank_id"+"}", url.PathEscape(parameterValueToString(r.bankId, "bankId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"document_id"+"}", url.PathEscape(parameterValueToString(r.documentId, "documentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	} else {
+		var defaultValue int32 = 100
+		r.limit = &defaultValue
+	}
+	if r.offset != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "offset", r.offset, "form", "")
+	} else {
+		var defaultValue int32 = 0
+		r.offset = &defaultValue
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.authorization != nil {
+		parameterAddToHeaderOrQuery(localVarHeaderParams, "authorization", r.authorization, "simple", "")
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiListDocumentsRequest struct {
 	ctx context.Context
 	ApiService *DocumentsAPIService
@@ -525,6 +677,132 @@ func (a *DocumentsAPIService) ListDocumentsExecute(r ApiListDocumentsRequest) (*
 		var defaultValue int32 = 0
 		r.offset = &defaultValue
 	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.authorization != nil {
+		parameterAddToHeaderOrQuery(localVarHeaderParams, "authorization", r.authorization, "simple", "")
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiReprocessDocumentRequest struct {
+	ctx context.Context
+	ApiService *DocumentsAPIService
+	bankId string
+	documentId string
+	authorization *string
+}
+
+func (r ApiReprocessDocumentRequest) Authorization(authorization string) ApiReprocessDocumentRequest {
+	r.authorization = &authorization
+	return r
+}
+
+func (r ApiReprocessDocumentRequest) Execute() (*ReprocessDocumentResponse, *http.Response, error) {
+	return r.ApiService.ReprocessDocumentExecute(r)
+}
+
+/*
+ReprocessDocument Reprocess document
+
+Re-run the retain pipeline on an existing document without changing its content. This deletes the existing memory units and re-extracts facts using the current engine configuration. Useful when the LLM model, chunking strategy, or extraction settings have changed.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param bankId
+ @param documentId
+ @return ApiReprocessDocumentRequest
+*/
+func (a *DocumentsAPIService) ReprocessDocument(ctx context.Context, bankId string, documentId string) ApiReprocessDocumentRequest {
+	return ApiReprocessDocumentRequest{
+		ApiService: a,
+		ctx: ctx,
+		bankId: bankId,
+		documentId: documentId,
+	}
+}
+
+// Execute executes the request
+//  @return ReprocessDocumentResponse
+func (a *DocumentsAPIService) ReprocessDocumentExecute(r ApiReprocessDocumentRequest) (*ReprocessDocumentResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ReprocessDocumentResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DocumentsAPIService.ReprocessDocument")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/default/banks/{bank_id}/documents/{document_id}/reprocess"
+	localVarPath = strings.Replace(localVarPath, "{"+"bank_id"+"}", url.PathEscape(parameterValueToString(r.bankId, "bankId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"document_id"+"}", url.PathEscape(parameterValueToString(r.documentId, "documentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 

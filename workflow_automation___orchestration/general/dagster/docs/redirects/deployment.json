@@ -520,6 +520,11 @@
     "permanent": true
   },
   {
+    "source": "/guides/operate/dev-to-prod",
+    "destination": "/deployment/dagster-plus/deploying-code/branch-deployments/testing-against-prod-data",
+    "permanent": true
+  },
+  {
     "source": "/deployment/dagster-plus/ci-cd/branch-deployments/setting-up-branch-deployments",
     "destination": "/deployment/dagster-plus/deploying-code/branch-deployments/configuring-branch-deployments",
     "permanent": true

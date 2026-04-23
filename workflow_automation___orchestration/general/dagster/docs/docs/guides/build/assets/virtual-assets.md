@@ -23,7 +23,7 @@ You can mark an asset as virtual using the `is_virtual` parameter on the <PyObje
 In the following example, the `@asset` decorator is used to define a virtual asset:
 
 <CodeExample
-  path="docs_snippets/docs_snippets/concepts/assets/virtual_assets.py"
+  path="docs_snippets/docs_snippets/guides/build/assets/virtual_assets.py"
   startAfter="start_decorator"
   endBefore="end_decorator"
   title="src/<project_name>/defs/assets.py"
@@ -32,7 +32,7 @@ In the following example, the `@asset` decorator is used to define a virtual ass
 Alternatively, `AssetSpec` can be used to define a virtual asset:
 
 <CodeExample
-  path="docs_snippets/docs_snippets/concepts/assets/virtual_assets.py"
+  path="docs_snippets/docs_snippets/guides/build/assets/virtual_assets.py"
   startAfter="start_spec"
   title="src/<project_name>/defs/assets.py"
 />

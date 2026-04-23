@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sdk, lowLevelClient } from "@/lib/hindsight-client";
+import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,34 +10,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "bank_id is required" }, { status: 400 });
     }
 
-    // Get optional query parameters
-    const type = searchParams.get("type") || searchParams.get("fact_type") || undefined;
-    const limitParam = searchParams.get("limit");
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
-    const q = searchParams.get("q") || undefined;
+    // Build query params for the dataplane
+    const params = new URLSearchParams();
+    const type = searchParams.get("type") || searchParams.get("fact_type");
+    if (type) params.append("type", type);
+    const limit = searchParams.get("limit");
+    if (limit) params.append("limit", limit);
+    const q = searchParams.get("q");
+    if (q) params.append("q", q);
     const tags = searchParams.getAll("tags");
+    for (const tag of tags) params.append("tags", tag);
+    if (tags.length > 0) params.append("tags_match", "all_strict");
+    const documentId = searchParams.get("document_id");
+    if (documentId) params.append("document_id", documentId);
+    const chunkId = searchParams.get("chunk_id");
+    if (chunkId) params.append("chunk_id", chunkId);
 
-    const response = await sdk.getGraph({
-      client: lowLevelClient,
-      path: { bank_id: bankId },
-      query: {
-        type: type,
-        limit: limit,
-        q,
-        tags: tags.length > 0 ? tags : undefined,
-        tags_match: tags.length > 0 ? "all_strict" : undefined,
-      },
+    const response = await fetch(`${DATAPLANE_URL}/v1/default/banks/${bankId}/graph?${params}`, {
+      headers: getDataplaneHeaders(),
     });
 
-    if (response.error || !response.data) {
-      console.error("Graph API error:", response.error);
-      return NextResponse.json(
-        { error: response.error || "Failed to fetch graph data" },
-        { status: 500 }
-      );
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      return NextResponse.json(error, { status: response.status });
     }
 
-    return NextResponse.json(response.data, { status: 200 });
+    const data = await response.json();
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Error fetching graph data:", error);
     return NextResponse.json({ error: "Failed to fetch graph data" }, { status: 500 });

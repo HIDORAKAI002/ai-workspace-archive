@@ -62,7 +62,7 @@ ENV JAVA_HOME /opt/java/openjdk
 RUN update-alternatives --install /usr/bin/java java /opt/java/openjdk/bin/java 1
 
 # Install various packages used in running/installing/testing Dagster:
-# - git/make (cloning dagster, running checks defined in Makefile)
+# - git/just (cloning dagster, running checks)
 # - nodejs/yarn (dagster UI)
 # - assorted others-- some may no longer be required, but leaving in place for now
 #
@@ -135,6 +135,11 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /bin/
 
+# Install just (task runner-- replaces make for CI steps because it propagates
+# signal exit codes correctly, enabling Buildkite automatic retry on spot
+# reclamation)
+RUN apt-get update -yqq && apt-get install -yqq just
+
 # Install redis
 RUN wget http://download.redis.io/redis-stable.tar.gz \
     && tar xvzf redis-stable.tar.gz \
@@ -179,6 +184,11 @@ COPY --from=snapshot_builder /snapshot-reqs.txt .
 # builds faster in Buildkite.
 RUN uv pip install --system -r /snapshot-reqs.txt \
     && rm /snapshot-reqs.txt
+
+# Remove make from the final image-- CI steps should use just instead, which
+# propagates signal exit codes correctly. make is still available in the
+# system_base stage for building redis etc.
+RUN apt-get remove -yqq make && apt-get autoremove -yqq
 
 # New versions of debian require allowlisting folders where `git` can run
 RUN git config --system --add safe.directory \*

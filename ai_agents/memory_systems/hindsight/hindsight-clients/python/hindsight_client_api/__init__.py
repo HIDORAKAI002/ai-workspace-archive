@@ -92,6 +92,7 @@ from hindsight_client_api.models.file_retain_response import FileRetainResponse
 from hindsight_client_api.models.graph_data_response import GraphDataResponse
 from hindsight_client_api.models.http_validation_error import HTTPValidationError
 from hindsight_client_api.models.include_options import IncludeOptions
+from hindsight_client_api.models.list_chunks_response import ListChunksResponse
 from hindsight_client_api.models.list_documents_response import ListDocumentsResponse
 from hindsight_client_api.models.list_memory_units_response import ListMemoryUnitsResponse
 from hindsight_client_api.models.list_tags_response import ListTagsResponse
@@ -124,6 +125,7 @@ from hindsight_client_api.models.reflect_request import ReflectRequest
 from hindsight_client_api.models.reflect_response import ReflectResponse
 from hindsight_client_api.models.reflect_tool_call import ReflectToolCall
 from hindsight_client_api.models.reflect_trace import ReflectTrace
+from hindsight_client_api.models.reprocess_document_response import ReprocessDocumentResponse
 from hindsight_client_api.models.retain_request import RetainRequest
 from hindsight_client_api.models.retain_response import RetainResponse
 from hindsight_client_api.models.retry_operation_response import RetryOperationResponse

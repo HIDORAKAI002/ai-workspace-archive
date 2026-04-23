@@ -754,10 +754,19 @@ def test_500_eager_assets_user_code(capsys) -> None:
         get_grpc_workspace_request_context("500_eager_assets") as context,
         get_threadpool_executor() as executor,
     ):
-        # Use the current real time at ~30 min past the hour. The gRPC child process
-        # uses real wall-clock time (freeze_time only patches the current process), so
-        # both must be in the same hour to see the same set of hourly partitions.
+        # The gRPC child process uses real wall-clock time (freeze_time only patches
+        # the host process), so both must be in the same hour to see the same set of
+        # hourly partitions. If real time crosses an hour boundary mid-test, the gRPC
+        # process sees a new partition the host doesn't, causing `newly_missing` to
+        # fire and unexpected runs to be created.
+        #
+        # The test takes ~70s of real time. If we're within 2 min of the next
+        # hour, sleep past the boundary so the real clock stays in one hour throughout.
         now = datetime.datetime.now()
+        seconds_until_next_hour = (59 - now.minute) * 60 + (60 - now.second)
+        if seconds_until_next_hour < 120:
+            time.sleep(seconds_until_next_hour + 5)
+            now = datetime.datetime.now()
         freeze_dt = now.replace(minute=30, second=0, microsecond=0)
 
         for _ in range(2):

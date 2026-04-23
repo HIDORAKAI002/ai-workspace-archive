@@ -23,7 +23,7 @@ class DagsterMySQLStorage(DagsterStorage, ConfigurableClass):
     To use MySQL for storage, you can add a block such as the following to your
     ``dagster.yaml``:
 
-    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deploying/dagster-mysql.yaml
+    .. literalinclude:: ../../../../../../examples/docs_snippets/docs_snippets/deployment/execution/dagster-mysql.yaml
        :caption: dagster.yaml
        :language: YAML
 
