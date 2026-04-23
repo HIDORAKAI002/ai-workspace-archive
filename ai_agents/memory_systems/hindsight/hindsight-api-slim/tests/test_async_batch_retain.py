@@ -629,6 +629,74 @@ async def test_operation_status_exposes_retry_count_and_next_retry_at(memory, re
 
 
 @pytest.mark.asyncio
+async def test_list_operations_exclude_parents(memory, request_context):
+    """list_operations with exclude_parents=True hides parent batch operations."""
+    bank_id = "test_exclude_parents"
+    pool = await memory._get_pool()
+    await _ensure_bank(pool, bank_id)
+
+    # Create a parent operation (is_parent=True)
+    parent_id = uuid.uuid4()
+    child_id = uuid.uuid4()
+    standalone_id = uuid.uuid4()
+
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, result_metadata, status)
+            VALUES ($1, $2, $3, $4, $5)
+            """,
+            parent_id,
+            bank_id,
+            "batch_retain",
+            json.dumps({"items_count": 10, "num_sub_batches": 1, "is_parent": True}),
+            "completed",
+        )
+        await conn.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, result_metadata, status)
+            VALUES ($1, $2, $3, $4, $5)
+            """,
+            child_id,
+            bank_id,
+            "retain",
+            json.dumps({"items_count": 10, "parent_operation_id": str(parent_id), "sub_batch_index": 1, "total_sub_batches": 1}),
+            "completed",
+        )
+        await conn.execute(
+            """
+            INSERT INTO async_operations (operation_id, bank_id, operation_type, result_metadata, status)
+            VALUES ($1, $2, $3, $4, $5)
+            """,
+            standalone_id,
+            bank_id,
+            "consolidation",
+            json.dumps({}),
+            "completed",
+        )
+
+    # Without exclude_parents: all 3 operations visible
+    all_ops = await memory.list_operations(
+        bank_id=bank_id, request_context=request_context, limit=10, offset=0,
+    )
+    all_ids = {op["id"] for op in all_ops["operations"]}
+    assert str(parent_id) in all_ids
+    assert str(child_id) in all_ids
+    assert str(standalone_id) in all_ids
+    assert all_ops["total"] == 3
+
+    # With exclude_parents: parent is hidden
+    filtered_ops = await memory.list_operations(
+        bank_id=bank_id, request_context=request_context, limit=10, offset=0, exclude_parents=True,
+    )
+    filtered_ids = {op["id"] for op in filtered_ops["operations"]}
+    assert str(parent_id) not in filtered_ids
+    assert str(child_id) in filtered_ids
+    assert str(standalone_id) in filtered_ids
+    assert filtered_ops["total"] == 2
+
+
+@pytest.mark.asyncio
 async def test_request_context_retry_count_propagated_to_validator(memory_no_llm_verify, request_context):
     """_handle_batch_retain forwards the task's _retry_count as
     RequestContext.retry_count, so validator extensions can compute

@@ -159,7 +159,6 @@ def mock_memory():
     # Memory browsing methods
     memory.list_memory_units = AsyncMock(return_value={"items": [{"id": "mem-1", "content": "Test"}], "total": 1})
     memory.get_memory_unit = AsyncMock(return_value={"id": "mem-1", "content": "Test memory"})
-    memory.delete_memory_unit = AsyncMock(return_value={"deleted_count": 1})
 
     # Document methods
     memory.list_documents = AsyncMock(return_value={"items": [{"id": "doc-1", "name": "Test Doc"}], "total": 1})
@@ -313,7 +312,6 @@ class TestMentalModelToolRegistration:
         memory.delete_directive = AsyncMock()
         memory.list_memory_units = AsyncMock(return_value={})
         memory.get_memory_unit = AsyncMock()
-        memory.delete_memory_unit = AsyncMock()
         memory.list_documents = AsyncMock(return_value={})
         memory.get_document = AsyncMock()
         memory.delete_document = AsyncMock()
@@ -347,7 +345,7 @@ class TestMentalModelToolRegistration:
         assert "delete_bank" in tools
         assert "clear_memories" in tools
         assert "sync_retain" in tools
-        assert len(tools) == 30
+        assert len(tools) == 29
 
 
 @pytest.fixture
@@ -1106,12 +1104,6 @@ class TestMemoryBrowsingTools:
         result = await _tools(mcp)["get_memory"].fn(memory_id="missing")
         assert "not found" in result
 
-    async def test_delete_memory(self, mock_memory):
-        mcp = _make_mcp_server(mock_memory, {"delete_memory"}, include_bank_id=True)
-        result = await _tools(mcp)["delete_memory"].fn(memory_id="mem-1")
-        assert '"deleted"' in result
-        assert mock_memory.delete_memory_unit.call_args.kwargs["unit_id"] == "mem-1"
-
     async def test_get_memory_invalid_uuid(self, mock_memory):
         mock_memory.get_memory_unit.side_effect = ValueError("Invalid memory_id: 'nonexistent' is not a valid UUID")
         mcp = _make_mcp_server(mock_memory, {"get_memory"}, include_bank_id=True)
@@ -1123,12 +1115,6 @@ class TestMemoryBrowsingTools:
         mcp = _make_mcp_server(mock_memory, {"get_memory"}, include_bank_id=False)
         result = await _tools(mcp)["get_memory"].fn(memory_id="bad")
         assert "not a valid UUID" in result["error"]
-
-    async def test_delete_memory_invalid_uuid(self, mock_memory):
-        mock_memory.delete_memory_unit.side_effect = ValueError("Invalid unit_id: 'bad' is not a valid UUID")
-        mcp = _make_mcp_server(mock_memory, {"delete_memory"}, include_bank_id=True)
-        result = await _tools(mcp)["delete_memory"].fn(memory_id="bad")
-        assert "not a valid UUID" in result
 
     async def test_list_memories_single_bank(self, mock_memory):
         mcp = _make_mcp_server(mock_memory, {"list_memories"}, include_bank_id=False)
@@ -1360,19 +1346,6 @@ class TestOperationErrorHandling:
 @pytest.mark.asyncio
 class TestDeleteErrorHandling:
     """Error handling tests for delete operations."""
-
-    async def test_delete_memory_engine_error(self, mock_memory):
-        mock_memory.delete_memory_unit.side_effect = RuntimeError("DB error")
-        mcp = _make_mcp_server(mock_memory, {"delete_memory"}, include_bank_id=True)
-        result = await _tools(mcp)["delete_memory"].fn(memory_id="mem-1")
-        assert "error" in result
-        assert "DB error" in result
-
-    async def test_delete_memory_single_bank(self, mock_memory):
-        mcp = _make_mcp_server(mock_memory, {"delete_memory"}, include_bank_id=False)
-        result = await _tools(mcp)["delete_memory"].fn(memory_id="mem-1")
-        assert isinstance(result, dict)
-        assert result["status"] == "deleted"
 
     async def test_delete_document_engine_error(self, mock_memory):
         mock_memory.delete_document.side_effect = RuntimeError("DB error")

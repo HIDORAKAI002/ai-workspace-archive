@@ -5,7 +5,8 @@ import type {
   StreamStartData,
   ToolExecuteData,
 } from '@lobechat/agent-gateway-client';
-import type { ConversationContext } from '@lobechat/types';
+import type { ChatMessageError, ConversationContext } from '@lobechat/types';
+import { AgentRuntimeErrorType } from '@lobechat/types';
 
 import { messageService } from '@/services/message';
 import type { ChatStore } from '@/store/chat/store';
@@ -18,6 +19,29 @@ import type { ChatStore } from '@/store/chat/store';
 const fetchAndReplaceMessages = async (get: () => ChatStore, context: ConversationContext) => {
   const messages = await messageService.getMessages(context);
   get().replaceMessages(messages, { context });
+};
+
+const toChatMessageError = (data: unknown): ChatMessageError => {
+  if (typeof data === 'object' && data && 'type' in data && typeof data.type === 'string') {
+    const error = data as ChatMessageError;
+    return {
+      ...error,
+      message: error.message || error.body?.message,
+    };
+  }
+
+  const message =
+    typeof data === 'object' && data && 'message' in data && typeof data.message === 'string'
+      ? data.message
+      : typeof data === 'object' && data && 'error' in data && typeof data.error === 'string'
+        ? data.error
+        : 'Unknown error';
+
+  return {
+    body: { message },
+    message,
+    type: AgentRuntimeErrorType.AgentRuntimeError,
+  };
 };
 
 /**
@@ -55,6 +79,7 @@ export const createGatewayEventHandler = (
 
   // Mutable — switches to new assistant message ID on each stream_start
   let currentAssistantMessageId = params.assistantMessageId;
+  let terminalState: 'completed' | 'error' | undefined;
 
   // Accumulated content from stream chunks (reset on each stream_start)
   let accumulatedContent = '';
@@ -68,6 +93,12 @@ export const createGatewayEventHandler = (
   };
 
   return (event: AgentStreamEvent) => {
+    if (terminalState) return;
+
+    if (event.type === 'agent_runtime_end' || event.type === 'error') {
+      terminalState = event.type === 'error' ? 'error' : 'completed';
+    }
+
     switch (event.type) {
       case 'stream_start': {
         enqueue(async () => {
@@ -217,14 +248,26 @@ export const createGatewayEventHandler = (
 
       case 'error': {
         enqueue(async () => {
-          const errorMsg = event.data?.message || event.data?.error || 'Unknown error';
+          const messageError = toChatMessageError(event.data);
 
           get().internal_toggleToolCallingStreaming(currentAssistantMessageId, undefined);
           get().completeOperation(operationId);
 
-          // Fetch from DB first — the server may have persisted a richer error
-          // detail into the message already.
-          await fetchAndReplaceMessages(get, context).catch(console.error);
+          const updateResult = await messageService
+            .updateMessageError(currentAssistantMessageId, messageError, {
+              agentId: context.agentId,
+              groupId: context.groupId,
+              threadId: context.threadId,
+              topicId: context.topicId,
+            })
+            .catch(console.error);
+
+          if (updateResult?.success && updateResult.messages) {
+            get().replaceMessages(updateResult.messages, { context });
+          } else {
+            // Fallback when the mutation response doesn't include messages.
+            await fetchAndReplaceMessages(get, context).catch(console.error);
+          }
 
           // Then overlay the inline error. This ensures the UI always shows the
           // error even if the server hasn't persisted it into the message yet
@@ -234,7 +277,7 @@ export const createGatewayEventHandler = (
               id: currentAssistantMessageId,
               type: 'updateMessage',
               value: {
-                error: { body: { message: errorMsg }, type: 'AgentRuntimeError' },
+                error: messageError,
               },
             },
             dispatchContext,

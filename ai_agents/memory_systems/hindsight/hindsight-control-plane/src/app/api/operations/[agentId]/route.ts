@@ -12,11 +12,12 @@ export async function GET(
     const type = searchParams.get("type") || undefined;
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
     const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined;
+    const excludeParents = searchParams.get("exclude_parents") === "true" ? true : undefined;
 
     const response = await sdk.listOperations({
       client: lowLevelClient,
       path: { bank_id: agentId },
-      query: { status, type, limit, offset },
+      query: { status, type, limit, offset, exclude_parents: excludeParents },
     });
     return NextResponse.json(response.data || {}, { status: 200 });
   } catch (error) {

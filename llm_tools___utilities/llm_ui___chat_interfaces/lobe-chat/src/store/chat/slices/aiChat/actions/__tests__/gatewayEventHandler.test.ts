@@ -1,10 +1,15 @@
 import type { AgentStreamEvent } from '@lobechat/agent-gateway-client';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { messageService } from '@/services/message';
 
 import { createGatewayEventHandler } from '../gatewayEventHandler';
 
 vi.mock('@/services/message', () => ({
-  messageService: { getMessages: vi.fn().mockResolvedValue([]) },
+  messageService: {
+    getMessages: vi.fn().mockResolvedValue([]),
+    updateMessageError: vi.fn().mockResolvedValue({ success: true }),
+  },
 }));
 
 // ─── Test Helpers ───
@@ -51,6 +56,10 @@ const flush = async () => {
 // ─── Tests ───
 
 describe('createGatewayEventHandler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('stream_start', () => {
     it('should associate new message with operation', async () => {
       const store = createMockStore();
@@ -328,6 +337,20 @@ describe('createGatewayEventHandler', () => {
         undefined,
       );
       expect(store.completeOperation).toHaveBeenCalledWith('op-1');
+      expect(messageService.updateMessageError).toHaveBeenCalledWith(
+        'msg-initial',
+        {
+          body: { message: 'Something went wrong' },
+          message: 'Something went wrong',
+          type: 'AgentRuntimeError',
+        },
+        {
+          agentId: 'agent-1',
+          groupId: undefined,
+          threadId: undefined,
+          topicId: 'topic-1',
+        },
+      );
 
       // Should dispatch inline error immediately
       expect(store.internal_dispatchMessage).toHaveBeenCalledWith(
@@ -335,13 +358,17 @@ describe('createGatewayEventHandler', () => {
           id: 'msg-initial',
           type: 'updateMessage',
           value: {
-            error: { body: { message: 'Something went wrong' }, type: 'AgentRuntimeError' },
+            error: {
+              body: { message: 'Something went wrong' },
+              message: 'Something went wrong',
+              type: 'AgentRuntimeError',
+            },
           },
         },
         { operationId: 'op-1' },
       );
 
-      // Should also fetch from DB
+      // Should also refresh messages
       expect(store.replaceMessages).toHaveBeenCalled();
     });
 
@@ -358,6 +385,20 @@ describe('createGatewayEventHandler', () => {
         undefined,
       );
       expect(store.completeOperation).toHaveBeenCalledWith('op-1');
+      expect(messageService.updateMessageError).toHaveBeenCalledWith(
+        'msg-step2',
+        {
+          body: { message: 'Timeout' },
+          message: 'Timeout',
+          type: 'AgentRuntimeError',
+        },
+        {
+          agentId: 'agent-1',
+          groupId: undefined,
+          threadId: undefined,
+          topicId: 'topic-1',
+        },
+      );
 
       // Should dispatch inline error with the switched message ID
       expect(store.internal_dispatchMessage).toHaveBeenCalledWith(
@@ -365,6 +406,7 @@ describe('createGatewayEventHandler', () => {
           id: 'msg-step2',
           value: expect.objectContaining({
             error: expect.objectContaining({
+              message: 'Timeout',
               body: { message: 'Timeout' },
             }),
           }),
@@ -372,6 +414,104 @@ describe('createGatewayEventHandler', () => {
         { operationId: 'op-1' },
       );
       expect(store.replaceMessages).toHaveBeenCalled();
+    });
+
+    it('should preserve structured heterogeneous agent error payloads', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+
+      handler(
+        makeEvent('error', {
+          body: {
+            agentType: 'codex',
+            code: 'cli_not_found',
+            docsUrl: 'https://github.com/openai/codex',
+            installCommands: ['npm install -g @openai/codex'],
+            message: 'Codex CLI was not found',
+          },
+          message: 'Codex CLI was not found',
+          type: 'AgentRuntimeError',
+        }),
+      );
+      await flush();
+
+      expect(messageService.updateMessageError).toHaveBeenCalledWith(
+        'msg-initial',
+        {
+          body: {
+            agentType: 'codex',
+            code: 'cli_not_found',
+            docsUrl: 'https://github.com/openai/codex',
+            installCommands: ['npm install -g @openai/codex'],
+            message: 'Codex CLI was not found',
+          },
+          message: 'Codex CLI was not found',
+          type: 'AgentRuntimeError',
+        },
+        expect.any(Object),
+      );
+      expect(store.internal_dispatchMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: {
+            error: {
+              body: {
+                agentType: 'codex',
+                code: 'cli_not_found',
+                docsUrl: 'https://github.com/openai/codex',
+                installCommands: ['npm install -g @openai/codex'],
+                message: 'Codex CLI was not found',
+              },
+              message: 'Codex CLI was not found',
+              type: 'AgentRuntimeError',
+            },
+          },
+        }),
+        { operationId: 'op-1' },
+      );
+    });
+
+    it('should prefer updateMessageError returned messages over an extra refetch', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+      const persistedMessages = [{ id: 'msg-initial', role: 'assistant' }];
+
+      vi.mocked(messageService.updateMessageError).mockResolvedValueOnce({
+        messages: persistedMessages as any,
+        success: true,
+      });
+
+      handler(makeEvent('error', { message: 'Something went wrong' }));
+      await flush();
+
+      expect(store.replaceMessages).toHaveBeenCalledWith(persistedMessages, {
+        context: { agentId: 'agent-1', scope: 'session', topicId: 'topic-1' },
+      });
+      expect(messageService.getMessages).not.toHaveBeenCalled();
+    });
+
+    it('should ignore late events after an error so the inline error is not overwritten', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+      const persistedMessages = [{ id: 'msg-initial', role: 'assistant' }];
+
+      vi.mocked(messageService.updateMessageError).mockResolvedValueOnce({
+        messages: persistedMessages as any,
+        success: true,
+      });
+
+      handler(makeEvent('error', { message: 'Something went wrong' }));
+      handler(makeEvent('tool_end', { isSuccess: true }));
+      handler(makeEvent('stream_chunk', { chunkType: 'text', content: 'late chunk' }));
+      await flush();
+
+      expect(messageService.getMessages).not.toHaveBeenCalled();
+      expect(store.internal_dispatchMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: { content: 'late chunk' },
+        }),
+        expect.any(Object),
+      );
+      expect(store.replaceMessages).toHaveBeenCalledTimes(1);
     });
   });
 

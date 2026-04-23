@@ -32,7 +32,7 @@ from lib.content import (
     slice_last_turns_by_user_boundary,
 )
 from lib.daemon import get_api_url
-from lib.state import increment_turn_count
+from lib.state import increment_turn_count, track_retention
 
 
 def read_transcript(transcript_path: str) -> list:
@@ -69,21 +69,14 @@ def read_transcript(transcript_path: str) -> list:
     return messages
 
 
-def main():
+def run_retain(hook_input: dict, force: bool = False) -> None:
     config = load_config()
 
     if not config.get("autoRetain"):
         debug_log(config, "Auto-retain disabled, exiting")
         return
 
-    # Read hook input from stdin
-    try:
-        hook_input = json.load(sys.stdin)
-    except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
-        return
-
-    debug_log(config, f"Stop hook input keys: {list(hook_input.keys())}")
+    debug_log(config, f"Retain hook_input keys: {list(hook_input.keys())} force={force}")
 
     session_id = hook_input.get("session_id", "unknown")
     transcript_path = hook_input.get("transcript_path", "")
@@ -102,8 +95,8 @@ def main():
     retain_full_window = False
     messages_to_retain = all_messages
 
-    # Respect retainEveryNTurns in both modes
-    if retain_every_n > 1:
+    # Respect retainEveryNTurns in both modes, unless force=True (SessionEnd final retain)
+    if retain_every_n > 1 and not force:
         turn_count = increment_turn_count(session_id)
         if turn_count % retain_every_n != 0:
             next_at = ((turn_count // retain_every_n) + 1) * retain_every_n
@@ -157,12 +150,25 @@ def main():
     bank_id = derive_bank_id(hook_input, config)
     ensure_bank_mission(client, bank_id, config, debug_fn=_dbg)
 
-    # Document ID: use session_id so the same session always upserts the same document.
-    # In chunked mode, append timestamp to create distinct documents per chunk.
+    # Document ID strategy:
+    # - Chunked mode: each chunk gets a timestamped document_id.
+    # - Full-session mode: uses session_id as base, but tracks message count
+    #   to detect compaction.  When Claude Code compacts the conversation the
+    #   transcript shrinks — if we kept the same document_id we'd overwrite the
+    #   pre-compaction document with a shorter one, losing context.  Instead we
+    #   increment a chunk counter so the old document is preserved.
     if retain_mode == "chunked" and retain_every_n > 1:
         document_id = f"{session_id}-{int(time.time() * 1000)}"
     else:
-        document_id = session_id
+        chunk_index, compacted = track_retention(session_id, len(all_messages))
+        if compacted:
+            debug_log(
+                config,
+                f"Compaction detected for session {session_id}: transcript shrank, "
+                f"advancing to chunk {chunk_index} to preserve prior document",
+            )
+        # chunk 0 → plain session_id (backwards compatible with existing docs)
+        document_id = session_id if chunk_index == 0 else f"{session_id}-c{chunk_index}"
 
     # Resolve template variables in tags and metadata.
     # Supported variables: {session_id}, {bank_id}, {timestamp}, {user_id}
@@ -224,6 +230,15 @@ def main():
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+
+
+def main():
+    try:
+        hook_input = json.load(sys.stdin)
+    except (json.JSONDecodeError, EOFError):
+        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        return
+    run_retain(hook_input, force=False)
 
 
 if __name__ == "__main__":

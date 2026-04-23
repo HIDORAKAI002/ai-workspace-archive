@@ -365,20 +365,20 @@ function InlineStat({
   );
 }
 
-const OPS_STATUS_ORDER = ["completed", "in_progress", "pending", "failed", "cancelled"] as const;
+const OPS_STATUS_ORDER = ["completed", "processing", "pending", "failed", "cancelled"] as const;
 const OPS_STATUS_COLORS: Record<string, string> = {
-  completed: CHART_COLORS.success,
-  in_progress: CHART_COLORS.semantic,
-  pending: CHART_COLORS.warning,
-  failed: CHART_COLORS.danger,
-  cancelled: CHART_COLORS.mutedFg,
+  completed: "#10b981", // emerald-500
+  processing: "#3b82f6", // blue-500
+  pending: "#f59e0b", // amber-500
+  failed: "#ef4444", // red-500
+  cancelled: "#6b7280", // gray-500
 };
 const OPS_STATUS_LABELS: Record<string, string> = {
-  completed: "Completed",
-  in_progress: "In progress",
-  pending: "Pending",
-  failed: "Failed",
-  cancelled: "Cancelled",
+  completed: "completed",
+  processing: "processing",
+  pending: "pending",
+  failed: "failed",
+  cancelled: "cancelled",
 };
 
 interface OpsStatusEntry {

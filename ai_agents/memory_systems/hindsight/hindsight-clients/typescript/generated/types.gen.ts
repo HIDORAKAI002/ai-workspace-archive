@@ -368,7 +368,7 @@ export type BankStatsResponse = {
   /**
    * Operations By Status
    *
-   * Async operations grouped by status (pending, in_progress, completed, failed, cancelled).
+   * Async operations grouped by status (pending, processing, completed, failed, cancelled).
    */
   operations_by_status?: {
     [key: string]: number;
@@ -2163,7 +2163,13 @@ export type OperationStatusResponse = {
   /**
    * Status
    */
-  status: "pending" | "completed" | "failed" | "not_found";
+  status:
+    | "pending"
+    | "processing"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "not_found";
   /**
    * Operation Type
    */
@@ -4812,7 +4818,7 @@ export type ListOperationsData = {
     /**
      * Status
      *
-     * Filter by status: pending, completed, or failed
+     * Filter by status: pending, processing, completed, failed, or cancelled
      */
     status?: string | null;
     /**
@@ -4833,6 +4839,12 @@ export type ListOperationsData = {
      * Number of operations to skip
      */
     offset?: number;
+    /**
+     * Exclude Parents
+     *
+     * Exclude parent batch operations from results
+     */
+    exclude_parents?: boolean;
   };
   url: "/v1/default/banks/{bank_id}/operations";
 };
