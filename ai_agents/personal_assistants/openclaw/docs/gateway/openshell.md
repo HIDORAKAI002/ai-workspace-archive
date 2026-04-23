@@ -280,6 +280,21 @@ Recreate after changing any of these:
 openclaw sandbox recreate --all
 ```
 
+## Security hardening
+
+OpenShell sandbox helpers that read remote workspace files use a pinned file
+descriptor for the workspace root and walk ancestors from that pinned fd
+instead of re-resolving the path for each read. Combined with an identity
+recheck on every operation, this prevents a mid-turn symlink swap or a
+hot-swapped workspace mount from redirecting reads outside the intended
+remote workspace.
+
+- Workspace root is opened once and pinned; later reads reuse that fd.
+- Ancestor walks traverse relative entries from the pinned fd so they cannot
+  be redirected by a replacement directory higher in the path.
+- The sandbox identity is rechecked before each read, so a recreated or
+  reassigned sandbox cannot silently serve files from a different workspace.
+
 ## Current limitations
 
 - Sandbox browser is not supported on the OpenShell backend.
