@@ -76,13 +76,38 @@ you revoke it with `openclaw devices revoke --device <id> --role <role>`. See
 - Each browser profile generates a unique device ID, so switching browsers or
   clearing browser data will require re-pairing.
 
+## Personal identity (browser-local)
+
+The Control UI supports a per-browser personal identity — a display name and
+avatar that are attached to outgoing messages for attribution in shared
+sessions. This identity lives in browser storage, is scoped to the current
+browser profile, and does not leave the gateway host unless you explicitly
+submit it with a request.
+
+- Identity is **browser-local only**. It is not synced to other devices and is
+  not part of the gateway config file.
+- Clearing site data or switching browsers resets the identity to empty; the
+  Control UI does not try to reconstruct one from server state.
+- Nothing about the personal identity is persisted server-side beyond the
+  normal transcript authorship metadata on messages you actually send.
+
+## Runtime config endpoint
+
+The Control UI fetches its runtime settings from
+`/__openclaw/control-ui-config.json`. That endpoint is gated by the same
+gateway auth as the rest of the HTTP surface: unauthenticated browsers cannot
+fetch it, and a successful fetch requires either an already valid gateway
+token/password, Tailscale Serve identity, or a trusted-proxy identity. This
+keeps Control UI feature flags and endpoint metadata from leaking to
+unauthenticated scanners on shared hosts.
+
 ## Language support
 
 The Control UI can localize itself on first load based on your browser locale.
 To override it later, open **Overview -> Gateway Access -> Language**. The
 locale picker lives in the Gateway Access card, not under Appearance.
 
-- Supported locales: `en`, `zh-CN`, `zh-TW`, `pt-BR`, `de`, `es`, `ja-JP`, `ko`, `fr`, `tr`, `uk`, `id`, `pl`
+- Supported locales: `en`, `zh-CN`, `zh-TW`, `pt-BR`, `de`, `es`, `ja-JP`, `ko`, `fr`, `tr`, `uk`, `id`, `pl`, `th`
 - Non-English translations are lazy-loaded in the browser.
 - The selected locale is saved in browser storage and reused on future visits.
 - Missing translation keys fall back to English.
@@ -109,6 +134,7 @@ locale picker lives in the Gateway Access card, not under Appearance.
   plus plugin + channel schemas when available); Raw JSON editor is
   available only when the snapshot has a safe raw round-trip
 - If a snapshot cannot safely round-trip raw text, Control UI forces Form mode and disables Raw mode for that snapshot
+- Raw JSON editor "Reset to saved" preserves the raw-authored shape (formatting, comments, `$include` layout) instead of re-rendering a flattened snapshot, so external edits survive a reset when the snapshot can safely round-trip
 - Structured SecretRef object values are rendered read-only in form text inputs to prevent accidental object-to-string corruption
 - Debug: status/health/models snapshots + event log + manual RPC calls (`status`, `health`, `models.list`)
 - Logs: live tail of gateway file logs with filter/export (`logs.tail`)

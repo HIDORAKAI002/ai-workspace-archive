@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-23 12:36 IST] Auto-Sync
+- **27 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, BradyFU/Awesome-Multimodal-Large-Language-Models, mindsdb/mindsdb, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-04-23 06:12 IST] Auto-Sync
 - **34 Repositories Updated:** MCP TypeScript SDK, Playwright MCP, Awesome ChatGPT Prompts, NVIDIA NeMo Guardrails, Flowise, Activepieces, Windmill, Directus, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ollama/ollama, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 

@@ -17,13 +17,20 @@ discovery, native thread resume, native compaction, and app-server execution.
 OpenClaw still owns chat channels, session files, model selection, tools,
 approvals, media delivery, and the visible transcript mirror.
 
-Native Codex turns also respect the shared `before_prompt_build`,
-`before_compaction`, and `after_compaction` plugin hooks, so prompt shims and
-compaction-aware automation can stay aligned with the PI harness.
-Native Codex turns also respect the shared `before_prompt_build`,
-`before_compaction`, `after_compaction`, `llm_input`, `llm_output`, and
-`agent_end` plugin hooks, so prompt shims, compaction-aware automation, and
-lifecycle observers can stay aligned with the PI harness.
+Native Codex turns also respect the shared plugin hooks so prompt shims,
+compaction-aware automation, tool middleware, and lifecycle observers stay
+aligned with the PI harness:
+
+- `before_prompt_build`
+- `before_compaction`, `after_compaction`
+- `llm_input`, `llm_output`
+- `tool_result`, `after_tool_call`
+- `before_message_write`
+- `agent_end`
+
+Bundled plugins can also register a Codex app-server extension factory to add
+async `tool_result` middleware, and mirrored Codex transcript writes route
+through `before_message_write`.
 
 The harness is off by default. It is selected only when the `codex` plugin is
 enabled and the resolved model is a `codex/*` model, or when you explicitly
@@ -508,6 +515,11 @@ The Codex harness changes the low-level embedded agent executor only.
 OpenClaw still builds the tool list and receives dynamic tool results from the
 harness. Text, images, video, music, TTS, approvals, and messaging-tool output
 continue through the normal OpenClaw delivery path.
+
+Codex MCP tool approval elicitations are routed through OpenClaw's plugin
+approval flow when Codex marks `_meta.codex_approval_kind` as
+`"mcp_tool_call"`; other elicitation and free-form input requests still fail
+closed.
 
 When the selected model uses the Codex harness, native thread compaction is
 delegated to Codex app-server. OpenClaw keeps a transcript mirror for channel

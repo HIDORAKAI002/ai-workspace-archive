@@ -1,9 +1,12 @@
-import { callGatewayTool, type EmbeddedRunAttemptParams } from "openclaw/plugin-sdk/agent-harness";
+import {
+  callGatewayTool,
+  type EmbeddedRunAttemptParams,
+} from "openclaw/plugin-sdk/agent-harness-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildApprovalResponse, handleCodexAppServerApprovalRequest } from "./approval-bridge.js";
 
-vi.mock("openclaw/plugin-sdk/agent-harness", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("openclaw/plugin-sdk/agent-harness")>()),
+vi.mock("openclaw/plugin-sdk/agent-harness-runtime", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("openclaw/plugin-sdk/agent-harness-runtime")>()),
   callGatewayTool: vi.fn(),
 }));
 
@@ -232,6 +235,25 @@ describe("Codex app-server approval bridge", () => {
     expect(description).toContain("readPaths: ~/.ssh/id_rsa, /etc/hosts (+1 more)");
     expect(description).toContain("writePaths: /tmp/output, /var/log/app (+1 more)");
     expect(description).toContain("High-risk targets:");
+  });
+
+  it("ignores approval requests that are missing explicit thread or turn ids", async () => {
+    const params = createParams();
+
+    const result = await handleCodexAppServerApprovalRequest({
+      method: "item/commandExecution/requestApproval",
+      requestParams: {
+        itemId: "cmd-2",
+        command: "pnpm test",
+      },
+      paramsForRun: params,
+      threadId: "thread-1",
+      turnId: "turn-1",
+    });
+
+    expect(result).toBeUndefined();
+    expect(mockCallGatewayTool).not.toHaveBeenCalled();
+    expect(params.onAgentEvent).not.toHaveBeenCalled();
   });
 
   it("maps app-server approval response families separately", () => {
