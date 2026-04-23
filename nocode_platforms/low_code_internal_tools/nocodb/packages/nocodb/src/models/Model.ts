@@ -109,6 +109,10 @@ export default class Model implements TableType {
     return false;
   }
 
+  async isTrashEnabledForWorkspace(_context: NcContext): Promise<boolean> {
+    return this.isTrashEnabled;
+  }
+
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   columnsHash?: string;
