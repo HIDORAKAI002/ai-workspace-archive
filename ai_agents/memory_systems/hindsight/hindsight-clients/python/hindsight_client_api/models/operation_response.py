@@ -33,7 +33,9 @@ class OperationResponse(BaseModel):
     created_at: StrictStr
     status: StrictStr
     error_message: Optional[StrictStr]
-    __properties: ClassVar[List[str]] = ["id", "task_type", "items_count", "document_id", "created_at", "status", "error_message"]
+    retry_count: Optional[StrictInt] = None
+    next_retry_at: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["id", "task_type", "items_count", "document_id", "created_at", "status", "error_message", "retry_count", "next_retry_at"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -84,6 +86,16 @@ class OperationResponse(BaseModel):
         if self.error_message is None and "error_message" in self.model_fields_set:
             _dict['error_message'] = None
 
+        # set to None if retry_count (nullable) is None
+        # and model_fields_set contains the field
+        if self.retry_count is None and "retry_count" in self.model_fields_set:
+            _dict['retry_count'] = None
+
+        # set to None if next_retry_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.next_retry_at is None and "next_retry_at" in self.model_fields_set:
+            _dict['next_retry_at'] = None
+
         return _dict
 
     @classmethod
@@ -102,7 +114,9 @@ class OperationResponse(BaseModel):
             "document_id": obj.get("document_id"),
             "created_at": obj.get("created_at"),
             "status": obj.get("status"),
-            "error_message": obj.get("error_message")
+            "error_message": obj.get("error_message"),
+            "retry_count": obj.get("retry_count"),
+            "next_retry_at": obj.get("next_retry_at")
         })
         return _obj
 

@@ -28,6 +28,8 @@ type OperationResponse struct {
 	CreatedAt string `json:"created_at"`
 	Status string `json:"status"`
 	ErrorMessage NullableString `json:"error_message"`
+	RetryCount NullableInt32 `json:"retry_count,omitempty"`
+	NextRetryAt NullableString `json:"next_retry_at,omitempty"`
 }
 
 type _OperationResponse OperationResponse
@@ -243,6 +245,90 @@ func (o *OperationResponse) SetErrorMessage(v string) {
 	o.ErrorMessage.Set(&v)
 }
 
+// GetRetryCount returns the RetryCount field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationResponse) GetRetryCount() int32 {
+	if o == nil || IsNil(o.RetryCount.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RetryCount.Get()
+}
+
+// GetRetryCountOk returns a tuple with the RetryCount field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationResponse) GetRetryCountOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RetryCount.Get(), o.RetryCount.IsSet()
+}
+
+// HasRetryCount returns a boolean if a field has been set.
+func (o *OperationResponse) HasRetryCount() bool {
+	if o != nil && o.RetryCount.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRetryCount gets a reference to the given NullableInt32 and assigns it to the RetryCount field.
+func (o *OperationResponse) SetRetryCount(v int32) {
+	o.RetryCount.Set(&v)
+}
+// SetRetryCountNil sets the value for RetryCount to be an explicit nil
+func (o *OperationResponse) SetRetryCountNil() {
+	o.RetryCount.Set(nil)
+}
+
+// UnsetRetryCount ensures that no value is present for RetryCount, not even an explicit nil
+func (o *OperationResponse) UnsetRetryCount() {
+	o.RetryCount.Unset()
+}
+
+// GetNextRetryAt returns the NextRetryAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationResponse) GetNextRetryAt() string {
+	if o == nil || IsNil(o.NextRetryAt.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.NextRetryAt.Get()
+}
+
+// GetNextRetryAtOk returns a tuple with the NextRetryAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationResponse) GetNextRetryAtOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.NextRetryAt.Get(), o.NextRetryAt.IsSet()
+}
+
+// HasNextRetryAt returns a boolean if a field has been set.
+func (o *OperationResponse) HasNextRetryAt() bool {
+	if o != nil && o.NextRetryAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetNextRetryAt gets a reference to the given NullableString and assigns it to the NextRetryAt field.
+func (o *OperationResponse) SetNextRetryAt(v string) {
+	o.NextRetryAt.Set(&v)
+}
+// SetNextRetryAtNil sets the value for NextRetryAt to be an explicit nil
+func (o *OperationResponse) SetNextRetryAtNil() {
+	o.NextRetryAt.Set(nil)
+}
+
+// UnsetNextRetryAt ensures that no value is present for NextRetryAt, not even an explicit nil
+func (o *OperationResponse) UnsetNextRetryAt() {
+	o.NextRetryAt.Unset()
+}
+
 func (o OperationResponse) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -262,6 +348,12 @@ func (o OperationResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["status"] = o.Status
 	toSerialize["error_message"] = o.ErrorMessage.Get()
+	if o.RetryCount.IsSet() {
+		toSerialize["retry_count"] = o.RetryCount.Get()
+	}
+	if o.NextRetryAt.IsSet() {
+		toSerialize["next_retry_at"] = o.NextRetryAt.Get()
+	}
 	return toSerialize, nil
 }
 

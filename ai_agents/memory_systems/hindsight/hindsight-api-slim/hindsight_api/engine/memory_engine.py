@@ -737,6 +737,7 @@ class MemoryEngine(MemoryEngineInterface):
             user_initiated=True,
             tenant_id=task_dict.get("_tenant_id"),
             api_key_id=task_dict.get("_api_key_id"),
+            retry_count=task_dict.get("_retry_count", 0),
         )
         await self.retain_batch_async(
             bank_id=bank_id,
@@ -843,6 +844,7 @@ class MemoryEngine(MemoryEngineInterface):
                     user_initiated=True,
                     tenant_id=task_dict.get("_tenant_id"),
                     api_key_id=task_dict.get("_api_key_id"),
+                    retry_count=task_dict.get("_retry_count", 0),
                 )
                 await self._operation_validator.on_file_convert_complete(
                     FileConvertResult(
@@ -987,6 +989,7 @@ class MemoryEngine(MemoryEngineInterface):
             internal=True,
             tenant_id=task_dict.get("_tenant_id"),
             api_key_id=task_dict.get("_api_key_id"),
+            retry_count=task_dict.get("_retry_count", 0),
         )
         result = await run_consolidation_job(
             memory_engine=self,
@@ -1033,6 +1036,7 @@ class MemoryEngine(MemoryEngineInterface):
             internal=True,
             tenant_id=task_dict.get("_tenant_id"),
             api_key_id=task_dict.get("_api_key_id"),
+            retry_count=task_dict.get("_retry_count", 0),
         )
 
         refreshed = await self.refresh_mental_model(
@@ -2263,6 +2267,11 @@ class MemoryEngine(MemoryEngineInterface):
         # Calculate total token count
         total_tokens = sum(count_tokens(item.get("content", "")) for item in contents)
         total_usage = TokenUsage()
+        # Aggregate "content tokens that actually went through extraction after
+        # chunk-level dedup" across sub-batches. ``None`` in any sub-batch
+        # means that sub-batch bypassed dedup, so the aggregate is None
+        # (see RetainResult.processed_content_tokens).
+        total_processed_content_tokens: int | None = 0
 
         # Get batch size threshold from config
         config = get_config()
@@ -2314,7 +2323,7 @@ class MemoryEngine(MemoryEngineInterface):
                     f"Processing sub-batch {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
                 )
 
-                sub_results, sub_usage = await self._retain_batch_async_internal(
+                sub_results, sub_usage, sub_processed = await self._retain_batch_async_internal(
                     bank_id=bank_id,
                     contents=sub_batch,
                     request_context=request_context,
@@ -2330,6 +2339,10 @@ class MemoryEngine(MemoryEngineInterface):
                 )
                 all_results.extend(sub_results)
                 total_usage = total_usage + sub_usage
+                if total_processed_content_tokens is None or sub_processed is None:
+                    total_processed_content_tokens = None
+                else:
+                    total_processed_content_tokens = total_processed_content_tokens + sub_processed
 
             total_time = time.time() - start_time
             logger.info(
@@ -2338,7 +2351,7 @@ class MemoryEngine(MemoryEngineInterface):
             result = all_results
         else:
             # Small batch - use internal method directly
-            result, total_usage = await self._retain_batch_async_internal(
+            result, total_usage, total_processed_content_tokens = await self._retain_batch_async_internal(
                 bank_id=bank_id,
                 contents=contents,
                 request_context=request_context,
@@ -2367,6 +2380,7 @@ class MemoryEngine(MemoryEngineInterface):
                 llm_input_tokens=total_usage.input_tokens,
                 llm_output_tokens=total_usage.output_tokens,
                 llm_total_tokens=total_usage.total_tokens,
+                processed_content_tokens=total_processed_content_tokens,
             )
             try:
                 await self._operation_validator.on_retain_complete(result_ctx)
@@ -2399,7 +2413,7 @@ class MemoryEngine(MemoryEngineInterface):
         operation_id: str | None = None,
         outbox_callback: "Callable[[asyncpg.Connection], Awaitable[None]] | None" = None,
         strategy: str | None = None,
-    ) -> tuple[list[list[str]], "TokenUsage"]:
+    ) -> tuple[list[list[str]], "TokenUsage", int | None]:
         """
         Internal method for batch processing without chunking logic.
 
@@ -2418,7 +2432,9 @@ class MemoryEngine(MemoryEngineInterface):
             document_tags: Tags applied to all items in this batch
 
         Returns:
-            Tuple of (unit ID lists, token usage for fact extraction)
+            Tuple of (unit ID lists, LLM token usage, processed_content_tokens).
+            See ``RetainResult.processed_content_tokens`` for the semantics of
+            the third element.
         """
         # Use the new modular orchestrator
         from .retain import orchestrator
@@ -8038,7 +8054,8 @@ class MemoryEngine(MemoryEngineInterface):
             # Get operations with pagination (include result_metadata to check for parent operations)
             operations = await conn.fetch(
                 f"""
-                SELECT operation_id, operation_type, created_at, status, error_message, result_metadata
+                SELECT operation_id, operation_type, created_at, status, error_message,
+                       result_metadata, retry_count, next_retry_at
                 FROM {fq_table("async_operations")}
                 WHERE {where_clause}
                 ORDER BY created_at DESC
@@ -8059,6 +8076,7 @@ class MemoryEngine(MemoryEngineInterface):
 
                 result_metadata = json.loads(row["result_metadata"]) if row["result_metadata"] else {}
 
+                next_retry_at = row["next_retry_at"]
                 operation_list.append(
                     {
                         "id": str(row["operation_id"]),
@@ -8068,6 +8086,8 @@ class MemoryEngine(MemoryEngineInterface):
                         "created_at": row["created_at"].isoformat(),
                         "status": api_status,
                         "error_message": row["error_message"],
+                        "retry_count": row["retry_count"] or 0,
+                        "next_retry_at": next_retry_at.isoformat() if next_retry_at else None,
                     }
                 )
 
@@ -8108,7 +8128,7 @@ class MemoryEngine(MemoryEngineInterface):
             payload_column = ", task_payload" if include_payload else ""
             row = await conn.fetchrow(
                 f"""
-                SELECT operation_id, operation_type, created_at, updated_at, completed_at, status, error_message, result_metadata{payload_column}
+                SELECT operation_id, operation_type, created_at, updated_at, completed_at, status, error_message, result_metadata, retry_count, next_retry_at{payload_column}
                 FROM {fq_table("async_operations")}
                 WHERE operation_id = $1 AND bank_id = $2
                 """,
@@ -8195,6 +8215,8 @@ class MemoryEngine(MemoryEngineInterface):
                         "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None,
                         "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
                         "error_message": row["error_message"],
+                        "retry_count": row["retry_count"] or 0,
+                        "next_retry_at": row["next_retry_at"].isoformat() if row["next_retry_at"] else None,
                         "result_metadata": result_metadata,
                         "child_operations": child_statuses,
                         "task_payload": task_payload,
@@ -8209,6 +8231,8 @@ class MemoryEngine(MemoryEngineInterface):
                         "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None,
                         "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
                         "error_message": row["error_message"],
+                        "retry_count": row["retry_count"] or 0,
+                        "next_retry_at": row["next_retry_at"].isoformat() if row["next_retry_at"] else None,
                         "result_metadata": result_metadata,
                         "task_payload": task_payload,
                     }

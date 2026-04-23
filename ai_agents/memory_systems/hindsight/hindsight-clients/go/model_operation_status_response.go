@@ -28,6 +28,8 @@ type OperationStatusResponse struct {
 	UpdatedAt NullableString `json:"updated_at,omitempty"`
 	CompletedAt NullableString `json:"completed_at,omitempty"`
 	ErrorMessage NullableString `json:"error_message,omitempty"`
+	RetryCount NullableInt32 `json:"retry_count,omitempty"`
+	NextRetryAt NullableString `json:"next_retry_at,omitempty"`
 	ResultMetadata map[string]interface{} `json:"result_metadata,omitempty"`
 	ChildOperations []ChildOperationStatus `json:"child_operations,omitempty"`
 	TaskPayload map[string]interface{} `json:"task_payload,omitempty"`
@@ -312,6 +314,90 @@ func (o *OperationStatusResponse) UnsetErrorMessage() {
 	o.ErrorMessage.Unset()
 }
 
+// GetRetryCount returns the RetryCount field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationStatusResponse) GetRetryCount() int32 {
+	if o == nil || IsNil(o.RetryCount.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RetryCount.Get()
+}
+
+// GetRetryCountOk returns a tuple with the RetryCount field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationStatusResponse) GetRetryCountOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RetryCount.Get(), o.RetryCount.IsSet()
+}
+
+// HasRetryCount returns a boolean if a field has been set.
+func (o *OperationStatusResponse) HasRetryCount() bool {
+	if o != nil && o.RetryCount.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRetryCount gets a reference to the given NullableInt32 and assigns it to the RetryCount field.
+func (o *OperationStatusResponse) SetRetryCount(v int32) {
+	o.RetryCount.Set(&v)
+}
+// SetRetryCountNil sets the value for RetryCount to be an explicit nil
+func (o *OperationStatusResponse) SetRetryCountNil() {
+	o.RetryCount.Set(nil)
+}
+
+// UnsetRetryCount ensures that no value is present for RetryCount, not even an explicit nil
+func (o *OperationStatusResponse) UnsetRetryCount() {
+	o.RetryCount.Unset()
+}
+
+// GetNextRetryAt returns the NextRetryAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationStatusResponse) GetNextRetryAt() string {
+	if o == nil || IsNil(o.NextRetryAt.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.NextRetryAt.Get()
+}
+
+// GetNextRetryAtOk returns a tuple with the NextRetryAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationStatusResponse) GetNextRetryAtOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.NextRetryAt.Get(), o.NextRetryAt.IsSet()
+}
+
+// HasNextRetryAt returns a boolean if a field has been set.
+func (o *OperationStatusResponse) HasNextRetryAt() bool {
+	if o != nil && o.NextRetryAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetNextRetryAt gets a reference to the given NullableString and assigns it to the NextRetryAt field.
+func (o *OperationStatusResponse) SetNextRetryAt(v string) {
+	o.NextRetryAt.Set(&v)
+}
+// SetNextRetryAtNil sets the value for NextRetryAt to be an explicit nil
+func (o *OperationStatusResponse) SetNextRetryAtNil() {
+	o.NextRetryAt.Set(nil)
+}
+
+// UnsetNextRetryAt ensures that no value is present for NextRetryAt, not even an explicit nil
+func (o *OperationStatusResponse) UnsetNextRetryAt() {
+	o.NextRetryAt.Unset()
+}
+
 // GetResultMetadata returns the ResultMetadata field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *OperationStatusResponse) GetResultMetadata() map[string]interface{} {
 	if o == nil {
@@ -437,6 +523,12 @@ func (o OperationStatusResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if o.ErrorMessage.IsSet() {
 		toSerialize["error_message"] = o.ErrorMessage.Get()
+	}
+	if o.RetryCount.IsSet() {
+		toSerialize["retry_count"] = o.RetryCount.Get()
+	}
+	if o.NextRetryAt.IsSet() {
+		toSerialize["next_retry_at"] = o.NextRetryAt.Get()
 	}
 	if o.ResultMetadata != nil {
 		toSerialize["result_metadata"] = o.ResultMetadata

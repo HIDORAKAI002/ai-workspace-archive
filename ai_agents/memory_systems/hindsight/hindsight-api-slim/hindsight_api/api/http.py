@@ -2119,6 +2119,8 @@ class OperationResponse(BaseModel):
                 "created_at": "2024-01-15T10:30:00Z",
                 "status": "pending",
                 "error_message": None,
+                "retry_count": 0,
+                "next_retry_at": None,
             }
         }
     )
@@ -2130,6 +2132,20 @@ class OperationResponse(BaseModel):
     created_at: str
     status: str
     error_message: str | None
+    retry_count: int | None = Field(
+        default=None,
+        description="Number of times this operation has been retried after failure.",
+    )
+    next_retry_at: str | None = Field(
+        default=None,
+        description=(
+            "When the worker will next attempt this operation. For a pending "
+            "operation, a value in the future indicates the task is waiting "
+            "rather than available for immediate pickup — for example, an "
+            "extension may have raised DeferOperation to park the task until "
+            "some backpressure window opens. Always null for completed tasks."
+        ),
+    )
 
 
 class ConsolidationResponse(BaseModel):
@@ -2239,6 +2255,19 @@ class OperationStatusResponse(BaseModel):
     updated_at: str | None = None
     completed_at: str | None = None
     error_message: str | None = None
+    retry_count: int | None = Field(
+        default=None,
+        description="Number of times this operation has been retried after failure.",
+    )
+    next_retry_at: str | None = Field(
+        default=None,
+        description=(
+            "When the worker will next attempt this operation. For a pending "
+            "operation, a value in the future indicates the task is parked "
+            "(e.g. by an extension raising DeferOperation) rather than awaiting "
+            "immediate pickup."
+        ),
+    )
     result_metadata: dict[str, Any] | None = Field(
         default=None,
         description="Internal metadata for debugging. Structure may change without notice. Not for production use.",

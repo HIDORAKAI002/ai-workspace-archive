@@ -2136,6 +2136,18 @@ export type OperationResponse = {
    * Error Message
    */
   error_message: string | null;
+  /**
+   * Retry Count
+   *
+   * Number of times this operation has been retried after failure.
+   */
+  retry_count?: number | null;
+  /**
+   * Next Retry At
+   *
+   * When the worker will next attempt this operation. For a pending operation, a value in the future indicates the task is waiting rather than available for immediate pickup — for example, an extension may have raised DeferOperation to park the task until some backpressure window opens. Always null for completed tasks.
+   */
+  next_retry_at?: string | null;
 };
 
 /**
@@ -2172,6 +2184,18 @@ export type OperationStatusResponse = {
    * Error Message
    */
   error_message?: string | null;
+  /**
+   * Retry Count
+   *
+   * Number of times this operation has been retried after failure.
+   */
+  retry_count?: number | null;
+  /**
+   * Next Retry At
+   *
+   * When the worker will next attempt this operation. For a pending operation, a value in the future indicates the task is parked (e.g. by an extension raising DeferOperation) rather than awaiting immediate pickup.
+   */
+  next_retry_at?: string | null;
   /**
    * Result Metadata
    *

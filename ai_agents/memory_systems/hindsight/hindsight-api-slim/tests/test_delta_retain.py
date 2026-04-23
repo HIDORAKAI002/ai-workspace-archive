@@ -9,12 +9,45 @@ import pytest
 
 from hindsight_api import RequestContext
 from hindsight_api.engine.memory_engine import Budget
+from hindsight_api.extensions import (
+    OperationValidatorExtension,
+    RecallContext,
+    ReflectContext,
+    RetainContext,
+    RetainResult,
+    ValidationResult,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _ts():
     return datetime.now(timezone.utc).timestamp()
+
+
+class _RetainResultCapture(OperationValidatorExtension):
+    """Minimal OperationValidator that records each RetainResult it receives.
+
+    Used by tests to assert on fields the engine sets on RetainResult (e.g.
+    processed_content_tokens), without having to scrape logs or internals.
+    The pre-operation validators must be implemented to satisfy the
+    abstract base class, but they always accept.
+    """
+
+    def __init__(self) -> None:
+        self.results: list[RetainResult] = []
+
+    async def validate_retain(self, ctx: RetainContext) -> ValidationResult:
+        return ValidationResult.accept()
+
+    async def validate_recall(self, ctx: RecallContext) -> ValidationResult:
+        return ValidationResult.accept()
+
+    async def validate_reflect(self, ctx: ReflectContext) -> ValidationResult:
+        return ValidationResult.accept()
+
+    async def on_retain_complete(self, result: RetainResult) -> None:
+        self.results.append(result)
 
 
 # ============================================================
@@ -839,4 +872,186 @@ async def test_delta_retain_recall_with_chunks(memory, request_context):
                 )
 
     finally:
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+# ============================================================
+# processed_content_tokens on RetainResult
+# ============================================================
+#
+# These tests verify the signal the engine exposes via
+# RetainResult.processed_content_tokens for the post-retain hook. That
+# field lets a metering/billing extension tell the difference between:
+#   * a retain that went through the full extraction pipeline (None),
+#   * a retain whose chunks all matched prior content (0),
+#   * a retain where only some chunks were new/changed (N>0, the
+#     content+context tokens of the chunks that were actually processed).
+
+
+def test_merge_processed_content_tokens_helper():
+    """Unit check on the None-propagating aggregator used by the engine."""
+    from hindsight_api.engine.retain.orchestrator import (
+        _merge_processed_content_tokens,
+    )
+
+    assert _merge_processed_content_tokens(0, 0) == 0
+    assert _merge_processed_content_tokens(5, 7) == 12
+    # None "wins" in either slot — once any sub-result bypassed dedup, the
+    # aggregate is None so callers bill full content.
+    assert _merge_processed_content_tokens(None, 10) is None
+    assert _merge_processed_content_tokens(10, None) is None
+    assert _merge_processed_content_tokens(None, None) is None
+
+
+@pytest.mark.asyncio
+async def test_processed_content_tokens_first_retain_is_none(memory, request_context):
+    """
+    First retain to a new document goes through the full (non-delta) path,
+    so processed_content_tokens should be None — the caller has no dedup
+    signal and should bill the full submitted content.
+    """
+    bank_id = f"test_pct_first_{_ts()}"
+    document_id = "new-doc"
+    capture = _RetainResultCapture()
+    memory._operation_validator = capture
+
+    try:
+        await memory.retain_async(
+            bank_id=bank_id,
+            content="Alice works at Google.",
+            context="test",
+            document_id=document_id,
+            request_context=request_context,
+        )
+        assert len(capture.results) == 1
+        assert capture.results[0].processed_content_tokens is None, (
+            "First retain (full path) should report processed_content_tokens=None"
+        )
+    finally:
+        memory._operation_validator = None
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+@pytest.mark.asyncio
+async def test_processed_content_tokens_unchanged_resubmit_is_zero(memory, request_context):
+    """
+    Re-retaining identical content to the same document_id should hit the
+    'no chunks changed' path and report processed_content_tokens=0.
+    """
+    bank_id = f"test_pct_unchanged_{_ts()}"
+    document_id = "conversation-001"
+    capture = _RetainResultCapture()
+    memory._operation_validator = capture
+    content = "Alice works at Google. Bob works at Microsoft."
+
+    try:
+        await memory.retain_async(
+            bank_id=bank_id,
+            content=content,
+            context="team info",
+            document_id=document_id,
+            request_context=request_context,
+        )
+        # Identical resubmit.
+        await memory.retain_async(
+            bank_id=bank_id,
+            content=content,
+            context="team info",
+            document_id=document_id,
+            request_context=request_context,
+        )
+        assert len(capture.results) == 2
+        assert capture.results[0].processed_content_tokens is None
+        assert capture.results[1].processed_content_tokens == 0, (
+            "Unchanged resubmit should report zero processed content tokens"
+        )
+    finally:
+        memory._operation_validator = None
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+@pytest.mark.asyncio
+async def test_processed_content_tokens_appended_reports_delta(memory, request_context):
+    """
+    Appending new content to an existing document should surface a
+    non-zero processed_content_tokens that is less than the full
+    submitted content tokens — only the new/changed chunks are counted.
+    """
+    bank_id = f"test_pct_appended_{_ts()}"
+    document_id = "growing-doc"
+    capture = _RetainResultCapture()
+    memory._operation_validator = capture
+
+    v1 = "Alice works at Google."
+    # Make v2 large enough that the delta diff classifies some chunks as
+    # unchanged (shared prefix) and some as new (the appended tail). The
+    # chunker splits on ``retain_chunk_size`` (default 3000), so we pad
+    # each part with a comfortable margin of filler text to force a chunk
+    # boundary between them.
+    filler = " The project budget is fine. " * 400  # ~12 KB
+    v2 = v1 + filler + " Bob works at Microsoft."
+
+    try:
+        await memory.retain_async(
+            bank_id=bank_id,
+            content=v1,
+            context="profile",
+            document_id=document_id,
+            request_context=request_context,
+        )
+        await memory.retain_async(
+            bank_id=bank_id,
+            content=v2,
+            context="profile",
+            document_id=document_id,
+            request_context=request_context,
+        )
+        assert len(capture.results) == 2
+
+        # Second retain should either:
+        #   * Be on the delta path with a positive partial count strictly
+        #     less than the full submission (the common case), OR
+        #   * Fall back to full retain if the chunker decided nothing
+        #     matched (in which case we report None and bill full).
+        # Both are correct signals for the billing extension; the test
+        # just asserts they're shaped sanely.
+        from hindsight_api.engine.memory_engine import count_tokens
+
+        submitted_tokens = count_tokens(v2) + count_tokens("profile")
+        second = capture.results[1].processed_content_tokens
+        if second is None:
+            # Fell back to full retain — acceptable signal.
+            return
+        assert second > 0, "Partial-delta retain should report a positive token count"
+        assert second < submitted_tokens, (
+            "Partial-delta retain should report fewer processed tokens "
+            "than the full submitted payload"
+        )
+    finally:
+        memory._operation_validator = None
+        await memory.delete_bank(bank_id, request_context=request_context)
+
+
+@pytest.mark.asyncio
+async def test_processed_content_tokens_without_document_id_is_none(memory, request_context):
+    """
+    A retain without a document_id can't participate in per-document
+    dedup, so the engine should report processed_content_tokens=None
+    and let the caller bill the full submitted payload.
+    """
+    bank_id = f"test_pct_no_doc_{_ts()}"
+    capture = _RetainResultCapture()
+    memory._operation_validator = capture
+
+    try:
+        await memory.retain_async(
+            bank_id=bank_id,
+            content="A one-off observation with no document_id.",
+            context="test",
+            request_context=request_context,
+        )
+        assert len(capture.results) == 1
+        assert capture.results[0].processed_content_tokens is None
+    finally:
+        memory._operation_validator = None
         await memory.delete_bank(bank_id, request_context=request_context)
