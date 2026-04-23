@@ -79,7 +79,9 @@ pub fn get(
                 let status_str = match &result.status {
                     Status::Completed => ui::gradient_start("completed"),
                     Status::Pending => ui::gradient_mid("pending"),
+                    Status::Processing => ui::gradient_mid("processing"),
                     Status::Failed => ui::gradient_end("failed"),
+                    Status::Cancelled => ui::dim("cancelled"),
                     Status::NotFound => ui::gradient_end("not_found"),
                 };
 

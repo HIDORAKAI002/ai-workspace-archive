@@ -126,3 +126,71 @@ def increment_turn_count(session_id: str) -> int:
             del turns[k]
     write_state("turns.json", turns)
     return turns[session_id]
+
+
+def _locked_read_modify_write(state_name: str, lock_name: str, modify_fn):
+    """Read-modify-write a state file under flock.
+
+    modify_fn receives the current state dict and returns (updated_dict, result).
+    Returns the result from modify_fn.
+    """
+    lock_path = _state_file(lock_name)
+    if fcntl is not None:
+        try:
+            lock_fd = open(lock_path, "w")
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            try:
+                data = read_state(state_name, {})
+                data, result = modify_fn(data)
+                write_state(state_name, data)
+                return result
+            finally:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                lock_fd.close()
+        except OSError:
+            pass
+
+    # Fallback without lock
+    data = read_state(state_name, {})
+    data, result = modify_fn(data)
+    write_state(state_name, data)
+    return result
+
+
+def track_retention(session_id: str, message_count: int) -> tuple:
+    """Track retention state and detect compaction.
+
+    Compares the current message count against the last retained count for this
+    session.  When the transcript shrinks (compaction), increments a chunk counter
+    so the caller can use a distinct document_id, preserving the pre-compaction
+    document.
+
+    Returns:
+        (chunk_index, compacted) — chunk_index for building document_id,
+        compacted is True if compaction was detected this call.
+    """
+
+    def _update(data):
+        entry = data.get(session_id, {"message_count": 0, "chunk": 0})
+        last_count = entry["message_count"]
+        chunk = entry["chunk"]
+        compacted = False
+
+        if message_count < last_count:
+            # Transcript shrank — compaction happened
+            chunk += 1
+            compacted = True
+
+        entry["message_count"] = message_count
+        entry["chunk"] = chunk
+        data[session_id] = entry
+
+        # Cap tracked sessions
+        if len(data) > 10000:
+            sorted_keys = sorted(data.keys())
+            for k in sorted_keys[: len(sorted_keys) // 2]:
+                del data[k]
+
+        return data, (chunk, compacted)
+
+    return _locked_read_modify_write("retention_tracking.json", "retention_tracking.lock", _update)

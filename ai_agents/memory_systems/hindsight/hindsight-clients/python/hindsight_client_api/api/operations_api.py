@@ -649,10 +649,11 @@ class OperationsApi:
     async def list_operations(
         self,
         bank_id: StrictStr,
-        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, completed, or failed")] = None,
+        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, processing, completed, failed, or cancelled")] = None,
         type: Annotated[Optional[StrictStr], Field(description="Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery")] = None,
         limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=1)]], Field(description="Maximum number of operations to return")] = None,
         offset: Annotated[Optional[Annotated[int, Field(strict=True, ge=0)]], Field(description="Number of operations to skip")] = None,
+        exclude_parents: Annotated[Optional[StrictBool], Field(description="Exclude parent batch operations from results")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -673,7 +674,7 @@ class OperationsApi:
 
         :param bank_id: (required)
         :type bank_id: str
-        :param status: Filter by status: pending, completed, or failed
+        :param status: Filter by status: pending, processing, completed, failed, or cancelled
         :type status: str
         :param type: Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery
         :type type: str
@@ -681,6 +682,8 @@ class OperationsApi:
         :type limit: int
         :param offset: Number of operations to skip
         :type offset: int
+        :param exclude_parents: Exclude parent batch operations from results
+        :type exclude_parents: bool
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -711,6 +714,7 @@ class OperationsApi:
             type=type,
             limit=limit,
             offset=offset,
+            exclude_parents=exclude_parents,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -737,10 +741,11 @@ class OperationsApi:
     async def list_operations_with_http_info(
         self,
         bank_id: StrictStr,
-        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, completed, or failed")] = None,
+        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, processing, completed, failed, or cancelled")] = None,
         type: Annotated[Optional[StrictStr], Field(description="Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery")] = None,
         limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=1)]], Field(description="Maximum number of operations to return")] = None,
         offset: Annotated[Optional[Annotated[int, Field(strict=True, ge=0)]], Field(description="Number of operations to skip")] = None,
+        exclude_parents: Annotated[Optional[StrictBool], Field(description="Exclude parent batch operations from results")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -761,7 +766,7 @@ class OperationsApi:
 
         :param bank_id: (required)
         :type bank_id: str
-        :param status: Filter by status: pending, completed, or failed
+        :param status: Filter by status: pending, processing, completed, failed, or cancelled
         :type status: str
         :param type: Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery
         :type type: str
@@ -769,6 +774,8 @@ class OperationsApi:
         :type limit: int
         :param offset: Number of operations to skip
         :type offset: int
+        :param exclude_parents: Exclude parent batch operations from results
+        :type exclude_parents: bool
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -799,6 +806,7 @@ class OperationsApi:
             type=type,
             limit=limit,
             offset=offset,
+            exclude_parents=exclude_parents,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -825,10 +833,11 @@ class OperationsApi:
     async def list_operations_without_preload_content(
         self,
         bank_id: StrictStr,
-        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, completed, or failed")] = None,
+        status: Annotated[Optional[StrictStr], Field(description="Filter by status: pending, processing, completed, failed, or cancelled")] = None,
         type: Annotated[Optional[StrictStr], Field(description="Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery")] = None,
         limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=1)]], Field(description="Maximum number of operations to return")] = None,
         offset: Annotated[Optional[Annotated[int, Field(strict=True, ge=0)]], Field(description="Number of operations to skip")] = None,
+        exclude_parents: Annotated[Optional[StrictBool], Field(description="Exclude parent batch operations from results")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -849,7 +858,7 @@ class OperationsApi:
 
         :param bank_id: (required)
         :type bank_id: str
-        :param status: Filter by status: pending, completed, or failed
+        :param status: Filter by status: pending, processing, completed, failed, or cancelled
         :type status: str
         :param type: Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery
         :type type: str
@@ -857,6 +866,8 @@ class OperationsApi:
         :type limit: int
         :param offset: Number of operations to skip
         :type offset: int
+        :param exclude_parents: Exclude parent batch operations from results
+        :type exclude_parents: bool
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -887,6 +898,7 @@ class OperationsApi:
             type=type,
             limit=limit,
             offset=offset,
+            exclude_parents=exclude_parents,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -912,6 +924,7 @@ class OperationsApi:
         type,
         limit,
         offset,
+        exclude_parents,
         authorization,
         _request_auth,
         _content_type,
@@ -952,6 +965,10 @@ class OperationsApi:
         if offset is not None:
             
             _query_params.append(('offset', offset))
+            
+        if exclude_parents is not None:
+            
+            _query_params.append(('exclude_parents', exclude_parents))
             
         # process the header parameters
         if authorization is not None:

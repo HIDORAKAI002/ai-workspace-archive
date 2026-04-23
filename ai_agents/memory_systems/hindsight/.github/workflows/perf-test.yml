@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       scale:
-        description: "Test scale"
+        description: "Test scale (perf-test)"
         type: choice
         options:
           - tiny
@@ -16,13 +16,21 @@ on:
           - large
         default: large
       suite:
-        description: "Suite to run (blank = all)"
+        description: "Perf-test suite to run (blank = all)"
         type: choice
         options:
           - ""
           - retain
           - recall
         default: ""
+      locomo_max_conversations:
+        description: "LoComo max conversations (0 = skip, blank = all)"
+        type: number
+        default: 0
+      locomo_skip:
+        description: "Skip LoComo job"
+        type: boolean
+        default: false
       ref:
         description: "Git ref to test (branch, tag, or SHA). Defaults to main."
         type: string
@@ -90,4 +98,77 @@ jobs:
       with:
         name: perf-results-${{ github.sha }}
         path: hindsight-dev/perf-results.json
+        retention-days: 90
+
+  locomo:
+    if: inputs.locomo_skip != true
+    runs-on: ubuntu-latest
+    env:
+      HINDSIGHT_API_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
+      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      HINDSIGHT_API_JUDGE_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_JUDGE_LLM_MODEL: google/gemini-2.5-flash-lite
+      HINDSIGHT_API_ANSWER_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_ANSWER_LLM_MODEL: google/gemini-3.1-pro-preview
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.ref }}
+
+    - name: Setup GCP credentials
+      run: |
+        printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > /tmp/gcp-credentials.json
+        PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
+        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
+
+    - name: Pre-download models
+      working-directory: ./hindsight-api-slim
+      run: |
+        uv run --frozen --all-extras --index-strategy unsafe-best-match python -c "
+        from sentence_transformers import SentenceTransformer
+        print('Downloading embedding model...')
+        SentenceTransformer('BAAI/bge-small-en-v1.5')
+        print('Model downloaded successfully')
+        "
+
+    - name: Install hindsight-dev dependencies
+      run: |
+        cd hindsight-dev && uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Run LoComo benchmark
+      run: |
+        MAX_CONV_ARG=""
+        if [ "${{ inputs.locomo_max_conversations }}" != "0" ] && [ -n "${{ inputs.locomo_max_conversations }}" ]; then
+          MAX_CONV_ARG="--max-conversations ${{ inputs.locomo_max_conversations }}"
+        fi
+        uv run python hindsight-dev/benchmarks/locomo/locomo_benchmark.py \
+          --wait-consolidation \
+          $MAX_CONV_ARG
+
+    - name: Upload LoComo results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: locomo-results-${{ github.sha }}
+        path: hindsight-dev/benchmarks/locomo/results/
         retention-days: 90

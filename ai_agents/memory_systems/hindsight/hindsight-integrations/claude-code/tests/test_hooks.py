@@ -424,6 +424,78 @@ class TestRetainHook:
         assert "first question" in item["content"]
         assert "second question" in item["content"]
 
+    def test_full_session_new_document_after_compaction(self, monkeypatch, tmp_path):
+        """After compaction shrinks the transcript, retain should use a new document_id
+        to avoid overwriting the pre-compaction document."""
+        # First retain: 4 messages
+        messages_full = [
+            {"role": "user", "content": "first question"},
+            {"role": "assistant", "content": "first answer"},
+            {"role": "user", "content": "second question"},
+            {"role": "assistant", "content": "second answer"},
+        ]
+        transcript = make_transcript_file(tmp_path, messages_full)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-compact-test")
+        captured_calls = []
+
+        def capture(req, timeout=None):
+            if "/memories" in req.full_url and "/recall" not in req.full_url:
+                captured_calls.append(json.loads(req.data.decode()))
+            return FakeHTTPResponse({})
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+
+        assert len(captured_calls) == 1
+        assert captured_calls[0]["items"][0]["document_id"] == "sess-compact-test"
+        assert "first question" in captured_calls[0]["items"][0]["content"]
+
+        # Second retain: compaction happened — transcript now has only 2 messages
+        messages_compacted = [
+            {"role": "user", "content": "third question"},
+            {"role": "assistant", "content": "third answer"},
+        ]
+        transcript = make_transcript_file(tmp_path, messages_compacted)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-compact-test")
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+
+        assert len(captured_calls) == 2
+        # Should use a new document_id with chunk suffix
+        assert captured_calls[1]["items"][0]["document_id"] == "sess-compact-test-c1"
+        assert "third question" in captured_calls[1]["items"][0]["content"]
+
+    def test_full_session_same_document_when_growing(self, monkeypatch, tmp_path):
+        """When transcript grows (no compaction), retain should keep the same document_id."""
+        messages_2 = [
+            {"role": "user", "content": "hello"},
+            {"role": "assistant", "content": "world"},
+        ]
+        transcript = make_transcript_file(tmp_path, messages_2)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-grow-test")
+        captured_calls = []
+
+        def capture(req, timeout=None):
+            if "/memories" in req.full_url and "/recall" not in req.full_url:
+                captured_calls.append(json.loads(req.data.decode()))
+            return FakeHTTPResponse({})
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+
+        # Second retain: transcript grew to 4 messages
+        messages_4 = messages_2 + [
+            {"role": "user", "content": "more stuff"},
+            {"role": "assistant", "content": "more response"},
+        ]
+        transcript = make_transcript_file(tmp_path, messages_4)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-grow-test")
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+
+        assert len(captured_calls) == 2
+        # Both should use the same plain session_id
+        assert captured_calls[0]["items"][0]["document_id"] == "sess-grow-test"
+        assert captured_calls[1]["items"][0]["document_id"] == "sess-grow-test"
+
     def test_full_session_respects_retain_every_n_turns(self, monkeypatch, tmp_path):
         """In full-session mode, retainEveryNTurns should still gate when retain fires."""
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]

@@ -44,8 +44,8 @@ class OperationStatusResponse(BaseModel):
     @field_validator('status')
     def status_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(['pending', 'completed', 'failed', 'not_found']):
-            raise ValueError("must be one of enum values ('pending', 'completed', 'failed', 'not_found')")
+        if value not in set(['pending', 'processing', 'completed', 'failed', 'cancelled', 'not_found']):
+            raise ValueError("must be one of enum values ('pending', 'processing', 'completed', 'failed', 'cancelled', 'not_found')")
         return value
 
     model_config = ConfigDict(

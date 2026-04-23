@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import debug from 'debug';
 import PQueue from 'p-queue';
-import { isDeletedCol, UITypes } from 'nocodb-sdk';
+import {
+  isDeletedCol,
+  UITypes,
+  VIEW_GRID_DEFAULT_WIDTH,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
@@ -19,6 +24,22 @@ import { Altered } from '~/services/columns.service';
 import Upgrader from '~/Upgrader';
 import Noco from '~/Noco';
 import { META_COL_NAME } from '~/constants';
+
+// View-type → view-column table mapping for direct queued inserts, bypassing
+// {Grid,Form,...}ViewColumn.insert which each do 3-4 live meta-DB reads
+// (metaGetNextOrder, View.get for source_id + clearSingleQueryCache, return
+// this.get) that we don't need in a migration. System columns are hidden in
+// UI so ordering / visibility / width don't matter semantically.
+const VIEW_TYPE_TO_COLUMN_TABLE: Partial<Record<ViewTypes, MetaTable>> = {
+  [ViewTypes.GRID]: MetaTable.GRID_VIEW_COLUMNS,
+  [ViewTypes.GALLERY]: MetaTable.GALLERY_VIEW_COLUMNS,
+  [ViewTypes.KANBAN]: MetaTable.KANBAN_VIEW_COLUMNS,
+  [ViewTypes.MAP]: MetaTable.MAP_VIEW_COLUMNS,
+  [ViewTypes.CALENDAR]: MetaTable.CALENDAR_VIEW_COLUMNS,
+  [ViewTypes.TIMELINE]: MetaTable.TIMELINE_VIEW_COLUMNS,
+  [ViewTypes.FORM]: MetaTable.FORM_VIEW_COLUMNS,
+  [ViewTypes.LIST]: MetaTable.LIST_VIEW_COLUMNS,
+};
 
 const PARALLEL_LIMIT =
   +process.env.NC_SOFT_DELETE_MIGRATION_PARALLEL_LIMIT || 10;
@@ -145,6 +166,15 @@ export class SoftDeleteColumnMigration {
         `Found ${numberOfModelsToBeProcessed} models to process for soft delete + meta column`,
       );
 
+      // SQLite in scope → force serial; otherwise use PARALLEL_LIMIT.
+      const hasSqlite = !!(await ncMeta
+        .knexConnection(MetaTable.SOURCES)
+        .where('type', 'sqlite3')
+        .where((b) => b.where('is_meta', true).orWhere({ is_local: true }))
+        .first());
+      const concurrency = hasSqlite ? 1 : PARALLEL_LIMIT;
+      this.log(`Concurrency: ${concurrency}`);
+
       const wrapper = async (model: {
         id: string;
         source_id: string;
@@ -175,11 +205,13 @@ export class SoftDeleteColumnMigration {
         }
       };
 
-      const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
+      const queue = new PQueue({ concurrency });
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (queue.pending > PARALLEL_LIMIT * 2) {
+        // PQueue.pending is capped at concurrency; waiting tasks accumulate
+        // in .size. Guard on size to actually bound unprocessed backlog.
+        if (queue.size > concurrency * 2) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
@@ -188,7 +220,7 @@ export class SoftDeleteColumnMigration {
           (m) => m.processing,
         );
 
-        const models = await this.getModelsQuery(ncMeta);
+        const models = await this.getModelsQuery(ncMeta, concurrency);
 
         if (!models?.length) break;
 
@@ -257,7 +289,16 @@ export class SoftDeleteColumnMigration {
 
     const dbDriver: CustomKnex = await NcConnectionMgrv2.get(source);
 
-    const model = await Model.get(context, modelId);
+    // Skip Model.get — getModelsQuery already pre-fetched id, source_id,
+    // base_id, fk_workspace_id, and table_name.
+    const model: any = {
+      id: modelData.id,
+      source_id: modelData.source_id,
+      base_id: modelData.base_id,
+      fk_workspace_id: modelData.fk_workspace_id,
+      table_name: (modelData as any).table_name,
+      columns: [] as Column[],
+    };
 
     const baseModel = await Model.getBaseModelSQL(context, {
       model,
@@ -265,7 +306,24 @@ export class SoftDeleteColumnMigration {
       dbDriver,
     });
 
-    await model.getColumns(context);
+    // Load columns with a single SELECT — skips the N+1 getColOptions fetch
+    // that model.getColumns() would run per LTAR/Lookup/Select/Formula col.
+    const columnRows = await ncMeta
+      .knexConnection(MetaTable.COLUMNS)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('fk_model_id', model.id)
+      .select('*');
+    model.columns = columnRows.map((c: any) => {
+      if (c.meta && typeof c.meta === 'string') {
+        try {
+          c.meta = JSON.parse(c.meta);
+        } catch {
+          /* leave as-is */
+        }
+      }
+      return new Column(c);
+    });
 
     const tnPath = baseModel.getTnPath(model.table_name);
 
@@ -276,18 +334,30 @@ export class SoftDeleteColumnMigration {
     );
 
     const v1OoFkColIds = new Set<string>();
-    for (const col of model.columns) {
-      if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
-      const colOpts = await col.getColOptions<any>(context, ncMeta);
-      if (colOpts?.type !== 'oo' || !col.meta?.bt) continue;
-      if (colOpts?.version === 2) continue;
-      const fkCol = await Column.get(
-        context,
-        { colId: colOpts.fk_child_column_id },
-        ncMeta,
-      );
-      if (!fkCol || fkCol.fk_model_id !== model.id || !fkCol.unique) continue;
-      v1OoFkColIds.add(fkCol.id);
+    const ltarCandidates = model.columns.filter(
+      (c) => c.uidt === UITypes.LinkToAnotherRecord && c.meta?.bt,
+    );
+    if (ltarCandidates.length > 0) {
+      const fkCols = await ncMeta
+        .knexConnection(`${MetaTable.COL_RELATIONS} as rel`)
+        .join(`${MetaTable.COLUMNS} as col`, 'col.id', 'rel.fk_child_column_id')
+        .where('rel.fk_workspace_id', context.workspace_id)
+        .where('rel.base_id', context.base_id)
+        .whereIn(
+          'rel.fk_column_id',
+          ltarCandidates.map((c) => c.id),
+        )
+        .where('rel.type', 'oo')
+        .whereRaw('rel.version IS DISTINCT FROM ?', [2])
+        .where('col.fk_workspace_id', context.workspace_id)
+        .where('col.base_id', context.base_id)
+        .where('col.fk_model_id', model.id)
+        .where('col.unique', true)
+        .select('col.id');
+
+      for (const fkCol of fkCols) {
+        v1OoFkColIds.add(fkCol.id);
+      }
     }
 
     const needsDeletedCol = !model.columns.find((c) => isDeletedCol(c));
@@ -334,9 +404,10 @@ export class SoftDeleteColumnMigration {
       ...(needsUniqueRecreate(c) ? { unique: false } : {}),
     }));
 
-    const columns = model.columns.map((c) => ({
+    const existingColumns = model.columns.map((c) => ({
       ...c,
       cn: c.column_name,
+      cno: c.column_name,
       ...(v1OoFkColIds.has(c.id)
         ? { altered: Altered.UPDATE_COLUMN, unique: false }
         : // Re-process existing unique columns so PgClient recreates them as
@@ -345,6 +416,11 @@ export class SoftDeleteColumnMigration {
         ? { altered: Altered.UPDATE_COLUMN }
         : {}),
     }));
+
+    // PgClient.tableUpdate emits SQL in column order, and partial unique
+    // indexes on existing columns reference __nc_deleted in their WHERE
+    // predicate — so NEW_COLUMN additions must come before UPDATE_COLUMN edits.
+    const newColumns: any[] = [];
 
     if (needsDeletedCol) {
       newDeletedColumn = {
@@ -355,11 +431,19 @@ export class SoftDeleteColumnMigration {
         )),
         column_name: getUniqueColumnName(model.columns, '__nc_deleted'),
         title: getUniqueColumnAliasName(model.columns, '__nc_deleted'),
-        cdf: source.type === 'mysql2' ? '0' : 'false',
+        cdf:
+          source.type === 'mysql2' ||
+          source.type === 'mysql' ||
+          source.type === 'sqlite3'
+            ? '0'
+            : 'false',
         system: true,
         altered: Altered.NEW_COLUMN,
       };
-      columns.push({ ...newDeletedColumn, cn: newDeletedColumn.column_name });
+      newColumns.push({
+        ...newDeletedColumn,
+        cn: newDeletedColumn.column_name,
+      });
     }
 
     if (needsMetaCol) {
@@ -374,8 +458,11 @@ export class SoftDeleteColumnMigration {
         system: true,
         altered: Altered.NEW_COLUMN,
       };
-      columns.push({ ...newMetaColumn, cn: newMetaColumn.column_name });
+      newColumns.push({ ...newMetaColumn, cn: newMetaColumn.column_name });
     }
+
+    const columns = [...newColumns, ...existingColumns];
+
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
       ...model,
       tn: model.table_name,
@@ -384,7 +471,7 @@ export class SoftDeleteColumnMigration {
     });
 
     if (needsDeletedCol && newDeletedColumn) {
-      const idxName = `${model.table_name}_nc_deleted_idx`.slice(0, 63);
+      const idxName = `nc_deleted_idx_${model.id}`;
       source.upgraderQueries.push(
         dbDriver
           .raw(`CREATE INDEX ?? ON ?? (??)`, [
@@ -401,21 +488,167 @@ export class SoftDeleteColumnMigration {
     );
 
     await Upgrader.flushSourceQueries(source, realDbDriver);
-    if (needsDeletedCol && newDeletedColumn) {
-      await Column.insert(
-        context,
-        { ...newDeletedColumn, system: true, fk_model_id: model.id, source_id },
-        ncMeta,
+
+    // Fast path: insert nc_columns_v2 row + all view-column rows as direct
+    // queued metaInsert2 calls. Bypasses Column.insert / {Grid,Form,…}ViewColumn.insert
+    // which each do 3-4 live meta-DB reads per call (metaGetNextOrder, View.get
+    // for source_id / cache clear, return this.get). Since these are system
+    // columns (system: true, hidden in UI regardless), ordering / visibility /
+    // width don't matter semantically — we pick sane defaults instead of
+    // reading the DB for them.
+    //
+    // Pre-fetch views + list-view levels ONCE (shared across both columns).
+    // Both writes are then queued in the upgrader queue and flushed in a
+    // single transaction.
+    const [views, listViewLevels] = await Promise.all([
+      ncMeta
+        .knexConnection(MetaTable.VIEWS)
+        .where('fk_workspace_id', context.workspace_id)
+        .where('base_id', context.base_id)
+        .where('fk_model_id', model.id)
+        .select('id', 'type', 'source_id'),
+      // LIST view-column rows need fk_level_id; fetch levels matching our model.
+      ncMeta
+        .knexConnection(MetaTable.LIST_VIEW_LEVELS)
+        .where('fk_workspace_id', context.workspace_id)
+        .where('base_id', context.base_id)
+        .where('fk_model_id', model.id)
+        .select('id', 'fk_view_id'),
+    ]);
+    const listLevelByViewId = new Map<string, string>(
+      listViewLevels.map((l: any) => [l.fk_view_id, l.id]),
+    );
+
+    let columnOrderBase = (model.columns?.length ?? 0) + 1;
+
+    // Queue both inserts: nc_columns_v2 row + one view-column row per view.
+    // System columns default to show=false (hidden in UI regardless), order
+    // appended to the end, grid width = default.
+    const queuedWrites: Promise<any>[] = [];
+
+    // Allowlist of real nc_columns_v2 columns (mirrors Column.insert's
+    // extractProps). newCol carries migration-internal fields like `altered`
+    // that must NOT be forwarded to the SQL INSERT.
+    const NC_COLUMNS_V2_FIELDS = [
+      'id',
+      'fk_model_id',
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'order',
+      'base_id',
+      'source_id',
+      'system',
+      'meta',
+      'internal_meta',
+      'virtual',
+      'description',
+      'readonly',
+    ] as const;
+
+    const queueSystemColumn = (newCol: any, order: number) => {
+      // nc_columns_v2 row. metaInsert2 generates the id via genNanoid and
+      // returns it; the view-column rows chain off that id.
+      const metaVal =
+        newCol.meta && typeof newCol.meta === 'object'
+          ? JSON.stringify(newCol.meta)
+          : newCol.meta;
+      const columnInsertObj: Record<string, any> = {
+        fk_model_id: model.id,
+        source_id,
+        system: true,
+        order,
+      };
+      for (const k of NC_COLUMNS_V2_FIELDS) {
+        if (
+          k === 'fk_model_id' ||
+          k === 'source_id' ||
+          k === 'system' ||
+          k === 'order' ||
+          k === 'meta'
+        )
+          continue;
+        if (newCol[k] !== undefined) columnInsertObj[k] = newCol[k];
+      }
+      if (metaVal !== undefined) columnInsertObj.meta = metaVal;
+
+      queuedWrites.push(
+        ncMeta
+          .metaInsert2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            columnInsertObj,
+          )
+          .then(async (row) => {
+            const insertedColId = row.id;
+            // Group view-column rows by target table, then emit ONE multi-row
+            // INSERT per table. Bypasses metaInsert2's per-row wire statement
+            // in favor of a single `INSERT … VALUES (...), (...), (...)`
+            const byTable = new Map<MetaTable, any[]>();
+            const now = new Date();
+            for (const view of views) {
+              const table = VIEW_TYPE_TO_COLUMN_TABLE[view.type as ViewTypes];
+              if (!table) continue;
+              const rowObj: Record<string, any> = {
+                id: await ncMeta.genNanoid(table),
+                fk_workspace_id: context.workspace_id,
+                base_id: context.base_id,
+                fk_view_id: view.id,
+                fk_column_id: insertedColId,
+                source_id: view.source_id,
+                show: false,
+                order,
+                created_at: now,
+                updated_at: now,
+              };
+              if (view.type === ViewTypes.GRID) {
+                rowObj.width = VIEW_GRID_DEFAULT_WIDTH + 'px';
+              }
+              if (view.type === ViewTypes.LIST) {
+                const levelId = listLevelByViewId.get(view.id);
+                if (levelId) rowObj.fk_level_id = levelId;
+              }
+              const list = byTable.get(table) ?? [];
+              list.push(rowObj);
+              byTable.set(table, list);
+            }
+            for (const [table, rows] of byTable) {
+              if (!rows.length) continue;
+              const sql = ncMeta.knexConnection(table).insert(rows).toQuery();
+              ncMeta.pushUpgraderQuery(sql);
+            }
+          }),
       );
+    };
+
+    if (needsDeletedCol && newDeletedColumn) {
+      queueSystemColumn(newDeletedColumn, columnOrderBase++);
     }
 
     if (needsMetaCol && newMetaColumn) {
-      await Column.insert(
-        context,
-        { ...newMetaColumn, system: true, fk_model_id: model.id, source_id },
-        ncMeta,
-      );
+      queueSystemColumn(newMetaColumn, columnOrderBase++);
     }
+    if (queuedWrites.length) await Promise.all(queuedWrites);
 
     for (const fkColId of v1OoFkColIds) {
       await Column.update(context, fkColId, { unique: false }, ncMeta);
@@ -426,44 +659,43 @@ export class SoftDeleteColumnMigration {
     await this.updateModelStatus(Noco.ncMeta, modelId, true);
   }
 
-  private getModelsQuery(ncMeta: MetaService) {
-    return ncMeta
-      .knexConnection(MetaTable.MODELS)
-      .select([
-        `${MetaTable.MODELS}.id`,
-        'source_id',
-        `${MetaTable.MODELS}.base_id`,
-        `${MetaTable.MODELS}.fk_workspace_id`,
-      ])
-      .where(`${MetaTable.MODELS}.mm`, false)
-      .join(
-        MetaTable.SOURCES,
-        `${MetaTable.MODELS}.source_id`,
-        '=',
-        `${MetaTable.SOURCES}.id`,
-      )
-      .where((builder) => {
-        builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-        builder.orWhere({ is_local: true });
-      })
-      .whereNotIn(
-        `${MetaTable.MODELS}.id`,
-        ncMeta.knexConnection(TEMP_TABLE).select('fk_model_id'),
-      )
-      .whereNotIn(
-        `${MetaTable.MODELS}.id`,
-        this.processingModels.map((m) => m.fk_model_id),
-      )
-      .modify((qb) => {
-        if (TARGET_WORKSPACE_IDS) {
-          qb.whereIn(
-            `${MetaTable.MODELS}.fk_workspace_id`,
-            TARGET_WORKSPACE_IDS,
-          );
-        }
-      })
-      .orderBy(`${MetaTable.MODELS}.source_id`)
-      .limit(PARALLEL_LIMIT * 10);
+  private getModelsQuery(ncMeta: MetaService, concurrency: number) {
+    return (
+      ncMeta
+        .knexConnection(MetaTable.MODELS)
+        .select([
+          `${MetaTable.MODELS}.id`,
+          'source_id',
+          `${MetaTable.MODELS}.base_id`,
+          `${MetaTable.MODELS}.fk_workspace_id`,
+          `${MetaTable.MODELS}.table_name`,
+        ])
+        .where(`${MetaTable.MODELS}.mm`, false)
+        .join(
+          MetaTable.SOURCES,
+          `${MetaTable.MODELS}.source_id`,
+          '=',
+          `${MetaTable.SOURCES}.id`,
+        )
+        .where((builder) => {
+          builder.where(`${MetaTable.SOURCES}.is_meta`, true);
+          builder.orWhere({ is_local: true });
+        })
+        // NOT EXISTS instead of NOT IN (subquery). At large temp-table
+        // sizes (200k+), PG's NOT IN planner choked into 10+ minute
+        // anti-joins; NOT EXISTS plans cleanly against the fk_model_id index.
+        .whereNotExists((qb) =>
+          qb
+            .select(1)
+            .from(TEMP_TABLE)
+            .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`),
+        )
+        .whereNotIn(
+          `${MetaTable.MODELS}.id`,
+          this.processingModels.map((m) => m.fk_model_id),
+        )
+        .limit(concurrency * 10)
+    );
   }
 
   private async updateModelStatus(

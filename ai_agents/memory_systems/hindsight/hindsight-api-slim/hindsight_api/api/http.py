@@ -1472,7 +1472,7 @@ class BankStatsResponse(BaseModel):
     failed_operations: int
     operations_by_status: dict[str, int] = Field(
         default_factory=dict,
-        description="Async operations grouped by status (pending, in_progress, completed, failed, cancelled).",
+        description="Async operations grouped by status (pending, processing, completed, failed, cancelled).",
     )
     # Consolidation stats
     last_consolidated_at: str | None = Field(default=None, description="When consolidation last ran (ISO format)")
@@ -2249,7 +2249,7 @@ class OperationStatusResponse(BaseModel):
     )
 
     operation_id: str
-    status: Literal["pending", "completed", "failed", "not_found"]
+    status: Literal["pending", "processing", "completed", "failed", "cancelled", "not_found"]
     operation_type: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
@@ -4388,19 +4388,28 @@ def _register_routes(app: FastAPI):
     )
     async def api_list_operations(
         bank_id: str,
-        status: str | None = Query(default=None, description="Filter by status: pending, completed, or failed"),
+        status: str | None = Query(
+            default=None, description="Filter by status: pending, processing, completed, failed, or cancelled"
+        ),
         type: str | None = Query(
             default=None,
             description="Filter by operation type: retain, consolidation, refresh_mental_model, file_convert_retain, webhook_delivery",
         ),
         limit: int = Query(default=20, ge=1, le=100, description="Maximum number of operations to return"),
         offset: int = Query(default=0, ge=0, description="Number of operations to skip"),
+        exclude_parents: bool = Query(default=False, description="Exclude parent batch operations from results"),
         request_context: RequestContext = Depends(get_request_context),
     ):
         """List async operations for a memory bank with optional filtering and pagination."""
         try:
             result = await app.state.memory.list_operations(
-                bank_id, status=status, task_type=type, limit=limit, offset=offset, request_context=request_context
+                bank_id,
+                status=status,
+                task_type=type,
+                limit=limit,
+                offset=offset,
+                exclude_parents=exclude_parents,
+                request_context=request_context,
             )
             return OperationsListResponse(
                 bank_id=bank_id,

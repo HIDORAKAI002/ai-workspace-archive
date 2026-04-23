@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-23 19:00 IST] Auto-Sync
+- **28 Repositories Updated:** GitHub MCP Server, Langfuse, n8n, Dify, Flowise, Activepieces, Trigger.dev, Appsmith, Budibase, NocoDB, Hoppscotch, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-23 12:36 IST] Auto-Sync
 - **27 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, BradyFU/Awesome-Multimodal-Large-Language-Models, mindsdb/mindsdb, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
