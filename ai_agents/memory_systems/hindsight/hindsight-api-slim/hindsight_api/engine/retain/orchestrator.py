@@ -16,13 +16,39 @@ from typing import Any
 
 from ...worker.stage import set_stage
 from ..db_utils import acquire_with_retry
-from ..memory_engine import fq_table
+from ..memory_engine import count_tokens, fq_table
 from . import bank_utils
 
 
 def utcnow():
     """Get current UTC time."""
     return datetime.now(UTC)
+
+
+def _merge_processed_content_tokens(a: int | None, b: int | None) -> int | None:
+    """Combine the processed-content-tokens signal across sub-results.
+
+    Semantics (see RetainResult.processed_content_tokens):
+      * None means "this part of the retain did not go through chunk-level
+        dedup" — i.e. the entire submitted payload was processed. If any
+        sub-result is None, the aggregate is None so callers conservatively
+        bill the full content.
+      * Otherwise, accumulate the int values.
+    """
+    if a is None or b is None:
+        return None
+    return a + b
+
+
+def _count_delta_content_tokens(delta_contents: list["RetainContent"]) -> int:
+    """Sum content + context tokens across the chunk items that were
+    actually fed into the extraction pipeline on a partial-delta retain.
+    """
+    total = 0
+    for c in delta_contents:
+        total += count_tokens(c.content or "")
+        total += count_tokens(c.context or "")
+    return total
 
 
 def parse_datetime_flexible(value: Any) -> datetime:
@@ -417,13 +443,21 @@ async def retain_batch(
     schema: str | None = None,
     outbox_callback: Callable[["asyncpg.Connection"], Awaitable[None]] | None = None,
     db_semaphore: "asyncio.Semaphore | None" = None,
-) -> tuple[list[list[str]], TokenUsage]:
+) -> tuple[list[list[str]], TokenUsage, int | None]:
     """
     Process a batch of content through the retain pipeline.
 
     Supports delta retain: when upserting a document that already has chunks,
     only re-processes chunks whose content has changed. Unchanged chunks keep
     their existing facts, entities, and links.
+
+    Returns a three-tuple of:
+      * per-content-item unit ID lists
+      * aggregate LLM token usage
+      * processed_content_tokens — content+context tokens that actually went
+        through extraction after chunk-level dedup, or ``None`` if this path
+        didn't dedup (caller should treat as "bill full submitted content").
+        See ``RetainResult.processed_content_tokens`` for details.
     """
     start_time = time.time()
     total_chars = sum(len(item.get("content", "")) for item in contents_dicts)
@@ -463,8 +497,9 @@ async def retain_batch(
             # Process each group and merge results back in original order
             result_unit_ids: list[list[str]] = [[] for _ in contents_dicts]
             total_usage = TokenUsage()
+            total_processed_tokens: int | None = 0
             for doc_key, (group_dicts, group_contents) in groups.items():
-                group_ids, group_usage = await retain_batch(
+                group_ids, group_usage, group_processed = await retain_batch(
                     pool=pool,
                     embeddings_model=embeddings_model,
                     llm_config=llm_config,
@@ -486,7 +521,8 @@ async def retain_batch(
                     if group_idx < len(group_ids):
                         result_unit_ids[orig_idx] = group_ids[group_idx]
                 total_usage = total_usage + group_usage
-            return result_unit_ids, total_usage
+                total_processed_tokens = _merge_processed_content_tokens(total_processed_tokens, group_processed)
+            return result_unit_ids, total_usage, total_processed_tokens
 
     # Resolve effective document_id early so both delta and streaming paths
     # can find existing chunks from a prior attempt. On retry, a generated
@@ -595,7 +631,9 @@ async def retain_batch(
                 f"{datetime.fromtimestamp(start_time, tz=UTC).isoformat()})"
             )
             logger.info("\n" + "\n".join(log_buffer) + "\n")
-            return [[] for _ in contents], TokenUsage()
+            # No new content was processed — report 0 so callers can skip
+            # billing cleanly instead of falling back to full-content billing.
+            return [[] for _ in contents], TokenUsage(), 0
 
     # --- Delta retain: check if we can skip unchanged chunks ---
     if is_first_batch:
@@ -1388,7 +1426,10 @@ async def _streaming_retain_batch(
     # Map all unit_ids back to the original content items.
     # For streaming mode with a single document, all units belong to content 0.
     result_unit_ids = [all_unit_ids] + [[] for _ in contents[1:]]
-    return result_unit_ids, total_usage
+    # The streaming path doesn't compute per-chunk content-hash dedup in
+    # a way that lets us report a partial-processed tokens count — signal
+    # ``None`` so callers bill against the full submitted payload.
+    return result_unit_ids, total_usage, None
 
 
 # ---------------------------------------------------------------------------
@@ -1416,10 +1457,15 @@ async def _try_delta_retain(
     schema,
     outbox_callback,
     db_semaphore: "asyncio.Semaphore | None" = None,
-):
+) -> tuple[list[list[str]], TokenUsage, int | None] | None:
     """
     Attempt delta retain for a document upsert. Returns result tuple if delta
     was performed, or None to fall back to full retain.
+
+    When a result tuple is returned, the third element is the content+context
+    token count for the chunks that actually went through extraction
+    (``0`` if the submission matched prior content exactly and nothing was
+    re-extracted).
     """
     # Need a single document_id
     effective_doc_id = document_id
@@ -1678,7 +1724,12 @@ async def _try_delta_retain(
             await _run_delta_db_work()
     else:
         await _run_delta_db_work()
-    return result_unit_ids, usage
+    # Count content + context tokens that actually went through extraction.
+    # ``delta_contents`` holds the per-chunk RetainContent items for the
+    # changed/new chunks (see ``_build_delta_contents``) — i.e. exactly what
+    # the LLM pipeline saw this call. Unchanged chunks contribute zero.
+    processed_tokens = _count_delta_content_tokens(delta_contents)
+    return result_unit_ids, usage, processed_tokens
 
 
 async def _delta_metadata_only(
@@ -1718,7 +1769,11 @@ async def _delta_metadata_only(
     total_time = time.time() - start_time
     log_buffer.append(f"DELTA RETAIN (no changes): metadata updated in {total_time:.3f}s")
     logger.info("\n" + "\n".join(log_buffer) + "\n")
-    return [[] for _ in contents], TokenUsage()
+    # Nothing went through the extraction pipeline — report 0 processed
+    # content tokens so callers can bill accordingly (a caller that's been
+    # told ``0`` knows the retain was a pure metadata update and should
+    # charge nothing for content).
+    return [[] for _ in contents], TokenUsage(), 0
 
 
 # ---------------------------------------------------------------------------

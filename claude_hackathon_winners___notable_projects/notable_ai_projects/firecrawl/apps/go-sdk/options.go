@@ -19,6 +19,7 @@ type ScrapeOptions struct {
 	Proxy               *string                  `json:"proxy,omitempty"`
 	MaxAge              *int64                   `json:"maxAge,omitempty"`
 	StoreInCache        *bool                    `json:"storeInCache,omitempty"`
+	Lockdown            *bool                    `json:"lockdown,omitempty"`
 	Integration         *string                  `json:"integration,omitempty"`
 	JsonOptions         *JsonOptions             `json:"jsonOptions,omitempty"`
 }

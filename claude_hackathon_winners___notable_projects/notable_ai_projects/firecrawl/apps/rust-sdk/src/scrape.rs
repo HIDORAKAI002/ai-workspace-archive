@@ -73,6 +73,9 @@ pub struct ScrapeOptions {
     /// Store the result in cache for future requests.
     pub store_in_cache: Option<bool>,
 
+    /// Lockdown mode: serve only previously cached results, never make outbound requests.
+    pub lockdown: Option<bool>,
+
     /// Persistent browser profile for maintaining state across scrapes.
     pub profile: Option<ProfileConfig>,
 

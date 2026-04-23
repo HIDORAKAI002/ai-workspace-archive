@@ -28,6 +28,7 @@ class TestParseRequestPreparation:
         assert payload["origin"].startswith("python-sdk@")
         assert "maxAge" not in payload
         assert "storeInCache" not in payload
+        assert "lockdown" not in payload
 
         assert "file" in files
         filename, file_bytes, mime_type = files["file"]
@@ -64,3 +65,15 @@ class TestParseRequestPreparation:
                 filename="upload.html",
                 content_type="text/html",
             )
+
+    def test_prepare_parse_request_strips_lockdown(self):
+        options = ParseOptions(formats=["markdown"], lockdown=True)
+        fields, _ = _prepare_parse_request(
+            b"<html><body><h1>Parse</h1></body></html>",
+            options,
+            filename="upload.html",
+            content_type="text/html",
+        )
+
+        payload = json.loads(fields["options"])
+        assert "lockdown" not in payload

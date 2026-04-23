@@ -8329,6 +8329,30 @@
               }
             ],
             "title": "Error Message"
+          },
+          "retry_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Count",
+            "description": "Number of times this operation has been retried after failure."
+          },
+          "next_retry_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Retry At",
+            "description": "When the worker will next attempt this operation. For a pending operation, a value in the future indicates the task is waiting rather than available for immediate pickup \u2014 for example, an extension may have raised DeferOperation to park the task until some backpressure window opens. Always null for completed tasks."
           }
         },
         "type": "object",
@@ -8346,6 +8370,7 @@
           "created_at": "2024-01-15T10:30:00Z",
           "id": "550e8400-e29b-41d4-a716-446655440000",
           "items_count": 5,
+          "retry_count": 0,
           "status": "pending",
           "task_type": "retain"
         }
@@ -8420,6 +8445,30 @@
               }
             ],
             "title": "Error Message"
+          },
+          "retry_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Count",
+            "description": "Number of times this operation has been retried after failure."
+          },
+          "next_retry_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Retry At",
+            "description": "When the worker will next attempt this operation. For a pending operation, a value in the future indicates the task is parked (e.g. by an extension raising DeferOperation) rather than awaiting immediate pickup."
           },
           "result_metadata": {
             "anyOf": [

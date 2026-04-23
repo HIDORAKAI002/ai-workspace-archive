@@ -70,6 +70,7 @@ def _prepare_parse_options_payload(
             opts.pop("maxAge", None)
             opts.pop("minAge", None)
             opts.pop("storeInCache", None)
+            opts.pop("lockdown", None)
             request_data.update(opts)
 
     request_data["origin"] = request_data.get("origin") or f"python-sdk@{version}"

@@ -5442,6 +5442,7 @@ components:
         created_at: 2024-01-15T10:30:00Z
         id: 550e8400-e29b-41d4-a716-446655440000
         items_count: 5
+        retry_count: 0
         status: pending
         task_type: retain
       properties:
@@ -5464,6 +5465,12 @@ components:
           title: Status
           type: string
         error_message:
+          nullable: true
+          type: string
+        retry_count:
+          nullable: true
+          type: integer
+        next_retry_at:
           nullable: true
           type: string
       required:
@@ -5508,6 +5515,12 @@ components:
           nullable: true
           type: string
         error_message:
+          nullable: true
+          type: string
+        retry_count:
+          nullable: true
+          type: integer
+        next_retry_at:
           nullable: true
           type: string
         result_metadata:

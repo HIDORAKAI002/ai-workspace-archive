@@ -61,4 +61,4 @@ jobs:
         working-directory: ./apps/rust-sdk
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-        run: cargo publish
+        run: cargo publish --allow-dirty

@@ -139,7 +139,12 @@ export function ensureValidParseOptions(options?: ParseOptions): void {
   if (raw.mobile !== undefined) {
     throw new Error("parse does not support mobile rendering");
   }
-  if (raw.maxAge !== undefined || raw.minAge !== undefined || raw.storeInCache !== undefined) {
+  if (
+    raw.maxAge !== undefined ||
+    raw.minAge !== undefined ||
+    raw.storeInCache !== undefined ||
+    raw.lockdown !== undefined
+  ) {
     throw new Error("parse does not support cache/index options");
   }
   if (raw.proxy !== undefined && raw.proxy !== "basic" && raw.proxy !== "auto") {

@@ -17,7 +17,7 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from hindsight_client_api.models.child_operation_status import ChildOperationStatus
 from typing import Optional, Set
@@ -34,10 +34,12 @@ class OperationStatusResponse(BaseModel):
     updated_at: Optional[StrictStr] = None
     completed_at: Optional[StrictStr] = None
     error_message: Optional[StrictStr] = None
+    retry_count: Optional[StrictInt] = None
+    next_retry_at: Optional[StrictStr] = None
     result_metadata: Optional[Dict[str, Any]] = None
     child_operations: Optional[List[ChildOperationStatus]] = None
     task_payload: Optional[Dict[str, Any]] = None
-    __properties: ClassVar[List[str]] = ["operation_id", "status", "operation_type", "created_at", "updated_at", "completed_at", "error_message", "result_metadata", "child_operations", "task_payload"]
+    __properties: ClassVar[List[str]] = ["operation_id", "status", "operation_type", "created_at", "updated_at", "completed_at", "error_message", "retry_count", "next_retry_at", "result_metadata", "child_operations", "task_payload"]
 
     @field_validator('status')
     def status_validate_enum(cls, value):
@@ -117,6 +119,16 @@ class OperationStatusResponse(BaseModel):
         if self.error_message is None and "error_message" in self.model_fields_set:
             _dict['error_message'] = None
 
+        # set to None if retry_count (nullable) is None
+        # and model_fields_set contains the field
+        if self.retry_count is None and "retry_count" in self.model_fields_set:
+            _dict['retry_count'] = None
+
+        # set to None if next_retry_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.next_retry_at is None and "next_retry_at" in self.model_fields_set:
+            _dict['next_retry_at'] = None
+
         # set to None if result_metadata (nullable) is None
         # and model_fields_set contains the field
         if self.result_metadata is None and "result_metadata" in self.model_fields_set:
@@ -151,6 +163,8 @@ class OperationStatusResponse(BaseModel):
             "updated_at": obj.get("updated_at"),
             "completed_at": obj.get("completed_at"),
             "error_message": obj.get("error_message"),
+            "retry_count": obj.get("retry_count"),
+            "next_retry_at": obj.get("next_retry_at"),
             "result_metadata": obj.get("result_metadata"),
             "child_operations": [ChildOperationStatus.from_dict(_item) for _item in obj["child_operations"]] if obj.get("child_operations") is not None else None,
             "task_payload": obj.get("task_payload")
