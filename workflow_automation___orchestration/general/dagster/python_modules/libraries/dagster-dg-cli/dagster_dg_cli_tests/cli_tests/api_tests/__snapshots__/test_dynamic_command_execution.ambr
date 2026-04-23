@@ -1450,7 +1450,7 @@
         'error': None,
         'event_type': 'LOGS_CAPTURED',
         'level': 'DEBUG',
-        'message': 'Started capturing logs in process (pid: 19).',
+        'message': 'Capturing logs for process (pid: 19).',
         'run_id': 'b45fff8a-7def-43b8-805d-1cf5f435c997',
         'step_key': None,
         'timestamp': '1758817833507',
@@ -1516,7 +1516,7 @@
   2025-09-25 16:30:29  DEBUG    anomaly_detection_freshn  Executing step "anomaly_detection_freshness_check_458e9b8f" in subprocess.
   2025-09-25 16:30:33  DEBUG    anomaly_detection_freshn  Starting initialization of resources [io_manager].
   2025-09-25 16:30:33  DEBUG    anomaly_detection_freshn  Finished initialization of resources [io_manager].
-  2025-09-25 16:30:33  DEBUG                              Started capturing logs in process (pid: 19).
+  2025-09-25 16:30:33  DEBUG                              Capturing logs for process (pid: 19).
   2025-09-25 16:30:33  DEBUG    anomaly_detection_freshn  Started execution of step "anomaly_detection_freshness_check_458e9b8f".
   2025-09-25 16:30:33  DEBUG    anomaly_detection_freshn  Yielded output "MARKETING__avg_orders_anomaly_detection_freshness_check" of type "Any". (Type check passed).
   2025-09-25 16:30:33  DEBUG    anomaly_detection_freshn  Asset check 'anomaly_detection_freshness_check' on 'MARKETING/avg_orders' did not pass. Description: 'Asset is overdue for an update. The last update was 2 days, 16 hours, 25 minutes, 24 seconds ago, which is past the allowed distance of 2 days, 5 minutes, 11 seconds ago.'
@@ -1989,7 +1989,7 @@
         'error': None,
         'event_type': 'LOGS_CAPTURED',
         'level': 'DEBUG',
-        'message': 'Started capturing logs in process (pid: 16).',
+        'message': 'Capturing logs for process (pid: 16).',
         'run_id': '85156191-170d-4229-8eba-14450b6ca9e3',
         'step_key': None,
         'timestamp': '1758808873570',
@@ -2061,7 +2061,7 @@
         'error': None,
         'event_type': 'LOGS_CAPTURED',
         'level': 'DEBUG',
-        'message': 'Started capturing logs in process (pid: 26).',
+        'message': 'Capturing logs for process (pid: 26).',
         'run_id': '85156191-170d-4229-8eba-14450b6ca9e3',
         'step_key': None,
         'timestamp': '1758808875526',
@@ -2133,7 +2133,7 @@
         'error': None,
         'event_type': 'LOGS_CAPTURED',
         'level': 'DEBUG',
-        'message': 'Started capturing logs in process (pid: 36).',
+        'message': 'Capturing logs for process (pid: 36).',
         'run_id': '85156191-170d-4229-8eba-14450b6ca9e3',
         'step_key': None,
         'timestamp': '1758808877439',
@@ -2327,7 +2327,7 @@
   2025-09-25 14:01:12  DEBUG    enriched_data.process_ch  Executing step "enriched_data.process_chunk[11]" in subprocess.
   2025-09-25 14:01:13  DEBUG    enriched_data.process_ch  Starting initialization of resources [api, io_manager].
   2025-09-25 14:01:13  DEBUG    enriched_data.process_ch  Finished initialization of resources [api, io_manager].
-  2025-09-25 14:01:13  DEBUG                              Started capturing logs in process (pid: 16).
+  2025-09-25 14:01:13  DEBUG                              Capturing logs for process (pid: 16).
   2025-09-25 14:01:13  DEBUG    enriched_data.process_ch  Started execution of step "enriched_data.process_chunk[11]".
   2025-09-25 14:01:13  DEBUG    enriched_data.process_ch  Loading file from: /opt/dagster/dagster_home/storage/385defa2-7ac6-4d18-8a88-585a42393d9c/enriched_data.split_rows/result/11 using PickledObjectFilesystemIOManager...
   2025-09-25 14:01:13  DEBUG    enriched_data.process_ch  Execution of step "enriched_data.process_chunk[11]" failed and has requested a retry.
@@ -2335,7 +2335,7 @@
   2025-09-25 14:01:14  DEBUG    enriched_data.process_ch  Executing step "enriched_data.process_chunk[11]" in subprocess.
   2025-09-25 14:01:15  DEBUG    enriched_data.process_ch  Starting initialization of resources [api, io_manager].
   2025-09-25 14:01:15  DEBUG    enriched_data.process_ch  Finished initialization of resources [api, io_manager].
-  2025-09-25 14:01:15  DEBUG                              Started capturing logs in process (pid: 26).
+  2025-09-25 14:01:15  DEBUG                              Capturing logs for process (pid: 26).
   2025-09-25 14:01:15  DEBUG    enriched_data.process_ch  Started re-execution (attempt # 2) of step "enriched_data.process_chunk[11]".
   2025-09-25 14:01:15  DEBUG    enriched_data.process_ch  Loading file from: /opt/dagster/dagster_home/storage/385defa2-7ac6-4d18-8a88-585a42393d9c/enriched_data.split_rows/result/11 using PickledObjectFilesystemIOManager...
   2025-09-25 14:01:15  DEBUG    enriched_data.process_ch  Execution of step "enriched_data.process_chunk[11]" failed and has requested a retry.
@@ -2343,7 +2343,7 @@
   2025-09-25 14:01:16  DEBUG    enriched_data.process_ch  Executing step "enriched_data.process_chunk[11]" in subprocess.
   2025-09-25 14:01:17  DEBUG    enriched_data.process_ch  Starting initialization of resources [api, io_manager].
   2025-09-25 14:01:17  DEBUG    enriched_data.process_ch  Finished initialization of resources [api, io_manager].
-  2025-09-25 14:01:17  DEBUG                              Started capturing logs in process (pid: 36).
+  2025-09-25 14:01:17  DEBUG                              Capturing logs for process (pid: 36).
   2025-09-25 14:01:17  DEBUG    enriched_data.process_ch  Started re-execution (attempt # 3) of step "enriched_data.process_chunk[11]".
   2025-09-25 14:01:17  DEBUG    enriched_data.process_ch  Loading file from: /opt/dagster/dagster_home/storage/385defa2-7ac6-4d18-8a88-585a42393d9c/enriched_data.split_rows/result/11 using PickledObjectFilesystemIOManager...
   2025-09-25 14:01:17  ERROR    enriched_data.process_ch  Execution of step "enriched_data.process_chunk[11]" failed.

@@ -111,6 +111,22 @@ paths:
           title: Tags Match
           type: string
         style: form
+      - explode: true
+        in: query
+        name: document_id
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: chunk_id
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
       - explode: false
         in: header
         name: authorization
@@ -1485,6 +1501,124 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
       summary: List documents
+      tags:
+      - Documents
+  /v1/default/banks/{bank_id}/documents/{document_id}/chunks:
+    get:
+      description: "List all chunks for a given document, ordered by chunk index."
+      operationId: list_document_chunks
+      parameters:
+      - explode: false
+        in: path
+        name: bank_id
+        required: true
+        schema:
+          title: Bank Id
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: document_id
+        required: true
+        schema:
+          title: Document Id
+          type: string
+        style: simple
+      - description: Maximum number of chunks to return
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 100
+          description: Maximum number of chunks to return
+          maximum: 1000
+          minimum: 1
+          title: Limit
+          type: integer
+        style: form
+      - description: Offset for pagination
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          description: Offset for pagination
+          minimum: 0
+          title: Offset
+          type: integer
+        style: form
+      - explode: false
+        in: header
+        name: authorization
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChunksResponse'
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: List document chunks
+      tags:
+      - Documents
+  /v1/default/banks/{bank_id}/documents/{document_id}/reprocess:
+    post:
+      description: "Re-run the retain pipeline on an existing document without changing\
+        \ its content. This deletes the existing memory units and re-extracts facts\
+        \ using the current engine configuration. Useful when the LLM model, chunking\
+        \ strategy, or extraction settings have changed."
+      operationId: reprocess_document
+      parameters:
+      - explode: false
+        in: path
+        name: bank_id
+        required: true
+        schema:
+          title: Bank Id
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: document_id
+        required: true
+        schema:
+          title: Document Id
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: authorization
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReprocessDocumentResponse'
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Reprocess document
       tags:
       - Documents
   /v1/default/banks/{bank_id}/documents/{document_id}:
@@ -4533,6 +4667,10 @@ components:
         memory_unit_count:
           title: Memory Unit Count
           type: integer
+        nodes_by_fact_type:
+          additionalProperties:
+            type: integer
+          nullable: true
         tags:
           default: []
           description: Tags associated with this document
@@ -4898,6 +5036,45 @@ components:
         source_facts:
           $ref: '#/components/schemas/SourceFactsIncludeOptions'
       title: IncludeOptions
+    ListChunksResponse:
+      description: Response model for listing chunks of a document.
+      example:
+        total: 0
+        offset: 1
+        limit: 6
+        items:
+        - bank_id: user123
+          chunk_id: user123_session_1_0
+          chunk_index: 0
+          chunk_text: This is the first chunk of the document...
+          created_at: 2024-01-15T10:30:00Z
+          document_id: session_1
+        - bank_id: user123
+          chunk_id: user123_session_1_0
+          chunk_index: 0
+          chunk_text: This is the first chunk of the document...
+          created_at: 2024-01-15T10:30:00Z
+          document_id: session_1
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ChunkResponse'
+          type: array
+        total:
+          title: Total
+          type: integer
+        limit:
+          title: Limit
+          type: integer
+        offset:
+          title: Offset
+          type: integer
+      required:
+      - items
+      - limit
+      - offset
+      - total
+      title: ListChunksResponse
     ListDocumentsResponse:
       description: Response model for list documents endpoint.
       example:
@@ -6100,6 +6277,27 @@ components:
             $ref: '#/components/schemas/ReflectLLMCall'
           type: array
       title: ReflectTrace
+    ReprocessDocumentResponse:
+      description: Response model for reprocess document endpoint.
+      example:
+        items_count: 0
+        success: true
+        operation_id: operation_id
+      properties:
+        success:
+          title: Success
+          type: boolean
+        operation_id:
+          title: Operation Id
+          type: string
+        items_count:
+          title: Items Count
+          type: integer
+      required:
+      - items_count
+      - operation_id
+      - success
+      title: ReprocessDocumentResponse
     RetainRequest:
       description: Request model for retain endpoint.
       example:

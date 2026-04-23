@@ -109,10 +109,11 @@ function parseBioText(text: string): React.ReactNode[] {
     if (match[1]) {
       // URL match
       const url = match[1];
+      const cleanedUrl = url.replace(/[.,!?]+$/, "");
       parts.push(
         <a
           key={key++}
-          href={url}
+          href={cleanedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary hover:underline"

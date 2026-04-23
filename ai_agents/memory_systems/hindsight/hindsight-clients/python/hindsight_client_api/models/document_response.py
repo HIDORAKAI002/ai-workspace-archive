@@ -33,10 +33,11 @@ class DocumentResponse(BaseModel):
     created_at: StrictStr
     updated_at: StrictStr
     memory_unit_count: StrictInt
+    nodes_by_fact_type: Optional[Dict[str, StrictInt]] = None
     tags: Optional[List[StrictStr]] = Field(default=None, description="Tags associated with this document")
     document_metadata: Optional[Dict[str, Any]] = None
     retain_params: Optional[Dict[str, Any]] = None
-    __properties: ClassVar[List[str]] = ["id", "bank_id", "original_text", "content_hash", "created_at", "updated_at", "memory_unit_count", "tags", "document_metadata", "retain_params"]
+    __properties: ClassVar[List[str]] = ["id", "bank_id", "original_text", "content_hash", "created_at", "updated_at", "memory_unit_count", "nodes_by_fact_type", "tags", "document_metadata", "retain_params"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -82,6 +83,11 @@ class DocumentResponse(BaseModel):
         if self.content_hash is None and "content_hash" in self.model_fields_set:
             _dict['content_hash'] = None
 
+        # set to None if nodes_by_fact_type (nullable) is None
+        # and model_fields_set contains the field
+        if self.nodes_by_fact_type is None and "nodes_by_fact_type" in self.model_fields_set:
+            _dict['nodes_by_fact_type'] = None
+
         # set to None if document_metadata (nullable) is None
         # and model_fields_set contains the field
         if self.document_metadata is None and "document_metadata" in self.model_fields_set:
@@ -111,6 +117,7 @@ class DocumentResponse(BaseModel):
             "created_at": obj.get("created_at"),
             "updated_at": obj.get("updated_at"),
             "memory_unit_count": obj.get("memory_unit_count"),
+            "nodes_by_fact_type": obj.get("nodes_by_fact_type"),
             "tags": obj.get("tags"),
             "document_metadata": obj.get("document_metadata"),
             "retain_params": obj.get("retain_params")

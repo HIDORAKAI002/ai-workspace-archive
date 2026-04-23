@@ -171,6 +171,10 @@ function buildFeatureFlags(
     flags.add("branding");
   }
 
+  if (hasFormatOfType(options.formats, "audio")) {
+    flags.add("audio");
+  }
+
   if (options.waitFor !== 0) {
     flags.add("waitFor");
   }

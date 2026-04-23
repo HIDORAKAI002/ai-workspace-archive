@@ -13,7 +13,7 @@ DOCKER_PLUGIN = "docker#v5.10.0"
 ECR_PLUGIN = "ecr#v2.7.0"
 SM_PLUGIN = "seek-oss/aws-sm#v2.3.1"
 BASE_IMAGE_NAME = "buildkite-test"
-BASE_IMAGE_TAG = "2024-07-17T120716"
+BASE_IMAGE_TAG = "2026-04-23T130027"
 
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 AWS_ECR_REGION = "us-west-2"
@@ -107,6 +107,7 @@ class CommandStepBuilder:
                 },  # example: https://buildkite.com/dagster/internal/builds/108316#0196fd13-d816-42e7-bf26-b264385b245d
                 {"exit_status": 125, "limit": 2},  # docker daemon error
                 {"exit_status": 128, "limit": 2},  # k8s git clone error
+                {"exit_status": 130, "limit": 2},  # SIGINT (e.g. spot reclamation)
                 {"exit_status": 143, "limit": 2},  # agent lost
                 {"exit_status": 255, "limit": 2},  # agent forced shut down
                 {
@@ -117,6 +118,10 @@ class CommandStepBuilder:
                     "exit_status": 28,
                     "limit": 2,
                 },  # node ran out of space, try to reschedule
+                {
+                    "signal_reason": "agent_stop",
+                    "limit": 2,
+                },  # agent stopped (e.g. spot eviction, pod termination)
             ]
 
         self._step = {
@@ -248,13 +253,6 @@ class CommandStepBuilder:
     def with_timeout(self, num_minutes: int | None) -> Self:
         if num_minutes is not None:
             self._step["timeout_in_minutes"] = num_minutes
-        return self
-
-    def with_retry(self, num_retries: int | None) -> Self:
-        # Update default retry config to blanket limit with num_retries
-        if num_retries is not None and num_retries > 0:
-            self._step["retry"]["automatic"] = {"limit": num_retries}
-
         return self
 
     def on_queue(self, queue: BuildkiteQueue) -> Self:

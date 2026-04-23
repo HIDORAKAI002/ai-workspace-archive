@@ -47,10 +47,10 @@ Pushing changes to the `main` branch of that project repository will automatical
 
     <Tabs groupId="package-manager">
       <TabItem value="uv" label="uv">
-        <CliInvocationExample path="docs_snippets/docs_snippets/dagster-plus/deployment/ci-cd/uv-add-dagster-cloud.txt" />
+        <CliInvocationExample path="docs_snippets/docs_snippets/deployment/dagster_plus/deploying_code/ci_cd/uv-add-dagster-cloud.txt" />
       </TabItem>
       <TabItem value="pip" label="pip">
-        <CliInvocationExample path="docs_snippets/docs_snippets/dagster-plus/deployment/ci-cd/pip-install-dagster-cloud.txt" />
+        <CliInvocationExample path="docs_snippets/docs_snippets/deployment/dagster_plus/deploying_code/ci_cd/pip-install-dagster-cloud.txt" />
       </TabItem>
     </Tabs>
 

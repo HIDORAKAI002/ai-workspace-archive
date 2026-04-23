@@ -50,6 +50,7 @@ import {
   ConnectedTimeRangeSelector,
   useTimeRange,
 } from "@phoenix/components/datetime";
+import { TopNavActions } from "@phoenix/components/nav";
 import { GradientCircle } from "@phoenix/components/project/GradientCircle";
 import { tableCSS } from "@phoenix/components/table/styles";
 import { TableEmpty } from "@phoenix/components/table/TableEmpty";
@@ -127,9 +128,14 @@ export function ProjectsPage() {
   );
 
   return (
-    <Suspense fallback={<Loading />}>
-      <ProjectsPageContent timeRange={timeRange} query={data} />
-    </Suspense>
+    <>
+      <TopNavActions>
+        <ConnectedTimeRangeSelector size="S" />
+      </TopNavActions>
+      <Suspense fallback={<Loading />}>
+        <ProjectsPageContent timeRange={timeRange} query={data} />
+      </Suspense>
+    </>
   );
 }
 
@@ -358,7 +364,6 @@ export function ProjectsPageContent({
             `}
           >
             <ProjectViewModeToggle />
-            <ConnectedTimeRangeSelector size="M" />
             <CanModify>
               <NewProjectButton
                 variant="primary"

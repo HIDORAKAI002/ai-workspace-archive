@@ -28,6 +28,7 @@ type DocumentResponse struct {
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 	MemoryUnitCount int32 `json:"memory_unit_count"`
+	NodesByFactType map[string]int32 `json:"nodes_by_fact_type,omitempty"`
 	// Tags associated with this document
 	Tags []string `json:"tags,omitempty"`
 	DocumentMetadata map[string]interface{} `json:"document_metadata,omitempty"`
@@ -230,6 +231,39 @@ func (o *DocumentResponse) SetMemoryUnitCount(v int32) {
 	o.MemoryUnitCount = v
 }
 
+// GetNodesByFactType returns the NodesByFactType field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DocumentResponse) GetNodesByFactType() map[string]int32 {
+	if o == nil {
+		var ret map[string]int32
+		return ret
+	}
+	return o.NodesByFactType
+}
+
+// GetNodesByFactTypeOk returns a tuple with the NodesByFactType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DocumentResponse) GetNodesByFactTypeOk() (map[string]int32, bool) {
+	if o == nil || IsNil(o.NodesByFactType) {
+		return map[string]int32{}, false
+	}
+	return o.NodesByFactType, true
+}
+
+// HasNodesByFactType returns a boolean if a field has been set.
+func (o *DocumentResponse) HasNodesByFactType() bool {
+	if o != nil && !IsNil(o.NodesByFactType) {
+		return true
+	}
+
+	return false
+}
+
+// SetNodesByFactType gets a reference to the given map[string]int32 and assigns it to the NodesByFactType field.
+func (o *DocumentResponse) SetNodesByFactType(v map[string]int32) {
+	o.NodesByFactType = v
+}
+
 // GetTags returns the Tags field value if set, zero value otherwise.
 func (o *DocumentResponse) GetTags() []string {
 	if o == nil || IsNil(o.Tags) {
@@ -345,6 +379,9 @@ func (o DocumentResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
 	toSerialize["memory_unit_count"] = o.MemoryUnitCount
+	if o.NodesByFactType != nil {
+		toSerialize["nodes_by_fact_type"] = o.NodesByFactType
+	}
 	if !IsNil(o.Tags) {
 		toSerialize["tags"] = o.Tags
 	}

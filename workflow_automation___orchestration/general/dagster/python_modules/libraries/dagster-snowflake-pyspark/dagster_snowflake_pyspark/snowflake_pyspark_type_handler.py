@@ -138,7 +138,7 @@ Examples:
                     "database": "my_database",
                     "warehouse": "my_warehouse", # required for snowflake_pyspark_io_manager
                     "account" : {"env": "SNOWFLAKE_ACCOUNT"},
-                    "password": {"env": "SNOWFLAKE_PASSWORD"},
+                    "private_key": {"env": "SNOWFLAKE_PRIVATE_KEY"},
                     ...
                 })
             }
@@ -232,7 +232,7 @@ class SnowflakePySparkIOManager(SnowflakeIOManager):
                         database="my_database",
                         warehouse="my_warehouse", # required for SnowflakePySparkIOManager
                         account=EnvVar("SNOWFLAKE_ACCOUNT"),
-                        password=EnvVar("SNOWFLAKE_PASSWORD"),
+                        private_key=EnvVar("SNOWFLAKE_PRIVATE_KEY"),
                         ...
                     )
                 }

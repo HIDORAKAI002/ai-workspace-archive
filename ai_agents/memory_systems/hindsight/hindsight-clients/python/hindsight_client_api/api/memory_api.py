@@ -646,6 +646,8 @@ class MemoryApi:
         q: Optional[StrictStr] = None,
         tags: Optional[List[Optional[StrictStr]]] = None,
         tags_match: Optional[StrictStr] = None,
+        document_id: Optional[StrictStr] = None,
+        chunk_id: Optional[StrictStr] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -676,6 +678,10 @@ class MemoryApi:
         :type tags: List[Optional[str]]
         :param tags_match:
         :type tags_match: str
+        :param document_id:
+        :type document_id: str
+        :param chunk_id:
+        :type chunk_id: str
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -707,6 +713,8 @@ class MemoryApi:
             q=q,
             tags=tags,
             tags_match=tags_match,
+            document_id=document_id,
+            chunk_id=chunk_id,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -738,6 +746,8 @@ class MemoryApi:
         q: Optional[StrictStr] = None,
         tags: Optional[List[Optional[StrictStr]]] = None,
         tags_match: Optional[StrictStr] = None,
+        document_id: Optional[StrictStr] = None,
+        chunk_id: Optional[StrictStr] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -768,6 +778,10 @@ class MemoryApi:
         :type tags: List[Optional[str]]
         :param tags_match:
         :type tags_match: str
+        :param document_id:
+        :type document_id: str
+        :param chunk_id:
+        :type chunk_id: str
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -799,6 +813,8 @@ class MemoryApi:
             q=q,
             tags=tags,
             tags_match=tags_match,
+            document_id=document_id,
+            chunk_id=chunk_id,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -830,6 +846,8 @@ class MemoryApi:
         q: Optional[StrictStr] = None,
         tags: Optional[List[Optional[StrictStr]]] = None,
         tags_match: Optional[StrictStr] = None,
+        document_id: Optional[StrictStr] = None,
+        chunk_id: Optional[StrictStr] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -860,6 +878,10 @@ class MemoryApi:
         :type tags: List[Optional[str]]
         :param tags_match:
         :type tags_match: str
+        :param document_id:
+        :type document_id: str
+        :param chunk_id:
+        :type chunk_id: str
         :param authorization:
         :type authorization: str
         :param _request_timeout: timeout setting for this request. If one
@@ -891,6 +913,8 @@ class MemoryApi:
             q=q,
             tags=tags,
             tags_match=tags_match,
+            document_id=document_id,
+            chunk_id=chunk_id,
             authorization=authorization,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -917,6 +941,8 @@ class MemoryApi:
         q,
         tags,
         tags_match,
+        document_id,
+        chunk_id,
         authorization,
         _request_auth,
         _content_type,
@@ -962,6 +988,14 @@ class MemoryApi:
         if tags_match is not None:
             
             _query_params.append(('tags_match', tags_match))
+            
+        if document_id is not None:
+            
+            _query_params.append(('document_id', document_id))
+            
+        if chunk_id is not None:
+            
+            _query_params.append(('chunk_id', chunk_id))
             
         # process the header parameters
         if authorization is not None:

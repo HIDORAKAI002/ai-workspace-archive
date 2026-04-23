@@ -1336,6 +1336,14 @@ export type DocumentResponse = {
    */
   memory_unit_count: number;
   /**
+   * Nodes By Fact Type
+   *
+   * Memory count per fact type (world, experience, observation)
+   */
+  nodes_by_fact_type?: {
+    [key: string]: number;
+  } | null;
+  /**
    * Tags
    *
    * Tags associated with this document
@@ -1680,6 +1688,30 @@ export type IncludeOptions = {
    * Include source facts for observation-type results. Set to {} to enable, null to disable (default: disabled).
    */
   source_facts?: SourceFactsIncludeOptions | null;
+};
+
+/**
+ * ListChunksResponse
+ *
+ * Response model for listing chunks of a document.
+ */
+export type ListChunksResponse = {
+  /**
+   * Items
+   */
+  items: Array<ChunkResponse>;
+  /**
+   * Total
+   */
+  total: number;
+  /**
+   * Limit
+   */
+  limit: number;
+  /**
+   * Offset
+   */
+  offset: number;
 };
 
 /**
@@ -2749,6 +2781,26 @@ export type ReflectTrace = {
 };
 
 /**
+ * ReprocessDocumentResponse
+ *
+ * Response model for reprocess document endpoint.
+ */
+export type ReprocessDocumentResponse = {
+  /**
+   * Success
+   */
+  success: boolean;
+  /**
+   * Operation Id
+   */
+  operation_id: string;
+  /**
+   * Items Count
+   */
+  items_count: number;
+};
+
+/**
  * RetainRequest
  *
  * Request model for retain endpoint.
@@ -3456,6 +3508,14 @@ export type GetGraphData = {
      * Tags Match
      */
     tags_match?: string;
+    /**
+     * Document Id
+     */
+    document_id?: string | null;
+    /**
+     * Chunk Id
+     */
+    chunk_id?: string | null;
   };
   url: "/v1/default/banks/{bank_id}/graph";
 };
@@ -4583,6 +4643,103 @@ export type ListDocumentsResponses = {
 
 export type ListDocumentsResponse2 =
   ListDocumentsResponses[keyof ListDocumentsResponses];
+
+export type ListDocumentChunksData = {
+  body?: never;
+  headers?: {
+    /**
+     * Authorization
+     */
+    authorization?: string | null;
+  };
+  path: {
+    /**
+     * Bank Id
+     */
+    bank_id: string;
+    /**
+     * Document Id
+     */
+    document_id: string;
+  };
+  query?: {
+    /**
+     * Limit
+     *
+     * Maximum number of chunks to return
+     */
+    limit?: number;
+    /**
+     * Offset
+     *
+     * Offset for pagination
+     */
+    offset?: number;
+  };
+  url: "/v1/default/banks/{bank_id}/documents/{document_id}/chunks";
+};
+
+export type ListDocumentChunksErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ListDocumentChunksError =
+  ListDocumentChunksErrors[keyof ListDocumentChunksErrors];
+
+export type ListDocumentChunksResponses = {
+  /**
+   * Successful Response
+   */
+  200: ListChunksResponse;
+};
+
+export type ListDocumentChunksResponse =
+  ListDocumentChunksResponses[keyof ListDocumentChunksResponses];
+
+export type ReprocessDocumentData = {
+  body?: never;
+  headers?: {
+    /**
+     * Authorization
+     */
+    authorization?: string | null;
+  };
+  path: {
+    /**
+     * Bank Id
+     */
+    bank_id: string;
+    /**
+     * Document Id
+     */
+    document_id: string;
+  };
+  query?: never;
+  url: "/v1/default/banks/{bank_id}/documents/{document_id}/reprocess";
+};
+
+export type ReprocessDocumentErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ReprocessDocumentError =
+  ReprocessDocumentErrors[keyof ReprocessDocumentErrors];
+
+export type ReprocessDocumentResponses = {
+  /**
+   * Successful Response
+   */
+  200: ReprocessDocumentResponse;
+};
+
+export type ReprocessDocumentResponse2 =
+  ReprocessDocumentResponses[keyof ReprocessDocumentResponses];
 
 export type DeleteDocumentData = {
   body?: never;

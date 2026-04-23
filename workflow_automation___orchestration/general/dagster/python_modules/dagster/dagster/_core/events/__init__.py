@@ -1617,7 +1617,7 @@ class DagsterEvent(
         return DagsterEvent.from_step(
             DagsterEventType.LOGS_CAPTURED,
             step_context,
-            message=f"Started capturing logs for step: {step_key}.",
+            message=f"Logs will be captured for step: {step_key}.",
             event_specific_data=ComputeLogsCaptureData(
                 step_keys=[step_key],
                 file_key=step_key,
@@ -1635,7 +1635,7 @@ class DagsterEvent(
         return DagsterEvent.from_job(
             DagsterEventType.LOGS_CAPTURED,
             job_context,
-            message=f"Started capturing logs in process (pid: {os.getpid()}).",
+            message=f"Capturing logs for process (pid: {os.getpid()}).",
             event_specific_data=ComputeLogsCaptureData(
                 step_keys=step_keys,
                 file_key=file_key,

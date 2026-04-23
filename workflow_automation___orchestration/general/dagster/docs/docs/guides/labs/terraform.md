@@ -6,16 +6,13 @@ canonicalUrl: '/guides/labs/terraform'
 slug: '/guides/labs/terraform'
 ---
 
-import DagsterPlus from '@site/docs/partials/\_DagsterPlus.md';
-import EarlyAccess from '@site/docs/partials/\_EarlyAccess.md';
+:::info Early access preview
 
-<DagsterPlus />
+This feature is currently in an early prototype stage. Functionality and APIs may change as development continues.
 
-<EarlyAccess />
+You can find the Dagster+ provider in the [Terraform Registry](https://registry.terraform.io/providers/dagster-io/dagsterplus/latest). To send feedback and bug reports, please file a [GitHub issue](https://github.com/dagster-io/terraform-provider-dagsterplus/issues).
 
-[Terraform](https://developer.hashicorp.com/terraform) by HashiCorp allows you to manage your infrastructure as code. Terraform providers act as an interface between Terraform and different platforms or services in your infrastructure. The Dagster+ Terraform provider lets you programmatically manage your Dagster+ organization's resources.
-
-The provider is open source and available through the [Terraform Registry](https://registry.terraform.io/providers/dagster-io/dagsterplus/latest/docs). You can also clone it from the [GitHub repository](https://github.com/dagster-io/terraform-provider-dagster-plus) if you want to adapt it for a custom use case or contribute improvements.
+:::
 
 ## When to use Terraform
 

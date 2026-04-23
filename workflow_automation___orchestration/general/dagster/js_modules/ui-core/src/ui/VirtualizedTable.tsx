@@ -1,6 +1,9 @@
 import {Box, Colors} from '@dagster-io/ui-components';
+import clsx from 'clsx';
 import * as React from 'react';
 import styled from 'styled-components';
+
+import cssStyles from './VirtualizedTable.module.css';
 
 export const TABLE_HEADER_HEIGHT = 32;
 
@@ -37,24 +40,15 @@ export const HeaderRow = ({
 
 export const HeaderCell = ({
   children,
-  style,
+  className,
   onClick,
   ...rest
 }: React.ComponentProps<typeof CellBox>) => {
-  // no text select
-  const clickStyle = onClick ? {cursor: 'pointer', userSelect: 'none'} : {};
-
   return (
     <CellBox
       padding={{vertical: 8, horizontal: 12}}
       border="right"
-      style={{
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        ...clickStyle,
-        ...(style || {}),
-      }}
+      className={clsx(cssStyles.headerCell, onClick && cssStyles.headerCellClickable, className)}
       onClick={onClick}
       {...rest}
     >

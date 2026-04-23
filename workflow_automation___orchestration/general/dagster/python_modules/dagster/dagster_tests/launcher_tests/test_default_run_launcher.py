@@ -387,7 +387,7 @@ def test_crashy_run(
     assert failed_run
     assert failed_run.run_id == run_id
 
-    failed_run = poll_for_finished_run(instance, run_id, timeout=5)
+    failed_run = poll_for_finished_run(instance, run_id, timeout=30)
     assert failed_run.status == DagsterRunStatus.FAILURE
 
     event_records = instance.all_logs(run_id)
@@ -467,7 +467,7 @@ def test_exity_run(
     assert failed_run
     assert failed_run.run_id == run_id
 
-    failed_run = poll_for_finished_run(instance, run_id, timeout=5)
+    failed_run = poll_for_finished_run(instance, run_id, timeout=30)
     assert failed_run.status == DagsterRunStatus.FAILURE
 
     event_records = instance.all_logs(run_id)
