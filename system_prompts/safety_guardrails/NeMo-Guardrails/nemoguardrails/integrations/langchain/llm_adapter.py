@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import uuid
 from typing import Any, AsyncIterator, Dict, List, NamedTuple, Optional, Union
@@ -205,11 +206,67 @@ class LangChainLLMAdapter:
     ) -> AsyncIterator[LLMResponseChunk]:
         llm = self._prepare_llm(kwargs)
         messages = self._to_langchain_input(prompt)
+
+        tool_call_acc: Dict[int, Dict[str, Any]] = {}
+
         async for chunk in llm.astream(messages, stop=stop):
-            yield _langchain_chunk_to_llm_response_chunk(chunk)
+            for tc_chunk in getattr(chunk, "tool_call_chunks", None) or []:
+                idx = tc_chunk.get("index", 0)
+                if idx not in tool_call_acc:
+                    tool_call_acc[idx] = {
+                        "id": tc_chunk.get("id") or "",
+                        "name": tc_chunk.get("name") or "",
+                        "arguments_buffer": "",
+                    }
+                else:
+                    if tc_chunk.get("id"):
+                        tool_call_acc[idx]["id"] = tc_chunk["id"]
+                    if tc_chunk.get("name"):
+                        tool_call_acc[idx]["name"] = tc_chunk["name"]
+                arg_fragment = tc_chunk.get("args") or ""
+                if arg_fragment:
+                    tool_call_acc[idx]["arguments_buffer"] += arg_fragment
+
+            response_chunk = _langchain_chunk_to_llm_response_chunk(chunk)
+
+            if response_chunk.finish_reason == "tool_calls" and tool_call_acc:
+                response_chunk.delta_tool_calls = _finalize_tool_call_acc(tool_call_acc)
+
+            yield response_chunk
 
 
 class LangChainFramework:
+    def register_provider(self, name: str, provider_cls: Any) -> None:
+        from nemoguardrails.integrations.langchain.providers.providers import (
+            register_chat_provider as _register_chat,
+        )
+
+        _register_chat(name, provider_cls)
+
+    def register_llm_provider(self, name: str, provider_cls: Any) -> None:
+        from nemoguardrails.integrations.langchain.providers.providers import (
+            register_llm_provider as _register_llm,
+        )
+
+        _register_llm(name, provider_cls)
+
+    def get_provider_names(self) -> List[str]:
+        return sorted(set(self.get_chat_provider_names() + self.get_llm_provider_names()))
+
+    def get_chat_provider_names(self) -> List[str]:
+        from nemoguardrails.integrations.langchain.providers.providers import (
+            get_chat_provider_names as _get_chat,
+        )
+
+        return _get_chat()
+
+    def get_llm_provider_names(self) -> List[str]:
+        from nemoguardrails.integrations.langchain.providers.providers import (
+            get_llm_provider_names as _get_llm,
+        )
+
+        return _get_llm()
+
     def create_model(
         self,
         model_name: str,
@@ -321,6 +378,29 @@ def _extract_tool_calls(response: Any) -> Optional[List[ToolCall]]:
         )
         for tc in raw
     ]
+
+
+def _finalize_tool_call_acc(acc: Dict[int, Dict[str, Any]]) -> List[ToolCall]:
+    result = []
+    for idx in sorted(acc.keys()):
+        entry = acc[idx]
+        raw_args = entry["arguments_buffer"]
+        try:
+            args_dict = json.loads(raw_args) if raw_args else {}
+        except json.JSONDecodeError:
+            log.warning("Failed to parse tool call arguments for '%s' (index %d): %r", entry["name"], idx, raw_args)
+            args_dict = {}
+        result.append(
+            ToolCall(
+                id=entry["id"] or str(uuid.uuid4()),
+                type="function",
+                function=ToolCallFunction(
+                    name=entry["name"],
+                    arguments=args_dict,
+                ),
+            )
+        )
+    return result
 
 
 def _extract_usage(response: Any) -> Optional[UsageInfo]:

@@ -513,10 +513,7 @@ def main() -> None:
 def _print_summary(results: PerfTestResults) -> None:
     """Print a unified summary table across all suites."""
     console.print(f"\n[bold]{'=' * 60}[/bold]")
-    console.print(
-        f"[bold]Performance Report[/bold]  "
-        f"scale={results.scale}  sha={results.git_sha}  {results.timestamp}"
-    )
+    console.print(f"[bold]Performance Report[/bold]  scale={results.scale}  sha={results.git_sha}  {results.timestamp}")
     console.print(f"[bold]{'=' * 60}[/bold]")
 
     table = Table(title="Results Summary", show_lines=True)
@@ -534,31 +531,48 @@ def _print_summary(results: PerfTestResults) -> None:
         if suite.retain:
             r = suite.retain
             table.add_row(
-                suite.name, status,
-                "throughput", f"{r.throughput_items_per_sec} items/s",
-                "", "", "",
+                suite.name,
+                status,
+                "throughput",
+                f"{r.throughput_items_per_sec} items/s",
+                "",
+                "",
+                "",
             )
             table.add_row(
-                "", "",
-                "duration", f"{r.total_duration_seconds}s",
-                "", "", "",
+                "",
+                "",
+                "duration",
+                f"{r.total_duration_seconds}s",
+                "",
+                "",
+                "",
             )
             table.add_row(
-                "", "",
-                "items", str(r.total_items),
-                "", "", "",
+                "",
+                "",
+                "items",
+                str(r.total_items),
+                "",
+                "",
+                "",
             )
 
         if suite.recall:
             rc = suite.recall
             lat = rc.latency
             table.add_row(
-                suite.name, status,
-                "throughput", f"{rc.throughput_queries_per_sec} q/s",
-                "", "", "",
+                suite.name,
+                status,
+                "throughput",
+                f"{rc.throughput_queries_per_sec} q/s",
+                "",
+                "",
+                "",
             )
             table.add_row(
-                "", "",
+                "",
+                "",
                 "latency",
                 f"mean={lat.mean:.3f}s",
                 f"{lat.p50:.3f}s",
@@ -566,16 +580,20 @@ def _print_summary(results: PerfTestResults) -> None:
                 f"{lat.p99:.3f}s",
             )
             table.add_row(
-                "", "",
+                "",
+                "",
                 "bank/concurrency",
                 f"{rc.bank_size:,} / {rc.concurrency}",
-                "", "", "",
+                "",
+                "",
+                "",
             )
             # Phase breakdown — top 5 by mean
             sorted_phases = sorted(rc.phase_timings.items(), key=lambda x: x[1].mean, reverse=True)
             for phase_name, ps in sorted_phases[:5]:
                 table.add_row(
-                    "", "",
+                    "",
+                    "",
                     f"  {phase_name}",
                     f"mean={ps.mean:.3f}s",
                     f"{ps.p50:.3f}s",

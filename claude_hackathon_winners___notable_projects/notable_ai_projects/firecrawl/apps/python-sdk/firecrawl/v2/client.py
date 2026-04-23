@@ -134,6 +134,7 @@ class FirecrawlClient:
         proxy: Optional[str] = None,
         max_age: Optional[int] = None,
         store_in_cache: Optional[bool] = None,
+        lockdown: Optional[bool] = None,
         profile: Optional[Dict[str, Any]] = None,
         integration: Optional[str] = None,
     ) -> Document:
@@ -160,6 +161,7 @@ class FirecrawlClient:
             proxy: Proxy to use
             max_age: Maximum age of the cache
             store_in_cache: Whether to store the result in the cache
+            lockdown: Serve only previously cached results; never make outbound requests. Returns 404 SCRAPE_LOCKDOWN_CACHE_MISS on cache miss.
             profile: Browser profile for persistent state (e.g. {"name": "my-profile", "saveChanges": True})
         Returns:
             Document
@@ -185,10 +187,11 @@ class FirecrawlClient:
                 proxy=proxy,
                 max_age=max_age,
                 store_in_cache=store_in_cache,
+                lockdown=lockdown,
                 profile=profile,
                 integration=integration,
             ).items() if v is not None}
-        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, profile, integration]) else None
+        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, lockdown, profile, integration]) else None
         return scrape_module.scrape(self.http_client, url, options)
 
     def interact(
@@ -811,6 +814,7 @@ class FirecrawlClient:
         proxy: Optional[str] = None,
         max_age: Optional[int] = None,
         store_in_cache: Optional[bool] = None,
+        lockdown: Optional[bool] = None,
         webhook: Optional[Union[str, WebhookConfig]] = None,
         append_to_id: Optional[str] = None,
         ignore_invalid_urls: Optional[bool] = None,
@@ -831,7 +835,7 @@ class FirecrawlClient:
             timeout: Per-request timeout in milliseconds
             wait_for: Wait condition in milliseconds
             mobile: Emulate mobile viewport
-            parsers: Parser list (e.g., ["pdf"]) 
+            parsers: Parser list (e.g., ["pdf"])
             actions: Browser actions to perform
             location: Location settings
             skip_tls_verification: Skip TLS verification
@@ -842,6 +846,7 @@ class FirecrawlClient:
             proxy: Proxy setting
             max_age: Cache max age
             store_in_cache: Whether to store results in cache
+            lockdown: Serve only previously cached results; never make outbound requests.
             webhook: Webhook configuration
             append_to_id: Append to an existing batch job
             ignore_invalid_urls: Skip invalid URLs without failing
@@ -874,8 +879,9 @@ class FirecrawlClient:
                 proxy=proxy,
                 max_age=max_age,
                 store_in_cache=store_in_cache,
+                lockdown=lockdown,
             ).items() if v is not None}
-        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache]) else None
+        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, lockdown]) else None
 
         return batch_module.start_batch_scrape(
             self.http_client,
@@ -1224,6 +1230,7 @@ class FirecrawlClient:
         proxy: Optional[str] = None,
         max_age: Optional[int] = None,
         store_in_cache: Optional[bool] = None,
+        lockdown: Optional[bool] = None,
         webhook: Optional[Union[str, WebhookConfig]] = None,
         append_to_id: Optional[str] = None,
         ignore_invalid_urls: Optional[bool] = None,
@@ -1258,8 +1265,9 @@ class FirecrawlClient:
                 proxy=proxy,
                 max_age=max_age,
                 store_in_cache=store_in_cache,
+                lockdown=lockdown,
             ).items() if v is not None}
-        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache]) else None
+        ) if any(v is not None for v in [formats, headers, include_tags, exclude_tags, only_main_content, timeout, wait_for, mobile, parsers, actions, location, skip_tls_verification, remove_base64_images, fast_mode, use_mock, block_ads, proxy, max_age, store_in_cache, lockdown]) else None
 
         return batch_module.batch_scrape(
             self.http_client,

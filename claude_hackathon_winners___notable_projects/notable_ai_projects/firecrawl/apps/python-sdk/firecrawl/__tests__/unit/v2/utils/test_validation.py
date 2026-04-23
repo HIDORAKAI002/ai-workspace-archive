@@ -248,13 +248,14 @@ class TestPrepareScrapeOptions:
             use_mock="test-mock",
             block_ads=False,
             store_in_cache=False,
+            lockdown=True,
             max_age=7200000,  # 2 hours
             actions=[screenshot_action],
             parsers=["pdf"]
         )
-        
+
         result = prepare_scrape_options(options)
-        
+
         # Check new field conversions
         assert "fastMode" in result
         assert result["fastMode"] is True
@@ -264,6 +265,8 @@ class TestPrepareScrapeOptions:
         assert result["blockAds"] is False
         assert "storeInCache" in result
         assert result["storeInCache"] is False
+        assert "lockdown" in result
+        assert result["lockdown"] is True
         assert "maxAge" in result
         assert result["maxAge"] == 7200000
         

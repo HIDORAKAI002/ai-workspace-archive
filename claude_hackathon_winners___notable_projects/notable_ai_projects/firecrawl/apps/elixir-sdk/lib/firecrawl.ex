@@ -913,12 +913,13 @@ defmodule Firecrawl do
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
+    lockdown: [type: :boolean, doc: "If true, only previously cached results are served and no outbound request is ever made. If nothing is cached for the URL, a 404 with error code SCRAPE_LOCKDOWN_CACHE_MISS is returned. Other options are accepted but ignored in lockdown mode."],
     timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 60000 (60 seconds). Maximum is 300000 (300 seconds)."],
     wait_for: [type: :integer, doc: "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load. This waiting time is in addition to Firecrawl's smart wait feature."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
 
-  @scrape_and_extract_from_url_key_mapping %{url: "url", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
+  @scrape_and_extract_from_url_key_mapping %{url: "url", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
 
   @doc """
   Scrape a single URL and optionally extract information using an LLM
@@ -977,12 +978,13 @@ defmodule Firecrawl do
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
+    lockdown: [type: :boolean, doc: "If true, only previously cached results are served and no outbound request is ever made. If nothing is cached for the URL, a 404 with error code SCRAPE_LOCKDOWN_CACHE_MISS is returned. Other options are accepted but ignored in lockdown mode."],
     timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Minimum is 1000 (1 second). Default is 60000 (60 seconds). Maximum is 300000 (300 seconds)."],
     wait_for: [type: :integer, doc: "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load. This waiting time is in addition to Firecrawl's smart wait feature."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this batch scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
 
-  @scrape_and_extract_from_urls_key_mapping %{ignore_invalid_urls: "ignoreInvalidURLs", max_concurrency: "maxConcurrency", urls: "urls", webhook: "webhook", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
+  @scrape_and_extract_from_urls_key_mapping %{ignore_invalid_urls: "ignoreInvalidURLs", max_concurrency: "maxConcurrency", urls: "urls", webhook: "webhook", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
 
   @doc """
   Scrape multiple URLs and optionally extract information using an LLM

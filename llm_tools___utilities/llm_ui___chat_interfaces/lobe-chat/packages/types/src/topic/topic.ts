@@ -159,6 +159,7 @@ export interface CreateTopicParams {
   messages?: string[];
   sessionId?: string | null;
   title: string;
+  trigger?: string;
 }
 
 export interface QueryTopicParams {
@@ -170,12 +171,18 @@ export interface QueryTopicParams {
   excludeStatuses?: string[];
   /**
    * Exclude topics by trigger types (e.g. ['cron'])
+   * Ignored when includeTriggers is provided.
    */
   excludeTriggers?: string[];
   /**
    * Group ID to filter topics by
    */
   groupId?: string | null;
+  /**
+   * Include only topics whose trigger matches one of these values.
+   * Takes precedence over excludeTriggers when provided.
+   */
+  includeTriggers?: string[];
   /**
    * Whether this is an inbox agent query.
    * When true, also includes legacy inbox topics (sessionId IS NULL AND groupId IS NULL AND agentId IS NULL)

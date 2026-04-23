@@ -17,6 +17,17 @@ const agentPageSize = (s: GlobalState): number => s.status.agentPageSize || 5;
 const recentPageSize = (s: GlobalState): number => s.status.recentPageSize || 5;
 
 const pagePageSize = (s: GlobalState): number => s.status.pagePageSize || 20;
+const taskListViewOptions = (s: GlobalState) =>
+  s.status.taskListViewOptions || {
+    groupBy: 'status',
+    orderBy: 'updatedAt',
+    orderCompletedByRecency: true,
+    orderDirection: 'asc',
+    subGroupBy: 'none',
+  };
+
+const taskCreateInlineCollapsed = (s: GlobalState): boolean =>
+  s.status.taskCreateInlineCollapsed ?? false;
 
 export const DEFAULT_HIDDEN_SECTIONS: string[] = ['memory'];
 
@@ -235,6 +246,8 @@ export const systemStatusSelectors = {
   pagePageSize,
   portalWidth,
   recentPageSize,
+  taskCreateInlineCollapsed,
+  taskListViewOptions,
   sidebarItems,
   sessionGroupKeys,
   showChatHeader,

@@ -29,6 +29,7 @@ import {
   restoreDetachedTaskLifecycleRuntimeRegistration,
 } from "../tasks/detached-task-runtime-state.js";
 import { resolveUserPath } from "../utils.js";
+import { resolvePluginActivationSourceConfig } from "./activation-source-config.js";
 import { buildPluginApi } from "./api-builder.js";
 import { inspectBundleMcpRuntimeSupport } from "./bundle-mcp.js";
 import {
@@ -277,6 +278,7 @@ type PluginRegistrySnapshot = {
     webFetchProviders: PluginRegistry["webFetchProviders"];
     webSearchProviders: PluginRegistry["webSearchProviders"];
     embeddedExtensionFactories: PluginRegistry["embeddedExtensionFactories"];
+    codexAppServerExtensionFactories: PluginRegistry["codexAppServerExtensionFactories"];
     memoryEmbeddingProviders: PluginRegistry["memoryEmbeddingProviders"];
     agentHarnesses: PluginRegistry["agentHarnesses"];
     httpRoutes: PluginRegistry["httpRoutes"];
@@ -314,6 +316,7 @@ function snapshotPluginRegistry(registry: PluginRegistry): PluginRegistrySnapsho
       webFetchProviders: [...registry.webFetchProviders],
       webSearchProviders: [...registry.webSearchProviders],
       embeddedExtensionFactories: [...registry.embeddedExtensionFactories],
+      codexAppServerExtensionFactories: [...registry.codexAppServerExtensionFactories],
       memoryEmbeddingProviders: [...registry.memoryEmbeddingProviders],
       agentHarnesses: [...registry.agentHarnesses],
       httpRoutes: [...registry.httpRoutes],
@@ -350,6 +353,7 @@ function restorePluginRegistry(registry: PluginRegistry, snapshot: PluginRegistr
   registry.webFetchProviders = snapshot.arrays.webFetchProviders;
   registry.webSearchProviders = snapshot.arrays.webSearchProviders;
   registry.embeddedExtensionFactories = snapshot.arrays.embeddedExtensionFactories;
+  registry.codexAppServerExtensionFactories = snapshot.arrays.codexAppServerExtensionFactories;
   registry.memoryEmbeddingProviders = snapshot.arrays.memoryEmbeddingProviders;
   registry.agentHarnesses = snapshot.arrays.agentHarnesses;
   registry.httpRoutes = snapshot.arrays.httpRoutes;
@@ -833,10 +837,17 @@ function hasExplicitCompatibilityInputs(options: PluginLoadOptions): boolean {
 function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
   const env = options.env ?? process.env;
   const cfg = applyTestPluginDefaults(options.config ?? {}, env);
-  const activationSourceConfig = options.activationSourceConfig ?? options.config ?? {};
+  const activationSourceConfig = resolvePluginActivationSourceConfig({
+    config: options.config,
+    activationSourceConfig: options.activationSourceConfig,
+  });
   const normalized = normalizePluginsConfig(cfg.plugins);
   const activationSource = createPluginActivationSource({
     config: activationSourceConfig,
+  });
+  const trustNormalized = mergeTrustPluginConfigFromActivationSource({
+    normalized,
+    activationSource,
   });
   const onlyPluginIds = normalizePluginIdScope(options.onlyPluginIds);
   const includeSetupOnlyChannelPlugins = options.includeSetupOnlyChannelPlugins === true;
@@ -848,7 +859,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
   const coreGatewayMethodNames = Object.keys(options.coreGatewayHandlers ?? {}).toSorted();
   const cacheKey = buildCacheKey({
     workspaceDir: options.workspaceDir,
-    plugins: normalized,
+    plugins: trustNormalized,
     activationMetadataKey: buildActivationMetadataHash({
       activationSource,
       autoEnabledReasons: options.autoEnabledReasons ?? {},
@@ -868,7 +879,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
   return {
     env,
     cfg,
-    normalized,
+    normalized: trustNormalized,
     activationSourceConfig,
     activationSource,
     autoEnabledReasons: options.autoEnabledReasons ?? {},
@@ -882,6 +893,44 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
     runtimeSubagentMode,
     cacheKey,
   };
+}
+
+function mergeTrustPluginConfigFromActivationSource(params: {
+  normalized: NormalizedPluginsConfig;
+  activationSource: PluginActivationConfigSource;
+}): NormalizedPluginsConfig {
+  const source = params.activationSource.plugins;
+  const allow = mergePluginTrustList(params.normalized.allow, source.allow);
+  const deny = mergePluginTrustList(params.normalized.deny, source.deny);
+  const loadPaths = mergePluginTrustList(params.normalized.loadPaths, source.loadPaths);
+  if (
+    allow === params.normalized.allow &&
+    deny === params.normalized.deny &&
+    loadPaths === params.normalized.loadPaths
+  ) {
+    return params.normalized;
+  }
+  return {
+    ...params.normalized,
+    allow,
+    deny,
+    loadPaths,
+  };
+}
+
+function mergePluginTrustList(runtimeList: string[], sourceList: readonly string[]): string[] {
+  if (sourceList.length === 0) {
+    return runtimeList;
+  }
+  const merged = [...runtimeList];
+  const seen = new Set(merged);
+  for (const entry of sourceList) {
+    if (!seen.has(entry)) {
+      merged.push(entry);
+      seen.add(entry);
+    }
+  }
+  return merged.length === runtimeList.length ? runtimeList : merged;
 }
 
 function getCompatibleActivePluginRegistry(

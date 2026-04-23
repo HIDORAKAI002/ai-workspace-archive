@@ -563,6 +563,134 @@ async def test_get_operation_status_include_payload(memory, request_context):
 
 
 @pytest.mark.asyncio
+async def test_operation_status_exposes_retry_count_and_next_retry_at(memory, request_context):
+    """get_operation_status and list_operations return retry_count and next_retry_at.
+
+    Consumers need these to distinguish a freshly-queued pending task from
+    one that's parked for a future retry (e.g. because an extension raised
+    DeferOperation). Without them, "pending" is ambiguous and callers can't
+    render a helpful "deferred until X" state.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    bank_id = "test_retry_fields"
+    result = await memory.submit_async_retain(
+        bank_id=bank_id,
+        contents=[{"content": "retry-fields test item"}],
+        request_context=request_context,
+    )
+    await asyncio.sleep(0.1)
+    parent_id = result["operation_id"]
+    child_id = None
+
+    # Get the child op (the batch_retain parent holds a single child in the
+    # sync/simplified path used by SyncTaskBackend tests).
+    parent_status = await memory.get_operation_status(
+        bank_id=bank_id, operation_id=parent_id, request_context=request_context,
+    )
+    assert "retry_count" in parent_status
+    assert "next_retry_at" in parent_status
+    assert parent_status["retry_count"] == 0
+    # Completed tasks should have next_retry_at cleared on the row (or the
+    # status field doesn't include it meaningfully), so we don't assert a
+    # specific value here — only that the key is present.
+    if parent_status.get("child_operations"):
+        child_id = parent_status["child_operations"][0]["operation_id"]
+
+    # list_operations also exposes both fields
+    listed = await memory.list_operations(
+        bank_id=bank_id, request_context=request_context, limit=10, offset=0,
+    )
+    assert listed["operations"], listed
+    for op in listed["operations"]:
+        assert "retry_count" in op
+        assert "next_retry_at" in op
+        assert isinstance(op["retry_count"], int)
+
+    # Simulate a deferred op: set next_retry_at to 15 min in the future for
+    # the child row directly in the DB, then fetch via the API and confirm
+    # the value round-trips as an ISO-8601 string.
+    if child_id:
+        pool = await memory._get_pool()
+        future = datetime.now(timezone.utc) + timedelta(minutes=15)
+        await pool.execute(
+            "UPDATE async_operations SET status = 'pending', next_retry_at = $1, retry_count = 2 WHERE operation_id = $2",
+            future,
+            uuid.UUID(child_id),
+        )
+        fetched = await memory.get_operation_status(
+            bank_id=bank_id, operation_id=child_id, request_context=request_context,
+        )
+        assert fetched["retry_count"] == 2
+        assert fetched["next_retry_at"] is not None
+        # Round-trip tolerance: within 1 second.
+        parsed = datetime.fromisoformat(fetched["next_retry_at"])
+        assert abs((parsed - future).total_seconds()) < 1.0
+
+
+@pytest.mark.asyncio
+async def test_request_context_retry_count_propagated_to_validator(memory_no_llm_verify, request_context):
+    """_handle_batch_retain forwards the task's _retry_count as
+    RequestContext.retry_count, so validator extensions can compute
+    exponential backoff without querying async_operations themselves.
+    """
+    from hindsight_api.extensions import (
+        OperationValidatorExtension,
+        RecallContext,
+        ReflectContext,
+        RetainContext,
+        ValidationResult,
+    )
+
+    captured: dict[str, int] = {"retry_count": -1}
+
+    class CapturingValidator(OperationValidatorExtension):
+        def __init__(self):
+            super().__init__({})
+
+        async def validate_retain(self, ctx: RetainContext) -> ValidationResult:
+            captured["retry_count"] = ctx.request_context.retry_count
+            return ValidationResult.accept()
+
+        async def validate_recall(self, ctx: RecallContext) -> ValidationResult:
+            return ValidationResult.accept()
+
+        async def validate_reflect(self, ctx: ReflectContext) -> ValidationResult:
+            return ValidationResult.accept()
+
+    memory_no_llm_verify._operation_validator = CapturingValidator()
+
+    bank_id = f"test-retry-propagate-{uuid.uuid4().hex[:8]}"
+    pool = await memory_no_llm_verify._get_pool()
+    await _ensure_bank(pool, bank_id)
+
+    task_dict = {
+        "type": "batch_retain",
+        "bank_id": bank_id,
+        "contents": [{"content": "retry-propagate test"}],
+        "_tenant_id": "default",
+        "_retry_count": 3,  # simulate 3rd retry
+    }
+    await memory_no_llm_verify._handle_batch_retain(task_dict)
+
+    assert captured["retry_count"] == 3, (
+        "Validator should see retry_count=3 from task_dict['_retry_count']; "
+        f"got {captured['retry_count']}"
+    )
+
+    # Default (missing _retry_count key) must surface as 0, not raise.
+    captured["retry_count"] = -1
+    task_dict_no_retry = {
+        "type": "batch_retain",
+        "bank_id": bank_id,
+        "contents": [{"content": "retry-propagate default test"}],
+        "_tenant_id": "default",
+    }
+    await memory_no_llm_verify._handle_batch_retain(task_dict_no_retry)
+    assert captured["retry_count"] == 0
+
+
+@pytest.mark.asyncio
 async def test_submit_async_operation_leaves_claimable_row_when_submit_task_fails(memory):
     """Regression for the crash-window orphan bug fixed in #1091.
 

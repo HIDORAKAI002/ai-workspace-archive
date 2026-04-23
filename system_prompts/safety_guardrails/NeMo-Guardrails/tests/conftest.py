@@ -17,6 +17,11 @@ from unittest.mock import patch
 
 import pytest
 
+try:
+    import langchain_core  # noqa: F401
+except ImportError:
+    collect_ignore_glob = ["integrations/langchain/*.py", "integrations/langchain/**/*.py"]
+
 REASONING_TRACE_MOCK_PATH = "nemoguardrails.actions.llm.generation.get_and_clear_reasoning_trace_contextvar"
 
 

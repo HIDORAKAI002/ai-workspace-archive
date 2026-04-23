@@ -34,11 +34,15 @@ from nemoguardrails.guardrails.guardrails_types import (
     LLMMessage,
     LLMMessages,
     get_request_id,
-    reset_request_id,
-    set_new_request_id,
     truncate,
 )
 from nemoguardrails.guardrails.rails_manager import RailsManager
+from nemoguardrails.guardrails.telemetry import (
+    get_tracer,
+    is_tracing_enabled,
+    record_span_error,
+    traced_request,
+)
 from nemoguardrails.llm.taskmanager import LLMTaskManager
 from nemoguardrails.rails.llm.buffer import get_buffer_strategy
 from nemoguardrails.rails.llm.config import RailsConfig
@@ -64,7 +68,12 @@ class IORails:
         self._running = False
         self.config = config
 
-        self.engine_registry = EngineRegistry(config.models, config.rails.config)
+        # Create the OTEL tracer (if enabled in config).
+        # Pass to EngineRegistry and RailsManager to keep all spans consistent under parent
+        self._tracing_enabled = is_tracing_enabled(config.tracing)
+        self._tracer = get_tracer() if self._tracing_enabled else None
+
+        self.engine_registry = EngineRegistry(config.models, config.rails.config, tracer=self._tracer)
         self.rails_manager = RailsManager(
             engine_registry=self.engine_registry,
             task_manager=LLMTaskManager(config),
@@ -72,6 +81,7 @@ class IORails:
             output_flows=config.rails.output.flows,
             input_parallel=config.rails.input.parallel or False,
             output_parallel=config.rails.output.parallel or False,
+            tracer=self._tracer,
         )
 
         # Semaphore for streaming concurrency control / load shedding
@@ -119,6 +129,7 @@ class IORails:
         """Synchronous version of generate_async."""
 
         async def _run_sync_iorails():
+            """Spin up a short-lived IORails engine for one synchronous generate call."""
             async with IORails(self.config) as iorails_engine:
                 return await iorails_engine.generate_async(messages, **kwargs)
 
@@ -128,48 +139,51 @@ class IORails:
         """Run input rails, generation, and output rails. Return response if safe."""
         await self.start()
 
-        token = set_new_request_id()
-        req_id = get_request_id()
-        t0 = time.monotonic()
-        try:
-            log.info("[%s] generate_async called", req_id)
-            log.debug("[%s] generate_async messages=%s", req_id, truncate(messages))
+        tracer = self._tracer if self._tracing_enabled else None
+        with traced_request(tracer) as (_, req_id):
+            t0 = time.monotonic()
+            try:
+                return await self._do_generate(messages, req_id, **kwargs)
+            except Exception:
+                elapsed_ms = (time.monotonic() - t0) * 1000
+                log.error("[%s] generate_async failed time=%.1fms", req_id, elapsed_ms, exc_info=True)
+                raise
+            finally:
+                elapsed_ms = (time.monotonic() - t0) * 1000
+                log.info("[%s] generate_async completed time=%.1fms", req_id, elapsed_ms)
 
-            # Step 1: Check input rails
-            log.info("[%s] Running input rails", req_id)
-            input_result = await self.rails_manager.is_input_safe(messages)
-            if not input_result.is_safe:
-                log.info("[%s] Input blocked: %s", req_id, input_result.reason)
-                return {"role": "assistant", "content": REFUSAL_MESSAGE}
+    async def _do_generate(self, messages: LLMMessages, req_id: str, **kwargs) -> LLMMessage:
+        """Core pipeline: input rails -> LLM call -> output rails."""
+        log.info("[%s] generate_async called", req_id)
+        log.debug("[%s] generate_async messages=%s", req_id, truncate(messages))
 
-            # Step 2: Generate response from main LLM
-            log.info("[%s] Calling main LLM", req_id)
-            llm_kwargs = {}
-            options = kwargs.get("options")
-            if options and isinstance(options, dict):
-                options = GenerationOptions(**options)
-            if isinstance(options, GenerationOptions) and options.llm_params:
-                llm_kwargs = options.llm_params
+        # Step 1: Check input rails
+        log.info("[%s] Running input rails", req_id)
+        input_result = await self.rails_manager.is_input_safe(messages)
+        if not input_result.is_safe:
+            log.info("[%s] Input blocked: %s", req_id, input_result.reason)
+            return {"role": "assistant", "content": REFUSAL_MESSAGE}
 
-            response_text = await self.engine_registry.model_call("main", messages, **llm_kwargs)
-            log.debug("[%s] Main LLM response: %s", req_id, truncate(response_text))
+        # Step 2: Generate response from main LLM
+        log.info("[%s] Calling main LLM", req_id)
+        llm_kwargs = {}
+        options = kwargs.get("options")
+        if options and isinstance(options, dict):
+            options = GenerationOptions(**options)
+        if isinstance(options, GenerationOptions) and options.llm_params:
+            llm_kwargs = options.llm_params
 
-            # Step 3: Check output rails
-            log.info("[%s] Running output rails", req_id)
-            output_result = await self.rails_manager.is_output_safe(messages, response_text)
-            if not output_result.is_safe:
-                log.info("[%s] Output blocked: %s", req_id, output_result.reason)
-                return {"role": "assistant", "content": REFUSAL_MESSAGE}
+        response_text = await self.engine_registry.model_call("main", messages, **llm_kwargs)
+        log.debug("[%s] Main LLM response: %s", req_id, truncate(response_text))
 
-            return {"role": "assistant", "content": response_text}
-        except Exception:
-            elapsed_ms = (time.monotonic() - t0) * 1000
-            log.error("[%s] generate_async failed time=%.1fms", req_id, elapsed_ms, exc_info=True)
-            raise
-        finally:
-            elapsed_ms = (time.monotonic() - t0) * 1000
-            log.info("[%s] generate_async completed time=%.1fms", req_id, elapsed_ms)
-            reset_request_id(token)
+        # Step 3: Check output rails
+        log.info("[%s] Running output rails", req_id)
+        output_result = await self.rails_manager.is_output_safe(messages, response_text)
+        if not output_result.is_safe:
+            log.info("[%s] Output blocked: %s", req_id, output_result.reason)
+            return {"role": "assistant", "content": REFUSAL_MESSAGE}
+
+        return {"role": "assistant", "content": response_text}
 
     def _validate_streaming_with_output_rails(self) -> None:
         """Raise if output rails exist but streaming is not enabled for them."""
@@ -231,8 +245,14 @@ class IORails:
 
         streaming_handler = StreamingHandler(include_metadata=include_metadata)
 
-        async def _generation_task():
+        async def _generation_task(request_span):
             """Background task: input rails → stream LLM chunks → push to handler.
+
+            ``request_span`` is the IORails request span (or ``None`` when
+            tracing is disabled), captured by the caller from
+            ``traced_request`` and passed in explicitly — never fetched via
+            ``trace.get_current_span()`` which could return the host app's
+            ambient span and pollute unrelated traces.
 
             Inherits the request ID from the caller context via create_task().
             """
@@ -262,6 +282,10 @@ class IORails:
                     elapsed_ms,
                     exc_info=True,
                 )
+                # Mark the request span ERROR; record_span_error no-ops when
+                # request_span is None (tracing disabled), so no extra guard
+                # is needed and there's no ambient-context lookup to worry about.
+                record_span_error(request_span, e)
                 error_payload = json.dumps(
                     {"error": {"message": str(e), "type": _GENERATION_ERROR_TYPE, "code": "generation_failed"}}
                 )
@@ -284,47 +308,45 @@ class IORails:
                 raise asyncio.QueueFull("Streaming concurrency limit reached")
             await self._stream_semaphore.acquire()
 
-            token = set_new_request_id()
-            req_id = get_request_id()
-            t0 = time.monotonic()
+            tracer = self._tracer if self._tracing_enabled else None
             try:
-                log.info("[%s] stream_async called", req_id)
-                log.debug("[%s] stream_async messages=%s", req_id, truncate(messages))
-
-                task = asyncio.create_task(_generation_task())
-                try:
-                    # Determine base iterator: with or without output rails
-                    if self._has_streaming_output_rails:
-                        base_iterator = self._run_output_rails_in_streaming(
-                            streaming_handler=streaming_handler,
-                            messages=messages,
-                        )
-                    else:
-                        base_iterator = streaming_handler
-
-                    async for chunk in base_iterator:
-                        if chunk is not None:
-                            yield chunk
-                finally:
+                # traced_request is entered inside the async generator so the
+                # request span is the current OTEL context when create_task()
+                # below snapshots contextvars — that's what makes rail / LLM
+                # spans raised inside _generation_task attach as children.
+                with traced_request(tracer) as (request_span, req_id):
+                    t0 = time.monotonic()
                     try:
-                        if not task.done():
-                            task.cancel()
-                        with suppress(asyncio.CancelledError):
-                            await task
-                    finally:
+                        log.info("[%s] stream_async called", req_id)
+                        log.debug("[%s] stream_async messages=%s", req_id, truncate(messages))
+
+                        task = asyncio.create_task(_generation_task(request_span))
                         try:
-                            reset_request_id(token)
-                        except ValueError:
-                            # GeneratorExit triggers cleanup in a different context
-                            # where the token is no longer valid — safe to ignore.
-                            pass
-            except Exception:
-                elapsed_ms = (time.monotonic() - t0) * 1000
-                log.error("[%s] stream_async failed time=%.1fms", req_id, elapsed_ms, exc_info=True)
-                raise
+                            # Determine base iterator: with or without output rails
+                            if self._has_streaming_output_rails:
+                                base_iterator = self._run_output_rails_in_streaming(
+                                    streaming_handler=streaming_handler,
+                                    messages=messages,
+                                )
+                            else:
+                                base_iterator = streaming_handler
+
+                            async for chunk in base_iterator:
+                                if chunk is not None:
+                                    yield chunk
+                        finally:
+                            if not task.done():
+                                task.cancel()
+                            with suppress(asyncio.CancelledError):
+                                await task
+                    except Exception:
+                        elapsed_ms = (time.monotonic() - t0) * 1000
+                        log.error("[%s] stream_async failed time=%.1fms", req_id, elapsed_ms, exc_info=True)
+                        raise
+                    finally:
+                        elapsed_ms = (time.monotonic() - t0) * 1000
+                        log.info("[%s] stream_async completed time=%.1fms", req_id, elapsed_ms)
             finally:
-                elapsed_ms = (time.monotonic() - t0) * 1000
-                log.info("[%s] stream_async completed time=%.1fms", req_id, elapsed_ms)
                 self._stream_semaphore.release()
 
         return _wrapped_iterator()

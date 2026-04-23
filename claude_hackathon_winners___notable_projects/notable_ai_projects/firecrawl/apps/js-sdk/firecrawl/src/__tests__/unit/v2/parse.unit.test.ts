@@ -37,4 +37,22 @@ describe("v2.parse unit", () => {
       ),
     ).rejects.toThrow("parse does not support changeTracking format");
   });
+
+  test("rejects lockdown option before making requests", async () => {
+    const client = new FirecrawlClient({
+      apiKey: "test-key",
+      apiUrl: "https://localhost:3002",
+    });
+
+    await expect(
+      client.parse(
+        {
+          data: "<html><body>test</body></html>",
+          filename: "upload.html",
+          contentType: "text/html",
+        },
+        { formats: ["markdown"], lockdown: true } as any,
+      ),
+    ).rejects.toThrow("parse does not support cache/index options");
+  });
 });

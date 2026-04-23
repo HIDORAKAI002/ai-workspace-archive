@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from nemoguardrails.guardrails.engine_registry import EngineRegistry
 from nemoguardrails.guardrails.guardrails_types import (
@@ -33,8 +33,12 @@ from nemoguardrails.guardrails.guardrails_types import (
     get_request_id,
     truncate,
 )
+from nemoguardrails.guardrails.telemetry import action_span, record_span_error
 from nemoguardrails.llm.taskmanager import LLMTaskManager
 from nemoguardrails.rails.llm.config import _get_flow_model, _get_flow_name
+
+if TYPE_CHECKING:
+    from opentelemetry.trace import Tracer
 
 log = logging.getLogger(__name__)
 
@@ -58,10 +62,16 @@ class RailAction(ABC):
     fallback_model: Optional[str] = None
     requires_model: bool = True
 
-    def __init__(self, engine_registry: EngineRegistry, task_manager: LLMTaskManager) -> None:
-        """Store the engine registry and task manager for use by subclass hooks."""
+    def __init__(
+        self,
+        engine_registry: EngineRegistry,
+        task_manager: LLMTaskManager,
+        tracer: Optional["Tracer"] = None,
+    ) -> None:
+        """Store the engine registry, task manager, and optional tracer for subclass hooks."""
         self.engine_registry = engine_registry
         self.task_manager = task_manager
+        self._tracer = tracer
 
     async def run(
         self,
@@ -70,28 +80,31 @@ class RailAction(ABC):
         bot_response: Optional[str] = None,
     ) -> RailResult:
         """Execute the full rail pipeline and return a safety result."""
-        req_id = get_request_id()
-        base_flow = _get_flow_name(flow)
-        self._validate_flow_name(base_flow)
+        with action_span(self._tracer, self.action_name) as span:
+            req_id = get_request_id()
+            base_flow = _get_flow_name(flow)
+            self._validate_flow_name(base_flow)
 
-        model_type = self._get_model_type(flow)
-        if self.requires_model and not model_type:
-            raise RuntimeError(f"No $model= specified for '{base_flow}' and no fallback_model defined")
+            model_type = self._get_model_type(flow)
+            if self.requires_model and not model_type:
+                raise RuntimeError(f"No $model= specified for '{base_flow}' and no fallback_model defined")
 
-        extracted = self._extract_messages(messages, bot_response)
-        log.debug("[%s] %s extracted: %s", req_id, base_flow, truncate(extracted))
+            extracted = self._extract_messages(messages, bot_response)
+            log.debug("[%s] %s extracted: %s", req_id, base_flow, truncate(extracted))
 
-        prompt = self._create_prompt(model_type, extracted)
-        if prompt is not None:
-            log.debug("[%s] %s prompt: %s", req_id, base_flow, truncate(prompt))
+            prompt = self._create_prompt(model_type, extracted)
+            if prompt is not None:
+                log.debug("[%s] %s prompt: %s", req_id, base_flow, truncate(prompt))
 
-        try:
-            response = await self._get_response(model_type, prompt)
-            log.debug("[%s] %s response: %s", req_id, base_flow, truncate(response))
-            return self._parse_response(response)
-        except Exception as e:
-            log.error("[%s] %s failed: %s", req_id, base_flow, e)
-            return RailResult(is_safe=False, reason=f"{base_flow} error: {e}")
+            try:
+                response = await self._get_response(model_type, prompt)
+                log.debug("[%s] %s response: %s", req_id, base_flow, truncate(response))
+                return self._parse_response(response)
+            except Exception as e:
+                # Record an error on the OTEL span
+                record_span_error(span, e)
+                log.error("[%s] %s failed: %s", req_id, base_flow, e)
+                return RailResult(is_safe=False, reason=f"{base_flow} error: {e}")
 
     def _get_model_type(self, flow: str) -> Optional[str]:
         """Extract model from the flow's ``$model=`` parameter, falling back to :attr:`fallback_model`."""
