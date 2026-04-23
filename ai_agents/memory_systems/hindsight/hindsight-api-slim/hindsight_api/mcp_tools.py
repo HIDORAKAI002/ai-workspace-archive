@@ -45,7 +45,6 @@ _ALL_TOOLS: frozenset[str] = frozenset(
         "delete_directive",
         "list_memories",
         "get_memory",
-        "delete_memory",
         "list_documents",
         "get_document",
         "delete_document",
@@ -223,7 +222,6 @@ def register_mcp_tools(
         "delete_directive",
         "list_memories",
         "get_memory",
-        "delete_memory",
         "list_documents",
         "get_document",
         "delete_document",
@@ -291,9 +289,6 @@ def register_mcp_tools(
 
     if "get_memory" in tools_to_register:
         _register_get_memory(mcp, memory, config)
-
-    if "delete_memory" in tools_to_register:
-        _register_delete_memory(mcp, memory, config)
 
     # Document tools
     if "list_documents" in tools_to_register:
@@ -441,7 +436,6 @@ _AUDITABLE_MCP_TOOLS: frozenset[str] = frozenset(
         "refresh_mental_model",
         "create_directive",
         "delete_directive",
-        "delete_memory",
         "delete_document",
         "cancel_operation",
     }
@@ -2160,74 +2154,6 @@ def _register_get_memory(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCon
                 return {"error": str(e)}
             except Exception as e:
                 logger.error(f"Error getting memory: {e}", exc_info=True)
-                return {"error": str(e)}
-
-
-def _register_delete_memory(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
-    """Register the delete_memory tool."""
-
-    if config.include_bank_id_param:
-
-        @mcp.tool()
-        async def delete_memory(
-            memory_id: str,
-            bank_id: str | None = None,
-        ) -> str:
-            """
-            Delete a specific memory by ID.
-
-            Permanently removes a memory unit and its associated data.
-
-            Args:
-                memory_id: The ID of the memory to delete
-                bank_id: Optional bank (accepted for consistency, not used in deletion).
-            """
-            try:
-                target_bank = bank_id or config.bank_id_resolver()
-                if target_bank is None:
-                    return '{"error": "No bank_id configured"}'
-
-                result = await memory.delete_memory_unit(
-                    unit_id=memory_id,
-                    request_context=_get_request_context(config),
-                )
-                return json.dumps({"status": "deleted", "memory_id": memory_id, **result}, default=str)
-            except OperationValidationError as e:
-                logger.warning(f"Operation rejected: {e}")
-                return json.dumps({"error": str(e)})
-            except Exception as e:
-                logger.error(f"Error deleting memory: {e}", exc_info=True)
-                return f'{{"error": "{e}"}}'
-
-    else:
-
-        @mcp.tool()
-        async def delete_memory(
-            memory_id: str,
-        ) -> dict:
-            """
-            Delete a specific memory by ID.
-
-            Permanently removes a memory unit and its associated data.
-
-            Args:
-                memory_id: The ID of the memory to delete
-            """
-            try:
-                target_bank = config.bank_id_resolver()
-                if target_bank is None:
-                    return {"error": "No bank_id configured"}
-
-                result = await memory.delete_memory_unit(
-                    unit_id=memory_id,
-                    request_context=_get_request_context(config),
-                )
-                return {"status": "deleted", "memory_id": memory_id, **result}
-            except OperationValidationError as e:
-                logger.warning(f"Operation rejected: {e}")
-                return {"error": str(e)}
-            except Exception as e:
-                logger.error(f"Error deleting memory: {e}", exc_info=True)
                 return {"error": str(e)}
 
 

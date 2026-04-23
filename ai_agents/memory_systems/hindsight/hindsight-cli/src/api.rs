@@ -338,7 +338,7 @@ impl ApiClient {
             loop {
                 let response = self
                     .client
-                    .list_operations(agent_id, None, None, None, None, None)
+                    .list_operations(agent_id, None, None, None, None, None, None)
                     .await?;
                 let ops = response.into_inner();
 
@@ -351,7 +351,7 @@ impl ApiClient {
                             eprintln!("Operation {} status: {}", operation_id, operation.status);
                         }
                         match operation.status.as_str() {
-                            "pending" => {
+                            "pending" | "processing" => {
                                 // Still running, wait and poll again
                                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                             }
@@ -361,6 +361,9 @@ impl ApiClient {
                             }
                             "failed" => {
                                 return Ok((false, operation.error_message.clone()));
+                            }
+                            "cancelled" => {
+                                return Ok((false, Some("Operation was cancelled".to_string())));
                             }
                             _ => {
                                 // Unknown status, treat as failed
@@ -470,7 +473,7 @@ impl ApiClient {
         self.runtime.block_on(async {
             let response = self
                 .client
-                .list_operations(agent_id, None, None, None, None, None)
+                .list_operations(agent_id, None, None, None, None, None, None)
                 .await?;
             let value = response.into_inner();
             // Convert to JSON Value first, then parse into our type

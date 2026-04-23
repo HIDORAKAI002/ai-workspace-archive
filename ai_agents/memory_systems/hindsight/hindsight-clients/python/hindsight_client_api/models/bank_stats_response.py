@@ -36,7 +36,7 @@ class BankStatsResponse(BaseModel):
     links_breakdown: Dict[str, Dict[str, StrictInt]]
     pending_operations: StrictInt
     failed_operations: StrictInt
-    operations_by_status: Optional[Dict[str, StrictInt]] = Field(default=None, description="Async operations grouped by status (pending, in_progress, completed, failed, cancelled).")
+    operations_by_status: Optional[Dict[str, StrictInt]] = Field(default=None, description="Async operations grouped by status (pending, processing, completed, failed, cancelled).")
     last_consolidated_at: Optional[StrictStr] = None
     pending_consolidation: Optional[StrictInt] = Field(default=0, description="Number of memories not yet processed into observations")
     failed_consolidation: Optional[StrictInt] = Field(default=0, description="Number of source memories (world/experience) whose consolidation permanently failed and can be retried via the consolidation recovery endpoint.")

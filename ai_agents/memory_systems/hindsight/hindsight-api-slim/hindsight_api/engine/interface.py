@@ -290,25 +290,6 @@ class MemoryEngineInterface(ABC):
         ...
 
     @abstractmethod
-    async def delete_memory_unit(
-        self,
-        unit_id: str,
-        *,
-        request_context: "RequestContext",
-    ) -> dict[str, Any]:
-        """
-        Delete a specific memory unit.
-
-        Args:
-            unit_id: The memory unit ID.
-            request_context: Request context for authentication.
-
-        Returns:
-            Deletion result.
-        """
-        ...
-
-    @abstractmethod
     async def get_graph_data(
         self,
         bank_id: str,

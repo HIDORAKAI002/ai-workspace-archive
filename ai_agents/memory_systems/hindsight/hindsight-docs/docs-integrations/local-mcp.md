@@ -103,7 +103,6 @@ The local server exposes the full tool set (29 tools in multi-bank mode, 26 in s
 |------|-------------|
 | `list_memories` | Browse memories with filtering and pagination |
 | `get_memory` | Get a specific memory by ID |
-| `delete_memory` | Delete a specific memory |
 
 **Documents**
 

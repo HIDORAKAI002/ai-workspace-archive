@@ -137,7 +137,7 @@ const MCP_TOOL_GROUPS: { label: string; tools: string[] }[] = [
     ],
   },
   { label: "Directives", tools: ["list_directives", "create_directive", "delete_directive"] },
-  { label: "Memories", tools: ["list_memories", "get_memory", "delete_memory"] },
+  { label: "Memories", tools: ["list_memories", "get_memory"] },
   { label: "Documents", tools: ["list_documents", "get_document", "delete_document"] },
   { label: "Operations", tools: ["list_operations", "get_operation", "cancel_operation"] },
   { label: "Tags", tools: ["list_tags"] },

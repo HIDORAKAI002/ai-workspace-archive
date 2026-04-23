@@ -2584,10 +2584,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by status: pending, completed, or failed",
+              "description": "Filter by status: pending, processing, completed, failed, or cancelled",
               "title": "Status"
             },
-            "description": "Filter by status: pending, completed, or failed"
+            "description": "Filter by status: pending, processing, completed, failed, or cancelled"
           },
           {
             "name": "type",
@@ -2633,6 +2633,18 @@
               "title": "Offset"
             },
             "description": "Number of operations to skip"
+          },
+          {
+            "name": "exclude_parents",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Exclude parent batch operations from results",
+              "default": false,
+              "title": "Exclude Parents"
+            },
+            "description": "Exclude parent batch operations from results"
           },
           {
             "name": "authorization",
@@ -5255,7 +5267,7 @@
             },
             "type": "object",
             "title": "Operations By Status",
-            "description": "Async operations grouped by status (pending, in_progress, completed, failed, cancelled)."
+            "description": "Async operations grouped by status (pending, processing, completed, failed, cancelled)."
           },
           "last_consolidated_at": {
             "anyOf": [
@@ -8385,8 +8397,10 @@
             "type": "string",
             "enum": [
               "pending",
+              "processing",
               "completed",
               "failed",
+              "cancelled",
               "not_found"
             ],
             "title": "Status"

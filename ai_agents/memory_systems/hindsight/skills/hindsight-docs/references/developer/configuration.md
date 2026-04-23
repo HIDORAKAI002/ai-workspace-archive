@@ -1121,7 +1121,7 @@ export HINDSIGHT_API_MCP_ENABLED_TOOLS=recall
 export HINDSIGHT_API_MCP_ENABLED_TOOLS=recall,reflect
 ```
 
-Available tool names: `retain`, `recall`, `reflect`, `list_banks`, `create_bank`, `list_mental_models`, `get_mental_model`, `create_mental_model`, `update_mental_model`, `delete_mental_model`, `refresh_mental_model`, `list_directives`, `create_directive`, `delete_directive`, `list_memories`, `get_memory`, `delete_memory`, `list_documents`, `get_document`, `delete_document`, `list_operations`, `get_operation`, `cancel_operation`, `list_tags`, `get_bank`, `get_bank_stats`, `update_bank`, `delete_bank`, `clear_memories`.
+Available tool names: `retain`, `recall`, `reflect`, `list_banks`, `create_bank`, `list_mental_models`, `get_mental_model`, `create_mental_model`, `update_mental_model`, `delete_mental_model`, `refresh_mental_model`, `list_directives`, `create_directive`, `delete_directive`, `list_memories`, `get_memory`, `list_documents`, `get_document`, `delete_document`, `list_operations`, `get_operation`, `cancel_operation`, `list_tags`, `get_bank`, `get_bank_stats`, `update_bank`, `delete_bank`, `clear_memories`.
 
 This can also be overridden per bank via the [config API](#hierarchical-configuration):
 
@@ -1163,10 +1163,17 @@ Configuration for background task processing. By default, the API processes task
 | `HINDSIGHT_API_WORKER_MAX_RETRIES` | Max retries before marking task failed | `3` |
 | `HINDSIGHT_API_WORKER_HTTP_PORT` | HTTP port for worker metrics/health (worker CLI only) | `8889` |
 | `HINDSIGHT_API_WORKER_MAX_SLOTS` | Maximum concurrent tasks per worker (total across all operation types) | `10` |
-| `HINDSIGHT_API_WORKER_CONSOLIDATION_MAX_SLOTS` | Slots reserved for consolidation tasks within `WORKER_MAX_SLOTS` | `2` |
+| `HINDSIGHT_API_WORKER_CONSOLIDATION_MAX_SLOTS` | Reserved slots for consolidation tasks within `WORKER_MAX_SLOTS` (bank-serialization preserved) | `2` |
+| `HINDSIGHT_API_WORKER_RETAIN_MAX_SLOTS` | Reserved slots for retain tasks within `WORKER_MAX_SLOTS` | `0` |
+| `HINDSIGHT_API_WORKER_FILE_CONVERT_RETAIN_MAX_SLOTS` | Reserved slots for file_convert_retain tasks within `WORKER_MAX_SLOTS` | `0` |
+| `HINDSIGHT_API_WORKER_REFRESH_MENTAL_MODEL_MAX_SLOTS` | Reserved slots for refresh_mental_model tasks within `WORKER_MAX_SLOTS` | `0` |
 
-:::note Slot reservation
-`WORKER_CONSOLIDATION_MAX_SLOTS` is a **reservation within** `WORKER_MAX_SLOTS`, not an additive pool. With the defaults (`MAX_SLOTS=10`, `CONSOLIDATION_MAX_SLOTS=2`), retain and other non-consolidation tasks may use at most `10 - 2 = 8` concurrent slots, leaving 2 always available for consolidation. This prevents consolidation from being starved when retain throughput continuously saturates the queue. Set `CONSOLIDATION_MAX_SLOTS=0` to give all slots to non-consolidation work.
+:::note Slot reservations and shared pool
+Per-operation `*_MAX_SLOTS` values are **reservations within** `WORKER_MAX_SLOTS`, not additive pools. The sum of all reservations must not exceed `WORKER_MAX_SLOTS` (startup raises `ValueError` otherwise). Remaining capacity (`WORKER_MAX_SLOTS - sum of reservations`) forms a **shared pool** usable by any operation type on a first-come basis; operation types whose reserved capacity is full can also overflow into the shared pool. Consolidation's bank-serialization constraint (no two consolidation tasks for the same bank concurrently) is preserved regardless of which pool claims the slot.
+
+Example: `MAX_SLOTS=10, CONSOLIDATION=2, RETAIN=3, REFRESH_MENTAL_MODEL=2` → shared pool = `10 - (2+3+2) = 3`.
+
+With the defaults (`MAX_SLOTS=10`, `CONSOLIDATION_MAX_SLOTS=2`, all other reservations `0`), 2 slots are always reserved for consolidation and the remaining 8 form the shared pool for any operation type. Set `CONSOLIDATION_MAX_SLOTS=0` to release consolidation's reserved capacity into the shared pool.
 :::
 
 ### Performance Optimization

@@ -35,6 +35,7 @@ import {
   X,
   RotateCcw,
   Code,
+  Ban,
 } from "lucide-react";
 
 interface Operation {
@@ -130,6 +131,7 @@ export function BankOperationsView() {
           type: newTaskTypeFilter || undefined,
           limit,
           offset: newOffset,
+          excludeParents: true,
         });
         setOperations(opsData.operations || []);
         setTotalOperations(opsData.total || 0);
@@ -282,8 +284,10 @@ export function BankOperationsView() {
             {[
               { value: null, label: "All" },
               { value: "pending", label: "Pending" },
+              { value: "processing", label: "Processing" },
               { value: "completed", label: "Completed" },
               { value: "failed", label: "Failed" },
+              { value: "cancelled", label: "Cancelled" },
             ].map((filter) => (
               <button
                 key={filter.value ?? "all"}
@@ -335,6 +339,12 @@ export function BankOperationsView() {
                             pending
                           </span>
                         )}
+                        {op.status === "processing" && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            processing
+                          </span>
+                        )}
                         {op.status === "failed" && (
                           <span
                             className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
@@ -348,6 +358,12 @@ export function BankOperationsView() {
                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                             <CheckCircle className="w-3 h-3" />
                             completed
+                          </span>
+                        )}
+                        {op.status === "cancelled" && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20">
+                            <Ban className="w-3 h-3" />
+                            cancelled
                           </span>
                         )}
                       </TableCell>
@@ -371,7 +387,7 @@ export function BankOperationsView() {
                             {cancellingOpId === op.id ? "" : "Cancel"}
                           </Button>
                         )}
-                        {op.status === "failed" && (
+                        {(op.status === "failed" || op.status === "cancelled") && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -463,6 +479,12 @@ export function BankOperationsView() {
                             pending
                           </span>
                         )}
+                        {selectedOperation.status === "processing" && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            processing
+                          </span>
+                        )}
                         {selectedOperation.status === "failed" && (
                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
                             <AlertCircle className="w-3 h-3" />
@@ -473,6 +495,12 @@ export function BankOperationsView() {
                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                             <CheckCircle className="w-3 h-3" />
                             completed
+                          </span>
+                        )}
+                        {selectedOperation.status === "cancelled" && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20">
+                            <Ban className="w-3 h-3" />
+                            cancelled
                           </span>
                         )}
                       </div>
@@ -516,6 +544,47 @@ export function BankOperationsView() {
                       </div>
                     )}
                   </div>
+
+                  {/* Action buttons */}
+                  {(selectedOperation.status === "pending" ||
+                    selectedOperation.status === "failed" ||
+                    selectedOperation.status === "cancelled") && (
+                    <div className="flex gap-2">
+                      {selectedOperation.status === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => handleCancelOperation(selectedOperation.operation_id)}
+                          disabled={cancellingOpId === selectedOperation.operation_id}
+                        >
+                          {cancellingOpId === selectedOperation.operation_id ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <X className="w-3 h-3 mr-1" />
+                          )}
+                          Cancel
+                        </Button>
+                      )}
+                      {(selectedOperation.status === "failed" ||
+                        selectedOperation.status === "cancelled") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => handleRetryOperation(selectedOperation.operation_id)}
+                          disabled={retryingOpId === selectedOperation.operation_id}
+                        >
+                          {retryingOpId === selectedOperation.operation_id ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                          )}
+                          Retry
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Metadata */}
                   {selectedOperation.result_metadata &&
@@ -576,6 +645,12 @@ export function BankOperationsView() {
                                       pending
                                     </span>
                                   )}
+                                  {child.status === "processing" && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                      processing
+                                    </span>
+                                  )}
                                   {child.status === "failed" && (
                                     <span
                                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400"
@@ -589,6 +664,12 @@ export function BankOperationsView() {
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                                       <CheckCircle className="w-3 h-3" />
                                       completed
+                                    </span>
+                                  )}
+                                  {child.status === "cancelled" && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 dark:text-gray-400">
+                                      <Ban className="w-3 h-3" />
+                                      cancelled
                                     </span>
                                   )}
                                 </TableCell>

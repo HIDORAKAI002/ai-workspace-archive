@@ -1115,10 +1115,10 @@ class MemoryEngine(MemoryEngineInterface):
                 pool = await self._get_pool()
                 async with acquire_with_retry(pool) as conn:
                     result = await conn.fetchrow(
-                        f"SELECT operation_id FROM {fq_table('async_operations')} WHERE operation_id = $1",
+                        f"SELECT status FROM {fq_table('async_operations')} WHERE operation_id = $1",
                         uuid.UUID(operation_id),
                     )
-                    if not result:
+                    if not result or result["status"] == "cancelled":
                         # Operation was cancelled, skip processing
                         logger.info(f"Skipping cancelled operation: {operation_id}")
                         return
@@ -1418,19 +1418,19 @@ class MemoryEngine(MemoryEngineInterface):
             logger.error(f"Failed to delete async operation record {operation_id}: {e}")
 
     async def _check_op_alive(self, operation_id: str) -> bool:
-        """Return False if the operation row no longer exists (e.g. bank was deleted via CASCADE).
+        """Return False if the operation was cancelled or no longer exists (e.g. bank deleted via CASCADE).
 
         Long-running operations should call this at natural checkpoints (e.g. after each
-        committed batch) to detect bank deletion early and abort cleanly.
+        committed batch) to detect cancellation or bank deletion early and abort cleanly.
         """
         try:
             pool = await self._get_pool()
             async with acquire_with_retry(pool) as conn:
                 row = await conn.fetchrow(
-                    f"SELECT operation_id FROM {fq_table('async_operations')} WHERE operation_id = $1",
+                    f"SELECT status FROM {fq_table('async_operations')} WHERE operation_id = $1",
                     uuid.UUID(operation_id),
                 )
-                return row is not None
+                return row is not None and row["status"] != "cancelled"
         except Exception as e:
             logger.error(f"Failed to check operation liveness {operation_id}: {e}")
             return True  # Assume alive on DB error to avoid false-positive aborts
@@ -8002,16 +8002,18 @@ class MemoryEngine(MemoryEngineInterface):
         task_type: str | None = None,
         limit: int = 20,
         offset: int = 0,
+        exclude_parents: bool = False,
         request_context: "RequestContext",
     ) -> dict[str, Any]:
         """List async operations for a bank with optional filtering and pagination.
 
         Args:
             bank_id: Bank identifier
-            status: Optional status filter (pending, completed, failed)
+            status: Optional status filter (pending, processing, completed, failed, cancelled)
             task_type: Optional operation type filter (retain, consolidation, etc.)
             limit: Maximum number of operations to return (default 20)
             offset: Number of operations to skip (default 0)
+            exclude_parents: If True, exclude parent batch operations (is_parent=True in result_metadata)
             request_context: Request context for authentication
 
         Returns:
@@ -8031,16 +8033,15 @@ class MemoryEngine(MemoryEngineInterface):
             params: list[Any] = [bank_id]
 
             if status:
-                # Map API status to DB statuses (pending includes processing)
-                if status == "pending":
-                    where_conditions.append("status IN ('pending', 'processing')")
-                else:
-                    where_conditions.append(f"status = ${len(params) + 1}")
-                    params.append(status)
+                where_conditions.append(f"status = ${len(params) + 1}")
+                params.append(status)
 
             if task_type:
                 where_conditions.append(f"operation_type = ${len(params) + 1}")
                 params.append(task_type)
+
+            if exclude_parents:
+                where_conditions.append("NOT (result_metadata::jsonb @> '{\"is_parent\": true}'::jsonb)")
 
             where_clause = " AND ".join(where_conditions)
 
@@ -8070,10 +8071,6 @@ class MemoryEngine(MemoryEngineInterface):
             # Parent operations have their status updated when all children complete/fail
             operation_list = []
             for row in operations:
-                # Map DB status to API status (pending includes processing)
-                db_status = row["status"]
-                api_status = "pending" if db_status in ("pending", "processing") else db_status
-
                 result_metadata = json.loads(row["result_metadata"]) if row["result_metadata"] else {}
 
                 next_retry_at = row["next_retry_at"]
@@ -8084,7 +8081,7 @@ class MemoryEngine(MemoryEngineInterface):
                         "items_count": result_metadata.get("items_count", 0),
                         "document_id": None,
                         "created_at": row["created_at"].isoformat(),
-                        "status": api_status,
+                        "status": row["status"],
                         "error_message": row["error_message"],
                         "retry_count": row["retry_count"] or 0,
                         "next_retry_at": next_retry_at.isoformat() if next_retry_at else None,
@@ -8142,9 +8139,8 @@ class MemoryEngine(MemoryEngineInterface):
                 is_parent = result_metadata.get("is_parent", False)
                 task_payload = json.loads(row["task_payload"]) if include_payload and row["task_payload"] else None
 
-                # Use status from database (parent status is updated when all children complete/fail)
-                db_status = row["status"]
-                api_status = "pending" if db_status in ("pending", "processing") else db_status
+                # Status may be corrected by self-healing logic below for parent operations
+                api_status = row["status"]
 
                 # For parent operations, include child operations list
                 if is_parent:
@@ -8267,9 +8263,9 @@ class MemoryEngine(MemoryEngineInterface):
         op_uuid = uuid.UUID(operation_id)
 
         async with acquire_with_retry(pool) as conn:
-            # Check if operation exists and belongs to this memory bank
+            # Check if operation exists, belongs to this bank, and is in a cancellable state
             result = await conn.fetchrow(
-                f"SELECT bank_id FROM {fq_table('async_operations')} WHERE operation_id = $1 AND bank_id = $2",
+                f"SELECT bank_id, status FROM {fq_table('async_operations')} WHERE operation_id = $1 AND bank_id = $2",
                 op_uuid,
                 bank_id,
             )
@@ -8277,8 +8273,19 @@ class MemoryEngine(MemoryEngineInterface):
             if not result:
                 raise ValueError(f"Operation {operation_id} not found for bank {bank_id}")
 
-            # Delete the operation
-            await conn.execute(f"DELETE FROM {fq_table('async_operations')} WHERE operation_id = $1", op_uuid)
+            if result["status"] != "pending":
+                from hindsight_api.extensions import OperationValidationError
+
+                raise OperationValidationError(
+                    f"Operation {operation_id} cannot be cancelled: status is '{result['status']}', only 'pending' operations can be cancelled",
+                    409,
+                )
+
+            # Mark the operation as cancelled
+            await conn.execute(
+                f"UPDATE {fq_table('async_operations')} SET status = 'cancelled', updated_at = now() WHERE operation_id = $1",
+                op_uuid,
+            )
 
             return {
                 "success": True,
@@ -8317,9 +8324,9 @@ class MemoryEngine(MemoryEngineInterface):
             if not row:
                 raise ValueError(f"Operation {operation_id} not found for bank {bank_id}")
 
-            if row["status"] != "failed":
+            if row["status"] not in ("failed", "cancelled"):
                 raise OperationValidationError(
-                    f"Operation {operation_id} cannot be retried: status is '{row['status']}', expected 'failed'",
+                    f"Operation {operation_id} cannot be retried: status is '{row['status']}', expected 'failed' or 'cancelled'",
                     409,
                 )
 
