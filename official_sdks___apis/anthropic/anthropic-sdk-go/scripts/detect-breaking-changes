@@ -23,6 +23,9 @@ TEST_PATHS=(
 	betasessionresource_test.go
 	betavault_test.go
 	betavaultcredential_test.go
+	betamemorystore_test.go
+	betamemorystorememory_test.go
+	betamemorystorememoryversion_test.go
 	betafile_test.go
 	betaskill_test.go
 	betaskillversion_test.go
