@@ -10,7 +10,11 @@ import {
   type GoogleMeetMode,
   type GoogleMeetTransport,
 } from "./src/config.js";
-import { buildGoogleMeetPreflightReport, fetchGoogleMeetSpace } from "./src/meet.js";
+import {
+  buildGoogleMeetPreflightReport,
+  createGoogleMeetSpace,
+  fetchGoogleMeetSpace,
+} from "./src/meet.js";
 import { handleGoogleMeetNodeHostCommand } from "./src/node-host.js";
 import { resolveGoogleMeetAccessToken } from "./src/oauth.js";
 import { GoogleMeetRuntime } from "./src/runtime.js";
@@ -35,7 +39,7 @@ const googleMeetConfigSchema = {
     },
     defaultMode: {
       label: "Default Mode",
-      help: "Realtime voice is the default.",
+      help: "Realtime starts the duplex voice model loop. Transcribe joins/observes without the realtime talk-back bridge.",
     },
     "chrome.audioBackend": {
       label: "Chrome Audio Backend",
@@ -43,6 +47,23 @@ const googleMeetConfigSchema = {
     },
     "chrome.launch": { label: "Launch Chrome" },
     "chrome.browserProfile": { label: "Chrome Profile", advanced: true },
+    "chrome.guestName": {
+      label: "Guest Name",
+      help: "Used when Chrome lands on the signed-out Meet guest-name screen.",
+    },
+    "chrome.reuseExistingTab": {
+      label: "Reuse Existing Meet Tab",
+      help: "Avoids opening duplicate tabs for the same Meet URL.",
+    },
+    "chrome.autoJoin": {
+      label: "Auto Join Guest Screen",
+      help: "Best-effort guest-name fill and Join Now click through OpenClaw browser automation.",
+    },
+    "chrome.waitForInCallMs": {
+      label: "Wait For In-Call (ms)",
+      help: "Waits for Chrome to report that the Meet tab is in-call before the realtime intro speaks.",
+      advanced: true,
+    },
     "chrome.audioInputCommand": {
       label: "Audio Input Command",
       help: "Command that writes 8 kHz G.711 mu-law meeting audio to stdout.",
@@ -115,14 +136,30 @@ const googleMeetConfigSchema = {
 
 const GoogleMeetToolSchema = Type.Object({
   action: Type.String({
-    enum: ["join", "status", "setup_status", "resolve_space", "preflight", "leave", "speak"],
+    enum: [
+      "join",
+      "create",
+      "status",
+      "setup_status",
+      "resolve_space",
+      "preflight",
+      "leave",
+      "speak",
+      "test_speech",
+    ],
     description: "Google Meet action to run",
   }),
   url: Type.Optional(Type.String({ description: "Explicit https://meet.google.com/... URL" })),
   transport: Type.Optional(
     Type.String({ enum: ["chrome", "chrome-node", "twilio"], description: "Join transport" }),
   ),
-  mode: Type.Optional(Type.String({ enum: ["realtime", "transcribe"], description: "Join mode" })),
+  mode: Type.Optional(
+    Type.String({
+      enum: ["realtime", "transcribe"],
+      description:
+        "Join mode. realtime starts live listen/talk-back through the realtime voice model; transcribe joins without the realtime talk-back bridge.",
+    }),
+  ),
   dialInNumber: Type.Optional(Type.String({ description: "Meet dial-in number for Twilio" })),
   pin: Type.Optional(Type.String({ description: "Meet phone PIN for Twilio" })),
   dtmfSequence: Type.Optional(Type.String({ description: "Explicit DTMF sequence for Twilio" })),
@@ -181,6 +218,18 @@ async function resolveSpaceFromParams(config: GoogleMeetConfig, raw: Record<stri
   return { meeting, token, space };
 }
 
+async function createSpaceFromParams(config: GoogleMeetConfig, raw: Record<string, unknown>) {
+  const token = await resolveGoogleMeetAccessToken({
+    clientId: normalizeOptionalString(raw.clientId) ?? config.oauth.clientId,
+    clientSecret: normalizeOptionalString(raw.clientSecret) ?? config.oauth.clientSecret,
+    refreshToken: normalizeOptionalString(raw.refreshToken) ?? config.oauth.refreshToken,
+    accessToken: normalizeOptionalString(raw.accessToken) ?? config.oauth.accessToken,
+    expiresAt: typeof raw.expiresAt === "number" ? raw.expiresAt : config.oauth.expiresAt,
+  });
+  const result = await createGoogleMeetSpace({ accessToken: token.accessToken });
+  return { token, ...result };
+}
+
 export default definePluginEntry({
   id: "google-meet",
   name: "Google Meet",
@@ -221,7 +270,21 @@ export default definePluginEntry({
             dialInNumber: normalizeOptionalString(params?.dialInNumber),
             pin: normalizeOptionalString(params?.pin),
             dtmfSequence: normalizeOptionalString(params?.dtmfSequence),
+            message: normalizeOptionalString(params?.message),
           });
+          respond(true, result);
+        } catch (err) {
+          sendError(respond, err);
+        }
+      },
+    );
+
+    api.registerGatewayMethod(
+      "googlemeet.create",
+      async ({ params, respond }: GatewayRequestHandlerOptions) => {
+        try {
+          const raw = asParamRecord(params);
+          const { token: _token, ...result } = await createSpaceFromParams(config, raw);
           respond(true, result);
         } catch (err) {
           sendError(respond, err);
@@ -287,6 +350,27 @@ export default definePluginEntry({
       },
     );
 
+    api.registerGatewayMethod(
+      "googlemeet.testSpeech",
+      async ({ params, respond }: GatewayRequestHandlerOptions) => {
+        try {
+          const rt = await ensureRuntime();
+          const result = await rt.testSpeech({
+            url: resolveMeetingInput(config, params?.url),
+            transport: normalizeTransport(params?.transport),
+            mode: normalizeMode(params?.mode),
+            dialInNumber: normalizeOptionalString(params?.dialInNumber),
+            pin: normalizeOptionalString(params?.pin),
+            dtmfSequence: normalizeOptionalString(params?.dtmfSequence),
+            message: normalizeOptionalString(params?.message),
+          });
+          respond(true, result);
+        } catch (err) {
+          sendError(respond, err);
+        }
+      },
+    );
+
     api.registerTool({
       name: "google_meet",
       label: "Google Meet",
@@ -306,6 +390,25 @@ export default definePluginEntry({
                   dialInNumber: normalizeOptionalString(raw.dialInNumber),
                   pin: normalizeOptionalString(raw.pin),
                   dtmfSequence: normalizeOptionalString(raw.dtmfSequence),
+                  message: normalizeOptionalString(raw.message),
+                }),
+              );
+            }
+            case "create": {
+              const { token: _token, ...result } = await createSpaceFromParams(config, raw);
+              return json(result);
+            }
+            case "test_speech": {
+              const rt = await ensureRuntime();
+              return json(
+                await rt.testSpeech({
+                  url: resolveMeetingInput(config, raw.url),
+                  transport: normalizeTransport(raw.transport),
+                  mode: normalizeMode(raw.mode),
+                  dialInNumber: normalizeOptionalString(raw.dialInNumber),
+                  pin: normalizeOptionalString(raw.pin),
+                  dtmfSequence: normalizeOptionalString(raw.dtmfSequence),
+                  message: normalizeOptionalString(raw.message),
                 }),
               );
             }
