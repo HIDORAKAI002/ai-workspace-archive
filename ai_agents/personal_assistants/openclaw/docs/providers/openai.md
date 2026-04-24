@@ -23,21 +23,28 @@ supported once OpenAI enables GPT-5.5 on the public API; until then use an
 API-enabled model such as `openai/gpt-5.4` for `OPENAI_API_KEY` setups.
 </Note>
 
+<Note>
+Enabling the OpenAI plugin, or selecting an `openai-codex/*` model, does not
+enable the bundled Codex app-server plugin. OpenClaw enables that plugin only
+when you explicitly select the native Codex harness with
+`embeddedHarness.runtime: "codex"` or use a legacy `codex/*` model ref.
+</Note>
+
 ## OpenClaw feature coverage
 
-| OpenAI capability         | OpenClaw surface                                       | Status                                                 |
-| ------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| Chat / Responses          | `openai/<model>` model provider                        | Yes                                                    |
-| Codex subscription models | `openai-codex/<model>` with `openai-codex` OAuth       | Yes                                                    |
-| Codex app-server harness  | `openai/<model>` with `embeddedHarness.runtime: codex` | Yes                                                    |
-| Server-side web search    | Native OpenAI Responses tool                           | Yes, when web search is enabled and no provider pinned |
-| Images                    | `image_generate`                                       | Yes                                                    |
-| Videos                    | `video_generate`                                       | Yes                                                    |
-| Text-to-speech            | `messages.tts.provider: "openai"` / `tts`              | Yes                                                    |
-| Batch speech-to-text      | `tools.media.audio` / media understanding              | Yes                                                    |
-| Streaming speech-to-text  | Voice Call `streaming.provider: "openai"`              | Yes                                                    |
-| Realtime voice            | Voice Call `realtime.provider: "openai"`               | Yes                                                    |
-| Embeddings                | memory embedding provider                              | Yes                                                    |
+| OpenAI capability         | OpenClaw surface                                           | Status                                                 |
+| ------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
+| Chat / Responses          | `openai/<model>` model provider                            | Yes                                                    |
+| Codex subscription models | `openai-codex/<model>` with `openai-codex` OAuth           | Yes                                                    |
+| Codex app-server harness  | `openai/<model>` with `embeddedHarness.runtime: codex`     | Yes                                                    |
+| Server-side web search    | Native OpenAI Responses tool                               | Yes, when web search is enabled and no provider pinned |
+| Images                    | `image_generate`                                           | Yes                                                    |
+| Videos                    | `video_generate`                                           | Yes                                                    |
+| Text-to-speech            | `messages.tts.provider: "openai"` / `tts`                  | Yes                                                    |
+| Batch speech-to-text      | `tools.media.audio` / media understanding                  | Yes                                                    |
+| Streaming speech-to-text  | Voice Call `streaming.provider: "openai"`                  | Yes                                                    |
+| Realtime voice            | Voice Call `realtime.provider: "openai"` / Control UI Talk | Yes                                                    |
+| Embeddings                | memory embedding provider                                  | Yes                                                    |
 
 ## Getting started
 
@@ -141,6 +148,7 @@ Choose your preferred auth method and follow the setup steps.
     <Note>
     Keep using the `openai-codex` provider id for auth/profile commands. The
     `openai-codex/*` model prefix is also the explicit PI route for Codex OAuth.
+    It does not select or auto-enable the bundled Codex app-server harness.
     </Note>
 
     ### Config example
