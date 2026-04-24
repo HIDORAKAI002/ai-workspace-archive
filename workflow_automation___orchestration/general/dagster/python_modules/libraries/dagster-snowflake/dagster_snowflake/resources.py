@@ -20,7 +20,7 @@ from dagster._core.definitions.resource_definition import dagster_maintained_res
 from dagster._core.storage.event_log.sql_event_log import SqlDbConnection
 from dagster._utils.cached_method import cached_method
 from dagster.components.lib.sql_component.sql_client import SQLClient
-from pydantic import Field, model_validator, validator
+from pydantic import Field, field_validator, model_validator
 from snowflake import snowpark
 from snowflake.core import Root
 from snowflake.core.database import Database
@@ -278,7 +278,8 @@ class SnowflakeResource(ConfigurableResource, IAttachDifferentObjectToOpContext,
         ),
     )
 
-    @validator("paramstyle")
+    @field_validator("paramstyle")
+    @classmethod
     def validate_paramstyle(cls, v: str | None) -> str | None:
         valid_config = ["pyformat", "qmark", "numeric"]
         if v is not None and v not in valid_config:
@@ -288,7 +289,8 @@ class SnowflakeResource(ConfigurableResource, IAttachDifferentObjectToOpContext,
             )
         return v
 
-    @validator("connector")
+    @field_validator("connector")
+    @classmethod
     def validate_connector(cls, v: str | None) -> str | None:
         if v is not None and v not in ["sqlalchemy", "adbc"]:
             raise ValueError(

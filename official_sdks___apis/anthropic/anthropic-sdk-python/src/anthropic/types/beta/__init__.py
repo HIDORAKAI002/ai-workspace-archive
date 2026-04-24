@@ -82,6 +82,7 @@ from .beta_output_config_param import BetaOutputConfigParam as BetaOutputConfigP
 from .beta_text_citation_param import BetaTextCitationParam as BetaTextCitationParam
 from .beta_thinking_capability import BetaThinkingCapability as BetaThinkingCapability
 from .beta_user_location_param import BetaUserLocationParam as BetaUserLocationParam
+from .memory_store_list_params import MemoryStoreListParams as MemoryStoreListParams
 from .user_profile_list_params import UserProfileListParams as UserProfileListParams
 from .beta_advisor_result_block import BetaAdvisorResultBlock as BetaAdvisorResultBlock
 from .beta_managed_agents_agent import BetaManagedAgentsAgent as BetaManagedAgentsAgent
@@ -104,6 +105,8 @@ from .beta_server_tool_use_block import BetaServerToolUseBlock as BetaServerTool
 from .beta_thinking_config_param import BetaThinkingConfigParam as BetaThinkingConfigParam
 from .beta_tool_choice_any_param import BetaToolChoiceAnyParam as BetaToolChoiceAnyParam
 from .beta_web_fetch_block_param import BetaWebFetchBlockParam as BetaWebFetchBlockParam
+from .memory_store_create_params import MemoryStoreCreateParams as MemoryStoreCreateParams
+from .memory_store_update_params import MemoryStoreUpdateParams as MemoryStoreUpdateParams
 from .user_profile_create_params import UserProfileCreateParams as UserProfileCreateParams
 from .user_profile_update_params import UserProfileUpdateParams as UserProfileUpdateParams
 from .beta_base64_pdf_block_param import BetaBase64PDFBlockParam as BetaBase64PDFBlockParam
@@ -163,6 +166,7 @@ from .beta_context_management_response import BetaContextManagementResponse as B
 from .beta_environment_delete_response import BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse
 from .beta_managed_agents_agent_params import BetaManagedAgentsAgentParams as BetaManagedAgentsAgentParams
 from .beta_managed_agents_custom_skill import BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill
+from .beta_managed_agents_memory_store import BetaManagedAgentsMemoryStore as BetaManagedAgentsMemoryStore
 from .beta_managed_agents_model_config import BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig
 from .beta_managed_agents_skill_params import BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams
 from .beta_server_tool_caller_20260120 import BetaServerToolCaller20260120 as BetaServerToolCaller20260120
@@ -282,6 +286,9 @@ from .beta_clear_tool_uses_20250919_edit_param import (
 )
 from .beta_managed_agents_cache_creation_usage import (
     BetaManagedAgentsCacheCreationUsage as BetaManagedAgentsCacheCreationUsage,
+)
+from .beta_managed_agents_deleted_memory_store import (
+    BetaManagedAgentsDeletedMemoryStore as BetaManagedAgentsDeletedMemoryStore,
 )
 from .beta_managed_agents_file_resource_params import (
     BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
@@ -414,6 +421,9 @@ from .beta_citation_web_search_result_location_param import (
 )
 from .beta_managed_agents_mcp_toolset_default_config import (
     BetaManagedAgentsMCPToolsetDefaultConfig as BetaManagedAgentsMCPToolsetDefaultConfig,
+)
+from .beta_managed_agents_memory_store_resource_param import (
+    BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
 )
 from .beta_tool_search_tool_search_result_block_param import (
     BetaToolSearchToolSearchResultBlockParam as BetaToolSearchToolSearchResultBlockParam,

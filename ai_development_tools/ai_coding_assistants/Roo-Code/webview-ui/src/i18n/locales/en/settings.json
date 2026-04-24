@@ -56,9 +56,6 @@
 			"label": "Discovered a vulnerability?",
 			"link": "Follow our disclosure process"
 		},
-		"contact": {
-			"label": "Need to talk to us? Write"
-		},
 		"community": "Want tips or to just hang out with other Roo Code users? Join <redditLink>reddit.com/r/RooCode</redditLink> or <discordLink>discord.gg/roocode</discordLink>",
 		"contactAndCommunity": "Contact & Community",
 		"manageSettings": "Manage Settings",

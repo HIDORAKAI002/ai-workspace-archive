@@ -167,7 +167,7 @@ class TestMessages:
             top_k=5,
             top_p=0.7,
             user_profile_id="user_profile_id",
-            betas=["string"],
+            betas=["message-batches-2024-09-24"],
         )
         assert_matches_type(BetaMessage, message, path=["response"])
 
@@ -356,7 +356,7 @@ class TestMessages:
             top_k=5,
             top_p=0.7,
             user_profile_id="user_profile_id",
-            betas=["string"],
+            betas=["message-batches-2024-09-24"],
         )
         message_stream.response.close()
 
@@ -733,7 +733,7 @@ class TestAsyncMessages:
             top_k=5,
             top_p=0.7,
             user_profile_id="user_profile_id",
-            betas=["string"],
+            betas=["message-batches-2024-09-24"],
         )
         assert_matches_type(BetaMessage, message, path=["response"])
 
@@ -922,7 +922,7 @@ class TestAsyncMessages:
             top_k=5,
             top_p=0.7,
             user_profile_id="user_profile_id",
-            betas=["string"],
+            betas=["message-batches-2024-09-24"],
         )
         await message_stream.response.aclose()
 

@@ -76,6 +76,14 @@ from .sessions.sessions import (
     SessionsWithStreamingResponse,
     AsyncSessionsWithStreamingResponse,
 )
+from .memory_stores.memory_stores import (
+    MemoryStores,
+    AsyncMemoryStores,
+    MemoryStoresWithRawResponse,
+    AsyncMemoryStoresWithRawResponse,
+    MemoryStoresWithStreamingResponse,
+    AsyncMemoryStoresWithStreamingResponse,
+)
 
 __all__ = ["Beta", "AsyncBeta"]
 
@@ -104,6 +112,10 @@ class Beta(SyncAPIResource):
     @cached_property
     def vaults(self) -> Vaults:
         return Vaults(self._client)
+
+    @cached_property
+    def memory_stores(self) -> MemoryStores:
+        return MemoryStores(self._client)
 
     @cached_property
     def files(self) -> Files:
@@ -161,6 +173,10 @@ class AsyncBeta(AsyncAPIResource):
     @cached_property
     def vaults(self) -> AsyncVaults:
         return AsyncVaults(self._client)
+
+    @cached_property
+    def memory_stores(self) -> AsyncMemoryStores:
+        return AsyncMemoryStores(self._client)
 
     @cached_property
     def files(self) -> AsyncFiles:
@@ -223,6 +239,10 @@ class BetaWithRawResponse:
         return VaultsWithRawResponse(self._beta.vaults)
 
     @cached_property
+    def memory_stores(self) -> MemoryStoresWithRawResponse:
+        return MemoryStoresWithRawResponse(self._beta.memory_stores)
+
+    @cached_property
     def files(self) -> FilesWithRawResponse:
         return FilesWithRawResponse(self._beta.files)
 
@@ -262,6 +282,10 @@ class AsyncBetaWithRawResponse:
     @cached_property
     def vaults(self) -> AsyncVaultsWithRawResponse:
         return AsyncVaultsWithRawResponse(self._beta.vaults)
+
+    @cached_property
+    def memory_stores(self) -> AsyncMemoryStoresWithRawResponse:
+        return AsyncMemoryStoresWithRawResponse(self._beta.memory_stores)
 
     @cached_property
     def files(self) -> AsyncFilesWithRawResponse:
@@ -305,6 +329,10 @@ class BetaWithStreamingResponse:
         return VaultsWithStreamingResponse(self._beta.vaults)
 
     @cached_property
+    def memory_stores(self) -> MemoryStoresWithStreamingResponse:
+        return MemoryStoresWithStreamingResponse(self._beta.memory_stores)
+
+    @cached_property
     def files(self) -> FilesWithStreamingResponse:
         return FilesWithStreamingResponse(self._beta.files)
 
@@ -344,6 +372,10 @@ class AsyncBetaWithStreamingResponse:
     @cached_property
     def vaults(self) -> AsyncVaultsWithStreamingResponse:
         return AsyncVaultsWithStreamingResponse(self._beta.vaults)
+
+    @cached_property
+    def memory_stores(self) -> AsyncMemoryStoresWithStreamingResponse:
+        return AsyncMemoryStoresWithStreamingResponse(self._beta.memory_stores)
 
     @cached_property
     def files(self) -> AsyncFilesWithStreamingResponse:

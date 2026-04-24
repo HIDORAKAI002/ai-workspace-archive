@@ -533,13 +533,14 @@ async function scrapeURLLoopIter(
       checkMarkdown = engineResult.html?.trim() ?? "";
     } else {
       const requestId = meta.id || meta.internalOptions.crawlId;
+      const zeroDataRetention = meta.internalOptions.zeroDataRetention;
       checkMarkdown = await parseMarkdown(
         await htmlTransform(
           engineResult.html,
           meta.url,
           scrapeOptions.parse({ onlyMainContent: true }),
         ),
-        { logger: meta.logger, requestId },
+        { logger: meta.logger, requestId, zeroDataRetention },
       );
 
       if (checkMarkdown.trim().length === 0) {
@@ -549,7 +550,7 @@ async function scrapeURLLoopIter(
             meta.url,
             scrapeOptions.parse({ onlyMainContent: false }),
           ),
-          { logger: meta.logger, requestId },
+          { logger: meta.logger, requestId, zeroDataRetention },
         );
       }
     }

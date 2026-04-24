@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+import uuid
 from typing import cast
 from unittest import mock
 
@@ -345,22 +346,27 @@ class TestGCSComputeLogManager(TestComputeLogManager):
     @pytest.fixture(name="compute_log_manager")
     def compute_log_manager(self, gcs_bucket):
         with tempfile.TemporaryDirectory() as temp_dir:
-            yield GCSComputeLogManager(bucket=gcs_bucket, prefix="my_prefix", local_dir=temp_dir)
+            unique_prefix = f"my_prefix/{uuid.uuid4().hex}"
+            yield GCSComputeLogManager(bucket=gcs_bucket, prefix=unique_prefix, local_dir=temp_dir)
+
+    @pytest.fixture(name="shared_prefix")
+    def shared_prefix(self):
+        return f"my_prefix/{uuid.uuid4().hex}"
 
     # for streaming tests
     @pytest.fixture(name="write_manager")
-    def write_manager(self, gcs_bucket):
+    def write_manager(self, gcs_bucket, shared_prefix):
         # should be a different local directory as the read manager
         with tempfile.TemporaryDirectory() as temp_dir:
             yield GCSComputeLogManager(
                 bucket=gcs_bucket,
-                prefix="my_prefix",
+                prefix=shared_prefix,
                 local_dir=temp_dir,
                 upload_interval=1,
             )
 
     @pytest.fixture(name="read_manager")
-    def read_manager(self, gcs_bucket):
+    def read_manager(self, gcs_bucket, shared_prefix):
         # should be a different local directory as the write manager
         with tempfile.TemporaryDirectory() as temp_dir:
-            yield GCSComputeLogManager(bucket=gcs_bucket, prefix="my_prefix", local_dir=temp_dir)
+            yield GCSComputeLogManager(bucket=gcs_bucket, prefix=shared_prefix, local_dir=temp_dir)

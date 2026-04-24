@@ -56,9 +56,6 @@
 			"label": "Menemukan kerentanan?",
 			"link": "Ikuti proses pengungkapan kami"
 		},
-		"contact": {
-			"label": "Perlu bicara dengan kami? Tulis"
-		},
 		"community": "Ingin tips atau hanya nongkrong dengan pengguna Roo Code lainnya? Bergabunglah dengan <redditLink>reddit.com/r/RooCode</redditLink> atau <discordLink>discord.gg/roocode</discordLink>",
 		"contactAndCommunity": "Kontak & Komunitas",
 		"manageSettings": "Kelola Pengaturan",
