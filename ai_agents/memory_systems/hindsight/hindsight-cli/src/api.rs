@@ -650,7 +650,7 @@ impl ApiClient {
         self.runtime.block_on(async {
             let response = self
                 .client
-                .get_graph(bank_id, limit, type_filter, None, None, None, None)
+                .get_graph(bank_id, None, None, limit, None, None, None, type_filter, None)
                 .await?;
             Ok(response.into_inner())
         })

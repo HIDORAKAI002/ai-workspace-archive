@@ -73,9 +73,11 @@ local-ml = [
     "torch>=2.6.0", # CVE fix for remote code execution
     "einops>=0.8.2",
     "flashrank>=0.2.0",
-    # Apple Silicon local inference
-    "mlx>=0.31.0",
-    "mlx-lm>=0.31.1",
+    # Apple Silicon local inference — mlx publishes wheels only for
+    # macOS/Linux, not Windows, so gate on platform to let `uv sync
+    # --all-extras` resolve on win_amd64 runners.
+    "mlx>=0.31.0; sys_platform != 'win32'",
+    "mlx-lm>=0.31.1; sys_platform != 'win32'",
     "safetensors>=0.6.2",
 ]
 local-llm = [
@@ -84,7 +86,7 @@ local-llm = [
     "huggingface-hub>=0.20.0",
 ]
 embedded-db = [
-    "pg0-embedded>=0.11.0",
+    "pg0-embedded>=0.13.0",
 ]
 all = [
     "hindsight-api-slim[local-ml,embedded-db]",

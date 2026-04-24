@@ -225,7 +225,7 @@ function formatRelativeTime(ts: string | null): string {
 // displayed bucket by the browser's timezone. Append `Z` when the offset is
 // missing so we always anchor to UTC before converting to the user's locale.
 function parseBucketIso(iso: string): Date {
-  return new Date(/[+\-Z]$/.test(iso) || /[+\-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
+  return new Date(/[+Z-]$/.test(iso) || /[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
 }
 
 function formatBucketLabel(iso: string, trunc: string): string {

@@ -63,7 +63,17 @@ def daemonize():
     Fork the current process into a background daemon.
 
     Uses double-fork technique to properly detach from terminal.
+
+    On Windows there is no fork model: the spawning parent is expected to
+    detach us via `CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS` and to
+    redirect stdout/stderr to HINDSIGHT_API_DAEMON_LOG before exec. We
+    still ensure the log directory exists so that any file handlers set
+    up by the calling app have a valid target.
     """
+    if sys.platform == "win32":
+        DAEMON_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        return
+
     # First fork - detach from parent
     try:
         pid = os.fork()

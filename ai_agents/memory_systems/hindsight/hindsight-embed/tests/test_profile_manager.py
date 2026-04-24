@@ -33,7 +33,10 @@ def temp_hindsight_dir(tmp_path, monkeypatch):
 
     temp_home = tmp_path / "home"
     temp_home.mkdir()
+    # Both POSIX and Windows env vars — Path.home() on Windows uses
+    # USERPROFILE, not HOME.
     monkeypatch.setenv("HOME", str(temp_home))
+    monkeypatch.setenv("USERPROFILE", str(temp_home))
 
     temp_config = temp_home / ".hindsight"
     temp_config.mkdir()

@@ -7,6 +7,16 @@
 
 set -e
 
+# Windows (Git Bash / MSYS) ships `python` but not `python3`. Let callers
+# override explicitly via $PYTHON; otherwise probe for whichever is on PATH.
+if [ -z "${PYTHON:-}" ]; then
+    if command -v python3 >/dev/null 2>&1; then
+        PYTHON=python3
+    else
+        PYTHON=python
+    fi
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$(cd "$SCRIPT_DIR/../hindsight-api" && pwd)"
 
@@ -37,7 +47,7 @@ echo "Environment:"
 echo "  HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-not set}"
 echo "  HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-not set}"
 echo "  HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:+set (hidden)}"
-echo "  Python: $(python3 --version 2>&1)"
+echo "  Python: $("$PYTHON" --version 2>&1)"
 echo "  uv: $(uv --version 2>&1)"
 
 # Stop any existing daemon
@@ -49,13 +59,13 @@ sleep 1
 # Test 1: Retain (this should start the daemon)
 echo ""
 echo "Test 1: Retaining a memory (first call - daemon will start)..."
-START_TIME=$(python3 -c "import time; print(time.time())")
+START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e  # Temporarily disable exit on error to capture output
 OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory retain "$BANK_ID" "The user's favorite color is blue" 2>&1)
 EXIT_CODE=$?
 set -e
-END_TIME=$(python3 -c "import time; print(time.time())")
-DURATION=$(python3 -c "print(f'{$END_TIME - $START_TIME:.2f}')")
+END_TIME=$("$PYTHON" -c "import time; print(time.time())")
+DURATION=$("$PYTHON" -c "print(f'{$END_TIME - $START_TIME:.2f}')")
 echo "$OUTPUT"
 echo "Duration: ${DURATION}s"
 echo "Exit code: $EXIT_CODE"
@@ -94,13 +104,13 @@ echo "PASS: Memory retained successfully"
 # Test 2: Recall (daemon already running - should be faster)
 echo ""
 echo "Test 2: Recalling memories (daemon already running)..."
-START_TIME=$(python3 -c "import time; print(time.time())")
+START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
 OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory recall "$BANK_ID" "What is the user's favorite color?" 2>&1)
 EXIT_CODE=$?
 set -e
-END_TIME=$(python3 -c "import time; print(time.time())")
-DURATION=$(python3 -c "print(f'{$END_TIME - $START_TIME:.2f}')")
+END_TIME=$("$PYTHON" -c "import time; print(time.time())")
+DURATION=$("$PYTHON" -c "print(f'{$END_TIME - $START_TIME:.2f}')")
 echo "$OUTPUT"
 echo "Duration: ${DURATION}s"
 echo "Exit code: $EXIT_CODE"
@@ -117,13 +127,13 @@ echo "PASS: Memory recalled successfully"
 # Test 3: Retain with context (daemon should still be running)
 echo ""
 echo "Test 3: Retaining memory with context..."
-START_TIME=$(python3 -c "import time; print(time.time())")
+START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
 OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory retain "$BANK_ID" "User prefers Python over JavaScript" --context work 2>&1)
 EXIT_CODE=$?
 set -e
-END_TIME=$(python3 -c "import time; print(time.time())")
-DURATION=$(python3 -c "print(f'{$END_TIME - $START_TIME:.2f}')")
+END_TIME=$("$PYTHON" -c "import time; print(time.time())")
+DURATION=$("$PYTHON" -c "print(f'{$END_TIME - $START_TIME:.2f}')")
 echo "$OUTPUT"
 echo "Duration: ${DURATION}s"
 echo "Exit code: $EXIT_CODE"
@@ -140,13 +150,13 @@ echo "PASS: Memory with context retained successfully"
 # Test 4: Recall with JSON output
 echo ""
 echo "Test 4: Recalling with JSON output..."
-START_TIME=$(python3 -c "import time; print(time.time())")
+START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
 JSON_OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory recall "$BANK_ID" "programming preferences" -o json 2>&1)
 EXIT_CODE=$?
 set -e
-END_TIME=$(python3 -c "import time; print(time.time())")
-DURATION=$(python3 -c "print(f'{$END_TIME - $START_TIME:.2f}')")
+END_TIME=$("$PYTHON" -c "import time; print(time.time())")
+DURATION=$("$PYTHON" -c "print(f'{$END_TIME - $START_TIME:.2f}')")
 echo "$JSON_OUTPUT"
 echo "Duration: ${DURATION}s"
 echo "Exit code: $EXIT_CODE"
@@ -158,7 +168,7 @@ if ! echo "$JSON_OUTPUT" | grep -qi "python"; then
     echo "FAIL: Expected 'Python' in recall output"
     exit 1
 fi
-if ! echo "$JSON_OUTPUT" | python3 -c "import sys, json; json.load(sys.stdin)" 2>/dev/null; then
+if ! echo "$JSON_OUTPUT" | "$PYTHON" -c "import sys, json; json.load(sys.stdin)" 2>/dev/null; then
     echo "FAIL: Expected valid JSON output"
     exit 1
 fi

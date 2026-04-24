@@ -259,6 +259,15 @@ def get_commit_authors(commits: list[Commit]) -> dict[str, str]:
     return authors
 
 
+def _escape_mdx_text(text: str) -> str:
+    """Escape curly braces in prose so MDX v3 doesn't parse them as JSX expressions.
+
+    LLM summaries sometimes mention template variables like `{user_id}` verbatim;
+    unescaped, they make docusaurus SSG fail with `ReferenceError: user_id is not defined`.
+    """
+    return text.replace("{", "\\{").replace("}", "\\}")
+
+
 def _render_entry_meta(commit_id: str, commit_url: str, login: str | None) -> str:
     """Render inline metadata: · @author · commit-hash (GitHub-release style)."""
     sep = '<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span>'
@@ -370,7 +379,7 @@ def build_changelog_markdown(
                 commit_url = f"{GITHUB_COMMIT_URL}/{entry.commit_id}"
                 login = _lookup_author(entry.commit_id, authors) if authors else None
                 meta = _render_entry_meta(entry.commit_id, commit_url, login)
-                lines.append(f"- {entry.summary}{meta}")
+                lines.append(f"- {_escape_mdx_text(entry.summary)}{meta}")
             lines.append("")
 
     if not has_entries:

@@ -307,6 +307,7 @@ class TestStartDaemonSerialization:
     def test_second_start_sees_daemon_up_and_skips_spawn(self, tmp_path, monkeypatch):
         """If is_running() is true inside the lock, _start_daemon returns without spawning."""
         monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path))
         manager = DaemonEmbedManager()
 
         with (
@@ -331,6 +332,7 @@ class TestStartDaemonSerialization:
         from hindsight_embed.profile_manager import ProfilePaths
 
         monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path))
         manager = DaemonEmbedManager()
 
         log_path = tmp_path / "daemon.log"

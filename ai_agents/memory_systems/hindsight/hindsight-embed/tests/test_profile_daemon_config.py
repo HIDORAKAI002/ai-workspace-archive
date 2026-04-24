@@ -12,10 +12,16 @@ import pytest
 
 @pytest.fixture
 def temp_home(tmp_path, monkeypatch):
-    """Create a temporary home directory."""
+    """Create a temporary home directory.
+
+    Both POSIX and Windows env vars are set because `Path.home()` consults
+    USERPROFILE (then HOMEDRIVE+HOMEPATH) on Windows, not HOME — without
+    USERPROFILE override the tests would operate on the real user profile.
+    """
     temp_home = tmp_path / "home"
     temp_home.mkdir()
     monkeypatch.setenv("HOME", str(temp_home))
+    monkeypatch.setenv("USERPROFILE", str(temp_home))
     return temp_home
 
 
@@ -394,3 +400,96 @@ def test_macos_force_cpu_respects_explicit_override(temp_home, monkeypatch):
     env = captured["env"]
     assert env.get("HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU") == "0"
     assert env.get("HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU") == "0"
+
+
+def test_windows_popen_uses_detached_process_flags(temp_home, monkeypatch):
+    """
+    On Windows the daemon must be spawned with
+    `creationflags=DETACHED_PROCESS|CREATE_NEW_PROCESS_GROUP` (the POSIX
+    `start_new_session` doesn't exist there) AND stdout/stderr must be
+    redirected, since DETACHED_PROCESS leaves the child with no console.
+    """
+    import subprocess
+    from unittest.mock import MagicMock, patch
+
+    from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
+
+    # These subprocess constants only exist on Windows CPython; patch them in
+    # so the test passes on Linux/macOS CI too. Values from Win32 API docs.
+    monkeypatch.setattr(subprocess, "DETACHED_PROCESS", 0x00000008, raising=False)
+    monkeypatch.setattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200, raising=False)
+
+    manager = DaemonEmbedManager()
+    captured: dict = {}
+    popen_called = [False]
+
+    def fake_popen(cmd, env, **kwargs):
+        captured["kwargs"] = kwargs
+        popen_called[0] = True
+        proc = MagicMock()
+        proc.pid = 12345
+        return proc
+
+    def fake_is_running(profile=""):
+        return popen_called[0]
+
+    with (
+        patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
+        patch("hindsight_embed.daemon_embed_manager.time.sleep"),
+        patch.object(manager, "_clear_port", return_value=True),
+        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "is_running", side_effect=fake_is_running),
+        patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Windows"),
+    ):
+        manager._start_daemon(
+            config={"llm_provider": "openai", "llm_api_key": "sk-x", "llm_model": "gpt-4o-mini"},
+            profile="",
+        )
+
+    kwargs = captured["kwargs"]
+    expected_flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    assert kwargs.get("creationflags") == expected_flags
+    assert "start_new_session" not in kwargs
+    assert kwargs.get("stdin") is subprocess.DEVNULL
+    assert kwargs.get("stderr") is subprocess.STDOUT
+    # stdout must be a real file handle, not None — a None stdout under
+    # DETACHED_PROCESS crashes the child on first write.
+    assert kwargs.get("stdout") is not None
+
+
+def test_posix_popen_uses_start_new_session(temp_home, monkeypatch):
+    """Lock down POSIX behavior so a future refactor doesn't flip it."""
+    from unittest.mock import MagicMock, patch
+
+    from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
+
+    manager = DaemonEmbedManager()
+    captured: dict = {}
+    popen_called = [False]
+
+    def fake_popen(cmd, env, **kwargs):
+        captured["kwargs"] = kwargs
+        popen_called[0] = True
+        proc = MagicMock()
+        proc.pid = 12345
+        return proc
+
+    def fake_is_running(profile=""):
+        return popen_called[0]
+
+    with (
+        patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
+        patch("hindsight_embed.daemon_embed_manager.time.sleep"),
+        patch.object(manager, "_clear_port", return_value=True),
+        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "is_running", side_effect=fake_is_running),
+        patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Linux"),
+    ):
+        manager._start_daemon(
+            config={"llm_provider": "openai", "llm_api_key": "sk-x", "llm_model": "gpt-4o-mini"},
+            profile="",
+        )
+
+    kwargs = captured["kwargs"]
+    assert kwargs.get("start_new_session") is True
+    assert "creationflags" not in kwargs

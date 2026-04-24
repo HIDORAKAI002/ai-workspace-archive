@@ -107,3 +107,58 @@ def test_find_ui_command_uses_npx_yes_flag_for_published_control_plane(monkeypat
             "-y",
             "@vectorize-io/hindsight-control-plane@9.9.9",
         ]
+
+
+def test_find_api_command_prefers_sibling_binary_over_uvx(tmp_path, monkeypatch):
+    """
+    When hindsight-api is installed alongside hindsight-embed (e.g. via
+    `uv pip install hindsight-all`), _find_api_command should invoke that
+    binary directly rather than shelling out to uvx. uvx downloads a
+    standalone Python whose ABI won't match sibling C extensions compiled
+    for the host Python (regression for issue #1240, NixOS asyncpg failure).
+    """
+    package_root = tmp_path / "site-packages" / "hindsight_embed"
+    package_root.mkdir(parents=True)
+    fake_module = package_root / "daemon_embed_manager.py"
+    fake_module.write_text("")
+    sibling_bin = tmp_path / "site-packages" / "bin" / "hindsight-api"
+    sibling_bin.parent.mkdir(parents=True)
+    sibling_bin.touch()
+
+    manager = DaemonEmbedManager()
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.__file__", str(fake_module))
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
+
+    assert manager._find_api_command() == [str(sibling_bin)]
+
+
+def test_find_api_command_falls_back_to_uvx_when_no_sibling_binary(tmp_path, monkeypatch):
+    """Without a sibling binary or dev checkout, fall back to uvx."""
+    package_root = tmp_path / "site-packages" / "hindsight_embed"
+    package_root.mkdir(parents=True)
+    fake_module = package_root / "daemon_embed_manager.py"
+    fake_module.write_text("")
+
+    manager = DaemonEmbedManager()
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.__file__", str(fake_module))
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
+    monkeypatch.setenv("HINDSIGHT_EMBED_API_VERSION", "1.2.3")
+
+    assert manager._find_api_command() == ["uvx", "hindsight-api@1.2.3"]
+
+
+def test_find_api_command_windows_uses_exe_suffix(tmp_path, monkeypatch):
+    """On Windows, the sibling binary has a .exe suffix."""
+    package_root = tmp_path / "site-packages" / "hindsight_embed"
+    package_root.mkdir(parents=True)
+    fake_module = package_root / "daemon_embed_manager.py"
+    fake_module.write_text("")
+    sibling_bin = tmp_path / "site-packages" / "Scripts" / "hindsight-api.exe"
+    sibling_bin.parent.mkdir(parents=True)
+    sibling_bin.touch()
+
+    manager = DaemonEmbedManager()
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.__file__", str(fake_module))
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
+
+    assert manager._find_api_command() == [str(sibling_bin)]
