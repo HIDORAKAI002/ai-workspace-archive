@@ -2008,6 +2008,18 @@ export const openAiNativeModels = {
 export type OpenAiCodexModelId = keyof typeof openAiCodexModels
 export const openAiCodexDefaultModelId: OpenAiCodexModelId = "gpt-5.3-codex"
 export const openAiCodexModels = {
+	"gpt-5.5": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		apiFormat: ApiFormat.OPENAI_RESPONSES,
+		// Subscription-based: no per-token costs
+		inputPrice: 0,
+		outputPrice: 0,
+		description: "GPT-5.5 Codex: OpenAI's latest flagship coding model via ChatGPT subscription",
+	},
 	"gpt-5.4": {
 		maxTokens: 128_000,
 		contextWindow: 1_000_000,
@@ -4193,6 +4205,20 @@ export const sapAiCoreModels = {
 		description: sapAiCoreModelDescription,
 	},
 	"gpt-5.2": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		description: sapAiCoreModelDescription,
+	},
+	"gpt-5.4": {
+		maxTokens: 128_000,
+		contextWindow: 1_050_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		description: sapAiCoreModelDescription,
+	},
+	"gpt-5.4-nano": {
 		maxTokens: 128_000,
 		contextWindow: 400_000,
 		supportsImages: true,
