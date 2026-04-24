@@ -1,17 +1,11 @@
-"""Alert policy models for REST-like API."""
-
 from typing import Any
 
 from pydantic import BaseModel
 
 
-class AlertPolicyDocument(BaseModel):
-    """Alert policies as a document (YAML-compatible dict)."""
-
+class DgApiAlertPolicyDocument(BaseModel):
     alert_policies: list[dict[str, Any]]
 
 
-class AlertPolicySyncResult(BaseModel):
-    """Result of syncing alert policies."""
-
+class DgApiAlertPolicySyncResult(BaseModel):
     synced_policies: list[str]

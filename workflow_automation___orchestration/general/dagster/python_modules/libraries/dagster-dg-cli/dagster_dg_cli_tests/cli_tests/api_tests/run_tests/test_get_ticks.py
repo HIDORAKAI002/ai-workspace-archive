@@ -9,12 +9,8 @@ import json
 from click.testing import CliRunner
 from dagster_dg_cli.cli.api.client import DgApiTestContext
 from dagster_dg_cli.cli.api.formatters import format_ticks
-from dagster_rest_resources.schemas.tick import (
-    DgApiTick,
-    DgApiTickError,
-    DgApiTickList,
-    DgApiTickStatus,
-)
+from dagster_rest_resources.schemas.enums import DgApiInstigationTickStatus
+from dagster_rest_resources.schemas.tick import DgApiTick, DgApiTickError, DgApiTickList
 
 # ---------------------------------------------------------------------------
 # Sample data
@@ -104,7 +100,7 @@ class TestFormatTicks:
             items=[
                 DgApiTick(
                     id="tick-1",
-                    status=DgApiTickStatus.SUCCESS,
+                    status=DgApiInstigationTickStatus.SUCCESS,
                     timestamp=1641046800.0,
                     end_timestamp=1641046810.0,
                     run_ids=["run-abc"],
@@ -114,7 +110,7 @@ class TestFormatTicks:
                 ),
                 DgApiTick(
                     id="tick-2",
-                    status=DgApiTickStatus.SKIPPED,
+                    status=DgApiInstigationTickStatus.SKIPPED,
                     timestamp=1641046700.0,
                     end_timestamp=None,
                     run_ids=[],
@@ -124,7 +120,7 @@ class TestFormatTicks:
                 ),
                 DgApiTick(
                     id="tick-3",
-                    status=DgApiTickStatus.FAILURE,
+                    status=DgApiInstigationTickStatus.FAILURE,
                     timestamp=1641046600.0,
                     end_timestamp=None,
                     run_ids=[],

@@ -1,36 +1,23 @@
-"""Schedule metadata schema definitions."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiScheduleStatus(str, Enum):
-    """Schedule execution status."""
-
-    RUNNING = "RUNNING"
-    STOPPED = "STOPPED"
+from dagster_rest_resources.schemas.enums import DgApiInstigationStatus
+from dagster_rest_resources.schemas.util import DgApiList
 
 
 class DgApiSchedule(BaseModel):
-    """Single schedule metadata model."""
-
     id: str
     name: str
-    status: DgApiScheduleStatus
+    status: DgApiInstigationStatus
     cron_schedule: str
     pipeline_name: str
+    code_location_origin: str
     description: str | None = None
     execution_timezone: str | None = None
-    code_location_origin: str | None = None
-    next_tick_timestamp: float | None = None  # Unix timestamp
+    next_tick_timestamp: float | None = None
 
     class Config:
         from_attributes = True
 
 
-class DgApiScheduleList(BaseModel):
-    """GET /api/schedules response."""
-
-    items: list[DgApiSchedule]
-    total: int
+class DgApiScheduleList(DgApiList["DgApiSchedule"]):
+    pass

@@ -1,30 +1,63 @@
-"""Asset check API implementation."""
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
+from typing_extensions import assert_never
+
+from dagster_rest_resources.__generated__.input_types import AssetKeyInput
 from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.graphql_adapter.asset_check import (
-    get_asset_check_executions_via_graphql,
-    list_asset_checks_via_graphql,
+from dagster_rest_resources.schemas.asset_check import (
+    DgApiAssetCheck,
+    DgApiAssetCheckExecution,
+    DgApiAssetCheckExecutionList,
+    DgApiAssetCheckList,
 )
-
-if TYPE_CHECKING:
-    from dagster_rest_resources.schemas.asset_check import (
-        DgApiAssetCheckExecutionList,
-        DgApiAssetCheckList,
-    )
+from dagster_rest_resources.schemas.exception import DagsterPlusGraphqlError
 
 
 @dataclass(frozen=True)
 class DgApiAssetCheckApi:
-    """API for asset check operations."""
+    _client: IGraphQLClient
 
-    client: IGraphQLClient
+    def list_asset_checks(self, asset_key: str) -> DgApiAssetCheckList:
+        node_result = self._client.list_asset_checks(
+            asset_key=AssetKeyInput(path=asset_key.split("/"))
+        ).asset_node_or_error
 
-    def list_asset_checks(self, asset_key: str) -> "DgApiAssetCheckList":
-        """List asset checks for a given asset key."""
-        return list_asset_checks_via_graphql(self.client, asset_key)
+        match node_result.typename__:
+            case "AssetNode":
+                checks_result = node_result.asset_checks_or_error
+                match checks_result.typename__:
+                    case "AssetChecks":
+                        return DgApiAssetCheckList(
+                            items=[
+                                DgApiAssetCheck(
+                                    name=c.name,
+                                    asset_key="/".join(c.asset_key.path),
+                                    description=c.description,
+                                    blocking=c.blocking,
+                                    job_names=list(c.job_names),
+                                    can_execute_individually=c.can_execute_individually,
+                                )
+                                for c in checks_result.checks
+                            ]
+                        )
+                    case "AssetCheckNeedsMigrationError":
+                        raise DagsterPlusGraphqlError(
+                            f"Asset check needs migration: {checks_result.message}"
+                        )
+                    case "AssetCheckNeedsUserCodeUpgrade":
+                        raise DagsterPlusGraphqlError(
+                            f"Asset check needs user code upgrade: {checks_result.message}"
+                        )
+                    case "AssetCheckNeedsAgentUpgradeError":
+                        raise DagsterPlusGraphqlError(
+                            f"Asset check needs agent update: {checks_result.message}"
+                        )
+                    case _ as unreachable:
+                        assert_never(unreachable)
+            case "AssetNotFoundError":
+                raise DagsterPlusGraphqlError(f"Asset not found: {node_result.message}")
+            case _ as unreachable:
+                assert_never(unreachable)
 
     def get_check_executions(
         self,
@@ -33,12 +66,26 @@ class DgApiAssetCheckApi:
         check_name: str,
         limit: int = 25,
         cursor: str | None = None,
-    ) -> "DgApiAssetCheckExecutionList":
-        """Get execution history for an asset check."""
-        return get_asset_check_executions_via_graphql(
-            self.client,
-            asset_key=asset_key,
+    ) -> DgApiAssetCheckExecutionList:
+        executions = self._client.list_asset_check_executions(
+            asset_key=AssetKeyInput(path=asset_key.split("/")),
             check_name=check_name,
             limit=limit,
             cursor=cursor,
+        ).asset_check_executions
+
+        return DgApiAssetCheckExecutionList(
+            items=[
+                DgApiAssetCheckExecution(
+                    id=e.id,
+                    run_id=e.run_id,
+                    status=e.status,
+                    timestamp=e.timestamp,
+                    partition=e.partition,
+                    step_key=e.step_key,
+                    check_name=check_name,
+                    asset_key=asset_key,
+                )
+                for e in executions
+            ]
         )

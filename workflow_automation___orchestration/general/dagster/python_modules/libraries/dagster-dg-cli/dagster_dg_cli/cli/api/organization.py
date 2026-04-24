@@ -104,7 +104,7 @@ def set_settings_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_rest_resources.schemas.saml", cls="SamlOperationResult")
+@dg_response_schema(module="dagster_dg_cli.cli.api.schema", cls="SamlOperationResult")
 @dg_api_options(organization_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -151,7 +151,7 @@ def upload_saml_metadata_command(
                 f" {response.text}"
             )
 
-        from dagster_rest_resources.schemas.saml import SamlOperationResult
+        from dagster_dg_cli.cli.api.schema import SamlOperationResult
 
         result = SamlOperationResult(
             message="The identity provider metadata was successfully uploaded."
@@ -166,7 +166,7 @@ def upload_saml_metadata_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_rest_resources.schemas.saml", cls="SamlOperationResult")
+@dg_response_schema(module="dagster_dg_cli.cli.api.schema", cls="SamlOperationResult")
 @dg_api_options(organization_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context
@@ -204,7 +204,7 @@ def remove_saml_metadata_command(
 
         response.raise_for_status()
 
-        from dagster_rest_resources.schemas.saml import SamlOperationResult
+        from dagster_dg_cli.cli.api.schema import SamlOperationResult
 
         result = SamlOperationResult(
             message="The identity provider metadata was successfully removed."

@@ -4,3 +4,11 @@ class DagsterPlusUnauthorizedError(Exception):
 
 class DagsterPlusGraphqlError(Exception):
     pass
+
+
+class UnconfirmedProdDeletionError(Exception):
+    pass
+
+
+class S3Error(Exception):
+    pass

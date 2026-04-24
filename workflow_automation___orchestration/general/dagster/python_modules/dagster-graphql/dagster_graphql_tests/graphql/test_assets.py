@@ -3,6 +3,7 @@ import json
 import os
 import time
 from collections.abc import Sequence
+from unittest import mock
 
 import pytest
 from dagster import (
@@ -789,6 +790,23 @@ GET_REPO_ASSET_GROUPS = """
     }
 """
 
+GET_REPO_ASSET_NODES_CONNECTION = """
+    query($repositorySelector: RepositorySelector!, $cursor: String, $limit: Int!) {
+        repositoryOrError(repositorySelector: $repositorySelector) {
+            ... on Repository {
+                assetNodesConnection(cursor: $cursor, limit: $limit) {
+                    nodes {
+                        id
+                        assetKey { path }
+                    }
+                    cursor
+                    hasMore
+                }
+            }
+        }
+    }
+"""
+
 GET_ASSET_OWNERS = """
     query AssetOwnersQuery($assetKeys: [AssetKeyInput!]) {
         assetNodes(assetKeys: $assetKeys) {
@@ -1221,6 +1239,90 @@ class TestAssetAwareEventLog(ExecutingGraphQLContextTestMatrix):
             cursor
             == AssetKey(result.data["assetsOrError"]["nodes"][limit - 1]["key"]["path"]).to_string()
         )
+
+    def test_asset_nodes_connection(self, graphql_context: WorkspaceRequestContext):
+        repository_selector = infer_repository_selector(graphql_context)
+
+        # Single big page returns everything and reports hasMore=false.
+        result = execute_dagster_graphql(
+            graphql_context,
+            GET_REPO_ASSET_NODES_CONNECTION,
+            variables={"repositorySelector": repository_selector, "limit": 10_000},
+        )
+        assert result.data
+        connection = result.data["repositoryOrError"]["assetNodesConnection"]
+        all_nodes = connection["nodes"]
+        assert len(all_nodes) > 1
+        assert connection["hasMore"] is False
+
+        all_keys = [AssetKey(n["assetKey"]["path"]).to_string() for n in all_nodes]
+        # Deterministic sort by stringified asset key.
+        assert all_keys == sorted(all_keys)
+        assert connection["cursor"] == all_keys[-1]
+
+        # Multi-page round-trip via cursor: no overlap, union equals the single-call result.
+        page_size = max(1, len(all_nodes) // 3)
+        collected: list[dict] = []
+        cursor: str | None = None
+        seen_cursors: set[str | None] = set()
+        while True:
+            assert cursor not in seen_cursors, "cursor must advance each page"
+            seen_cursors.add(cursor)
+            page_result = execute_dagster_graphql(
+                graphql_context,
+                GET_REPO_ASSET_NODES_CONNECTION,
+                variables={
+                    "repositorySelector": repository_selector,
+                    "cursor": cursor,
+                    "limit": page_size,
+                },
+            )
+            page = page_result.data["repositoryOrError"]["assetNodesConnection"]
+            assert len(page["nodes"]) <= page_size
+            collected.extend(page["nodes"])
+            if not page["hasMore"]:
+                break
+            cursor = page["cursor"]
+            assert cursor is not None
+
+        assert collected == all_nodes
+
+    def test_asset_nodes_connection_invalid_limit(self, graphql_context: WorkspaceRequestContext):
+        # limit <= 0 and limit > max must be rejected. The upper bound is configurable
+        # via DAGSTER_ASSET_NODES_CONNECTION_MAX_LIMIT.
+        from dagster._core.errors import DagsterInvariantViolationError
+
+        repository_selector = infer_repository_selector(graphql_context)
+
+        for bad_limit in (0, -1):
+            with pytest.raises(DagsterInvariantViolationError, match="limit must be between"):
+                execute_dagster_graphql(
+                    graphql_context,
+                    GET_REPO_ASSET_NODES_CONNECTION,
+                    variables={
+                        "repositorySelector": repository_selector,
+                        "limit": bad_limit,
+                    },
+                )
+
+        with mock.patch.dict(os.environ, {"DAGSTER_ASSET_NODES_CONNECTION_MAX_LIMIT": "3"}):
+            # Within the lowered max — OK.
+            ok_result = execute_dagster_graphql(
+                graphql_context,
+                GET_REPO_ASSET_NODES_CONNECTION,
+                variables={"repositorySelector": repository_selector, "limit": 3},
+            )
+            assert len(ok_result.data["repositoryOrError"]["assetNodesConnection"]["nodes"]) <= 3
+
+            # Above the lowered max — rejected.
+            with pytest.raises(
+                DagsterInvariantViolationError, match="limit must be between 1 and 3"
+            ):
+                execute_dagster_graphql(
+                    graphql_context,
+                    GET_REPO_ASSET_NODES_CONNECTION,
+                    variables={"repositorySelector": repository_selector, "limit": 4},
+                )
 
     def test_get_asset_key_materialization(
         self, graphql_context: WorkspaceRequestContext, snapshot

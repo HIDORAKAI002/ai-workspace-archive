@@ -390,7 +390,7 @@ class CodeLocationAssetSelectionInput(BaseModel):
 
 
 class IssuesFilter(BaseModel):
-    statuses: Optional[List[Optional[IssueStatus]]] = None
+    statuses: Optional[List[IssueStatus]] = None
     created_by: Optional[int] = Field(alias="createdBy", default=None)
     created_after: Optional[float] = Field(alias="createdAfter", default=None)
     created_before: Optional[float] = Field(alias="createdBefore", default=None)

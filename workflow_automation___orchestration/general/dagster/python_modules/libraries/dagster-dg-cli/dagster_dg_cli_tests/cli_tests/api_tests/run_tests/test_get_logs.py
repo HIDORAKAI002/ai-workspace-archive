@@ -41,7 +41,6 @@ class TestFormatComputeLogs:
                     cursor=None,
                 ),
             ],
-            total=2,
         )
 
     def test_format_compute_logs_table(self, snapshot):
@@ -59,7 +58,7 @@ class TestFormatComputeLogs:
 
     def test_format_empty_compute_logs(self):
         """Test formatting with no logs."""
-        logs = DgApiComputeLogList(run_id=_RUN_ID, items=[], total=0)
+        logs = DgApiComputeLogList(run_id=_RUN_ID, items=[])
         result = format_compute_logs(logs, as_json=False)
         assert f"No compute logs found for run {_RUN_ID}" in result
 
@@ -76,7 +75,6 @@ class TestFormatComputeLogs:
                     cursor=None,
                 ),
             ],
-            total=1,
         )
         result = format_compute_logs(logs, as_json=False)
         snapshot.assert_match(result)
@@ -102,7 +100,6 @@ class TestFormatComputeLogLinks:
                     stderr_download_url=None,
                 ),
             ],
-            total=2,
         )
 
     def test_format_links_table(self, snapshot):
@@ -120,7 +117,7 @@ class TestFormatComputeLogLinks:
 
     def test_format_empty_links(self):
         """Test formatting with no links."""
-        links = DgApiComputeLogLinkList(run_id=_RUN_ID, items=[], total=0)
+        links = DgApiComputeLogLinkList(run_id=_RUN_ID, items=[])
         result = format_compute_log_links(links, as_json=False)
         assert f"No compute log links found for run {_RUN_ID}" in result
 
@@ -141,7 +138,7 @@ _SAMPLE_LOGS_CAPTURED_RESPONSE = {
                 "externalStderrUrl": None,
             },
         ],
-        "cursor": None,
+        "cursor": "",
         "hasMore": False,
     }
 }

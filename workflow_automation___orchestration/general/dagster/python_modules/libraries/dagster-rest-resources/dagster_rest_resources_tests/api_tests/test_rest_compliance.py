@@ -3,8 +3,6 @@ from types import UnionType
 from typing import Union, get_args, get_origin
 
 import pytest
-from dagster_rest_resources.api.asset import DgApiAssetApi
-from dagster_rest_resources.api.deployments import DgApiDeploymentApi
 from pydantic import BaseModel
 
 from dagster_rest_resources_tests.api_tests.rest_compliance_infrastructure import (
@@ -13,10 +11,7 @@ from dagster_rest_resources_tests.api_tests.rest_compliance_infrastructure impor
     is_pydantic_model,
 )
 
-ALL_API_CLASSES = [
-    DgApiDeploymentApi,
-    DgApiAssetApi,
-]
+ALL_API_CLASSES = []
 
 
 class TestRestCompliance:

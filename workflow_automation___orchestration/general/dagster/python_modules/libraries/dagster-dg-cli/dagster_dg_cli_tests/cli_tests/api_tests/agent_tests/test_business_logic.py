@@ -5,12 +5,10 @@ GraphQL client mocking or external dependencies.
 """
 
 from dagster_dg_cli.cli.api.formatters import format_agent, format_agents
-from dagster_rest_resources.schemas.agent import (
-    DgApiAgent,
-    DgApiAgentList,
-    DgApiAgentMetadataEntry,
-    DgApiAgentStatus,
-)
+from dagster_rest_resources.schemas.agent import DgApiAgent, DgApiAgentList, DgApiAgentMetadataEntry
+from dagster_rest_resources.schemas.enums import DgApiAgentStatus
+
+_LAST_HEARTBEAT_TIME = 1641046800.0  # 2022-01-01 14:20:00 UTC (midday to avoid timezone edge cases)
 
 
 class TestFormatAgents:
@@ -23,7 +21,7 @@ class TestFormatAgents:
                 id="agent-1-uuid-12345",
                 agent_label="Production Agent",
                 status=DgApiAgentStatus.RUNNING,
-                last_heartbeat_time=1641046800.0,  # 2022-01-01 14:20:00 UTC (midday to avoid timezone edge cases)
+                last_heartbeat_time=_LAST_HEARTBEAT_TIME,
                 metadata=[
                     DgApiAgentMetadataEntry(key="version", value="1.2.3"),
                     DgApiAgentMetadataEntry(key="location", value="us-east-1"),
@@ -32,15 +30,15 @@ class TestFormatAgents:
             DgApiAgent(
                 id="agent-2-uuid-67890",
                 agent_label=None,  # No label - should fall back to ID display
-                status=DgApiAgentStatus.STOPPED,
-                last_heartbeat_time=None,
+                status=DgApiAgentStatus.RUNNING,
+                last_heartbeat_time=_LAST_HEARTBEAT_TIME,
                 metadata=[],
             ),
             DgApiAgent(
                 id="agent-3-uuid-abcdef",
                 agent_label="Staging Agent",
-                status=DgApiAgentStatus.UNHEALTHY,
-                last_heartbeat_time=1641046860.0,  # 2022-01-01 14:21:00 UTC
+                status=DgApiAgentStatus.NOT_RUNNING,
+                last_heartbeat_time=_LAST_HEARTBEAT_TIME + 60.0,  # 2022-01-01 14:21:00 UTC
                 metadata=[
                     DgApiAgentMetadataEntry(key="environment", value="staging"),
                 ],
@@ -58,7 +56,7 @@ class TestFormatAgents:
             id="single-agent-uuid-xyz",
             agent_label="Development Agent",
             status=DgApiAgentStatus.RUNNING,
-            last_heartbeat_time=1641046800.0,
+            last_heartbeat_time=_LAST_HEARTBEAT_TIME,
             metadata=[
                 DgApiAgentMetadataEntry(key="owner", value="dev-team"),
                 DgApiAgentMetadataEntry(key="cpu_limit", value="2"),
@@ -133,7 +131,7 @@ class TestFormatAgents:
             id="simple-agent-uuid",
             agent_label="Simple Agent",
             status=DgApiAgentStatus.NOT_RUNNING,
-            last_heartbeat_time=None,
+            last_heartbeat_time=_LAST_HEARTBEAT_TIME,
             metadata=[],
         )
         with fixed_timezone("UTC"):
@@ -148,8 +146,8 @@ class TestFormatAgents:
         agent = DgApiAgent(
             id="no-label-agent-uuid-123456789",
             agent_label=None,
-            status=DgApiAgentStatus.UNKNOWN,
-            last_heartbeat_time=1641046920.0,  # 2022-01-01 14:22:00 UTC
+            status=DgApiAgentStatus.RUNNING,
+            last_heartbeat_time=_LAST_HEARTBEAT_TIME,
             metadata=[
                 DgApiAgentMetadataEntry(key="type", value="serverless"),
             ],
@@ -166,7 +164,7 @@ class TestFormatAgents:
             id="very-long-agent-uuid-12345678901234567890",
             agent_label="Custom Label",
             status=DgApiAgentStatus.RUNNING,
-            last_heartbeat_time=None,
+            last_heartbeat_time=_LAST_HEARTBEAT_TIME,
             metadata=[],
         )
 
@@ -175,7 +173,7 @@ class TestFormatAgents:
             id="very-long-agent-uuid-12345678901234567890",
             agent_label=None,
             status=DgApiAgentStatus.RUNNING,
-            last_heartbeat_time=None,
+            last_heartbeat_time=_LAST_HEARTBEAT_TIME,
             metadata=[],
         )
 

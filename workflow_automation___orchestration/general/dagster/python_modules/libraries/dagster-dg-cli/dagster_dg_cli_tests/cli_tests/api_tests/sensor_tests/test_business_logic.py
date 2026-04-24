@@ -7,12 +7,8 @@ GraphQL client mocking or external dependencies.
 import json
 
 from dagster_dg_cli.cli.api.formatters import format_sensor, format_sensors
-from dagster_rest_resources.schemas.sensor import (
-    DgApiSensor,
-    DgApiSensorList,
-    DgApiSensorStatus,
-    DgApiSensorType,
-)
+from dagster_rest_resources.schemas.enums import DgApiInstigationStatus, DgApiSensorType
+from dagster_rest_resources.schemas.sensor import DgApiSensor, DgApiSensorList
 
 
 class TestFormatSensors:
@@ -24,7 +20,7 @@ class TestFormatSensors:
             DgApiSensor(
                 id="sensor1-id",
                 name="daily_sensor",
-                status=DgApiSensorStatus.RUNNING,
+                status=DgApiInstigationStatus.RUNNING,
                 sensor_type=DgApiSensorType.STANDARD,
                 description="Daily processing sensor",
                 repository_origin="main_location@main_repo",
@@ -33,7 +29,7 @@ class TestFormatSensors:
             DgApiSensor(
                 id="sensor2-id",
                 name="asset_sensor",
-                status=DgApiSensorStatus.STOPPED,
+                status=DgApiInstigationStatus.STOPPED,
                 sensor_type=DgApiSensorType.ASSET,
                 description="Asset change sensor",
                 repository_origin="main_location@main_repo",
@@ -42,21 +38,21 @@ class TestFormatSensors:
             DgApiSensor(
                 id="sensor3-id",
                 name="minimal_sensor",
-                status=DgApiSensorStatus.PAUSED,
+                status=DgApiInstigationStatus.RUNNING,
                 sensor_type=DgApiSensorType.MULTI_ASSET,
                 description=None,
-                repository_origin=None,
+                repository_origin="test_location@test_repo",
                 next_tick_timestamp=None,
             ),
         ]
-        return DgApiSensorList(items=sensors, total=len(sensors))
+        return DgApiSensorList(items=sensors)
 
     def _create_sample_sensor(self):
         """Create sample DgApiSensor for testing."""
         return DgApiSensor(
             id="single-sensor-id",
             name="critical_sensor",
-            status=DgApiSensorStatus.RUNNING,
+            status=DgApiInstigationStatus.RUNNING,
             sensor_type=DgApiSensorType.AUTO_MATERIALIZE,
             description="Critical production sensor",
             repository_origin="prod_location@prod_repo",
@@ -110,10 +106,10 @@ class TestFormatSensors:
         sensor = DgApiSensor(
             id="minimal-id",
             name="minimal_sensor",
-            status=DgApiSensorStatus.PAUSED,
+            status=DgApiInstigationStatus.RUNNING,
             sensor_type=DgApiSensorType.STANDARD,
             description=None,
-            repository_origin=None,
+            repository_origin="test_location@test_repo",
             next_tick_timestamp=None,
         )
         with fixed_timezone("UTC"):
@@ -126,10 +122,10 @@ class TestFormatSensors:
         sensor = DgApiSensor(
             id="minimal-id",
             name="minimal_sensor",
-            status=DgApiSensorStatus.PAUSED,
+            status=DgApiInstigationStatus.RUNNING,
             sensor_type=DgApiSensorType.STANDARD,
             description=None,
-            repository_origin=None,
+            repository_origin="test_location@test_repo",
             next_tick_timestamp=None,
         )
         result = format_sensor(sensor, as_json=True)

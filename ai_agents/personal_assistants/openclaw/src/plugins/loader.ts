@@ -280,6 +280,7 @@ type PluginRegistrySnapshot = {
     webSearchProviders: PluginRegistry["webSearchProviders"];
     embeddedExtensionFactories: PluginRegistry["embeddedExtensionFactories"];
     codexAppServerExtensionFactories: PluginRegistry["codexAppServerExtensionFactories"];
+    agentToolResultMiddlewares: PluginRegistry["agentToolResultMiddlewares"];
     memoryEmbeddingProviders: PluginRegistry["memoryEmbeddingProviders"];
     agentHarnesses: PluginRegistry["agentHarnesses"];
     httpRoutes: PluginRegistry["httpRoutes"];
@@ -318,6 +319,7 @@ function snapshotPluginRegistry(registry: PluginRegistry): PluginRegistrySnapsho
       webSearchProviders: [...registry.webSearchProviders],
       embeddedExtensionFactories: [...registry.embeddedExtensionFactories],
       codexAppServerExtensionFactories: [...registry.codexAppServerExtensionFactories],
+      agentToolResultMiddlewares: [...registry.agentToolResultMiddlewares],
       memoryEmbeddingProviders: [...registry.memoryEmbeddingProviders],
       agentHarnesses: [...registry.agentHarnesses],
       httpRoutes: [...registry.httpRoutes],
@@ -355,6 +357,7 @@ function restorePluginRegistry(registry: PluginRegistry, snapshot: PluginRegistr
   registry.webSearchProviders = snapshot.arrays.webSearchProviders;
   registry.embeddedExtensionFactories = snapshot.arrays.embeddedExtensionFactories;
   registry.codexAppServerExtensionFactories = snapshot.arrays.codexAppServerExtensionFactories;
+  registry.agentToolResultMiddlewares = snapshot.arrays.agentToolResultMiddlewares;
   registry.memoryEmbeddingProviders = snapshot.arrays.memoryEmbeddingProviders;
   registry.agentHarnesses = snapshot.arrays.agentHarnesses;
   registry.httpRoutes = snapshot.arrays.httpRoutes;
@@ -690,7 +693,14 @@ function ensureOpenClawPluginSdkAlias(distRoot: string): void {
       "./plugin-sdk/*": "./plugin-sdk/*.js",
     },
   });
-  fs.rmSync(pluginSdkAliasDir, { recursive: true, force: true });
+  try {
+    if (fs.existsSync(pluginSdkAliasDir) && !fs.lstatSync(pluginSdkAliasDir).isDirectory()) {
+      fs.rmSync(pluginSdkAliasDir, { recursive: true, force: true });
+    }
+  } catch {
+    // Another process may be creating the alias at the same time; mkdir/write
+    // below will either converge or surface the real filesystem error.
+  }
   fs.mkdirSync(pluginSdkAliasDir, { recursive: true });
   for (const entry of fs.readdirSync(pluginSdkDir, { withFileTypes: true })) {
     if (!entry.isFile() || path.extname(entry.name) !== ".js") {
@@ -728,6 +738,7 @@ export const __testing = {
   resolvePluginSdkAliasCandidateOrder,
   resolvePluginSdkAliasFile,
   resolvePluginRuntimeModulePath,
+  ensureOpenClawPluginSdkAlias,
   shouldLoadChannelPluginInSetupRuntime,
   shouldPreferNativeJiti,
   toSafeImportPath,
@@ -2441,7 +2452,9 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
         manifestRecord.setupSource
       ) {
         const setupRegistration = resolveSetupChannelRegistration(mod, {
-          installRuntimeDeps: shouldInstallBundledRuntimeDeps && enableState.enabled,
+          installRuntimeDeps:
+            shouldInstallBundledRuntimeDeps &&
+            (enableState.enabled || forceSetupOnlyChannelPlugins),
         });
         if (setupRegistration.loadError) {
           recordPluginError({
