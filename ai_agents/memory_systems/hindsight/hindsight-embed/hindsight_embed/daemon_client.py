@@ -169,14 +169,21 @@ def get_ui_url(profile: str | None = None, ui_port: int | None = None) -> str:
 def find_cli_binary() -> Path | None:
     """Find the hindsight CLI binary in known locations or PATH."""
     import shutil
+    import sys
 
-    # Check standard install locations
+    binary_names = ("hindsight.exe", "hindsight") if sys.platform == "win32" else ("hindsight",)
+
+    # Check standard install locations. On Windows we look for both the
+    # `.exe` (produced by `cargo build`) and the bare `hindsight` in case a
+    # user dropped a WSL/Git-Bash build there.
     for install_dir in CLI_INSTALL_DIRS:
-        binary = install_dir / "hindsight"
-        if binary.exists() and os.access(binary, os.X_OK):
-            return binary
+        for name in binary_names:
+            binary = install_dir / name
+            if binary.exists() and (sys.platform == "win32" or os.access(binary, os.X_OK)):
+                return binary
 
-    # Check PATH
+    # Check PATH. shutil.which handles PATHEXT on Windows, so passing
+    # "hindsight" finds hindsight.exe automatically.
     path_binary = shutil.which("hindsight")
     if path_binary:
         return Path(path_binary)

@@ -4,173 +4,179 @@
 
 ### နိဒါန်း
 
-ဒီသင်ခန်းစာမှာ ဖော်ပြမှာတွေကတော့ -
+ဒီသင်ခန်းစာမှာ ပါဝင်မယ့်အကြောင်းအရာတွေကတော့ -
 
-- Microsoft Agent Framework ကို နားလည်ခြင်း: အဓိက လက္ခဏာများနှင့် တန်ဖိုးများ  
-- Microsoft Agent Framework ၏ အဓိက အကြောင်းအရာများကို ရှာဖွေခြင်း
-- တိုးတက်သော MAF ပုံစံများ: Workflows, Middleware, နှင့် Memory
+- Microsoft Agent Framework ကိုနားလည်ခြင်း: အဓိက လက္ခဏာများနှင့် တန်ဖိုး  
+- Microsoft Agent Framework ၏ အဓိက သိမွတ်ချက်များကို ရှာဖွေခြင်း
+- ကျွမ်းကျင် MAF ပုံစံများ: အလုပ်စဉ်များ၊ Middleware နှင့် မှတ်ဉာဏ်
 
-## သင်ယူရမည့် ရည်မှန်းချက်များ
+## သင်ယူလိုသော ရည်ရွယ်ချက်များ
 
-ဒီသင်ခန်းစာပြီးဆုံးပြီးနောက်မှာ သင်သည် -
+ဒီသင်ခန်းစာပြီးဆုံးပြီးနောက် သင် သိရှိမည့်အရာများမှာ -
 
-- Microsoft Agent Framework အသုံးပြုပြီး ထုတ်လုပ်မှုမှ အဆင်သင့် AI Agents တည်ဆောက်နည်းကို သိရှိနိုင်မည်
-- Microsoft Agent Framework ၏ အဓိက လက္ခဏာများကို သင့် Agentic အသုံးတော်များတွင် အသုံးပြုနည်း
-- worklow, middleware, နှင့် obserability တွေအပါအဝင် တိုးတက်သော ပုံစံများကို အသုံးပြုနည်း
+- Microsoft Agent Framework အသုံးပြု၍ ထုတ်လုပ်မှုအသင့် AI Agents များ ဖန်တီးနိုင်ခြင်း
+- သင်၏ Agentic အသုံးပြုမှုကိစ္စများအတွက် Microsoft Agent Framework ၏ အဓိက လက္ခဏာများကို လျှောက်ထားနိုင်ခြင်း
+- အလုပ်စဉ်များ၊ middleware နှင့် ကြည့်ရှုစောင့်ကြည့်မှုများအပါအဝင် အဆင့်မြင့်ပုံစံများအသုံးပြုနိုင်ခြင်း
 
 ## ကုဒ် နမူနာများ
 
-[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) အတွက် ကုဒ် နမူနာများကို ဒီ repository ၏ `xx-python-agent-framework` နှင့် `xx-dotnet-agent-framework` ဖိုင်များအောက်တွင် တွေ့နိုင်ပါသည်။
+[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) အတွက် ကုဒ်နမူနာများကို ဒီ repository ပြင်ပမှာရှိသည့် `xx-python-agent-framework` နှင့် `xx-dotnet-agent-framework` ဖိုင်များတွင် တွေ့နိုင်ပါသည်။
 
 ## Microsoft Agent Framework ကို နားလည်ခြင်း
 
 ![Framework Intro](../../../translated_images/my/framework-intro.077af16617cf130c.webp)
 
-[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) သည် AI agents များ တည်ဆောက်ရန် Microsoft ၏ စုပေါင်း framework ဖြစ်သည်။ ထုတ်လုပ်မှုနှင့် သုတေသနပတ်ဝန်းကျင်များတွင် တွေ့ရသော agentic အသုံးတော် မျိုးစုံကို ဖြေရှင်းနိုင်ရန် အလွယ်တကူညှိနှိုင်းနိုင်မှုကို ပံ့ပိုးပေးသည်၊ အထူးသဖြင့် -
+[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) သည် AI agents ဖန်တီးရန် Microsoft ၏ ပေါင်းစည်းထားသော framework ဖြစ်သည်။ ထုတ်လုပ်မှုနှင့် သုတေသန လုပ်ငန်းရပ်များတွင် တွေ့ရသော အမျိုးမျိုးသော agentic အသုံးအနှုန်းများကို ဆက်သွယ်ရွေ့လျားနိုင်ခြင်းကို ပေးစွမ်းသည်။ ထိုမှာ -
 
-- **လိုက်စီးပြီး အချက်တစ်ချက်ချင်း လုပ်ဆောင်လိုသော စနစ်များတွင် Sequential Agent orchestration**
-- **အချိန်တစ်ပြိုင်နက်မှာ တာဝန်များ ပြီးမြောက်ရန် concurrent orchestration**
-- **တစ်ခုသော တာဝန်တွင် အီးဂျင်များ ပူးပေါင်းဆောင်ရွက်နိုင်ရန် group chat orchestration**
-- **သေးငယ်သေးဆုံး အဆင့်များ ပြီးမြောက်သည့်အခါ တာဝန်များကို အီးဂျင်များ ဆက်လက်လွှဲပြောင်းရန် handoff orchestration**
-- **မန်နေဂျာအီးဂျင်တစ်ခုဖြင့် တာဝန်စာရင်း ဖန်တီး၊ ပြုပြင်ပြီး သေးငယ်သူ အီးဂျင်များ စနစ်တက်ညှိနှိုင်းဖြင့် အလုပ်လုပ်စေနိုင်သော magnetic orchestration**
+- **အဆင့်လိုက် Agent နည်းလမ်း** (Sequential Agent orchestration) - အဆင့်ဆင့် အလုပ်စဉ်များလိုအပ်သောအခါ။
+- **တပြိုင်နက်မှ ကြားဝင်မှု** (Concurrent orchestration) - Agent များ တပြိုင်နက် အလုပ်များ ပြီးမြောက်စေရန်။
+- **အဖွဲ့ chat ရှိခြင်း** (Group chat orchestration) - Agent များ တစ်ခုတည်းသော အလုပ်တွင် ပူးပေါင်းလုပ်ဆောင်နိုင်ခြင်း။
+- **အလုပ်အပ်ပြီး ကွဲပြားဝေငှပေးခြင်း** (Handoff Orchestration) - Subtask များပြီးဆုံးသောအခါ agent များ အတူတကွ ဦးစားပေးကူညီဝေငှခြင်း။
+- **Magnetic Orchestration** - မန်နေဂျာ agent တစ်ယောက်က အလုပ်စာရင်းပြုပြင်ပြီး subagents များကို အလုပ်များ ပြီးမြောက်အောင် စီမံခန့်ခွဲခြင်း။
 
-ထုတ်လုပ်မှု AI Agents ပေးဆောင်ရာတွင် MAF သည် -
+ထုတ်လုပ်မှုတွင် AI Agents များ မိတ်ဆက်ရန် MAF အောက်ပါ လက္ခဏာများပါဝင်သည် -
 
-- **OpenTelemetry အသုံးပြု၍ AI Agent ၏ Tool ခေါ်ဆိုမှု၊ orchestration အဆင့်များ၊ ကြားခံစဉ်းစားမှုများနှင့် Microsoft Foundry dashboard တွင် စွမ်းဆောင်ရည် စောင့်ကြည့်မှုစသည့် Observability ကို ပံ့ပိုးသည်။**
-- **Microsoft Foundry တွင် native ဖြင့် hosting လုပ်သောကြောင့် role-based access control, အထူးသီးသန့်ဒေတာ ကိုင်တွယ်မှု နှင့် built-in content safety စသည့် security နှင့် ကာကွယ်မှုကို ထောက်ပံ့သည်။**
-- **Agent စီးရီးများနှင့် workflows များ မိမိလိုအပ်သလို ရပ်တန့်၊ ပြန်လည်အလှမ်းလိုက်၊ အမှားမှ ပြန်လည်ကောင်းမွန်နိုင်စေသည့် durability ကို ပံ့ပိုးပေးသည်။**
-- **လူ့အင်အားပါဝင်သော workflows များကိုသာလျှင် ပံ့ပိုးကာ မည်သည့်တာဝန်ကိုမဆို လူအတည်ပြုချက်လိုအပ်မှုအဖြစ် ဖော်ပြနိုင်သည်။**
+- **ကြည့်ရှုနိုင်မှု** (Observability) - OpenTelemetry အသုံးပြု၍ AI Agent ၏ လုပ်ဆောင်ချက်တိုင်း၌ သွားလာမှု၊ နည်းလမ်းပြောင်းလဲခြင်း၊ ဆုံးဖြတ်ချက်များ၊ Microsoft Foundry dashboard များဖြင့် လုပ်ဆောင်မှု ကြည့်ရှုစောင့်ကြည့်မှု။
+- **လုံခြုံရေး** (Security) - Microsoft Foundry ပေါ်တွင် native ဖြစ်စေ agent များဟာ role-based access, ပုဂ္ဂလိကဒေတာ ကိုင်တွယ်ခြင်းနှင့် built-in ပစ္စည်းလုံခြုံရေး စနစ်ပါဝင်။
+- **တည်တံ့ခံနိုင်မှု** (Durability) - Agent threads နှင့် workflows များသည် ရပ်နား၊ ထပ်မံစတင်၊ အမှားမှ ပြန်လည် ဆဲလျင်ရှိနိုင်သည့်ကောလဟာလ။
+- **ထိန်းချုပ်မှု** (Control) - လူ့ထံအတည်ပြုချက်လိုအပ်သည့် အလုပ်စဉ်များကို ထောက်ပံ့သည်။
 
-Microsoft Agent Framework သည် interoperability အတွက်လည်း အာရုံစိုက်မှုရှိကာ -
+Microsoft Agent Framework သည် ဖြတ်သန်းချက်ဖြစ်ပေါ်စေရန်လည်း ဂရုပြုသည် -
 
-- **Cloud မျိုးစုံမရွေး အသုံးပြုနိုင်ခြင်း - containers, on-premise နှင့် cloud များစွာတွင် ဆောင်ရွက်နိုင်သော agents များ**
-- **Provider မျိုးစုံမရွေး အသုံးပြုနိုင်ခြင်း - Azure OpenAI နှင့် OpenAI အပါအဝင် သင်နှစ်သက်ရာ SDK များဖြင့် agent များ ဖန်တီးနိုင်ခြင်း**
-- **Open စံချိန်စံညွှန်းများပါ ပေါင်းစပ်ထားခြင်း - Agent-to-Agent (A2A) နှင့် Model Context Protocol (MCP) စသည်ဖြင့် အခြား agent များနှင့် Tools များ ရှာဖွေရန်နှင့် အသုံးပြုရန် ပံ့ပိုးမှု**
-- **Plugins နှင့် Connectors - Microsoft Fabric, SharePoint, Pinecone, Qdrant ကဲ့သို့ ဒေတာနှင့် မှတ်ဉာဏ် ဝန်ဆောင်မှုများနှင့် ဆက်သွယ်နိုင်ရန်**
+- **Cloud မဟုတ်သည့် ဖြေလျော့ချက်** - Agent များသည် containers, on-premises နှင့် cloud များ ရပ်တည်နိုင်။
+- **Provider မဟုတ်သည့် ဖြေလျော့ချက်** - သင်နှစ်သက်သည့် SDK များဖြင့် ဖန်တီးနိုင်၊ Azure OpenAI နှင့် OpenAI ပါဝင်။
+- **ဖွင့်လှစ် စံသတ်မှတ်ချက်များ ပါဝင်ခြင်း** - Agent-to-Agent (A2A) နှင့် Model Context Protocol (MCP) ကဲ့သို့သော protocol များအား အသုံးပြုနိုင်ခြင်း။
+- **Plugins နှင့် Connectors** - Microsoft Fabric, SharePoint, Pinecone, Qdrant စသည့် ဒေတာနှင့် မှတ်ဉာဏ် ဝန်ဆောင်မှုများနှင့် ချိတ်ဆက်နိုင်ခြင်း။
 
-ဒီတော့ Microsoft Agent Framework ၏ အဓိက အကြောင်းအရာများတွင် ဒီ လက္ခဏာများဘယ်လိုပါဝင်သလို် တင်ပြအကြောင်းကြည့်လိုက်မယ်။
+အခုတော့ Microsoft Agent Framework ၏ အဓိက သိမွတ်ချက်များတွင် ဤလက္ခဏာများကို မည်သိုကာ အသုံးချနိုင်ကြောင်း ကြည့်ကြပါစို့။
 
-## Microsoft Agent Framework ၏ အဓိက ဆိုဒီ
+## Microsoft Agent Framework ၏ အဓိက သိမွတ်ချက်များ
 
 ### Agents
 
 ![Agent Framework](../../../translated_images/my/agent-components.410a06daf87b4fef.webp)
 
-**အီးဂျင်များ ဖန်တီးခြင်း**
+**Agent များ ဖန်တီးခြင်း**
 
-Agent ဖန်တီးခြင်းမှာ inference service (LLM Provider), AI Agent အတွက် လိုက်နာရမည့် ညွှန်ကြားချက်များနှင့် ခန့်အပ်ထားသော `name` တန်ဖိုး တိုက်ရိုက် သတ်မှတ်ခြင်းဖြစ်သည်-
+Agent ဖန်တီးခြင်းသည် inference service (LLM Provider) ကို သတ်မှတ်ခြင်း၊ AI Agent မလိုက်နာရန် အညွှန်းများ သတ်မှတ်ခြင်းနှင့် ပေးအပ်ထားသော `name` ဖြင့် ပြုလုပ်သည်-
 
 ```python
 agent = AzureOpenAIChatClient(credential=AzureCliCredential()).create_agent( instructions="You are good at recommending trips to customers based on their preferences.", name="TripRecommender" )
 ```
-
-အထက်ပါ ကုဒ်မှာ `Azure OpenAI` ဖြင့် အသုံးပြုထားသော်လည်း `Microsoft Foundry Agent Service` အပါအဝင် နောက်ထပ် ဝန်ဆောင်မှု မျိုးစုံမှ Devices များ ဖန်တီးနိုင်သည်-
+  
+အထက်ပါမှာ `Azure OpenAI` ကို အသုံးပြုထားသော်လည်း agent များကို အမျိုးမျိုးသော ဝန်ဆောင်မှုများဖြင့် ဖန်တီးနိုင်သည်၊ ဥပမာ `Microsoft Foundry Agent Service`:
 
 ```python
 AzureAIAgentClient(async_credential=credential).create_agent( name="HelperAgent", instructions="You are a helpful assistant." ) as agent
 ```
-
-OpenAI ၏ `Responses`, `ChatCompletion` API များ
+  
+OpenAI `Responses`, `ChatCompletion` APIs
 
 ```python
 agent = OpenAIResponsesClient().create_agent( name="WeatherBot", instructions="You are a helpful weather assistant.", )
 ```
-
+  
 ```python
 agent = OpenAIChatClient().create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
 ```
+  
+သို့မဟုတ် [MiniMax](https://platform.minimaxi.com/) ဟူသော OpenAI ကိုက်ညီသည့် API ကို context window ကြီးမားစွာ (အများဆုံး 204K tokens) ပေးသော ဝန်ဆောင်မှု:
 
-သို့မဟုတ် A2A protocol အသုံးပြု၍ အဝေးမှ ထိန်းချုပ် agent များ -
+```python
+agent = OpenAIChatClient(base_url="https://api.minimax.io/v1", api_key=os.environ["MINIMAX_API_KEY"], model_id="MiniMax-M2.7").create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
+```
+  
+သို့မဟုတ် A2A protocol ကို အသုံးပြုသော remote agents:
 
 ```python
 agent = A2AAgent( name=agent_card.name, description=agent_card.description, agent_card=agent_card, url="https://your-a2a-agent-host" )
 ```
+  
+**Agent များ ဖွင့်လှစ်ခြင်း**
 
-**Agent များ လည်ပတ်ခြင်း**
-
-Agents များကို non-streaming သို့မဟုတ် streaming ဖြင့် `.run` သို့မဟုတ် `.run_stream` ပုံစံဖြင့် လည်ပတ်နိုင်သည်။
+အယ်ဂျင့်များကို `.run` သို့မဟုတ် `.run_stream` method များဖြင့် non-streaming သို့မဟုတ် streaming ပြန်လည်စာတွေ့အားဖြင့် ကစားနိုင်သည်။
 
 ```python
 result = await agent.run("What are good places to visit in Amsterdam?")
 print(result.text)
 ```
-
+  
 ```python
 async for update in agent.run_stream("What are the good places to visit in Amsterdam?"):
     if update.text:
         print(update.text, end="", flush=True)
 
 ```
+  
+Agent တစ်ခုချင်း run များတွင် agent အသုံးပြုမည့် `max_tokens`, အယ်ဂျင့်ခေါ်သည့် `tools` များ၊ နှင့် agent အတွက် အသုံးပြုမည့် `model` ကို ဆက်တင်များ ပြုလုပ်နိုင်သည်။
 
-Agent တစ်ခုလည်ပတ်တိုင်းမှာ agent အသုံးပြုမည့် `max_tokens`, agent ခေါ်ဆိုမှု လုပ်နိုင်သော `tools`, ဖြင့် ဖန်တီးသုံးမည့် `model` တို့ စိတ်ကြိုက် ပြင်ဆင်နိုင်သည်။
+ထိုကဲ့သို့ ကိုယ်တိုင် အထူးမှတ်ထားသည့် မော်ဒယ် သို့မဟုတ် ကိရိယာများ လိုအပ်သော အခါ အသုံးဝင်သည်။
 
-အသုံးပြုသူ၏ တာဝန်နှင့် ကိုက်ညီသည့် အထူးပုံစံ မော်ဒယ်များ သို့ tools များ သတ်မှတ်လိုသည့် ရည်ရွယ်ချက်များတွင် အထူးအသုံးဝင်သည်။
+**ကိရိယာများ**
 
-**Tools**
-
-Tools များကို agent ဖန်တီးစဉ်တွင် သတ်မှတ်နိုင်သည်-
+ကိရိယာများကို agent သတ်မှတ်ရာတွင် -
 
 ```python
 def get_attractions( location: Annotated[str, Field(description="The location to get the top tourist attractions for")], ) -> str: """Get the top tourist attractions for a given location.""" return f"The top attractions for {location} are." 
 
 
-# ChatAgent ကိုတိုက်ရိုက်ဖန်တီးထားတဲ့အခါ
+# ChatAgent ကိုတိုက်ရိုက် ဖန်တီးသောအခါ
 
 agent = ChatAgent( chat_client=OpenAIChatClient(), instructions="You are a helpful assistant", tools=[get_attractions]
 
 ```
-
-နှင့် agent လည်ပတ်စဉ်တွင်လည်း သတ်မှတ်အသုံးပြုနိုင်သည်-
+  
+နှင့် agent run ပြုလုပ်ရာတွင်လည်း သတ်မှတ်နိုင်သည် -
 
 ```python
 
-result1 = await agent.run( "What's the best place to visit in Seattle?", tools=[get_attractions] # ဤအလုပ်အတွက်သာ ပံ့ပိုးပေးထားသောကိရိယာ)
+result1 = await agent.run( "What's the best place to visit in Seattle?", tools=[get_attractions] # ဤပြေးဆွဲမှုအတွက်သာ ပံ့ပိုးထားသောကိရိယာဖြစ်သည်)
 ```
-
+  
 **Agent Threads**
 
-Agent Threads သည် multi-turn စကားပြောဆိုမှုများကို ကိုင်တွယ်ရန် အသုံးပြုသည်။ Threads များကို အောက်ပါ နည်းလမ်းနှစ်မျိုးဖြင့် ဖန်တီးနိုင်သည်-
+Agent Threads သည် မာတိကာပြောဆိုမှုများကို ကိုင်တွယ်သည်။ Threads ကို ဖန်တီးနိုင်သည့် နည်းလမ်းများမှာ -
 
-- `get_new_thread()` ဖြင့် thread ကို အချိန်ကြာရှည်သိမ်းဆည်းထားရန်
-- Agent run စဉ်အတွင်း မိမိကိုယ်တိုင် auto ဖန်တီးပြီး ယင်း run အတွင်းသာ thread ကို ထိန်းသိမ်းခြင်း။
+- အချိန်အတွင်း ပြန်လည်သိမ်းဆည်းနိုင်သော `get_new_thread()` အသုံးပြုခြင်း
+- Agent run ဖွင့်စဉ်တွင် thread ကို automatic ဖန်တီး၍ လက်ရှိ run အတွင်းသာ ရှိသည့်နည်းလမ်း။
 
-Thread ဖန်တီးရန် နမူနာ ကုဒ် -
+Thread ဖန်တီးရန် ကုဒ်ပုံစံမှာ-
 
 ```python
-# သစ် thread အသစ်တစ်ခုကို ဖန်တီးပါ။
-thread = agent.get_new_thread() # thread နှင့်အတူ agent ကို ပြေးပါ။
+# နယူး thread တစ်ခုကို ဖန်တီးပါ။
+thread = agent.get_new_thread() # thread နှင့် agent ကို အတူတူ ပြေးဆွဲပါ။
 response = await agent.run("Hello, I am here to help you book travel. Where would you like to go?", thread=thread)
 
 ```
-
-Thread ကို သိမ်းဆည်းရန် serialization လုပ်နိုင်ပါသည်-
+  
+ပြီးနောက်တွင် thread ကို စနစ်တကျ သိမ်းဆည်းနိုင်ရန် serialization ပြုလုပ်နိုင်သည် -
 
 ```python
-# သစ်တစ်ခုသော စကြည်ကို ဖန်တီးပါ။
+# အသစ်သော သရက်တစ်ခု ဖန်တီးပါ။
 thread = agent.get_new_thread() 
 
-# စကြည်နဲ့ အေးဂျင့်ကို အတူ လည်ပတ်ပါ။
+# သရက်နှင့်အတူ ကိုယ်စားလှယ်ကို ပြေးပါ။
 
 response = await agent.run("Hello, how are you?", thread=thread) 
 
-# သိမ်းဆည်းရန် စကြည်ကို စီရင်လိုးတိုင်လုပ်ပါ။
+# သိမ်းဆည်းရန် သရက်ကို စီးရီးလိုက်ဆွဲပါ။
 
 serialized_thread = await thread.serialize() 
 
-# သိမ်းဆည်းထားမှုမှ ဒေတာ tải ချင်းပြီးနောက် စကြည်အခြေအနေကို အစီအစဉ်ချပါ။
+# သိမ်းဆည်းမှုမှ ပြန်ဖတ်ပြီးနောက် သရက်အခြေအနေကို ပြန်ပြုလုပ်ပါ။
 
 resumed_thread = await agent.deserialize_thread(serialized_thread)
 ```
-
+  
 **Agent Middleware**
 
-Agents များသည် tools နှင့် LLM များအား အသုံးပြု၍ အသုံးပြုသူ၏ တာဝန်များကို ပြီးမြောက်စေသည်။ အချို့ ဇာတ်ကြောင်းများတွင် နှစ်ဖက်စွပ်စွဲမှုများကို ကြားနားတွင် လုပ်ဆောင်ခြင်း သို့မဟုတ် မှတ်တမ်းတင်ခြင်း လိုအပ်သည်။ Agent middleware သည် အောက်ပါအတိုင်း ထောက်ပံ့ပေးသည်-
+Agent များသည် ကိရိယာများနှင့် LLM များနှင့် ပူးပေါင်းပြီး အသုံးပြုသူ မှာထားသော အလုပ်များကို ပြီးမြောက်စေသည်။ အချို့အခါများတွင် အလုပ်စဉ်အတွင်းအကြား လုပ်ဆောင်မှု သို့မဟုတ် မှတ်တမ်းတင်မှုများ လုပ်ချင်သည်။ Agent middleware သည် အောက်ပါအတိုင်း ဆောင်ရွက်နိုင်သည် -
 
 *Function Middleware*
 
-Middleware သည် agent နှင့် ဖုန်းခေါ်ဆိုမည့် function/tool အကြား action ဆောင်ရွက်ရန် အသုံးပြုသည်။ ဥပမာ logging လုပ်ချင်သော function call များအတွက် အသုံးချနိုင်သည်။
+ဒီ middleware သည် agent နှင့် function/tool ခေါ်ဆိုမှုကြားတွင် လုပ်ဆောင်မှုတစ်ခုကိရိယာများ (function call) တွင် logging လုပ်ခြင်း ကဲ့သို့ လုပ်ဆောင်ရန် အသုံးပြုသည်။
 
-ကုဒ်တွင် `next` သည် နောက်တစ်ခုသော middleware သို့မဟုတ် function ကိုခေါ်ရန် သတ်မှတ်သည်။
+အောက်ကကုဒ်တွင် `next` သည် နောက်တစ်ခု middleware သို့မဟုတ် function ကို ခေါ်မလားသော် ဆိုသည်။
 
 ```python
 async def logging_function_middleware(
@@ -178,21 +184,21 @@ async def logging_function_middleware(
     next: Callable[[FunctionInvocationContext], Awaitable[None]],
 ) -> None:
     """Function middleware that logs function execution."""
-    # ရှေ့ဆောင်လုပ်ငန်းစဉ်: လုပ်ဆောင်ချက်စတင်မတိုင်မှီ မှတ်တမ်းတင်ခြင်း
+    # ကြိုတင်လုပ်ဆောင်ခြင်း - ဖန်ကုတ်ပြုလုပ်မည့်အချိန်မတိုင်မီ မှတ်တမ်းတင်ခြင်း
     print(f"[Function] Calling {context.function.name}")
 
-    # နောက်ထပ် middleware သို့မဟုတ် လုပ်ဆောင်ချက်စဉ်ဆက်လုပ်ရန်
+    # နောက်ထပ် middleware သို့ function ကို ဆက်လုပ်ရန်
     await next(context)
 
-    # နောက်ဆက်တွဲလုပ်ငန်းစဉ်: လုပ်ဆောင်ချက်ပြီးနောက်မှတ်တမ်းတင်ခြင်း
+    # နောက်ပိုင်းလုပ်ဆောင်ခြင်း - function ပြီးလျှင် မှတ်တမ်းတင်ခြင်း
     print(f"[Function] {context.function.name} completed")
 ```
-
+  
 *Chat Middleware*
 
-Middleware သည် agent နှင့် LLM  ကြား ပေးပို့သော စာတိုများအား လုပ်ဆောင်ခြင်း သို့မှတ်တမ်းတင်ခြင်းများ ဆောင်ရွက်သည်။
+ဒီ middleware သည် agent နှင့် LLM အကြား အကြောင်းတရားများ (request) တွင် လုပ်ဆောင်မှု သို့မဟုတ် logging လုပ်ရန် အသုံးပြုသည်။
 
-AI ဝန်ဆောင်မှုသို့ ပေးပို့သော `messages` အချက်အလက်များ ပါဝင်သည်။
+ဤတွင် AI ဝန်ဆောင်မှု ထံ ပို့သော `messages` စသည့် အရေးကြီးအချက်များ ပါဝင်သည်။
 
 ```python
 async def logging_chat_middleware(
@@ -200,39 +206,41 @@ async def logging_chat_middleware(
     next: Callable[[ChatContext], Awaitable[None]],
 ) -> None:
     """Chat middleware that logs AI interactions."""
-    # ပြင်ဆင်ခြင်းမပြုမီ: AI ခေါ်ဆိုမှုမပြုမီ မှတ်တမ်းတင်ခြင်း
+    # ကြိုတင်ပြင်ဆင်မှု: AI ခေါ်ဆိုမှုမပြုမီ မှတ်တမ်းတင်ခြင်း
     print(f"[Chat] Sending {len(context.messages)} messages to AI")
 
-    # နောက်ထပ် middleware သို့မဟုတ် AI ဝန်ဆောင်မှုဆီသို့ ဆက်လက်သွားရန်
+    # နောက်ထပ် middleware သို့မဟုတ် AI ဝန်ဆောင်မှုသို့ ဆက်လက်သွားပါ
     await next(context)
 
-    # ပြင်ဆင်ပြီးချိန်: AI ရဲ့တုံ့ပြန်ချက်အပြီး မှတ်တမ်းတင်ခြင်း
+    # ပြီးဆုံးပြင်ဆင်မှု: AI ဖြေကြားချက်အပြီးမှတ်တမ်းတင်ခြင်း
     print("[Chat] AI response received")
 
 ```
-
+  
 **Agent Memory**
 
-`Agentic Memory` သင်ခန်းစာတွင် ဖော်ပြသလို မှတ်ဉာဏ်သည် အီးဂျင်အား စကားဝိုင်း အမျိုးမျိုးအပေါ် အလုပ်လုပ်ဆောင်နိုင်ရန် အရေးကြီးသော အစိတ်အပိုင်းဖြစ်သည်။ MAF သည် မှတ်ဉာဏ်အမျိုးမျိုးကို ပံ့ပိုးပေးသည်။
+`Agentic Memory` သင်ခန်းစာတွင်ဖော်ပြထားသလို မှတ်ဉာဏ်သည် agent များကို context အမျိုးမျိုးအလိုက် လည်ပတ်စေနိုင်ရန် အရေးကြီးသည်။ MAF သည် အမျိုးမျိုးသော မှတ်ဉာဏ်စနစ်များ ပေးထားသည်-
 
 *In-Memory Storage*
 
-ဒီ memory သည် application runtime ခန္ဓာကိုယ်တွင် threads ထဲတွင် သိမ်းဆည်းထားသည်။
+ဒီမှာမှတ်ဉာဏ်သည် မျိုးစုံ application runtime တွင် threads အတွင်း သိမ်းဆည်းထားသည်။
 
 ```python
-# Thread အသစ်တစ်ခု ဖန်တီးပါ။
-thread = agent.get_new_thread() # Thread နဲ့အတူ agent ကို chạy ပါ။
+# သစ်သားတစ်ခု ဖန်တီးပါ။
+thread = agent.get_new_thread() # သစ်သားနှင့်အတူ ကိုယ်စားလှယ်ကို လည်ပတ်ပါ။
 response = await agent.run("Hello, I am here to help you book travel. Where would you like to go?", thread=thread)
 ```
-
+  
 *Persistent Messages*
 
-ဒီ memory သည် ဆွေးနွေးမှုမှတ်တမ်းများကို မတူညီသော session များအတွင်း သိမ်းဆည်းရန် အသုံးပြုသည်။ `chat_message_store_factory` ဖြင့် သတ်မှတ်သည် -
+ဒီမှတ်ဉာဏ်သည် အကြောင်းပြန်ကြားမှုသမိုင်းများကို ကွဲပြားသော အစည်းအဝေးများအတွင်း သိမ်းဆည်းရာတွင် အသုံးပြုသည်။
+
+`chat_message_store_factory` ဖြင့် သတ်မှတ်သည် -
 
 ```python
 from agent_framework import ChatMessageStore
 
-# စိတ်ကြိုက်သတင်းစကားဒေတာစတိုးတည်ဆောက်ပါ
+# ကိုယ်ပိုင်စာတိုက်သိုလှောင်မှုတစ်ခုဖန်တီးပါ
 def create_message_store():
     return ChatMessageStore()
 
@@ -243,15 +251,15 @@ agent = ChatAgent(
 )
 
 ```
-
+  
 *Dynamic Memory*
 
-ဒီ memory သည် agents လည်ပတ်မည့် context မတိုင်မီ ထည့်သွင်းထားသော memory များဖြစ်သည်။ mem0 ကဲ့သို့သော ပြင်ပ ဝန်ဆောင်မှုများတွင် သိမ်းဆည်းနိုင်သည်။
+ဒီမှတ်ဉာဏ်ကို agents run မလုပ်ခင် context ထဲ ထည့်သွင်းသည်။ အခြား အပြင် ဝန်ဆောင်မှုများတွင် စနစ်တကျထားနိုင်သည်၊ ဥပမာ mem0:
 
 ```python
 from agent_framework.mem0 import Mem0Provider
 
-# အဆင့်မြင့်မွန်းမာရေးစွမ်းရည်များအတွက် Mem0 ကိုသုံးခြင်း
+# အဆင့်မြင့်မှတ်ဉာဏ်စွမ်းရည်များအတွက် Mem0 ကိုအသုံးပြုခြင်း
 memory_provider = Mem0Provider(
     api_key="your-mem0-api-key",
     user_id="user_123",
@@ -265,10 +273,10 @@ agent = ChatAgent(
 )
 
 ```
-
+  
 **Agent Observability**
 
-Observability သည် ယုံကြည် စိတ်ချရပြီး ထိန်းသိမ်းနိုင်သော agentic စနစ်များ အတွက် အရေးကြီးသည်။ MAF သည် OpenTelemetry နှင့် ပေါင်းစပ်၍ သတိထားကြည့်ရှုမှုနှင့် အတိုင်းအတာများ ပံ့ပိုးပေးသည်။
+ကြည့်ရှုနိုင်မှုသည် အတွင်းစိတ် အားလုံးရှိသည့် agent systems တည်ဆောက်ရာတွင် အရေးကြီးသည်။ MAF သည် OpenTelemetry နှင့် ပေါင်းစပ်ဖက်ဆောင်၍ tracing နှင့် meters များဖြင့် ကြည့်ရှုနိုင်မှု မြင့်တင်သည်။
 
 ```python
 from agent_framework.observability import get_tracer, get_meter
@@ -281,24 +289,24 @@ with tracer.start_as_current_span("my_custom_span"):
 counter = meter.create_counter("my_custom_counter")
 counter.add(1, {"key": "value"})
 ```
+  
+### အလုပ်စဉ်များ
 
-### Workflows
+MAF သည် အလုပ်ကို ပြီးမြောက်စေရန် ရှေ့ဆုံးသတ်မှတ်ထားသော အဆင့်များဖြစ်သော workflows များ ပေးစွမ်းသည်။ AI agent များကို အလုပ်စဉ်အဆင့်တွင် အစိတ်အပိုင်းအဖြစ် ထည့်သွင်းထားသည်။
 
-MAF သည် မှီဝဲတောင့်တင်းလိုအပ်သည့် အဆင့်များကို တွေ့ရှိပြီး တာဝန်ပြည့်စုံအောင် AI agents များ ပါဝင်သည့် workflows များကို ပံ့ပိုးပေးသည်။
+Workflows တွင် သရုပ်ဖော်ထားသည့် control flow အပိုင်းအစ များ ပါရှိသည်။ အလုပ်စဉ်များသည် **စွဲချက်များ (multi-agent orchestration)** နှင့် **checkpointing** ကိုလည်း support ပြုသည်။
 
-Workflows သည် ဖွဲ့စည်းမှုအပိုင်းများ များစွာ ပါဝင်ပြီး ထိန်းချုပ်မှု ပိုမိုကောင်းမွန်စေသည်။ Workflows သည် **multi-agent orchestration** နှင့် **checkpointing** များဖြင့် workflow အခြေအနေများ သိမ်းဆည်းနိုင်သည်။
-
-Workflow ၏ အဓိက အစိတ်အပိုင်းများမှာ -
+workflow ၏ အဓိကအစိတ်အပိုင်းများမှာ -
 
 **Executors**
 
-Executors သည် input messages လက်ခံကာ ဖော်ပြထားသောလုပ်ဆောင်ချက်များ ပြီးမှ output message ထုတ်ပေးသည်။ ၎င်းသည် workflow ကို ပြီးမြောက်စေရန် ဆက်လက်ရွှေ့ဆိုင်းသည်။ Executors သည် AI agent သို့မဟုတ် စိတ်ကြိုက် logic ဖြစ်နိုင်သည်။
+Executors များသည် input message များခံယူပြီး ကိစ္စများ ဆောင်ရွက်ပြီး output message ထုတ်ပေးသည်။ ၎င်းသည် အလုပ်စဉ်ကို ဆက်လက် တိုးတက်စေသည်။ Executors များသည် AI agent ဖြစ်နိုင်သည့်အပြင် ကိုယ်ပိုင် logic များဖြစ်နိုင်သည်။
 
 **Edges**
 
-Edges များသည် workflow ၌ messages များ စီးဆင်းပုံကို သတ်မှတ်ရန် အသုံးပြုသည်။ ၎င်းများမှာ -
+Edges သည် workflow အတွင်း message ညွှန်ကြားမှုကို သတ်မှတ်ရန် အသုံးပြုသည်။ ၎င်းတို့မှာ -
 
-*Direct Edges* - Executor တစ်ခုမှ တစ်ခုသို့ တိုက်ရိုက်ချိတ်ဆက်ခြင်း -
+*Direct Edges* - Executor တစ်ခုမှ အခြား executor တစ်ခုသို့ တန်းတိုက် ချိတ်ဆက်မှု -
 
 ```python
 from agent_framework import WorkflowBuilder
@@ -308,46 +316,46 @@ builder.add_edge(source_executor, target_executor)
 builder.set_start_executor(source_executor)
 workflow = builder.build()
 ```
+  
+*Conditional Edges* - အချို့ အခြေအနေ ပြည့်စုံသောအခါပဲ လှုပ်ရှားမှုဖြစ်နိုင်သည်။ ตัวอย่าง - ဟိုတယ်အခန်း မရရှိနိုင်သောအခါ executor တစ်ခုက အခြားရွေးချယ်မှုများအကြံပြုနိုင်သည်။
 
-*Conditional Edges* - သတ်မှတ်ထားသောအခြေအနေဖြစ်ပေါ်ပြီးမှ ဖွင့်လှစ်သည်။ ဥပမာ- စတိတ်ခန်းလွတ်ရှိမှုမရှိပါက အခြားရွေးချယ်စရာအကြံပြုခြင်း။
+*Switch-case Edges* - သတ်မှတ်ထားသော အခြေအနေများအရ executor များသို့ message များ ရွေ့လျားသည်၊ ဥပမာ - ခရီးသွားဖောက်သည်တွင် ဦးစားပေး ဝင်ခွင့်ရှိလျှင် အခြား workflow ဖြင့် ကိစ္စများ ကိုင်တွယ်သည်။
 
-*Switch-case Edges* - သတ်မှတ်ထားသော အခြေအနေများအလိုက် messages များကို တိုင်းတာ၍ အခြား executors များသို့ ပေးပို့ခြင်း။ ဥပမာ- ခရီးသွားဖောက်သည်တွင် မြန်ဆန်ရုံးဝင်ခွင့်ရှိပြီး workflow အခြားဖြင့် စီမံမည်။
+*Fan-out Edges* - Message တစ်ခုကို နေရာများစွာအား ပို့ပေးသည်။
 
-*Fan-out Edges* - တစ်စိတ်တစ်ပိုင်း message を 多数のターゲットに送信。
-
-*Fan-in Edges* - 多数のexecutorsからのメッセージを集めて、一つのターゲットに送信。
+*Fan-in Edges* - Executor များစွာက Message များပိုက်ဆံပြီး တစ်နေရာသို့ ပေးပို့သည်။
 
 **Events**
 
-Workflows တွင် observation ပိုမိုတိကျစေရန် MAF သည် အောက်ပါ အမျိုးအစား built-in events များကို ပံ့ပိုးပေးသည် -
+Workflow များတွင် observability ကို မြှင့်တင်ရန် MAF သည် ဆောင်ရွက်မှုအတွက် အောက်ပါ events များ ပေးစွမ်းသည် -
 
-- `WorkflowStartedEvent` - Workflow လည်ပတ်မှု စတင်သည်
-- `WorkflowOutputEvent` - Workflow နှင့် တွက်ချက် ပြန်လည်ထုတ်ပေးသည့် output
-- `WorkflowErrorEvent` - Workflow သည် အမှားတက်သည်
-- `ExecutorInvokeEvent` - Executor သည် ဖြေရှင်းရေး စတင်သည်
-- `ExecutorCompleteEvent` - Executor ဖြေရှင်းရေး ပြီးမြောက်သည်
-- `RequestInfoEvent` - တောင်းဆိုမှု တစ်ခု ထုတ်ပေးသည်
+- `WorkflowStartedEvent`  - Workflow စတင်ခြင်း
+- `WorkflowOutputEvent` - Workflow အထွက် ထုတ်ပေးခြင်း
+- `WorkflowErrorEvent` - Workflow အမှား ရှိခြင်း
+- `ExecutorInvokeEvent`  - Executor ဆောင်ရွက်စတင်ခြင်း
+- `ExecutorCompleteEvent`  - Executor ဆောင်ရွက်မှုပုံစံ ပြီးစီးခြင်း
+- `RequestInfoEvent` - တောင်းဆိုမှုတစ်ခု လုပ်ဆောင်ခြင်း
 
-## Advanced MAF Patterns
+## ကျွမ်းကျင် MAF ပုံစံများ
 
-အထက်ပါ အကြောင်းအရာများသည် Microsoft Agent Framework ၏ အဓိက မှတ်ချက်များ ဖြစ်သည်။ agents များ ပို၍ရှုပ်ထွေးလာသောအခါ - အောက်ပါ တိုးတက်သော ပုံစံများကို စဉ်းစားပါ-
+အထက်ပါတွင် Microsoft Agent Framework ၏ အဓိက သိမွတ်ချက်များဖော်ပြထားသည်။ ပိုမိုရှုပ်ထွေးသော agent များ ဖန်တီးရာတွင် ပြုလုပ်ကြည့်သင့်သော အဆင့်မြင့်ပုံစံများမှာ -
 
-- **Middleware Composition**: logging, authentication, rate-limiting ကဲ့သို့ မျိုးစုံသော middleware handler များ function နှင့် chat middleware ဖြင့် ဆက်သွယ်စဉ်ကို စီမံခြင်း၊ agent ဖော်ပြချက် ပိုမိုလေ့လာခြင်း။
-- **Workflow Checkpointing**: workflow events နှင့် serialization ဖြင့် agent စဥ်တစ်ခဲ့ များ ကို သိမ်းဆည်းပီး ဆက်လက်ပြုလုပ်ခြင်း။
-- **Dynamic Tool Selection**: RAG ဝန်ဆောင်မှု အပေါ် မူတည်၍ MAF tool စာရင်းနှင့် ပေါင်းစပ်၍ အကြောင်းအရစပ်ဘို့ version ကိရိယာများ တင်ပြခြင်း။
-- **Multi-Agent Handoff**: workflow edges နှင့် conditional routing  အသုံးပြု အထူးပြု agents များ အကြား သတိထားမှု လွှဲပြောင်းခြင်း။
+- **Middleware အစုံစု**: function နှင့် chat middleware များဖြင့် logging, authentication, rate-limiting အပါအဝင် middleware များစနစ်တကျ ချိတ်ဆက်၍ agent လုပ်ဆောင်မှုကို အကောင်းဆုံး ထိန်းချုပ်သည်။
+- **Workflow Checkpointing**: Workflow events နှင့် serialization ကို အသုံးပြု၍ ရေရှည်ပြေးဆဲ agent processes များကို သိမ်းဆည်းပြီး ပုံမှန်စတင်နိုင်စေသည်။
+- **Dynamic Tool Selection**: RAG နည်းလမ်းနှင့် MAF ရဲ့ tool registration ကို ပေါင်းစပ်၍ တောင်းဆိုချက်အလိုက် သင့်တော်သော tool များကိုသာ ပြသသည်။
+- **Multi-Agent Handoff**: Workflow edges နှင့် conditional routing ကို အသုံးပြု၍ ကျွမ်းကျင် agent များအကြား အလုပ် အပ်နှံမှု အဆင်ပြေစေသည်။
 
 ## ကုဒ် နမူနာများ
 
-Microsoft Agent Framework သော ကုဒ် နမူနာများကို ဒီ repository ၏ `xx-python-agent-framework` နှင့် `xx-dotnet-agent-framework` ဖိုင်များ အောက်တွင် တွေ့နိုင်ပါသည်။
+Microsoft Agent Framework အတွက် ကုဒ်နမူနာများကို ဒီ repository တွင် `xx-python-agent-framework` နှင့် `xx-dotnet-agent-framework` ဖိုင်များတွင် ရှာတွေ့နိုင်ပါသည်။
 
-## Microsoft Agent Framework ပိုမိုမေးမြန်းလိုပါသလား?
+## Microsoft Agent Framework အကြောင်း ပိုမိုမေးမြန်းလိုပါသလား?
 
-အခြား တက်ကြွသူများနှင့် တွေ့ဆုံ၊ office hours တက်ရောက်ပြီး AI Agents သာမန်မေးခွန်း များကို ဖြေကြားပေးရန် [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) တွင် ပါဝင်ဆွေးနွေးလိုက်ပါ။
+အခြား သင်ယူလိုသူများနှင့် တွေ့ဆုံနိုင်ရန်၊ office hours များ တက်ရောက်ရန်နှင့် သင့် AI Agents အကြောင်း မေးခွန်းများ အဖြေ ရယူရန် [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) တွင် ပါဝင်ဆွေးနွေးပါ။
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**အကြောင်းပြချက်**  
-ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှုအတွက် ကြိုးစားဆောင်ရွက်သော်လည်း အလိုအလျောက်ဘာသာပြန်မှုများတွင် အမှားများ သို့မဟုတ် မှားယွင်းသည့်အချက်များ ပါရှိနိုင်ကြောင်း သတိပြု Awareness၊ မူလစာတမ်း၏ မူလဘာသာဖြင့် ရေးသားထားသည့် မူရင်းကို ကိုးကားသင့်ပါသည်။ အရေးကြီးသော အချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်မှုအား အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသည့် တိတိကျကျမရှိမှုများ သို့မဟုတ် မှားယွင်းဖော်ပြချက်များအတွက် ကျွန်ုပ်တို့တာဝန်မရှိပါ။
+**မှတ်ချက်**  
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ကိုအသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် မှန်ကန်မှုအတွက် အစဉ်ကြိုးစားသော်လည်း၊ အလိုအလျောက်ဘာသာပြန်ခြင်းများတွင် အမှားများ သို့မဟုတ် မှားယွင်းမှုများ ပါဝင်နိုင်ကြောင်း သတိပြုပါ။ မူလစာတမ်းကို မိခင်ဘာသာဖြင့်သာ တရားဝင်အတည်ပြုအရင်းအမြစ်အဖြစ် ချက်ချင်းယူဆသင့်သည်။ အရေးကြီးသော အချက်အလက်များအတွက် ကျွမ်းကျင်သော လူသားဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်မှုကို အသုံးပြုရာမှ ဖြစ်လာနိုင်သော နားမလည်မှု သို့မဟုတ် မှားထင်မှားယွင်းမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မယူပါ။
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

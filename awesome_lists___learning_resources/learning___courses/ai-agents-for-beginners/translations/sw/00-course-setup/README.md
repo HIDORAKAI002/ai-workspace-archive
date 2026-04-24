@@ -1,64 +1,64 @@
-# Mipangilio ya Kozi
+# Kuandaa Kozi
 
 ## Utangulizi
 
 Somo hili litafundisha jinsi ya kuendesha sampuli za msimbo za kozi hii.
 
-## Jiunge na Wanafunzi Wengine na Upate Msaada
+## Jiunge na Wajifunza Wengine na Pata Msaada
 
-Kabla ya kuanza kunakili repo yako, jiunge na [AI Agents For Beginners Discord channel](https://aka.ms/ai-agents/discord) ili kupata msaada wowote wa usanidi, maswali kuhusu kozi, au kuungana na wanafunzi wengine.
+Kabla hujaanza kunakili repo yako, jiunge na [AI Agents For Beginners Discord channel](https://aka.ms/ai-agents/discord) kupata msaada wowote wa kuanzisha, maswali yoyote kuhusu kozi, au kuungana na wajifunza wengine.
 
-## Nakili au Fanya Fork ya Repo hii
+## Nakili au Fanya Fork ya Repo Hii
 
-Ili kuanza, tafadhali nakili au fanya fork ya Hifadhi ya GitHub. Hii itakuwezesha kuwa na toleo lako mwenyewe la nyenzo za kozi ili uweze kuendesha, kujaribu, na kubadilisha msimbo!
+Kuanza, tafadhali nakili au fanya fork ya GitHub Repository. Hii itakupa toleo lako binafsi la nyenzo za kozi ili uweze kuendesha, kujaribu, na kuboresha msimbo!
 
-This can be done by clicking the link to <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">fatilia repo</a>
+Hii inaweza kufanywa kwa kubonyeza kiungo cha <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">fanya fork ya repo</a>
 
-You should now have your own forked version of this course in the following link:
+Sasa unapaswa kuwa na toleo lako la fork ya kozi hii katika kiungo kifuatacho:
 
-![Folda iliyoifork](../../../translated_images/sw/forked-repo.33f27ca1901baa6a.webp)
+![Forked Repo](../../../translated_images/sw/forked-repo.33f27ca1901baa6a.webp)
 
-### Kukopa Mfinyu (inayopendekezwa kwa warsha / Codespaces)
+### Nakili Yenye Kina Kidogo (inakubalika kwa warsha / Codespaces)
 
-  > Hazina kamili inaweza kuwa kubwa (~3 GB) unapotembelea historia kamili na faili zote. Ikiwa unashiriki tu warsha au unahitaji folda chache za masomo pekee, kukopa mfinyu (au kukopa sparse) kunazuia sehemu kubwa ya upakuaji huo kwa kukata historia na/au kuruka blobs.
+  >Hifadhi nzima inaweza kuwa kubwa (~3 GB) unapopakua historia yote na faili zote. Ikiwa unashiriki tu warsha au unahitaji folda chache za masomo, nakili yenye kina kidogo (au nakili yenye kujitenga) inazuia sehemu kubwa ya kupakua kwa kukata historia na/au kuepuka blobs.
 
-#### Haraka kukopa mfinyu — historia ndogo, faili zote
+#### Nakili ya kina kidogo — historia ndogo, faili zote
 
-Replace `<your-username>` in the below commands with your fork URL (or the upstream URL if you prefer).
+Badilisha `<your-username>` katika amri zifuatazo na URL ya fork yako (au URL ya juu ikiwa unapendelea).
 
-To clone only the latest commit history (small download):
+Kunakili historia ya mabadiliko ya hivi karibuni pekee (pakua kidogo):
 
 ```bash|powershell
 git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-To clone a specific branch:
+Kunakili tawi maalum:
 
 ```bash|powershell
 git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-#### Kukopa Sehemu (sparse) — blobs ndogo + folda chaguo tu
+#### Nakili Sehemu (sparse) — blobs chache + folda zilizochaguliwa pekee
 
-Hii inatumia kukopa sehemu na sparse-checkout (inahitaji Git 2.25+ na inashauriwa Git ya kisasa yenye msaada wa partial clone):
+Hii inatumia nakili sehemu na sparse-checkout (inahitaji Git 2.25+ na inashauriwa kutumia Git ya kisasa yenye msaada wa nakili sehemu):
 
 ```bash|powershell
 git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-Traverse into the repo folder:
+Ingiza ndani ya folda ya repo:
 
 ```bash|powershell
 cd ai-agents-for-beginners
 ```
 
-Then specify which folders you want (example below shows two folders):
+Kisha bainisha folda unazotaka (mfano hapa chini unaonyesha folda mbili):
 
 ```bash|powershell
 git sparse-checkout set 00-course-setup 01-intro-to-ai-agents
 ```
 
-After cloning and verifying the files, if you only need files and want to free space (no git history), please delete the repository metadata (💀irreversible — you will lose all Git functionality: no commits, pulls, pushes, or history access).
+Baada ya kunakili na kuthibitisha faili, kama unahitaji tu faili na unataka kuondoa nafasi ya kuhifadhi (haki ya git hairudi), tafadhali futa metadata ya repo (💀haiwezi kurekebishwa — utapoteza kazi zote za Git: hakuna commits, pulls, pushes, au ufikiaji wa historia).
 
 ```bash
 # zsh/bash
@@ -70,41 +70,41 @@ rm -rf .git
 Remove-Item -Recurse -Force .git
 ```
 
-#### Kutumia GitHub Codespaces (inayopendekezwa kuepuka upakuaji mkubwa kwa kompyuta ya eneo lako)
+#### Kutumia GitHub Codespaces (inashauriwa kuepuka kupakua kubwa mahali pako)
 
 - Tengeneza Codespace mpya kwa repo hii kupitia [GitHub UI](https://github.com/codespaces).  
 
-- Katika terminal ya codespace mpya iliyoundwa, run moja ya amri za shallow/sparse clone hapo juu ili kuleta folda za masomo unazohitaji ndani ya eneo la kazi la Codespace.
-- Hiari: baada ya kunakili ndani ya Codespaces, ondoa .git ili kurudisha nafasi zaidi (angalia amri za kuondoa hapo juu).
-- Kumbuka: Ikiwa unapendelea kufungua repo moja kwa moja katika Codespaces (bila nakili ya ziada), fahamu Codespaces itaunda mazingira ya devcontainer na inaweza bado kuandaa zaidi ya unachohitaji. Kunakili nakili ya mfinyu ndani ya Codespace safi kunakupa udhibiti zaidi juu ya matumizi ya diski.
+- Katika terminal ya Codespace mpya, endesha moja ya amri za nakili yenye kina kidogo/sparse checkout hapo juu kuleta folda za masomo unazohitaji tu kwenye eneo la Codespace.
+- Hiari: baada ya kunakili ndani ya Codespaces, ondoa .git ili kurudisha nafasi ya ziada (ona amri za kuondoa hapo juu).
+- Kumbuka: Ikiwa unapenda kufungua repo moja kwa moja katika Codespaces (bila kunakili tena), fahamu Codespaces itaandaa mazingira ya devcontainer na huenda bado ikaandaa zaidi ya unavyohitaji. Kunakili nakili yenye kina kidogo ndani ya Codespace safi hukupa udhibiti zaidi wa matumizi ya diski.
 
 #### Vidokezo
 
-- Badilisha kila wakati URL ya clone na fork yako ikiwa unataka kuhariri/kujumuisha.
-- Ikiwa baadaye utahitaji historia zaidi au faili zaidi, unaweza kuzipata kwa kufetch au kurekebisha sparse-checkout kujumuisha folda za ziada.
+- Daima badilisha URL ya nakili na ile ya fork yako ikiwa unataka kuhariri/kuweka commit.
+- Kama baadaye unahitaji historia zaidi au faili, unaweza kuziongeza au kurekebisha sparse-checkout ili kujumuisha folda za ziada.
 
-## Kukimbia Msimbo
+## Kuendesha Msimbo
 
-Kozi hii inatoa mfululizo wa Jupyter Notebooks ambazo unaweza kuendesha kupata uzoefu wa vitendo wa kujenga Mawakala wa AI.
+Kozi hii inatoa mfululizo wa Jupyter Notebooks ambazo unaweza kuzindua kupata uzoefu wa vitendo wa kujenga AI Agents.
 
-Sampuli za msimbo zinatumia **Microsoft Agent Framework (MAF)** na `AzureAIProjectAgentProvider`, ambayo inajuunga na **Azure AI Agent Service V2** (Responses API) kupitia **Microsoft Foundry**.
+Sampuli za msimbo zinatumia **Microsoft Agent Framework (MAF)** na `AzureAIProjectAgentProvider`, ambayo inaunganisha na **Azure AI Agent Service V2** (API ya Majibu) kupitia **Microsoft Foundry**.
 
-Notebooks zote za Python zimewekwa lebo `*-python-agent-framework.ipynb`.
+Notebooks zote za Python zinapakiwa jina `*-python-agent-framework.ipynb`.
 
 ## Mahitaji
 
 - Python 3.12+
-  - **KUMBUKA**: Ikiwa huna Python3.12 imewekwa, hakikisha unaisakinisha. Kisha tengeneza venv yako ukitumia python3.12 ili kuhakikisha toleo sahihi linawekwa kutoka kwenye faili requirements.txt.
+  - **KUMBUKO**: Ikiwa huna Python3.12 imewekwa, hakikisha unaiweka. Kisha unda venv yako kwa kutumia python3.12 kuhakikisha toleo sahihi limewekwa kutoka kwa faili ya requirements.txt.
   
     >Mfano
 
-    Create Python venv directory:
+    Unda saraka ya Python venv:
 
     ```bash|powershell
     python -m venv venv
     ```
 
-    Then activate venv environment for:
+    Kisha washawishe mazingira ya venv kwa:
 
     ```bash
     # zsh/bash
@@ -116,58 +116,58 @@ Notebooks zote za Python zimewekwa lebo `*-python-agent-framework.ipynb`.
     venv\Scripts\activate
     ```
 
-- .NET 10+: Kwa sampuli za msimbo zinazotumia .NET, hakikisha unasakinisha [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) au baadaye. Kisha, angalia toleo la .NET SDK ulilosakinisha:
+- .NET 10+: Kwa sampuli za msimbo zinazotumia .NET, hakikisha umeweka [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) au baadaye. Kisha, angalia toleo la .NET SDK uliloloweka:
 
     ```bash|powershell
     dotnet --list-sdks
     ```
 
-- **Azure CLI** — Inahitajika kwa uthibitisho. Sakinisha kutoka [aka.ms/installazurecli](https://aka.ms/installazurecli).
+- **Azure CLI** — Inahitajika kwa uthibitishaji. Imewekwa kutoka [aka.ms/installazurecli](https://aka.ms/installazurecli).
 - **Azure Subscription** — Kwa ufikiaji wa Microsoft Foundry na Azure AI Agent Service.
-- **Microsoft Foundry Project** — Mradi wenye modeli iliyowekwa (k.m., `gpt-4o`). Tazama [Hatua 1](../../../00-course-setup) hapa chini.
+- **Microsoft Foundry Project** — Mradi uliotumia mfano (mfano, `gpt-4o`). Angalia [Hatua 1](#hatua-ya-1-tengeneza-mradi-wa-microsoft-foundry) hapa chini.
 
-Tumeganisha faili ya `requirements.txt` katika mizizi ya hifadhi hii ambayo ina vifurushi vyote vinavyohitajika vya Python ili kuendesha sampuli za msimbo.
+Tumejumuisha faili ya `requirements.txt` katika mizizi ya repo hii ambayo ina vifurushi vyote vya Python vinavyohitajika ili kuendesha sampuli za msimbo.
 
-Unaweza kuvisakinisha kwa kuendesha amri ifuatayo kwenye terminal yako kwenye mizizi ya hifadhi:
+Unaweza kuviweka kwa kuendesha amri ifuatayo kwenye terminal yako katika mizizi ya repo:
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-Tunapendekeza kutengeneza mazingira ya virtual ya Python ili kuepuka migongano na matatizo yoyote.
+Tunapendekeza kuunda mazingira ya virtual ya Python ili kuepuka migongano na matatizo yoyote.
 
-## Sanidi VSCode
+## Kuandaa VSCode
 
 Hakikisha unatumia toleo sahihi la Python katika VSCode.
 
-![Picha ya skrini](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
+![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
-## Sanidi Microsoft Foundry na Azure AI Agent Service
+## Kuandaa Microsoft Foundry na Azure AI Agent Service
 
-### Hatua 1: Unda Mradi wa Microsoft Foundry
+### Hatua ya 1: Tengeneza Mradi wa Microsoft Foundry
 
-Unahitaji **hub** na **mradi** wa Azure AI Foundry uliyo na modeli iliyotekelezwa ili kuendesha notebooks.
+Unahitaji **hub** ya Azure AI Foundry na **mradi** wenye mfano uliowekwa ili kuendesha notebooks.
 
-1. Nenda kwenye [ai.azure.com](https://ai.azure.com) na ingia kwa akaunti yako ya Azure.
-2. Tengeneza **hub** (au tumia ile iliyopo). Tazama: [Hub resources overview](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
+1. Nenda kwenye [ai.azure.com](https://ai.azure.com) na ingia na akaunti yako ya Azure.
+2. Tengeneza **hub** (au tumia ilipo kwayo). Angalia: [Muhtasari wa rasilimali za Hub](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
 3. Ndani ya hub, tengeneza **mradi**.
-4. Tekeleza modeli (k.m., `gpt-4o`) kutoka **Models + Endpoints** → **Deploy model**.
+4. Weka mfano (mfano, `gpt-4o`) kutoka **Models + Endpoints** → **Deploy model**.
 
-### Hatua 2: Pata Endpoint ya Mradi Wako na Jina la Utekelezaji wa Modeli
+### Hatua ya 2: Pata Kituo cha Mradi na Jina la Uwekeaji Mfano
 
-Kutoka kwenye mradi wako kwenye portal ya Microsoft Foundry:
+Kutoka kwa mradi wako kwenye portal ya Microsoft Foundry:
 
-- **Endpoint ya Mradi** — Nenda kwenye ukurasa wa **Muhtasari** na nakili URL ya endpoint.
+- **Kituo cha Mradi** — Nenda kwenye ukurasa wa **Overview** na nakili URL ya kituo.
 
-![Muunganisho wa Mradi](../../../translated_images/sw/project-endpoint.8cf04c9975bbfbf1.webp)
+![Project Connection String](../../../translated_images/sw/project-endpoint.8cf04c9975bbfbf1.webp)
 
-- **Model Deployment Name** — Nenda kwenye **Models + Endpoints**, chagua modeli uliyoiweka, na chukulia **Deployment name** (k.m., `gpt-4o`).
+- **Jina la Uwekaji Mfano** — Nenda kwenye **Models + Endpoints**, chagua mfano uliowekwa, na kumbuka **Deployment name** (mfano, `gpt-4o`).
 
-### Hatua 3: Ingia kwenye Azure kwa kutumia `az login`
+### Hatua ya 3: Ingia Azure kwa kutumia `az login`
 
-Notebooks zote zinatumia **`AzureCliCredential`** kwa uthibitisho — hakuna funguo za API za kusimamia. Hii inahitaji uwe umeingia kupitia Azure CLI.
+Notebooks zote zinalazimisha uthibitishaji kutumia **`AzureCliCredential`** — hakuna API keys ya kusimamia. Hii inahitaji ulinge kwa kutumia Azure CLI.
 
-1. **Sakinisha Azure CLI** ikiwa bado hujasakinisha: [aka.ms/installazurecli](https://aka.ms/installazurecli)
+1. **Sakinisha Azure CLI** ikiwa bado haijawekwa: [aka.ms/installazurecli](https://aka.ms/installazurecli)
 
 2. **Ingia** kwa kuendesha:
 
@@ -175,13 +175,13 @@ Notebooks zote zinatumia **`AzureCliCredential`** kwa uthibitisho — hakuna fun
     az login
     ```
 
-    Au kama uko katika mazingira ya mbali/Codespace bila kivinjari:
+    Au kama uko kwenye mazingira ya mbali/Codespace bila kivinjari:
 
     ```bash|powershell
     az login --use-device-code
     ```
 
-3. **Chagua subscription yako** ikiwa itaulizwa — chagua ile yenye mradi wako wa Foundry.
+3. **Chagua usajili wako** kama itakuomba — chagua ile ina mradi wako wa Foundry.
 
 4. **Thibitisha** umeingia:
 
@@ -189,9 +189,9 @@ Notebooks zote zinatumia **`AzureCliCredential`** kwa uthibitisho — hakuna fun
     az account show
     ```
 
-> **Kwanini `az login`?** Notebooks zinathibitisha kwa kutumia `AzureCliCredential` kutoka kwa kifurushi `azure-identity`. Hii ina maana kikao chako cha Azure CLI kinatoa uthibitisho — hakuna funguo za API au siri katika faili yako `.env`. Hii ni [mazoezi bora ya usalama](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
+> **Kwa nini `az login`?** Notebooks zinafanya uthibitishaji kwa kutumia `AzureCliCredential` kutoka kwenye kifurushi cha `azure-identity`. Hii maana yake ni kwamba kikao chako cha Azure CLI kinatoa vyeti — hakuna API keys au siri kwenye faili lako `.env`. Hii ni [mbinu bora ya usalama](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
 
-### Hatua 4: Unda Faili lako `.env`
+### Hatua ya 4: Tengeneza Faili Your `.env`
 
 Nakili faili la mfano:
 
@@ -205,77 +205,93 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Fungua `.env` na jaza hizi thamani mbili:
+Fungua `.env` na jaza thamani hizi mbili:
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
 AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4o
 ```
 
-| Variable | Wapi ya kuipata |
+| Kigezo | Mahali pa kukipata |
 |----------|-----------------|
-| `AZURE_AI_PROJECT_ENDPOINT` | Foundry portal → mradi wako → ukurasa wa **Muhtasari** |
-| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Foundry portal → **Models + Endpoints** → jina la modeli uliyoitekeleza |
+| `AZURE_AI_PROJECT_ENDPOINT` | Portal ya Foundry → mradi wako → ukurasa wa **Overview** |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Portal ya Foundry → **Models + Endpoints** → jina la mfano uliowekwa |
 
-Hizo ndiyo kwa masomo mengi! Notebooks zitathibitisha moja kwa moja kupitia kikao chako cha `az login`.
+Hiyo ni kwa masomo mengi! Notebooks zitathibitisha moja kwa moja kupitia kikao chako cha `az login`.
 
-### Hatua 5: Sakinisha Utegemezi za Python
+### Hatua ya 5: Sakinisha Vitegemezi vya Python
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-Tunapendekeza kuendesha hili ndani ya mazingira ya virtual uliyounda hapo awali.
+Tunapendekeza kuendesha hii ndani ya mazingira ya virtual yaliyotengenezwa awali.
 
-## Usanidi wa Ziada kwa Somo la 5 (Agentic RAG)
+## Kuongeza Kuandaa kwa Somo 5 (Agentic RAG)
 
-Somo la 5 linatumia **Azure AI Search** kwa retrieval-augmented generation. Ikiwa unapanga kuendesha somo hilo, ongeza vigezo hivi kwenye faili yako `.env`:
+Somo la 5 linatumia **Azure AI Search** kwa uzalishaji ulioboreshwa kwa utaftaji. Ukiwa na mpango wa kuendesha somo hilo, ongeza vigezo hivi kwenye faili lako `.env`:
 
-| Variable | Wapi ya kuipata |
+| Kigezo | Mahali pa kukipata |
 |----------|-----------------|
 | `AZURE_SEARCH_SERVICE_ENDPOINT` | Azure portal → rasilimali yako ya **Azure AI Search** → **Overview** → URL |
-| `AZURE_SEARCH_API_KEY` | Azure portal → rasilimali yako ya **Azure AI Search** → **Settings** → **Keys** → funguo kuu ya msimamizi |
+| `AZURE_SEARCH_API_KEY` | Azure portal → rasilimali yako ya **Azure AI Search** → **Settings** → **Keys** → ufunguo mkuu wa msimamizi |
 
-## Usanidi wa Ziada kwa Somo la 6 na Somo la 8 (GitHub Models)
+## Kuongeza Kuandaa kwa Somo 6 na Somo 8 (GitHub Models)
 
-Baadhi ya notebooks katika masomo 6 na 8 zinatumia **GitHub Models** badala ya Azure AI Foundry. Ikiwa unapanga kuendesha sampuli hizo, ongeza vigezo hivi kwenye faili yako `.env`:
+Baadhi ya notebooks katika masomo 6 na 8 zinatumia **GitHub Models** badala ya Azure AI Foundry. Ikiwa unapanga kuendesha sampuli hizo, ongeza vigezo hivi kwenye faili lako `.env`:
 
-| Variable | Wapi ya kuipata |
+| Kigezo | Mahali pa kukipata |
 |----------|-----------------|
 | `GITHUB_TOKEN` | GitHub → **Settings** → **Developer settings** → **Personal access tokens** |
 | `GITHUB_ENDPOINT` | Tumia `https://models.inference.ai.azure.com` (thamani ya kawaida) |
-| `GITHUB_MODEL_ID` | Jina la modeli kutumia (k.m. `gpt-4o-mini`) |
+| `GITHUB_MODEL_ID` | Jina la mfano unaotaka kutumia (mfano `gpt-4o-mini`) |
 
-## Usanidi wa Ziada kwa Somo la 8 (Bing Grounding Workflow)
+## Mtoa Huduma Mbadala: MiniMax (Inayolingana na OpenAI)
 
-Notebook ya workflow inayobadilisha kwa masharti katika somo la 8 inatumia **Bing grounding** kupitia Azure AI Foundry. Ikiwa unapanga kuendesha sampuli hiyo, ongeza vigezo hivi kwenye faili yako `.env`:
+[MiniMax](https://platform.minimaxi.com/) hutoa mfano wenye muktadha mkubwa (hadi tokeni 204K) kupitia API inayolingana na OpenAI. Kwa kuwa Microsoft Agent Framework `OpenAIChatClient` hufanya kazi na kituo chochote kinacholingana na OpenAI, unaweza kutumia MiniMax kama mbadala ya moja kwa moja kwa GitHub Models au OpenAI.
 
-| Variable | Wapi ya kuipata |
+Ongeza vigezo hivi kwenye faili lako `.env`:
+
+| Kigezo | Mahali pa kukipata |
 |----------|-----------------|
-| `BING_CONNECTION_ID` | Azure AI Foundry portal → mradi wako → **Management** → **Connected resources** → muunganisho wako wa Bing → nakili connection ID |
+| `MINIMAX_API_KEY` | [MiniMax Platform](https://platform.minimaxi.com/) → API Keys |
+| `MINIMAX_BASE_URL` | Tumia `https://api.minimax.io/v1` (thamani ya kawaida) |
+| `MINIMAX_MODEL_ID` | Jina la mfano unaotaka kutumia (mfano, `MiniMax-M2.7`) |
+
+**Mifano inayopatikana**: `MiniMax-M2.7` (inapendekezwa), `MiniMax-M2.7-highspeed` (majibu ya haraka)
+
+Sampuli za msimbo zinazotumia `OpenAIChatClient` (mfano, mtiririko wa kuhifadhi hoteli wa Somo 14) zitagundua na kutumia usanidi wako wa MiniMax moja kwa moja wakati `MINIMAX_API_KEY` umetolewa.
+
+## Kuongeza Kuandaa kwa Somo 8 (Mtiririko wa Kuweka Msingi wa Bing)
+
+Notebook ya mtiririko wa masharti katika somo 8 inatumia **Bing grounding** kupitia Azure AI Foundry. Ikiwa unakusudia kuendesha sampuli hiyo, ongeza kigezo hiki kwenye faili lako `.env`:
+
+| Kigezo | Mahali pa kukipata |
+|----------|-----------------|
+| `BING_CONNECTION_ID` | Portal ya Azure AI Foundry → mradi wako → **Management** → **Connected resources** → muunganisho wako wa Bing → nakili kitambulisho cha muunganisho |
 
 ## Kutatua Matatizo
 
-### Makosa ya Uthibitishaji wa Vyeti vya SSL kwenye macOS
+### Makosa ya Uthibitishaji wa Cheti cha SSL kwenye macOS
 
-Ikiwa uko kwenye macOS na unakutana na kosa kama:
+Kama uko kwenye macOS na ukaona kosa kama:
 
 ```plaintext
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
 ```
 
-Hili ni tatizo linalojulikana na Python kwenye macOS ambapo vyeti vya SSL vya mfumo havithaminiwi moja kwa moja. Jaribu suluhisho zifuatazo kwa mpangilio:
+Hili ni tatizo la kawaida la Python kwenye macOS ambapo vyeti vya SSL vya mfumo havipiwi imani moja kwa moja. Jaribu suluhisho zifuatazo kwa mpangilio:
 
-**Chaguo 1: Endesha skripti ya Install Certificates ya Python (inayopendekezwa)**
+**Chaguo 1: Endesha script ya Python ya Kufunga Vyeti (inapendekezwa)**
 
 ```bash
-# Badilisha 3.XX na toleo lako la Python lililowekwa (kwa mfano, 3.12 au 3.13):
+# Badilisha 3.XX na toleo la Python ulilolisakinisha (mfano, 3.12 au 3.13):
 /Applications/Python\ 3.XX/Install\ Certificates.command
 ```
 
-**Chaguo 2: Tumia `connection_verify=False` katika notebook yako (kwa notebooks za GitHub Models pekee)**
+**Chaguo 2: Tumia `connection_verify=False` kwenye notebook yako (kwa notebooks za GitHub Models pekee)**
 
-Katika notebook ya Somo 6 (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`), suluhisho lililokomentiwa tayari limejumuishwa. Fungua kutoa komenti `connection_verify=False` unapotengeneza client:
+Katika notebook ya Somo 6 (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`), suluhisho lililosemwa limejumuishwa tayari. Fungua `connection_verify=False` wakati wa kuunda mteja:
 
 ```python
 client = ChatCompletionsClient(
@@ -285,7 +301,7 @@ client = ChatCompletionsClient(
 )
 ```
 
-> **⚠️ Tahadhari:** Kuzima ukaguzi wa SSL (`connection_verify=False`) kunapunguza usalama kwa kuruka uthibitisho wa cheti. Tumia hili tu kama suluhisho la muda katika mazingira ya maendeleo, wala si katika uzalishaji.
+> **⚠️ Tahadhari:** Kuwasha disi uthibitishaji wa SSL (`connection_verify=False`) hupunguza usalama kwa kuepuka uhakiki wa cheti. Tumia hii tu kama suluhisho la muda katika mazingira ya maendeleo, kamwe si kwa uzalishaji.
 
 **Chaguo 3: Sakinisha na tumia `truststore`**
 
@@ -293,7 +309,7 @@ client = ChatCompletionsClient(
 pip install truststore
 ```
 
-Kisha ongeza yafuatayo juu kabisa ya notebook yako au script kabla ya kufanya simu yoyote za mtandao:
+Kisha ongeza yafuatayo juu ya notebook yako au script kabla ya kufanya miito yoyote ya mtandao:
 
 ```python
 import truststore
@@ -302,17 +318,17 @@ truststore.inject_into_ssl()
 
 ## Umekwama Wapi?
 
-Ikiwa una matatizo yoyote kuendesha usanidi huu, jiunge na <a href="https://discord.gg/kzRShWzttr" target="_blank">Jamii ya Azure AI kwenye Discord</a> au <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">tengeneza issue</a>.
+Kama ukikumbwa na matatizo yoyote katika kuendesha kuandaa hii, jiunge nasi kwenye <a href="https://discord.gg/kzRShWzttr" target="_blank">Azure AI Community Discord</a> au <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">tengeneza tatizo</a>.
 
-## Somo Lifuatao
+## Somo Lijalo
 
-Sasa uko tayari kukimbia msimbo wa kozi hii. Furahia kujifunza zaidi kuhusu ulimwengu wa Mawakala wa AI! 
+Sasa uko tayari kuendesha msimbo wa kozi hii. Jifunze kwa furaha zaidi kuhusu ulimwengu wa AI Agents!
 
-[Utangulizi kwa Mawakala wa AI na Matumizi yao](../01-intro-to-ai-agents/README.md)
+[Utangulizi wa AI Agents na Matumizi ya Agent](../01-intro-to-ai-agents/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-Tamko la kutohusika:
-Nyaraka hii imetafsiriwa kwa kutumia huduma ya utafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kufanikisha usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au ukosefu wa usahihi. Nyaraka ya awali katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, utafsiri wa kitaalamu unaofanywa na binadamu unashauriwa. Hatuwajibiki kwa uelewa au tafsiri zisizo sahihi zinazotokana na matumizi ya utafsiri huu.
+**Tangazo la Kukataa**:  
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi usahihi, tafadhali fahamu kwamba tafsiri za moja kwa moja zinaweza kuwa na makosa au upungufu wa usahihi. Hati asili katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalam ya binadamu inapendekezwa. Hatuwajibiki kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -174,7 +174,13 @@ def do_configure(args):
         # Pass port (may be None for auto-allocation/reuse)
         return _do_configure_profile_interactive(profile, port)
 
-    # Default behavior: interactive configuration for default profile
+    # Default behavior: interactive configuration for default profile.
+    # Prefer non-interactive mode when the CI/env-driven inputs are already
+    # set — otherwise Windows CI hits the interactive path (pwsh makes stdin
+    # look like a TTY) and blocks on EOF instead of using the env vars.
+    if _has_non_interactive_env():
+        return _do_configure_from_env()
+
     # If stdin is not a terminal (e.g., running via curl | bash),
     # redirect stdin from /dev/tty for interactive prompts
     original_stdin = None
@@ -192,6 +198,19 @@ def do_configure(args):
         if original_stdin is not None:
             sys.stdin.close()
             sys.stdin = original_stdin
+
+
+def _has_non_interactive_env() -> bool:
+    """Whether the env vars required by _do_configure_from_env are already set.
+
+    Returns True when an API key is present, OR when the provider is one that
+    doesn't need a key (ollama, vertexai — the latter authenticates via a
+    service-account file path). Prevents the interactive prompt from kicking
+    in when the user clearly wants CI/scripted behavior.
+    """
+    if os.environ.get("HINDSIGHT_API_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY"):
+        return True
+    return os.environ.get("HINDSIGHT_API_LLM_PROVIDER") in ("ollama", "vertexai")
 
 
 def _do_configure_from_env():
@@ -1353,6 +1372,17 @@ def do_profile_command(args: list[str]) -> int:
 
 def main():
     """Main entry point."""
+    # Windows defaults stdout/stderr to the legacy cp1252 codec, which crashes
+    # on the Unicode glyphs (✓, box-drawing, etc.) used throughout Rich-rendered
+    # output. Reconfigure to UTF-8 before the first print. `errors="replace"`
+    # keeps the CLI from dying on an unexpected character (e.g. a redirected
+    # pipe) — glyphs that can't be rendered become '?' rather than raising.
+    if sys.platform == "win32":
+        for stream in (sys.stdout, sys.stderr):
+            reconfigure = getattr(stream, "reconfigure", None)
+            if reconfigure is not None:
+                reconfigure(encoding="utf-8", errors="replace")
+
     # Use argparse to properly parse global flags
     # Create a parent parser for global --profile/-p flag
     parent_parser = argparse.ArgumentParser(add_help=False)

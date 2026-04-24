@@ -54,6 +54,7 @@ const (
 	McpDomain         = "mcp"
 	ReplicateDomain   = "replicate"
 	AliasesDomain     = "aliases"
+	NamespacesDomain  = "namespaces"
 )
 
 var (
@@ -97,6 +98,9 @@ var (
 		Collection: All,
 		Alias:      All,
 	}
+	AllNamespaces = &models.PermissionNamespaces{
+		Namespace: All,
+	}
 
 	ComponentName = "RBAC"
 
@@ -121,6 +125,8 @@ var (
 	DeleteUsers          = "delete_users"
 
 	ManageBackups = "manage_backups"
+
+	ManageNamespaces = "manage_namespaces"
 
 	CreateCollections = "create_collections"
 	ReadCollections   = "read_collections"
@@ -160,6 +166,9 @@ var (
 
 		// Backups domain
 		ManageBackups,
+
+		// Namespaces domain
+		ManageNamespaces,
 
 		// Users domain
 		AssignAndRevokeUsers,
@@ -383,6 +392,20 @@ func CollectionsMetadata(classes ...string) []string {
 	return resources
 }
 
+// Namespaces generates a list of namespace resource strings based on the
+// provided names. If no names are provided (or a single empty/"*"), it
+// returns the wildcard resource string "namespaces/*".
+func Namespaces(names ...string) []string {
+	if len(names) == 0 || (len(names) == 1 && (names[0] == "" || names[0] == "*")) {
+		return []string{fmt.Sprintf("%s/*", NamespacesDomain)}
+	}
+	out := make([]string, len(names))
+	for i, n := range names {
+		out[i] = fmt.Sprintf("%s/%s", NamespacesDomain, n)
+	}
+	return out
+}
+
 func Aliases(class string, aliases ...string) []string {
 	class = schema.UppercaseClassName(class)
 	aliases = schema.UppercaseClassesNames(aliases...)
@@ -591,6 +614,7 @@ func viewerPermissions() []*models.Permission {
 			Users:       AllUsers,
 			Aliases:     AllAliases,
 			Groups:      AllOIDCGroups,
+			Namespaces:  AllNamespaces,
 		})
 	}
 
@@ -613,6 +637,7 @@ func adminPermissions() []*models.Permission {
 			Users:       AllUsers,
 			Aliases:     AllAliases,
 			Groups:      AllOIDCGroups,
+			Namespaces:  AllNamespaces,
 		})
 	}
 

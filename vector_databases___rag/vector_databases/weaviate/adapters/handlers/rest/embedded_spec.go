@@ -2832,6 +2832,206 @@ func init() {
         ]
       }
     },
+    "/namespaces": {
+      "get": {
+        "description": "Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable ` + "`" + `manage_namespaces` + "`" + ` permission receive an empty list (never 403).",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "List namespaces",
+        "operationId": "listNamespaces",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of namespaces (possibly empty).",
+            "schema": {
+              "$ref": "#/definitions/NamespaceListResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "404": {
+            "description": "Not Found - The namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/namespaces/{namespace_id}": {
+      "get": {
+        "description": "Retrieve details about a specific namespace by its name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Get a namespace",
+        "operationId": "getNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the namespace.",
+            "schema": {
+              "$ref": "#/definitions/Namespace"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new cluster-level namespace with the given name. Names must start with a lowercase letter, contain only lowercase letters and digits, be 3-36 characters long, and must not be a reserved name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Create a new namespace",
+        "operationId": "createNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace. Must start with a lowercase letter, contain only lowercase letters and digits, length 3-36, and not be a reserved name.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Namespace created successfully.",
+            "schema": {
+              "$ref": "#/definitions/Namespace"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - The namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "A namespace with the specified name already exists.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Hard-delete a namespace by its name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Delete a namespace",
+        "operationId": "deleteNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted."
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
     "/nodes": {
       "get": {
         "description": "Retrieves status information about all nodes in the cluster. Use the ` + "`" + `output` + "`" + ` query parameter to control the level of detail.",
@@ -8003,6 +8203,23 @@ func init() {
         "$ref": "#/definitions/SingleRef"
       }
     },
+    "Namespace": {
+      "description": "A cluster-level namespace used to group resources under a common administrative unit. Namespace names must start with a lowercase letter, contain only lowercase letters and digits, be 3-36 characters long, and must not be a reserved name.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The unique name of the namespace.",
+          "type": "string"
+        }
+      }
+    },
+    "NamespaceListResponse": {
+      "description": "Response object containing a list of namespaces.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Namespace"
+      }
+    },
     "NestedProperty": {
       "type": "object",
       "properties": {
@@ -8411,7 +8628,8 @@ func init() {
             "read_groups",
             "create_mcp",
             "read_mcp",
-            "update_mcp"
+            "update_mcp",
+            "manage_namespaces"
           ]
         },
         "aliases": {
@@ -8484,6 +8702,17 @@ func init() {
             },
             "groupType": {
               "$ref": "#/definitions/GroupType"
+            }
+          }
+        },
+        "namespaces": {
+          "description": "Resources applicable for namespace actions.",
+          "type": "object",
+          "properties": {
+            "namespace": {
+              "description": "A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value ` + "`" + `*` + "`" + ` applies the permission to all namespaces.",
+              "type": "string",
+              "default": "*"
             }
           }
         },
@@ -10115,6 +10344,10 @@ func init() {
     {
       "description": "Model Context Protocol (MCP) endpoint. Provides tool discovery and invocation for LLM agents via the MCP Streamable HTTP transport.",
       "name": "mcp"
+    },
+    {
+      "description": "Operations for managing cluster-level namespaces. Namespaces group resources under a common administrative unit. Access is gated by the operator-tier ` + "`" + `manage_namespaces` + "`" + ` action.",
+      "name": "namespaces"
     }
   ],
   "externalDocs": {
@@ -12911,6 +13144,206 @@ func init() {
         "x-serviceIds": [
           "weaviate.local.query.meta"
         ]
+      }
+    },
+    "/namespaces": {
+      "get": {
+        "description": "Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable ` + "`" + `manage_namespaces` + "`" + ` permission receive an empty list (never 403).",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "List namespaces",
+        "operationId": "listNamespaces",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of namespaces (possibly empty).",
+            "schema": {
+              "$ref": "#/definitions/NamespaceListResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "404": {
+            "description": "Not Found - The namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/namespaces/{namespace_id}": {
+      "get": {
+        "description": "Retrieve details about a specific namespace by its name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Get a namespace",
+        "operationId": "getNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the namespace.",
+            "schema": {
+              "$ref": "#/definitions/Namespace"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new cluster-level namespace with the given name. Names must start with a lowercase letter, contain only lowercase letters and digits, be 3-36 characters long, and must not be a reserved name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Create a new namespace",
+        "operationId": "createNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace. Must start with a lowercase letter, contain only lowercase letters and digits, length 3-36, and not be a reserved name.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Namespace created successfully.",
+            "schema": {
+              "$ref": "#/definitions/Namespace"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - The namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "A namespace with the specified name already exists.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Hard-delete a namespace by its name.",
+        "tags": [
+          "namespaces"
+        ],
+        "summary": "Delete a namespace",
+        "operationId": "deleteNamespace",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the namespace.",
+            "name": "namespace_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted."
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/nodes": {
@@ -18379,6 +18812,23 @@ func init() {
         "$ref": "#/definitions/SingleRef"
       }
     },
+    "Namespace": {
+      "description": "A cluster-level namespace used to group resources under a common administrative unit. Namespace names must start with a lowercase letter, contain only lowercase letters and digits, be 3-36 characters long, and must not be a reserved name.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The unique name of the namespace.",
+          "type": "string"
+        }
+      }
+    },
+    "NamespaceListResponse": {
+      "description": "Response object containing a list of namespaces.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Namespace"
+      }
+    },
     "NestedProperty": {
       "type": "object",
       "properties": {
@@ -18804,7 +19254,8 @@ func init() {
             "read_groups",
             "create_mcp",
             "read_mcp",
-            "update_mcp"
+            "update_mcp",
+            "manage_namespaces"
           ]
         },
         "aliases": {
@@ -18877,6 +19328,17 @@ func init() {
             },
             "groupType": {
               "$ref": "#/definitions/GroupType"
+            }
+          }
+        },
+        "namespaces": {
+          "description": "Resources applicable for namespace actions.",
+          "type": "object",
+          "properties": {
+            "namespace": {
+              "description": "A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value ` + "`" + `*` + "`" + ` applies the permission to all namespaces.",
+              "type": "string",
+              "default": "*"
             }
           }
         },
@@ -19035,6 +19497,17 @@ func init() {
         },
         "groupType": {
           "$ref": "#/definitions/GroupType"
+        }
+      }
+    },
+    "PermissionNamespaces": {
+      "description": "Resources applicable for namespace actions.",
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "description": "A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value ` + "`" + `*` + "`" + ` applies the permission to all namespaces.",
+          "type": "string",
+          "default": "*"
         }
       }
     },
@@ -20679,6 +21152,10 @@ func init() {
     {
       "description": "Model Context Protocol (MCP) endpoint. Provides tool discovery and invocation for LLM agents via the MCP Streamable HTTP transport.",
       "name": "mcp"
+    },
+    {
+      "description": "Operations for managing cluster-level namespaces. Namespaces group resources under a common administrative unit. Access is gated by the operator-tier ` + "`" + `manage_namespaces` + "`" + ` action.",
+      "name": "namespaces"
     }
   ],
   "externalDocs": {

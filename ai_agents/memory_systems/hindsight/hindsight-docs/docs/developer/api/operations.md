@@ -85,8 +85,10 @@ Response:
 | Status | Description |
 |--------|-------------|
 | `pending` | Operation is queued and waiting to be processed |
+| `processing` | Operation is actively being processed by a worker |
 | `completed` | Operation finished successfully |
 | `failed` | Operation failed (check `error_message` for details) |
+| `cancelled` | Operation was cancelled via the DELETE endpoint before processing |
 
 ## Managing Operations
 
@@ -113,7 +115,7 @@ Response:
 }
 ```
 
-The operation status resets to `pending` and the worker picks it up again. Returns `409` if the operation is not in `failed` state.
+The operation status resets to `pending` and the worker picks it up again. Returns `409` if the operation is not in `failed` or `cancelled` state.
 
 ## Next Steps
 

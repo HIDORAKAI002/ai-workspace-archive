@@ -20,7 +20,9 @@ def temp_home(tmp_path, monkeypatch):
     """Create a temporary home directory for integration tests."""
     temp_home = tmp_path / "home"
     temp_home.mkdir()
+    # Windows `Path.home()` consults USERPROFILE, not HOME — set both.
     monkeypatch.setenv("HOME", str(temp_home))
+    monkeypatch.setenv("USERPROFILE", str(temp_home))
     return temp_home
 
 

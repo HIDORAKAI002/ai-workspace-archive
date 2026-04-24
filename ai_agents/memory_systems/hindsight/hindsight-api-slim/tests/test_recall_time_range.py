@@ -16,6 +16,12 @@ import pytest_asyncio
 from hindsight_api import MemoryEngine, RequestContext
 from hindsight_api.engine.retain import embedding_utils
 
+# Tests in this file insert memory_units with shared hardcoded UUIDs and
+# memory_units.id is a global PK, so parallel xdist workers running these
+# tests simultaneously hit pk_memory_units conflicts. Share an xdist group
+# so the eight tests serialize on the same worker.
+pytestmark = pytest.mark.xdist_group("recall_time_range")
+
 # Three points in time, each 1 hour apart
 T1 = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
 T2 = datetime(2026, 1, 1, 11, 0, 0, tzinfo=timezone.utc)
@@ -76,20 +82,42 @@ async def seeded_memory(memory_no_llm_verify: MemoryEngine):
 
     pool = await engine._get_pool()
     async with pool.acquire() as conn:
-        await _insert_fact(
-            conn, fact_id=ID_OLD, text="the cat sat on the mat",
-            bank_id=bank_id, embedding_str=_to_str(embeddings[0]),
-            created_at=T1, updated_at=T1,
+        # Defensive cleanup: clear any rows left behind by an interrupted
+        # previous run of this fixture (test process killed before teardown).
+        # Without this, pk_memory_units rejects the next insert with the same
+        # hardcoded IDs.
+        await conn.execute(
+            "DELETE FROM memory_units WHERE id IN ($1, $2, $3)",
+            ID_OLD,
+            ID_MID,
+            ID_NEW,
         )
         await _insert_fact(
-            conn, fact_id=ID_MID, text="dogs are loyal animals",
-            bank_id=bank_id, embedding_str=_to_str(embeddings[1]),
-            created_at=T2, updated_at=T2,
+            conn,
+            fact_id=ID_OLD,
+            text="the cat sat on the mat",
+            bank_id=bank_id,
+            embedding_str=_to_str(embeddings[0]),
+            created_at=T1,
+            updated_at=T1,
         )
         await _insert_fact(
-            conn, fact_id=ID_NEW, text="birds can fly in the sky",
-            bank_id=bank_id, embedding_str=_to_str(embeddings[2]),
-            created_at=T3, updated_at=T3,
+            conn,
+            fact_id=ID_MID,
+            text="dogs are loyal animals",
+            bank_id=bank_id,
+            embedding_str=_to_str(embeddings[1]),
+            created_at=T2,
+            updated_at=T2,
+        )
+        await _insert_fact(
+            conn,
+            fact_id=ID_NEW,
+            text="birds can fly in the sky",
+            bank_id=bank_id,
+            embedding_str=_to_str(embeddings[2]),
+            created_at=T3,
+            updated_at=T3,
         )
 
     yield engine, bank_id
@@ -107,8 +135,10 @@ class TestRecallTimeRange:
     async def test_no_filter_returns_all(self, seeded_memory):
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
         )
         ids = _result_ids(result)
         assert ID_OLD in ids
@@ -119,8 +149,10 @@ class TestRecallTimeRange:
         """created_after=T1 excludes fact-old (updated_at == T1, not > T1)."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_after=T1,
         )
         ids = _result_ids(result)
@@ -132,8 +164,10 @@ class TestRecallTimeRange:
         """created_after=T2 returns only fact-new."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_after=T2,
         )
         ids = _result_ids(result)
@@ -145,8 +179,10 @@ class TestRecallTimeRange:
         """created_before=T3 excludes fact-new (updated_at == T3, not < T3)."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_before=T3,
         )
         ids = _result_ids(result)
@@ -158,8 +194,10 @@ class TestRecallTimeRange:
         """created_before=T2 returns only fact-old."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_before=T2,
         )
         ids = _result_ids(result)
@@ -171,9 +209,12 @@ class TestRecallTimeRange:
         """created_after=T1, created_before=T3 returns only fact-mid."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
-            created_after=T1, created_before=T3,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
+            created_after=T1,
+            created_before=T3,
         )
         ids = _result_ids(result)
         assert ID_OLD not in ids
@@ -184,8 +225,10 @@ class TestRecallTimeRange:
         """A range after all facts returns empty results."""
         engine, bank_id = seeded_memory
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_after=T3,
         )
         assert len(result.results) == 0, f"Expected no results after T3, got: {_result_ids(result)}"
@@ -199,16 +242,17 @@ class TestRecallTimeRange:
         async with pool.acquire() as conn:
             await conn.execute(
                 "UPDATE memory_units SET updated_at = $1 WHERE id = $2",
-                T3, ID_OLD,
+                T3,
+                ID_OLD,
             )
 
         result = await engine.recall_async(
-            bank_id=bank_id, query="animals and nature",
-            request_context=RC, max_tokens=10000,
+            bank_id=bank_id,
+            query="animals and nature",
+            request_context=RC,
+            max_tokens=10000,
             created_after=T2,
         )
         ids = _result_ids(result)
-        assert ID_OLD in ids, (
-            "fact-old created at T1, updated at T3 — created_after=T2 must find it via updated_at"
-        )
+        assert ID_OLD in ids, "fact-old created at T1, updated at T3 — created_after=T2 must find it via updated_at"
         assert ID_NEW in ids
