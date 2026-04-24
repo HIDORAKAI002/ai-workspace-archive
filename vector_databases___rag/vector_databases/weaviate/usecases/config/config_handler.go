@@ -260,6 +260,10 @@ type Config struct {
 	// Export configures the data export feature and its storage destination.
 	Export Export `json:"export" yaml:"export"`
 
+	// Namespaces configures cluster-level namespace support. Namespaces can
+	// only be enabled on newly bootstrapped clusters (enforced at startup).
+	Namespaces Namespaces `json:"namespaces" yaml:"namespaces"`
+
 	// Usage configuration for the usage module
 	Usage usagetypes.UsageConfig `json:"usage" yaml:"usage"`
 
@@ -316,6 +320,13 @@ func (c *Config) Validate() error {
 
 	if c.Authentication.AnonymousAccess.Enabled && c.Authorization.Rbac.Enabled {
 		return fmt.Errorf("cannot enable anonymous access and rbac authorization")
+	}
+
+	// Namespaces are incompatible with GraphQL: the GraphQL schema does not
+	// model namespace-qualified class names. On namespace-enabled clusters the
+	// operator must disable GraphQL explicitly via DISABLE_GRAPHQL=true.
+	if c.Namespaces.Enabled && !c.DisableGraphQL {
+		return fmt.Errorf("NAMESPACES_ENABLED=true requires DISABLE_GRAPHQL=true: GraphQL is not supported on namespace-enabled clusters")
 	}
 
 	if err := c.Persistence.Validate(); err != nil {
@@ -612,6 +623,16 @@ type Export struct {
 	// so this value is used directly.
 	// Env: EXPORT_DEFAULT_PATH, runtime config: export_default_path.
 	DefaultPath *runtime.DynamicValue[string] `json:"default_path" yaml:"default_path"`
+}
+
+// Namespaces configures cluster-level namespace support.
+//
+// NAMESPACES_ENABLED is a cluster-wide feature flag. Once enabled on a
+// bootstrapping cluster it is the exclusive source of truth for namespace
+// existence (see cluster/namespaces). The flag must not be toggled on an
+// already-populated cluster; startup invariants refuse such configurations.
+type Namespaces struct {
+	Enabled bool `json:"enabled" yaml:"enabled"`
 }
 
 const (
