@@ -83,18 +83,18 @@ Available for **Job** events (Success, Failure, Long-running).
 
 Available for **Asset Materialization**, **Asset Check**, and **Asset Freshness Policy** events. A single alert can span multiple assets and multiple event types, so the asset and event-type tokens expose collections.
 
-| Token                        | Description                                                                   | Available for          | Example                                                        |
-| :--------------------------- | :---------------------------------------------------------------------------- | :--------------------- | :------------------------------------------------------------- |
-| `{{asset_keys}}`             | Comma-separated list of asset keys affected by this alert.                    | All                    | `orders, customers`                                            |
-| `{{asset_keys_json}}`        | JSON array of asset keys affected by this alert.                              | All                    | `["orders", "customers"]`                                      |
-| `{{event_types}}`            | Comma-separated human-readable labels of the asset event types in this alert. | All                    | `Asset materializations failed, Asset check executions failed` |
-| `{{event_type_counts_json}}` | JSON object mapping raw asset event type names to counts in this alert.       | All                    | `{"ASSET_MATERIALIZATION_FAILURE": 3}`                         |
-| `{{run_id}}`                 | Unique ID of the run that produced the event.                                 | Materialization, Check | `abc123`                                                       |
-| `{{run_link}}`               | URL to view the run in Dagster.                                               | Materialization, Check | `https://dagster.cloud/acme/prod/runs/abc123`                  |
-| `{{failure_message}}`        | Error message describing the failure.                                         | Materialization, Check | `Asset materialization failed`                                 |
-| `{{user_name}}`              | Name of the user who launched the run.                                        | Materialization, Check | `John Doe`                                                     |
-| `{{user_email}}`             | Email of the user who launched the run.                                       | Materialization, Check | `john@example.com`                                             |
-| `{{freshness_status}}`       | Freshness policy state (`PASS`, `WARN`, `FAIL`).                              | Freshness policy       | `FAIL`                                                         |
+| Token                        | Description                                                                                     | Available for          | Example                                                        |
+| :--------------------------- | :---------------------------------------------------------------------------------------------- | :--------------------- | :------------------------------------------------------------- |
+| `{{asset_keys}}`             | Comma-separated list of asset keys affected by this alert.                                      | All                    | `orders, customers`                                            |
+| `{{asset_keys_json}}`        | JSON array of asset keys affected by this alert.                                                | All                    | `["orders", "customers"]`                                      |
+| `{{event_types}}`            | Comma-separated human-readable labels of the asset event types in this alert.                   | All                    | `Asset materializations failed, Asset check executions failed` |
+| `{{event_type_counts_json}}` | JSON object mapping raw asset event type names to counts in this alert.                         | All                    | `{"ASSET_MATERIALIZATION_FAILURE": 3}`                         |
+| `{{run_id}}`                 | Unique ID of the run that produced the event.                                                   | Materialization, Check | `abc123`                                                       |
+| `{{run_link}}`               | URL to view the run in Dagster.                                                                 | Materialization, Check | `https://dagster.cloud/acme/prod/runs/abc123`                  |
+| `{{failure_message}}`        | Error message describing the failure.                                                           | Materialization, Check | `Asset materialization failed`                                 |
+| `{{user_name}}`              | Name of the user who launched the run.                                                          | Materialization, Check | `John Doe`                                                     |
+| `{{user_email}}`             | Email of the user who launched the run.                                                         | Materialization, Check | `john@example.com`                                             |
+| `{{freshness_status}}`       | Freshness policy health status (`HEALTHY`, `WARNING`, `DEGRADED`, `UNKNOWN`, `NOT_APPLICABLE`). | Freshness policy       | `DEGRADED`                                                     |
 
 ### Asset health tokens
 

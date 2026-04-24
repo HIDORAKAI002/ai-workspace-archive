@@ -53,7 +53,7 @@ if is_papermill_2():
             log_output=False,
             stdout_file=None,
             stderr_file=None,
-            start_timeout=60,
+            start_timeout=120,
             execution_timeout=None,
             **kwargs,
         ):
@@ -116,7 +116,7 @@ else:
             log_output=False,
             stdout_file=None,
             stderr_file=None,
-            start_timeout=60,
+            start_timeout=120,
             execution_timeout=None,
             **kwargs,
         ):
