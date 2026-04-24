@@ -56,9 +56,6 @@
 			"label": "¿Descubriste una vulnerabilidad?",
 			"link": "Sigue nuestro proceso de divulgación"
 		},
-		"contact": {
-			"label": "¿Necesitas hablar con nosotros? Escribe"
-		},
 		"community": "¿Quieres consejos o simplemente pasar el rato con otros usuarios de Roo Code? Únete a <redditLink>reddit.com/r/RooCode</redditLink> o <discordLink>discord.gg/roocode</discordLink>",
 		"contactAndCommunity": "Contacto y Comunidad",
 		"manageSettings": "Gestionar Configuración",

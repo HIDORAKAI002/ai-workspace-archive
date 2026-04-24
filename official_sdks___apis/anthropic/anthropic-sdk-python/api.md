@@ -628,6 +628,7 @@ from anthropic.types.beta import (
     BetaManagedAgentsDeletedSession,
     BetaManagedAgentsFileResourceParams,
     BetaManagedAgentsGitHubRepositoryResourceParams,
+    BetaManagedAgentsMemoryStoreResourceParam,
     BetaManagedAgentsSession,
     BetaManagedAgentsSessionAgent,
     BetaManagedAgentsSessionStats,
@@ -720,6 +721,7 @@ from anthropic.types.beta.sessions import (
     BetaManagedAgentsDeleteSessionResource,
     BetaManagedAgentsFileResource,
     BetaManagedAgentsGitHubRepositoryResource,
+    BetaManagedAgentsMemoryStoreResource,
     BetaManagedAgentsSessionResource,
     ResourceRetrieveResponse,
     ResourceUpdateResponse,
@@ -787,6 +789,72 @@ Methods:
 - <code title="get /v1/vaults/{vault_id}/credentials?beta=true">client.beta.vaults.credentials.<a href="./src/anthropic/resources/beta/vaults/credentials.py">list</a>(vault_id, \*\*<a href="src/anthropic/types/beta/vaults/credential_list_params.py">params</a>) -> <a href="./src/anthropic/types/beta/vaults/beta_managed_agents_credential.py">SyncPageCursor[BetaManagedAgentsCredential]</a></code>
 - <code title="delete /v1/vaults/{vault_id}/credentials/{credential_id}?beta=true">client.beta.vaults.credentials.<a href="./src/anthropic/resources/beta/vaults/credentials.py">delete</a>(credential_id, \*, vault_id) -> <a href="./src/anthropic/types/beta/vaults/beta_managed_agents_deleted_credential.py">BetaManagedAgentsDeletedCredential</a></code>
 - <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/archive?beta=true">client.beta.vaults.credentials.<a href="./src/anthropic/resources/beta/vaults/credentials.py">archive</a>(credential_id, \*, vault_id) -> <a href="./src/anthropic/types/beta/vaults/beta_managed_agents_credential.py">BetaManagedAgentsCredential</a></code>
+
+## MemoryStores
+
+Types:
+
+```python
+from anthropic.types.beta import BetaManagedAgentsDeletedMemoryStore, BetaManagedAgentsMemoryStore
+```
+
+Methods:
+
+- <code title="post /v1/memory_stores?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">create</a>(\*\*<a href="src/anthropic/types/beta/memory_store_create_params.py">params</a>) -> <a href="./src/anthropic/types/beta/beta_managed_agents_memory_store.py">BetaManagedAgentsMemoryStore</a></code>
+- <code title="get /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">retrieve</a>(memory_store_id) -> <a href="./src/anthropic/types/beta/beta_managed_agents_memory_store.py">BetaManagedAgentsMemoryStore</a></code>
+- <code title="post /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">update</a>(memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_store_update_params.py">params</a>) -> <a href="./src/anthropic/types/beta/beta_managed_agents_memory_store.py">BetaManagedAgentsMemoryStore</a></code>
+- <code title="get /v1/memory_stores?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">list</a>(\*\*<a href="src/anthropic/types/beta/memory_store_list_params.py">params</a>) -> <a href="./src/anthropic/types/beta/beta_managed_agents_memory_store.py">SyncPageCursor[BetaManagedAgentsMemoryStore]</a></code>
+- <code title="delete /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">delete</a>(memory_store_id) -> <a href="./src/anthropic/types/beta/beta_managed_agents_deleted_memory_store.py">BetaManagedAgentsDeletedMemoryStore</a></code>
+- <code title="post /v1/memory_stores/{memory_store_id}/archive?beta=true">client.beta.memory_stores.<a href="./src/anthropic/resources/beta/memory_stores/memory_stores.py">archive</a>(memory_store_id) -> <a href="./src/anthropic/types/beta/beta_managed_agents_memory_store.py">BetaManagedAgentsMemoryStore</a></code>
+
+### Memories
+
+Types:
+
+```python
+from anthropic.types.beta.memory_stores import (
+    BetaManagedAgentsConflictError,
+    BetaManagedAgentsContentSha256Precondition,
+    BetaManagedAgentsDeletedMemory,
+    BetaManagedAgentsError,
+    BetaManagedAgentsMemory,
+    BetaManagedAgentsMemoryListItem,
+    BetaManagedAgentsMemoryPathConflictError,
+    BetaManagedAgentsMemoryPreconditionFailedError,
+    BetaManagedAgentsMemoryPrefix,
+    BetaManagedAgentsMemoryView,
+    BetaManagedAgentsPrecondition,
+)
+```
+
+Methods:
+
+- <code title="post /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memory_stores.memories.<a href="./src/anthropic/resources/beta/memory_stores/memories.py">create</a>(memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_create_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory.py">BetaManagedAgentsMemory</a></code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memory_stores.memories.<a href="./src/anthropic/resources/beta/memory_stores/memories.py">retrieve</a>(memory_id, \*, memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_retrieve_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory.py">BetaManagedAgentsMemory</a></code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memory_stores.memories.<a href="./src/anthropic/resources/beta/memory_stores/memories.py">update</a>(memory_id, \*, memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_update_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory.py">BetaManagedAgentsMemory</a></code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memory_stores.memories.<a href="./src/anthropic/resources/beta/memory_stores/memories.py">list</a>(memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_list_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory_list_item.py">SyncPageCursor[BetaManagedAgentsMemoryListItem]</a></code>
+- <code title="delete /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memory_stores.memories.<a href="./src/anthropic/resources/beta/memory_stores/memories.py">delete</a>(memory_id, \*, memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_delete_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_deleted_memory.py">BetaManagedAgentsDeletedMemory</a></code>
+
+### MemoryVersions
+
+Types:
+
+```python
+from anthropic.types.beta.memory_stores import (
+    BetaManagedAgentsActor,
+    BetaManagedAgentsAPIActor,
+    BetaManagedAgentsMemoryVersion,
+    BetaManagedAgentsMemoryVersionOperation,
+    BetaManagedAgentsSessionActor,
+    BetaManagedAgentsUserActor,
+)
+```
+
+Methods:
+
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}?beta=true">client.beta.memory_stores.memory_versions.<a href="./src/anthropic/resources/beta/memory_stores/memory_versions.py">retrieve</a>(memory_version_id, \*, memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_version_retrieve_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory_version.py">BetaManagedAgentsMemoryVersion</a></code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions?beta=true">client.beta.memory_stores.memory_versions.<a href="./src/anthropic/resources/beta/memory_stores/memory_versions.py">list</a>(memory_store_id, \*\*<a href="src/anthropic/types/beta/memory_stores/memory_version_list_params.py">params</a>) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory_version.py">SyncPageCursor[BetaManagedAgentsMemoryVersion]</a></code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact?beta=true">client.beta.memory_stores.memory_versions.<a href="./src/anthropic/resources/beta/memory_stores/memory_versions.py">redact</a>(memory_version_id, \*, memory_store_id) -> <a href="./src/anthropic/types/beta/memory_stores/beta_managed_agents_memory_version.py">BetaManagedAgentsMemoryVersion</a></code>
 
 ## Files
 

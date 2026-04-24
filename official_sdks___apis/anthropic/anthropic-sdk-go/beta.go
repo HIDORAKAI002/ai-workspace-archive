@@ -25,6 +25,7 @@ type BetaService struct {
 	Environments BetaEnvironmentService
 	Sessions     BetaSessionService
 	Vaults       BetaVaultService
+	MemoryStores BetaMemoryStoreService
 	Files        BetaFileService
 	Skills       BetaSkillService
 	UserProfiles BetaUserProfileService
@@ -42,6 +43,7 @@ func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r.Environments = NewBetaEnvironmentService(opts...)
 	r.Sessions = NewBetaSessionService(opts...)
 	r.Vaults = NewBetaVaultService(opts...)
+	r.MemoryStores = NewBetaMemoryStoreService(opts...)
 	r.Files = NewBetaFileService(opts...)
 	r.Skills = NewBetaSkillService(opts...)
 	r.UserProfiles = NewBetaUserProfileService(opts...)
@@ -72,8 +74,8 @@ const (
 	AnthropicBetaSkills2025_10_02                     AnthropicBeta = "skills-2025-10-02"
 	AnthropicBetaFastMode2026_02_01                   AnthropicBeta = "fast-mode-2026-02-01"
 	AnthropicBetaOutput300k2026_03_24                 AnthropicBeta = "output-300k-2026-03-24"
-	AnthropicBetaAdvisorTool2026_03_01                AnthropicBeta = "advisor-tool-2026-03-01"
 	AnthropicBetaUserProfiles2026_03_24               AnthropicBeta = "user-profiles-2026-03-24"
+	AnthropicBetaAdvisorTool2026_03_01                AnthropicBeta = "advisor-tool-2026-03-01"
 )
 
 type BetaAPIError struct {
