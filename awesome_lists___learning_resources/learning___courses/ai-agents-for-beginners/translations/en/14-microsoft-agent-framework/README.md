@@ -81,6 +81,12 @@ agent = OpenAIResponsesClient().create_agent( name="WeatherBot", instructions="Y
 agent = OpenAIChatClient().create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
 ```
 
+or [MiniMax](https://platform.minimaxi.com/), which provides an OpenAI-compatible API with large context windows (up to 204K tokens):
+
+```python
+agent = OpenAIChatClient(base_url="https://api.minimax.io/v1", api_key=os.environ["MINIMAX_API_KEY"], model_id="MiniMax-M2.7").create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
+```
+
 or remote agents using the A2A protocol:
 
 ```python
@@ -138,8 +144,8 @@ Agent Threads are used to handle multi-turn conversations. Threads can be create
 To create a thread, the code looks like this:
 
 ```python
-# Create a new thread.
-thread = agent.get_new_thread() # Run the agent with the thread.
+# Créer un nouveau thread.
+thread = agent.get_new_thread() # Exécuter l'agent avec le thread.
 response = await agent.run("Hello, I am here to help you book travel. Where would you like to go?", thread=thread)
 
 ```
@@ -165,7 +171,7 @@ resumed_thread = await agent.deserialize_thread(serialized_thread)
 
 **Agent Middleware**
 
-Agents interact with tools and LLMs to complete user's tasks. In certain scenarios, we want to execute or track in between these it interactions. Agent middleware enables us to do this through:
+Agents interact with tools and LLMs to complete user's tasks. In certain scenarios, we want to execute or track in between these interactions. Agent middleware enables us to do this through:
 
 *Function Middleware*
 
@@ -349,6 +355,6 @@ Join the [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) to meet
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+**Disclaimer**:  
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

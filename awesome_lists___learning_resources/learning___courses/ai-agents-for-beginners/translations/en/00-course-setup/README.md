@@ -124,7 +124,7 @@ All Python notebooks are labelled `*-python-agent-framework.ipynb`.
 
 - **Azure CLI** — Required for authentication. Install from [aka.ms/installazurecli](https://aka.ms/installazurecli).
 - **Azure Subscription** — For access to Microsoft Foundry and Azure AI Agent Service.
-- **Microsoft Foundry Project** — A project with a deployed model (e.g., `gpt-4o`). See [Step 1](../../../00-course-setup) below.
+- **Microsoft Foundry Project** — A project with a deployed model (e.g., `gpt-4o`). See [Step 1](#step-1-create-a-microsoft-foundry-project) below.
 
 We have included a `requirements.txt` file in the root of this repository that contains all the required Python packages to run the code samples.
 
@@ -246,6 +246,22 @@ Some notebooks in lessons 6 and 8 use **GitHub Models** instead of Azure AI Foun
 | `GITHUB_ENDPOINT` | Use `https://models.inference.ai.azure.com` (default value) |
 | `GITHUB_MODEL_ID` | Model name to use (e.g. `gpt-4o-mini`) |
 
+## Alternative Provider: MiniMax (OpenAI-Compatible)
+
+[MiniMax](https://platform.minimaxi.com/) provides large-context models (up to 204K tokens) through an OpenAI-compatible API. Since the Microsoft Agent Framework's `OpenAIChatClient` works with any OpenAI-compatible endpoint, you can use MiniMax as a drop-in alternative to GitHub Models or OpenAI.
+
+Add these variables to your `.env` file:
+
+| Variable | Where to find it |
+|----------|-----------------|
+| `MINIMAX_API_KEY` | [MiniMax Platform](https://platform.minimaxi.com/) → API Keys |
+| `MINIMAX_BASE_URL` | Use `https://api.minimax.io/v1` (default value) |
+| `MINIMAX_MODEL_ID` | Model name to use (e.g., `MiniMax-M2.7`) |
+
+**Available models**: `MiniMax-M2.7` (recommended), `MiniMax-M2.7-highspeed` (faster responses)
+
+The code samples that use `OpenAIChatClient` (e.g., Lesson 14 hotel booking workflow) will automatically detect and use your MiniMax configuration when `MINIMAX_API_KEY` is set.
+
 ## Additional Setup for Lesson 8 (Bing Grounding Workflow)
 
 The conditional workflow notebook in lesson 8 uses **Bing grounding** via Azure AI Foundry. If you plan to run that sample, add this variable to your `.env` file:
@@ -313,6 +329,6 @@ You are now ready to run the code for this course. Happy learning more about the
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-Disclaimer:
-This document has been translated using the AI translation service Co-op Translator (https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+**Disclaimer**:  
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
