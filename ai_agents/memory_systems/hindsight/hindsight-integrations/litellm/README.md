@@ -255,7 +255,7 @@ messages = [{"role": "user", "content": "Hello!"}]
 hindsight_litellm.completion(model="gpt-4o", messages=messages, hindsight_query="greeting")
 
 # Anthropic
-hindsight_litellm.completion(model="claude-3-5-sonnet-20241022", messages=messages, hindsight_query="greeting")
+hindsight_litellm.completion(model="claude-sonnet-4-20250514", messages=messages, hindsight_query="greeting")
 
 # Groq
 hindsight_litellm.completion(model="groq/llama-3.1-70b-versatile", messages=messages, hindsight_query="greeting")
@@ -390,7 +390,7 @@ wrapped = wrap_anthropic(
 )
 
 response = wrapped.messages.create(
-    model="claude-3-5-sonnet-20241022",
+    model="claude-sonnet-4-20250514",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Hello!"}]
 )
@@ -510,7 +510,7 @@ cleanup()
 ## Requirements
 
 - Python >= 3.10
-- litellm >= 1.40.0
+- litellm >= 1.83.0
 - A running Hindsight API server
 
 ## License

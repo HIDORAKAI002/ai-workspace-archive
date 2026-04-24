@@ -561,6 +561,8 @@ def _wrapped_completion(*args, **kwargs):
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
+            if _is_streaming_response(response):
+                return _LiteLLMStreamWrapper(response, final_messages, model or "unknown")
             _store_conversation(final_messages, response, model or "unknown")
 
     return response
@@ -608,6 +610,8 @@ async def _wrapped_acompletion(*args, **kwargs):
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
+            if _is_streaming_response(response):
+                return _LiteLLMAsyncStreamWrapper(response, final_messages, model or "unknown")
             _store_conversation(final_messages, response, model or "unknown")
 
     return response
@@ -735,34 +739,29 @@ def cleanup() -> None:
 # =============================================================================
 
 
-def _format_conversation_for_storage(
-    messages: List[dict],
-    response,
-) -> str:
-    """Format conversation messages and response for storage to Hindsight.
+def _is_streaming_response(response) -> bool:
+    """Check if the response is a streaming wrapper rather than a complete ModelResponse."""
+    return not hasattr(response, "choices")
 
-    Returns the formatted conversation text.
+
+def _format_messages_for_storage(messages: List[dict]) -> List[str]:
+    """Format conversation messages into storage items (without the response).
+
+    Returns a list of formatted message strings.
     """
     items = []
-
     for msg in messages:
         role = msg.get("role", "").upper()
         content = msg.get("content", "")
 
-        # Skip system messages
         if role == "SYSTEM":
             continue
-
-        # Skip injected memory context
         if isinstance(content, str) and content.startswith("# Relevant Memories"):
             continue
-
-        # Handle tool results
         if role == "TOOL":
             items.append(f"TOOL_RESULT: {content}")
             continue
 
-        # Handle assistant messages with tool calls
         tool_calls = msg.get("tool_calls", [])
         if tool_calls:
             tc_strs = []
@@ -778,7 +777,6 @@ def _format_conversation_for_storage(
                 items.append(f"ASSISTANT: {content}")
             continue
 
-        # Handle structured content (vision messages)
         if isinstance(content, list):
             text_parts = []
             for item in content:
@@ -789,6 +787,142 @@ def _format_conversation_for_storage(
         if content:
             label = "USER" if role == "USER" else "ASSISTANT"
             items.append(f"{label}: {content}")
+
+    return items
+
+
+class _LiteLLMStreamWrapper:
+    """Wraps a LiteLLM sync streaming response to collect chunks and store conversation on completion."""
+
+    def __init__(self, stream, messages: List[dict], model: str):
+        self._stream = stream
+        self._messages = messages
+        self._model = model
+        self._collected_content: List[str] = []
+        self._finished = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            chunk = next(self._stream)
+            if hasattr(chunk, "choices") and chunk.choices:
+                delta = chunk.choices[0].delta
+                if hasattr(delta, "content") and delta.content:
+                    self._collected_content.append(delta.content)
+            return chunk
+        except StopIteration:
+            self._store_if_needed()
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._store_if_needed()
+        if hasattr(self._stream, "__exit__"):
+            return self._stream.__exit__(exc_type, exc_val, exc_tb)
+
+    def _store_if_needed(self):
+        if self._finished:
+            return
+        self._finished = True
+        if not self._collected_content:
+            return
+
+        assistant_output = "".join(self._collected_content)
+        if not assistant_output:
+            return
+
+        items = _format_messages_for_storage(self._messages)
+        items.append(f"ASSISTANT: {assistant_output}")
+        conversation_text = "\n\n".join(items)
+        if conversation_text:
+            _store_conversation_from_text(conversation_text, self._model)
+
+    def close(self):
+        self._store_if_needed()
+        if hasattr(self._stream, "close"):
+            self._stream.close()
+
+    def __getattr__(self, name: str):
+        return getattr(self._stream, name)
+
+
+class _LiteLLMAsyncStreamWrapper:
+    """Wraps a LiteLLM async streaming response to collect chunks and store conversation on completion."""
+
+    def __init__(self, stream, messages: List[dict], model: str):
+        self._stream = stream
+        self._messages = messages
+        self._model = model
+        self._collected_content: List[str] = []
+        self._finished = False
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        try:
+            chunk = await self._stream.__anext__()
+            if hasattr(chunk, "choices") and chunk.choices:
+                delta = chunk.choices[0].delta
+                if hasattr(delta, "content") and delta.content:
+                    self._collected_content.append(delta.content)
+            return chunk
+        except StopAsyncIteration:
+            self._store_if_needed()
+            raise
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self._store_if_needed()
+        if hasattr(self._stream, "__aexit__"):
+            return await self._stream.__aexit__(exc_type, exc_val, exc_tb)
+
+    def _store_if_needed(self):
+        if self._finished:
+            return
+        self._finished = True
+        if not self._collected_content:
+            return
+
+        assistant_output = "".join(self._collected_content)
+        if not assistant_output:
+            return
+
+        items = _format_messages_for_storage(self._messages)
+        items.append(f"ASSISTANT: {assistant_output}")
+        conversation_text = "\n\n".join(items)
+        if conversation_text:
+            _store_conversation_from_text(conversation_text, self._model)
+
+    async def aclose(self):
+        self._store_if_needed()
+        if hasattr(self._stream, "aclose"):
+            await self._stream.aclose()
+
+    def __getattr__(self, name: str):
+        return getattr(self._stream, name)
+
+
+def _format_conversation_for_storage(
+    messages: List[dict],
+    response,
+) -> str:
+    """Format conversation messages and response for storage to Hindsight.
+
+    Returns the formatted conversation text, or empty string for streaming responses.
+    """
+    # Streaming responses (CustomStreamWrapper) don't have .choices — skip storage.
+    # Streaming is handled by _LiteLLMStreamWrapper/_LiteLLMAsyncStreamWrapper instead.
+    if _is_streaming_response(response):
+        return ""
+
+    items = _format_messages_for_storage(messages)
 
     # Add the response
     if response.choices and len(response.choices) > 0:
@@ -932,6 +1066,62 @@ def get_pending_storage_errors() -> List[Exception]:
         errors = list(_pending_storage_errors)
         _pending_storage_errors.clear()
         return errors
+
+
+def _store_conversation_from_text(conversation_text: str, model: str) -> None:
+    """Store pre-formatted conversation text to Hindsight.
+
+    Used by stream wrappers which collect chunks and format the conversation themselves.
+    Follows the same sync/async storage logic as _store_conversation.
+    """
+    config = get_config()
+    defaults = get_defaults()
+
+    if not config or not config.store_conversations:
+        return
+    if not defaults or not defaults.bank_id:
+        _storage_logger.warning("No bank_id configured for storage. Call set_defaults(bank_id=...).")
+        return
+    if not conversation_text:
+        return
+
+    if config.sync_storage:
+        try:
+            content_to_store = conversation_text
+            if defaults.effective_document_id:
+                existing_content = _get_existing_document_content(
+                    defaults.bank_id, defaults.effective_document_id, config.verbose
+                )
+                if existing_content:
+                    content_to_store = f"{existing_content}\n\n{conversation_text}"
+
+            retain(
+                content=content_to_store,
+                bank_id=defaults.bank_id,
+                context=f"conversation:litellm:{model}",
+                document_id=defaults.effective_document_id,
+                tags=defaults.tags,
+                metadata={"source": "litellm", "model": model},
+            )
+            if config.verbose:
+                _storage_logger.info(f"Stored streamed conversation to bank: {defaults.bank_id}")
+        except Exception as e:
+            raise HindsightError(f"Failed to store conversation: {e}") from e
+        return
+
+    thread = threading.Thread(
+        target=_store_conversation_sync,
+        args=(
+            conversation_text,
+            defaults.bank_id,
+            defaults.effective_document_id,
+            defaults.tags,
+            model,
+            config.verbose,
+        ),
+        daemon=True,
+    )
+    thread.start()
 
 
 def _store_conversation(
@@ -1086,7 +1276,10 @@ def completion(*args, **kwargs):
     # Step 3: Store conversation (raises HindsightError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
-        _store_conversation(final_messages, response, model or "unknown")
+        if final_messages:
+            if _is_streaming_response(response):
+                return _LiteLLMStreamWrapper(response, final_messages, model or "unknown")
+            _store_conversation(final_messages, response, model or "unknown")
 
     return response
 
@@ -1161,7 +1354,10 @@ async def acompletion(*args, **kwargs):
     # Step 3: Store conversation (raises HindsightError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
-        _store_conversation(final_messages, response, model or "unknown")
+        if final_messages:
+            if _is_streaming_response(response):
+                return _LiteLLMAsyncStreamWrapper(response, final_messages, model or "unknown")
+            _store_conversation(final_messages, response, model or "unknown")
 
     return response
 
