@@ -1,20 +1,12 @@
-"""Artifact upload/download models."""
-
 from pydantic import BaseModel
 
 
-class ArtifactUploadResult(BaseModel):
-    """Result of an artifact upload operation."""
-
+class DgApiArtifactUploadResult(BaseModel):
     key: str
-    scope: str
     deployment: str | None = None
 
 
-class ArtifactDownloadResult(BaseModel):
-    """Result of an artifact download operation."""
-
+class DgApiArtifactDownloadResult(BaseModel):
     key: str
+    deployment: str | None = None
     path: str
-    scope: str
-    deployment: str | None = None

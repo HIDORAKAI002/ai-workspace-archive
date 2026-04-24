@@ -1,6 +1,6 @@
-"""Job metadata schema definitions."""
-
 from pydantic import BaseModel
+
+from dagster_rest_resources.schemas.util import DgApiTruncatedList
 
 
 class DgApiJobTag(BaseModel):
@@ -29,10 +29,6 @@ class DgApiJob(BaseModel):
     sensors: list[DgApiJobSensorSummary] = []
     repository_origin: str | None = None
 
-    class Config:
-        from_attributes = True
 
-
-class DgApiJobList(BaseModel):
-    items: list[DgApiJob]
-    total: int
+class DgApiJobList(DgApiTruncatedList[DgApiJob]):
+    pass

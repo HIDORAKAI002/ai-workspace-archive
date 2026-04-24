@@ -80,6 +80,7 @@
   dict({
     'items': list([
     ]),
+    'total': 0,
   })
 # ---
 # name: TestFormatRunsList.test_format_runs_list_empty_text[0]
@@ -113,6 +114,7 @@
         'status': 'QUEUED',
       }),
     ]),
+    'total': 3,
   })
 # ---
 # name: TestFormatRunsList.test_format_runs_list_text[0]

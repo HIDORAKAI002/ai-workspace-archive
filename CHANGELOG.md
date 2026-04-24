@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-25 03:02 IST] Auto-Sync
+- **36 Repositories Updated:** Keboola MCP, Tavily MCP, Promptfoo, n8n, Flowise, Trigger.dev, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra
+
 ## [2026-04-24 20:37 IST] Auto-Sync
 - **39 Repositories Updated:** Keboola MCP, Kubernetes MCP Server, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, huggingface/smolagents, mastra-ai/mastra, deepset-ai/haystack, Upsonic, stanfordnlp/dspy, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, RooCodeInc/Roo-Code, weaviate/weaviate, infiniflow/ragflow, open-telemetry/opentelemetry-python, HandsOnLLM/Hands-On-Large-Language-Models, microsoft/ai-agents-for-beginners, firecrawl/firecrawl, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

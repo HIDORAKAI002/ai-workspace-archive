@@ -1,33 +1,18 @@
-"""Issue schema definitions."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiIssueStatus(str, Enum):
-    """Issue status."""
-
-    OPEN = "OPEN"
-    CLOSED = "CLOSED"
-    TRIAGE = "TRIAGE"
+from dagster_rest_resources.schemas.enums import DgApiIssueStatus
+from dagster_rest_resources.schemas.util import DgApiPaginatedList
 
 
 class DgApiIssueLinkedRun(BaseModel):
-    """A run linked to an issue."""
-
     run_id: str
 
 
 class DgApiIssueLinkedAsset(BaseModel):
-    """An asset linked to an issue."""
-
     asset_key: str  # Slash-separated asset key (e.g., "my/asset/key")
 
 
 class DgApiIssue(BaseModel):
-    """Single issue model."""
-
     id: str
     title: str
     description: str
@@ -37,9 +22,5 @@ class DgApiIssue(BaseModel):
     context: str | None = None
 
 
-class DgApiIssueList(BaseModel):
-    """List of issues with pagination support."""
-
-    items: list[DgApiIssue]
-    cursor: str | None = None
-    has_more: bool = False
+class DgApiIssueList(DgApiPaginatedList["DgApiIssue"]):
+    pass

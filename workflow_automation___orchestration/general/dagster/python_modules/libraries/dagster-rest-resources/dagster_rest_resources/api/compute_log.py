@@ -1,26 +1,25 @@
-"""Compute logs API implementation."""
-
 from dataclasses import dataclass
 
-from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.graphql_adapter.compute_log import (
-    get_captured_log_content,
-    get_captured_log_metadata,
-    get_logs_captured_events,
+from typing_extensions import assert_never
+
+from dagster_rest_resources.__generated__.get_logs_captured_events import (
+    GetLogsCapturedEventsLogsForRunEventConnectionEventsLogsCapturedEvent,
 )
+from dagster_rest_resources.gql_client import IGraphQLClient
 from dagster_rest_resources.schemas.compute_log import (
     DgApiComputeLogLinkList,
     DgApiComputeLogList,
     DgApiStepComputeLog,
     DgApiStepComputeLogLink,
 )
+from dagster_rest_resources.schemas.exception import DagsterPlusGraphqlError
+
+_MAX_PAGES = 100
 
 
 @dataclass(frozen=True)
 class DgApiComputeLogApi:
-    """API for compute log operations."""
-
-    client: IGraphQLClient
+    _client: IGraphQLClient
 
     def get_logs(
         self,
@@ -29,70 +28,108 @@ class DgApiComputeLogApi:
         cursor: str | None = None,
         max_bytes: int | None = None,
     ) -> DgApiComputeLogList:
-        """Get compute log content for a run.
-
-        Two-phase approach: find LogsCapturedEvent entries, then fetch content per entry.
-        """
-        events = get_logs_captured_events(self.client, run_id, step_key=step_key)
+        events = self._get_logs_captured_events(run_id, step_key=step_key)
 
         items: list[DgApiStepComputeLog] = []
         for event in events:
-            file_key = event["fileKey"]
-            log_key = [run_id, "compute_logs", file_key]
-            content = get_captured_log_content(
-                self.client, log_key, cursor=cursor, max_bytes=max_bytes
-            )
+            log_key = [run_id, "compute_logs", event.file_key]
+            content = self._client.get_captured_logs(
+                log_key=log_key,
+                cursor=cursor,
+                limit=max_bytes,
+            ).captured_logs
             items.append(
                 DgApiStepComputeLog(
-                    file_key=file_key,
-                    step_keys=event.get("stepKeys") or [],
-                    stdout=content.get("stdout"),
-                    stderr=content.get("stderr"),
-                    cursor=content.get("cursor"),
+                    file_key=event.file_key,
+                    step_keys=event.step_keys or [],
+                    stdout=content.stdout,
+                    stderr=content.stderr,
+                    cursor=content.cursor,
                 )
             )
 
-        return DgApiComputeLogList(run_id=run_id, items=items, total=len(items))
+        return DgApiComputeLogList(items=items, run_id=run_id)
 
     def get_log_links(
         self,
         run_id: str,
         step_key: str | None = None,
     ) -> DgApiComputeLogLinkList:
-        """Get compute log download URLs for a run.
-
-        Two-phase approach: find LogsCapturedEvent entries, then fetch metadata per entry.
-        """
-        events = get_logs_captured_events(self.client, run_id, step_key=step_key)
+        events = self._get_logs_captured_events(run_id, step_key=step_key)
 
         items: list[DgApiStepComputeLogLink] = []
         for event in events:
-            file_key = event["fileKey"]
-            step_keys = event.get("stepKeys") or []
+            step_keys = event.step_keys or []
 
-            # Check if external URLs are directly available from the event
-            ext_stdout = event.get("externalStdoutUrl")
-            ext_stderr = event.get("externalStderrUrl")
-
-            if ext_stdout or ext_stderr:
+            if event.external_stdout_url or event.external_stderr_url:
                 items.append(
                     DgApiStepComputeLogLink(
-                        file_key=file_key,
+                        file_key=event.file_key,
                         step_keys=step_keys,
-                        stdout_download_url=ext_stdout,
-                        stderr_download_url=ext_stderr,
+                        stdout_download_url=event.external_stdout_url,
+                        stderr_download_url=event.external_stderr_url,
                     )
                 )
             else:
-                log_key = [run_id, "compute_logs", file_key]
-                metadata = get_captured_log_metadata(self.client, log_key)
+                log_key = [run_id, "compute_logs", event.file_key]
+                metadata = self._client.get_captured_logs_metadata(
+                    log_key=log_key
+                ).captured_logs_metadata
                 items.append(
                     DgApiStepComputeLogLink(
-                        file_key=file_key,
+                        file_key=event.file_key,
                         step_keys=step_keys,
-                        stdout_download_url=metadata.get("stdoutDownloadUrl"),
-                        stderr_download_url=metadata.get("stderrDownloadUrl"),
+                        stdout_download_url=metadata.stdout_download_url,
+                        stderr_download_url=metadata.stderr_download_url,
                     )
                 )
 
-        return DgApiComputeLogLinkList(run_id=run_id, items=items, total=len(items))
+        return DgApiComputeLogLinkList(items=items, run_id=run_id)
+
+    def _get_logs_captured_events(
+        self,
+        run_id: str,
+        step_key: str | None = None,
+    ) -> list[GetLogsCapturedEventsLogsForRunEventConnectionEventsLogsCapturedEvent]:
+        collected: list[GetLogsCapturedEventsLogsForRunEventConnectionEventsLogsCapturedEvent] = []
+        after_cursor: str | None = None
+        server_has_more = True
+
+        for _ in range(_MAX_PAGES):
+            if not server_has_more:
+                break
+
+            result = self._client.get_logs_captured_events(
+                run_id=run_id,
+                limit=100,
+                after_cursor=after_cursor,
+            ).logs_for_run
+
+            match result.typename__:
+                case "EventConnection":
+                    for event in result.events:
+                        if not isinstance(
+                            event,
+                            GetLogsCapturedEventsLogsForRunEventConnectionEventsLogsCapturedEvent,
+                        ):
+                            continue
+                        if step_key and step_key not in (event.step_keys or []):
+                            continue
+                        collected.append(event)
+
+                    server_has_more = result.has_more
+                    new_cursor = result.cursor
+
+                    if server_has_more and not new_cursor:
+                        break
+
+                    after_cursor = new_cursor
+
+                case "RunNotFoundError":
+                    raise DagsterPlusGraphqlError(f"Error fetching logs for run: {result.message}")
+                case "PythonError":
+                    raise DagsterPlusGraphqlError(f"Error fetching logs for run: {result.message}")
+                case _ as unreachable:
+                    assert_never(unreachable)
+
+        return collected

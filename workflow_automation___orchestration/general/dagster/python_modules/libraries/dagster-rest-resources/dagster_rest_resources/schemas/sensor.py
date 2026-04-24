@@ -1,45 +1,21 @@
-"""Sensor metadata schema definitions."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiSensorStatus(str, Enum):
-    """Sensor execution status."""
-
-    RUNNING = "RUNNING"
-    STOPPED = "STOPPED"
-    PAUSED = "PAUSED"
-
-
-class DgApiSensorType(str, Enum):
-    """Sensor type classification."""
-
-    STANDARD = "STANDARD"
-    MULTI_ASSET = "MULTI_ASSET"
-    FRESHNESS_POLICY = "FRESHNESS_POLICY"
-    AUTO_MATERIALIZE = "AUTO_MATERIALIZE"
-    ASSET = "ASSET"
+from dagster_rest_resources.schemas.enums import DgApiInstigationStatus, DgApiSensorType
+from dagster_rest_resources.schemas.util import DgApiList
 
 
 class DgApiSensor(BaseModel):
-    """Single sensor metadata model."""
-
     id: str
     name: str
-    status: DgApiSensorStatus
+    status: DgApiInstigationStatus
     sensor_type: DgApiSensorType
+    repository_origin: str
     description: str | None = None
-    repository_origin: str | None = None
-    next_tick_timestamp: float | None = None  # Unix timestamp
+    next_tick_timestamp: float | None = None
 
     class Config:
         from_attributes = True
 
 
-class DgApiSensorList(BaseModel):
-    """GET /api/sensors response."""
-
-    items: list[DgApiSensor]
-    total: int
+class DgApiSensorList(DgApiList["DgApiSensor"]):
+    pass

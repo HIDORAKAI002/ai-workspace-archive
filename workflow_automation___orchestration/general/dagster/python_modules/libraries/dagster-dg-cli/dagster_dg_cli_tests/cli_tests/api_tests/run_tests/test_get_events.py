@@ -9,11 +9,11 @@ import json
 from click.testing import CliRunner
 from dagster_dg_cli.cli.api.client import DgApiTestContext
 from dagster_dg_cli.cli.api.formatters import format_logs_json, format_logs_table
+from dagster_rest_resources.schemas.enums import DgApiLogLevel
 from dagster_rest_resources.schemas.run_event import (
     DgApiErrorInfo,
     DgApiRunEvent,
-    RunEventLevel,
-    RunEventList,
+    DgApiRunEventList,
 )
 
 
@@ -21,13 +21,13 @@ class TestFormatLogs:
     """Test the log formatting functions."""
 
     def _create_sample_log_list(self):
-        """Create sample RunEventList for testing."""
+        """Create sample DgApiRunEventList for testing."""
         events = [
             DgApiRunEvent(
                 run_id="test-run-12345",
                 message='Starting execution of run for "test_pipeline".',
                 timestamp="1641046800000",  # 2022-01-01 14:20:00 UTC (as milliseconds)
-                level=RunEventLevel.INFO,
+                level=DgApiLogLevel.INFO,
                 step_key=None,
                 event_type="RunStartEvent",
                 error=None,
@@ -36,7 +36,7 @@ class TestFormatLogs:
                 run_id="test-run-12345",
                 message='Started execution of step "process_data".',
                 timestamp="1641046805000",  # 2022-01-01 14:20:05 UTC
-                level=RunEventLevel.DEBUG,
+                level=DgApiLogLevel.DEBUG,
                 step_key="process_data",
                 event_type="ExecutionStepStartEvent",
                 error=None,
@@ -45,7 +45,7 @@ class TestFormatLogs:
                 run_id="test-run-12345",
                 message="Loading input from path: /tmp/input.json",
                 timestamp="1641046810000",  # 2022-01-01 14:20:10 UTC
-                level=RunEventLevel.DEBUG,
+                level=DgApiLogLevel.DEBUG,
                 step_key="process_data",
                 event_type="MessageEvent",
                 error=None,
@@ -54,7 +54,7 @@ class TestFormatLogs:
                 run_id="test-run-12345",
                 message='Execution of step "process_data" failed.',
                 timestamp="1641046815000",  # 2022-01-01 14:20:15 UTC
-                level=RunEventLevel.ERROR,
+                level=DgApiLogLevel.ERROR,
                 step_key="process_data",
                 event_type="ExecutionStepFailureEvent",
                 error=DgApiErrorInfo(
@@ -72,17 +72,17 @@ class TestFormatLogs:
                 run_id="test-run-12345",
                 message="Execution of run for \"test_pipeline\" failed. Steps failed: ['process_data'].",
                 timestamp="1641046820000",  # 2022-01-01 14:20:20 UTC
-                level=RunEventLevel.ERROR,
+                level=DgApiLogLevel.ERROR,
                 step_key=None,
                 event_type="RunFailureEvent",
                 error=None,
             ),
         ]
-        return RunEventList(items=events, total=5, cursor=None, has_more=False)
+        return DgApiRunEventList(items=events, cursor=None, has_more=False)
 
     def _create_empty_log_list(self):
-        """Create empty RunEventList for testing."""
-        return RunEventList(items=[], total=0, cursor=None, has_more=False)
+        """Create empty DgApiRunEventList for testing."""
+        return DgApiRunEventList(items=[], cursor=None, has_more=False)
 
     def _create_log_with_nested_error(self):
         """Create log with nested error causes."""
@@ -90,7 +90,7 @@ class TestFormatLogs:
             run_id="nested-error-run",
             message="Database connection failed with retry exhausted.",
             timestamp="1641046825000",
-            level=RunEventLevel.ERROR,
+            level=DgApiLogLevel.ERROR,
             step_key="database_query",
             event_type="ExecutionStepFailureEvent",
             error=DgApiErrorInfo(
@@ -119,7 +119,7 @@ class TestFormatLogs:
             run_id="truncation-test-run",
             message="Processing large dataset chunk.",
             timestamp="1641046830000",
-            level=RunEventLevel.INFO,
+            level=DgApiLogLevel.INFO,
             step_key="very_long_step_name_that_exceeds_the_display_limit_and_should_be_truncated",
             event_type="MessageEvent",
             error=None,
@@ -165,7 +165,7 @@ class TestFormatLogs:
         from dagster_shared.utils.timing import fixed_timezone
 
         log_with_nested_error = self._create_log_with_nested_error()
-        log_list = RunEventList(items=[log_with_nested_error], total=1)
+        log_list = DgApiRunEventList(items=[log_with_nested_error])
 
         with fixed_timezone("UTC"):
             result = format_logs_table(log_list, "nested-error-run")
@@ -175,7 +175,7 @@ class TestFormatLogs:
     def test_format_logs_with_nested_errors_json(self, snapshot):
         """Test formatting logs with nested errors as JSON."""
         log_with_nested_error = self._create_log_with_nested_error()
-        log_list = RunEventList(items=[log_with_nested_error], total=1)
+        log_list = DgApiRunEventList(items=[log_with_nested_error])
 
         result = format_logs_json(log_list)
 
@@ -187,7 +187,7 @@ class TestFormatLogs:
         from dagster_shared.utils.timing import fixed_timezone
 
         log_with_long_key = self._create_log_with_very_long_step_key()
-        log_list = RunEventList(items=[log_with_long_key], total=1)
+        log_list = DgApiRunEventList(items=[log_with_long_key])
 
         with fixed_timezone("UTC"):
             result = format_logs_table(log_list, "truncation-test-run")
@@ -199,13 +199,13 @@ class TestFormatLogs:
         from dagster_shared.utils.timing import fixed_timezone
 
         # Create log list that has more data available
-        log_list = RunEventList(
+        log_list = DgApiRunEventList(
             items=[
                 DgApiRunEvent(
                     run_id="paginated-run",
                     message="First log entry",
                     timestamp="1641046800000",
-                    level=RunEventLevel.INFO,
+                    level=DgApiLogLevel.INFO,
                     step_key=None,
                     event_type="MessageEvent",
                     error=None,
@@ -214,13 +214,12 @@ class TestFormatLogs:
                     run_id="paginated-run",
                     message="Second log entry",
                     timestamp="1641046805000",
-                    level=RunEventLevel.DEBUG,
+                    level=DgApiLogLevel.DEBUG,
                     step_key="step_1",
                     event_type="MessageEvent",
                     error=None,
                 ),
             ],
-            total=2,
             cursor="cursor_token_12345",
             has_more=True,
         )
@@ -240,14 +239,14 @@ class TestFormatLogs:
                 message=f"This is a {level.value} level message",
                 timestamp="1641046800000",
                 level=level,
-                step_key="test_step" if level != RunEventLevel.INFO else None,
+                step_key="test_step" if level != DgApiLogLevel.INFO else None,
                 event_type="MessageEvent",
                 error=None,
             )
-            for level in RunEventLevel
+            for level in DgApiLogLevel
         ]
 
-        log_list = RunEventList(items=events, total=len(events))
+        log_list = DgApiRunEventList(items=events)
 
         with fixed_timezone("UTC"):
             result = format_logs_table(log_list, "level-test-run")
@@ -288,7 +287,7 @@ _SAMPLE_GRAPHQL_RESPONSE = {
         "__typename": "EventConnection",
         "events": [
             {
-                "__typename": "MessageEvent",
+                "__typename": "RunStartEvent",
                 "runId": _RUN_ID,
                 "message": 'Started execution of run for "dbt_analytics_core_job".',
                 "timestamp": "1771476078297",
@@ -297,7 +296,7 @@ _SAMPLE_GRAPHQL_RESPONSE = {
                 "eventType": "PIPELINE_START",
             },
             {
-                "__typename": "MessageEvent",
+                "__typename": "AssetMaterializationPlannedEvent",
                 "runId": _RUN_ID,
                 "message": 'dbt_analytics_core_job intends to materialize asset "my_asset".',
                 "timestamp": "1771476078298",
@@ -306,7 +305,7 @@ _SAMPLE_GRAPHQL_RESPONSE = {
                 "eventType": "ASSET_MATERIALIZATION_PLANNED",
             },
         ],
-        "cursor": None,
+        "cursor": "",
         "hasMore": False,
     }
 }

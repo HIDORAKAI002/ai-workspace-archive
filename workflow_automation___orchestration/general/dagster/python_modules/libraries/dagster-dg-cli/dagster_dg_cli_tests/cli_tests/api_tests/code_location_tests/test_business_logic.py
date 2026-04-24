@@ -121,7 +121,6 @@ class TestFormatCodeLocations:
                 DgApiCodeLocation(location_name="loc-a", image="img-a:latest", status="LOADED"),
                 DgApiCodeLocation(location_name="loc-b", image="img-b:v2", status="LOADING"),
             ],
-            total=2,
         )
         output = format_code_locations(locations, as_json=False)
         assert "loc-a" in output
@@ -136,7 +135,6 @@ class TestFormatCodeLocations:
             items=[
                 DgApiCodeLocation(location_name="loc-a", image="img-a:latest", status="LOADED"),
             ],
-            total=1,
         )
         output = format_code_locations(locations, as_json=True)
         parsed = json.loads(output)

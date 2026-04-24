@@ -1,37 +1,17 @@
-"""Run metadata schema definitions."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiRunStatus(str, Enum):
-    """Run execution status."""
-
-    QUEUED = "QUEUED"
-    STARTING = "STARTING"
-    STARTED = "STARTED"
-    SUCCESS = "SUCCESS"
-    FAILURE = "FAILURE"
-    CANCELING = "CANCELING"
-    CANCELED = "CANCELED"
+from dagster_rest_resources.schemas.enums import DgApiRunStatus
+from dagster_rest_resources.schemas.util import DgApiTruncatedList
 
 
 class DgApiRun(BaseModel):
-    """Single run metadata model."""
-
     id: str
     status: DgApiRunStatus
-    created_at: float  # Unix timestamp (seconds since epoch)
-    started_at: float | None = None  # Unix timestamp (seconds since epoch)
-    ended_at: float | None = None  # Unix timestamp (seconds since epoch)
+    created_at: float
+    started_at: float | None = None
+    ended_at: float | None = None
     job_name: str | None = None
 
-    class Config:
-        from_attributes = True
 
-
-class DgApiRunList(BaseModel):
-    """List of runs."""
-
-    items: list[DgApiRun]
+class DgApiRunList(DgApiTruncatedList[DgApiRun]):
+    pass

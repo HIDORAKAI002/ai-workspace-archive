@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: TestFormatAlertPolicies.test_format_policies_json_output[0]
+# name: TestFormatDgAlertPolicies.test_format_policies_json_output[0]
   dict({
     'alert_policies': list([
       dict({
@@ -40,7 +40,7 @@
     ]),
   })
 # ---
-# name: TestFormatAlertPolicies.test_format_policies_text_output[0]
+# name: TestFormatDgAlertPolicies.test_format_policies_text_output[0]
   '''
   alert_policies:
   - name: email-on-failure
@@ -65,7 +65,7 @@
       value: data-eng
   '''
 # ---
-# name: TestFormatAlertPolicySyncResult.test_format_sync_result_json[0]
+# name: TestFormatDgApiAlertPolicySyncResult.test_format_sync_result_json[0]
   dict({
     'synced_policies': list([
       'email-on-failure',
@@ -73,6 +73,6 @@
     ]),
   })
 # ---
-# name: TestFormatAlertPolicySyncResult.test_format_sync_result_text[0]
+# name: TestFormatDgApiAlertPolicySyncResult.test_format_sync_result_text[0]
   'Synced alert policies: email-on-failure, slack-on-sla-miss'
 # ---

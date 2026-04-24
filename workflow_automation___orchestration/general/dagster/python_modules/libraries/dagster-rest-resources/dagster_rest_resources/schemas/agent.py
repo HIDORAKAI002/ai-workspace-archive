@@ -1,42 +1,21 @@
-"""Agent models for REST-like API."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiAgentStatus(str, Enum):
-    """Agent status enum for FastAPI compatibility."""
-
-    RUNNING = "RUNNING"
-    STOPPED = "STOPPED"
-    NOT_RUNNING = "NOT_RUNNING"
-    UNHEALTHY = "UNHEALTHY"
-    UNKNOWN = "UNKNOWN"
+from dagster_rest_resources.schemas.enums import DgApiAgentStatus
+from dagster_rest_resources.schemas.util import DgApiTruncatedList
 
 
 class DgApiAgentMetadataEntry(BaseModel):
-    """Agent metadata key-value pair."""
-
     key: str
-    value: str
+    value: str | None
 
 
 class DgApiAgent(BaseModel):
-    """Agent resource model."""
-
-    id: str  # Agent IDs are strings in the GraphQL schema
-    agent_label: str | None  # Can be None in some cases
+    id: str
+    agent_label: str | None
     status: DgApiAgentStatus
-    last_heartbeat_time: float | None
+    last_heartbeat_time: float
     metadata: list[DgApiAgentMetadataEntry]
 
-    class Config:
-        from_attributes = True  # For future ORM compatibility
 
-
-class DgApiAgentList(BaseModel):
-    """GET /api/agents response."""
-
-    items: list[DgApiAgent]
-    total: int
+class DgApiAgentList(DgApiTruncatedList[DgApiAgent]):
+    pass

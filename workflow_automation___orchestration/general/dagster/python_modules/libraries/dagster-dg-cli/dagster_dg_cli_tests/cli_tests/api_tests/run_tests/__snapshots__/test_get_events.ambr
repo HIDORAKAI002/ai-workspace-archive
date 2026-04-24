@@ -5,7 +5,6 @@
     'has_more': False,
     'items': list([
     ]),
-    'total': 0,
   })
 # ---
 # name: TestFormatLogs.test_format_empty_logs_table_output[0]
@@ -19,8 +18,8 @@
   --------------------------------------------------------------------------------
   2022-01-01 14:20:00  CRITICAL test_step                 This is a CRITICAL level message
   2022-01-01 14:20:00  ERROR    test_step                 This is a ERROR level message
-  2022-01-01 14:20:00  WARNING  test_step                 This is a WARNING level message
   2022-01-01 14:20:00  INFO                               This is a INFO level message
+  2022-01-01 14:20:00  WARNING  test_step                 This is a WARNING level message
   2022-01-01 14:20:00  DEBUG    test_step                 This is a DEBUG level message
   
   Total log entries: 5
@@ -101,7 +100,6 @@
         'timestamp': '1641046820000',
       }),
     ]),
-    'total': 5,
   })
 # ---
 # name: TestFormatLogs.test_format_logs_table_output[0]
@@ -215,7 +213,6 @@
         'timestamp': '1641046825000',
       }),
     ]),
-    'total': 1,
   })
 # ---
 # name: TestFormatLogs.test_format_logs_with_pagination_info[0]

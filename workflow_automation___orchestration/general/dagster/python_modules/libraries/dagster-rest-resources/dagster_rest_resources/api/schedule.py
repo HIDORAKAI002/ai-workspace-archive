@@ -1,51 +1,157 @@
-"""Schedule API implementation."""
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from typing_extensions import assert_never
+
+from dagster_rest_resources.__generated__.input_types import RepositorySelector, ScheduleSelector
 from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.graphql_adapter.schedule import (
-    get_schedule_by_name_via_graphql,
-    get_schedule_via_graphql,
-    list_schedules_via_graphql,
-)
+from dagster_rest_resources.schemas.exception import DagsterPlusGraphqlError
+from dagster_rest_resources.schemas.schedule import DgApiSchedule, DgApiScheduleList
 
 if TYPE_CHECKING:
-    from dagster_rest_resources.schemas.schedule import DgApiSchedule, DgApiScheduleList
+    from dagster_rest_resources.__generated__.get_schedule import GetScheduleScheduleOrErrorSchedule
+    from dagster_rest_resources.__generated__.list_repositories_with_schedules import (
+        ListRepositoriesWithSchedulesRepositoriesOrErrorRepositoryConnectionNodesSchedules,
+    )
+    from dagster_rest_resources.__generated__.list_schedules import (
+        ListSchedulesSchedulesOrErrorSchedulesResults,
+    )
 
 
 @dataclass(frozen=True)
 class DgApiScheduleApi:
-    """API for schedule operations."""
-
-    client: IGraphQLClient
+    _client: IGraphQLClient
 
     def list_schedules(
         self,
         repository_location_name: str | None = None,
         repository_name: str | None = None,
-    ) -> "DgApiScheduleList":
-        """List all schedules, optionally filtered by code location and name."""
-        return list_schedules_via_graphql(
-            self.client,
-            repository_location_name=repository_location_name,
-            repository_name=repository_name,
-        )
+    ) -> DgApiScheduleList:
+        if repository_location_name and repository_name:
+            result = self._client.list_schedules(
+                repository_selector=RepositorySelector(
+                    repositoryLocationName=repository_location_name,
+                    repositoryName=repository_name,
+                )
+            ).schedules_or_error
+
+            match result.typename__:
+                case "Schedules":
+                    items = [
+                        self._build_schedule(
+                            s,
+                            repo_location_name=repository_location_name,
+                            repo_name=repository_name,
+                        )
+                        for s in result.results
+                    ]
+                    return DgApiScheduleList(items=items)
+                case "RepositoryNotFoundError":
+                    raise DagsterPlusGraphqlError(f"Error listing schedules: {result.message}")
+                case "PythonError":
+                    raise DagsterPlusGraphqlError(f"Error listing schedules: {result.message}")
+                case _ as unreachable:
+                    assert_never(unreachable)
+        else:
+            result = self._client.list_repositories_with_schedules().repositories_or_error
+
+            match result.typename__:
+                case "RepositoryConnection":
+                    items = []
+                    for repo in result.nodes:
+                        for s in repo.schedules:
+                            items.append(
+                                self._build_schedule(
+                                    s,
+                                    repo_location_name=repo.location.name,
+                                    repo_name=repo.name,
+                                )
+                            )
+                    return DgApiScheduleList(items=items)
+                case "RepositoryNotFoundError":
+                    raise DagsterPlusGraphqlError(f"Error listing schedules: {result.message}")
+                case "PythonError":
+                    raise DagsterPlusGraphqlError(f"Error listing schedules: {result.message}")
+                case _ as unreachable:
+                    assert_never(unreachable)
 
     def get_schedule(
         self,
         schedule_name: str,
         repository_location_name: str,
         repository_name: str,
-    ) -> "DgApiSchedule":
-        """Get schedule by name and code location details."""
-        return get_schedule_via_graphql(
-            self.client,
-            schedule_name=schedule_name,
-            repository_location_name=repository_location_name,
-            repository_name=repository_name,
-        )
+    ) -> DgApiSchedule:
+        result = self._client.get_schedule(
+            schedule_selector=ScheduleSelector(
+                repositoryLocationName=repository_location_name,
+                repositoryName=repository_name,
+                scheduleName=schedule_name,
+            )
+        ).schedule_or_error
 
-    def get_schedule_by_name(self, schedule_name: str) -> "DgApiSchedule":
-        """Get schedule by name, searching across all code locations."""
-        return get_schedule_by_name_via_graphql(self.client, schedule_name=schedule_name)
+        match result.typename__:
+            case "Schedule":
+                return self._build_schedule(
+                    result,
+                    repo_location_name=repository_location_name,
+                    repo_name=repository_name,
+                )
+            case "ScheduleNotFoundError":
+                raise DagsterPlusGraphqlError(f"Error fetching schedule: {result.message}")
+            case "PythonError":
+                raise DagsterPlusGraphqlError(f"Error fetching schedule: {result.message}")
+            case _ as unreachable:
+                assert_never(unreachable)
+
+    def get_schedule_by_name(self, schedule_name: str) -> DgApiSchedule:
+        result = self._client.list_repositories_with_schedules().repositories_or_error
+
+        match result.typename__:
+            case "RepositoryConnection":
+                matches: list[DgApiSchedule] = []
+                for repo in result.nodes:
+                    for s in repo.schedules:
+                        if s.name == schedule_name:
+                            matches.append(
+                                self._build_schedule(
+                                    s,
+                                    repo_location_name=repo.location.name,
+                                    repo_name=repo.name,
+                                )
+                            )
+                if not matches:
+                    raise DagsterPlusGraphqlError(f"Schedule not found: {schedule_name}")
+                if len(matches) > 1:
+                    origins = [s.code_location_origin for s in matches]
+                    raise DagsterPlusGraphqlError(
+                        f"Multiple schedules found with name '{schedule_name}' in code locations: {', '.join(origins)}"
+                    )
+
+                return matches[0]
+            case "RepositoryNotFoundError":
+                raise DagsterPlusGraphqlError(f"Error listing repositories: {result.message}")
+            case "PythonError":
+                raise DagsterPlusGraphqlError(f"Error listing repositories: {result.message}")
+            case _ as unreachable:
+                assert_never(unreachable)
+
+    def _build_schedule(
+        self,
+        schedule: """GetScheduleScheduleOrErrorSchedule
+        | ListRepositoriesWithSchedulesRepositoriesOrErrorRepositoryConnectionNodesSchedules
+        | ListSchedulesSchedulesOrErrorSchedulesResults""",
+        *,
+        repo_location_name: str,
+        repo_name: str,
+    ) -> DgApiSchedule:
+        return DgApiSchedule(
+            id=schedule.id,
+            name=schedule.name,
+            status=schedule.schedule_state.status,
+            cron_schedule=schedule.cron_schedule,
+            pipeline_name=schedule.pipeline_name,
+            code_location_origin=f"{repo_location_name}@{repo_name}",
+            description=schedule.description,
+            execution_timezone=schedule.execution_timezone,
+            next_tick_timestamp=None,
+        )

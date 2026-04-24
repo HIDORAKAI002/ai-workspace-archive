@@ -54,7 +54,7 @@ def list_secrets_command(
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
     from dagster_rest_resources.api.secret import DgApiSecretApi
 
-    api = DgApiSecretApi(client)
+    api = DgApiSecretApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
         secrets = api.list_secrets(
@@ -111,7 +111,7 @@ def get_secret_command(
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
     from dagster_rest_resources.api.secret import DgApiSecretApi
 
-    api = DgApiSecretApi(client)
+    api = DgApiSecretApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
         secret = api.get_secret(

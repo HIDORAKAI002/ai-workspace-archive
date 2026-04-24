@@ -1,54 +1,120 @@
-"""Deployment endpoints - REST-like interface."""
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
+from typing_extensions import assert_never
+
+from dagster_rest_resources.__generated__.enums import DagsterCloudDeploymentType, PullRequestStatus
+from dagster_rest_resources.__generated__.input_types import DeploymentSettingsInput
 from dagster_rest_resources.gql_client import IGraphQLClient
-from dagster_rest_resources.graphql_adapter.deployment import (
-    delete_deployment_via_graphql,
-    get_deployment_by_name_via_graphql,
-    get_deployment_settings_via_graphql,
-    list_branch_deployments_via_graphql,
-    list_deployments_via_graphql,
-    set_deployment_settings_via_graphql,
+from dagster_rest_resources.schemas.deployment import (
+    DgApiDeployment,
+    DgApiDeploymentList,
+    DgApiDeploymentSettings,
 )
-from dagster_rest_resources.schemas.deployment import DeploymentType
-
-if TYPE_CHECKING:
-    from dagster_rest_resources.schemas.deployment import (
-        Deployment,
-        DeploymentList,
-        DeploymentSettings,
-    )
+from dagster_rest_resources.schemas.exception import (
+    DagsterPlusGraphqlError,
+    DagsterPlusUnauthorizedError,
+    UnconfirmedProdDeletionError,
+)
 
 
 @dataclass(frozen=True)
 class DgApiDeploymentApi:
-    client: IGraphQLClient
+    _client: IGraphQLClient
 
-    def list_deployments(self) -> "DeploymentList":
-        return list_deployments_via_graphql(self.client)
+    def list_deployments(self) -> DgApiDeploymentList:
+        result = self._client.list_deployments()
+        deployments = [
+            DgApiDeployment(id=d.deployment_id, name=d.deployment_name, type=d.deployment_type)
+            for d in result.full_deployments
+        ]
+        return DgApiDeploymentList(items=deployments, total=len(deployments))
 
     def list_branch_deployments(
-        self, limit: int = 50, pull_request_status: str | None = None
-    ) -> "DeploymentList":
-        return list_branch_deployments_via_graphql(self.client, limit, pull_request_status)
+        self, limit: int = 50, pull_request_status: PullRequestStatus | None = None
+    ) -> DgApiDeploymentList:
+        result = self._client.list_branch_deployments(
+            limit=limit, pull_request_status=pull_request_status
+        )
+        deployments = [
+            DgApiDeployment(id=d.deployment_id, name=d.deployment_name, type=d.deployment_type)
+            for d in result.branch_deployments.nodes
+        ]
+        return DgApiDeploymentList(items=deployments, total=len(deployments))
 
-    def get_deployment(self, name: str) -> "Deployment":
-        return get_deployment_by_name_via_graphql(self.client, name)
+    def get_deployment(self, name: str) -> DgApiDeployment:
+        result = self._client.get_deployment(deployment_name=name).deployment_by_name
 
-    def get_deployment_settings(self) -> "DeploymentSettings":
-        return get_deployment_settings_via_graphql(self.client)
+        match result.typename__:
+            case "DagsterCloudDeployment":
+                return DgApiDeployment(
+                    id=result.deployment_id,
+                    name=result.deployment_name,
+                    type=result.deployment_type,
+                )
+            case "DeploymentNotFoundError":
+                raise DagsterPlusGraphqlError("Deployment not found")
+            case "UnauthorizedError":
+                raise DagsterPlusUnauthorizedError(f"Error retrieving deployment: {result.message}")
+            case "PythonError":
+                raise DagsterPlusGraphqlError(f"Error retrieving deployment: {result.message}")
+            case _ as unreachable:
+                assert_never(unreachable)
 
-    def delete_deployment(self, name: str, allow_full_deployment: bool = False) -> "Deployment":
+    def get_deployment_settings(self) -> DgApiDeploymentSettings:
+        result = self._client.get_deployment_settings().deployment_settings
+        if result is None:
+            return DgApiDeploymentSettings(settings={})
+        return DgApiDeploymentSettings(settings=result.settings or {})
+
+    def update_deployment_settings(
+        self, settings: DgApiDeploymentSettings
+    ) -> DgApiDeploymentSettings:
+        result = self._client.set_deployment_settings(
+            deployment_settings=DeploymentSettingsInput(settings=settings.settings)
+        ).set_deployment_settings
+
+        match result.typename__:
+            case "DeploymentSettings":
+                return DgApiDeploymentSettings(settings=result.settings or {})
+            case "DeploymentNotFoundError":
+                raise DagsterPlusGraphqlError("Deployment not found")
+            case "DuplicateDeploymentError":
+                raise DagsterPlusGraphqlError("Duplicate deployment error")
+            case "DeleteFinalDeploymentError":
+                raise DagsterPlusGraphqlError("Cannot delete the final deployment")
+            case "UnauthorizedError":
+                raise DagsterPlusUnauthorizedError(
+                    f"Error setting deployment settings: {result.message}"
+                )
+            case "PythonError":
+                raise DagsterPlusGraphqlError(
+                    f"Error setting deployment settings: {result.message}"
+                )
+            case _ as unreachable:
+                assert_never(unreachable)
+
+    def delete_deployment(self, name: str, allow_full_deployment: bool = False) -> DgApiDeployment:
         deployment = self.get_deployment(name)
 
-        if deployment.type == DeploymentType.PRODUCTION and not allow_full_deployment:
-            raise ValueError(
-                f"Deployment '{name}' is a production deployment. "
-                "Use --allow-delete-full-deployment to confirm deletion."
-            )
-        return delete_deployment_via_graphql(self.client, deployment.id)
+        if deployment.type == DagsterCloudDeploymentType.PRODUCTION and not allow_full_deployment:
+            raise UnconfirmedProdDeletionError(f"Deployment '{name}' is a production deployment.")
 
-    def update_deployment_settings(self, settings: "DeploymentSettings") -> "DeploymentSettings":
-        return set_deployment_settings_via_graphql(self.client, settings.settings)
+        result = self._client.delete_deployment(deployment_id=deployment.id).delete_deployment
+
+        match result.typename__:
+            case "DagsterCloudDeployment":
+                return DgApiDeployment(
+                    id=result.deployment_id,
+                    name=result.deployment_name,
+                    type=result.deployment_type,
+                )
+            case "DeploymentNotFoundError":
+                raise DagsterPlusGraphqlError("Deployment not found")
+            case "DeleteFinalDeploymentError":
+                raise DagsterPlusGraphqlError("Cannot delete the final deployment")
+            case "UnauthorizedError":
+                raise DagsterPlusUnauthorizedError("Unauthorized to delete deployment")
+            case "PythonError":
+                raise DagsterPlusGraphqlError(f"Error deleting deployment: {result.message}")
+            case _ as unreachable:
+                assert_never(unreachable)

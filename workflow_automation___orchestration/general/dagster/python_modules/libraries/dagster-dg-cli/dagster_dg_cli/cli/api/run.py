@@ -5,6 +5,7 @@ from typing import Final
 import click
 from dagster_dg_core.utils import DgClickCommand, DgClickGroup
 from dagster_dg_core.utils.telemetry import cli_telemetry_wrapper
+from dagster_rest_resources.schemas.enums import DgApiRunStatus
 from dagster_shared.plus.config import DagsterPlusCliConfig
 from dagster_shared.plus.config_utils import dg_api_options
 
@@ -39,10 +40,8 @@ DG_API_MAX_RUN_LIMIT: Final = 1000
     "--status",
     "statuses",
     multiple=True,
-    type=click.Choice(
-        ["QUEUED", "STARTING", "STARTED", "SUCCESS", "FAILURE", "CANCELING", "CANCELED"],
-        case_sensitive=False,
-    ),
+    type=click.Choice([e.value for e in DgApiRunStatus], case_sensitive=False),
+    callback=lambda ctx, param, values: tuple(DgApiRunStatus(v.upper()) for v in values),
     help="Filter by run status. Repeatable.",
 )
 @click.option(
@@ -65,7 +64,7 @@ def list_runs_command(
     ctx: click.Context,
     limit: int,
     cursor: str,
-    statuses: tuple[str, ...],
+    statuses: tuple[DgApiRunStatus, ...],
     job_name: str | None,
     output_json: bool,
     organization: str,
@@ -85,12 +84,10 @@ def list_runs_command(
     api = DgApiRunApi(client)
 
     with handle_api_errors(ctx, output_json):
-        # Normalize statuses to uppercase
-        normalized_statuses = tuple(s.upper() for s in statuses)
         runs = api.list_runs(
             limit=limit,
             cursor=cursor,
-            statuses=normalized_statuses,
+            statuses=list(statuses) if statuses else None,
             job_name=job_name,
         )
         output = format_runs_list(runs, as_json=output_json)
@@ -172,7 +169,7 @@ def get_run_command(
     is_flag=True,
     help="Output in JSON format for machine readability",
 )
-@dg_response_schema(module="dagster_rest_resources.schemas.run_event", cls="RunEventList")
+@dg_response_schema(module="dagster_rest_resources.schemas.run_event", cls="DgApiRunEventList")
 @dg_api_options(deployment_scoped=True)
 @cli_telemetry_wrapper
 @click.pass_context

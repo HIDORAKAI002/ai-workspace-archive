@@ -1,9 +1,11 @@
 import asyncio
+import os
 from typing import TYPE_CHECKING
 
 import graphene
 from dagster import _check as check
 from dagster._core.definitions.sensor_definition import SensorType
+from dagster._core.errors import DagsterInvariantViolationError
 from dagster._core.remote_representation.code_location import CodeLocation, GrpcServerCodeLocation
 from dagster._core.remote_representation.external import RemoteRepository
 from dagster._core.remote_representation.feature_flags import get_feature_flags_for_location
@@ -42,6 +44,7 @@ from dagster_graphql.schema.repository_origin import (
     GrapheneRepositoryOrigin,
 )
 from dagster_graphql.schema.resources import GrapheneResourceDetails
+from dagster_graphql.schema.roots.assets import GrapheneAssetNodeConnection
 from dagster_graphql.schema.schedules import GrapheneSchedule
 from dagster_graphql.schema.sensors import GrapheneSensor, GrapheneSensorType
 from dagster_graphql.schema.used_solid import GrapheneUsedSolid
@@ -51,6 +54,17 @@ if TYPE_CHECKING:
     from dagster._core.remote_representation.external_data import AssetNodeSnap
 
 GrapheneLocationStateChangeEventType = graphene.Enum.from_enum(LocationStateChangeEventType)
+
+DEFAULT_ASSET_NODES_CONNECTION_MAX_LIMIT = 10000
+
+
+def _get_asset_nodes_connection_max_limit() -> int:
+    return int(
+        os.getenv(
+            "DAGSTER_ASSET_NODES_CONNECTION_MAX_LIMIT",
+            str(DEFAULT_ASSET_NODES_CONNECTION_MAX_LIMIT),
+        )
+    )
 
 
 class GrapheneDagsterLibraryVersion(graphene.ObjectType):
@@ -291,6 +305,12 @@ class GrapheneRepository(graphene.ObjectType):
         non_null_list(GrapheneSensor), sensorType=graphene.Argument(GrapheneSensorType)
     )
     assetNodes = non_null_list(GrapheneAssetNode)
+    assetNodesConnection = graphene.Field(
+        graphene.NonNull(GrapheneAssetNodeConnection),
+        cursor=graphene.Argument(graphene.String),
+        limit=graphene.Argument(graphene.NonNull(graphene.Int)),
+        description="Paginated view of asset nodes in this repository, sorted by asset key.",
+    )
     displayMetadata = non_null_list(GrapheneRepositoryMetadata)
     assetGroups = non_null_list(GrapheneAssetGroup)
     allTopLevelResourceDetails = non_null_list(GrapheneResourceDetails)
@@ -331,7 +351,7 @@ class GrapheneRepository(graphene.ObjectType):
         return self._batch_loader
 
     def resolve_id(self, _graphene_info: ResolveInfo) -> str:
-        return self._handle.get_compound_id().to_string()
+        return self._handle.selector_id
 
     def resolve_origin(self, _graphene_info: ResolveInfo):
         origin = self._handle.get_remote_origin()
@@ -418,6 +438,38 @@ class GrapheneRepository(graphene.ObjectType):
             )
             for remote_node in remote_nodes
         ]
+
+    def resolve_assetNodesConnection(
+        self,
+        graphene_info: ResolveInfo,
+        limit: int,
+        cursor: str | None = None,
+    ) -> GrapheneAssetNodeConnection:
+        max_limit = _get_asset_nodes_connection_max_limit()
+        if limit <= 0 or limit > max_limit:
+            raise DagsterInvariantViolationError(
+                f"assetNodesConnection limit must be between 1 and {max_limit} (got {limit}). "
+                "The upper bound is configured via the "
+                "DAGSTER_ASSET_NODES_CONNECTION_MAX_LIMIT environment variable."
+            )
+
+        remote_nodes = self.get_repository(graphene_info).asset_graph.asset_nodes
+        # Compute the stringified key once per node — used for sort, cursor filter, and next-cursor.
+        keyed_nodes = [(n.key.to_string(), n) for n in remote_nodes]
+        keyed_nodes.sort(key=lambda kn: kn[0])
+
+        if cursor is not None:
+            keyed_nodes = [kn for kn in keyed_nodes if kn[0] > cursor]
+
+        page = keyed_nodes[:limit]
+        has_more = len(keyed_nodes) > limit
+        next_cursor = page[-1][0] if page else cursor
+
+        return GrapheneAssetNodeConnection(
+            nodes=[GrapheneAssetNode(remote_node=n) for _, n in page],
+            cursor=next_cursor,
+            hasMore=has_more,
+        )
 
     def resolve_assetGroups(self, graphene_info: ResolveInfo):
         groups: dict[str, list[AssetNodeSnap]] = {}

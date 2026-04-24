@@ -544,6 +544,7 @@ export const createRuntimeExecutors = (
           evalContext: ctx.evalContext,
           forceFinish: state.forceFinish,
           historyCount: agentConfig.chatConfig?.historyCount ?? undefined,
+          initialContext: (state as any).initialContext?.initialContext,
           knowledge: {
             fileContents: agentConfig.files
               ?.filter((f: { enabled?: boolean | null }) => f.enabled === true)
@@ -1526,7 +1527,9 @@ export const createRuntimeExecutors = (
             toolExecutionService.executeTool(chatToolPayload, {
               activeDeviceId: state.metadata?.activeDeviceId,
               agentId: state.metadata?.agentId,
+              documentId: state.metadata?.documentId,
               memoryToolPermission: agentConfig?.chatConfig?.memory?.toolPermission,
+              scope: state.metadata?.scope,
               serverDB: ctx.serverDB,
               taskId: state.metadata?.taskId,
               toolManifestMap: effectiveManifestMap,
@@ -1958,7 +1961,9 @@ export const createRuntimeExecutors = (
                 toolExecutionService.executeTool(chatToolPayload, {
                   activeDeviceId: state.metadata?.activeDeviceId,
                   agentId: state.metadata?.agentId,
+                  documentId: state.metadata?.documentId,
                   memoryToolPermission: batchAgentConfig?.chatConfig?.memory?.toolPermission,
+                  scope: state.metadata?.scope,
                   serverDB: ctx.serverDB,
                   taskId: state.metadata?.taskId,
                   toolManifestMap: batchManifestMap,

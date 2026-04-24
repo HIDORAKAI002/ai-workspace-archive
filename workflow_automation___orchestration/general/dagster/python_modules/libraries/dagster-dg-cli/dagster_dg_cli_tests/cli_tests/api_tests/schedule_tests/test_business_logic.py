@@ -7,11 +7,8 @@ GraphQL client mocking or external dependencies.
 import json
 
 from dagster_dg_cli.cli.api.formatters import format_schedule, format_schedules
-from dagster_rest_resources.schemas.schedule import (
-    DgApiSchedule,
-    DgApiScheduleList,
-    DgApiScheduleStatus,
-)
+from dagster_rest_resources.schemas.enums import DgApiInstigationStatus
+from dagster_rest_resources.schemas.schedule import DgApiSchedule, DgApiScheduleList
 
 
 class TestFormatSchedules:
@@ -23,7 +20,7 @@ class TestFormatSchedules:
             DgApiSchedule(
                 id="schedule1-id",
                 name="daily_job",
-                status=DgApiScheduleStatus.RUNNING,
+                status=DgApiInstigationStatus.RUNNING,
                 cron_schedule="0 0 * * *",
                 pipeline_name="daily_pipeline",
                 description="Runs daily at midnight",
@@ -34,7 +31,7 @@ class TestFormatSchedules:
             DgApiSchedule(
                 id="schedule2-id",
                 name="hourly_job",
-                status=DgApiScheduleStatus.STOPPED,
+                status=DgApiInstigationStatus.STOPPED,
                 cron_schedule="0 * * * *",
                 pipeline_name="hourly_pipeline",
                 description="Runs every hour",
@@ -45,27 +42,27 @@ class TestFormatSchedules:
             DgApiSchedule(
                 id="schedule3-id",
                 name="minimal_schedule",
-                status=DgApiScheduleStatus.RUNNING,
+                status=DgApiInstigationStatus.RUNNING,
                 cron_schedule="*/5 * * * *",
                 pipeline_name="quick_job",
                 description=None,
                 execution_timezone=None,
-                code_location_origin=None,
+                code_location_origin="test_location@test_repo",
                 next_tick_timestamp=None,
             ),
         ]
-        return DgApiScheduleList(items=schedules, total=len(schedules))
+        return DgApiScheduleList(items=schedules)
 
     def _create_empty_schedule_list(self):
         """Create empty DgApiScheduleList for testing."""
-        return DgApiScheduleList(items=[], total=0)
+        return DgApiScheduleList(items=[])
 
     def _create_single_schedule(self):
         """Create single DgApiSchedule for testing."""
         return DgApiSchedule(
             id="single-schedule-id",
             name="critical_job",
-            status=DgApiScheduleStatus.RUNNING,
+            status=DgApiInstigationStatus.RUNNING,
             cron_schedule="0 0 * * *",
             pipeline_name="critical_pipeline",
             description="Critical production schedule",
@@ -136,12 +133,12 @@ class TestFormatSchedules:
         schedule = DgApiSchedule(
             id="minimal-id",
             name="minimal_schedule",
-            status=DgApiScheduleStatus.STOPPED,
+            status=DgApiInstigationStatus.STOPPED,
             cron_schedule="*/15 * * * *",
             pipeline_name="minimal_pipeline",
             description=None,
             execution_timezone=None,
-            code_location_origin=None,
+            code_location_origin="test_location@test_repo",
             next_tick_timestamp=None,
         )
         with fixed_timezone("UTC"):
@@ -154,12 +151,12 @@ class TestFormatSchedules:
         schedule = DgApiSchedule(
             id="minimal-id",
             name="minimal_schedule",
-            status=DgApiScheduleStatus.STOPPED,
+            status=DgApiInstigationStatus.STOPPED,
             cron_schedule="*/15 * * * *",
             pipeline_name="minimal_pipeline",
             description=None,
             execution_timezone=None,
-            code_location_origin=None,
+            code_location_origin="test_location@test_repo",
             next_tick_timestamp=None,
         )
         result = format_schedule(schedule, as_json=True)

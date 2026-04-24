@@ -2486,6 +2486,7 @@ type Repository {
   schedules: [Schedule!]!
   sensors(sensorType: SensorType): [Sensor!]!
   assetNodes: [AssetNode!]!
+  assetNodesConnection(cursor: String, limit: Int!): AssetNodeConnection!
   displayMetadata: [RepositoryMetadata!]!
   assetGroups: [AssetGroup!]!
   allTopLevelResourceDetails: [ResourceDetails!]!
@@ -2539,6 +2540,12 @@ enum SensorType {
   AUTO_MATERIALIZE
   AUTOMATION
   UNKNOWN
+}
+
+type AssetNodeConnection {
+  nodes: [AssetNode!]!
+  cursor: String
+  hasMore: Boolean!
 }
 
 type AssetGroup {
@@ -3413,7 +3420,7 @@ union RunsOrError = Runs | InvalidPipelineRunsFilterError | PythonError
 
 type Runs implements PipelineRuns {
   results: [Run!]!
-  count: Int
+  count: Int!
 }
 
 interface PipelineRuns {

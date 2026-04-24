@@ -1,22 +1,10 @@
-"""Instigation tick schema definitions."""
-
-from enum import Enum
-
 from pydantic import BaseModel
 
-
-class DgApiTickStatus(str, Enum):
-    """Tick execution status."""
-
-    STARTED = "STARTED"
-    SKIPPED = "SKIPPED"
-    SUCCESS = "SUCCESS"
-    FAILURE = "FAILURE"
+from dagster_rest_resources.schemas.enums import DgApiInstigationTickStatus
+from dagster_rest_resources.schemas.util import DgApiTruncatedList
 
 
 class DgApiTickError(BaseModel):
-    """Tick error information."""
-
     message: str
     stack: list[str] | None = None
 
@@ -25,10 +13,8 @@ class DgApiTickError(BaseModel):
 
 
 class DgApiTick(BaseModel):
-    """Single instigation tick."""
-
     id: str
-    status: DgApiTickStatus
+    status: DgApiInstigationTickStatus
     timestamp: float
     end_timestamp: float | None = None
     run_ids: list[str]
@@ -40,12 +26,10 @@ class DgApiTick(BaseModel):
         from_attributes = True
 
 
-class DgApiTickList(BaseModel):
-    """Paginated tick list response."""
-
-    items: list[DgApiTick]
-    total: int
+# TODO: switch this to a paginated list and add support for user pagination in the cli
+# can derive has_more by querying for limit + 1 items, has_more = limit + 1 items returned
+# then slice the result to items[:limit] to show the user
+# right now total is a lie (always just shows the number returned)
+# and the formatter does not expose the cursor or the hasMore so users can manually get the next page
+class DgApiTickList(DgApiTruncatedList[DgApiTick]):
     cursor: str | None = None
-
-    class Config:
-        from_attributes = True

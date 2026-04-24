@@ -3,6 +3,7 @@ import os
 import pickle
 import sys
 import tempfile
+import time
 import uuid
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
@@ -196,12 +197,35 @@ def execute_notebook(
 
         try:
             papermill_engines.register("dagstermill", DagstermillEngine)
-            papermill.execute_notebook(
-                input_path=parameterized_notebook_path,
-                output_path=executed_notebook_path,
-                engine_name="dagstermill",
-                log_output=True,
-            )
+
+            # Retry on kernel startup failures caused by ZMQ port collisions. When
+            # multiple notebooks execute in parallel, jupyter_client can pre-allocate
+            # the same port for different kernels (TOCTOU race), causing ipykernel to
+            # crash with "Address already in use" which surfaces as "Kernel died before
+            # replying to kernel_info". The failure is instant so retries are cheap.
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    papermill.execute_notebook(
+                        input_path=parameterized_notebook_path,
+                        output_path=executed_notebook_path,
+                        engine_name="dagstermill",
+                        log_output=True,
+                    )
+                    break
+                except RuntimeError as re:
+                    if (
+                        "Kernel died before replying to kernel_info" in str(re)
+                        and attempt < max_retries - 1
+                    ):
+                        step_context.log.warning(
+                            f"Kernel startup failed (attempt {attempt + 1}/{max_retries}),"
+                            " retrying. This is typically caused by a ZMQ port collision when"
+                            " multiple notebooks execute in parallel."
+                        )
+                        time.sleep(1)
+                        continue
+                    raise
 
         except Exception as ex:
             step_context.log.warn(

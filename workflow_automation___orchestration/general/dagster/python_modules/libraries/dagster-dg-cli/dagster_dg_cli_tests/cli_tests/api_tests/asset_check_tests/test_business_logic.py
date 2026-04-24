@@ -7,12 +7,15 @@ GraphQL client mocking or external dependencies.
 import json
 
 from dagster_dg_cli.cli.api.formatters import format_asset_check_executions, format_asset_checks
-from dagster_rest_resources.schemas.asset_check import (
+from dagster_rest_resources.api.asset_check import (
     DgApiAssetCheck,
     DgApiAssetCheckExecution,
     DgApiAssetCheckExecutionList,
-    DgApiAssetCheckExecutionStatus,
     DgApiAssetCheckList,
+)
+from dagster_rest_resources.schemas.enums import (
+    DgApiAssetCheckCanExecuteIndividually,
+    DgApiAssetCheckExecutionResolvedStatus,
 )
 
 
@@ -28,7 +31,7 @@ class TestFormatAssetChecks:
                 description="Checks that the asset is materialized within the last 24 hours",
                 blocking=True,
                 job_names=["__ASSET_JOB_0"],
-                can_execute_individually="CAN_EXECUTE",
+                can_execute_individually=DgApiAssetCheckCanExecuteIndividually.CAN_EXECUTE,
             ),
             DgApiAssetCheck(
                 name="row_count_check",
@@ -36,7 +39,7 @@ class TestFormatAssetChecks:
                 description="Validates minimum row count",
                 blocking=False,
                 job_names=["__ASSET_JOB_0"],
-                can_execute_individually="CAN_EXECUTE",
+                can_execute_individually=DgApiAssetCheckCanExecuteIndividually.CAN_EXECUTE,
             ),
             DgApiAssetCheck(
                 name="schema_check",
@@ -44,7 +47,7 @@ class TestFormatAssetChecks:
                 description=None,
                 blocking=False,
                 job_names=[],
-                can_execute_individually="REQUIRES_MATERIALIZATION",
+                can_execute_individually=DgApiAssetCheckCanExecuteIndividually.REQUIRES_MATERIALIZATION,
             ),
         ]
         return DgApiAssetCheckList(items=checks)
@@ -89,7 +92,7 @@ class TestFormatAssetCheckExecutions:
             DgApiAssetCheckExecution(
                 id="exec-001",
                 run_id="run-abc-123",
-                status=DgApiAssetCheckExecutionStatus.SUCCEEDED,
+                status=DgApiAssetCheckExecutionResolvedStatus.SUCCEEDED,
                 timestamp=1706745600.0,  # 2024-01-31T16:00:00 UTC
                 step_key="my_asset_freshness_check",
                 check_name="freshness_check",
@@ -98,7 +101,7 @@ class TestFormatAssetCheckExecutions:
             DgApiAssetCheckExecution(
                 id="exec-002",
                 run_id="run-def-456",
-                status=DgApiAssetCheckExecutionStatus.FAILED,
+                status=DgApiAssetCheckExecutionResolvedStatus.FAILED,
                 timestamp=1706659200.0,  # 2024-01-30T16:00:00 UTC
                 step_key="my_asset_freshness_check",
                 check_name="freshness_check",
@@ -107,7 +110,7 @@ class TestFormatAssetCheckExecutions:
             DgApiAssetCheckExecution(
                 id="exec-003",
                 run_id="run-ghi-789",
-                status=DgApiAssetCheckExecutionStatus.IN_PROGRESS,
+                status=DgApiAssetCheckExecutionResolvedStatus.IN_PROGRESS,
                 timestamp=1706572800.0,  # 2024-01-29T16:00:00 UTC
                 step_key="my_asset_freshness_check",
                 check_name="freshness_check",

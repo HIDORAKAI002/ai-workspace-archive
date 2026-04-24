@@ -76,8 +76,10 @@ import { DEFAULT_PAGE_SIZE } from "./constants";
 import { ProjectFilterConfigButton } from "./ProjectFilterConfigButton";
 import { ProjectTableEmpty } from "./ProjectTableEmpty";
 import { RetrievalEvaluationLabel } from "./RetrievalEvaluationLabel";
+import { getVisibleSpanAnnotationColumnNames } from "./spanAnnotationUtils";
 import { SpanColumnSelector } from "./SpanColumnSelector";
 import { SpanFilterConditionField } from "./SpanFilterConditionField";
+import { SpanNotesTableCell } from "./SpanNotesTableCell";
 import { SpanSelectionToolbar } from "./SpanSelectionToolbar";
 import { SpansTableAside } from "./SpansTableAside";
 import { spansTableCSS } from "./styles";
@@ -87,6 +89,7 @@ import {
   makeAnnotationColumnId,
   TRACE_ANNOTATIONS_COLUMN_ID,
 } from "./tableUtils";
+import { TraceNotesTableCell } from "./TraceNotesTableCell";
 
 type SpansTableProps = {
   project: SpansTable_spans$key;
@@ -215,6 +218,7 @@ export function SpansTable(props: SpansTableProps) {
           filterCondition: { type: "String", defaultValue: null }
         ) {
           name
+          spanAnnotationNames
           ...SpanColumnSelector_annotations
           ...SpanColumnSelector_traceAnnotations
           spans(
@@ -251,6 +255,7 @@ export function SpansTable(props: SpansTableProps) {
                       fraction
                       label
                     }
+                    count
                     meanScore
                     name
                   }
@@ -319,10 +324,11 @@ export function SpansTable(props: SpansTableProps) {
     (state) => state.annotationColumnVisibility
   );
   const visibleAnnotationColumnNames = useMemo(() => {
-    return Object.keys(annotationColumnVisibility).filter(
-      (name) => annotationColumnVisibility[name]
-    );
-  }, [annotationColumnVisibility]);
+    return getVisibleSpanAnnotationColumnNames({
+      spanAnnotationNames: data.spanAnnotationNames,
+      annotationVisibility: annotationColumnVisibility,
+    });
+  }, [data.spanAnnotationNames, annotationColumnVisibility]);
   const traceAnnotationColumnVisibility = useTracingContext(
     (state) => state.traceAnnotationColumnVisibility
   );
@@ -609,6 +615,41 @@ export function SpansTable(props: SpansTableProps) {
       accessorKey: "output.value",
       cell: TextCell,
       enableSorting: false,
+    },
+    {
+      header: "notes",
+      accessorKey: "spanAnnotations",
+      id: "spanNotes",
+      minSize: 50,
+      maxSize: 75,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const noteCount = row.original.spanAnnotations.filter(
+          (annotation) => annotation.name === "note"
+        ).length;
+        return (
+          <SpanNotesTableCell noteCount={noteCount} spanId={row.original.id} />
+        );
+      },
+    },
+    {
+      header: "trace notes",
+      id: "traceNotes",
+      minSize: 50,
+      maxSize: 90,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const noteCount =
+          row.original.trace.traceAnnotationSummaries.find(
+            (annotation) => annotation.name === "note"
+          )?.count ?? 0;
+        return (
+          <TraceNotesTableCell
+            noteCount={noteCount}
+            traceId={row.original.trace.id}
+          />
+        );
+      },
     },
     {
       header: "metadata",
