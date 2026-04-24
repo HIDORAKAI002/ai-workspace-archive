@@ -524,6 +524,14 @@
   color: var(--muted);
 }
 
+.agent-chat__stt-interim {
+  padding: 10px 14px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .agent-chat__toolbar {
   display: flex;
   align-items: center;
@@ -582,6 +590,15 @@
 .agent-chat__input-btn--active {
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.agent-chat__input-btn--talk {
+  color: var(--danger, #ef4444);
+  background: color-mix(in srgb, var(--danger, #ef4444) 14%, transparent);
+}
+
+.agent-chat__talk-status {
+  color: var(--text);
 }
 
 .agent-chat__input-divider {

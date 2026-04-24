@@ -55,7 +55,7 @@ func getVarFieldLength(fieldSchema *schemapb.FieldSchema, policy getVariableFiel
 	}
 
 	switch fieldSchema.DataType {
-	case schemapb.DataType_VarChar, schemapb.DataType_Text:
+	case schemapb.DataType_VarChar:
 		maxLengthPerRowValue, ok := paramsMap[common.MaxLengthKey]
 		if !ok {
 			return 0, fmt.Errorf("the max_length was not specified, field type is %s", fieldSchema.DataType.String())
@@ -81,6 +81,9 @@ func getVarFieldLength(fieldSchema *schemapb.FieldSchema, policy getVariableFiel
 		default:
 			return 0, fmt.Errorf("unrecognized getVariableFieldLengthPolicy %v", policy)
 		}
+		// Text type does not require max_length, use the same estimate as JSON/Array fields
+	case schemapb.DataType_Text:
+		return GetDynamicFieldEstimateLength(), nil
 		// geometry field max length now consider the same as json field, which is 512 bytes
 	case schemapb.DataType_Array, schemapb.DataType_JSON, schemapb.DataType_Geometry:
 		return GetDynamicFieldEstimateLength(), nil
@@ -709,6 +712,13 @@ func IsStringType(dataType schemapb.DataType) bool {
 	default:
 		return false
 	}
+}
+
+// IsTextType returns true if input is a TEXT type, otherwise false
+// TEXT type is stored as LOB (Large Object) references in sealed segments,
+// requiring special handling during search (requery pattern)
+func IsTextType(dataType schemapb.DataType) bool {
+	return dataType == schemapb.DataType_Text
 }
 
 func IsArrayContainStringElementType(dataType schemapb.DataType, elementType schemapb.DataType) bool {
@@ -2253,6 +2263,17 @@ func NormalizeAndValidateExternalCollectionSchema(schema *schemapb.CollectionSch
 		return nil
 	}
 
+	// External source and spec form an atomic tuple. They must be both
+	// empty (deferred to a later refresh) or both non-empty (ready to
+	// load). One-without-the-other leaves the collection in a half-
+	// initialized state that no refresh path can recover from cleanly.
+	srcSet := schema.GetExternalSource() != ""
+	specSet := schema.GetExternalSpec() != ""
+	if srcSet != specSet {
+		return fmt.Errorf("external collection %s requires external_source and external_spec to be both set or both empty (got source=%q, spec=%q)",
+			schema.GetName(), schema.GetExternalSource(), schema.GetExternalSpec())
+	}
+
 	if len(schema.GetFunctions()) > 0 {
 		return fmt.Errorf("external collection %s does not support functions", schema.GetName())
 	}
@@ -2267,6 +2288,7 @@ func NormalizeAndValidateExternalCollectionSchema(schema *schemapb.CollectionSch
 
 	// Pass 1: validate all user fields. No mutation here so a failure at any
 	// field leaves the input schema untouched.
+	externalFieldOwners := make(map[string][]*schemapb.FieldSchema)
 	for _, field := range schema.GetFields() {
 		if isExternalSystemOrVirtualField(field.GetName()) {
 			continue
@@ -2298,6 +2320,24 @@ func NormalizeAndValidateExternalCollectionSchema(schema *schemapb.CollectionSch
 			return fmt.Errorf("external collection %s does not support field type %s on field %s",
 				schema.GetName(), field.GetDataType().String(), field.GetName())
 		}
+
+		ext := field.GetExternalField()
+		externalFieldOwners[ext] = append(externalFieldOwners[ext], field)
+	}
+
+	// Each external_field column must back at most one user field. A single
+	// physical column cannot satisfy two distinct type bindings, and even
+	// same-type aliasing has no semantic value here.
+	for ext, owners := range externalFieldOwners {
+		if len(owners) <= 1 {
+			continue
+		}
+		parts := make([]string, 0, len(owners))
+		for _, f := range owners {
+			parts = append(parts, fmt.Sprintf("%s (%s)", f.GetName(), f.GetDataType().String()))
+		}
+		return fmt.Errorf("external_field %q is mapped by multiple fields: %s; each external_field must be referenced by at most one user field",
+			ext, strings.Join(parts, ", "))
 	}
 
 	// Pass 2: normalize. All fields passed validation; safe to mutate.

@@ -509,6 +509,12 @@ class HindsightCallback(CustomLogger):
                 "or pass hindsight_bank_id=... to the completion call."
             )
 
+        # Streaming responses (CustomStreamWrapper) don't have .choices — skip storage
+        if not hasattr(response, "choices"):
+            if config.verbose:
+                logger.debug("Skipping storage for streaming response (no .choices attribute)")
+            return
+
         # Extract assistant response from the LLM response
         assistant_output = ""
         assistant_tool_calls = []
