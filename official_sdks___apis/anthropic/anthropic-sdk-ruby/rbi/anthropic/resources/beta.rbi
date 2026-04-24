@@ -21,6 +21,9 @@ module Anthropic
       sig { returns(Anthropic::Resources::Beta::Vaults) }
       attr_reader :vaults
 
+      sig { returns(Anthropic::Resources::Beta::MemoryStores) }
+      attr_reader :memory_stores
+
       sig { returns(Anthropic::Resources::Beta::Files) }
       attr_reader :files
 
