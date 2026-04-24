@@ -56,9 +56,6 @@
 			"label": "Sicherheitslücke entdeckt?",
 			"link": "Folge unserem Offenlegungsprozess"
 		},
-		"contact": {
-			"label": "Musst du mit uns sprechen? Schreibe"
-		},
 		"community": "Möchtest du Tipps oder dich einfach mit anderen Roo Code-Nutzern austauschen? Tritt <redditLink>reddit.com/r/RooCode</redditLink> oder <discordLink>discord.gg/roocode</discordLink> bei",
 		"contactAndCommunity": "Kontakt & Community",
 		"manageSettings": "Einstellungen verwalten",
