@@ -133,7 +133,7 @@ class WorkerTaskBackend(TaskBackend):
     Workers execute tasks directly via the poller (claim → execute), so they
     don't need submit_task to run anything.  When engine code running *inside*
     a worker-executed task calls submit_task (e.g. retain triggers consolidation),
-    the row has already been INSERTed into async_operations with task_payload by
+    the async-operation row has already been persisted (with task_payload) by
     _submit_async_operation — so submit_task is a no-op.  The new task will be
     picked up by a worker on the next poll cycle instead of being executed inline,
     which avoids blocking the parent task.

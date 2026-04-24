@@ -30,8 +30,39 @@ console = Console(stderr=True)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Constants
-DAEMON_STARTUP_TIMEOUT = 180  # seconds
+# Allow CI/Windows to extend the startup budget — pg0-embedded's Windows wheel
+# unpacks and runs initdb on first boot, which takes noticeably longer on cold
+# runners than POSIX.
+DAEMON_STARTUP_TIMEOUT = int(os.getenv("HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT", "180"))
 DEFAULT_DAEMON_IDLE_TIMEOUT = 0  # 0 = disabled (no auto-exit)
+
+
+def _detach_popen_kwargs(log_handle) -> dict:
+    """Cross-platform kwargs to spawn a subprocess detached from the caller.
+
+    On POSIX, `start_new_session=True` calls setsid(2) so the child
+    survives the parent's terminal. On Windows there is no setsid: we use
+    `DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP`, which also means the
+    child has no console, so stdin/stdout/stderr MUST be redirected or any
+    write from the child crashes with "handle is invalid".
+
+    If a `log_handle` is supplied, stdout/stderr are routed to it on both
+    platforms (matches the existing UI-spawn behavior). If `None`, the
+    POSIX child inherits the parent's fds (legacy daemon-spawn behavior).
+    """
+    if platform.system() == "Windows":
+        return {
+            "creationflags": subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+            "stdin": subprocess.DEVNULL,
+            "stdout": log_handle,
+            "stderr": subprocess.STDOUT,
+            "close_fds": True,
+        }
+    kwargs: dict = {"start_new_session": True}
+    if log_handle is not None:
+        kwargs["stdout"] = log_handle
+        kwargs["stderr"] = log_handle
+    return kwargs
 
 
 class DaemonEmbedManager(EmbedManager):
@@ -95,6 +126,17 @@ class DaemonEmbedManager(EmbedManager):
         dev_api_path = Path(__file__).parent.parent.parent / "hindsight-api-slim"
         if dev_api_path.exists() and (dev_api_path / "pyproject.toml").exists():
             return ["uv", "run", "--project", str(dev_api_path), "hindsight-api"]
+
+        # Prefer a hindsight-api entry point installed alongside hindsight-embed
+        # (e.g. `uv pip install hindsight-all` or `--target`). Falling through
+        # to uvx in that case downloads a standalone Python whose ABI won't
+        # match the sibling site-packages' C extensions (issue #1240).
+        package_root = Path(__file__).parent.parent
+        binary_name = "hindsight-api.exe" if platform.system() == "Windows" else "hindsight-api"
+        for bin_dir in ("bin", "Scripts"):
+            candidate = package_root / bin_dir / binary_name
+            if candidate.exists():
+                return [str(candidate)]
 
         # Fall back to uvx for installed version
         from . import __version__
@@ -340,12 +382,20 @@ class DaemonEmbedManager(EmbedManager):
             cmd.extend(extra_args)
 
         try:
-            # Start daemon
-            subprocess.Popen(
-                cmd,
-                env=env,
-                start_new_session=True,
-            )
+            # Start daemon. On Windows we must redirect stdout/stderr before
+            # the child Python runs; DETACHED_PROCESS leaves it without a
+            # console so any print/log to stdio would raise. We open the
+            # daemon log for append here and hand it to the child; Python's
+            # own logging (via HINDSIGHT_API_DAEMON_LOG) will append to the
+            # same path once logging initializes. On POSIX we keep the
+            # existing inherit-fd behavior to avoid touching working code.
+            if platform.system() == "Windows":
+                daemon_log_handle = open(daemon_log, "ab")
+                popen_kwargs = _detach_popen_kwargs(daemon_log_handle)
+            else:
+                daemon_log_handle = None
+                popen_kwargs = _detach_popen_kwargs(None)
+            subprocess.Popen(cmd, env=env, **popen_kwargs)
 
             # Wait for daemon to be ready with rich UI
             start_time = time.time()
@@ -567,13 +617,7 @@ class DaemonEmbedManager(EmbedManager):
 
         try:
             log_file = open(ui_log, "w")
-            subprocess.Popen(
-                cmd,
-                env=env,
-                start_new_session=True,
-                stdout=log_file,
-                stderr=log_file,
-            )
+            subprocess.Popen(cmd, env=env, **_detach_popen_kwargs(log_file))
 
             # Wait for UI to be ready
             start_time = time.time()

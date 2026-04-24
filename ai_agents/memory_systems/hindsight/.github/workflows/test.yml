@@ -2215,6 +2215,189 @@ jobs:
       working-directory: ./hindsight-embed
       run: ./test.sh
 
+  test-embed-windows:
+    # Windows coverage for hindsight-embed. Runs the same unit tests + smoke
+    # test as the Linux `test-embed` job, plus a `uv pip install --target`
+    # sanity check that validates the sibling-binary resolution used by
+    # users who install via `uv pip install hindsight-all` on Windows
+    # (closes #1240).
+    needs: [detect-changes]
+    if: >-
+      needs.detect-changes.outputs.has_secrets == 'true' &&
+      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.embed == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: windows-latest
+    env:
+      HINDSIGHT_API_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: ${{ github.workspace }}/gcp-credentials.json
+      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      # Force UTF-8 I/O so the CLI's ✓/box-drawing output doesn't crash the
+      # default Windows cp1252 codec. Also applied at runtime via
+      # sys.stdout.reconfigure in cli.py; this belt-and-suspenders covers
+      # subprocesses the daemon spawns.
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+      # pg0-embedded unpacks Postgres on first boot — noticeably slower on a
+      # cold Windows runner than POSIX. Double the embed startup budget.
+      HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT: "360"
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Setup GCP credentials
+      shell: bash
+      run: |
+        printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > gcp-credentials.json
+        PROJECT_ID=$(jq -r '.project_id' gcp-credentials.json)
+        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Install embed dependencies
+      working-directory: ./hindsight-embed
+      run: uv sync --frozen --index-strategy unsafe-best-match
+
+    - name: Install API dependencies (with local-ml and embedded-db for smoke test)
+      working-directory: ./hindsight-api-slim
+      run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-embed-${{ hashFiles('hindsight-embed/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-embed-
+          ${{ runner.os }}-huggingface-
+
+    - name: Run unit and integration tests
+      working-directory: ./hindsight-embed
+      run: uv run pytest tests/ -v
+
+    # Smoke test's retain/recall commands delegate to the Rust hindsight CLI.
+    # On POSIX, hindsight-embed auto-installs the CLI via curl|bash; on
+    # Windows that installer isn't available (and `bash` on windows-latest
+    # routes to WSL which isn't provisioned). Build the CLI from source and
+    # drop it into ~/.local/bin where find_cli_binary() looks first.
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo build
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-cli/target
+        key: ${{ runner.os }}-cargo-embed-smoke-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-embed-smoke-
+          ${{ runner.os }}-cargo-
+
+    - name: Build hindsight CLI
+      working-directory: ./hindsight-cli
+      run: cargo build --release
+
+    - name: Stage hindsight CLI where find_cli_binary expects it
+      shell: bash
+      run: |
+        set -euo pipefail
+        install_dir="$HOME/.local/bin"
+        mkdir -p "$install_dir"
+        cp hindsight-cli/target/release/hindsight.exe "$install_dir/hindsight.exe"
+        "$install_dir/hindsight.exe" --version
+
+    - name: Run smoke test
+      shell: bash
+      working-directory: ./hindsight-embed
+      run: ./test.sh
+
+    # Real-world install test for issue #1240: drop both packages into a
+    # --target directory (the layout you get from `uv pip install hindsight-all`
+    # or NixOS) and verify the sibling binary is discovered (not the uvx
+    # fallback). Exercises a different code path than the smoke test, which
+    # uses `uv run --project` via the monorepo branch of _find_api_command.
+    #
+    # IMPORTANT: install outside the repo checkout. `_find_api_command` first
+    # probes `<pkg>/../../hindsight-api-slim` for dev mode; if the target dir
+    # lives inside the monorepo, that branch matches and we never exercise
+    # the sibling-binary path we actually want to test.
+    - name: Install hindsight-embed and hindsight-api into --target directory
+      shell: bash
+      run: |
+        set -euo pipefail
+        target="$RUNNER_TEMP/install-test"
+        rm -rf "$target"
+        mkdir -p "$target"
+        uv pip install --target "$target" ./hindsight-embed ./hindsight-api-slim
+
+    - name: Verify sibling hindsight-api.exe is present
+      shell: bash
+      run: |
+        set -euo pipefail
+        target="$RUNNER_TEMP/install-test"
+        if [ -f "$target/Scripts/hindsight-api.exe" ]; then
+          echo "Found $target/Scripts/hindsight-api.exe"
+        elif [ -f "$target/bin/hindsight-api.exe" ]; then
+          echo "Found $target/bin/hindsight-api.exe"
+        else
+          echo "::error::hindsight-api.exe not found in install target"
+          ls "$target/"
+          exit 1
+        fi
+
+    - name: Verify _find_api_command resolves the sibling binary (not uvx)
+      shell: bash
+      run: |
+        set -euo pipefail
+        target="$RUNNER_TEMP/install-test"
+        PYTHONPATH="$target" python -c "
+        from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
+        cmd = DaemonEmbedManager()._find_api_command()
+        print('Resolved command:', cmd)
+        assert len(cmd) == 1 and cmd[0].endswith('hindsight-api.exe'), (
+            f'Expected sibling hindsight-api.exe, got {cmd!r}. '
+            'Falling back to uvx on --target installs reintroduces issue #1240.'
+        )
+        "
+
+    - name: Smoke-check installed hindsight-embed binary runs
+      shell: bash
+      run: |
+        set -euo pipefail
+        target="$RUNNER_TEMP/install-test"
+        export PYTHONPATH="$target"
+        if [ -f "$target/Scripts/hindsight-embed.exe" ]; then
+          "$target/Scripts/hindsight-embed.exe" --help
+        else
+          "$target/bin/hindsight-embed.exe" --help
+        fi
+
+    - name: Collect daemon logs on failure
+      if: failure()
+      shell: bash
+      run: |
+        for f in ~/.hindsight/daemon.log ~/.hindsight/profiles/*.log ~/.hindsight/profiles/*.stderr.log; do
+          if [ -f "$f" ]; then
+            echo "=== $f ==="
+            cat "$f"
+          fi
+        done || true
+
   test-hindsight-all:
     needs: [detect-changes]
     if: >-
@@ -2746,6 +2929,7 @@ jobs:
       - test-llamaindex-integration
       - test-pip-slim
       - test-embed
+      - test-embed-windows
       - test-hindsight-all
       - test-doc-examples
       - test-upgrade

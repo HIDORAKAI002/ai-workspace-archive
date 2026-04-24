@@ -408,6 +408,7 @@ export HINDSIGHT_API_RETAIN_LLM_MAX_BACKOFF=120.0    # Cap at 2min instead of 1m
 | `HINDSIGHT_API_EMBEDDINGS_COHERE_API_KEY` | Cohere API key for embeddings | - |
 | `HINDSIGHT_API_EMBEDDINGS_COHERE_MODEL` | Cohere embedding model | `embed-english-v3.0` |
 | `HINDSIGHT_API_EMBEDDINGS_COHERE_BASE_URL` | Custom base URL for Cohere-compatible API (e.g., Azure-hosted) | - |
+| `HINDSIGHT_API_EMBEDDINGS_COHERE_OUTPUT_DIMENSIONS` | Output embedding dimensions for Cohere (e.g., `256`, `512`, `1024`). When set, overrides the model's default dimension. | - |
 | `HINDSIGHT_API_EMBEDDINGS_LITELLM_API_BASE` | LiteLLM proxy base URL for embeddings | `http://localhost:4000` |
 | `HINDSIGHT_API_EMBEDDINGS_LITELLM_API_KEY` | LiteLLM proxy API key for embeddings (optional, depends on proxy config) | - |
 | `HINDSIGHT_API_EMBEDDINGS_LITELLM_MODEL` | LiteLLM embedding model (use provider prefix, e.g., `cohere/embed-english-v3.0`) | `text-embedding-3-small` |
@@ -419,6 +420,7 @@ export HINDSIGHT_API_RETAIN_LLM_MAX_BACKOFF=120.0    # Cap at 2min instead of 1m
 | `HINDSIGHT_API_EMBEDDINGS_GEMINI_API_KEY` | Gemini API key for embeddings (falls back to `HINDSIGHT_API_LLM_API_KEY`) | - |
 | `HINDSIGHT_API_EMBEDDINGS_GEMINI_MODEL` | Gemini embedding model | `gemini-embedding-001` |
 | `HINDSIGHT_API_EMBEDDINGS_GEMINI_OUTPUT_DIMENSIONALITY` | Output embedding dimensions (Gemini supports configurable dimensionality) | `768` |
+| `HINDSIGHT_API_EMBEDDINGS_GEMINI_FORCE_IPV4` | Force the Gemini embeddings client to use an IPv4-only HTTP transport. Useful in environments where IPv6 egress is broken (e.g. some Docker/VPC setups) and AAAA DNS records cause long hangs. | `false` |
 | `HINDSIGHT_API_EMBEDDINGS_VERTEXAI_PROJECT_ID` | Vertex AI project ID for embeddings (falls back to `HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID`) | - |
 | `HINDSIGHT_API_EMBEDDINGS_VERTEXAI_REGION` | Vertex AI region for embeddings (falls back to `HINDSIGHT_API_LLM_VERTEXAI_REGION`) | - |
 | `HINDSIGHT_API_EMBEDDINGS_VERTEXAI_SERVICE_ACCOUNT_KEY` | Service account key for Vertex AI embeddings (falls back to `HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY`) | - |
@@ -457,6 +459,8 @@ export HINDSIGHT_API_EMBEDDINGS_OPENROUTER_MODEL=perplexity/pplx-embed-v1-0.6b
 export HINDSIGHT_API_EMBEDDINGS_PROVIDER=cohere
 export HINDSIGHT_API_EMBEDDINGS_COHERE_API_KEY=your-api-key
 export HINDSIGHT_API_EMBEDDINGS_COHERE_MODEL=embed-english-v3.0  # 1024 dimensions
+# Optional: override output dimensions (for Matryoshka-capable models)
+# export HINDSIGHT_API_EMBEDDINGS_COHERE_OUTPUT_DIMENSIONS=512
 
 # Azure-hosted Cohere - embeddings via custom endpoint
 export HINDSIGHT_API_EMBEDDINGS_PROVIDER=cohere

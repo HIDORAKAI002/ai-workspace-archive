@@ -56,6 +56,7 @@ import (
 	clusterapigrpc "github.com/weaviate/weaviate/adapters/handlers/rest/clusterapi/grpc"
 	"github.com/weaviate/weaviate/adapters/handlers/rest/clusterapi/grpc/generated/protocol"
 	"github.com/weaviate/weaviate/adapters/handlers/rest/db_users"
+	rest_namespaces "github.com/weaviate/weaviate/adapters/handlers/rest/namespaces"
 	"github.com/weaviate/weaviate/adapters/handlers/rest/operations"
 	replicationHandlers "github.com/weaviate/weaviate/adapters/handlers/rest/replication"
 	"github.com/weaviate/weaviate/adapters/handlers/rest/state"
@@ -76,6 +77,7 @@ import (
 	"github.com/weaviate/weaviate/entities/modulecapabilities"
 	"github.com/weaviate/weaviate/entities/moduletools"
 	"github.com/weaviate/weaviate/entities/replication"
+	entschema "github.com/weaviate/weaviate/entities/schema"
 	vectorIndex "github.com/weaviate/weaviate/entities/vectorindex"
 	grpcconn "github.com/weaviate/weaviate/grpc/conn"
 	modstgazure "github.com/weaviate/weaviate/modules/backup-azure"
@@ -820,6 +822,33 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 		}
 	}, appState.Logger)
 
+	// Namespace startup invariant: verify the NAMESPACES_ENABLED flag is
+	// compatible with cluster state (schema classes + namespace entities).
+	// Runs after the meta store is ready so both sources are authoritative;
+	// placed in a goroutine to avoid blocking other init work that does not
+	// depend on the meta store. Fatals on mismatch — a misconfigured cluster
+	// must not come up.
+	enterrors.GoWrapper(func() {
+		l := appState.Logger.WithField("action", "startup")
+		if err := metaStoreReady.waitForMetaStore(); err != nil {
+			l.WithError(err).Fatal("meta store failed to become ready; cannot verify namespace startup invariants")
+		}
+		schemaSnapshot := appState.SchemaManager.GetSchemaSkipAuth()
+		var classNames []string
+		if schemaSnapshot.Objects != nil {
+			for _, c := range schemaSnapshot.Objects.Classes {
+				classNames = append(classNames, c.Class)
+			}
+		}
+		if err := enforceNamespaceStartupInvariants(
+			appState.ServerConfig.Config.Namespaces.Enabled,
+			classNames,
+			appState.ClusterService.NamespaceCount(),
+		); err != nil {
+			l.Fatal(err)
+		}
+	}, appState.Logger)
+
 	configureServer = makeConfigureServer(appState)
 
 	// Add dimensions to all the objects in the database, if requested by the user
@@ -915,6 +944,43 @@ func configureReindexer(appState *state.State, reindexCtx context.Context) db.Sh
 	}
 	reindexer.Init()
 	return reindexer
+}
+
+// enforceNamespaceStartupInvariants decides whether the current cluster state
+// is compatible with the NAMESPACES_ENABLED flag. It is a pure function so the
+// decision logic can be unit-tested without fighting os.Exit; the caller wires
+// a non-nil return to logrus.Fatal.
+//
+// A class name is considered namespace-qualified iff it contains
+// entschema.NamespaceSeparator (":"), which is forbidden in plain class names
+// by ClassNameRegexCore and locked by TestValidateClassName_RejectsNamespaceSeparator.
+func enforceNamespaceStartupInvariants(enabled bool, classNames []string, nsCount int) error {
+	var nonNamespacedCount, namespacedCount int
+	var nonNamespacedExample, namespacedExample string
+	for _, name := range classNames {
+		if strings.Contains(name, entschema.NamespaceSeparator) {
+			if namespacedCount == 0 {
+				namespacedExample = name
+			}
+			namespacedCount++
+		} else {
+			if nonNamespacedCount == 0 {
+				nonNamespacedExample = name
+			}
+			nonNamespacedCount++
+		}
+	}
+
+	switch {
+	case enabled && nonNamespacedCount > 0:
+		return fmt.Errorf("NAMESPACES_ENABLED=true but cluster has %d non-namespaced collection(s) (e.g. %q); namespaces can only be enabled on newly bootstrapped clusters or on clusters whose collections are all already namespace-qualified", nonNamespacedCount, nonNamespacedExample)
+	case !enabled && nsCount > 0:
+		return fmt.Errorf("NAMESPACES_ENABLED=false but cluster has %d existing namespace entities; this is not supported", nsCount)
+	case !enabled && namespacedCount > 0:
+		// Guards against disabling namespaces on a namespaced cluster.
+		return fmt.Errorf("NAMESPACES_ENABLED=false but cluster has %d namespace-qualified collection(s) (e.g. %q); refusing to start with inconsistent state", namespacedCount, namespacedExample)
+	}
+	return nil
 }
 
 type metaStoreReady struct {
@@ -1016,6 +1082,7 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 
 	remoteDbUsers := clients.NewRemoteUser(appState.ClusterHttpClient, appState.Cluster)
 	db_users.SetupHandlers(api, appState.ClusterService.Raft, appState.Authorizer, appState.ServerConfig.Config.Authentication, appState.ServerConfig.Config.Authorization, remoteDbUsers, appState.SchemaManager, appState.Logger)
+	rest_namespaces.SetupHandlers(appState.ServerConfig.Config.Namespaces.Enabled, api, appState.ClusterService.Raft, appState.Authorizer, appState.Logger)
 
 	setupSchemaHandlers(api, appState.SchemaManager, appState.Metrics, appState.Logger)
 	setupTokenizeHandlers(api, appState.SchemaManager, appState.Logger)
