@@ -1,5 +1,28 @@
 # @mastra/core
 
+## 1.28.0-alpha.2
+
+### Minor Changes
+
+- The Workspace `filesystem` option now accepts a resolver function in addition to a static instance. ([#13150](https://github.com/mastra-ai/mastra/pull/13150))
+
+  **Before:** `filesystem: WorkspaceFilesystem` (static, same filesystem for every request)
+  **After:** `filesystem: WorkspaceFilesystem | (({ requestContext }) => WorkspaceFilesystem)` (static or per-request)
+
+  This enables per-request filesystem routing from a single Workspace — useful for multi-tenant setups, role-based access (e.g. admin vs user directories), and scoped filesystem permissions without creating separate Workspace instances.
+
+### Patch Changes
+
+- Fixed rotated response message ids not propagating to the active output stream after error processor retries, which could split a single response across two ids on the API-error retry path. ([#15702](https://github.com/mastra-ai/mastra/pull/15702))
+
+  Fixed processor-supplied options to `writer.custom` being dropped in the agentic execution step, so future options like `transient` now reach the underlying output writer.
+
+## 1.28.0-alpha.1
+
+### Patch Changes
+
+- Fixed observational memory message boundaries so streamed tool results continue in a fresh assistant message instead of being filtered out mid-run, and OM lifecycle markers persist through memory without creating data-only database messages. ([#15701](https://github.com/mastra-ai/mastra/pull/15701))
+
 ## 1.28.0-alpha.0
 
 ### Minor Changes
