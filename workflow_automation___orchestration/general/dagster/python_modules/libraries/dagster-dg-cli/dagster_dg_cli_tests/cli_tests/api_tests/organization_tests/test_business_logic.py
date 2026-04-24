@@ -3,8 +3,8 @@
 import json
 
 from dagster_dg_cli.cli.api.formatters import format_organization_settings, format_saml_result
+from dagster_dg_cli.cli.api.schema import SamlOperationResult
 from dagster_rest_resources.schemas.organization import DgApiOrganizationSettings
-from dagster_rest_resources.schemas.saml import SamlOperationResult
 
 
 class TestFormatOrganizationSettings:

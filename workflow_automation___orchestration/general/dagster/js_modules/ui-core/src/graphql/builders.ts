@@ -762,6 +762,13 @@ type AssetNodeStaleStatusByPartitionArgs = {
   partitions?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
+type AssetNodeConnection = {
+  __typename: 'AssetNodeConnection';
+  cursor: Maybe<Scalars['String']['output']>;
+  hasMore: Scalars['Boolean']['output'];
+  nodes: Array<AssetNode>;
+};
+
 type AssetNodeDefinitionCollision = {
   __typename: 'AssetNodeDefinitionCollision';
   assetKey: AssetKey;
@@ -4529,6 +4536,7 @@ type Repository = {
   allTopLevelResourceDetails: Array<ResourceDetails>;
   assetGroups: Array<AssetGroup>;
   assetNodes: Array<AssetNode>;
+  assetNodesConnection: AssetNodeConnection;
   displayMetadata: Array<RepositoryMetadata>;
   hasLocationDocs: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
@@ -4543,6 +4551,11 @@ type Repository = {
   sensors: Array<Sensor>;
   usedSolid: Maybe<UsedSolid>;
   usedSolids: Array<UsedSolid>;
+};
+
+type RepositoryAssetNodesConnectionArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit: Scalars['Int']['input'];
 };
 
 type RepositorySensorsArgs = {
@@ -5145,7 +5158,7 @@ type RunTagsOrError = PythonError | RunTags;
 
 type Runs = PipelineRuns & {
   __typename: 'Runs';
-  count: Maybe<Scalars['Int']['output']>;
+  count: Scalars['Int']['output'];
   results: Array<Run>;
 };
 
@@ -7514,6 +7527,20 @@ export const buildAssetNode = (
                 relationshipsToOmit.has('RegularDagsterType')
               ? ({} as RegularDagsterType)
               : buildRegularDagsterType({}, relationshipsToOmit),
+  };
+};
+
+export const buildAssetNodeConnection = (
+  overrides?: Partial<AssetNodeConnection>,
+  _relationshipsToOmit: Set<string> = new Set(),
+): {__typename: 'AssetNodeConnection'} & AssetNodeConnection => {
+  const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+  relationshipsToOmit.add('AssetNodeConnection');
+  return {
+    __typename: 'AssetNodeConnection',
+    cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : 'quos',
+    hasMore: overrides && overrides.hasOwnProperty('hasMore') ? overrides.hasMore! : false,
+    nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [],
   };
 };
 
@@ -13877,6 +13904,12 @@ export const buildRepository = (
         : [],
     assetGroups: overrides && overrides.hasOwnProperty('assetGroups') ? overrides.assetGroups! : [],
     assetNodes: overrides && overrides.hasOwnProperty('assetNodes') ? overrides.assetNodes! : [],
+    assetNodesConnection:
+      overrides && overrides.hasOwnProperty('assetNodesConnection')
+        ? overrides.assetNodesConnection!
+        : relationshipsToOmit.has('AssetNodeConnection')
+          ? ({} as AssetNodeConnection)
+          : buildAssetNodeConnection({}, relationshipsToOmit),
     displayMetadata:
       overrides && overrides.hasOwnProperty('displayMetadata') ? overrides.displayMetadata! : [],
     hasLocationDocs:

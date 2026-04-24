@@ -3,79 +3,53 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-import requests
-
-from dagster_rest_resources.schemas.artifact import ArtifactDownloadResult, ArtifactUploadResult
+from dagster_rest_resources.s3_client import S3Client
+from dagster_rest_resources.schemas.artifact import (
+    DgApiArtifactDownloadResult,
+    DgApiArtifactUploadResult,
+)
+from dagster_rest_resources.schemas.exception import S3Error
 
 
 @dataclass(frozen=True)
 class DgApiArtifactApi:
-    base_url: str
-    headers: dict[str, str]
+    _client: S3Client
 
     def upload(
         self,
-        key: str,
         path: Path,
+        key: str,
         deployment: str | None = None,
-    ) -> ArtifactUploadResult:
-        """Upload an artifact to Dagster Plus via presigned S3 URL."""
-        if not path.exists():
-            raise FileNotFoundError(f"Upload path does not exist: {path}")
-        upload_file = path.resolve(strict=True)
+    ) -> DgApiArtifactUploadResult:
+        try:
+            with path.resolve(strict=True).open("rb") as f:
+                self._client.upload(key, deployment, f)
 
-        request_headers = {**self.headers}
-        if deployment:
-            request_headers["Dagster-Cloud-Deployment"] = deployment
-
-        # Step 1: Get presigned POST URL
-        response = requests.post(
-            url=f"{self.base_url}/gen_artifact_post",
-            headers=request_headers,
-            json={"key": key},
-        )
-        response.raise_for_status()
-        payload = response.json()
-
-        # Step 2: Upload file to S3 via presigned POST
-        with upload_file.open("rb") as f:
-            s3_response = requests.post(
-                payload["url"],
-                data=payload["fields"],
-                files={"file": f},
+            return DgApiArtifactUploadResult(
+                key=key,
+                deployment=deployment,
             )
-        s3_response.raise_for_status()
-
-        scope = "deployment" if deployment else "organization"
-        return ArtifactUploadResult(key=key, scope=scope, deployment=deployment)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Upload path does not exist: {path}")
+        except Exception as e:
+            raise S3Error(f"Error uploading file: {e}")
 
     def download(
         self,
-        key: str,
         path: Path,
+        key: str,
         deployment: str | None = None,
-    ) -> ArtifactDownloadResult:
-        """Download an artifact from Dagster Plus via presigned S3 URL."""
-        request_headers = {**self.headers}
-        if deployment:
-            request_headers["Dagster-Cloud-Deployment"] = deployment
+    ) -> DgApiArtifactDownloadResult:
+        try:
+            content = self._client.download(key, deployment)
+        except Exception as e:
+            raise S3Error(f"Error downloading file: {e}")
 
-        # Step 1: Get presigned GET URL
-        response = requests.post(
-            url=f"{self.base_url}/gen_artifact_get",
-            headers=request_headers,
-            json={"key": key},
-        )
-        response.raise_for_status()
-        payload = response.json()
-
-        # Step 2: Download file from S3
-        s3_response = requests.get(payload["url"])
-        s3_response.raise_for_status()
-
-        # Create parent directories if needed
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(s3_response.content)
+        path.write_bytes(content)
 
-        scope = "deployment" if deployment else "organization"
-        return ArtifactDownloadResult(key=key, path=str(path), scope=scope, deployment=deployment)
+        return DgApiArtifactDownloadResult(
+            key=key,
+            deployment=deployment,
+            path=str(path),
+        )

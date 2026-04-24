@@ -214,9 +214,17 @@ export const SelectionAutoCompleteInput = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Suppress lint errors while the autocomplete dropdown is open — the
+  // in-progress expression often produces cascading parser errors that span
+  // the current token and everything after it, which is noisy while the user
+  // is still picking a suggestion.
+  const suppressErrors =
+    !!(loading || autoCompleteResults?.list.length) && showResults.current && !!onChange;
+
   const errorTooltip = useSelectionInputLintingAndHighlighting({
     cmInstance,
     linter,
+    suppressErrors,
   });
 
   const [currentHeight, setCurrentHeight] = useState(20);

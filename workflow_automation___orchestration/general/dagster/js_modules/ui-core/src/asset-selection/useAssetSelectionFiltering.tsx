@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 
 import {getAssetsByKey} from './util';
 import {COMMON_COLLATOR} from '../app/Util';
-import {tokenForAssetKey} from '../asset-graph/Utils';
+import {displayNameForAssetKey, tokenForAssetKey} from '../asset-graph/Utils';
 import {useAssetGraphData} from '../asset-graph/useAssetGraphData';
 import {hashObject} from '../util/hashObject';
 import {weakMapMemoize} from '../util/weakMapMemoize';
@@ -77,7 +77,9 @@ export const useAssetSelectionFiltering = <
           return assetsByKey.get(tokenForAssetKey(key))!;
         })
         .filter(Boolean)
-        .sort((a, b) => COMMON_COLLATOR.compare(a.key.path.join(''), b.key.path.join(''))) ?? []
+        .sort((a, b) =>
+          COMMON_COLLATOR.compare(displayNameForAssetKey(a.key), displayNameForAssetKey(b.key)),
+        ) ?? []
     );
   }, [graphAssetKeys, assetsByKey]);
 

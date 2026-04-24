@@ -3,6 +3,7 @@
 import click
 from dagster_dg_core.utils import DgClickCommand, DgClickGroup
 from dagster_dg_core.utils.telemetry import cli_telemetry_wrapper
+from dagster_rest_resources.schemas.enums import DgApiInstigationTickStatus
 from dagster_shared.plus.config import DagsterPlusCliConfig
 from dagster_shared.plus.config_utils import dg_api_options
 
@@ -46,23 +47,21 @@ def list_schedules_command(
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
     from dagster_rest_resources.api.schedule import DgApiScheduleApi
 
-    api = DgApiScheduleApi(client)
+    api = DgApiScheduleApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
         schedules = api.list_schedules()
 
         if status:
-            from dagster_rest_resources.schemas.schedule import (
-                DgApiScheduleList,
-                DgApiScheduleStatus,
-            )
+            from dagster_rest_resources.schemas.enums import DgApiInstigationStatus
+            from dagster_rest_resources.schemas.schedule import DgApiScheduleList
 
             filtered_schedules = [
                 schedule
                 for schedule in schedules.items
-                if schedule.status == DgApiScheduleStatus(status)
+                if schedule.status == DgApiInstigationStatus(status)
             ]
-            schedules = DgApiScheduleList(items=filtered_schedules, total=len(filtered_schedules))
+            schedules = DgApiScheduleList(items=filtered_schedules)
 
         output = format_schedules(schedules, as_json=output_json)
         click.echo(output)
@@ -98,7 +97,7 @@ def get_schedule_command(
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
     from dagster_rest_resources.api.schedule import DgApiScheduleApi
 
-    api = DgApiScheduleApi(client)
+    api = DgApiScheduleApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
         schedule = api.get_schedule_by_name(schedule_name=schedule_name)
@@ -112,7 +111,10 @@ def get_schedule_command(
     "--status",
     "statuses",
     multiple=True,
-    type=click.Choice(["STARTED", "SKIPPED", "SUCCESS", "FAILURE"], case_sensitive=False),
+    type=click.Choice([e.value for e in DgApiInstigationTickStatus], case_sensitive=False),
+    callback=lambda ctx, param, values: tuple(
+        DgApiInstigationTickStatus(v.upper()) for v in values
+    ),
     help="Filter by tick status. Repeatable.",
 )
 @click.option("--limit", type=int, default=25, help="Maximum number of ticks to return")
@@ -131,7 +133,7 @@ def get_schedule_command(
 def get_schedule_ticks_command(
     ctx: click.Context,
     schedule_name: str,
-    statuses: tuple[str, ...],
+    statuses: tuple[DgApiInstigationTickStatus, ...],
     limit: int,
     cursor: str | None,
     before_timestamp: float | None,
@@ -151,15 +153,14 @@ def get_schedule_ticks_command(
         user_token=api_token,
     )
     client = create_dg_api_graphql_client(ctx, config, view_graphql=view_graphql)
-    api = DgApiTickApi(client)
+    api = DgApiTickApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
-        normalized_statuses = tuple(s.upper() for s in statuses)
         ticks = api.get_schedule_ticks(
             schedule_name=schedule_name,
             limit=limit,
             cursor=cursor,
-            statuses=normalized_statuses,
+            statuses=list(statuses) if statuses else None,
             before_timestamp=before_timestamp,
             after_timestamp=after_timestamp,
         )

@@ -52,7 +52,7 @@ type UseAssetCatalogGroupAndSortByProps = {
   assetsByAssetKey: Map<string, AssetTableFragment>;
 };
 
-type SortBy = (typeof SORT_ITEMS)[number]['key'];
+export type SortBy = (typeof SORT_ITEMS)[number]['key'];
 
 export const useAssetCatalogGroupAndSortBy = ({
   liveDataByNode,

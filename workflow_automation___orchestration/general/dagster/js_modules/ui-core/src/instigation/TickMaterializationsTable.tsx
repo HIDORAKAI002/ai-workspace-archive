@@ -22,7 +22,7 @@ import {
   AssetGroupAndLocationQuery,
   AssetGroupAndLocationQueryVariables,
 } from './types/TickMaterializationsTable.types';
-import {tokenForAssetKey} from '../asset-graph/Utils';
+import {displayNameForAssetKey, tokenForAssetKey} from '../asset-graph/Utils';
 import {AssetLink} from '../assets/AssetLink';
 import {AssetKeysDialogEmptyState} from '../assets/AutoMaterializePolicyPage/AssetKeysDialog';
 import {EvaluationDetailDialog} from '../assets/AutoMaterializePolicyPage/EvaluationDetailDialog';
@@ -48,7 +48,7 @@ export const TickMaterializationsTable = ({
     () =>
       tick
         ? tick.requestedAssetKeys.filter((assetKey) =>
-            assetKey.path.join('/').includes(queryString),
+            displayNameForAssetKey(assetKey).includes(queryString),
           )
         : [],
     [tick, queryString],

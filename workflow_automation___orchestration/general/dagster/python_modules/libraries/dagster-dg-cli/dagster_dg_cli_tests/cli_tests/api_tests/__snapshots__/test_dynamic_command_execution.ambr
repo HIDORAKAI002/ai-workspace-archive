@@ -943,6 +943,17 @@
 # name: TestDynamicCommandExecution.test_command_execution[deployment_success_get_settings_json]
   dict({
     'settings': dict({
+      'run_monitoring': dict({
+        'start_timeout_seconds': 300,
+      }),
+      'run_queue': dict({
+        'max_concurrent_runs': 25,
+        'tag_concurrency_limits': list([
+        ]),
+      }),
+      'run_retries': dict({
+        'max_retries': 0,
+      }),
     }),
   })
 # ---
@@ -1163,7 +1174,6 @@
     'has_more': False,
     'items': list([
     ]),
-    'total': 0,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_error_invalid_level_text_text]
@@ -1174,8 +1184,8 @@
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_error_invalid_run_id_json]
   '''
-  {"error": "Run not found: ''"}
-  Error: dg api run get: Run not found: ''
+  {"error": "Error: ''"}
+  Error: dg api run get: Error: ''
   
   '''
 # ---
@@ -1255,7 +1265,7 @@
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_error_run_not_found_text]
   '''
-  Error: dg api run get: Run not found: nonexistent-run-id
+  Error: dg api run get: Error: nonexistent-run-id
   
   '''
 # ---
@@ -1303,7 +1313,6 @@
         'timestamp': '1771476078298',
       }),
     ]),
-    'total': 2,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_basic_json_json]
@@ -1492,7 +1501,6 @@
         'timestamp': '1758817833807',
       }),
     ]),
-    'total': 20,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_basic_text_text]
@@ -1542,7 +1550,6 @@
         'timestamp': '1758808865047',
       }),
     ]),
-    'total': 1,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_debug_level_text_text]
@@ -1681,7 +1688,6 @@
         'timestamp': '1758808878519',
       }),
     ]),
-    'total': 3,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_error_level_only_text_text]
@@ -1766,7 +1772,6 @@
         'timestamp': '1758808867189',
       }),
     ]),
-    'total': 5,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_small_limit_text_text]
@@ -1819,7 +1824,6 @@
         'timestamp': '1758808873361',
       }),
     ]),
-    'total': 3,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_step_filter_text_text]
@@ -2302,7 +2306,6 @@
         'timestamp': '1758808880071',
       }),
     ]),
-    'total': 41,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[run_success_logs_with_errors_text_text]
@@ -2641,7 +2644,7 @@
         ]),
         'name': 'SNOWFLAKE_USER',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-05-04T19:14:15.542825Z',
+        'update_timestamp': 1683227655.542825,
         'updated_by': dict({
           'email': 'lopp@elementl.com',
         }),
@@ -2658,7 +2661,7 @@
         ]),
         'name': 'SNOWFLAKE_ROLE',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-11-29T21:58:48.844959Z',
+        'update_timestamp': 1701295128.844959,
         'updated_by': dict({
           'email': 'izzy@dagsterlabs.com',
         }),
@@ -2675,7 +2678,7 @@
         ]),
         'name': 'SNOWFLAKE_USERNAME',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-02-28T21:57:07.192470Z',
+        'update_timestamp': 1677621427.19247,
         'updated_by': dict({
           'email': 'lopp@elementl.com',
         }),
@@ -2692,7 +2695,7 @@
         ]),
         'name': 'SNOWFLAKE_ACCOUNT',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-05-04T19:12:08.067031Z',
+        'update_timestamp': 1683227528.067031,
         'updated_by': dict({
           'email': 'lopp@elementl.com',
         }),
@@ -2709,7 +2712,7 @@
         ]),
         'name': 'AWS_REGION',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-11-30T15:18:08.570713Z',
+        'update_timestamp': 1701357488.570713,
         'updated_by': dict({
           'email': 'izzy@dagsterlabs.com',
         }),
@@ -2726,7 +2729,7 @@
         ]),
         'name': 'SNOWFLAKE_HOST',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2023-12-11T23:27:02.879755Z',
+        'update_timestamp': 1702337222.879755,
         'updated_by': dict({
           'email': 'izzy@dagsterlabs.com',
         }),
@@ -2743,7 +2746,7 @@
         ]),
         'name': 'DAGSTER_DBT_PARSE_PROJECT_ON_LOAD',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-04-05T17:52:55.019563Z',
+        'update_timestamp': 1712339575.019563,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2760,7 +2763,7 @@
         ]),
         'name': 'AWS_S3_BUCKET',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-04-09T20:03:38.240532Z',
+        'update_timestamp': 1712693018.240532,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2777,7 +2780,7 @@
         ]),
         'name': 'AZURE_POWERBI_CLIENT_SECRET_ID',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-10-09T13:43:43.483920Z',
+        'update_timestamp': 1728481423.48392,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2794,7 +2797,7 @@
         ]),
         'name': 'AZURE_POWERBI_CLIENT_ID',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-10-09T01:13:45.360461Z',
+        'update_timestamp': 1728436425.360461,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2811,7 +2814,7 @@
         ]),
         'name': 'AZURE_POWERBI_CLIENT_SECRET',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-10-09T01:13:56.007341Z',
+        'update_timestamp': 1728436436.007341,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2828,7 +2831,7 @@
         ]),
         'name': 'AZURE_POWERBI_TENANT_ID',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-10-09T01:14:04.180889Z',
+        'update_timestamp': 1728436444.180889,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2845,7 +2848,7 @@
         ]),
         'name': 'AZURE_POWERBI_WORKSPACE_ID',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2024-10-09T01:14:12.436403Z',
+        'update_timestamp': 1728436452.436403,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2862,7 +2865,7 @@
         ]),
         'name': 'SNOWFLAKE_SCHEMA',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-06-27T19:20:59.521047Z',
+        'update_timestamp': 1751052059.521047,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2879,7 +2882,7 @@
         ]),
         'name': 'EXAMPLE_ENVIRONMENT_VARIABLE',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-09-22T20:18:39.564529Z',
+        'update_timestamp': 1758572319.564529,
         'updated_by': dict({
           'email': 'colton@dagsterlabs.com',
         }),
@@ -2896,7 +2899,7 @@
         ]),
         'name': 'MWAA_AWS_ACCESS_KEY_ID',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-03-08T03:26:30.092809Z',
+        'update_timestamp': 1741404390.092809,
         'updated_by': dict({
           'email': 'colton@dagsterlabs.com',
         }),
@@ -2913,7 +2916,7 @@
         ]),
         'name': 'MWAA_AWS_SECRET_ACCESS_KEY',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-03-08T03:26:41.762188Z',
+        'update_timestamp': 1741404401.762188,
         'updated_by': dict({
           'email': 'colton@dagsterlabs.com',
         }),
@@ -2930,7 +2933,7 @@
         ]),
         'name': 'DATABRICKS_TOKEN',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-07-26T00:32:00.876120Z',
+        'update_timestamp': 1753489920.87612,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2947,7 +2950,7 @@
         ]),
         'name': 'DATABRICKS_HOST',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-07-26T00:32:11.161514Z',
+        'update_timestamp': 1753489931.161514,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2964,7 +2967,7 @@
         ]),
         'name': 'DATABRICKS_HOST',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-07-26T00:32:44.377634Z',
+        'update_timestamp': 1753489964.377634,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2981,7 +2984,7 @@
         ]),
         'name': 'DATABRICKS_TOKEN',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-07-26T00:33:33.657806Z',
+        'update_timestamp': 1753490013.657806,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -2998,7 +3001,7 @@
         ]),
         'name': 'GITHUB_TOKEN',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-08-11T19:39:12.247125Z',
+        'update_timestamp': 1754941152.247125,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -3015,7 +3018,7 @@
         ]),
         'name': 'SNOWFLAKE_KEY',
         'specific_branch_deployment_scope': None,
-        'update_timestamp': '2025-09-10T17:02:38.934973Z',
+        'update_timestamp': 1757523758.934973,
         'updated_by': dict({
           'email': 'christian@dagsterlabs.com',
         }),
@@ -3028,29 +3031,29 @@
 # name: TestDynamicCommandExecution.test_command_execution[secret_success_multiple_secrets_text_text]
   '''
   NAME                               LOCATIONS  SCOPES                                                     UPDATED
-  SNOWFLAKE_USER                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-05-04 19:14:15
-  SNOWFLAKE_ROLE                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-11-29 21:58:48
-  SNOWFLAKE_USERNAME                 All        Full Deployment, All Branch Deployments, Local Deployment  2023-02-28 21:57:07
-  SNOWFLAKE_ACCOUNT                  All        Full Deployment, All Branch Deployments, Local Deployment  2023-05-04 19:12:08
-  AWS_REGION                         All        Full Deployment, All Branch Deployments, Local Deployment  2023-11-30 15:18:08
-  SNOWFLAKE_HOST                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-12-11 23:27:02
-  DAGSTER_DBT_PARSE_PROJECT_ON_LOAD  All        All Branch Deployments, Local Deployment                   2024-04-05 17:52:55
-  AWS_S3_BUCKET                      All        Full Deployment, All Branch Deployments, Local Deployment  2024-04-09 20:03:38
-  AZURE_POWERBI_CLIENT_SECRET_ID     All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 13:43:43
-  AZURE_POWERBI_CLIENT_ID            All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:13:45
-  AZURE_POWERBI_CLIENT_SECRET        All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:13:56
-  AZURE_POWERBI_TENANT_ID            All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:14:04
-  AZURE_POWERBI_WORKSPACE_ID         All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:14:12
-  SNOWFLAKE_SCHEMA                   All        Full Deployment, All Branch Deployments, Local Deployment  2025-06-27 19:20:59
-  EXAMPLE_ENVIRONMENT_VARIABLE       All        Full Deployment, All Branch Deployments, Local Deployment  2025-09-22 20:18:39
-  MWAA_AWS_ACCESS_KEY_ID             All        Full Deployment, All Branch Deployments, Local Deployment  2025-03-08 03:26:30
-  MWAA_AWS_SECRET_ACCESS_KEY         All        Full Deployment, All Branch Deployments, Local Deployment  2025-03-08 03:26:41
-  DATABRICKS_TOKEN                   All        Full Deployment, Local Deployment                          2025-07-26 00:32:00
-  DATABRICKS_HOST                    All        Full Deployment, Local Deployment                          2025-07-26 00:32:11
-  DATABRICKS_HOST                    All        All Branch Deployments                                     2025-07-26 00:32:44
-  DATABRICKS_TOKEN                   All        All Branch Deployments                                     2025-07-26 00:33:33
-  GITHUB_TOKEN                       All        Full Deployment, All Branch Deployments, Local Deployment  2025-08-11 19:39:12
-  SNOWFLAKE_KEY                      All        Full Deployment, All Branch Deployments, Local Deployment  2025-09-10 17:02:38
+  SNOWFLAKE_USER                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-05-04 19:14:15 UTC
+  SNOWFLAKE_ROLE                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-11-29 21:58:48 UTC
+  SNOWFLAKE_USERNAME                 All        Full Deployment, All Branch Deployments, Local Deployment  2023-02-28 21:57:07 UTC
+  SNOWFLAKE_ACCOUNT                  All        Full Deployment, All Branch Deployments, Local Deployment  2023-05-04 19:12:08 UTC
+  AWS_REGION                         All        Full Deployment, All Branch Deployments, Local Deployment  2023-11-30 15:18:08 UTC
+  SNOWFLAKE_HOST                     All        Full Deployment, All Branch Deployments, Local Deployment  2023-12-11 23:27:02 UTC
+  DAGSTER_DBT_PARSE_PROJECT_ON_LOAD  All        All Branch Deployments, Local Deployment                   2024-04-05 17:52:55 UTC
+  AWS_S3_BUCKET                      All        Full Deployment, All Branch Deployments, Local Deployment  2024-04-09 20:03:38 UTC
+  AZURE_POWERBI_CLIENT_SECRET_ID     All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 13:43:43 UTC
+  AZURE_POWERBI_CLIENT_ID            All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:13:45 UTC
+  AZURE_POWERBI_CLIENT_SECRET        All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:13:56 UTC
+  AZURE_POWERBI_TENANT_ID            All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:14:04 UTC
+  AZURE_POWERBI_WORKSPACE_ID         All        Full Deployment, All Branch Deployments, Local Deployment  2024-10-09 01:14:12 UTC
+  SNOWFLAKE_SCHEMA                   All        Full Deployment, All Branch Deployments, Local Deployment  2025-06-27 19:20:59 UTC
+  EXAMPLE_ENVIRONMENT_VARIABLE       All        Full Deployment, All Branch Deployments, Local Deployment  2025-09-22 20:18:39 UTC
+  MWAA_AWS_ACCESS_KEY_ID             All        Full Deployment, All Branch Deployments, Local Deployment  2025-03-08 03:26:30 UTC
+  MWAA_AWS_SECRET_ACCESS_KEY         All        Full Deployment, All Branch Deployments, Local Deployment  2025-03-08 03:26:41 UTC
+  DATABRICKS_TOKEN                   All        Full Deployment, Local Deployment                          2025-07-26 00:32:00 UTC
+  DATABRICKS_HOST                    All        Full Deployment, Local Deployment                          2025-07-26 00:32:11 UTC
+  DATABRICKS_HOST                    All        All Branch Deployments                                     2025-07-26 00:32:44 UTC
+  DATABRICKS_TOKEN                   All        All Branch Deployments                                     2025-07-26 00:33:33 UTC
+  GITHUB_TOKEN                       All        Full Deployment, All Branch Deployments, Local Deployment  2025-08-11 19:39:12 UTC
+  SNOWFLAKE_KEY                      All        Full Deployment, All Branch Deployments, Local Deployment  2025-09-10 17:02:38 UTC
   
   '''
 # ---
@@ -3066,7 +3069,7 @@
     ]),
     'name': 'EXAMPLE_ENVIRONMENT_VARIABLE',
     'specific_branch_deployment_scope': None,
-    'update_timestamp': '2025-09-22T20:18:39.564529Z',
+    'update_timestamp': 1758572319.564529,
     'updated_by': dict({
       'email': 'colton@dagsterlabs.com',
     }),
@@ -3085,7 +3088,7 @@
   Value: <hidden - use --show-value to display>
   
   Updated By: colton@dagsterlabs.com
-  Updated: 2025-09-22 20:18:39
+  Updated: 2025-09-22 20:18:39 UTC
   
   '''
 # ---
@@ -3101,7 +3104,7 @@
     ]),
     'name': 'EXAMPLE_ENVIRONMENT_VARIABLE',
     'specific_branch_deployment_scope': None,
-    'update_timestamp': '2025-09-22T20:18:39.564529Z',
+    'update_timestamp': 1758572319.564529,
     'updated_by': dict({
       'email': 'colton@dagsterlabs.com',
     }),
@@ -3121,7 +3124,7 @@
     Hello, World!
   
   Updated By: colton@dagsterlabs.com
-  Updated: 2025-09-22 20:18:39
+  Updated: 2025-09-22 20:18:39 UTC
   
   '''
 # ---
@@ -3271,7 +3274,7 @@
   Usage: dg api sensor list [OPTIONS]
   Try 'dg api sensor list -h' for help.
   
-  Error: Invalid value for '--status': 'INVALID_STATUS' is not one of 'RUNNING', 'STOPPED', 'PAUSED'.
+  Error: Invalid value for '--status': 'INVALID_STATUS' is not one of 'RUNNING', 'STOPPED'.
   
   '''
 # ---
@@ -3292,19 +3295,6 @@
 # name: TestDynamicCommandExecution.test_command_execution[sensor_error_sensor_not_found_text_text]
   '''
   Error: dg api sensor get: Exhausted 0 responses
-  
-  '''
-# ---
-# name: TestDynamicCommandExecution.test_command_execution[sensor_success_filtered_sensors_paused_json]
-  dict({
-    'items': list([
-    ]),
-    'total': 0,
-  })
-# ---
-# name: TestDynamicCommandExecution.test_command_execution[sensor_success_filtered_sensors_paused_text_text]
-  '''
-  
   
   '''
 # ---

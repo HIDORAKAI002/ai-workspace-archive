@@ -1,37 +1,20 @@
-"""Deployment models for REST-like API."""
-
-from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
 
-
-class DeploymentType(str, Enum):
-    """Deployment type enum for FastAPI compatibility."""
-
-    PRODUCTION = "PRODUCTION"
-    BRANCH = "BRANCH"
+from dagster_rest_resources.schemas.enums import DgApiDagsterCloudDeploymentType
+from dagster_rest_resources.schemas.util import DgApiTruncatedList
 
 
-class Deployment(BaseModel):
-    """Deployment resource model."""
-
-    id: int  # Deployment IDs are integers in the GraphQL schema
+class DgApiDeployment(BaseModel):
+    id: int
     name: str
-    type: DeploymentType
-
-    class Config:
-        from_attributes = True  # For future ORM compatibility
+    type: DgApiDagsterCloudDeploymentType
 
 
-class DeploymentList(BaseModel):
-    """GET /api/deployments response."""
-
-    items: list[Deployment]
-    total: int
+class DgApiDeploymentList(DgApiTruncatedList[DgApiDeployment]):
+    pass
 
 
-class DeploymentSettings(BaseModel):
-    """Deployment settings resource model."""
-
+class DgApiDeploymentSettings(BaseModel):
     settings: dict[str, Any]

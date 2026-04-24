@@ -5,13 +5,13 @@
     'name': 'minimal_sensor',
     'next_tick_timestamp': None,
     'sensor_type': 'STANDARD',
-    'status': 'PAUSED',
+    'status': 'RUNNING',
   })
 # ---
 # name: TestFormatSensors.test_format_minimal_sensor_text_output[0]
   '''
   Name:        minimal_sensor
-  Status:      PAUSED
+  Status:      RUNNING
   Type:        STANDARD
   Description: None
   '''
@@ -56,7 +56,7 @@
         'name': 'minimal_sensor',
         'next_tick_timestamp': None,
         'sensor_type': 'MULTI_ASSET',
-        'status': 'PAUSED',
+        'status': 'RUNNING',
       }),
     ]),
     'total': 3,
@@ -67,6 +67,6 @@
   NAME            STATUS   TYPE
   daily_sensor    RUNNING  STANDARD
   asset_sensor    STOPPED  ASSET
-  minimal_sensor  PAUSED   MULTI_ASSET
+  minimal_sensor  RUNNING  MULTI_ASSET
   '''
 # ---
