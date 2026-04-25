@@ -72,6 +72,7 @@ Disables automatic creation of workspace bootstrap files (`AGENTS.md`, `SOUL.md`
 Controls when workspace bootstrap files are injected into the system prompt. Default: `"always"`.
 
 - `"continuation-skip"`: safe continuation turns (after a completed assistant response) skip workspace bootstrap re-injection, reducing prompt size. Heartbeat runs and post-compaction retries still rebuild context.
+- `"never"`: disable workspace bootstrap and context-file injection on every turn. Use this only for agents that fully own their prompt lifecycle (custom context engines, native runtimes that build their own context, or specialized bootstrap-free workflows). Heartbeat and compaction-recovery turns also skip injection.
 
 ```json5
 {
@@ -346,7 +347,7 @@ Time format in system prompt. Default: `auto` (OS preference).
   - If omitted, `image_generate` can still infer an auth-backed provider default. It tries the current default provider first, then the remaining registered image-generation providers in provider-id order.
 - `musicGenerationModel`: accepts either a string (`"provider/model"`) or an object (`{ primary, fallbacks }`).
   - Used by the shared music-generation capability and the built-in `music_generate` tool.
-  - Typical values: `google/lyria-3-clip-preview`, `google/lyria-3-pro-preview`, or `minimax/music-2.5+`.
+  - Typical values: `google/lyria-3-clip-preview`, `google/lyria-3-pro-preview`, or `minimax/music-2.6`.
   - If omitted, `music_generate` can still infer an auth-backed provider default. It tries the current default provider first, then the remaining registered music-generation providers in provider-id order.
   - If you select a provider/model directly, configure the matching provider auth/API key too.
 - `videoGenerationModel`: accepts either a string (`"provider/model"`) or an object (`{ primary, fallbacks }`).
@@ -880,7 +881,7 @@ noVNC observer access uses VNC auth by default and OpenClaw emits a short-lived 
   - `--renderer-process-limit=2` can be changed with
     `OPENCLAW_BROWSER_RENDERER_PROCESS_LIMIT=<N>`; set `0` to use Chromium's
     default process limit.
-  - plus `--no-sandbox` and `--disable-setuid-sandbox` when `noSandbox` is enabled.
+  - plus `--no-sandbox` when `noSandbox` is enabled.
   - Defaults are the container image baseline; use a custom browser image with a custom
     entrypoint to change container defaults.
 
@@ -1325,6 +1326,10 @@ Defaults for Talk mode (macOS/iOS/Android).
         outputFormat: "mp3_44100_128",
         apiKey: "elevenlabs_api_key",
       },
+      mlx: {
+        modelId: "mlx-community/Soprano-80M-bf16",
+      },
+      system: {},
     },
     silenceTimeoutMs: 1500,
     interruptOnSpeech: true,
@@ -1338,6 +1343,8 @@ Defaults for Talk mode (macOS/iOS/Android).
 - `providers.*.apiKey` accepts plaintext strings or SecretRef objects.
 - `ELEVENLABS_API_KEY` fallback applies only when no Talk API key is configured.
 - `providers.*.voiceAliases` lets Talk directives use friendly names.
+- `providers.mlx.modelId` selects the Hugging Face repo used by the macOS local MLX helper. If omitted, macOS uses `mlx-community/Soprano-80M-bf16`.
+- macOS MLX playback runs through the bundled `openclaw-mlx-tts` helper when present, or an executable on `PATH`; `OPENCLAW_MLX_TTS_BIN` overrides the helper path for development.
 - `silenceTimeoutMs` controls how long Talk mode waits after user silence before it sends the transcript. Unset keeps the platform default pause window (`700 ms on macOS and Android, 900 ms on iOS`).
 
 ---
