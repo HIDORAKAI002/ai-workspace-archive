@@ -9,7 +9,7 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import { filterHeartbeatPairs } from "../../../auto-reply/heartbeat-filter.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
-import { emitDiagnosticEvent } from "../../../infra/diagnostic-events.js";
+import { emitTrustedDiagnosticEvent } from "../../../infra/diagnostic-events.js";
 import {
   createDiagnosticTraceContext,
   createChildDiagnosticTraceContext,
@@ -121,7 +121,10 @@ import { resolveSandboxContext } from "../../sandbox.js";
 import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
-import { sanitizeToolUseResultPairing } from "../../session-transcript-repair.js";
+import {
+  sanitizeToolUseResultPairing,
+  stripToolResultDetails,
+} from "../../session-transcript-repair.js";
 import {
   acquireSessionWriteLock,
   resolveSessionLockMaxHoldFromTimeout,
@@ -466,6 +469,10 @@ export function applyEmbeddedAttemptToolsAllow<T extends { name: string }>(
   return tools.filter((tool) => allowSet.has(tool.name));
 }
 
+export function normalizeMessagesForLlmBoundary(messages: AgentMessage[]): AgentMessage[] {
+  return stripToolResultDetails(normalizeAssistantReplayContent(messages));
+}
+
 export function shouldCreateBundleMcpRuntimeForAttempt(params: {
   toolsEnabled: boolean;
   disableTools?: boolean;
@@ -649,7 +656,7 @@ export async function runEmbeddedAttempt(
         : {}),
       trace: runTrace,
     };
-    emitDiagnosticEvent({
+    emitTrustedDiagnosticEvent({
       type: "run.started",
       ...diagnosticRunBase,
     });
@@ -660,7 +667,7 @@ export async function runEmbeddedAttempt(
         return;
       }
       diagnosticRunCompleted = true;
-      emitDiagnosticEvent({
+      emitTrustedDiagnosticEvent({
         type: "run.completed",
         ...diagnosticRunBase,
         durationMs: Date.now() - diagnosticRunStartedAt,
@@ -673,7 +680,7 @@ export async function runEmbeddedAttempt(
       : (() => {
           const allTools = createOpenClawCodingTools({
             agentId: sessionAgentId,
-            ...buildEmbeddedAttemptToolRunContext({ ...params, trace: diagnosticTrace }),
+            ...buildEmbeddedAttemptToolRunContext({ ...params, trace: runTrace }),
             exec: {
               ...params.execOverrides,
               elevated: params.bashElevated,
@@ -1391,7 +1398,7 @@ export async function runEmbeddedAttempt(
       if (typeof activeSession.agent.convertToLlm === "function") {
         const baseConvertToLlm = activeSession.agent.convertToLlm.bind(activeSession.agent);
         activeSession.agent.convertToLlm = async (messages) =>
-          await baseConvertToLlm(normalizeAssistantReplayContent(messages));
+          await baseConvertToLlm(normalizeMessagesForLlmBoundary(messages));
       }
       let prePromptMessageCount = activeSession.messages.length;
       let unwindowedContextEngineMessagesForPrecheck: AgentMessage[] | undefined;
@@ -2044,6 +2051,7 @@ export async function runEmbeddedAttempt(
         getMessagingToolSentTexts,
         getMessagingToolSentMediaUrls,
         getMessagingToolSentTargets,
+        getPendingToolMediaReply,
         getSuccessfulCronAdds,
         getReplayState,
         didSendViaMessagingTool,
@@ -2426,12 +2434,37 @@ export async function runEmbeddedAttempt(
             });
           }
 
+          const msgCount = activeSession.messages.length;
+          const systemLen = systemPromptText?.length ?? 0;
+          const promptLen = effectivePrompt.length;
+          const sessionSummary = summarizeSessionContext(activeSession.messages);
+          const reserveTokens = settingsManager.getCompactionReserveTokens();
+          const contextTokenBudget = params.contextTokenBudget ?? DEFAULT_CONTEXT_TOKENS;
+          emitTrustedDiagnosticEvent({
+            type: "context.assembled",
+            runId: params.runId,
+            ...(params.sessionKey && { sessionKey: params.sessionKey }),
+            ...(params.sessionId && { sessionId: params.sessionId }),
+            provider: params.provider,
+            model: params.modelId,
+            ...((params.messageChannel ?? params.messageProvider)
+              ? { channel: params.messageChannel ?? params.messageProvider }
+              : {}),
+            trigger: params.trigger,
+            messageCount: msgCount,
+            historyTextChars: sessionSummary.totalTextChars,
+            historyImageBlocks: sessionSummary.totalImageBlocks,
+            maxMessageTextChars: sessionSummary.maxMessageTextChars,
+            systemPromptChars: systemLen,
+            promptChars: promptLen,
+            promptImages: imageResult.images.length,
+            contextTokenBudget,
+            reserveTokens,
+            trace: freezeDiagnosticTraceContext(createChildDiagnosticTraceContext(runTrace)),
+          });
+
           // Diagnostic: log context sizes before prompt to help debug early overflow errors.
           if (log.isEnabled("debug")) {
-            const msgCount = activeSession.messages.length;
-            const systemLen = systemPromptText?.length ?? 0;
-            const promptLen = effectivePrompt.length;
-            const sessionSummary = summarizeSessionContext(activeSession.messages);
             log.debug(
               `[context-diag] pre-prompt: sessionKey=${params.sessionKey ?? params.sessionId} ` +
                 `messages=${msgCount} roleCounts=${sessionSummary.roleCounts} ` +
@@ -2474,8 +2507,6 @@ export async function runEmbeddedAttempt(
               });
           }
 
-          const reserveTokens = settingsManager.getCompactionReserveTokens();
-          const contextTokenBudget = params.contextTokenBudget ?? DEFAULT_CONTEXT_TOKENS;
           const preemptiveCompaction = shouldPreemptivelyCompactBeforePrompt({
             messages: activeSession.messages,
             unwindowedMessages: unwindowedContextEngineMessagesForPrecheck,
@@ -2994,6 +3025,7 @@ export async function runEmbeddedAttempt(
         messagingToolSentMediaUrls: getMessagingToolSentMediaUrls(),
         successfulCronAdds: getSuccessfulCronAdds(),
       });
+      const pendingToolMediaReply = getPendingToolMediaReply();
       const replayMetadata = replayMetadataFromState(
         observeReplayMetadata(getReplayState(), observedReplayMetadata),
       );
@@ -3077,6 +3109,8 @@ export async function runEmbeddedAttempt(
         messagingToolSentTexts: getMessagingToolSentTexts(),
         messagingToolSentMediaUrls: getMessagingToolSentMediaUrls(),
         messagingToolSentTargets: getMessagingToolSentTargets(),
+        toolMediaUrls: pendingToolMediaReply?.mediaUrls,
+        toolAudioAsVoice: pendingToolMediaReply?.audioAsVoice,
         successfulCronAdds: getSuccessfulCronAdds(),
         cloudCodeAssistFormatError: Boolean(
           lastAssistant?.errorMessage && isCloudCodeAssistFormatError(lastAssistant.errorMessage),

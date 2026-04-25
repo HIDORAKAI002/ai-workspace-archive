@@ -9,6 +9,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Run docs list first: `pnpm docs:list` if available; read relevant docs only.
 - High-confidence answers only when fixing/triaging: verify source, tests, shipped/current behavior, and dependency contracts before deciding.
 - Dependency-backed behavior: read upstream dependency docs/source/types first. Do not assume APIs, defaults, errors, timing, or runtime behavior.
+- Live-verify when feasible. Check env/`~/.profile` for keys before assuming live tests are blocked; keep secret output redacted.
 - Missing deps: `pnpm install`, retry once, then report first actionable error.
 - CODEOWNERS: maint/refactor/tests ok. Larger behavior/product/security/ownership: owner ask/review.
 - Wording: product/docs/UI/changelog say "plugin/plugins"; `extensions/` is internal.
@@ -56,6 +57,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 ## GitHub / CI
 
 - Triage: list first, hydrate few. Use bounded `gh --json --jq`; avoid repeated full comment scans.
+- Automatic PR/issue discovery: skip maintainer-owned items unless directly relevant. Do not comment, close, label, retitle, rebase, fix up, or land them without Peter asking.
 - Search/dedupe: prefer `gh search issues 'repo:openclaw/openclaw is:open <terms>' --json number,title,state,updatedAt --limit 20`.
 - PR shortlist: `gh pr list ...`; then `gh pr view <n> --json number,title,body,closingIssuesReferences,files,statusCheckRollup,reviewDecision`.
 - After landing PR: search duplicate open issues/PRs. Before closing: comment why + canonical link.
@@ -121,7 +123,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 
 - Docs change with behavior/API. Use docs list/read_when hints; docs links per `docs/AGENTS.md`.
 - Changelog user-facing only; pure test/internal usually no entry.
-- Changelog placement: active version `### Changes`/`### Fixes`; every added entry must include at least one `Thanks @author` attribution, using credited GitHub username(s).
+- Changelog placement: active version `### Changes`/`### Fixes`; every added entry must include at least one `Thanks @author` attribution, using credited GitHub username(s). Never add `Thanks @steipete`.
 
 ## Git
 
