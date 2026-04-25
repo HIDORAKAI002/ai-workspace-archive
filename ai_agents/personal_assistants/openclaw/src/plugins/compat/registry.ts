@@ -210,6 +210,39 @@ export const PLUGIN_COMPAT_RECORDS = [
     diagnostics: ["channel config metadata fallback"],
     tests: ["src/plugins/contracts/config-footprint-guardrails.test.ts"],
   },
+  {
+    code: "disable-persisted-plugin-registry-env",
+    status: "deprecated",
+    owner: "config",
+    introduced: "2026-04-25",
+    deprecated: "2026-04-25",
+    warningStarts: "2026-04-25",
+    replacement: "`openclaw plugins registry --refresh` and `openclaw doctor --fix`",
+    docsPath: "/cli/plugins#registry",
+    surfaces: ["OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY", "plugin registry reads"],
+    diagnostics: ["persisted-registry-disabled"],
+    tests: ["src/plugins/plugin-registry.test.ts"],
+  },
+  {
+    code: "legacy-config-plugin-installs",
+    status: "deprecated",
+    owner: "config",
+    introduced: "2026-04-25",
+    deprecated: "2026-04-25",
+    warningStarts: "2026-04-25",
+    replacement: "state-managed `plugins/installs.json` plugin install ledger",
+    docsPath: "/cli/plugins#install-ledger",
+    surfaces: ["plugins.installs", "plugin install/update/uninstall", "plugin registry migration"],
+    diagnostics: ["plugin install ledger compatibility"],
+    tests: [
+      "src/plugins/install-ledger-store.test.ts",
+      "src/cli/plugins-install-persist.test.ts",
+      "src/cli/plugins-cli.update.test.ts",
+      "src/cli/plugins-cli.uninstall.test.ts",
+    ],
+    releaseNote:
+      "`plugins.installs` remains readable as a legacy compatibility fallback while new plugin install metadata moves to the state-managed install ledger.",
+  },
 ] as const satisfies readonly PluginCompatRecord[];
 
 export type PluginCompatCode = (typeof PLUGIN_COMPAT_RECORDS)[number]["code"];

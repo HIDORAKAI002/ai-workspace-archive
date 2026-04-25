@@ -668,7 +668,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             type: "string",
             title: "Browser Executable Path",
             description:
-              "Explicit browser executable path when auto-discovery is insufficient for your host environment. Use absolute stable paths so launch behavior stays deterministic across restarts.",
+              "Explicit browser executable path when auto-discovery is insufficient for your host environment. Use an absolute stable path, or a path starting with ~ for your OS home directory, so launch behavior stays deterministic across restarts.",
           },
           headless: {
             type: "boolean",
@@ -778,7 +778,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   type: "string",
                   title: "Browser Profile User Data Dir",
                   description:
-                    "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory on the selected host or browser node.",
+                    "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory on the selected host or browser node. Paths starting with ~ expand to the OS home directory.",
                 },
                 mcpCommand: {
                   type: "string",
@@ -822,6 +822,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 executablePath: {
                   type: "string",
+                  title: "Browser Profile Executable Path",
+                  description:
+                    "Per-profile browser executable path for locally launched managed browser profiles. Overrides browser.executablePath and accepts paths starting with ~ for the OS home directory.",
                 },
                 attachOnly: {
                   type: "boolean",
@@ -3199,6 +3202,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         description:
                           "Ordered fallback models (provider/model). Used when the primary model fails.",
                       },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
+                      },
                     },
                     additionalProperties: false,
                   },
@@ -3225,6 +3233,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         },
                         title: "Image Model Fallbacks",
                         description: "Ordered fallback image models (provider/model).",
+                      },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
                       },
                     },
                     additionalProperties: false,
@@ -3253,6 +3266,14 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         title: "Image Generation Model Fallbacks",
                         description: "Ordered fallback image-generation models (provider/model).",
                       },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
+                        title: "Image Generation Timeout (ms)",
+                        description:
+                          "Default provider request timeout in milliseconds for image_generate calls. Per-call timeoutMs overrides this.",
+                      },
                     },
                     additionalProperties: false,
                   },
@@ -3280,6 +3301,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         title: "Video Generation Model Fallbacks",
                         description: "Ordered fallback video-generation models (provider/model).",
                       },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
+                      },
                     },
                     additionalProperties: false,
                   },
@@ -3306,6 +3332,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         },
                         title: "Music Generation Model Fallbacks",
                         description: "Ordered fallback music-generation models (provider/model).",
+                      },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
                       },
                     },
                     additionalProperties: false,
@@ -3339,6 +3370,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         },
                         title: "PDF Model Fallbacks",
                         description: "Ordered fallback PDF models (provider/model).",
+                      },
+                      timeoutMs: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 9007199254740991,
                       },
                     },
                     additionalProperties: false,
@@ -5333,6 +5369,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                               type: "string",
                             },
                           },
+                          timeoutMs: {
+                            type: "integer",
+                            exclusiveMinimum: 0,
+                            maximum: 9007199254740991,
+                          },
                         },
                         additionalProperties: false,
                       },
@@ -5955,6 +5996,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                           items: {
                             type: "string",
                           },
+                        },
+                        timeoutMs: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
                         },
                       },
                       additionalProperties: false,
@@ -17983,6 +18029,38 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   description:
                     "Match rule object for deciding when a binding applies, including channel and optional account/peer constraints. Keep rules narrow to avoid accidental agent takeover across contexts.",
                 },
+                session: {
+                  type: "object",
+                  properties: {
+                    dmScope: {
+                      anyOf: [
+                        {
+                          type: "string",
+                          const: "main",
+                        },
+                        {
+                          type: "string",
+                          const: "per-peer",
+                        },
+                        {
+                          type: "string",
+                          const: "per-channel-peer",
+                        },
+                        {
+                          type: "string",
+                          const: "per-account-channel-peer",
+                        },
+                      ],
+                      title: "Binding Session DM Scope",
+                      description:
+                        'Optional DM session scope override for this route binding. For example, keep global session.dmScope="main" while using "per-account-channel-peer" for selected direct peers.',
+                    },
+                  },
+                  additionalProperties: false,
+                  title: "Binding Session",
+                  description:
+                    "Optional route session overrides for conversations matched by this binding. Use this when a narrow route should keep the same agent but isolate session continuity differently.",
+                },
               },
               required: ["agentId", "match"],
               additionalProperties: false,
@@ -21029,6 +21107,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             description:
               "Provider-specific Talk settings keyed by provider id. During migration, prefer this over legacy talk.* keys.",
           },
+          speechLocale: {
+            type: "string",
+            title: "Talk Speech Locale",
+            description:
+              'BCP 47 locale id for Talk speech recognition on device nodes, for example "ru-RU". Leave unset to use each device default.',
+          },
           interruptOnSpeech: {
             type: "boolean",
             title: "Talk Interrupt on Speech",
@@ -23082,7 +23166,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             },
             title: "Plugin Install Records",
             description:
-              "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
+              "Deprecated compatibility fallback for legacy CLI-managed install metadata. New plugin installs use the state-managed `plugins/installs.json` ledger.",
           },
         },
         additionalProperties: false,
@@ -24028,7 +24112,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.executablePath": {
       label: "Browser Executable Path",
-      help: "Explicit browser executable path when auto-discovery is insufficient for your host environment. Use absolute stable paths so launch behavior stays deterministic across restarts.",
+      help: "Explicit browser executable path when auto-discovery is insufficient for your host environment. Use an absolute stable path, or a path starting with ~ for your OS home directory, so launch behavior stays deterministic across restarts.",
       tags: ["storage"],
     },
     "browser.headless": {
@@ -24073,7 +24157,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.profiles.*.userDataDir": {
       label: "Browser Profile User Data Dir",
-      help: "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory on the selected host or browser node.",
+      help: "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory on the selected host or browser node. Paths starting with ~ expand to the OS home directory.",
       tags: ["storage"],
     },
     "browser.profiles.*.mcpCommand": {
@@ -24089,6 +24173,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "browser.profiles.*.driver": {
       label: "Browser Profile Driver",
       help: 'Per-profile browser driver mode. Use "openclaw" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for Chrome DevTools MCP attachment on the selected host or browser node.',
+      tags: ["storage"],
+    },
+    "browser.profiles.*.executablePath": {
+      label: "Browser Profile Executable Path",
+      help: "Per-profile browser executable path for locally launched managed browser profiles. Overrides browser.executablePath and accepts paths starting with ~ for the OS home directory.",
       tags: ["storage"],
     },
     "browser.profiles.*.headless": {
@@ -25086,6 +25175,16 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Binding Agent ID",
       help: "Target agent ID that receives traffic when the corresponding binding match rule is satisfied. Use valid configured agent IDs only so routing does not fail at runtime.",
       tags: ["advanced"],
+    },
+    "bindings[].session": {
+      label: "Binding Session",
+      help: "Optional route session overrides for conversations matched by this binding. Use this when a narrow route should keep the same agent but isolate session continuity differently.",
+      tags: ["storage"],
+    },
+    "bindings[].session.dmScope": {
+      label: "Binding Session DM Scope",
+      help: 'Optional DM session scope override for this route binding. For example, keep global session.dmScope="main" while using "per-account-channel-peer" for selected direct peers.',
+      tags: ["storage"],
     },
     "bindings[].match": {
       label: "Binding Match Rule",
@@ -26088,6 +26187,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Image Generation Model Fallbacks",
       help: "Ordered fallback image-generation models (provider/model).",
       tags: ["reliability", "media"],
+    },
+    "agents.defaults.imageGenerationModel.timeoutMs": {
+      label: "Image Generation Timeout (ms)",
+      help: "Default provider request timeout in milliseconds for image_generate calls. Per-call timeoutMs overrides this.",
+      tags: ["performance", "media"],
     },
     "agents.defaults.videoGenerationModel.primary": {
       label: "Video Generation Model",
@@ -27217,6 +27321,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: "Enables automatic live-reload behavior for canvas assets during development workflows. Keep disabled in production-like environments where deterministic output is preferred.",
       tags: ["reliability"],
     },
+    "talk.speechLocale": {
+      label: "Talk Speech Locale",
+      help: 'BCP 47 locale id for Talk speech recognition on device nodes, for example "ru-RU". Leave unset to use each device default.',
+      tags: ["media"],
+    },
     "talk.interruptOnSpeech": {
       label: "Talk Interrupt on Speech",
       help: "If true (default), stop assistant speech when the user starts speaking in Talk mode. Keep enabled for conversational turn-taking.",
@@ -27562,7 +27671,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "plugins.installs": {
       label: "Plugin Install Records",
-      help: "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
+      help: "Deprecated compatibility fallback for legacy CLI-managed install metadata. New plugin installs use the state-managed `plugins/installs.json` ledger.",
       tags: ["advanced"],
     },
     "plugins.installs.*.source": {

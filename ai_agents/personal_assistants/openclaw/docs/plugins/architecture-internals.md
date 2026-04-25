@@ -771,9 +771,11 @@ Security guardrail: every `openclaw.extensions` entry must stay inside the plugi
 directory after symlink resolution. Entries that escape the package directory are
 rejected.
 
-Security note: `openclaw plugins install` installs plugin dependencies with
-`npm install --omit=dev --ignore-scripts` (no lifecycle scripts, no dev dependencies at runtime). Keep plugin dependency
-trees "pure JS/TS" and avoid packages that require `postinstall` builds.
+Security note: `openclaw plugins install` installs plugin dependencies with a
+project-local `npm install --omit=dev --ignore-scripts` (no lifecycle scripts,
+no dev dependencies at runtime), ignoring inherited global npm install settings.
+Keep plugin dependency trees "pure JS/TS" and avoid packages that require
+`postinstall` builds.
 
 Optional: `openclaw.setupEntry` can point at a lightweight setup-only module.
 When OpenClaw needs setup surfaces for a disabled channel plugin, or
@@ -911,13 +913,18 @@ Official external npm entries should prefer an exact `npmSpec` plus
 `expectedIntegrity`. Bare package names and dist-tags still work for
 compatibility, but they surface source-plane warnings so the catalog can move
 toward pinned, integrity-checked installs without breaking existing plugins.
-When onboarding installs from a local catalog path, it records a
-`plugins.installs` entry with `source: "path"` and a workspace-relative
+When onboarding installs from a local catalog path, it records a managed plugin
+install ledger entry with `source: "path"` and a workspace-relative
 `sourcePath` when possible. The absolute operational load path stays in
 `plugins.load.paths`; the install record avoids duplicating local workstation
 paths into long-lived config. This keeps local development installs visible to
 source-plane diagnostics without adding a second raw filesystem-path disclosure
-surface.
+surface. Legacy `plugins.installs` config entries are still read as a
+compatibility fallback while the state-managed `plugins/installs.json` ledger
+becomes the install source of truth.
+`openclaw doctor --fix` migrates those legacy config entries into the managed
+ledger and refreshes the cold registry index without loading plugin runtime
+modules.
 
 ## Context engine plugins
 
