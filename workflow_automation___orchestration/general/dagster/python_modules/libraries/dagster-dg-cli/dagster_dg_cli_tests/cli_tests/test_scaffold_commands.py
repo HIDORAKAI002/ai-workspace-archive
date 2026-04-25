@@ -21,6 +21,8 @@ from dagster_test.dg_utils.utils import (
     standardize_box_characters,
 )
 
+pytestmark = pytest.mark.slow
+
 # ########################
 # ##### DEFS
 # ########################

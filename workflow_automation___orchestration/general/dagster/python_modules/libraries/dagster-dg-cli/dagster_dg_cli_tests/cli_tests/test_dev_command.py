@@ -21,6 +21,8 @@ from dagster_test.dg_utils.utils import (
     launch_dev_command,
 )
 
+pytestmark = pytest.mark.slow
+
 
 @pytest.mark.skipif(is_windows(), reason="Temporarily skipping (signal issues in CLI)..")
 def test_dev_workspace_context_success(monkeypatch):

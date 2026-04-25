@@ -845,15 +845,16 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-dg-cli"),
             pytest_tox_factors=[
                 ToxFactor("general"),
+                ToxFactor("slow"),
                 ToxFactor("plus"),
             ],
             env_vars=["SHELL"],
             force_run_fn=BuildkiteContext.has_dg_or_component_integration_or_rest_resource_changes,
-            # general tests depend on dagster-dbt which does not support Python 3.14
+            # general/slow tests depend on dagster-dbt which does not support Python 3.14
             unsupported_python_versions=(
                 lambda tox_factor: (
                     [AvailablePythonVersion.V3_14]
-                    if (tox_factor and tox_factor.factor == "general")
+                    if (tox_factor and tox_factor.factor in ("general", "slow"))
                     else []
                 )
             ),

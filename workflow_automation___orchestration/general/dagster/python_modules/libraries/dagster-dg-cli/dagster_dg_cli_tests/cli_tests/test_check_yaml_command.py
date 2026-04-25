@@ -194,6 +194,7 @@ def test_actionable_error_message_no_defs_check_yaml():
         )
 
 
+@pytest.mark.slow
 def test_check_yaml_with_watch() -> None:
     """Tests that the check CLI prints rich error messages when attempting to
     load components with errors.
