@@ -643,7 +643,7 @@ describe("openai image generation provider", () => {
         url: "https://chatgpt.com/backend-api/codex/responses",
         timeoutMs: 180_000,
         body: expect.objectContaining({
-          model: "gpt-5.4",
+          model: "gpt-5.5",
           instructions: "You are an image generation assistant.",
           stream: true,
           store: false,
@@ -664,7 +664,7 @@ describe("openai image generation provider", () => {
     );
     expect(postMultipartRequestMock).not.toHaveBeenCalled();
     expect(logInfoMock).toHaveBeenCalledWith(
-      "image auth selected: provider=openai-codex mode=oauth transport=codex-responses requestedModel=gpt-image-2 responsesModel=gpt-5.4 timeoutMs=180000",
+      "image auth selected: provider=openai-codex mode=oauth transport=codex-responses requestedModel=gpt-image-2 responsesModel=gpt-5.5 timeoutMs=180000",
     );
     expect(result.images).toEqual([
       {
@@ -724,7 +724,7 @@ describe("openai image generation provider", () => {
       }),
     );
     expect(logInfoMock).toHaveBeenCalledWith(
-      "image auth selected: provider=openai-codex mode=oauth transport=codex-responses requestedModel=gpt-image-2 responsesModel=gpt-5.4 timeoutMs=180000",
+      "image auth selected: provider=openai-codex mode=oauth transport=codex-responses requestedModel=gpt-image-2 responsesModel=gpt-5.5 timeoutMs=180000",
     );
     expect(result.images[0]?.buffer).toEqual(Buffer.from("codex-image"));
   });
@@ -841,7 +841,7 @@ describe("openai image generation provider", () => {
     });
 
     expect(logInfoMock).toHaveBeenCalledWith(
-      "image auth selected: provider=openai-codex mode=oauth fakeignored transport=codex-responses requestedModel=gpt-image-2 forged=true next responsesModel=gpt-5.4 timeoutMs=180000",
+      "image auth selected: provider=openai-codex mode=oauth fakeignored transport=codex-responses requestedModel=gpt-image-2 forged=true next responsesModel=gpt-5.5 timeoutMs=180000",
     );
   });
 
@@ -919,6 +919,49 @@ describe("openai image generation provider", () => {
       }),
     );
     expect(result.images[0]?.buffer).toEqual(Buffer.from("codex-image"));
+  });
+
+  it.each([
+    "https://chatgpt.com/backend-api",
+    "https://chatgpt.com/backend-api/",
+    "https://chatgpt.com/backend-api/v1",
+    "https://chatgpt.com/backend-api/codex/v1",
+  ])("canonicalizes configured Codex OAuth image baseUrl %s", async (configuredBaseUrl) => {
+    mockCodexAuthOnly();
+    mockCodexImageStream({ imageData: "codex-image" });
+
+    const provider = buildOpenAIImageGenerationProvider();
+    await provider.generateImage({
+      provider: "openai",
+      model: "gpt-image-2",
+      prompt: "Draw through a legacy configured Codex endpoint",
+      cfg: {
+        models: {
+          providers: {
+            "openai-codex": {
+              baseUrl: configuredBaseUrl,
+              api: "openai-codex-responses",
+              models: [],
+            },
+          },
+        },
+      },
+      authStore: createCodexOAuthAuthStore(),
+    });
+
+    expect(resolveProviderHttpRequestConfigMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseUrl: "https://chatgpt.com/backend-api/codex",
+        provider: "openai-codex",
+        api: "openai-codex-responses",
+        capability: "image",
+      }),
+    );
+    expect(postJsonRequestMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://chatgpt.com/backend-api/codex/responses",
+      }),
+    );
   });
 
   it("uses direct OpenAI auth when custom OpenAI image config is explicit", async () => {

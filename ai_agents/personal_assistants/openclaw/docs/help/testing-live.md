@@ -13,6 +13,35 @@ For quick start, QA runners, unit/integration suites, and Docker flows, see
 suites: model matrix, CLI backends, ACP, and media-provider live tests, plus
 credential handling.
 
+## Live: local profile smoke commands
+
+Source `~/.profile` before ad hoc live checks so provider keys and local tool
+paths match your shell:
+
+```bash
+source ~/.profile
+```
+
+Safe media smoke:
+
+```bash
+pnpm openclaw infer tts convert --local --json \
+  --text "OpenClaw live smoke." \
+  --output /tmp/openclaw-live-smoke.mp3
+```
+
+Safe voice-call readiness smoke:
+
+```bash
+pnpm openclaw voicecall setup --json
+pnpm openclaw voicecall smoke --to "+15555550123"
+```
+
+`voicecall smoke` is a dry run unless `--yes` is also present. Use `--yes` only
+when you intentionally want to place a real notify call. For Twilio, Telnyx, and
+Plivo, a successful readiness check requires a public webhook URL; local-only
+loopback/private fallbacks are rejected by design.
+
 ## Live: Android node capability sweep
 
 - Test: `src/gateway/android-node.capabilities.live.test.ts`
@@ -463,7 +492,7 @@ image-generation runtime, and the live provider request.
     - `comfy`: separate Comfy live file, not this shared sweep
 - Optional narrowing:
   - `OPENCLAW_LIVE_MUSIC_GENERATION_PROVIDERS="google,minimax"`
-  - `OPENCLAW_LIVE_MUSIC_GENERATION_MODELS="google/lyria-3-clip-preview,minimax/music-2.5+"`
+  - `OPENCLAW_LIVE_MUSIC_GENERATION_MODELS="google/lyria-3-clip-preview,minimax/music-2.6"`
 - Optional auth behavior:
   - `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to force profile-store auth and ignore env-only overrides
 

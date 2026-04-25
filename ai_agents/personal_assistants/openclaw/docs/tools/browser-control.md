@@ -165,6 +165,7 @@ openclaw browser responsebody "**/api" --max-chars 5000
 openclaw browser navigate https://example.com
 openclaw browser resize 1280 720
 openclaw browser click 12 --double           # or e12 for role refs
+openclaw browser click-coords 120 340        # viewport coordinates
 openclaw browser type 23 "hello" --submit
 openclaw browser press Enter
 openclaw browser hover 44
@@ -212,14 +213,14 @@ openclaw browser set device "iPhone 14"
 Notes:
 
 - `upload` and `dialog` are **arming** calls; run them before the click/press that triggers the chooser/dialog.
-- `click`/`type`/etc require a `ref` from `snapshot` (numeric `12` or role ref `e12`). CSS selectors are intentionally not supported for actions.
+- `click`/`type`/etc require a `ref` from `snapshot` (numeric `12`, role ref `e12`, or actionable ARIA ref `ax12`). CSS selectors are intentionally not supported for actions. Use `click-coords` when the visible viewport position is the only reliable target.
 - Download, trace, and upload paths are constrained to OpenClaw temp roots: `/tmp/openclaw{,/downloads,/uploads}` (fallback: `${os.tmpdir()}/openclaw/...`).
 - `upload` can also set file inputs directly via `--input-ref` or `--element`.
 
 Snapshot flags at a glance:
 
 - `--format ai` (default with Playwright): AI snapshot with numeric refs (`aria-ref="<n>"`).
-- `--format aria`: accessibility tree, no refs; inspection only.
+- `--format aria`: accessibility tree with `axN` refs. When Playwright is available, OpenClaw binds refs with backend DOM ids to the live page so follow-up actions can use them; otherwise treat the output as inspection-only.
 - `--efficient` (or `--mode efficient`): compact role snapshot preset. Set `browser.snapshotDefaults.mode: "efficient"` to make this the default (see [Gateway configuration](/gateway/configuration-reference#browser)).
 - `--interactive`, `--compact`, `--depth`, `--selector` force a role snapshot with `ref=e12` refs. `--frame "<iframe>"` scopes role snapshots to an iframe.
 - `--labels` adds a viewport-only screenshot with overlayed ref labels (prints `MEDIA:<path>`).
@@ -242,10 +243,21 @@ OpenClaw supports two “snapshot” styles:
   - Add `--urls` when link text is ambiguous and the agent needs concrete
     navigation targets.
 
+- **ARIA snapshot (ARIA refs like `ax12`)**: `openclaw browser snapshot --format aria`
+  - Output: the accessibility tree as structured nodes.
+  - Actions: `openclaw browser click ax12` works when the snapshot path can bind
+    the ref through Playwright and Chrome backend DOM ids.
+  - If Playwright is unavailable, ARIA snapshots can still be useful for
+    inspection, but refs may not be actionable. Re-snapshot with `--format ai`
+    or `--interactive` when you need action refs.
+
 Ref behavior:
 
 - Refs are **not stable across navigations**; if something fails, re-run `snapshot` and use a fresh ref.
 - If the role snapshot was taken with `--frame`, role refs are scoped to that iframe until the next role snapshot.
+- Unknown or stale `axN` refs fail fast instead of falling through to
+  Playwright's `aria-ref` selector. Run a fresh snapshot on the same tab when
+  that happens.
 
 ## Wait power-ups
 

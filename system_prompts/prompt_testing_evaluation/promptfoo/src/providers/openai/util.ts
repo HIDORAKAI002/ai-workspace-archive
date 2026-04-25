@@ -8,7 +8,7 @@ import type { ProviderConfig } from '../shared';
 
 const ajv = getAjv();
 
-const GPT_5_4_LONG_CONTEXT_THRESHOLD = 272_000;
+const GPT_5_LONG_CONTEXT_THRESHOLD = 272_000;
 
 type OpenAIModelCost = {
   input: number;
@@ -357,6 +357,19 @@ export const OPENAI_CHAT_MODELS: OpenAIModelInfo[] = [
       output: 4 / 1e6,
     },
   })),
+  // GPT-5.5 models
+  ...['gpt-5.5', 'gpt-5.5-2026-04-23'].map((model) => ({
+    id: model,
+    cost: {
+      input: 5 / 1e6,
+      output: 30 / 1e6,
+      longContext: {
+        threshold: GPT_5_LONG_CONTEXT_THRESHOLD,
+        input: 10 / 1e6,
+        output: 45 / 1e6,
+      },
+    },
+  })),
   // GPT-5.4 models
   ...['gpt-5.4', 'gpt-5.4-2026-03-05'].map((model) => ({
     id: model,
@@ -364,7 +377,7 @@ export const OPENAI_CHAT_MODELS: OpenAIModelInfo[] = [
       input: 2.5 / 1e6,
       output: 15 / 1e6,
       longContext: {
-        threshold: GPT_5_4_LONG_CONTEXT_THRESHOLD,
+        threshold: GPT_5_LONG_CONTEXT_THRESHOLD,
         input: 5 / 1e6,
         output: 22.5 / 1e6,
       },
@@ -382,14 +395,6 @@ export const OPENAI_CHAT_MODELS: OpenAIModelInfo[] = [
     cost: {
       input: 0.2 / 1e6,
       output: 1.25 / 1e6,
-    },
-  })),
-  // GPT-5.5 models
-  ...['gpt-5.5', 'gpt-5.5-2026-04-23'].map((model) => ({
-    id: model,
-    cost: {
-      input: 5 / 1e6,
-      output: 30 / 1e6,
     },
   })),
   // gpt-audio models
@@ -429,7 +434,7 @@ export const OPENAI_RESPONSES_ONLY_MODELS: OpenAIModelInfo[] = [
       input: 30 / 1e6,
       output: 180 / 1e6,
       longContext: {
-        threshold: GPT_5_4_LONG_CONTEXT_THRESHOLD,
+        threshold: GPT_5_LONG_CONTEXT_THRESHOLD,
         input: 60 / 1e6,
         output: 270 / 1e6,
       },

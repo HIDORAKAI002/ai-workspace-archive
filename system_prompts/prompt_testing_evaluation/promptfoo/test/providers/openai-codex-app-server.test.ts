@@ -348,7 +348,7 @@ describe('OpenAICodexAppServerProvider', () => {
       total: 15,
       cached: 2,
     });
-    expect(result.cost).toBeCloseTo(0.0002);
+    expect(result.cost).toBeCloseTo(0.000191);
     expect(result.metadata?.codexAppServer).toMatchObject({
       threadId: 'thr_test',
       turnId: 'turn_test',

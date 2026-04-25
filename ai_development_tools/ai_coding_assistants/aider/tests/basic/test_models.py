@@ -135,13 +135,13 @@ class TestModels(unittest.TestCase):
         self.assertEqual(model.name, "gpt-3.5-turbo")
 
         model = Model("sonnet")
-        self.assertEqual(model.name, "claude-sonnet-4-5")
+        self.assertEqual(model.name, "claude-sonnet-4-6")
 
         model = Model("haiku")
         self.assertEqual(model.name, "claude-haiku-4-5")
 
         model = Model("opus")
-        self.assertEqual(model.name, "claude-opus-4-6")
+        self.assertEqual(model.name, "claude-opus-4-7")
 
         # Test non-alias passes through unchanged
         model = Model("gpt-4")
@@ -554,6 +554,46 @@ class TestModels(unittest.TestCase):
             temperature=0.7,
             timeout=600,
         )
+
+    def test_gpt_5_5_model_settings(self):
+        base_models = [
+            "gpt-5.5",
+            "gpt-5.5-chat-latest",
+            "openai/gpt-5.5",
+            "openai/gpt-5.5-chat-latest",
+            "azure/gpt-5.5",
+            "azure/gpt-5.5-chat-latest",
+            "openrouter/openai/gpt-5.5",
+            "openrouter/openai/gpt-5.5-chat-latest",
+        ]
+
+        for name in base_models:
+            with self.subTest(name=name):
+                model = Model(name)
+                self.assertEqual(model.edit_format, "diff")
+                self.assertTrue(model.use_repo_map)
+                self.assertFalse(model.use_temperature)
+                self.assertIn("reasoning_effort", model.accepts_settings)
+
+        self.assertTrue(Model("gpt-5.5").overeager)
+
+        pro_models = {
+            "gpt-5.5-pro": "gpt-5.5",
+            "openai/gpt-5.5-pro": "openai/gpt-5.5",
+            "azure/gpt-5.5-pro": "azure/gpt-5.5",
+            "openrouter/openai/gpt-5.5-pro": "openrouter/openai/gpt-5.5",
+        }
+
+        for name, editor_name in pro_models.items():
+            with self.subTest(name=name):
+                model = Model(name)
+                self.assertFalse(model.streaming)
+                self.assertEqual(model.edit_format, "diff")
+                self.assertTrue(model.use_repo_map)
+                self.assertFalse(model.use_temperature)
+                self.assertEqual(model.editor_model_name, editor_name)
+                self.assertEqual(model.editor_model.name, editor_name)
+                self.assertIn("reasoning_effort", model.accepts_settings)
 
 
 if __name__ == "__main__":

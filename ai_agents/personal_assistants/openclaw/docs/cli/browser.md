@@ -164,6 +164,7 @@ Navigate/click/type (ref-based UI automation):
 ```bash
 openclaw browser navigate https://example.com
 openclaw browser click <ref>
+openclaw browser click-coords 120 340
 openclaw browser type <ref> "hello"
 openclaw browser press Enter
 openclaw browser hover <ref>
@@ -183,6 +184,11 @@ openclaw browser waitfordownload
 openclaw browser download <ref> report.pdf
 openclaw browser dialog --accept
 ```
+
+Managed Chrome profiles save ordinary click-triggered downloads into the OpenClaw
+downloads directory (`/tmp/openclaw/downloads` by default, or the configured temp
+root). Use `waitfordownload` or `download` when the agent needs to wait for a
+specific file and return its path; those explicit waiters own the next download.
 
 ## State and storage
 
@@ -241,6 +247,8 @@ This path is host-only. For Docker, headless servers, Browserless, or other remo
 Current existing-session limits:
 
 - snapshot-driven actions use refs, not CSS selectors
+- `browser.actionTimeoutMs` defaults supported `act` requests to 60000 ms when
+  callers omit `timeoutMs`; per-call `timeoutMs` still wins.
 - `click` is left-click only
 - `type` does not support `slowly=true`
 - `press` does not support `delayMs`
