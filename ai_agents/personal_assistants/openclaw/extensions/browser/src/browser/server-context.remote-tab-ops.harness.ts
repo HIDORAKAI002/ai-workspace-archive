@@ -31,6 +31,12 @@ export function makeState(
       noSandbox: false,
       attachOnly: false,
       ssrfPolicy: { allowPrivateNetwork: true },
+      tabCleanup: {
+        enabled: true,
+        idleMinutes: 120,
+        maxTabsPerSession: 8,
+        sweepMinutes: 5,
+      },
       defaultProfile: profile,
       profiles: {
         remote: {
@@ -77,6 +83,7 @@ function resolveProfileForTest(
     cdpIsLoopback,
     color: rawProfile.color ?? state.resolved.color,
     driver: rawProfile.driver === "existing-session" ? "existing-session" : "openclaw",
+    headless: rawProfile.headless ?? state.resolved.headless,
     attachOnly: rawProfile.attachOnly ?? state.resolved.attachOnly,
     userDataDir: rawProfile.userDataDir,
   };
