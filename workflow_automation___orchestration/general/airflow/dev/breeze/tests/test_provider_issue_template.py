@@ -16,19 +16,30 @@
 # under the License.
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
 
-def get_base_airflow_version_tuple() -> tuple[int, int, int]:
-    from packaging.version import Version
+import pytest
+from jinja2 import Template
 
-    from airflow import __version__
-
-    airflow_version = Version(__version__)
-    return airflow_version.major, airflow_version.minor, airflow_version.micro
+TEMPLATE_PATH = Path(__file__).parents[1] / "src" / "airflow_breeze" / "provider_issue_TEMPLATE.md.jinja2"
 
 
-AIRFLOW_V_3_0_PLUS = get_base_airflow_version_tuple() >= (3, 0, 0)
-AIRFLOW_V_3_1_9_PLUS = get_base_airflow_version_tuple() >= (3, 1, 9)
-AIRFLOW_V_3_2_PLUS = get_base_airflow_version_tuple() >= (3, 2, 0)
-AIRFLOW_V_3_3_PLUS = get_base_airflow_version_tuple() >= (3, 3, 0)
+@pytest.mark.parametrize(("is_new", "has_marker"), [(True, True), (False, False)])
+def test_provider_issue_template_marks_new_provider(is_new: bool, has_marker: bool):
+    provider_info = SimpleNamespace(
+        version="0.1.0",
+        suffix="",
+        pypi_package_name="apache-airflow-providers-vespa",
+        pr_list=[],
+        is_new=is_new,
+    )
+    template = Template(TEMPLATE_PATH.read_text())
 
-__all__ = ["AIRFLOW_V_3_0_PLUS", "AIRFLOW_V_3_1_9_PLUS", "AIRFLOW_V_3_2_PLUS", "AIRFLOW_V_3_3_PLUS"]
+    rendered = template.render(
+        providers={"vespa": provider_info},
+        linked_issues={},
+        date="2026-04-24",
+    )
+
+    assert (":tada: New provider" in rendered) is has_marker
