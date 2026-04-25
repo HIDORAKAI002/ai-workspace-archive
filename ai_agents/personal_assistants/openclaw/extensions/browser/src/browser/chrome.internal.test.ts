@@ -166,16 +166,27 @@ describe("chrome.ts internal", () => {
       cdpPort: 19222,
       cdpUrl: "http://127.0.0.1:19222",
       cdpIsLoopback: true,
+      headless: false,
     } as unknown as ResolvedBrowserProfile;
 
     it("toggles headless args", () => {
       const args = buildOpenClawChromeLaunchArgs({
-        resolved: baseResolved({ headless: true }),
-        profile: baseProfile,
+        resolved: baseResolved({ headless: false }),
+        profile: { ...baseProfile, headless: true },
         userDataDir: "/tmp/foo",
       });
       expect(args).toContain("--headless=new");
       expect(args).toContain("--disable-gpu");
+    });
+
+    it("lets profile headless=false override global headless=true", () => {
+      const args = buildOpenClawChromeLaunchArgs({
+        resolved: baseResolved({ headless: true }),
+        profile: { ...baseProfile, headless: false },
+        userDataDir: "/tmp/foo",
+      });
+      expect(args).not.toContain("--headless=new");
+      expect(args).not.toContain("--disable-gpu");
     });
 
     it("toggles no-sandbox args", () => {
@@ -213,6 +224,16 @@ describe("chrome.ts internal", () => {
       });
       expect(args).toContain("--proxy-server=http://localhost:3128");
       expect(args).toContain("--mute-audio");
+      expect(args).not.toContain("--no-proxy-server");
+    });
+
+    it("launches managed Chrome direct by default", () => {
+      const args = buildOpenClawChromeLaunchArgs({
+        resolved: baseResolved(),
+        profile: baseProfile,
+        userDataDir: "/tmp/foo",
+      });
+      expect(args).toContain("--no-proxy-server");
     });
   });
 
@@ -343,6 +364,9 @@ describe("chrome.ts internal", () => {
         spawnCalls += 1;
         return makeFakeProc();
       });
+      vi.stubEnv("HTTP_PROXY", "http://proxy.test:8080");
+      vi.stubEnv("HTTPS_PROXY", "http://proxy.test:8443");
+      vi.stubEnv("NO_PROXY", "localhost");
 
       // Set up a real HTTP server impersonating Chrome's /json/version.
       await withMockChromeCdpServer({
@@ -353,6 +377,10 @@ describe("chrome.ts internal", () => {
           const running = await launchOpenClawChrome(makeResolved(), profile);
           expect(running.pid).toBe(4242);
           expect(spawnCalls).toBeGreaterThanOrEqual(1);
+          const spawnOptions = spawnMock.mock.calls[0]?.[2] as { env?: NodeJS.ProcessEnv };
+          expect(spawnOptions.env?.HTTP_PROXY).toBeUndefined();
+          expect(spawnOptions.env?.HTTPS_PROXY).toBeUndefined();
+          expect(spawnOptions.env?.NO_PROXY).toBeUndefined();
           // Cleanup.
           running.proc.kill?.("SIGTERM");
         },

@@ -126,6 +126,7 @@ Set config under `plugins.entries.voice-call.config`:
           realtime: {
             enabled: false,
             provider: "google", // optional; first registered realtime voice provider when unset
+            toolPolicy: "safe-read-only",
             providers: {
               google: {
                 model: "gemini-2.5-flash-native-audio-preview-12-2025",
@@ -138,6 +139,31 @@ Set config under `plugins.entries.voice-call.config`:
     },
   },
 }
+```
+
+Check setup before testing with a real provider:
+
+```bash
+openclaw voicecall setup
+```
+
+The default output is readable in chat logs and terminal sessions. It checks
+whether the plugin is enabled, the provider and credentials are present, webhook
+exposure is configured, and only one audio mode is active. Use
+`openclaw voicecall setup --json` for scripts.
+
+For a no-surprises smoke test, run:
+
+```bash
+openclaw voicecall smoke
+openclaw voicecall smoke --to "+15555550123"
+```
+
+The second command is still a dry run. Add `--yes` to place a short outbound
+notify call:
+
+```bash
+openclaw voicecall smoke --to "+15555550123" --yes
 ```
 
 Notes:
@@ -174,6 +200,20 @@ Current runtime behavior:
 - Bundled realtime voice providers include Google Gemini Live (`google`) and
   OpenAI (`openai`), registered by their provider plugins.
 - Provider-owned raw config lives under `realtime.providers.<providerId>`.
+- Voice Call exposes the shared `openclaw_agent_consult` realtime tool by
+  default. The realtime model can call it when the caller asks for deeper
+  reasoning, current information, or normal OpenClaw tools.
+- `realtime.toolPolicy` controls the consult run:
+  - `safe-read-only`: expose the consult tool and limit the regular agent to
+    `read`, `web_search`, `web_fetch`, `x_search`, `memory_search`, and
+    `memory_get`.
+  - `owner`: expose the consult tool and let the regular agent use the normal
+    agent tool policy.
+  - `none`: do not expose the consult tool. Custom `realtime.tools` are still
+    passed through to the realtime provider.
+- Consult session keys reuse the existing voice session when available, then
+  fall back to the caller/callee phone number so follow-up consult calls keep
+  context during the call.
 - If `realtime.provider` points at an unregistered provider, or no realtime
   voice provider is registered at all, Voice Call logs a warning and skips
   realtime media instead of failing the whole plugin.
@@ -199,7 +239,8 @@ Example:
           realtime: {
             enabled: true,
             provider: "google",
-            instructions: "Speak briefly and ask before using tools.",
+            instructions: "Speak briefly. Call openclaw_agent_consult before using deeper tools.",
+            toolPolicy: "safe-read-only",
             providers: {
               google: {
                 apiKey: "${GEMINI_API_KEY}",
@@ -548,6 +589,7 @@ For outbound `conversation` calls, first-message handling is tied to live playba
 - Barge-in queue clear and auto-response are suppressed only while the initial greeting is actively speaking.
 - If initial playback fails, the call returns to `listening` and the initial message remains queued for retry.
 - Initial playback for Twilio streaming starts on stream connect without extra delay.
+- Realtime voice conversations use the realtime stream's own opening turn. Voice Call does not post a legacy `<Say>` TwiML update for that initial message, so outbound `<Connect><Stream>` sessions stay attached.
 
 ### Twilio stream disconnect grace
 

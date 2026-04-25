@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-25 09:24 IST] Auto-Sync
+- **22 Repositories Updated:** Promptfoo, NVIDIA NeMo Guardrails, Flowise, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, browser-use/browser-use, BerriAI/litellm, vllm-project/vllm, arize-ai/phoenix, anthropics/anthropic-sdk-typescript, google-gemini/gemini-cli, apache/airflow, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, bytedance/deer-flow
+
 ## [2026-04-25 03:02 IST] Auto-Sync
 - **36 Repositories Updated:** Keboola MCP, Tavily MCP, Promptfoo, n8n, Flowise, Trigger.dev, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra
 

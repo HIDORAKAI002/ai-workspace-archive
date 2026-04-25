@@ -156,6 +156,7 @@ Slack:
 - `partial` can use Slack native streaming (`chat.startStream`/`append`/`stop`) when available.
 - `block` uses append-style draft previews.
 - `progress` uses status preview text, then final answer.
+- Native and draft preview streaming suppress block replies for that turn, so a Slack reply is streamed by one delivery path only.
 - Final media/error payloads and progress finals do not create throwaway draft messages; only text/block finals that can edit the preview flush pending draft text.
 
 Mattermost:
@@ -175,7 +176,8 @@ Preview streaming can also include **tool-progress** updates — short status li
 
 Supported surfaces:
 
-- **Discord**, **Slack**, and **Telegram** stream tool-progress into the live preview edit.
+- **Discord** and **Slack** stream tool-progress into the live preview edit by default.
+- **Telegram** only streams tool-progress into the live preview edit when `streaming.preview.toolProgress` is explicitly enabled.
 - **Mattermost** already folds tool activity into its single draft preview post (see above).
 - Tool-progress edits follow the active preview streaming mode; they are skipped when preview streaming is `off` or when block streaming has taken over the message.
 

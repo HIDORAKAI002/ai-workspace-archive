@@ -48,12 +48,23 @@ type SetupOptions = {
   json?: boolean;
 };
 
+type JsonOptions = {
+  json?: boolean;
+};
+
 type CreateOptions = {
   accessToken?: string;
   refreshToken?: string;
   clientId?: string;
   clientSecret?: string;
   expiresAt?: string;
+  join?: boolean;
+  transport?: GoogleMeetTransport;
+  mode?: GoogleMeetMode;
+  message?: string;
+  dialInNumber?: string;
+  pin?: string;
+  dtmfSequence?: string;
   json?: boolean;
 };
 
@@ -88,10 +99,105 @@ function parseOptionalNumber(value: string | undefined): number | undefined {
   return parsed;
 }
 
-function writeSetupStatus(status: ReturnType<GoogleMeetRuntime["setupStatus"]>): void {
+function writeSetupStatus(status: Awaited<ReturnType<GoogleMeetRuntime["setupStatus"]>>): void {
   writeStdoutLine("Google Meet setup: %s", status.ok ? "OK" : "needs attention");
   for (const check of status.checks) {
     writeStdoutLine("[%s] %s: %s", check.ok ? "ok" : "fail", check.id, check.message);
+  }
+}
+
+function formatBoolean(value: boolean | undefined): string {
+  return typeof value === "boolean" ? (value ? "yes" : "no") : "unknown";
+}
+
+function formatOptional(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value : "n/a";
+}
+
+function writeDoctorStatus(status: ReturnType<GoogleMeetRuntime["status"]>): void {
+  if (!status.found) {
+    writeStdoutLine("Google Meet session: not found");
+    return;
+  }
+  const sessions = status.session ? [status.session] : (status.sessions ?? []);
+  if (sessions.length === 0) {
+    writeStdoutLine("Google Meet sessions: none");
+    return;
+  }
+  writeStdoutLine("Google Meet sessions: %d", sessions.length);
+  for (const session of sessions) {
+    const health = session.chrome?.health;
+    writeStdoutLine("");
+    writeStdoutLine("session: %s", session.id);
+    writeStdoutLine("url: %s", session.url);
+    writeStdoutLine("state: %s", session.state);
+    writeStdoutLine("transport: %s", session.transport);
+    writeStdoutLine("mode: %s", session.mode);
+    writeStdoutLine("node: %s", session.chrome?.nodeId ?? "local/none");
+    writeStdoutLine("audio bridge: %s", session.chrome?.audioBridge?.type ?? "none");
+    writeStdoutLine(
+      "provider: %s",
+      session.chrome?.audioBridge?.provider ?? session.realtime.provider ?? "n/a",
+    );
+    writeStdoutLine("in call: %s", formatBoolean(health?.inCall));
+    writeStdoutLine("manual action: %s", formatBoolean(health?.manualActionRequired));
+    if (health?.manualActionRequired) {
+      writeStdoutLine("manual reason: %s", formatOptional(health.manualActionReason));
+      writeStdoutLine("manual message: %s", formatOptional(health.manualActionMessage));
+    }
+    writeStdoutLine("provider connected: %s", formatBoolean(health?.providerConnected));
+    writeStdoutLine("realtime ready: %s", formatBoolean(health?.realtimeReady));
+    writeStdoutLine("audio input active: %s", formatBoolean(health?.audioInputActive));
+    writeStdoutLine("audio output active: %s", formatBoolean(health?.audioOutputActive));
+    writeStdoutLine(
+      "last input: %s (%s bytes)",
+      formatOptional(health?.lastInputAt),
+      health?.lastInputBytes ?? 0,
+    );
+    writeStdoutLine(
+      "last output: %s (%s bytes)",
+      formatOptional(health?.lastOutputAt),
+      health?.lastOutputBytes ?? 0,
+    );
+    writeStdoutLine("bridge closed: %s", formatBoolean(health?.bridgeClosed));
+    writeStdoutLine("browser url: %s", formatOptional(health?.browserUrl));
+  }
+}
+
+function writeRecoverCurrentTabResult(
+  result: Awaited<ReturnType<GoogleMeetRuntime["recoverCurrentTab"]>>,
+): void {
+  writeStdoutLine("Google Meet current tab: %s", result.found ? "found" : "not found");
+  writeStdoutLine("node: %s", result.nodeId);
+  if (result.targetId) {
+    writeStdoutLine("target: %s", result.targetId);
+  }
+  if (result.tab?.url) {
+    writeStdoutLine("tab url: %s", result.tab.url);
+  }
+  writeStdoutLine("message: %s", result.message);
+  if (result.browser) {
+    writeDoctorStatus({
+      found: true,
+      session: {
+        id: "current-tab",
+        url: result.browser.browserUrl ?? result.tab?.url ?? "unknown",
+        transport: "chrome-node",
+        mode: "transcribe",
+        state: "active",
+        createdAt: "",
+        updatedAt: "",
+        participantIdentity: "signed-in Google Chrome profile on a paired node",
+        realtime: { enabled: false, toolPolicy: "safe-read-only" },
+        chrome: {
+          audioBackend: "blackhole-2ch",
+          launched: true,
+          nodeId: result.nodeId,
+          health: result.browser,
+        },
+        notes: [],
+      },
+    });
   }
 }
 
@@ -143,6 +249,15 @@ function resolveCreateTokenOptions(
     accessToken: options.accessToken?.trim() || config.oauth.accessToken,
     expiresAt: parseOptionalNumber(options.expiresAt) ?? config.oauth.expiresAt,
   };
+}
+
+function hasCreateOAuth(config: GoogleMeetConfig, options: CreateOptions): boolean {
+  return Boolean(
+    options.accessToken?.trim() ||
+    options.refreshToken?.trim() ||
+    config.oauth.accessToken ||
+    config.oauth.refreshToken,
+  );
 }
 
 export function registerGoogleMeetCli(params: {
@@ -224,16 +339,83 @@ export function registerGoogleMeetCli(params: {
     .option("--client-id <id>", "OAuth client id override")
     .option("--client-secret <secret>", "OAuth client secret override")
     .option("--expires-at <ms>", "Cached access token expiry as unix epoch milliseconds")
+    .option("--no-join", "Only create the meeting URL; do not join it")
+    .option("--transport <transport>", "Join transport: chrome, chrome-node, or twilio")
+    .option(
+      "--mode <mode>",
+      "Join mode: realtime for live talk-back, transcribe for observe/control",
+    )
+    .option("--message <text>", "Realtime speech to trigger after join")
+    .option("--dial-in-number <phone>", "Meet dial-in number for Twilio transport")
+    .option("--pin <pin>", "Meet phone PIN; # is appended if omitted")
+    .option("--dtmf-sequence <sequence>", "Explicit Twilio DTMF sequence")
     .option("--json", "Print JSON output", false)
     .action(async (options: CreateOptions) => {
+      if (!hasCreateOAuth(params.config, options)) {
+        const rt = await params.ensureRuntime();
+        const result = await rt.createViaBrowser();
+        const join =
+          options.join !== false
+            ? await rt.join({
+                url: result.meetingUri,
+                transport: options.transport,
+                mode: options.mode,
+                message: options.message,
+                dialInNumber: options.dialInNumber,
+                pin: options.pin,
+                dtmfSequence: options.dtmfSequence,
+              })
+            : undefined;
+        const payload = {
+          source: result.source,
+          meetingUri: result.meetingUri,
+          joined: Boolean(join),
+          ...(join ? { join } : {}),
+          browser: {
+            nodeId: result.nodeId,
+            targetId: result.targetId,
+            browserUrl: result.browserUrl,
+            browserTitle: result.browserTitle,
+          },
+        };
+        if (options.json) {
+          writeStdoutJson(payload);
+          return;
+        }
+        writeStdoutLine("meeting uri: %s", result.meetingUri);
+        writeStdoutLine("source: browser");
+        writeStdoutLine("node: %s", result.nodeId);
+        if (join) {
+          writeStdoutLine("joined: %s", join.session.id);
+        } else {
+          writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+        }
+        return;
+      }
       const token = await resolveGoogleMeetAccessToken(
         resolveCreateTokenOptions(params.config, options),
       );
       const result = await createGoogleMeetSpace({ accessToken: token.accessToken });
+      const join =
+        options.join !== false
+          ? await (
+              await params.ensureRuntime()
+            ).join({
+              url: result.meetingUri,
+              transport: options.transport,
+              mode: options.mode,
+              message: options.message,
+              dialInNumber: options.dialInNumber,
+              pin: options.pin,
+              dtmfSequence: options.dtmfSequence,
+            })
+          : undefined;
       if (options.json) {
         writeStdoutJson({
           ...result,
           tokenSource: token.refreshed ? "refresh-token" : "cached-access-token",
+          joined: Boolean(join),
+          ...(join ? { join } : {}),
         });
         return;
       }
@@ -246,6 +428,11 @@ export function registerGoogleMeetCli(params: {
         "token source: %s",
         token.refreshed ? "refresh-token" : "cached-access-token",
       );
+      if (join) {
+        writeStdoutLine("joined: %s", join.session.id);
+      } else {
+        writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+      }
     });
 
   root
@@ -392,12 +579,42 @@ export function registerGoogleMeetCli(params: {
     });
 
   root
+    .command("doctor")
+    .description("Show human-readable Meet session/browser/realtime health")
+    .argument("[session-id]", "Meet session ID")
+    .option("--json", "Print JSON output", false)
+    .action(async (sessionId: string | undefined, options: JsonOptions) => {
+      const rt = await params.ensureRuntime();
+      const status = rt.status(sessionId);
+      if (options.json) {
+        writeStdoutJson(status);
+        return;
+      }
+      writeDoctorStatus(status);
+    });
+
+  root
+    .command("recover-tab")
+    .description("Focus and inspect an existing Google Meet tab on the Chrome node")
+    .argument("[url]", "Optional Meet URL to match")
+    .option("--json", "Print JSON output", false)
+    .action(async (url: string | undefined, options: JsonOptions) => {
+      const rt = await params.ensureRuntime();
+      const result = await rt.recoverCurrentTab({ url });
+      if (options.json) {
+        writeStdoutJson(result);
+        return;
+      }
+      writeRecoverCurrentTabResult(result);
+    });
+
+  root
     .command("setup")
     .description("Show Google Meet transport setup status")
     .option("--json", "Print JSON output", false)
     .action(async (options: SetupOptions) => {
       const rt = await params.ensureRuntime();
-      const status = rt.setupStatus();
+      const status = await rt.setupStatus();
       if (options.json) {
         writeStdoutJson(status);
         return;
