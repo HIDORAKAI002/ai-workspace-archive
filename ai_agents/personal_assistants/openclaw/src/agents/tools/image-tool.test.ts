@@ -183,7 +183,7 @@ async function createOpenClawCodingToolsWithFreshModules(options?: CreateOpenCla
     ["minimax-portal", "MiniMax-VL-01"],
     ["openai", "gpt-5.4-mini"],
     ["opencode", "gpt-5-nano"],
-    ["opencode-go", "kimi-k2.5"],
+    ["opencode-go", "kimi-k2.6"],
     ["zai", "glm-4.6v"],
   ]);
   __testing.setProviderDepsForTest({
@@ -484,7 +484,7 @@ function installImageUnderstandingProviderStubs(...providers: MediaUnderstanding
     ["minimax-portal", "MiniMax-VL-01"],
     ["openai", "gpt-5.4-mini"],
     ["opencode", "gpt-5-nano"],
-    ["opencode-go", "kimi-k2.5"],
+    ["opencode-go", "kimi-k2.6"],
     ["zai", "glm-4.6v"],
   ]);
   __testing.setProviderDepsForTest({
@@ -714,10 +714,10 @@ describe("image tool implicit imageModel config", () => {
     await withTempAgentDir(async (agentDir) => {
       vi.stubEnv("OPENCODE_API_KEY", "opencode-test");
       const cfg: OpenClawConfig = {
-        agents: { defaults: { model: { primary: "opencode-go/kimi-k2.6" } } },
+        agents: { defaults: { model: { primary: "opencode-go/minimax-m2.7" } } },
       };
       expect(resolveImageModelConfigForTool({ cfg, agentDir })).toEqual({
-        primary: "opencode-go/kimi-k2.5",
+        primary: "opencode-go/kimi-k2.6",
       });
       expect(createImageTool({ config: cfg, agentDir })).not.toBeNull();
     });

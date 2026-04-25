@@ -1,3 +1,6 @@
+import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
 import type {
   Browser,
@@ -31,7 +34,9 @@ import {
   InvalidBrowserNavigationUrlError,
   withBrowserNavigationPolicy,
 } from "./navigation-guard.js";
-import { withPageScopedCdpClient } from "./pw-session.page-cdp.js";
+import { DEFAULT_DOWNLOAD_DIR } from "./paths.js";
+import { BROWSER_REF_MARKER_ATTRIBUTE, withPageScopedCdpClient } from "./pw-session.page-cdp.js";
+import { sanitizeUntrustedFileName } from "./safe-filename.js";
 
 export type BrowserConsoleMessage = {
   type: string;
@@ -79,12 +84,13 @@ type PageState = {
   armIdUpload: number;
   armIdDialog: number;
   armIdDownload: number;
+  downloadWaiterDepth: number;
   /**
    * Role-based refs from the last role snapshot (e.g. e1/e2).
    * Mode "role" refs are generated from ariaSnapshot and resolved via getByRole.
    * Mode "aria" refs are Playwright aria-ref ids and resolved via `aria-ref=...`.
    */
-  roleRefs?: Record<string, { role: string; name?: string; nth?: number }>;
+  roleRefs?: Record<string, { role: string; name?: string; nth?: number; domMarker?: boolean }>;
   roleRefsMode?: "role" | "aria";
   roleRefsFrameSelector?: string;
 };
@@ -121,6 +127,33 @@ const blockedPageRefsByCdpUrl = new Map<string, WeakSet<Page>>();
 
 function normalizeCdpUrl(raw: string) {
   return raw.replace(/\/$/, "");
+}
+
+function buildManagedDownloadPath(fileName: string): string {
+  const id = crypto.randomUUID();
+  const safeName = sanitizeUntrustedFileName(fileName, "download.bin");
+  return path.join(DEFAULT_DOWNLOAD_DIR, `${id}-${safeName}`);
+}
+
+function hasCachedPlaywrightBrowserConnection(cdpUrl: string): boolean {
+  return cachedByCdpUrl.has(normalizeCdpUrl(cdpUrl));
+}
+
+function isRecoverableStalePageSelectionError(err: unknown, reusedCachedBrowser: boolean): boolean {
+  if (!reusedCachedBrowser) {
+    return false;
+  }
+  if (
+    err instanceof Error &&
+    err.message.includes("No pages available in the connected browser.")
+  ) {
+    return true;
+  }
+  if (err instanceof BrowserTabNotFoundError) {
+    return true;
+  }
+  const message = err instanceof Error ? err.message : formatErrorMessage(err);
+  return message.toLowerCase().includes("tab not found");
 }
 
 function findNetworkRequestById(state: PageState, id: string): BrowserNetworkRequest | undefined {
@@ -313,6 +346,7 @@ export function ensurePageState(page: Page): PageState {
     armIdUpload: 0,
     armIdDialog: 0,
     armIdDownload: 0,
+    downloadWaiterDepth: 0,
   };
   pageStates.set(page, state);
 
@@ -381,6 +415,30 @@ export function ensurePageState(page: Page): PageState {
       rec.failureText = req.failure()?.errorText;
       rec.ok = false;
     });
+    page.on(
+      "download",
+      (download: {
+        suggestedFilename?: () => string;
+        saveAs?: (outPath: string) => Promise<void>;
+        path?: () => Promise<string>;
+      }) => {
+        if (state.downloadWaiterDepth > 0) {
+          return;
+        }
+        const suggested = sanitizeUntrustedFileName(
+          download.suggestedFilename?.() || "download.bin",
+          "download.bin",
+        );
+        const managedPath = buildManagedDownloadPath(suggested);
+        const managedSave = (async () => {
+          await fs.mkdir(DEFAULT_DOWNLOAD_DIR, { recursive: true });
+          await download.saveAs?.(managedPath);
+          return managedPath;
+        })();
+        managedSave.catch(() => {});
+        download.path = async () => await managedSave;
+      },
+    );
     page.on("close", () => {
       pageStates.delete(page);
       observedPages.delete(page);
@@ -625,7 +683,7 @@ async function resolvePageByTargetIdOrThrow(opts: {
   return page;
 }
 
-export async function getPageForTargetId(opts: {
+async function getPageForTargetIdOnce(opts: {
   cdpUrl: string;
   targetId?: string;
   ssrfPolicy?: SsrFPolicy;
@@ -669,6 +727,23 @@ export async function getPageForTargetId(opts: {
     return first;
   }
   throw new BrowserTabNotFoundError();
+}
+
+export async function getPageForTargetId(opts: {
+  cdpUrl: string;
+  targetId?: string;
+  ssrfPolicy?: SsrFPolicy;
+}): Promise<Page> {
+  const reusedCachedBrowser = hasCachedPlaywrightBrowserConnection(opts.cdpUrl);
+  try {
+    return await getPageForTargetIdOnce(opts);
+  } catch (err) {
+    if (!isRecoverableStalePageSelectionError(err, reusedCachedBrowser)) {
+      throw err;
+    }
+    await closePlaywrightBrowserConnection({ cdpUrl: opts.cdpUrl });
+    return await getPageForTargetIdOnce(opts);
+  }
 }
 
 function isTopLevelNavigationRequest(page: Page, request: Request): boolean {
@@ -780,6 +855,18 @@ export async function assertPageNavigationCompletedSafely(
   }
 }
 
+async function continueRouteSafely(route: Route): Promise<void> {
+  try {
+    await route.continue();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message.includes("Route is already handled")) {
+      return;
+    }
+    throw err;
+  }
+}
+
 export async function gotoPageWithNavigationGuard(
   opts: {
     cdpUrl: string;
@@ -803,7 +890,7 @@ export async function gotoPageWithNavigationGuard(
     const isSubframeDocument =
       !isTopLevel && isSubframeDocumentNavigationRequest(opts.page, request);
     if (!isTopLevel && !isSubframeDocument) {
-      await route.continue();
+      await continueRouteSafely(route);
       return;
     }
     try {
@@ -821,7 +908,7 @@ export async function gotoPageWithNavigationGuard(
       }
       throw err;
     }
-    await route.continue();
+    await continueRouteSafely(route);
   };
 
   await opts.page.route("**", handler);
@@ -885,10 +972,29 @@ export function refLocator(page: Page, ref: string) {
   }
 
   if (AX_REF_PATTERN.test(normalized)) {
-    throw new Error(
-      `Ref "${normalized}" comes from a format=aria snapshot and cannot be used with act. ` +
-        `Re-snapshot with format=ai and use the eN refs from that snapshot.`,
-    );
+    const state = pageStates.get(page);
+    const info = state?.roleRefs?.[normalized];
+    if (!info) {
+      throw new Error(
+        `Unknown ref "${normalized}". Run a new snapshot and use a ref from that snapshot.`,
+      );
+    }
+    const scope = state.roleRefsFrameSelector
+      ? page.frameLocator(state.roleRefsFrameSelector)
+      : page;
+    if (info.domMarker) {
+      return scope.locator(`[${BROWSER_REF_MARKER_ATTRIBUTE}="${normalized}"]`);
+    }
+    const locAny = scope as unknown as {
+      getByRole: (
+        role: never,
+        opts?: { name?: string; exact?: boolean },
+      ) => ReturnType<Page["getByRole"]>;
+    };
+    const locator = info.name
+      ? locAny.getByRole(info.role as never, { name: info.name, exact: true })
+      : locAny.getByRole(info.role as never);
+    return info.nth !== undefined ? locator.nth(info.nth) : locator;
   }
 
   return page.locator(`aria-ref=${normalized}`);

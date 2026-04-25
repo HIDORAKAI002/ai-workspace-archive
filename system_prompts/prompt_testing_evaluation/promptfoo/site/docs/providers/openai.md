@@ -508,22 +508,25 @@ providers:
 
 ### GPT-5.5
 
-GPT-5.5 is a GPT-5 family model for high-capability reasoning, professional work, and agentic workflows.
+GPT-5.5 is the latest GPT-5 family model for high-capability reasoning, professional work, and agentic workflows.
 
 #### Available Models
 
-| Model                  | Description                   | Pricing (Input / Output) |
-| ---------------------- | ----------------------------- | ------------------------ |
-| gpt-5.5                | Standard GPT-5.5 model        | $5 / $30 per 1M tokens   |
-| gpt-5.5-2026-04-23     | Dated snapshot of gpt-5.5     | $5 / $30 per 1M tokens   |
-| gpt-5.5-pro            | Premium GPT-5.5 pro model     | $30 / $180 per 1M tokens |
-| gpt-5.5-pro-2026-04-23 | Dated snapshot of gpt-5.5-pro | $30 / $180 per 1M tokens |
+| Model                  | Description                   | Pricing (Input / Output)    |
+| ---------------------- | ----------------------------- | --------------------------- |
+| gpt-5.5                | Standard GPT-5.5 model        | $5.00 / $30 per 1M tokens   |
+| gpt-5.5-2026-04-23     | Dated snapshot of gpt-5.5     | $5.00 / $30 per 1M tokens   |
+| gpt-5.5-pro            | Premium GPT-5.5 pro model     | $30.00 / $180 per 1M tokens |
+| gpt-5.5-pro-2026-04-23 | Dated snapshot of gpt-5.5-pro | $30.00 / $180 per 1M tokens |
 
 #### Key Specifications
 
-- **Endpoint support**: `gpt-5.5` supports Chat Completions and Responses API. `gpt-5.5-pro` is Responses API only.
-- **Context window**: `gpt-5.5` supports a 1M-token context window.
+- **Long-context pricing**: `gpt-5.5` uses $10.00 input / $45.00 output per 1M tokens when prompts exceed 272,000 input tokens.
+- **Context window**: `gpt-5.5` and `gpt-5.5-pro` support 1,050,000 tokens.
+- **Max output tokens**: 128,000 tokens.
 - **Reasoning effort**: `gpt-5.5` supports `none`, `low`, `medium`, `high`, and `xhigh`. In Chat Completions, set `reasoning_effort`; in Responses API, set `reasoning.effort`.
+- **Endpoint support**: `gpt-5.5` supports Chat Completions and Responses API. `gpt-5.5-pro` is Responses API only and supports Batch API.
+- **Cached input**: `gpt-5.5` cached input tokens are $0.50 per 1M. `gpt-5.5-pro` has no cached-input discount.
 - **Cost estimates**: Promptfoo includes standard API pricing for GPT-5.5. Batch and Flex discounts, and Priority processing multipliers, are not automatically inferred from `service_tier`.
 - **Long-running requests**: `gpt-5.5-pro` automatically receives the same 10-minute timeout as other GPT-5 pro models.
 
@@ -1884,6 +1887,10 @@ OpenAI's Responses API is the most advanced interface for generating model respo
 
 The Responses API supports a wide range of models, including:
 
+- `gpt-5.5` - GPT-5.5 model ($5/$30 per 1M tokens)
+- `gpt-5.5-2026-04-23` - Dated snapshot of gpt-5.5
+- `gpt-5.5-pro` - Premium GPT-5.5 model ($30/$180 per 1M tokens)
+- `gpt-5.5-pro-2026-04-23` - Dated snapshot of gpt-5.5-pro
 - `gpt-5.4` - GPT-5.4 model ($2.50/$15 per 1M tokens)
 - `gpt-5.4-2026-03-05` - Dated snapshot of gpt-5.4
 - `gpt-5.4-mini` - Smaller GPT-5.4 model ($0.75/$4.50 per 1M tokens)
