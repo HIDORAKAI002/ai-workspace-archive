@@ -540,7 +540,7 @@ export async function buildFallbackList(meta: Meta): Promise<
     }
   }
 
-  if (!isWikimediaUrl(meta.url)) {
+  if (!isWikimediaUrl(meta.url) || Math.random() >= 0.5) {
     const wikiIndex = _engines.indexOf("wikipedia");
     if (wikiIndex !== -1) {
       _engines.splice(wikiIndex, 1);
