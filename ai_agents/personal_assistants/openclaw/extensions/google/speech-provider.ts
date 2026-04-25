@@ -1,4 +1,9 @@
-import { assertOkOrThrowProviderError, postJsonRequest } from "openclaw/plugin-sdk/provider-http";
+import { transcodeAudioBufferToOpus } from "openclaw/plugin-sdk/media-runtime";
+import {
+  assertOkOrThrowProviderError,
+  postJsonRequest,
+  sanitizeConfiguredModelProviderRequest,
+} from "openclaw/plugin-sdk/provider-http";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/provider-onboard";
 import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
 import type {
@@ -264,6 +269,7 @@ async function synthesizeGoogleTtsPcm(params: {
   text: string;
   apiKey: string;
   baseUrl?: string;
+  request?: ReturnType<typeof sanitizeConfiguredModelProviderRequest>;
   model: string;
   voiceName: string;
   audioProfile?: string;
@@ -274,6 +280,7 @@ async function synthesizeGoogleTtsPcm(params: {
     resolveGoogleGenerativeAiHttpRequestConfig({
       apiKey: params.apiKey,
       baseUrl: params.baseUrl,
+      request: params.request,
       capability: "audio",
       transport: "http",
     });
@@ -379,12 +386,28 @@ export function buildGoogleSpeechProvider(): SpeechProviderPlugin {
         text: req.text,
         apiKey,
         baseUrl: resolveGoogleTtsBaseUrl({ cfg: req.cfg, providerConfig: config }),
+        request: sanitizeConfiguredModelProviderRequest(
+          req.cfg?.models?.providers?.google?.request,
+        ),
         model: normalizeGoogleTtsModel(overrides.model ?? config.model),
         voiceName: normalizeGoogleTtsVoiceName(overrides.voiceName ?? config.voiceName),
         audioProfile: overrides.audioProfile ?? config.audioProfile,
         speakerName: overrides.speakerName ?? config.speakerName,
         timeoutMs: req.timeoutMs,
       });
+      if (req.target === "voice-note") {
+        return {
+          audioBuffer: await transcodeAudioBufferToOpus({
+            audioBuffer: wrapPcm16MonoToWav(pcm),
+            inputExtension: "wav",
+            tempPrefix: "tts-google-",
+            timeoutMs: req.timeoutMs,
+          }),
+          outputFormat: "opus",
+          fileExtension: ".opus",
+          voiceCompatible: true,
+        };
+      }
       return {
         audioBuffer: wrapPcm16MonoToWav(pcm),
         outputFormat: "wav",
@@ -405,6 +428,9 @@ export function buildGoogleSpeechProvider(): SpeechProviderPlugin {
         text: req.text,
         apiKey,
         baseUrl: resolveGoogleTtsBaseUrl({ cfg: req.cfg, providerConfig: config }),
+        request: sanitizeConfiguredModelProviderRequest(
+          req.cfg?.models?.providers?.google?.request,
+        ),
         model: config.model,
         voiceName: config.voiceName,
         audioProfile: config.audioProfile,

@@ -50,6 +50,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/inbound-reply-dispatch` | Shared inbound record-and-dispatch helpers |
     | `plugin-sdk/messaging-targets` | Target parsing/matching helpers |
     | `plugin-sdk/outbound-media` | Shared outbound media loading helpers |
+    | `plugin-sdk/outbound-send-deps` | Lightweight outbound send dependency lookup for channel adapters |
     | `plugin-sdk/outbound-runtime` | Outbound delivery, identity, send delegate, session, formatting, and payload planning helpers |
     | `plugin-sdk/poll-runtime` | Narrow poll normalization helpers |
     | `plugin-sdk/thread-bindings-runtime` | Thread-binding lifecycle and adapter helpers |
@@ -102,7 +103,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/provider-web-search` | Web-search provider registration/cache/runtime helpers |
     | `plugin-sdk/provider-tools` | `ProviderToolCompatFamily`, `buildProviderToolCompatFamilyHooks`, Gemini schema cleanup + diagnostics, and xAI compat helpers such as `resolveXaiModelCompatPatch` / `applyXaiModelCompat` |
     | `plugin-sdk/provider-usage` | `fetchClaudeUsage` and similar |
-    | `plugin-sdk/provider-stream` | `ProviderStreamFamily`, `buildProviderStreamFamilyHooks`, `composeProviderStreamWrappers`, stream wrapper types, and shared Anthropic/Bedrock/Google/Kilocode/Moonshot/OpenAI/OpenRouter/Z.A.I/MiniMax/Copilot wrapper helpers |
+    | `plugin-sdk/provider-stream` | `ProviderStreamFamily`, `buildProviderStreamFamilyHooks`, `composeProviderStreamWrappers`, stream wrapper types, and shared Anthropic/Bedrock/DeepSeek V4/Google/Kilocode/Moonshot/OpenAI/OpenRouter/Z.A.I/MiniMax/Copilot wrapper helpers |
     | `plugin-sdk/provider-transport-runtime` | Native provider transport helpers such as guarded fetch, transport message transforms, and writable transport event streams |
     | `plugin-sdk/provider-onboard` | Onboarding config patch helpers |
     | `plugin-sdk/global-singleton` | Process-local singleton/map/cache helpers |
