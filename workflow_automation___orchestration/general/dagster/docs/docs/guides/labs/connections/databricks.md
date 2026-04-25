@@ -22,6 +22,16 @@ To create a Databricks Connection in Dagster+, you will need to:
 
 Dagster Connections require read-only access to Databricks Unity Catalog metadata. We recommend using a dedicated service principal with OAuth machine-to-machine (M2M) credentials, but personal access tokens (PATs) are also supported.
 
+### Required API scopes
+
+The Databricks credentials used by the connection must be able to access the following [API scopes](https://docs.databricks.com/api/workspace/api/scopes):
+
+- **`unity-catalog`** — Read catalog, schema, table, and view metadata from Unity Catalog, and data lineage between Unity Catalog objects.
+- **`query-history`** — Read query history to surface usage information and derive table-level lineage.
+- **`sql`** — Execute lineage queries against a SQL warehouse. Only required if you [enable lineage tracking](#optional-enable-lineage-tracking).
+
+When creating a personal access token, select these scopes explicitly. Service principal OAuth credentials inherit scopes from the principal's permissions.
+
 ### Option A: Service principal with OAuth (M2M) — recommended for production
 
 Service principals provide more secure, auditable access without tying to a specific user account. Dagster authenticates to the service principal using OAuth machine-to-machine (M2M) credentials — a client ID and a client secret.
