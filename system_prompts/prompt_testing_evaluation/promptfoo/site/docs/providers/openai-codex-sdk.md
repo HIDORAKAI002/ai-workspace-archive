@@ -546,7 +546,7 @@ Available levels vary by model:
 
 | Level     | Description                          | Supported Models                                                                                     |
 | --------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `minimal` | Minimal reasoning overhead           | gpt-5.4, gpt-5.2                                                                                     |
+| `minimal` | Minimal reasoning overhead           | gpt-5.5, gpt-5.4, gpt-5.2                                                                            |
 | `low`     | Light reasoning, faster responses    | All models                                                                                           |
 | `medium`  | Balanced (default)                   | All models                                                                                           |
 | `high`    | Thorough reasoning for complex tasks | All models                                                                                           |
