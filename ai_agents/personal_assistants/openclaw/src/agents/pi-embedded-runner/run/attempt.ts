@@ -7,6 +7,7 @@ import {
   DefaultResourceLoader,
   SessionManager,
 } from "@mariozechner/pi-coding-agent";
+import { isAcpRuntimeSpawnAvailable } from "../../../acp/runtime/availability.js";
 import { filterHeartbeatPairs } from "../../../auto-reply/heartbeat-filter.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import { emitTrustedDiagnosticEvent } from "../../../infra/diagnostic-events.js";
@@ -20,6 +21,7 @@ import { formatErrorMessage } from "../../../infra/errors.js";
 import { resolveHeartbeatSummaryForAgent } from "../../../infra/heartbeat-summary.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
+import { listRegisteredPluginCommands } from "../../../plugins/command-registry-state.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import {
   extractModelCompat,
@@ -117,6 +119,10 @@ import {
 import { wrapStreamFnTextTransforms } from "../../plugin-text-transforms.js";
 import { describeProviderRequestRoutingSummary } from "../../provider-attribution.js";
 import { registerProviderStreamForModel } from "../../provider-stream.js";
+import {
+  logAgentRuntimeToolDiagnostics,
+  normalizeAgentRuntimeTools,
+} from "../../runtime-plan/tools.js";
 import { resolveSandboxContext } from "../../sandbox.js";
 import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
@@ -148,10 +154,7 @@ import {
   collectExplicitToolAllowlistSources,
 } from "../../tool-allowlist-guard.js";
 import { UNKNOWN_TOOL_THRESHOLD } from "../../tool-loop-detection.js";
-import {
-  resolveTranscriptPolicy,
-  shouldAllowProviderOwnedThinkingReplay,
-} from "../../transcript-policy.js";
+import { shouldAllowProviderOwnedThinkingReplay } from "../../transcript-policy.js";
 import { normalizeUsage, type NormalizedUsage } from "../../usage.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isRunnerAbortError } from "../abort.js";
@@ -219,10 +222,6 @@ import {
   resolveLiveToolResultMaxChars,
   truncateOversizedToolResultsInSessionManager,
 } from "../tool-result-truncation.js";
-import {
-  logProviderToolSchemaDiagnostics,
-  normalizeProviderToolSchemas,
-} from "../tool-schema-runtime.js";
 import { splitSdkTools } from "../tool-split.js";
 import { mapThinkingLevel } from "../utils.js";
 import { flushPendingToolResultsAfterIdle } from "../wait-for-idle-before-flush.js";
@@ -290,6 +289,7 @@ import {
   wrapStreamFnTrimToolCallNames,
 } from "./attempt.tool-call-normalization.js";
 import { buildEmbeddedAttemptToolRunContext } from "./attempt.tool-run-context.js";
+import { resolveAttemptTranscriptPolicy } from "./attempt.transcript-policy.js";
 import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-aggregate-timeout.js";
 import {
   resolveRunTimeoutDuringCompaction,
@@ -297,7 +297,10 @@ import {
   selectCompactionTimeoutSnapshot,
   shouldFlagCompactionTimeout,
 } from "./compaction-timeout.js";
-import { pruneProcessedHistoryImages } from "./history-image-prune.js";
+import {
+  installHistoryImagePruneContextTransform,
+  pruneProcessedHistoryImages,
+} from "./history-image-prune.js";
 import { detectAndLoadPromptImages } from "./images.js";
 import { buildAttemptReplayMetadata } from "./incomplete-turn.js";
 import { resolveLlmIdleTimeoutMs, streamWithIdleTimeout } from "./llm-idle-timeout.js";
@@ -306,7 +309,10 @@ import {
   PREEMPTIVE_OVERFLOW_ERROR_TEXT,
   shouldPreemptivelyCompactBeforePrompt,
 } from "./preemptive-compaction.js";
-import { rewriteSubmittedPromptTranscript } from "./transcript-prompt-rewrite.js";
+import {
+  queueRuntimeContextForNextTurn,
+  resolveRuntimeContextPromptParts,
+} from "./runtime-context-prompt.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 
 export {
@@ -844,18 +850,17 @@ export async function runEmbeddedAttempt(
       modelApi: params.model.api,
       model: params.model,
     };
-    const tools =
-      params.runtimePlan?.tools.normalize(toolsEnabled ? toolsRaw : [], runtimePlanModelContext) ??
-      normalizeProviderToolSchemas({
-        tools: toolsEnabled ? toolsRaw : [],
-        provider: params.provider,
-        config: params.config,
-        workspaceDir: effectiveWorkspace,
-        env: process.env,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        model: params.model,
-      });
+    const tools = normalizeAgentRuntimeTools({
+      runtimePlan: params.runtimePlan,
+      tools: toolsEnabled ? toolsRaw : [],
+      provider: params.provider,
+      config: params.config,
+      workspaceDir: effectiveWorkspace,
+      env: process.env,
+      modelId: params.modelId,
+      modelApi: params.model.api,
+      model: params.model,
+    });
     const clientTools = toolsEnabled ? params.clientTools : undefined;
     const bundleMcpEnabled = shouldCreateBundleMcpRuntimeForAttempt({
       toolsEnabled,
@@ -942,20 +947,17 @@ export async function runEmbeddedAttempt(
       toolsEnabled,
       disableTools: params.disableTools,
     });
-    if (params.runtimePlan) {
-      params.runtimePlan.tools.logDiagnostics(effectiveTools, runtimePlanModelContext);
-    } else {
-      logProviderToolSchemaDiagnostics({
-        tools: effectiveTools,
-        provider: params.provider,
-        config: params.config,
-        workspaceDir: effectiveWorkspace,
-        env: process.env,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        model: params.model,
-      });
-    }
+    logAgentRuntimeToolDiagnostics({
+      runtimePlan: params.runtimePlan,
+      tools: effectiveTools,
+      provider: params.provider,
+      config: params.config,
+      workspaceDir: effectiveWorkspace,
+      env: process.env,
+      modelId: params.modelId,
+      modelApi: params.model.api,
+      model: params.model,
+    });
 
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
@@ -1066,7 +1068,9 @@ export async function runEmbeddedAttempt(
       cwd: effectiveWorkspace,
       moduleUrl: import.meta.url,
     });
-    const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
+    const ttsHint = params.config
+      ? buildTtsSystemPromptHint(params.config, sessionAgentId)
+      : undefined;
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
     const heartbeatPrompt = shouldInjectHeartbeatPrompt({
       config: params.config,
@@ -1123,7 +1127,11 @@ export async function runEmbeddedAttempt(
         workspaceNotes: workspaceNotes?.length ? workspaceNotes : undefined,
         reactionGuidance,
         promptMode: effectivePromptMode,
-        acpEnabled: params.config?.acp?.enabled !== false,
+        acpEnabled: isAcpRuntimeSpawnAvailable({
+          config: params.config,
+          sandboxed: sandboxInfo?.enabled === true,
+        }),
+        nativeCommandNames: listRegisteredPluginCommands().map((command) => command.name),
         runtimeInfo,
         messageToolHints,
         sandboxInfo,
@@ -1201,17 +1209,14 @@ export async function runEmbeddedAttempt(
         .then(() => true)
         .catch(() => false);
 
-      const transcriptPolicy =
-        params.runtimePlan?.transcript.resolvePolicy(runtimePlanModelContext) ??
-        resolveTranscriptPolicy({
-          modelApi: params.model?.api,
-          provider: params.provider,
-          modelId: params.modelId,
-          config: params.config,
-          workspaceDir: effectiveWorkspace,
-          env: process.env,
-          model: params.model,
-        });
+      const transcriptPolicy = resolveAttemptTranscriptPolicy({
+        runtimePlan: params.runtimePlan,
+        runtimePlanModelContext,
+        provider: params.provider,
+        modelId: params.modelId,
+        config: params.config,
+        env: process.env,
+      });
 
       await prewarmSessionFile(params.sessionFile);
       sessionManager = guardSessionManager(SessionManager.open(params.sessionFile), {
@@ -1448,6 +1453,14 @@ export async function runEmbeddedAttempt(
             }),
         });
       }
+      const removeLoopContextGuard = removeToolResultContextGuard;
+      const removeHistoryImagePruneContextTransform = installHistoryImagePruneContextTransform(
+        activeSession.agent,
+      );
+      removeToolResultContextGuard = () => {
+        removeHistoryImagePruneContextTransform();
+        removeLoopContextGuard?.();
+      };
       const cacheTrace = createCacheTrace({
         cfg: params.config,
         env: process.env,
@@ -2214,9 +2227,11 @@ export async function runEmbeddedAttempt(
           trigger: params.trigger,
           channelId: params.messageChannel ?? params.messageProvider ?? undefined,
         };
+        const promptBuildMessages =
+          pruneProcessedHistoryImages(activeSession.messages) ?? activeSession.messages;
         const hookResult = await resolvePromptBuildHookResult({
           prompt: params.prompt,
-          messages: activeSession.messages,
+          messages: promptBuildMessages,
           hookCtx,
           hookRunner,
           legacyBeforeAgentStartResult: params.legacyBeforeAgentStartResult,
@@ -2360,14 +2375,6 @@ export async function runEmbeddedAttempt(
             : undefined;
 
         try {
-          // Idempotent cleanup: prune old image blocks to limit context
-          // growth. Only mutates turns older than a few assistant replies;
-          // the delay also reduces prompt-cache churn.
-          const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
-          if (didPruneImages) {
-            activeSession.agent.state.messages = activeSession.messages;
-          }
-
           const filteredMessages = filterHeartbeatPairs(
             activeSession.messages,
             heartbeatSummary?.ackMaxChars,
@@ -2378,10 +2385,26 @@ export async function runEmbeddedAttempt(
           }
           prePromptMessageCount = activeSession.messages.length;
 
-          // Detect and load images referenced in the prompt for vision-capable models.
+          const promptSubmission = resolveRuntimeContextPromptParts({
+            effectivePrompt,
+            transcriptPrompt: params.transcriptPrompt,
+          });
+          const runtimeSystemContext = promptSubmission.runtimeSystemContext?.trim();
+          if (promptSubmission.runtimeOnly && runtimeSystemContext) {
+            const runtimeSystemPrompt = composeSystemPromptWithHookContext({
+              baseSystemPrompt: systemPromptText,
+              appendSystemContext: runtimeSystemContext,
+            });
+            if (runtimeSystemPrompt) {
+              applySystemPromptOverrideToSession(activeSession, runtimeSystemPrompt);
+              systemPromptText = runtimeSystemPrompt;
+            }
+          }
+
+          // Detect and load images referenced in the visible prompt for vision-capable models.
           // Images are prompt-local only (pi-like behavior).
           const imageResult = await detectAndLoadPromptImages({
-            prompt: effectivePrompt,
+            prompt: promptSubmission.prompt,
             workspaceDir: effectiveWorkspace,
             model: params.model,
             existingImages: params.images,
@@ -2397,13 +2420,13 @@ export async function runEmbeddedAttempt(
           });
 
           cacheTrace?.recordStage("prompt:images", {
-            prompt: effectivePrompt,
+            prompt: promptSubmission.prompt,
             messages: activeSession.messages,
             note: `images: prompt=${imageResult.images.length}`,
           });
           trajectoryRecorder?.recordEvent("context.compiled", {
             systemPrompt: systemPromptText,
-            prompt: effectivePrompt,
+            prompt: promptSubmission.prompt,
             messages: activeSession.messages,
             tools: toTrajectoryToolDefinitions(effectiveTools),
             imagesCount: imageResult.images.length,
@@ -2414,8 +2437,9 @@ export async function runEmbeddedAttempt(
 
           if (
             !skipPromptSubmission &&
+            !promptSubmission.runtimeOnly &&
             !hasPromptSubmissionContent({
-              prompt: effectivePrompt,
+              prompt: promptSubmission.prompt,
               messages: activeSession.messages,
               imageCount: imageResult.images.length,
             })
@@ -2428,7 +2452,7 @@ export async function runEmbeddedAttempt(
             );
             trajectoryRecorder?.recordEvent("prompt.skipped", {
               reason: "empty_prompt_history_images",
-              prompt: effectivePrompt,
+              prompt: promptSubmission.prompt,
               messages: activeSession.messages,
               imagesCount: imageResult.images.length,
             });
@@ -2594,9 +2618,9 @@ export async function runEmbeddedAttempt(
             if (normalizedReplayMessages !== activeSession.messages) {
               activeSession.agent.state.messages = normalizedReplayMessages;
             }
-            finalPromptText = effectivePrompt;
+            finalPromptText = promptSubmission.prompt;
             trajectoryRecorder?.recordEvent("prompt.submitted", {
-              prompt: effectivePrompt,
+              prompt: promptSubmission.prompt,
               systemPrompt: systemPromptText,
               messages: activeSession.messages,
               imagesCount: imageResult.images.length,
@@ -2605,25 +2629,26 @@ export async function runEmbeddedAttempt(
             updateActiveEmbeddedRunSnapshot(params.sessionId, {
               transcriptLeafId,
               messages: btwSnapshotMessages,
-              inFlightPrompt: effectivePrompt,
+              inFlightPrompt: promptSubmission.prompt,
             });
-
-            // Only pass images option if there are actually images to pass
-            // This avoids potential issues with models that don't expect the images parameter
-            if (imageResult.images.length > 0) {
-              await abortable(
-                activeSession.prompt(effectivePrompt, { images: imageResult.images }),
-              );
+            if (promptSubmission.runtimeOnly) {
+              await abortable(activeSession.prompt(promptSubmission.prompt));
             } else {
-              await abortable(activeSession.prompt(effectivePrompt));
+              await queueRuntimeContextForNextTurn({
+                session: activeSession,
+                runtimeContext: promptSubmission.runtimeContext,
+              });
+
+              // Only pass images option if there are actually images to pass
+              // This avoids potential issues with models that don't expect the images parameter
+              if (imageResult.images.length > 0) {
+                await abortable(
+                  activeSession.prompt(promptSubmission.prompt, { images: imageResult.images }),
+                );
+              } else {
+                await abortable(activeSession.prompt(promptSubmission.prompt));
+              }
             }
-            rewriteSubmittedPromptTranscript({
-              sessionManager,
-              sessionFile: params.sessionFile,
-              previousLeafId: transcriptLeafId,
-              submittedPrompt: effectivePrompt,
-              transcriptPrompt: params.transcriptPrompt,
-            });
           }
         } catch (err) {
           yieldAborted =

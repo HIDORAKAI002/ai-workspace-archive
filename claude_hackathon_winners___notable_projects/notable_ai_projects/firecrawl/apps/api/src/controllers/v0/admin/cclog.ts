@@ -46,7 +46,15 @@ async function cclog() {
       }
 
       try {
-        await supabase_service.from("concurrency_log").insert(entries);
+        const { error } = await supabase_service
+          .from("concurrency_log")
+          .insert(entries);
+        if (error) {
+          logger.error("Error inserting", {
+            error,
+            entryCount: entries.length,
+          });
+        }
       } catch (e) {
         logger.error("Error inserting", { error: e });
       }

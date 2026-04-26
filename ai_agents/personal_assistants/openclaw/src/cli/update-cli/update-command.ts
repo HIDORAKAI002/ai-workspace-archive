@@ -43,15 +43,14 @@ import {
 } from "../../infra/update-global.js";
 import { runGatewayUpdate, type UpdateRunResult } from "../../infra/update-runner.js";
 import {
-  loadPluginInstallRecords,
-  PLUGIN_INSTALLS_CONFIG_PATH,
+  loadInstalledPluginIndexInstallRecords,
   withoutPluginInstallRecords,
-  writePersistedPluginInstallLedger,
   withPluginInstallRecords,
-} from "../../plugins/install-ledger-store.js";
+} from "../../plugins/installed-plugin-index-records.js";
 import { syncPluginsForUpdateChannel, updateNpmInstalledPlugins } from "../../plugins/update.js";
 import { runCommandWithTimeout } from "../../process/exec.js";
 import { defaultRuntime } from "../../runtime.js";
+import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { stylePromptMessage } from "../../terminal/prompt-style.js";
 import { theme } from "../../terminal/theme.js";
 import { pathExists } from "../../utils.js";
@@ -64,6 +63,7 @@ import {
   terminateStaleGatewayPids,
   waitForGatewayHealthyRestart,
 } from "../daemon-cli/restart-health.js";
+import { commitPluginInstallRecordsWithConfig } from "../plugins-install-record-commit.js";
 import { listPersistedBundledPluginLocationBridges } from "../plugins-location-bridges.js";
 import { refreshPluginRegistryAfterConfigMutation } from "../plugins-registry-refresh.js";
 import { createUpdateProgress, printResult } from "./progress.js";
@@ -584,9 +584,7 @@ async function updatePluginsAfterCoreUpdate(params: {
     defaultRuntime.log(theme.heading("Updating plugins..."));
   }
 
-  const pluginInstallRecords = await loadPluginInstallRecords({
-    config: params.configSnapshot.sourceConfig,
-  });
+  const pluginInstallRecords = await loadInstalledPluginIndexInstallRecords();
   const syncResult = await syncPluginsForUpdateChannel({
     config: withPluginInstallRecords(params.configSnapshot.sourceConfig, pluginInstallRecords),
     channel: params.channel,
@@ -630,17 +628,19 @@ async function updatePluginsAfterCoreUpdate(params: {
   pluginConfig = npmResult.config;
 
   if (syncResult.changed || npmResult.changed) {
-    await writePersistedPluginInstallLedger(pluginConfig.plugins?.installs ?? {});
+    const nextInstallRecords = pluginConfig.plugins?.installs ?? {};
     const nextConfig = withoutPluginInstallRecords(pluginConfig);
-    await replaceConfigFile({
+    await commitPluginInstallRecordsWithConfig({
+      previousInstallRecords: pluginInstallRecords,
+      nextInstallRecords,
       nextConfig,
       baseHash: params.configSnapshot.hash,
-      writeOptions: { unsetPaths: [Array.from(PLUGIN_INSTALLS_CONFIG_PATH)] },
     });
     await refreshPluginRegistryAfterConfigMutation({
       config: nextConfig,
       reason: "source-changed",
       workspaceDir: params.root,
+      installRecords: nextInstallRecords,
       logger: pluginLogger,
     });
   }
@@ -749,7 +749,7 @@ async function maybeRestartService(params: {
   gatewayPort: number;
   restartScriptPath?: string | null;
   invocationCwd?: string;
-}): Promise<void> {
+}): Promise<boolean> {
   if (params.shouldRestart) {
     if (!params.opts.json) {
       defaultRuntime.log("");
@@ -757,6 +757,9 @@ async function maybeRestartService(params: {
     }
 
     try {
+      const expectedGatewayVersion = isPackageManagerUpdateMode(params.result.mode)
+        ? normalizeOptionalString(params.result.after?.version)
+        : undefined;
       let restarted = false;
       let restartInitiated = false;
       if (params.refreshServiceEnv) {
@@ -775,6 +778,9 @@ async function maybeRestartService(params: {
             defaultRuntime.error(message);
           } else {
             defaultRuntime.log(theme.warn(message));
+          }
+          if (isPackageManagerUpdateMode(params.result.mode)) {
+            return false;
           }
         }
       }
@@ -807,6 +813,7 @@ async function maybeRestartService(params: {
         let health = await waitForGatewayHealthyRestart({
           service,
           port: params.gatewayPort,
+          expectedVersion: expectedGatewayVersion,
         });
         if (!health.healthy && health.staleGatewayPids.length > 0) {
           if (!params.opts.json) {
@@ -821,6 +828,7 @@ async function maybeRestartService(params: {
           health = await waitForGatewayHealthyRestart({
             service,
             port: params.gatewayPort,
+            expectedVersion: expectedGatewayVersion,
           });
         }
 
@@ -841,6 +849,9 @@ async function maybeRestartService(params: {
           );
         }
         defaultRuntime.log("");
+        if (!health.healthy && (health.versionMismatch || health.activatedPluginErrors?.length)) {
+          return false;
+        }
       }
     } catch (err) {
       if (!params.opts.json) {
@@ -852,7 +863,7 @@ async function maybeRestartService(params: {
         );
       }
     }
-    return;
+    return true;
   }
 
   if (!params.opts.json) {
@@ -871,6 +882,7 @@ async function maybeRestartService(params: {
       );
     }
   }
+  return true;
 }
 
 async function runPostCorePluginUpdate(params: {
@@ -1424,7 +1436,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       skipPrompt: Boolean(opts.yes),
     });
 
-    await maybeRestartService({
+    const restartOk = await maybeRestartService({
       shouldRestart,
       result,
       opts,
@@ -1433,6 +1445,10 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       restartScriptPath,
       invocationCwd,
     });
+    if (!restartOk) {
+      defaultRuntime.exit(1);
+      return;
+    }
   }
 
   if (!opts.json) {
