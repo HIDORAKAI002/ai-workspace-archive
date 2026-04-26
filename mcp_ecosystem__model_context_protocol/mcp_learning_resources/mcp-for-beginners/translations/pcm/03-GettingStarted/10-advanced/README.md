@@ -1,13 +1,13 @@
 # Advanced server usage
 
-Dem get two types server wey dey inside MCP SDK, normal server and low-level server. Normally, you go use the normal server add features for am. But for some cases, you go want use the low-level server like:
+Dem get two kain servers wey dey inside MCP SDK, your normal server and di low-level server. Normally, you go use di regular server to add features join. But for some cases, you go want use di low-level server like:
 
-- Better architecture. E fit possible to build clean architecture wit both the normal server and low-level server but some pipu fit talk sey e easy small for low-level server.
-- Feature availability. Some advanced features fit only work wit low-level server. You go see dis for the next chapters as we add sampling and elicitation.
+- Better architecture. E possible to create clean architecture with both regular server and low-level server but e fit be say e small better with low-level server.
+- Feature availability. Some advanced features fit only work with low-level server. You go see dis for later chapters as we add sampling and elicitation.
 
-## Normal server vs low-level server
+## Regular server vs low-level server
 
-Dis na how e look wen you create MCP Server wit normal server
+Dis na how e be to create MCP Server with regular server
 
 **Python**
 
@@ -29,7 +29,7 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// Add one add tool
+// Add one addition tool
 server.registerTool("add",
   {
     title: "Addition Tool",
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-The main tins be sey you dey add every tool, resource or prompt wey you want make server get. No wahala wit dat. 
+Di koko be say you need add every tool, resource or prompt wey you want server get explicitly. No wahala with dat.  
 
-### Low-level server way
+### Low-level server approach
 
-But if you use low-level server way, you go need think am different. Instead make you dey register every tool, you go dey create two handlers for each feature type (tools, resources or prompts). Like for tools, e go get two functions:
+But if you use low-level server approach, you for dey think am differently. Instead of you dey register every tool, you go create two handlers per feature type (tools, resources or prompts). So for example tools go get only two functions like dis:
 
-- To list all tools. One function go dey responsible for all di times wey you wan list tools.
-- To handle call all tools. Here e still one function wey dey handle tool call.
+- Listing all tools. One function go dey handle all attempts to list tools.
+- handle calling all tools. Here sef, na only one function dey handle calls to tool
 
-E mean sey e fit be less work na? So instead make I dey register tool, I just go make sure say the tool dey inside tools list when I list all tools and call am when request drop to call tool.
+E dey sound like less wahala no be? So instead of you dey register tool, na to make sure say tool dey listed anytime I list all tools and make sure say dem dey call am when request come to call tool. 
 
-Make we see how di code dey now:
+Make we see how di code now look:
 
 **Python**
 
@@ -81,15 +81,15 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Comot di list of registered tools
+  // Return di list of regista tool dem
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Now we get function wey dey return list of features. Every tool for tools list get fields like `name`, `description` and `inputSchema` wey go follow di return type. Dis one make us fit put tools and feature definitions for other place dem. We fit create all tools inside tools folder and same for features dem, so project go fit dey organized like:
+Here now we get one function wey dey return list of features. Each tool wey dey inside tools list now get fields like `name`, `description` and `inputSchema` to follow di return type. Dis one make us fit put our tools and feature definition for anywhere. We fit now create all our tools for tools folder and di same thing go happen for all your features so your project fit sudden be organized like dis:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Chiney, our architecture fit dey clean.
+E sweet wella, our architecture fit look very clean.
 
-How about di tools call, na di same approach? One handler to call any tool? Yes, na so e be, here na di code:
+How e be for calling tools, na the same idea be dat, one handler to call any tool? Yes na, dis na di code for dat:
 
 **Python**
 
@@ -158,7 +158,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     
     // args: request.params.arguments
-    // TODO call di tool,
+    // TODO make we call the tool,
 
     return {
        content: [{ type: "text", text: `Tool ${name} called with arguments: ${JSON.stringify(input)}, result: ${JSON.stringify(result)}` }]
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-From di code, we need parse tool to call and di arguments, then go call di tool.
+As you fit see from di code, we need to parse di tool wey we go call, plus the arguments, then we go dey go call tool.
 
-## Make di way beta wit validation
+## Improving the approach with validation
 
-So far, you don see how to replace all your registrations wey dey add tools, resources and prompts wit two handlers for every feature type. Wetin we go do next? We suppose add validation make sure say tool call get correct arguments. Every runtime get their solution, Python dey use Pydantic, TypeScript dey use Zod. Idea be to do di following:
+So far, you don see how all your registrations to add tools, resources and prompts fit replace with these two handlers per feature type. Wetin else we gats do? Well, we suppose add some kain validation to make sure say di tool dey called with correct arguments. Each runtime get their own way for dat, for example Python dey use Pydantic and TypeScript dey use Zod. Di idea na say we go do thiings like:
 
-- Move logic for creating feature (tool, resource or prompt) to im own folder.
-- Add way to validate request wey wan call tool.
+- Move di logic to create a feature (tool, resource or prompt) go inside the folder wey e belong.
+- Add way to validate incoming request wey want call tool.
 
-### Create feature
+### Create a feature
 
-To create feature, you need create file for dat feature and make sure e get required fields. Some fields dey different for tools, resources and prompts.
+To create feature, we go create file for dat feature and make sure say e get di fields wey di feature need. Di fields fit differ small between tools, resources and prompts.
 
 **Python**
 
@@ -195,7 +195,7 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Make sure say the input correct using Pydantic model
+        # Check and confirm input wit Pydantic model
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
@@ -213,21 +213,21 @@ tool_add = {
 }
 ```
 
-Here you fit see how we do:
+here you fit see how we do di following:
 
-- Create schema wit Pydantic `AddInputModel` get fields `a` and `b` inside *schema.py*.
-- Try parse incoming request to type `AddInputModel`, if parameters no match, e go crash:
+- Create schema using Pydantic `AddInputModel` with fields `a` and `b` for file *schema.py*.
+- Try to parse incoming request make e be type `AddInputModel`, if parameters no match e go crash:
 
    ```python
    # add.py
     try:
-        # Check say input dey correct wit Pydantic model
+        # Make sure say input correct wit Pydantic model
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-You fit choose to put this parsing code inside tool call or handler function.
+You fit decide to put dis parsing logic for inside tool call or for handler function.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- Inside handler wey dey handle all tool call, we dey try parse incoming request with tool schema:
+- For di handler wey dey deal with all tool calls, we go try parse incoming request into tool's schema:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-  If e work, we go proceed call actual tool:
+    if dis work then we proceed call di actual tool:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-From this approach, e create clear architecture as every tins dey their place. *server.ts* be small file wey just connect handlers and feature dey their own folders like tools/, resources/ or /prompts/.
+As you fit see, dis approach go create correct architecture as everything go dey where e suppose dey, *server.ts* na small file wey only connect request handlers and every feature dey their own folder like tools/, resources/ or /prompts.
 
-Sharp, make we try build this next.
+Correct, make we try build dis next.
 
 ## Exercise: Creating a low-level server
 
 For dis exercise, we go do:
 
-1. Create low-level server to handle listing and calling of tools.
-1. Implement architecture wey you fit build on top.
-1. Add validation to make sure tool calls dey validated well.
+1. Create low-level server wey go handle listing tools and calling tools.
+1. Implement architecture wey you fit build upon.
+1. Add validation to sure say your tool calls dey validated well.
 
-### -1- Create architecture
+### -1- Create an architecture
 
-First ting, we need architecture wey fit help us scale as we add more features, e go be like:
+Di first thing we need na architecture wey go help us scale as we add more features, dis na how e be:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Now we don arrange architecture wey make am easy to add new tools inside tools folder. You fit add subdirectories for resources and prompts as you like.
+Now we don setup architecture wey go make am easy to add new tools inside tools folder. Feel free to follow dis to add subdirectories for resources and prompts.
 
-### -2- Create tool
+### -2- Creating a tool
 
-Make we see how to create tool next. First, you go create am inside *tool* subdirectory like:
+Make we see how e be to create tool next. First, e need to dey inside *tool* subdirectory like dis:
 
 **Python**
 
@@ -353,12 +353,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Check di input wit Pydantic model
+        # Check input wit Pydantic model
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: add Pydantic, make we fit create AddInputModel and check di args
+    # TODO: add Pydantic, make we fit create AddInputModel and check args
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Here we define name, description and input schema wit Pydantic, plus handler wey go run when tool dey called. Last last, we expose `tool_add` wey be dictionary holding all dis things.
+Wetin we see here na how we define name, description, and input schema with Pydantic and handler wey go run anytime dis tool call. Finally, we expose `tool_add` wey be dictionary holding all dis properties.
 
-Also, *schema.py* dey to define input schema wey tool go use:
+Also we get *schema.py* wey define input schema wey our tool go use:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-We need also fill *__init__.py* make sure tools directory dey treated as module. We also expose modules inside am like dis:
+We also gats update *__init__.py* to make sure tools directory dey serve as module. Plus, we go expose modules inside am like dis:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-We fit still keep adding to this file as we add more tools.
+We fit still dey add more tools to dis file as we dey add more.
 
 **TypeScript**
 
@@ -416,12 +416,12 @@ export default {
 
 Here we create dictionary wey get properties:
 
-- name, na tool name.
-- rawSchema, na Zod schema wey go validate incoming request to call tool.
-- inputSchema, schema wey handler go use.
-- callback, na function wey go run tool.
+- name, na name of tool be dat.
+- rawSchema, dis na Zod schema, e go check if incoming request for call tool dey valid.
+- inputSchema, tool handler go use dis schema.
+- callback, dis na function to run tool.
 
-We also get `Tool` wey convert dictionary to type wey mcp server handler fit accept, e be like:
+We still get `Tool` wey convert dictionary into type wey mcp server handler fit accept and e be like dis:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-And *schema.ts* be place wey we keep input schemas for tools. Dis schema get one tool now but as we add more tools, we fit add more:
+We get *schema.ts* wey hold input schemas for each tool, e be like dis with only one schema so far but as we add tools we fit add more entries:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Cool, make we continue to handle tool listing.
+Correct, make we continue to handle listing of our tools next.
 
 ### -3- Handle tool listing
 
-To handle list tools, we set request handler for am. Inside server file, we add:
+Next, to handle tool listing, we need set request handler for dat. Dis na wetin we add to server file:
 
 **Python**
 
 ```python
-# code no show make e short
+# kod don comot make e short
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Here we add decorator `@server.list_tools` and function `handle_list_tools`. Inside, we produce list of tools. Make sure each tool get name, description and inputSchema.
+Here, we add decorator `@server.list_tools` and function `handle_list_tools` to implement am. Dis one need produce list of tools. Make sure each tool get name, description and inputSchema.   
 
 **TypeScript**
 
-To set request handler for listing tools, we call `setRequestHandler` on server with correct schema, which is `ListToolsRequestSchema` for this case.
+To set request handler to list tools, we call `setRequestHandler` on server with schema wey describe wetin we wan do, for dis case `ListToolsRequestSchema`. 
 
 ```typescript
 // index.ts
@@ -488,26 +488,26 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// code we comot make e short
+// code dem no put for here make e short
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Comot give back di list of tools wey don register
+  // Return di list of tools wey dem don register
   return {
     tools: tools
   };
 });
 ```
 
-Cool, now we don handle list tools, make we see how call tools go look.
+Good, now we don solve listing tools, make we look how we fit call tools next.
 
 ### -4- Handle calling a tool
 
-To call tool, we need another request handler that fit handle request wey talk which tool to call and with which arguments.
+To call tool, we set another request handler, dis time to handle request wey talk which feature to call and which arguments.
 
 **Python**
 
-Make we use decorator `@server.call_tool` and implement wit function like `handle_call_tool`. Inside, we parse tool name and arguments, make sure arguments correct for tool. We fit validate arguments here or inside tool itself.
+Make we use decorator `@server.call_tool` and implement with function like `handle_call_tool`. Inside this function, we go parse tool name, im arguments and make sure say arguments correct for that tool. We fit validate arguments for dis function or inside the real tool.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools na one kain dictionary wey get tool names as keys
+    # tools na dictionary wey get tool names as keys
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -523,37 +523,37 @@ async def handle_call_tool(
 
     result = "default"
     try:
-        # make you use the tool
+        # make you call the tool
         result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)
     except Exception as e:
         raise ValueError(f"Error calling tool {name}: {str(e)}")
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-Here na wetin dey happen:
+Dis na wetin dey happen:
 
-- Tool name dey input parameter `name`. Arguments dey inside `arguments` dictionary.
+- Our tool name already dey as input parameter `name` wey true for our arguments for `arguments` dictionary.
 
-- Tool dey called wit `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Argument validation dey inside `handler` function, if e fail, e go throw exception.
+- Tool go run with `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Di validation dey inside `handler` property wey point to function, if dis one fail e go throw error. 
 
-Now we sabi how to list and call tools wit low-level server.
+There, now we understand well how to list and call tools using low-level server.
 
-See [full example](./code/README.md) here
+See di [full example](./code/README.md) here
 
 ## Assignment
 
-Add more tools, resources and prompt to di code. Notice sey you go only add files inside tools directory, no need add anywhere else.
+Add more tools, resources and prompt to di code wey dem give you and observe how you only need add files for tools directory and no other place. 
 
 *No solution given*
 
 ## Summary
 
-For dis chapter, we see how low-level server approach work and how e fit help build nice architecture we go fit expand. We also talk about validation and show how to use validation libraries to create schemas for input validation.
+For dis chapter, we don see how low-level server approach dey work and how e fit help build better architecture we fit continue to add on top. We sef talk about validation and you see how to use validation libraries create schemas for input validation.
 
-## Wetin Dekam
+## What's Next
 
 - Next: [Simple Authentication](../11-simple-auth/README.md)
 
@@ -561,5 +561,5 @@ For dis chapter, we see how low-level server approach work and how e fit help bu
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:  
-Dis dokument don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am accurate, abeg make you sabi say automated translations fit get error or wahala. Di original dokument for im own language na di correct source. If na important info, make person wey sabi human translation do am. We no go responsible for any confusion or wrong meaning wey fit come from using dis translation.
+Dis document don be translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even as we dey try make am correct, abeg sabi say automated translations fit get some yawa or incorrect tins. The original document wey e dey for im native language na the correct one wey you suppose trust. For important tins, better make person wey sabi translate am do am. We no go responsible for any misunderstanding or wrong interpretation wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
