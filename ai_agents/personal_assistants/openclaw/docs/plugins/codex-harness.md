@@ -20,6 +20,33 @@ If you are trying to orient yourself, start with
 `openai/gpt-5.5` is the model ref, `codex` is the runtime, and Telegram,
 Discord, Slack, or another channel remains the communication surface.
 
+## What this plugin changes
+
+The bundled `codex` plugin contributes several separate capabilities:
+
+| Capability                        | How you use it                                      | What it does                                                                  |
+| --------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Native embedded runtime           | `embeddedHarness.runtime: "codex"`                  | Runs OpenClaw embedded agent turns through Codex app-server.                  |
+| Native chat-control commands      | `/codex bind`, `/codex resume`, `/codex steer`, ... | Binds and controls Codex app-server threads from a messaging conversation.    |
+| Codex app-server provider/catalog | `codex` internals, surfaced through the harness     | Lets the runtime discover and validate app-server models.                     |
+| Codex media-understanding path    | `codex/*` image-model compatibility paths           | Runs bounded Codex app-server turns for supported image understanding models. |
+| Native hook relay                 | Plugin hooks around Codex-native events             | Lets OpenClaw observe/block supported Codex-native tool/finalization events.  |
+
+Enabling the plugin makes those capabilities available. It does **not**:
+
+- start using Codex for every OpenAI model
+- convert `openai-codex/*` model refs into the native runtime
+- make ACP/acpx the default Codex path
+- hot-switch existing sessions that already recorded a PI runtime
+- replace OpenClaw channel delivery, session files, auth-profile storage, or
+  message routing
+
+The same plugin also owns the native `/codex` chat-control command surface. If
+the plugin is enabled and the user asks to bind, resume, steer, stop, or inspect
+Codex threads from chat, agents should prefer `/codex ...` over ACP. ACP remains
+the explicit fallback when the user asks for ACP/acpx or is testing the ACP
+Codex adapter.
+
 Native Codex turns keep OpenClaw plugin hooks as the public compatibility layer.
 These are in-process OpenClaw hooks, not Codex `hooks.json` command hooks:
 
@@ -28,6 +55,7 @@ These are in-process OpenClaw hooks, not Codex `hooks.json` command hooks:
 - `llm_input`, `llm_output`
 - `before_tool_call`, `after_tool_call`
 - `before_message_write` for mirrored transcript records
+- `before_agent_finalize` through Codex `Stop` relay
 - `agent_end`
 
 Plugins can also register runtime-neutral tool-result middleware to rewrite
@@ -45,6 +73,32 @@ canonical as `openai/gpt-*` and explicitly force
 want native app-server execution. Legacy `codex/*` model refs still auto-select
 the harness for compatibility, but runtime-backed legacy provider prefixes are
 not shown as normal model/provider choices.
+
+If the `codex` plugin is enabled but the primary model is still
+`openai-codex/*`, `openclaw doctor` warns instead of changing the route. That is
+intentional: `openai-codex/*` remains the PI Codex OAuth/subscription path, and
+native app-server execution stays an explicit runtime choice.
+
+## Route map
+
+Use this table before changing config:
+
+| Desired behavior                            | Model ref                  | Runtime config                         | Plugin requirement          | Expected status label          |
+| ------------------------------------------- | -------------------------- | -------------------------------------- | --------------------------- | ------------------------------ |
+| OpenAI API through normal OpenClaw runner   | `openai/gpt-*`             | omitted or `runtime: "pi"`             | OpenAI provider             | `Runtime: OpenClaw Pi Default` |
+| Codex OAuth/subscription through PI         | `openai-codex/gpt-*`       | omitted or `runtime: "pi"`             | OpenAI Codex OAuth provider | `Runtime: OpenClaw Pi Default` |
+| Native Codex app-server embedded turns      | `openai/gpt-*`             | `embeddedHarness.runtime: "codex"`     | `codex` plugin              | `Runtime: OpenAI Codex`        |
+| Mixed providers with conservative auto mode | provider-specific refs     | `runtime: "auto", fallback: "pi"`      | Optional plugin runtimes    | Depends on selected runtime    |
+| Explicit Codex ACP adapter session          | ACP prompt/model dependent | `sessions_spawn` with `runtime: "acp"` | healthy `acpx` backend      | ACP task/session status        |
+
+The important split is provider versus runtime:
+
+- `openai-codex/*` answers "which provider/auth route should PI use?"
+- `embeddedHarness.runtime: "codex"` answers "which loop should execute this
+  embedded turn?"
+- `/codex ...` answers "which native Codex conversation should this chat bind
+  or control?"
+- ACP answers "which external harness process should acpx launch?"
 
 ## Pick the right model prefix
 
@@ -84,6 +138,25 @@ and inspect the gateway's structured `agent harness selected` record. It
 includes the selected harness id, selection reason, runtime/fallback policy, and,
 in `auto` mode, each plugin candidate's support result.
 
+### What doctor warnings mean
+
+`openclaw doctor` warns when all of these are true:
+
+- the bundled `codex` plugin is enabled or allowed
+- an agent's primary model is `openai-codex/*`
+- that agent's effective runtime is not `codex`
+
+That warning exists because users often expect "Codex plugin enabled" to imply
+"native Codex app-server runtime." OpenClaw does not make that leap. The warning
+means:
+
+- **No change is required** if you intended ChatGPT/Codex OAuth through PI.
+- Change the model to `openai/<model>` and set
+  `embeddedHarness.runtime: "codex"` if you intended native app-server
+  execution.
+- Existing sessions still need `/new` or `/reset` after a runtime change,
+  because session runtime pins are sticky.
+
 Harness selection is not a live session control. When an embedded turn runs,
 OpenClaw records the selected harness id on that session and keeps using it for
 later turns in the same session id. Change `embeddedHarness` config or
@@ -103,8 +176,9 @@ Codex after changing config.
 ## Requirements
 
 - OpenClaw with the bundled `codex` plugin available.
-- Codex app-server `0.125.0` or newer. Native MCP hook payloads landed in Codex
-  `0.124.0`; OpenClaw uses `0.125.0` as the tested support floor.
+- Codex app-server `0.125.0` or newer. The bundled plugin manages a compatible
+  Codex app-server binary by default, so local `codex` commands on `PATH` do
+  not affect normal harness startup.
 - Codex auth available to the app-server process.
 
 The plugin blocks older or unversioned app-server handshakes. That keeps
@@ -218,6 +292,25 @@ With this shape:
 - The `codex` agent uses the Codex app-server harness.
 - If Codex is missing or unsupported for the `codex` agent, the turn fails
   instead of quietly using PI.
+
+## Agent command routing
+
+Agents should route user requests by intent, not by the word "Codex" alone:
+
+| User asks for...                                         | Agent should use...                              |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| "Bind this chat to Codex"                                | `/codex bind`                                    |
+| "Resume Codex thread `<id>` here"                        | `/codex resume <id>`                             |
+| "Show Codex threads"                                     | `/codex threads`                                 |
+| "Use Codex as the runtime for this agent"                | config change to `embeddedHarness.runtime`       |
+| "Use my ChatGPT/Codex subscription with normal OpenClaw" | `openai-codex/*` model refs                      |
+| "Run Codex through ACP/acpx"                             | ACP `sessions_spawn({ runtime: "acp", ... })`    |
+| "Start Claude Code/Gemini/OpenCode/Cursor in a thread"   | ACP/acpx, not `/codex` and not native sub-agents |
+
+OpenClaw only advertises ACP spawn guidance to agents when ACP is enabled,
+dispatchable, and backed by a loaded runtime backend. If ACP is not available,
+the system prompt and plugin skills should not teach the agent about ACP
+routing.
 
 ## Codex-only deployments
 
@@ -340,11 +433,17 @@ fallback catalog:
 
 ## App-server connection and policy
 
-By default, the plugin starts Codex locally with:
+By default, the plugin starts OpenClaw's managed Codex binary locally with:
 
 ```bash
 codex app-server --listen stdio://
 ```
+
+The managed binary is declared as a bundled plugin runtime dependency and staged
+with the rest of the `codex` plugin dependencies. This keeps the app-server
+version tied to the bundled plugin instead of whichever separate Codex CLI
+happens to be installed locally. Set `appServer.command` only when you
+intentionally want to run a different executable.
 
 By default, OpenClaw starts local Codex harness sessions in YOLO mode:
 `approvalPolicy: "never"`, `approvalsReviewer: "user"`, and
@@ -414,7 +513,7 @@ Supported `appServer` fields:
 | Field               | Default                                  | Meaning                                                                                                      |
 | ------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `transport`         | `"stdio"`                                | `"stdio"` spawns Codex; `"websocket"` connects to `url`.                                                     |
-| `command`           | `"codex"`                                | Executable for stdio transport.                                                                              |
+| `command`           | managed Codex binary                     | Executable for stdio transport. Leave unset to use the managed binary; set it only for an explicit override. |
 | `args`              | `["app-server", "--listen", "stdio://"]` | Arguments for stdio transport.                                                                               |
 | `url`               | unset                                    | WebSocket app-server URL.                                                                                    |
 | `authToken`         | unset                                    | Bearer token for WebSocket transport.                                                                        |
@@ -426,14 +525,16 @@ Supported `appServer` fields:
 | `approvalsReviewer` | `"user"`                                 | Use `"auto_review"` to let Codex review native approval prompts. `guardian_subagent` remains a legacy alias. |
 | `serviceTier`       | unset                                    | Optional Codex app-server service tier: `"fast"`, `"flex"`, or `null`. Invalid legacy values are ignored.    |
 
-The older environment variables still work as fallbacks for local testing when
-the matching config field is unset:
+Environment overrides remain available for local testing:
 
 - `OPENCLAW_CODEX_APP_SERVER_BIN`
 - `OPENCLAW_CODEX_APP_SERVER_ARGS`
 - `OPENCLAW_CODEX_APP_SERVER_MODE=yolo|guardian`
 - `OPENCLAW_CODEX_APP_SERVER_APPROVAL_POLICY`
 - `OPENCLAW_CODEX_APP_SERVER_SANDBOX`
+
+`OPENCLAW_CODEX_APP_SERVER_BIN` bypasses the managed binary when
+`appServer.command` is unset.
 
 `OPENCLAW_CODEX_APP_SERVER_GUARDIAN=1` was removed. Use
 `plugins.entries.codex.config.appServer.mode: "guardian"` instead, or
@@ -568,10 +669,10 @@ The Codex harness has three hook layers:
 
 OpenClaw does not use project or global Codex `hooks.json` files to route
 OpenClaw plugin behavior. For the supported native tool and permission bridge,
-OpenClaw injects per-thread Codex config for `PreToolUse`, `PostToolUse`, and
-`PermissionRequest`. Other Codex hooks such as `SessionStart`,
-`UserPromptSubmit`, and `Stop` remain Codex-level controls; they are not exposed
-as OpenClaw plugin hooks in the v1 contract.
+OpenClaw injects per-thread Codex config for `PreToolUse`, `PostToolUse`,
+`PermissionRequest`, and `Stop`. Other Codex hooks such as `SessionStart` and
+`UserPromptSubmit` remain Codex-level controls; they are not exposed as
+OpenClaw plugin hooks in the v1 contract.
 
 For OpenClaw dynamic tools, OpenClaw executes the tool after Codex asks for the
 call, so OpenClaw fires the plugin and middleware behavior it owns in the
@@ -607,6 +708,7 @@ Supported in Codex runtime v1:
 | Context engine lifecycle                      | Supported                               | Assemble, ingest or after-turn maintenance, and context-engine compaction coordination run for Codex turns.                                                                                           |
 | Dynamic tool hooks                            | Supported                               | `before_tool_call`, `after_tool_call`, and tool-result middleware run around OpenClaw-owned dynamic tools.                                                                                            |
 | Lifecycle hooks                               | Supported as adapter observations       | `llm_input`, `llm_output`, `agent_end`, `before_compaction`, and `after_compaction` fire with honest Codex-mode payloads.                                                                             |
+| Final-answer revision gate                    | Supported through the native hook relay | Codex `Stop` is relayed to `before_agent_finalize`; `revise` asks Codex for one more model pass before finalization.                                                                                  |
 | Native shell, patch, and MCP block or observe | Supported through the native hook relay | Codex `PreToolUse` and `PostToolUse` are relayed for committed native tool surfaces, including MCP payloads on Codex app-server `0.125.0` or newer. Blocking is supported; argument rewriting is not. |
 | Native permission policy                      | Supported through the native hook relay | Codex `PermissionRequest` can be routed through OpenClaw policy where the runtime exposes it. If OpenClaw returns no decision, Codex continues through its normal guardian or user approval path.     |
 | App-server trajectory capture                 | Supported                               | OpenClaw records the request it sent to app-server and the app-server notifications it receives.                                                                                                      |
@@ -620,7 +722,6 @@ Not supported in Codex runtime v1:
 | `tool_result_persist` for Codex-native tool records | That hook transforms OpenClaw-owned transcript writes, not Codex-native tool records.                                                           | Could mirror transformed records, but canonical rewrite needs Codex support.              |
 | Rich native compaction metadata                     | OpenClaw observes compaction start and completion, but does not receive a stable kept/dropped list, token delta, or summary payload.            | Needs richer Codex compaction events.                                                     |
 | Compaction intervention                             | Current OpenClaw compaction hooks are notification-level in Codex mode.                                                                         | Add Codex pre/post compaction hooks if plugins need to veto or rewrite native compaction. |
-| Stop or final-answer gating                         | Codex has native stop hooks, but OpenClaw does not expose final-answer gating as a v1 plugin contract.                                          | Future opt-in primitive with loop and timeout safeguards.                                 |
 | Byte-for-byte model API request capture             | OpenClaw can capture app-server requests and notifications, but Codex core builds the final OpenAI API request internally.                      | Needs a Codex model-request tracing event or debug API.                                   |
 
 ## Tools, media, and compaction

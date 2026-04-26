@@ -508,6 +508,11 @@ runtime loads. Read-only channel setup/status discovery can use this metadata
 directly for configured external channels when no setup entry is available, or
 when `setup.requiresRuntime: false` declares setup runtime unnecessary.
 
+`channelConfigs` is plugin manifest metadata, not a new top-level user config
+section. Users still configure channel instances under `channels.<channel-id>`.
+OpenClaw reads manifest metadata to decide which plugin owns that configured
+channel before plugin runtime code executes.
+
 For a channel plugin, `configSchema` and `channelConfigs` describe different
 paths:
 
@@ -553,6 +558,43 @@ Each channel entry can include:
 | `label`       | `string`                 | Channel label merged into picker and inspect surfaces when runtime metadata is not ready. |
 | `description` | `string`                 | Short channel description for inspect and catalog surfaces.                               |
 | `preferOver`  | `string[]`               | Legacy or lower-priority plugin ids this channel should outrank in selection surfaces.    |
+
+### Replacing another channel plugin
+
+Use `preferOver` when your plugin is the preferred owner for a channel id that
+another plugin can also provide. Common cases are a renamed plugin id, a
+standalone plugin that supersedes a bundled plugin, or a maintained fork that
+keeps the same channel id for config compatibility.
+
+```json
+{
+  "id": "acme-chat",
+  "channels": ["chat"],
+  "channelConfigs": {
+    "chat": {
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "webhookUrl": { "type": "string" }
+        }
+      },
+      "preferOver": ["chat"]
+    }
+  }
+}
+```
+
+When `channels.chat` is configured, OpenClaw considers both the channel id and
+the preferred plugin id. If the lower-priority plugin was only selected because
+it is bundled or enabled by default, OpenClaw disables it in the effective
+runtime config so one plugin owns the channel and its tools. Explicit user
+selection still wins: if the user explicitly enables both plugins, OpenClaw
+preserves that choice and reports duplicate channel/tool diagnostics instead of
+silently changing the requested plugin set.
+
+Keep `preferOver` scoped to plugin ids that can really provide the same channel.
+It is not a general priority field and it does not rename user config keys.
 
 ## modelSupport reference
 
@@ -666,7 +708,7 @@ Model fields:
 | `api`           | `ModelApi`                                                     | Optional per-model API override.                                            |
 | `baseUrl`       | `string`                                                       | Optional per-model base URL override.                                       |
 | `headers`       | `Record<string, string>`                                       | Optional per-model static headers.                                          |
-| `input`         | `Array<"text" \| "image" \| "document">`                       | Modalities the model accepts.                                               |
+| `input`         | `Array<"text" \| "image" \| "document" \| "audio" \| "video">` | Modalities the model accepts.                                               |
 | `reasoning`     | `boolean`                                                      | Whether the model exposes reasoning behavior.                               |
 | `contextWindow` | `number`                                                       | Native provider context window.                                             |
 | `contextTokens` | `number`                                                       | Optional effective runtime context cap when different from `contextWindow`. |
@@ -682,6 +724,30 @@ Model fields:
 Do not put runtime-only data in `modelCatalog`. If a provider needs account
 state, an API request, or local process discovery to know the complete model
 set, declare that provider as `refreshable` or `runtime` in `discovery`.
+
+### OpenClaw Provider Index
+
+The OpenClaw Provider Index is OpenClaw-owned preview metadata for providers
+whose plugins may not be installed yet. It is not part of a plugin manifest.
+Plugin manifests remain the installed-plugin authority. The Provider Index is
+the internal fallback contract that future installable-provider and pre-install
+model picker surfaces will consume when a provider plugin is not installed.
+
+Catalog authority order:
+
+1. User config.
+2. Installed plugin manifest `modelCatalog`.
+3. Model catalog cache from explicit refresh.
+4. OpenClaw Provider Index preview rows.
+
+The Provider Index must not contain secrets, enabled state, runtime hooks, or
+live account-specific model data. Its preview catalogs use the same
+`modelCatalog` provider row shape as plugin manifests, but should stay limited
+to stable display metadata unless runtime adapter fields such as `api`,
+`baseUrl`, pricing, or compatibility flags are intentionally kept aligned with
+the installed plugin manifest. Providers with live `/models` discovery should
+write refreshed rows through the explicit model catalog cache path instead of
+making normal listing or onboarding call provider APIs.
 
 Legacy top-level capability keys are deprecated. Use `openclaw doctor --fix` to
 move `speechProviders`, `realtimeTranscriptionProviders`,
