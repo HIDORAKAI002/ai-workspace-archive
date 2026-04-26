@@ -70,6 +70,7 @@ cat ~/.openclaw/openclaw.json
 - Legacy plugin manifest contract key migration (`speechProviders`, `realtimeTranscriptionProviders`, `realtimeVoiceProviders`, `mediaUnderstandingProviders`, `imageGenerationProviders`, `videoGenerationProviders`, `webFetchProviders`, `webSearchProviders` → `contracts`).
 - Legacy cron store migration (`jobId`, `schedule.cron`, top-level delivery/payload fields, payload `provider`, simple `notify: true` webhook fallback jobs).
 - Session lock file inspection and stale lock cleanup.
+- Session transcript repair for duplicated prompt-rewrite branches created by affected 2026.4.24 builds.
 - State integrity and permissions checks (sessions, transcripts, state dir).
 - Config file permission checks (chmod 600) when running locally.
 - Model auth health: checks OAuth expiry, can refresh expiring tokens, and reports auth-profile cooldown/disabled states.
@@ -248,7 +249,7 @@ doctor prints platform-specific fix guidance. On macOS with a Homebrew Node, the
 fix is usually `brew postinstall ca-certificates`. With `--deep`, the probe runs
 even if the gateway is healthy.
 
-### 2c) Codex OAuth provider overrides
+### 2e) Codex OAuth provider overrides
 
 If you previously added legacy OpenAI transport settings under
 `models.providers.openai-codex`, they can shadow the built-in Codex OAuth
@@ -257,6 +258,28 @@ those old transport settings alongside Codex OAuth so you can remove or rewrite
 the stale transport override and get the built-in routing/fallback behavior
 back. Custom proxies and header-only overrides are still supported and do not
 trigger this warning.
+
+### 2f) Codex plugin route warnings
+
+When the bundled Codex plugin is enabled, doctor also checks whether
+`openai-codex/*` primary model refs still resolve through the default PI runner.
+That combination is valid when you want Codex OAuth/subscription auth through
+PI, but it is easy to confuse with the native Codex app-server harness. Doctor
+warns and points to the explicit app-server shape:
+`openai/*` plus `embeddedHarness.runtime: "codex"` or
+`OPENCLAW_AGENT_RUNTIME=codex`.
+
+Doctor does not repair this automatically because both routes are valid:
+
+- `openai-codex/*` + PI means "use Codex OAuth/subscription auth through the
+  normal OpenClaw runner."
+- `openai/*` + `runtime: "codex"` means "run the embedded turn through native
+  Codex app-server."
+- `/codex ...` means "control or bind a native Codex conversation from chat."
+- `/acp ...` or `runtime: "acp"` means "use the external ACP/acpx adapter."
+
+If the warning appears, choose the route you intended and edit config manually.
+Keep the warning as-is when PI Codex OAuth is intentional.
 
 ### 3) Legacy state migrations (disk layout)
 
@@ -316,6 +339,15 @@ the path, PID, whether the PID is still alive, lock age, and whether it is
 considered stale (dead PID or older than 30 minutes). In `--fix` / `--repair`
 mode it removes stale lock files automatically; otherwise it prints a note and
 instructs you to rerun with `--fix`.
+
+### 3d) Session transcript branch repair
+
+Doctor scans agent session JSONL files for the duplicated branch shape created
+by the 2026.4.24 prompt transcript rewrite bug: an abandoned user turn with
+OpenClaw internal runtime context plus an active sibling containing the same
+visible user prompt. In `--fix` / `--repair` mode, doctor backs up each affected
+file next to the original and rewrites the transcript to the active branch so
+gateway history and memory readers no longer see duplicate turns.
 
 ### 4) State integrity checks (session persistence, routing, and safety)
 
@@ -552,6 +584,9 @@ Notes:
 - If token auth requires a token and the configured token SecretRef is unresolved, doctor blocks the install/repair path with actionable guidance.
 - If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, doctor blocks install/repair until mode is set explicitly.
 - For Linux user-systemd units, doctor token drift checks now include both `Environment=` and `EnvironmentFile=` sources when comparing service auth metadata.
+- Doctor service repairs refuse to rewrite, stop, or restart a gateway service
+  from an older OpenClaw binary when the config was last written by a newer
+  version. See [Gateway troubleshooting](/gateway/troubleshooting#split-brain-installs-and-newer-config-guard).
 - You can always force a full rewrite via `openclaw gateway install --force`.
 
 ### 16) Gateway runtime + port diagnostics

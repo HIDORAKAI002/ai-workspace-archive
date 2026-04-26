@@ -31,6 +31,8 @@ export type RunEmbeddedPiAgentParams = {
   agentAccountId?: string;
   /** What initiated this agent run: "user", "heartbeat", "cron", "memory", "overflow", or "manual". */
   trigger?: EmbeddedRunTrigger;
+  /** Stable cron job identifier populated for cron-triggered runs. */
+  jobId?: string;
   /** Relative workspace path that memory-triggered writes are allowed to append to. */
   memoryFlushWritePath?: string;
   /** Delivery target for topic/thread routing. */
@@ -79,7 +81,7 @@ export type RunEmbeddedPiAgentParams = {
   config?: OpenClawConfig;
   skillsSnapshot?: SkillSnapshot;
   prompt: string;
-  /** User-visible prompt body to persist instead of runtime-enriched prompt text. */
+  /** User-visible prompt body to submit and persist; runtime context travels separately. */
   transcriptPrompt?: string;
   images?: ImageContent[];
   imageOrder?: PromptImageOrderEntry[];
@@ -140,6 +142,12 @@ export type RunEmbeddedPiAgentParams = {
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
   silentExpected?: boolean;
+  /**
+   * Treat a clean empty assistant stop as an intentional silent reply.
+   * Only set when the caller's prompt policy already allows an exact NO_REPLY
+   * final answer for silence.
+   */
+  allowEmptyAssistantReplyAsSilent?: boolean;
   authProfileFailurePolicy?: AuthProfileFailurePolicy;
   /**
    * Allow a single run attempt even when all auth profiles are in cooldown,

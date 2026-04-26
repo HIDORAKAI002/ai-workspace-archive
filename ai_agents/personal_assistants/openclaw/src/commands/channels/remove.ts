@@ -4,12 +4,9 @@ import {
   listChannelPlugins,
   normalizeChannelId,
 } from "../../channels/plugins/index.js";
+import { commitConfigWithPendingPluginInstalls } from "../../cli/plugins-install-record-commit.js";
+import { refreshPluginRegistryAfterConfigMutation } from "../../cli/plugins-registry-refresh.js";
 import { replaceConfigFile, type OpenClawConfig } from "../../config/config.js";
-import {
-  PLUGIN_INSTALLS_CONFIG_PATH,
-  withoutPluginInstallRecords,
-  writePersistedPluginInstallLedger,
-} from "../../plugins/install-ledger-store.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -180,16 +177,30 @@ export async function channelsRemoveCommand(
     next.plugins?.installs && Object.keys(next.plugins.installs).length > 0,
   );
   if (shouldMovePluginInstalls) {
-    await writePersistedPluginInstallLedger(next.plugins?.installs ?? {});
-    next = withoutPluginInstallRecords(next);
+    const committed = await commitConfigWithPendingPluginInstalls({
+      nextConfig: next,
+      ...(baseHash !== undefined ? { baseHash } : {}),
+    });
+    next = committed.config;
+    await refreshPluginRegistryAfterConfigMutation({
+      config: next,
+      reason: "source-changed",
+      installRecords: committed.installRecords,
+      logger: { warn: (message) => runtime.log(message) },
+    });
+  } else {
+    await replaceConfigFile({
+      nextConfig: next,
+      ...(baseHash !== undefined ? { baseHash } : {}),
+    });
+    if (resolvedPluginState?.pluginInstalled) {
+      await refreshPluginRegistryAfterConfigMutation({
+        config: next,
+        reason: "source-changed",
+        logger: { warn: (message) => runtime.log(message) },
+      });
+    }
   }
-  await replaceConfigFile({
-    nextConfig: next,
-    ...(baseHash !== undefined ? { baseHash } : {}),
-    ...(shouldMovePluginInstalls
-      ? { writeOptions: { unsetPaths: [Array.from(PLUGIN_INSTALLS_CONFIG_PATH)] } }
-      : {}),
-  });
   if (useWizard && prompter) {
     await prompter.outro(
       deleteConfig
