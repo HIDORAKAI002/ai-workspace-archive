@@ -1,20 +1,20 @@
-# အဆင့်မြင့် ဆာဗာ အသုံးပြုမှု
+# အဆင့်မြင့်ဆာဗာအသုံးပြုမှု
 
-MCP SDK မှာ နှစ်မျိုးရှိတဲ့ ဆာဗာတွေရှိပြီး အဲဒါတွေက သင့်ရဲ့ ပုံမှန်ဆာဗာနဲ့ အနိမ့်အဆင့်ဆာဗာ ဖြစ်တယ်။ ပုံမှန်အားဖြင့် ဂိုဏ်းအနေဖြင့် ပုံမှန်ဆာဗာကို အသုံးပြုပြီး စွမ်းဆောင်ချက်တွေ ထည့်ပေးလေ့ရှိတယ်။ သို့သော် အချို့အကြောင်းအရာတွေမှာ အနိမ့်အဆင့် ဆာဗာကို တွံ့ကြုံလိုချင်တာတွေ ရှိတတ်ပြီး ဥပမာတွေမှာ -
+MCP SDK တွင် ထွက်ရှိထားသော ဆာဗာနှစ်မျိုးရှိသည်၊ သင်၏ပုံမှန်ဆာဗာနှင့် အနိမ့်အဆင့်ဆာဗာ ဖြစ်သည်။ ပုံမှန်အားဖြင့် သင်သည် ပုံမှန်ဆာဗာကို အသုံးပြု၍ လက္ခဏာများ ထည့်သွင်းပါမည်။ သို့သော် အချို့သောအခြေအနေများတွင် အနိမ့်အဆင့်ဆာဗာကို အခြေခံလိုသည့်အခါများရှိပါသည်၊ ဥပမာ -
 
-- ပိုမိုကောင်းမွန်တဲ့ စည်းမျဉ်းပုံသဏ္ဍာန်။ ပုံမှန်ဆာဗာနဲ့ အနိမ့်အဆင့် ဆာဗာနဲ့ ပေါင်းပြီး သန့်ရှင်းတဲ့ စည်းမျဉ်းပုံသဏ္ဍာန် တည်ဆောက်နိုင်ပေမဲ့ အနိမ့်အဆင့် ဆာဗာနဲ့ ပိုမိုလွယ်ကူတယ် ဆိုတာ ပြောနိုင်တယ်။
-- စွမ်းဆောင်ချက်ရရှိနိုင်မှု။ အခြား အဆင့်မြင့် စွမ်းဆောင်ချက်အချို့က အနိမ့်အဆင့် ဆာဗာနဲ့ သာ အသုံးပြုနိုင်တယ်။ ကျွန်တော်တို့ sample နဲ့ elicitation တွေ ထည့်တဲ့ နောက်ပိုင်းပုံစံတွင် ဒီအကြောင်း တွေ့မြင်ရပါမယ်။
+- ပိုမိုကောင်းမွန်သော वास्तुकला။ ပုံမှန်ဆာဗာနှင့်အတူ အနိမ့်အဆင့်ဆာဗာကို တွဲဖက်၍ သန့်ရှင်းသော वास्तुकला တည်ဆောက်နိုင်သော်လည်း အနိမ့်အဆင့်ဆာဗာဖြင့် ပိုမိုလွယ်ကူကြောင်း ဆိုနိုင်ပါသည်။
+- လက္ခဏာရရှိနိုင်မှု။ အဆင့်မြင့်လက္ခဏာတချို့မှာ အနိမ့်အဆင့် ဆာဗာကိုသာ အသုံးပြုနိုင်သည်။ သင်သည် နောက်ထပ်အခန်းများတွင် sampling နှင့် elicitation ထည့်သွင်းသည့်အခါ၌ ဤကိစ္စကို မြင်ရလိမ့်မည်။
 
-## ပုံမှန်ဆာဗာ vs အနိမ့်အဆင့် ဆာဗာ
+## ပုံမှန်ဆာဗာ နှင့် အနိမ့်အဆင့်ဆာဗာ ဆန့်ကျင်ဘက်
 
-ဤမှာ MCP Server ကို ပုံမှန်ဆာဗာနဲ့ ပြုလုပ်တာ ဘယ်လိုမြင်ရမှာလဲ။
+ပုံမှန်ဆာဗာဖြင့် MCP ဆာဗာ တည်ဆောက်ခြင်းသည် ဤလိုပုံစံဖြစ်သည်
 
 **Python**
 
 ```python
 mcp = FastMCP("Demo")
 
-# ပေါင်းစွဲမှုကိရိယာတစ်ခုဖြည့်စွက်ပါ။
+# ပေါင်းထည့်ရန်ကိရိယာတစ်ခု ထည့်ပါ
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -29,7 +29,7 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// ပေါင်းခြင်းကိရိယာတစ်ခုထည့်ပါ
+// ပေါင်းထည့်သည့်ကိရိယာတစ်ခု ထည့်ပါ
 server.registerTool("add",
   {
     title: "Addition Tool",
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-ဤနေရာမှာ သင်ဟာ ဆာဗာမှာ လိုချင်တဲ့ tool, resource သို့ prompt များကို ထည့်သွင်းတဲ့အခါ မှတ်ပုံတင်တယ်။ ဒါက ပြဿနာမရှိဘူး။
+အဓိကအချက်မှာ သင်သည် ဆာဗာတွင် ပါဝင်စေရန် လိုသော tool, resource သို့မဟုတ် prompt တစ်ခုချင်းစီကို လက်တွေ့ထည့်သွင်းရပါသည်။ ၎င်းအပေါ် မလိုလားဘဲ ရှိသည်။
 
-### အနိမ့်အဆင့် ဆာဗာ နည်းလမ်း
+### အနိမ့်အဆင့်ဆာဗာနည်းဗျူဟာ
 
-သို့သော်၊ အနိမ့်အဆင့် ဆာဗာ နည်းလမ်းကို သုံးတဲ့အခါ မျက်နှာသာထက်ကွဲသွားတဲ့ အကြောင်းရပ်တွေရှိတယ်။ tool တစ်ခုချင်းစီကို မှတ်ပုံတင်ခြင်း မလုပ်ပဲ feature အမျိုးအစား (tools, resources, prompts) တစ်ခုစီအတွက် handler နှစ်ခု create လုပ်ရမယ်။ ဥပမာ tools ဆိုရင် အလုပ်လုပ်တဲ့ function နှစ်ခုရှိတယ်။
+သို့သော် အနိမ့်အဆင့်ဆာဗာနည်းလမ်းကို အသုံးပြုသောအခါ သင့်တွင် ထူးခြားသောအတွေးအခေါ်ရှိရမည်။ တစ်ခုချင်း tool ကို မှတ်ပုံတင်ခြင်းမပြုဘဲ တစ်မျိုးတည်း feature အမျိုးအစားစီ (tools, resources သို့မဟုတ် prompts) အတွက် handler နှစ်ခုကို ဖန်တီးရမည်ဖြစ်သည်။ ဥပမာ tools အတွက် အောက်ပါ function နှစ်ခုသာ ရှိငြိမ်မည် –
 
-- tools အသုံးပြုရန် စာရင်းပြုစုခြင်း။ tools များ စာရင်းပေးရန် တာဝန်ယူသော function တစ်ခုရှိသည်။
-- tools ကို ခေါ်သုံးခြင်းကို စီမံဆောင်ရွက်သော function တစ်ခုရှိသည်။
+- tools အားလုံး စာရင်းပြုစုခြင်း။ tools စာရင်းအား ပြုစုဖော်ပြရန် တာဝန်ယူသော function တစ်ခုရှိမည်။
+- tools ကို ခေါ်ဆိုခြင်းကို ကောင်းမွန်စွာ ကိုင်တွယ်ခြင်း။ ဤနေရာတွင်လည်း tool စစ်ဆေးမှုများကို ကောင်းမွန်စွာ ကိုင်တွယ်အပ်သော function တစ်ခုသာရှိမည်။
 
-ဒီလိုနဲ့ လုပ်ရင် အလုပ်ပမာဏ လျော့နည်းနိုင်ပါတယ်။ tool များမှတ်ပုံတင်ခြင်းမလိုဘဲ tools စာရင်းထဲ tool တစ်ခု ပေါ်ရှိပြီး ခေါ်ဆိုမှု ရောက်လာတော့ အဲဒီ tool ကို ခေါ်သူကိုသေချာစေရုံပါပဲ။
+ဤကိစ္စသည် ပိုမိုလျော့နည်းသော အလုပ်ဖြစ်နိုင်သည်ဟု ထင်ကျွံပါသလား? ထို့ကြောင့် tool တစ်ခုစီကို မှတ်ပုံတင်ခြင်းမပြုဘဲ tool အားလုံး စာရင်းထဲ ပါဝင်စေရန် အာမျိုးသေချာစေရန်နှင့် call လုပ်ရန် လာသော တောင်းဆိုမှုပေါ် မူတည်၍ tool ကို ခေါ်ဆိုခြင်းကိုသာ သေချာစွာ ဆောင်ရွက်ရမည်။
 
-ခုပြထားတဲ့ ကုဒ် ဘယ်လိုကွဲပြားနေတယ်ဆိုတာကြည့်ပါ။
+အခု ဤကုဒ် ပုံစံကို ကြည့်ကြရအောင် -
 
 **Python**
 
@@ -81,15 +81,15 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // မှတ်ပုံတင်ထားသောကိရိယာများစာရင်းကိုပြန်ပေးပို့ပါ။
+  // မှတ်ပုံတင်ထားသောကိရိယာများစာရင်းတင်ပြပါ။
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-ဒီမှာ function တစ်ခုရှိပြီး features ရဲ့ စာရင်း ပြန်ပေးတယ်။ tools စာရင်းထဲ entry တစ်ခုစီမှာ `name`, `description`, `inputSchema` ဆိုတဲ့ field တွေ ရှိပြီး return type နဲ့ ကိုက်ညီမှုရှိတယ်။ ဒါကြောင့် tools တွေကို တခြားနေရာမှာ စီစဉ်ထားလို့ရတယ်။ tools ဖိုလ်ဒါမှာ tools တို့ကို၊ feature တို့ကိုလည်း စီမံနိုင်လို့ project ကို ဒီလို စဉ်ဆက်မပြတ် စီမံခန့်ခွဲခွင့်ရရှိတာပါ။
+ယခု ကျွန်ုပ်တို့တွင် function တစ်ခုရှိပြီး feature များစာရင်းကို return ပြန်ပါသည်။ tools စာရင်းရှိ entry တစ်ခုချင်းစီတွင် `name`, `description` နှင့် `inputSchema` ကဲ့သို့သော field များ ပါဝင်ပြီး return အမျိုးအစားကို လိုက်နာသည်။ ဤနည်း ကြောင့် ကျွန်ုပ်တို့၏ tools နှင့် feature သတ်မှတ်ချက်များကို အခြား နေရာတွင် သတ်မှတ်နိုင်ပြီး tools ဖိုလ်ဒါတွင် tools များအားလုံးကို ဖန်တီးနိုင်ပါသည်။ features အားလုံးအတွက်လည်း သက်ဆိုင်ရာ directory များဖြင့် ခွဲဝေထားနိုင်ပြီး project သည် ဤလို ပြုစုနိုင်ပါသည်။
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-အဲဒါက တကယ်လည်း ကောင်းတယ်၊ ကျွန်တော်တို့စည်းမျဉ်းပုံသဏ္ဍာန်က သန့်ရှင်းလာနိုင်တယ်။
+သင့်၏ वास्तुकला သန့်ရှင်းစေသည့် နေရာမှအထူးအဆင်ပြေသည်။
 
-tools ကို ခေါ်တဲ့အခါလည်း အညီ အတူ handler တစ်ခုနဲ့ ခေါ်တဲ့ အတွေးလား? ဟုတ်တယ်၊ code ကတော့ ဒီလိုပါ:
+tools ခေါ်ဆိုခြင်းသည် လည်း တူညီသဘောရော? tool တစ်ခုကို ခေါ်ဆိုရန် handler တစ်ခုသာရှိပြီး၊ tools ဘယ်ဟာမဆို ခေါ်နိုင်မလား? ဟုတ်ကဲ့၊ code ကို အောက်တွင်ရနိုင်ပါသည် -
 
 **Python**
 
@@ -125,7 +125,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools သည် ကိရိယာနာမည်များကို key အဖြစ်ပါသော dictionary ဖြစ်သည်။
+    # tools သည် ကိရိယာအမည်များကို key အဖြစ်အသုံးပြုထားသည့် dictionary ဖြစ်သည်
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -166,20 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-အပေါ်က code က ပြသပေးတာကတော့ tool name နဲ့ arguments တွေ ထုတ်ဖော်တယ်၊ ပြီးတော့ tool ကို ခေါ်သွားဖို့ လုပ်ဆောင်တယ်။
+အထက်ပါကုဒ်တွင် ကြည့်ရှုနိုင်သည့်အတိုင်း tool ကို ခေါ်ရန် ဘယ် tool အားခေါ်သာ မည်သည့် argument များနှင့် အတူ call လုပ်မည်ဆိုတာကို parse out ပြုလုပ်ရသည်။ ထို့နောက် tool ကို ခေါ်ဆိုရမည်။
 
-## အတည်ပြုမှုနဲ့ နည်းလမ်း တိုးတက်စေခြင်း
+## ဤနည်းပညာအား validation ဖြင့် တိုးတက်စေခြင်း
 
-အခုအထိ tools, resources, prompts မှတ်ပုံတင်မှုတွေအတွက် handler နှစ်ခုဖြင့် အစားထိုးနိုင်တယ်ဆိုတာမြင်ထားပြီ။ ဒါပေမဲ့ နောက်ထပ်ဘာလုပ်မလဲ? tool ကို မှန်ကန်တဲ့ argument တွေနဲ့ ခေါ်ထားတယ်ဆိုတဲ့ အတည်ပြုမှုကို ထည့်သွင်းသင့်တယ်။ runtime တစ်ခုချင်းစီဟာ အဖြေရှိပြီး Python က Pydantic ကိုအသုံးပြုပြီး၊ TypeScript မှာ Zod ကို အသုံးပြုပြီးတည်ဆောက်တယ်။ အကြောင်းအရာကတော့ -
+ယခုအထိ tools, resources နှင့် prompts ထည့်ရန် register လုပ်နေသည့် function များအား အထက်ဖော်ပြသော handler နှစ်ခုဖြင့် အစားထိုးနိုင်ကြောင်း မြင်ရပြီးဖြစ်သည်။ နောက်ထပ် ဆောင်ရွက်ရမည့် အရာမှာ မည်သည်နည်း? tool ကို မှန်ကန်သော argument များဖြင့် ခေါ်ဆိုချက်ဖြစ်စေရန် validation အစိတ်အပိုင်း တစ်ခု ထည့်သွင်းရမည်ဖြစ်သည်။ runtime တစ်ခုခြင်းစီတွင် မတူညီသော နည်းလမ်းများ ရှိသည်၊ ဥပမာ Python တွင် Pydantic ကို အသုံးပြုသည်၊ TypeScript တွင် Zod ကို အသုံးပြုသည်။ အကြောင်းအရာမှာ အောက်ပါအတိုင်းဖြစ်သည် –
 
-- feature (tool, resource, prompt) တည်ဆောက်တဲ့ logic ကို dedicated folder တစ်ခုသို့ ရွှေ့ပါ။
-- incoming request တစ်ခုကို validate လုပ်ဖို့ နည်းလမ်း ထည့်ပါ၊ ဥပမာ tool call တစ်ခုလိုချင်တဲ့အခါ။
+- feature (tool, resource သို့မဟုတ် prompt) ဖန်တီးမှုအတွင်း logic ကို သီးသန့် ဖိုလ်ဒါထားခြင်း။
+- tool တစ်ခု ခေါ်ဆိုရန်တောင်းဆိုမှုရှိလာသည်ကို စစ်ဆေးရန် validation method ဖြည့်စွက်ခြင်း။
 
-### feature ဖန်တီးခြင်း
+### feature တစ်ခု ဖန်တီးခြင်း
 
-feature ဖန်တီးဖို့ file တစ်ခု ဖန်တီးပြီး အကယ်၍ ဤ feature တွေမှာ လိုအပ်တဲ့ field တွေ ပါဝင်ဖို့ သေချာစေခဲ့ရမယ်။
-
-tools, resources, prompts အလိုက် field ကွာခြားမှုရှိတယ်။
+feature တစ်ခု ဖန်တီးရန် feature ကို သီးသန့် ဖိုင်တစ်ခု ဖန်တီးပြီး feature အတွက် လိုအပ်သော အဓိက field များပါဝင်ရန် သေချာရမည်။ tools, resources နှင့် prompts မှာ field မတူသည့် အပိုင်းအား ရှင်းလင်းပါသည်။
 
 **Python**
 
@@ -197,12 +195,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Pydantic မော်ဒယ်ကို အသုံးပြု၍ အဝင်ကို စစ်ဆေးပါ
+        # Pydantic မော်ဒယ်ကို အသုံးပြုပြီး အချက်အလက်အကဲဖြတ်ခြင်း
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: Pydantic ထည့်ပါ၊ အဲဖြင့် AddInputModel ကို ဖန်တီးပြီး args များကို စစ်ဆေးနိုင်မည်ဖြစ်သည်။
+    # TODO: Pydantic ကို ထည့်သွင်းပါ၊ ဒါမှ addInputModel တစ်ခု ဖန်တီးပြီး args များကို အတည်ပြုနိုင်ပါလိမ့်မယ်။
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -215,21 +213,21 @@ tool_add = {
 }
 ```
 
-ဒီမှာ:
+အောက်ပါအတိုင်း ဆောင်ရွက်သည်ကို သင်မြင်နိုင်သည် -
 
-- Pydantic `AddInputModel` ကို schema ပုံစံ ချထားပြီး *schema.py* ထဲမှာ `a` နဲ့ `b` field တွေပါ။
-- incoming request ကို `AddInputModel` နဲ့ parse လုပ်ကြည့်မယ်။ parameter မကိုက်ညီရင် crash တတ်တယ်။
+- Pydantic ကို အသုံးပြု၍ `AddInputModel` schema ကို *schema.py* ဖိုင်တွင် ဖန်တီးပြီး field `a` နှင့် `b` ပါဝင်သည်။
+- လာရောက်သော call ကို `AddInputModel` အမျိုးအစားဖြစ်ရမည်ဟု parse လုပ်ရန် ကြိုးစား၊ argument မညီလျှင် crash ဖြစ်ပေါ်ပါမည်။
 
    ```python
    # add.py
     try:
-        # Pydantic မော်ဒယ်ကို အသုံးပြု၍ အချက်အလက်များကို တိုက်ဆိုင်စစ်ဆေးပါ။
+        # Pydantic မော်ဒယ်ကို အသုံးပြု၍ အတွင်းထည့်မှုကို အတည်ပြုပါ
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-tool call အတွင်းမှာ မဟုတ် handler function မှာ သတ်မှတ်ထည့်လို့ ရသည်။
+ဤ parsing logic ကို tool call အတွင်း သို့မဟုတ် handler function ထဲတွင်ထားရမည်ကို ရွေးချယ်နိုင်သည်။
 
 **TypeScript**
 
@@ -290,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- tool call စီမံရာ handler မှာ incoming request ကို tool ရဲ့ schema အတိုင်း parse လုပ်ကြည့်တယ် -
+- tool calls အားလုံးကို ကတ်ပါသော handler ထဲတွင် လာရောက်သော call ကို tool ၏ သတ်မှတ်ထားသော schema တွင် parse လုပ်ရန် ကြိုးစားသည် -
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -299,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    အကယ်၍ အဆင်ပြေခဲ့ရင် tool ကို ဆက်လက်ခေါ်ဆိုသည် -
+    သည်အကောင့်ဖွင့်ရင် သတ္တိပြု၍ တကယ် tool ကို ခေါ်ဆိုပါမည် -
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-ဒီနည်းလမ်းကြောင့် စည်းမျဉ်းပုံသဏ္ဍာန်ကောင်းလွန်းပြီး *server.ts* က function ကျစဉ်ကို ချိတ်ဆက်ထားတယ်။ feature တစ်ခုစီကို ပိုင်းခြားထားတဲ့ folder တွေ (tools/, resources/, prompts/) မှာရှိတယ်။
+ဤနည်းလမ်းကြောင့် *server.ts* သည် တောင်းဆိုမှုပေးပို့သူများကို ချိတ်ဆက်ရာမှာသာ တိုစိတ်ဖွင့်ဖိုင်ဖြစ်ပြီး feature တစ်ခုချင်းစီသည် သီးသန့်ဖိုလ်ဒါ (tools/, resources/ သို့မဟုတ် /prompts) တွင်ရှိသည့် architecture ကောင်းမွန်စေရန် အထောက်အကူပြုသည်။
 
-ကောင်းပါပြီ၊ နောက်တစ်ခု တည်ဆောက်ကြမယ်။
+ကောင်းပါပြီ၊ နောက်တွင် ပိုမိုတည်ဆောက်ကြရအောင်။
 
-## လေ့ကျင့်ခန်း: အနိမ့်အဆင့် ဆာဗာ ဖန်တီးခြင်း
+## လေ့ကျင့်ခန်း - အနိမ့်အဆင့်ဆာဗာ တည်ဆောက်ခြင်း
 
-ဒီလေ့ကျင့်ခန်းမှာ -
+ဤလေ့ကျင့်ခန်းတွင် ကျွန်ုပ်တို့ ဆောင်ရွက်မည့်အရာများမှာ -
 
-1. tools စာရင်းပါသော handler နဲ့ tool call handler ကို တည်ဆောက်မယ်။
-2. ရိုးရှင်းပြီး တည်ဆောက်နိုင်တဲ့ architecture တည်ဆောက်မယ်။
-3. tool call တွေ မှန်ကန်စွာ အတည်ပြုမယ့် validation ထည့်မယ်။
+1. tools စာရင်းပြုစုခြင်းနှင့် tool call များကို ကိုင်တွယ်သော အနိမ့်အဆင့် ဆာဗာတစ်ခု ဖန်တီးမည်။
+2. တည်ဆောက်နိုင်စေသော architecture တစ်ခု ဖန်တီးမည်။
+3. tool call များမှန်ကန်စေရန် validation ထည့်သွင်းမည်။
 
-### -1- architecture တည်ဆောက်ခြင်း
+### -1- Architecture တည်ဆောက်ခြင်း
 
-ပထမဆုံး လုပ်မယ့်အကြောင်းကဆိုရင် အရမ်းပြောင်းလဲတာမလိုတော့ပဲ scalable ဖြစ်စေတဲ့ architecture ဖြစ်တယ် -
+ပထမဆုံး ဆွေးနွေးရန်မှာ ထပ်မံဖြည့်ဆည်းသည့် feature များအတွက် ရှုပ်ထွေးစရာမရှိစွာ ထောက်ပံ့ပေးမည့် architecture ဖြစ်သည်၊ ဤမှာ ပုံစံ -
 
 **Python**
 
@@ -342,11 +340,11 @@ server.ts
 client.ts
 ```
 
-အခု tools ဖိုလ်ဒါထဲမှာ tool အသစ်တွေ လွယ်ကူမြန်ဆန်စွာ ထည့်နိုင်တယ်။ resources နဲ့ prompts အတွက်လည်း subdirectory တွေ ဖန်တီးနိုင်တယ်။
+ယခု tools ဖိုလ်ဒါအတွင်း သာ tool အသစ်များ သပ်ရပ်စွာ ပြုလုပ်နိုင်မည့် architecture တည်ဆောက်ထားပါသည်။ resources နှင့် prompts အတွက်လည်း အထက်ပါနည်းစနစ်ကို အသုံးပြုနိုင်ပါသည်။
 
-### -2- tool တစ်ခု ဖန်တီးခြင်း
+### -2- Tool တစ်ခု ဖန်တီးခြင်း
 
-tool တစ်ခု ဖန်တီးမယ်ဆိုတာ ဒီလို -
+tool ထုတ်လုပ်မှု ပုံစံကို ခြုံငုံကြည့်ပါ။ ပထမဆုံး၊ tool ကို *tool* ဖိုလ်ဒါအတွင်း ဖန်တီးရမည်၊ ဤလို -
 
 **Python**
 
@@ -355,12 +353,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Pydantic မော်ဒယ်ကို အသုံးပြုပြီး အဝင်ကိုအတည်ပြုပါ
+        # Pydantic မော်ဒယ်ကို အသုံးပြု၍ အင်ပွတ်ကို သေချာစစ်ဆေးပါ
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: Pydantic ကို ထည့်ပါ၊ ဒါမှသာ AddInputModel ဖန်တီးပြီး args များကို အတည်ပြုနိုင်မယ်။
+    # TODO: Pydantic ထည့်သွင်းပါ၊ ထို့ကြောင့် AddInputModel တစ်ခု ဖန်တီးပြီး args များအား စစ်ဆေးနိုင်မည်ဖြစ်သည်။
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -373,9 +371,9 @@ tool_add = {
 }
 ```
 
-ဒီမှာ name, description, input schema (Pydantic သုံး) နှင့် handler တစ်ခု ရှိတယ်၊ tool_add ဆိုတဲ့ dictionary တစ်ခုက အဲဒီ property တွေကို ထိန်းချုပ်ထားတယ်။
+ဤနေရာတွင် Pydantic ဖြင့် name, description နှင့် input schema ကို သတ်မှတ်၍ tool ဖန်တီးခြင်းကို မြင်ရသည်။ handler နှင့် tool အသုံးပြုမည့် callback ရှိပြီး၊ `tool_add` dictionary မှာ အဆိုပါ properties များတိုက်ရိုက် ထည့်သွင်းထားသည်။
 
-*schema.py* မှာ input schema သတ်မှတ်ထားတယ် -
+ထက်ပါ *schema.py* ကျရောက်ပါသည်၊ ကျွန်ုပ်တို့၏ tool အသုံးပြု input schema ဖြင့် သတ်မှတ်ထားသည်။
 
 ```python
 from pydantic import BaseModel
@@ -385,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-*__init__.py* ကို ဖန်တီးပြီး tools directory ကို module လို့ သတ်မှတ်ပြီး module တွေကို ထုတ်ဖော်ထား။ 
+tools directory ကို module အဖြစ် သိမှတ်ရန် *__init__.py* ထည့်သွင်းရန် လိုအပ်ပါသည်။ ထို့အပြင် module များကို ပြသရန် -
 
 ```python
 from .add import tool_add
@@ -395,7 +393,7 @@ tools = {
 }
 ```
 
-tools များ တိုးလာတိုင်း ဒီ file ကို ဆက်လက်တိုးချဲ့နိုင်တယ်။
+tool များ ပေါင်းထည့်သည့်အခါ အမှတ်အသား ပြုစုရန်သုံးနိုင်ပါသည်။
 
 **TypeScript**
 
@@ -416,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-properties ပါဝင်သော dictionary တစ်ခု ဖန်တီးထား -
+tools များ၏ attribute များပါဝင်သော dictionary ဖန်တီးသည် -
 
-- name (tool နာမည်)
-- rawSchema (Zod schema) - tool call request validation အတွက်
-- inputSchema (handler အသုံးပြုသည်)
-- callback (tool ခေါ်ဖို့)
+- name - tool အမည်
+- rawSchema - Zod schema, အဆိုပါ tool ကို call မှုများကို validate ဘို့ အသုံးပြုသည်။
+- inputSchema - handler မှ အထောက်အကူပြုရန် schema
+- callback - tool ကို ခေါ်ဖို့ အသုံးပြုသည်။
 
-`Tool` type က ဒီ dictionary ကို mcp server handler ရနိုင်စေရန် သိမ်းဆည်းထားသည်။
+`Tool` ဖြစ်သော type ကို MCP server handler မှ လက်ခံနိုင်ရန် dictionary မှ ပြောင်းရွှေ့သည် - 
 
 ```typescript
 import { z } from 'zod';
@@ -436,7 +434,7 @@ export interface Tool {
 }
 ```
 
-*schema.ts* မှာ tool input schemas များ သိမ်းဆည်းထားတယ်၊ စာရင်းထဲ schema တစ်ခုသာ ရှိသေးပေမယ့် အသစ်ထည့်သွင်းမှုရင် ဖြည့်စွက်သွားနိုင်တယ်။
+*schema.ts* သည် tool များ၏ input schema များကို သိမ်းဆည်းထားပြီး၊ ယခုတွင် schema တစ်ခုသာရှိသော်လည်း tool များပေါင်းထည့်သည့်အခါ၌ ထပ်ဖြည့်နိုင်ပါသည် -
 
 ```typescript
 import { z } from 'zod';
@@ -444,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-ကောင်းတယ်၊ tools စာရင်းလုပ်ကိုင်တာကို ဆက်လက်ကြည့်မယ်။
+ကောင်းပါပြီ၊ tools စာရင်းပြုစုခြင်းကို နောက်ထပ်ဆောင်ရွက်ကြရအောင်။
 
-### -3- tools စာရင်းကို စီမံမယ်
+### -3- Tool စာရင်း ပြုစုခြင်းကို ကိုင်တွယ်ခြင်း
 
-tools စာရင်းရယူဖို့ request handler တည်ဆောက်ရမယ်၊ server ဖိုင်မှာ ထည့်လိုက်မယ့်အရာ -
+tools စာရင်းကို ကိုင်တွယ်ရန် request handler များကို server ဖိုင်တွင် ထည့်သွင်းရမည်ဖြစ်သည် -
 
 **Python**
 
 ```python
-# စာသားတိုတောင်းမှုအတွက် ကုဒ်ပယ်ဖျက်ထားသည်
+# အတိုချုံးဖော်ပြရန် ကိုဒ်ကို ဖြုတ်ထားသည်
 from tools import tools
 
 @server.list_tools()
@@ -472,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-`@server.list_tools` decorator နဲ့ `handle_list_tools` function ဆောက်ထားတယ်။ tools စာရင်း ပြသဖို့ function ဖြစ်ပြီး tool တစ်ခုစီ name, description, inputSchema ရှိရမယ်။
+ဤတွင် `@server.list_tools` decorator ဖြင့် `handle_list_tools` function ကို တည်ဆောက်ပြီး၊ tool များ စာရင်းပြုစုထားရပါသည်။ နာမည်, ဖော်ပြချက်နှင့် inputSchema ဟူသော field များ မရှိမဖြစ် လိုအပ်သည်။
 
 **TypeScript**
 
-tools စာရင်း request handler ကနေနဲ့ server ပေါ်မှာ `setRequestHandler` ဖြင့် `ListToolsRequestSchema` ကို ပေးပြီး တည်ဆောက်တယ်။
+tools စာရင်းကို request handler ဖြင့် စီမံရန် `setRequestHandler` ကို server တွင် ခေါ်၍ `ListToolsRequestSchema` သတ်မှတ်ချက်နှင့် အသုံးပြုသည် -
 
 ```typescript
 // index.ts
@@ -490,26 +488,26 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// ရိုးရှင်းစွာရေးရန်အတွက် ကုဒ်မြောက်တင်ထားသည်
+// အတိုချုံးဖော်ပြရန် ကုဒ်ကို ဖယ်ရှားထားသည်
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // မှတ်ပုံတင်ထားသောကိရိယာများစာရင်း ပြန်လည်ပေးပို့သည်
+  // မှတ်ပုံတင်ထားသည့် ကိရိယာများစာရင်းကိုပြန်လည်ပေးပို့ပါ။
   return {
     tools: tools
   };
 });
 ```
 
-ကောင်းပြီ၊ tools စာရင်း ထုတ်တာပြီးသွားပြီ၊ tool call ကို ဘယ်လိုလုပ်မလဲ ကြည့်ကြရအောင်။
+ကောင်းပါပြီ၊ tools စာရင်းပြုစုခြင်း ပိုင်းကို ဖြေရှင်းလိုက်ပါပြီ၊ tool call များကို နောက်တွင် ကြည့်ကြရအောင်။
 
-### -4- tool ခေါ်ယူရန် စီမံခန့်ခွဲခြင်း
+### -4- Tool ခေါ်ဆိုခြင်း ကိုင်တွယ်ခြင်း
 
-tool ကို ခေါ်ရန် request handler အသစ် တစ်ခု ဖန်တီးတာဖြစ်ပြီး feature name အဲ့ဒီမှာ ပါဝင်ပြီး arguments များဖြင့် ခေါ်တာ။
+Tool တစ်ခု ခေါ်ဆိုရန် request handler တစ်ခု သတ်မှတ်ရမည်၊ calls လုပ်ရန် လိုသည့် feature နှင့် argument များ ပါဝင်သည့် request များကို ကိုင်တွယ်ရန်။
 
 **Python**
 
-decorator `@server.call_tool` သုံးပြီး `handle_call_tool` function တွင် tool name နဲ့ arguments ကို parse လုပ်ပြီး validation ပြုလုပ်မယ်။ validation ကို ဒီ function ထဲ သို့မဟုတ် tool မှာ ကျောသေကောင်းတယ်။
+`@server.call_tool` decorator ကို အသုံးပြု၍ `handle_call_tool` function သို့ ထည့်သွင်းပါ။ function အတွင်း tool name, argument များကို parse လုပ်ပြီး tool ဆက်အသုံးပြုမှု မြားကို သတ်မှတ်ထားသည်။ argument များကို function တွင် သို့မဟုတ် tool 内部ထား validate ပေးနိုင်သည်။
 
 ```python
 @server.call_tool()
@@ -517,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools သည် ကိရိယာအမည်များကို key အဖြစ် သုံးထားသော dictionary တစ်ခုဖြစ်သည်
+    # tools သည် ကိရိယာနာမည်များကို key များအဖြစ်ပါဝင်သည့် သင်္ကေတအဖြစ်ရှိသော dictionary ဖြစ်သည်
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -532,35 +530,35 @@ async def handle_call_tool(
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-ဖြစ်ပေါ်တာ -
+ဖြစ်ပေါ်မည့်အလုပ်များမှာ -
 
-- tool name ကို input parameter `name` ဖြင့် ရပြီး၊ arguments ကို ကြည့်လို့ရတယ်။
-- tool ကို `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)` ဖြင့် ခေါ်တယ်။ arguments validation ကို handler function မှာ ပြုလုပ်တယ်။ မအောင်မြင်ရင် exception တက်တယ်။
+- tool name ကို input parameter `name` နှင့် `arguments` dictionary အားဖြင့် ရှိသော arguments ကောင်တာများဖြင့် ယှဉ်ကြည့်သည်။
+- tool ကို `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)` ဖြင့် ကောလ်လုပ်သည်။ argument validation ကို handler function တွင် ကျင်းပပြီး မအောင်မြင်လျှင် exception ဖြစ်ပေါ်မည်။
 
-ဒီလိုနဲ့ အနိမ့်အဆင့်ဆာဗာ ကို သုံးပြီး tools စာရင်းပြခြင်းကနေ tool call လုပ်ခြင်း အထိ နားလည်တဲ့ အဆင့်ရောက်ပြီ။
+ဤနေရာတွင် အနိမ့်အဆင့် server မှ tools စာရင်းပြုစုခြင်းနှင့် call လုပ်ခြင်းကို လုံးဝနားလည်လို့ရပြီ ဖြစ်သည်။
 
-[full example](./code/README.md) ကြည့်ပါ။
+[full example](./code/README.md) ကို ကြည့်ရှုနိုင်ပါသည်။
 
-## လုပ်ငန်းတာဝန်
+## အလုပ်အပ်
 
-သင့်ရဲ့ code ကို tools, resources, prompts တွေပါ ကြည့်ပြီး tools ဖိုလ်ဒါထဲမှာ file လို့ပဲ ဖြည့်သွင်းရုံနဲ့ အလုပ်မြန်သွားတာကို မှတ်မိကြည့်ပါ။
+သင့်အား ရရှိထားသောကုဒ်များကို နောက်ထပ် tools, resources နှင့် prompt များဖြည့်စွက်ပြီး tools ဖိုလ်ဒါတွင် မူလအတိုင်းဖိုင်ထည့်ရန်သာ လိုအပ်ကြောင်း သတိပြုကြည့်ပါ။
 
-*ဖြေရှင်းချက် မပေးပါ*
+*ဖြေရှင်းချက် မပါရှိပါ*
 
-## အကျဉ်းချုပ်
+## အနှစ်ချုပ်
 
-ဒီအခန်းမှာ အနိမ့်အဆင့် ဆာဗာနည်းလမ်းက ဘယ်လို အလုပ်လုပ်သလဲ၊ architecture များ ပြုလုပ်ကြမယ်နဲ့၊ validation ကို ဘယ်လို library တွေသုံးပြီး schema ဖန်တီးမလဲဆိုတာတွေ လေ့လာသွားခဲ့တယ်။
+ဤအခန်းတွင် အနိမ့်အဆင့်ဆာဗာနည်းလမ်းကို ကြည့်ရှုပြီး အဘယ်သို့ architecture တည်ဆောက်မှုကို ကူညီပေးနိုင်ကြောင်း၊ validation ကို ဘယ်လိုတိုးတက်စေသလဲဆိုတာကို လေ့လာသည်။ validation library များဖြင့် input validation schema များကို တည်ဆောက်ပုံကို မြင်ရသည်။
 
 ## နောက်တစ်ဆင့်
 
-- နောက်တစ်ခု: [Simple Authentication](../11-simple-auth/README.md)
+- နောက်တစ်ခု - [Simple Authentication](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ဖော်ပြချက်** ။  
-ဤစာတမ်းကို AI ဘာသာပြန်မှု ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ဖြင့် ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့အနေဖြင့် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းသော်လည်း၊ စက်မှုဘာသာပြန်မှုများတွင် အမှားများ သို့မဟုတ် မှားယွင်းမှုများ ရှိနိုင်ပါကြောင်း ကျေးဇူးပြု၍ သိရှိထားပေးပါရန်။ မူရင်းစာတမ်းကို မိခင်ဘာသာဖြင့်သာ ထိရောက်သော အချက်အလက်အရင်းအမြစ်အဖြစ် တွက်ယူသင့်ပါသည်။ အရေးကြီးသော သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက် အသုံးပြုမှုကြောင့် ဖြစ်ပေါ်လာသော နားမလည်မှုများ သို့မဟုတ် မှားယွင်းဖတ်ရှုမှုများအတွက် ကျွန်ုပ်တို့ မတာဝန်ခံပါကြောင်း သိရှိပေးပါရန်။
+**တစ်ကြိမ်ပြောချက်**:  
+ဤစာရွက်သည် AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်၍ရရှိပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှုအတွက် ကြိုးပမ်းသည်ဖြစ်သော်လည်း အလိုအလျောက်ဘာသာပြန်ခြင်းတွင် အမှားများ သို့မဟုတ် မှားယွင်းမှုများ ရှိနိုင်သည်ကို သတိပြုပါရန်။ မူရင်းစာရွက်ကို ဇာတိဘာသာဖြင့် သေချာသောအချက်အလက်ရင်းမြစ်အဖြစ် ယူဆသင့်ပါသည်။ အရေးကြီးသောအချက်အလက်များအတွက် လူကြီးမင်းတို့သည် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်၏အသုံးပြုမှုပေးသော နားလည်မှုများ သို့မဟုတ် မှားယွင်းမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မယူပါ။
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

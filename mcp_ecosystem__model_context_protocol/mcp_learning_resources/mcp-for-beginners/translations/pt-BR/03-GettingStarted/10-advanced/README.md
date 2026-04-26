@@ -1,9 +1,9 @@
 # Uso avançado do servidor
 
-Existem dois tipos diferentes de servidores expostos no MCP SDK, seu servidor normal e o servidor de baixo nível. Normalmente, você usaria o servidor regular para adicionar recursos a ele. Porém, em alguns casos, você quer confiar no servidor de baixo nível, como:
+Existem dois tipos diferentes de servidores expostos no MCP SDK, seu servidor normal e o servidor de baixo nível. Normalmente, você usaria o servidor regular para adicionar recursos a ele. Para alguns casos, porém, você quer confiar no servidor de baixo nível, como:
 
-- Melhor arquitetura. É possível criar uma arquitetura limpa com tanto o servidor regular quanto com um de baixo nível, mas pode-se argumentar que é um pouco mais fácil com um servidor de baixo nível.
-- Disponibilidade de recursos. Alguns recursos avançados só podem ser usados com um servidor de baixo nível. Você verá isso nos capítulos posteriores enquanto adicionamos amostragem e elicitação.
+- Arquitetura melhor. É possível criar uma arquitetura limpa com ambos o servidor regular e um servidor de baixo nível, mas pode-se argumentar que é um pouco mais fácil com um servidor de baixo nível.
+- Disponibilidade de recursos. Alguns recursos avançados só podem ser usados com um servidor de baixo nível. Você verá isso nos capítulos posteriores ao adicionarmos amostragem e elicitação.
 
 ## Servidor regular vs servidor de baixo nível
 
@@ -14,7 +14,7 @@ Veja como é a criação de um Servidor MCP com o servidor regular
 ```python
 mcp = FastMCP("Demo")
 
-# Adicionar uma ferramenta de adição
+# Adicione uma ferramenta de adição
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -42,16 +42,16 @@ server.registerTool("add",
 );
 ```
 
-O ponto é que você adiciona explicitamente cada ferramenta, recurso ou prompt que deseja que o servidor tenha. Não há nada de errado com isso.  
+O ponto é que você adiciona explicitamente cada ferramenta, recurso ou prompt que deseja que o servidor tenha. Não há nada de errado nisso.
 
 ### Abordagem do servidor de baixo nível
 
-No entanto, quando você usa a abordagem do servidor de baixo nível, precisa pensar de forma diferente. Em vez de registrar cada ferramenta, você cria dois manipuladores por tipo de recurso (ferramentas, recursos ou prompts). Por exemplo, as ferramentas então só têm duas funções assim:
+No entanto, quando você usa a abordagem do servidor de baixo nível, precisa pensar de forma diferente. Em vez de registrar cada ferramenta, você cria dois manipuladores por tipo de recurso (ferramentas, recursos ou prompts). Por exemplo, as ferramentas têm apenas duas funções assim:
 
 - Listar todas as ferramentas. Uma função seria responsável por todas as tentativas de listar ferramentas.
-- Manipular as chamadas para todas as ferramentas. Aqui também, há apenas uma função lidando com as chamadas a uma ferramenta.
+- Manipular chamadas a todas as ferramentas. Aqui também, existe apenas uma função que trata as chamadas a uma ferramenta.
 
-Parece que dá menos trabalho, certo? Então em vez de registrar uma ferramenta, só preciso garantir que a ferramenta esteja listada quando eu listar todas as ferramentas e que ela seja chamada quando houver uma solicitação para chamar uma ferramenta. 
+Isso soa como menos trabalho, certo? Então, em vez de registrar uma ferramenta, só preciso garantir que a ferramenta está listada quando listar todas as ferramentas e que ela é chamada quando houver uma solicitação para chamar uma ferramenta.
 
 Vamos ver como o código fica agora:
 
@@ -84,12 +84,12 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
   // Retorna a lista de ferramentas registradas
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Aqui agora temos uma função que retorna uma lista de recursos. Cada entrada na lista de ferramentas agora tem campos como `name`, `description` e `inputSchema` para aderir ao tipo de retorno. Isso nos permite colocar nossas ferramentas e definições de recurso em outro lugar. Agora podemos criar todas as nossas ferramentas em uma pasta tools e o mesmo vale para todos os seus recursos, então seu projeto pode de repente estar organizado assim:
+Aqui agora temos uma função que retorna uma lista de recursos. Cada entrada na lista de ferramentas agora tem campos como `name`, `description` e `inputSchema` para aderir ao tipo de retorno. Isso nos permite colocar nossas ferramentas e definição de recursos em outro lugar. Agora podemos criar todas as nossas ferramentas em uma pasta tools e o mesmo vale para todos os seus recursos, para que seu projeto possa ser organizado assim:
 
 ```text
 app
@@ -115,7 +115,7 @@ app
 
 Isso é ótimo, nossa arquitetura pode ficar bastante limpa.
 
-E quanto a chamar ferramentas, é a mesma ideia, um manipulador para chamar uma ferramenta, qualquer ferramenta? Sim, exatamente, aqui está o código para isso:
+E quanto a chamar ferramentas, é a mesma ideia então, um manipulador para chamar uma ferramenta, qualquer ferramenta? Sim, exatamente, aqui está o código para isso:
 
 **Python**
 
@@ -125,7 +125,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools é um dicionário com nomes das ferramentas como chaves
+    # tools é um dicionário com nomes de ferramentas como chaves
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Como você pode ver no código acima, precisamos analisar qual ferramenta chamar, com quais argumentos, e então devemos proceder para chamar a ferramenta.
+Como você pode ver no código acima, precisamos extrair a ferramenta a ser chamada, e com quais argumentos, e então precisamos proceder para chamar a ferramenta.
 
 ## Melhorando a abordagem com validação
 
-Até agora, você viu como todos seus registros para adicionar ferramentas, recursos e prompts podem ser substituídos por esses dois manipuladores por tipo de recurso. O que mais precisamos fazer? Bem, devemos adicionar alguma forma de validação para garantir que a ferramenta seja chamada com os argumentos corretos. Cada tempo de execução tem sua própria solução para isso, por exemplo Python usa Pydantic e TypeScript usa Zod. A ideia é que façamos o seguinte:
+Até agora, você viu como todos os registros para adicionar ferramentas, recursos e prompts podem ser substituídos por esses dois manipuladores por tipo de recurso. O que mais precisamos fazer? Bem, deveríamos adicionar alguma forma de validação para garantir que a ferramenta seja chamada com os argumentos corretos. Cada runtime tem sua própria solução para isso, por exemplo Python usa Pydantic e TypeScript usa Zod. A ideia é que façamos o seguinte:
 
 - Mover a lógica para criar um recurso (ferramenta, recurso ou prompt) para sua pasta dedicada.
-- Adicionar uma forma de validar uma solicitação de entrada, por exemplo, para chamar uma ferramenta.
+- Adicionar uma forma de validar uma solicitação de entrada pedindo, por exemplo, para chamar uma ferramenta.
 
 ### Criar um recurso
 
-Para criar um recurso, precisaremos criar um arquivo para esse recurso e garantir que ele tenha os campos obrigatórios requeridos para esse recurso. Quais campos diferem um pouco entre ferramentas, recursos e prompts.
+Para criar um recurso, precisaremos criar um arquivo para esse recurso e garantir que ele tenha os campos obrigatórios necessários para esse recurso. Quais campos diferem um pouco entre ferramentas, recursos e prompts.
 
 **Python**
 
@@ -200,7 +200,7 @@ async def add_handler(args) -> float:
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: adicionar Pydantic, para que possamos criar um AddInputModel e validar os args
+    # TODO: adicionar Pydantic, para que possamos criar um AddInputModel e validar argumentos
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -213,10 +213,10 @@ tool_add = {
 }
 ```
 
-aqui você pode ver como fazemos o seguinte:
+Aqui você pode ver como fazemos o seguinte:
 
-- Criamos um esquema usando Pydantic `AddInputModel` com os campos `a` e `b` no arquivo *schema.py*.
-- Tentamos analisar a solicitação de entrada para ser do tipo `AddInputModel`, se houver um desencontro nos parâmetros isso irá falhar:
+- Criar um esquema usando Pydantic `AddInputModel` com campos `a` e `b` no arquivo *schema.py*.
+- Tentar analisar a solicitação de entrada para ser do tipo `AddInputModel`, se houver uma incompatibilidade nos parâmetros, isso causará erro:
 
    ```python
    # add.py
@@ -227,12 +227,12 @@ aqui você pode ver como fazemos o seguinte:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Você pode escolher se coloca essa lógica de análise na chamada da ferramenta em si ou na função manipuladora.
+Você pode escolher se coloca essa lógica de análise na própria chamada da ferramenta ou na função do manipulador.
 
 **TypeScript**
 
 ```typescript
-// servidor.ts
+// server.ts
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { params: { name } } = request;
     let tool = tools.find(t => t.name === name);
@@ -266,12 +266,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 });
 
-// esquema.ts
+// schema.ts
 import { z } from 'zod';
 
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 
-// adicionar.ts
+// add.ts
 import { Tool } from "./tool.js";
 import { MathInputSchema } from "./schema.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -303,7 +303,7 @@ export default {
     const result = await tool.callback(input);
     ```
 
-Como você pode ver, essa abordagem cria uma ótima arquitetura, pois tudo tem seu lugar, o *server.ts* é um arquivo muito pequeno que só conecta os manipuladores de requisição e cada recurso está em sua respectiva pasta i.e tools/, resources/ ou /prompts.
+Como pode ver, essa abordagem cria uma ótima arquitetura, pois tudo tem seu lugar, o *server.ts* é um arquivo muito pequeno que apenas conecta os manipuladores de requisição e cada recurso está em sua respectiva pasta, ou seja, tools/, resources/ ou /prompts.
 
 Ótimo, vamos tentar construir isso a seguir.
 
@@ -311,13 +311,13 @@ Como você pode ver, essa abordagem cria uma ótima arquitetura, pois tudo tem s
 
 Neste exercício, faremos o seguinte:
 
-1. Criar um servidor de baixo nível que lide com a listagem e chamada de ferramentas.
-2. Implementar uma arquitetura que você possa ampliar.
-3. Adicionar validação para garantir que suas chamadas às ferramentas sejam devidamente validadas.
+1. Criar um servidor de baixo nível que trata a listagem de ferramentas e chamadas de ferramentas.
+1. Implementar uma arquitetura sobre a qual você possa construir.
+1. Adicionar validação para garantir que suas chamadas de ferramenta sejam validadas corretamente.
 
 ### -1- Criar uma arquitetura
 
-A primeira coisa que precisamos resolver é uma arquitetura que nos ajude a escalar à medida que adicionamos mais recursos, veja como fica:
+A primeira coisa que precisamos abordar é uma arquitetura que nos ajude a escalar conforme adicionamos mais recursos, veja como é:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Agora configuramos uma arquitetura que assegura que podemos adicionar novas ferramentas facilmente na pasta tools. Sinta-se à vontade para seguir isso para adicionar subdiretórios para resources e prompts.
+Agora configuramos uma arquitetura que garante que possamos facilmente adicionar novas ferramentas em uma pasta tools. Sinta-se à vontade para seguir este modelo para adicionar subdiretórios para resources e prompts.
 
 ### -2- Criando uma ferramenta
 
-Vamos ver como criar uma ferramenta a seguir. Primeiro, ela precisa ser criada em seu subdiretório *tool* assim:
+Vamos ver como criar uma ferramenta em seguida. Primeiro, ela precisa ser criada em seu subdiretório *tool* assim:
 
 **Python**
 
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Aqui vemos como definimos nome, descrição e esquema de entrada usando Pydantic, e um manipulador que será invocado quando essa ferramenta for chamada. Por fim, expomos `tool_add` que é um dicionário que contém todas essas propriedades.
+O que vemos aqui é como definimos nome, descrição, e esquema de entrada usando Pydantic e um manipulador que será invocado quando essa ferramenta for chamada. Por fim, expomos `tool_add` que é um dicionário contendo todas essas propriedades.
 
-Há também *schema.py* que é usado para definir o esquema de entrada usado por nossa ferramenta:
+Também existe *schema.py* que é usado para definir o esquema de entrada usado pela nossa ferramenta:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Também precisamos preencher *__init__.py* para garantir que o diretório tools seja tratado como um módulo. Além disso, precisamos expor os módulos dentro dele assim:
+Também precisamos preencher o *__init__.py* para garantir que o diretório tools seja tratado como um módulo. Além disso, precisamos expor os módulos dentro dele assim:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Podemos continuar adicionando a esse arquivo conforme adicionamos mais ferramentas.
+Podemos continuar adicionando a este arquivo conforme adicionamos mais ferramentas.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Aqui criamos um dicionário com as propriedades:
+Aqui criamos um dicionário composto por propriedades:
 
 - name, este é o nome da ferramenta.
-- rawSchema, este é o esquema Zod, usado para validar as requisições de entrada para chamar esta ferramenta.
+- rawSchema, este é o esquema Zod, será usado para validar solicitações de entrada para chamar esta ferramenta.
 - inputSchema, este esquema será usado pelo manipulador.
-- callback, este é usado para invocar a ferramenta.
+- callback, isso é usado para invocar a ferramenta.
 
-Há também `Tool` que é usado para converter esse dicionário em um tipo que o manipulador do servidor mcp pode aceitar, e ele fica assim:
+Também existe `Tool` que é usado para converter esse dicionário em um tipo que o manipulador do servidor mcp pode aceitar e fica assim:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-E há *schema.ts* onde armazenamos os esquemas de entrada para cada ferramenta que fica assim com um único esquema no momento, mas enquanto adicionamos ferramentas podemos acrescentar mais entradas:
+E há *schema.ts* onde armazenamos os esquemas de entrada para cada ferramenta que fica assim, com apenas um esquema por enquanto, mas à medida que adicionamos ferramentas podemos adicionar mais entradas:
 
 ```typescript
 import { z } from 'zod';
@@ -444,9 +444,9 @@ export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 
 Ótimo, vamos prosseguir para lidar com a listagem das nossas ferramentas a seguir.
 
-### -3- Manipular listagem de ferramentas
+### -3- Lidar com listagem de ferramentas
 
-Agora, para lidar com a listagem de nossas ferramentas, precisamos configurar um manipulador de requisição para isso. Veja o que precisamos adicionar ao arquivo do servidor:
+A seguir, para lidar com a listagem das nossas ferramentas, precisamos configurar um manipulador de solicitação para isso. Aqui está o que precisamos adicionar ao nosso arquivo server:
 
 **Python**
 
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Aqui adicionamos o decorador `@server.list_tools` e a função implementadora `handle_list_tools`. Nesta última, precisamos produzir uma lista de ferramentas. Note como cada ferramenta precisa ter um nome, descrição e inputSchema.   
+Aqui adicionamos o decorador `@server.list_tools` e a função implementadora `handle_list_tools`. Nesta última, precisamos produzir uma lista de ferramentas. Note como cada ferramenta precisa ter um nome, descrição e inputSchema.
 
 **TypeScript**
 
-Para configurar o manipulador de requisição para listar ferramentas, precisamos chamar `setRequestHandler` no servidor com um esquema adequado para o que queremos fazer, neste caso `ListToolsRequestSchema`.
+Para configurar o manipulador de solicitação para listar ferramentas, precisamos chamar `setRequestHandler` no servidor com um esquema que se adapte ao que estamos tentando fazer, neste caso `ListToolsRequestSchema`.
 
 ```typescript
 // index.ts
@@ -488,7 +488,7 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// código omitido para brevidade
+// código omitido por brevidade
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
@@ -499,15 +499,15 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Ótimo, agora resolvemos a parte de listar ferramentas, vamos ver como podemos fazer chamadas a ferramentas a seguir.
+Ótimo, agora resolvemos a parte de listar ferramentas, vamos ver como poderíamos chamar ferramentas a seguir.
 
-### -4- Manipular chamada de ferramenta
+### -4- Lidar com chamadas de ferramenta
 
-Para chamar uma ferramenta, precisamos configurar outro manipulador de requisição, desta vez focado em lidar com uma solicitação especificando qual recurso chamar e com que argumentos.
+Para chamar uma ferramenta, precisamos configurar outro manipulador de solicitação, desta vez focado em lidar com uma solicitação que especifica qual recurso chamar e com quais argumentos.
 
 **Python**
 
-Vamos usar o decorador `@server.call_tool` e implementá-lo com uma função como `handle_call_tool`. Nessa função, precisamos analisar o nome da ferramenta, seu argumento e garantir que os argumentos sejam válidos para a ferramenta em questão. Podemos validar os argumentos nesta função ou depois, na ferramenta propriamente dita.
+Vamos usar o decorador `@server.call_tool` e implementá-lo com uma função como `handle_call_tool`. Dentro dessa função, precisamos extrair o nome da ferramenta, seus argumentos e garantir que os argumentos são válidos para a ferramenta em questão. Podemos validar os argumentos nesta função ou mais abaixo na ferramenta real.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools é um dicionário com nomes de ferramentas como chaves
+    # tools é um dicionário com os nomes das ferramentas como chaves
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -530,14 +530,14 @@ async def handle_call_tool(
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-Aqui está o que acontece:
+Eis o que ocorre:
 
-- Nosso nome da ferramenta já está presente como parâmetro de entrada `name`, o que é verdadeiro para nossos argumentos no formato do dicionário `arguments`.
+- O nome da ferramenta já está presente como o parâmetro de entrada `name`, que é verdadeiro para nossos argumentos na forma do dicionário `arguments`.
 
-- A ferramenta é chamada com `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. A validação dos argumentos acontece na propriedade `handler` que aponta para uma função, se falhar, levantará uma exceção.
+- A ferramenta é chamada com `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. A validação dos argumentos acontece na propriedade `handler` que aponta para uma função, se isso falhar, gerará uma exceção.
 
 Pronto, agora temos uma compreensão completa de listar e chamar ferramentas usando um servidor de baixo nível.
 
@@ -545,21 +545,21 @@ Veja o [exemplo completo](./code/README.md) aqui
 
 ## Tarefa
 
-Estenda o código que você recebeu com várias ferramentas, recursos e prompts e reflita sobre como você percebe que só precisa adicionar arquivos no diretório tools e em nenhum outro lugar.
+Estenda o código fornecido com várias ferramentas, recursos e prompts e reflita sobre como você percebe que só precisa adicionar arquivos no diretório tools e em nenhum outro lugar.
 
 *Nenhuma solução fornecida*
 
 ## Resumo
 
-Neste capítulo, vimos como funciona a abordagem do servidor de baixo nível e como isso pode nos ajudar a criar uma arquitetura legal que podemos continuar construindo. Também discutimos validação e mostramos como trabalhar com bibliotecas de validação para criar esquemas para validação de entrada.
+Neste capítulo, vimos como funciona a abordagem do servidor de baixo nível e como isso pode nos ajudar a criar uma boa arquitetura para continuar construindo. Também discutimos validação e você viu como trabalhar com bibliotecas de validação para criar esquemas para validação de entrada.
 
-## Próximos passos
+## Próximo passo
 
-- Próximo: [Autenticação simples](../11-simple-auth/README.md)
+- Próximo: [Autenticação Simples](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Aviso Legal**:  
-Este documento foi traduzido usando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, por favor, esteja ciente de que traduções automatizadas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações equivocadas decorrentes do uso desta tradução.
+Este documento foi traduzido usando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos empenhemos pela precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autoritativa. Para informações críticas, recomenda-se tradução profissional realizada por humanos. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes do uso desta tradução.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,13 +1,13 @@
-# Matumizi ya hali ya juu ya seva
+# Matumizi ya juu ya seva
 
-Kuna aina mbili tofauti za seva zilizo wazi katika MCP SDK, seva yako ya kawaida na seva ya ngazi ya chini. Kawaida, ungetumia seva ya kawaida kuongeza vipengele kwake. Hata hivyo, katika baadhi ya kesi, unataka kutegemea seva ya ngazi ya chini kama vile:
+Kuna aina mbili tofauti za seva zilizowekwa katika MCP SDK, seva yako ya kawaida na seva ya ngazi ya chini. Kawaida, utatumia seva ya kawaida kuongeza vipengele ndani yake. Lakini kwa baadhi ya kesi, unaweza kutegemea seva ya ngazi ya chini kama vile:
 
-- Mimarisha bora. Inawezekana kuunda miundo safi na seva ya kawaida na seva ya ngazi ya chini lakini inaweza kudaiwa kwamba ni rahisi kidogo na seva ya ngazi ya chini.
-- Upatikanaji wa vipengele. Baadhi ya vipengele vya hali ya juu vinaweza kutumika tu na seva ya ngazi ya chini. Hii utaiona katika sura za baadaye tunapoongeza sampuli na uhalifu.
+- Miundo bora. Inawezekana kuunda usanifu safi kwa seva ya kawaida na seva ya ngazi ya chini lakini kuna hoja kwamba ni rahisi zaidi kidogo kwa seva ya ngazi ya chini.
+- Upatikanaji wa vipengele. Baadhi ya vipengele vya juu vinaweza kutumika tu na seva ya ngazi ya chini. Hii utaiona katika sura zinazofuata tunapoongeza sampuli na kuchochea.
 
-## Seva ya kawaida vs seva ya ngazi ya chini
+## Seva ya kawaida dhidi ya seva ya ngazi ya chini
 
-Hivi ndivyo muundaji wa MCP Server unavyoonekana na seva ya kawaida
+Huu ndio muonekano wa kuunda MCP Server kwa seva ya kawaida
 
 **Python**
 
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-Nakala hapa ni kwamba unaongeza kila chombo, rasilimali au onyo unayotaka seva iwe nayo kwa wazi. Hakuna kosa hilo.
+Dharura ni kwamba unaongeza kwa makusudi kila zana, rasilimali au onyo unayotaka seva iwe nayo. Hakuna kosa lolote katika hilo.
 
 ### Njia ya seva ya ngazi ya chini
 
-Hata hivyo, unapotumia njia ya seva ya ngazi ya chini unahitaji kufikiria tofauti. Badala ya kusajili kila chombo, unaunda wasimamizi wawili kwa kila aina ya kipengele (vyombo, rasilimali au vionyo). Kwa mfano, vyombo vina kazi mbili tu kama ifuatavyo:
+Hata hivyo, unapotumia njia ya seva ya ngazi ya chini unahitaji kuifikiria tofauti. Badala ya kusajili kila zana, unaunda handlers mbili kwa kila aina ya kipengele (zana, rasilimali au onyo). Kwa mfano, zana zina kazi mbili tu kama ifuatavyo:
 
-- Orodhesha vyombo vyote. Kazi moja itahusika na majaribio yote ya kuorodhesha vyombo.
-- Semelea kupiga simu kwa vyombo vyote. Hapa pia, kuna kazi moja tu inayoshughulikia simu kwa chombo
+- Orodhesha zana zote. Kazi moja inahusika na majaribio yote ya kuorodhesha zana.
+- Kushughulikia kuita zana zote. Hapa pia, kuna kazi moja tu inayoshughulikia miito kwa zana.
 
-Hii inasikika kama kazi ndogo labda sawa? Kwa hivyo badala ya kusajili chombo, nahitaji tu kuhakikisha chombo kimeorodheshwa ninaporodhesha vyombo vyote na kwamba kinapoitwa pale ambapo kuna ombi linalokuja la kuitwa chombo.
+Hii inaonekana kama kazi ndogo, sivyo? Badala ya kusajili zana, ninahitaji tu kuhakikisha zana inaorodheshwa ninapoorodhesha zana zote na inaitwa pale pa ombi la kuwaita zana linapokuja.
 
-Tuangalie sasa jinsi msimbo unavyoonekana:
+Tuchukulie muonekano wa sasa wa msimbo:
 
 **Python**
 
@@ -81,15 +81,15 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Rejesha orodha ya zana zilizosajiliwa
+  // Rejesha orodha ya zana zilizoorodheshwa
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Hapa sasa tuna kazi inayorudisha orodha ya vipengele. Kila kipengele katika orodha ya vyombo sasa kina mashamba kama `name`, `description` na `inputSchema` kufuata aina ya kurudisha. Hii inatua kuweka vyombo vyetu na ufafanuzi wa kipengele mahali pengine. Sasa tunaweza kuunda vyombo vyetu vyote katika folda ya vyombo na hivyo vile vile kwa vipengele vyote hivyo mradi wako utaweza kupanga kama ifuatavyo:
+Hapa sasa tuna kazi inayorejesha orodha ya vipengele. Kila kipengele katika orodha za zana sasa kina nyanja kama `name`, `description` na `inputSchema` ili kufuata aina ya kurudisha. Hii inatuwezesha kuweka zana na ufafanuzi wa kipengele mahali pengine. Sasa tunaweza kuunda zana zetu zote katika folda ya zana na vivyo hivyo kwa vipengele vyote ili mradi wako uwe umepangwa kama ifuatavyo:
 
 ```text
 app
@@ -115,7 +115,7 @@ app
 
 Hiyo ni nzuri, usanifu wetu unaweza kuonekana safi kabisa.
 
-Je, kuhusu kupiga simu kwa vyombo, ni wazo hilo basi, msimamizi mmoja kupiga simu kwa chombo, chombo chochote? Ndiyo, hasa hivyo, hapa ni msimbo huo:
+Je, juu ya kuwaita zana, ni ile wazo hilo hilo then, handler moja kwa kuitwa zana, zana yoyote? Ndiyo, kabisa, hapa ni msimbo wa hilo:
 
 **Python**
 
@@ -158,7 +158,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     
     // hoja: request.params.arguments
-    // TODO piga simu kwa chombo,
+    // TODO piga simu zana,
 
     return {
        content: [{ type: "text", text: `Tool ${name} called with arguments: ${JSON.stringify(input)}, result: ${JSON.stringify(result)}` }]
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Kama unavyoona katika msimbo hapo juu, tunahitaji kutambua chombo cha kupigia simu, na na hoja zipi, na kisha tunahitaji kuendelea kupiga simu kwa chombo hicho.
+Kama unavyoona kutoka msimbo juu, tunahitaji kuchambua zana ya kuitwa, na kwa hoja zipi, na kisha tuendelee kuitwa kwa zana hiyo.
 
-## Kuboresha njia kwa uthibitisho
+## Kuboresha njia hii kwa uthibitishaji
 
-Mpaka sasa, umeona jinsi usajili wako wote wa kuongeza vyombo, rasilimali na vionyo unavyoweza kubadilishwa na wasimamizi hawa wawili kwa kila aina ya kipengele. Je, tunahitaji kufanya nini pia? Naam, tunapaswa kuongeza aina fulani ya uthibitisho kuhakikisha kuwa chombo kinapigiwa pasipo makosa ya hoja. Kila runtime ina suluhisho lake la hili, kwa mfano Python hutumia Pydantic na TypeScript hutumia Zod. Wazo ni kufanya yafuatayo:
+Mpaka sasa, umeona jinsi usajili wako wote wa kuongeza zana, rasilimali na onyo unavyoweza kubadilishwa na handlers hizi mbili kwa kila aina ya kipengele. Tunachohitaji kingine ni nini? Naam, tunapaswa kuongeza aina fulani ya uthibitishaji kuhakikisha kuwa zana inaitwa kwa hoja sahihi. Kila runtime ina suluhisho lao kwa hili, kwa mfano Python inatumia Pydantic na TypeScript inatumia Zod. Wazo ni kwamba tunafanya yafuatayo:
 
-- Hamisha mantiki ya kuunda kipengele (chombo, rasilimali au onyo) hadi folder yake maalum.
-- Ongeza njia ya kuthibitisha ombi linapokuja kuomba kupigia simu chombo kwa mfano.
+- Hamisha mantiki ya kuunda kipengele (zana, rasilimali au onyo) kwenda kwenye folda yake maalum.
+- Ongeza njia ya kuthibitisha ombi linalokuja la kwa mfano kuitwa kwa zana.
 
-### Tengeneza kipengele
+### Kuunda kipengele
 
-Kuumba kipengele, tutahitaji kuunda faili kwa kipengele hicho na kuhakikisha kina mashamba muhimu yanayohitajika kwa kipengele hicho. Mashamba gani yanatofautiana kidogo kati ya vyombo, rasilimali na vionyo.
+Ili kuunda kipengele, tutahitaji kuunda faili kwa kipengele hicho na kuhakikisha kina nyanja muhimu zinazotakiwa kwa kipengele hicho. Nyanja ambazo hutofautiana kidogo kati ya zana, rasilimali na onyo.
 
 **Python**
 
@@ -195,12 +195,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Thibitisha ingizo ukitumia mfano wa Pydantic
+        # Thibitisha ingizo kwa kutumia mfano wa Pydantic
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: ongeza Pydantic, ili tuweze kuunda AddInputModel na kuthibitisha hoja
+    # TODO:ongeza Pydantic, ili tuweze kuunda AddInputModel na kuthibitisha hoja
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -213,10 +213,10 @@ tool_add = {
 }
 ```
 
-hapa unaweza kuona jinsi tunavyofanya yafuatayo:
+hapa unaweza kuona tunafanya yafuatayo:
 
-- Unda schema kwa kutumia Pydantic `AddInputModel` na mashamba `a` na `b` katika faili *schema.py*.
-- Jaribu kufasiri ombi lililoingia kuwa aina ya `AddInputModel`, kama kuna tofauti ya vigezo hii itasababisha hitilafu:
+- Kuunda schema kutumia Pydantic `AddInputModel` na nyanja `a` na `b` katika faili *schema.py*.
+- Jaribu kuchambua ombi linalokuja kuwa aina ya `AddInputModel`, ikiwa kuna tofauti katika vigezo hii itasukuma kosa:
 
    ```python
    # add.py
@@ -227,12 +227,12 @@ hapa unaweza kuona jinsi tunavyofanya yafuatayo:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Unaweza kuchagua kuweka mantiki hii ya tafsiri ndani ya lugha ya chombo yenyewe au katika kazi ya msimamizi.
+Unaweza kuchagua kuweka mantiki hii ya kuchambua ndani ya wito wa zana yenyewe au katika kazi ya handler.
 
 **TypeScript**
 
 ```typescript
-// seva.ts
+// server.ts
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { params: { name } } = request;
     let tool = tools.find(t => t.name === name);
@@ -249,7 +249,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
        const input = Schema.parse(request.params.arguments);
 
-       // @ts-sahau
+       // @ts-ignore
        const result = await tool.callback(input);
 
        return {
@@ -266,12 +266,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 });
 
-// mpangilio.ts
+// schema.ts
 import { z } from 'zod';
 
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 
-// ongeza.ts
+// add.ts
 import { Tool } from "./tool.js";
 import { MathInputSchema } from "./schema.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- Katika msimamizi anayeshughulikia simu zote za vyombo, sasa tunajaribu kufasiri ombi lililoingia kwenye schema iliyochaguliwa ya chombo:
+- Katika handler inayoshughulikia miito yote ya zana, sasa tunajaribu kuchambua ombi linalokuja ndani ya schema iliyotangazwa na zana:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    kama hiyo itafanya kazi basi tunaendelea kupiga simu chombo halisi:
+    ikiwa hiyo itafanya kazi basi tutaendelea kuitwa kwa zana halisi:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-Kama unavyoona, njia hii huunda usanifu bora kwani kila kitu kina mahali pake, *server.ts* ni faili ndogo sana tu inayounganisha wasimamizi wa ombi na kila kipengele kiko katika folda yake ya muhimu yaani tools/, resources/ au /prompts.
+Kama unavyoona, njia hii inaunda usanifu mzuri kwani kila kitu kina mahali pake, *server.ts* ni faili ndogo sana inayounganisha handlers za maombi na kila kipengele kiko katika folda zake zinazohusika yaani tools/, resources/ au /prompts.
 
-Nzuri, tujaribu kujenga hili sasa.
+Nzuri, tujaribu kuunda hii ipitayo.
 
-## Zoeezi: Kuunda seva ya ngazi ya chini
+## Zoef: Kuunda seva ya ngazi ya chini
 
-Katika zoeezi hili, tutafanya yafuatayo:
+Katika zoezi hili, tutafanya yafuatayo:
 
-1. Unda seva ya ngazi ya chini inayoshughulikia kuorodhesha vyombo na kupiga simu kwa vyombo.
-1. Tekeleza usanifu unaoweza kujenga juu yake.
-1. Ongeza uthibitisho ili kuhakikisha simu zako za vyombo zinathibitishwa ipasavyo.
+1. Kuunda seva ya ngazi ya chini inayoshughulikia orodha ya zana na miito ya zana.
+1. Kutekeleza usanifu unaoweza kujengwa juu yake.
+1. Ongeza uthibitishaji kuhakikisha miito yako ya zana inathibitishwa ipasavyo.
 
-### -1- Unda usanifu
+### -1- Kuunda usanifu
 
-Jambo la kwanza tunalohitaji kushughulikia ni usanifu unaotusaidia kupanua tunapoongeza vipengele zaidi, hivi ndivyo inavyoonekana:
+Kitu cha kwanza tunachopaswa kushughulikia ni usanifu ambao unatupa uwezo wa kupanua sehemu zaidi tunapoongeza vipengele, huu ndio muonekano wake:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Sasa tumetenga usanifu unaohakikisha tunaweza kuongeza vyombo vipya kwa urahisi katika folda ya vyombo. Jisikie huru kufuata hili kuongeza saraka ndogo kwa rasilimali na vionyo.
+Sasa tumeanzisha usanifu unaohakikisha tunaweza kuongeza zana mpya kwa urahisi ndani ya folda ya tools. Ruhusu kufuatilia hii kuongeza folda ndogo kwa resources na prompts.
 
-### -2- Kuunda chombo
+### -2- Kuunda zana
 
-Tuchunguze jinsi kuunda chombo kunavyoonekana sasa. Kwanza, kinatakiwa kuundwa katika saraka ndogo yake ya *tool* kama ifuatavyo:
+Tuchukulie muonekano wa kuunda zana. Kwanza, inapaswa kuundwa katika folda yake ndogo ya *tool* kama ifuatavyo:
 
 **Python**
 
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Tunachoona hapa ni jinsi tunavyofafanua jina, maelezo, na input schema kwa kutumia Pydantic na msimamizi atakayetekelezwa mara chombo hiki kitakapoitwa. Mwisho, tunaweka wazi `tool_add` ambayo ni kamusi inayoshikilia mali zote hizi.
+Tunachoona hapa ni jinsi tunavyofafanua jina, maelezo, na schema ya kuingiza kwa kutumia Pydantic na handler ambayo itaitwa mara zana hii itakapotumiwa. Mwishowe, tunafichua `tool_add` ambayo ni kamusi inayoashiria mali zote hizi.
 
-Kuna pia *schema.py* inayotumika kufafanua input schema inayotumiwa na chombo chetu:
+Pia kuna *schema.py* inayotumika kufafanua schema ya kuingiza inayotumika na zana yetu:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Pia tunahitaji kujaza *__init__.py* ili kuhakikisha saraka ya vyombo inatambuliwa kama moduli. Zaidi ya hayo, tunapaswa kuwasha moduli zilizo ndani yake hivi:
+Pia tunahitaji kujaza *__init__.py* ili kuhakikisha folda ya tools inachukuliwa kama moduli. Zaidi, tunahitaji kufichua moduli ndani yake kama ifuatavyo:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Tunaweza kuendelea kuongeza kwenye faili hii tunavyoongeza vyombo zaidi.
+Tunaweza kuendelea kuongeza kwenye faili hili tunapoingiza zana zaidi.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Hapa tunaunda kamusi yenye mali:
+Hapa tunaunda kamusi inayojumuisha mali:
 
-- name, hili ndilo jina la chombo.
-- rawSchema, hii ni schema ya Zod, itatumika kuthibitisha maombi yanayoingia ya kupiga simu kwa chombo hiki.
-- inputSchema, schema hii itatumika na msimamizi.
-- callback, hii hutumika kuitisha chombo.
+- name, hii ni jina la zana.
+- rawSchema, hii ni schema ya Zod, itatumika kuthibitisha maombi yanayoingia ya kuitwa kwa zana hii.
+- inputSchema, schema hii itatumika na handler.
+- callback, hii inatumika kuita zana.
 
-Kuna pia `Tool` inayotumiwa kubadilisha kamusi hii kuwa aina ambayo msimamizi wa seva ya mcp anaweza kukubali na inavyoonekana hivi:
+Pia kuna `Tool` inayotumika kubadilisha kamusi hii kuwa aina inayokubalika na handler wa seva ya mcp na inaonekana kama ifuatavyo:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-Na kuna *schema.ts* ambapo tunaweka input schemas za kila chombo zinazofanana hivi sasa na schema moja tu lakini tunapoongeza vyombo tunaweza kuongeza maingizo zaidi:
+Na kuna *schema.ts* ambapo tunahifadhi schemas za kuingiza kwa kila zana ambazo zinaonekana hivi na kama sasa schema moja tu lakini tunapoongeza zana tunaweza kuongeza ingizo zaidi:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Nzuri, tuendelee kuanzisha usimamizi wa kuorodhesha vyombo sasa.
+Nzuri, tuchukulie sasa kushughulikia orodha ya zana zetu.
 
-### -3- Simamia kuorodhesha vyombo
+### -3- Shughulikia orodha ya zana
 
-Ifuatayo, kusimamia kuorodhesha vyombo vyetu, tunahitaji kuweka msimamizi wa ombi kwa ajili hiyo. Hapa tunatakiwa kuongeza kwenye faili yetu ya seva:
+Ili kushughulikia orodha ya zana zetu, tunahitaji kuweka handler wa ombi la hilo. Hapa ni kile tunachotakiwa kuongeza katika faili ya seva:
 
 **Python**
 
 ```python
-# msimbo umeachwa kwa ufupi
+# msimbo umefutwa kwa ufupi
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Hapa, tunaongeza dekoreta `@server.list_tools` na kazi inayotekelezwa `handle_list_tools`. Katika hii ya mwisho, tunapaswa kutoa orodha ya vyombo. Angalia jinsi kila chombo kinavyotakiwa kuwa na jina, maelezo na inputSchema.
+Hapa, tunaongeza dekoreta `@server.list_tools` na kazi inayotekeleza `handle_list_tools`. Katika hii, tunapaswa kutoa orodha ya zana. Kumbuka kila zana inapaswa kuwa na jina, maelezo na inputSchema.
 
 **TypeScript**
 
-Ili kuweka msimamizi wa ombi wa kuorodhesha vyombo, tunahitaji kupiga `setRequestHandler` kwenye seva na schema inayoendana na kile tunachotaka kufanya, katika kesi hii `ListToolsRequestSchema`.
+Ili kuweka handler wa ombi kwa ajili ya kuorodhesha zana, tunahitaji kuita `setRequestHandler` kwenye seva na schema inayolingana na tunachojaribu kufanya, katika kesi hii `ListToolsRequestSchema`.
 
 ```typescript
 // index.ts
@@ -499,15 +499,15 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Nzuri, sasa tumesuluhisha sehemu ya kuorodhesha vyombo, tuangalie jinsi tunavyoweza kupiga simu kwa vyombo ifuatayo.
+Nzuri, sasa tumesuluhisha sehemu ya kuorodhesha zana, tuchukulie jinsi tunavyoweza kuita zana zetu.
 
-### -4- Simamia kupiga simu kwa chombo
+### -4- Shughulikia kuitwa kwa zana
 
-Kupiga simu kwa chombo, tunahitaji kuweka msimamizi mwingine wa ombi, wakati huu ukilenga kushughulikia ombi linaloeleza kipengele gani kiitwe na kwa hoja zipi.
+Ili kuita zana, tunahitaji kuweka handler mwingine wa ombi, wakati huu ukilenga kushughulikia ombi linalobainisha kipengele cha kuitwa na na hoja zipi.
 
 **Python**
 
-Tutumie dekoreta `@server.call_tool` na utekeleze na kazi kama `handle_call_tool`. Ndani ya kazi hii, tunahitaji kuchambua jina la chombo, hoja zake na kuhakikisha hoja ni halali kwa chombo kilichoombwa. Tunaweza kuthibitisha hoja ndani ya kazi hii au baadaye katika chombo halisi.
+Tutatumia dekoreta `@server.call_tool` na kuitekeleza na kazi kama `handle_call_tool`. Ndani ya kazi hii, tunapaswa kuchambua jina la zana, hoja zake na kuhakikisha hoja ni sahihi kwa zana husika. Tunaweza kuthibitisha hoja ndani ya kazi hii au baadaye katika zana yenyewe.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools ni kamusi yenye majina ya zana kama funguo
+    # zana ni kamusi yenye majina ya zana kama funguo
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -523,43 +523,43 @@ async def handle_call_tool(
 
     result = "default"
     try:
-        # itumie zana hiyo
+        # itumie zana
         result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)
     except Exception as e:
         raise ValueError(f"Error calling tool {name}: {str(e)}")
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-Hapa ni yanayotokea:
+Hapa ni kinachoendelea:
 
-- Jina la chombo letu tayari lipo kama kigezo cha kuingiza `name` ambacho ni kweli kwa hoja zetu za aina ya kamusi `arguments`.
+- Jina la zana limekwisha kuwepo kama parameter ya kuingiza `name` ambayo pia ni kweli kwa hoja zetu katika kamusi ya `arguments`.
 
-- Chombo kinaitwa kwa `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Uthibitisho wa hoja hutokea katika mali ya `handler` inayorejelea kazi, kama ikishindikana itatoa kosa.
+- Zana inaitwa na `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Uthibitishaji wa hoja unafanyika katika mali ya `handler` inayong'atia kazi, ikiwa itashindwa itatoa kosa.
 
-Hapo, sasa tunaelewa kabisa orodha na kupiga simu kwa vyombo kwa kutumia seva ya ngazi ya chini.
+Hapo, sasa tuna uelewa kamili wa kuorodhesha na kuitwa kwa zana kwa kutumia seva ya ngazi ya chini.
 
 Tazama [mfano kamili](./code/README.md) hapa
 
-## Majukumu
+## Mradi
 
-Panua msimbo uliotolewa na idadi ya vyombo, rasilimali na vionyo na fahamu jinsi unavyotambua kuwa unahitaji tu kuongeza faili katika saraka ya vyombo na si mahali pengine.
+Panua msimbo uliotolewa kwa idadi ya zana, rasilimali na onyo na fikiria jinsi unavyogundua kuwa unahitaji tu kuongeza faili ndani ya folda ya tools na mahali pengine siyo.
 
 *Hakuna suluhisho lililotolewa*
 
 ## Muhtasari
 
-Katika sura hii, tumeona jinsi njia ya seva ya ngazi ya chini ilivyofanya kazi na jinsi inavyotusaidia kuunda usanifu mzuri tunaoweza kuendelea kuujenga. Pia tulijadili uthibitisho na ulionyeshwa jinsi ya kufanya kazi na maktaba za uthibitisho kuunda schema za uthibitisho wa ingizo.
+Katika sura hii, tuliiona jinsi njia ya seva ya ngazi ya chini ilivyofanya kazi na jinsi inavyotusaidia kuunda usanifu mzuri tunaweza kuendelea kuujenga. Pia tulijadili uthibitishaji na ulipewa jinsi ya kufanya kazi na maktaba za uthibitishaji kuunda schemas kwa uthibitishaji wa kuingiza.
 
-## Nini Kifuatazo
+## Ijayo ni nini
 
 - Ifuatayo: [Uthibitishaji Rahisi](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Angalizo**:  
-Nyaraka hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kwamba tafsiri zilizofanywa kwa njia ya otomatiki zinaweza kuwa na makosa au kasoro za usahihi. Nyaraka ya asili katika lugha yake ya asili inapaswa kuchukuliwa kuwa chanzo cha uthibitisho. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatubebei uwajibikaji wowote kwa kutoelewana au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+**Kumbusho**:  
+Hati hii imetafsiriwa kwa kutumia huduma ya kutafsiri kwa AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kwamba tafsiri za moja kwa moja zinaweza kuwa na makosa au upotovu wa maana. Hati asilia katika lugha yake ya asili inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa za muhimu sana, tafsiri ya kitaalamu kwa binadamu inapendekezwa. Hatubeba dhima kwa kutoelewana au tafsiri potofu zitokanazo na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

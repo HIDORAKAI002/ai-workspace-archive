@@ -1,20 +1,20 @@
 # Pokročilé použitie servera
 
-V MCP SDK sú vystavené dva rôzne typy serverov, bežný server a nízkoúrovňový server. Normálne by ste použili bežný server na pridávanie funkcií. V niektorých prípadoch však chcete využiť nízkoúrovňový server, napríklad:
+V MCP SDK sú dostupné dva rôzne typy serverov, bežný server a nízkoúrovňový server. Obvykle by ste používali bežný server na pridávanie funkcií. V niektorých prípadoch však chcete spoľahnúť sa na nízkoúrovňový server, napríklad:
 
-- Lepšia architektúra. Je možné vytvoriť čistú architektúru s bežným serverom aj nízkoúrovňovým serverom, ale dá sa povedať, že s nízkoúrovňovým serverom je to o niečo jednoduchšie.
-- Dostupnosť funkcií. Niektoré pokročilé funkcie je možné použiť len s nízkoúrovňovým serverom. Ukážeme si to v ďalších kapitolách, keď pridáme vzorkovanie a vyvolanie.
+- Lepšia architektúra. Je možné vytvoriť čistú architektúru s bežným serverom aj nízkoúrovňovým serverom, ale dá sa argumentovať, že s nízkoúrovňovým serverom je to trochu jednoduchšie.
+- Dostupnosť funkcií. Niektoré pokročilé funkcie je možné používať iba s nízkoúrovňovým serverom. Uvidíte to v ďalších kapitolách, keď pridáme sampling a elicitation.
 
-## Bežný server verzus nízkoúrovňový server
+## Bežný server vs nízkoúrovňový server
 
-Takto vyzerá vytvorenie MCP servera s bežným serverom:
+Takto vyzerá vytvorenie MCP servera s bežným serverom
 
 **Python**
 
 ```python
 mcp = FastMCP("Demo")
 
-# Pridajte nástroj na sčítanie
+# Pridať nástroj na sčítanie
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -42,16 +42,16 @@ server.registerTool("add",
 );
 ```
 
-Pointa je, že explicitne pridávate každý nástroj, zdroj alebo prompt, ktorý chcete, aby server mal. Na tom nie je nič zlé.
+Podstata je v tom, že explicitne pridáte každý nástroj, zdroj alebo prompt, ktorý chcete, aby server mal. Na tom nie je nič zlé.
 
 ### Prístup nízkoúrovňového servera
 
-Pri nízkoúrovňovom serveri je potrebné na to myslieť inak. Namiesto registrácie každého nástroja vytvoríte dva handlery na typ funkcie (nástroje, zdroje alebo prompt). Napríklad nástroje majú len dve funkcie ako napríklad:
+Keď používate prístup nízkoúrovňového servera, musíte na to myslieť inak. Namiesto registrácie každého nástroja jednoducho vytvoríte dva handlery na každý typ funkcie (nástroje, zdroje alebo prompty). Napríklad nástroje majú iba dve funkcie takto:
 
-- Výpis všetkých nástrojov. Jedna funkcia je zodpovedná za všetky pokusy o výpis nástrojov.
-- Spracovanie volania nástrojov. Tu je tiež len jedna funkcia, ktorá spracováva volania nástroja.
+- Zoznam všetkých nástrojov. Jedna funkcia je zodpovedná za všetky pokusy o výpis nástrojov.
+- Spracovanie volania všetkých nástrojov. Opäť je tu len jedna funkcia na spracovanie volaní nástroja.
 
-To znie ako potenciálne menej práce, však? Namiesto registrácie nástroja stačí zabezpečiť, aby bol nástroj vo výpise nástrojov a aby bol zavolaný, keď príde požiadavka na jeho volanie.
+To znie ako potenciálne menej práce, však? Namiesto registrácie nástroja len musím zabezpečiť, aby bol nástroj uvedený v zozname, keď vypisujem všetky nástroje, a aby sa vyvolal pri prichádzajúcej požiadavke na volanie nástroja.
 
 Pozrime sa, ako teraz vyzerá kód:
 
@@ -84,12 +84,12 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
   // Vrátiť zoznam zaregistrovaných nástrojov
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Tu máme funkciu, ktorá vracia zoznam funkcií. Každá položka v zozname nástrojov má polia ako `name`, `description` a `inputSchema`, aby sme spĺňali návratový typ. To nám umožňuje umiestniť definície nástrojov a funkcií inde. Môžeme vytvoriť všetky nástroje vo priečinku tools a podobne pre všetky funkcie, takže projekt môže byť zrazu usporiadaný takto:
+Tu už máme funkciu, ktorá vracia zoznam funkcií. Každá položka v zozname nástrojov má polia ako `name`, `description` a `inputSchema`, aby zodpovedala návratovému typu. To nám umožňuje umiestniť naše nástroje a definíciu funkcií inde. Teraz môžeme vytvárať všetky naše nástroje v priečinku tools a to isté platí aj pre všetky vaše funkcie, takže váš projekt môže byť zrazu usporiadaný takto:
 
 ```text
 app
@@ -115,7 +115,7 @@ app
 
 To je skvelé, naša architektúra môže vyzerať celkom čisto.
 
-A čo volanie nástrojov, platí rovnaký princíp - jeden handler na volanie nástroja, akýkoľvek nástroj? Áno, presne tak, tu je kód:
+Čo volanie nástrojov? Platí ten istý princíp, jeden handler na volanie ľubovoľného nástroja? Áno, presne tak, tu je kód:
 
 **Python**
 
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Ako vidíte z kódu vyše, musíme rozparsovať nástroj na volanie a s akými argumentmi, a potom pokračovať vo volaní nástroja.
+Ako vidíte z horeuvedeného kódu, musíme vyparsovať, ktorý nástroj volať a s akými argumentmi, a potom pokračovať v volaní nástroja.
 
-## Vylepšenie prístupu validáciou
+## Vylepšenie prístupu s validáciou
 
-Doteraz ste videli, ako môžete všetky registrácie na pridávanie nástrojov, zdrojov a prompt nahradiť týmito dvoma handlermi na každý typ funkcie. Čo ešte treba urobiť? Mali by sme pridať formu validácie, aby sme zaistili, že nástroj sa volá so správnymi argumentmi. Každé runtime má na to vlastné riešenie, napríklad Python používa Pydantic a TypeScript používa Zod. Idea je:
+Doteraz ste videli, ako všetky vaše registrácie na pridávanie nástrojov, zdrojov a promptov môžu byť nahradené týmito dvoma handlermi na každý typ funkcie. Čo ešte musíme urobiť? Mali by sme pridať nejakú formu validácie, aby sme zabezpečili, že nástroj sa volá s správnymi argumentmi. Každé runtime má svoje riešenie, napríklad Python používa Pydantic a TypeScript používa Zod. Myšlienka je nasledovná:
 
-- Presunúť logiku vytvárania funkcie (nástroja, zdroja alebo promptu) do jej vlastného priečinka.
-- Pridať spôsob validácie prichádzajúcej požiadavky, napríklad na volanie nástroja.
+- Presunúť logiku vytvorenia funkcie (nástroj, zdroj alebo prompt) do jeho vyhradeného priečinka.
+- Pridať spôsob, ako validovať prichádzajúcu požiadavku, ktorá napríklad požaduje volanie nástroja.
 
 ### Vytvorenie funkcie
 
-Na vytvorenie funkcie potrebujeme vytvoriť pre ňu súbor a zabezpečiť, aby mal povinné polia požadované pre túto funkciu. Polia sa mierne líšia medzi nástrojmi, zdrojmi a promptmi.
+Na vytvorenie funkcie budeme potrebovať vytvoriť súbor pre túto funkciu a zabezpečiť, aby mal povinné polia požadované pre danú funkciu. Polia sa mierne líšia medzi nástrojmi, zdrojmi a promptmi.
 
 **Python**
 
@@ -195,12 +195,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Overiť vstup pomocou modelu Pydantic
+        # Validujte vstup pomocou modelu Pydantic
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: pridať Pydantic, aby sme mohli vytvoriť AddInputModel a overiť argumenty
+    # TODO: pridajte Pydantic, aby sme mohli vytvoriť AddInputModel a validovať argumenty
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -216,7 +216,7 @@ tool_add = {
 Tu vidíte, ako robíme nasledovné:
 
 - Vytvoríme schému pomocou Pydantic `AddInputModel` s poliami `a` a `b` v súbore *schema.py*.
-- Pokúsime sa rozparsovať prichádzajúcu požiadavku na typ `AddInputModel`, ak sú parametre nezhodné, vyhodí sa chyba:
+- Pokúsime sa pomocou parse prijať prichádzajúcu požiadavku ako typ `AddInputModel`, ak nastane nezhoda v parametroch, program spadne:
 
    ```python
    # add.py
@@ -227,7 +227,7 @@ Tu vidíte, ako robíme nasledovné:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Môžete si vybrať, či túto logiku parsovania dať priamo do volania nástroja alebo do handlera.
+Môžete si vybrať, či túto logiku parsovania dať priamo do samotného volania nástroja alebo do handler funkcie.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- V handleri spracovávajúcom všetky volania nástrojov sa teraz pokúsime rozparsovať prichádzajúcu požiadavku podľa definovanej schémy nástroja:
+- V handleri, ktorý spracúva všetky volania nástrojov, teraz skúšame parse prichádzajúcu požiadavku do definovanej schémy nástroja:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-Ak to vyjde, pokračujeme s volaním samotného nástroja:
+    Ak to funguje, pokračujeme vo volaní samotného nástroja:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-Ako vidíte, tento prístup vytvára skvelú architektúru, kde má všetko svoje miesto, *server.ts* je veľmi malý súbor, ktorý len prepája request handlery a každá funkcia je vo svojom príslušnom priečinku, teda tools/, resources/ alebo /prompts.
+Ako vidíte, tento prístup vytvára skvelú architektúru, pretože všetko má svoje miesto, súbor *server.ts* je veľmi malý a len zapája request handlery a každá funkcia je vo svojom vlastnom priečinku, teda tools/, resources/ alebo /prompts.
 
-Skvelé, poďme to teraz postaviť.
+Výborne, poďme to teraz skúsiť postaviť.
 
 ## Cvičenie: Vytvorenie nízkoúrovňového servera
 
-V tomto cvičení urobíme nasledovné:
+V tomto cvičení urobíme nasledujúce:
 
-1. Vytvoríme nízkoúrovňový server, ktorý spracováva výpis nástrojov a ich volanie.
-2. Implementujeme architektúru, na ktorú sa môžete stavať.
-3. Pridáme validáciu, aby sa volania nástrojov správne overovali.
+1. Vytvoríme nízkoúrovňový server spracúvajúci výpis nástrojov a volania nástrojov.
+1. Implementujeme architektúru, na ktorej môžete stavať.
+1. Pridáme validáciu, aby sa zabezpečilo, že volania vašich nástrojov budú riadne validované.
 
 ### -1- Vytvorenie architektúry
 
-Prvá vec, ktorú musíme riešiť, je architektúra, ktorá nám pomôže škálovať, keď pridáme ďalšie funkcie, vyzerá takto:
+Prvým problémom, ktorý musíme riešiť, je architektúra, ktorá nám pomôže škálovať, keď pridávame viac funkcií, vyzerá takto:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Teraz máme nastavenú architektúru, ktorá zabezpečuje, že môžeme ľahko pridávať nové nástroje vo priečinku tools. Kludne pridajte podobné podsložky pre resources a prompts.
+Teraz sme nastavili architektúru, ktorá nám umožňuje jednoducho pridávať nové nástroje v priečinku tools. Kľudne pridajte aj podpriečinky pre resources a prompts.
 
 ### -2- Vytvorenie nástroja
 
-Pozrime sa, ako vyzerá vytvorenie nástroja. Najskôr sa vytvorí v jeho podsložke *tool* takto:
+Pozrime sa, ako vyzerá vytvorenie nástroja. Najskôr ho treba vytvoriť v podpriečinku *tool* takto:
 
 **Python**
 
@@ -353,12 +353,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Overte vstup pomocou Pydantic modelu
+        # Validovať vstup pomocou Pydantic modelu
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: pridajte Pydantic, aby sme mohli vytvoriť AddInputModel a overiť argumenty
+    # TODO: pridať Pydantic, aby sme mohli vytvoriť AddInputModel a validovať argumenty
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Vidíme tu, ako definujeme názov, popis a vstupnú schému pomocou Pydantic a handler, ktorý sa zavolá, keď sa tento nástroj bude volať. Nakoniec exponujeme `tool_add`, čo je slovník s týmito vlastnosťami.
+Vidíme, že definujeme názov, popis a vstupnú schému pomocou Pydantic a handler, ktorý bude vyvolaný po zavolaní tohto nástroja. Nakoniec exponujeme `tool_add`, čo je slovník obsahujúci všetky tieto vlastnosti.
 
-Je tu tiež *schema.py*, ktorý definuje vstupnú schému používanú našim nástrojom:
+Je tu tiež *schema.py*, ktorý sa používa na definovanie vstupnej schémy používanej nástrojom:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Taktiež musíme vyplniť *__init__.py*, aby sa adresár tools považoval za modul. Navyše je potrebné exponovať moduly v ňom takto:
+Tiež musíme doplniť *__init__.py*, aby sa priečinok tools správal ako modul. Okrem toho musíme exponovať moduly v ňom takto:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Tento súbor môžeme rozširovať, keď pridávame ďalšie nástroje.
+Tento súbor môžeme ďalej rozširovať, keď pridáme viac nástrojov.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Tu vytvárame slovník pozostávajúci z vlastností:
+Tu vytvárame slovník skladajúci sa z vlastností:
 
-- name, názov nástroja.
-- rawSchema, Zod schéma, ktorá sa použije na validáciu prichádzajúcich požiadaviek na volanie tohto nástroja.
-- inputSchema, túto schému použije handler.
-- callback, ktorý sa použije na vyvolanie nástroja.
+- name, to je názov nástroja.
+- rawSchema, je to Zod schéma, ktorá sa použije na validáciu prichádzajúcich požiadaviek na volanie tohto nástroja.
+- inputSchema, túto schému používa handler.
+- callback, používa sa na vyvolanie nástroja.
 
-Je tu aj `Tool`, ktorý prevádza tento slovník na typ, ktorý MCP server handler dokáže prijať, a vyzerá takto:
+Existuje tiež `Tool`, ktorý slúži na konverziu tohto slovníka na typ, ktorý MCP server handler dokáže prijať, vyzerá takto:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-A je tu *schema.ts*, kde uchovávame vstupné schémy každej funkcie, vyzerá takto, momentálne len s jednou schémou, ale pri pridávaní nástrojov pridáme ďalšie:
+A je tu *schema.ts*, kde uchovávame vstupné schémy pre každý nástroj, vyzerá to takto, momentálne je tam len jedna schéma, ale ako pridáme nástroje, môžeme pridávať viac položiek:
 
 ```typescript
 import { z } from 'zod';
@@ -442,11 +442,11 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Skvelé, pokračujme teraz s handlerom na výpis nástrojov.
+Skvelé, teraz pokračujeme v spracovaní výpisu našich nástrojov.
 
 ### -3- Spracovanie výpisu nástrojov
 
-Ďalej na spracovanie výpisu nástrojov potrebujeme nastaviť request handler na to. Toto pridáme do nášho serverového súboru:
+Na spracovanie výpisu nástrojov potrebujeme nastaviť request handler. Toto musíme pridať do nášho server súboru:
 
 **Python**
 
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Tu pridávame dekorátor `@server.list_tools` a implementačnú funkciu `handle_list_tools`. V nej musíme vytvoriť zoznam nástrojov. Všimnite si, že každý nástroj musí mať názov, popis a inputSchema.
+Tu pridáme dekorátor `@server.list_tools` a implementačnú funkciu `handle_list_tools`. V nej musíme vygenerovať zoznam nástrojov. Všimnite si, že každý nástroj musí mať názov, popis a inputSchema.
 
 **TypeScript**
 
-Na nastavenie request handlera na výpis nástrojov zavoláme `setRequestHandler` na serveri so schémou zodpovedajúcou tomu, čo chceme robiť, v tomto prípade `ListToolsRequestSchema`.
+Na nastavenie request handlera na výpis nástrojov zavoláme `setRequestHandler` na serveri so schémou, ktorá zodpovedá tomu, čo chceme robiť, v tomto prípade `ListToolsRequestSchema`.
 
 ```typescript
 // index.ts
@@ -488,26 +488,26 @@ tools.push(addTool);
 tools.push(subtractTool);
 
 // server.ts
-// kód vynechaný pre stručnosť
+// kód skrátený pre stručnosť
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Vrátiť zoznam registrovaných nástrojov
+  // Vráti zoznam registrovaných nástrojov
   return {
     tools: tools
   };
 });
 ```
 
-Skvelé, vyriešili sme výpis nástrojov, poďme sa pozrieť, ako voláme nástroje.
+Výborne, teraz sme vyriešili časť výpisu nástrojov, poďme sa pozrieť na volanie nástrojov.
 
 ### -4- Spracovanie volania nástroja
 
-Na volanie nástroja nastavíme ďalší request handler, ktorý sa zameria na požiadavky určujúce, ktorú funkciu volať a s akými argumentmi.
+Na volanie nástroja potrebujeme nastaviť ďalší request handler, ktorý sa zameria na spracovanie požiadavky špecifikujúcej, ktorú funkciu volať a s akými argumentmi.
 
 **Python**
 
-Použijeme dekorátor `@server.call_tool` a implementujeme funkciu `handle_call_tool`. V nej musíme rozparsovať názov nástroja, jeho argumenty a zabezpečiť, že argumenty sú platné pre daný nástroj. Môžeme validovať argumenty buď tu, alebo priamo v nástroji.
+Použijeme dekorátor `@server.call_tool` a implementujeme ho funkciou ako `handle_call_tool`. V tejto funkcii musíme vyparsovať názov nástroja, jeho argument a zabezpečiť, že argumenty sú platné pre daný nástroj. Validáciu argumentov môžeme urobiť buď tu alebo v samotnom nástroji.
 
 ```python
 @server.call_tool()
@@ -530,35 +530,36 @@ async def handle_call_tool(
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-Tu sa deje toto:
+Tu sa deje nasledovné:
 
-- Názov nástroja už máme ako vstupný parameter `name` a argumenty generálne ako slovník `arguments`.
-- Nástroj sa volá cez `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validácia argumentov sa deje v `handler`, ktorý je funkciou, ak zlyhá, vyhodí výnimku.
+- Názov nástroja je už zadaný ako vstupný parameter `name`, čo platí aj pre argumenty vo forme slovníka `arguments`.
 
-Teraz už máme plné pochopenie výpisu a volania nástrojov pomocou nízkoúrovňového servera.
+- Nástroj sa volá pomocou `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validácia argumentov sa deje v property `handler`, ktorá ukazuje na funkciu, ak zlyhá, vyvolá výnimku.
 
-Pozrite si [úplný príklad](./code/README.md) tu.
+Takže máme kompletné pochopenie výpisu a volania nástrojov pomocou nízkoúrovňového servera.
+
+Pozrite si [plný príklad](./code/README.md) tu
 
 ## Zadanie
 
-Rozšírte daný kód o niekoľko nástrojov, zdrojov a promptov a všimnite si, že potrebujete pridávať súbory len do priečinka tools a nikde inde.
+Rozšírte poskytnutý kód o niekoľko nástrojov, zdrojov a promptov a reflektujte, ako si všímate, že musíte pridávať súbory iba do priečinka tools a nikde inde.
 
-*Riešenie nie je k dispozícii*
+*Riešenie nie je poskytnuté*
 
 ## Zhrnutie
 
-V tejto kapitole sme si ukázali, ako funguje nízkoúrovňový server a ako nám pomáha vytvoriť peknú architektúru, na ktorú môžeme stavať. Diskutovali sme aj o validácii a ukázali sme si, ako pracovať s validačnými knižnicami na tvorbu schém na validáciu vstupov.
+V tejto kapitole sme videli, ako fungoval prístup nízkoúrovňového servera a ako nám môže pomôcť vytvoriť peknú architektúru, na ktorej môžeme stavať ďalej. Diskutovali sme aj o validácii a ukázali sme vám, ako pracovať s validačnými knižnicami na tvorbu schém pre validáciu vstupov.
 
-## Čo bude ďalej
+## Čo ďalej
 
 - Ďalej: [Jednoduchá autentifikácia](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Upozornenie**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, majte na pamäti, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pri kritických informáciách sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za akékoľvek nedorozumenia alebo zlé interpretácie vzniknuté použitím tohto prekladu.
+**Zrieknutie sa zodpovednosti**:  
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, majte prosím na pamäti, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne výklady vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
