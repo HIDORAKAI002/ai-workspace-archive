@@ -1,13 +1,13 @@
 # Penggunaan server tingkat lanjut
 
-Ada dua jenis server yang diekspos dalam MCP SDK, server biasa Anda dan server tingkat rendah. Biasanya, Anda akan menggunakan server biasa untuk menambahkan fitur ke dalamnya. Namun, dalam beberapa kasus, Anda ingin mengandalkan server tingkat rendah seperti:
+Ada dua jenis server yang tersedia dalam MCP SDK, server biasa dan server tingkat rendah. Biasanya, Anda akan menggunakan server reguler untuk menambahkan fitur. Namun, dalam beberapa kasus, Anda ingin mengandalkan server tingkat rendah seperti:
 
-- Arsitektur yang lebih baik. Memungkinkan untuk membuat arsitektur yang bersih dengan server biasa dan server tingkat rendah tetapi dapat dikatakan sedikit lebih mudah dengan server tingkat rendah.
-- Ketersediaan fitur. Beberapa fitur lanjutan hanya dapat digunakan dengan server tingkat rendah. Anda akan melihat ini di bab selanjutnya saat kami menambahkan sampling dan elicitation.
+- Arsitektur yang lebih baik. Mungkin untuk membuat arsitektur yang bersih menggunakan server reguler dan server tingkat rendah, tetapi bisa dikatakan sedikit lebih mudah dengan server tingkat rendah.
+- Ketersediaan fitur. Beberapa fitur lanjutan hanya bisa digunakan dengan server tingkat rendah. Anda akan melihat ini di bab-bab berikutnya ketika kita menambahkan sampling dan elicitation.
 
-## Server biasa vs server tingkat rendah
+## Server reguler vs server tingkat rendah
 
-Berikut tampilan pembuatan MCP Server dengan server biasa
+Berikut adalah bagaimana pembuatan Server MCP dengan server reguler
 
 **Python**
 
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-Intinya adalah Anda secara eksplisit menambahkan setiap alat, sumber daya, atau prompt yang Anda inginkan server miliki. Tidak ada yang salah dengan itu.
+Intinya adalah Anda secara eksplisit menambahkan setiap tool, resource, atau prompt yang ingin dimiliki server. Tidak ada yang salah dengan itu.
 
 ### Pendekatan server tingkat rendah
 
-Namun, saat Anda menggunakan pendekatan server tingkat rendah Anda perlu memikirkannya secara berbeda. Alih-alih mendaftarkan setiap alat, Anda malah membuat dua handler per tipe fitur (alat, sumber daya, atau prompt). Jadi misalnya alat hanya memiliki dua fungsi seperti berikut:
+Namun, saat Anda menggunakan pendekatan server tingkat rendah, Anda perlu memikirkannya secara berbeda. Alih-alih mendaftarkan setiap tool, Anda membuat dua handler per tipe fitur (tools, resources, atau prompts). Jadi misalnya untuk tools hanya memiliki dua fungsi seperti berikut:
 
-- Mendaftar semua alat. Satu fungsi bertanggung jawab untuk semua upaya daftar alat.
-- Menangani pemanggilan semua alat. Di sini juga, hanya ada satu fungsi yang menangani pemanggilan alat.
+- Mendaftar semua tools. Satu fungsi bertanggung jawab untuk semua upaya listing tools.
+- Menangani pemanggilan semua tools. Di sini juga, hanya ada satu fungsi yang menangani panggilan ke sebuah tool.
 
-Kedengarannya seperti pekerjaan yang potensial lebih sedikit, bukan? Jadi alih-alih mendaftarkan alat, saya hanya perlu memastikan alat tersebut tercantum saat saya mendaftar semua alat dan dipanggil saat ada permintaan masuk untuk memanggil alat tersebut.
+Kedengarannya seperti mungkin lebih sedikit pekerjaan, bukan? Jadi daripada mendaftarkan sebuah tool, saya hanya perlu memastikan tool itu terdaftar saat saya listing semua tools dan dipanggil saat ada permintaan masuk untuk memanggil sebuah tool.
 
-Mari kita lihat sekarang seperti apa kodenya:
+Mari kita lihat bagaimana kode sekarang terlihat:
 
 **Python**
 
@@ -84,12 +84,12 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
   // Kembalikan daftar alat yang terdaftar
   return {
     tools: [{
-        name="add",
-        description="Add two numbers",
-        inputSchema={
+        name: "add",
+        description: "Add two numbers",
+        inputSchema: {
             "type": "object",
             "properties": {
-                "a": {"type": "number", "description": "number to add"}, 
+                "a": {"type": "number", "description": "number to add"},
                 "b": {"type": "number", "description": "number to add"}
             },
             "required": ["query"],
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Sekarang kita memiliki fungsi yang mengembalikan daftar fitur. Setiap entri dalam daftar alat sekarang memiliki bidang seperti `name`, `description` dan `inputSchema` agar sesuai dengan tipe pengembalian. Ini memungkinkan kami untuk menempatkan alat dan definisi fitur di tempat lain. Sekarang kita dapat membuat semua alat kita di folder tools dan hal yang sama berlaku untuk semua fitur Anda sehingga proyek Anda bisa diorganisir seperti ini:
+Di sini kita sekarang memiliki sebuah fungsi yang mengembalikan daftar fitur. Setiap entri dalam daftar tools sekarang memiliki field seperti `name`, `description`, dan `inputSchema` untuk sesuai dengan tipe pengembalian. Ini memungkinkan kita untuk menaruh definisi tools dan fitur kita di tempat lain. Kita sekarang bisa membuat semua tools kita dalam folder tools dan hal yang sama berlaku untuk semua fitur Anda sehingga proyek Anda bisa tiba-tiba terorganisir seperti ini:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Bagus, arsitektur kita bisa dibuat terlihat cukup bersih.
+Bagus, arsitektur kita bisa dibuat cukup bersih.
 
-Bagaimana dengan memanggil alat, apakah ide yang sama, satu handler untuk memanggil alat, alat mana pun? Ya, tepat sekali, berikut kodenya:
+Bagaimana dengan pemanggilan tools, apakah ide yang sama? Satu handler untuk memanggil tool, apapun tool-nya? Ya, tepat sekali, ini kodenya:
 
 **Python**
 
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Seperti yang Anda lihat dari kode di atas, kita perlu mem-parsing alat untuk dipanggil, dan dengan argumen apa, lalu kita perlu melanjutkan memanggil alat tersebut.
+Seperti yang Anda lihat dari kode di atas, kita perlu mengurai tool yang akan dipanggil, dan argumen apa, lalu kita lanjutkan untuk memanggil tool tersebut.
 
 ## Meningkatkan pendekatan dengan validasi
 
-Sejauh ini, Anda telah melihat bagaimana semua pendaftaran Anda untuk menambahkan alat, sumber daya, dan prompt dapat digantikan dengan dua handler ini per tipe fitur. Apa lagi yang perlu kita lakukan? Nah, kita harus menambahkan beberapa bentuk validasi untuk memastikan alat dipanggil dengan argumen yang tepat. Setiap runtime memiliki solusi sendiri untuk ini, misalnya Python menggunakan Pydantic dan TypeScript menggunakan Zod. Ide dasarnya adalah kita melakukan hal berikut:
+Sejauh ini, Anda sudah melihat bagaimana semua pendaftaran untuk menambahkan tools, resources, dan prompts bisa diganti dengan dua handler ini per tipe fitur. Apa lagi yang perlu kita lakukan? Kita harus menambahkan semacam validasi untuk memastikan tool dipanggil dengan argumen yang benar. Setiap runtime memiliki solusi sendiri untuk ini, misalnya Python menggunakan Pydantic dan TypeScript menggunakan Zod. Idenya adalah kita melakukan hal berikut:
 
-- Memindahkan logika untuk membuat fitur (alat, sumber daya, atau prompt) ke folder khususnya.
-- Menambahkan cara untuk memvalidasi permintaan masuk yang misalnya meminta pemanggilan alat.
+- Pindahkan logika pembuatan fitur (tool, resource atau prompt) ke folder khususnya.
+- Tambahkan cara untuk memvalidasi permintaan masuk misalnya untuk memanggil sebuah tool.
 
-### Membuat fitur
+### Membuat sebuah fitur
 
-Untuk membuat fitur, kita perlu membuat file untuk fitur itu dan memastikan memiliki bidang wajib yang diperlukan fitur tersebut. Bidang mana yang berbeda sedikit antara alat, sumber daya dan prompt.
+Untuk membuat sebuah fitur, kita perlu membuat file untuk fitur tersebut dan memastikan ia memiliki field wajib yang dibutuhkan fitur itu. Field mana yang diperlukan sedikit berbeda antara tools, resources, dan prompts.
 
 **Python**
 
@@ -200,7 +200,7 @@ async def add_handler(args) -> float:
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: tambahkan Pydantic, sehingga kita bisa membuat AddInputModel dan memvalidasi args
+    # TODO: tambahkan Pydantic, sehingga kita bisa membuat AddInputModel dan memvalidasi argumen
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -213,10 +213,10 @@ tool_add = {
 }
 ```
 
-di sini Anda bisa melihat bagaimana kami melakukan hal berikut:
+di sini Anda bisa lihat bagaimana kita melakukan hal berikut:
 
-- Membuat skema menggunakan Pydantic `AddInputModel` dengan bidang `a` dan `b` pada file *schema.py*.
-- Mencoba mem-parsing permintaan masuk agar sesuai tipe `AddInputModel`, jika ada ketidaksesuaian parameter program akan gagal:
+- Membuat schema menggunakan Pydantic `AddInputModel` dengan field `a` dan `b` di file *schema.py*.
+- Mencoba mengurai permintaan masuk menjadi tipe `AddInputModel`, jika ada ketidakcocokan parameter maka ini akan gagal:
 
    ```python
    # add.py
@@ -227,7 +227,7 @@ di sini Anda bisa melihat bagaimana kami melakukan hal berikut:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Anda dapat memilih untuk meletakkan logika parsing ini baik di pemanggilan alat itu sendiri atau dalam fungsi handler.
+Anda bisa memilih apakah logika parsing ini diletakkan di panggilan tool itu sendiri atau di fungsi handler.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- Dalam handler yang menangani semua pemanggilan alat, kita sekarang mencoba mem-parsing permintaan masuk ke skema yang didefinisikan alat:
+- Dalam handler yang menangani semua panggilan tool, kita sekarang coba mengurai permintaan masuk menjadi schema yang didefinisikan tool:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    jika berhasil kita lanjutkan untuk memanggil alat tersebut:
+    jika berhasil maka lanjut kita panggil tool sebenarnya:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-Seperti yang Anda lihat, pendekatan ini menciptakan arsitektur yang bagus karena semuanya memiliki tempatnya, *server.ts* adalah file sangat kecil yang hanya menghubungkan handler permintaan dan setiap fitur berada di foldernya masing-masing yaitu tools/, resources/ atau /prompts.
+Seperti yang Anda lihat, pendekatan ini menciptakan arsitektur yang bagus karena semuanya memiliki tempatnya, *server.ts* adalah file yang sangat kecil yang hanya menghubungkan handler permintaan dan setiap fitur ada di foldernya masing-masing yaitu tools/, resources/ atau /prompts.
 
-Bagus, mari kita coba membangun ini selanjutnya.
+Bagus, mari kita coba bangun ini berikutnya.
 
 ## Latihan: Membuat server tingkat rendah
 
 Dalam latihan ini, kita akan melakukan hal berikut:
 
-1. Membuat server tingkat rendah yang menangani daftar alat dan pemanggilan alat.
-1. Mengimplementasikan arsitektur yang dapat Anda bangun.
-1. Menambahkan validasi untuk memastikan panggilan alat Anda tervalidasi dengan baik.
+1. Membuat server tingkat rendah yang menangani listing tools dan pemanggilan tools.
+1. Mengimplementasikan arsitektur yang bisa Anda kembangkan lebih lanjut.
+1. Menambahkan validasi untuk memastikan panggilan tool Anda tervalidasi dengan benar.
 
 ### -1- Membuat arsitektur
 
-Hal pertama yang perlu kita atasi adalah arsitektur yang membantu kita skala saat kita menambahkan lebih banyak fitur, ini bentuknya:
+Hal pertama yang perlu kita atasi adalah arsitektur yang membantu skala saat kita menambahkan lebih banyak fitur, ini tampilannya:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Sekarang kita sudah menyiapkan arsitektur yang memastikan kita dapat dengan mudah menambahkan alat baru di folder tools. Silakan ikuti ini untuk menambahkan subdirektori untuk resources dan prompts.
+Sekarang kita sudah menyiapkan arsitektur yang memastikan kita bisa dengan mudah menambahkan tools baru di folder tools. Silakan ikuti ini untuk menambahkan subdirektori untuk resources dan prompts.
 
-### -2- Membuat alat
+### -2- Membuat sebuah tool
 
-Mari kita lihat seperti apa membuat alat berikutnya. Pertama, alat harus dibuat dalam subdirektori *tool* seperti berikut:
+Mari kita lihat bagaimana membuat sebuah tool setelah ini. Pertama, tool harus dibuat di subdirektori *tool* seperti ini:
 
 **Python**
 
@@ -358,7 +358,7 @@ async def add_handler(args) -> float:
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: tambahkan Pydantic, sehingga kita dapat membuat AddInputModel dan memvalidasi argumen
+    # TODO: tambahkan Pydantic, sehingga kita dapat membuat AddInputModel dan memvalidasi args
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Yang kita lihat di sini adalah bagaimana kita mendefinisikan nama, deskripsi, dan skema input menggunakan Pydantic dan handler yang akan dipanggil setelah alat ini dipanggil. Terakhir, kita mengekspos `tool_add` yang merupakan dictionary yang menyimpan semua properti ini.
+Yang kita lihat di sini adalah bagaimana kita mendefinisikan nama, deskripsi, dan schema input menggunakan Pydantic serta handler yang akan dipanggil saat tool ini dipanggil. Terakhir, kita mengekspos `tool_add` yang adalah dictionary yang memuat semua properti ini.
 
-Ada juga *schema.py* yang digunakan untuk mendefinisikan skema input yang dipakai alat kita:
+Ada juga *schema.py* yang digunakan untuk mendefinisikan schema input yang dipakai tool kita:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-Kita juga perlu mengisi *__init__.py* agar direktori tools diperlakukan sebagai modul. Selain itu, kita perlu mengekspos modul-modul di dalamnya seperti ini:
+Kita juga perlu mengisi *__init__.py* untuk memastikan direktori tools dikenali sebagai modul. Selain itu, kita perlu mengekspos modul di dalamnya seperti ini:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Kita bisa terus menambah di file ini saat menambahkan lebih banyak alat.
+Kita bisa terus menambah ke file ini saat menambah lebih banyak tools.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Di sini kita membuat dictionary yang terdiri dari properti:
+Di sini kita membuat sebuah dictionary yang terdiri dari properti:
 
-- name, ini adalah nama alat.
-- rawSchema, ini adalah skema Zod, akan digunakan untuk memvalidasi permintaan masuk untuk memanggil alat ini.
-- inputSchema, skema ini akan digunakan oleh handler.
-- callback, ini digunakan untuk memanggil alat.
+- name, ini adalah nama tool.
+- rawSchema, ini adalah schema Zod, akan digunakan untuk memvalidasi permintaan masuk untuk memanggil tool ini.
+- inputSchema, schema ini akan digunakan oleh handler.
+- callback, ini digunakan untuk memanggil tool.
 
-Ada juga `Tool` yang digunakan untuk mengonversi dictionary ini menjadi tipe yang bisa diterima handler server mcp dan bentuknya seperti ini:
+Ada juga `Tool` yang dipakai untuk mengonversi dictionary ini menjadi tipe yang bisa diterima handler server mcp dan bentuknya seperti ini:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-Dan ada *schema.ts* tempat kita menyimpan skema input untuk setiap alat yang tampak seperti ini dengan hanya satu skema untuk saat ini tetapi saat kita menambah alat kita bisa menambah entry lain:
+Dan ada *schema.ts* yang menyimpan schema input untuk setiap tool yang tampilannya seperti ini dengan hanya satu schema saat ini tapi saat kita menambah tool kita bisa tambah entri lagi:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Bagus, mari lanjutkan ke penanganan daftar alat berikutnya.
+Bagus, mari lanjut ke menangani listing tools kita berikutnya.
 
-### -3- Menangani daftar alat
+### -3- Menangani listing tools
 
-Selanjutnya, untuk menangani daftar alat, kita perlu menyiapkan handler permintaan untuk itu. Berikut yang perlu kita tambahkan di file server:
+Berikutnya, untuk menangani listing tools kita, kita perlu menyiapkan handler permintaan untuk itu. Ini yang perlu kita tambahkan ke file server kita:
 
 **Python**
 
 ```python
-# kode dihilangkan untuk singkatnya
+# kode dihilangkan demi singkatnya
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Di sini, kita menambahkan dekorator `@server.list_tools` dan fungsi implementasi `handle_list_tools`. Di fungsi tersebut, kita perlu menghasilkan daftar alat. Perhatikan bagaimana setiap alat perlu memiliki nama, deskripsi dan inputSchema.
+Di sini, kita menambahkan decorator `@server.list_tools` dan fungsi implementasi `handle_list_tools`. Di fungsi ini, kita harus menghasilkan daftar tools. Perhatikan bagaimana setiap tool harus memiliki nama, deskripsi dan inputSchema.
 
 **TypeScript**
 
-Untuk menyiapkan handler permintaan untuk daftar alat, kita perlu memanggil `setRequestHandler` pada server dengan skema yang cocok dengan apa yang ingin kita lakukan, dalam hal ini `ListToolsRequestSchema`.
+Untuk menyiapkan handler permintaan untuk listing tools, kita perlu memanggil `setRequestHandler` pada server dengan schema yang sesuai dengan apa yang ingin kita lakukan, kali ini `ListToolsRequestSchema`.
 
 ```typescript
 // index.ts
@@ -499,15 +499,15 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Bagus, sekarang kita sudah menyelesaikan bagian daftar alat, mari kita lihat bagaimana kita bisa memanggil alat selanjutnya.
+Bagus, sekarang kita sudah menyelesaikan bagian listing tools, mari kita lihat bagaimana kita bisa memanggil tools berikutnya.
 
-### -4- Menangani pemanggilan alat
+### -4- Menangani pemanggilan tool
 
-Untuk memanggil alat, kita perlu menyiapkan handler permintaan lain, kali ini fokus pada menangani permintaan yang menentukan fitur mana yang akan dipanggil dan dengan argumen apa.
+Untuk memanggil tool, kita perlu menyiapkan handler permintaan lain, kali ini fokus pada menangani permintaan yang menentukan fitur mana dipanggil dan dengan argumen apa.
 
 **Python**
 
-Mari gunakan dekorator `@server.call_tool` dan implementasikan dengan fungsi seperti `handle_call_tool`. Dalam fungsi tersebut, kita perlu mem-parsing nama alat, argumennya dan memastikan argumen valid untuk alat yang dimaksud. Kita bisa memvalidasi argumen di fungsi ini atau di alat sebenarnya.
+Mari gunakan decorator `@server.call_tool` dan implementasi dengan fungsi seperti `handle_call_tool`. Di dalam fungsi itu, kita perlu mengurai nama tool, argumennya dan memastikan argumen valid untuk tool tersebut. Kita bisa memvalidasi argumen di fungsi ini atau di dalam tool yang sebenarnya.
 
 ```python
 @server.call_tool()
@@ -530,36 +530,36 @@ async def handle_call_tool(
 
     return [
         types.TextContent(type="text", text=str(result))
-    ] 
+    ]
 ```
 
-Berikut yang terjadi:
+Inilah yang terjadi:
 
-- Nama alat sudah tersedia sebagai parameter input `name` yang sesuai untuk argumen kita dalam bentuk dictionary `arguments`.
+- Nama tool kita sudah ada sebagai parameter input `name` yang benar untuk argumen dalam bentuk dictionary `arguments`.
 
-- Alat dipanggil dengan `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validasi argumen terjadi di properti `handler` yang menunjuk ke fungsi, jika gagal maka akan menimbulkan pengecualian.
+- Tool dipanggil dengan `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validasi argumen terjadi di properti `handler` yang mengarah ke sebuah fungsi, jika gagal akan memunculkan pengecualian.
 
-Nah, sekarang kita sudah punya pemahaman lengkap tentang daftar dan pemanggilan alat menggunakan server tingkat rendah.
+Nah, sekarang kita punya pemahaman lengkap tentang listing dan pemanggilan tools menggunakan server tingkat rendah.
 
 Lihat [contoh lengkap](./code/README.md) di sini
 
 ## Tugas
 
-Perluas kode yang telah diberikan dengan sejumlah alat, sumber daya, dan prompt dan refleksikan bagaimana Anda menyadari bahwa Anda hanya perlu menambahkan file di direktori tools dan tidak di tempat lain.
+Perluas kode yang Anda terima dengan sejumlah tools, resources, dan prompt dan refleksikan bagaimana Anda hanya perlu menambahkan file di direktori tools dan tidak di tempat lain.
 
-*Tidak ada solusi diberikan*
+*Tidak diberikan solusi*
 
 ## Ringkasan
 
-Dalam bab ini, kita melihat bagaimana pendekatan server tingkat rendah bekerja dan bagaimana hal itu bisa membantu kita membuat arsitektur yang bagus untuk terus dibangun. Kita juga membahas validasi dan Anda diperlihatkan cara menggunakan library validasi untuk membuat skema validasi input.
+Di bab ini, kita melihat bagaimana pendekatan server tingkat rendah bekerja dan bagaimana itu membantu kita membuat arsitektur yang rapi untuk terus dikembangkan. Kita juga membahas validasi dan Anda telah diperlihatkan cara bekerja dengan library validasi untuk membuat schema validasi input.
 
 ## Selanjutnya
 
-- Selanjutnya: [Autentikasi Sederhana](../11-simple-auth/README.md)
+- Berikutnya: [Simple Authentication](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berusaha untuk akurasi, harap diingat bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau salah tafsir yang timbul dari penggunaan terjemahan ini.
+**Penafian**:  
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sahih. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau kesalahan interpretasi yang timbul dari penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
