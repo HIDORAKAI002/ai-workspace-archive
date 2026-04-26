@@ -97,19 +97,6 @@ export async function getIndexFromGCS(
               ) *
                 1000;
           }
-          // TODO: remove on Apr 26 -- Approximate signing time: expiresAt minus the 7-day TTL used when signing.
-          // Cache entries signed before this cutoff are treated as stale.
-          const SCREENSHOT_CACHE_VALID_AFTER = new Date(
-            "2026-04-19T21:00:00Z",
-          ).getTime();
-          const signedAt = expiresAt - 1000 * 60 * 60 * 24 * 7;
-          if (
-            screenshotUrl.hostname === "storage.googleapis.com" &&
-            signedAt < SCREENSHOT_CACHE_VALID_AFTER
-          ) {
-            logger?.info("Stale screenshot cache, forcing miss");
-            return null;
-          }
           if (
             screenshotUrl.hostname === "storage.googleapis.com" &&
             expiresAt < Date.now()
