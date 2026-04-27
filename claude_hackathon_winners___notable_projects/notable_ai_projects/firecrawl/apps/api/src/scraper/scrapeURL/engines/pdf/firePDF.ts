@@ -10,6 +10,36 @@ import {
   savePdfResultToCache,
 } from "../../../../lib/gcs-pdf-cache";
 
+/**
+ * Reconcile an existing page count with what fire-pdf reported.
+ *
+ * Used after `scrapePDFWithFirePDF` returns. The original bug: when Rust
+ * extraction (`processPdf`) threw on a malformed-but-still-renderable PDF,
+ * `effectivePageCount` stayed at 0; fire-pdf would then process the PDF
+ * fine but its `pages_processed` value was dropped on the floor, so
+ * `pdfMetadata.numPages` shipped as 0 and billing under-counted.
+ *
+ * Semantics:
+ *   - If fire-pdf didn't report a count (older fire-pdf builds, or stale
+ *     cache hits), keep the current value — no signal to act on.
+ *   - Otherwise take the max — never shrink a count that an upstream pass
+ *     (detectPdf / processPdf) already established. fire-pdf can be
+ *     called with `max_pages` capping its own processing below the true
+ *     PDF length, and the upstream count is the authoritative one when
+ *     both succeeded.
+ *
+ * Pure / synchronous so it's trivially unit-testable; the integration in
+ * `index.ts` is just `effectivePageCount = reconcilePageCountWithFirePdf(...)`.
+ */
+export function reconcilePageCountWithFirePdf(
+  current: number,
+  firePdfResult: { pagesProcessed?: number } | null | undefined,
+): number {
+  const fromFirePdf = firePdfResult?.pagesProcessed;
+  if (fromFirePdf === undefined) return current;
+  return Math.max(current, fromFirePdf);
+}
+
 export async function scrapePDFWithFirePDF(
   meta: Meta,
   base64Content: string,
@@ -25,7 +55,13 @@ export async function scrapePDFWithFirePDF(
         logger.info("Using cached FirePDF result", {
           scrapeId: meta.id,
         });
-        return cached;
+        // Cache entries written before pagesProcessed existed don't carry
+        // the field. Fall back to the caller's pagesProcessed argument so
+        // billing on a stale hit doesn't silently regress to 0.
+        return {
+          ...cached,
+          pagesProcessed: cached.pagesProcessed ?? pagesProcessed,
+        };
       }
     } catch (error) {
       logger.warn("Error checking FirePDF cache, proceeding", { error });
@@ -111,9 +147,10 @@ export async function scrapePDFWithFirePDF(
     perPageMs: pages ? Math.round(durationMs / pages) : undefined,
   });
 
-  const processorResult = {
+  const processorResult: PDFProcessorResult & { markdown: string } = {
     markdown: resp.markdown,
     html: await safeMarkdownToHtml(resp.markdown, logger, meta.id),
+    pagesProcessed: pages,
   };
 
   if (!maxPages && !meta.internalOptions.zeroDataRetention) {

@@ -371,16 +371,6 @@ Retrieve a specific memory by ID.
 
 ---
 
-### delete_memory
-
-Permanently delete a specific memory.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `memory_id` | string | Yes | The ID of the memory to delete |
-
----
-
 ### list_documents
 
 List documents that have been ingested into the memory bank.
