@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-27 12:27 IST] Auto-Sync
+- **23 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, Dify, Activepieces, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, openlit/openlit, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw
+
 ## [2026-04-27 06:04 IST] Auto-Sync
 - **14 Repositories Updated:** Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, langchain-ai/langchain, arize-ai/phoenix, apache/airflow, sgl-project/sglang, openclaw/openclaw
 
