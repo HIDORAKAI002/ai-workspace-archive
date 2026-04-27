@@ -7,6 +7,7 @@ import { RateLimiterMode, type ScrapeJobData } from "../types";
 import {
   getConcurrencyLimitActiveJobs,
   getNextConcurrentJob,
+  MAX_BACKLOG_TIMEOUT_MS,
   pushConcurrencyLimitActiveJob,
   pushConcurrencyLimitedJob,
   pushCrawlConcurrencyLimitActiveJob,
@@ -33,7 +34,7 @@ function isExtractJob(data: ScrapeJobData): boolean {
 }
 
 function getBacklogJobTimeout(jobData: ScrapeJobData): number {
-  if (jobData.crawl_id) return Infinity;
+  if (jobData.crawl_id) return MAX_BACKLOG_TIMEOUT_MS;
 
   if ("scrapeOptions" in jobData && jobData.scrapeOptions?.timeout)
     return jobData.scrapeOptions.timeout;
@@ -243,7 +244,7 @@ async function drainQueue(
           priority: nextJob.job.priority,
           listenable: nextJob.job.listenable,
         },
-        nextJob.timeout === Infinity ? 172800000 : nextJob.timeout,
+        nextJob.timeout === Infinity ? MAX_BACKLOG_TIMEOUT_MS : nextJob.timeout,
       );
       typeBlocked++;
       continue;

@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-27 20:13 IST] Auto-Sync
+- **20 Repositories Updated:** n8n, Activepieces, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, firecrawl/firecrawl, vercel/ai, sgl-project/sglang, openclaw/openclaw, vectorize-io/hindsight
+
 ## [2026-04-27 19:01 IST] Auto-Sync
 - **23 Repositories Updated:** MCP TypeScript SDK, Promptfoo, Dify, Flowise, Activepieces, Budibase, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 

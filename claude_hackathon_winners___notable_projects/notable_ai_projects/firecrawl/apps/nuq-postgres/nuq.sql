@@ -120,13 +120,8 @@ SELECT cron.schedule('nuq_queue_scrape_lock_reaper', '15 seconds', $$
 $$);
 
 SELECT cron.schedule('nuq_queue_scrape_backlog_reaper', '* * * * *', $$
-  -- Also sweep orphaned rows with NULL times_out_at older than the crawl
-  -- Redis TTL window, so a missing timeout on a backlog row can't wedge
-  -- nuq_group_crawl_finished forever via its NOT EXISTS check on backlog.
   DELETE FROM nuq.queue_scrape_backlog
-  WHERE nuq.queue_scrape_backlog.times_out_at < now()
-     OR (nuq.queue_scrape_backlog.times_out_at IS NULL
-         AND nuq.queue_scrape_backlog.created_at < now() - interval '25 hours');
+  WHERE nuq.queue_scrape_backlog.times_out_at < now();
 $$);
 
 SELECT cron.schedule('nuq_queue_scrape_reindex', '0 9 * * *', $$
