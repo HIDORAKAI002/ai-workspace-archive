@@ -474,6 +474,8 @@ describe("test-projects args", () => {
       const configs = buildFullSuiteVitestRunPlans([]).map((plan) => plan.config);
 
       expect(configs).toContain("test/vitest/vitest.full-core-unit-fast.config.ts");
+      expect(configs).toContain("test/vitest/vitest.full-core-support-boundary.config.ts");
+      expect(configs).not.toContain("test/vitest/vitest.boundary.config.ts");
       expect(configs).toContain("test/vitest/vitest.full-agentic.config.ts");
       expect(configs).not.toContain("test/vitest/vitest.agents.config.ts");
       expect(configs).not.toContain("test/vitest/vitest.plugins.config.ts");
@@ -902,25 +904,20 @@ describe("test-projects args", () => {
     ]);
   });
 
-  it("widens extension-facing core contract changes to extension tests", () => {
+  it("keeps extension-facing core contract changes focused by default", () => {
     const changedPaths = ["src/plugin-sdk/core.ts"];
     const plans = buildVitestRunPlans(["--changed=origin/main"], process.cwd(), () => changedPaths);
 
     expect(
       resolveChangedTargetArgs(["--changed=origin/main"], process.cwd(), () => changedPaths),
-    ).toEqual(["src/plugin-sdk/core.test.ts", "extensions"]);
+    ).toEqual(["src/plugin-sdk/core.test.ts"]);
     expect(plans[0]).toEqual({
       config: "test/vitest/vitest.plugin-sdk.config.ts",
       forwardedArgs: [],
       includePatterns: ["src/plugin-sdk/core.test.ts"],
       watchMode: false,
     });
-    expect(plans.map((plan) => plan.config)).toContain(
-      "test/vitest/vitest.extension-discord.config.ts",
-    );
-    expect(plans.map((plan) => plan.config)).toContain(
-      "test/vitest/vitest.extension-providers.config.ts",
-    );
+    expect(plans).toHaveLength(1);
   });
 
   it("keeps extension production changes on the owning extension lane", () => {
