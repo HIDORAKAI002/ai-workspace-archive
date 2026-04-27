@@ -132,7 +132,7 @@ Here's the lifecycle of a session with the plugin active:
 4. **Session idles** — the `session.idle` event triggers auto-retain of the conversation transcript
 5. **Context compaction** — if the context window fills up, the plugin retains the current conversation and injects recalled memories into the compaction context, so nothing important is lost
 
-The auto-retain uses a sliding window controlled by `retainEveryNTurns` (default: 10). This prevents redundant storage while keeping recent context fresh.
+The auto-retain uses a sliding window controlled by `retainEveryNTurns` (default: 3). This prevents redundant storage while keeping recent context fresh.
 
 ---
 
@@ -167,7 +167,7 @@ You can configure the plugin at three levels (later wins):
 | `autoRecall` | `true` | Inject memories on session start |
 | `autoRetain` | `true` | Capture conversation on idle |
 | `recallBudget` | `mid` | How many memories to retrieve: `low`, `mid`, `high` |
-| `retainEveryNTurns` | `10` | Auto-retain frequency (user turns) |
+| `retainEveryNTurns` | `3` | Auto-retain frequency (user turns) |
 | `retainMode` | `full-session` | `full-session` upserts the whole conversation; `last-turn` creates chunked windows |
 | `bankMission` | *(none)* | Guides what Hindsight extracts and how it reflects |
 | `dynamicBankId` | `false` | Derive bank ID from project/agent context |

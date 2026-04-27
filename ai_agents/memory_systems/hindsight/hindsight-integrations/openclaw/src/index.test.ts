@@ -974,12 +974,10 @@ describe("session identity helpers", () => {
     expect(bankId).toBe("main::direct%3A12345::12345");
   });
 
-  it("marks operational main sessions as skippable", () => {
+  it("allows agent:*:main sessions by default (default granularity includes 'agent')", () => {
     const result = getIdentitySkipReason({ sessionKey: "agent:main:main" });
-    expect(result.reason).toEqual({
-      kind: "final",
-      detail: "internal main session agent:main:main",
-    });
+    expect(result.reason).toBeUndefined();
+    expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
   });
 
   it.each([
@@ -1079,10 +1077,20 @@ describe("session identity helpers", () => {
     expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
   });
 
-  it("does not broaden the carve-out when dynamicBankId is false but bankId is missing", () => {
+  it("allows agent:*:main when dynamicBankId is false but bankId is missing (default granularity includes 'agent')", () => {
     const result = getIdentitySkipReason(
       { sessionKey: "agent:main:main" },
       { dynamicBankId: false }
+    );
+    // Default agentBanking is true (default granularity includes 'agent'),
+    // so the session is allowed even without an explicit bankId.
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("does not broaden the carve-out when granularity excludes 'agent' and bankId is missing", () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: "agent:main:main" },
+      { dynamicBankId: false, dynamicBankGranularity: ["channel", "user"] }
     );
     expect(result.reason).toEqual({
       kind: "final",
@@ -1090,8 +1098,17 @@ describe("session identity helpers", () => {
     });
   });
 
-  it("preserves default skip behavior when agent banking is not enabled", () => {
+  it("allows agent:*:main sessions with empty config (default granularity includes 'agent')", () => {
     const result = getIdentitySkipReason({ sessionKey: "agent:main:main" }, {});
+    expect(result.reason).toBeUndefined();
+    expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
+  });
+
+  it("skips agent:*:main sessions when granularity explicitly excludes 'agent'", () => {
+    const result = getIdentitySkipReason(
+      { sessionKey: "agent:main:main" },
+      { dynamicBankGranularity: ["channel", "user"] }
+    );
     expect(result.reason).toEqual({
       kind: "final",
       detail: "internal main session agent:main:main",
