@@ -6,6 +6,7 @@ const mockDoWithLock = jest.fn()
 const mockAgentsGetOrThrow = jest.fn()
 const mockKnowledgeBaseListFiles = jest.fn()
 const mockKnowledgeBaseUploadFile = jest.fn()
+const mockRetryKnowledgeBaseFileIngestion = jest.fn()
 const mockGetSharePointBearerToken = jest.fn()
 const mockEnsureKnowledgeBaseForAgent = jest.fn()
 const mockDeleteFileForAgent = jest.fn()
@@ -40,6 +41,8 @@ jest.mock("..", () => ({
       mockKnowledgeBaseListFiles(...args),
     uploadKnowledgeBaseFile: (...args: any[]) =>
       mockKnowledgeBaseUploadFile(...args),
+    retryKnowledgeBaseFileIngestion: (...args: any[]) =>
+      mockRetryKnowledgeBaseFileIngestion(...args),
   },
 }))
 
@@ -104,6 +107,7 @@ const makeSharePointFile = ({
   driveId,
   itemId,
   path,
+  status = KnowledgeBaseFileStatus.READY,
 }: {
   id: string
   sourceId: string
@@ -111,6 +115,7 @@ const makeSharePointFile = ({
   driveId: string
   itemId: string
   path: string
+  status?: KnowledgeBaseFileStatus
 }): KnowledgeBaseFile =>
   ({
     _id: id,
@@ -126,7 +131,7 @@ const makeSharePointFile = ({
     filename: "file.txt",
     objectStoreKey: `key-${id}`,
     ragSourceId: `rag-${id}`,
-    status: KnowledgeBaseFileStatus.READY,
+    status,
     uploadedBy: "sharepoint",
   }) satisfies KnowledgeBaseFile
 
@@ -170,6 +175,7 @@ describe("rag/sharepoint sync deduplication", () => {
       },
     })
     mockDeleteFileForAgent.mockResolvedValue(undefined)
+    mockRetryKnowledgeBaseFileIngestion.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -415,6 +421,139 @@ describe("rag/sharepoint sync deduplication", () => {
       failed: 0,
       unsupported: 0,
       totalDiscovered: 2,
+    })
+  })
+
+  it("retries files that previously failed ingestion via queue", async () => {
+    const sourceId = "sharepoint_source_1"
+    const siteId = "site-1"
+
+    mockAgentsGetOrThrow.mockResolvedValue(
+      makeSharePointAgent(sourceId, siteId)
+    )
+
+    mockKnowledgeBaseListFiles.mockResolvedValue([
+      makeSharePointFile({
+        id: "existing_failed",
+        sourceId,
+        siteId,
+        driveId: "drive-a",
+        itemId: "item-1",
+        path: "failed.txt",
+        status: KnowledgeBaseFileStatus.FAILED,
+      }),
+    ])
+
+    const fetchMock = createFetchMock([
+      {
+        match: `/sites/${encodeURIComponent(siteId)}/drives`,
+        response: {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            value: [{ id: "drive-a" }],
+          }),
+        } as Response,
+      },
+      {
+        match: "/drives/drive-a/root/children",
+        response: {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            value: [
+              {
+                id: "item-1",
+                name: "failed.txt",
+                file: { mimeType: "text/plain" },
+              },
+            ],
+          }),
+        } as Response,
+      },
+    ])
+
+    const result = await syncSharePointSourcesForAgent("agent_1", sourceId)
+
+    expect(fetchMock).toHaveBeenCalled()
+    expect(mockRetryKnowledgeBaseFileIngestion).toHaveBeenCalledTimes(1)
+    expect(mockRetryKnowledgeBaseFileIngestion).toHaveBeenCalledWith(
+      "existing_failed"
+    )
+    expect(mockDeleteFileForAgent).not.toHaveBeenCalled()
+    expect(mockKnowledgeBaseUploadFile).not.toHaveBeenCalled()
+    expect(result).toMatchObject({
+      agentId: "agent_1",
+      synced: 1,
+      alreadySynced: 0,
+      failed: 0,
+      unsupported: 0,
+      totalDiscovered: 1,
+    })
+  })
+
+  it("does not retry failed files that belong to another knowledge source", async () => {
+    const sourceId = "sharepoint_source_1"
+    const siteId = "site-1"
+
+    mockAgentsGetOrThrow.mockResolvedValue(
+      makeSharePointAgent(sourceId, siteId)
+    )
+
+    mockKnowledgeBaseListFiles.mockResolvedValue([
+      makeSharePointFile({
+        id: "existing_failed_other_source",
+        sourceId: "sharepoint_source_other",
+        siteId,
+        driveId: "drive-a",
+        itemId: "item-1",
+        path: "failed.txt",
+        status: KnowledgeBaseFileStatus.FAILED,
+      }),
+    ])
+
+    const fetchMock = createFetchMock([
+      {
+        match: `/sites/${encodeURIComponent(siteId)}/drives`,
+        response: {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            value: [{ id: "drive-a" }],
+          }),
+        } as Response,
+      },
+      {
+        match: "/drives/drive-a/root/children",
+        response: {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            value: [
+              {
+                id: "item-1",
+                name: "failed.txt",
+                file: { mimeType: "text/plain" },
+              },
+            ],
+          }),
+        } as Response,
+      },
+    ])
+
+    const result = await syncSharePointSourcesForAgent("agent_1", sourceId)
+
+    expect(fetchMock).toHaveBeenCalled()
+    expect(mockRetryKnowledgeBaseFileIngestion).not.toHaveBeenCalled()
+    expect(mockDeleteFileForAgent).not.toHaveBeenCalled()
+    expect(mockKnowledgeBaseUploadFile).not.toHaveBeenCalled()
+    expect(result).toMatchObject({
+      agentId: "agent_1",
+      synced: 0,
+      alreadySynced: 1,
+      failed: 0,
+      unsupported: 0,
+      totalDiscovered: 1,
     })
   })
 })

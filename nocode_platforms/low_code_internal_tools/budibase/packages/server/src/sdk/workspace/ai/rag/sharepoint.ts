@@ -16,6 +16,7 @@ import {
   type KnowledgeSourceEntry,
   type SyncAgentKnowledgeSourcesResponse,
   KnowledgeBaseFileSourceType,
+  KnowledgeBaseFileStatus,
 } from "@budibase/types"
 import { agents as agentsSdk, knowledgeBase as knowledgeBaseSdk } from ".."
 import {
@@ -484,7 +485,12 @@ const runSharePointSourcesForAgent = async (
     await knowledgeBaseSdk.listKnowledgeBaseFiles(knowledgeBaseId)
   const existingSharePointFilesByExternalId = new Map<
     string,
-    { fileId: string; siteId: string }
+    {
+      fileId: string
+      siteId: string
+      knowledgeSourceId?: string
+      status?: KnowledgeBaseFileStatus
+    }
   >()
   for (const file of existingFiles) {
     const fileId = file._id
@@ -502,6 +508,8 @@ const runSharePointSourcesForAgent = async (
     existingSharePointFilesByExternalId.set(externalId, {
       fileId,
       siteId: file.source.siteId,
+      knowledgeSourceId: file.source.knowledgeSourceId,
+      status: file.status,
     })
   }
   const existingExternalIds = new Set(
@@ -514,6 +522,7 @@ const runSharePointSourcesForAgent = async (
   let alreadySynced = 0
   let unsupported = 0
   let filteredOut = 0
+  let retried = 0
   let totalDiscovered = 0
   let deleted = 0
   let deleteFailed = 0
@@ -575,10 +584,40 @@ const runSharePointSourcesForAgent = async (
           itemId: file.itemId,
         })
         if (existingExternalIds.has(externalSourceId)) {
-          skipped++
-          alreadySynced++
+          const existingEntry =
+            existingSharePointFilesByExternalId.get(externalSourceId)
+          const shouldRetryFailedIngestion =
+            existingEntry?.status === KnowledgeBaseFileStatus.FAILED &&
+            existingEntry.siteId === siteId &&
+            existingEntry.knowledgeSourceId === sourceId
 
-          continue
+          if (shouldRetryFailedIngestion && existingEntry?.fileId) {
+            try {
+              await knowledgeBaseSdk.retryKnowledgeBaseFileIngestion(
+                existingEntry.fileId
+              )
+              synced++
+              retried++
+            } catch (error) {
+              console.error(
+                "Failed to retry SharePoint file ingestion for agent",
+                {
+                  agentId,
+                  siteId,
+                  driveId,
+                  itemId: file.itemId,
+                  error,
+                }
+              )
+              failed++
+            }
+            continue
+          } else {
+            skipped++
+            alreadySynced++
+
+            continue
+          }
         }
 
         try {
@@ -645,6 +684,7 @@ const runSharePointSourcesForAgent = async (
       failed,
       skipped,
       alreadySynced,
+      retried,
       filteredOut,
       unsupported,
       totalDiscovered,
