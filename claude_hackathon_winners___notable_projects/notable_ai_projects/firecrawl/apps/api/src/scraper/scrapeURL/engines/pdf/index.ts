@@ -33,7 +33,7 @@ import {
 } from "../../../../lib/native-logging";
 import { withSpan, setSpanAttributes } from "../../../../lib/otel-tracer";
 import { scrapePDFWithRunPodMU } from "./runpodMU";
-import { scrapePDFWithFirePDF } from "./firePDF";
+import { reconcilePageCountWithFirePdf, scrapePDFWithFirePDF } from "./firePDF";
 import { scrapePDFWithParsePDF } from "./pdfParse";
 import { captureExceptionWithZdrCheck } from "../../../../services/sentry";
 import { isPdfBuffer, PDF_SNIFF_WINDOW } from "./pdfUtils";
@@ -410,6 +410,10 @@ export async function scrapePDF(meta: Meta): Promise<EngineScrapeResult> {
             base64Content,
             maxPages,
             effectivePageCount,
+          );
+          effectivePageCount = reconcilePageCountWithFirePdf(
+            effectivePageCount,
+            result,
           );
         } catch (error) {
           if (
