@@ -82,7 +82,7 @@ public struct HelloOk: Codable, Sendable {
     public let features: [String: AnyCodable]
     public let snapshot: Snapshot
     public let canvashosturl: String?
-    public let auth: [String: AnyCodable]?
+    public let auth: [String: AnyCodable]
     public let policy: [String: AnyCodable]
 
     public init(
@@ -92,7 +92,7 @@ public struct HelloOk: Codable, Sendable {
         features: [String: AnyCodable],
         snapshot: Snapshot,
         canvashosturl: String?,
-        auth: [String: AnyCodable]?,
+        auth: [String: AnyCodable],
         policy: [String: AnyCodable])
     {
         self.type = type
@@ -890,6 +890,20 @@ public struct NodePairRejectParams: Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case requestid = "requestId"
+    }
+}
+
+public struct NodePairRemoveParams: Codable, Sendable {
+    public let nodeid: String
+
+    public init(
+        nodeid: String)
+    {
+        self.nodeid = nodeid
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case nodeid = "nodeId"
     }
 }
 
@@ -4486,6 +4500,8 @@ public struct ChatEvent: Codable, Sendable {
         case stopreason = "stopReason"
     }
 }
+
+public struct UpdateStatusParams: Codable, Sendable {}
 
 public struct UpdateRunParams: Codable, Sendable {
     public let sessionkey: String?

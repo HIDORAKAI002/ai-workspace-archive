@@ -390,6 +390,20 @@ const __dirname = dirname(__filename);
 // Default bank name (fallback when channel context not available)
 const DEFAULT_BANK_NAME = "openclaw";
 
+// Default granularity fields used by deriveBankId when not explicitly configured.
+// This constant is shared between getPluginConfig (normalisation) and deriveBankId
+// (fallback) so the skip-reason check and the bank-routing logic always agree.
+const DEFAULT_DYNAMIC_BANK_GRANULARITY: Array<"agent" | "provider" | "channel" | "user"> = [
+  "agent",
+  "channel",
+  "user",
+];
+
+// Throttle set: log an info-level skip message at most once per (sessionKey) per
+// process lifetime so operators can discover silent retention/recall skips without
+// flooding the log on every turn.
+const loggedSkipSessions = new Set<string>();
+
 function getConfiguredBankId(pluginConfig: PluginConfig): string | undefined {
   if (typeof pluginConfig.bankId !== "string") {
     return undefined;
@@ -794,6 +808,27 @@ function isRetryableIdentitySkipReason(reason: IdentitySkipReason | undefined): 
   return reason?.kind === "retryable";
 }
 
+/**
+ * Log an identity-skip event at info level, throttled to once per session key
+ * per process lifetime. This makes silent skips visible to operators without
+ * flooding the log on every turn.
+ */
+function logSkipOnce(
+  operation: "recall" | "retain" | "dispatch" | "agent_start",
+  sessionKey: string | undefined,
+  reason: IdentitySkipReason
+): void {
+  if (!sessionKey) return;
+  const cacheKey = `${operation}:${sessionKey}`;
+  if (loggedSkipSessions.has(cacheKey)) return;
+  loggedSkipSessions.add(cacheKey);
+  const hint =
+    reason.kind === "final"
+      ? ". If unexpected, set dynamicBankGranularity to ['agent','channel','user'] or use static banking (dynamicBankId: false + bankId: '<name>')"
+      : "";
+  log.info(`Skipping ${operation} on session '${sessionKey}': ${reason.detail}${hint}`);
+}
+
 function cacheSessionIdentity(
   sessionKey: string | undefined,
   resolvedCtx: PluginHookAgentContext | undefined
@@ -886,11 +921,13 @@ export function getIdentitySkipReason(
   // exist to keep the default multi-tenant bank from being polluted by CLI/main
   // sessions that lack a stable identity. They should NOT fire when the user has
   // explicitly opted into a routing scheme that expects those sessions:
-  //   - dynamicBankGranularity includes 'agent' → each agent (including 'main')
-  //     gets its own bank
+  //   - dynamicBankGranularity includes 'agent' (the default) → each agent
+  //     (including 'main') gets its own bank
   //   - dynamicBankId === false with a configured bankId → user pinned a single
   //     named bank and wants every session retained into it
-  const agentBanking = pluginConfig?.dynamicBankGranularity?.includes("agent") ?? false;
+  // When dynamicBankGranularity is unset, the default is ["agent","channel","user"]
+  // which includes "agent", so agentBanking defaults to true to match deriveBankId.
+  const agentBanking = pluginConfig?.dynamicBankGranularity?.includes("agent") ?? true;
   const staticBanking =
     pluginConfig?.dynamicBankId === false &&
     typeof pluginConfig?.bankId === "string" &&
@@ -994,7 +1031,7 @@ export function deriveBankId(
   const resolvedCtx = resolveSessionIdentity(ctx);
   const fields = pluginConfig.dynamicBankGranularity?.length
     ? pluginConfig.dynamicBankGranularity
-    : ["agent", "channel", "user"];
+    : DEFAULT_DYNAMIC_BANK_GRANULARITY;
 
   // Validate field names at runtime — typos silently produce 'unknown' segments
   const validFields = new Set(["agent", "channel", "user", "provider"]);
@@ -1321,7 +1358,7 @@ function getPluginConfig(api: MoltbotPluginAPI): PluginConfig {
     autoRecall: config.autoRecall !== false, // Default: true (on) — backward compatible
     dynamicBankGranularity: Array.isArray(config.dynamicBankGranularity)
       ? config.dynamicBankGranularity
-      : undefined,
+      : DEFAULT_DYNAMIC_BANK_GRANULARITY,
     autoRetain: config.autoRetain !== false, // Default: true
     retainRoles: Array.isArray(config.retainRoles) ? config.retainRoles : undefined,
     retainFormat: config.retainFormat === "text" ? "text" : "json",
@@ -1802,6 +1839,7 @@ export default function (api: MoltbotPluginAPI) {
           debug(
             `[Hindsight] before_dispatch marked session ${sessionKey} to skip this turn: ${formatIdentitySkipReason(skipReason)}`
           );
+          logSkipOnce("dispatch", sessionKey, skipReason);
           return;
         }
         if (!resolvedCtx?.senderId || typeof resolvedCtx.senderId !== "string") {
@@ -1830,6 +1868,7 @@ export default function (api: MoltbotPluginAPI) {
           debug(
             `[Hindsight] before_agent_start skipping session ${sessionKey}: ${formatIdentitySkipReason(skipReason)}`
           );
+          logSkipOnce("agent_start", sessionKey, skipReason);
           return;
         }
         if (!resolvedCtx) {
@@ -1895,6 +1934,7 @@ export default function (api: MoltbotPluginAPI) {
           debug(
             `[Hindsight] Skipping recall for session ${sessionKeyForCache}: ${formatIdentitySkipReason(skipTurnReason)}`
           );
+          logSkipOnce("recall", sessionKeyForCache, skipTurnReason);
           return;
         }
 
@@ -1912,6 +1952,7 @@ export default function (api: MoltbotPluginAPI) {
           debug(
             `[Hindsight] Skipping recall for session ${sessionKeyForCache}: ${formatIdentitySkipReason(identitySkipReason)}`
           );
+          logSkipOnce("recall", sessionKeyForCache, identitySkipReason);
           return;
         }
 
@@ -2124,6 +2165,7 @@ ${memoriesFormatted}
           debug(
             `[Hindsight Hook] Skipping retain for session ${sessionKeyForLookup}: ${formatIdentitySkipReason(skipTurnReason)}`
           );
+          logSkipOnce("retain", sessionKeyForLookup, skipTurnReason);
           if (sessionKeyForLookup) {
             skipHindsightTurnBySession.delete(sessionKeyForLookup);
           }
@@ -2144,6 +2186,7 @@ ${memoriesFormatted}
           debug(
             `[Hindsight Hook] Skipping retain for session ${sessionKeyForLookup}: ${formatIdentitySkipReason(identitySkipReason)}`
           );
+          logSkipOnce("retain", sessionKeyForLookup, identitySkipReason);
           if (sessionKeyForLookup) {
             skipHindsightTurnBySession.delete(sessionKeyForLookup);
           }

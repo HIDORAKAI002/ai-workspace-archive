@@ -266,9 +266,9 @@ class VersionedFile(NamedTuple):
 AIRFLOW_PIP_VERSION = "26.0.1"
 AIRFLOW_UV_VERSION = "0.11.7"
 AIRFLOW_USE_UV = False
-GITPYTHON_VERSION = "3.1.46"
+GITPYTHON_VERSION = "3.1.47"
 RICH_VERSION = "15.0.0"
-PREK_VERSION = "0.3.9"
+PREK_VERSION = "0.3.10"
 HATCH_VERSION = "1.16.5"
 PYYAML_VERSION = "6.0.3"
 
@@ -1101,7 +1101,12 @@ def _build_provider_distributions(
 
 @release_management_group.command(
     name="prepare-provider-distributions",
-    help="Prepare sdist/whl distributions of Airflow Providers.",
+    help=(
+        "Prepare sdist/whl distributions of Airflow Providers. "
+        "Each provider directory is wiped with `git clean -fdx` (preserving "
+        ".venv, .idea, .vscode) before build to keep in-tree generated files "
+        "out of the artifact. See dev/breeze release-management docs."
+    ),
 )
 @option_distribution_format
 @option_version_suffix

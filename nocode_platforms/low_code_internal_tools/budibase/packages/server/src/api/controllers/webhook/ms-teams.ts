@@ -156,8 +156,8 @@ const createTeamsMessageHandler = ({
     const conversationId = raw?.conversation?.id?.trim() || ""
     const threadId = thread.id
     const externalUserId =
-      raw?.from?.aadObjectId?.trim() ||
       raw?.from?.id?.trim() ||
+      raw?.from?.aadObjectId?.trim() ||
       message.author.userId
     const displayName = raw?.from?.name?.trim() || message.author.fullName
     const channelId = raw?.channelData?.channel?.id?.trim()
@@ -234,7 +234,10 @@ const createTeamsMessageHandler = ({
         channelEnabled,
         command,
         content,
-        user: { externalUserId, displayName },
+        user: {
+          externalUserId,
+          displayName,
+        },
         channel,
         scope,
         idleTimeoutMinutes,

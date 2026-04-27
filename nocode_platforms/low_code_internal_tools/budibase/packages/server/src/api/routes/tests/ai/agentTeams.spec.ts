@@ -346,6 +346,112 @@ describe("agent teams integration provisioning", () => {
       expect(conversations[0]?.messages).toHaveLength(2)
     })
 
+    it("keeps the user linked for personal chat payloads that only include from.id", async () => {
+      const { agent, chatAppId, linkExternalUser } =
+        await setupProvisionedTeamsAgent()
+      const path = `/api/webhooks/ms-teams/${config.getProdWorkspaceId()}/${chatAppId}/${agent._id}`
+
+      const teamsUserId = "29:1ljv6N86roXr5pjPrCJVIz6xHh5QxjI-personal-only"
+      await linkExternalUser(teamsUserId)
+
+      const response = await postTeamsMessage({
+        path,
+        body: {
+          id: "activity-ask-from-id-only-1",
+          type: "message",
+          text: "still linked by id?",
+          from: {
+            id: teamsUserId,
+            name: "Teams User",
+          },
+          conversation: { id: "conversation-1", conversationType: "personal" },
+          channelData: { tenant: { id: "tenant-1" } },
+        },
+      })
+
+      expect(response.body.messages).toContain("Mock assistant response")
+      expect(mockedWebhookChat).toHaveBeenCalledTimes(1)
+    })
+
+    it("keeps the user linked when a later Teams payload includes aadObjectId for the same from.id", async () => {
+      const { agent, chatAppId, linkExternalUser } =
+        await setupProvisionedTeamsAgent()
+      const path = `/api/webhooks/ms-teams/${config.getProdWorkspaceId()}/${chatAppId}/${agent._id}`
+
+      const teamsUserId = "29:1ljv6N86roXr5pjPrCJVIz6xHh5QxjI-test"
+      await linkExternalUser(teamsUserId)
+
+      const response = await postTeamsMessage({
+        path,
+        body: {
+          id: "activity-ask-aad-switch-1",
+          type: "message",
+          text: "still linked?",
+          from: {
+            id: teamsUserId,
+            aadObjectId: "eddfa9d4-346e-4cce-a18f-fa6261ad776b",
+            name: "Teams User",
+          },
+          conversation: { id: "conversation-1", conversationType: "personal" },
+          channelData: { tenant: { id: "tenant-1" } },
+        },
+      })
+
+      expect(response.body.messages).toContain("Mock assistant response")
+      expect(mockedWebhookChat).toHaveBeenCalledTimes(1)
+    })
+
+    it("logs the Teams external user id that was used for lookup", async () => {
+      const { agent, chatAppId, linkExternalUser } =
+        await setupProvisionedTeamsAgent()
+      const path = `/api/webhooks/ms-teams/${config.getProdWorkspaceId()}/${chatAppId}/${agent._id}`
+
+      const aadObjectId = "eddfa9d4-346e-4cce-a18f-fa6261ad776b"
+      await linkExternalUser(aadObjectId)
+
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
+
+      try {
+        const response = await postTeamsMessage({
+          path,
+          body: {
+            id: "activity-ask-id-mismatch-1",
+            type: "message",
+            text: "should explain why this is unlinked",
+            from: {
+              id: "29:1ljv6N86roXr5pjPrCJVIz6xHh5QxjI-id-mismatch",
+              aadObjectId,
+              name: "Teams User",
+            },
+            conversation: {
+              id: "conversation-1",
+              conversationType: "personal",
+            },
+            channelData: { tenant: { id: "tenant-1" } },
+          },
+        })
+
+        expect(mockedWebhookChat).not.toHaveBeenCalled()
+        expect(response.body.messages.join(" ")).toContain(ChatCommands.LINK)
+
+        const linkLookupMissCall = warnSpy.mock.calls.find(
+          ([message]) => message === "bb-warn: chat_link_lookup_miss"
+        )
+        expect(linkLookupMissCall).toBeTruthy()
+
+        expect(linkLookupMissCall?.[1]).toEqual(
+          expect.objectContaining({
+            provider: AgentChannelProvider.MSTEAMS,
+            externalUserIdTried:
+              "29:1ljv6N86roXr5pjPrCJVIz6xHh5QxjI-id-mismatch",
+            linkIdTried: expect.any(String),
+          })
+        )
+      } finally {
+        warnSpy.mockRestore()
+      }
+    })
+
     it("reuses the existing conversation for subsequent messages in the same scope", async () => {
       const { agent, chatAppId, linkExternalUser } =
         await setupProvisionedTeamsAgent()
