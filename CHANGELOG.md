@@ -1,5 +1,17 @@
 # Archive Sync Changelog
 
+## [2026-04-28 02:42 IST] Auto-Sync
+- **38 Repositories Updated:** Playwright MCP, Kubernetes MCP Server, Exa MCP Server, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Flowise, Langflow, Activepieces, Trigger.dev, Windmill, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
+
+## [2026-04-27 20:13 IST] Auto-Sync
+- **20 Repositories Updated:** n8n, Activepieces, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, firecrawl/firecrawl, vercel/ai, sgl-project/sglang, openclaw/openclaw, vectorize-io/hindsight
+
+## [2026-04-27 19:01 IST] Auto-Sync
+- **23 Repositories Updated:** MCP TypeScript SDK, Promptfoo, Dify, Flowise, Activepieces, Budibase, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
+## [2026-04-27 12:27 IST] Auto-Sync
+- **23 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, Dify, Activepieces, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, openlit/openlit, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw
+
 ## [2026-04-27 06:04 IST] Auto-Sync
 - **14 Repositories Updated:** Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, langchain-ai/langchain, arize-ai/phoenix, apache/airflow, sgl-project/sglang, openclaw/openclaw
 

@@ -81,6 +81,26 @@
       "icon": "/img/icons/mcp.png"
     },
     {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "description": "Add persistent long-term memory to ChatGPT via OAuth-secured MCP connectors. Store insights from conversations and recall relevant context across sessions.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/chatgpt",
+      "icon": "/img/icons/chatgpt.png"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "description": "Add persistent long-term memory to Perplexity via OAuth-secured MCP connectors. Store research findings and recall relevant context across searches.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/perplexity",
+      "icon": "/img/icons/perplexity.png"
+    },
+    {
       "id": "claude-code",
       "name": "Claude Code",
       "description": "Automatic long-term memory for Claude Code via Hindsight hooks. Captures every conversation, recalls relevant context on every prompt.",

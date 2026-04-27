@@ -8,6 +8,7 @@ from contextvars import ContextVar
 from fastmcp import FastMCP
 
 from hindsight_api import MemoryEngine
+from hindsight_api import __version__ as HINDSIGHT_VERSION
 from hindsight_api.config import _get_raw_config
 from hindsight_api.engine.memory_engine import _current_schema
 from hindsight_api.extensions import MCPExtension, load_extension
@@ -89,7 +90,7 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
     Returns:
         Configured FastMCP server instance
     """
-    mcp = FastMCP("hindsight-mcp-server")
+    mcp = FastMCP("hindsight-mcp-server", version=HINDSIGHT_VERSION)
 
     global_config = _get_raw_config()
 

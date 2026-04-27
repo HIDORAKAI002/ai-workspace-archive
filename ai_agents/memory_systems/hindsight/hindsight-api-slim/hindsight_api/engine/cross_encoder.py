@@ -19,6 +19,7 @@ from ..config import (
     DEFAULT_LITELLM_API_BASE,
     DEFAULT_RERANKER_COHERE_MODEL,
     DEFAULT_RERANKER_FLASHRANK_CACHE_DIR,
+    DEFAULT_RERANKER_FLASHRANK_CPU_MEM_ARENA,
     DEFAULT_RERANKER_FLASHRANK_MODEL,
     DEFAULT_RERANKER_GOOGLE_MODEL,
     DEFAULT_RERANKER_LITELLM_MAX_TOKENS_PER_DOC,
@@ -39,6 +40,7 @@ from ..config import (
     ENV_RERANKER_COHERE_API_KEY,
     ENV_RERANKER_COHERE_MODEL,
     ENV_RERANKER_FLASHRANK_CACHE_DIR,
+    ENV_RERANKER_FLASHRANK_CPU_MEM_ARENA,
     ENV_RERANKER_FLASHRANK_MODEL,
     ENV_RERANKER_GOOGLE_PROJECT_ID,
     ENV_RERANKER_LITELLM_SDK_API_KEY,
@@ -864,6 +866,7 @@ class FlashRankCrossEncoder(CrossEncoderModel):
         cache_dir: str | None = None,
         max_length: int = 512,
         max_concurrent: int = 4,
+        cpu_mem_arena: bool = False,
     ):
         """
         Initialize FlashRank cross-encoder.
@@ -873,10 +876,15 @@ class FlashRankCrossEncoder(CrossEncoderModel):
             cache_dir: Directory to cache downloaded models. Default: system cache
             max_length: Maximum sequence length for reranking. Default: 512
             max_concurrent: Maximum concurrent reranking calls. Default: 4
+            cpu_mem_arena: Enable ONNX Runtime CPU memory arena. Default: False.
+                          When True, ONNX pre-allocates a memory arena that never
+                          shrinks, causing RSS to grow monotonically. False trades
+                          slightly slower per-call allocation for bounded RSS.
         """
         self.model_name = model_name or DEFAULT_RERANKER_FLASHRANK_MODEL
         self.cache_dir = cache_dir or DEFAULT_RERANKER_FLASHRANK_CACHE_DIR
         self.max_length = max_length
+        self.cpu_mem_arena = cpu_mem_arena
         self._ranker = None
         FlashRankCrossEncoder._max_concurrent = max_concurrent
 
@@ -894,14 +902,46 @@ class FlashRankCrossEncoder(CrossEncoderModel):
         except ImportError:
             raise ImportError("flashrank is required for FlashRankCrossEncoder. Install it with: pip install flashrank")
 
-        logger.info(f"Reranker: initializing FlashRank provider with model {self.model_name}")
+        logger.info(
+            f"Reranker: initializing FlashRank provider with model {self.model_name}"
+            f" (cpu_mem_arena={self.cpu_mem_arena})"
+        )
+
+        # Configure ONNX session options before Ranker creates the session.
+        # When cpu_mem_arena=False (default), ONNX won't pre-allocate an arena
+        # that grows monotonically, keeping RSS bounded after rerank batches.
+        if not self.cpu_mem_arena:
+            import onnxruntime as ort
+
+            session_options = ort.SessionOptions()
+            session_options.enable_cpu_mem_arena = False
+        else:
+            session_options = None
 
         # Initialize ranker with optional cache directory
-        ranker_kwargs = {"model_name": self.model_name, "max_length": self.max_length}
+        ranker_kwargs: dict = {"model_name": self.model_name, "max_length": self.max_length}
         if self.cache_dir:
             ranker_kwargs["cache_dir"] = self.cache_dir
 
         self._ranker = Ranker(**ranker_kwargs)
+
+        # Patch the ONNX session options if arena is disabled.
+        # FlashRank's Ranker doesn't expose SessionOptions in its API,
+        # so we replace the session after initialization.
+        if session_options is not None and hasattr(self._ranker, "session"):
+            import onnxruntime as ort
+
+            model_file = None
+            model_dir = getattr(self._ranker, "model_dir", None)
+            if model_dir:
+                from pathlib import Path
+
+                for candidate in Path(model_dir).glob("*.onnx"):
+                    model_file = str(candidate)
+                    break
+            if model_file:
+                self._ranker.session = ort.InferenceSession(model_file, sess_options=session_options)
+                logger.info("Reranker: replaced FlashRank ONNX session with cpu_mem_arena=False")
 
         # Initialize shared executor
         if FlashRankCrossEncoder._executor is None:
@@ -1552,7 +1592,10 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
     elif provider == "flashrank":
         model = os.environ.get(ENV_RERANKER_FLASHRANK_MODEL, DEFAULT_RERANKER_FLASHRANK_MODEL)
         cache_dir = os.environ.get(ENV_RERANKER_FLASHRANK_CACHE_DIR, DEFAULT_RERANKER_FLASHRANK_CACHE_DIR)
-        return FlashRankCrossEncoder(model_name=model, cache_dir=cache_dir)
+        cpu_mem_arena = os.environ.get(
+            ENV_RERANKER_FLASHRANK_CPU_MEM_ARENA, str(DEFAULT_RERANKER_FLASHRANK_CPU_MEM_ARENA)
+        ).lower() in ("true", "1", "yes")
+        return FlashRankCrossEncoder(model_name=model, cache_dir=cache_dir, cpu_mem_arena=cpu_mem_arena)
     elif provider == "litellm":
         return LiteLLMCrossEncoder(
             api_base=config.reranker_litellm_api_base,

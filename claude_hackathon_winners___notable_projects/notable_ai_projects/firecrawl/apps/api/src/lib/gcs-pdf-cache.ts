@@ -6,6 +6,15 @@ import { storage } from "./gcs-jobs";
 
 type PdfCacheProvider = "runpod" | "firepdf";
 
+// Cache shape — markdown/html are required; pagesProcessed is optional so
+// pre-existing entries (written before the field existed) round-trip cleanly
+// and the caller can fall back to its own page-count signal on a stale hit.
+type CachedPdfResult = {
+  markdown: string;
+  html: string;
+  pagesProcessed?: number;
+};
+
 const PROVIDER_PREFIXES: Record<PdfCacheProvider, string> = {
   runpod: "pdf-cache-v2/",
   firepdf: "pdf-cache-firepdf/",
@@ -17,7 +26,7 @@ export function createPdfCacheKey(pdfContent: string | Buffer): string {
 
 export async function savePdfResultToCache(
   pdfContent: string,
-  result: { markdown: string; html: string },
+  result: CachedPdfResult,
   provider: PdfCacheProvider = "runpod",
 ): Promise<string | null> {
   try {
@@ -74,7 +83,7 @@ export async function savePdfResultToCache(
 export async function getPdfResultFromCache(
   pdfContent: string,
   provider: PdfCacheProvider = "runpod",
-): Promise<{ markdown: string; html: string } | null> {
+): Promise<CachedPdfResult | null> {
   try {
     if (!config.GCS_BUCKET_NAME) {
       return null;

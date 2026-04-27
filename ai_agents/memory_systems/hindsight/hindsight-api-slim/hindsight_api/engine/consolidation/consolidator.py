@@ -28,7 +28,7 @@ from pydantic import BaseModel, field_validator
 
 from ...config import get_config
 from ..llm_wrapper import sanitize_llm_output
-from ..memory_engine import fq_table
+from ..memory_engine import Budget, fq_table
 from ..retain import embedding_utils
 from .prompts import build_batch_consolidation_prompt
 
@@ -1138,10 +1138,14 @@ async def _find_related_observations(
     else:
         recall_span = None
 
+    # Resolve budget: consolidation doesn't need deep recall, default to LOW to reduce memory fan-out
+    recall_budget = Budget(config.consolidation_recall_budget)
+
     try:
         recall_result = await memory_engine.recall_async(
             bank_id=bank_id,
             query=query,
+            budget=recall_budget,
             max_tokens=config.consolidation_max_tokens,  # Token budget for observations (configurable)
             fact_type=["observation"],  # Only retrieve observations
             request_context=request_context,

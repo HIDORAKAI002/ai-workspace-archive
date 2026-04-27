@@ -64,7 +64,7 @@ vi.mock("./embeddings.js", () => ({
 
 type MemoryIndexModule = typeof import("./index.js");
 type MemoryEmbeddingProvidersModule =
-  typeof import("../../../../src/plugins/memory-embedding-providers.js");
+  typeof import("openclaw/plugin-sdk/memory-core-host-engine-embeddings");
 
 let getMemorySearchManager: MemoryIndexModule["getMemorySearchManager"];
 let closeAllMemorySearchManagers: MemoryIndexModule["closeAllMemorySearchManagers"];
@@ -82,7 +82,7 @@ describe("memory watcher config", () => {
     ({
       clearMemoryEmbeddingProviders: clearRegistry,
       registerMemoryEmbeddingProvider: registerAdapter,
-    } = await import("../../../../src/plugins/memory-embedding-providers.js"));
+    } = await import("openclaw/plugin-sdk/memory-core-host-engine-embeddings"));
   });
 
   beforeEach(async () => {
@@ -188,6 +188,17 @@ describe("memory watcher config", () => {
     expect(
       ignored?.(path.join(workspaceDir, "memory", "project"), { isDirectory: () => true }),
     ).toBe(false);
+  });
+
+  it("does not start watchers for one-shot CLI managers", async () => {
+    await setupWatcherWorkspace({ name: "notes.md", contents: "hello" });
+    const cfg = createWatcherConfig();
+
+    const result = await getMemorySearchManager({ cfg, agentId: "main", purpose: "cli" });
+    expect(result.manager).not.toBeNull();
+    manager = result.manager as unknown as MemoryIndexManager;
+
+    expect(watchMock).not.toHaveBeenCalled();
   });
 
   it("watches multimodal extra directories with filtered extensions", async () => {

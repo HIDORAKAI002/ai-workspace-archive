@@ -595,7 +595,10 @@
     "ExportCreateRequest": {
       "description": "Request to create a new export operation",
       "type": "object",
-      "required": ["id", "file_format"],
+      "required": [
+        "id",
+        "file_format"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -604,7 +607,9 @@
         "file_format": {
           "type": "string",
           "description": "Output file format for the export.",
-          "enum": ["parquet"]
+          "enum": [
+            "parquet"
+          ]
         },
         "include": {
           "type": "array",
@@ -641,7 +646,9 @@
         "status": {
           "type": "string",
           "description": "Current status of the export",
-          "enum": ["STARTED"]
+          "enum": [
+            "STARTED"
+          ]
         },
         "startedAt": {
           "type": "string",
@@ -676,7 +683,13 @@
         "status": {
           "type": "string",
           "description": "Current status of the export",
-          "enum": ["STARTED", "TRANSFERRING", "SUCCESS", "FAILED", "CANCELED"]
+          "enum": [
+            "STARTED",
+            "TRANSFERRING",
+            "SUCCESS",
+            "FAILED",
+            "CANCELED"
+          ]
         },
         "startedAt": {
           "type": "string",
@@ -723,7 +736,12 @@
         "status": {
           "type": "string",
           "description": "Status of this shard's export",
-          "enum": ["TRANSFERRING", "SUCCESS", "FAILED", "SKIPPED"]
+          "enum": [
+            "TRANSFERRING",
+            "SUCCESS",
+            "FAILED",
+            "SKIPPED"
+          ]
         },
         "objectsExported": {
           "type": "integer",
@@ -977,7 +995,10 @@
     "TokenizeRequest": {
       "description": "Request body for the generic tokenize endpoint.",
       "type": "object",
-      "required": ["text", "tokenization"],
+      "required": [
+        "text",
+        "tokenization"
+      ],
       "properties": {
         "text": {
           "description": "The text to tokenize.",
@@ -1012,7 +1033,9 @@
           "x-omitempty": true,
           "additionalProperties": {
             "type": "array",
-            "items": {"type": "string"}
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
@@ -1040,7 +1063,9 @@
     "PropertyTokenizeRequest": {
       "description": "Request body for the property-specific tokenize endpoint.",
       "type": "object",
-      "required": ["text"],
+      "required": [
+        "text"
+      ],
       "properties": {
         "text": {
           "description": "The text to tokenize using the property's configured tokenization.",
@@ -1651,14 +1676,14 @@
       "type": "object"
     },
     "TextAnalyzerConfig": {
-      "description": "Text analysis options for a property. The asciiFold setting is immutable after creation, while the asciiFoldIgnore list can be updated later; changes to asciiFoldIgnore only affect newly indexed data and do not retroactively re-index existing data. Applies only to text and text[] data types that use an inverted index (searchable or filterable).",
+      "description": "Text analysis options for a property. These settings are immutable after the property is created. Applies only to text and text[] data types that use an inverted index (searchable or filterable).",
       "properties": {
         "asciiFold": {
           "description": "If true, accent/diacritic marks are folded to their base characters during indexing and search. For example, 'école' matches 'ecole'. Defaults to false.",
           "type": "boolean"
         },
         "asciiFoldIgnore": {
-          "description": "If provided, specifies a list of characters that should be excluded from ascii folding. For example, if ['é'] is provided, then 'é' will not be folded to 'e' during indexing and search. This list can be updated after the property is created, but updates only affect documents indexed after the change.",
+          "description": "If provided, specifies a list of characters that should be excluded from ascii folding. For example, if ['é'] is provided, then 'é' will not be folded to 'e' during indexing and search. This list is immutable after the property is created.",
           "type": "array",
           "x-omitempty": true,
           "items": {
@@ -10226,29 +10251,48 @@
     "/mcp": {
       "post": {
         "description": "MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation.",
-        "tags": ["mcp"],
+        "tags": [
+          "mcp"
+        ],
         "operationId": "mcp.post",
-        "consumes": ["application/json"],
-        "produces": ["application/json", "text/event-stream"],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "text/event-stream"
+        ],
         "responses": {
-          "200": { "description": "JSON-RPC response or SSE stream" }
+          "200": {
+            "description": "JSON-RPC response or SSE stream"
+          }
         }
       },
       "get": {
         "description": "Opens an SSE stream for receiving MCP server-sent events.",
-        "tags": ["mcp"],
+        "tags": [
+          "mcp"
+        ],
         "operationId": "mcp.get",
-        "produces": ["text/event-stream"],
+        "produces": [
+          "text/event-stream"
+        ],
         "responses": {
-          "200": { "description": "SSE event stream" }
+          "200": {
+            "description": "SSE event stream"
+          }
         }
       },
       "delete": {
         "description": "Terminates an MCP session.",
-        "tags": ["mcp"],
+        "tags": [
+          "mcp"
+        ],
         "operationId": "mcp.delete",
         "responses": {
-          "200": { "description": "Session terminated" }
+          "200": {
+            "description": "Session terminated"
+          }
         }
       }
     }

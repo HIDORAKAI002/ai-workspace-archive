@@ -50,6 +50,20 @@ pub struct DeletedObjects {
     pub errors: Vec<StorageError>,
 }
 
+fn not_found_deleted_objects(
+    keys: Vec<String>,
+    source: Arc<dyn std::error::Error + Send + Sync + 'static>,
+) -> DeletedObjects {
+    let mut out = DeletedObjects::default();
+    for key in keys {
+        out.errors.push(StorageError::NotFound {
+            path: key,
+            source: Arc::clone(&source),
+        });
+    }
+    out
+}
+
 #[derive(Clone)]
 pub struct S3Storage {
     pub(crate) bucket: String,
@@ -138,6 +152,10 @@ impl S3Storage {
                     }
                     _ => match inner.code() {
                         Some("SlowDown") => StorageError::Backoff,
+                        Some("NoSuchKey") => StorageError::NotFound {
+                            path: key.to_string(),
+                            source: Arc::new(inner),
+                        },
                         Some("AccessDenied") => {
                             tracing::error!(
                                 bucket = %self.bucket,
@@ -179,9 +197,16 @@ impl S3Storage {
             Err(e) => match e {
                 SdkError::ServiceError(err) => {
                     let inner = err.into_err();
-                    Err(StorageError::Generic {
-                        source: Arc::new(inner),
-                    })
+                    if inner.is_not_found() || inner.code() == Some("NoSuchKey") {
+                        Err(StorageError::NotFound {
+                            path: key.to_string(),
+                            source: Arc::new(inner),
+                        })
+                    } else {
+                        Err(StorageError::Generic {
+                            source: Arc::new(inner),
+                        })
+                    }
                 }
                 _ => Err(StorageError::Generic {
                     source: Arc::new(e),
@@ -396,6 +421,10 @@ impl S3Storage {
                         let code = inner.code().map(|code| code.to_string());
                         match code.as_deref() {
                             Some("SlowDown") => Err(StorageError::Backoff),
+                            Some("NoSuchKey") => Err(StorageError::NotFound {
+                                path: key.to_string(),
+                                source: Arc::new(inner),
+                            }),
                             Some("AccessDenied") => Err(StorageError::PermissionDenied {
                                 path: key.to_string(),
                                 source: Arc::new(inner),
@@ -801,6 +830,11 @@ impl S3Storage {
                     path: key.to_string(),
                     source: Arc::new(err),
                 }
+            } else if err.meta().code() == Some("NoSuchKey") {
+                StorageError::NotFound {
+                    path: key.to_string(),
+                    source: Arc::new(err),
+                }
             } else if err.meta().code() == Some("SlowDown") {
                 StorageError::Backoff
             } else {
@@ -989,7 +1023,7 @@ impl S3Storage {
                 SdkError::ServiceError(err) => {
                     let inner = err.into_err();
                     match inner.code() {
-                        Some("NotFound") => Err(StorageError::NotFound {
+                        Some("NotFound") | Some("NoSuchKey") => Err(StorageError::NotFound {
                             path: key.to_string(),
                             source: Arc::new(inner),
                         }),
@@ -1016,11 +1050,16 @@ impl S3Storage {
     ) -> Result<DeletedObjects, StorageError> {
         self.metrics.s3_delete_many_count.add(1, &[]);
 
-        let mut objects = vec![];
-        for key in keys {
+        let keys = keys
+            .into_iter()
+            .map(|key| key.as_ref().to_string())
+            .collect::<Vec<_>>();
+
+        let mut objects = Vec::with_capacity(keys.len());
+        for key in &keys {
             objects.push(
                 ObjectIdentifier::builder()
-                    .key(key.as_ref())
+                    .key(key.as_str())
                     .build()
                     .map_err(|err| StorageError::Generic {
                         source: Arc::new(err),
@@ -1051,7 +1090,7 @@ impl S3Storage {
                 for error in resp.errors() {
                     out.errors.push(if Some("NoSuchKey") == error.code() {
                         StorageError::NotFound {
-                            path: error.key.clone().unwrap_or(String::new()),
+                            path: error.key.clone().unwrap_or_else(|| keys.join(",")),
                             source: Arc::new(StorageError::Message {
                                 message: format!("{error:#?}"),
                             }),
@@ -1068,6 +1107,9 @@ impl S3Storage {
             Err(e) => {
                 if e.code() == Some("SlowDown") {
                     Err(StorageError::Backoff)
+                } else if e.code() == Some("NoSuchKey") {
+                    let source: Arc<dyn std::error::Error + Send + Sync + 'static> = Arc::new(e);
+                    Ok(not_found_deleted_objects(keys, source))
                 } else {
                     Err(StorageError::Generic {
                         source: Arc::new(e),
@@ -1120,10 +1162,18 @@ impl S3Storage {
         {
             Ok(_) => Ok(()),
             Err(e) => {
-                tracing::error!(error = %e, src = %src_key, dst = %dst_key, "Failed to copy object");
-                Err(StorageError::Generic {
-                    source: Arc::new(e.into_service_error()),
-                })
+                let inner = e.into_service_error();
+                tracing::error!(error = %inner, src = %src_key, dst = %dst_key, "Failed to copy object");
+                if inner.meta().code() == Some("NoSuchKey") {
+                    Err(StorageError::NotFound {
+                        path: src_key.to_string(),
+                        source: Arc::new(inner),
+                    })
+                } else {
+                    Err(StorageError::Generic {
+                        source: Arc::new(inner),
+                    })
+                }
             }
         }
     }
@@ -1363,6 +1413,29 @@ mod tests {
     use rand::{distributions::Alphanumeric, Rng, SeedableRng};
     use std::io::Write;
     use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_not_found_deleted_objects_preserves_requested_keys() {
+        let source: Arc<dyn std::error::Error + Send + Sync + 'static> =
+            Arc::new(StorageError::Message {
+                message: "NoSuchKey".to_string(),
+            });
+        let deleted_objects =
+            not_found_deleted_objects(vec!["first".to_string(), "second".to_string()], source);
+
+        assert!(deleted_objects.deleted.is_empty());
+        assert_eq!(deleted_objects.errors.len(), 2);
+
+        let paths = deleted_objects
+            .errors
+            .iter()
+            .map(|err| match err {
+                StorageError::NotFound { path, .. } => path.as_str(),
+                other => panic!("expected NotFound error, got {other:?}"),
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(paths, vec!["first", "second"]);
+    }
 
     fn get_s3_client() -> aws_sdk_s3::Client {
         // Set up credentials assuming minio is running locally
@@ -1894,10 +1967,10 @@ mod tests {
             "confirm_same should return error for nonexistent file"
         );
         match result.unwrap_err() {
-            StorageError::Generic { source: _ } => {
-                // This is expected - the head operation will fail on nonexistent file
+            StorageError::NotFound { path, .. } => {
+                assert_eq!(path, "nonexistent-file");
             }
-            other => panic!("Expected Generic error, got: {:?}", other),
+            other => panic!("Expected NotFound error, got: {:?}", other),
         }
     }
 

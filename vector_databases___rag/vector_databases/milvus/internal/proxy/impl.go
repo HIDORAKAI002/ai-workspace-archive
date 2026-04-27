@@ -913,7 +913,18 @@ func (node *Proxy) DescribeCollection(ctx context.Context, request *milvuspb.Des
 			Status: merr.Status(err),
 		}, nil
 	}
-	return interceptor.Call(ctx, request)
+	resp, err := interceptor.Call(ctx, request)
+	// Single-point redaction at the API edge. The persisted spec carries
+	// extfs credentials (access_key_id / access_key_value / ssl_ca_cert)
+	// that internal callers (refresh / load) need raw via the same
+	// mixCoord.DescribeCollection RPC; redacting at source would break
+	// FFI auth. Sanitize here so every provider path (cached / remote)
+	// converges through one spot — adding a new provider does not
+	// re-introduce the leak.
+	if resp != nil && resp.GetSchema() != nil {
+		resp.Schema.ExternalSpec = externalspec.RedactExternalSpec(resp.Schema.ExternalSpec)
+	}
+	return resp, err
 }
 
 func (node *Proxy) BatchDescribeCollection(ctx context.Context, request *milvuspb.BatchDescribeCollectionRequest) (*milvuspb.BatchDescribeCollectionResponse, error) {
@@ -979,9 +990,13 @@ func (node *Proxy) AddCollectionField(ctx context.Context, request *milvuspb.Add
 	}
 	defer node.alterSchemaInFlight.Delete(collKey)
 
-	// Block until all segments have caught up to the current schema version,
-	// preventing a new field addition while a previous backfill is still in progress.
-	if err := node.checkSchemaVersionConsistency(ctx, request.DbName, request.CollectionName); err != nil {
+	// TEMP: SDKs do not consistently retry retryable DDL errors yet.
+	// Retry the schema consistency gate in Proxy first to hide short backfill
+	// convergence windows from clients until SDK retry handling is fixed.
+	if err := retry.Handle(ctx, func() (bool, error) {
+		err := node.checkSchemaVersionConsistency(ctx, request.DbName, request.CollectionName)
+		return merr.IsRetryableErr(err), err
+	}); err != nil {
 		return merr.Status(err), nil
 	}
 
@@ -1071,8 +1086,13 @@ func (node *Proxy) AlterCollectionSchema(ctx context.Context, request *milvuspb.
 	}
 	defer node.alterSchemaInFlight.Delete(collKey)
 
-	// Check schema version consistency before proceeding with alter collection schema
-	if err := node.checkSchemaVersionConsistency(ctx, request.DbName, request.CollectionName); err != nil {
+	// TEMP: SDKs do not consistently retry retryable DDL errors yet.
+	// Retry the schema consistency gate in Proxy first to hide short backfill
+	// convergence windows from clients until SDK retry handling is fixed.
+	if err := retry.Handle(ctx, func() (bool, error) {
+		err := node.checkSchemaVersionConsistency(ctx, request.DbName, request.CollectionName)
+		return merr.IsRetryableErr(err), err
+	}); err != nil {
 		return &milvuspb.AlterCollectionSchemaResponse{
 			AlterStatus: merr.Status(err),
 		}, nil
@@ -1213,9 +1233,7 @@ func (node *Proxy) checkSchemaVersionConsistency(ctx context.Context, dbName, co
 		return merr.WrapErrParameterInvalidMsg("incomplete schema version consistency stats from DataCoord")
 	}
 	if consistentSegments < totalSegments {
-		return merr.WrapErrParameterInvalidMsg(
-			"schema version consistency check failed: %d/%d segments are consistent, required 100%%",
-			consistentSegments, totalSegments)
+		return merr.WrapErrCollectionSchemaVersionNotReady(collectionName, consistentSegments, totalSegments)
 	}
 	return nil
 }
