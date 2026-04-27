@@ -1,7 +1,5 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import {
-  type ExecAsk,
-  type ExecSecurity,
   requiresExecApproval,
   resolveExecApprovalAllowedDecisions,
 } from "../infra/exec-approvals.js";
@@ -19,6 +17,7 @@ import {
   resolveNodeExecutionTarget,
   shouldSkipNodeApprovalPrepare,
 } from "./bash-tools.exec-host-node-phases.js";
+import type { ExecuteNodeHostCommandParams } from "./bash-tools.exec-host-node.types.js";
 import * as execHostShared from "./bash-tools.exec-host-shared.js";
 import {
   DEFAULT_NOTIFY_TAIL_CHARS,
@@ -28,31 +27,7 @@ import {
 import type { ExecToolDetails } from "./bash-tools.exec-types.js";
 import { callGatewayTool } from "./tools/gateway.js";
 
-export type ExecuteNodeHostCommandParams = {
-  command: string;
-  workdir: string | undefined;
-  env: Record<string, string>;
-  requestedEnv?: Record<string, string>;
-  requestedNode?: string;
-  boundNode?: string;
-  sessionKey?: string;
-  turnSourceChannel?: string;
-  turnSourceTo?: string;
-  turnSourceAccountId?: string;
-  turnSourceThreadId?: string | number;
-  trigger?: string;
-  agentId?: string;
-  security: ExecSecurity;
-  ask: ExecAsk;
-  strictInlineEval?: boolean;
-  timeoutSec?: number;
-  defaultTimeoutSec: number;
-  approvalRunningNoticeMs: number;
-  warnings: string[];
-  notifySessionKey?: string;
-  notifyOnExit?: boolean;
-  trustedSafeBinDirs?: ReadonlySet<string>;
-};
+export type { ExecuteNodeHostCommandParams } from "./bash-tools.exec-host-node.types.js";
 
 export async function executeNodeHostCommand(
   params: ExecuteNodeHostCommandParams,

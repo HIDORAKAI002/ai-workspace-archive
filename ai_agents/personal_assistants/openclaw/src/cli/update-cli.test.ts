@@ -381,14 +381,14 @@ describe("update-cli", () => {
   };
 
   const setupUpdatedRootRefresh = (params?: {
-    gatewayUpdateImpl?: () => Promise<UpdateRunResult>;
+    gatewayUpdateImpl?: (root: string) => Promise<UpdateRunResult>;
     entrypoints?: string[];
   }) => {
     const root = createCaseDir("openclaw-updated-root");
     const entrypoints = params?.entrypoints ?? [path.join(root, "dist", "entry.js")];
     pathExists.mockImplementation(async (candidate: string) => entrypoints.includes(candidate));
     if (params?.gatewayUpdateImpl) {
-      vi.mocked(runGatewayUpdate).mockImplementation(params.gatewayUpdateImpl);
+      vi.mocked(runGatewayUpdate).mockImplementation(() => params.gatewayUpdateImpl!(root));
     } else {
       vi.mocked(runGatewayUpdate).mockResolvedValue({
         status: "ok",
