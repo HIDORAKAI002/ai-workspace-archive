@@ -1,9 +1,13 @@
-import { context, db, docIds, HTTPError } from "@budibase/backend-core"
+import { context, db, docIds, HTTPError, locks } from "@budibase/backend-core"
+import { matchesConfiguredPatterns } from "@budibase/shared-core"
 import {
   type Agent,
+  type AgentKnowledgeSourceFilterConfig,
   type AgentKnowledgeSourceSyncState,
   AgentKnowledgeSourceSyncRunStatus,
   AgentKnowledgeSourceType,
+  LockName,
+  LockType,
   type AgentKnowledgeSource,
   DocumentType,
   type FetchAgentKnowledgeSourceEntriesResponse,
@@ -227,6 +231,34 @@ const isSupportedSharePointFile = (file: SharePointFileRef) => {
   })
 }
 
+const normalizeSourceFilters = (
+  filters?: AgentKnowledgeSourceFilterConfig
+): { patterns?: string[] } => {
+  const normalize = (patterns?: string[]) => {
+    if (!patterns) {
+      return undefined
+    }
+    const normalized = Array.from(
+      new Set(patterns.map(pattern => pattern.trim()).filter(Boolean))
+    )
+    return normalized.length > 0 ? normalized : undefined
+  }
+
+  return { patterns: normalize(filters?.patterns) }
+}
+
+const isSharePointPathIncludedByFilters = (
+  path: string,
+  filters?: AgentKnowledgeSourceFilterConfig
+) => {
+  const { patterns } = normalizeSourceFilters(filters)
+
+  if (!patterns?.length) {
+    return true
+  }
+  return matchesConfiguredPatterns(path, patterns)
+}
+
 const collectFilesRecursive = async (
   bearerToken: string,
   driveId: string,
@@ -408,7 +440,7 @@ export const deleteKnowledgeSourceSyncStateForAgent = async (
   }
 }
 
-export const syncSharePointSourcesForAgent = async (
+const runSharePointSourcesForAgent = async (
   agentId: string,
   sourceId: string
 ): Promise<SyncAgentKnowledgeSourcesResponse> => {
@@ -428,12 +460,15 @@ export const syncSharePointSourcesForAgent = async (
   }
 
   const siteId = site.id
+  const sourceFilters = agent.knowledgeSources?.find(s => s.id === sourceId)
+    ?.config.filters
 
   console.log("Starting SharePoint sync for agent", {
     agentId,
     sourceId: sourceId,
     siteId,
     runAt: lastRunAt,
+    sourceFilters,
   })
 
   const bearerToken = await getSharePointBearerToken(
@@ -476,8 +511,39 @@ export const syncSharePointSourcesForAgent = async (
   let synced = 0
   let failed = 0
   let skipped = 0
+  let alreadySynced = 0
   let unsupported = 0
+  let filteredOut = 0
   let totalDiscovered = 0
+  let deleted = 0
+  let deleteFailed = 0
+
+  const existingSourceFiles = existingFiles.filter(
+    file =>
+      file._id &&
+      file.source?.type === KnowledgeBaseFileSourceType.SHAREPOINT &&
+      file.source.knowledgeSourceId === sourceId &&
+      file.source.siteId === siteId
+  )
+  const filteredOutFileIds = existingSourceFiles
+    .filter(file => {
+      const candidatePath = file.source?.path || file.filename
+      return !isSharePointPathIncludedByFilters(
+        candidatePath || "",
+        sourceFilters
+      )
+    })
+    .map(file => file._id)
+    .filter((fileId): fileId is string => !!fileId)
+  if (filteredOutFileIds.length > 0) {
+    const deleteResults = await Promise.allSettled(
+      filteredOutFileIds.map(fileId => deleteFileForAgent(agentId, fileId))
+    )
+    deleted = deleteResults.filter(
+      result => result.status === "fulfilled"
+    ).length
+    deleteFailed = deleteResults.length - deleted
+  }
 
   try {
     const driveIds = await listDrives(bearerToken, siteId)
@@ -491,6 +557,11 @@ export const syncSharePointSourcesForAgent = async (
 
       totalDiscovered += files.length
       for (const file of files) {
+        if (!isSharePointPathIncludedByFilters(file.path, sourceFilters)) {
+          skipped++
+          filteredOut++
+          continue
+        }
         if (!isSupportedSharePointFile(file)) {
           skipped++
 
@@ -505,6 +576,7 @@ export const syncSharePointSourcesForAgent = async (
         })
         if (existingExternalIds.has(externalSourceId)) {
           skipped++
+          alreadySynced++
 
           continue
         }
@@ -568,8 +640,12 @@ export const syncSharePointSourcesForAgent = async (
       agentId,
       siteId,
       synced,
+      deleted,
+      deleteFailed,
       failed,
       skipped,
+      alreadySynced,
+      filteredOut,
       unsupported,
       totalDiscovered,
     })
@@ -579,10 +655,27 @@ export const syncSharePointSourcesForAgent = async (
     agentId,
     synced,
     failed,
-    alreadySynced: skipped - unsupported,
+    alreadySynced,
+    deleted,
     unsupported,
     totalDiscovered,
   }
+}
+
+export const syncSharePointSourcesForAgent = async (
+  agentId: string,
+  sourceId: string
+): Promise<SyncAgentKnowledgeSourcesResponse> => {
+  const { result } = await locks.doWithLock(
+    {
+      name: LockName.AGENT_RAG_KNOWLEDGE_BASE,
+      type: LockType.AUTO_EXTEND,
+      resource: `${agentId}:${sourceId}:sharepoint_sync`,
+    },
+    async () => await runSharePointSourcesForAgent(agentId, sourceId)
+  )
+
+  return result
 }
 
 export const deleteSharePointFilesForAgentSite = async (
