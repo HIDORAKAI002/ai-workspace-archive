@@ -180,6 +180,18 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'link',
+          href: '/sdks/integrations/chatgpt',
+          label: 'ChatGPT',
+          customProps: { icon: '/img/icons/chatgpt.png' },
+        },
+        {
+          type: 'link',
+          href: '/sdks/integrations/perplexity',
+          label: 'Perplexity',
+          customProps: { icon: '/img/icons/perplexity.png' },
+        },
+        {
+          type: 'link',
           href: '/sdks/integrations/litellm',
           label: 'LiteLLM',
           customProps: { icon: '/img/icons/litellm.png' },
