@@ -6,6 +6,7 @@ import {
   getConcurrencyQueueJobsCount,
   getCrawlConcurrencyLimitActiveJobs,
   getTeamQueueLimit,
+  MAX_BACKLOG_TIMEOUT_MS,
   pushConcurrencyLimitActiveJob,
   pushConcurrencyLimitedJob,
   pushConcurrencyLimitedJobs,
@@ -59,12 +60,12 @@ async function _addScrapeJobToConcurrencyQueue(
       ownerId: webScraperOptions.team_id ?? undefined,
       groupId: webScraperOptions.crawl_id ?? undefined,
       backlogged: true,
-      backloggedTimesOutAt: webScraperOptions.crawl_id
-        ? undefined
-        : new Date(
-            Date.now() +
-              (webScraperOptions.scrapeOptions?.timeout ?? 60 * 1000),
-          ),
+      backloggedTimesOutAt: new Date(
+        Date.now() +
+          (webScraperOptions.crawl_id
+            ? MAX_BACKLOG_TIMEOUT_MS
+            : (webScraperOptions.scrapeOptions?.timeout ?? 60 * 1000)),
+      ),
     },
   );
 
@@ -77,7 +78,7 @@ async function _addScrapeJobToConcurrencyQueue(
       listenable,
     },
     webScraperOptions.crawl_id
-      ? Infinity
+      ? MAX_BACKLOG_TIMEOUT_MS
       : (webScraperOptions.scrapeOptions?.timeout ?? 60 * 1000),
   );
 }
@@ -100,11 +101,12 @@ async function _addScrapeJobsToConcurrencyQueue(
         ownerId: job.data.team_id ?? undefined,
         groupId: job.data.crawl_id ?? undefined,
         backlogged: true,
-        backloggedTimesOutAt: job.data.crawl_id
-          ? undefined
-          : new Date(
-              Date.now() + (job.data.scrapeOptions?.timeout ?? 60 * 1000),
-            ),
+        backloggedTimesOutAt: new Date(
+          Date.now() +
+            (job.data.crawl_id
+              ? MAX_BACKLOG_TIMEOUT_MS
+              : (job.data.scrapeOptions?.timeout ?? 60 * 1000)),
+        ),
       },
     })),
   );
@@ -130,7 +132,7 @@ async function _addScrapeJobsToConcurrencyQueue(
         listenable: job.listenable ?? false,
       },
       timeout: job.data.crawl_id
-        ? Infinity
+        ? MAX_BACKLOG_TIMEOUT_MS
         : (job.data.scrapeOptions?.timeout ?? 60 * 1000),
     });
   }
