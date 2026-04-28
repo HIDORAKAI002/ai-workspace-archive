@@ -8,10 +8,12 @@ import {
   idmux,
   scrapeTimeout,
 } from "./lib";
+import request from "supertest";
 import { it, expect } from "@jest/globals";
 import {
   ALLOW_TEST_SUITE_WEBSITE,
   describeIf,
+  TEST_API_URL,
   TEST_SUITE_WEBSITE,
 } from "../lib";
 
@@ -24,6 +26,34 @@ beforeAll(async () => {
     credits: 1000000,
   });
 }, 10000);
+
+describe("UUID validation", () => {
+  it.concurrent("rejects malformed UUIDs for crawl status", async () => {
+    const response = await request(TEST_API_URL)
+      .get("/v1/crawl/not-a-uuid")
+      .set("Authorization", `Bearer ${identity.apiKey}`)
+      .send();
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
+      "Invalid job ID format. Job ID must be a valid UUID.",
+    );
+  });
+
+  it.concurrent("rejects malformed UUIDs for batch scrape status", async () => {
+    const response = await request(TEST_API_URL)
+      .get("/v1/batch/scrape/not-a-uuid")
+      .set("Authorization", `Bearer ${identity.apiKey}`)
+      .send();
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
+      "Invalid job ID format. Job ID must be a valid UUID.",
+    );
+  });
+});
 
 describeIf(ALLOW_TEST_SUITE_WEBSITE)("Crawl tests", () => {
   const base = TEST_SUITE_WEBSITE;
