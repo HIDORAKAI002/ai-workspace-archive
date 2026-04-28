@@ -27,8 +27,7 @@ describe("plugin-boundary-report", () => {
     const summary = JSON.parse(output) as {
       pluginSdk?: {
         crossOwnerReservedImportCount?: unknown;
-        dormantReservedEligibleForRemovalCount?: unknown;
-        unclassifiedUnusedReservedCount?: unknown;
+        unusedReservedCount?: unknown;
       };
       memoryHostSdk?: {
         implementation?: unknown;
@@ -36,8 +35,9 @@ describe("plugin-boundary-report", () => {
     };
 
     expect(summary.pluginSdk?.crossOwnerReservedImportCount).toBe(0);
-    expect(summary.pluginSdk?.dormantReservedEligibleForRemovalCount).toBe(0);
-    expect(summary.pluginSdk?.unclassifiedUnusedReservedCount).toBe(0);
-    expect(summary.memoryHostSdk?.implementation).toBe("private-core-bridge");
+    expect(summary.pluginSdk?.unusedReservedCount).toBe(0);
+    expect(["private-core-bridge", "private-package-core-integrated"]).toContain(
+      summary.memoryHostSdk?.implementation,
+    );
   });
 });

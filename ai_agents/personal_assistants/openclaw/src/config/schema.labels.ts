@@ -515,6 +515,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "acp.runtime.installCommand": "ACP Runtime Install Command",
   models: "Models",
   "models.mode": "Model Catalog Mode",
+  "models.pricing": "Model Pricing",
+  "models.pricing.enabled": "Model Pricing Enabled",
   "models.providers": "Model Providers",
   "models.providers.*.baseUrl": "Model Provider Base URL",
   "models.providers.*.apiKey": "Model Provider API Key", // pragma: allowlist secret
@@ -609,6 +611,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "agents.defaults.compaction.notifyUser": "Compaction Notify User",
   "agents.defaults.compaction.memoryFlush": "Compaction Memory Flush",
   "agents.defaults.compaction.memoryFlush.enabled": "Compaction Memory Flush Enabled",
+  "agents.defaults.compaction.memoryFlush.model": "Compaction Memory Flush Model Override",
   "agents.defaults.compaction.memoryFlush.softThresholdTokens":
     "Compaction Memory Flush Soft Threshold",
   "agents.defaults.compaction.memoryFlush.forceFlushTranscriptBytes":
@@ -711,7 +714,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "session.maintenance.pruneAfter": "Session Prune After",
   "session.maintenance.pruneDays": "Session Prune Days (Deprecated)",
   "session.maintenance.maxEntries": "Session Max Entries",
-  "session.maintenance.rotateBytes": "Session Rotate Size",
+  "session.maintenance.rotateBytes": "Deprecated Session Rotate Size",
   "session.maintenance.resetArchiveRetention": "Session Reset Archive Retention",
   "session.maintenance.maxDiskBytes": "Session Max Disk Budget",
   "session.maintenance.highWaterBytes": "Session Disk High-water Target",
@@ -818,6 +821,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "messages.groupChat": "Group Chat Rules",
   "messages.groupChat.mentionPatterns": "Group Mention Patterns",
   "messages.groupChat.historyLimit": "Group History Limit",
+  "messages.groupChat.visibleReplies": "Group Visible Replies",
   "messages.queue": "Inbound Queue",
   "messages.queue.mode": "Queue Mode",
   "messages.queue.byChannel": "Queue Mode by Channel",

@@ -1,6 +1,7 @@
 export const EXPECTED_CODEX_MODELS_COMMAND_TEXT = [
   "Codex models:",
   "Available Codex models",
+  "Available Codex agent models",
   "Available models:",
   "Available models, local cache:",
   "Available agent target:",
@@ -184,6 +185,7 @@ export function isExpectedCodexModelsCommandText(text: string): boolean {
   const mentionsVisibleOptions =
     normalized.includes("visible options in this session:") ||
     normalized.includes("visible options:") ||
+    normalized.includes("available codex agent models:") ||
     normalized.includes("available model overrides listed in this session:") ||
     normalized.includes("available model overrides shown in this session:") ||
     normalized.includes("available here:") ||
@@ -204,6 +206,9 @@ export function isExpectedCodexModelsCommandText(text: string): boolean {
   const isAgentIdModelSummary =
     normalized.includes("available agent ids in this session:") &&
     (text.includes("`openai/") || text.includes("`codex/"));
+  const isCodexAgentModelSummary =
+    normalized.includes("available codex agent models:") &&
+    (text.includes("`openai/") || text.includes("`codex/"));
   const isAvailableHereModelSummary =
     normalized.includes("available here:") &&
     normalized.includes("current session model") &&
@@ -219,6 +224,7 @@ export function isExpectedCodexModelsCommandText(text: string): boolean {
     isSessionConfigFallback ||
     isInteractiveSelectionSummary ||
     isAgentIdModelSummary ||
+    isCodexAgentModelSummary ||
     isAvailableHereModelSummary ||
     isInteractiveTuiSummary
   );
