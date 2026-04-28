@@ -19,6 +19,11 @@ import {
   wikipediaMaxReasonableTime,
   isWikimediaUrl,
 } from "./wikipedia";
+import {
+  scrapeURLWithXTwitter,
+  xTwitterMaxReasonableTime,
+  isXTwitterUrl,
+} from "./x-twitter";
 import { queryEngpickerVerdict, useIndex } from "../../../services";
 import { hasFormatOfType } from "../../../lib/format-utils";
 import { getPDFMaxPages } from "../../../controllers/v2/types";
@@ -39,7 +44,8 @@ export type Engine =
   | "document"
   | "index"
   | "index;documents"
-  | "wikipedia";
+  | "wikipedia"
+  | "x-twitter";
 
 const useFireEngine =
   config.FIRE_ENGINE_BETA_URL !== "" &&
@@ -52,8 +58,12 @@ const useWikipedia =
   config.WIKIPEDIA_ENTERPRISE_USERNAME !== "" &&
   config.WIKIPEDIA_ENTERPRISE_PASSWORD !== undefined &&
   config.WIKIPEDIA_ENTERPRISE_PASSWORD !== "";
+const useXTwitter =
+  (config.XAI_API_KEY !== undefined && config.XAI_API_KEY !== "") ||
+  config.USE_DB_AUTHENTICATION === true;
 
 const engines: Engine[] = [
+  ...(useXTwitter ? ["x-twitter" as const] : []),
   ...(useWikipedia ? ["wikipedia" as const] : []),
   ...(useIndex ? ["index" as const, "index;documents" as const] : []),
   ...(useFireEngine
@@ -166,6 +176,7 @@ const engineHandlers: {
   pdf: scrapePDF,
   document: scrapeDocument,
   wikipedia: scrapeURLWithWikipedia,
+  "x-twitter": scrapeURLWithXTwitter,
 };
 
 const engineMRTs: {
@@ -190,6 +201,7 @@ const engineMRTs: {
   pdf: pdfMaxReasonableTime,
   document: documentMaxReasonableTime,
   wikipedia: wikipediaMaxReasonableTime,
+  "x-twitter": xTwitterMaxReasonableTime,
 };
 
 const engineOptions: {
@@ -462,6 +474,26 @@ const engineOptions: {
     },
     quality: 500, // below index (1000) so cache is tried first, above fire-engine (50)
   },
+  "x-twitter": {
+    features: {
+      actions: false,
+      waitFor: false,
+      screenshot: false,
+      "screenshot@fullScreen": false,
+      pdf: false,
+      document: false,
+      audio: false,
+      atsv: false,
+      location: false,
+      mobile: false,
+      skipTlsVerification: true,
+      useFastMode: true,
+      stealthProxy: false,
+      branding: false,
+      disableAdblock: true,
+    },
+    quality: 1500,
+  },
 };
 
 export function shouldUseIndex(meta: Meta) {
@@ -544,6 +576,16 @@ export async function buildFallbackList(meta: Meta): Promise<
     const wikiIndex = _engines.indexOf("wikipedia");
     if (wikiIndex !== -1) {
       _engines.splice(wikiIndex, 1);
+    }
+  }
+
+  if (isXTwitterUrl(meta.url) && _engines.includes("x-twitter")) {
+    _engines.length = 0;
+    _engines.push("x-twitter");
+  } else if (!isXTwitterUrl(meta.url)) {
+    const xTwitterIndex = _engines.indexOf("x-twitter");
+    if (xTwitterIndex !== -1) {
+      _engines.splice(xTwitterIndex, 1);
     }
   }
 

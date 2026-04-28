@@ -11,6 +11,32 @@ type BlocklistBlob = {
   allowedKeywords: string[];
 };
 
+function allowedKeywordMatches(url: string, allowedKeyword: string): boolean {
+  const keyword = allowedKeyword.trim();
+  if (!keyword) {
+    return false;
+  }
+
+  if (keyword.startsWith("regex:")) {
+    try {
+      return new RegExp(keyword.slice("regex:".length), "i").test(url);
+    } catch {
+      return false;
+    }
+  }
+
+  const regexMatch = keyword.match(/^\/(.+)\/([dgimsuvy]*)$/);
+  if (regexMatch) {
+    try {
+      return new RegExp(regexMatch[1], regexMatch[2]).test(url);
+    } catch {
+      return false;
+    }
+  }
+
+  return url.toLowerCase().includes(keyword.toLowerCase());
+}
+
 let blob: BlocklistBlob | null = null;
 
 export async function initializeBlocklist() {
@@ -73,9 +99,7 @@ export function isUrlBlocked(url: string, flags: TeamFlags): boolean {
 
   // Check if URL contains any allowed keyword
   if (
-    blob.allowedKeywords.some(keyword =>
-      lowerCaseUrl.includes(keyword.toLowerCase()),
-    )
+    blob.allowedKeywords.some(keyword => allowedKeywordMatches(url, keyword))
   ) {
     return false;
   }
