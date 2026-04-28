@@ -6427,22 +6427,70 @@ class MemoryEngine(MemoryEngineInterface):
 
             ctx = BankReadContext(bank_id=bank_id, operation="list_tags", request_context=request_context)
             await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
+        return await self._list_tags_from_table(
+            table="memory_units",
+            bank_id=bank_id,
+            pattern=pattern,
+            limit=limit,
+            offset=offset,
+        )
+
+    async def list_mental_model_tags(
+        self,
+        bank_id: str,
+        *,
+        pattern: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+        request_context: "RequestContext",
+    ) -> dict[str, Any]:
+        """
+        List all unique tags used on mental models in a bank with usage counts.
+
+        Same wildcard semantics as list_tags. Useful to populate tag autocompletion
+        for UIs filtering mental models by tag.
+        """
+        await self._authenticate_tenant(request_context)
+        if self._operation_validator:
+            from hindsight_api.extensions import BankReadContext
+
+            ctx = BankReadContext(
+                bank_id=bank_id,
+                operation="list_mental_model_tags",
+                request_context=request_context,
+            )
+            await self._validate_operation(self._operation_validator.validate_bank_read(ctx))
+        return await self._list_tags_from_table(
+            table="mental_models",
+            bank_id=bank_id,
+            pattern=pattern,
+            limit=limit,
+            offset=offset,
+        )
+
+    async def _list_tags_from_table(
+        self,
+        *,
+        table: str,
+        bank_id: str,
+        pattern: str | None,
+        limit: int,
+        offset: int,
+    ) -> dict[str, Any]:
         pool = await self._get_pool()
         async with acquire_with_retry(pool) as conn:
             # Build pattern filter if provided (convert * to % for ILIKE)
             pattern_clause = ""
             params: list[Any] = [bank_id]
             if pattern:
-                # Convert wildcard pattern: * -> % for SQL ILIKE
                 sql_pattern = pattern.replace("*", "%")
                 pattern_clause = "AND tag ILIKE $2"
                 params.append(sql_pattern)
 
-            # Get total count of distinct tags matching pattern
             total_row = await conn.fetchrow(
                 f"""
                 SELECT COUNT(DISTINCT tag) as total
-                FROM {fq_table("memory_units")}, unnest(tags) AS tag
+                FROM {fq_table(table)}, unnest(tags) AS tag
                 WHERE bank_id = $1 AND tags IS NOT NULL AND tags != '{{}}'
                 {pattern_clause}
                 """,
@@ -6450,7 +6498,6 @@ class MemoryEngine(MemoryEngineInterface):
             )
             total = total_row["total"] if total_row else 0
 
-            # Get paginated tags with counts, ordered by frequency
             limit_param = len(params) + 1
             offset_param = len(params) + 2
             params.extend([limit, offset])
@@ -6458,7 +6505,7 @@ class MemoryEngine(MemoryEngineInterface):
             rows = await conn.fetch(
                 f"""
                 SELECT tag, COUNT(*) as count
-                FROM {fq_table("memory_units")}, unnest(tags) AS tag
+                FROM {fq_table(table)}, unnest(tags) AS tag
                 WHERE bank_id = $1 AND tags IS NOT NULL AND tags != '{{}}'
                 {pattern_clause}
                 GROUP BY tag

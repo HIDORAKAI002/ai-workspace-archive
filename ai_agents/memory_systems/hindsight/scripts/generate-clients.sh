@@ -105,6 +105,16 @@ done
 echo "Generating new client with openapi-generator..."
 cd "$PYTHON_CLIENT_DIR"
 
+# Generate into a fresh tmp dir, then sync the result into place. Mounting
+# $PYTHON_CLIENT_DIR directly worked on Linux CI but failed on macOS Docker
+# Desktop with NoSuchFileException when openapi-generator wrote supporting
+# files (api_client.py, configuration.py, README) — the writes to the bind
+# mount silently dropped under that filesystem driver. Generating into /tmp
+# (which Docker Desktop handles via a separate driver) and rsync'ing avoids
+# the issue without changing what we ship.
+GEN_TMP_DIR="$(mktemp -d -t hindsight-py-gen.XXXXXX)"
+trap 'rm -rf "$GEN_TMP_DIR"' EXIT
+
 # Run openapi-generator via Docker (pinned version for reproducibility)
 # Use --platform linux/amd64 to ensure identical output on both macOS (arm64) and Linux CI (amd64)
 # Use --user to match current user's UID/GID so generated files are writable
@@ -115,7 +125,7 @@ docker run --rm \
     --platform linux/amd64 \
     --user "$(id -u):$(id -g)" \
     -v "$OPENAPI_SPEC:/local/openapi.json" \
-    -v "$PYTHON_CLIENT_DIR:/local/out" \
+    -v "$GEN_TMP_DIR:/local/out" \
     -v "$PYTHON_CLIENT_DIR/openapi-generator-config.yaml:/local/config.yaml" \
     "openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION}" generate \
     -i /local/openapi.json \
@@ -123,10 +133,21 @@ docker run --rm \
     -o /local/out \
     -c /local/config.yaml || true
 
-# Verify critical generated files exist
-if [ ! -f "$PYTHON_CLIENT_DIR/hindsight_client_api/api_client.py" ]; then
+# Verify critical generated files exist in the tmp dir
+if [ ! -f "$GEN_TMP_DIR/hindsight_client_api/api_client.py" ]; then
     echo "❌ Error: Python client generation failed - api_client.py not found"
     exit 1
+fi
+
+# Sync the generated tree into the client dir. We only copy the things the
+# generator owns so maintained files (pyproject.toml, hindsight_client/,
+# tests/, openapi-generator-config.yaml, .openapi-generator-ignore) are
+# preserved.
+echo "Syncing generated tree into $PYTHON_CLIENT_DIR..."
+cp -R "$GEN_TMP_DIR/hindsight_client_api" "$PYTHON_CLIENT_DIR/"
+if [ -d "$GEN_TMP_DIR/.openapi-generator" ]; then
+    rm -rf "$PYTHON_CLIENT_DIR/.openapi-generator"
+    cp -R "$GEN_TMP_DIR/.openapi-generator" "$PYTHON_CLIENT_DIR/"
 fi
 
 echo "Organizing generated files..."

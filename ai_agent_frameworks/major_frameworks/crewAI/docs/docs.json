@@ -476,6 +476,7 @@
                       "en/enterprise/guides/enable-crew-studio",
                       "en/enterprise/guides/capture_telemetry_logs",
                       "en/enterprise/guides/azure-openai-setup",
+                      "en/enterprise/guides/vertex-ai-workload-identity-setup",
                       "en/enterprise/guides/tool-repository",
                       "en/enterprise/guides/custom-mcp-server",
                       "en/enterprise/guides/react-component-export",

@@ -4832,6 +4832,12 @@ export type ListTagsData = {
      */
     q?: string | null;
     /**
+     * Source
+     *
+     * Where to read tags from: 'memories' (memory_units, default) or 'mental_models'.
+     */
+    source?: "memories" | "mental_models";
+    /**
      * Limit
      *
      * Maximum number of tags to return

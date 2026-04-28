@@ -712,7 +712,7 @@ impl ApiClient {
         self.runtime.block_on(async {
             let response = self
                 .client
-                .list_tags(bank_id, limit, offset, q, None)
+                .list_tags(bank_id, limit, offset, q, None, None)
                 .await?;
             Ok(response.into_inner())
         })

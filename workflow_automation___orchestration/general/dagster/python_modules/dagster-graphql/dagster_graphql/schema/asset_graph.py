@@ -26,9 +26,6 @@ from dagster._core.definitions.data_version import (
     StaleCauseCategory,
     StaleStatus,
 )
-from dagster._core.definitions.declarative_automation.serialized_objects import (
-    AutomationConditionSnapshot,
-)
 from dagster._core.definitions.partitions.context import (
     PartitionLoadingContext,
     partition_loading_context,
@@ -43,6 +40,7 @@ from dagster._core.event_api import AssetRecordsFilter
 from dagster._core.events import DagsterEventType
 from dagster._core.remote_representation.external import RemoteJob, RemoteRepository, RemoteSensor
 from dagster._core.remote_representation.external_data import AssetNodeSnap
+from dagster._core.remote_representation.handle import RepositoryHandle
 from dagster._core.snap.node import GraphDefSnap, OpDefSnap
 from dagster._core.storage.asset_check_execution_record import AssetCheckInstanceSupport
 from dagster._core.storage.event_log.base import AssetRecord
@@ -81,7 +79,7 @@ from dagster_graphql.schema.auto_materialize_asset_evaluations import (
     GrapheneAutoMaterializeAssetEvaluationRecord,
 )
 from dagster_graphql.schema.auto_materialize_policy import GrapheneAutoMaterializePolicy
-from dagster_graphql.schema.automation_condition import GrapheneAutomationCondition
+from dagster_graphql.schema.automation_condition import GrapheneAutomationCondition, get_ac_snapshot
 from dagster_graphql.schema.backfill import GrapheneBackfillPolicy
 from dagster_graphql.schema.config_types import GrapheneConfigTypeField
 from dagster_graphql.schema.dagster_types import (
@@ -294,6 +292,7 @@ class GrapheneAssetNode(graphene.ObjectType):
     op = graphene.Field(GrapheneSolidDefinition)
     opName = graphene.String()
     opNames = non_null_list(graphene.String)
+    opTags = non_null_list(GrapheneDefinitionTag)
     opVersion = graphene.String()
     partitionDefinition = graphene.Field(GraphenePartitionDefinition)
     partitionKeys = non_null_list(graphene.String)
@@ -915,18 +914,8 @@ class GrapheneAssetNode(graphene.ObjectType):
     def resolve_automationCondition(
         self, _graphene_info: ResolveInfo
     ) -> GrapheneAutomationCondition | None:
-        automation_condition = (
-            self._asset_node_snap.automation_condition_snapshot
-            or self._asset_node_snap.automation_condition
-        )
-        if automation_condition:
-            return GrapheneAutomationCondition(
-                # we only store one of automation_condition or automation_condition_snapshot
-                automation_condition
-                if isinstance(automation_condition, AutomationConditionSnapshot)
-                else automation_condition.get_snapshot()
-            )
-        return None
+        ac_snapshot = get_ac_snapshot(self._asset_node_snap)
+        return GrapheneAutomationCondition(ac_snapshot) if ac_snapshot else None
 
     def resolve_targetingInstigators(self, graphene_info: ResolveInfo) -> Sequence[GrapheneSensor]:
         if isinstance(self._remote_node, RemoteWorkspaceAssetNode):
@@ -1204,12 +1193,15 @@ class GrapheneAssetNode(graphene.ObjectType):
         ]
 
     def resolve_kinds(self, _graphene_info: ResolveInfo) -> Sequence[str]:
-        if self._asset_node_snap.compute_kind:
-            return [self._asset_node_snap.compute_kind]
+        return GrapheneAssetNode._get_compute_kinds(self._asset_node_snap)
 
+    @staticmethod
+    def _get_compute_kinds(snap: AssetNodeSnap) -> list[str]:
+        if snap.compute_kind:
+            return [snap.compute_kind]
         return [
             key[len(KIND_PREFIX) :]
-            for key in (self._asset_node_snap.tags or {}).keys()
+            for key in (snap.tags or {}).keys()
             if key.startswith(KIND_PREFIX)
         ]
 
@@ -1233,6 +1225,16 @@ class GrapheneAssetNode(graphene.ObjectType):
 
     def resolve_opNames(self, _graphene_info: ResolveInfo) -> Sequence[str]:
         return self._asset_node_snap.op_names or []
+
+    def resolve_opTags(self, graphene_info: ResolveInfo) -> Sequence[GrapheneDefinitionTag]:
+        if not self.is_executable:
+            return []
+        node_def_snap = self.get_node_definition_snap(graphene_info)
+        if node_def_snap is None:
+            return []
+        return [
+            GrapheneDefinitionTag(key, value) for key, value in (node_def_snap.tags or {}).items()
+        ]
 
     def resolve_graphName(self, _graphene_info: ResolveInfo) -> str | None:
         return self._asset_node_snap.graph_name
@@ -1471,6 +1473,83 @@ class GrapheneAssetNode(graphene.ObjectType):
                 GrapheneAssetCheck(remote_check_node) for remote_check_node in remote_check_nodes
             ]
         )
+
+    @staticmethod
+    def to_manifest_dict(
+        remote_node: RemoteRepositoryAssetNode,
+        repository_handle: RepositoryHandle,
+        graphene_info: ResolveInfo,
+        asset_graph_differ: AssetGraphDiffer | None,
+    ) -> dict:
+        from dagster_graphql.implementation.fetch_assets import get_unique_asset_id
+        from dagster_graphql.implementation.utils import has_permission_for_definition
+
+        snap = remote_node.asset_node_snap
+        location_name = repository_handle.location_name
+        repo_name = repository_handle.repository_name
+
+        partition_def = (
+            GraphenePartitionDefinition.to_manifest_dict(snap.partitions)
+            if snap.partitions
+            else None
+        )
+        freshness_policy = (
+            GrapheneInternalFreshnessPolicy.to_manifest_dict(snap.freshness_policy)
+            if snap.freshness_policy
+            else None
+        )
+        automation_condition = GrapheneAutomationCondition.to_manifest_dict(snap)
+        changed_reasons = (
+            [r.value for r in asset_graph_differ.get_changes_for_asset(snap.asset_key)]
+            if asset_graph_differ is not None
+            else []
+        )
+
+        return {
+            "__typename": "AssetNode",
+            "id": get_unique_asset_id(snap.asset_key, location_name, repo_name),
+            "graphName": snap.graph_name,
+            "opVersion": snap.code_version,
+            "dependencyKeys": [
+                GrapheneAssetKey.to_manifest_dict(dep.parent_asset_key) for dep in snap.parent_edges
+            ],
+            "dependedByKeys": [
+                GrapheneAssetKey.to_manifest_dict(key) for key in remote_node.child_keys
+            ],
+            "changedReasons": changed_reasons,
+            "groupName": snap.group_name,
+            "opNames": list(snap.op_names or []),
+            "isMaterializable": snap.is_materializable,
+            "isObservable": snap.is_observable,
+            "isExecutable": snap.is_executable,
+            "isPartitioned": snap.partitions is not None,
+            "isAutoCreatedStub": snap.metadata.get(SYSTEM_METADATA_KEY_AUTO_CREATED_STUB_ASSET)
+            is not None,
+            "hasAssetChecks": bool(remote_node.check_keys),
+            "computeKind": snap.compute_kind,
+            "hasMaterializePermission": has_permission_for_definition(
+                graphene_info, Permissions.LAUNCH_PIPELINE_EXECUTION, remote_node
+            ),
+            "hasWipePermission": has_permission_for_definition(
+                graphene_info, Permissions.WIPE_ASSETS, remote_node
+            ),
+            "hasReportRunlessAssetEventPermission": has_permission_for_definition(
+                graphene_info, Permissions.REPORT_RUNLESS_ASSET_EVENTS, remote_node
+            ),
+            "assetKey": GrapheneAssetKey.to_manifest_dict(snap.asset_key),
+            "internalFreshnessPolicy": freshness_policy,
+            "partitionDefinition": partition_def,
+            "automationCondition": automation_condition,
+            "description": snap.description,
+            "owners": [GrapheneAssetOwner.to_manifest_dict(o) for o in (snap.owners or [])],
+            "tags": [
+                GrapheneDefinitionTag.to_manifest_dict(k, v) for k, v in (snap.tags or {}).items()
+            ],
+            "pools": sorted(snap.pools or []),
+            "jobNames": list(snap.job_names),
+            "kinds": GrapheneAssetNode._get_compute_kinds(snap),
+            "repository": external.GrapheneRepository.to_manifest_dict(repository_handle),
+        }
 
 
 class GrapheneAssetGroup(graphene.ObjectType):

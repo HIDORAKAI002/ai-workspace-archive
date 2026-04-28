@@ -984,6 +984,9 @@ class TriggerRunner:
         self.failed_triggers = deque()
         self.job_id = None
         self._stop_event = None
+        self.blocked_main_thread_warning_threshold = conf.getfloat(
+            "triggerer", "blocked_main_thread_warning_threshold"
+        )
 
     def _handle_signal(self, signum, frame) -> None:
         """Handle termination signals gracefully."""
@@ -1303,12 +1306,14 @@ class TriggerRunner:
             # We allow a generous amount of buffer room for now, since it might
             # be a busy event loop.
             time_elapsed = time.monotonic() - last_run
-            if time_elapsed > 0.2:
+            if time_elapsed > self.blocked_main_thread_warning_threshold:
                 await self.log.ainfo(
                     "Triggerer's async thread was blocked for %.2f seconds, "
-                    "likely by a badly-written trigger. Set PYTHONASYNCIODEBUG=1 "
-                    "to get more information on overrunning coroutines.",
+                    "exceeding the configured warning threshold of %.2f seconds. "
+                    "This is likely caused by a badly-written trigger. "
+                    "Set PYTHONASYNCIODEBUG=1 to get more information on overrunning coroutines.",
                     time_elapsed,
+                    self.blocked_main_thread_warning_threshold,
                 )
                 Stats.incr("triggers.blocked_main_thread")
 

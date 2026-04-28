@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from dagster import _check as check
+from dagster._core.definitions.assets.graph.asset_graph_differ import AssetGraphDiffer
 from dagster._core.definitions.sensor_definition import SensorType
 from dagster._core.errors import DagsterInvariantViolationError
 from dagster._core.remote_representation.code_location import CodeLocation, GrpcServerCodeLocation
@@ -26,6 +27,7 @@ from dagster_shared.serdes.objects.models.defs_state_info import (
     DefsStateInfo,
     DefsStateManagementType,
 )
+from graphene.types.generic import GenericScalar
 
 from dagster_graphql.implementation.fetch_solids import get_solid, get_solids
 from dagster_graphql.implementation.loader import RepositoryScopedBatchLoader
@@ -311,6 +313,7 @@ class GrapheneRepository(graphene.ObjectType):
         limit=graphene.Argument(graphene.NonNull(graphene.Int)),
         description="Paginated view of asset nodes in this repository, sorted by asset key.",
     )
+    assetManifest = graphene.Field(GenericScalar)
     displayMetadata = non_null_list(GrapheneRepositoryMetadata)
     assetGroups = non_null_list(GrapheneAssetGroup)
     allTopLevelResourceDetails = non_null_list(GrapheneResourceDetails)
@@ -349,6 +352,19 @@ class GrapheneRepository(graphene.ObjectType):
                 graphene_info.context.instance, self.get_repository(graphene_info)
             )
         return self._batch_loader
+
+    @staticmethod
+    def to_manifest_dict(handle: RepositoryHandle) -> dict:
+        return {
+            "__typename": "Repository",
+            "id": handle.selector_id,
+            "name": handle.repository_name,
+            "location": {
+                "__typename": "RepositoryLocation",
+                "id": handle.location_name,
+                "name": handle.location_name,
+            },
+        }
 
     def resolve_id(self, _graphene_info: ResolveInfo) -> str:
         return self._handle.selector_id
@@ -470,6 +486,26 @@ class GrapheneRepository(graphene.ObjectType):
             cursor=next_cursor,
             hasMore=has_more,
         )
+
+    def resolve_assetManifest(self, graphene_info: ResolveInfo) -> list:
+        repository = self.get_repository(graphene_info)
+        base_deployment_asset_graph = graphene_info.context.get_base_deployment_asset_graph(
+            self._handle.to_selector()
+        )
+        asset_graph_differ = (
+            AssetGraphDiffer(
+                branch_asset_graph=repository.asset_graph,
+                base_asset_graph=base_deployment_asset_graph,
+            )
+            if base_deployment_asset_graph is not None
+            else None
+        )
+        return [
+            GrapheneAssetNode.to_manifest_dict(
+                node, self._handle, graphene_info, asset_graph_differ
+            )
+            for node in repository.asset_graph.asset_nodes
+        ]
 
     def resolve_assetGroups(self, graphene_info: ResolveInfo):
         groups: dict[str, list[AssetNodeSnap]] = {}
