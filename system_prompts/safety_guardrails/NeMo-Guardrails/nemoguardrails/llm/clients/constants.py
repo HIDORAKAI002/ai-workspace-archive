@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nemoguardrails.llm.providers import register_provider
-from tests.test_configs.with_custom_chat_model.custom_chat_model import CustomChatModel
+import httpx
 
-register_provider("custom_chat_model", CustomChatModel)
+DEFAULT_TIMEOUT = httpx.Timeout(timeout=600.0, connect=5.0)
+DEFAULT_MAX_RETRIES = 2
+DEFAULT_CONNECTION_LIMITS = httpx.Limits(max_connections=1000, max_keepalive_connections=100)
+
+INITIAL_RETRY_DELAY = 0.5
+MAX_RETRY_DELAY = 8.0
+MAX_RETRY_AFTER = 60.0
+
+RETRYABLE_STATUS_CODES = frozenset({408, 409, 429, 500, 502, 503, 504})
