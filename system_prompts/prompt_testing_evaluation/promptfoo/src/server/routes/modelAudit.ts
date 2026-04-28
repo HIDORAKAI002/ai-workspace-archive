@@ -281,8 +281,12 @@ modelAuditRouter.post('/scan', async (req: Request, res: Response): Promise<void
       if (responded) {
         return;
       }
+      const responseBody =
+        statusCode >= 200 && statusCode < 300
+          ? ModelAuditSchemas.Scan.Response.parse(body)
+          : ModelAuditSchemas.Scan.ErrorResponse.parse(body);
       responded = true;
-      res.status(statusCode).json(body);
+      res.status(statusCode).json(responseBody);
     };
 
     // Clean up child process if client disconnects
