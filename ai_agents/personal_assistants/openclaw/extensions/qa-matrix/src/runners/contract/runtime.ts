@@ -259,8 +259,10 @@ function formatMatrixQaScenarioDetails(params: { details: string; configSummary?
 
 function buildMatrixQaScenarioConfigEntry(params: {
   gatewayConfigParams: {
+    driverAccessToken?: string;
     driverUserId: string;
     homeserver: string;
+    observerAccessToken?: string;
     observerUserId: string;
     sutAccessToken: string;
     sutAccountId: string;
@@ -628,8 +630,10 @@ export async function runMatrixQaLive(params: {
   let scenarioTransportInterruptMs = 0;
   const scenarioTimings: MatrixQaScenarioTiming[] = [];
   const gatewayConfigParams = {
+    driverAccessToken: provisioning.driver.accessToken,
     driverUserId: provisioning.driver.userId,
     homeserver: harness.baseUrl,
+    observerAccessToken: provisioning.observer.accessToken,
     observerUserId: provisioning.observer.userId,
     sutAccessToken: provisioning.sut.accessToken,
     sutAccountId,

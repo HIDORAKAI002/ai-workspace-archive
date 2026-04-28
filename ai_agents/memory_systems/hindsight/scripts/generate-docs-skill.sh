@@ -61,7 +61,8 @@ convert_mdx_to_md() {
     local dest="$2"
 
     # Use Python for more robust processing
-    python3 - "$src" "$dest" "$EXAMPLES_DIR" <<'PYTHON'
+    python3 - "$src" "$dest" "$EXAMPLES_DIR" "$ROOT_DIR/hindsight-docs/src/data/llmProviders.json" <<'PYTHON'
+import json
 import sys
 import re
 from pathlib import Path
@@ -69,6 +70,7 @@ from pathlib import Path
 src_file = Path(sys.argv[1])
 dest_file = Path(sys.argv[2])
 examples_dir = Path(sys.argv[3])
+llm_providers_json = Path(sys.argv[4])
 
 content = src_file.read_text()
 original_content = content  # Keep original for import searches
@@ -128,6 +130,30 @@ content = re.sub(
     inline_code_snippet,
     content
 )
+
+# Render <LLMProvidersTable /> as a markdown table sourced from
+# hindsight-docs/src/data/llmProviders.json (single source of truth shared
+# with the React grid + table components).
+def render_llm_providers_table(_match):
+    providers = json.loads(llm_providers_json.read_text())
+    rows = ["| Provider | Default Model |", "|----------|--------------|"]
+    for p in providers:
+        if not p.get("id") or not p.get("defaultModel"):
+            continue
+        model_cell = f"`{p['defaultModel']}`"
+        if p.get("defaultModelNote"):
+            model_cell += f" ({p['defaultModelNote']})"
+        rows.append(f"| `{p['id']}` | {model_cell} |")
+    return "\n".join(rows)
+
+content = re.sub(r'<LLMProvidersTable\s*/>', render_llm_providers_table, content)
+
+# Render <LLMProvidersGrid /> as a bullet list of supported provider labels.
+def render_llm_providers_grid(_match):
+    providers = json.loads(llm_providers_json.read_text())
+    return "\n".join(f"- {p['label']}" for p in providers)
+
+content = re.sub(r'<LLMProvidersGrid\s*/>', render_llm_providers_grid, content)
 
 # Convert <Tabs> to markdown sections
 # Replace <Tabs> ... </Tabs> with markdown headers

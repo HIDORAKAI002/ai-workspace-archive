@@ -161,16 +161,22 @@ class MemoryEngineInterface(ABC):
         bank_id: str,
         *,
         request_context: "RequestContext",
-    ) -> dict[str, Any]:
+        create_if_missing: bool = True,
+    ) -> dict[str, Any] | None:
         """
         Get bank profile including disposition and mission.
 
         Args:
             bank_id: The memory bank ID.
             request_context: Request context for authentication.
+            create_if_missing: If True (default), the bank is auto-created
+                with defaults if it does not exist. Pass False to make this
+                a strict read — returns None if the bank does not exist.
 
         Returns:
-            Bank profile dict with bank_id, name, disposition, and mission.
+            Bank profile dict with bank_id, name, disposition, and mission,
+            or None when create_if_missing=False and the bank does not
+            exist.
         """
         ...
 

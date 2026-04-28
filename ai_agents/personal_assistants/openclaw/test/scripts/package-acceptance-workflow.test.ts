@@ -83,10 +83,22 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("OPENCLAW_DOCKER_E2E_REPO_ROOT:");
     expect(workflow).toContain("node .release-harness/scripts/test-docker-all.mjs --plan-json");
     expect(workflow).toContain("node .release-harness/scripts/docker-e2e.mjs github-outputs");
+    expect(workflow).toContain("bash .release-harness/scripts/ci-docker-pull-retry.sh");
     expect(workflow).toContain("plan_docker_lane_groups:");
     expect(workflow).toContain("Docker E2E targeted lanes (${{ matrix.group.label }})");
+    expect(workflow).toContain("LANES: ${{ matrix.group.docker_lanes }}");
     expect(workflow).toContain("DOCKER_E2E_LANES: ${{ matrix.group.docker_lanes }}");
     expect(workflow).toContain("name: docker-e2e-${{ steps.plan.outputs.artifact_suffix }}");
+  });
+
+  it("bounds shared Docker image pulls so package acceptance cannot stall forever", () => {
+    const pullHelper = readFileSync("scripts/ci-docker-pull-retry.sh", "utf8");
+
+    expect(pullHelper).toContain("OPENCLAW_DOCKER_PULL_ATTEMPTS");
+    expect(pullHelper).toContain("OPENCLAW_DOCKER_PULL_TIMEOUT_SECONDS");
+    expect(pullHelper).toContain(
+      'timeout --foreground --kill-after=30s "${timeout_seconds}s" docker pull "$image"',
+    );
   });
 
   it("uses Blacksmith Docker build caching for prepared E2E images", () => {
@@ -129,15 +141,46 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("if: matrix.needs_ffmpeg");
   });
 
-  it("runs the Codex Docker live harness from trusted helper scripts", () => {
+  it("runs Docker live harnesses from trusted helper scripts", () => {
     const workflow = readFileSync(LIVE_E2E_WORKFLOW, "utf8");
+    const scenarios = readFileSync("scripts/lib/docker-e2e-scenarios.mjs", "utf8");
+    const scheduler = readFileSync("scripts/test-docker-all.mjs", "utf8");
     const harness = readFileSync("scripts/test-live-codex-harness-docker.sh", "utf8");
+    const sharedLiveScripts = [
+      readFileSync("scripts/test-live-models-docker.sh", "utf8"),
+      readFileSync("scripts/test-live-gateway-models-docker.sh", "utf8"),
+      readFileSync("scripts/test-live-cli-backend-docker.sh", "utf8"),
+      readFileSync("scripts/test-live-acp-bind-docker.sh", "utf8"),
+    ];
     const build = readFileSync("scripts/test-live-build-docker.sh", "utf8");
     const stage = readFileSync("scripts/lib/live-docker-stage.sh", "utf8");
 
     expect(workflow).toContain(
+      'run: OPENCLAW_LIVE_DOCKER_REPO_ROOT="$GITHUB_WORKSPACE" bash .release-harness/scripts/test-live-models-docker.sh',
+    );
+    expect(workflow).toContain(
+      'command: OPENCLAW_LIVE_DOCKER_REPO_ROOT="$GITHUB_WORKSPACE" bash .release-harness/scripts/test-live-gateway-models-docker.sh',
+    );
+    expect(workflow).toContain(
+      'command: OPENCLAW_LIVE_DOCKER_REPO_ROOT="$GITHUB_WORKSPACE" bash .release-harness/scripts/test-live-cli-backend-docker.sh',
+    );
+    expect(workflow).toContain(
+      'command: OPENCLAW_LIVE_DOCKER_REPO_ROOT="$GITHUB_WORKSPACE" bash .release-harness/scripts/test-live-acp-bind-docker.sh',
+    );
+    expect(workflow).toContain(
       'command: OPENCLAW_LIVE_DOCKER_REPO_ROOT="$GITHUB_WORKSPACE" bash .release-harness/scripts/test-live-codex-harness-docker.sh',
     );
+    expect(scenarios).toContain("function liveDockerScriptCommand");
+    expect(scenarios).toContain(
+      "if [ -d .release-harness/scripts ]; then harness=.release-harness",
+    );
+    expect(scenarios).toMatch(/liveDockerScriptCommand\(\s*"test-live-models-docker\.sh"/u);
+    expect(scenarios).toMatch(/liveDockerScriptCommand\(\s*"test-live-gateway-models-docker\.sh"/u);
+    expect(scenarios).toMatch(/liveDockerScriptCommand\(\s*"test-live-cli-backend-docker\.sh"/u);
+    expect(scenarios).toMatch(/liveDockerScriptCommand\(\s*"test-live-acp-bind-docker\.sh"/u);
+    expect(scenarios).toMatch(/liveDockerScriptCommand\(\s*"test-live-codex-harness-docker\.sh"/u);
+    expect(scheduler).toContain("function liveDockerHarnessScriptCommand");
+    expect(scheduler).toContain('liveDockerHarnessScriptCommand("test-live-build-docker.sh")');
     expect(harness).toContain('source "$TRUSTED_HARNESS_DIR/scripts/lib/live-docker-auth.sh"');
     expect(harness).not.toContain('source "$ROOT_DIR/scripts/lib/live-docker-auth.sh"');
     expect(harness).toContain(
@@ -148,6 +191,20 @@ describe("package artifact reuse", () => {
     );
     expect(harness).toContain('node --import tsx "$trusted_scripts_dir/prepare-codex-ci-auth.ts"');
     expect(harness).toContain('source "$trusted_scripts_dir/lib/live-docker-stage.sh"');
+    for (const script of sharedLiveScripts) {
+      expect(script).toContain('source "$TRUSTED_HARNESS_DIR/scripts/lib/live-docker-auth.sh"');
+      expect(script).not.toContain('source "$ROOT_DIR/scripts/lib/live-docker-auth.sh"');
+      expect(script).toContain(
+        'OPENCLAW_LIVE_DOCKER_REPO_ROOT="$ROOT_DIR" "$TRUSTED_HARNESS_DIR/scripts/test-live-build-docker.sh"',
+      );
+      expect(script).toContain('source "$trusted_scripts_dir/lib/live-docker-stage.sh"');
+      expect(script).toContain(
+        '-e OPENCLAW_LIVE_DOCKER_SCRIPTS_DIR="${DOCKER_TRUSTED_HARNESS_CONTAINER_DIR}/scripts"',
+      );
+      expect(script).toContain(
+        "openclaw_live_append_array DOCKER_RUN_ARGS DOCKER_TRUSTED_HARNESS_MOUNT",
+      );
+    }
     expect(build).toContain('ROOT_DIR="${OPENCLAW_LIVE_DOCKER_REPO_ROOT:-$SCRIPT_ROOT_DIR}"');
     expect(build).toContain('source "$SCRIPT_ROOT_DIR/scripts/lib/docker-build.sh"');
     expect(stage).toContain(

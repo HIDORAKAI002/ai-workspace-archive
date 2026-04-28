@@ -516,6 +516,40 @@ describe("installBundledRuntimeDeps", () => {
     expect(spawnMock).toHaveBeenCalledOnce();
   });
 
+  it("prunes stale retained deps during package-level repair", async () => {
+    const installRoot = makeTempDir();
+    writeInstalledPackage(installRoot, "alpha-runtime", "1.0.0");
+    fs.writeFileSync(
+      path.join(installRoot, ".openclaw-runtime-deps.json"),
+      `${JSON.stringify({ specs: ["alpha-runtime@1.0.0"] }, null, 2)}\n`,
+      "utf8",
+    );
+    spawnMock.mockImplementation((_command, _args, options) => {
+      writeInstalledPackage(String(options?.cwd ?? ""), "beta-runtime", "2.0.0");
+      const child = new EventEmitter() as ReturnType<typeof spawn>;
+      Object.assign(child, {
+        stdout: new EventEmitter(),
+        stderr: new EventEmitter(),
+      });
+      queueMicrotask(() => child.emit("close", 0, null));
+      return child;
+    });
+
+    await repairBundledRuntimeDepsInstallRootAsync({
+      installRoot,
+      missingSpecs: ["beta-runtime@2.0.0"],
+      installSpecs: ["beta-runtime@2.0.0"],
+      env: {},
+    });
+
+    expect(
+      fs.existsSync(path.join(installRoot, "node_modules", "alpha-runtime", "package.json")),
+    ).toBe(false);
+    expect(
+      JSON.parse(fs.readFileSync(path.join(installRoot, ".openclaw-runtime-deps.json"), "utf8")),
+    ).toEqual({ specs: ["beta-runtime@2.0.0"] });
+  });
+
   it("warns but still installs bundled runtime deps when disk space looks low", () => {
     const installRoot = makeTempDir();
     const warn = vi.fn();
@@ -1646,6 +1680,56 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     ]);
   });
 
+  it("does not retain already staged deps for disabled bundled channel owners", () => {
+    const packageRoot = makeTempDir();
+    const stageDir = makeTempDir();
+    fs.writeFileSync(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "openclaw", version: "2026.4.27" }),
+    );
+    const browserRoot = writeBundledPluginPackage({
+      packageRoot,
+      pluginId: "browser",
+      deps: { "browser-runtime": "1.0.0" },
+      enabledByDefault: true,
+    });
+    writeBundledPluginPackage({
+      packageRoot,
+      pluginId: "telegram",
+      deps: { grammy: "1.37.0" },
+      channels: ["telegram"],
+    });
+    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const installRoot = resolveBundledRuntimeDependencyInstallRoot(browserRoot, { env });
+    writeInstalledPackage(installRoot, "browser-runtime", "1.0.0");
+    writeInstalledPackage(installRoot, "grammy", "1.37.0");
+    fs.writeFileSync(
+      path.join(installRoot, ".openclaw-runtime-deps.json"),
+      `${JSON.stringify({ specs: ["grammy@1.37.0"] }, null, 2)}\n`,
+      "utf8",
+    );
+
+    const result = ensureBundledPluginRuntimeDeps({
+      env,
+      pluginId: "browser",
+      pluginRoot: browserRoot,
+      config: {
+        plugins: { enabled: true },
+        channels: {
+          telegram: { enabled: false, botToken: "123:disabled" },
+        },
+      },
+      installDeps: () => {
+        throw new Error("already staged active deps should not reinstall");
+      },
+    });
+
+    expect(result).toEqual({ installedSpecs: [], retainSpecs: [] });
+    expect(
+      JSON.parse(fs.readFileSync(path.join(installRoot, ".openclaw-runtime-deps.json"), "utf8")),
+    ).toEqual({ specs: ["browser-runtime@1.0.0"] });
+  });
+
   it("does not derive a second-generation stage root from external runtime mirrors", () => {
     const packageRoot = makeTempDir();
     const stageDir = makeTempDir();
@@ -1694,6 +1778,37 @@ describe("ensureBundledPluginRuntimeDeps", () => {
         pluginRoot: mirroredPluginRoot,
       }),
     ).toEqual({ installedSpecs: [], retainSpecs: [] });
+  });
+
+  it("resolves nested cache pluginRoot to enclosing versioned cache", () => {
+    const packageRoot = makeTempDir();
+    const stageDir = makeTempDir();
+    fs.writeFileSync(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "openclaw", version: "2026.4.25" }),
+    );
+    const pluginRoot = path.join(packageRoot, "dist", "extensions", "telegram");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      JSON.stringify({ dependencies: { grammy: "^1.42.0" } }),
+    );
+    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env });
+
+    const nestedPluginRoot = path.join(
+      installRoot,
+      "dist",
+      "extensions",
+      "node_modules",
+      "openclaw",
+      "plugin-sdk",
+    );
+    fs.mkdirSync(nestedPluginRoot, { recursive: true });
+
+    const resolved = resolveBundledRuntimeDependencyInstallRoot(nestedPluginRoot, { env });
+    expect(resolved).toBe(installRoot);
+    expect(path.basename(resolved).startsWith("openclaw-unknown-")).toBe(false);
   });
 
   it("links source-checkout runtime deps from the cache instead of copying them", () => {
