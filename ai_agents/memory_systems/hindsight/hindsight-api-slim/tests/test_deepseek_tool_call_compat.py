@@ -45,6 +45,28 @@ def _make_deepseek_llm(model: str = "deepseek-v4-flash") -> OpenAICompatibleLLM:
     )
 
 
+def test_deepseek_first_class_provider_sets_default_base_url():
+    """provider="deepseek" is a configuration shortcut for the api.deepseek.com endpoint."""
+    llm = OpenAICompatibleLLM(
+        provider="deepseek",
+        api_key="sk-test",
+        base_url="",
+        model="deepseek-v4-flash",
+    )
+
+    assert llm.base_url == "https://api.deepseek.com"
+
+
+def test_deepseek_first_class_provider_requires_api_key():
+    with pytest.raises(ValueError, match="API key is required for deepseek"):
+        OpenAICompatibleLLM(
+            provider="deepseek",
+            api_key="",
+            base_url="",
+            model="deepseek-v4-flash",
+        )
+
+
 def _make_tool_call_response(tool_name: str = "search_observations") -> MagicMock:
     mock_tc = MagicMock()
     mock_tc.id = "call_deepseek_123"
@@ -95,6 +117,26 @@ async def test_deepseek_named_tool_choice_filters_tools_but_omits_tool_choice():
     assert "tool_choice" not in sent_kwargs
     assert len(sent_kwargs["tools"]) == 1
     assert sent_kwargs["tools"][0]["function"]["name"] == "search_observations"
+
+
+@pytest.mark.asyncio
+async def test_deepseek_auto_tool_choice_is_omitted():
+    """DeepSeek's reasoner pathway (e.g. v4-flash + thinking mode) returns
+    400 for any tool_choice value. Since "auto" is the API default, omit it."""
+    llm = _make_deepseek_llm()
+
+    with patch.object(llm._client.chat.completions, "create", new_callable=AsyncMock) as mock_create:
+        mock_create.return_value = _make_tool_call_response("search_observations")
+
+        await llm.call_with_tools(
+            messages=[{"role": "user", "content": "Search observations."}],
+            tools=TOOLS,
+            tool_choice="auto",
+            max_retries=0,
+        )
+
+    sent_kwargs = mock_create.call_args.kwargs
+    assert "tool_choice" not in sent_kwargs
 
 
 @pytest.mark.asyncio

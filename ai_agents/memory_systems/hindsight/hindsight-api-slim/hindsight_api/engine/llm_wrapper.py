@@ -283,7 +283,7 @@ def create_llm_provider(
             extra_args=config.llamacpp_extra_args,
         )
 
-    elif provider_lower in ("openai", "groq", "ollama", "lmstudio", "minimax", "volcano", "openrouter"):
+    elif provider_lower in ("openai", "groq", "ollama", "lmstudio", "minimax", "deepseek", "volcano", "openrouter"):
         return OpenAICompatibleLLM(
             provider=provider,
             api_key=api_key,
@@ -360,6 +360,7 @@ class LLMProvider:
             "mock",
             "none",
             "minimax",
+            "deepseek",
             "litellm",
             "bedrock",
             "volcano",
@@ -378,6 +379,8 @@ class LLMProvider:
                 self.base_url = "http://localhost:1234/v1"
             elif self.provider == "minimax":
                 self.base_url = "https://api.minimax.io/v1"
+            elif self.provider == "deepseek":
+                self.base_url = "https://api.deepseek.com"
             elif self.provider == "openrouter":
                 self.base_url = "https://openrouter.ai/api/v1"
 

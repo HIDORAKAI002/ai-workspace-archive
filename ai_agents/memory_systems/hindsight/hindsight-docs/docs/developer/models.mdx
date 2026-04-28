@@ -1,4 +1,5 @@
 import {LLMProvidersGrid} from '@site/src/components/SupportedGrids';
+import {LLMProvidersTable} from '@site/src/components/LLMProvidersTable';
 
 # Models
 
@@ -79,23 +80,7 @@ The following models have been tested and verified to work correctly with Hindsi
 
 Each provider has a recommended default model that's used when `HINDSIGHT_API_LLM_MODEL` is not explicitly set. This makes configuration simpler - just specify the provider and get a sensible default:
 
-| Provider | Default Model |
-|----------|--------------|
-| `openai` | `gpt-4o-mini` |
-| `anthropic` | `claude-haiku-4-5-20251001` |
-| `gemini` | `gemini-2.5-flash` |
-| `groq` | `openai/gpt-oss-120b` |
-| `minimax` | `MiniMax-M2.7` |
-| `ollama` | `gemma3:12b` |
-| `llamacpp` | `gemma-4-e2b-it` (auto-downloaded GGUF) |
-| `lmstudio` | `local-model` |
-| `vertexai` | `gemini-2.0-flash-001` |
-| `openai-codex` | `gpt-5.2-codex` |
-| `claude-code` | `claude-sonnet-4-5-20250929` |
-| `bedrock` | `us.amazon.nova-2-lite-v1:0` |
-| `volcano` | `doubao-pro-32k` |
-| `openrouter` | `qwen/qwen3.5-9b` |
-| `litellm` | `gpt-4o-mini` |
+<LLMProvidersTable />
 
 **Example:** Setting just the provider uses its default model:
 ```bash
@@ -176,6 +161,11 @@ export HINDSIGHT_API_LLM_MODEL=your-local-model
 export HINDSIGHT_API_LLM_PROVIDER=minimax
 export HINDSIGHT_API_LLM_API_KEY=your-minimax-api-key
 export HINDSIGHT_API_LLM_MODEL=MiniMax-M2.7
+
+# DeepSeek (https://api.deepseek.com)
+export HINDSIGHT_API_LLM_PROVIDER=deepseek
+export HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
+export HINDSIGHT_API_LLM_MODEL=deepseek-v4-flash  # or deepseek-v4-pro / deepseek-chat / deepseek-reasoner
 
 # Vertex AI (Google Cloud)
 export HINDSIGHT_API_LLM_PROVIDER=vertexai

@@ -47,6 +47,7 @@ VALID_INTEGRATIONS = [
     "opencode",
     "cloudflare-oauth-proxy",
     "openai-agents",
+    "pipecat",
 ]
 
 
@@ -630,6 +631,7 @@ def _get_package_name(integration: str) -> str:
         "opencode": "@vectorize-io/opencode-hindsight",
         "cloudflare-oauth-proxy": "hindsight-cloudflare-oauth-proxy",
         "openai-agents": "hindsight-openai-agents",
+        "pipecat": "hindsight-pipecat",
     }
     return packages[integration]
 
@@ -659,6 +661,7 @@ def _integration_display_name(integration: str) -> str:
         "autogen": "AutoGen",
         "paperclip": "Paperclip",
         "opencode": "OpenCode",
+        "pipecat": "Pipecat",
     }
     return names.get(integration, integration)
 

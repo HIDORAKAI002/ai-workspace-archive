@@ -50,6 +50,7 @@ jobs:
       integrations-cloudflare-oauth-proxy: ${{ steps.filter.outputs.integrations-cloudflare-oauth-proxy }}
       integrations-lockfiles: ${{ steps.filter.outputs.integrations-lockfiles }}
       integrations-openai-agents: ${{ steps.filter.outputs.integrations-openai-agents }}
+      integrations-pipecat: ${{ steps.filter.outputs.integrations-pipecat }}
       dev: ${{ steps.filter.outputs.dev }}
       ci: ${{ steps.filter.outputs.ci }}
       # Secrets are available for internal PRs, pull_request_review, and workflow_dispatch.
@@ -136,6 +137,8 @@ jobs:
             - 'scripts/check-integration-lockfiles.sh'
           integrations-openai-agents:
             - 'hindsight-integrations/openai-agents/**'
+          integrations-pipecat:
+            - 'hindsight-integrations/pipecat/**'
           dev:
             - 'hindsight-dev/**'
           ci:
@@ -598,6 +601,44 @@ jobs:
     - name: Run tests
       working-directory: ./hindsight-integrations/paperclip
       run: npm test
+
+  test-pipecat-integration:
+    needs: [detect-changes]
+    if: >-
+      github.event_name != 'pull_request_review' &&
+      (github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.integrations-pipecat == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Build pipecat integration
+      working-directory: ./hindsight-integrations/pipecat
+      run: uv build
+
+    - name: Install dependencies
+      working-directory: ./hindsight-integrations/pipecat
+      run: uv sync --frozen
+
+    - name: Run tests
+      working-directory: ./hindsight-integrations/pipecat
+      run: uv run pytest tests -v
+
 
   build-control-plane:
     needs: [detect-changes]
@@ -2908,6 +2949,7 @@ jobs:
       - test-cloudflare-oauth-proxy-integration
       - build-chat-integration
       - test-paperclip-integration
+      - test-pipecat-integration
       - build-control-plane
       - build-docs
       - test-rust-cli
