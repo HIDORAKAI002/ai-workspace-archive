@@ -14,6 +14,7 @@ import {
   type Experimental_LanguageModelStreamPart as ModelCallStreamPart,
   type ModelMessage,
   Output,
+  Prompt,
   type StepResult,
   type StopCondition,
   type GenerateTextOnStepFinishCallback,
@@ -1163,10 +1164,11 @@ export class WorkflowAgent<TBaseTools extends ToolSet = ToolSet> {
 
     const prompt = await standardizePrompt({
       system: effectiveInstructions,
+      allowSystemInMessages: true, // TODO: consider exposing this as a parameter
       ...(effectivePrompt != null
         ? { prompt: effectivePrompt }
         : { messages: effectiveMessages! }),
-    });
+    } as Prompt);
 
     // Process tool approval responses before starting the agent loop.
     // This mirrors how stream-text.ts handles tool-approval-response parts:
