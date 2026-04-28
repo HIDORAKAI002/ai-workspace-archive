@@ -1,3 +1,4 @@
+.openapi-generator-ignore
 hindsight_client_api/__init__.py
 hindsight_client_api/api/__init__.py
 hindsight_client_api/api/audit_api.py

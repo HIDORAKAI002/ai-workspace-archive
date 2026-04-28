@@ -22,8 +22,6 @@ import {
   Network,
   List,
   Search,
-  Tag,
-  X,
 } from "lucide-react";
 import {
   Table,
@@ -47,6 +45,7 @@ import { MemoryDetailPanel } from "./memory-detail-panel";
 import { MemoryDetailModal } from "./memory-detail-modal";
 import { Graph2D, convertHindsightGraphData, GraphNode } from "./graph-2d";
 import { Constellation } from "./constellation";
+import { TagFilterInput } from "./tag-filter-input";
 import { ScatterChart, Plus, FileText } from "lucide-react";
 
 type FactType = "world" | "experience" | "observation";
@@ -74,7 +73,6 @@ export function DataView({
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tagFilters, setTagFilters] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGraphNode, setSelectedGraphNode] = useState<any>(null);
   const [modalMemoryId, setModalMemoryId] = useState<string | null>(null);
@@ -158,18 +156,6 @@ export function DataView({
     } finally {
       setLoading(false);
     }
-  };
-
-  const addTagFilter = (tag: string) => {
-    const trimmed = tag.trim();
-    if (trimmed && !tagFilters.includes(trimmed)) {
-      setTagFilters((prev) => [...prev, trimmed]);
-    }
-    setTagInput("");
-  };
-
-  const removeTagFilter = (tag: string) => {
-    setTagFilters((prev) => prev.filter((t) => t !== tag));
   };
 
   // Table rows are already filtered server-side
@@ -418,46 +404,8 @@ export function DataView({
                   />
                 </div>
                 {/* Tag input */}
-                <div className="relative max-w-xs flex-1">
-                  <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === ",") {
-                        e.preventDefault();
-                        addTagFilter(tagInput);
-                      } else if (e.key === "Backspace" && !tagInput && tagFilters.length > 0) {
-                        removeTagFilter(tagFilters[tagFilters.length - 1]);
-                      }
-                    }}
-                    placeholder="Filter by tag…"
-                    className="pl-8 h-9"
-                  />
-                </div>
+                <TagFilterInput value={tagFilters} onChange={setTagFilters} bankId={currentBank} />
               </div>
-              {/* Active tag chips */}
-              {tagFilters.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {tagFilters.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 font-medium leading-none"
-                    >
-                      <span className="opacity-50 select-none font-mono">#</span>
-                      {tag}
-                      <button
-                        onClick={() => removeTagFilter(tag)}
-                        className="opacity-50 hover:opacity-100 transition-opacity ml-0.5"
-                        aria-label={`Remove tag ${tag}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 

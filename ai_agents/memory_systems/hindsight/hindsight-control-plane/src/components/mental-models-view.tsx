@@ -39,14 +39,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Plus,
   Sparkles,
   Loader2,
@@ -57,9 +49,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LayoutGrid,
-  List,
   MoreVertical,
   Pencil,
+  FolderOpen,
+  FileText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -69,6 +62,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MentalModelDetailModal } from "./mental-model-detail-modal";
+import { TagFilterInput } from "./tag-filter-input";
 
 interface ReflectResponseBasedOnFact {
   id: string;
@@ -107,19 +101,22 @@ interface MentalModel {
   reflect_response?: ReflectResponse;
 }
 
-type ViewMode = "dashboard" | "table";
+type ViewMode = "dashboard" | "files";
 
 export function MentalModelsView() {
   const { currentBank } = useBank();
   const [mentalModels, setMentalModels] = useState<MentalModel[]>([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
+  const [viewMode, setViewMode] = useState<ViewMode>("files");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 100;
 
   const [showCreateMentalModel, setShowCreateMentalModel] = useState(false);
   const [selectedMentalModel, setSelectedMentalModel] = useState<MentalModel | null>(null);
+  const [filesSelectedId, setFilesSelectedId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsMatch, setTagsMatch] = useState<"any" | "all">("any");
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [mentalModelToUpdate, setMentalModelToUpdate] = useState<MentalModel | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -128,7 +125,7 @@ export function MentalModelsView() {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Filter mental models based on search query
+  // Tag filtering happens server-side; only the search text is applied locally.
   const filteredMentalModels = mentalModels.filter((m) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -145,7 +142,11 @@ export function MentalModelsView() {
 
     setLoading(true);
     try {
-      const mentalModelsData = await client.listMentalModels(currentBank);
+      const mentalModelsData = await client.listMentalModels(
+        currentBank,
+        selectedTags.length > 0 ? selectedTags : undefined,
+        selectedTags.length > 0 ? tagsMatch : undefined
+      );
       setMentalModels(mentalModelsData.items || []);
     } catch (error) {
       console.error("Error loading mental models:", error);
@@ -205,7 +206,7 @@ export function MentalModelsView() {
     if (currentBank) {
       loadData();
     }
-  }, [currentBank]);
+  }, [currentBank, selectedTags, tagsMatch]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -217,10 +218,10 @@ export function MentalModelsView() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Reset to first page when search query changes
+  // Reset to first page when search query or tag filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedTags, tagsMatch]);
 
   if (!currentBank) {
     return (
@@ -247,29 +248,53 @@ export function MentalModelsView() {
         </div>
       ) : (
         <>
-          {/* Search filter */}
-          <div className="mb-4">
+          {/* Search + tag filter (single row) */}
+          <div className="mb-4 flex items-center gap-3 flex-wrap">
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter mental models by name, query, or content..."
-              className="max-w-md"
+              className="w-80 h-9"
             />
+            <TagFilterInput
+              value={selectedTags}
+              onChange={setSelectedTags}
+              fetchSuggestions={async (q) => {
+                if (!currentBank) return [];
+                const pattern = q ? `${q}*` : undefined;
+                const res = await client.listTags(currentBank, pattern, 20, "mental_models");
+                return res.items.map((i) => i.tag);
+              }}
+              matchMode={tagsMatch}
+              onMatchModeChange={setTagsMatch}
+              className="flex-1 min-w-[260px]"
+            />
+            <Button onClick={() => setShowCreateMentalModel(true)} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Mental Model
+            </Button>
           </div>
 
           <div className="flex items-center justify-between mb-6">
             <div className="text-sm text-muted-foreground">
-              {searchQuery
+              {searchQuery || selectedTags.length > 0
                 ? `${filteredMentalModels.length} of ${mentalModels.length} mental models`
                 : `${mentalModels.length} mental model${mentalModels.length !== 1 ? "s" : ""}`}
             </div>
             <div className="flex items-center gap-3">
-              <Button onClick={() => setShowCreateMentalModel(true)} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Mental Model
-              </Button>
               <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("files")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    viewMode === "files"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  List
+                </button>
                 <button
                   onClick={() => setViewMode("dashboard")}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
@@ -280,17 +305,6 @@ export function MentalModelsView() {
                 >
                   <LayoutGrid className="w-4 h-4" />
                   Dashboard
-                </button>
-                <button
-                  onClick={() => setViewMode("table")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
-                    viewMode === "table"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  Table
                 </button>
               </div>
             </div>
@@ -388,70 +402,25 @@ export function MentalModelsView() {
                 </div>
               )}
 
-              {/* Table View */}
-              {viewMode === "table" && (
-                <Table className="table-fixed">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[20%]">ID</TableHead>
-                      <TableHead className="w-[20%]">Name</TableHead>
-                      <TableHead className="w-[35%]">Source Query</TableHead>
-                      <TableHead className="w-[15%]">Last Refreshed</TableHead>
-                      <TableHead className="w-[10%]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedMentalModels.map((m) => {
-                      return (
-                        <TableRow
-                          key={m.id}
-                          className={`cursor-pointer hover:bg-muted/50 ${
-                            selectedMentalModel?.id === m.id ? "bg-primary/10" : ""
-                          }`}
-                          onClick={() => setSelectedMentalModel(m)}
-                        >
-                          <TableCell className="py-2">
-                            <code className="text-xs font-mono text-muted-foreground truncate block">
-                              {m.id}
-                            </code>
-                          </TableCell>
-                          <TableCell className="py-2">
-                            <div className="font-medium text-foreground">{m.name}</div>
-                          </TableCell>
-                          <TableCell className="py-2">
-                            <div className="text-sm text-muted-foreground truncate">
-                              {m.source_query}
-                            </div>
-                          </TableCell>
-                          <TableCell
-                            className="py-2 text-sm text-foreground"
-                            title={formatAbsoluteDateTime(m.last_refreshed_at)}
-                          >
-                            {formatRelativeTime(m.last_refreshed_at)}
-                          </TableCell>
-                          <TableCell className="py-2">
-                            <RowActionsMenu
-                              m={m}
-                              refreshing={refreshingIds.has(m.id)}
-                              onEdit={(target) => {
-                                setMentalModelToUpdate(target);
-                                setShowUpdateDialog(true);
-                              }}
-                              onRefresh={handleRowRefresh}
-                              onDelete={(target) =>
-                                setDeleteTarget({ id: target.id, name: target.name })
-                              }
-                            />
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+              {/* Files View */}
+              {viewMode === "files" && (
+                <FilesView
+                  mentalModels={filteredMentalModels}
+                  selectedId={filesSelectedId}
+                  onSelect={setFilesSelectedId}
+                  onOpenDetail={setSelectedMentalModel}
+                  refreshingIds={refreshingIds}
+                  onEdit={(target) => {
+                    setMentalModelToUpdate(target);
+                    setShowUpdateDialog(true);
+                  }}
+                  onRefresh={handleRowRefresh}
+                  onDelete={(target) => setDeleteTarget({ id: target.id, name: target.name })}
+                />
               )}
 
               {/* Pagination Controls */}
-              {totalPages > 1 && (
+              {viewMode !== "files" && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-3 pt-3 border-t">
                   <div className="text-xs text-muted-foreground">
                     {startIndex + 1}-{Math.min(endIndex, filteredMentalModels.length)} of{" "}
@@ -1445,5 +1414,140 @@ function UpdateMentalModelDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FilesView({
+  mentalModels,
+  selectedId,
+  onSelect,
+  onOpenDetail,
+  refreshingIds,
+  onEdit,
+  onRefresh,
+  onDelete,
+}: {
+  mentalModels: MentalModel[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onOpenDetail: (m: MentalModel) => void;
+  refreshingIds: Set<string>;
+  onEdit: (m: MentalModel) => void;
+  onRefresh: (m: MentalModel) => void;
+  onDelete: (m: MentalModel) => void;
+}) {
+  const effectiveId =
+    selectedId && mentalModels.some((m) => m.id === selectedId)
+      ? selectedId
+      : (mentalModels[0]?.id ?? null);
+  const selected = mentalModels.find((m) => m.id === effectiveId) ?? null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-0 overflow-hidden min-h-[600px]">
+      <aside className="border-r border-border bg-muted/30 overflow-y-auto max-h-[calc(100vh-260px)]">
+        <ul className="py-1">
+          {mentalModels.map((m) => {
+            const isActive = m.id === effectiveId;
+            return (
+              <li key={m.id}>
+                <button
+                  onClick={() => onSelect(m.id)}
+                  className={`w-full flex items-start gap-2 px-3 py-2 text-left transition-colors border-l-2 ${
+                    isActive
+                      ? "bg-primary/10 border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                  title={`${m.name}\n${m.source_query}`}
+                >
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`truncate text-sm font-medium ${isActive ? "text-foreground" : ""}`}
+                      >
+                        {m.name}
+                      </span>
+                      <span
+                        className="ml-auto text-[10px] text-muted-foreground flex-shrink-0"
+                        title={formatAbsoluteDateTime(m.last_refreshed_at)}
+                      >
+                        {formatRelativeTime(m.last_refreshed_at)}
+                      </span>
+                    </div>
+                    {m.source_query && (
+                      <div className="text-xs text-muted-foreground/80 truncate italic mt-0.5">
+                        {m.source_query}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </aside>
+
+      <section className="overflow-y-auto max-h-[calc(100vh-260px)]">
+        {selected ? (
+          <article className="p-6">
+            <header className="mb-4 pb-4 border-b border-border">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-semibold text-foreground">{selected.name}</h2>
+                  {selected.source_query && (
+                    <p className="text-sm text-muted-foreground mt-1 italic">
+                      &ldquo;{selected.source_query}&rdquo;
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                    <span title={formatAbsoluteDateTime(selected.last_refreshed_at)}>
+                      Refreshed {formatRelativeTime(selected.last_refreshed_at)}
+                    </span>
+                    {selected.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {selected.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-1.5 py-0.5 rounded text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => onOpenDetail(selected)}>
+                    Open
+                  </Button>
+                  <RowActionsMenu
+                    m={selected}
+                    refreshing={refreshingIds.has(selected.id)}
+                    onEdit={onEdit}
+                    onRefresh={onRefresh}
+                    onDelete={onDelete}
+                  />
+                </div>
+              </div>
+            </header>
+            {selected.content ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <CompactMarkdown>{selected.content}</CompactMarkdown>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No content yet. Refresh this mental model to generate content.
+              </p>
+            )}
+          </article>
+        ) : (
+          <div className="p-10 text-center text-muted-foreground">
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Select a mental model to view its content.</p>
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
