@@ -5,7 +5,7 @@ from pathlib import Path
 from buildkite_shared.context import BuildkiteContext
 from buildkite_shared.python_version import AvailablePythonVersion
 from buildkite_shared.step_builders.command_step_builder import BuildkiteQueue
-from buildkite_shared.step_builders.step_builder import StepConfiguration, TopLevelStepConfiguration
+from buildkite_shared.step_builders.step_builder import TopLevelStepConfiguration
 from buildkite_shared.utils import oss_path
 from dagster_buildkite.defines import (
     GCP_CREDS_FILENAME,
@@ -28,25 +28,6 @@ from dagster_buildkite.utils import (
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 DAGSTER_CURRENT_BRANCH = "current_branch"
 EARLIEST_TESTED_RELEASE = "0.12.8"
-
-
-def build_integration_steps(ctx: BuildkiteContext) -> list[StepConfiguration]:
-    steps: list[StepConfiguration] = []
-
-    # Shared dependency of some test suites
-    steps += PackageSpec(
-        oss_path(os.path.join("integration_tests", "python_modules", "dagster-k8s-test-infra")),
-    ).build_steps(ctx)
-
-    # test suites
-    steps += build_backcompat_suite_steps(ctx)
-    steps += build_celery_k8s_suite_steps(ctx)
-    steps += build_k8s_suite_steps(ctx)
-    steps += build_daemon_suite_steps(ctx)
-    steps += build_auto_materialize_perf_suite_steps(ctx)
-    steps += build_azure_live_test_suite_steps(ctx)
-
-    return steps
 
 
 # ########################
