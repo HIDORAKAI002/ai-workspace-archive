@@ -119,8 +119,7 @@ function ChatBoxContent({
     if (lastUser) void sendMessage(getTextFromParts(lastUser.parts));
   }, [messages, sendMessage]);
 
-  const isEmpty =
-    messages.length === 0 && !initialConversationId && !isLoadingHistory;
+  const isEmpty = messages.length === 0 && !isLoadingHistory && !isStreaming;
 
   if (isEmpty) {
     return (
@@ -143,10 +142,7 @@ function ChatBoxContent({
     <div className="flex flex-col h-full flex-1 min-w-0">
       <ChatContainerRoot className="flex-1 relative">
         <ChatContainerContent className="max-w-4xl mx-auto px-6 py-8 gap-0">
-          {(isLoadingHistory ||
-            (initialConversationId &&
-              messages.length === 0 &&
-              !isStreaming)) && <MessageSkeletons />}
+          {isLoadingHistory && <MessageSkeletons />}
 
           {messages.map((msg, idx) => {
             const isLastStreamingAssistant =
@@ -159,6 +155,7 @@ function ChatBoxContent({
                 key={msg.id}
                 message={msg}
                 isStreaming={isLastStreamingAssistant}
+                isLastMessage={idx === messages.length - 1}
                 onCancel={cancelStream}
                 onSend={handleSend}
                 connectedPieces={connectedPieces}
@@ -240,6 +237,6 @@ function ChatBoxContent({
 type AIChatBoxProps = {
   incognito: boolean;
   conversationId?: string | null;
-  onConversationCreated?: () => void;
+  onConversationCreated?: (conversationId: string) => void;
   onTitleUpdate?: (title: string, conversationId?: string) => void;
 };
