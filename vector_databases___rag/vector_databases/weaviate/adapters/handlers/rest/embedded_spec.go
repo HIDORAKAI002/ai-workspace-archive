@@ -6362,6 +6362,10 @@ func init() {
                   "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user",
                   "type": "boolean",
                   "default": false
+                },
+                "namespace": {
+                  "description": "Namespace to bind the new user to. Required on namespace-enabled clusters. Must be set by a global operator only.",
+                  "type": "string"
                 }
               }
             }
@@ -7648,6 +7652,10 @@ func init() {
           ],
           "format": "date-time"
         },
+        "namespace": {
+          "description": "The namespace this user is bound to. Only populated for callers with global-operator privileges; omitted otherwise.",
+          "type": "string"
+        },
         "roles": {
           "description": "The roles associated with the user.",
           "type": "array",
@@ -8843,6 +8851,14 @@ func init() {
           "items": {
             "type": "string"
           }
+        },
+        "isGlobalOperator": {
+          "description": "True for principals that operate across all namespaces (e.g. static API keys). Authoritative marker for operator-level principals; do not infer from an empty namespace.",
+          "type": "boolean"
+        },
+        "namespace": {
+          "description": "The namespace this principal is bound to. Empty for global principals (e.g. static API keys).",
+          "type": "string"
         },
         "userType": {
           "$ref": "#/definitions/UserTypeInput"
@@ -16786,6 +16802,10 @@ func init() {
                   "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user",
                   "type": "boolean",
                   "default": false
+                },
+                "namespace": {
+                  "description": "Namespace to bind the new user to. Required on namespace-enabled clusters. Must be set by a global operator only.",
+                  "type": "string"
                 }
               }
             }
@@ -18221,6 +18241,10 @@ func init() {
           ],
           "format": "date-time"
         },
+        "namespace": {
+          "description": "The namespace this user is bound to. Only populated for callers with global-operator privileges; omitted otherwise.",
+          "type": "string"
+        },
         "roles": {
           "description": "The roles associated with the user.",
           "type": "array",
@@ -19636,6 +19660,14 @@ func init() {
           "items": {
             "type": "string"
           }
+        },
+        "isGlobalOperator": {
+          "description": "True for principals that operate across all namespaces (e.g. static API keys). Authoritative marker for operator-level principals; do not infer from an empty namespace.",
+          "type": "boolean"
+        },
+        "namespace": {
+          "description": "The namespace this principal is bound to. Empty for global principals (e.g. static API keys).",
+          "type": "string"
         },
         "userType": {
           "$ref": "#/definitions/UserTypeInput"
