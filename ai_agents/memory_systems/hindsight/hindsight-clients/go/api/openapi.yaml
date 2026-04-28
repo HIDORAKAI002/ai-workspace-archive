@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Hindsight HTTP API
-  version: 0.5.4
+  version: 0.5.6
 servers:
 - url: /
 paths:
@@ -1776,7 +1776,9 @@ paths:
   /v1/default/banks/{bank_id}/tags:
     get:
       description: "List all unique tags in a memory bank with usage counts. Supports\
-        \ wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive."
+        \ wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive.\
+        \ Use `source=mental_models` to list tags used on mental models instead of\
+        \ memories."
       operationId: list_tags
       parameters:
       - explode: false
@@ -1795,6 +1797,22 @@ paths:
         required: false
         schema:
           nullable: true
+          type: string
+        style: form
+      - description: "Where to read tags from: 'memories' (memory_units, default)\
+          \ or 'mental_models'."
+        explode: true
+        in: query
+        name: source
+        required: false
+        schema:
+          default: memories
+          description: "Where to read tags from: 'memories' (memory_units, default)\
+            \ or 'mental_models'."
+          enum:
+          - memories
+          - mental_models
+          title: Source
           type: string
         style: form
       - description: Maximum number of tags to return
@@ -2127,8 +2145,8 @@ paths:
   /v1/default/banks/{bank_id}/profile:
     get:
       deprecated: true
-      description: Get disposition traits and mission for a memory bank. Auto-creates
-        agent with defaults if not exists.
+      description: Get disposition traits and mission for a memory bank. Returns 404
+        if the bank does not exist.
       operationId: get_bank_profile
       parameters:
       - explode: false

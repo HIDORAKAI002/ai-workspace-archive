@@ -145,17 +145,15 @@ def server(
 ):
     """Start a NeMo Guardrails server."""
 
+    # Forward the disable-chat-ui flag via env var so api.py can read it at
+    # module-load time, before the chainlit mount happens.
+    if disable_chat_ui:
+        os.environ["NEMO_GUARDRAILS_DISABLE_CHAT_UI"] = "true"
+
     try:
         import uvicorn
         from fastapi import FastAPI
-    except ImportError:
-        typer.secho(
-            "Server dependencies are missing. Install them with: pip install nemoguardrails[server]",
-            fg=typer.colors.RED,
-        )
-        raise typer.Exit(1)
 
-    try:
         from nemoguardrails.server import api
     except ImportError:
         typer.secho(

@@ -981,6 +981,31 @@ export class ControlPlaneClient {
     }>(bankApi(bankId, `/observations/${encodeURIComponent(observationId)}`));
   }
 
+  // ============= TAGS =============
+
+  /**
+   * List unique tags in a bank with usage counts. Supports wildcard '*' in q.
+   * Pass `source: "mental_models"` to read tags from mental_models instead of memory_units.
+   */
+  async listTags(
+    bankId: string,
+    q?: string,
+    limit?: number,
+    source?: "memories" | "mental_models"
+  ) {
+    const params = new URLSearchParams();
+    if (q) params.append("q", q);
+    if (limit != null) params.append("limit", String(limit));
+    if (source) params.append("source", source);
+    const query = params.toString();
+    return this.fetchApi<{
+      items: Array<{ tag: string; count: number }>;
+      total: number;
+      limit: number;
+      offset: number;
+    }>(bankApi(bankId, `/tags${query ? `?${query}` : ""}`));
+  }
+
   // ============= MENTAL MODELS (stored reflect responses) =============
 
   /**

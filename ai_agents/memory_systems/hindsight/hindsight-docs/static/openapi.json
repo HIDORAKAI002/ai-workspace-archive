@@ -10,7 +10,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "0.5.4"
+    "version": "0.5.6"
   },
   "paths": {
     "/health": {
@@ -2594,7 +2594,7 @@
           "Memory"
         ],
         "summary": "List tags",
-        "description": "List all unique tags in a memory bank with usage counts. Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive.",
+        "description": "List all unique tags in a memory bank with usage counts. Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive. Use `source=mental_models` to list tags used on mental models instead of memories.",
         "operationId": "list_tags",
         "parameters": [
           {
@@ -2623,6 +2623,22 @@
               "title": "Q"
             },
             "description": "Wildcard pattern to filter tags (e.g., 'user:*' for user:alice, '*-admin' for role-admin). Use '*' as wildcard. Case-insensitive."
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "memories",
+                "mental_models"
+              ],
+              "type": "string",
+              "description": "Where to read tags from: 'memories' (memory_units, default) or 'mental_models'.",
+              "default": "memories",
+              "title": "Source"
+            },
+            "description": "Where to read tags from: 'memories' (memory_units, default) or 'mental_models'."
           },
           {
             "name": "limit",
@@ -3102,7 +3118,7 @@
           "Banks"
         ],
         "summary": "Get memory bank profile",
-        "description": "Get disposition traits and mission for a memory bank. Auto-creates agent with defaults if not exists.",
+        "description": "Get disposition traits and mission for a memory bank. Returns 404 if the bank does not exist.",
         "operationId": "get_bank_profile",
         "deprecated": true,
         "parameters": [

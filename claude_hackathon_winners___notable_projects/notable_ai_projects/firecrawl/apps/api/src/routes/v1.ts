@@ -33,6 +33,7 @@ import {
   countryCheck,
   idempotencyMiddleware,
   requestTimingMiddleware,
+  validateJobIdParam,
   wrap,
 } from "./shared";
 import { queueStatusController } from "../controllers/v1/queue-status";
@@ -180,12 +181,14 @@ v1Router.get(
 v1Router.get(
   "/crawl/:jobId",
   authMiddleware(RateLimiterMode.CrawlStatus),
+  validateJobIdParam,
   wrap(crawlStatusController),
 );
 
 v1Router.get(
   "/batch/scrape/:jobId",
   authMiddleware(RateLimiterMode.CrawlStatus),
+  validateJobIdParam,
   // Yes, it uses the same controller as the normal crawl status controller
   wrap((req: any, res): any => crawlStatusController(req, res, true)),
 );

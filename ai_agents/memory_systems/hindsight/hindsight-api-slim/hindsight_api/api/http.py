@@ -4323,7 +4323,8 @@ def _register_routes(app: FastAPI):
         response_model=ListTagsResponse,
         summary="List tags",
         description="List all unique tags in a memory bank with usage counts. "
-        "Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive.",
+        "Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive. "
+        "Use `source=mental_models` to list tags used on mental models instead of memories.",
         operation_id="list_tags",
         tags=["Memory"],
     )
@@ -4333,6 +4334,10 @@ def _register_routes(app: FastAPI):
             default=None,
             description="Wildcard pattern to filter tags (e.g., 'user:*' for user:alice, '*-admin' for role-admin). "
             "Use '*' as wildcard. Case-insensitive.",
+        ),
+        source: Literal["memories", "mental_models"] = Query(
+            default="memories",
+            description="Where to read tags from: 'memories' (memory_units, default) or 'mental_models'.",
         ),
         limit: int = Query(default=100, description="Maximum number of tags to return"),
         offset: int = Query(default=0, description="Offset for pagination"),
@@ -4350,17 +4355,27 @@ def _register_routes(app: FastAPI):
         Args:
             bank_id: Memory Bank ID (from path)
             q: Wildcard pattern to filter tags (use '*' as wildcard)
+            source: Tag source — 'memories' (memory_units, default) or 'mental_models'
             limit: Maximum number of tags to return (default: 100)
             offset: Offset for pagination (default: 0)
         """
         try:
-            data = await app.state.memory.list_tags(
-                bank_id=bank_id,
-                pattern=q,
-                limit=limit,
-                offset=offset,
-                request_context=request_context,
-            )
+            if source == "mental_models":
+                data = await app.state.memory.list_mental_model_tags(
+                    bank_id=bank_id,
+                    pattern=q,
+                    limit=limit,
+                    offset=offset,
+                    request_context=request_context,
+                )
+            else:
+                data = await app.state.memory.list_tags(
+                    bank_id=bank_id,
+                    pattern=q,
+                    limit=limit,
+                    offset=offset,
+                    request_context=request_context,
+                )
             return data
         except OperationValidationError as e:
             raise HTTPException(status_code=e.status_code, detail=e.reason)

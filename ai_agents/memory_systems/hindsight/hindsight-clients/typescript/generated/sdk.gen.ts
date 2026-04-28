@@ -734,7 +734,7 @@ export const updateDocument = <ThrowOnError extends boolean = false>(
 /**
  * List tags
  *
- * List all unique tags in a memory bank with usage counts. Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive.
+ * List all unique tags in a memory bank with usage counts. Supports wildcard search using '*' (e.g., 'user:*', '*-fred', 'tag*-2'). Case-insensitive. Use `source=mental_models` to list tags used on mental models instead of memories.
  */
 export const listTags = <ThrowOnError extends boolean = false>(
   options: Options<ListTagsData, ThrowOnError>
@@ -813,7 +813,7 @@ export const retryOperation = <ThrowOnError extends boolean = false>(
 /**
  * Get memory bank profile
  *
- * Get disposition traits and mission for a memory bank. Auto-creates agent with defaults if not exists.
+ * Get disposition traits and mission for a memory bank. Returns 404 if the bank does not exist.
  *
  * @deprecated
  */

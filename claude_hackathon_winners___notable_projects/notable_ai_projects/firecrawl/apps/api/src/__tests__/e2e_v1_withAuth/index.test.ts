@@ -965,15 +965,16 @@ describe("E2E Tests for v1 API Routes", () => {
       },
     );
 
-    it.concurrent(
-      "should return Job not found for invalid job ID",
-      async () => {
-        const response = await request(TEST_URL)
-          .get("/v1/crawl/invalidJobId")
-          .set("Authorization", `Bearer ${config.TEST_API_KEY}`);
-        expect(response.statusCode).toBe(404);
-      },
-    );
+    it.concurrent("should reject an invalid job ID", async () => {
+      const response = await request(TEST_URL)
+        .get("/v1/crawl/invalidJobId")
+        .set("Authorization", `Bearer ${config.TEST_API_KEY}`);
+      expect(response.statusCode).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe(
+        "Invalid job ID format. Job ID must be a valid UUID.",
+      );
+    });
 
     it.concurrent(
       "should return a successful crawl status response for a valid crawl job",

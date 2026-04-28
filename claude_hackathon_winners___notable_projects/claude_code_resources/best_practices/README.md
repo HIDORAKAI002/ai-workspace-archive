@@ -1,7 +1,7 @@
 # claude-code-best-practice
 from vibe coding to agentic engineering - practice makes claude perfect
 
-![updated with Claude Code](https://img.shields.io/badge/updated_with_Claude_Code-v2.1.119%20(Apr%2027%2C%202026%208%3A39%20PM%20PKT)-white?style=flat&labelColor=555) <a href="https://github.com/shanraisshan/claude-code-best-practice/stargazers"><img src="https://img.shields.io/github/stars/shanraisshan/claude-code-best-practice?style=flat&label=%E2%98%85&labelColor=555&color=white" alt="GitHub Stars"></a> ![🇵🇰 2nd Most ★](!/root/second-most-starred.svg)<br>
+![updated with Claude Code](https://img.shields.io/badge/updated_with_Claude_Code-v2.1.119%20(Apr%2028%2C%202026%204%3A39%20PM%20PKT)-white?style=flat&labelColor=555) <a href="https://github.com/shanraisshan/claude-code-best-practice/stargazers"><img src="https://img.shields.io/github/stars/shanraisshan/claude-code-best-practice?style=flat&label=%E2%98%85&labelColor=555&color=white" alt="GitHub Stars"></a> ![🇵🇰 2nd Most ★](!/root/second-most-starred.svg)<br>
 
 [![Best Practice](!/tags/best-practice.svg)](best-practice/) [![Implemented](!/tags/implemented.svg)](implementation/) [![Orchestration Workflow](!/tags/orchestration-workflow.svg)](orchestration-workflow/orchestration-workflow.md) [![Claude](!/tags/claude.svg)](https://code.claude.com/docs) [![Boris](!/tags/boris-cherny.svg)](#-tips-and-tricks) [![Community](!/tags/community.svg)](#-subscribe) ![Click on these badges below to see the actual sources](!/tags/click-badges.svg)<br>
 <img src="!/tags/a.svg" height="14"> = Agents · <img src="!/tags/c.svg" height="14"> = Commands · <img src="!/tags/s.svg" height="14"> = Skills
@@ -120,6 +120,22 @@ All major workflows converge on the same architectural pattern: **Research → P
 - [Peter Steinberger (Creator of OpenClaw) Workflow](https://youtu.be/8lF7HmQ_RgY?t=2582)
 - Boris Cherny (Creator of Claude Code) Workflow — [13 Tips](tips/claude-boris-13-tips-03-jan-26.md) · [10 Tips](tips/claude-boris-10-tips-01-feb-26.md) · [12 Tips](tips/claude-boris-12-tips-12-feb-26.md) · [2 Tips](tips/claude-boris-2-tips-25-mar-26.md) · [15 Tips](tips/claude-boris-15-tips-30-mar-26.md) · [6 Tips](tips/claude-boris-6-tips-16-apr-26.md) [![Boris](!/tags/boris-cherny.svg)](https://x.com/bcherny)
 - Thariq (Anthropic) Workflow — [Skills](tips/claude-thariq-tips-17-mar-26.md) · [Session Management](tips/claude-thariq-tips-16-apr-26.md) [![Thariq](!/tags/thariq.svg)](https://x.com/trq212)
+
+<p align="center">
+  <img src="!/claude-jumping.svg" alt="section divider" width="60" height="50">
+</p>
+
+## 🧰 SKILL COLLECTIONS
+
+Repos primarily known as curated libraries of `SKILL.md` files (distinct from full workflow methodologies above). Sorted by stars descending.
+
+| Name | ★ | <img src="!/tags/s.svg" height="14"> |
+|------|---|---|
+| [anthropics/skills](https://github.com/anthropics/skills) | 125k | 17 |
+| [wshobson/agents](https://github.com/wshobson/agents) | 35k | 152 |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 33k | 17 |
+| [scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills) | 20k | 134 |
+| [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | 19k | 1,100+ (curated list) |
 
 <p align="center">
   <img src="!/claude-jumping.svg" alt="section divider" width="60" height="50">
@@ -310,6 +326,10 @@ All major workflows converge on the same architectural pattern: **Research → P
 | Ask Claude to interview you using AskUserQuestion tool (Thariq) \| 28/Dec/25 | [Tweet](https://x.com/trq212/status/2005315275026260309) |
 | Always use plan mode, give Claude a way to verify, use /code-review (Boris) \| 27/Dec/25 | [Tweet](https://x.com/bcherny/status/2004711722926616680) |
 
+#### Tips from Claude code CLI binary
+
+[Spinner Verbs & Tips (extracted from CLI binary v2.1.121)](reports/claude-spinner-verbs-and-tips.md)
+
 <p align="center">
   <img src="!/claude-jumping.svg" alt="section divider" width="60" height="50">
 </p>
@@ -407,6 +427,7 @@ All major workflows converge on the same architectural pattern: **Research → P
   <br>
   <a href="reports/llm-day-to-day-degradation.md"><img src="https://img.shields.io/badge/LLM_Degradation-555?style=for-the-badge" alt="LLM Degradation"></a>
   <a href="reports/why-harness-is-important.md"><img src="https://img.shields.io/badge/Why_Harness_is_Important-555?style=for-the-badge" alt="Why Harness is Important"></a>
+  <a href="reports/claude-spinner-verbs-and-tips.md"><img src="https://img.shields.io/badge/Spinner_Verbs_&_Tips-555?style=for-the-badge" alt="Spinner Verbs & Tips"></a>
 </p>
 
 <p align="center">

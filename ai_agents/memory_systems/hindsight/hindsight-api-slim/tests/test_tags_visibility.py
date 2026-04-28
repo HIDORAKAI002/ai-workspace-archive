@@ -1501,3 +1501,98 @@ async def test_tag_groups_nested_and_containing_or(api_client):
     assert any("Alice" in t and "step 8" in t for t in texts), "Should find Alice step:8"
     assert not any("step 9" in t for t in texts), "Should NOT find step 9"
     assert not any("Bob" in t for t in texts), "Should NOT find Bob"
+
+
+# ============================================================================
+# Tests for list_mental_model_tags API endpoint
+# ============================================================================
+
+
+async def _create_mental_model_via_engine(memory, *, bank_id, name, tags, request_context):
+    """Helper that creates a mental model directly through the engine without an LLM call."""
+    # Ensure the bank exists (mental_models has a FK to banks).
+    await memory.get_bank_profile(bank_id=bank_id, request_context=request_context)
+    return await memory.create_mental_model(
+        bank_id=bank_id,
+        name=name,
+        source_query=f"Source query for {name}",
+        content=f"Content for {name}",
+        tags=tags,
+        request_context=request_context,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_mental_model_tags_returns_only_mental_model_tags(memory, request_context):
+    """Mental-model tag listing should reflect only mental_models.tags, not memory_units.tags."""
+    bank_id = f"mm_tags_basic_{datetime.now().timestamp()}"
+
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM A", tags=["topic:alpha", "shared"], request_context=request_context
+    )
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM B", tags=["topic:beta", "shared"], request_context=request_context
+    )
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM C", tags=["topic:alpha"], request_context=request_context
+    )
+
+    result = await memory.list_mental_model_tags(bank_id=bank_id, request_context=request_context)
+
+    tags_map = {item["tag"]: item["count"] for item in result["items"]}
+    assert tags_map == {"topic:alpha": 2, "topic:beta": 1, "shared": 2}
+    assert result["total"] == 3
+
+    # Sanity check: the regular list_tags (which queries memory_units) should not see these tags
+    # since no memories exist in this bank.
+    memory_tags = await memory.list_tags(bank_id=bank_id, request_context=request_context)
+    assert memory_tags["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_list_mental_model_tags_with_wildcard(memory, request_context):
+    """Wildcard 'topic:*' should only match mental-model tags with that prefix."""
+    bank_id = f"mm_tags_wildcard_{datetime.now().timestamp()}"
+
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM 1", tags=["topic:alpha", "user:alice"], request_context=request_context
+    )
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM 2", tags=["topic:beta"], request_context=request_context
+    )
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM 3", tags=["session:abc"], request_context=request_context
+    )
+
+    result = await memory.list_mental_model_tags(
+        bank_id=bank_id, pattern="topic:*", request_context=request_context
+    )
+
+    returned = sorted(item["tag"] for item in result["items"])
+    assert returned == ["topic:alpha", "topic:beta"]
+    assert result["total"] == 2
+
+
+@pytest.mark.asyncio
+async def test_list_tags_endpoint_with_source_mental_models(memory, request_context):
+    """`/tags?source=mental_models` returns mental-model tags, not memory_units tags."""
+    bank_id = f"mm_tags_source_{datetime.now().timestamp()}"
+
+    await _create_mental_model_via_engine(
+        memory, bank_id=bank_id, name="MM 1", tags=["alpha"], request_context=request_context
+    )
+
+    app = create_app(memory, initialize_memory=False)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get(
+            f"/v1/default/banks/{bank_id}/tags", params={"source": "mental_models"}
+        )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert {item["tag"] for item in body["items"]} == {"alpha"}
+
+        # Default source ('memories') must NOT pick up the mental-model tag.
+        default_response = await client.get(f"/v1/default/banks/{bank_id}/tags")
+        assert default_response.status_code == 200, default_response.text
+        assert default_response.json()["items"] == []

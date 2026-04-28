@@ -154,6 +154,18 @@ describe("scripts/lib/docker-e2e-plan", () => {
       "doctor-switch",
       "update-channel-switch",
     ]);
+    expect(packageUpdateCore.lanes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "npm-onboard-channel-agent",
+          stateScenario: "empty",
+        }),
+        expect.objectContaining({
+          name: "update-channel-switch",
+          stateScenario: "update-stable",
+        }),
+      ]),
+    );
     expect(pluginsRuntimePlugins.lanes.map((lane) => lane.name)).toEqual(["plugins"]);
     expect(pluginsRuntimeServices.lanes.map((lane) => lane.name)).toEqual([
       "cron-mcp-cleanup",
@@ -297,6 +309,27 @@ describe("scripts/lib/docker-e2e-plan", () => {
       functionalImage: true,
       package: true,
     });
+  });
+
+  it("surfaces Docker lane test-state scenarios in plan JSON", () => {
+    const plan = planFor({
+      selectedLaneNames: ["onboard", "agents-delete-shared-workspace", "update-channel-switch"],
+    });
+
+    expect(plan.lanes).toEqual([
+      expect.objectContaining({
+        name: "onboard",
+        stateScenario: "empty",
+      }),
+      expect.objectContaining({
+        name: "agents-delete-shared-workspace",
+        stateScenario: "empty",
+      }),
+      expect.objectContaining({
+        name: "update-channel-switch",
+        stateScenario: "update-stable",
+      }),
+    ]);
   });
 
   it("maps the legacy bundled channel deps lane to the split compat lane", () => {

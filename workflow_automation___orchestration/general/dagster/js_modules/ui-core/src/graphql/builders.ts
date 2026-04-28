@@ -671,6 +671,7 @@ type AssetNode = {
   op: Maybe<SolidDefinition>;
   opName: Maybe<Scalars['String']['output']>;
   opNames: Array<Scalars['String']['output']>;
+  opTags: Array<DefinitionTag>;
   opVersion: Maybe<Scalars['String']['output']>;
   owners: Array<AssetOwner>;
   partitionDefinition: Maybe<PartitionDefinition>;
@@ -4535,6 +4536,7 @@ type Repository = {
   __typename: 'Repository';
   allTopLevelResourceDetails: Array<ResourceDetails>;
   assetGroups: Array<AssetGroup>;
+  assetManifest: Maybe<Scalars['GenericScalar']['output']>;
   assetNodes: Array<AssetNode>;
   assetNodesConnection: AssetNodeConnection;
   displayMetadata: Array<RepositoryMetadata>;
@@ -7459,6 +7461,7 @@ export const buildAssetNode = (
           : buildSolidDefinition({}, relationshipsToOmit),
     opName: overrides && overrides.hasOwnProperty('opName') ? overrides.opName! : 'veritatis',
     opNames: overrides && overrides.hasOwnProperty('opNames') ? overrides.opNames! : [],
+    opTags: overrides && overrides.hasOwnProperty('opTags') ? overrides.opTags! : [],
     opVersion:
       overrides && overrides.hasOwnProperty('opVersion') ? overrides.opVersion! : 'cupiditate',
     owners: overrides && overrides.hasOwnProperty('owners') ? overrides.owners! : [],
@@ -13903,6 +13906,10 @@ export const buildRepository = (
         ? overrides.allTopLevelResourceDetails!
         : [],
     assetGroups: overrides && overrides.hasOwnProperty('assetGroups') ? overrides.assetGroups! : [],
+    assetManifest:
+      overrides && overrides.hasOwnProperty('assetManifest')
+        ? overrides.assetManifest!
+        : 'exercitationem',
     assetNodes: overrides && overrides.hasOwnProperty('assetNodes') ? overrides.assetNodes! : [],
     assetNodesConnection:
       overrides && overrides.hasOwnProperty('assetNodesConnection')
