@@ -327,7 +327,6 @@ class Client:
   project="your-project-id", location="us-central1"` or by defining
   `GOOGLE_GENAI_USE_ENTERPRISE=true`, `GOOGLE_CLOUD_PROJECT` and
   `GOOGLE_CLOUD_LOCATION` environment variables.
-  `GOOGLE_CLOUD_LOCATION` environment variables.
 
   Attributes:
     api_key: The `API key <https://ai.google.dev/gemini-api/docs/api-key>`_ to
