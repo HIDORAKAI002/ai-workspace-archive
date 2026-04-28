@@ -19,7 +19,23 @@ Used for fact extraction, entity resolution, mental model consolidation, and ans
 
 **Supported providers:**
 
-<LLMProvidersGrid />
+- OpenAI
+- Anthropic
+- Google Gemini
+- Vertex AI
+- Groq
+- Ollama
+- LM Studio
+- llama.cpp
+- MiniMax
+- DeepSeek
+- Volcano Engine
+- OpenRouter
+- OpenAI Codex
+- Claude Code
+- AWS Bedrock
+- OpenAI Compatible
+- LiteLLM (100+)
 
 Also supports **any OpenAI-compatible API** (e.g., Azure OpenAI, Together AI, Fireworks) and **100+ providers via LiteLLM** (e.g., AWS Bedrock, Azure OpenAI, Together AI).
 
@@ -79,17 +95,18 @@ Each provider has a recommended default model that's used when `HINDSIGHT_API_LL
 | `openai` | `gpt-4o-mini` |
 | `anthropic` | `claude-haiku-4-5-20251001` |
 | `gemini` | `gemini-2.5-flash` |
-| `groq` | `openai/gpt-oss-120b` |
-| `minimax` | `MiniMax-M2.7` |
-| `ollama` | `gemma3:12b` |
-| `llamacpp` | `gemma-4-e2b-it` (auto-downloaded GGUF) |
-| `lmstudio` | `local-model` |
 | `vertexai` | `gemini-2.0-flash-001` |
+| `groq` | `openai/gpt-oss-120b` |
+| `ollama` | `gemma3:12b` |
+| `lmstudio` | `local-model` |
+| `llamacpp` | `gemma-4-e2b-it` (auto-downloaded GGUF) |
+| `minimax` | `MiniMax-M2.7` |
+| `deepseek` | `deepseek-v4-flash` |
+| `volcano` | `doubao-pro-32k` |
+| `openrouter` | `qwen/qwen3.5-9b` |
 | `openai-codex` | `gpt-5.2-codex` |
 | `claude-code` | `claude-sonnet-4-5-20250929` |
 | `bedrock` | `us.amazon.nova-2-lite-v1:0` |
-| `volcano` | `doubao-pro-32k` |
-| `openrouter` | `qwen/qwen3.5-9b` |
 | `litellm` | `gpt-4o-mini` |
 
 **Example:** Setting just the provider uses its default model:
@@ -170,6 +187,11 @@ export HINDSIGHT_API_LLM_MODEL=your-local-model
 export HINDSIGHT_API_LLM_PROVIDER=minimax
 export HINDSIGHT_API_LLM_API_KEY=your-minimax-api-key
 export HINDSIGHT_API_LLM_MODEL=MiniMax-M2.7
+
+# DeepSeek (https://api.deepseek.com)
+export HINDSIGHT_API_LLM_PROVIDER=deepseek
+export HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
+export HINDSIGHT_API_LLM_MODEL=deepseek-v4-flash  # or deepseek-v4-pro / deepseek-chat / deepseek-reasoner
 
 # Vertex AI (Google Cloud)
 export HINDSIGHT_API_LLM_PROVIDER=vertexai

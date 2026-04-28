@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-28 15:38 IST] Auto-Sync
+- **34 Repositories Updated:** Public APIs Directory, Keboola MCP, Kubernetes MCP Server, Exa MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-04-28 09:11 IST] Auto-Sync
 - **29 Repositories Updated:** Playwright MCP, Exa MCP Server, Promptfoo, Flowise, Activepieces, Trigger.dev, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, VoltAgent, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, milvus-io/milvus, infiniflow/ragflow, Arize-ai/openinference, openai/openai-cookbook, google-gemini/gemini-cli, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, bytedance/deer-flow
 

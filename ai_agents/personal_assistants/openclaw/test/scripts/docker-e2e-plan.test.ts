@@ -89,10 +89,15 @@ describe("scripts/lib/docker-e2e-plan", () => {
       profile: RELEASE_PATH_PROFILE,
       releaseChunk: "package-update-core",
     });
-    const pluginsRuntimeCore = planFor({
+    const pluginsRuntimePlugins = planFor({
       includeOpenWebUI: true,
       profile: RELEASE_PATH_PROFILE,
-      releaseChunk: "plugins-runtime-core",
+      releaseChunk: "plugins-runtime-plugins",
+    });
+    const pluginsRuntimeServices = planFor({
+      includeOpenWebUI: true,
+      profile: RELEASE_PATH_PROFILE,
+      releaseChunk: "plugins-runtime-services",
     });
     const pluginsRuntimeInstallA = planFor({
       includeOpenWebUI: true,
@@ -104,6 +109,16 @@ describe("scripts/lib/docker-e2e-plan", () => {
       profile: RELEASE_PATH_PROFILE,
       releaseChunk: "plugins-runtime-install-b",
     });
+    const pluginsRuntimeInstallC = planFor({
+      includeOpenWebUI: true,
+      profile: RELEASE_PATH_PROFILE,
+      releaseChunk: "plugins-runtime-install-c",
+    });
+    const pluginsRuntimeInstallD = planFor({
+      includeOpenWebUI: true,
+      profile: RELEASE_PATH_PROFILE,
+      releaseChunk: "plugins-runtime-install-d",
+    });
     const bundledChannelsCore = planFor({
       includeOpenWebUI: true,
       profile: RELEASE_PATH_PROFILE,
@@ -113,6 +128,11 @@ describe("scripts/lib/docker-e2e-plan", () => {
       includeOpenWebUI: true,
       profile: RELEASE_PATH_PROFILE,
       releaseChunk: "bundled-channels-update-a",
+    });
+    const bundledChannelsUpdateDiscord = planFor({
+      includeOpenWebUI: true,
+      profile: RELEASE_PATH_PROFILE,
+      releaseChunk: "bundled-channels-update-discord",
     });
     const bundledChannelsUpdateB = planFor({
       includeOpenWebUI: true,
@@ -134,26 +154,28 @@ describe("scripts/lib/docker-e2e-plan", () => {
       "doctor-switch",
       "update-channel-switch",
     ]);
-    expect(pluginsRuntimeCore.lanes.map((lane) => lane.name)).toEqual(
-      expect.arrayContaining([
-        "plugins",
-        "cron-mcp-cleanup",
-        "openai-web-search-minimal",
-        "openwebui",
-      ]),
-    );
-    expect(pluginsRuntimeCore.lanes.map((lane) => lane.name)).not.toContain(
+    expect(pluginsRuntimePlugins.lanes.map((lane) => lane.name)).toEqual(["plugins"]);
+    expect(pluginsRuntimeServices.lanes.map((lane) => lane.name)).toEqual([
+      "cron-mcp-cleanup",
+      "openai-web-search-minimal",
+      "openwebui",
+    ]);
+    expect(pluginsRuntimePlugins.lanes.map((lane) => lane.name)).not.toContain(
       "bundled-plugin-install-uninstall-0",
     );
     expect(pluginsRuntimeInstallA.lanes.map((lane) => lane.name)).toEqual([
       "bundled-plugin-install-uninstall-0",
       "bundled-plugin-install-uninstall-1",
+    ]);
+    expect(pluginsRuntimeInstallB.lanes.map((lane) => lane.name)).toEqual([
       "bundled-plugin-install-uninstall-2",
       "bundled-plugin-install-uninstall-3",
     ]);
-    expect(pluginsRuntimeInstallB.lanes.map((lane) => lane.name)).toEqual([
+    expect(pluginsRuntimeInstallC.lanes.map((lane) => lane.name)).toEqual([
       "bundled-plugin-install-uninstall-4",
       "bundled-plugin-install-uninstall-5",
+    ]);
+    expect(pluginsRuntimeInstallD.lanes.map((lane) => lane.name)).toEqual([
       "bundled-plugin-install-uninstall-6",
       "bundled-plugin-install-uninstall-7",
     ]);
@@ -167,9 +189,15 @@ describe("scripts/lib/docker-e2e-plan", () => {
     ]);
     expect(bundledChannelsUpdateA.lanes.map((lane) => lane.name)).toEqual([
       "bundled-channel-update-telegram",
-      "bundled-channel-update-discord",
       "bundled-channel-update-memory-lancedb",
     ]);
+    expect(bundledChannelsUpdateDiscord.lanes.map((lane) => lane.name)).toEqual([
+      "bundled-channel-update-discord",
+    ]);
+    expect(bundledChannelsUpdateDiscord.lanes[0]).toMatchObject({
+      noOutputTimeoutMs: 4 * 60 * 1000,
+      timeoutMs: 6 * 60 * 1000,
+    });
     expect(bundledChannelsUpdateB.lanes.map((lane) => lane.name)).toEqual([
       "bundled-channel-update-slack",
       "bundled-channel-update-feishu",
@@ -196,6 +224,11 @@ describe("scripts/lib/docker-e2e-plan", () => {
       profile: RELEASE_PATH_PROFILE,
       releaseChunk: "plugins-runtime",
     });
+    const bundledChannelsUpdateALegacy = planFor({
+      includeOpenWebUI: true,
+      profile: RELEASE_PATH_PROFILE,
+      releaseChunk: "bundled-channels-update-a-legacy",
+    });
     const legacy = planFor({
       includeOpenWebUI: true,
       profile: RELEASE_PATH_PROFILE,
@@ -217,6 +250,11 @@ describe("scripts/lib/docker-e2e-plan", () => {
         "openwebui",
       ]),
     );
+    expect(bundledChannelsUpdateALegacy.lanes.map((lane) => lane.name)).toEqual([
+      "bundled-channel-update-telegram",
+      "bundled-channel-update-discord",
+      "bundled-channel-update-memory-lancedb",
+    ]);
     expect(legacy.lanes.map((lane) => lane.name)).toEqual(
       expect.arrayContaining([
         "plugins",

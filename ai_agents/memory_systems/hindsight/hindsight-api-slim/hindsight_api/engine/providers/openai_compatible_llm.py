@@ -1,5 +1,5 @@
 """
-OpenAI-compatible LLM provider supporting OpenAI, Groq, Ollama, LMStudio, and MiniMax.
+OpenAI-compatible LLM provider supporting OpenAI, Groq, Ollama, LMStudio, MiniMax, and DeepSeek.
 
 This provider handles all OpenAI API-compatible models including:
 - OpenAI: GPT-4, GPT-4o, GPT-5, o1, o3 (reasoning models)
@@ -7,6 +7,7 @@ This provider handles all OpenAI API-compatible models including:
 - Ollama: Local models with native streaming API support
 - LMStudio: Local models with OpenAI-compatible API
 - MiniMax: MiniMax-M2.7 models with 1M context window
+- DeepSeek: deepseek-v4-flash / deepseek-v4-pro / deepseek-chat / deepseek-reasoner via api.deepseek.com
 
 Features:
 - Reasoning models with extended thinking (o1, o3, GPT-5 families)
@@ -60,6 +61,77 @@ def _strip_code_fences(content: str) -> str:
         return content
 
 
+def _simplify_json_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Simplify a Pydantic JSON schema for maximum LLM compatibility.
+
+    Pydantic v2's model_json_schema() produces schemas with $ref/$defs, anyOf
+    (for Optional fields), and const — features that Ollama's grammar-based
+    constrained decoding silently fails on, and that confuse weaker models when
+    the schema appears as a text hint in the prompt.
+
+    This function:
+    1. Resolves all $ref/$defs by inlining referenced definitions
+    2. Simplifies anyOf nullable unions (e.g. anyOf: [{type: "string"}, {type: "null"}])
+       to just the non-null type, keeping default/description
+    3. Replaces const with single-element enum
+    """
+    defs = schema.get("$defs", {})
+
+    def _resolve(node: Any) -> Any:
+        if not isinstance(node, dict):
+            if isinstance(node, list):
+                return [_resolve(item) for item in node]
+            return node
+
+        # Resolve $ref first
+        if "$ref" in node:
+            ref_path = node["$ref"]  # e.g. "#/$defs/Entity"
+            ref_name = ref_path.rsplit("/", 1)[-1]
+            if ref_name in defs:
+                # Inline the definition, merging any sibling keys (e.g. description)
+                resolved = _resolve(dict(defs[ref_name]))
+                # Preserve sibling keys from the referencing node
+                for k, v in node.items():
+                    if k != "$ref":
+                        resolved[k] = _resolve(v)
+                return resolved
+            return node  # unresolvable ref, leave as-is
+
+        result: dict[str, Any] = {}
+        for key, value in node.items():
+            if key == "$defs":
+                continue  # drop $defs — everything is inlined now
+
+            if key == "anyOf" and isinstance(value, list):
+                # Simplify nullable anyOf: [{type: "string"}, {type: "null"}] → {type: "string"}
+                non_null = [_resolve(v) for v in value if not (isinstance(v, dict) and v.get("type") == "null")]
+                if len(non_null) == 1:
+                    # Single non-null type — inline it, preserving sibling keys
+                    simplified = dict(non_null[0])
+                    for k, v in node.items():
+                        if k not in ("anyOf",) and k not in simplified:
+                            simplified[k] = _resolve(v)
+                    return simplified
+                elif len(non_null) > 1:
+                    # Multiple non-null types — keep anyOf but resolved
+                    result["anyOf"] = non_null
+                else:
+                    # All null — just use null
+                    result["type"] = "null"
+                continue
+
+            if key == "const":
+                # Replace const with single-element enum for broader compatibility
+                result["enum"] = [value]
+                continue
+
+            result[key] = _resolve(value)
+
+        return result
+
+    return _resolve(schema)
+
+
 def _summarize_status_error(e: APIStatusError, body_max: int = 400) -> str:
     """Render an APIStatusError with status code + truncated response body.
 
@@ -96,6 +168,7 @@ class OpenAICompatibleLLM(LLMInterface):
     - Ollama: Local models with native streaming API for better structured output
     - LMStudio: Local models with OpenAI-compatible API
     - MiniMax: MiniMax-M2.7 models via OpenAI-compatible API (https://api.minimax.io/v1)
+    - DeepSeek: deepseek-v4-flash / deepseek-v4-pro / deepseek-chat / deepseek-reasoner via https://api.deepseek.com
     """
 
     def __init__(
@@ -127,7 +200,17 @@ class OpenAICompatibleLLM(LLMInterface):
         super().__init__(provider, api_key, base_url, model, reasoning_effort, **kwargs)
 
         # Validate provider
-        valid_providers = ["openai", "groq", "ollama", "lmstudio", "llamacpp", "minimax", "volcano", "openrouter"]
+        valid_providers = [
+            "openai",
+            "groq",
+            "ollama",
+            "lmstudio",
+            "llamacpp",
+            "minimax",
+            "deepseek",
+            "volcano",
+            "openrouter",
+        ]
         if self.provider not in valid_providers:
             raise ValueError(f"OpenAICompatibleLLM only supports: {', '.join(valid_providers)}. Got: {self.provider}")
 
@@ -141,6 +224,8 @@ class OpenAICompatibleLLM(LLMInterface):
                 self.base_url = "http://localhost:1234/v1"
             elif self.provider == "minimax":
                 self.base_url = "https://api.minimax.io/v1"
+            elif self.provider == "deepseek":
+                self.base_url = "https://api.deepseek.com"
             elif self.provider == "openrouter":
                 self.base_url = "https://openrouter.ai/api/v1"
 
@@ -149,7 +234,7 @@ class OpenAICompatibleLLM(LLMInterface):
             self.api_key = "local"
 
         # Validate API key for cloud providers
-        if self.provider in ("openai", "groq", "minimax", "openrouter") and not self.api_key:
+        if self.provider in ("openai", "groq", "minimax", "deepseek", "openrouter") and not self.api_key:
             raise ValueError(f"API key is required for {self.provider}")
 
         # Service tier configuration (from config, not env vars)
@@ -356,6 +441,12 @@ class OpenAICompatibleLLM(LLMInterface):
             schema = None
             if hasattr(response_format, "model_json_schema"):
                 schema = response_format.model_json_schema()
+                # Simplify schema for better LLM compliance — resolves $ref/$defs,
+                # simplifies anyOf nullables, replaces const with enum.
+                from hindsight_api.config import get_config
+
+                if get_config().llm_simplify_json_schema:
+                    schema = _simplify_json_schema(schema)
 
             if strict_schema and schema is not None:
                 # Use OpenAI's strict JSON schema enforcement
@@ -653,6 +744,15 @@ class OpenAICompatibleLLM(LLMInterface):
         if "deepseek" in self.model.lower() and request_tool_choice != "auto":
             request_tool_choice = None
 
+        # "auto" is the OpenAI API default — omitting tool_choice is semantically
+        # identical. Some providers (e.g. DeepSeek's reasoner pathway, which
+        # deepseek-v4-flash falls into when thinking mode is enabled) reject the
+        # parameter outright, returning HTTP 400 even for value "auto". Sending it
+        # only when the caller asks for a non-default behaviour avoids those 400s
+        # without changing semantics for compliant providers.
+        if request_tool_choice == "auto":
+            request_tool_choice = None
+
         # DeepSeek tool-call replies can carry provider-specific reasoning_content.
         # The normalized tool result does not retain it, but replaying assistant
         # tool_calls without the field can trigger a 400. DeepSeek accepts an
@@ -831,8 +931,14 @@ class OpenAICompatibleLLM(LLMInterface):
         """
         start_time = time.time()
 
-        # Get the JSON schema from the Pydantic model
+        # Get the JSON schema from the Pydantic model and simplify it for Ollama's
+        # grammar engine, which doesn't support $ref, anyOf, or const.
         schema = response_format.model_json_schema() if hasattr(response_format, "model_json_schema") else None
+        if schema:
+            from hindsight_api.config import get_config
+
+            if get_config().llm_simplify_json_schema:
+                schema = _simplify_json_schema(schema)
 
         # Build the base URL for Ollama's native API
         # Default OpenAI-compatible URL is http://localhost:11434/v1

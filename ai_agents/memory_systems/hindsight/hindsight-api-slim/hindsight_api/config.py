@@ -132,11 +132,13 @@ ENV_LLM_TIMEOUT = "HINDSIGHT_API_LLM_TIMEOUT"
 ENV_LLM_GROQ_SERVICE_TIER = "HINDSIGHT_API_LLM_GROQ_SERVICE_TIER"
 ENV_LLM_OPENAI_SERVICE_TIER = "HINDSIGHT_API_LLM_OPENAI_SERVICE_TIER"
 ENV_LLM_EXTRA_BODY = "HINDSIGHT_API_LLM_EXTRA_BODY"
+ENV_LLM_SIMPLIFY_JSON_SCHEMA = "HINDSIGHT_API_LLM_SIMPLIFY_JSON_SCHEMA"
 
 # Defaults for service tiers
 DEFAULT_LLM_GROQ_SERVICE_TIER = "auto"  # "on_demand", "flex", or "auto"
 DEFAULT_LLM_OPENAI_SERVICE_TIER = None  # None (default) or "flex" (50% cheaper)
 DEFAULT_LLM_EXTRA_BODY = None  # None = no extra body params; JSON dict merged into OpenAI extra_body
+DEFAULT_LLM_SIMPLIFY_JSON_SCHEMA = True  # Flatten $ref/$defs/anyOf in JSON schemas for better LLM compliance
 
 # Per-operation LLM configuration (optional, falls back to global LLM config)
 ENV_RETAIN_LLM_PROVIDER = "HINDSIGHT_API_RETAIN_LLM_PROVIDER"
@@ -331,6 +333,7 @@ ENV_FILE_PARSER = "HINDSIGHT_API_FILE_PARSER"
 ENV_FILE_PARSER_ALLOWLIST = "HINDSIGHT_API_FILE_PARSER_ALLOWLIST"
 ENV_FILE_PARSER_IRIS_TOKEN = "HINDSIGHT_API_FILE_PARSER_IRIS_TOKEN"
 ENV_FILE_PARSER_IRIS_ORG_ID = "HINDSIGHT_API_FILE_PARSER_IRIS_ORG_ID"
+ENV_FILE_PARSER_LLAMA_PARSE_API_KEY = "HINDSIGHT_API_FILE_PARSER_LLAMA_PARSE_API_KEY"
 ENV_FILE_CONVERSION_MAX_BATCH_SIZE_MB = "HINDSIGHT_API_FILE_CONVERSION_MAX_BATCH_SIZE_MB"
 ENV_FILE_CONVERSION_MAX_BATCH_SIZE = "HINDSIGHT_API_FILE_CONVERSION_MAX_BATCH_SIZE"
 ENV_ENABLE_FILE_UPLOAD_API = "HINDSIGHT_API_ENABLE_FILE_UPLOAD_API"
@@ -445,6 +448,7 @@ PROVIDER_DEFAULT_MODELS = {
     "gemini": "gemini-2.5-flash",
     "groq": "openai/gpt-oss-120b",
     "minimax": "MiniMax-M2.7",
+    "deepseek": "deepseek-v4-flash",
     "ollama": "gemma3:12b",
     "llamacpp": "gemma-4-e2b-it",
     "lmstudio": "local-model",
@@ -840,6 +844,7 @@ class HindsightConfig:
     llm_extra_body: (
         dict | None
     )  # Extra body params merged into OpenAI-compatible API calls (e.g. {"chat_template_kwargs": {"enable_thinking": true}})
+    llm_simplify_json_schema: bool  # Flatten $ref/$defs/anyOf in JSON schemas for better LLM compliance (default: true)
 
     # Vertex AI configuration
     llm_vertexai_project_id: str | None
@@ -1009,6 +1014,7 @@ class HindsightConfig:
     file_parser_allowlist: list[str] | None  # Parsers clients may request (None = all registered)
     file_parser_iris_token: str | None  # Vectorize API token for iris parser (VECTORIZE_TOKEN)
     file_parser_iris_org_id: str | None  # Vectorize org ID for iris parser (VECTORIZE_ORG_ID)
+    file_parser_llama_parse_api_key: str | None  # LlamaCloud API key for llama_parse parser
     file_conversion_max_batch_size_mb: int  # Max total batch size in MB (all files combined)
     file_conversion_max_batch_size: int  # Max files per request
     enable_file_upload_api: bool
@@ -1148,6 +1154,7 @@ class HindsightConfig:
         "file_storage_azure_account_key",
         # File parser credentials
         "file_parser_iris_token",
+        "file_parser_llama_parse_api_key",
     }
 
     # CONFIGURABLE_FIELDS: Safe behavioral settings that can be customized per-tenant/bank
@@ -1335,6 +1342,10 @@ class HindsightConfig:
             llm_groq_service_tier=os.getenv(ENV_LLM_GROQ_SERVICE_TIER, DEFAULT_LLM_GROQ_SERVICE_TIER),
             llm_openai_service_tier=os.getenv(ENV_LLM_OPENAI_SERVICE_TIER, DEFAULT_LLM_OPENAI_SERVICE_TIER),
             llm_extra_body=json.loads(os.getenv(ENV_LLM_EXTRA_BODY, "null")),
+            llm_simplify_json_schema=os.getenv(
+                ENV_LLM_SIMPLIFY_JSON_SCHEMA, str(DEFAULT_LLM_SIMPLIFY_JSON_SCHEMA)
+            ).lower()
+            in ("true", "1"),
             # Vertex AI
             llm_vertexai_project_id=os.getenv(ENV_LLM_VERTEXAI_PROJECT_ID) or DEFAULT_LLM_VERTEXAI_PROJECT_ID,
             llm_vertexai_region=os.getenv(ENV_LLM_VERTEXAI_REGION, DEFAULT_LLM_VERTEXAI_REGION),
@@ -1630,6 +1641,7 @@ class HindsightConfig:
             else None,
             file_parser_iris_token=os.getenv(ENV_FILE_PARSER_IRIS_TOKEN) or None,
             file_parser_iris_org_id=os.getenv(ENV_FILE_PARSER_IRIS_ORG_ID) or None,
+            file_parser_llama_parse_api_key=os.getenv(ENV_FILE_PARSER_LLAMA_PARSE_API_KEY) or None,
             file_conversion_max_batch_size_mb=int(
                 os.getenv(ENV_FILE_CONVERSION_MAX_BATCH_SIZE_MB, str(DEFAULT_FILE_CONVERSION_MAX_BATCH_SIZE_MB))
             ),

@@ -64,7 +64,23 @@ Browse all supported integrations in the Integrations Hub.
 
 ### Which LLM providers are supported?
 
-<LLMProvidersGrid />
+- OpenAI
+- Anthropic
+- Google Gemini
+- Vertex AI
+- Groq
+- Ollama
+- LM Studio
+- llama.cpp
+- MiniMax
+- DeepSeek
+- Volcano Engine
+- OpenRouter
+- OpenAI Codex
+- Claude Code
+- AWS Bedrock
+- OpenAI Compatible
+- LiteLLM (100+)
 
 See [Models](developer/models.md) for the full list of supported providers, recommended models, and configuration examples.
 

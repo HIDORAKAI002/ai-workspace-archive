@@ -123,6 +123,23 @@ describe("gateway codex harness live helpers", () => {
     expect(isExpectedCodexModelsCommandText(text)).toBe(true);
   });
 
+  it("accepts the current Codex agent model list from the live harness", () => {
+    const text = [
+      "Available Codex agent models:",
+      "",
+      "- `dev`: `openai/gpt-5.5`",
+      "  - Runtime: `codex`",
+      "  - Configured: `false`",
+      "",
+      "No other agent models are currently exposed for this session.",
+    ].join("\n");
+
+    expect(
+      EXPECTED_CODEX_MODELS_COMMAND_TEXT.some((expectedText) => text.includes(expectedText)),
+    ).toBe(true);
+    expect(isExpectedCodexModelsCommandText(text)).toBe(true);
+  });
+
   it("accepts sandbox namespace failures with current-session model fallback", () => {
     const text = [
       "I can’t enumerate `/codex models` from this sandbox because the local `codex` CLI fails to start here with a user-namespace restriction (`bwrap: No permissions to create a new namespace`).",

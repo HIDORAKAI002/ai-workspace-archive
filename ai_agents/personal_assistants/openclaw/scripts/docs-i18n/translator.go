@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -108,7 +110,7 @@ func (t *CodexTranslator) translateMasked(ctx context.Context, core string) (str
 	if err != nil {
 		return "", err
 	}
-	translated := strings.TrimSpace(resText)
+	translated := stripCodexI18nInputWrappers(strings.TrimSpace(resText))
 	if translated == "" {
 		return "", errEmptyTranslation
 	}
@@ -123,11 +125,19 @@ func (t *CodexTranslator) translateRaw(ctx context.Context, core string) (string
 	if err != nil {
 		return "", err
 	}
-	translated := strings.TrimSpace(resText)
+	translated := stripCodexI18nInputWrappers(strings.TrimSpace(resText))
 	if translated == "" {
 		return "", errEmptyTranslation
 	}
 	return translated, nil
+}
+
+func stripCodexI18nInputWrappers(text string) string {
+	replacer := strings.NewReplacer(
+		"<openclaw_docs_i18n_input>", "",
+		"</openclaw_docs_i18n_input>", "",
+	)
+	return strings.TrimSpace(replacer.Replace(text))
 }
 
 func (t *CodexTranslator) prompt(ctx context.Context, message string) (string, error) {
@@ -179,10 +189,24 @@ func runCodexExecPrompt(ctx context.Context, req codexPromptRequest) (string, er
 	_ = outputFile.Close()
 	defer os.Remove(outputPath)
 
+	codexHomeBase, err := isolatedCodexHomeBase()
+	if err != nil {
+		return "", err
+	}
+	codexHome, err := os.MkdirTemp(codexHomeBase, "codex-home-*")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(codexHome)
+	if err := writeCodexAuthFile(codexHome); err != nil {
+		return "", err
+	}
+
 	args := []string{
 		"exec",
 		"--model", req.Model,
 		"-c", fmt.Sprintf("model_reasoning_effort=%q", normalizeThinking(req.Thinking)),
+		"-c", `service_tier="fast"`,
 		"--sandbox", "read-only",
 		"--ignore-rules",
 		"--skip-git-repo-check",
@@ -191,6 +215,7 @@ func runCodexExecPrompt(ctx context.Context, req codexPromptRequest) (string, er
 	}
 	command := exec.CommandContext(ctx, docsCodexExecutable(), args...)
 	command.Stdin = strings.NewReader(buildCodexTranslationPrompt(req.SystemPrompt, req.Message))
+	command.Env = append(os.Environ(), "CODEX_HOME="+codexHome)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	command.Stdout = &stdout
@@ -208,6 +233,37 @@ func runCodexExecPrompt(ctx context.Context, req codexPromptRequest) (string, er
 		return "", errEmptyTranslation
 	}
 	return translated, nil
+}
+
+func writeCodexAuthFile(codexHome string) error {
+	apiKey := strings.TrimSpace(os.Getenv("OPENAI_API_KEY"))
+	if apiKey == "" {
+		return nil
+	}
+	data, err := json.Marshal(map[string]string{
+		"auth_mode":      "apikey",
+		"OPENAI_API_KEY": apiKey,
+	})
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(codexHome, "auth.json"), append(data, '\n'), 0o600)
+}
+
+func isolatedCodexHomeBase() (string, error) {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil || strings.TrimSpace(cacheDir) == "" {
+		homeDir, homeErr := os.UserHomeDir()
+		if homeErr != nil {
+			return "", err
+		}
+		cacheDir = filepath.Join(homeDir, ".cache")
+	}
+	base := filepath.Join(cacheDir, "openclaw-docs-i18n")
+	if err := os.MkdirAll(base, 0o700); err != nil {
+		return "", err
+	}
+	return base, nil
 }
 
 func docsCodexExecutable() string {

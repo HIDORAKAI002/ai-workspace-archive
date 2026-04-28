@@ -31,6 +31,9 @@ MODEL_MATRIX = [
     # Groq models
     ("groq", "openai/gpt-oss-120b"),
     ("groq", "openai/gpt-oss-20b"),
+    # DeepSeek models
+    ("deepseek", "deepseek-v4-flash"),
+    ("deepseek", "deepseek-chat"),
     # Gemini models
     ("gemini", "gemini-2.5-flash"),
     ("gemini", "gemini-2.5-flash-lite"),
@@ -57,6 +60,7 @@ def get_api_key_for_provider(provider: str) -> str | None:
         "anthropic": "ANTHROPIC_API_KEY",
         "groq": "GROQ_API_KEY",
         "gemini": "GEMINI_API_KEY",
+        "deepseek": "DEEPSEEK_API_KEY",
     }
     env_var = provider_key_map.get(provider)
     return os.getenv(env_var) if env_var else None
