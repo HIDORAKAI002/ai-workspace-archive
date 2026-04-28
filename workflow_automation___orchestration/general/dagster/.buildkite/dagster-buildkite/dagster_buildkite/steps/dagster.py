@@ -16,7 +16,6 @@ from buildkite_shared.utils import oss_path
 from buildkite_shared.uv import UV_PIN
 from dagster_buildkite.steps.helm import build_helm_steps
 from dagster_buildkite.steps.integration import (
-    build_auto_materialize_perf_suite_steps,
     build_azure_live_test_suite_steps,
     build_backcompat_suite_steps,
     build_celery_k8s_suite_steps,
@@ -98,7 +97,6 @@ def build_test_project_and_dependents_group(
     dependent_steps += build_celery_k8s_suite_steps(ctx)
     dependent_steps += build_k8s_suite_steps(ctx)
     dependent_steps += build_daemon_suite_steps(ctx)
-    dependent_steps += build_auto_materialize_perf_suite_steps(ctx)
 
     image_steps = build_test_project_steps()
 
@@ -107,7 +105,7 @@ def build_test_project_and_dependents_group(
         if "group" in s:
             leaves.extend(s["steps"])
         else:
-            leaves.append(s)  # type: ignore[arg-type]
+            leaves.append(s)
 
     return [
         GroupStepBuilder(

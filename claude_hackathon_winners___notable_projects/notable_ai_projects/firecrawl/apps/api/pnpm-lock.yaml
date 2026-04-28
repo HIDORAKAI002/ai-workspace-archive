@@ -51,6 +51,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 2.0.64
         version: 2.0.64(zod@4.1.12)
+      '@ai-sdk/xai':
+        specifier: ^3.0.83
+        version: 3.0.83(zod@4.1.12)
       '@apidevtools/json-schema-ref-parser':
         specifier: ^15.1.2
         version: 15.1.2(@types/json-schema@7.0.15)
@@ -448,6 +451,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/openai-compatible@2.0.41':
+    resolution: {integrity: sha512-kNAGINk71AlOXx10Dq/PXw4t/9XjdK8uxfpVElRwtSFMdeSiLVt58p9TPx4/FJD+hxZuVhvxYj9r42osxWq79g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/openai@2.0.64':
     resolution: {integrity: sha512-+1mqxn42uB32DPZ6kurSyGAmL3MgCaDpkYU7zNDWI4NLy3Zg97RxTsI1jBCGIqkEVvRZKJlIMYtb89OvMnq3AQ==}
     engines: {node: '>=18'}
@@ -496,6 +505,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/provider-utils@4.0.23':
+    resolution: {integrity: sha512-z8GlDaCmRSDlqkMF2f4/RFgWxdarvIbyuk+m6WXT1LYgsnGiXRJGTD2Z1+SDl3LqtFuRtGX1aghYvQLoHL/9pg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider@1.0.8':
     resolution: {integrity: sha512-f9jSYwKMdXvm44Dmab1vUBnfCDSFfI5rOtvV1W9oKB7WYHR5dGvCC6x68Mk3NUfrdmNoMVHGoh6JT9HCVMlMow==}
     engines: {node: '>=18'}
@@ -511,6 +526,12 @@ packages:
   '@ai-sdk/provider@3.0.8':
     resolution: {integrity: sha512-oGMAgGoQdBXbZqNG0Ze56CHjDZ1IDYOwGYxYjO5KLSlz5HiNQ9udIXsPZ61VWaHGZ5XW/jyjmr6t2xz2jGVwbQ==}
     engines: {node: '>=18'}
+
+  '@ai-sdk/xai@3.0.83':
+    resolution: {integrity: sha512-SuQz68BZGeuZjrSUJAzku97IlhdiNJJBsvG/Tvm3K2tuxkBS7TJq0fH4/AzAM7w2H2jxVUgboP7kRR6IfpRxcg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
   '@apidevtools/json-schema-ref-parser@15.1.2':
     resolution: {integrity: sha512-54vnqDyGsDAVM0LOIdGMnfVyCN1NlqoGnHEGpMfaDBLMvClfT4j2XbJgvfuF0Ca0kxT6Gb7xUgS5W1I14QqjiQ==}
@@ -5994,6 +6015,12 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.18(zod@4.1.12)
       zod: 4.1.12
 
+  '@ai-sdk/openai-compatible@2.0.41(zod@4.1.12)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider-utils': 4.0.23(zod@4.1.12)
+      zod: 4.1.12
+
   '@ai-sdk/openai@2.0.64(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
@@ -6046,6 +6073,13 @@ snapshots:
       eventsource-parser: 3.0.6
       zod: 4.1.12
 
+  '@ai-sdk/provider-utils@4.0.23(zod@4.1.12)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.0.6
+      zod: 4.1.12
+
   '@ai-sdk/provider@1.0.8':
     dependencies:
       json-schema: 0.4.0
@@ -6061,6 +6095,13 @@ snapshots:
   '@ai-sdk/provider@3.0.8':
     dependencies:
       json-schema: 0.4.0
+
+  '@ai-sdk/xai@3.0.83(zod@4.1.12)':
+    dependencies:
+      '@ai-sdk/openai-compatible': 2.0.41(zod@4.1.12)
+      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider-utils': 4.0.23(zod@4.1.12)
+      zod: 4.1.12
 
   '@apidevtools/json-schema-ref-parser@15.1.2(@types/json-schema@7.0.15)':
     dependencies:

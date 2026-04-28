@@ -4,6 +4,8 @@ from unittest.mock import patch
 
 import pytest
 import sqlalchemy
+import sqlalchemy.exc
+import sqlalchemy.pool
 from dagster_postgres.auth import (
     AwsWifTokenProvider,
     AzureWifTokenProvider,

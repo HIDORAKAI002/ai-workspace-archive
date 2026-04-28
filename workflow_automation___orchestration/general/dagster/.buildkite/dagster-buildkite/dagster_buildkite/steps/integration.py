@@ -139,25 +139,6 @@ def build_daemon_suite_steps(ctx: BuildkiteContext) -> list[TopLevelStepConfigur
     )
 
 
-def build_auto_materialize_perf_suite_steps(
-    ctx: BuildkiteContext,
-) -> list[TopLevelStepConfiguration]:
-    pytest_tox_factors = None
-    directory = oss_path(
-        os.path.join("integration_tests", "test_suites", "auto_materialize_perf_tests")
-    )
-    return build_integration_suite_steps(
-        directory,
-        ctx,
-        pytest_tox_factors,
-        unsupported_python_versions=[
-            version
-            for version in AvailablePythonVersion.get_all()
-            if version != AvailablePythonVersion.V3_12
-        ],
-    )
-
-
 def skip_if_not_azure_commit(ctx: BuildkiteContext) -> str | None:
     """If no dagster-azure files are changed, skip the azure live tests."""
     return (
