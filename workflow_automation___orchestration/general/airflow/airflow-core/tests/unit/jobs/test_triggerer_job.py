@@ -74,6 +74,7 @@ from airflow.triggers.testing import FailureTrigger, SuccessTrigger
 from airflow.utils.state import State, TaskInstanceState
 from airflow.utils.types import DagRunType
 
+from tests_common.test_utils.config import conf_vars
 from tests_common.test_utils.db import (
     clear_db_connections,
     clear_db_dag_bundles,
@@ -407,6 +408,56 @@ def test_trigger_logger_fd_closed_when_removed(session):
 
 
 class TestTriggerRunner:
+    def test_blocked_main_thread_warning_threshold_decode(self) -> None:
+        with conf_vars({("triggerer", "blocked_main_thread_warning_threshold"): "0.5"}):
+            trigger_runner = TriggerRunner()
+
+        assert trigger_runner.blocked_main_thread_warning_threshold == 0.5
+
+    @pytest.mark.asyncio
+    async def test_block_watchdog_does_not_log_when_threshold_is_not_exceeded(self) -> None:
+        with conf_vars({("triggerer", "blocked_main_thread_warning_threshold"): "0.5"}):
+            trigger_runner = TriggerRunner()
+
+        trigger_runner.log = AsyncMock()
+
+        async def fake_sleep(_):
+            trigger_runner.stop = True
+
+        with (
+            patch("airflow.jobs.triggerer_job_runner.asyncio.sleep", side_effect=fake_sleep),
+            patch("airflow.jobs.triggerer_job_runner.time.monotonic", side_effect=[1.0, 1.4]),
+            patch("airflow.jobs.triggerer_job_runner.Stats.incr") as mock_stats_incr,
+        ):
+            await trigger_runner.block_watchdog()
+
+        trigger_runner.log.ainfo.assert_not_called()
+        mock_stats_incr.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_block_watchdog_logs_when_threshold_is_exceeded(self) -> None:
+        with conf_vars({("triggerer", "blocked_main_thread_warning_threshold"): "0.5"}):
+            trigger_runner = TriggerRunner()
+
+        trigger_runner.log = AsyncMock()
+
+        async def fake_sleep(_):
+            trigger_runner.stop = True
+
+        with (
+            patch("airflow.jobs.triggerer_job_runner.asyncio.sleep", side_effect=fake_sleep),
+            patch("airflow.jobs.triggerer_job_runner.time.monotonic", side_effect=[1.0, 1.6]),
+            patch("airflow.jobs.triggerer_job_runner.Stats.incr") as mock_stats_incr,
+        ):
+            await trigger_runner.block_watchdog()
+
+        trigger_runner.log.ainfo.assert_awaited_once()
+        log_message, elapsed, threshold = trigger_runner.log.ainfo.await_args.args
+        assert "configured warning threshold" in log_message
+        assert elapsed == pytest.approx(0.6)
+        assert threshold == 0.5
+        mock_stats_incr.assert_called_once_with("triggers.blocked_main_thread")
+
     def test_run_inline_trigger_canceled(self, session) -> None:
         trigger_runner = TriggerRunner()
         trigger_runner.triggers = {
