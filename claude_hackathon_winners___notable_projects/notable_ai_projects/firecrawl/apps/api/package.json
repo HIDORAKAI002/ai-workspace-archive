@@ -81,6 +81,7 @@
     "@ai-sdk/google-vertex": "^3.0.86",
     "@ai-sdk/groq": "^2.0.28",
     "@ai-sdk/openai": "2.0.64",
+    "@ai-sdk/xai": "^3.0.83",
     "@apidevtools/json-schema-ref-parser": "^15.1.2",
     "@bull-board/api": "^6.14.0",
     "@bull-board/express": "^6.14.0",

@@ -48,6 +48,7 @@ export const DEFAULT_SIDEBAR_ITEMS: string[] = [
   'pages',
   'recents',
   'agent',
+  'image',
   'community',
   'resource',
   'memory',
@@ -228,6 +229,8 @@ const isBannerDismissed =
 const tokenDisplayFormatShort = (s: GlobalState) =>
   s.status.tokenDisplayFormatShort !== undefined ? s.status.tokenDisplayFormatShort : true;
 
+const homeSelectedAgentId = (s: GlobalState) => s.status.homeSelectedAgentId;
+
 export const systemStatusSelectors = {
   agentBuilderPanelWidth,
   agentPageSize,
@@ -240,6 +243,7 @@ export const systemStatusSelectors = {
   groupAgentBuilderPanelWidth,
   hiddenSidebarSections,
   hidePWAInstaller,
+  homeSelectedAgentId,
   imagePanelWidth,
   imageTopicViewMode,
   imageTopicPanelWidth,

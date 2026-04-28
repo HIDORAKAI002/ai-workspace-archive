@@ -4,6 +4,7 @@ description: 'Automatically discover and sync data warehouse assets and metadata
 tags: [dagster-plus-feature]
 canonicalUrl: '/guides/labs/connections'
 slug: '/guides/labs/connections'
+sidebar_position: 30
 ---
 
 import EarlyAccess from '@site/docs/partials/\_EarlyAccess.md';
