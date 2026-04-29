@@ -1041,6 +1041,72 @@ class BenchmarkRunner:
             console.print(f"    Bank template: {template_path}")
         console.print("    [green]✓[/green] Memory system initialized")
 
+        # Start a background worker poller when we need to wait for consolidation.
+        # Consolidation is submitted as an async task by retain_batch_async, but
+        # without a running worker those tasks sit in the queue forever.
+        poller_task = None
+        poller = None
+        if wait_consolidation:
+            from hindsight_api.worker.poller import WorkerPoller
+
+            poller = WorkerPoller(
+                backend=self.memory._backend,
+                worker_id="benchmark-runner-worker",
+                executor=self.memory.execute_task,
+                poll_interval_ms=500,
+                max_slots=4,
+            )
+            poller_task = asyncio.create_task(poller.run())
+            console.print("    [green]✓[/green] Background worker started (for consolidation)")
+
+        try:
+            return await self._run_inner(
+                items,
+                agent_id,
+                thinking_budget,
+                max_tokens,
+                skip_ingestion,
+                max_questions_per_item,
+                max_concurrent_questions,
+                eval_semaphore_size,
+                clear_agent_per_item,
+                specific_item,
+                separate_ingestion_phase,
+                filln,
+                max_concurrent_items,
+                output_path,
+                merge_with_existing,
+                wait_consolidation,
+            )
+        finally:
+            if poller and poller_task:
+                await poller.shutdown_graceful(timeout=60.0)
+                poller_task.cancel()
+                try:
+                    await poller_task
+                except asyncio.CancelledError:
+                    pass
+                console.print("    [green]✓[/green] Background worker stopped")
+
+    async def _run_inner(
+        self,
+        items: List[Dict[str, Any]],
+        agent_id: str,
+        thinking_budget: int,
+        max_tokens: int,
+        skip_ingestion: bool,
+        max_questions_per_item: Optional[int],
+        max_concurrent_questions: int,
+        eval_semaphore_size: int,
+        clear_agent_per_item: bool,
+        specific_item: Any,
+        separate_ingestion_phase: bool,
+        filln: bool,
+        max_concurrent_items: int,
+        output_path: Optional[Path],
+        merge_with_existing: bool,
+        wait_consolidation: bool,
+    ) -> Dict[str, Any]:
         if separate_ingestion_phase:
             # New two-phase approach: ingest all, then evaluate all
             return await self._run_two_phase(

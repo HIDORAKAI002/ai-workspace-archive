@@ -143,7 +143,7 @@ export async function batchExtractPromise(
       promptTokens: 0,
       completionTokens: 0,
       totalTokens: 0,
-      model: "gemini-2.0-flash",
+      model: "gpt-4o-mini",
     },
     warning: warning,
     sources: [doc.metadata.url || doc.metadata.sourceURL || ""],

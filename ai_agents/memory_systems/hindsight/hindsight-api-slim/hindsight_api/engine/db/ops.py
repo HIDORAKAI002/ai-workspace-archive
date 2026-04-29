@@ -42,6 +42,15 @@ class DataAccessOps(ABC):
     in execution strategy between backends.
     """
 
+    @property
+    def uses_observation_sources_table(self) -> bool:
+        """Whether this backend uses the observation_sources junction table.
+
+        PG uses native array ops (source_memory_ids column) for reads and
+        skips junction table writes.  Oracle uses the junction table for both.
+        """
+        return True  # Default: use junction table (Oracle)
+
     # -- Bulk insert operations ------------------------------------------
 
     @abstractmethod
@@ -248,8 +257,8 @@ class DataAccessOps(ABC):
     ) -> tuple[list[ResultRow], list[ResultRow], list[ResultRow]]:
         """Observation-specific graph expansion.
 
-        Both backends use the observation_sources junction table with standard
-        SQL joins. Previously PG used native array ops and Oracle used JSON_TABLE.
+        PG uses native array ops (source_memory_ids column) for performance.
+        Oracle uses the observation_sources junction table.
         """
         ...
 

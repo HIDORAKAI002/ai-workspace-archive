@@ -22,6 +22,8 @@ on:
           - ""
           - retain
           - recall
+          - recall-with-observations
+          - consolidation
         default: ""
       locomo_max_conversations:
         description: "LoComo max conversations (0 = skip, blank = all)"
@@ -81,23 +83,44 @@ jobs:
       run: |
         cd hindsight-dev && uv sync --frozen --all-extras --index-strategy unsafe-best-match
 
-    - name: Run perf tests
+    - name: "Suite: retain"
+      if: inputs.suite == '' || inputs.suite == 'retain'
       run: |
-        SUITE_ARG=""
-        if [ -n "${{ inputs.suite }}" ]; then
-          SUITE_ARG="--suite ${{ inputs.suite }}"
-        fi
         ./scripts/benchmarks/run-perf-test.sh \
           --scale ${{ inputs.scale || 'large' }} \
-          $SUITE_ARG \
-          --output perf-results.json
+          --suite retain \
+          --output perf-results-retain.json
+
+    - name: "Suite: recall"
+      if: inputs.suite == '' || inputs.suite == 'recall'
+      run: |
+        ./scripts/benchmarks/run-perf-test.sh \
+          --scale ${{ inputs.scale || 'large' }} \
+          --suite recall \
+          --output perf-results-recall.json
+
+    - name: "Suite: recall-with-observations"
+      if: inputs.suite == '' || inputs.suite == 'recall-with-observations'
+      run: |
+        ./scripts/benchmarks/run-perf-test.sh \
+          --scale ${{ inputs.scale || 'large' }} \
+          --suite recall-with-observations \
+          --output perf-results-recall-with-observations.json
+
+    - name: "Suite: consolidation"
+      if: inputs.suite == '' || inputs.suite == 'consolidation'
+      run: |
+        ./scripts/benchmarks/run-perf-test.sh \
+          --scale ${{ inputs.scale || 'large' }} \
+          --suite consolidation \
+          --output perf-results-consolidation.json
 
     - name: Upload perf results
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: perf-results-${{ github.sha }}
-        path: hindsight-dev/perf-results.json
+        path: hindsight-dev/perf-results-*.json
         retention-days: 90
 
   locomo:
@@ -110,7 +133,7 @@ jobs:
       HINDSIGHT_API_JUDGE_LLM_PROVIDER: vertexai
       HINDSIGHT_API_JUDGE_LLM_MODEL: google/gemini-2.5-flash-lite
       HINDSIGHT_API_ANSWER_LLM_PROVIDER: vertexai
-      HINDSIGHT_API_ANSWER_LLM_MODEL: google/gemini-3.1-pro-preview
+      HINDSIGHT_API_ANSWER_LLM_MODEL: google/gemini-2.5-flash
     steps:
     - uses: actions/checkout@v6
       with:

@@ -35,7 +35,7 @@ class _OracleJSONEncoder(json.JSONEncoder):
 
 
 from .base import DatabaseBackend, DatabaseConnection
-from .result import ResultRow
+from .result import DictResultRow as ResultRow
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,10 @@
 """PostgreSQL backend implementation using asyncpg.
 
 Wraps asyncpg's pool and connection objects behind the DatabaseBackend
-and DatabaseConnection interfaces.
+and DatabaseConnection interfaces.  Returns raw asyncpg.Record objects
+from fetch/fetchrow — they satisfy the ResultRow protocol natively in C,
+avoiding Python-level wrapping overhead (~570K __getitem__ calls per
+20-query benchmark → measurable regression when wrapped).
 """
 
 import logging
@@ -12,7 +15,6 @@ from typing import Any
 import asyncpg  # noqa: F401
 
 from .base import DatabaseBackend, DatabaseConnection
-from .result import ResultRow
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +38,15 @@ class PostgresConnection(DatabaseConnection):
     async def executemany(self, query: str, args: list[tuple[Any, ...]], *, timeout: float | None = None) -> None:
         await self._conn.executemany(query, args, timeout=timeout)
 
-    async def fetch(self, query: str, *args: Any, timeout: float | None = None) -> list[ResultRow]:
-        rows = await self._conn.fetch(query, *args, timeout=timeout)
-        return [ResultRow(row) for row in rows]
+    async def fetch(self, query: str, *args: Any, timeout: float | None = None) -> list:
+        # Return raw asyncpg.Record objects — they satisfy the ResultRow
+        # protocol natively (key access, .keys(), .get(), etc.) with zero
+        # Python wrapping overhead.
+        return await self._conn.fetch(query, *args, timeout=timeout)
 
-    async def fetchrow(self, query: str, *args: Any, timeout: float | None = None) -> ResultRow | None:
-        row = await self._conn.fetchrow(query, *args, timeout=timeout)
-        if row is None:
-            return None
-        return ResultRow(row)
+    async def fetchrow(self, query: str, *args: Any, timeout: float | None = None):
+        # Return raw asyncpg.Record — no wrapping needed.
+        return await self._conn.fetchrow(query, *args, timeout=timeout)
 
     async def fetchval(self, query: str, *args: Any, column: int = 0, timeout: float | None = None) -> Any:
         return await self._conn.fetchval(query, *args, column=column, timeout=timeout)

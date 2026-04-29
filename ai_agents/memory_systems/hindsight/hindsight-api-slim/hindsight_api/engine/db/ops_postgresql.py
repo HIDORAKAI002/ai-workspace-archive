@@ -17,6 +17,10 @@ from .result import ResultRow
 class PostgreSQLOps(DataAccessOps):
     """PostgreSQL-specific data access operations using unnest and LATERAL."""
 
+    @property
+    def uses_observation_sources_table(self) -> bool:
+        return False  # PG uses native array ops on source_memory_ids
+
     async def bulk_upsert_chunks(
         self,
         conn: DatabaseConnection,
@@ -450,23 +454,21 @@ class PostgreSQLOps(DataAccessOps):
         budget: int,
         per_entity_limit: int,
     ) -> tuple[list[ResultRow], list[ResultRow], list[ResultRow]]:
-        # Entity expansion via observation_sources junction table.
-        # Previously used PG-specific unnest(source_memory_ids) and array
-        # overlap (&&). The junction table approach is portable across backends.
+        # v0.5.6 array ops: unnest, &&, COUNT(DISTINCT) on source_memory_ids.
         from ..schema import fq_table
 
-        obs_sources_table = fq_table("observation_sources")
         entity_rows = await conn.fetch(
             f"""
-            WITH source_ids AS (
-                SELECT DISTINCT os.source_id
-                FROM {obs_sources_table} os
-                WHERE os.observation_id = ANY($1::uuid[])
+            WITH seed_sources AS (
+                SELECT DISTINCT unnest(source_memory_ids) AS source_id
+                FROM {mu_table}
+                WHERE id = ANY($1::uuid[])
+                  AND source_memory_ids IS NOT NULL
             ),
             source_entities AS (
                 SELECT DISTINCT ue_seed.entity_id
-                FROM source_ids si
-                JOIN {ue_table} ue_seed ON ue_seed.unit_id = si.source_id
+                FROM seed_sources ss
+                JOIN {ue_table} ue_seed ON ue_seed.unit_id = ss.source_id
             ),
             connected_sources AS (
                 SELECT DISTINCT t.unit_id AS source_id
@@ -478,25 +480,23 @@ class PostgreSQLOps(DataAccessOps):
                     ORDER BY ue_target.unit_id DESC
                     LIMIT {per_entity_limit}
                 ) t
-                WHERE t.unit_id NOT IN (SELECT source_id FROM source_ids)
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM seed_sources ss WHERE ss.source_id = t.unit_id
+                )
+            ),
+            connected_array AS (
+                SELECT array_agg(source_id) AS source_ids FROM connected_sources
             )
             SELECT
                 mu.id, mu.text, mu.context, mu.event_date, mu.occurred_start,
                 mu.occurred_end, mu.mentioned_at,
                 mu.fact_type, mu.document_id, mu.chunk_id, mu.tags, mu.proof_count,
-                (SELECT COUNT(*)
-                 FROM {obs_sources_table} os2
-                 WHERE os2.observation_id = mu.id
-                   AND os2.source_id IN (SELECT source_id FROM connected_sources)
-                )::float AS score
-            FROM {mu_table} mu
+                (SELECT COUNT(DISTINCT s) FROM unnest(mu.source_memory_ids) s WHERE s = ANY(ca.source_ids))::float AS score
+            FROM {mu_table} mu, connected_array ca
             WHERE mu.fact_type = 'observation'
               AND mu.id != ALL($1::uuid[])
-              AND EXISTS (
-                  SELECT 1 FROM {obs_sources_table} os3
-                  WHERE os3.observation_id = mu.id
-                    AND os3.source_id IN (SELECT source_id FROM connected_sources)
-              )
+              AND ca.source_ids IS NOT NULL
+              AND mu.source_memory_ids && ca.source_ids
             ORDER BY score DESC
             LIMIT $2
             """,
