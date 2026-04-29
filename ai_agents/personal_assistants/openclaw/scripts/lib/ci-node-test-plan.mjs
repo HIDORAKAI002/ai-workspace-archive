@@ -10,6 +10,7 @@ const EXCLUDED_FULL_SUITE_SHARDS = new Set([
 ]);
 
 const EXCLUDED_PROJECT_CONFIGS = new Set(["test/vitest/vitest.channels.config.ts"]);
+const RELEASE_ONLY_PLUGIN_SHARDS = new Set(["agentic-plugins"]);
 function listTestFiles(rootDir) {
   if (!existsSync(rootDir)) {
     return [];
@@ -39,6 +40,7 @@ function createAutoReplyReplySplitShards() {
     "auto-reply-reply-agent-runner": [],
     "auto-reply-reply-commands": [],
     "auto-reply-reply-dispatch": [],
+    "auto-reply-reply-session": [],
     "auto-reply-reply-state-routing": [],
   };
 
@@ -61,21 +63,14 @@ function createAutoReplyReplySplitShards() {
       name.startsWith("get-reply")
     ) {
       groups["auto-reply-reply-dispatch"].push(file);
+    } else if (name.startsWith("session")) {
+      groups["auto-reply-reply-session"].push(file);
     } else {
       groups["auto-reply-reply-state-routing"].push(file);
     }
   }
 
-  const mergedGroups = {
-    "auto-reply-reply-agent-runner": groups["auto-reply-reply-agent-runner"],
-    "auto-reply-reply-dispatch": groups["auto-reply-reply-dispatch"],
-    "auto-reply-reply-commands-state-routing": [
-      ...groups["auto-reply-reply-commands"],
-      ...groups["auto-reply-reply-state-routing"],
-    ],
-  };
-
-  return Object.entries(mergedGroups)
+  return Object.entries(groups)
     .map(([groupName, includePatterns]) => ({
       configs: ["test/vitest/vitest.auto-reply-reply.config.ts"],
       includePatterns,
@@ -261,11 +256,21 @@ const SPLIT_NODE_SHARDS = new Map([
         requiresDist: false,
       },
       {
-        shardName: "agentic-plugin-sdk",
+        shardName: "agentic-gateway-core",
         configs: [
           "test/vitest/vitest.gateway-core.config.ts",
           "test/vitest/vitest.gateway-client.config.ts",
-          "test/vitest/vitest.gateway-methods.config.ts",
+        ],
+        requiresDist: false,
+      },
+      {
+        shardName: "agentic-gateway-methods",
+        configs: ["test/vitest/vitest.gateway-methods.config.ts"],
+        requiresDist: false,
+      },
+      {
+        shardName: "agentic-plugin-sdk",
+        configs: [
           "test/vitest/vitest.plugin-sdk-light.config.ts",
           "test/vitest/vitest.plugin-sdk.config.ts",
         ],
@@ -288,7 +293,9 @@ function formatNodeTestShardCheckName(shardName) {
   return `checks-node-${normalizedShardName}`;
 }
 
-export function createNodeTestShards() {
+export function createNodeTestShards(options = {}) {
+  const includeReleaseOnlyPluginShards = options.includeReleaseOnlyPluginShards ?? true;
+
   return fullSuiteVitestShards.flatMap((shard) => {
     if (EXCLUDED_FULL_SUITE_SHARDS.has(shard.config)) {
       return [];
@@ -302,6 +309,13 @@ export function createNodeTestShards() {
     const splitShards = SPLIT_NODE_SHARDS.get(shard.name);
     if (splitShards) {
       return splitShards.flatMap((splitShard) => {
+        if (
+          RELEASE_ONLY_PLUGIN_SHARDS.has(splitShard.shardName) &&
+          !includeReleaseOnlyPluginShards
+        ) {
+          return [];
+        }
+
         const splitConfigs = splitShard.includeExternalConfigs
           ? splitShard.configs
           : splitShard.configs.filter((config) => configs.includes(config));
