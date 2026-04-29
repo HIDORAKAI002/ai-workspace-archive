@@ -28,10 +28,9 @@ _logger = logging.getLogger(__name__)
 class ValuesTransformer(StreamTransformer):
     """Capture values events as a drainable stream of state snapshots.
 
-    Keeps `_latest` / `_interrupted` / `_interrupts` as scalar state
-    regardless of whether the log has a subscriber — so `run.output()`
-    and `run.interrupted` work without forcing the caller to iterate
-    `run.values`. Log pushes are silent no-ops when unsubscribed.
+    Provides the `run.values` projection. `run.output`,
+    `run.interrupted` and `run.interrupts` are tracked directly
+    by the run stream and do not depend on this transformer.
 
     Native transformer — projection keys are exposed as direct
     attributes on the run stream (e.g. `run.values`).
@@ -39,9 +38,9 @@ class ValuesTransformer(StreamTransformer):
     Only values events at the run's own level are captured; snapshots
     from deeper subgraphs are left in the main event log but excluded
     from the projection. "Own level" is defined by `scope`, which
-    `stream_v2` / `astream_v2` populate from the caller's checkpoint
-    namespace so that a nested `stream_v2` call still sees its own
-    root snapshots.
+    `stream_v2` / `astream_v2` populate from the caller's
+    checkpoint namespace so that a nested `stream_v2` call still
+    sees its own root snapshots.
     """
 
     _native = True
@@ -79,6 +78,76 @@ class ValuesTransformer(StreamTransformer):
         if interrupts:
             self._interrupted = True
             self._interrupts.extend(interrupts)
+        self._log.push(params["data"])
+        return True
+
+
+class CustomTransformer(StreamTransformer):
+    """Capture custom events as a drainable stream of arbitrary payloads.
+
+    Nodes emit custom data via `get_stream_writer()`. This transformer
+    surfaces those events on `run.custom` as a `StreamChannel[Any]`,
+    preserving payloads in arrival order.
+
+    Only events at the run's own scope are captured; custom data from
+    deeper subgraphs is available on the respective subgraph handle's
+    `.custom` projection.
+
+    Native transformer — `run.custom` is a direct attribute.
+    """
+
+    _native = True
+    required_stream_modes = ("custom",)
+
+    def __init__(self, scope: tuple[str, ...] = ()) -> None:
+        super().__init__(scope)
+        self._log: StreamChannel[Any] = StreamChannel()
+        self._scope_list: list[str] = list(scope)
+
+    def init(self) -> dict[str, Any]:
+        return {"custom": self._log}
+
+    def process(self, event: ProtocolEvent) -> bool:
+        if event["method"] != "custom":
+            return True
+        params = event["params"]
+        if params["namespace"] != self._scope_list:
+            return True
+        self._log.push(params["data"])
+        return True
+
+
+class UpdatesTransformer(StreamTransformer):
+    """Capture updates events as a drainable stream of node outputs.
+
+    Surfaces `stream_mode="updates"` data on `run.updates` as a
+    `StreamChannel[dict[str, Any]]`. Each item is a dict mapping a node
+    (or task) name to the update it returned after a step.
+
+    Only events at the run's own scope are captured; updates from deeper
+    subgraphs are available on the respective subgraph handle's
+    `.updates` projection.
+
+    Native transformer — `run.updates` is a direct attribute.
+    """
+
+    _native = True
+    required_stream_modes = ("updates",)
+
+    def __init__(self, scope: tuple[str, ...] = ()) -> None:
+        super().__init__(scope)
+        self._log: StreamChannel[dict[str, Any]] = StreamChannel()
+        self._scope_list: list[str] = list(scope)
+
+    def init(self) -> dict[str, Any]:
+        return {"updates": self._log}
+
+    def process(self, event: ProtocolEvent) -> bool:
+        if event["method"] != "updates":
+            return True
+        params = event["params"]
+        if params["namespace"] != self._scope_list:
+            return True
         self._log.push(params["data"])
         return True
 
@@ -549,17 +618,10 @@ class SubgraphTransformer(_TasksLifecycleBase):
         try:
             child_mux = self._mux._make_child(ns)
         except RuntimeError:
-            # Mux wasn't built from factories — no mini-mux navigation
-            # available. Skip; LifecycleTransformer still tracks the
-            # subgraph via the flat event stream.
-            return
-        values_t = child_mux.transformer_by_key("values")
-        if not isinstance(values_t, ValuesTransformer):
             return
         handle_cls = AsyncSubgraphRunStream if child_mux.is_async else SubgraphRunStream
         handle = handle_cls(
             mux=child_mux,
-            values_transformer=values_t,
             path=ns,
             graph_name=graph_name,
             trigger_call_id=trigger_call_id,
@@ -630,7 +692,9 @@ class SubgraphTransformer(_TasksLifecycleBase):
         else:
             await handle._mux.aclose()
 
-    def _child_mux_for_event(self, event: ProtocolEvent) -> StreamMux | None:
+    def _handle_for_event(
+        self, event: ProtocolEvent
+    ) -> SubgraphRunStream | AsyncSubgraphRunStream | None:
         ns = tuple(event["params"]["namespace"])
         depth = len(self.scope)
         if len(ns) < depth + 1:
@@ -638,22 +702,21 @@ class SubgraphTransformer(_TasksLifecycleBase):
         handle = self._handles.get(ns[: depth + 1])
         if handle is None or handle._mux is None or handle._mux._events._closed:
             return None
-        return handle._mux
+        return handle
 
     def process(self, event: ProtocolEvent) -> bool:
-        # Discover / update terminal status before forwarding so a
-        # `started` handle exists by the time the child mini-mux sees
-        # its own first event.
+        # Run tasks bookkeeping first so a `started` handle exists
+        # by the time we forward the event to the child mini-mux.
         keep = super().process(event)
-        child_mux = self._child_mux_for_event(event)
-        if child_mux is not None:
-            child_mux.push(event)
+        handle = self._handle_for_event(event)
+        if handle is not None:
+            handle._observe_event(event)
+            handle._mux.push(event)
         return keep
 
     async def aprocess(self, event: ProtocolEvent) -> bool:
-        # Async counterpart to `process`: repeat the tasks bookkeeping
-        # here instead of delegating to `process`, so child mini-muxes
-        # receive events through their async lane.
+        # Async counterpart: repeats the tasks bookkeeping here so
+        # child mini-muxes receive events through their async lane.
         if event["method"] == "tasks":
             ns = tuple(event["params"]["namespace"])
             data = event["params"]["data"]
@@ -665,9 +728,10 @@ class SubgraphTransformer(_TasksLifecycleBase):
             keep = False
         else:
             keep = True
-        child_mux = self._child_mux_for_event(event)
-        if child_mux is not None:
-            await child_mux.apush(event)
+        handle = self._handle_for_event(event)
+        if handle is not None:
+            handle._observe_event(event)
+            await handle._mux.apush(event)
         return keep
 
     def _complete_open_handles(self) -> BaseException | None:
@@ -747,3 +811,118 @@ class SubgraphTransformer(_TasksLifecycleBase):
                         handle.path,
                         exc_info=True,
                     )
+
+
+class CheckpointsTransformer(StreamTransformer):
+    """Capture checkpoint events as a drainable stream.
+
+    Surfaces `stream_mode="checkpoints"` data on `run.checkpoints` as
+    a `StreamChannel[dict[str, Any]]`. Each item is in the same format
+    as returned by `get_state()`.
+
+    Checkpoint events are only emitted when a checkpointer is configured
+    on the graph. When no checkpointer is present, the projection exists
+    but receives no events.
+
+    Only events at the run's own scope are captured; checkpoint data from
+    deeper subgraphs is available on the respective subgraph handle's
+    `.checkpoints` projection.
+
+    Native transformer — `run.checkpoints` is a direct attribute.
+    """
+
+    _native = True
+    required_stream_modes = ("checkpoints",)
+
+    def __init__(self, scope: tuple[str, ...] = ()) -> None:
+        super().__init__(scope)
+        self._log: StreamChannel[dict[str, Any]] = StreamChannel()
+        self._scope_list: list[str] = list(scope)
+
+    def init(self) -> dict[str, Any]:
+        return {"checkpoints": self._log}
+
+    def process(self, event: ProtocolEvent) -> bool:
+        if event["method"] != "checkpoints":
+            return True
+        params = event["params"]
+        if params["namespace"] != self._scope_list:
+            return True
+        self._log.push(params["data"])
+        return True
+
+
+class DebugTransformer(StreamTransformer):
+    """Capture debug events as a drainable stream.
+
+    Surfaces `stream_mode="debug"` data on `run.debug` as a
+    `StreamChannel[dict[str, Any]]`. Each item is a debug event with
+    step-level detail (checkpoint snapshots, task payloads, and
+    task results wrapped with step number and timestamp).
+
+    Only events at the run's own scope are captured; debug data from
+    deeper subgraphs is available on the respective subgraph handle's
+    `.debug` projection.
+
+    Native transformer — `run.debug` is a direct attribute.
+    """
+
+    _native = True
+    required_stream_modes = ("debug",)
+
+    def __init__(self, scope: tuple[str, ...] = ()) -> None:
+        super().__init__(scope)
+        self._log: StreamChannel[dict[str, Any]] = StreamChannel()
+        self._scope_list: list[str] = list(scope)
+
+    def init(self) -> dict[str, Any]:
+        return {"debug": self._log}
+
+    def process(self, event: ProtocolEvent) -> bool:
+        if event["method"] != "debug":
+            return True
+        params = event["params"]
+        if params["namespace"] != self._scope_list:
+            return True
+        self._log.push(params["data"])
+        return True
+
+
+class TasksTransformer(StreamTransformer):
+    """Capture raw task events as a drainable stream.
+
+    Surfaces `stream_mode="tasks"` data on `run.tasks` as a
+    `StreamChannel[dict[str, Any]]`. Each item is a task payload
+    (start or result).
+
+    `LifecycleTransformer` and `SubgraphTransformer` also consume
+    `tasks` events for subgraph discovery and lifecycle tracking.
+    This transformer captures the raw payloads independently for
+    consumers who need task-level detail.
+
+    Only events at the run's own scope are captured; task data from
+    deeper subgraphs is available on the respective subgraph handle's
+    `.tasks` projection.
+
+    Native transformer — `run.tasks` is a direct attribute.
+    """
+
+    _native = True
+    required_stream_modes = ("tasks",)
+
+    def __init__(self, scope: tuple[str, ...] = ()) -> None:
+        super().__init__(scope)
+        self._log: StreamChannel[dict[str, Any]] = StreamChannel()
+        self._scope_list: list[str] = list(scope)
+
+    def init(self) -> dict[str, Any]:
+        return {"tasks": self._log}
+
+    def process(self, event: ProtocolEvent) -> bool:
+        if event["method"] != "tasks":
+            return True
+        params = event["params"]
+        if params["namespace"] != self._scope_list:
+            return True
+        self._log.push(params["data"])
+        return True
