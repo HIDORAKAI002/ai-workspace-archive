@@ -211,11 +211,204 @@ Budget and max_tokens control different aspects of recall:
 
 ---
 
-## Graph Retrieval Algorithms
+## Scoring & Ranking Deep Dive
 
-Hindsight supports multiple graph traversal algorithms. The default (`link_expansion`) is optimized for fast retrieval with target latency under 100ms.
+This section explains exactly how Hindsight turns raw retrieval results into a final ranked list. The pipeline has three stages: **RRF fusion**, **cross-encoder reranking**, and **combined scoring**.
 
-See [Configuration → Retrieval](./configuration#retrieval) for available algorithms and how to configure them.
+### Stage 1: Reciprocal Rank Fusion (RRF)
+
+After all strategies run in parallel, their results are merged using [Reciprocal Rank Fusion](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf). RRF combines ranked lists by rewarding items that appear highly ranked across multiple strategies, without relying on raw scores (which aren't comparable across different retrieval methods).
+
+**Formula:**
+
+```
+score(d) = Σ  1 / (k + rank_i(d))
+           i
+```
+
+Where:
+- **k = 60** (smoothing constant — prevents top-ranked items from dominating)
+- **rank_i(d)** = position of document *d* in strategy *i* (1-indexed)
+- The sum runs over all strategies where *d* appears
+
+**All four strategies are weighted equally.** There are no per-strategy weight multipliers — importance comes from rank position, not the source.
+
+**Why RRF over raw score merging?** Each retrieval strategy produces scores on a different scale (cosine similarity, BM25 tf-idf, graph activation). These scores aren't comparable — a BM25 score of 12.5 and a cosine similarity of 0.85 don't mean the same thing. RRF sidesteps this by using only rank positions, making it robust across any scoring system without requiring calibration.
+
+**Example:** A memory ranked #1 in semantic and #5 in BM25:
+```
+RRF score = 1/(60+1) + 1/(60+5) = 0.0164 + 0.0154 = 0.0318
+```
+
+A memory ranked #1 in semantic only:
+```
+RRF score = 1/(60+1) = 0.0164
+```
+
+The first memory ranks higher because it has **consensus** across strategies.
+
+---
+
+### Stage 2: Cross-Encoder Reranking
+
+RRF gives a good initial ranking, but it's based on positions, not on deep query-document understanding. The cross-encoder evaluates each candidate against the query as a pair, producing a relevance score.
+
+**Pre-filtering:** Before reranking, candidates are trimmed to the top **300** (by RRF score) to limit computational cost. This is configurable via `HINDSIGHT_API_RERANKER_MAX_CANDIDATES`.
+
+**Why rerank after RRF?** RRF is position-based — it knows a memory ranked well across strategies, but it never actually reads the query and the memory together. The cross-encoder does: it takes the query and each candidate as a pair and produces a relevance score based on their full interaction. This catches nuances that position-based fusion misses, like a memory that ranked #1 in keyword search because it matched a common term but is actually irrelevant to the query's intent.
+
+**Score normalization:** Cross-encoders output raw logits (which can be negative). These are normalized to [0, 1] using the sigmoid function:
+
+```
+CE_normalized = 1 / (1 + e^(-raw_logit))
+```
+
+**Batch processing:** Candidates are scored in batches — **32 pairs** for the local reranker, **128 pairs** for TEI.
+
+:::tip No cross-encoder?
+When running without a cross-encoder (e.g., slim image with no external reranker), the system falls back to RRF-derived scores: candidates are assigned synthetic scores spread across [0.1, 1.0] based on their RRF rank, so the combined scoring boosts below still work meaningfully.
+:::
+
+---
+
+### Stage 3: Combined Scoring (Boosts)
+
+The normalized cross-encoder score is adjusted by three **multiplicative boosts** that incorporate signals the cross-encoder can't see: recency, temporal proximity, and evidence strength.
+
+**Why multiplicative instead of additive?** Additive boosts (e.g., `CE + 0.1 × recency`) would give the same absolute bonus to every candidate regardless of relevance. A barely-relevant memory could leapfrog a highly-relevant one just by being recent. Multiplicative boosts keep adjustments proportional to the base relevance score — a +10% nudge on a high-relevance memory is a bigger absolute change than +10% on a low-relevance one. This ensures secondary signals never overpower the primary relevance judgment.
+
+**Formula:**
+
+```
+final_score = CE_normalized × recency_boost × temporal_boost × proof_count_boost
+```
+
+Each boost is centered at 1.0 (neutral) and controlled by an alpha that caps how much it can swing:
+
+```
+boost = 1 + α × (signal - 0.5)
+```
+
+| Boost | α | Max adjustment | What it rewards |
+|-------|---|----------------|-----------------|
+| **Recency** | 0.2 | ±10% | Recent memories over older ones |
+| **Temporal proximity** | 0.2 | ±10% | Memories close to a queried time window |
+| **Proof count** | 0.1 | ±5% | Observations backed by more evidence |
+
+#### Recency signal
+
+Linear decay over 365 days from the memory's occurrence date:
+
+```
+recency = clamp(1.0 - days_ago / 365, 0.1, 1.0)
+```
+
+A memory from today has recency 1.0 (+10% boost). A memory from 6 months ago has recency ~0.5 (neutral). A memory older than a year has recency 0.1 (-8% penalty). Memories without dates get 0.5 (neutral — no boost or penalty).
+
+#### Temporal proximity signal
+
+Only active when the query contains a time reference (e.g., "last spring", "in 2023"). Measures how close a memory's date is to the center of the queried time window:
+
+```
+temporal_proximity = 1.0 - min(days_from_center / (window_days / 2), 1.0)
+```
+
+A memory at the center of the window gets 1.0 (+10% boost). A memory at the edge gets 0.0 (-10% penalty). For non-temporal queries, all memories get 0.5 (neutral).
+
+#### Proof count signal
+
+For observation-type memories, rewards those backed by more evidence using a logarithmic curve:
+
+```
+proof_norm = clamp(0.5 + ln(proof_count) / 10, 0.0, 1.0)
+```
+
+| Proof count | proof_norm | Boost |
+|-------------|-----------|-------|
+| 1 | 0.5 | Neutral |
+| 3 | 0.61 | +1.1% |
+| 10 | 0.73 | +2.3% |
+| 150+ | 1.0 | +5% (max) |
+
+#### Maximum combined range
+
+With all boosts at their extremes:
+- **Best case:** ×1.10 × 1.10 × 1.05 ≈ **+27%**
+- **Worst case:** ×0.90 × 0.90 × 0.95 ≈ **-23%**
+
+The boosts are intentionally conservative — they nudge the ranking without overriding cross-encoder relevance.
+
+---
+
+### Stage 4: Token Truncation
+
+After scoring, results are sorted by `final_score` and selected top-down until the `max_tokens` budget is exhausted. Only the memory text counts toward the budget — metadata is free.
+
+---
+
+### How Budget Maps to Pipeline Parameters
+
+The `budget` parameter (low/mid/high) controls **search depth** — how many candidates each strategy considers. Each level maps to a **recall budget** number that flows through every pipeline stage:
+
+| Budget | Recall budget (fixed mode) | Env var override |
+|--------|---------------------------|-----------------|
+| **low** | 100 | `HINDSIGHT_API_RECALL_BUDGET_FIXED_LOW` |
+| **mid** | 300 (default) | `HINDSIGHT_API_RECALL_BUDGET_FIXED_MID` |
+| **high** | 1000 | `HINDSIGHT_API_RECALL_BUDGET_FIXED_HIGH` |
+
+This recall budget flows through the pipeline as follows:
+
+| Pipeline stage | How the recall budget is used |
+|----------------|-------------------------------|
+| **Semantic search** | Over-fetches max(recall_budget × 5, 100) from HNSW, trims to recall_budget |
+| **BM25 search** | `LIMIT recall_budget` in SQL |
+| **Graph traversal** | Explores up to recall_budget nodes |
+| **Temporal spreading** | Activates up to recall_budget nodes via links |
+| **Result consideration** | Top recall_budget × 2 results considered for token filtering |
+
+Reranking pre-filter (300 candidates) is **independent** of budget — it's a separate knob (`HINDSIGHT_API_RERANKER_MAX_CANDIDATES`).
+
+:::info Adaptive budgeting
+An alternative budget mode scales the recall budget with `max_tokens` instead of using fixed values:
+
+```
+recall_budget = clamp(max_tokens × ratio, min, max)
+```
+
+| Budget | Ratio | Env var override |
+|--------|-------|-----------------|
+| low | 2.5% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_LOW` |
+| mid | 7.5% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_MID` |
+| high | 25% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_HIGH` |
+
+The result is clamped to a floor of **20** (`HINDSIGHT_API_RECALL_BUDGET_MIN`) and a ceiling of **2000** (`HINDSIGHT_API_RECALL_BUDGET_MAX`).
+
+Enable with `HINDSIGHT_API_RECALL_BUDGET_FUNCTION=adaptive`.
+:::
+
+---
+
+### Graph Scoring Detail
+
+The graph traversal (link expansion) combines three independent signals additively for each candidate:
+
+| Signal | Score formula | Range |
+|--------|--------------|-------|
+| **Entity overlap** | tanh(shared_entity_count × 0.5) | [0, ~1.0] |
+| **Semantic link** | Precomputed kNN link weight | [0.7, 1.0] |
+| **Causal link** | Causal link weight | [0, 1.0] |
+
+```
+graph_score = entity_score + semantic_score + causal_score   ∈ [0, 3]
+```
+
+The additive combination rewards **convergent evidence** — a memory connected to the query through multiple signal types ranks higher than one connected through a single strong signal.
+
+**Why tanh for entity scores?** Raw shared-entity count is unbounded — a high-fanout entity like "user" could produce counts of 50+, drowning out the other two signals. `tanh(count × 0.5)` saturates naturally: the first few shared entities matter a lot (1→0.46, 2→0.76, 3→0.91), but additional ones contribute diminishing returns, keeping the entity signal in [0, 1] alongside semantic and causal scores.
+
+**Why additive instead of multiplicative here?** Unlike the combined scoring boosts, graph signals are independent evidence channels, not adjustments to a base score. A memory might be connected only through causal links (no shared entities, no semantic similarity) — multiplicative combination would zero it out. Additive scoring lets each signal contribute independently, and the outer RRF fusion handles ranking across strategies.
+
+**Entity signal example:** A memory sharing 1 entity with the query scores tanh(0.5) ≈ 0.46. Two shared entities score tanh(1.0) ≈ 0.76. Three or more saturate near 0.91+.
 
 ---
 
