@@ -13,7 +13,7 @@ class GrapheneAssetKey(graphene.ObjectType):
 
     @staticmethod
     def to_manifest_dict(asset_key: AssetKey) -> dict:
-        return {"__typename": "AssetKey", "path": list(asset_key.path)}
+        return {"__typename": "AssetKey", "path": asset_key.path}
 
 
 class GrapheneAssetCheckHandle(graphene.ObjectType):
