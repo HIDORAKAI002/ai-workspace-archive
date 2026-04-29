@@ -33,8 +33,8 @@ jobs:
 
       - name: Validate version tag
         run: |
-          if ! [[ "${REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version tag format. Expected vX.Y.Z"
+          if ! [[ "${REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version tag format. Expected vX.Y.Z or vX.Y.Z-prerelease"
             exit 1
           fi
 
@@ -60,17 +60,13 @@ jobs:
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          NPM_DIST_TAG=$(node -p "require('./package.json').version.includes('-') ? 'next' : 'latest'")
           if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version >/dev/null 2>&1; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Publish npm package
-        if: steps.npm_publish_state.outputs.already_published != 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+          echo "dist_tag=${NPM_DIST_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Generate release highlights
         id: highlights
@@ -102,3 +98,11 @@ jobs:
         with:
           body_path: release_body.md
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'true' }}
+
+      - name: Publish npm package
+        if: steps.npm_publish_state.outputs.already_published != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance --tag "${{ steps.npm_publish_state.outputs.dist_tag }}"

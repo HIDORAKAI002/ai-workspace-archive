@@ -50,6 +50,18 @@ for (const workflow of [
     assert.match(content, /npm publish --access public --provenance/);
     assert.match(content, /NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/);
   });
+
+  test(`${workflow} creates the GitHub Release before publishing to npm`, () => {
+    const releaseIndex = content.indexOf('name: Create GitHub Release');
+    const publishIndex = content.indexOf('name: Publish npm package');
+
+    assert.ok(releaseIndex >= 0, `${workflow} should create a GitHub Release`);
+    assert.ok(publishIndex >= 0, `${workflow} should publish the npm package`);
+    assert.ok(
+      releaseIndex < publishIndex,
+      `${workflow} should not publish to npm until GitHub Release creation has succeeded`
+    );
+  });
 }
 
 if (failed > 0) {

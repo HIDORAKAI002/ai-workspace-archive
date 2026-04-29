@@ -1,5 +1,6 @@
 import asyncio
 import os
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import graphene
@@ -53,6 +54,7 @@ from dagster_graphql.schema.used_solid import GrapheneUsedSolid
 from dagster_graphql.schema.util import ResolveInfo, non_null_list
 
 if TYPE_CHECKING:
+    from dagster._core.definitions.events import AssetKey
     from dagster._core.remote_representation.external_data import AssetNodeSnap
 
 GrapheneLocationStateChangeEventType = graphene.Enum.from_enum(LocationStateChangeEventType)
@@ -500,11 +502,34 @@ class GrapheneRepository(graphene.ObjectType):
             if base_deployment_asset_graph is not None
             else None
         )
+
+        asset_node_snaps = repository.get_asset_node_snaps()
+
+        # dependedByKeys: derive downstream edges from parent_edges.
+        child_keys_by_asset_key: dict[AssetKey, list[AssetKey]] = defaultdict(list)
+        for snap in asset_node_snaps:
+            for dep in snap.parent_edges:
+                child_keys_by_asset_key[dep.parent_asset_key].append(snap.asset_key)
+
+        # hasAssetChecks: which assets have at least one check
+        asset_keys_with_checks: set[AssetKey] = {
+            check_snap.asset_key for check_snap in repository.get_asset_check_node_snaps()
+        }
+
+        # Same dict for every asset in this repo — hoist out of the per-asset loop.
+        repository_dict = GrapheneRepository.to_manifest_dict(self._handle)
+
         return [
             GrapheneAssetNode.to_manifest_dict(
-                node, self._handle, graphene_info, asset_graph_differ
+                snap,
+                self._handle,
+                graphene_info,
+                asset_graph_differ,
+                child_keys=child_keys_by_asset_key.get(snap.asset_key, ()),
+                has_asset_checks=snap.asset_key in asset_keys_with_checks,
+                repository_dict=repository_dict,
             )
-            for node in repository.asset_graph.asset_nodes
+            for snap in asset_node_snaps
         ]
 
     def resolve_assetGroups(self, graphene_info: ResolveInfo):
