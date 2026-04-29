@@ -40,6 +40,8 @@ Not just configs. A complete system: skills, instincts, memory optimization, con
 
 Works across **Claude Code**, **Codex**, **Cursor**, **OpenCode**, **Gemini**, and other AI agent harnesses.
 
+ECC v2.0.0-rc.1 adds the public Hermes operator story on top of that reusable layer: start with the [Hermes setup guide](docs/HERMES-SETUP.md), then review the [rc.1 release notes](docs/releases/2.0.0-rc.1/release-notes.md) and [cross-harness architecture](docs/architecture/cross-harness.md).
+
 ---
 
 ## The Guides
@@ -84,7 +86,7 @@ This repo is the raw code only. The guides explain everything.
 
 ## What's New
 
-### v1.10.0 — Surface Refresh, Operator Workflows, and ECC 2.0 Alpha (Apr 2026)
+### v2.0.0-rc.1 — Surface Refresh, Operator Workflows, and ECC 2.0 Alpha (Apr 2026)
 
 - **Dashboard GUI** — New Tkinter-based desktop application (`ecc_dashboard.py` or `npm run dashboard`) with dark/light theme toggle, font customization, and project logo in header and taskbar.
 - **Public surface synced to the live repo** — metadata, catalog counts, plugin manifests, and install-facing docs now match the actual OSS surface: 38 agents, 156 skills, and 72 legacy command shims.
@@ -167,7 +169,17 @@ See the full changelog in [Releases](https://github.com/affaan-m/everything-clau
 
 Get up and running in under 2 minutes:
 
-### Step 1: Install the Plugin
+### Pick one path only
+
+Most Claude Code users should use exactly one install path:
+
+- **Recommended default:** install the Claude Code plugin, then copy only the rule folders you actually want.
+- **Use the manual installer only if** you want finer-grained control, want to avoid the plugin path entirely, or your Claude Code build has trouble resolving the self-hosted marketplace entry.
+- **Do not stack install methods.** The most common broken setup is: `/plugin install` first, then `install.sh --profile full` or `npx ecc-install --profile full` afterward.
+
+If you already layered multiple installs and things look duplicated, skip straight to [Reset / Uninstall ECC](#reset--uninstall-ecc).
+
+### Step 1: Install the Plugin (Recommended)
 
 > NOTE: The plugin is convenient, but the OSS installer below is still the most reliable path if your Claude Code build has trouble resolving self-hosted marketplace entries.
 
@@ -195,9 +207,11 @@ This is intentional. Anthropic marketplace/plugin installs are keyed by a canoni
 >
 > If you already installed ECC via `/plugin install`, **do not run `./install.sh --profile full`, `.\install.ps1 --profile full`, or `npx ecc-install --profile full` afterward**. The plugin already loads ECC skills, commands, and hooks. Running the full installer after a plugin install copies those same surfaces into your user directories and can create duplicate skills plus duplicate runtime behavior.
 >
-> For plugin installs, manually copy only the `rules/` directories you want. Use the full installer only when you are doing a fully manual ECC install instead of the plugin path.
+> For plugin installs, manually copy only the `rules/` directories you want. Start with `rules/common` plus one language or framework pack you actually use. Do not copy every rules directory unless you explicitly want all of that context in Claude.
 >
-> If your local Claude setup was wiped or reset, that does not mean you need to repurchase ECC. Start with `ecc list-installed`, then run `ecc doctor` and `ecc repair` before reinstalling anything. That usually restores ECC-managed files without rebuilding your setup. If the problem is account or marketplace access for ECC Tools, handle billing/account recovery separately.
+> Use the full installer only when you are doing a fully manual ECC install instead of the plugin path.
+>
+> If your local Claude setup was wiped or reset, that does not mean you need to repurchase ECC. Start with `node scripts/ecc.js list-installed`, then run `node scripts/ecc.js doctor` and `node scripts/ecc.js repair` before reinstalling anything. That usually restores ECC-managed files without rebuilding your setup. If the problem is account or marketplace access for ECC Tools, handle billing/account recovery separately.
 
 ```bash
 # Clone the repo first
@@ -231,6 +245,57 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 
 For manual install instructions see the README in the `rules/` folder. When copying rules manually, copy the whole language directory (for example `rules/common` or `rules/golang`), not the files inside it, so relative references keep working and filenames do not collide.
 
+### Fully manual install (Fallback)
+
+Use this only if you are intentionally skipping the plugin path:
+
+```bash
+./install.sh --profile full
+```
+
+```powershell
+.\install.ps1 --profile full
+# or
+npx ecc-install --profile full
+```
+
+If you choose this path, stop there. Do not also run `/plugin install`.
+
+### Reset / Uninstall ECC
+
+If ECC feels duplicated, intrusive, or broken, do not keep reinstalling it on top of itself.
+
+- **Plugin path:** remove the plugin from Claude Code, then delete the specific rule folders you manually copied under `~/.claude/rules/`.
+- **Manual installer / CLI path:** from the repo root, preview removal first:
+
+```bash
+node scripts/uninstall.js --dry-run
+```
+
+Then remove ECC-managed files:
+
+```bash
+node scripts/uninstall.js
+```
+
+You can also use the lifecycle wrapper:
+
+```bash
+node scripts/ecc.js list-installed
+node scripts/ecc.js doctor
+node scripts/ecc.js repair
+node scripts/ecc.js uninstall --dry-run
+```
+
+ECC only removes files recorded in its install-state. It will not delete unrelated files it did not install.
+
+If you stacked methods, clean up in this order:
+
+1. Remove the Claude Code plugin install.
+2. Run the ECC uninstall command from the repo root to remove install-state-managed files.
+3. Delete any extra rule folders you copied manually and no longer want.
+4. Reinstall once, using a single path.
+
 ### Step 3: Start Using
 
 ```bash
@@ -247,7 +312,7 @@ For manual install instructions see the README in the `rules/` folder. When copy
 /plugin list everything-claude-code@everything-claude-code
 ```
 
-**That's it!** You now have access to 48 agents, 183 skills, and 79 legacy command shims.
+**That's it!** You now have access to 48 agents, 184 skills, and 79 legacy command shims.
 
 ### Dashboard GUI
 
@@ -1215,7 +1280,7 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 |---------|-------------|----------|--------|
 | Agents | PASS: 48 agents | PASS: 12 agents | **Claude Code leads** |
 | Commands | PASS: 79 commands | PASS: 31 commands | **Claude Code leads** |
-| Skills | PASS: 183 skills | PASS: 37 skills | **Claude Code leads** |
+| Skills | PASS: 184 skills | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers | PASS: Full | **Full parity** |
@@ -1324,7 +1389,7 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 |---------|------------|------------|-----------|----------|
 | **Agents** | 48 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
 | **Commands** | 79 | Shared | Instruction-based | 31 |
-| **Skills** | 183 | Shared | 10 (native format) | 37 |
+| **Skills** | 184 | Shared | 10 (native format) | 37 |
 | **Hook Events** | 8 types | 15 types | None yet | 11 types |
 | **Hook Scripts** | 20+ scripts | 16 scripts (DRY adapter) | N/A | Plugin hooks |
 | **Rules** | 34 (common + lang) | 34 (YAML frontmatter) | Instruction-based | 13 instructions |
@@ -1334,7 +1399,7 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 | **Context File** | CLAUDE.md + AGENTS.md | AGENTS.md | AGENTS.md | AGENTS.md |
 | **Secret Detection** | Hook-based | beforeSubmitPrompt hook | Sandbox-based | Hook-based |
 | **Auto-Format** | PostToolUse hook | afterFileEdit hook | N/A | file.edited hook |
-| **Version** | Plugin | Plugin | Reference config | 1.10.0 |
+| **Version** | Plugin | Plugin | Reference config | 2.0.0-rc.1 |
 
 **Key architectural decisions:**
 - **AGENTS.md** at root is the universal cross-tool file (read by all 4 tools)

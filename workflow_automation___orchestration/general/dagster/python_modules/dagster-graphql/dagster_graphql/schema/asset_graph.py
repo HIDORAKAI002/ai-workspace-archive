@@ -836,7 +836,7 @@ class GrapheneAssetNode(graphene.ObjectType):
         ]
 
     def resolve_dependedByKeys(self, _graphene_info: ResolveInfo) -> Sequence[GrapheneAssetKey]:
-        return [GrapheneAssetKey(path=key.path) for key in self._remote_node.child_keys]
+        return [GrapheneAssetKey(path=key.path) for key in sorted(self._remote_node.child_keys)]
 
     def resolve_dependencyKeys(self, _graphene_info: ResolveInfo) -> Sequence[GrapheneAssetKey]:
         return [
@@ -1476,17 +1476,21 @@ class GrapheneAssetNode(graphene.ObjectType):
 
     @staticmethod
     def to_manifest_dict(
-        remote_node: RemoteRepositoryAssetNode,
+        snap: AssetNodeSnap,
         repository_handle: RepositoryHandle,
         graphene_info: ResolveInfo,
         asset_graph_differ: AssetGraphDiffer | None,
+        *,
+        child_keys: Sequence[AssetKey],
+        has_asset_checks: bool,
+        repository_dict: dict,
     ) -> dict:
         from dagster_graphql.implementation.fetch_assets import get_unique_asset_id
-        from dagster_graphql.implementation.utils import has_permission_for_definition
+        from dagster_graphql.implementation.utils import has_permission_for_location_or_owners
 
-        snap = remote_node.asset_node_snap
         location_name = repository_handle.location_name
         repo_name = repository_handle.repository_name
+        owners = snap.owners or []
 
         partition_def = (
             GraphenePartitionDefinition.to_manifest_dict(snap.partitions)
@@ -1513,42 +1517,40 @@ class GrapheneAssetNode(graphene.ObjectType):
             "dependencyKeys": [
                 GrapheneAssetKey.to_manifest_dict(dep.parent_asset_key) for dep in snap.parent_edges
             ],
-            "dependedByKeys": [
-                GrapheneAssetKey.to_manifest_dict(key) for key in remote_node.child_keys
-            ],
+            "dependedByKeys": [GrapheneAssetKey.to_manifest_dict(key) for key in child_keys],
             "changedReasons": changed_reasons,
             "groupName": snap.group_name,
-            "opNames": list(snap.op_names or []),
+            "opNames": snap.op_names,
             "isMaterializable": snap.is_materializable,
             "isObservable": snap.is_observable,
             "isExecutable": snap.is_executable,
             "isPartitioned": snap.partitions is not None,
             "isAutoCreatedStub": snap.metadata.get(SYSTEM_METADATA_KEY_AUTO_CREATED_STUB_ASSET)
             is not None,
-            "hasAssetChecks": bool(remote_node.check_keys),
+            "hasAssetChecks": has_asset_checks,
             "computeKind": snap.compute_kind,
-            "hasMaterializePermission": has_permission_for_definition(
-                graphene_info, Permissions.LAUNCH_PIPELINE_EXECUTION, remote_node
+            "hasMaterializePermission": has_permission_for_location_or_owners(
+                graphene_info, Permissions.LAUNCH_PIPELINE_EXECUTION, owners, location_name
             ),
-            "hasWipePermission": has_permission_for_definition(
-                graphene_info, Permissions.WIPE_ASSETS, remote_node
+            "hasWipePermission": has_permission_for_location_or_owners(
+                graphene_info, Permissions.WIPE_ASSETS, owners, location_name
             ),
-            "hasReportRunlessAssetEventPermission": has_permission_for_definition(
-                graphene_info, Permissions.REPORT_RUNLESS_ASSET_EVENTS, remote_node
+            "hasReportRunlessAssetEventPermission": has_permission_for_location_or_owners(
+                graphene_info, Permissions.REPORT_RUNLESS_ASSET_EVENTS, owners, location_name
             ),
             "assetKey": GrapheneAssetKey.to_manifest_dict(snap.asset_key),
             "internalFreshnessPolicy": freshness_policy,
             "partitionDefinition": partition_def,
             "automationCondition": automation_condition,
             "description": snap.description,
-            "owners": [GrapheneAssetOwner.to_manifest_dict(o) for o in (snap.owners or [])],
+            "owners": [GrapheneAssetOwner.to_manifest_dict(o) for o in owners],
             "tags": [
                 GrapheneDefinitionTag.to_manifest_dict(k, v) for k, v in (snap.tags or {}).items()
             ],
             "pools": sorted(snap.pools or []),
-            "jobNames": list(snap.job_names),
+            "jobNames": snap.job_names,
             "kinds": GrapheneAssetNode._get_compute_kinds(snap),
-            "repository": external.GrapheneRepository.to_manifest_dict(repository_handle),
+            "repository": repository_dict,
         }
 
 

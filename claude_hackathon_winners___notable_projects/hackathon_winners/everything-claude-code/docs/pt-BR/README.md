@@ -80,7 +80,7 @@ Este repositório contém apenas o código. Os guias explicam tudo.
 
 ## O Que Há de Novo
 
-### v1.10.0 — Sincronização de Superfície, Fluxos Operacionais e ECC 2.0 Alpha (Abr 2026)
+### v2.0.0-rc.1 — Sincronização de Superfície, Fluxos Operacionais e ECC 2.0 Alpha (Abr 2026)
 
 - **Superfície pública sincronizada com o repositório real** — metadados, contagens de catálogo, manifests de plugin e documentação de instalação agora refletem a superfície OSS que realmente é entregue.
 - **Expansão dos fluxos operacionais e externos** — `brand-voice`, `social-graph-ranker`, `customer-billing-ops`, `google-workspace-ops` e skills relacionadas fortalecem a trilha operacional dentro do mesmo sistema.
