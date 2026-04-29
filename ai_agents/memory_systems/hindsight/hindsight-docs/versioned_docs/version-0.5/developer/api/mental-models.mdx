@@ -353,6 +353,15 @@ When you call `reflect` with tags, those same tags are used to filter which ment
 
 For more details on tag matching modes (`any`, `any_strict`, `all`, `all_strict`) and worked examples, see the [Recall tags reference](./recall#tags).
 
+### Listing mental model tags
+
+`GET /v1/default/banks/{bank_id}/tags` accepts a `source` query parameter that selects which tag space to enumerate:
+
+- `source=memories` *(default)* — tags attached to memory units.
+- `source=mental_models` — tags attached to mental models in this bank.
+
+Use the `mental_models` source to populate autocomplete or filter UIs over mental-model tags, distinct from the (typically larger) memory tag set.
+
 ---
 
 ## History

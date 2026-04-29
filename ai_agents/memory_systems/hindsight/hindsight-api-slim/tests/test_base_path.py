@@ -115,11 +115,7 @@ async def test_base_path_full_workflow(api_client_with_base_path):
     """
     bank_id = "test_base_path_bank"
 
-    # 1. Create/get bank
-    response = await api_client_with_base_path.get(f"/v1/default/banks/{bank_id}/profile")
-    assert response.status_code == 200
-
-    # 2. Store a memory
+    # 1. Store a memory (implicitly creates the bank)
     response = await api_client_with_base_path.post(
         f"/v1/default/banks/{bank_id}/memories",
         json={

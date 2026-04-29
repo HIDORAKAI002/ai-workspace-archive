@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from hindsight_api.engine.db import create_database_backend
-from hindsight_api.engine.db.result import ResultRow
+from hindsight_api.engine.db.result import DictResultRow as ResultRow
 from hindsight_api.engine.entity_resolver import EntityResolver
 from hindsight_api.pg0 import resolve_database_url
 

@@ -259,6 +259,11 @@
         "type": "boolean",
         "description": "When true (default), sessions matching statelessSessionPatterns also skip recall. When false, they can recall but never retain.",
         "default": true
+      },
+      "enableKnowledgeTools": {
+        "type": "boolean",
+        "description": "Register agent_knowledge_* tools for self-driving agents. Set automatically by the self-driving-agents CLI.",
+        "default": false
       }
     },
     "additionalProperties": false

@@ -1,71 +1,73 @@
-"""Uniform row wrapper over heterogeneous database drivers.
+"""Uniform row interface over heterogeneous database drivers.
 
-ResultRow provides dict-like access to database rows regardless of whether
-the underlying driver returns asyncpg.Record, oracledb rows, or plain dicts.
+ResultRow is a Protocol that describes the dict-like access pattern all
+database rows must support.  asyncpg.Record already satisfies this protocol
+natively (key-based access, .keys(), .values(), etc.) so the PostgreSQL
+backend returns raw Records — zero wrapping overhead.
+
+Only backends whose native row type does NOT satisfy the protocol (e.g.,
+Oracle named-tuple rows) need the concrete DictResultRow wrapper.
 """
 
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 
-class ResultRow:
-    """Dict-like wrapper over database rows.
+@runtime_checkable
+class ResultRow(Protocol):
+    """Dict-like row interface returned by all database operations."""
 
-    Supports both key-based access (row["col"]) and attribute access (row.col).
-    Wraps asyncpg.Record, oracledb named-tuple rows, or plain dicts.
+    def __getitem__(self, key: str | int) -> Any: ...
+    def get(self, key: str, default: Any = None) -> Any: ...
+    def keys(self) -> Any: ...
+    def values(self) -> Any: ...
+    def items(self) -> Any: ...
+    def __contains__(self, key: str) -> bool: ...
+    def __len__(self) -> int: ...
+
+
+class DictResultRow:
+    """Concrete wrapper for backends whose native rows lack dict-like access.
+
+    Used by Oracle (named-tuple rows, plain dicts) and tests.
+    asyncpg.Record satisfies ResultRow natively — do NOT wrap it.
     """
 
     __slots__ = ("_data",)
 
     def __init__(self, data: Any) -> None:
-        """Wrap a row from any database driver.
-
-        Args:
-            data: The raw row object (asyncpg.Record, dict, named tuple, etc.)
-        """
         object.__setattr__(self, "_data", data)
 
-    # -- dict-like access ------------------------------------------------
-
     def __getitem__(self, key: str | int) -> Any:
-        """Get a value by column name or index."""
         data = object.__getattribute__(self, "_data")
-        if isinstance(data, dict):
-            return data[key]
         return data[key]
 
     def __getattr__(self, key: str) -> Any:
-        """Get a value by attribute name (for convenience)."""
         data = object.__getattribute__(self, "_data")
         if isinstance(data, dict):
             try:
                 return data[key]
             except KeyError:
                 raise AttributeError(key) from None
-        # asyncpg.Record and named tuples support key-based access
         try:
             return data[key]
         except (KeyError, TypeError):
             raise AttributeError(key) from None
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Get a value with a default (like dict.get)."""
         try:
             return self[key]
         except (KeyError, IndexError):
             return default
 
     def keys(self) -> list[str]:
-        """Return column names."""
         data = object.__getattribute__(self, "_data")
         if isinstance(data, dict):
             return list(data.keys())
-        # asyncpg.Record has .keys()
         if hasattr(data, "keys"):
             return list(data.keys())
         return []
 
     def values(self) -> list[Any]:
-        """Return column values."""
         data = object.__getattribute__(self, "_data")
         if isinstance(data, dict):
             return list(data.values())
@@ -74,7 +76,6 @@ class ResultRow:
         return []
 
     def items(self) -> list[tuple[str, Any]]:
-        """Return (key, value) pairs."""
         data = object.__getattribute__(self, "_data")
         if isinstance(data, dict):
             return list(data.items())
@@ -82,11 +83,9 @@ class ResultRow:
             return list(data.items())
         return list(zip(self.keys(), self.values()))
 
-    # -- representation --------------------------------------------------
-
     def __repr__(self) -> str:
         data = object.__getattribute__(self, "_data")
-        return f"ResultRow({data!r})"
+        return f"DictResultRow({data!r})"
 
     def __contains__(self, key: str) -> bool:
         data = object.__getattribute__(self, "_data")

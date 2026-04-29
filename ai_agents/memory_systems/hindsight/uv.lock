@@ -1662,7 +1662,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.42.74" },
     { name = "claude-agent-sdk", specifier = ">=0.1.27" },
     { name = "cohere", specifier = ">=5.0.0" },
-    { name = "cryptography", specifier = ">=46.0.6" },
+    { name = "cryptography", specifier = ">=46.0.6,<47" },
     { name = "dateparser", specifier = ">=1.2.2" },
     { name = "einops", marker = "extra == 'local-ml'", specifier = ">=0.8.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.120.3" },

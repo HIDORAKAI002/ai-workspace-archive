@@ -416,8 +416,8 @@ ${escapePromptTags(markdown)}
       model: getModel("gemini-2.5-flash-lite", "google"),
     },
     {
-      name: "gemini-2.0-flash-lite",
-      model: getModel("gemini-2.0-flash-lite", "google"),
+      name: "gemini-2.5-flash-lite",
+      model: getModel("gemini-2.5-flash-lite", "vertex"),
     },
   ];
 
