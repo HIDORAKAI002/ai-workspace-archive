@@ -80,7 +80,7 @@
 
 ## 最新动态
 
-### v1.10.0 — 表面同步、运营工作流与 ECC 2.0 Alpha（2026年4月）
+### v2.0.0-rc.1 — 表面同步、运营工作流与 ECC 2.0 Alpha（2026年4月）
 
 - **公共表面已与真实仓库同步** —— 元数据、目录数量、插件清单以及安装文档现在都与实际开源表面保持一致。
 - **运营与外向型工作流扩展** —— `brand-voice`、`social-graph-ranker`、`customer-billing-ops`、`google-workspace-ops` 等运营型 skill 已纳入同一系统。
@@ -160,7 +160,7 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 /plugin list everything-claude-code@everything-claude-code
 ```
 
-**完成！** 你现在可以使用 48 个代理、183 个技能和 79 个命令。
+**完成！** 你现在可以使用 48 个代理、184 个技能和 79 个命令。
 
 ### multi-* 命令需要额外配置
 
