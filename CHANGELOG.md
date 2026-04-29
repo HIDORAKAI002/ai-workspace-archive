@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-30 00:14 IST] Auto-Sync
+- **40 Repositories Updated:** MCP TypeScript SDK, Keboola MCP, AI Tools System Prompts, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, Plane, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, Significant-Gravitas/AutoGPT, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-04-29 17:32 IST] Auto-Sync
 - **26 Repositories Updated:** Kubernetes MCP Server, n8n, Dify, Activepieces, Trigger.dev, Budibase, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, Jenqyang/Awesome-AI-Agents, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
 
