@@ -2,6 +2,7 @@ import type {
   MoltbotPluginAPI,
   PluginConfig,
   PluginHookAgentContext,
+  PluginToolContext,
   MemoryResult,
   RetainRequest,
 } from "./types.js";
@@ -14,13 +15,15 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import * as log from "./logger.js";
 import { configureLogger, setApiLogger, stopLogger } from "./logger.js";
-import { mkdirSync, readFileSync } from "fs";
+import { mkdirSync } from "fs";
+import { createRequire } from "module";
 import { homedir } from "os";
+import { createKnowledgeTools, TOOL_NAMES } from "@vectorize-io/hindsight-agent-sdk";
 
 function loadPackageVersion(): string {
   try {
-    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
+    const require = createRequire(import.meta.url);
+    const pkg = require("../package.json") as { version?: string };
     return pkg.version ?? "0.0.0";
   } catch {
     return "0.0.0";
@@ -2353,6 +2356,40 @@ ${memoriesFormatted}
     });
     debug("[Hindsight] Hooks registered");
     log.info("agent hooks registered");
+
+    // Register knowledge tools (opt-in via enableKnowledgeTools config flag)
+    if (pluginConfig.enableKnowledgeTools && typeof api.registerTool === "function") {
+      try {
+        const apiUrl = (() => {
+          const ext = detectExternalApi(pluginConfig);
+          return ext?.apiUrl || `http://localhost:${pluginConfig.apiPort || 9077}`;
+        })();
+        const apiToken = pluginConfig.hindsightApiToken || undefined;
+
+        // Factory: called per session with agent context, returns tools scoped to that bank
+        const factory = (ctx: PluginToolContext) => {
+          const bankId = deriveBankId(ctx as any, pluginConfig);
+          const tools = createKnowledgeTools({ apiUrl, apiToken, bankId });
+          return tools.map((t) => ({
+            name: t.name,
+            label: t.label,
+            description: t.description,
+            parameters: t.parameters,
+            async execute(_id: string, params: Record<string, unknown>) {
+              return { ...(await t.execute(params)), details: {} };
+            },
+          }));
+        };
+
+        api.registerTool(factory, {
+          names: [...TOOL_NAMES],
+          optional: false,
+        });
+        log.info("knowledge tools registered");
+      } catch (err) {
+        log.warn(`knowledge tools registration failed: ${err}`);
+      }
+    }
   } catch (error) {
     log.error("plugin loading error", error);
     if (error instanceof Error) {

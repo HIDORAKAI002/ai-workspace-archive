@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, realpathSync } from "fs";
+import { existsSync, realpathSync } from "fs";
 import { dirname, join, resolve } from "path";
+import { createRequire } from "module";
 import { fileURLToPath, pathToFileURL } from "url";
 import { HindsightServer } from "@vectorize-io/hindsight-all";
 import { HindsightClient } from "@vectorize-io/hindsight-client";
 
 function loadPackageVersion(): string {
   try {
-    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
+    const require = createRequire(import.meta.url);
+    const pkg = require("../package.json") as { version?: string };
     return pkg.version ?? "0.0.0";
   } catch {
     return "0.0.0";

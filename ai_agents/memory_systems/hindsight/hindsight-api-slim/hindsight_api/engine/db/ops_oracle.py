@@ -13,7 +13,7 @@ from uuid import UUID
 
 from .base import DatabaseConnection
 from .ops import DataAccessOps, TagListingParts
-from .result import ResultRow
+from .result import DictResultRow as ResultRow
 
 
 class OracleOps(DataAccessOps):

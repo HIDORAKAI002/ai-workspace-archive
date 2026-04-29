@@ -8,6 +8,22 @@ import PageHero from '@site/src/components/PageHero';
 
 ← OpenClaw integration
 
+## [0.7.2](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.7.2)
+
+*This release contains internal maintenance and infrastructure changes only.*
+
+## [0.7.1](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.7.1)
+
+**Bug Fixes**
+
+- Fix OpenClaw integration upgrades by using the published agent-sdk dependency and updating the plugin configuration schema.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/c1924e9d" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>c1924e9d</a>
+
+## [0.7.0](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.7.0)
+
+**Features**
+
+- Added initial support for self-driving agents in the OpenClaw integration for Hindsight.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/7f30dcc7" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>7f30dcc7</a>
+
 ## [0.6.6](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.6.6)
 
 **Bug Fixes**

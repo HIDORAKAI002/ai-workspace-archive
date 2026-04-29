@@ -144,10 +144,6 @@ async def test_memories_timeseries_empty_bank_returns_zero_filled_buckets(
 ):
     """A bank with no memories must still return the full zero-filled bucket set."""
     try:
-        # Ensure the bank exists.
-        response = await api_client.get(f"/v1/default/banks/{test_bank_id}/profile")
-        assert response.status_code == 200
-
         response = await api_client.get(
             f"/v1/default/banks/{test_bank_id}/stats/memories-timeseries",
             params={"period": "7d"},

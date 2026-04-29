@@ -1025,21 +1025,21 @@ async def _execute_update_action(
         merged_tags,
     )
 
-    # Dual-write: sync observation_sources junction table with updated source_ids.
-    # DELETE + INSERT is simpler than diffing, and this runs inside a transaction.
-    obs_uuid = uuid.UUID(observation_id)
-    await conn.execute(
-        f"DELETE FROM {fq_table('observation_sources')} WHERE observation_id = $1",
-        obs_uuid,
-    )
-    if source_ids:
-        await conn.executemany(
-            f"""
-            INSERT INTO {fq_table("observation_sources")} (observation_id, source_id)
-            VALUES ($1, $2)
-            """,
-            [(obs_uuid, sid) for sid in source_ids],
+    # Sync observation_sources junction table (Oracle only — PG uses native array ops).
+    if memory_engine._backend.ops.uses_observation_sources_table:
+        obs_uuid = uuid.UUID(observation_id)
+        await conn.execute(
+            f"DELETE FROM {fq_table('observation_sources')} WHERE observation_id = $1",
+            obs_uuid,
         )
+        if source_ids:
+            await conn.executemany(
+                f"""
+                INSERT INTO {fq_table("observation_sources")} (observation_id, source_id)
+                VALUES ($1, $2)
+                """,
+                [(obs_uuid, sid) for sid in source_ids],
+            )
 
     if perf:
         perf.record_timing("db_write", time.time() - t0)
@@ -1411,10 +1411,8 @@ async def _create_observation_directly(
         obs_mentioned_at,
     )
 
-    # Dual-write: populate observation_sources junction table alongside
-    # the source_memory_ids column. The junction table enables portable SQL
-    # joins, replacing PG-specific array operators and Oracle JSON_TABLE.
-    if source_memory_ids:
+    # Populate observation_sources junction table (Oracle only — PG uses native array ops).
+    if memory_engine._backend.ops.uses_observation_sources_table and source_memory_ids:
         await conn.executemany(
             f"""
             INSERT INTO {fq_table("observation_sources")} (observation_id, source_id)

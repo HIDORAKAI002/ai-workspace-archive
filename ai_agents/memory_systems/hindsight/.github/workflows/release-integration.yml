@@ -81,17 +81,28 @@ jobs:
       with:
         node-version: '22'
         registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
 
-    # Guard: fail fast if the integration's lockfile resolves any dep from a
-    # monorepo workspace (link=true) or a relative file path. The release
-    # runner has no pre-built workspace `dist/` so `npm run build` would
-    # later fail at tsc with "Cannot find module". See:
-    # https://github.com/vectorize-io/hindsight/issues/… (0.6.0 openclaw retry)
     - name: Check integration lockfile
       if: steps.type.outputs.type == 'typescript'
       run: ./scripts/check-integration-lockfiles.sh
 
-    - name: Install dependencies
+    # Some integrations depend on workspace packages (hindsight-client,
+    # hindsight-all, hindsight-agent-sdk) via file: refs. Install from root
+    # so npm resolves them, then build the workspace deps before the integration.
+    - name: Install root workspace dependencies
+      if: steps.type.outputs.type == 'typescript'
+      run: npm ci
+
+    - name: Build workspace deps (hindsight-client, hindsight-all, hindsight-agent-sdk)
+      if: steps.type.outputs.type == 'typescript'
+      run: |
+        npm run build --workspace=hindsight-clients/typescript
+        npm run build --workspace=hindsight-all-npm
+        npm run build --workspace=hindsight-tools/hindsight-agent-sdk
+
+    - name: Install integration dependencies
       if: steps.type.outputs.type == 'typescript'
       working-directory: ./hindsight-integrations/${{ steps.info.outputs.integration }}
       run: npm ci

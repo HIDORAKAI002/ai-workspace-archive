@@ -37,7 +37,7 @@ MODEL_MATRIX = [
     # Gemini models
     ("gemini", "gemini-2.5-flash"),
     ("gemini", "gemini-2.5-flash-lite"),
-    ("gemini", "gemini-3-pro-preview"),
+    ("gemini", "gemini-3.1-pro-preview"),
     ("gemini", "gemini-3.1-flash-lite-preview"),
     # Ollama models (local)
     ("ollama", "gemma3:12b"),

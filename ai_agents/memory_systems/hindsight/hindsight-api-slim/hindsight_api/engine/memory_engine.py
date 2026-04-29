@@ -3323,20 +3323,32 @@ class MemoryEngine(MemoryEngineInterface):
                 obs_chunk_ids: dict[str, list[str]] = {}
                 if observation_ids_ordered:
                     async with acquire_with_retry(backend) as obs_conn:
-                        # Use observation_sources junction table instead of
-                        # PG-specific ANY(obs.source_memory_ids) array join.
-                        obs_source_rows = await obs_conn.fetch(
-                            f"""
-                            SELECT os.observation_id AS obs_id, mu.chunk_id
-                            FROM {fq_table("observation_sources")} os
-                            JOIN {fq_table("memory_units")} mu
-                              ON mu.id = os.source_id
-                            WHERE os.observation_id = ANY($1::uuid[])
-                              AND mu.chunk_id IS NOT NULL
-                            ORDER BY array_position($1::uuid[], os.observation_id)
-                            """,
-                            observation_ids_ordered,
-                        )
+                        if self._backend.ops.uses_observation_sources_table:
+                            obs_source_rows = await obs_conn.fetch(
+                                f"""
+                                SELECT os.observation_id AS obs_id, mu.chunk_id
+                                FROM {fq_table("observation_sources")} os
+                                JOIN {fq_table("memory_units")} mu
+                                  ON mu.id = os.source_id
+                                WHERE os.observation_id = ANY($1::uuid[])
+                                  AND mu.chunk_id IS NOT NULL
+                                ORDER BY array_position($1::uuid[], os.observation_id)
+                                """,
+                                observation_ids_ordered,
+                            )
+                        else:
+                            obs_source_rows = await obs_conn.fetch(
+                                f"""
+                                SELECT obs.id AS obs_id, mu.chunk_id
+                                FROM {fq_table("memory_units")} obs
+                                JOIN {fq_table("memory_units")} mu
+                                  ON mu.id = ANY(obs.source_memory_ids)
+                                WHERE obs.id = ANY($1::uuid[])
+                                  AND mu.chunk_id IS NOT NULL
+                                ORDER BY array_position($1::uuid[], obs.id)
+                                """,
+                                observation_ids_ordered,
+                            )
                     for row in obs_source_rows:
                         obs_id = str(row["obs_id"])
                         cid = row["chunk_id"]
@@ -3932,23 +3944,34 @@ class MemoryEngine(MemoryEngineInterface):
 
                         unit_uuids = [uuid_module.UUID(uid) for uid in unit_ids]
                         unit_uuid_set = {str(u) for u in unit_uuids}
-                        # Use observation_sources junction table instead of
-                        # PG-specific array overlap (&&) operator.
-                        affected_obs = await conn.fetch(
-                            f"""
-                            SELECT mu.id, mu.source_memory_ids
-                            FROM {fq_table("memory_units")} mu
-                            WHERE mu.bank_id = $1
-                              AND mu.fact_type = 'observation'
-                              AND EXISTS (
-                                  SELECT 1 FROM {fq_table("observation_sources")} os
-                                  WHERE os.observation_id = mu.id
-                                    AND os.source_id = ANY($2::uuid[])
-                              )
-                            """,
-                            bank_id,
-                            unit_uuids,
-                        )
+                        if self._backend.ops.uses_observation_sources_table:
+                            affected_obs = await conn.fetch(
+                                f"""
+                                SELECT mu.id, mu.source_memory_ids
+                                FROM {fq_table("memory_units")} mu
+                                WHERE mu.bank_id = $1
+                                  AND mu.fact_type = 'observation'
+                                  AND EXISTS (
+                                      SELECT 1 FROM {fq_table("observation_sources")} os
+                                      WHERE os.observation_id = mu.id
+                                        AND os.source_id = ANY($2::uuid[])
+                                  )
+                                """,
+                                bank_id,
+                                unit_uuids,
+                            )
+                        else:
+                            affected_obs = await conn.fetch(
+                                f"""
+                                SELECT id, source_memory_ids
+                                FROM {fq_table("memory_units")}
+                                WHERE bank_id = $1
+                                  AND fact_type = 'observation'
+                                  AND source_memory_ids && $2::uuid[]
+                                """,
+                                bank_id,
+                                unit_uuids,
+                            )
                         if affected_obs:
                             obs_ids = [obs["id"] for obs in affected_obs]
 
@@ -6951,7 +6974,7 @@ class MemoryEngine(MemoryEngineInterface):
         """
         from .retain.fact_storage import delete_stale_observations_for_memories
 
-        return await delete_stale_observations_for_memories(conn, bank_id, fact_ids)
+        return await delete_stale_observations_for_memories(conn, bank_id, fact_ids, ops=self._backend.ops)
 
     # =========================================================================
     # MENTAL MODELS (CONSOLIDATED) - Read-only access to auto-consolidated mental models

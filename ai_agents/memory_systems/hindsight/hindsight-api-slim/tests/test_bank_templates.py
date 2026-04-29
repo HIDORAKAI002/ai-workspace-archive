@@ -592,12 +592,9 @@ class TestExport:
 
     @pytest.mark.asyncio
     async def test_export_nonexistent_bank(self, api_client):
-        """Export from a nonexistent bank returns the bank with defaults (auto-created)."""
+        """Export from a nonexistent bank returns 404."""
         resp = await api_client.get("/v1/default/banks/nonexistent-export-test/export")
-        # get_bank_profile auto-creates, so this returns a valid empty manifest
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["version"] == "1"
+        assert resp.status_code == 404
 
 
 class TestDefaultBankTemplateEnvVar:

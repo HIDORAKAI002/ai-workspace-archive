@@ -9,8 +9,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hindsight_api.engine.db import DatabaseBackend, DatabaseConnection, ResultRow, create_database_backend
+from hindsight_api.engine.db import DatabaseBackend, DatabaseConnection, create_database_backend
 from hindsight_api.engine.db.postgresql import PostgreSQLBackend
+from hindsight_api.engine.db.result import DictResultRow as ResultRow
 from hindsight_api.engine.sql import SQLDialect, create_sql_dialect
 from hindsight_api.engine.sql.postgresql import PostgreSQLDialect
 
