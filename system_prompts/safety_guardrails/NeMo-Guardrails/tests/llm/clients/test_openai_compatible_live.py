@@ -25,8 +25,8 @@ from nemoguardrails.exceptions import (
     LLMClientError,
     LLMContextWindowError,
 )
-from nemoguardrails.llm.clients.openai_chat_model import OpenAIChatModel
 from nemoguardrails.llm.clients.openai_compatible import OpenAICompatibleClient
+from nemoguardrails.llm.models.openai_chat import OpenAIChatModel
 from nemoguardrails.types import ChatMessage, LLMResponse, Role
 from tests.llm.clients._helpers import (
     LIVE_TEST_MODE,
@@ -80,12 +80,31 @@ def _load_fixture(name):
         return json.load(f)
 
 
+def _to_http_response(data):
+    from nemoguardrails.llm.clients.base import HTTPResponse
+
+    if isinstance(data, dict):
+        headers = data.get("_response_headers", {})
+        body = {key: value for key, value in data.items() if key != "_response_headers"}
+    else:
+        headers, body = {}, data
+    return HTTPResponse(body=body, headers=headers, status_code=200)
+
+
+def _load_response_fixture(name):
+    return _to_http_response(_load_fixture(name))
+
+
+def _load_stream_fixture(name):
+    return [_to_http_response(c) for c in _load_fixture(name)]
+
+
 def _fixture_exists(name):
     return (FIXTURES_DIR / name).exists()
 
 
 def _replay_stream(model, fixture_name):
-    chunks_data = _load_fixture(fixture_name)
+    chunks_data = _load_stream_fixture(fixture_name)
 
     async def replay(*args, **kwargs):
         for chunk_data in chunks_data:
@@ -114,7 +133,7 @@ class TestRecordedOpenAI:
     """
 
     def test_parse_text_response(self):
-        data = _load_fixture("openai_generate_text.json")
+        data = _load_response_fixture("openai_generate_text.json")
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
         result = client._parse_response(data)
 
@@ -133,7 +152,7 @@ class TestRecordedOpenAI:
         assert "system_fingerprint" in result.provider_metadata
 
     def test_parse_tool_call_response(self):
-        data = _load_fixture("openai_generate_tool_call.json")
+        data = _load_response_fixture("openai_generate_tool_call.json")
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
         result = client._parse_response(data)
 
@@ -148,7 +167,7 @@ class TestRecordedOpenAI:
         assert result.usage.cached_tokens is not None
 
     def test_parse_stream_text_chunks(self):
-        chunks_data = _load_fixture("openai_stream_text.json")
+        chunks_data = _load_stream_fixture("openai_stream_text.json")
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
 
         content_parts = []
@@ -184,7 +203,7 @@ class TestRecordedOpenAI:
         assert usage_chunk[0].usage.total_tokens > 0
 
     def test_stream_text_request_id_consistent(self):
-        chunks_data = _load_fixture("openai_stream_text.json")
+        chunks_data = _load_stream_fixture("openai_stream_text.json")
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
 
         request_ids = set()
@@ -213,7 +232,7 @@ class TestRecordedNIM:
         reason="NIM fixtures not recorded",
     )
     def test_parse_text_response(self):
-        data = _load_fixture("nim_generate_text.json")
+        data = _load_response_fixture("nim_generate_text.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
         result = client._parse_response(data)
 
@@ -229,7 +248,7 @@ class TestRecordedNIM:
         reason="NIM fixtures not recorded",
     )
     def test_parse_tool_call_response(self):
-        data = _load_fixture("nim_generate_tool_call.json")
+        data = _load_response_fixture("nim_generate_tool_call.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
         result = client._parse_response(data)
 
@@ -244,7 +263,7 @@ class TestRecordedNIM:
         reason="NIM fixtures not recorded",
     )
     def test_parse_reasoning_response(self):
-        data = _load_fixture("nim_generate_reasoning.json")
+        data = _load_response_fixture("nim_generate_reasoning.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
         result = client._parse_response(data)
 
@@ -277,7 +296,7 @@ class TestRecordedNIM:
 
     @pytest.mark.skipif(not _fixture_exists("nim_stream_text.json"), reason="NIM fixtures not recorded")
     def test_parse_stream_text_chunks(self):
-        chunks_data = _load_fixture("nim_stream_text.json")
+        chunks_data = _load_stream_fixture("nim_stream_text.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
 
         content_parts = []
@@ -290,7 +309,7 @@ class TestRecordedNIM:
 
     @pytest.mark.skipif(not _fixture_exists("nim_generate_tool_call.json"), reason="NIM fixtures not recorded")
     def test_nim_null_fields_dont_crash(self):
-        data = _load_fixture("nim_generate_tool_call.json")
+        data = _load_response_fixture("nim_generate_tool_call.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
         result = client._parse_response(data)
 
@@ -300,7 +319,7 @@ class TestRecordedNIM:
 
     @pytest.mark.skipif(not _fixture_exists("nim_generate_tool_call.json"), reason="NIM fixtures not recorded")
     def test_reasoning_alongside_tool_calls(self):
-        data = _load_fixture("nim_generate_tool_call.json")
+        data = _load_response_fixture("nim_generate_tool_call.json")
         client = _make_model(model="nvidia/nemotron-3-nano-30b-a3b", base_url="https://integrate.api.nvidia.com/v1")
         result = client._parse_response(data)
 
@@ -319,7 +338,7 @@ class TestRecordedEdgeCases:
 
     def test_empty_tool_call_arguments(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
-        data = {
+        body = {
             "id": "chatcmpl-test",
             "model": "gpt-4o-mini",
             "choices": [
@@ -340,14 +359,14 @@ class TestRecordedEdgeCases:
                 }
             ],
         }
-        result = client._parse_response(data)
+        result = client._parse_response(_to_http_response(body))
 
         assert result.tool_calls[0].function.name == "get_status"
         assert result.tool_calls[0].function.arguments == {}
 
     def test_content_alongside_tool_calls(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
-        data = {
+        body = {
             "id": "chatcmpl-test",
             "model": "gpt-4o-mini",
             "choices": [
@@ -368,7 +387,7 @@ class TestRecordedEdgeCases:
                 }
             ],
         }
-        result = client._parse_response(data)
+        result = client._parse_response(_to_http_response(body))
 
         assert result.content == "Let me check that for you."
         assert result.tool_calls is not None
@@ -383,17 +402,17 @@ class TestFixtureSanity:
     """
 
     def test_openai_generate_tool_call_fixture_is_parallel(self):
-        data = _load_fixture("openai_generate_tool_call.json")
-        tool_calls = data["choices"][0]["message"].get("tool_calls") or []
+        data = _load_response_fixture("openai_generate_tool_call.json")
+        tool_calls = data.body["choices"][0]["message"].get("tool_calls") or []
         assert len(tool_calls) >= 2, (
             "fixture should contain >=2 parallel tool calls; re-record with a multi-tool prompt"
         )
 
     def test_openai_stream_tool_calls_fixture_is_parallel(self):
-        chunks = _load_fixture("openai_stream_tool_calls.json")
+        chunks = _load_stream_fixture("openai_stream_tool_calls.json")
         indexes = set()
         for chunk in chunks:
-            choices = chunk.get("choices") or []
+            choices = chunk.body.get("choices") or []
             if not choices:
                 continue
             for tc in choices[0].get("delta", {}).get("tool_calls") or []:
@@ -434,7 +453,7 @@ class TestRecordedFinishLength:
     )
     def test_finish_reason_length_parsed(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
-        data = _load_fixture("openai_generate_finish_length.json")
+        data = _load_response_fixture("openai_generate_finish_length.json")
         result = client._parse_response(data)
         assert result.finish_reason == "length"
 
@@ -446,7 +465,7 @@ class TestRecordedRefusal:
     )
     def test_refusal_produces_response(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
-        data = _load_fixture("openai_generate_refusal.json")
+        data = _load_response_fixture("openai_generate_refusal.json")
         result = client._parse_response(data)
         assert result.finish_reason in ("stop", "content_filter", "other")
 
@@ -458,7 +477,7 @@ class TestRecordedMultimodal:
     )
     def test_multimodal_generate_parses(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
-        data = _load_fixture("openai_generate_multimodal.json")
+        data = _load_response_fixture("openai_generate_multimodal.json")
         result = client._parse_response(data)
         assert result.content
         assert result.finish_reason == "stop"
@@ -482,7 +501,7 @@ class TestRecordedMultiTurn:
     def test_first_turn_has_tool_call(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
         data = _load_fixture("openai_multiturn_tool_roundtrip.json")
-        first = client._parse_response(data["first_response"])
+        first = client._parse_response(_to_http_response(data["first_response"]))
         assert first.tool_calls is not None
         assert len(first.tool_calls) >= 1
         assert first.finish_reason == "tool_calls"
@@ -494,7 +513,7 @@ class TestRecordedMultiTurn:
     def test_second_turn_has_text_content(self):
         client = _make_model(model="gpt-4o-mini", base_url="https://api.openai.com/v1")
         data = _load_fixture("openai_multiturn_tool_roundtrip.json")
-        second = client._parse_response(data["second_response"])
+        second = client._parse_response(_to_http_response(data["second_response"]))
         assert second.content
         assert second.finish_reason == "stop"
 
@@ -1109,18 +1128,19 @@ class TestOpenAIProviderContract:
             base_url="https://api.openai.com/v1",
             api_key=os.environ.get("OPENAI_API_KEY"),
         ) as client:
-            data = await client.chat_completion(
+            response = await client.chat_completion(
                 "gpt-4o-mini",
                 [{"role": "user", "content": "Say hello in one word"}],
             )
-        assert "id" in data
-        assert "model" in data
-        choices = data.get("choices")
+        body = response.body
+        assert "id" in body
+        assert "model" in body
+        choices = body.get("choices")
         assert isinstance(choices, list) and len(choices) > 0
         message = choices[0].get("message")
         assert isinstance(message, dict) and "content" in message
         assert "finish_reason" in choices[0]
-        usage = data.get("usage")
+        usage = body.get("usage")
         assert isinstance(usage, dict)
         assert "prompt_tokens" in usage and "completion_tokens" in usage
 
@@ -1165,8 +1185,8 @@ class TestOpenAIProviderContract:
             ):
                 chunks.append(chunk)
         assert len(chunks) > 0
-        assert any(c.get("choices") for c in chunks)
-        assert any(c.get("usage") for c in chunks)
+        assert any(chunk.body.get("choices") for chunk in chunks)
+        assert any(chunk.body.get("usage") for chunk in chunks)
 
     @pytest.mark.asyncio
     async def test_401_body_does_not_echo_bad_key(self):

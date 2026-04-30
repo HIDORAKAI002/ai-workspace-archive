@@ -25,6 +25,7 @@ import re
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import pytest_asyncio
 
 from nemoguardrails.guardrails.guardrails_types import (
     REQUEST_ID_HEX_CHARS,
@@ -36,6 +37,7 @@ from nemoguardrails.guardrails.guardrails_types import (
 from nemoguardrails.guardrails.iorails import IORails
 from nemoguardrails.guardrails.model_engine import ModelEngine
 from nemoguardrails.rails.llm.config import RailsConfig
+from nemoguardrails.types import LLMResponse
 from tests.guardrails.test_data import CONTENT_SAFETY_CONFIG, NEMOGUARDS_CONFIG
 
 REQUEST_ID_PATTERN = re.compile(rf"^[0-9a-f]{{{REQUEST_ID_HEX_CHARS}}}$")
@@ -82,11 +84,13 @@ class TestResetRequestId:
         assert get_request_id() == "no-req-id"
 
 
-@pytest.fixture
-@patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-def iorails():
-    config = RailsConfig.from_content(config=NEMOGUARDS_CONFIG)
-    return IORails(config)
+@pytest_asyncio.fixture
+async def iorails():
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+        config = RailsConfig.from_content(config=NEMOGUARDS_CONFIG)
+        iorails = IORails(config)
+    async with iorails:
+        yield iorails
 
 
 def _make_capturing_mock(captured_ids: list, key: str, return_value):
@@ -108,7 +112,7 @@ class TestSingleRequest:
         captured_ids = []
 
         iorails.rails_manager.is_input_safe = _make_capturing_mock(captured_ids, "input", RailResult(is_safe=True))
-        iorails.engine_registry.model_call = _make_capturing_mock(captured_ids, "llm", "Hello")
+        iorails.engine_registry.model_call = _make_capturing_mock(captured_ids, "llm", LLMResponse(content="Hello"))
         iorails.rails_manager.is_output_safe = _make_capturing_mock(captured_ids, "output", RailResult(is_safe=True))
 
         await iorails.generate_async([{"role": "user", "content": "hi"}])
@@ -123,7 +127,7 @@ class TestSingleRequest:
         captured_ids = []
 
         iorails.rails_manager.is_input_safe = _make_capturing_mock(captured_ids, "input", RailResult(is_safe=True))
-        iorails.engine_registry.model_call = _make_capturing_mock(captured_ids, "llm", "Hello")
+        iorails.engine_registry.model_call = _make_capturing_mock(captured_ids, "llm", LLMResponse(content="Hello"))
         iorails.rails_manager.is_output_safe = _make_capturing_mock(captured_ids, "output", RailResult(is_safe=True))
 
         await iorails.generate_async([{"role": "user", "content": "hi"}])
@@ -135,7 +139,7 @@ class TestSingleRequest:
     async def test_request_id_reset_after_completion(self, iorails):
         """After generate_async returns, the ContextVar is reset to default."""
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="Hello")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="Hello"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         await iorails.generate_async([{"role": "user", "content": "hi"}])
@@ -155,7 +159,7 @@ class TestSingleRequest:
     async def test_request_id_reset_after_output_blocked(self, iorails):
         """ContextVar is reset even when the request is blocked at output."""
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="bad response")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="bad response"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=False, reason="blocked"))
 
         await iorails.generate_async([{"role": "user", "content": "hi"}])
@@ -186,7 +190,7 @@ class TestMultipleSequentialRequests:
             return RailResult(is_safe=True)
 
         iorails.rails_manager.is_input_safe = capture_input
-        iorails.engine_registry.model_call = AsyncMock(return_value="Hello")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="Hello"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         for _ in range(5):
@@ -206,7 +210,7 @@ class TestMultipleSequentialRequests:
 
         async def capture_llm(*args, **kwargs):
             request_snapshots.append(("llm", get_request_id()))
-            return "Hello"
+            return LLMResponse(content="Hello")
 
         async def capture_output(*args, **kwargs):
             request_snapshots.append(("output", get_request_id()))
@@ -253,7 +257,7 @@ class TestMultipleConcurrentRequests:
 
         async def capture_llm(*args, **kwargs):
             captured.append(("llm", get_request_id()))
-            return "Hello"
+            return LLMResponse(content="Hello")
 
         async def capture_output(*args, **kwargs):
             captured.append(("output", get_request_id()))
@@ -297,7 +301,7 @@ class TestMultipleConcurrentRequests:
 
             async def capture_llm(*args, **kwargs):
                 captured.append(get_request_id())
-                return "Hello"
+                return LLMResponse(content="Hello")
 
             async def capture_output(*args, **kwargs):
                 captured.append(get_request_id())
@@ -307,12 +311,13 @@ class TestMultipleConcurrentRequests:
             config = iorails.config
             with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
                 engine = IORails(config)
-            engine.rails_manager.is_input_safe = capture_input
-            engine.engine_registry.model_call = capture_llm
-            engine.rails_manager.is_output_safe = capture_output
+            async with engine:
+                engine.rails_manager.is_input_safe = capture_input
+                engine.engine_registry.model_call = capture_llm
+                engine.rails_manager.is_output_safe = capture_output
 
-            await engine.generate_async([{"role": "user", "content": "hi"}])
-            task_ids[task_num] = captured
+                await engine.generate_async([{"role": "user", "content": "hi"}])
+                task_ids[task_num] = captured
 
         await asyncio.gather(
             make_iorails_call(0),
@@ -333,7 +338,7 @@ class TestMultipleConcurrentRequests:
     async def test_contextvar_reset_after_concurrent_requests(self, iorails):
         """ContextVar is back to default after all concurrent requests complete."""
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="Hello")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="Hello"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         messages = [{"role": "user", "content": "hi"}]
@@ -348,12 +353,14 @@ class TestMultipleConcurrentRequests:
 class TestEndToEndPropagation:
     """Request ID propagates through the full stack: IORails -> RailsManager -> EngineRegistry -> ModelEngine."""
 
-    @pytest.fixture
-    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-    def iorails_content_safety(self):
+    @pytest_asyncio.fixture
+    async def iorails_content_safety(self):
         """IORails with content-safety-only config (input + output, no jailbreak API)."""
-        config = RailsConfig.from_content(config=CONTENT_SAFETY_CONFIG)
-        return IORails(config)
+        with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+            config = RailsConfig.from_content(config=CONTENT_SAFETY_CONFIG)
+            iorails = IORails(config)
+        async with iorails:
+            yield iorails
 
     @pytest.mark.asyncio
     async def test_same_id_from_iorails_through_model_engine(self, iorails_content_safety):

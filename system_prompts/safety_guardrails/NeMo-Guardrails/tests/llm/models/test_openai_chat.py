@@ -23,8 +23,10 @@ from nemoguardrails.exceptions import (
     LLMRateLimitError,
     LLMResponseValidationError,
 )
-from nemoguardrails.llm.clients.openai_chat_model import OpenAIChatModel, _is_openai_reasoning_model
+from nemoguardrails.llm.clients.base import HTTPResponse
 from nemoguardrails.llm.clients.openai_compatible import OpenAICompatibleClient
+from nemoguardrails.llm.models.openai_chat import OpenAIChatModel
+from nemoguardrails.llm.openai_reasoning import is_openai_reasoning_model
 from nemoguardrails.types import ChatMessage, LLMResponse, Role, ToolCall, ToolCallFunction
 from tests.llm.clients._helpers import make_client, mock_httpx_post, stream_client
 
@@ -50,6 +52,7 @@ def _response(
     reasoning_content=None,
     usage=None,
     extra_fields=None,
+    headers=None,
 ):
     message = {"content": content, "role": "assistant"}
     if tool_calls:
@@ -65,24 +68,30 @@ def _response(
         resp["usage"] = usage
     if extra_fields:
         resp.update(extra_fields)
-    return resp
+    return HTTPResponse(body=resp, headers=headers or {}, status_code=200)
 
 
-def _stream_chunks(deltas, model="gpt-4o", usage=None):
+def _stream_chunks(deltas, model="gpt-4o", usage=None, headers=None):
     chunks = []
+    hdrs = headers or {}
     for i, delta in enumerate(deltas):
         finish_reason = None
         if i == len(deltas) - 1:
             finish_reason = "stop"
-        chunks.append(
-            {
-                "id": "chatcmpl-123",
-                "model": model,
-                "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
-            }
-        )
+        body = {
+            "id": "chatcmpl-123",
+            "model": model,
+            "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+        }
+        chunks.append(HTTPResponse(body=body, headers=hdrs, status_code=200))
     if usage:
-        chunks.append({"id": "chatcmpl-123", "model": model, "choices": [], "usage": usage})
+        chunks.append(
+            HTTPResponse(
+                body={"id": "chatcmpl-123", "model": model, "choices": [], "usage": usage},
+                headers=hdrs,
+                status_code=200,
+            )
+        )
     return chunks
 
 
@@ -200,9 +209,7 @@ class TestGenerate:
     @pytest.mark.asyncio
     async def test_response_headers_in_metadata(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(
-            return_value=_response(extra_fields={"_response_headers": {"x-request-id": "req-abc"}})
-        )
+        mc.chat_completion = AsyncMock(return_value=_response(headers={"x-request-id": "req-abc"}))
         m = _model(mc)
 
         result = await m.generate_async("Hi")
@@ -290,7 +297,7 @@ class TestStream:
                 },
                 {"id": "c", "model": "gpt-4o", "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}]},
             ]:
-                yield c
+                yield HTTPResponse(body=c)
 
         mc.stream_chat_completion = mock_stream
         m = _model(mc)
@@ -355,7 +362,7 @@ class TestStream:
                 },
                 {"id": "c", "model": "gpt-4o", "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}]},
             ]:
-                yield c
+                yield HTTPResponse(body=c)
 
         mc.stream_chat_completion = mock_stream
         m = _model(mc)
@@ -408,7 +415,7 @@ class TestStream:
                 },
                 {"id": "c", "model": "gpt-4o", "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}]},
             ]:
-                yield c
+                yield HTTPResponse(body=c)
 
         mc.stream_chat_completion = mock_stream
         m = _model(mc)
@@ -431,7 +438,9 @@ class TestParams:
 
         call = mc.chat_completion.call_args
         assert "temperature" not in call.kwargs
-        assert call.kwargs["max_tokens"] == 100
+        # max_tokens is renamed to max_completion_tokens on reasoning models.
+        assert "max_tokens" not in call.kwargs
+        assert call.kwargs["max_completion_tokens"] == 100
 
     @pytest.mark.asyncio
     async def test_non_reasoning_keeps_temperature(self):
@@ -495,6 +504,55 @@ class TestParams:
 
         assert mc.chat_completion.call_args.kwargs["temperature"] == 0.9
 
+    @pytest.mark.asyncio
+    async def test_reasoning_model_renames_max_tokens(self):
+        mc = _mock_client()
+        mc.chat_completion = AsyncMock(return_value=_response())
+        m = _model(mc, model="gpt-5-mini")
+
+        await m.generate_async("Hi", max_tokens=1024)
+
+        call = mc.chat_completion.call_args
+        assert "max_tokens" not in call.kwargs
+        assert call.kwargs["max_completion_tokens"] == 1024
+
+    @pytest.mark.asyncio
+    async def test_non_reasoning_keeps_max_tokens(self):
+        mc = _mock_client()
+        mc.chat_completion = AsyncMock(return_value=_response())
+        m = _model(mc, model="gpt-4o")
+
+        await m.generate_async("Hi", max_tokens=1024)
+
+        call = mc.chat_completion.call_args
+        assert call.kwargs["max_tokens"] == 1024
+        assert "max_completion_tokens" not in call.kwargs
+
+    @pytest.mark.asyncio
+    async def test_reasoning_model_keeps_explicit_max_completion_tokens(self):
+        mc = _mock_client()
+        mc.chat_completion = AsyncMock(return_value=_response())
+        m = _model(mc, model="o3-mini")
+
+        await m.generate_async("Hi", max_tokens=1024, max_completion_tokens=512)
+
+        call = mc.chat_completion.call_args
+        # Explicit max_completion_tokens wins; max_tokens dropped.
+        assert call.kwargs["max_completion_tokens"] == 512
+        assert "max_tokens" not in call.kwargs
+
+    @pytest.mark.asyncio
+    async def test_reasoning_model_renames_default_max_tokens(self):
+        mc = _mock_client()
+        mc.chat_completion = AsyncMock(return_value=_response())
+        m = _model(mc, model="o3-mini", max_tokens=256)
+
+        await m.generate_async("Hi")
+
+        call = mc.chat_completion.call_args
+        assert "max_tokens" not in call.kwargs
+        assert call.kwargs["max_completion_tokens"] == 256
+
 
 class TestIsReasoningModel:
     @pytest.mark.parametrize(
@@ -523,7 +581,7 @@ class TestIsReasoningModel:
         ],
     )
     def test_reasoning_models(self, model_name):
-        assert _is_openai_reasoning_model(model_name) is True
+        assert is_openai_reasoning_model(model_name) is True
 
     @pytest.mark.parametrize(
         "model_name",
@@ -548,7 +606,7 @@ class TestIsReasoningModel:
         ],
     )
     def test_non_reasoning_models(self, model_name):
-        assert _is_openai_reasoning_model(model_name) is False
+        assert is_openai_reasoning_model(model_name) is False
 
 
 class TestMessageSerialization:
@@ -623,7 +681,7 @@ class TestValidation:
     @pytest.mark.asyncio
     async def test_no_choices(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(return_value={"id": "c", "model": "gpt-4o"})
+        mc.chat_completion = AsyncMock(return_value=HTTPResponse(body={"id": "c", "model": "gpt-4o"}))
         m = _model(mc)
 
         with pytest.raises(LLMResponseValidationError, match="choices"):
@@ -632,7 +690,7 @@ class TestValidation:
     @pytest.mark.asyncio
     async def test_empty_choices(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(return_value={"id": "c", "model": "gpt-4o", "choices": []})
+        mc.chat_completion = AsyncMock(return_value=HTTPResponse(body={"id": "c", "model": "gpt-4o", "choices": []}))
         m = _model(mc)
 
         with pytest.raises(LLMResponseValidationError, match="choices"):
@@ -641,7 +699,9 @@ class TestValidation:
     @pytest.mark.asyncio
     async def test_no_message(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(return_value={"id": "c", "model": "gpt-4o", "choices": [{"index": 0}]})
+        mc.chat_completion = AsyncMock(
+            return_value=HTTPResponse(body={"id": "c", "model": "gpt-4o", "choices": [{"index": 0}]})
+        )
         m = _model(mc)
 
         with pytest.raises(LLMResponseValidationError, match="message"):
@@ -683,7 +743,7 @@ class TestErrorEnrichment:
     @pytest.mark.asyncio
     async def test_validation_error_enriched_with_context(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(return_value={"id": "x", "model": "gpt-4o"})
+        mc.chat_completion = AsyncMock(return_value=HTTPResponse(body={"id": "x", "model": "gpt-4o"}))
         m = _model(mc, model="gpt-4o")
 
         with pytest.raises(LLMResponseValidationError) as exc_info:
@@ -743,7 +803,7 @@ class TestErrorEnrichment:
     @pytest.mark.asyncio
     async def test_validation_error_status_code_is_zero(self):
         mc = _mock_client()
-        mc.chat_completion = AsyncMock(return_value={"id": "x", "model": "gpt-4o"})
+        mc.chat_completion = AsyncMock(return_value=HTTPResponse(body={"id": "x", "model": "gpt-4o"}))
         m = _model(mc, model="gpt-4o")
 
         with pytest.raises(LLMResponseValidationError) as exc_info:
