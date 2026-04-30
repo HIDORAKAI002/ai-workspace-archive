@@ -10,6 +10,7 @@ const { execFileSync } = require('child_process');
 const { applyInstallPlan } = require('../../scripts/lib/install/apply');
 
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'install-apply.js');
+const DEFAULT_INSTALL_APPLY_TIMEOUT_MS = process.platform === 'win32' ? 30000 : 10000;
 
 function createTempDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -38,7 +39,7 @@ function run(args = [], options = {}) {
       env,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 10000,
+      timeout: options.timeout || DEFAULT_INSTALL_APPLY_TIMEOUT_MS,
     });
 
     return { code: 0, stdout, stderr: '' };
@@ -46,7 +47,7 @@ function run(args = [], options = {}) {
     return {
       code: error.status || 1,
       stdout: error.stdout || '',
-      stderr: error.stderr || '',
+      stderr: error.stderr || error.message || '',
     };
   }
 }

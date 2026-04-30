@@ -45,6 +45,7 @@ from langgraph._internal._constants import (
     CONFIG_KEY_REPLAY_STATE,
     CONFIG_KEY_RESUME_MAP,
     CONFIG_KEY_RESUMING,
+    CONFIG_KEY_RUNTIME,
     CONFIG_KEY_SCRATCHPAD,
     CONFIG_KEY_STREAM,
     CONFIG_KEY_TASK_ID,
@@ -68,6 +69,7 @@ from langgraph.callbacks import (
     GraphResumeEvent,
 )
 from langgraph.channels.base import BaseChannel
+from langgraph.channels.delta import DeltaChannel
 from langgraph.channels.untracked_value import UntrackedValue
 from langgraph.constants import TAG_HIDDEN
 from langgraph.errors import (
@@ -92,6 +94,7 @@ from langgraph.pregel._algo import (
     task_path_str,
 )
 from langgraph.pregel._checkpoint import (
+    achannels_from_checkpoint,
     channels_from_checkpoint,
     copy_checkpoint,
     create_checkpoint,
@@ -117,6 +120,7 @@ from langgraph.pregel.debug import (
     map_debug_tasks,
 )
 from langgraph.pregel.protocol import StreamChunk, StreamProtocol
+from langgraph.runtime import RunControl, Runtime
 from langgraph.types import (
     All,
     CachePolicy,
@@ -188,6 +192,8 @@ class PregelLoop:
     _migrate_checkpoint: Callable[[Checkpoint], None] | None
     submit: Submit
     channels: Mapping[str, BaseChannel]
+    # Only set on AsyncPregelLoop; sync loops keep this as None.
+    _delta_write_futs: list[Any] | None = None
     managed: ManagedValueMapping
     checkpoint: Checkpoint
     checkpoint_id_saved: str
@@ -202,10 +208,12 @@ class PregelLoop:
         "input",
         "pending",
         "done",
+        "draining",
         "interrupt_before",
         "interrupt_after",
         "out_of_steps",
     ]
+    control: RunControl | None
     tasks: dict[str, PregelExecutableTask]
     output: None | dict[str, Any] | Any = None
     updated_channels: set[str] | None = None
@@ -313,6 +321,8 @@ class PregelLoop:
             else ()
         )
         self.prev_checkpoint_config = None
+        runtime = self.config[CONF].get(CONFIG_KEY_RUNTIME)
+        self.control = runtime.control if isinstance(runtime, Runtime) else None
 
     def _push_graph_lifecycle_event(
         self,
@@ -320,11 +330,16 @@ class PregelLoop:
         *,
         interrupts: tuple[Interrupt, ...] = (),
     ) -> None:
+        # drain status never reaches lifecycle events: tick() returns False
+        # before pushing, and interrupts are raised through GraphInterrupt
+        if self.status == "draining":
+            raise RuntimeError("Draining status cannot emit lifecycle events")
+        status = self.status
         if kind == "resume":
             self._graph_lifecycle_events.append(
                 GraphResumeEvent(
                     run_id=None,
-                    status=self.status,
+                    status=status,
                     checkpoint_id=self.checkpoint["id"],
                     checkpoint_ns=self.checkpoint_ns,
                 )
@@ -333,7 +348,7 @@ class PregelLoop:
             self._graph_lifecycle_events.append(
                 GraphInterruptEvent(
                     run_id=None,
-                    status=self.status,
+                    status=status,
                     checkpoint_id=self.checkpoint["id"],
                     checkpoint_ns=self.checkpoint_ns,
                     interrupts=interrupts,
@@ -406,7 +421,7 @@ class PregelLoop:
                     task = self.tasks.get(task_id)
                 else:
                     task = None
-                self.submit(
+                fut = self.submit(
                     self.checkpointer_put_writes,
                     config,
                     writes_to_save,
@@ -414,12 +429,16 @@ class PregelLoop:
                     task_path_str(task.path) if task else "",
                 )
             else:
-                self.submit(
+                fut = self.submit(
                     self.checkpointer_put_writes,
                     config,
                     writes_to_save,
                     task_id,
                 )
+            if self._delta_write_futs is not None and any(
+                isinstance(self.specs.get(c), DeltaChannel) for c, _ in writes_to_save
+            ):
+                self._delta_write_futs.append(fut)
         # output writes
         if hasattr(self, "tasks"):
             self.output_writes(task_id, writes)
@@ -559,6 +578,10 @@ class PregelLoop:
         # if no more tasks, we're done
         if not self.tasks:
             self.status = "done"
+            return False
+
+        if self.control is not None and self.control.drain_requested:
+            self.status = "draining"
             return False
 
         # if there are pending writes from a previous loop, apply them
@@ -890,6 +913,10 @@ class PregelLoop:
             self.step,
             id=self.checkpoint["id"] if exiting else None,
             updated_channels=self.updated_channels,
+            get_next_version=self.checkpointer_get_next_version
+            if do_checkpoint
+            else None,
+            force_delta_snapshot=exiting and self.durability == "exit",
         )
         # sanitize TASK channel in the checkpoint before saving (durability=="exit")
         if TASKS in self.checkpoint["channel_values"] and any(
@@ -1273,7 +1300,10 @@ class SyncPregelLoop(PregelLoop, AbstractContextManager):
         )
         self.submit = self.stack.enter_context(BackgroundExecutor(self.config))
         self.channels, self.managed = channels_from_checkpoint(
-            self.specs, self.checkpoint
+            self.specs,
+            self.checkpoint,
+            saver=self.checkpointer,
+            config=self.checkpoint_config,
         )
         self.stack.push(self._suppress_interrupt)
         self.status = "input"
@@ -1368,6 +1398,11 @@ class AsyncPregelLoop(PregelLoop, AbstractAsyncContextManager):
         metadata: CheckpointMetadata,
         new_versions: ChannelVersions,
     ) -> RunnableConfig:
+        # Drain DeltaChannel write futures before committing the checkpoint so
+        # DELTA_SENTINEL blobs are never saved ahead of their backing writes.
+        if self._delta_write_futs:
+            futs, self._delta_write_futs = self._delta_write_futs, []
+            await asyncio.gather(*futs)
         try:
             if prev is not None:
                 await prev
@@ -1473,11 +1508,15 @@ class AsyncPregelLoop(PregelLoop, AbstractAsyncContextManager):
             if saved.pending_writes is not None
             else []
         )
+        self._delta_write_futs = []
         self.submit = await self.stack.enter_async_context(
             AsyncBackgroundExecutor(self.config)
         )
-        self.channels, self.managed = channels_from_checkpoint(
-            self.specs, self.checkpoint
+        self.channels, self.managed = await achannels_from_checkpoint(
+            self.specs,
+            self.checkpoint,
+            saver=self.checkpointer,
+            config=self.checkpoint_config,
         )
         self.stack.push(self._suppress_interrupt)
         self.status = "input"

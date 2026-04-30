@@ -214,6 +214,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/datasets/{id}/jsonl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download dataset examples as JSONL file */
+        get: operations["getDatasetJSONL"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/datasets/{id}/jsonl/openai_ft": {
         parameters: {
             query?: never;
@@ -1391,6 +1408,8 @@ export interface components {
         DatasetExample: {
             /** Id */
             id: string;
+            /** Node Id */
+            node_id: string;
             /** Input */
             input: {
                 [key: string]: unknown;
@@ -2243,8 +2262,34 @@ export interface components {
             top_p?: number;
             /** Stop Sequences */
             stop_sequences?: string[];
+            output_config?: components["schemas"]["PromptAnthropicOutputConfig"];
             /** Thinking */
-            thinking?: components["schemas"]["PromptAnthropicThinkingConfigDisabled"] | components["schemas"]["PromptAnthropicThinkingConfigEnabled"];
+            thinking?: components["schemas"]["PromptAnthropicThinkingConfigDisabled"] | components["schemas"]["PromptAnthropicThinkingConfigEnabled"] | components["schemas"]["PromptAnthropicThinkingConfigAdaptive"];
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
+        };
+        /** PromptAnthropicOutputConfig */
+        PromptAnthropicOutputConfig: {
+            /**
+             * Effort
+             * @enum {string}
+             */
+            effort?: "low" | "medium" | "high" | "xhigh" | "max";
+        };
+        /** PromptAnthropicThinkingConfigAdaptive */
+        PromptAnthropicThinkingConfigAdaptive: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "adaptive";
+            /**
+             * Display
+             * @enum {string}
+             */
+            display?: "summarized" | "omitted";
         };
         /** PromptAnthropicThinkingConfigDisabled */
         PromptAnthropicThinkingConfigDisabled: {
@@ -2263,6 +2308,11 @@ export interface components {
             type: "enabled";
             /** Budget Tokens */
             budget_tokens: number;
+            /**
+             * Display
+             * @enum {string}
+             */
+            display?: "summarized" | "omitted";
         };
         /** PromptAwsInvocationParameters */
         PromptAwsInvocationParameters: {
@@ -2281,6 +2331,8 @@ export interface components {
             temperature?: number;
             /** Top P */
             top_p?: number;
+            /** Stop Sequences */
+            stop_sequences?: string[];
         };
         /** PromptAzureOpenAIInvocationParameters */
         PromptAzureOpenAIInvocationParameters: {
@@ -2307,11 +2359,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptCerebrasInvocationParameters */
         PromptCerebrasInvocationParameters: {
@@ -2338,11 +2396,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptChatTemplate */
         PromptChatTemplate: {
@@ -2391,11 +2455,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptFireworksInvocationParameters */
         PromptFireworksInvocationParameters: {
@@ -2422,11 +2492,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptGoogleInvocationParameters */
         PromptGoogleInvocationParameters: {
@@ -2453,6 +2529,19 @@ export interface components {
             top_p?: number;
             /** Top K */
             top_k?: number;
+            thinking_config?: components["schemas"]["PromptGoogleThinkingConfig"];
+        };
+        /** PromptGoogleThinkingConfig */
+        PromptGoogleThinkingConfig: {
+            /** Thinking Budget */
+            thinking_budget?: number;
+            /**
+             * Thinking Level
+             * @enum {string}
+             */
+            thinking_level?: "minimal" | "low" | "medium" | "high";
+            /** Include Thoughts */
+            include_thoughts?: boolean;
         };
         /** PromptGroqInvocationParameters */
         PromptGroqInvocationParameters: {
@@ -2479,11 +2568,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptMessage */
         PromptMessage: {
@@ -2520,11 +2615,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptOllamaInvocationParameters */
         PromptOllamaInvocationParameters: {
@@ -2551,11 +2652,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptOpenAIInvocationParameters */
         PromptOpenAIInvocationParameters: {
@@ -2582,11 +2689,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptPerplexityInvocationParameters */
         PromptPerplexityInvocationParameters: {
@@ -2613,11 +2726,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptResponseFormatJSONSchema */
         PromptResponseFormatJSONSchema: {
@@ -2686,11 +2805,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** PromptToolChoiceNone */
         PromptToolChoiceNone: {
@@ -2837,11 +2962,17 @@ export interface components {
             top_p?: number;
             /** Seed */
             seed?: number;
+            /** Stop */
+            stop?: string[];
             /**
              * Reasoning Effort
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+            /** Extra Body */
+            extra_body?: {
+                [key: string]: unknown;
+            };
         };
         /** ResponseBody[UpsertOrDeleteSecretsResult] */
         ResponseBody_UpsertOrDeleteSecretsResult_: {
@@ -3509,6 +3640,12 @@ export interface components {
             dataset_id: string;
             /** Version Id */
             version_id: string;
+            /** Num Created Examples */
+            num_created_examples: number;
+            /** Num Updated Examples */
+            num_updated_examples: number;
+            /** Num Deleted Examples */
+            num_deleted_examples: number;
         };
         /** UploadDatasetResponseBody */
         UploadDatasetResponseBody: {
@@ -4214,7 +4351,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    action?: "create" | "append";
+                    action?: "create" | "append" | "update";
                     name: string;
                     description?: string;
                     inputs: Record<string, unknown>[];
@@ -4224,21 +4361,27 @@ export interface operations {
                     splits?: (string | string[] | null)[];
                     /** @description Span IDs to link examples back to spans */
                     span_ids?: (string | null)[];
+                    /** @description Optional example ID per example. If provided, it is used as the example's stable public ID. */
+                    example_ids?: (string | null)[];
                 };
                 "multipart/form-data": {
                     /** @enum {string} */
-                    action?: "create" | "append";
+                    action?: "create" | "append" | "update";
                     name: string;
                     description?: string;
                     "input_keys[]": string[];
                     "output_keys[]": string[];
                     "metadata_keys[]"?: string[];
-                    /** @description Column names for auto-assigning examples to splits */
+                    /** @description Deprecated: use split_key instead. Column names for auto-assigning examples to splits */
                     "split_keys[]"?: string[];
+                    /** @description Single column name containing split names (plain string or JSON list) per row */
+                    split_key?: string;
                     /** @description Column names whose object values should be flattened into their selected bucket */
                     "flatten_keys[]"?: string[];
                     /** @description Column name for span IDs to link examples back to spans */
                     span_id_key?: string;
+                    /** @description Column name containing stable IDs for examples. When provided, examples with matching IDs are updated in place when their content changes. */
+                    example_id_key?: string;
                     /** Format: binary */
                     file: string;
                 };
@@ -4263,7 +4406,7 @@ export interface operations {
                     "text/plain": string;
                 };
             };
-            /** @description Dataset of the same name already exists */
+            /** @description Dataset with the given name already exists (action=create). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -4372,6 +4515,50 @@ export interface operations {
                 };
             };
             /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+        };
+    };
+    getDatasetJSONL: {
+        parameters: {
+            query?: {
+                /** @description The ID of the dataset version (if omitted, returns data from the latest version) */
+                version_id?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the dataset */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Invalid dataset or version ID */
             422: {
                 headers: {
                     [name: string]: unknown;
