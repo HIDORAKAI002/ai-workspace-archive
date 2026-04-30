@@ -650,7 +650,6 @@ export const ASSET_NODE_FRAGMENT = gql`
     jobNames
     changedReasons
     opNames
-    opVersion
     description
     computeKind
     isPartitioned

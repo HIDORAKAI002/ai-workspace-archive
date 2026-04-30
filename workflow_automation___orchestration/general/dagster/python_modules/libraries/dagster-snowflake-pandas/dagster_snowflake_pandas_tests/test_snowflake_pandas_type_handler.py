@@ -119,6 +119,7 @@ def test_handle_output():
             TableSchema(columns=[TableColumn("col1", "object"), TableColumn("col2", "int64")])
         ),
         "dagster/row_count": 1,
+        "dagster/storage_kind": "snowflake",
     }
 
 

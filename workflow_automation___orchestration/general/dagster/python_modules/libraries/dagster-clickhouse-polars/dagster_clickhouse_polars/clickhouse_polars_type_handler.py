@@ -70,9 +70,9 @@ class ClickhousePolarsTypeHandler(DbTypeHandler[pl.DataFrame]):
 
         return {
             **(
-                TableMetadataSet(partition_row_count=obj.height)
+                TableMetadataSet(partition_row_count=obj.height, storage_kind="clickhouse")
                 if context.has_partition_key
-                else TableMetadataSet(row_count=obj.height)
+                else TableMetadataSet(row_count=obj.height, storage_kind="clickhouse")
             ),
             "dataframe_columns": MetadataValue.table_schema(
                 TableSchema(

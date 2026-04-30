@@ -16,6 +16,7 @@ from dagster import (
     PartitionsDefinition,
 )
 from dagster._core.definitions.materialize import materialize
+from dagster._core.definitions.metadata.metadata_set import TableMetadataSet
 from dagster._core.definitions.metadata.metadata_value import (
     IntMetadataValue,
     TableColumnConstraints,
@@ -347,6 +348,12 @@ def test_example_pipeline_storage_kind(dlt_pipeline: Pipeline):
         for key in example_pipeline_assets.asset_and_check_keys:
             if isinstance(key, AssetKey):
                 assert has_kind(example_pipeline_assets.tags_by_key[key], destination_type)
+                assert (
+                    TableMetadataSet.extract(
+                        example_pipeline_assets.metadata_by_key[key]
+                    ).storage_kind
+                    == destination_type
+                )
 
 
 def test_example_pipeline_subselection(dlt_pipeline: Pipeline) -> None:
@@ -466,6 +473,7 @@ def test_asset_metadata(dlt_pipeline: Pipeline) -> None:
             "dagster_dlt/pipeline": dagster_dlt_pipeline,
             "dagster_dlt/translator": dagster_dlt_translator,
             "dagster/table_name": "repos",
+            "dagster/storage_kind": "duckdb",
             "mode": "upsert",
             "primary_key": "id",
         },
@@ -474,6 +482,7 @@ def test_asset_metadata(dlt_pipeline: Pipeline) -> None:
             "dagster_dlt/pipeline": dagster_dlt_pipeline,
             "dagster_dlt/translator": dagster_dlt_translator,
             "dagster/table_name": "repo_issues",
+            "dagster/storage_kind": "duckdb",
             "mode": "upsert",
             "primary_key": ["repo_id", "issue_id"],
         },
@@ -510,6 +519,7 @@ def test_asset_metadata_legacy(dlt_pipeline: Pipeline) -> None:
             "dagster_dlt/source": dagster_dlt_source,
             "dagster_dlt/pipeline": dagster_dlt_pipeline,
             "dagster_dlt/translator": dagster_dlt_translator,
+            "dagster/storage_kind": "duckdb",
             "mode": "upsert",
             "primary_key": "id",
         },
@@ -517,6 +527,7 @@ def test_asset_metadata_legacy(dlt_pipeline: Pipeline) -> None:
             "dagster_dlt/source": dagster_dlt_source,
             "dagster_dlt/pipeline": dagster_dlt_pipeline,
             "dagster_dlt/translator": dagster_dlt_translator,
+            "dagster/storage_kind": "duckdb",
             "mode": "upsert",
             "primary_key": ["repo_id", "issue_id"],
         },

@@ -94,6 +94,9 @@ def test_io_manager_asset_metadata() -> None:
         assert mat.materialization.metadata["dagster/table_name"] == MetadataValue.text(
             f"{os.getenv('GCP_PROJECT_ID')}.{SCHEMA}.{table_name}"
         )
+        assert mat.materialization.metadata["dagster/storage_kind"] == MetadataValue.text(
+            "bigquery"
+        )
 
 
 @pytest.mark.skipif(

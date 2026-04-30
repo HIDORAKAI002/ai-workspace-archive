@@ -48,7 +48,6 @@ function SetCacheEntry({
 }) {
   const key = tokenForAssetKey(assetKey);
 
-  // // Set up live data cache if available
   if (liveData) {
     const entry = {[key]: liveData};
     AssetBaseData.manager._updateCache(entry);
@@ -69,7 +68,7 @@ function SetCacheEntry({
   return null;
 }
 
-export const LiveStates = () => {
+const LiveStatesComponent = () => {
   const [assetHealthEnabled, setAssetHealthEnabled] = useState(true);
   const [facets, setFacets] = useState<Set<AssetNodeFacet>>(new Set(AllAssetNodeFacets));
 
@@ -171,7 +170,10 @@ export const LiveStates = () => {
       </AssetLiveDataProvider>
     </MockedProvider>
   );
-  return;
+};
+
+export const LiveStates = {
+  render: () => <LiveStatesComponent />,
 };
 
 export const Links = () => {
@@ -184,7 +186,7 @@ export const Links = () => {
   );
 };
 
-export const PartnerTags = () => {
+const PartnerTagsComponent = () => {
   const caseWithComputeKind = (computeKind: string) => {
     const def = {...Mocks.AssetNodeFragmentBasic, kinds: [computeKind]};
     const liveData = Mocks.LiveDataForNodeMaterialized;
@@ -231,4 +233,8 @@ export const PartnerTags = () => {
       </AssetLiveDataProvider>
     </MockedProvider>
   );
+};
+
+export const PartnerTags = {
+  render: () => <PartnerTagsComponent />,
 };

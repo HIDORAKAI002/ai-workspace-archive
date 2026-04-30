@@ -545,6 +545,9 @@ def test_table_name(
     assert asset_materializations[0].materialization.metadata[
         "dagster/table_name"
     ] == TextMetadataValue(text="SLING_SQLITE.main.orders")
+    assert asset_materializations[0].materialization.metadata[
+        "dagster/storage_kind"
+    ] == TextMetadataValue(text="SLING_SQLITE")
 
 
 def test_pool(replication_config: SlingReplicationParam):

@@ -5,10 +5,9 @@ import React from 'react';
 
 import {useAssetsHealthData} from '../../asset-data/AssetHealthDataProvider';
 import {parseExpression} from '../../asset-selection/AssetSelectionSupplementaryDataVisitor';
-import {useAllAssets} from '../../assets/useAllAssets';
+import {WorkspaceAssetNode, useAllAssets} from '../../assets/useAllAssets';
 import {buildAsset, buildAssetHealth, buildAssetKey} from '../../graphql/builders';
 import {AssetHealthStatus} from '../../graphql/types';
-import {WorkspaceAssetFragment} from '../../workspace/WorkspaceContext/types/WorkspaceQueries.types';
 
 // Mock the dependencies
 jest.mock('../Utils', () => ({
@@ -46,14 +45,14 @@ describe('useAssetGraphSupplementaryData', () => {
   const mockAssetKey1 = buildAssetKey({path: ['asset1']});
   const mockAssetKey2 = buildAssetKey({path: ['asset2']});
 
-  const mockNodes: WorkspaceAssetFragment[] = [
+  const mockNodes: WorkspaceAssetNode[] = [
     {
       assetKey: mockAssetKey1,
-      // Add other required properties for WorkspaceAssetFragment
-    } as WorkspaceAssetFragment,
+      // Add other required properties for WorkspaceAssetNode
+    } as WorkspaceAssetNode,
     {
       assetKey: mockAssetKey2,
-    } as WorkspaceAssetFragment,
+    } as WorkspaceAssetNode,
   ];
 
   beforeEach(() => {
@@ -355,7 +354,7 @@ describe('getMaterializationStatus', () => {
       const mockNodes = [
         {
           assetKey: mockAssetKey1,
-        } as WorkspaceAssetFragment,
+        } as WorkspaceAssetNode,
       ];
 
       const {result} = renderHook(
@@ -447,7 +446,7 @@ describe('getFreshnessStatus', () => {
       const mockNodes = [
         {
           assetKey: mockAssetKey1,
-        } as WorkspaceAssetFragment,
+        } as WorkspaceAssetNode,
       ];
 
       const {result} = renderHook(
@@ -539,7 +538,7 @@ describe('getCheckStatus', () => {
       const mockNodes = [
         {
           assetKey: mockAssetKey1,
-        } as WorkspaceAssetFragment,
+        } as WorkspaceAssetNode,
       ];
 
       const {result} = renderHook(
