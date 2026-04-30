@@ -87,7 +87,10 @@ def _executor_initializer():
     try:
         from airflow.observability.metrics import stats_utils
 
-        Stats.initialize(factory=stats_utils.get_stats_factory(Stats))
+        Stats.initialize(
+            factory=stats_utils.get_stats_factory(),
+            export_legacy_names=conf.getboolean("metrics", "legacy_names_on", fallback=True),
+        )
     except ImportError:
         # ``stats_utils`` lives under ``airflow.observability.metrics`` in current Airflow; if the
         # import path changes or is unavailable, fall through silently — gauge calls will simply
@@ -227,7 +230,7 @@ class OpenLineageListener:
             if not doc:
                 doc, doc_type = get_dag_documentation(dag)
 
-            with Stats.timer(f"ol.extract.{event_type}.{operator_name}"):
+            with Stats.timer("ol.extract", tags={"event_type": event_type, "operator_name": operator_name}):
                 task_metadata = self.extractor_manager.extract_metadata(
                     dagrun=dagrun,
                     task=task,
@@ -259,9 +262,11 @@ class OpenLineageListener:
                     **debug_facet,
                 },
             )
+            event_size = len(Serde.to_json(redacted_event).encode("utf-8"))
             Stats.gauge(
-                f"ol.event.size.{event_type}.{operator_name}",
-                len(Serde.to_json(redacted_event).encode("utf-8")),
+                "ol.event.size",
+                event_size,
+                tags={"event_type": event_type, "operator_name": operator_name},
             )
 
         self._execute(on_running, "on_running", use_fork=True)
@@ -357,7 +362,7 @@ class OpenLineageListener:
             if not doc:
                 doc, doc_type = get_dag_documentation(dag)
 
-            with Stats.timer(f"ol.extract.{event_type}.{operator_name}"):
+            with Stats.timer("ol.extract", tags={"event_type": event_type, "operator_name": operator_name}):
                 task_metadata = self.extractor_manager.extract_metadata(
                     dagrun=dagrun,
                     task=task,
@@ -388,9 +393,11 @@ class OpenLineageListener:
                     **get_airflow_debug_facet(),
                 },
             )
+            event_size = len(Serde.to_json(redacted_event).encode("utf-8"))
             Stats.gauge(
-                f"ol.event.size.{event_type}.{operator_name}",
-                len(Serde.to_json(redacted_event).encode("utf-8")),
+                "ol.event.size",
+                event_size,
+                tags={"event_type": event_type, "operator_name": operator_name},
             )
 
         self._execute(on_success, "on_success", use_fork=True)
@@ -501,7 +508,7 @@ class OpenLineageListener:
             if not doc:
                 doc, doc_type = get_dag_documentation(dag)
 
-            with Stats.timer(f"ol.extract.{event_type}.{operator_name}"):
+            with Stats.timer("ol.extract", tags={"event_type": event_type, "operator_name": operator_name}):
                 task_metadata = self.extractor_manager.extract_metadata(
                     dagrun=dagrun,
                     task=task,
@@ -533,9 +540,11 @@ class OpenLineageListener:
                     **get_airflow_debug_facet(),
                 },
             )
+            event_size = len(Serde.to_json(redacted_event).encode("utf-8"))
             Stats.gauge(
-                f"ol.event.size.{event_type}.{operator_name}",
-                len(Serde.to_json(redacted_event).encode("utf-8")),
+                "ol.event.size",
+                event_size,
+                tags={"event_type": event_type, "operator_name": operator_name},
             )
 
         self._execute(on_failure, "on_failure", use_fork=True)
@@ -622,7 +631,7 @@ class OpenLineageListener:
             if not doc:
                 doc, doc_type = get_dag_documentation(dag)
 
-            with Stats.timer(f"ol.extract.{event_type}.{operator_name}"):
+            with Stats.timer("ol.extract", tags={"event_type": event_type, "operator_name": operator_name}):
                 task_metadata = self.extractor_manager.extract_metadata(
                     dagrun=dagrun,
                     task=task,
@@ -653,9 +662,11 @@ class OpenLineageListener:
                     **get_airflow_debug_facet(),
                 },
             )
+            event_size = len(Serde.to_json(redacted_event).encode("utf-8"))
             Stats.gauge(
-                f"ol.event.size.{event_type}.{operator_name}",
-                len(Serde.to_json(redacted_event).encode("utf-8")),
+                "ol.event.size",
+                event_size,
+                tags={"event_type": event_type, "operator_name": operator_name},
             )
 
         self._execute(on_skipped, "on_skipped", use_fork=True)

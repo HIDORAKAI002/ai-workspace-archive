@@ -375,7 +375,7 @@ def test_metric_tags_raises_without_job(jobless_supervisor):
 
 def test_emit_metrics_uses_metric_tags_override(jobless_supervisor, mocker):
     """Subclasses can supply tags by overriding metric_tags() instead of threading args."""
-    gauge = mocker.patch("airflow.jobs.triggerer_job_runner.DualStatsManager.gauge")
+    gauge = mocker.patch("airflow.jobs.triggerer_job_runner.stats.gauge")
     mocker.patch.object(
         TriggerRunnerSupervisor,
         "metric_tags",
@@ -386,7 +386,7 @@ def test_emit_metrics_uses_metric_tags_override(jobless_supervisor, mocker):
 
     assert gauge.call_count == 2
     for call in gauge.call_args_list:
-        assert call.kwargs["extra_tags"] == {"hostname": "astro-host", "deployment": "demo"}
+        assert call.kwargs["tags"] == {"hostname": "astro-host", "deployment": "demo"}
 
 
 def test_load_triggers_raises_without_job(jobless_supervisor, mocker):
@@ -578,7 +578,7 @@ class TestTriggerRunner:
         with (
             patch("airflow.jobs.triggerer_job_runner.asyncio.sleep", side_effect=fake_sleep),
             patch("airflow.jobs.triggerer_job_runner.time.monotonic", side_effect=[1.0, 1.4]),
-            patch("airflow.jobs.triggerer_job_runner.Stats.incr") as mock_stats_incr,
+            patch("airflow.jobs.triggerer_job_runner.stats.incr") as mock_stats_incr,
         ):
             await trigger_runner.block_watchdog()
 
@@ -598,7 +598,7 @@ class TestTriggerRunner:
         with (
             patch("airflow.jobs.triggerer_job_runner.asyncio.sleep", side_effect=fake_sleep),
             patch("airflow.jobs.triggerer_job_runner.time.monotonic", side_effect=[1.0, 1.6]),
-            patch("airflow.jobs.triggerer_job_runner.Stats.incr") as mock_stats_incr,
+            patch("airflow.jobs.triggerer_job_runner.stats.incr") as mock_stats_incr,
         ):
             await trigger_runner.block_watchdog()
 
@@ -1648,10 +1648,10 @@ def test_update_triggers_skips_when_ti_has_no_dag_version(session, supervisor_bu
 
 
 class TestTriggererJobRunner:
-    @patch("airflow.jobs.triggerer_job_runner.Stats.initialize")
+    @patch("airflow.jobs.triggerer_job_runner.stats.initialize")
     @patch.object(TriggerRunnerSupervisor, "start")
     def test_stats_initialize_called_on_execute(self, mock_supervisor_start, stats_init_mock, session):
-        """Test that Stats.initialize() is called when TriggererJobRunner._execute() is executed."""
+        """Test that stats.initialize() is called when TriggererJobRunner._execute() is executed."""
         # Setup mock supervisor to immediately stop
         mock_supervisor = MagicMock()
         mock_supervisor.stop = False
@@ -1668,7 +1668,7 @@ class TestTriggererJobRunner:
         job_runner.trigger_runner = mock_supervisor
         mock_supervisor.stop = True  # Stop immediately
 
-        # We don't need to run the full _execute, just verify Stats.initialize is called
+        # We don't need to run the full _execute, just verify stats.initialize is called
         # before TriggerRunnerSupervisor.start
         with patch.object(job_runner, "register_signals"):
             try:
@@ -1676,7 +1676,7 @@ class TestTriggererJobRunner:
             except Exception:
                 pass  # We expect this to fail since we're mocking
 
-        # Verify Stats.initialize was called with the expected configuration parameters
+        # Verify stats.initialize was called with the expected configuration parameters
         stats_init_mock.assert_called_once()
         call_kwargs = stats_init_mock.call_args.kwargs
         assert "factory" in call_kwargs
