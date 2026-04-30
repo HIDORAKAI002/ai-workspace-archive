@@ -14,6 +14,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "b4c5d6e7f8a9"
 down_revision: str | Sequence[str] | None = "a2b3c4d5e6f7"
 branch_labels: str | Sequence[str] | None = None
@@ -25,10 +27,18 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     op.execute(f"ALTER TABLE {schema}memory_units ADD COLUMN IF NOT EXISTS observation_scopes JSONB")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     pass  # intentionally no-op — safe to leave the column in place
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

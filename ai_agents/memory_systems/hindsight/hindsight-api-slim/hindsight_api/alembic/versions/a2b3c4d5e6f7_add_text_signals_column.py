@@ -18,6 +18,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "a2b3c4d5e6f7"
 down_revision: str | Sequence[str] | None = "aa2b3c4d5e6f"
 branch_labels: str | Sequence[str] | None = None
@@ -33,7 +35,7 @@ def _detect_text_search_extension() -> str:
     return os.getenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "native").lower()
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     table = f"{schema}memory_units"
     text_search_ext = _detect_text_search_extension()
@@ -65,7 +67,7 @@ def upgrade() -> None:
     # pg_textsearch: no change — index operates on the base `text` column only
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     table = f"{schema}memory_units"
     text_search_ext = _detect_text_search_extension()
@@ -86,3 +88,11 @@ def downgrade() -> None:
         """)
 
     op.execute(f"ALTER TABLE {table} DROP COLUMN IF EXISTS text_signals")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

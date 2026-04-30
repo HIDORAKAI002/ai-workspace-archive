@@ -4,6 +4,10 @@ Large-bank recall load test (no LLM).
 Populates a synthetic bank using the real retain pipeline with a mocked LLM
 for fact extraction, then benchmarks recall latency at production scale.
 
+Supports two modes:
+  - In-process (default): uses MemoryEngine directly with mock LLM
+  - HTTP (--api-url): calls a remote Hindsight API (e.g., Docker container)
+
 Usage (run from hindsight-api/):
     cd hindsight-api
 
@@ -11,9 +15,14 @@ Usage (run from hindsight-api/):
     uv run python ../hindsight-dev/benchmarks/perf/recall_perf.py generate \\
         --bank-id recall-perf-small2 --scale small
 
-    # Benchmark recall:
+    # Benchmark recall (in-process):
     uv run python ../hindsight-dev/benchmarks/perf/recall_perf.py benchmark \\
         --bank-id recall-perf-small --query "database migration" --iterations 5
+
+    # Benchmark recall (HTTP, against Docker):
+    uv run python ../hindsight-dev/benchmarks/perf/recall_perf.py benchmark \\
+        --bank-id recall-perf-small --query "database migration" --iterations 5 \\
+        --api-url http://localhost:8080
 
     # Clean up:
     uv run python ../hindsight-dev/benchmarks/perf/recall_perf.py clean \\
@@ -22,6 +31,7 @@ Usage (run from hindsight-api/):
 
 import argparse
 import asyncio
+import json
 import os
 import statistics
 import time
@@ -806,58 +816,131 @@ class _RRFReranker:
 
 
 # ---------------------------------------------------------------------------
+# HTTP recall (for benchmarking against a remote Hindsight API)
+# ---------------------------------------------------------------------------
+
+
+async def recall_via_http(
+    base_url: str,
+    bank_id: str,
+    query: str,
+    *,
+    fact_types: list[str] | None = None,
+    timeout: float = 60.0,
+) -> tuple[float, dict]:
+    """Send a recall request via HTTP and return (duration, response_json)."""
+    import httpx
+
+    url = f"{base_url}/v1/default/banks/{bank_id}/memories/recall"
+    payload: dict[str, Any] = {
+        "query": query,
+        "max_tokens": 4096,
+        "include_trace": True,
+        "include_chunks": True,
+        "include_entities": True,
+        "include_source_facts": True,
+    }
+    if fact_types:
+        payload["fact_types"] = fact_types
+
+    t0 = time.perf_counter()
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        result = response.json()
+    elapsed = time.perf_counter() - t0
+    return elapsed, result
+
+
+# ---------------------------------------------------------------------------
 # Subcommand: benchmark
 # ---------------------------------------------------------------------------
 
 
 async def cmd_benchmark(
-    bank_id: str, query: str, iterations: int, concurrency: int, reranker: str, fact_types: list[str] | None = None
+    bank_id: str,
+    query: str,
+    iterations: int,
+    concurrency: int,
+    reranker: str,
+    fact_types: list[str] | None = None,
+    api_url: str | None = None,
 ) -> None:
     """Run recall in parallel and report p50/p95/p99 timings with per-step breakdown."""
-    from hindsight_api.models import RequestContext
 
+    mode = f"HTTP ({api_url})" if api_url else "in-process"
     console.print(f"\n[bold cyan]Benchmark[/bold cyan] bank=[bold]{bank_id}[/bold]")
+    console.print(f"  Mode        : {mode}")
     console.print(f"  Query       : {query}")
     console.print(f"  Iterations  : {iterations}  (total recall calls)")
     console.print(f"  Concurrency : {concurrency}")
     console.print(f"  Reranker    : {reranker}")
     console.print(f"  Fact types  : {', '.join(fact_types) if fact_types else 'all'}\n")
 
-    engine = _build_engine()
-    await engine.initialize()
-
-    if reranker == "rrf":
-        engine._cross_encoder_reranker = _RRFReranker()
-
-    request_context = RequestContext()
     durations: list[float] = []
     all_phase_timings: dict[str, list[float]] = {}
 
-    async def recall_one() -> float:
-        from hindsight_api.engine.memory_engine import Budget
+    engine = None
+    if api_url:
+        # HTTP mode: verify server is reachable
+        import httpx
 
-        t0 = time.perf_counter()
-        result = await engine.recall_async(
-            bank_id=bank_id,
-            query=query,
-            budget=Budget.HIGH,
-            max_tokens=4096,
-            enable_trace=True,
-            include_chunks=True,
-            include_entities=True,
-            include_source_facts=True,
-            fact_type=fact_types,
-            request_context=request_context,
-            _quiet=True,
-        )
-        elapsed = time.perf_counter() - t0
-        if result.trace:
-            summary = result.trace.get("summary", {})
+        console.print(f"  Checking API server at {api_url}…")
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{api_url}/health", timeout=5.0)
+                resp.raise_for_status()
+            console.print("  [green]API server is healthy.[/green]\n")
+        except Exception as e:
+            console.print(f"  [red]Cannot reach API server: {e}[/red]")
+            return
+
+        async def recall_one() -> float:
+            elapsed, result = await recall_via_http(api_url, bank_id, query, fact_types=fact_types)
+            trace = result.get("trace", {})
+            summary = trace.get("summary", {})
             for pm in summary.get("phase_metrics", []):
                 name = pm["phase_name"]
                 dur = pm["duration_seconds"]
                 all_phase_timings.setdefault(name, []).append(dur)
-        return elapsed
+            return elapsed
+    else:
+        # In-process mode
+        from hindsight_api.models import RequestContext
+
+        engine = _build_engine()
+        await engine.initialize()
+
+        if reranker == "rrf":
+            engine._cross_encoder_reranker = _RRFReranker()
+
+        request_context = RequestContext()
+
+        async def recall_one() -> float:
+            from hindsight_api.engine.memory_engine import Budget
+
+            t0 = time.perf_counter()
+            result = await engine.recall_async(
+                bank_id=bank_id,
+                query=query,
+                budget=Budget.HIGH,
+                max_tokens=4096,
+                enable_trace=True,
+                include_chunks=True,
+                include_entities=True,
+                include_source_facts=True,
+                fact_type=fact_types,
+                request_context=request_context,
+                _quiet=True,
+            )
+            elapsed = time.perf_counter() - t0
+            if result.trace:
+                summary = result.trace.get("summary", {})
+                for pm in summary.get("phase_metrics", []):
+                    name = pm["phase_name"]
+                    dur = pm["duration_seconds"]
+                    all_phase_timings.setdefault(name, []).append(dur)
+            return elapsed
 
     # Run in parallel batches of `concurrency` until `iterations` total calls are done
     remaining = iterations
@@ -878,8 +961,9 @@ async def cmd_benchmark(
             remaining -= batch_size
             progress.advance(task, batch_size)
 
-    pool = await engine._get_pool()
-    await pool.close()
+    if engine is not None:
+        pool = await engine._get_pool()
+        await pool.close()
 
     # Compute percentiles
     sorted_d = sorted(durations)
@@ -1036,6 +1120,13 @@ def main() -> None:
         metavar="TYPE",
         help="Fact types to include in recall (default: all). E.g. --fact-types observation",
     )
+    bm.add_argument(
+        "--api-url",
+        default=None,
+        metavar="URL",
+        help="HTTP mode: send recall requests to this Hindsight API URL (e.g., http://localhost:8080). "
+        "If omitted, uses in-process MemoryEngine.",
+    )
 
     # stats
     st = sub.add_parser("stats", help="Print memory/entity/link counts for banks")
@@ -1053,7 +1144,15 @@ def main() -> None:
         )
     elif args.cmd == "benchmark":
         asyncio.run(
-            cmd_benchmark(args.bank_id, args.query, args.iterations, args.concurrency, args.reranker, args.fact_types)
+            cmd_benchmark(
+                args.bank_id,
+                args.query,
+                args.iterations,
+                args.concurrency,
+                args.reranker,
+                args.fact_types,
+                api_url=args.api_url,
+            )
         )
     elif args.cmd == "stats":
         asyncio.run(cmd_stats(args.bank_ids))

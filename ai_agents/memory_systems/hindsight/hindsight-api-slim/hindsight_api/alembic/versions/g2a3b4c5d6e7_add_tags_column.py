@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "g2a3b4c5d6e7"
 down_revision: str | Sequence[str] | None = "f1a2b3c4d5e6"
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add tags column to memory_units and documents tables."""
     schema = _get_schema_prefix()
 
@@ -39,10 +41,18 @@ def upgrade() -> None:
     op.execute(f"ALTER TABLE {schema}documents ADD COLUMN IF NOT EXISTS tags VARCHAR[] NOT NULL DEFAULT '{{}}'")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove tags columns and index."""
     schema = _get_schema_prefix()
 
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_memory_units_tags")
     op.execute(f"ALTER TABLE {schema}memory_units DROP COLUMN IF EXISTS tags")
     op.execute(f"ALTER TABLE {schema}documents DROP COLUMN IF EXISTS tags")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

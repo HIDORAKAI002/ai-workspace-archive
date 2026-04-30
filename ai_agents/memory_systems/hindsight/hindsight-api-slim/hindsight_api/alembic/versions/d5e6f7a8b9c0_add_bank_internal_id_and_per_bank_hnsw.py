@@ -25,6 +25,8 @@ from collections.abc import Sequence
 from alembic import context, op
 from sqlalchemy import text
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "d5e6f7a8b9c0"
 down_revision: str | Sequence[str] | None = "c3d4e5f6g7h8"
 branch_labels: str | Sequence[str] | None = None
@@ -53,7 +55,7 @@ def _vector_index_using_clause() -> str:
         return "USING hnsw (embedding vector_cosine_ops)"
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     # 1. Add internal_id column to banks
@@ -96,7 +98,7 @@ def upgrade() -> None:
             )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
 
     # Drop per-bank HNSW indexes (iterate existing banks)
@@ -137,3 +139,11 @@ def downgrade() -> None:
     # Drop internal_id column
     op.execute(f"ALTER TABLE {schema}banks DROP CONSTRAINT IF EXISTS banks_internal_id_unique")
     op.execute(f"ALTER TABLE {schema}banks DROP COLUMN IF EXISTS internal_id")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

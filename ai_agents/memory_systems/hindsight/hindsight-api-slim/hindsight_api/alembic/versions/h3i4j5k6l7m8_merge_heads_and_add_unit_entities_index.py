@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "h3i4j5k6l7m8"
 down_revision: str | Sequence[str] | None = ("a4b5c6d7e8f9", "g2h3i4j5k6l7")
 branch_labels: str | Sequence[str] | None = None
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     # Composite index enables index-only scans for entity_id -> unit_id lookups
     op.execute(
@@ -35,8 +37,16 @@ def upgrade() -> None:
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_unit_entities_entity")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_unit_entities_entity_unit")
     # Restore the single-column index
     op.execute(f"CREATE INDEX IF NOT EXISTS idx_unit_entities_entity ON {schema}unit_entities (entity_id)")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

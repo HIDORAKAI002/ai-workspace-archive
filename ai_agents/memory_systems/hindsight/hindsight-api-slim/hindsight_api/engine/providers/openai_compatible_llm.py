@@ -415,19 +415,24 @@ class OpenAICompatibleLLM(LLMInterface):
                 if response_format is not None:
                     response = await self._client.chat.completions.create(**call_params)
 
-                    content = response.choices[0].message.content
+                    # Coerce None to "" — some providers (notably OpenRouter free
+                    # tiers) occasionally return null content alongside a valid
+                    # finish_reason. Empty string flows naturally into the JSON
+                    # parse error handler below, which already retries; without
+                    # this, downstream string ops crash with TypeError and the
+                    # retry loop cannot recover.
+                    content = response.choices[0].message.content or ""
 
                     # Strip reasoning model thinking tags
                     # Supports: <think>, <thinking>, <reasoning>, |startthink|/|endthink|
-                    if content:
-                        original_len = len(content)
-                        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
-                        content = re.sub(r"<thinking>.*?</thinking>", "", content, flags=re.DOTALL)
-                        content = re.sub(r"<reasoning>.*?</reasoning>", "", content, flags=re.DOTALL)
-                        content = re.sub(r"\|startthink\|.*?\|endthink\|", "", content, flags=re.DOTALL)
-                        content = content.strip()
-                        if len(content) < original_len:
-                            logger.debug(f"Stripped {original_len - len(content)} chars of reasoning tokens")
+                    original_len = len(content)
+                    content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
+                    content = re.sub(r"<thinking>.*?</thinking>", "", content, flags=re.DOTALL)
+                    content = re.sub(r"<reasoning>.*?</reasoning>", "", content, flags=re.DOTALL)
+                    content = re.sub(r"\|startthink\|.*?\|endthink\|", "", content, flags=re.DOTALL)
+                    content = content.strip()
+                    if len(content) < original_len:
+                        logger.debug(f"Stripped {original_len - len(content)} chars of reasoning tokens")
 
                     # Strip markdown code fences if present — any provider may
                     # produce these (confirmed with MiniMax, some Ollama models,

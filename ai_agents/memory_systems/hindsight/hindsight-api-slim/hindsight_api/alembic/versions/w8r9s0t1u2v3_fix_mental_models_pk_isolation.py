@@ -15,6 +15,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "w8r9s0t1u2v3"
 down_revision: str | Sequence[str] | None = "v7q8r9s0t1u2"
 branch_labels: str | Sequence[str] | None = None
@@ -27,7 +29,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Change mental_models primary key from (id) to (bank_id, id) for proper bank isolation."""
     schema = _get_schema_prefix()
 
@@ -45,7 +47,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Revert mental_models primary key from (bank_id, id) to (id)."""
     schema = _get_schema_prefix()
 
@@ -58,3 +60,11 @@ def downgrade() -> None:
         ALTER TABLE {schema}mental_models
         ADD CONSTRAINT mental_models_pkey PRIMARY KEY (id)
     """)
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

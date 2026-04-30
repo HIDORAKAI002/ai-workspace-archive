@@ -15,6 +15,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "j5e6f7g8h9i0"
 down_revision: str | Sequence[str] | None = "i4d5e6f7g8h9"
@@ -28,7 +30,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Create mental_model_versions table and add version tracking."""
     schema = _get_schema_prefix()
 
@@ -81,7 +83,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove mental_model_versions table and version column."""
     schema = _get_schema_prefix()
 
@@ -93,3 +95,11 @@ def downgrade() -> None:
 
     # Remove version column from mental_models
     op.execute(f"ALTER TABLE {schema}mental_models DROP COLUMN IF EXISTS version")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

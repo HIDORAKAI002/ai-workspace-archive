@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "2eee35aa3cfc"
 down_revision: str | Sequence[str] | None = "d6e7f8a9b0c1"
 branch_labels: str | Sequence[str] | None = None
@@ -24,7 +26,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     # Drop the old case-sensitive trigram index
     op.execute("DROP INDEX IF EXISTS entities_canonical_name_trgm_idx")
@@ -35,7 +37,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     op.execute("DROP INDEX IF EXISTS entities_canonical_name_lower_trgm_idx")
     schema = _get_schema_prefix()
     # Restore original case-sensitive index
@@ -43,3 +45,11 @@ def downgrade() -> None:
         f"CREATE INDEX IF NOT EXISTS entities_canonical_name_trgm_idx "
         f"ON {schema}entities USING GIN (canonical_name gin_trgm_ops)"
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

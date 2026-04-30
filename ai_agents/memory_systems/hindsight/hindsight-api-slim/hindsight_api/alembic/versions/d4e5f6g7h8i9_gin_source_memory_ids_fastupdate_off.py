@@ -18,6 +18,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "d4e5f6g7h8i9"
 down_revision: str | Sequence[str] | None = "d5e6f7a8b9c0"
 branch_labels: str | Sequence[str] | None = None
@@ -29,7 +31,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     # DROP + CREATE CONCURRENTLY must run outside a transaction block.
     op.execute("COMMIT")
@@ -42,7 +44,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_units_source_memory_ids")
@@ -51,3 +53,11 @@ def downgrade() -> None:
         f"ON {schema}memory_units USING GIN (source_memory_ids) "
         f"WHERE source_memory_ids IS NOT NULL"
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

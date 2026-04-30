@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "i4d5e6f7g8h9"
 down_revision: str | Sequence[str] | None = "h3c4d5e6f7g8"
@@ -26,7 +28,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Delete opinion memory_units."""
     schema = _get_schema_prefix()
 
@@ -35,7 +37,15 @@ def upgrade() -> None:
     op.execute(f"DELETE FROM {schema}memory_units WHERE fact_type = 'opinion'")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Cannot restore deleted opinions."""
     # Note: Cannot restore deleted opinions - they are lost on downgrade
     pass
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

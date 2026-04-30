@@ -829,3 +829,66 @@ async def test_submit_async_operation_leaves_claimable_row_when_submit_task_fail
     assert payload["type"] == "batch_retain"
     assert payload["bank_id"] == bank_id
     assert payload["contents"] == [{"content": "hello", "document_id": "d1"}]
+
+
+@pytest.mark.asyncio
+async def test_submit_async_batch_retain_rolls_back_parent_on_child_failure(
+    memory_no_llm_verify, request_context, monkeypatch
+):
+    """Regression for orphaned-parent rows.
+
+    submit_async_batch_retain inserts a parent row (status='pending',
+    task_payload=NULL — it's a status aggregator, not directly executable) and
+    then loops to insert one child row per sub-batch. If the parent INSERT and
+    the child INSERTs were not transactionally coupled, any failure during the
+    child loop (connection drop, timeout, schema-cache invalidation under
+    concurrent load) would leave a parent with zero children. Workers ignore
+    such rows forever (task_payload IS NULL filter), the status aggregator
+    never fires (no children to complete), and the row sits pending
+    indefinitely — visible in queue-depth metrics and growing without bound.
+
+    This test simulates a child-step failure by raising on the second
+    BatchRetainChildMetadata construction. After the failure we expect zero
+    async_operations rows for the bank: the parent INSERT must roll back
+    together with the children.
+    """
+    import hindsight_api.engine.memory_engine as me
+    from hindsight_api.engine.memory_engine import count_tokens
+
+    bank_id = f"test_parent_rollback_{uuid.uuid4().hex[:8]}"
+    pool = await memory_no_llm_verify._get_pool()
+    await _ensure_bank(pool, bank_id)
+
+    # Force at least 2 sub-batches so the child loop runs more than once
+    # (matches the existing large-batch fixture's sizing).
+    large_content = "The quick brown fox jumps over the lazy dog. " * 500
+    contents = [{"content": large_content + f" item {i}", "document_id": f"doc{i}"} for i in range(2)]
+    assert sum(count_tokens(item["content"]) for item in contents) > 10_000
+
+    real_class = me.BatchRetainChildMetadata
+    call_count = {"n": 0}
+
+    def failing_child_metadata(*args, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 2:
+            raise RuntimeError("Simulated child-step failure mid-batch")
+        return real_class(*args, **kwargs)
+
+    monkeypatch.setattr(me, "BatchRetainChildMetadata", failing_child_metadata)
+
+    with pytest.raises(RuntimeError, match="Simulated child-step failure"):
+        await memory_no_llm_verify.submit_async_retain(
+            bank_id=bank_id,
+            contents=contents,
+            request_context=request_context,
+        )
+
+    rows = await pool.fetch(
+        "SELECT operation_id, operation_type, status, task_payload FROM async_operations WHERE bank_id = $1",
+        bank_id,
+    )
+    assert rows == [], (
+        f"Expected zero rows for bank_id={bank_id} after rollback, got {len(rows)}: "
+        f"{[(r['operation_type'], r['status'], r['task_payload'] is not None) for r in rows]}. "
+        "The parent INSERT must be transactionally coupled to the child INSERTs."
+    )

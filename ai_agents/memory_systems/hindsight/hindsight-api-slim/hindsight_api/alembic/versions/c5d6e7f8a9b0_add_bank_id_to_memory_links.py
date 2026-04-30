@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "c5d6e7f8a9b0"
 down_revision: str | Sequence[str] | None = "b3c4d5e6f7a8"
 branch_labels: str | Sequence[str] | None = None
@@ -24,7 +26,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     # 1. Add nullable column
@@ -43,6 +45,14 @@ def upgrade() -> None:
     op.execute(f"ALTER TABLE {schema}memory_links ALTER COLUMN bank_id SET NOT NULL")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute(f"ALTER TABLE {schema}memory_links DROP COLUMN IF EXISTS bank_id")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

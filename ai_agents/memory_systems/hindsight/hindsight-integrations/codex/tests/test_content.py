@@ -9,6 +9,7 @@ import pytest
 from lib.content import (
     compose_recall_query,
     format_memories,
+    is_synthetic_codex_user_message,
     prepare_retention_transcript,
     read_transcript,
     slice_last_turns_by_user_boundary,
@@ -49,6 +50,16 @@ class TestStripMemoryTags:
     def test_strips_multiline_block(self):
         raw = "<hindsight_memories>\n- mem1\n- mem2\n</hindsight_memories>"
         assert strip_memory_tags(raw).strip() == ""
+
+
+class TestSyntheticCodexUserMessage:
+    def test_detects_agents_startup_instructions(self):
+        raw = "# AGENTS.md instructions for /home/coder/project\n\n<INSTRUCTIONS>\nremember things\n</INSTRUCTIONS>"
+        assert is_synthetic_codex_user_message(raw)
+
+    def test_does_not_match_normal_agents_discussion(self):
+        raw = "We should update AGENTS.md instructions for this repo."
+        assert not is_synthetic_codex_user_message(raw)
 
 
 # ---------------------------------------------------------------------------
@@ -159,6 +170,35 @@ class TestReadTranscriptCodexFormat:
         path = _write_jsonl(tmp_path, entries)
         msgs = read_transcript(path)
         assert len(msgs) == 0
+
+    def test_skips_codex_agents_startup_instructions(self, tmp_path):
+        entries = [
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "# AGENTS.md instructions for /home/coder/project\n\n<INSTRUCTIONS>\nsetup rules\n</INSTRUCTIONS>",
+                        }
+                    ],
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "actual user request"}],
+                },
+            },
+        ]
+        path = _write_jsonl(tmp_path, entries)
+        msgs = read_transcript(path)
+        assert len(msgs) == 1
+        assert msgs[0]["content"] == "actual user request"
 
     def test_skips_blank_lines_gracefully(self, tmp_path):
         f = tmp_path / "transcript.jsonl"
@@ -397,6 +437,35 @@ class TestReadTranscriptRich:
         assert msgs[0]["content"] == [{"type": "text", "text": "hello"}]
         assert msgs[1]["role"] == "assistant"
         assert msgs[1]["content"] == [{"type": "text", "text": "hi there"}]
+
+    def test_skips_codex_agents_startup_instructions(self, tmp_path):
+        entries = [
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "# AGENTS.md instructions for /home/coder/project\n\n<INSTRUCTIONS>\nsetup rules\n</INSTRUCTIONS>",
+                        }
+                    ],
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "actual user request"}],
+                },
+            },
+        ]
+        path = _write_jsonl(tmp_path, entries)
+        msgs = read_transcript(path, include_tool_calls=True)
+        assert len(msgs) == 1
+        assert msgs[0]["content"] == [{"type": "text", "text": "actual user request"}]
 
     def test_reads_function_call(self, tmp_path):
         entries = [

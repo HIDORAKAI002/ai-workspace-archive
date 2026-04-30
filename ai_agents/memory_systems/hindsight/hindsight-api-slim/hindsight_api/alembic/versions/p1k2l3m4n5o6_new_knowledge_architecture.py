@@ -21,6 +21,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "p1k2l3m4n5o6"
 down_revision: str | Sequence[str] | None = "o0j1k2l3m4n5"
@@ -34,7 +36,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Implement new knowledge architecture."""
     schema = _get_schema_prefix()
 
@@ -126,7 +128,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Reverse the migration."""
     schema = _get_schema_prefix()
 
@@ -192,3 +194,11 @@ def downgrade() -> None:
     """)
 
     # Note: mental_models table recreation is complex and would need separate handling
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)
