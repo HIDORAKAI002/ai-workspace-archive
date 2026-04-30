@@ -31,6 +31,7 @@ from datetime import datetime
 from socket import socket
 from traceback import format_exception
 from typing import TYPE_CHECKING, Annotated, Any, BinaryIO, ClassVar, Literal, TextIO, TypedDict
+from uuid import uuid4
 
 import anyio
 import attrs
@@ -395,9 +396,16 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
 
     This class (which runs in the main/sync process) is responsible for querying the DB, sending RunTrigger
     workload messages to the subprocess, and collecting results and updating them in the DB.
+
+    ``job`` is optional so AIP-92 Execution-API-backed subclasses can run without a metadata-DB
+    ``Job``. Such subclasses **must** override the methods that read ``self.job`` —
+    :meth:`heartbeat`, :meth:`load_triggers`, and :meth:`metric_tags` — to source their data
+    from the Execution API or another backend. The base implementations of those methods raise
+    :class:`RuntimeError` when called with ``job=None`` so a missing override fails immediately
+    rather than silently zombieing the supervisor.
     """
 
-    job: Job
+    job: Job | None = None
     capacity: int
     queues: set[str] | None = None
 
@@ -435,11 +443,12 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
     def start(  # type: ignore[override]
         cls,
         *,
-        job: Job,
+        job: Job | None = None,
         logger=None,
         **kwargs,
     ):
-        proc = super().start(id=job.id, job=job, target=cls.run_in_process, logger=logger, **kwargs)
+        proc_id = job.id if job is not None else uuid4()
+        proc = super().start(id=proc_id, job=job, target=cls.run_in_process, logger=logger, **kwargs)
 
         msg = messages.StartTriggerer()
         proc.send_msg(msg, request_id=0)
@@ -447,6 +456,18 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
 
     @functools.cached_property
     def client(self) -> Client:
+        return self.make_client()
+
+    def make_client(self) -> Client:
+        """
+        Build the API client used to talk to the API server.
+
+        Subclasses may override this to substitute a different transport — e.g. a
+        real HTTP client pointing at a remote API server — instead of the default
+        in-process one. The returned client must have ``base_url`` set; downstream
+        request handling (``self.client.variables``, ``.xcoms``, etc.) reads it
+        when issuing requests.
+        """
         from airflow.sdk.api.client import Client
 
         client = Client(base_url=None, token="", dry_run=True, transport=in_process_api_server().transport)
@@ -611,6 +632,11 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
         self.emit_metrics()
 
     def heartbeat(self):
+        if self.job is None:
+            raise RuntimeError(
+                "TriggerRunnerSupervisor.heartbeat() requires a Job; "
+                "subclasses without a metadata-DB Job must override this method."
+            )
         perform_heartbeat(self.job, heartbeat_callback=self.heartbeat_callback, only_if_necessary=True)
 
     def heartbeat_callback(self, session: Session | None = None) -> None:
@@ -618,6 +644,11 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
 
     def load_triggers(self) -> None:
         """Assign triggers to this triggerer and update the runner with the IDs it should run."""
+        if self.job is None:
+            raise RuntimeError(
+                "TriggerRunnerSupervisor.load_triggers() requires a Job; "
+                "subclasses without a metadata-DB Job must override this method."
+            )
         Trigger.assign_unassigned(
             self.job.id,
             self.capacity,
@@ -662,12 +693,31 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
         """Record that a trigger failed."""
         Trigger.submit_failure(trigger_id=trigger_id, exc=exc)
 
+    def metric_tags(self) -> dict[str, str]:
+        """
+        Return extra tags applied to gauges emitted by :meth:`emit_metrics`.
+
+        Subclasses that don't have a metadata-DB ``Job`` (e.g. AIP-92 Execution-API-backed
+        triggerers) **must** override this to supply ``hostname`` (and any other identity
+        tags) from another source. ``triggers.running`` and ``triggerer.capacity_left``
+        declare ``hostname`` as a required name variable in ``metrics_template.yaml``, so
+        an empty dict here would crash :meth:`emit_metrics` on every tick.
+        """
+        hostname = self.job.hostname if self.job is not None else None
+        if hostname is None:
+            raise RuntimeError(
+                "TriggerRunnerSupervisor.metric_tags() requires a Job with a hostname; "
+                "subclasses without a metadata-DB Job must override this method."
+            )
+        return {"hostname": hostname}
+
     def emit_metrics(self):
+        extra_tags = self.metric_tags()
         DualStatsManager.gauge(
             "triggers.running",
             len(self.running_triggers),
             tags={},
-            extra_tags={"hostname": self.job.hostname},
+            extra_tags=extra_tags,
         )
 
         capacity_left = self.capacity - len(self.running_triggers)
@@ -675,7 +725,7 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
             "triggerer.capacity_left",
             capacity_left,
             tags={},
-            extra_tags={"hostname": self.job.hostname},
+            extra_tags=extra_tags,
         )
 
     def _create_workload(
@@ -703,9 +753,14 @@ class TriggerRunnerSupervisor(WatchedSubprocess):
         log_path = render_log_fname(ti=trigger.task_instance)
         ser_ti = TaskInstanceDTO.model_validate(trigger.task_instance, from_attributes=True)
 
-        # When producing logs from TIs, include the job id producing the logs to disambiguate it.
+        # When producing logs from TIs, include the supervisor id producing the logs to disambiguate it.
+        # Note: with a Job this is an int (Job.id); without a Job it's a UUID. The reader side
+        # (FileTaskHandler.add_triggerer_suffix) currently formats the suffix from
+        # ``ti.triggerer_job.id``, which only resolves the int form — AIP-92 subclasses without a
+        # metadata Job need their own log retrieval path.
+        log_id = self.job.id if self.job is not None else self.id
         self.logger_cache[trigger.id] = TriggerLoggingFactory(
-            log_path=f"{log_path}.trigger.{self.job.id}.log",
+            log_path=f"{log_path}.trigger.{log_id}.log",
             ti=ser_ti,  # type: ignore
         )
 
