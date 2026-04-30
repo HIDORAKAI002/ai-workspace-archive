@@ -206,7 +206,7 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 
 ```bash
 # Try a command (plugin install uses namespaced form)
-/ecc:plan "Add user authentication"
+/everything-claude-code:plan "Add user authentication"
 
 # Manual install (Option 2) uses the shorter form:
 # /plan "Add user authentication"
@@ -215,7 +215,7 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 /plugin list everything-claude-code@everything-claude-code
 ```
 
-**搞定！** 你现在可以使用 48 个智能体、184 项技能和 80 个命令了。
+**搞定！** 你现在可以使用 48 个智能体、182 项技能和 68 个命令了。
 
 ***
 
@@ -371,17 +371,15 @@ everything-claude-code/
 |   |-- autonomous-loops/           # 自主循环模式：顺序流水线、PR 循环与 DAG 编排（新增）
 |   |-- plankton-code-quality/      # 使用 Plankton hooks 的编写期代码质量控制（新增）
 |
-|-- commands/         # 快速执行的斜杠命令
-|   |-- tdd.md              # /tdd - 测试驱动开发
+|-- commands/         # 维护中的斜杠命令兼容层；优先使用 skills/
 |   |-- plan.md             # /plan - 实现规划
-|   |-- e2e.md              # /e2e - 端到端测试生成
 |   |-- code-review.md      # /code-review - 质量审查
 |   |-- build-fix.md        # /build-fix - 修复构建错误
 |   |-- refactor-clean.md   # /refactor-clean - 无用代码清理
+|   |-- quality-gate.md     # /quality-gate - 验证门禁
 |   |-- learn.md            # /learn - 会话中提取模式（长文指南）
 |   |-- learn-eval.md       # /learn-eval - 提取、评估并保存模式（新增）
 |   |-- checkpoint.md       # /checkpoint - 保存验证状态（长文指南）
-|   |-- verify.md           # /verify - 运行验证循环（长文指南）
 |   |-- setup-pm.md         # /setup-pm - 配置包管理器
 |   |-- go-review.md        # /go-review - Go 代码审查（新增）
 |   |-- go-test.md          # /go-test - Go TDD 工作流（新增）
@@ -397,13 +395,17 @@ everything-claude-code/
 |   |-- multi-backend.md    # /multi-backend - 后端多服务编排（新增）
 |   |-- multi-frontend.md   # /multi-frontend - 前端多服务编排（新增）
 |   |-- multi-workflow.md   # /multi-workflow - 通用多服务工作流（新增）
-|   |-- orchestrate.md      # /orchestrate - 多代理协调
 |   |-- sessions.md         # /sessions - 会话历史管理
-|   |-- eval.md             # /eval - 按标准评估
 |   |-- test-coverage.md    # /test-coverage - 测试覆盖率分析
 |   |-- update-docs.md      # /update-docs - 更新文档
 |   |-- update-codemaps.md  # /update-codemaps - 更新代码映射
 |   |-- python-review.md    # /python-review - Python 代码审查（新增）
+|-- legacy-command-shims/   # 已退役短命令的按需归档，例如 /tdd 和 /eval
+|   |-- tdd.md              # /tdd - 优先使用 tdd-workflow 技能
+|   |-- e2e.md              # /e2e - 优先使用 e2e-testing 技能
+|   |-- eval.md             # /eval - 优先使用 eval-harness 技能
+|   |-- verify.md           # /verify - 优先使用 verification-loop 技能
+|   |-- orchestrate.md      # /orchestrate - 优先使用 dmux-workflows 或 multi-workflow
 |
 |-- rules/            # 必须遵循的规则（复制到 ~/.claude/rules/）
 |   |-- README.md            # 结构说明与安装指南
@@ -654,8 +656,11 @@ cp -r everything-claude-code/rules/python/* ~/.claude/rules/
 cp -r everything-claude-code/rules/golang/* ~/.claude/rules/
 cp -r everything-claude-code/rules/php/* ~/.claude/rules/
 
-# Copy commands
+# Copy maintained commands
 cp everything-claude-code/commands/*.md ~/.claude/commands/
+
+# Retired shims live in legacy-command-shims/commands/.
+# Copy individual files from there only if you still need old names such as /tdd.
 
 # Copy skills (core vs niche)
 # Recommended (new users): core/general skills only
@@ -746,16 +751,16 @@ rules/
 
 ## 我应该使用哪个代理？
 
-不确定从哪里开始？使用这个快速参考：
+不确定从哪里开始？使用这个快速参考。技能是规范工作流表面，维护中的斜杠命令保留给偏命令式工作流。
 
-| 我想要... | 使用此命令 | 使用的智能体 |
+| 我想要... | 使用此表面 | 使用的智能体 |
 |--------------|-----------------|------------|
-| 规划新功能 | `/ecc:plan "Add auth"` | planner |
-| 设计系统架构 | `/ecc:plan` + architect agent | architect |
-| 先写测试再写代码 | `/tdd` | tdd-guide |
+| 规划新功能 | `/everything-claude-code:plan "Add auth"` | planner |
+| 设计系统架构 | `/everything-claude-code:plan` + architect agent | architect |
+| 先写测试再写代码 | `tdd-workflow` 技能 | tdd-guide |
 | 评审我刚写的代码 | `/code-review` | code-reviewer |
 | 修复失败的构建 | `/build-fix` | build-error-resolver |
-| 运行端到端测试 | `/e2e` | e2e-runner |
+| 运行端到端测试 | `e2e-testing` 技能 | e2e-runner |
 | 查找安全漏洞 | `/security-scan` | security-reviewer |
 | 移除死代码 | `/refactor-clean` | refactor-cleaner |
 | 更新文档 | `/update-docs` | doc-updater |
@@ -769,16 +774,16 @@ rules/
 **开始新功能：**
 
 ```
-/ecc:plan "使用 OAuth 添加用户身份验证"
+/everything-claude-code:plan "使用 OAuth 添加用户身份验证"
                                               → 规划器创建实现蓝图
-/tdd                                          → tdd-guide 强制执行先写测试
+tdd-workflow 技能                             → tdd-guide 强制执行先写测试
 /code-review                                  → 代码审查员检查你的工作
 ```
 
 **修复错误：**
 
 ```
-/tdd                                          → tdd-guide：编写一个能复现问题的失败测试
+tdd-workflow 技能                             → tdd-guide：编写一个能复现问题的失败测试
                                               → 实现修复，验证测试通过
 /code-review                                  → code-reviewer：捕捉回归问题
 ```
@@ -787,7 +792,7 @@ rules/
 
 ```
 /security-scan                                → security-reviewer: OWASP Top 10 审计
-/e2e                                          → e2e-runner: 关键用户流程测试
+e2e-testing 技能                              → e2e-runner: 关键用户流程测试
 /test-coverage                                → verify 80%+ 覆盖率
 ```
 
@@ -1029,7 +1034,7 @@ Codex macOS 应用：
 |-----------|-------|---------|
 | 配置 | 1 | `.codex/config.toml` —— 顶级 approvals/sandbox/web\_search, MCP 服务器，通知，配置文件 |
 | AGENTS.md | 2 | 根目录（通用）+ `.codex/AGENTS.md`（Codex 特定补充） |
-| 技能 | 16 | `.agents/skills/` —— SKILL.md + agents/openai.yaml 每个技能 |
+| 技能 | 32 | `.agents/skills/` —— SKILL.md + agents/openai.yaml 每个技能 |
 | MCP 服务器 | 4 | GitHub, Context7, Memory, Sequential Thinking（基于命令） |
 | 配置文件 | 2 | `strict`（只读沙箱）和 `yolo`（完全自动批准） |
 | 代理角色 | 3 | `.codex/agents/` —— explorer, reviewer, docs-researcher |
@@ -1038,24 +1043,42 @@ Codex macOS 应用：
 
 位于 `.agents/skills/` 的技能会被 Codex 自动加载：
 
+`claude-api`、`frontend-design` 和 `skill-creator` 等 Anthropic 官方技能不会在此重复打包。需要这些官方版本时，请从 [`anthropics/skills`](https://github.com/anthropics/skills) 安装。
+
 | 技能 | 描述 |
 |-------|-------------|
-| tdd-workflow | 测试驱动开发，覆盖率 80%+ |
-| security-review | 全面的安全检查清单 |
-| coding-standards | 通用编码标准 |
-| frontend-patterns | React/Next.js 模式 |
-| frontend-slides | HTML 演示文稿、PPTX 转换、视觉风格探索 |
+| agent-introspection-debugging | 调试智能体行为、路由和提示边界 |
+| agent-sort | 整理智能体目录和分配表面 |
+| api-design | REST API 设计模式 |
 | article-writing | 根据笔记和语音参考进行长文写作 |
-| content-engine | 平台原生的社交内容和再利用 |
-| market-research | 带来源归属的市场和竞争对手研究 |
-| investor-materials | 幻灯片、备忘录、模型和一页纸文档 |
-| investor-outreach | 个性化外联、跟进和介绍摘要 |
 | backend-patterns | API 设计、数据库、缓存 |
+| brand-voice | 从真实内容中提取来源驱动的写作风格 |
+| bun-runtime | Bun 运行时、包管理器、打包器和测试运行器 |
+| coding-standards | 通用编码标准 |
+| content-engine | 平台原生的社交内容和再利用 |
+| crosspost | X、LinkedIn、Threads 等多平台内容分发 |
+| deep-research | 多源研究、综合和来源归属 |
+| dmux-workflows | 使用 tmux pane manager 进行多智能体编排 |
+| documentation-lookup | 通过 Context7 MCP 获取最新库和框架文档 |
 | e2e-testing | Playwright 端到端测试 |
 | eval-harness | 评估驱动的开发 |
+| everything-claude-code | ECC 项目的开发约定和模式 |
+| exa-search | 通过 Exa MCP 进行网络、代码和公司研究 |
+| fal-ai-media | 图像、视频和音频的统一媒体生成 |
+| frontend-patterns | React/Next.js 模式 |
+| frontend-slides | HTML 演示文稿、PPTX 转换、视觉风格探索 |
+| investor-materials | 幻灯片、备忘录、模型和一页纸文档 |
+| investor-outreach | 个性化外联、跟进和介绍摘要 |
+| market-research | 带来源归属的市场和竞争对手研究 |
+| mcp-server-patterns | 使用 Node/TypeScript SDK 构建 MCP 服务器 |
+| nextjs-turbopack | Next.js 16+ 和 Turbopack 增量打包 |
+| product-capability | 将产品目标转化为有范围的能力图 |
+| security-review | 全面的安全检查清单 |
 | strategic-compact | 上下文管理 |
-| api-design | REST API 设计模式 |
+| tdd-workflow | 测试驱动开发，覆盖率 80%+ |
 | verification-loop | 构建、测试、代码检查、类型检查、安全 |
+| video-editing | 使用 FFmpeg 和 Remotion 的 AI 辅助视频编辑工作流 |
+| x-api | X/Twitter 发帖和分析 API 集成 |
 
 ### 关键限制
 
@@ -1101,8 +1124,8 @@ opencode
 | 功能特性 | Claude Code | OpenCode | 状态 |
 |---------|-------------|----------|--------|
 | 智能体 | PASS: 48 个 | PASS: 12 个 | **Claude Code 领先** |
-| 命令 | PASS: 80 个 | PASS: 31 个 | **Claude Code 领先** |
-| 技能 | PASS: 184 项 | PASS: 37 项 | **Claude Code 领先** |
+| 命令 | PASS: 68 个 | PASS: 31 个 | **Claude Code 领先** |
+| 技能 | PASS: 182 项 | PASS: 37 项 | **Claude Code 领先** |
 | 钩子 | PASS: 8 种事件类型 | PASS: 11 种事件 | **OpenCode 更多！** |
 | 规则 | PASS: 29 条 | PASS: 13 条指令 | **Claude Code 领先** |
 | MCP 服务器 | PASS: 14 个 | PASS: 完整 | **完全对等** |
@@ -1122,21 +1145,17 @@ OpenCode 的插件系统比 Claude Code 更复杂，有 20 多种事件类型：
 
 **额外的 OpenCode 事件**：`file.edited`、`file.watcher.updated`、`message.updated`、`lsp.client.diagnostics`、`tui.toast.show` 等等。
 
-### 可用命令（31+）
+### 维护中的斜杠命令
 
 | 命令 | 描述 |
 |---------|-------------|
 | `/plan` | 创建实施计划 |
-| `/tdd` | 强制执行 TDD 工作流 |
 | `/code-review` | 审查代码变更 |
 | `/build-fix` | 修复构建错误 |
-| `/e2e` | 生成端到端测试 |
 | `/refactor-clean` | 移除死代码 |
-| `/orchestrate` | 多智能体工作流 |
 | `/learn` | 从会话中提取模式 |
 | `/checkpoint` | 保存验证状态 |
-| `/verify` | 运行验证循环 |
-| `/eval` | 根据标准进行评估 |
+| `/quality-gate` | 运行维护中的验证门禁 |
 | `/update-docs` | 更新文档 |
 | `/update-codemaps` | 更新代码地图 |
 | `/test-coverage` | 分析覆盖率 |
@@ -1213,8 +1232,8 @@ ECC 是**第一个最大化利用每个主要 AI 编码工具的插件**。以�
 | 功能特性 | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
 | **智能体** | 48 | 共享 (AGENTS.md) | 共享 (AGENTS.md) | 12 |
-| **命令** | 80 | 共享 | 基于指令 | 31 |
-| **技能** | 184 | 共享 | 10 (原生格式) | 37 |
+| **命令** | 68 | 共享 | 基于指令 | 31 |
+| **技能** | 182 | 共享 | 10 (原生格式) | 37 |
 | **钩子事件** | 8 种类型 | 15 种类型 | 暂无 | 11 种类型 |
 | **钩子脚本** | 20+ 个脚本 | 16 个脚本 (DRY 适配器) | N/A | 插件钩子 |
 | **规则** | 34 (通用 + 语言) | 34 (YAML 前页) | 基于指令 | 13 条指令 |
