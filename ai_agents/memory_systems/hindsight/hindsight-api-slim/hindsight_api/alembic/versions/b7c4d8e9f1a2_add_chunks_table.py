@@ -12,6 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "b7c4d8e9f1a2"
 down_revision: str | Sequence[str] | None = "5a366d414dce"
@@ -19,7 +21,7 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add chunks table and link memory_units to chunks."""
 
     # Create chunks table with single text PK (bank_id_document_id_chunk_index)
@@ -56,7 +58,7 @@ def upgrade() -> None:
     op.create_index("idx_memory_units_chunk_id", "memory_units", ["chunk_id"])
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove chunks table and chunk_id from memory_units."""
 
     # Drop index and foreign key from memory_units
@@ -68,3 +70,11 @@ def downgrade() -> None:
     op.drop_index("idx_chunks_bank_id", table_name="chunks")
     op.drop_index("idx_chunks_document_id", table_name="chunks")
     op.drop_table("chunks")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -12,6 +12,8 @@ import sqlalchemy as sa
 from alembic import context, op
 from sqlalchemy.dialects import postgresql
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "rename_personality"
 down_revision: str | Sequence[str] | None = "d9f6a3b4c5e2"
@@ -25,7 +27,7 @@ def _get_target_schema() -> str:
     return schema if schema else "public"
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Rename personality column to disposition in banks table (if it exists)."""
     conn = op.get_bind()
     target_schema = _get_target_schema()
@@ -69,7 +71,7 @@ def upgrade() -> None:
     # else: disposition already exists, nothing to do
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Revert disposition column back to personality."""
     conn = op.get_bind()
     target_schema = _get_target_schema()
@@ -83,3 +85,11 @@ def downgrade() -> None:
     )
     if result.fetchone():
         op.alter_column("banks", "disposition", new_column_name="personality")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

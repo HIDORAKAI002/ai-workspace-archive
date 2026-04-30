@@ -17,6 +17,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "h3c4d5e6f7g8"
 down_revision: str | Sequence[str] | None = "g2a3b4c5d6e7"
@@ -30,7 +32,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Apply mental models v4 changes."""
     schema = _get_schema_prefix()
 
@@ -113,7 +115,7 @@ def upgrade() -> None:
     op.execute(f"CREATE INDEX IF NOT EXISTS idx_mental_models_tags ON {schema}mental_models USING GIN(tags)")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Revert mental models v4 changes."""
     schema = _get_schema_prefix()
 
@@ -130,3 +132,11 @@ def downgrade() -> None:
     op.execute(f"ALTER TABLE {schema}banks DROP COLUMN IF EXISTS mission")
 
     # Note: Cannot restore deleted observations - they are lost on downgrade
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -8,6 +8,8 @@ Create Date: 2024-12-04 15:00:00.000000
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision = "d9f6a3b4c5e2"
 down_revision = "c8e5f2a3b4d1"
@@ -21,7 +23,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade():
+def _pg_upgrade():
     schema = _get_schema_prefix()
 
     # Drop old check constraint FIRST (before updating data)
@@ -38,7 +40,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def _pg_downgrade():
     schema = _get_schema_prefix()
 
     # Drop new check constraint FIRST
@@ -51,3 +53,11 @@ def downgrade():
     op.create_check_constraint(
         "memory_units_fact_type_check", "memory_units", "fact_type IN ('world', 'bank', 'opinion', 'observation')"
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

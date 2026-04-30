@@ -14,6 +14,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "c1a2b3d4e5f6"
 down_revision: str | Sequence[str] | None = "b4c5d6e7f8a9"
 branch_labels: str | Sequence[str] | None = None
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     # pg_trgm ships with most PostgreSQL installations as a contrib module.
     # It enables fast similarity lookups via GIN indexes, used for entity name matching.
     # On managed services (e.g. Azure Flexible Server), the extension may not be
@@ -52,8 +54,16 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}entities_canonical_name_trgm_idx")
     # Note: not dropping pg_trgm extension as other indexes may depend on it
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

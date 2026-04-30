@@ -21,6 +21,7 @@ import concurrent.futures
 import logging
 import os
 import ssl
+import sys
 from unittest import mock
 
 import certifi
@@ -1870,3 +1871,59 @@ async def test_get_aiohttp_session():
   assert initial_session is not None
   session = await client._api_client._get_aiohttp_session()
   assert session is initial_session
+
+
+@requires_aiohttp
+@pytest.mark.asyncio
+async def test_async_mtls_uses_refreshable_credentials(monkeypatch):
+  """Tests that _RefreshableAsyncCredentials is used in async mTLS path."""
+  from google.genai import _api_client
+
+  # Ensure _use_google_auth_async returns True
+  monkeypatch.setattr(_api_client, "has_aiohttp", True)
+  monkeypatch.setattr(_api_client.mtls, "should_use_client_cert", lambda: True, raising=False)
+  monkeypatch.setattr(
+      _api_client.mtls, "has_default_client_cert_source", lambda: True
+  )
+
+  # Mock AsyncAuthorizedSession and google.auth.aio modules
+  mock_session = mock.MagicMock()
+  mock_auth_aio = mock.MagicMock()
+  monkeypatch.setitem(sys.modules, "google.auth.aio", mock_auth_aio)
+  monkeypatch.setitem(
+      sys.modules, "google.auth.aio.credentials", mock_auth_aio.credentials
+  )
+  monkeypatch.setitem(
+      sys.modules, "google.auth.aio.transport", mock_auth_aio.transport
+  )
+  monkeypatch.setitem(
+      sys.modules,
+      "google.auth.aio.transport.sessions",
+      mock_auth_aio.transport.sessions,
+  )
+  mock_auth_aio.transport.sessions.AsyncAuthorizedSession = mock_session
+  mock_auth_aio.credentials.Credentials = mock.MagicMock
+
+  # Mock credentials
+  mock_creds = mock.MagicMock()
+  mock_creds.expired = False
+  mock_creds.token = "initial_token"
+  monkeypatch.setattr(
+      google.auth, "default", lambda scopes=None: (mock_creds, "fake-project")
+  )
+
+  client = Client(vertexai=True, project="fake-project")
+  client._api_client._credentials = mock_creds
+
+  # Trigger session creation
+  await client._api_client._get_aiohttp_session()
+
+  # Verify AsyncAuthorizedSession was called with _RefreshableAsyncCredentials
+  assert mock_session.call_count == 1
+  passed_creds = mock_session.call_args[0][0]
+  assert type(passed_creds).__name__ == "_RefreshableAsyncCredentials"
+
+  # Verify valid property
+  assert passed_creds.valid == True
+  mock_creds.expired = True
+  assert passed_creds.valid == False

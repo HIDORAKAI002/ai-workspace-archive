@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "g2h3i4j5k6l7"
 down_revision: str | Sequence[str] | None = "f1a2b3c4d5e6"
@@ -26,7 +28,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     # 1. Delete any remaining opinion rows
@@ -49,7 +51,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
 
     # Restore confidence_score column
@@ -81,3 +83,11 @@ def downgrade() -> None:
         f"CREATE INDEX idx_memory_units_opinion_date ON {schema}memory_units "
         f"(bank_id, event_date DESC) WHERE fact_type = 'opinion'"
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

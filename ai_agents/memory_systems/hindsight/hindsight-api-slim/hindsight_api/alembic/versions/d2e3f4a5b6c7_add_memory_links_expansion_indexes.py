@@ -34,6 +34,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "d2e3f4a5b6c7"
 down_revision: str | Sequence[str] | None = "b3c4d5e6f7g8"
 branch_labels: str | Sequence[str] | None = None
@@ -45,7 +47,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     # CREATE INDEX CONCURRENTLY cannot run inside a transaction block.
@@ -75,9 +77,17 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_links_entity_covering")
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_links_to_type_weight")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

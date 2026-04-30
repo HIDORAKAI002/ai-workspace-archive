@@ -1110,12 +1110,12 @@ class TestOracleSpecific:
     @pytest.mark.asyncio
     async def test_oracle_migration_idempotent(self, oracle_db_url):
         """Verify that running migrations twice causes no errors."""
-        from hindsight_api.migrations_oracle import run_oracle_migrations
+        from hindsight_api.migrations import run_migrations
 
-        # First run (tables may already exist from fixture setup)
-        run_oracle_migrations(oracle_db_url)
-        # Second run — should be fully idempotent
-        run_oracle_migrations(oracle_db_url)
+        # First run (tables already exist from fixture setup — Alembic stamps a
+        # version row, subsequent runs become a no-op walk).
+        run_migrations(oracle_db_url)
+        run_migrations(oracle_db_url)
 
 
 # ===================================================================

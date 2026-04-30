@@ -17,6 +17,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "y0t1u2v3w4x5"
 down_revision: str | Sequence[str] | None = "x9s0t1u2v3w4"
 branch_labels: str | Sequence[str] | None = None
@@ -29,7 +31,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add GIN index on result_metadata for efficient parent_operation_id queries."""
     schema = _get_schema_prefix()
 
@@ -41,9 +43,17 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove GIN index on result_metadata."""
     schema = _get_schema_prefix()
 
     # Drop index
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_async_operations_result_metadata")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

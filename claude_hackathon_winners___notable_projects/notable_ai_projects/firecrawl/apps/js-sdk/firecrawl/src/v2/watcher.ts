@@ -109,24 +109,37 @@ export class Watcher extends EventEmitter {
   }
 
   async start(): Promise<void> {
-    try {
-      const url = this.buildWsUrl();
-      const wsCtor = await getWebSocketCtor();
-      if (!wsCtor) {
-        this.pollLoop();
-        return;
-      }
-      this.ws = new wsCtor(url, this.http.getApiKey()) as any;
-      if (this.ws && "binaryType" in this.ws) {
-        (this.ws as any).binaryType = "arraybuffer";
-      }
-      
-      if (this.ws) {
-        this.attachWsHandlers(this.ws);
-      }
-    } catch (err) {
-      this.pollLoop();
-    }
+    return new Promise<void>((resolve, reject) => {
+      const onDone = () => { cleanup(); resolve(); };
+      const onError = (err: any) => { cleanup(); resolve(); };
+      const cleanup = () => {
+        this.removeListener("done", onDone);
+        this.removeListener("error", onError);
+      };
+      this.on("done", onDone);
+      this.on("error", onError);
+
+      (async () => {
+        try {
+          const url = this.buildWsUrl();
+          const wsCtor = await getWebSocketCtor();
+          if (!wsCtor) {
+            this.pollLoop();
+            return;
+          }
+          this.ws = new wsCtor(url, this.http.getApiKey()) as any;
+          if (this.ws && "binaryType" in this.ws) {
+            (this.ws as any).binaryType = "arraybuffer";
+          }
+
+          if (this.ws) {
+            this.attachWsHandlers(this.ws);
+          }
+        } catch (err) {
+          this.pollLoop();
+        }
+      })();
+    });
   }
 
   private attachWsHandlers(ws: WebSocket) {
@@ -150,14 +163,14 @@ export class Watcher extends EventEmitter {
         }
         if (type === "document") {
           const doc = body.data;
-          if (doc) this.emit("document", doc as Document & { id: string });
+          if (doc) this.emitDocuments([doc]);
           return;
         }
         if (type === "done") {
           const payload = body.data || body;
           const data = (payload.data || []) as Document[];
           if (data.length) this.emitDocuments(data);
-          this.emit("done", { status: "completed", data, id: this.jobId });
+          this.emit("done", { status: "completed", data, id: this.jobId, total: payload.total, completed: payload.completed, creditsUsed: payload.creditsUsed });
           this.close();
           return;
         }
@@ -166,7 +179,10 @@ export class Watcher extends EventEmitter {
       } catch {
         // ignore
       }
-      if (timeoutMs && Date.now() - startTs > timeoutMs) this.close();
+      if (timeoutMs && Date.now() - startTs > timeoutMs) {
+        this.emit("error", { status: "failed", data: [], error: "Watcher timeout", id: this.jobId });
+        this.close();
+      }
     };
     ws.onerror = () => {
       this.emit("error", { status: "failed", data: [], error: "WebSocket error", id: this.jobId });
@@ -227,7 +243,7 @@ export class Watcher extends EventEmitter {
         };
     this.emit("snapshot", snap);
     if (["completed", "failed", "cancelled"].includes(status)) {
-      this.emit("done", { status, data, id: this.jobId });
+      this.emit("done", { status, data, id: this.jobId, total: payload.total ?? 0, completed: payload.completed ?? 0, creditsUsed: payload.creditsUsed });
       this.close();
     }
   }
@@ -243,14 +259,18 @@ export class Watcher extends EventEmitter {
         this.emitDocuments((snap.data || []) as Document[]);
         this.emit("snapshot", snap);
         if (["completed", "failed", "cancelled"].includes(snap.status)) {
-          this.emit("done", { status: snap.status, data: snap.data, id: this.jobId });
+          this.emit("done", { status: snap.status, data: snap.data, id: this.jobId, total: (snap as any).total ?? 0, completed: (snap as any).completed ?? 0, creditsUsed: (snap as any).creditsUsed });
           this.close();
           break;
         }
       } catch {
         // ignore polling errors
       }
-      if (timeoutMs && Date.now() - startTs > timeoutMs) break;
+      if (timeoutMs && Date.now() - startTs > timeoutMs) {
+        this.emit("error", { status: "failed", data: [], error: "Watcher timeout", id: this.jobId });
+        this.close();
+        break;
+      }
       await new Promise((r) => setTimeout(r, Math.max(1000, this.pollInterval * 1000)));
     }
   }

@@ -27,7 +27,7 @@ from alembic.config import Config
 from alembic.script.revision import ResolutionError
 from sqlalchemy import Connection, create_engine, text
 
-from .db_url import to_libpq_url
+from .db_url import is_oracle_url, to_libpq_url
 from .utils import mask_network_location
 
 logger = logging.getLogger(__name__)
@@ -221,7 +221,10 @@ def run_migrations(
     # ineffective when the app URL goes through a pooler.  Configure
     # HINDSIGHT_API_MIGRATION_DATABASE_URL to the direct PostgreSQL endpoint
     # (e.g. hindsight-pg-rw) to restore correct locking behaviour.
-    migration_url = to_libpq_url(migration_database_url or database_url)
+    raw_url = migration_database_url or database_url
+    # Oracle URLs are passed through to SQLAlchemy unchanged; only PG URLs
+    # need the libpq normalization (asyncpg → psycopg2 driver, ssl → sslmode).
+    migration_url = raw_url if is_oracle_url(raw_url) else to_libpq_url(raw_url)
 
     try:
         # Determine script location
@@ -237,6 +240,13 @@ def run_migrations(
             raise FileNotFoundError(
                 f"Alembic script location not found at {script_location}. Database migrations cannot be run."
             )
+
+        # Oracle path: no advisory lock, no pgvector. DDL is autocommit on
+        # Oracle, ``IF NOT EXISTS`` (Oracle 23ai) and 955 swallowing make
+        # repeated runs from concurrent workers safe.
+        if is_oracle_url(migration_url):
+            _run_migrations_internal(migration_url, script_location, schema=schema)
+            return
 
         # Use schema-specific lock ID for multi-tenant isolation
         lock_id = _get_schema_lock_id(schema) if schema else MIGRATION_LOCK_ID

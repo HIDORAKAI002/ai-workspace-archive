@@ -14,6 +14,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "c2d3e4f5g6h7"
 down_revision: str | Sequence[str] | None = ("a3b4c5d6e7f8", "c8e5f2a3b4d1")
 branch_labels: str | Sequence[str] | None = None
@@ -26,7 +28,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     op.execute(
@@ -52,10 +54,18 @@ def upgrade() -> None:
     op.execute(f"CREATE INDEX IF NOT EXISTS idx_audit_log_started ON {schema}audit_log (started_at DESC)")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
 
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_audit_log_started")
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_audit_log_bank_started")
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_audit_log_action_started")
     op.execute(f"DROP TABLE IF EXISTS {schema}audit_log")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

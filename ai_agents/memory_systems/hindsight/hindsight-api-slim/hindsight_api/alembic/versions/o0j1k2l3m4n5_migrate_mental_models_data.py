@@ -16,6 +16,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "o0j1k2l3m4n5"
 down_revision: str | Sequence[str] | None = "n9i0j1k2l3m4"
@@ -29,7 +31,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Migrate data and clean up old mental models."""
     schema = _get_schema_prefix()
 
@@ -90,7 +92,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Reverse the migration (data migration is one-way, so this just removes constraints)."""
     schema = _get_schema_prefix()
 
@@ -113,3 +115,11 @@ def downgrade() -> None:
     )
 
     # Note: Data migration cannot be reversed - pinned_reflections and learnings data remains
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

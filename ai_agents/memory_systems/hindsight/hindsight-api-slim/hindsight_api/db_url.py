@@ -18,6 +18,13 @@ _ASYNCPG_SCHEMES = ("postgresql+asyncpg", "postgres+asyncpg")
 _POSTGRES_SCHEMES = ("postgresql", "postgres") + _ASYNCPG_SCHEMES
 
 
+def is_oracle_url(url: str) -> bool:
+    """True if ``url`` is an Oracle SQLAlchemy URL (``oracle`` or ``oracle+oracledb``)."""
+    if not url or "://" not in url:
+        return False
+    return urlsplit(url).scheme.startswith("oracle")
+
+
 def to_libpq_url(url: str) -> str:
     """Normalize a PostgreSQL URL for libpq-style consumers.
 

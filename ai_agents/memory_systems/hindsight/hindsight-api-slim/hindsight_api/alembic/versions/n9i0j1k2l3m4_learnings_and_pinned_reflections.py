@@ -16,6 +16,8 @@ from collections.abc import Sequence
 from alembic import context, op
 from sqlalchemy import text
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "n9i0j1k2l3m4"
 down_revision: str | Sequence[str] | None = "m8h9i0j1k2l3"
@@ -119,7 +121,7 @@ def _detect_text_search_extension() -> str:
         )
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Create learnings and pinned_reflections tables."""
     schema = _get_schema_prefix()
 
@@ -304,7 +306,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Drop learnings and pinned_reflections tables."""
     schema = _get_schema_prefix()
 
@@ -315,3 +317,11 @@ def downgrade() -> None:
     # Remove columns from banks
     op.execute(f"ALTER TABLE {schema}banks DROP COLUMN IF EXISTS last_consolidated_at")
     op.execute(f"ALTER TABLE {schema}banks DROP COLUMN IF EXISTS mission_changed_at")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

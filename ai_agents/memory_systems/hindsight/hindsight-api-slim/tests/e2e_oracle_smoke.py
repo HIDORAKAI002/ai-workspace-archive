@@ -120,9 +120,9 @@ async def _run() -> None:
     # 1. Run migrations (idempotent)
     # ------------------------------------------------------------------
     _log(1, total_steps, "Running Oracle migrations ...")
-    from hindsight_api.migrations_oracle import run_oracle_migrations
+    from hindsight_api.migrations import run_migrations
 
-    run_oracle_migrations(oracle_url)
+    run_migrations(oracle_url)
     print("    -> migrations OK")
 
     # ------------------------------------------------------------------

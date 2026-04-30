@@ -15,6 +15,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "a1b2c3d4e5f6"
 down_revision: str | Sequence[str] | None = "y0t1u2v3w4x5"
 branch_labels: str | Sequence[str] | None = None
@@ -27,7 +29,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Create file_storage table for BYTEA storage."""
     schema = _get_schema_prefix()
 
@@ -52,7 +54,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove file_storage table and related columns."""
     schema = _get_schema_prefix()
 
@@ -68,3 +70,11 @@ def downgrade() -> None:
 
     # Drop file_storage table
     op.execute(f"DROP TABLE IF EXISTS {schema}file_storage")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

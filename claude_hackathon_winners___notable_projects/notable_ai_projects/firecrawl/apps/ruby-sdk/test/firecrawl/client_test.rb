@@ -370,7 +370,7 @@ class ClientTest < Minitest::Test
     stub_request(:get, "#{BASE_URL}/v2/team/credit-usage")
       .to_return(
         status: 200,
-        body: JSON.generate(remainingCredits: 500, planCredits: 1000),
+        body: JSON.generate(success: true, data: { remainingCredits: 500, planCredits: 1000 }),
         headers: { "Content-Type" => "application/json" }
       )
 
@@ -454,14 +454,14 @@ class ClientTest < Minitest::Test
     assert_equal 1000, h["waitFor"]
     assert_equal false, h["mobile"]
     assert_equal "stealth", h["proxy"]
-    assert_equal true, h["skipTlsVerification"] # defaults to true
+    assert_equal false, h["skipTlsVerification"] # defaults to false
     refute h.key?("timeout") # nil values should be omitted
   end
 
-  def test_scrape_options_skip_tls_defaults_to_true
+  def test_scrape_options_skip_tls_defaults_to_false
     opts = Firecrawl::Models::ScrapeOptions.new
-    assert_equal true, opts.skip_tls_verification
-    assert_equal true, opts.to_h["skipTlsVerification"]
+    assert_equal false, opts.skip_tls_verification
+    assert_equal false, opts.to_h["skipTlsVerification"]
   end
 
   def test_scrape_options_skip_tls_can_be_overridden_to_false
@@ -530,7 +530,7 @@ class ClientTest < Minitest::Test
       zero_data_retention: true
     )
     h = opts.to_h
-    assert_equal({ "formats" => ["markdown"], "skipTlsVerification" => true }, h["options"])
+    assert_equal({ "formats" => ["markdown"], "skipTlsVerification" => false }, h["options"])
     assert_equal 5, h["maxConcurrency"]
     assert_equal true, h["zeroDataRetention"]
   end

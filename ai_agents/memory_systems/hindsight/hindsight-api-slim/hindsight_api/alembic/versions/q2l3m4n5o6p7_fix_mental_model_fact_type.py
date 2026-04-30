@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "q2l3m4n5o6p7"
 down_revision: str | Sequence[str] | None = "p1k2l3m4n5o6"
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add 'mental_model' to the fact_type check constraint."""
     schema = _get_schema_prefix()
 
@@ -38,7 +40,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove 'mental_model' from the fact_type check constraint."""
     schema = _get_schema_prefix()
 
@@ -48,3 +50,11 @@ def downgrade() -> None:
         ADD CONSTRAINT memory_units_fact_type_check
         CHECK (fact_type IN ('world', 'experience', 'opinion', 'observation'))
     """)
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -1486,6 +1486,339 @@ jobs:
         echo "=== API Server Logs ==="
         cat /tmp/api-server.log || echo "No API server log found"
 
+  # -----------------------------------------------------------------
+  # Client integration tests against Oracle 23ai.
+  #
+  # Same shape as test-python-client / test-typescript-client but with the
+  # API server pointed at an Oracle 23ai service container. Catches API
+  # changes that work on PG but break on Oracle (or vice versa) before they
+  # ship — the unit tests use the abstraction layer, but only the client
+  # tests exercise full HTTP round-trips with real serialized payloads.
+  #
+  # Runs on every API/clients change (no label needed). The "oracle-tests"
+  # label is reserved for test-api-oracle — the full unit suite is too
+  # heavy to run on every PR.
+  # -----------------------------------------------------------------
+  test-python-client-oracle:
+    needs: [detect-changes]
+    if: >-
+      needs.detect-changes.outputs.has_secrets == 'true' &&
+      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.clients-python == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+    env:
+      HINDSIGHT_API_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
+      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      HINDSIGHT_API_URL: http://localhost:8888
+      HINDSIGHT_API_DATABASE_BACKEND: oracle
+      HINDSIGHT_API_DATABASE_URL: oracle+oracledb://hindsight_test:hindsight_test@localhost:1521/FREEPDB1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    services:
+      oracle:
+        image: container-registry.oracle.com/database/free:latest
+        env:
+          ORACLE_PWD: oracle
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd "echo 'SELECT 1 FROM DUAL;' | sqlplus -s system/oracle@localhost:1521/FREEPDB1 || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 120s
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Setup Oracle test user
+      run: |
+        pip install oracledb
+        python3 -c "
+        import oracledb
+        conn = oracledb.connect(user='system', password='oracle', dsn='localhost:1521/FREEPDB1')
+        cursor = conn.cursor()
+        cursor.execute(\"\"\"
+            CREATE TABLESPACE hindsight_ts
+            DATAFILE 'hindsight_ts.dbf' SIZE 200M AUTOEXTEND ON NEXT 50M
+            EXTENT MANAGEMENT LOCAL
+            SEGMENT SPACE MANAGEMENT AUTO
+        \"\"\")
+        cursor.execute(\"\"\"
+            CREATE USER hindsight_test IDENTIFIED BY hindsight_test
+            DEFAULT TABLESPACE hindsight_ts
+            TEMPORARY TABLESPACE temp
+            QUOTA UNLIMITED ON hindsight_ts
+        \"\"\")
+        cursor.execute('GRANT CONNECT, RESOURCE, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW, CREATE PROCEDURE TO hindsight_test')
+        cursor.execute('GRANT CTXAPP TO hindsight_test')
+        conn.commit()
+        conn.close()
+        print('Oracle test user created successfully')
+        "
+
+    - name: Setup GCP credentials
+      run: |
+        printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > /tmp/gcp-credentials.json
+        PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
+        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Build API
+      working-directory: ./hindsight-api-slim
+      run: uv build
+
+    - name: Build Python client
+      working-directory: ./hindsight-clients/python
+      run: uv build
+
+    - name: Install client test dependencies
+      working-directory: ./hindsight-clients/python
+      run: uv sync --frozen --extra test --index-strategy unsafe-best-match
+
+    - name: Install API dependencies
+      working-directory: ./hindsight-api-slim
+      run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
+
+    - name: Pre-download models
+      working-directory: ./hindsight-api-slim
+      run: |
+        uv run python -c "
+        from sentence_transformers import SentenceTransformer, CrossEncoder
+        print('Downloading embedding model...')
+        SentenceTransformer('BAAI/bge-small-en-v1.5')
+        print('Downloading cross-encoder model...')
+        CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        print('Models downloaded successfully')
+        "
+
+    - name: Create .env file
+      # The Oracle DB env vars need to be in .env for start-api.sh to pick them
+      # up — it source's the file before exec'ing the API.
+      run: |
+        cat > .env << EOF
+        HINDSIGHT_API_LLM_PROVIDER=${{ env.HINDSIGHT_API_LLM_PROVIDER }}
+        HINDSIGHT_API_LLM_MODEL=${{ env.HINDSIGHT_API_LLM_MODEL }}
+        HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY=/tmp/gcp-credentials.json
+        HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID
+        HINDSIGHT_API_DATABASE_BACKEND=${{ env.HINDSIGHT_API_DATABASE_BACKEND }}
+        HINDSIGHT_API_DATABASE_URL=${{ env.HINDSIGHT_API_DATABASE_URL }}
+        EOF
+
+    - name: Start API server
+      run: |
+        ./scripts/dev/start-api.sh > /tmp/api-server.log 2>&1 &
+        echo "Waiting for API server to be ready..."
+        for i in {1..120}; do
+          if curl -sf http://localhost:8888/health > /dev/null 2>&1; then
+            echo "API server is ready after ${i}s"
+            break
+          fi
+          if [ $i -eq 120 ]; then
+            echo "API server failed to start after 120s"
+            cat /tmp/api-server.log
+            exit 1
+          fi
+          sleep 1
+        done
+
+    - name: Run Python client tests (Oracle, sequential)
+      working-directory: ./hindsight-clients/python
+      # -n0 overrides the "-n auto" default in pyproject.toml. Oracle's
+      # row-level locking deadlocks (ORA-00060) under concurrent retain
+      # cleanup — same reason test-api-oracle runs sequentially.
+      run: uv run pytest tests -v -n0
+
+    - name: Show API server logs
+      if: always()
+      run: |
+        echo "=== API Server Logs ==="
+        cat /tmp/api-server.log || echo "No API server log found"
+
+  test-typescript-client-oracle:
+    needs: [detect-changes]
+    if: >-
+      needs.detect-changes.outputs.has_secrets == 'true' &&
+      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.clients-ts == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+    env:
+      HINDSIGHT_API_LLM_PROVIDER: vertexai
+      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
+      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      HINDSIGHT_API_URL: http://localhost:8888
+      HINDSIGHT_API_DATABASE_BACKEND: oracle
+      HINDSIGHT_API_DATABASE_URL: oracle+oracledb://hindsight_test:hindsight_test@localhost:1521/FREEPDB1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    services:
+      oracle:
+        image: container-registry.oracle.com/database/free:latest
+        env:
+          ORACLE_PWD: oracle
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd "echo 'SELECT 1 FROM DUAL;' | sqlplus -s system/oracle@localhost:1521/FREEPDB1 || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 120s
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Setup Oracle test user
+      run: |
+        pip install oracledb
+        python3 -c "
+        import oracledb
+        conn = oracledb.connect(user='system', password='oracle', dsn='localhost:1521/FREEPDB1')
+        cursor = conn.cursor()
+        cursor.execute(\"\"\"
+            CREATE TABLESPACE hindsight_ts
+            DATAFILE 'hindsight_ts.dbf' SIZE 200M AUTOEXTEND ON NEXT 50M
+            EXTENT MANAGEMENT LOCAL
+            SEGMENT SPACE MANAGEMENT AUTO
+        \"\"\")
+        cursor.execute(\"\"\"
+            CREATE USER hindsight_test IDENTIFIED BY hindsight_test
+            DEFAULT TABLESPACE hindsight_ts
+            TEMPORARY TABLESPACE temp
+            QUOTA UNLIMITED ON hindsight_ts
+        \"\"\")
+        cursor.execute('GRANT CONNECT, RESOURCE, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW, CREATE PROCEDURE TO hindsight_test')
+        cursor.execute('GRANT CTXAPP TO hindsight_test')
+        conn.commit()
+        conn.close()
+        print('Oracle test user created successfully')
+        "
+
+    - name: Setup GCP credentials
+      run: |
+        printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > /tmp/gcp-credentials.json
+        PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
+        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+
+    - name: Build API
+      working-directory: ./hindsight-api-slim
+      run: uv build
+
+    - name: Install API dependencies
+      working-directory: ./hindsight-api-slim
+      run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Install TypeScript client dependencies
+      working-directory: ./hindsight-clients/typescript
+      run: npm ci
+
+    - name: Build TypeScript client
+      working-directory: ./hindsight-clients/typescript
+      run: npm run build
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
+
+    - name: Pre-download models
+      working-directory: ./hindsight-api-slim
+      run: |
+        uv run python -c "
+        from sentence_transformers import SentenceTransformer, CrossEncoder
+        print('Downloading embedding model...')
+        SentenceTransformer('BAAI/bge-small-en-v1.5')
+        print('Downloading cross-encoder model...')
+        CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        print('Models downloaded successfully')
+        "
+
+    - name: Create .env file
+      run: |
+        cat > .env << EOF
+        HINDSIGHT_API_LLM_PROVIDER=${{ env.HINDSIGHT_API_LLM_PROVIDER }}
+        HINDSIGHT_API_LLM_MODEL=${{ env.HINDSIGHT_API_LLM_MODEL }}
+        HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY=/tmp/gcp-credentials.json
+        HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID
+        HINDSIGHT_API_DATABASE_BACKEND=${{ env.HINDSIGHT_API_DATABASE_BACKEND }}
+        HINDSIGHT_API_DATABASE_URL=${{ env.HINDSIGHT_API_DATABASE_URL }}
+        EOF
+
+    - name: Start API server
+      run: |
+        ./scripts/dev/start-api.sh > /tmp/api-server.log 2>&1 &
+        echo "Waiting for API server to be ready..."
+        for i in {1..120}; do
+          if curl -sf http://localhost:8888/health > /dev/null 2>&1; then
+            echo "API server is ready after ${i}s"
+            break
+          fi
+          if [ $i -eq 120 ]; then
+            echo "API server failed to start after 120s"
+            cat /tmp/api-server.log
+            exit 1
+          fi
+          sleep 1
+        done
+
+    - name: Run TypeScript client tests
+      working-directory: ./hindsight-clients/typescript
+      run: npm test
+
+    - name: Show API server logs
+      if: always()
+      run: |
+        echo "=== API Server Logs ==="
+        cat /tmp/api-server.log || echo "No API server log found"
+
   test-typescript-client-deno:
     needs: [detect-changes]
     if: >-
@@ -3241,7 +3574,9 @@ jobs:
       - test-api
       - test-api-oracle
       - test-python-client
+      - test-python-client-oracle
       - test-typescript-client
+      - test-typescript-client-oracle
       - test-typescript-client-deno
       - build-rust-cli-arm64
       - test-rust-client

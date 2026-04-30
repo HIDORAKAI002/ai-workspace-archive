@@ -14,6 +14,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "r3m4n5o6p7q8"
 down_revision: str | Sequence[str] | None = "q2l3m4n5o6p7"
 branch_labels: str | Sequence[str] | None = None
@@ -26,7 +28,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add reflect_response JSONB column to reflections."""
     schema = _get_schema_prefix()
 
@@ -37,7 +39,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove reflect_response column from reflections."""
     schema = _get_schema_prefix()
 
@@ -45,3 +47,11 @@ def downgrade() -> None:
         ALTER TABLE {schema}reflections
         DROP COLUMN IF EXISTS reflect_response
     """)
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

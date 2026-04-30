@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "k6f7g8h9i0j1"
 down_revision: str | Sequence[str] | None = "j5e6f7g8h9i0"
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add 'directive' to mental_models subtype constraint."""
     schema = _get_schema_prefix()
 
@@ -40,7 +42,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove 'directive' from mental_models subtype constraint."""
     schema = _get_schema_prefix()
 
@@ -56,3 +58,11 @@ def downgrade() -> None:
         ADD CONSTRAINT ck_mental_models_subtype
         CHECK (subtype IN ('structural', 'emergent', 'pinned', 'learned'))
     """)
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

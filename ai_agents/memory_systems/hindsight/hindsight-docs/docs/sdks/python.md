@@ -77,6 +77,7 @@ client.retain(
     timestamp=datetime(2024, 1, 15),
     document_id="conversation_001",
     metadata={"source": "slack"},
+    retain_async=False,  # Set True for background processing
 )
 ```
 

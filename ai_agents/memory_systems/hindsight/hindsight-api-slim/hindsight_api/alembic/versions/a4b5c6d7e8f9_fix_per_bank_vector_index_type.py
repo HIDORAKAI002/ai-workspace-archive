@@ -20,6 +20,8 @@ from collections.abc import Sequence
 from alembic import context, op
 from sqlalchemy import text
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "a4b5c6d7e8f9"
 down_revision: str | Sequence[str] | None = "2eee35aa3cfc"
 branch_labels: str | Sequence[str] | None = None
@@ -58,7 +60,7 @@ def _vector_index_using_clause() -> str:
         return "USING hnsw (embedding vector_cosine_ops)"
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     target = _target_index_type()
     if target is None:
         # pgvector — indexes are already HNSW, nothing to fix
@@ -113,7 +115,7 @@ def upgrade() -> None:
             )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     # Downgrade recreates indexes as HNSW (the original hardcoded behavior)
     target = _target_index_type()
     if target is None:
@@ -140,3 +142,11 @@ def downgrade() -> None:
                     f"WHERE fact_type = '{ft}' AND bank_id = '{escaped_bank_id}'"
                 )
             )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

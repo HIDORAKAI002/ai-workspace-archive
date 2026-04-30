@@ -19,12 +19,14 @@ import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import pytest_asyncio
 
 from nemoguardrails.guardrails.guardrails_types import RailResult
 from nemoguardrails.guardrails.iorails import REFUSAL_MESSAGE, IORails
 from nemoguardrails.guardrails.model_engine import ModelEngine
 from nemoguardrails.rails.llm.config import RailsConfig
 from nemoguardrails.rails.llm.options import GenerationOptions
+from nemoguardrails.types import LLMResponse, LLMResponseChunk
 from tests.guardrails.test_data import NEMOGUARDS_CONFIG
 
 
@@ -37,6 +39,12 @@ def rails_config():
 @pytest.fixture
 @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
 def iorails(rails_config):
+    # Sync fixture kept for the class-init and sync-generate tests in this
+    # file.  Async tests that invoke ``iorails.generate_async()`` will
+    # start the internal queue's worker pool lazily; those workers may
+    # leave pending asyncio tasks at test teardown (harmless warnings).
+    # The IORails-queue-aware async tests live in ``test_iorails_telemetry.py``
+    # where fixtures use ``@pytest_asyncio.fixture`` + ``await iorails.stop()``.
     return IORails(rails_config)
 
 
@@ -66,7 +74,7 @@ class TestGenerateAsync:
         llm_response = "Hello from LLM"
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value=llm_response)
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content=llm_response))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         result = await iorails.generate_async(messages)
@@ -86,7 +94,7 @@ class TestGenerateAsync:
         options = GenerationOptions(llm_params=llm_params)
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value=llm_response)
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content=llm_response))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         result = await iorails.generate_async(messages, options=options)
@@ -107,7 +115,7 @@ class TestGenerateAsync:
 
         async def mock_generate(model_type, messages):
             call_order.append("generate")
-            return "response"
+            return LLMResponse(content="response")
 
         async def mock_output_safe(messages, response):
             call_order.append("output")
@@ -142,7 +150,7 @@ class TestGenerateAsync:
         llm_response = "Unsafe response from the LLM!"
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value=llm_response)
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content=llm_response))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=False, reason="blocked"))
 
         result = await iorails.generate_async(messages)
@@ -159,7 +167,7 @@ class TestGenerateAsync:
         llm_params = {"temperature": 0.01, "max_completion_tokens": 1000}
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="ok")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="ok"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         await iorails.generate_async(messages, options={"llm_params": llm_params})
@@ -231,13 +239,13 @@ class TestIORailsStartErrors:
 
     @pytest.mark.asyncio
     async def test_start_propagates_engine_registry_error(self, iorails):
-        """start() re-raises when engine_registry.start() fails."""
+        """start() re-raises when engine_registry.start() fails and leaves _running=False."""
         iorails.engine_registry.start = AsyncMock(side_effect=RuntimeError("engine failed"))
 
         with pytest.raises(RuntimeError, match="engine failed"):
             await iorails.start()
 
-        assert iorails._running
+        assert not iorails._running
 
     @pytest.mark.asyncio
     async def test_start_propagates_model_engine_error(self, iorails):
@@ -255,7 +263,7 @@ class TestIORailsStartErrors:
         with pytest.raises(RuntimeError, match="Failed to start engine"):
             await iorails.start()
 
-        assert iorails._running
+        assert not iorails._running
         assert not iorails.engine_registry._running
 
         # With fail-fast, only engines that started before the failing one are rolled back.
@@ -276,16 +284,203 @@ class TestIORailsStartErrors:
 
         with pytest.raises(RuntimeError):
             await iorails.start()
-        assert iorails._running
-
-        # Stop IORails (and underlying EngineRegistry)
-        await iorails.stop()
+        assert not iorails._running
 
         # Call start() without an exception being thrown, now this will work
         iorails.engine_registry.start = AsyncMock()
         await iorails.start()
         assert iorails._running
         iorails.engine_registry.start.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_start_rolls_back_engine_registry_when_queue_start_raises(self, iorails):
+        """If _generate_async_queue.start() raises, engine_registry is rolled back and _running stays False."""
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock()
+        iorails._generate_async_queue.start = AsyncMock(side_effect=RuntimeError("queue start failed"))
+
+        with pytest.raises(RuntimeError, match="queue start failed"):
+            await iorails.start()
+
+        iorails.engine_registry.start.assert_called_once()
+        iorails.engine_registry.stop.assert_called_once()
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_start_failed_queue_start_invokes_rollback_in_order(self, iorails):
+        """After registry.start succeeds and queue.start fails, registry.stop is the next call."""
+        call_order: list[str] = []
+
+        async def registry_start():
+            call_order.append("registry.start")
+
+        async def registry_stop():
+            call_order.append("registry.stop")
+
+        async def queue_start():
+            call_order.append("queue.start")
+            raise RuntimeError("queue failed")
+
+        iorails.engine_registry.start = registry_start
+        iorails.engine_registry.stop = registry_stop
+        iorails._generate_async_queue.start = queue_start
+
+        with pytest.raises(RuntimeError, match="queue failed"):
+            await iorails.start()
+
+        # Pre-fix: ["registry.start", "queue.start"] — no rollback, _running=True.
+        # Post-fix: rollback runs after the failed queue start, _running=False.
+        assert call_order == ["registry.start", "queue.start", "registry.stop"]
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_start_propagates_queue_error_when_registry_rollback_also_raises(self, iorails):
+        """Original queue.start error propagates even if the registry.stop rollback raises.
+        Cleanup-path failures must not mask the actionable root cause.
+        """
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock(side_effect=RuntimeError("registry rollback boom"))
+        iorails._generate_async_queue.start = AsyncMock(side_effect=RuntimeError("queue failed"))
+
+        # The QUEUE failure (the root cause) is what propagates, not the rollback failure.
+        with pytest.raises(RuntimeError, match="queue failed"):
+            await iorails.start()
+
+        iorails.engine_registry.stop.assert_called_once()
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_start_rolls_back_queue_and_registry_when_gauge_registration_raises(self, iorails):
+        """If register_nonstream_saturation_gauges raises after the queue is up, BOTH the queue
+        and the registry are rolled back so a retry of start() comes from a clean state.
+        Without this, _running stays False while the queue is alive — stop() then no-ops and
+        leaks worker tasks (the gap Greptile flagged).
+        """
+        iorails._metrics_enabled = True
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock()
+        iorails._generate_async_queue.start = AsyncMock()
+        iorails._generate_async_queue.stop = AsyncMock()
+
+        with patch(
+            "nemoguardrails.guardrails.iorails.register_nonstream_saturation_gauges",
+            side_effect=RuntimeError("gauge registration failed"),
+        ):
+            with pytest.raises(RuntimeError, match="gauge registration failed"):
+                await iorails.start()
+
+        iorails.engine_registry.start.assert_called_once()
+        iorails._generate_async_queue.start.assert_called_once()
+        iorails._generate_async_queue.stop.assert_called_once()
+        iorails.engine_registry.stop.assert_called_once()
+        assert not iorails._running
+        assert not iorails._gauges_registered
+
+    @pytest.mark.asyncio
+    async def test_start_failed_gauge_registration_invokes_rollback_in_order(self, iorails):
+        """Gauge-registration failure rolls back queue first, then registry."""
+        iorails._metrics_enabled = True
+        call_order: list[str] = []
+
+        async def registry_start():
+            call_order.append("registry.start")
+
+        async def registry_stop():
+            call_order.append("registry.stop")
+
+        async def queue_start():
+            call_order.append("queue.start")
+
+        async def queue_stop():
+            call_order.append("queue.stop")
+
+        def gauge_register(*args, **kwargs):
+            call_order.append("gauge.register")
+            raise RuntimeError("gauge failed")
+
+        iorails.engine_registry.start = registry_start
+        iorails.engine_registry.stop = registry_stop
+        iorails._generate_async_queue.start = queue_start
+        iorails._generate_async_queue.stop = queue_stop
+
+        with patch(
+            "nemoguardrails.guardrails.iorails.register_nonstream_saturation_gauges",
+            side_effect=gauge_register,
+        ):
+            with pytest.raises(RuntimeError, match="gauge failed"):
+                await iorails.start()
+
+        # Queue is rolled back before registry — reverse-order shutdown of resources
+        # acquired in ``registry.start → queue.start → gauge.register`` order.
+        assert call_order == ["registry.start", "queue.start", "gauge.register", "queue.stop", "registry.stop"]
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_start_propagates_gauge_error_when_queue_rollback_raises(self, iorails):
+        """Original gauge error propagates even if queue.stop rollback raises.
+        Cleanup-path failures must not mask the actionable root cause.
+        """
+        iorails._metrics_enabled = True
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock()
+        iorails._generate_async_queue.start = AsyncMock()
+        iorails._generate_async_queue.stop = AsyncMock(side_effect=RuntimeError("queue rollback boom"))
+
+        with patch(
+            "nemoguardrails.guardrails.iorails.register_nonstream_saturation_gauges",
+            side_effect=RuntimeError("gauge failed"),
+        ):
+            # The GAUGE failure (the root cause) is what propagates, not the rollback failure.
+            with pytest.raises(RuntimeError, match="gauge failed"):
+                await iorails.start()
+
+        # Both rollback steps were attempted even though queue.stop raised.
+        iorails._generate_async_queue.stop.assert_called_once()
+        iorails.engine_registry.stop.assert_called_once()
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_start_skips_gauge_registration_when_metrics_disabled(self, iorails):
+        """With metrics disabled, register_nonstream_saturation_gauges is never called —
+        so a hypothetical bug in that helper can't break IORails.start().
+        """
+        iorails._metrics_enabled = False
+        iorails.engine_registry.start = AsyncMock()
+        iorails._generate_async_queue.start = AsyncMock()
+
+        with patch(
+            "nemoguardrails.guardrails.iorails.register_nonstream_saturation_gauges",
+            side_effect=AssertionError("must not be called when metrics disabled"),
+        ) as gauge_mock:
+            await iorails.start()
+
+        gauge_mock.assert_not_called()
+        assert iorails._running
+        assert not iorails._gauges_registered
+
+    @pytest.mark.asyncio
+    async def test_gauges_registered_only_once_across_restarts(self, iorails):
+        """``_gauges_registered`` is sticky across stop/start cycles — gauges register once
+        for the lifetime of the IORails instance.  OTEL has no public unregister API for
+        observable instruments; the soft-disable via ``is_running=lambda: self._running``
+        is what makes a stopped IORails emit no observations on the same gauges.
+        """
+        iorails._metrics_enabled = True
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock()
+        iorails._generate_async_queue.start = AsyncMock()
+        iorails._generate_async_queue.stop = AsyncMock()
+
+        with patch(
+            "nemoguardrails.guardrails.iorails.register_nonstream_saturation_gauges",
+        ) as gauge_mock:
+            await iorails.start()
+            assert iorails._gauges_registered
+            await iorails.stop()
+            await iorails.start()
+
+        gauge_mock.assert_called_once()
+        assert iorails._running
 
 
 class TestIORailsStopErrors:
@@ -304,6 +499,22 @@ class TestIORailsStopErrors:
             await iorails.stop()
 
         # _running should be False due to the finally clause
+        assert not iorails._running
+
+    @pytest.mark.asyncio
+    async def test_stop_runs_engine_registry_when_queue_stop_raises(self, iorails):
+        """engine_registry.stop() must run even if _generate_async_queue.stop() raises."""
+        iorails.engine_registry.start = AsyncMock()
+        iorails.engine_registry.stop = AsyncMock()
+        iorails._generate_async_queue.stop = AsyncMock(side_effect=RuntimeError("queue stop failed"))
+
+        await iorails.start()
+        assert iorails._running
+
+        with pytest.raises(RuntimeError, match="queue stop failed"):
+            await iorails.stop()
+
+        iorails.engine_registry.stop.assert_called_once()
         assert not iorails._running
 
 
@@ -332,22 +543,29 @@ class TestAutoStart:
     inside stream_async()'s _wrapped_iterator.
     """
 
-    @pytest.fixture
-    @patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-    def iorails_input_only(self):
-        """IORails with no output rails (needed for stream_async without StreamingNotSupportedError)."""
-        input_only_config = {
-            **NEMOGUARDS_CONFIG,
-            "rails": {**NEMOGUARDS_CONFIG["rails"], "output": {"flows": []}},
-        }
-        return IORails(RailsConfig.from_content(config=input_only_config))
+    @pytest_asyncio.fixture
+    async def iorails_input_only(self):
+        """IORails with no output rails (needed for stream_async without StreamingNotSupportedError).
+
+        Yields an *unstarted* IORails (no ``async with``): ``TestAutoStart`` tests
+        assert ``not iorails._running`` before invoking ``stream_async`` to verify
+        the auto-start contract, so the fixture must not pre-call ``start()``.
+        """
+        with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+            input_only_config = {
+                **NEMOGUARDS_CONFIG,
+                "rails": {**NEMOGUARDS_CONFIG["rails"], "output": {"flows": []}},
+            }
+            iorails = IORails(RailsConfig.from_content(config=input_only_config))
+        yield iorails
+        await iorails.stop()
 
     @pytest.mark.asyncio
     async def test_generate_async_calls_start(self, iorails):
         """generate_async() calls start() automatically before running the pipeline."""
         iorails.engine_registry.start = AsyncMock()
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="ok")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="ok"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         assert not iorails._running
@@ -361,7 +579,7 @@ class TestAutoStart:
         """Two generate_async() calls only trigger start() once."""
         iorails.engine_registry.start = AsyncMock()
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="ok")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="ok"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         await iorails.generate_async([{"role": "user", "content": "hi"}])
@@ -374,7 +592,7 @@ class TestAutoStart:
         """stream_async() calls start() automatically before streaming."""
 
         async def mock_stream(model_type, messages, **kwargs):
-            yield "hello"
+            yield LLMResponseChunk(delta_content="hello")
 
         iorails_input_only.engine_registry.start = AsyncMock()
         iorails_input_only.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
@@ -394,7 +612,7 @@ class TestAutoStart:
         """Two stream_async() calls only trigger start() once."""
 
         async def mock_stream(model_type, messages, **kwargs):
-            yield "hi"
+            yield LLMResponseChunk(delta_content="hi")
 
         iorails_input_only.engine_registry.start = AsyncMock()
         iorails_input_only.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
@@ -423,7 +641,7 @@ class TestGenerate:
         expected = {"role": "assistant", "content": "Hello from LLM"}
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="Hello from LLM")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="Hello from LLM"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         # Patch IORails so the temp instance inside generate() uses our mocked iorails
@@ -438,7 +656,7 @@ class TestGenerate:
         options = GenerationOptions(llm_params={"temperature": 0.5})
 
         iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
-        iorails.engine_registry.model_call = AsyncMock(return_value="response")
+        iorails.engine_registry.model_call = AsyncMock(return_value=LLMResponse(content="response"))
         iorails.rails_manager.is_output_safe = AsyncMock(return_value=RailResult(is_safe=True))
 
         with patch("nemoguardrails.guardrails.iorails.IORails", return_value=iorails):

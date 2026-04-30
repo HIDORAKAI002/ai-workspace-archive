@@ -6,7 +6,7 @@ import { EngineScrapeResult } from "..";
 import { EngineError, XTwitterConfigurationError } from "../../error";
 import { safeMarkdownToHtml } from "../pdf/markdownToHtml";
 
-const XAI_RESPONSES_MODEL = "grok-4.20-0309-non-reasoning";
+const XAI_RESPONSES_MODEL = "grok-4-1-fast-non-reasoning";
 
 const RESERVED_PROFILE_PATHS = new Set([
   "compose",

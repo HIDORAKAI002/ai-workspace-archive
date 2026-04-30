@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "f1a2b3c4d5e6"
 down_revision: str | Sequence[str] | None = "e0a1b2c3d4e5"
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add composite index for efficient graph retrieval edge loading."""
     schema = _get_schema_prefix()
     # Create composite index for efficient top-k per (from_node, link_type) queries
@@ -38,7 +40,15 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove the composite index."""
     schema = _get_schema_prefix()
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_memory_links_from_type_weight")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

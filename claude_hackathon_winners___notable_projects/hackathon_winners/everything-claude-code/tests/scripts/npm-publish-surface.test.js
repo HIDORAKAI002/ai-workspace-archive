@@ -43,6 +43,7 @@ function buildExpectedPublishPaths(repoRoot) {
     "manifests",
     "scripts/ecc.js",
     "scripts/catalog.js",
+    "scripts/consult.js",
     "scripts/claw.js",
     "scripts/doctor.js",
     "scripts/status.js",
@@ -50,6 +51,7 @@ function buildExpectedPublishPaths(repoRoot) {
     "scripts/install-apply.js",
     "scripts/install-plan.js",
     "scripts/list-installed.js",
+    "scripts/loop-status.js",
     "scripts/skill-create-output.js",
     "scripts/repair.js",
     "scripts/harness-audit.js",
@@ -107,6 +109,7 @@ function main() {
 
       for (const requiredPath of [
         "scripts/catalog.js",
+        "scripts/consult.js",
         ".gemini/GEMINI.md",
         ".claude-plugin/plugin.json",
         ".codex-plugin/plugin.json",

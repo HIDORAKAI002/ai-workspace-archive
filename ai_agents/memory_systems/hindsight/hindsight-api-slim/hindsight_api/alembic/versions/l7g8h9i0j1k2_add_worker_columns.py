@@ -17,6 +17,8 @@ import sqlalchemy as sa
 from alembic import context, op
 from sqlalchemy.dialects import postgresql
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "l7g8h9i0j1k2"
 down_revision: str | Sequence[str] | None = "k6f7g8h9i0j1"
@@ -30,7 +32,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add worker columns to async_operations."""
     schema = _get_schema_prefix()
 
@@ -78,7 +80,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove worker columns from async_operations."""
     schema = _get_schema_prefix()
 
@@ -107,3 +109,11 @@ def downgrade() -> None:
         "worker_id",
         schema=context.config.get_main_option("target_schema") or None,
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -45,6 +45,25 @@ def strip_memory_tags(content: str) -> str:
     return content
 
 
+def is_synthetic_codex_user_message(content: str) -> bool:
+    """Return True for setup messages Codex persists as user chat.
+
+    Codex records AGENTS.md startup instructions as a normal user message in
+    rollout JSONL. Retaining those messages teaches Hindsight about hook and
+    agent rules instead of the user's work, and can create very large retain
+    payloads in long-running sessions.
+    """
+    if not isinstance(content, str):
+        return False
+
+    stripped = content.lstrip()
+    return (
+        stripped.startswith("# AGENTS.md instructions for ")
+        and "<INSTRUCTIONS>" in stripped
+        and "</INSTRUCTIONS>" in stripped
+    )
+
+
 # ---------------------------------------------------------------------------
 # Transcript reading
 # ---------------------------------------------------------------------------
@@ -118,6 +137,8 @@ def _read_transcript_text(transcript_path: str) -> list:
                                     if t:
                                         text_parts.append(t)
                             text = "\n".join(text_parts).strip()
+                            if role == "user" and is_synthetic_codex_user_message(text):
+                                continue
                             if text:
                                 messages.append({"role": role, "content": text})
                     # Flat format (testing / future compatibility)
@@ -187,6 +208,8 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         if role == "user":
                             _flush_assistant()
                             text = _extract_text_from_content_blocks(payload.get("content", []))
+                            if is_synthetic_codex_user_message(text):
+                                continue
                             if text:
                                 messages.append({"role": "user", "content": [{"type": "text", "text": text}]})
                         elif role == "assistant":

@@ -28,6 +28,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "c4x5y6z7a8b9"
 down_revision: str | Sequence[str] | None = "b3w4x5y6z7a8"
 branch_labels: str | Sequence[str] | None = None
@@ -39,7 +41,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     mu = f"{schema}memory_units"
 
@@ -61,6 +63,14 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     # Deleted rows cannot be restored.
     pass
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

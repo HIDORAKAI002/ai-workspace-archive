@@ -22,6 +22,8 @@ import time
 def _prepare_crawl_request(request: CrawlRequest) -> dict:
     if not request.url or not request.url.strip():
         raise ValueError("URL cannot be empty")
+    if request.limit is not None and request.limit <= 0:
+        raise ValueError("Limit must be positive")
     data = {"url": request.url}
     if request.prompt:
         data["prompt"] = request.prompt

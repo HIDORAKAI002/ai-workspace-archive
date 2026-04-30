@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "aa2b3c4d5e6f"
 down_revision: str | Sequence[str] | None = "z1u2v3w4x5y6"
 branch_labels: str | Sequence[str] | None = None
@@ -24,13 +26,21 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     op.execute(f"ALTER TABLE {schema}memory_units ALTER COLUMN event_date DROP NOT NULL")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     # Backfill NULLs with now() before restoring the NOT NULL constraint
     op.execute(f"UPDATE {schema}memory_units SET event_date = now() WHERE event_date IS NULL")
     op.execute(f"ALTER TABLE {schema}memory_units ALTER COLUMN event_date SET NOT NULL")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

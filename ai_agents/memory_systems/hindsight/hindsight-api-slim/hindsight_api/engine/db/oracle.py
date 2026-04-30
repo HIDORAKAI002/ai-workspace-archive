@@ -1119,10 +1119,10 @@ class OracleBackend(DatabaseBackend):
         return schema
 
     def run_migrations(self, dsn: str, *, schema: str | None = None) -> None:
-        """Run Oracle DDL migrations."""
-        from ...migrations_oracle import run_oracle_migrations
+        """Run Oracle DDL migrations through the shared Alembic pipeline."""
+        from ...migrations import run_migrations
 
-        run_oracle_migrations(dsn, schema=schema)
+        run_migrations(dsn, schema=schema)
 
     def create_task_backend(self, *, pool_getter: Any = None, schema_getter: Any = None) -> Any:
         """Oracle now uses BrokerTaskBackend — worker/poller is backend-agnostic."""

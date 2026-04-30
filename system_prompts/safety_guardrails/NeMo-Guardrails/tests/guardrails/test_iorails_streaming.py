@@ -17,15 +17,18 @@
 
 import asyncio
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import pytest_asyncio
 
 from nemoguardrails.exceptions import StreamingNotSupportedError
 from nemoguardrails.guardrails.guardrails_types import RailResult
 from nemoguardrails.guardrails.iorails import REFUSAL_MESSAGE, STREAM_MAX_CONCURRENCY, IORails
+from nemoguardrails.guardrails.model_engine import ModelEngine
 from nemoguardrails.rails.llm.config import RailsConfig
 from nemoguardrails.rails.llm.options import GenerationOptions
+from nemoguardrails.types import LLMResponseChunk
 from tests.guardrails.test_data import NEMOGUARDS_CONFIG
 
 
@@ -59,8 +62,8 @@ _INPUT_ONLY_CONFIG = {
 
 async def _mock_stream(model_type, messages, **kwargs):
     """Async generator simulating streaming chunks from the main LLM."""
-    for chunk in ["Hello", " from", " the", " streaming", " LLM", "!", " Have", " a", " nice", " day"]:
-        yield chunk
+    for text in ["Hello", " from", " the", " streaming", " LLM", "!", " Have", " a", " nice", " day"]:
+        yield LLMResponseChunk(delta_content=text)
 
 
 async def _collect(async_iter):
@@ -76,8 +79,8 @@ async def _failing_stream(model_type, messages, **kwargs):
 
 async def _mid_stream_failure(model_type, messages, **kwargs):
     """Mock stream that yields some chunks then raises."""
-    yield "Hello"
-    yield " world"
+    yield LLMResponseChunk(delta_content="Hello")
+    yield LLMResponseChunk(delta_content=" world")
     raise RuntimeError("connection lost")
 
 
@@ -101,38 +104,47 @@ def _wire_mocks(iorails, *, input_safe=True, output_safe=True, stream=_mock_stre
     iorails.engine_registry.stream_model_call = stream
 
 
-@pytest.fixture
-@patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-def iorails():
+@pytest_asyncio.fixture
+async def iorails():
     """IORails with output rails but streaming NOT enabled."""
-    return IORails(RailsConfig.from_content(config=NEMOGUARDS_CONFIG))
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+        iorails = IORails(RailsConfig.from_content(config=NEMOGUARDS_CONFIG))
+    async with iorails:
+        yield iorails
 
 
-@pytest.fixture
-@patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-def iorails_stream_first():
+@pytest_asyncio.fixture
+async def iorails_stream_first():
     """IORails with output rails and streaming enabled (stream_first=True)."""
-    return IORails(RailsConfig.from_content(config=_make_streaming_config(stream_first=True)))
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+        iorails = IORails(RailsConfig.from_content(config=_make_streaming_config(stream_first=True)))
+    async with iorails:
+        yield iorails
 
 
-@pytest.fixture
-@patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-def iorails_stream_check_first():
+@pytest_asyncio.fixture
+async def iorails_stream_check_first():
     """IORails with output rails and streaming enabled (stream_first=False)."""
-    return IORails(RailsConfig.from_content(config=_make_streaming_config(stream_first=False)))
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+        iorails = IORails(RailsConfig.from_content(config=_make_streaming_config(stream_first=False)))
+    async with iorails:
+        yield iorails
 
 
-@pytest.fixture
-@patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"})
-def iorails_input_only():
+@pytest_asyncio.fixture
+async def iorails_input_only():
     """IORails with input rails only, no output rails."""
-    return IORails(RailsConfig.from_content(config=_INPUT_ONLY_CONFIG))
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
+        iorails = IORails(RailsConfig.from_content(config=_INPUT_ONLY_CONFIG))
+    async with iorails:
+        yield iorails
 
 
 class TestStreamAsyncValidation:
     """Test that stream_async raises when output rails exist but streaming is disabled."""
 
-    def test_raises_when_output_rails_without_streaming(self, iorails):
+    @pytest.mark.asyncio
+    async def test_raises_when_output_rails_without_streaming(self, iorails):
         """Raises StreamingNotSupportedError when output rails exist but streaming is disabled."""
         with pytest.raises(StreamingNotSupportedError):
             iorails.stream_async(messages=[{"role": "user", "content": "hi"}])
@@ -151,7 +163,8 @@ class TestStreamAsyncValidation:
         chunks = await _collect(iorails_stream_first.stream_async(messages=[{"role": "user", "content": "hi"}]))
         assert len(chunks) > 0
 
-    def test_raises_when_include_metadata_with_output_rails_streaming(self, iorails_stream_first):
+    @pytest.mark.asyncio
+    async def test_raises_when_include_metadata_with_output_rails_streaming(self, iorails_stream_first):
         """include_metadata=True is rejected when output rails streaming is enabled."""
         with pytest.raises(ValueError, match="include_metadata=True is not supported"):
             iorails_stream_first.stream_async(
@@ -194,7 +207,7 @@ class TestStreamAsyncNoOutputRails:
         async def capturing_stream(model_type, messages, **kwargs):
             """Mock stream that records kwargs."""
             captured_kwargs.update(kwargs)
-            yield "ok"
+            yield LLMResponseChunk(delta_content="ok")
 
         _wire_mocks(iorails_input_only, stream=capturing_stream)
         options = GenerationOptions(llm_params={"temperature": 0.42})
@@ -212,7 +225,7 @@ class TestStreamAsyncNoOutputRails:
         async def capturing_stream(model_type, messages, **kwargs):
             """Mock stream that records kwargs."""
             captured_kwargs.update(kwargs)
-            yield "ok"
+            yield LLMResponseChunk(delta_content="ok")
 
         _wire_mocks(iorails_input_only, stream=capturing_stream)
         chunks = await _collect(
@@ -413,7 +426,7 @@ class TestStreamAsyncConcurrency:
             """Mock stream that yields many chunks to allow early exit testing."""
             task_started.set()
             for i in range(1000):
-                yield f"chunk{i}"
+                yield LLMResponseChunk(delta_content=f"chunk{i}")
                 await asyncio.sleep(0)  # yield control so cancellation can propagate
 
         _wire_mocks(iorails_input_only, stream=slow_stream)
@@ -428,3 +441,78 @@ class TestStreamAsyncConcurrency:
 
         # Semaphore should be released even after early exit
         assert iorails_input_only._stream_semaphore._value == STREAM_MAX_CONCURRENCY
+
+
+def _build_sse_streaming_mock(deltas):
+    """Build an aiohttp-like response mock that yields SSE lines for the given deltas.
+
+    Each delta is a dict like ``{"content": "Hi"}`` or ``{"reasoning_content": "thinking"}``
+    that becomes a ``data: {"choices":[{"delta": <delta>}]}\\n`` line. Always terminates
+    with ``data: [DONE]``.
+    """
+    lines = []
+    for delta in deltas:
+        payload = json.dumps({"choices": [{"delta": delta}]})
+        lines.append(f"data: {payload}\n".encode())
+    lines.append(b"data: [DONE]\n")
+
+    line_iter = iter(lines)
+
+    async def _readline():
+        return next(line_iter, b"")
+
+    mock_content = MagicMock()
+    mock_content.readline = _readline
+
+    mock_response = AsyncMock()
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.status = 200
+    mock_response.content = mock_content
+
+    mock_client = AsyncMock()
+    mock_client.post = MagicMock(return_value=mock_response)
+    return mock_client
+
+
+class TestStreamAsyncEndToEnd:
+    """Full chain: raw SSE bytes -> ModelEngine.stream_call._parse_chat_completion_chunk
+    -> LLMResponseChunk -> EngineRegistry.stream_model_call -> IORails._generation_task pushes
+    chunk.delta_content -> caller sees text chunks. Mocks at the HTTP boundary so the
+    SSE-parsing path is exercised on the way through.
+    """
+
+    @pytest.mark.asyncio
+    async def test_content_chunks_full_chain(self, iorails_input_only):
+        iorails_input_only.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
+
+        main_engine = iorails_input_only.engine_registry._get_engine("main", ModelEngine)
+        main_engine._client = _build_sse_streaming_mock([{"content": "Hello"}, {"content": " "}, {"content": "world"}])
+        main_engine._running = True
+
+        chunks = await _collect(iorails_input_only.stream_async(messages=[{"role": "user", "content": "hi"}]))
+
+        assert "".join(chunks) == "Hello world"
+
+    @pytest.mark.asyncio
+    async def test_reasoning_deltas_dropped_from_caller_output(self, iorails_input_only):
+        """Reasoning deltas pass through ModelEngine as LLMResponseChunk.delta_reasoning,
+        but IORails drops them — the caller only sees content text.
+        """
+        iorails_input_only.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
+
+        main_engine = iorails_input_only.engine_registry._get_engine("main", ModelEngine)
+        main_engine._client = _build_sse_streaming_mock(
+            [
+                {"reasoning_content": "let me think"},
+                {"content": "The"},
+                {"reasoning_content": " more thinking"},
+                {"content": " answer"},
+                {"content": " is 42"},
+            ]
+        )
+        main_engine._running = True
+
+        chunks = await _collect(iorails_input_only.stream_async(messages=[{"role": "user", "content": "hi"}]))
+
+        assert "".join(chunks) == "The answer is 42"
+        assert "think" not in "".join(chunks)

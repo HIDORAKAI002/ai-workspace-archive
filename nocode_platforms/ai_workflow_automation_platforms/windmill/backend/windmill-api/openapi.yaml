@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.693.1
+  version: 1.693.2
   title: Windmill API
 
   contact:
@@ -18649,6 +18649,15 @@ paths:
           description: S3 file key to check (e.g., gitrepos/{workspace_id}/u/user/resource/{commit_hash})
           in: query
           required: true
+          schema:
+            type: string
+        - name: marker_file
+          description: |
+            If provided, the folder is only considered to exist when this exact
+            sentinel file is present under file_key. Lets callers distinguish a
+            fully populated folder from a partial upload.
+          in: query
+          required: false
           schema:
             type: string
       responses:
