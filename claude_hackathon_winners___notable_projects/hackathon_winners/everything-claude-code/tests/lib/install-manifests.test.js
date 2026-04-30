@@ -8,6 +8,7 @@ const os = require('os');
 const path = require('path');
 
 const {
+  getInstallComponent,
   loadInstallManifests,
   listInstallComponents,
   listLegacyCompatibilityLanguages,
@@ -45,6 +46,24 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
 }
 
+function writeManifestSet(repoRoot, options = {}) {
+  writeJson(path.join(repoRoot, 'manifests', 'install-modules.json'), {
+    version: options.modulesVersion || 1,
+    modules: options.modules || [],
+  });
+  writeJson(path.join(repoRoot, 'manifests', 'install-profiles.json'), {
+    version: options.profilesVersion || 1,
+    profiles: options.profiles || {},
+  });
+
+  if (Object.prototype.hasOwnProperty.call(options, 'components')) {
+    writeJson(path.join(repoRoot, 'manifests', 'install-components.json'), {
+      version: options.componentsVersion || 1,
+      components: options.components,
+    });
+  }
+}
+
 function runTests() {
   console.log('\n=== Testing install-manifests.js ===\n');
 
@@ -78,6 +97,43 @@ function runTests() {
       'Should include lang:c');
     assert.ok(components.some(component => component.id === 'capability:security'),
       'Should include capability:security');
+  })) passed++; else failed++;
+
+  if (test('gets install component details and validates component IDs', () => {
+    const component = getInstallComponent(' lang:typescript ');
+
+    assert.strictEqual(component.id, 'lang:typescript');
+    assert.strictEqual(component.family, 'language');
+    assert.ok(component.moduleIds.length > 0, 'Should expose component module IDs');
+    assert.strictEqual(component.moduleCount, component.moduleIds.length);
+    assert.strictEqual(component.modules.length, component.moduleIds.length);
+    assert.ok(component.modules.every(module => component.moduleIds.includes(module.id)));
+    assert.ok(Array.isArray(component.targets));
+
+    assert.throws(
+      () => getInstallComponent(''),
+      /An install component ID is required/
+    );
+    assert.throws(
+      () => getInstallComponent('lang:missing'),
+      /Unknown install component: lang:missing/
+    );
+  })) passed++; else failed++;
+
+  if (test('validates install component filters', () => {
+    const claudeComponents = listInstallComponents({ family: 'capability', target: 'claude' });
+    assert.ok(claudeComponents.length > 0, 'Should list Claude capability components');
+    assert.ok(claudeComponents.every(component => component.family === 'capability'));
+    assert.ok(claudeComponents.every(component => component.targets.includes('claude')));
+
+    assert.throws(
+      () => listInstallComponents({ family: 'unknown' }),
+      /Unknown component family: unknown/
+    );
+    assert.throws(
+      () => listInstallComponents({ target: 'unknown-target' }),
+      /Unknown install target: unknown-target/
+    );
   })) passed++; else failed++;
 
   if (test('labels continuous-learning as a legacy v1 install surface', () => {
@@ -172,6 +228,10 @@ function runTests() {
       () => validateInstallModuleIds(['ghost-module']),
       /Unknown install module: ghost-module/
     );
+    assert.throws(
+      () => validateInstallModuleIds(['ghost-one', 'ghost-two']),
+      /Unknown install modules: ghost-one, ghost-two/
+    );
   })) passed++; else failed++;
 
   if (test('resolves legacy compatibility selections into manifest module IDs', () => {
@@ -251,6 +311,25 @@ function runTests() {
       }),
       /Unknown legacy language: brainfuck/
     );
+    assert.throws(
+      () => resolveLegacyCompatibilitySelection({
+        legacyLanguages: [],
+      }),
+      /No legacy languages were provided/
+    );
+    assert.throws(
+      () => resolveLegacyCompatibilitySelection({
+        target: 'not-a-target',
+        legacyLanguages: ['typescript'],
+      }),
+      /Unknown install target: not-a-target/
+    );
+    assert.throws(
+      () => resolveLegacyCompatibilitySelection({
+        legacyLanguages: ['brainfuck', 'whitespace'],
+      }),
+      /Unknown legacy languages: brainfuck, whitespace/
+    );
   })) passed++; else failed++;
 
   if (test('resolves included and excluded user-facing components', () => {
@@ -291,6 +370,61 @@ function runTests() {
       () => resolveInstallPlan({ profileId: 'core', target: 'not-a-target' }),
       /Unknown install target/
     );
+  })) passed++; else failed++;
+
+  if (test('rejects empty, unknown, and fully excluded install selections', () => {
+    const repoRoot = createTestRepo();
+    try {
+      writeManifestSet(repoRoot, {
+        modules: [
+          {
+            id: 'core',
+            kind: 'rules',
+            description: 'Core',
+            paths: ['rules/core.md'],
+            targets: ['claude'],
+            dependencies: [],
+            defaultInstall: true,
+            cost: 'light',
+            stability: 'stable'
+          }
+        ],
+        profiles: {
+          core: { description: 'Core', modules: ['core'] }
+        },
+        components: [
+          {
+            id: 'capability:core',
+            family: 'capability',
+            description: 'Core',
+            modules: ['core']
+          }
+        ],
+      });
+
+      assert.throws(
+        () => resolveInstallPlan({ repoRoot }),
+        /No install profile, module IDs, or included component IDs were provided/
+      );
+      assert.throws(
+        () => resolveInstallPlan({ repoRoot, moduleIds: ['missing'] }),
+        /Unknown install module: missing/
+      );
+      assert.throws(
+        () => resolveInstallPlan({ repoRoot, includeComponentIds: ['capability:missing'] }),
+        /Unknown install component: capability:missing/
+      );
+      assert.throws(
+        () => resolveInstallPlan({
+          repoRoot,
+          profileId: 'core',
+          excludeComponentIds: ['capability:core'],
+        }),
+        /Selection excludes every requested install module/
+      );
+    } finally {
+      cleanupTestRepo(repoRoot);
+    }
   })) passed++; else failed++;
 
   if (test('validates projectRoot and homeDir option types before adapter planning', () => {
@@ -344,6 +478,92 @@ function runTests() {
       const plan = resolveInstallPlan({ repoRoot, profileId: 'core', target: 'claude' });
       assert.deepStrictEqual(plan.selectedModuleIds, []);
       assert.deepStrictEqual(plan.skippedModuleIds, ['parent']);
+    } finally {
+      cleanupTestRepo(repoRoot);
+    }
+  })) passed++; else failed++;
+
+  if (test('rejects missing, malformed, and unsupported manifest fixtures', () => {
+    const repoRoot = createTestRepo();
+    try {
+      assert.throws(
+        () => loadInstallManifests({ repoRoot }),
+        /Install manifests not found/
+      );
+
+      fs.writeFileSync(path.join(repoRoot, 'manifests', 'install-modules.json'), '{ bad json');
+      writeJson(path.join(repoRoot, 'manifests', 'install-profiles.json'), {
+        version: 1,
+        profiles: {},
+      });
+      assert.throws(
+        () => loadInstallManifests({ repoRoot }),
+        /Failed to read install-modules\.json/
+      );
+
+      writeManifestSet(repoRoot, {
+        modules: [
+          {
+            id: 'empty-target',
+            kind: 'rules',
+            description: 'Empty target',
+            paths: ['rules/core.md'],
+            targets: ['claude', ''],
+            dependencies: [],
+            defaultInstall: false,
+            cost: 'light',
+            stability: 'stable'
+          }
+        ],
+        profiles: {},
+      });
+      assert.throws(
+        () => loadInstallManifests({ repoRoot }),
+        /Install module empty-target has invalid targets/
+      );
+
+      writeManifestSet(repoRoot, {
+        modules: [
+          {
+            id: 'unsupported-target',
+            kind: 'rules',
+            description: 'Unsupported target',
+            paths: ['rules/core.md'],
+            targets: ['claude', 'moonbase'],
+            dependencies: [],
+            defaultInstall: false,
+            cost: 'light',
+            stability: 'stable'
+          }
+        ],
+        profiles: {},
+      });
+      assert.throws(
+        () => loadInstallManifests({ repoRoot }),
+        /Install module unsupported-target has unsupported targets: moonbase/
+      );
+
+      writeManifestSet(repoRoot, {
+        modules: [
+          {
+            id: 'core',
+            kind: 'rules',
+            description: 'Core',
+            paths: ['rules/core.md'],
+            targets: ['claude'],
+            dependencies: [],
+            defaultInstall: false,
+            cost: 'light',
+            stability: 'stable'
+          }
+        ],
+        profiles: {
+          core: { description: 'Core', modules: ['core'] }
+        },
+      });
+      const manifests = loadInstallManifests({ repoRoot });
+      assert.deepStrictEqual(manifests.components, []);
+      assert.strictEqual(manifests.componentsVersion, null);
     } finally {
       cleanupTestRepo(repoRoot);
     }
@@ -425,6 +645,48 @@ function runTests() {
       assert.ok(
         plan.operations.some(operation => operation.sourceRelativePath === 'skills/example'),
         'Supported antigravity skill paths should still be planned'
+      );
+    } finally {
+      cleanupTestRepo(repoRoot);
+    }
+  })) passed++; else failed++;
+
+  if (test('detects circular install dependencies', () => {
+    const repoRoot = createTestRepo();
+    try {
+      writeManifestSet(repoRoot, {
+        modules: [
+          {
+            id: 'alpha',
+            kind: 'skills',
+            description: 'Alpha',
+            paths: ['skills/alpha'],
+            targets: ['claude'],
+            dependencies: ['beta'],
+            defaultInstall: false,
+            cost: 'light',
+            stability: 'stable'
+          },
+          {
+            id: 'beta',
+            kind: 'skills',
+            description: 'Beta',
+            paths: ['skills/beta'],
+            targets: ['claude'],
+            dependencies: ['alpha'],
+            defaultInstall: false,
+            cost: 'light',
+            stability: 'stable'
+          }
+        ],
+        profiles: {
+          core: { description: 'Core', modules: ['alpha'] }
+        },
+      });
+
+      assert.throws(
+        () => resolveInstallPlan({ repoRoot, profileId: 'core' }),
+        /Circular install dependency detected at alpha/
       );
     } finally {
       cleanupTestRepo(repoRoot);

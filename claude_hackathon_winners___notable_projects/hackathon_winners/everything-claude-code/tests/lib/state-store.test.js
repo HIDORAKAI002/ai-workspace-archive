@@ -354,6 +354,120 @@ async function runTests() {
     }
   })) passed += 1; else failed += 1;
 
+  if (await test('builds an empty status snapshot with null rates and missing install health', async () => {
+    const testDir = createTempDir('ecc-state-empty-');
+    const dbPath = path.join(testDir, 'state.db');
+
+    try {
+      const store = await createStateStore({ dbPath });
+      const status = store.getStatus({ activeLimit: 1, recentSkillRunLimit: 1, pendingLimit: 1 });
+      const missingDetail = store.getSessionDetail('missing-session');
+      store.close();
+
+      assert.strictEqual(missingDetail, null);
+      assert.strictEqual(status.activeSessions.activeCount, 0);
+      assert.deepStrictEqual(status.activeSessions.sessions, []);
+      assert.strictEqual(status.skillRuns.summary.totalCount, 0);
+      assert.strictEqual(status.skillRuns.summary.knownCount, 0);
+      assert.strictEqual(status.skillRuns.summary.successRate, null);
+      assert.strictEqual(status.skillRuns.summary.failureRate, null);
+      assert.strictEqual(status.installHealth.status, 'missing');
+      assert.strictEqual(status.installHealth.totalCount, 0);
+      assert.deepStrictEqual(status.installHealth.installations, []);
+      assert.strictEqual(status.governance.pendingCount, 0);
+      assert.deepStrictEqual(status.governance.events, []);
+    } finally {
+      cleanupTempDir(testDir);
+    }
+  })) passed += 1; else failed += 1;
+
+  if (await test('normalizes default optional fields and reports warning install health', async () => {
+    const testDir = createTempDir('ecc-state-defaults-');
+    const dbPath = path.join(testDir, 'state.db');
+
+    try {
+      const store = await createStateStore({ dbPath });
+      const session = store.upsertSession({
+        id: 'session-defaults',
+        adapterId: 'manual',
+        harness: 'codex',
+        state: 'running',
+      });
+
+      store.insertSkillRun({
+        id: 'skill-run-defaults',
+        skillId: 'planner',
+        skillVersion: '1.0.0',
+        sessionId: 'session-defaults',
+        taskDescription: 'Exercise defaults',
+        outcome: 'passed',
+      });
+
+      const version = store.upsertSkillVersion({
+        skillId: 'planner',
+        version: '1.0.0',
+        contentHash: 'hash-defaults',
+      });
+
+      store.insertDecision({
+        id: 'decision-defaults',
+        sessionId: 'session-defaults',
+        title: 'Use defaults',
+        rationale: 'Optional decision fields should normalize',
+        status: 'active',
+      });
+
+      const installState = store.upsertInstallState({
+        targetId: 'claude-project',
+        targetRoot: path.join(testDir, '.claude'),
+      });
+
+      store.insertGovernanceEvent({
+        id: 'gov-defaults',
+        eventType: 'manual-review',
+      });
+
+      const detail = store.getSessionDetail('session-defaults');
+      const status = store.getStatus();
+      store.close();
+
+      assert.strictEqual(session.repoRoot, null);
+      assert.strictEqual(session.startedAt, null);
+      assert.strictEqual(session.endedAt, null);
+      assert.deepStrictEqual(session.snapshot, {});
+      assert.strictEqual(session.workerCount, 0);
+
+      assert.strictEqual(version.amendmentReason, null);
+      assert.strictEqual(version.promotedAt, null);
+      assert.strictEqual(version.rolledBackAt, null);
+
+      assert.deepStrictEqual(detail.workers, []);
+      assert.strictEqual(detail.skillRuns[0].failureReason, null);
+      assert.strictEqual(detail.skillRuns[0].tokensUsed, null);
+      assert.strictEqual(detail.skillRuns[0].durationMs, null);
+      assert.strictEqual(detail.skillRuns[0].userFeedback, null);
+      assert.deepStrictEqual(detail.decisions[0].alternatives, []);
+      assert.strictEqual(detail.decisions[0].supersedes, null);
+
+      assert.strictEqual(installState.profile, null);
+      assert.deepStrictEqual(installState.modules, []);
+      assert.deepStrictEqual(installState.operations, []);
+      assert.strictEqual(installState.sourceVersion, null);
+
+      assert.strictEqual(status.activeSessions.activeCount, 1);
+      assert.strictEqual(status.skillRuns.summary.successRate, 100);
+      assert.strictEqual(status.installHealth.status, 'warning');
+      assert.strictEqual(status.installHealth.warningCount, 1);
+      assert.strictEqual(status.installHealth.installations[0].status, 'warning');
+      assert.strictEqual(status.governance.pendingCount, 1);
+      assert.strictEqual(status.governance.events[0].payload, null);
+      assert.strictEqual(status.governance.events[0].sessionId, null);
+      assert.strictEqual(status.governance.events[0].resolution, null);
+    } finally {
+      cleanupTempDir(testDir);
+    }
+  })) passed += 1; else failed += 1;
+
   if (await test('validates entity payloads before writing to the database', async () => {
     const testDir = createTempDir('ecc-state-db-');
     const dbPath = path.join(testDir, 'state.db');
@@ -397,6 +511,40 @@ async function runTests() {
           sourceVersion: '1.8.0',
         });
       }, /Invalid installState/);
+
+      store.close();
+    } finally {
+      cleanupTempDir(testDir);
+    }
+  })) passed += 1; else failed += 1;
+
+  if (await test('rejects invalid limits and unserializable JSON payloads', async () => {
+    const testDir = createTempDir('ecc-state-errors-');
+    const dbPath = path.join(testDir, 'state.db');
+
+    try {
+      const store = await createStateStore({ dbPath });
+      const circularSnapshot = {};
+      circularSnapshot.self = circularSnapshot;
+
+      assert.throws(
+        () => store.listRecentSessions({ limit: 0 }),
+        /Invalid limit: 0/
+      );
+      assert.throws(
+        () => store.getStatus({ activeLimit: 'many' }),
+        /Invalid limit: many/
+      );
+      assert.throws(
+        () => store.upsertSession({
+          id: 'session-circular',
+          adapterId: 'manual',
+          harness: 'codex',
+          state: 'active',
+          snapshot: circularSnapshot,
+        }),
+        /Failed to serialize session\.snapshot/
+      );
 
       store.close();
     } finally {
