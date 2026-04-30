@@ -111,6 +111,7 @@ from langgraph.config import get_config
 from langgraph.constants import END
 from langgraph.errors import (
     ErrorCode,
+    GraphDrained,
     GraphRecursionError,
     InvalidUpdateError,
     create_error_message,
@@ -125,6 +126,7 @@ from langgraph.pregel._algo import (
 )
 from langgraph.pregel._call import identifier
 from langgraph.pregel._checkpoint import (
+    achannels_from_checkpoint,
     channels_from_checkpoint,
     copy_checkpoint,
     create_checkpoint,
@@ -155,6 +157,7 @@ from langgraph.pregel.protocol import PregelProtocol, StreamChunk, StreamProtoco
 from langgraph.runtime import (
     DEFAULT_RUNTIME,
     BaseUser,
+    RunControl,
     Runtime,
     ServerInfo,
 )
@@ -1140,6 +1143,10 @@ class Pregel(
         channels, managed = channels_from_checkpoint(
             self.channels,
             saved.checkpoint,
+            saver=self.checkpointer
+            if isinstance(self.checkpointer, BaseCheckpointSaver)
+            else None,
+            config=saved.config,
         )
         # tasks for this checkpoint
         next_tasks = prepare_next_tasks(
@@ -1256,9 +1263,13 @@ class Pregel(
 
         step = saved.metadata.get("step", -1) + 1
         stop = step + 2
-        channels, managed = channels_from_checkpoint(
+        channels, managed = await achannels_from_checkpoint(
             self.channels,
             saved.checkpoint,
+            saver=self.checkpointer
+            if isinstance(self.checkpointer, BaseCheckpointSaver)
+            else None,
+            config=saved.config,
         )
         # tasks for this checkpoint
         next_tasks = prepare_next_tasks(
@@ -1629,6 +1640,11 @@ class Pregel(
             channels, managed = channels_from_checkpoint(
                 self.channels,
                 checkpoint,
+                saver=self.checkpointer
+                if saved is not None
+                and isinstance(self.checkpointer, BaseCheckpointSaver)
+                else None,
+                config=saved.config if saved is not None else None,
             )
             values, as_node = updates[0][:2]
 
@@ -2072,9 +2088,14 @@ class Pregel(
             )
             if saved:
                 checkpoint_config = patch_configurable(config, saved.config[CONF])
-            channels, managed = channels_from_checkpoint(
+            channels, managed = await achannels_from_checkpoint(
                 self.channels,
                 checkpoint,
+                saver=self.checkpointer
+                if saved is not None
+                and isinstance(self.checkpointer, BaseCheckpointSaver)
+                else None,
+                config=saved.config if saved is not None else None,
             )
             values, as_node = updates[0][:2]
             # no values, just clear all tasks
@@ -2551,6 +2572,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v2"],
@@ -2570,6 +2592,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v1"] = ...,
@@ -2588,6 +2611,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v1", "v2"] = "v1",
@@ -2632,6 +2656,7 @@ class Pregel(
                 - `"sync"`: Changes are persisted synchronously before the next step starts.
                 - `"async"`: Changes are persisted asynchronously while the next step executes.
                 - `"exit"`: Changes are persisted only when the graph exits.
+            control: Optional run control used to request cooperative drain.
             subgraphs: Whether to stream events from inside subgraphs, defaults to `False`.
 
                 If `True`, the events will be emitted as tuples `(namespace, data)`,
@@ -2796,6 +2821,7 @@ class Pregel(
                 previous=None,
                 execution_info=None,
                 server_info=server_info,
+                control=control or parent_runtime.control or RunControl(),
             )
             runtime = parent_runtime.merge(runtime)
             config[CONF][CONFIG_KEY_RUNTIME] = runtime
@@ -2926,6 +2952,10 @@ class Pregel(
                     error_code=ErrorCode.GRAPH_RECURSION_LIMIT,
                 )
                 raise GraphRecursionError(msg)
+            elif loop.status == "draining":
+                if loop.control is None:
+                    raise RuntimeError("Draining status requires run control")
+                raise GraphDrained(loop.control.drain_reason or "shutdown")
             # set final channel values as run output
             run_manager.on_chain_end(loop.output)
         except BaseException as e:
@@ -2946,6 +2976,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v2"],
@@ -2965,6 +2996,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v1"] = ...,
@@ -2983,6 +3015,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         subgraphs: bool = False,
         debug: bool | None = None,
         version: Literal["v1", "v2"] = "v1",
@@ -3027,6 +3060,7 @@ class Pregel(
                 - `"sync"`: Changes are persisted synchronously before the next step starts.
                 - `"async"`: Changes are persisted asynchronously while the next step executes.
                 - `"exit"`: Changes are persisted only when the graph exits.
+            control: Optional run control used to request cooperative drain.
             subgraphs: Whether to stream events from inside subgraphs, defaults to `False`.
 
                 If `True`, the events will be emitted as tuples `(namespace, data)`,
@@ -3226,6 +3260,7 @@ class Pregel(
                 previous=None,
                 execution_info=None,
                 server_info=server_info,
+                control=control or parent_runtime.control or RunControl(),
             )
             runtime = parent_runtime.merge(runtime)
             config[CONF][CONFIG_KEY_RUNTIME] = runtime
@@ -3394,6 +3429,10 @@ class Pregel(
                     error_code=ErrorCode.GRAPH_RECURSION_LIMIT,
                 )
                 raise GraphRecursionError(msg)
+            elif loop.status == "draining":
+                if loop.control is None:
+                    raise RuntimeError("Draining status requires run control")
+                raise GraphDrained(loop.control.drain_reason or "shutdown")
             # set final channel values as run output
             await run_manager.on_chain_end(loop.output)
         except BaseException as e:
@@ -3408,6 +3447,7 @@ class Pregel(
         *,
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
+        control: RunControl | None = None,
         transformers: Sequence[Callable[[tuple[str, ...]], Any]] | None = None,
     ) -> Any:
         """Start a sync v2 streaming run driven by transformer projections.
@@ -3437,6 +3477,7 @@ class Pregel(
             config: Optional runnable config forwarded to the graph.
             interrupt_before: Nodes to interrupt before, if any.
             interrupt_after: Nodes to interrupt after, if any.
+            control: Optional run control used to request cooperative drain.
             transformers: Extra transformer classes or configured factories
                 appended after compile-time `stream_transformers`. Factories
                 are called as `factory(scope)` so they can propagate to
@@ -3471,6 +3512,7 @@ class Pregel(
                 version="v2",
                 interrupt_before=interrupt_before,
                 interrupt_after=interrupt_after,
+                control=control,
             )
         )
         return GraphRunStream(graph_iter, mux)
@@ -3482,6 +3524,7 @@ class Pregel(
         *,
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
+        control: RunControl | None = None,
         transformers: Sequence[Callable[[tuple[str, ...]], Any]] | None = None,
     ) -> Any:
         """Async counterpart to `stream_v2`.
@@ -3504,6 +3547,7 @@ class Pregel(
             config: Optional runnable config forwarded to the graph.
             interrupt_before: Nodes to interrupt before, if any.
             interrupt_after: Nodes to interrupt after, if any.
+            control: Optional run control used to request cooperative drain.
             transformers: Extra transformer classes or configured factories
                 appended after compile-time `stream_transformers`. Factories
                 are called as `factory(scope)` so they can propagate to
@@ -3534,6 +3578,7 @@ class Pregel(
             version="v2",
             interrupt_before=interrupt_before,
             interrupt_after=interrupt_after,
+            control=control,
         ).__aiter__()
         return AsyncGraphRunStream(graph_aiter, mux)
 
@@ -3550,6 +3595,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v2"],
         **kwargs: Any,
     ) -> GraphOutput[OutputT]: ...
@@ -3567,6 +3613,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v2"],
         **kwargs: Any,
     ) -> list[StreamPart[StateT, OutputT]]: ...
@@ -3584,6 +3631,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v1"] = ...,
         **kwargs: Any,
     ) -> dict[str, Any] | Any: ...
@@ -3600,6 +3648,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v1", "v2"] = "v1",
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
@@ -3624,6 +3673,7 @@ class Pregel(
                 - `"sync"`: Changes are persisted synchronously before the next step starts.
                 - `"async"`: Changes are persisted asynchronously while the next step executes.
                 - `"exit"`: Changes are persisted only when the graph exits.
+            control: Optional run control used to request cooperative drain.
             version: The streaming format version. `"v1"` (default) returns the
                 traditional format, `"v2"` returns `StreamPart` typed dicts when
                 `stream_mode` is not `"values"`.
@@ -3651,6 +3701,7 @@ class Pregel(
                 interrupt_before=interrupt_before,
                 interrupt_after=interrupt_after,
                 durability=durability,
+                control=control,
                 version=version,
                 **kwargs,
             ):
@@ -3674,6 +3725,7 @@ class Pregel(
                 interrupt_before=interrupt_before,
                 interrupt_after=interrupt_after,
                 durability=durability,
+                control=control,
                 **kwargs,
             ):
                 if stream_mode == "values":
@@ -3720,6 +3772,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v2"],
         **kwargs: Any,
     ) -> GraphOutput[OutputT]: ...
@@ -3737,6 +3790,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v2"],
         **kwargs: Any,
     ) -> list[StreamPart[StateT, OutputT]]: ...
@@ -3754,6 +3808,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v1"] = ...,
         **kwargs: Any,
     ) -> dict[str, Any] | Any: ...
@@ -3770,6 +3825,7 @@ class Pregel(
         interrupt_before: All | Sequence[str] | None = None,
         interrupt_after: All | Sequence[str] | None = None,
         durability: Durability | None = None,
+        control: RunControl | None = None,
         version: Literal["v1", "v2"] = "v1",
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
@@ -3794,6 +3850,7 @@ class Pregel(
                 - `"sync"`: Changes are persisted synchronously before the next step starts.
                 - `"async"`: Changes are persisted asynchronously while the next step executes.
                 - `"exit"`: Changes are persisted only when the graph exits.
+            control: Optional run control used to request cooperative drain.
             version: The streaming format version. `"v1"` (default) returns the
                 traditional format, `"v2"` returns `StreamPart` typed dicts when
                 `stream_mode` is not `"values"`.
@@ -3821,6 +3878,7 @@ class Pregel(
                 interrupt_before=interrupt_before,
                 interrupt_after=interrupt_after,
                 durability=durability,
+                control=control,
                 version=version,
                 **kwargs,
             ):
@@ -3844,6 +3902,7 @@ class Pregel(
                 interrupt_before=interrupt_before,
                 interrupt_after=interrupt_after,
                 durability=durability,
+                control=control,
                 **kwargs,
             ):
                 if stream_mode == "values":
