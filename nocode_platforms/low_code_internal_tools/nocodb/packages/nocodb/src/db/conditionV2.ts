@@ -8,6 +8,7 @@ import {
   isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
+  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
@@ -16,14 +17,17 @@ import type { FilterType, NcContext } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { Model } from '~/models';
-import { Column } from '~/models';
+import { Column, Model } from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { getColumnName } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  getAliasedSoftDeleteFilter,
+  getColumnName,
+} from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
@@ -244,6 +248,29 @@ const parseConditionV2 = async (
         NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
       return { clause: () => {}, rootApply: () => {} };
+    }
+
+    // Handle dynamic filters (field-to-field comparison):
+    // resolve fk_value_col_id to a knex.ref() so the normal conditionV2
+    // comparison logic compares column-to-column instead of column-to-literal.
+    // Cross-table dynamic filters return a FilterOperationResult directly.
+    if (filter.fk_value_col_id) {
+      const resolved = await resolveDynamicFilterValue(
+        context,
+        knex,
+        filter,
+        column,
+        alias,
+        baseModelSqlv2,
+        aliasCount,
+      );
+      if (resolved === false) {
+        return { clause: () => {}, rootApply: () => {} };
+      }
+      // Cross-table dynamic filter — returns a complete FilterOperationResult
+      if (typeof resolved === 'object') {
+        return resolved;
+      }
     }
 
     if (
@@ -1385,6 +1412,187 @@ const parseConditionV2 = async (
     }
   }
 };
+
+/**
+ * Resolve dynamic filter value column reference.
+ * When fk_value_col_id is set, replaces filter.value with a knex.ref()
+ * pointing to the target column, so the normal conditionV2 comparison
+ * logic produces column-to-column SQL (e.g. "FieldA" = "FieldB").
+ *
+ * Returns:
+ *  - true: same-table — filter.value replaced with knex.ref(), caller continues normal flow
+ *  - false: cannot resolve — caller should skip (empty clause)
+ *  - FilterOperationResult: cross-table — caller returns this directly
+ *
+ * Virtual columns (Lookup, Rollup, Formula, etc.) are not supported.
+ */
+async function resolveDynamicFilterValue(
+  context: NcContext,
+  knex: Knex,
+  filter: Filter,
+  filterColumn: Column,
+  alias?: string,
+  baseModelSqlv2?: IBaseModelSqlV2,
+  aliasCount?: { count: number },
+): Promise<boolean | FilterOperationResult> {
+  const valueColumn = await Column.get(context, {
+    colId: filter.fk_value_col_id,
+  });
+  if (!valueColumn) {
+    return false;
+  }
+
+  // Virtual columns (Lookup, Rollup, Formula, etc.) don't have a physical
+  // DB column — skip so the filter is silently ignored rather than producing
+  // invalid SQL.
+  if (isVirtualCol(valueColumn)) {
+    return false;
+  }
+
+  // Same-table: simple column ref
+  // Skip when _crossTableRowId is set — self-referencing links need the
+  // cross-table EXISTS path to pin the comparison to a specific linked row.
+  if (
+    valueColumn.fk_model_id === filterColumn.fk_model_id &&
+    !filter._crossTableRowId
+  ) {
+    const valueField = alias
+      ? `${alias}.${valueColumn.column_name}`
+      : valueColumn.column_name;
+
+    filter.value = knex.ref(valueField) as any;
+    return true;
+  }
+
+  // Cross-table: need baseModelSqlv2 to build subquery
+  if (!baseModelSqlv2 || !aliasCount) {
+    return false;
+  }
+
+  return resolveCrossTableDynamicFilter(
+    context,
+    knex,
+    filter,
+    filterColumn,
+    valueColumn,
+    alias,
+    baseModelSqlv2,
+    aliasCount,
+  );
+}
+
+/**
+ * Build a cross-table dynamic filter.
+ * Generates an EXISTS subquery on the value column's table and delegates
+ * the comparison to parseConditionV2 so all operators are supported.
+ *
+ * No LTAR join is needed — the value column's table is known from
+ * valueColumn.fk_model_id. The EXISTS simply checks whether any record
+ * in the related table satisfies: relatedTable.valueCol <op> sourceTable.filterCol.
+ */
+async function resolveCrossTableDynamicFilter(
+  context: NcContext,
+  knex: Knex,
+  filter: Filter,
+  filterColumn: Column,
+  valueColumn: Column,
+  alias: string | undefined,
+  baseModelSqlv2: IBaseModelSqlV2,
+  aliasCount: { count: number },
+): Promise<false | FilterOperationResult> {
+  const relatedModel = await valueColumn.getModel(context);
+  if (!relatedModel) {
+    return false;
+  }
+  await relatedModel.getColumns(context);
+
+  const relatedBaseModel = await Model.getBaseModelSQL(context, {
+    model: relatedModel,
+    dbDriver: baseModelSqlv2.dbDriver,
+  });
+
+  const relatedAlias = `__nc_df${aliasCount.count++}`;
+
+  // EXISTS (SELECT 1 FROM relatedTable WHERE pk = rowId AND <comparison> AND <soft-delete>)
+  const existsQb = knex(
+    relatedBaseModel.getTnPath(relatedModel.table_name, relatedAlias),
+  ).select(knex.raw('1'));
+
+  // Filter to the specific source row when rowId is available
+  // (set by replaceDynamicFieldWithValue in EE for cross-table filters)
+  //
+  // crossTableRowId is the parent/reference row's PK.
+  // relatedModel is always the parent/reference table here because:
+  // - fk_value_col_id can only point to source or reference table columns
+  // - same-table columns are resolved inline by replaceDynamicFieldWithValue
+  // - so cross-table always means the value column is in the reference table
+  const crossTableRowId = filter._crossTableRowId;
+
+  // Without a row context or primary keys the EXISTS would match ANY row in
+  // the related table, producing meaningless results. Silently skip.
+  if (!crossTableRowId || !relatedModel.primaryKeys?.length) {
+    return false;
+  }
+
+  const pkWhere = _wherePk(relatedModel.primaryKeys, crossTableRowId);
+  if (typeof pkWhere === 'function') {
+    existsQb.where(pkWhere);
+  } else {
+    // Qualify PK columns with the alias
+    for (const [col, val] of Object.entries(pkWhere)) {
+      existsQb.where(`${relatedAlias}.${col}`, val);
+    }
+  }
+
+  const softDeleteFilter = await getAliasedSoftDeleteFilter(
+    relatedBaseModel,
+    relatedAlias,
+  );
+  if (softDeleteFilter) {
+    existsQb.where(softDeleteFilter);
+  }
+
+  // Delegate comparison to parseConditionV2 — supports all operators/types.
+  // Keep the original filterColumn as fk_column_id and reference the value
+  // column (in the related table) as the literal value. This preserves the
+  // original operator direction so asymmetric ops (gt, lt, gte, lte, like)
+  // are not accidentally inverted.
+  const valueColumnRef = knex.raw('??.??', [
+    relatedAlias,
+    valueColumn.column_name,
+  ]) as any;
+
+  const comparisonFilter = new Filter({
+    ...filter,
+    fk_column_id: filterColumn.id,
+    fk_model_id: filterColumn.fk_model_id,
+    fk_value_col_id: null,
+  });
+  comparisonFilter.value = valueColumnRef;
+
+  // Always qualify the source column — when alias is undefined, unqualified
+  // column names inside the EXISTS resolve to the inner table first, which
+  // produces wrong results if both tables share a column name.
+  const sourceAlias =
+    alias || baseModelSqlv2.getTnPath(baseModelSqlv2.model.table_name);
+
+  const compResult = await parseConditionV2(
+    baseModelSqlv2,
+    comparisonFilter,
+    aliasCount,
+    sourceAlias,
+  );
+  compResult.clause(existsQb);
+
+  return {
+    clause: (qb: Knex.QueryBuilder) => {
+      qb.whereExists(existsQb);
+    },
+    rootApply: (qb: Knex.QueryBuilder) => {
+      compResult.rootApply?.(qb);
+    },
+  };
+}
 
 export async function extractLinkRelFiltersAndApply(_: {
   qb: Knex.QueryBuilder & Knex.QueryInterface;
