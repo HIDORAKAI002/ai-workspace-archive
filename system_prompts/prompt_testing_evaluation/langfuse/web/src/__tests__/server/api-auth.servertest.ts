@@ -4,6 +4,8 @@ import {
   createOrgProjectAndApiKey,
   createShaHash,
   generateKeySet,
+  getDisplaySecretKey,
+  hashSecretKey,
 } from "@langfuse/shared/src/server";
 import { Prisma, type PrismaClient, prisma } from "@langfuse/shared/src/db";
 import { env } from "@/src/env.mjs";
@@ -249,8 +251,21 @@ describe("Authenticate API calls", () => {
     });
 
     it("should fail on wrong api key without new key", async () => {
+      const legacySecretKey = ["legacy", "secret", "key"].join("-");
+      const legacyPublicKey = `legacy-public-key-${v4()}`;
+      await prisma.apiKey.create({
+        data: {
+          id: v4(),
+          projectId: testApiKey.projectId,
+          publicKey: legacyPublicKey,
+          hashedSecretKey: await hashSecretKey(legacySecretKey),
+          displaySecretKey: getDisplaySecretKey(legacySecretKey),
+          scope: "PROJECT",
+        },
+      });
+
       const initialApiKey = await prisma.apiKey.findUnique({
-        where: { publicKey: testApiKey.publicKey },
+        where: { publicKey: legacyPublicKey },
       });
       expect(initialApiKey).not.toBeNull();
       expect(initialApiKey?.fastHashedSecretKey).toBeNull();
@@ -258,11 +273,13 @@ describe("Authenticate API calls", () => {
       const auth = await new ApiAuthService(
         prisma,
         null,
-      ).verifyAuthHeaderAndReturnScope(getInvalidAuthHeader());
+      ).verifyAuthHeaderAndReturnScope(
+        createBasicAuthHeader(legacyPublicKey, `${legacySecretKey}-wrong`),
+      );
       expect(auth.validKey).toBe(false);
 
       const apiKey = await prisma.apiKey.findUnique({
-        where: { publicKey: testApiKey.publicKey },
+        where: { publicKey: legacyPublicKey },
       });
       expect(apiKey).not.toBeNull();
       expect(apiKey?.fastHashedSecretKey).toBeNull();
@@ -298,6 +315,23 @@ describe("Authenticate API calls", () => {
     }, 20_000);
 
     it("should create new api key and read from cache", async () => {
+      const legacySecretKey = ["legacy", "secret", "key"].join("-");
+      const legacyPublicKey = `legacy-public-key-${v4()}`;
+      const legacyAuth = createBasicAuthHeader(
+        legacyPublicKey,
+        legacySecretKey,
+      );
+      await prisma.apiKey.create({
+        data: {
+          id: v4(),
+          projectId: testApiKey.projectId,
+          publicKey: legacyPublicKey,
+          hashedSecretKey: await hashSecretKey(legacySecretKey),
+          displaySecretKey: getDisplaySecretKey(legacySecretKey),
+          scope: "PROJECT",
+        },
+      });
+
       // update the organization with a cloud config
       await prisma.organization.update({
         where: { id: testApiKey.orgId },
@@ -319,11 +353,11 @@ describe("Authenticate API calls", () => {
 
       // first auth will generate the fast hashed api key
       await new ApiAuthService(prisma, redis).verifyAuthHeaderAndReturnScope(
-        getValidAuthHeader(),
+        legacyAuth,
       );
 
       const apiKey = await prisma.apiKey.findUnique({
-        where: { publicKey: testApiKey.publicKey },
+        where: { publicKey: legacyPublicKey },
       });
 
       expect(apiKey).not.toBeNull();
@@ -337,7 +371,7 @@ describe("Authenticate API calls", () => {
 
       // second will add the key to redis
       await new ApiAuthService(prisma, redis).verifyAuthHeaderAndReturnScope(
-        getValidAuthHeader(),
+        legacyAuth,
       );
 
       const cachedKey2 = await getRedisValue(
@@ -640,28 +674,25 @@ describe("Authenticate API calls", () => {
       expect(apiKey).not.toBeNull();
       expect(apiKey?.fastHashedSecretKey).not.toBeNull();
 
-      const ttl = await getRedisTtl(
-        redis,
-        `api-key:${apiKey?.fastHashedSecretKey}`,
-      );
+      const redisKey = `api-key:${apiKey?.fastHashedSecretKey}`;
+      const ttl = await getRedisTtl(redis, redisKey);
 
       expect(ttl).toBeGreaterThan(env.LANGFUSE_CACHE_API_KEY_TTL_SECONDS - 2);
 
-      // wait for 5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await redis.expire(redisKey, 10);
+      const shortenedTtl = await getRedisTtl(redis, redisKey);
+      expect(shortenedTtl).toBeGreaterThan(0);
+      expect(shortenedTtl).toBeLessThan(env.LANGFUSE_CACHE_API_KEY_TTL_SECONDS);
 
       await new ApiAuthService(
         mockPrisma as unknown as PrismaClient,
         redis,
       ).verifyAuthHeaderAndReturnScope(getValidAuthHeader());
 
-      const ttl2 = await getRedisTtl(
-        redis,
-        `api-key:${apiKey?.fastHashedSecretKey}`,
-      );
+      const ttl2 = await getRedisTtl(redis, redisKey);
 
       expect(ttl2).toBeGreaterThan(env.LANGFUSE_CACHE_API_KEY_TTL_SECONDS - 2);
-    }, 10000);
+    });
 
     it("should delete API keys from cache and db", async () => {
       // first auth will generate the fast hashed api key
