@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-04-30 13:20 IST] Auto-Sync
+- **34 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Exa MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, Dify, Activepieces, Budibase, NocoDB, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, microsoft/semantic-kernel, mastra-ai/mastra, chatdev, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, BradyFU/Awesome-Multimodal-Large-Language-Models, affaan-m/everything-claude-code, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-04-30 06:53 IST] Auto-Sync
 - **27 Repositories Updated:** Exa MCP Server, Promptfoo, Langflow, Activepieces, Windmill, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, arize-ai/phoenix, affaan-m/everything-claude-code, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
 

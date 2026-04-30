@@ -1,14 +1,14 @@
 <!doctype html>
 <html class="no-js" lang="en" data-content_root="./">
-  <head><meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#"><link rel="search" title="Search" href="search.html">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" />
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 --><title>Index - Google Gen AI SDK documentation</title>
-<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 --><title>Index - Google Gen AI SDK documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css?v=a0a71c94" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=fdc8595f" />
     
     
@@ -16,8 +16,8 @@
 
 <style>
   body {
-    --color-code-background: #f2f2f2;
-  --color-code-foreground: #1e1e1e;
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
   --font-stack: "Google Sans Text", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-stack--monospace: Roboto Mono, "Helvetica Neue Mono", monospace;
   --font-stack--headings: "Google Sans Text", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -159,10 +159,14 @@
   </symbol>
 </svg>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
-<label class="overlay sidebar-overlay" for="__navigation"></label>
-<label class="overlay toc-overlay" for="__toc"></label>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
 
 <a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
@@ -172,7 +176,8 @@
   <header class="mobile-header">
     <div class="header-left">
       <label class="nav-overlay-icon" for="__navigation">
-        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
       </label>
     </div>
     <div class="header-center">
@@ -180,7 +185,8 @@
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
           <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
           <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -188,7 +194,8 @@
         </button>
       </div>
       <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
-        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
     </div>
   </header>
@@ -196,6 +203,7 @@
     <div class="sidebar-container">
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
   
   <span class="sidebar-brand-text">Google Gen AI SDK  documentation</span>
   
@@ -239,7 +247,8 @@
         </a>
         <div class="content-icon-container">
           <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
               <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -247,7 +256,8 @@
             </button>
           </div>
           <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
-            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
@@ -896,6 +906,8 @@
 </li>
         <li><a href="genai.html#genai.types.BatchJobDict">BatchJobDict (class in genai.types)</a>
 </li>
+        <li><a href="genai.html#genai.types.BatchJobOutputInfoDict">BatchJobOutputInfoDict (class in genai.types)</a>
+</li>
         <li><a href="genai.html#genai.types.BatchJobSourceDict">BatchJobSourceDict (class in genai.types)</a>
 </li>
         <li><a href="genai.html#genai.types.Behavior">Behavior (class in genai.types)</a>
@@ -916,6 +928,18 @@
           <li><a href="genai.html#genai.types.PreferenceOptimizationHyperParametersDict.beta">(genai.types.PreferenceOptimizationHyperParametersDict attribute)</a>
 </li>
         </ul></li>
+        <li><a href="genai.html#genai.types.VertexMultimodalDatasetDestination.bigquery_destination">bigquery_destination (genai.types.VertexMultimodalDatasetDestination attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.VertexMultimodalDatasetDestinationDict.bigquery_destination">(genai.types.VertexMultimodalDatasetDestinationDict attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="genai.html#genai.types.BatchJobOutputInfo.bigquery_output_table">bigquery_output_table (genai.types.BatchJobOutputInfo attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.BatchJobOutputInfoDict.bigquery_output_table">(genai.types.BatchJobOutputInfoDict attribute)</a>
+</li>
+        </ul></li>
         <li><a href="genai.html#genai.types.EvaluationDataset.bigquery_source">bigquery_source (genai.types.EvaluationDataset attribute)</a>
 
         <ul>
@@ -934,6 +958,8 @@
         </ul></li>
         <li><a href="genai.html#genai.types.BigQuerySourceDict">BigQuerySourceDict (class in genai.types)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="genai.html#genai.types.EmbedContentMetadata.billable_character_count">billable_character_count (genai.types.EmbedContentMetadata attribute)</a>
 
         <ul>
@@ -946,8 +972,6 @@
           <li><a href="genai.html#genai.types.SupervisedTuningDatasetDistributionDict.billable_sum">(genai.types.SupervisedTuningDatasetDistributionDict attribute)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="genai.html#genai.types.SegmentImageConfig.binary_color_threshold">binary_color_threshold (genai.types.SegmentImageConfig attribute)</a>
 
         <ul>
@@ -1724,6 +1748,8 @@
         </ul></li>
         <li><a href="genai.html#genai.client.Client.credentials">credentials (genai.client.Client attribute)</a>
 </li>
+        <li><a href="genai.html#genai.types.ImageResizeMode.CROP">CROP (genai.types.ImageResizeMode attribute)</a>
+</li>
         <li><a href="genai.html#genai.types.CreateTuningJobConfig.custom_base_model">custom_base_model (genai.types.CreateTuningJobConfig attribute)</a>
 
         <ul>
@@ -2108,6 +2134,10 @@
           <li><a href="genai.html#genai.types.UploadToFileSearchStoreConfig.display_name">(genai.types.UploadToFileSearchStoreConfig attribute)</a>
 </li>
           <li><a href="genai.html#genai.types.UploadToFileSearchStoreConfigDict.display_name">(genai.types.UploadToFileSearchStoreConfigDict attribute)</a>
+</li>
+          <li><a href="genai.html#genai.types.VertexMultimodalDatasetDestination.display_name">(genai.types.VertexMultimodalDatasetDestination attribute)</a>
+</li>
+          <li><a href="genai.html#genai.types.VertexMultimodalDatasetDestinationDict.display_name">(genai.types.VertexMultimodalDatasetDestinationDict attribute)</a>
 </li>
         </ul></li>
     </ul></td>
@@ -2518,6 +2548,8 @@
           <li><a href="genai.html#genai.types.GeneratedImageDict.enhanced_prompt">(genai.types.GeneratedImageDict attribute)</a>
 </li>
         </ul></li>
+        <li><a href="genai.html#genai.client.Client.enterprise">enterprise (genai.client.Client attribute)</a>
+</li>
         <li><a href="genai.html#genai.types.Tool.enterprise_web_search">enterprise_web_search (genai.types.Tool attribute)</a>
 
         <ul>
@@ -3214,9 +3246,13 @@
           <li><a href="genai.html#genai.types.OutputConfigDict.gcs_destination">(genai.types.OutputConfigDict attribute)</a>
 </li>
         </ul></li>
-        <li><a href="genai.html#genai.types.OutputInfo.gcs_output_directory">gcs_output_directory (genai.types.OutputInfo attribute)</a>
+        <li><a href="genai.html#genai.types.BatchJobOutputInfo.gcs_output_directory">gcs_output_directory (genai.types.BatchJobOutputInfo attribute)</a>
 
         <ul>
+          <li><a href="genai.html#genai.types.BatchJobOutputInfoDict.gcs_output_directory">(genai.types.BatchJobOutputInfoDict attribute)</a>
+</li>
+          <li><a href="genai.html#genai.types.OutputInfo.gcs_output_directory">(genai.types.OutputInfo attribute)</a>
+</li>
           <li><a href="genai.html#genai.types.OutputInfoDict.gcs_output_directory">(genai.types.OutputInfoDict attribute)</a>
 </li>
         </ul></li>
@@ -3452,14 +3488,14 @@
 </li>
         <li><a href="genai.html#genai.types.GenerateVideosSourceDict">GenerateVideosSourceDict (class in genai.types)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="genai.html#genai.types.LiveServerContent.generation_complete">generation_complete (genai.types.LiveServerContent attribute)</a>
 
         <ul>
           <li><a href="genai.html#genai.types.LiveServerContentDict.generation_complete">(genai.types.LiveServerContentDict attribute)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="genai.html#genai.types.AutoraterConfig.generation_config">generation_config (genai.types.AutoraterConfig attribute)</a>
 
         <ul>
@@ -4269,6 +4305,8 @@
         <li><a href="genai.html#genai.types.ImageDict">ImageDict (class in genai.types)</a>
 </li>
         <li><a href="genai.html#genai.types.ImagePromptLanguage">ImagePromptLanguage (class in genai.types)</a>
+</li>
+        <li><a href="genai.html#genai.types.ImageResizeMode">ImageResizeMode (class in genai.types)</a>
 </li>
         <li><a href="genai.html#genai.types.GenerateImagesResponse.images">images (genai.types.GenerateImagesResponse property)</a>
 </li>
@@ -5983,6 +6021,8 @@
 </li>
         <li><a href="genai.html#genai.types.TrafficType.ON_DEMAND_PRIORITY">ON_DEMAND_PRIORITY (genai.types.TrafficType attribute)</a>
 </li>
+        <li><a href="genai.html#genai.types.JSONSchema.one_of">one_of (genai.types.JSONSchema attribute)</a>
+</li>
         <li><a href="genai.html#genai.types.LiveMusicGenerationConfig.only_bass_and_drums">only_bass_and_drums (genai.types.LiveMusicGenerationConfig attribute)</a>
 
         <ul>
@@ -6109,9 +6149,13 @@
         </ul></li>
         <li><a href="genai.html#genai.types.TurnCompleteReason.OUTPUT_IMAGE_IP_PROHIBITED">OUTPUT_IMAGE_IP_PROHIBITED (genai.types.TurnCompleteReason attribute)</a>
 </li>
-        <li><a href="genai.html#genai.types.EvaluateDatasetResponse.output_info">output_info (genai.types.EvaluateDatasetResponse attribute)</a>
+        <li><a href="genai.html#genai.types.BatchJob.output_info">output_info (genai.types.BatchJob attribute)</a>
 
         <ul>
+          <li><a href="genai.html#genai.types.BatchJobDict.output_info">(genai.types.BatchJobDict attribute)</a>
+</li>
+          <li><a href="genai.html#genai.types.EvaluateDatasetResponse.output_info">(genai.types.EvaluateDatasetResponse attribute)</a>
+</li>
           <li><a href="genai.html#genai.types.EvaluateDatasetResponseDict.output_info">(genai.types.EvaluateDatasetResponseDict attribute)</a>
 </li>
         </ul></li>
@@ -6207,6 +6251,14 @@
           <li><a href="genai.html#genai.types.SupervisedTuningDatasetDistribution.p95">(genai.types.SupervisedTuningDatasetDistribution attribute)</a>
 </li>
           <li><a href="genai.html#genai.types.SupervisedTuningDatasetDistributionDict.p95">(genai.types.SupervisedTuningDatasetDistributionDict attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="genai.html#genai.types.ImageResizeMode.PAD">PAD (genai.types.ImageResizeMode attribute)</a>
+</li>
+        <li><a href="genai.html#genai.types.GroundingChunkRetrievedContext.page_number">page_number (genai.types.GroundingChunkRetrievedContext attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.GroundingChunkRetrievedContextDict.page_number">(genai.types.GroundingChunkRetrievedContextDict attribute)</a>
 </li>
         </ul></li>
         <li><a href="genai.html#genai.types.ListBatchJobsConfig.page_size">page_size (genai.types.ListBatchJobsConfig attribute)</a>
@@ -7097,6 +7149,12 @@
         </ul></li>
         <li><a href="genai.html#genai.types.LiveMusicPlaybackControl.RESET_CONTEXT">RESET_CONTEXT (genai.types.LiveMusicPlaybackControl attribute)</a>
 </li>
+        <li><a href="genai.html#genai.types.GenerateVideosConfig.resize_mode">resize_mode (genai.types.GenerateVideosConfig attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.GenerateVideosConfigDict.resize_mode">(genai.types.GenerateVideosConfigDict attribute)</a>
+</li>
+        </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="genai.html#genai.types.GenerateVideosConfig.resolution">resolution (genai.types.GenerateVideosConfig attribute)</a>
@@ -9663,6 +9721,18 @@
           <li><a href="genai.html#genai.types.RetrievalDict.vertex_ai_search">(genai.types.RetrievalDict attribute)</a>
 </li>
         </ul></li>
+        <li><a href="genai.html#genai.types.BatchJobDestination.vertex_dataset">vertex_dataset (genai.types.BatchJobDestination attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.BatchJobDestinationDict.vertex_dataset">(genai.types.BatchJobDestinationDict attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="genai.html#genai.types.BatchJobSource.vertex_dataset_name">vertex_dataset_name (genai.types.BatchJobSource attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.BatchJobSourceDict.vertex_dataset_name">(genai.types.BatchJobSourceDict attribute)</a>
+</li>
+        </ul></li>
         <li><a href="genai.html#genai.types.TuningDataset.vertex_dataset_resource">vertex_dataset_resource (genai.types.TuningDataset attribute)</a>
 
         <ul>
@@ -9671,6 +9741,12 @@
           <li><a href="genai.html#genai.types.TuningValidationDataset.vertex_dataset_resource">(genai.types.TuningValidationDataset attribute)</a>
 </li>
           <li><a href="genai.html#genai.types.TuningValidationDatasetDict.vertex_dataset_resource">(genai.types.TuningValidationDatasetDict attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="genai.html#genai.types.BatchJobOutputInfo.vertex_multimodal_dataset_name">vertex_multimodal_dataset_name (genai.types.BatchJobOutputInfo attribute)</a>
+
+        <ul>
+          <li><a href="genai.html#genai.types.BatchJobOutputInfoDict.vertex_multimodal_dataset_name">(genai.types.BatchJobOutputInfoDict attribute)</a>
 </li>
         </ul></li>
         <li><a href="genai.html#genai.types.Retrieval.vertex_rag_store">vertex_rag_store (genai.types.Retrieval attribute)</a>
@@ -9685,11 +9761,13 @@
           <li><a href="genai.html#id0">(genai.client.Client property)</a>
 </li>
         </ul></li>
-        <li><a href="genai.html#genai.types.VertexAISearchDataStoreSpecDict">VertexAISearchDataStoreSpecDict (class in genai.types)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="genai.html#genai.types.VertexAISearchDataStoreSpecDict">VertexAISearchDataStoreSpecDict (class in genai.types)</a>
+</li>
         <li><a href="genai.html#genai.types.VertexAISearchDict">VertexAISearchDict (class in genai.types)</a>
+</li>
+        <li><a href="genai.html#genai.types.VertexMultimodalDatasetDestinationDict">VertexMultimodalDatasetDestinationDict (class in genai.types)</a>
 </li>
         <li><a href="genai.html#genai.types.VertexRagStoreDict">VertexRagStoreDict (class in genai.types)</a>
 </li>
@@ -9994,6 +10072,6 @@
 </div><script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>
 </html>

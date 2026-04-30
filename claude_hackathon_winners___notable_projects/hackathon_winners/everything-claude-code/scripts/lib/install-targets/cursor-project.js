@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+const { toCursorAgentFileName } = require('../cursor-agent-names');
 const {
+  createFlatFileOperations,
   createFlatRuleOperations,
   createInstallTargetAdapter,
   createManagedOperation,
@@ -133,6 +135,12 @@ module.exports = createInstallTargetAdapter({
         destinationPath: path.join(targetRoot, 'mcp.json'),
       });
 
+      if (sourceRelativePath === 'AGENTS.md') {
+        // Cursor treats nested AGENTS.md files as directory context; do not
+        // install ECC's root project identity into a host project's .cursor/.
+        return [];
+      }
+
       if (sourceRelativePath === 'rules') {
         return takeUniqueOperations(createFlatRuleOperations({
           moduleId: module.id,
@@ -140,6 +148,16 @@ module.exports = createInstallTargetAdapter({
           sourceRelativePath,
           destinationDir: path.join(targetRoot, 'rules'),
           destinationNameTransform: toCursorRuleFileName,
+        }));
+      }
+
+      if (sourceRelativePath === 'agents') {
+        return takeUniqueOperations(createFlatFileOperations({
+          moduleId: module.id,
+          repoRoot,
+          sourceRelativePath,
+          destinationDir: path.join(targetRoot, 'agents'),
+          destinationNameTransform: toCursorAgentFileName,
         }));
       }
 

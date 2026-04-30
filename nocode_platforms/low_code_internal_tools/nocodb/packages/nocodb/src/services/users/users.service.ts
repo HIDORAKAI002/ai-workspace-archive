@@ -166,7 +166,7 @@ export class UsersService {
     } else {
       const settings = await Noco.getAppSettings();
 
-      if (settings?.invite_only_signup && !is_invite) {
+      if (settings?.invite_only_signup && !is_invite && !workspace_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;
@@ -259,6 +259,7 @@ export class UsersService {
 
     // delete all refresh token and populate a new one
     await UserRefreshToken.deleteAllUserToken(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
@@ -308,6 +309,8 @@ export class UsersService {
           'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
         );
       }
+
+      await this.revokeAllOAuthTokensByUser(user.id);
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
@@ -391,6 +394,7 @@ export class UsersService {
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
@@ -646,6 +650,10 @@ export class UsersService {
         });
         // todo: clear only token present in cookie to avoid invalidating all refresh token
         await UserRefreshToken.deleteAllUserToken(user.id);
+        // OAuth tokens are not revoked on sign-out: sign-out ends the user's
+        // own session, not third-party OAuth client grants. OAuth tokens are
+        // revoked on password change/reset/forgot where credential compromise
+        // is assumed.
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {
@@ -702,4 +710,6 @@ export class UsersService {
 
     setTokenCookie(res, refreshToken, req);
   }
+
+  protected async revokeAllOAuthTokensByUser(_userId: string) {}
 }

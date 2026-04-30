@@ -1,7 +1,12 @@
 import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
+  AttachmentReqType,
   AttachmentResType,
   ChatUIContext,
+  FileImportOptions,
+  FileImportParserConfig,
+  FileImportSheet,
+  FileImportType,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -23,6 +28,7 @@ export enum MigrationJobTypes {
   AuditMigration = 'audit-migration',
   SoftDeleteColumnMigration = 'soft-delete-column-migration',
   NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
+  RecordTrashBackfill = 'record-trash-backfill',
 }
 
 export enum JobTypes {
@@ -69,7 +75,8 @@ export enum JobTypes {
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
-  RecordTrashCleanup = 'record-trash-cleanup',
+  BaseTrashCleanUp = 'base-trash-clean-up',
+  DataImport = 'data-import',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -85,6 +92,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ReseatSubscription,
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
+  JobTypes.BaseTrashCleanUp,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,
@@ -93,7 +101,6 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
-  JobTypes.RecordTrashCleanup,
 ];
 
 export enum JobStatus {
@@ -333,4 +340,15 @@ export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
+}
+
+export interface DataImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  importType: FileImportType;
+  attachment: AttachmentReqType;
+  sheets: FileImportSheet[];
+  parserConfig: FileImportParserConfig;
+  options: FileImportOptions;
+  req: NcRequest;
 }

@@ -76,7 +76,9 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { BasesService } from '~/services/bases.service';
 import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { DataImportService } from '~/services/data-import.service';
 import { ColumnsService } from '~/services/columns.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { CommentsService } from '~/services/comments.service';
@@ -286,7 +288,9 @@ export const nocoModuleMetadata = {
     SourcesService,
     CachesService,
     CalendarsService,
+    DataImportService,
     ColumnsService,
+    LinkPlaceholderService,
     DuplicateDetectionService,
     CommentsService,
     FiltersService,
@@ -388,6 +392,7 @@ export const nocoModuleMetadata = {
     MetaService,
     TablesService,
     ColumnsService,
+    LinkPlaceholderService,
     DuplicateDetectionService,
     FiltersService,
     SortsService,
