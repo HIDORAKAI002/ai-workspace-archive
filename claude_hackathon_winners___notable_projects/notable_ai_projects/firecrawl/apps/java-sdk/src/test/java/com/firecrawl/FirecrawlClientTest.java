@@ -29,6 +29,13 @@ class FirecrawlClientTest {
     }
 
     @Test
+    void testBuilderRejectsExplicitNullApiKey() {
+        assertThrows(FirecrawlException.class, () ->
+                FirecrawlClient.builder().apiKey(null).build()
+        );
+    }
+
+    @Test
     void testBuilderAcceptsApiKey() {
         // Should not throw — just validates construction
         FirecrawlClient client = FirecrawlClient.builder()

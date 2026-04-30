@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "a3b4c5d6e7f8"
 down_revision: str | Sequence[str] | None = "g7h8i9j0k1l2"
 branch_labels: str | Sequence[str] | None = None
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
 
     op.execute(
@@ -45,8 +47,16 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
 
     op.execute(f"DROP INDEX IF EXISTS {schema}idx_memory_units_consolidation_failed")
     op.execute(f"ALTER TABLE {schema}memory_units DROP COLUMN IF EXISTS consolidation_failed_at")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

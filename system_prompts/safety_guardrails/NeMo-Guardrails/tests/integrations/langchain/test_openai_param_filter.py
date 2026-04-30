@@ -18,7 +18,7 @@
 Two layers of coverage:
 
 - test_classifier_matches_baseline: fast, no-network. Reads the committed
-  baseline JSON of probe results and asserts _is_openai_reasoning_model has zero
+  baseline JSON of probe results and asserts is_openai_reasoning_model has zero
   false negatives against it. Runs in normal CI. Catches accidental
   classifier regressions.
 
@@ -26,6 +26,12 @@ Two layers of coverage:
   OPENAI_API_KEY. Hits /v1/models and /v1/chat/completions to verify the
   classifier still matches current OpenAI API behavior. Run this quarterly
   or after bumping langchain-openai.
+
+Each candidate model is probed concurrently against every parameter listed
+in PROBES. A model is treated as a reasoning model (in the classifier
+sense) if the API rejects any of those params. The baseline records the
+per-param verdict ("accepted" / "rejected" / "other: ...") so future
+diffs surface OpenAI behavior changes per param.
 
 Regenerate the baseline file (after confirming classifier changes):
 
@@ -38,6 +44,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,7 +52,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from nemoguardrails.integrations.langchain.llm_adapter import _is_openai_reasoning_model
+from nemoguardrails.llm.openai_reasoning import is_openai_reasoning_model
 
 BASELINE_PATH = Path(__file__).parent / "data" / "openai_reasoning_probe_baseline.json"
 
@@ -95,18 +102,35 @@ KNOWN_FALSE_POSITIVES = frozenset(
 )
 
 
+PROBES: dict[str, dict] = {
+    "stop": {"stop": ["User:"]},
+    "temperature": {"temperature": 0.5},
+    # max_tokens probe: do not also send max_completion_tokens (the default
+    # body field) so a "use max_completion_tokens instead" rejection on
+    # reasoning models is unambiguous.
+    "max_tokens": {"max_tokens": 1},
+}
+
+
 def _load_baseline() -> list[dict]:
     payload = json.loads(BASELINE_PATH.read_text())
     return payload["results"]
 
 
 def _evaluate(probe_results: list[dict]) -> tuple[list[dict], list[str]]:
-    """Return (false_negatives, ignored_false_positives)."""
+    """Return (false_negatives, ignored_false_positives).
+
+    A model is considered to behave as a reasoning model (in the
+    classifier's sense) if it rejects any probed param. PROBES is
+    deliberately limited to params nemoguardrails actually sends from
+    internal action code (temperature, stop, max_tokens); other OpenAI
+    params are out of scope here.
+    """
     false_negatives = []
     false_positives = []
     for result in probe_results:
-        predicted = _is_openai_reasoning_model(result["model"])
-        rejects = result["stop"] == "rejected" or result["temperature"] == "rejected"
+        predicted = is_openai_reasoning_model(result["model"])
+        rejects = any(result.get(param) == "rejected" for param in PROBES)
         if rejects and not predicted:
             false_negatives.append(result)
         elif predicted and not rejects:
@@ -117,15 +141,21 @@ def _evaluate(probe_results: list[dict]) -> tuple[list[dict], list[str]]:
 def test_classifier_matches_baseline():
     results = _load_baseline()
     assert results, "baseline is empty, regenerate via UPDATE_BASELINE=1"
+    missing_fields = [result["model"] for result in results if any(param not in result for param in PROBES)]
+    assert not missing_fields, (
+        "Baseline is missing per-param probe results; regenerate via "
+        f"UPDATE_BASELINE=1. Missing entries for: {sorted(set(missing_fields))[:5]}..."
+    )
     false_negatives, false_positives = _evaluate(results)
+    probed_list = ", ".join(sorted(PROBES))
     assert not false_negatives, (
-        "Classifier says these models do NOT reject stop/temperature, "
+        f"Classifier says these models do NOT reject any of {{{probed_list}}}, "
         "but the committed probe baseline shows they DO. Update "
-        f"_is_openai_reasoning_model or regenerate baseline: {false_negatives}"
+        f"is_openai_reasoning_model or regenerate baseline: {false_negatives}"
     )
     unexpected = set(false_positives) - KNOWN_FALSE_POSITIVES
     assert not unexpected, (
-        "Classifier strips stop/temperature for models that actually accept them: "
+        f"Classifier strips reasoning-only params for models that accept all of {{{probed_list}}}: "
         f"{sorted(unexpected)}. If intentional, add them to KNOWN_FALSE_POSITIVES."
     )
 
@@ -148,12 +178,16 @@ async def _fetch_models(client: httpx.AsyncClient, api_key: str) -> list[str]:
 
 
 async def _post(client: httpx.AsyncClient, api_key: str, model: str, extra: dict) -> httpx.Response:
-    body = {
+    body: dict = {
         "model": model,
         "messages": [{"role": "user", "content": "hi"}],
-        "max_completion_tokens": 1,
-        **extra,
     }
+    # Only set the default token field when the probe itself is not testing
+    # max_tokens; otherwise the body would carry both fields and OpenAI's
+    # response signal becomes ambiguous.
+    if "max_tokens" not in extra:
+        body["max_completion_tokens"] = 1
+    body.update(extra)
     return await client.post(
         CHAT_COMPLETIONS_URL,
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
@@ -169,13 +203,30 @@ def _classify(resp: httpx.Response, param: str) -> str:
         err = resp.json().get("error", {})
     except Exception:
         return f"http_{resp.status_code}"
-    message = err.get("message", "")
+    message = err.get("message", "") or ""
     if err.get("param") == param or f"'{param}'" in message:
         return "rejected"
-    # OpenAI validates params before generation, so a max_tokens/output-limit
-    # error on a 1-token probe means the param was accepted and generation
-    # started. Treat as accepted-by-inference.
-    if "max_tokens" in message or "output limit" in message:
+    # Bare-keyword case: rejection mentions the param without single quotes
+    # and ``err.param`` is None, e.g. 403 "You are not allowed to request
+    # logprobs from this model" or 400 "specify max_completion_tokens rather
+    # than max_tokens". We require both the keyword and a rejection-shaped
+    # phrase so requirement-shaped messages ("max_tokens parameter is
+    # required") fall through to accepted-by-inference instead.
+    msg_lower = message.lower()
+    rejection_indicators = (
+        "not allowed",
+        "not supported",
+        "rather than",
+        "instead",
+        "unsupported",
+        "deprecated",
+    )
+    if re.search(rf"\b{re.escape(param)}\b", msg_lower) and any(p in msg_lower for p in rejection_indicators):
+        return "rejected"
+    # OpenAI validates params before generation, so a max_completion_tokens /
+    # max_tokens / output-limit error on a 1-token probe means the param was
+    # accepted and generation started. Treat as accepted-by-inference.
+    if "max_completion_tokens" in message or "max_tokens" in message or "output limit" in message:
         return "accepted"
     # Preserve the API's error type + message so baseline diffs surface why a
     # model is neither accepted nor rejected (eg "only supported in v1/responses").
@@ -184,18 +235,14 @@ def _classify(resp: httpx.Response, param: str) -> str:
 
 
 async def _probe_model(client: httpx.AsyncClient, api_key: str, model: str) -> dict:
-    # Two independent probes per model run concurrently; models are still
-    # iterated sequentially by the caller to avoid hitting OpenAI rate limits
-    # with ~130 concurrent requests on a large account.
-    stop_resp, temp_resp = await asyncio.gather(
-        _post(client, api_key, model, {"stop": ["User:"]}),
-        _post(client, api_key, model, {"temperature": 0.5}),
-    )
-    return {
-        "model": model,
-        "stop": _classify(stop_resp, "stop"),
-        "temperature": _classify(temp_resp, "temperature"),
-    }
+    # Independent probes per param run concurrently; models are still
+    # iterated sequentially by the caller to avoid hitting OpenAI rate limits.
+    names = list(PROBES.keys())
+    responses = await asyncio.gather(*(_post(client, api_key, model, PROBES[name]) for name in names))
+    result: dict = {"model": model}
+    for name, resp in zip(names, responses):
+        result[name] = _classify(resp, name)
+    return result
 
 
 async def _probe_all(client: httpx.AsyncClient, api_key: str) -> list[dict]:
@@ -219,7 +266,7 @@ async def test_probe_openai_live():
     assert results, "probe returned no models"
     false_negatives, _ = _evaluate(results)
     assert not false_negatives, (
-        f"Live OpenAI probe found models the classifier misses. Update _is_openai_reasoning_model: {false_negatives}"
+        f"Live OpenAI probe found models the classifier misses. Update is_openai_reasoning_model: {false_negatives}"
     )
 
 

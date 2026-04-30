@@ -337,7 +337,7 @@ TIP: 以前学んだ内容を活用して、このサーバーとツールをサ
 
 ## 解答例
 
-[Solution](./solution/README.md)
+[解答例](./solution/README.md)
 
 ## まとめ
 

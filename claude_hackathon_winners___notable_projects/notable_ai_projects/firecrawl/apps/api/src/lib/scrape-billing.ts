@@ -14,7 +14,7 @@ import { isUrlBlocked } from "../scraper/WebScraper/utils/blocklist";
 const creditsPerPDFPage = 1;
 const stealthProxyCostBonus = 4;
 const unblockedDomainCostBonus = 4;
-const xTwitterCostBonus = 4;
+const xTwitterCostBonus = 6;
 
 export async function calculateCreditsToBeBilled(
   options: ScrapeOptions,

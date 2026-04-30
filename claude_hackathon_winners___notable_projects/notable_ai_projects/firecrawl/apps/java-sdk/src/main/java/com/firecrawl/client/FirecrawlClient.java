@@ -902,6 +902,116 @@ public class FirecrawlClient {
         return CompletableFuture.supplyAsync(() -> listBrowsers(status), asyncExecutor);
     }
 
+    /**
+     * Asynchronously starts a crawl job and returns immediately with the job reference.
+     *
+     * @param url     the URL to start crawling from
+     * @param options crawl configuration options
+     * @return a CompletableFuture that resolves to the CrawlResponse
+     */
+    public CompletableFuture<CrawlResponse> startCrawlAsync(String url, CrawlOptions options) {
+        return CompletableFuture.supplyAsync(() -> startCrawl(url, options), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously gets the status of a crawl job.
+     *
+     * @param jobId the crawl job ID
+     * @return a CompletableFuture that resolves to the CrawlJob
+     */
+    public CompletableFuture<CrawlJob> getCrawlStatusAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> getCrawlStatus(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously cancels a crawl job.
+     *
+     * @param jobId the crawl job ID
+     * @return a CompletableFuture that resolves to the cancellation response
+     */
+    public CompletableFuture<Map<String, Object>> cancelCrawlAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> cancelCrawl(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously starts a batch scrape job and returns immediately with the job reference.
+     *
+     * @param urls    the URLs to scrape
+     * @param options batch scrape configuration options
+     * @return a CompletableFuture that resolves to the BatchScrapeResponse
+     */
+    public CompletableFuture<BatchScrapeResponse> startBatchScrapeAsync(List<String> urls, BatchScrapeOptions options) {
+        return CompletableFuture.supplyAsync(() -> startBatchScrape(urls, options), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously gets the status of a batch scrape job.
+     *
+     * @param jobId the batch scrape job ID
+     * @return a CompletableFuture that resolves to the BatchScrapeJob
+     */
+    public CompletableFuture<BatchScrapeJob> getBatchScrapeStatusAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> getBatchScrapeStatus(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously cancels a batch scrape job.
+     *
+     * @param jobId the batch scrape job ID
+     * @return a CompletableFuture that resolves to the cancellation response
+     */
+    public CompletableFuture<Map<String, Object>> cancelBatchScrapeAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> cancelBatchScrape(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously starts an agent task and returns immediately with the job reference.
+     *
+     * @param options agent configuration options
+     * @return a CompletableFuture that resolves to the AgentResponse
+     */
+    public CompletableFuture<AgentResponse> startAgentAsync(AgentOptions options) {
+        return CompletableFuture.supplyAsync(() -> startAgent(options), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously gets the status of an agent task.
+     *
+     * @param jobId the agent job ID
+     * @return a CompletableFuture that resolves to the AgentStatusResponse
+     */
+    public CompletableFuture<AgentStatusResponse> getAgentStatusAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> getAgentStatus(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously cancels an agent task.
+     *
+     * @param jobId the agent job ID
+     * @return a CompletableFuture that resolves to the cancellation response
+     */
+    public CompletableFuture<Map<String, Object>> cancelAgentAsync(String jobId) {
+        return CompletableFuture.supplyAsync(() -> cancelAgent(jobId), asyncExecutor);
+    }
+
+    /**
+     * Asynchronously gets concurrency info.
+     *
+     * @return a CompletableFuture that resolves to the ConcurrencyCheck
+     */
+    public CompletableFuture<ConcurrencyCheck> getConcurrencyAsync() {
+        return CompletableFuture.supplyAsync(this::getConcurrency, asyncExecutor);
+    }
+
+    /**
+     * Asynchronously gets credit usage.
+     *
+     * @return a CompletableFuture that resolves to the CreditUsage
+     */
+    public CompletableFuture<CreditUsage> getCreditUsageAsync() {
+        return CompletableFuture.supplyAsync(this::getCreditUsage, asyncExecutor);
+    }
+
     // ================================================================
     // INTERNAL POLLING HELPERS
     // ================================================================
@@ -1008,6 +1118,7 @@ public class FirecrawlClient {
     public static final class Builder {
 
         private String apiKey;
+        private boolean apiKeyExplicitlySet;
         private String apiUrl = DEFAULT_API_URL;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
         private int maxRetries = DEFAULT_MAX_RETRIES;
@@ -1023,6 +1134,7 @@ public class FirecrawlClient {
          */
         public Builder apiKey(String apiKey) {
             this.apiKey = apiKey;
+            this.apiKeyExplicitlySet = true;
             return this;
         }
 
@@ -1098,6 +1210,10 @@ public class FirecrawlClient {
 
         public FirecrawlClient build() {
             String resolvedKey = apiKey;
+            if (apiKeyExplicitlySet && (resolvedKey == null || resolvedKey.isBlank())) {
+                throw new FirecrawlException(
+                        "API key cannot be null or empty when explicitly provided.");
+            }
             if (resolvedKey == null || resolvedKey.isBlank()) {
                 resolvedKey = System.getenv("FIRECRAWL_API_KEY");
             }

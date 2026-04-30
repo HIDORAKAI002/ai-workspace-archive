@@ -8943,57 +8943,100 @@ class MemoryEngine(MemoryEngineInterface):
             num_sub_batches=len(sub_batches),
         )
 
+        # Persist the parent row and all child rows in a single transaction.
+        #
+        # The parent row is a status aggregator with NO task_payload (workers
+        # skip rows where task_payload IS NULL because they're not directly
+        # executable). Its lifecycle is driven by child completions: when all
+        # children reach a terminal state, the parent gets promoted by the
+        # aggregator.
+        #
+        # If the parent INSERT and child INSERTs are not transactionally
+        # coupled, any failure between them (connection drop, timeout, schema
+        # cache invalidation under concurrent load) leaves a parent row with
+        # zero children. Workers ignore it forever (no task_payload), the
+        # aggregator never fires (no children to complete), and the row sits
+        # pending indefinitely — visible in queue-depth metrics and growing
+        # without bound. Wrapping parent + children in one transaction makes
+        # the create-batch operation atomic: either all rows are visible to
+        # workers, or none are.
+        #
+        # submit_task() must run AFTER the transaction commits. SyncTaskBackend
+        # (used in tests) executes the task synchronously, which would not see
+        # the still-uncommitted child row. BrokerTaskBackend / WorkerTaskBackend
+        # are effectively no-ops for already-populated task_payload, but we
+        # defer them all uniformly for clarity.
+        deferred_child_payloads: list[dict[str, Any]] = []
+
         async with acquire_with_retry(backend) as conn:
-            await conn.execute(
-                f"""
-                INSERT INTO {fq_table("async_operations")} (operation_id, bank_id, operation_type, result_metadata, status)
-                VALUES ($1, $2, $3, $4, $5)
-                """,
-                parent_operation_id,
-                bank_id,
-                "batch_retain",
-                json.dumps(parent_metadata.to_dict()),
-                "pending",  # Will be updated by status aggregation
-            )
-
-        logger.info(f"Created parent operation {parent_operation_id} for {len(sub_batches)} sub-batch(es)")
-
-        # Submit child operations for each sub-batch
-        for i, sub_batch in enumerate(sub_batches, 1):
-            if len(sub_batches) > 1:
-                sub_batch_tokens = sum(count_tokens(item.get("content", "")) for item in sub_batch)
-                logger.info(
-                    f"Submitting sub-batch {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
+            async with conn.transaction():
+                await conn.execute(
+                    f"""
+                    INSERT INTO {fq_table("async_operations")} (operation_id, bank_id, operation_type, result_metadata, status)
+                    VALUES ($1, $2, $3, $4, $5)
+                    """,
+                    parent_operation_id,
+                    bank_id,
+                    "batch_retain",
+                    json.dumps(parent_metadata.to_dict()),
+                    "pending",  # Will be updated by status aggregation
                 )
 
-            task_payload: dict[str, Any] = {"contents": sub_batch}
-            if document_tags:
-                task_payload["document_tags"] = document_tags
-            if strategy:
-                task_payload["strategy"] = strategy
-            # Pass tenant_id and api_key_id through task payload
-            if request_context.tenant_id:
-                task_payload["_tenant_id"] = request_context.tenant_id
-            if request_context.api_key_id:
-                task_payload["_api_key_id"] = request_context.api_key_id
+                for i, sub_batch in enumerate(sub_batches, 1):
+                    if len(sub_batches) > 1:
+                        sub_batch_tokens = sum(count_tokens(item.get("content", "")) for item in sub_batch)
+                        logger.info(
+                            f"Submitting sub-batch {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
+                        )
 
-            # Create typed metadata for child operation
-            child_metadata = BatchRetainChildMetadata(
-                items_count=len(sub_batch),
-                parent_operation_id=str(parent_operation_id),
-                sub_batch_index=i,
-                total_sub_batches=len(sub_batches),
-            )
+                    task_payload: dict[str, Any] = {"contents": sub_batch}
+                    if document_tags:
+                        task_payload["document_tags"] = document_tags
+                    if strategy:
+                        task_payload["strategy"] = strategy
+                    # Pass tenant_id and api_key_id through task payload
+                    if request_context.tenant_id:
+                        task_payload["_tenant_id"] = request_context.tenant_id
+                    if request_context.api_key_id:
+                        task_payload["_api_key_id"] = request_context.api_key_id
 
-            # Create child operation with reference to parent
-            await self._submit_async_operation(
-                bank_id=bank_id,
-                operation_type="retain",
-                task_type="batch_retain",
-                task_payload=task_payload,
-                result_metadata=child_metadata.to_dict(),
-                dedupe_by_bank=False,
-            )
+                    child_metadata = BatchRetainChildMetadata(
+                        items_count=len(sub_batch),
+                        parent_operation_id=str(parent_operation_id),
+                        sub_batch_index=i,
+                        total_sub_batches=len(sub_batches),
+                    )
+
+                    child_operation_id = uuid.uuid4()
+                    full_payload = {
+                        "type": "batch_retain",
+                        "operation_id": str(child_operation_id),
+                        "bank_id": bank_id,
+                        **task_payload,
+                    }
+
+                    await conn.execute(
+                        f"""
+                        INSERT INTO {fq_table("async_operations")} (operation_id, bank_id, operation_type, result_metadata, status, task_payload)
+                        VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+                        """,
+                        child_operation_id,
+                        bank_id,
+                        "retain",
+                        json.dumps(child_metadata.to_dict(), default=_json_default),
+                        "pending",
+                        json.dumps(full_payload, default=_json_default),
+                    )
+                    deferred_child_payloads.append(full_payload)
+
+        logger.info(f"Created parent operation {parent_operation_id} with {len(sub_batches)} child sub-batch(es)")
+
+        # Notify the task backend after commit. For BrokerTaskBackend /
+        # WorkerTaskBackend in production this is a no-op because task_payload
+        # is already populated; for SyncTaskBackend in tests this kicks off
+        # synchronous execution against the now-committed rows.
+        for full_payload in deferred_child_payloads:
+            await self._task_backend.submit_task(full_payload)
 
         return {
             "operation_id": str(parent_operation_id),

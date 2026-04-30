@@ -12,6 +12,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "m8h9i0j1k2l3"
 down_revision: str | Sequence[str] | None = "l7g8h9i0j1k2"
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Change mental_models.id from VARCHAR(64) to TEXT."""
     schema = _get_schema_prefix()
 
@@ -33,9 +35,17 @@ def upgrade() -> None:
     op.execute(f"ALTER TABLE {schema}mental_models ALTER COLUMN id TYPE TEXT")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Revert mental_models.id from TEXT to VARCHAR(64)."""
     schema = _get_schema_prefix()
 
     # Note: This may fail if any id values exceed 64 characters
     op.execute(f"ALTER TABLE {schema}mental_models ALTER COLUMN id TYPE VARCHAR(64)")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

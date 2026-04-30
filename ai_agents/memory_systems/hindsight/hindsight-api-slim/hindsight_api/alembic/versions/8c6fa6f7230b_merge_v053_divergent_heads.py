@@ -26,15 +26,25 @@ Create Date: 2026-04-18
 
 from collections.abc import Sequence
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "8c6fa6f7230b"
 down_revision: str | Sequence[str] | None = ("c4x5y6z7a8b9", "h3i4j5k6l7m8")
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     pass
+
+
+def _pg_downgrade() -> None:
+    pass
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
 
 
 def downgrade() -> None:
-    pass
+    run_for_dialect(pg=_pg_downgrade)

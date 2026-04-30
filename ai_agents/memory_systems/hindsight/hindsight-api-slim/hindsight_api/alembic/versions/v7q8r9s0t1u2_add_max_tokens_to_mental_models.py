@@ -13,6 +13,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "v7q8r9s0t1u2"
 down_revision: str | Sequence[str] | None = "u6p7q8r9s0t1"
 branch_labels: str | Sequence[str] | None = None
@@ -25,7 +27,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add max_tokens and trigger columns to mental_models."""
     schema = _get_schema_prefix()
 
@@ -42,9 +44,17 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove max_tokens and trigger columns from mental_models."""
     schema = _get_schema_prefix()
 
     op.execute(f"ALTER TABLE {schema}mental_models DROP COLUMN IF EXISTS max_tokens")
     op.execute(f"ALTER TABLE {schema}mental_models DROP COLUMN IF EXISTS trigger")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -14,6 +14,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "e0a1b2c3d4e5"
 down_revision: str | Sequence[str] | None = "rename_personality"
@@ -33,7 +35,7 @@ def _get_target_schema() -> str:
     return schema if schema else "public"
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Convert Big Five disposition to 3-trait disposition."""
     conn = op.get_bind()
     schema = _get_schema_prefix()
@@ -75,7 +77,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Convert back to Big Five disposition."""
     conn = op.get_bind()
     schema = _get_schema_prefix()
@@ -109,3 +111,11 @@ def downgrade() -> None:
         ALTER COLUMN disposition SET DEFAULT '{{"openness": 0.5, "conscientiousness": 0.5, "extraversion": 0.5, "agreeableness": 0.5, "neuroticism": 0.5, "bias_strength": 0.5}}'::jsonb
     """)
     )
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

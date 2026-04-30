@@ -1,3 +1,4 @@
+import concurrent.futures
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -131,7 +132,7 @@ def test_return_history_as_string():
     conv.add("user", "Hello, world!")
     conv.add("assistant", "Hello, user!")
     result = conv.return_history_as_string()
-    expected = "user: Hello, world!\n\nassistant: Hello, user!\n\n"
+    expected = "user: Hello, world!\n\nassistant: Hello, user!"
     try:
         assert result == expected
         logger.success("test_return_history_as_string passed")
@@ -573,6 +574,334 @@ def test_save_and_load_json():
             return False
     finally:
         shutil.rmtree(temp_dir)
+
+
+# ── memory_md_path initialization ──
+
+
+def test_memory_md_creates_parent_dir(tmp_path):
+    """Parent dir is created when it doesn't exist."""
+    md_path = tmp_path / "nested" / "deep" / "MEMORY.md"
+    Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    assert md_path.parent.is_dir()
+    assert md_path.is_file()
+
+
+def test_memory_md_seeds_file_with_header(tmp_path):
+    """New file is seeded with Agent Memory header and Interaction Log."""
+    md_path = tmp_path / "MEMORY.md"
+    Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    content = md_path.read_text()
+    assert "# Agent Memory" in content
+    assert "## Interaction Log" in content
+
+
+def test_memory_md_no_overwrite_existing(tmp_path):
+    """Existing file is NOT overwritten on construction."""
+    md_path = tmp_path / "MEMORY.md"
+    original = "# Existing\n\nKeep this.\n"
+    md_path.write_text(original)
+    Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    assert md_path.read_text() == original
+
+
+def test_memory_md_none_no_file_io(tmp_path):
+    """No file I/O when memory_md_path is None (default)."""
+    conv = Conversation(
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    assert conv.memory_md_path is None
+    conv.add("user", "Hello")
+    assert not list(tmp_path.glob("**/MEMORY.md"))
+
+
+# ── Preload ──
+
+
+def test_preload_no_preamble_for_header_only(tmp_path):
+    """Header-only file produces no preamble in history."""
+    conv = Conversation(
+        memory_md_path=str(tmp_path / "MEMORY.md"),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    preambles = [
+        m
+        for m in conv.conversation_history
+        if "Persistent Memory" in str(m.get("content", ""))
+    ]
+    assert len(preambles) == 0
+
+
+def test_preload_injects_system_preamble(tmp_path):
+    """Prior interactions produce exactly one System preamble
+    containing the full file contents."""
+    md_path = tmp_path / "MEMORY.md"
+    file_text = (
+        "# Agent Memory\n\n## Interaction Log\n\n"
+        "### user — 2025-01-01T00:00:00\n\n"
+        "Hello from past\n\n---\n\n"
+    )
+    md_path.write_text(file_text)
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    preambles = [
+        m
+        for m in conv.conversation_history
+        if "Persistent Memory" in str(m.get("content", ""))
+    ]
+    assert len(preambles) == 1
+    assert preambles[0]["role"] == "System"
+    # Full file contents must be embedded in the preamble
+    assert file_text in preambles[0]["content"]
+
+
+def test_preload_does_not_write_to_disk(tmp_path):
+    """Preload appends to history, never writes back to MEMORY.md."""
+    md_path = tmp_path / "MEMORY.md"
+    content = (
+        "# Agent Memory\n\n## Interaction Log\n\n"
+        "### user — 2025-01-01T00:00:00\n\n"
+        "Hello\n\n---\n\n"
+    )
+    md_path.write_text(content)
+    Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    assert md_path.read_text() == content
+
+
+# ── Write-through ──
+
+
+def test_add_appends_to_memory_md(tmp_path):
+    """Each add() writes a ### {role} — <iso-timestamp> block."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Test message")
+    content = md_path.read_text()
+    assert "### user — " in content
+    assert "Test message" in content
+    assert "---" in content
+
+
+def test_concurrent_add_thread_safety(tmp_path):
+    """Concurrent add() calls serialize writes via the lock."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+
+    def add_msg(i):
+        conv.add("user", f"Message {i}")
+
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=8
+    ) as ex:
+        list(ex.map(add_msg, range(50)))
+
+    content = md_path.read_text()
+    for i in range(50):
+        assert f"Message {i}" in content
+
+
+def test_suppress_memory_md_during_setup(tmp_path):
+    """system_prompt / rules / custom_rules NOT written to MEMORY.md."""
+    md_path = tmp_path / "MEMORY.md"
+    Conversation(
+        system_prompt="You are helpful.",
+        rules="Be nice.",
+        custom_rules_prompt="Custom rule.",
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    content = md_path.read_text()
+    assert "### " not in content
+    assert "You are helpful." not in content
+    assert "Be nice." not in content
+    assert "Custom rule." not in content
+
+
+def test_empty_content_skipped(tmp_path):
+    """Empty or whitespace-only content is not written to MEMORY.md."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    header = md_path.read_text()
+    conv.add("user", "")
+    conv.add("user", "   ")
+    conv.add("user", None)
+    assert md_path.read_text() == header
+
+
+# ── compact ──
+
+
+def test_compact_preserves_static_context(tmp_path):
+    """After compact: system_prompt, rules, custom_rules, summary."""
+    conv = Conversation(
+        system_prompt="System prompt",
+        rules="Rules text",
+        custom_rules_prompt="Custom rules",
+        memory_md_path=str(tmp_path / "MEMORY.md"),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Hello")
+    conv.add("assistant", "Hi")
+    conv.compact("Summary of conversation")
+
+    h = conv.conversation_history
+    assert len(h) == 4
+    assert h[0]["role"] == "System"
+    assert h[0]["content"] == "System prompt"
+    assert h[1]["role"] == "User"
+    assert h[1]["content"] == "Rules text"
+    assert h[2]["role"] == "User"
+    assert h[2]["content"] == "Custom rules"
+    assert h[3]["role"] == "System"
+    assert h[3]["content"] == "Summary of conversation"
+
+
+def test_compact_removes_raw_turns(tmp_path):
+    """Raw turn-by-turn messages are gone after compaction."""
+    conv = Conversation(
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Turn 1")
+    conv.add("assistant", "Response 1")
+    conv.compact("Summary")
+    contents = [
+        m["content"] for m in conv.conversation_history
+    ]
+    assert "Turn 1" not in contents
+    assert "Response 1" not in contents
+    assert "Summary" in contents
+
+
+def test_compact_archives_memory_md(tmp_path):
+    """Prior MEMORY.md is copied to archive/ before wipe."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Archived interaction")
+    conv.compact("Summary")
+
+    archives = list((tmp_path / "archive").glob("history_*.md"))
+    assert len(archives) == 1
+    assert "Archived interaction" in archives[0].read_text()
+
+
+def test_compact_resets_memory_md(tmp_path):
+    """After compaction MEMORY.md has fresh header + summary only."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Old message")
+    conv.compact("Fresh summary")
+
+    content = md_path.read_text()
+    assert "# Agent Memory" in content
+    assert "## Interaction Log" in content
+    assert "Old message" not in content
+    assert "Fresh summary" in content
+
+
+def test_compact_skips_archive_when_no_interactions(tmp_path):
+    """No archive when MEMORY.md has no ### blocks."""
+    conv = Conversation(
+        memory_md_path=str(tmp_path / "MEMORY.md"),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.compact("Summary")
+    archive_dir = tmp_path / "archive"
+    if archive_dir.exists():
+        assert (
+            len(list(archive_dir.glob("history_*.md"))) == 0
+        )
+
+
+def test_archive_filename_format(tmp_path):
+    """Archive filename uses %Y-%m-%d_%H-%M-%S format."""
+    md_path = tmp_path / "MEMORY.md"
+    conv = Conversation(
+        memory_md_path=str(md_path),
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Interaction")
+    conv.compact("Summary")
+
+    archives = list((tmp_path / "archive").glob("history_*.md"))
+    assert len(archives) == 1
+    stamp = archives[0].stem.replace("history_", "")
+    datetime.strptime(stamp, "%Y-%m-%d_%H-%M-%S")
+
+
+# ── Timestamp in prompt string ──
+
+
+def test_timestamp_format_in_history_string(tmp_path):
+    """Messages with timestamp render as [<ts>] Role: content."""
+    conv = Conversation(
+        time_enabled=True,
+        dynamic_context_window=False,
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Hello")
+    result = conv.return_history_as_string()
+    assert result.startswith("[")
+    assert "] user: Hello" in result
+
+
+def test_no_timestamp_fallback(tmp_path):
+    """Messages without timestamp render as Role: content."""
+    conv = Conversation(
+        time_enabled=False,
+        dynamic_context_window=False,
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "Hello")
+    result = conv.return_history_as_string()
+    assert result == "user: Hello"
+
+
+def test_time_enabled_end_to_end(tmp_path):
+    """Two messages with time_enabled contain ISO-8601 timestamps."""
+    conv = Conversation(
+        time_enabled=True,
+        dynamic_context_window=False,
+        conversations_dir=str(tmp_path / "convs"),
+    )
+    conv.add("user", "First")
+    conv.add("assistant", "Second")
+    result = conv.return_history_as_string()
+    lines = result.split("\n\n")
+    assert len(lines) == 2
+    for line in lines:
+        assert line.startswith("[")
+        ts = line.split("]")[0][1:]
+        # Must parse as valid ISO-8601
+        datetime.fromisoformat(ts)
 
 
 def run_all_tests():

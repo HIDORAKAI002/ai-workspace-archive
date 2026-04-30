@@ -15,7 +15,8 @@ from loguru import logger
 from swarms.utils.litellm_tokenizer import count_tokens
 
 
-COMPRESSION_SYSTEM_PROMPT = """You are a conversation compression expert. Your job is to produce a faithful, dense summary of an ongoing agent conversation so that the agent can continue its work without losing critical context.
+COMPRESSION_SYSTEM_PROMPT = """
+You are a conversation compression expert. Your job is to produce a faithful, dense summary of an ongoing agent conversation so that the agent can continue its work without losing critical context.
 
 Requirements:
 - Preserve every concrete fact, decision, constraint, tool result, and open question.

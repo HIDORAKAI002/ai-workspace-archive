@@ -213,7 +213,7 @@ def oracle_db_url(_oracle_admin_dsn):
 
     This fixture creates a ``HINDSIGHT_TEST`` user (idempotent) with the USERS
     tablespace (which is ASSM on Oracle Free/XE) and returns a URL that the
-    ``oracle_memory`` fixture and ``run_oracle_migrations()`` can use directly.
+    ``oracle_memory`` fixture and ``run_migrations()`` can use directly.
     """
     try:
         import oracledb
@@ -272,9 +272,9 @@ def oracle_db_url(_oracle_admin_dsn):
 
     # Run idempotent migrations once at session scope (mirrors PG's pg0_db_url).
     # This avoids re-running DDL checks on every function-scoped test.
-    from hindsight_api.migrations_oracle import run_oracle_migrations
+    from hindsight_api.migrations import run_migrations
 
-    run_oracle_migrations(url)
+    run_migrations(url)
 
     return url
 

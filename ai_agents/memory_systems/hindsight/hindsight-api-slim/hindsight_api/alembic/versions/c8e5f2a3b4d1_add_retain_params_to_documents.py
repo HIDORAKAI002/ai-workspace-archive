@@ -12,6 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "c8e5f2a3b4d1"
 down_revision: str | Sequence[str] | None = "b7c4d8e9f1a2"
@@ -19,7 +21,7 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add retain_params JSONB column to documents table."""
 
     # Add retain_params column to store parameters passed during retain
@@ -29,7 +31,7 @@ def upgrade() -> None:
     op.create_index("idx_documents_retain_params", "documents", ["retain_params"], postgresql_using="gin")
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove retain_params column from documents table."""
 
     # Drop index
@@ -37,3 +39,11 @@ def downgrade() -> None:
 
     # Drop column
     op.drop_column("documents", "retain_params")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

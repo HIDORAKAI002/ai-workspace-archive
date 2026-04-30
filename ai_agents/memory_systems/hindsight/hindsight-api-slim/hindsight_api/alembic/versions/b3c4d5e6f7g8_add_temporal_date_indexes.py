@@ -22,6 +22,8 @@ from collections.abc import Sequence
 
 from alembic import context, op
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "b3c4d5e6f7g8"
 down_revision: str | Sequence[str] | None = "c1a2b3d4e5f6"
 branch_labels: str | Sequence[str] | None = None
@@ -33,7 +35,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     schema = _get_schema_prefix()
     # Partial index on occurred_start (covers "occurred_start BETWEEN $4 AND $5")
     op.execute("COMMIT")
@@ -58,7 +60,7 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     schema = _get_schema_prefix()
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_units_bank_mentioned_at")
@@ -66,3 +68,11 @@ def downgrade() -> None:
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_units_bank_occurred_end")
     op.execute("COMMIT")
     op.execute(f"DROP INDEX CONCURRENTLY IF EXISTS {schema}idx_memory_units_bank_occurred_start")
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

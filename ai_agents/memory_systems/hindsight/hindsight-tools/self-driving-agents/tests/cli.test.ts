@@ -284,4 +284,98 @@ describe("resolveFromPluginConfig", () => {
     });
     expect(result.bankId).toBe("static-bank");
   });
+
+  it("resolves nemoclaw-style config (external API, static bank)", () => {
+    const result = resolveFromPluginConfig("marketing-seo", {
+      hindsightApiUrl: "https://api.hindsight.vectorize.io",
+      hindsightApiToken: "hsk_abc",
+      llmProvider: "claude-code",
+      dynamicBankId: false,
+      bankIdPrefix: "my-sandbox",
+    });
+    expect(result.apiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(result.apiToken).toBe("hsk_abc");
+    // dynamicBankId=false but no bankId set, so falls through to dynamic path
+    // with bankIdPrefix
+    expect(result.bankId).toBe("my-sandbox-marketing-seo::unknown::anonymous");
+  });
+
+  it("resolves nemoclaw-style config with static bankId", () => {
+    const result = resolveFromPluginConfig("marketing-seo", {
+      hindsightApiUrl: "https://api.hindsight.vectorize.io",
+      hindsightApiToken: "hsk_abc",
+      dynamicBankId: false,
+      bankId: "my-sandbox-openclaw",
+    });
+    expect(result.bankId).toBe("my-sandbox-openclaw");
+  });
+});
+
+describe("versionGte", () => {
+  function versionGte(current: string, required: string): boolean {
+    const [aMaj, aMin, aPat] = current.split(".").map(Number);
+    const [bMaj, bMin, bPat] = required.split(".").map(Number);
+    if (aMaj !== bMaj) return aMaj > bMaj;
+    if (aMin !== bMin) return aMin > bMin;
+    return aPat >= bPat;
+  }
+
+  it("equal versions return true", () => {
+    expect(versionGte("0.7.2", "0.7.2")).toBe(true);
+  });
+
+  it("higher patch returns true", () => {
+    expect(versionGte("0.7.3", "0.7.2")).toBe(true);
+  });
+
+  it("lower patch returns false", () => {
+    expect(versionGte("0.7.1", "0.7.2")).toBe(false);
+  });
+
+  it("higher minor returns true", () => {
+    expect(versionGte("0.8.0", "0.7.2")).toBe(true);
+  });
+
+  it("higher major returns true", () => {
+    expect(versionGte("1.0.0", "0.7.2")).toBe(true);
+  });
+
+  it("lower major returns false", () => {
+    expect(versionGte("0.6.9", "1.0.0")).toBe(false);
+  });
+});
+
+describe("harness argument parsing", () => {
+  function parseHarness(args: string[]): { harness?: string; sandbox?: string } {
+    let harness: string | undefined;
+    let sandbox: string | undefined;
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === "--harness" && args[i + 1]) harness = args[++i];
+      else if (args[i] === "--sandbox" && args[i + 1]) sandbox = args[++i];
+    }
+    return { harness, sandbox };
+  }
+
+  it("parses openclaw harness", () => {
+    const { harness, sandbox } = parseHarness(["--harness", "openclaw"]);
+    expect(harness).toBe("openclaw");
+    expect(sandbox).toBeUndefined();
+  });
+
+  it("parses nemoclaw harness with sandbox", () => {
+    const { harness, sandbox } = parseHarness([
+      "--harness",
+      "nemoclaw",
+      "--sandbox",
+      "my-assistant",
+    ]);
+    expect(harness).toBe("nemoclaw");
+    expect(sandbox).toBe("my-assistant");
+  });
+
+  it("nemoclaw without sandbox returns undefined sandbox", () => {
+    const { harness, sandbox } = parseHarness(["--harness", "nemoclaw"]);
+    expect(harness).toBe("nemoclaw");
+    expect(sandbox).toBeUndefined();
+  });
 });

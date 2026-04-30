@@ -372,7 +372,8 @@ module Firecrawl
     # @return [Models::CreditUsage]
     def get_credit_usage
       raw = @http.get("/v2/team/credit-usage")
-      Models::CreditUsage.new(raw)
+      data = raw["data"] || raw
+      Models::CreditUsage.new(data)
     end
 
     private

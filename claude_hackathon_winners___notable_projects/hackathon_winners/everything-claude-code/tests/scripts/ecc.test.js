@@ -69,6 +69,8 @@ function main() {
       assert.match(result.stdout, /list-installed/);
       assert.match(result.stdout, /doctor/);
       assert.match(result.stdout, /auto-update/);
+      assert.match(result.stdout, /consult/);
+      assert.match(result.stdout, /loop-status/);
     }],
     ['delegates explicit install command', () => {
       const result = runCli(['install', '--dry-run', '--json', 'typescript']);
@@ -101,6 +103,13 @@ function main() {
       const payload = parseJson(result.stdout);
       assert.strictEqual(payload.id, 'framework:nextjs');
       assert.deepStrictEqual(payload.moduleIds, ['framework-language']);
+    }],
+    ['delegates consult command', () => {
+      const result = runCli(['consult', 'security', 'reviews', '--json']);
+      assert.strictEqual(result.status, 0, result.stderr);
+      const payload = parseJson(result.stdout);
+      assert.strictEqual(payload.schemaVersion, 'ecc.consult.v1');
+      assert.strictEqual(payload.matches[0].componentId, 'capability:security');
     }],
     ['delegates lifecycle commands', () => {
       const homeDir = createTempDir('ecc-cli-home-');
@@ -142,6 +151,36 @@ function main() {
       assert.strictEqual(payload.adapterId, 'claude-history');
       assert.strictEqual(payload.workers[0].branch, 'feat/ecc-cli');
     }],
+    ['delegates loop-status command', () => {
+      const homeDir = createTempDir('ecc-cli-home-');
+      const transcriptDir = path.join(homeDir, '.claude', 'projects', '-tmp-ecc');
+      fs.mkdirSync(transcriptDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(transcriptDir, 'session-loop.jsonl'),
+        JSON.stringify({
+          timestamp: '2026-04-30T09:00:00.000Z',
+          sessionId: 'session-loop',
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: 'toolu_loop',
+                name: 'ScheduleWakeup',
+                input: { delaySeconds: 300 },
+              },
+            ],
+          },
+        }) + '\n'
+      );
+
+      const result = runCli(['loop-status', '--home', homeDir, '--now', '2026-04-30T10:00:00.000Z', '--json']);
+
+      assert.strictEqual(result.status, 0, result.stderr);
+      const payload = parseJson(result.stdout);
+      assert.strictEqual(payload.schemaVersion, 'ecc.loop-status.v1');
+      assert.strictEqual(payload.sessions[0].sessionId, 'session-loop');
+    }],
     ['supports help for a subcommand', () => {
       const result = runCli(['help', 'repair']);
       assert.strictEqual(result.status, 0, result.stderr);
@@ -156,6 +195,11 @@ function main() {
       const result = runCli(['help', 'catalog']);
       assert.strictEqual(result.status, 0, result.stderr);
       assert.match(result.stdout, /node scripts\/catalog\.js show <component-id>/);
+    }],
+    ['supports help for the consult subcommand', () => {
+      const result = runCli(['help', 'consult']);
+      assert.strictEqual(result.status, 0, result.stderr);
+      assert.match(result.stdout, /node scripts\/consult\.js "security reviews"/);
     }],
     ['fails on unknown commands instead of treating them as installs', () => {
       const result = runCli(['bogus']);

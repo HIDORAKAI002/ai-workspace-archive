@@ -15,6 +15,8 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import text
 from sqlalchemy.dialects import postgresql
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 # revision identifiers, used by Alembic.
 revision: str = "5a366d414dce"
 down_revision: str | Sequence[str] | None = None
@@ -112,7 +114,7 @@ def _detect_text_search_extension() -> str:
         )
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Upgrade schema - create all tables from scratch."""
 
     # Note: pgvector extension is installed globally BEFORE migrations run
@@ -463,7 +465,7 @@ def upgrade() -> None:
     op.create_index("idx_unit_entities_entity", "unit_entities", ["entity_id"])
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Downgrade schema - drop all tables."""
 
     # Drop tables in reverse dependency order
@@ -523,3 +525,11 @@ def downgrade() -> None:
     # Drop extensions (optional - comment out if you want to keep them)
     # op.execute('DROP EXTENSION IF EXISTS vector')
     # op.execute('DROP EXTENSION IF EXISTS "uuid-ossp"')
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

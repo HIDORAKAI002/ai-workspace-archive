@@ -20,6 +20,8 @@ import sqlalchemy as sa
 from alembic import context, op
 from sqlalchemy.dialects.postgresql import JSONB
 
+from hindsight_api.alembic._dialect import run_for_dialect
+
 revision: str = "x9s0t1u2v3w4"
 down_revision: str | Sequence[str] | None = "w8r9s0t1u2v3"
 branch_labels: str | Sequence[str] | None = None
@@ -32,7 +34,7 @@ def _get_schema_prefix() -> str:
     return f'"{schema}".' if schema else ""
 
 
-def upgrade() -> None:
+def _pg_upgrade() -> None:
     """Add config JSONB column to banks table with GIN index."""
     schema = _get_schema_prefix()
 
@@ -50,7 +52,7 @@ def upgrade() -> None:
     """)
 
 
-def downgrade() -> None:
+def _pg_downgrade() -> None:
     """Remove config column and index from banks table."""
     schema = _get_schema_prefix()
 
@@ -62,3 +64,11 @@ def downgrade() -> None:
         ALTER TABLE {schema}banks
         DROP COLUMN IF EXISTS config
     """)
+
+
+def upgrade() -> None:
+    run_for_dialect(pg=_pg_upgrade)
+
+
+def downgrade() -> None:
+    run_for_dialect(pg=_pg_downgrade)

@@ -170,6 +170,9 @@ func (c *Client) StartCrawl(ctx context.Context, url string, opts *CrawlOptions)
 	if url == "" {
 		return nil, &FirecrawlError{Message: "URL is required"}
 	}
+	if opts != nil && opts.Limit != nil && *opts.Limit <= 0 {
+		return nil, &FirecrawlError{Message: "limit must be positive"}
+	}
 
 	body := map[string]interface{}{"url": url}
 	mergeOptions(body, opts)
@@ -361,6 +364,9 @@ func (c *Client) Map(ctx context.Context, url string, opts *MapOptions) (*MapDat
 	if url == "" {
 		return nil, &FirecrawlError{Message: "URL is required"}
 	}
+	if opts != nil && opts.Limit != nil && *opts.Limit <= 0 {
+		return nil, &FirecrawlError{Message: "limit must be positive"}
+	}
 
 	body := map[string]interface{}{"url": url}
 	mergeOptions(body, opts)
@@ -385,6 +391,9 @@ func (c *Client) Map(ctx context.Context, url string, opts *MapOptions) (*MapDat
 func (c *Client) Search(ctx context.Context, query string, opts *SearchOptions) (*SearchData, error) {
 	if query == "" {
 		return nil, &FirecrawlError{Message: "query is required"}
+	}
+	if opts != nil && opts.Limit != nil && *opts.Limit <= 0 {
+		return nil, &FirecrawlError{Message: "limit must be positive"}
 	}
 
 	body := map[string]interface{}{"query": query}
