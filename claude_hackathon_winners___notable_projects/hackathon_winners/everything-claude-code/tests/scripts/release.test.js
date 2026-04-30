@@ -21,6 +21,7 @@ const ciWorkflowPath = path.join(__dirname, '..', '..', '.github', 'workflows', 
 const releaseWorkflowSource = fs.readFileSync(releaseWorkflowPath, 'utf8');
 const reusableReleaseWorkflowSource = fs.readFileSync(reusableReleaseWorkflowPath, 'utf8');
 const ciWorkflowSource = fs.readFileSync(ciWorkflowPath, 'utf8');
+const normalizedCiWorkflowSource = ciWorkflowSource.replace(/\r\n/g, '\n');
 
 function test(name, fn) {
   try {
@@ -126,7 +127,7 @@ function runTests() {
   })) passed++; else failed++;
 
   if (test('CI runs for release branches and version tags before release workflows execute', () => {
-    const pushBlockMatch = ciWorkflowSource.match(/on:\n\s+push:\n([\s\S]*?)\n\s+pull_request:/);
+    const pushBlockMatch = normalizedCiWorkflowSource.match(/on:\n\s+push:\n([\s\S]*?)\n\s+pull_request:/);
     const pushBlock = pushBlockMatch ? pushBlockMatch[1] : '';
 
     assert.ok(pushBlock, 'ci.yml should define a push trigger block');

@@ -8,6 +8,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const runner = path.join(__dirname, '..', '..', 'scripts', 'hooks', 'run-with-flags.js');
+const hookScript = path.join(__dirname, '..', '..', 'scripts', 'hooks', 'gateguard-fact-force.js');
 const externalStateDir = process.env.GATEGUARD_STATE_DIR;
 const tmpRoot = process.env.TMPDIR || process.env.TEMP || process.env.TMP || '/tmp';
 const baseStateDir = externalStateDir || tmpRoot;
@@ -118,6 +119,16 @@ function parseOutput(stdout) {
   } catch (_) {
     return null;
   }
+}
+
+function loadDirectHook(env = {}) {
+  delete require.cache[require.resolve(hookScript)];
+  Object.assign(process.env, {
+    GATEGUARD_STATE_DIR: stateDir,
+    CLAUDE_SESSION_ID: TEST_SESSION_ID,
+    ...env
+  });
+  return require(hookScript);
 }
 
 function runTests() {
@@ -560,6 +571,237 @@ function runTests() {
     } else {
       assert.strictEqual(secondOutput.tool_name, 'Bash');
     }
+  })) passed++; else failed++;
+
+  // --- Test 20: malformed JSON passes through unchanged ---
+  clearState();
+  if (test('passes malformed JSON input through unchanged', () => {
+    const rawInput = '{ not valid json';
+    const result = runHook(rawInput);
+
+    assert.strictEqual(result.code, 0, 'exit code should be 0');
+    assert.strictEqual(result.stdout, rawInput, 'malformed JSON should pass through unchanged');
+  })) passed++; else failed++;
+
+  // --- Test 21: read-only git allowlist covers supported subcommands ---
+  clearState();
+  if (test('allows read-only git introspection subcommands without first-bash gating', () => {
+    const commands = [
+      'git status --porcelain --branch',
+      'git diff',
+      'git diff --name-only',
+      'git log --oneline --max-count=1',
+      'git show HEAD:README.md',
+      'git branch --show-current',
+      'git rev-parse --abbrev-ref HEAD',
+    ];
+
+    for (const command of commands) {
+      const result = runBashHook({
+        tool_name: 'Bash',
+        tool_input: { command }
+      });
+      const output = parseOutput(result.stdout);
+      assert.ok(output, `should produce JSON output for ${command}`);
+      if (output.hookSpecificOutput) {
+        assert.notStrictEqual(output.hookSpecificOutput.permissionDecision, 'deny',
+          `${command} should not be denied`);
+      } else {
+        assert.strictEqual(output.tool_name, 'Bash', `${command} should pass through`);
+      }
+    }
+  })) passed++; else failed++;
+
+  // --- Test 22: unsupported git commands still flow through routine Bash gate ---
+  clearState();
+  if (test('gates non-allowlisted git commands as routine Bash', () => {
+    const result = runBashHook({
+      tool_name: 'Bash',
+      tool_input: { command: 'git remote -v' }
+    });
+    const output = parseOutput(result.stdout);
+    assert.ok(output, 'should produce JSON output');
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('current user request'));
+  })) passed++; else failed++;
+
+  // --- Test 23: module-load pruning removes old state files only ---
+  clearState();
+  if (test('prunes stale state files while keeping fresh state files', () => {
+    const staleFile = path.join(stateDir, 'state-stale-session.json');
+    const freshFile = path.join(stateDir, 'state-fresh-session.json');
+    fs.writeFileSync(staleFile, JSON.stringify({ checked: [], last_active: Date.now() }), 'utf8');
+    fs.writeFileSync(freshFile, JSON.stringify({ checked: [], last_active: Date.now() }), 'utf8');
+
+    const staleTime = new Date(Date.now() - (61 * 60 * 1000));
+    fs.utimesSync(staleFile, staleTime, staleTime);
+
+    const result = runHook({
+      tool_name: 'Read',
+      tool_input: { file_path: '/src/app.js' }
+    });
+    const output = parseOutput(result.stdout);
+    assert.ok(output, 'should produce valid JSON output');
+
+    assert.ok(!fs.existsSync(staleFile), 'stale state file should be pruned at module load');
+    assert.ok(fs.existsSync(freshFile), 'fresh state file should not be pruned');
+  })) passed++; else failed++;
+
+  // --- Test 24: transcript path fallback provides a stable session key ---
+  clearState();
+  if (test('uses transcript_path fallback when session ids are absent', () => {
+    const input = {
+      transcript_path: path.join(stateDir, 'session.jsonl'),
+      tool_name: 'Bash',
+      tool_input: { command: 'pwd' }
+    };
+
+    const first = runBashHook(input, {
+      CLAUDE_SESSION_ID: '',
+      ECC_SESSION_ID: '',
+      CLAUDE_TRANSCRIPT_PATH: '',
+    });
+    const firstOutput = parseOutput(first.stdout);
+    assert.strictEqual(firstOutput.hookSpecificOutput.permissionDecision, 'deny');
+
+    const stateFiles = fs.readdirSync(stateDir).filter(entry => entry.startsWith('state-') && entry.endsWith('.json'));
+    assert.strictEqual(stateFiles.length, 1, 'transcript path should produce one state file');
+    assert.ok(/state-tx-[a-f0-9]{24}\.json$/.test(stateFiles[0]), 'transcript path should hash to a tx-* key');
+
+    const second = runBashHook(input, {
+      CLAUDE_SESSION_ID: '',
+      ECC_SESSION_ID: '',
+      CLAUDE_TRANSCRIPT_PATH: '',
+    });
+    const secondOutput = parseOutput(second.stdout);
+    if (secondOutput.hookSpecificOutput) {
+      assert.notStrictEqual(secondOutput.hookSpecificOutput.permissionDecision, 'deny',
+        'retry should be allowed when transcript_path is stable');
+    } else {
+      assert.strictEqual(secondOutput.tool_name, 'Bash');
+    }
+  })) passed++; else failed++;
+
+  // --- Test 25: project directory fallback provides a stable session key ---
+  clearState();
+  if (test('uses project directory fallback when no session or transcript id exists', () => {
+    const input = {
+      tool_name: 'Bash',
+      tool_input: { command: 'pwd' }
+    };
+    const fallbackEnv = {
+      CLAUDE_SESSION_ID: '',
+      ECC_SESSION_ID: '',
+      CLAUDE_TRANSCRIPT_PATH: '',
+      CLAUDE_PROJECT_DIR: path.join(stateDir, 'project-root'),
+    };
+
+    const first = runBashHook(input, fallbackEnv);
+    const firstOutput = parseOutput(first.stdout);
+    assert.strictEqual(firstOutput.hookSpecificOutput.permissionDecision, 'deny');
+
+    const stateFiles = fs.readdirSync(stateDir).filter(entry => entry.startsWith('state-') && entry.endsWith('.json'));
+    assert.strictEqual(stateFiles.length, 1, 'project fallback should produce one state file');
+    assert.ok(/state-proj-[a-f0-9]{24}\.json$/.test(stateFiles[0]), 'project fallback should hash to a proj-* key');
+
+    const second = runBashHook(input, fallbackEnv);
+    const secondOutput = parseOutput(second.stdout);
+    if (secondOutput.hookSpecificOutput) {
+      assert.notStrictEqual(secondOutput.hookSpecificOutput.permissionDecision, 'deny',
+        'retry should be allowed when project fallback is stable');
+    } else {
+      assert.strictEqual(secondOutput.tool_name, 'Bash');
+    }
+  })) passed++; else failed++;
+
+  // --- Test 26: direct run() accepts object input and default fields ---
+  clearState();
+  if (test('direct run handles object input and missing optional fields', () => {
+    const hook = loadDirectHook();
+
+    const readInput = { tool_name: 'Read', tool_input: { file_path: '/src/app.js' } };
+    assert.strictEqual(hook.run(readInput), readInput, 'object input should pass through unchanged');
+
+    const editWithoutInput = { tool_name: 'Edit' };
+    assert.strictEqual(hook.run(editWithoutInput), editWithoutInput, 'missing tool_input should allow Edit');
+
+    const multiWithoutEdits = { tool_name: 'MultiEdit', tool_input: {} };
+    assert.strictEqual(hook.run(multiWithoutEdits), multiWithoutEdits, 'missing edits array should allow MultiEdit');
+
+    const bashWithoutCommand = { tool_name: 'Bash', tool_input: {} };
+    const bashResult = hook.run(bashWithoutCommand);
+    const bashOutput = JSON.parse(bashResult.stdout);
+    assert.strictEqual(bashOutput.hookSpecificOutput.permissionDecision, 'deny',
+      'missing Bash command should still use routine Bash gate');
+  })) passed++; else failed++;
+
+  // --- Test 27: bidi controls are stripped from file paths ---
+  clearState();
+  if (test('sanitizes bidi override characters in gated file paths', () => {
+    const bidiOverride = String.fromCharCode(0x202e);
+    const input = {
+      tool_name: 'Edit',
+      tool_input: { file_path: `/src/${bidiOverride}evil.js`, old_string: 'a', new_string: 'b' }
+    };
+
+    const result = runHook(input);
+    const output = parseOutput(result.stdout);
+    assert.ok(output, 'should produce JSON output');
+    const reason = output.hookSpecificOutput.permissionDecisionReason;
+    assert.ok(!reason.includes(bidiOverride), 'bidi override must not appear in denial reason');
+    assert.ok(reason.includes('evil.js'), 'sanitized path should retain visible filename text');
+  })) passed++; else failed++;
+
+  // --- Test 28: saveState preserves concurrent disk updates ---
+  clearState();
+  if (test('merges state written by another process during save', () => {
+    const hook = loadDirectHook();
+    const originalMkdirSync = fs.mkdirSync;
+    let injected = false;
+
+    fs.mkdirSync = function patchedMkdirSync(target) {
+      const result = originalMkdirSync.apply(fs, arguments);
+      if (!injected && path.resolve(String(target)) === path.resolve(stateDir)) {
+        injected = true;
+        fs.writeFileSync(stateFile, JSON.stringify({
+          checked: ['/src/concurrent.js'],
+          last_active: Date.now()
+        }), 'utf8');
+      }
+      return result;
+    };
+
+    try {
+      const result = hook.run({
+        tool_name: 'Edit',
+        tool_input: { file_path: '/src/new-edit.js', old_string: 'a', new_string: 'b' }
+      });
+      const output = parseOutput(result.stdout);
+      assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny', 'first edit should still be gated');
+    } finally {
+      fs.mkdirSync = originalMkdirSync;
+    }
+
+    const persisted = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    assert.ok(persisted.checked.includes('/src/concurrent.js'), 'concurrent disk entry should be preserved');
+    assert.ok(persisted.checked.includes('/src/new-edit.js'), 'new in-memory entry should be persisted');
+  })) passed++; else failed++;
+
+  // --- Test 29: stale temp files from interrupted writes are pruned ---
+  clearState();
+  if (test('prunes stale state temp files at module load', () => {
+    fs.mkdirSync(stateDir, { recursive: true });
+    const staleTmp = path.join(stateDir, `${path.basename(stateFile)}.tmp.1234.abcd`);
+    const freshState = path.join(stateDir, 'state-fresh-session.json');
+    fs.writeFileSync(staleTmp, '{}', 'utf8');
+    fs.writeFileSync(freshState, '{}', 'utf8');
+    const staleTime = new Date(Date.now() - (61 * 60 * 1000));
+    fs.utimesSync(staleTmp, staleTime, staleTime);
+
+    loadDirectHook();
+
+    assert.ok(!fs.existsSync(staleTmp), 'stale temp state file should be pruned');
+    assert.ok(fs.existsSync(freshState), 'fresh state file should remain');
   })) passed++; else failed++;
 
   // Cleanup only the temp directory created by this test file.

@@ -19,7 +19,6 @@ const fs = require('fs');
 const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const repoRootWithSep = `${repoRoot}${path.sep}`;
 const packageJsonPath = path.join(repoRoot, 'package.json');
 const packageLockPath = path.join(repoRoot, 'package-lock.json');
 const rootAgentsPath = path.join(repoRoot, 'AGENTS.md');
@@ -68,16 +67,6 @@ function loadJsonObject(filePath, label) {
   );
 
   return parsed;
-}
-
-function assertSafeRepoRelativePath(relativePath, label) {
-  const normalized = path.posix.normalize(relativePath.replace(/\\/g, '/'));
-
-  assert.ok(!path.isAbsolute(relativePath), `${label} must not be absolute: ${relativePath}`);
-  assert.ok(
-    !normalized.startsWith('../') && !normalized.includes('/../'),
-    `${label} must not traverse directories: ${relativePath}`,
-  );
 }
 
 function collectMarkdownFiles(rootPath) {

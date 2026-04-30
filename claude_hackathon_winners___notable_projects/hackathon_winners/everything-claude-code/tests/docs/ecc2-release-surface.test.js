@@ -49,6 +49,7 @@ const expectedReleaseFiles = [
   'launch-checklist.md',
   'telegram-handoff.md',
   'demo-prompts.md',
+  'quickstart.md',
 ];
 
 test('release candidate directory includes the public launch pack', () => {
@@ -106,10 +107,63 @@ test('Hermes setup uses release-candidate wording for the rc.1 surface', () => {
   assert.ok(!source.includes('Public Preview Scope'));
 });
 
+test('Hermes setup cross-links adjacent migration and architecture docs', () => {
+  const source = read('docs/HERMES-SETUP.md');
+  assert.ok(source.includes('HERMES-OPENCLAW-MIGRATION.md'));
+  assert.ok(source.includes('architecture/cross-harness.md'));
+  assert.ok(source.includes('Plan and scaffold migration artifacts'));
+  assert.ok(!source.includes('0.5. Generate and review artifacts with `ecc migrate plan` /'));
+});
+
 test('release docs preserve the ECC/Hermes boundary', () => {
   const releaseNotes = read('docs/releases/2.0.0-rc.1/release-notes.md');
   assert.ok(releaseNotes.includes('ECC is the reusable substrate'));
   assert.ok(releaseNotes.includes('Hermes as the operator shell'));
+});
+
+test('release notes route new contributors through the rc.1 quickstart', () => {
+  const releaseNotes = read('docs/releases/2.0.0-rc.1/release-notes.md');
+  assert.ok(releaseNotes.includes('[rc.1 quickstart](quickstart.md)'));
+});
+
+test('rc.1 quickstart gives a clone-to-cross-harness path', () => {
+  const quickstart = read('docs/releases/2.0.0-rc.1/quickstart.md');
+  for (const heading of ['Clone', 'Install', 'Verify', 'First Skill', 'Switch Harness']) {
+    assert.ok(quickstart.includes(`## ${heading}`), `Missing ${heading} section`);
+  }
+  assert.ok(quickstart.includes('node tests/run-all.js'));
+  assert.ok(quickstart.includes('skills/hermes-imports/SKILL.md'));
+});
+
+test('cross-harness doc includes a worked skill portability example', () => {
+  const source = read('docs/architecture/cross-harness.md');
+  assert.ok(source.includes('## Worked Example'));
+  assert.ok(source.includes('same skill source'));
+  for (const harness of ['Claude Code', 'Codex', 'OpenCode']) {
+    assert.ok(source.includes(harness), `Expected worked example to mention ${harness}`);
+  }
+});
+
+test('release docs use release-candidate wording consistently', () => {
+  const releaseNotes = read('docs/releases/2.0.0-rc.1/release-notes.md');
+  assert.ok(releaseNotes.includes('## Release Candidate Boundaries'));
+  assert.ok(!releaseNotes.includes('## Preview Boundaries'));
+});
+
+test('launch checklist records the ecc2 alpha version policy', () => {
+  const cargoToml = read('ecc2/Cargo.toml');
+  const launchChecklist = read('docs/releases/2.0.0-rc.1/launch-checklist.md');
+  assert.ok(cargoToml.includes('version = "0.1.0"'));
+  assert.ok(launchChecklist.includes('`ecc2/Cargo.toml` stays at `0.1.0`'));
+  assert.ok(!launchChecklist.includes('confirm whether `ecc2/Cargo.toml` moves'));
+});
+
+test('localized changelogs include rc.1 and 1.10.0 release entries', () => {
+  for (const relativePath of ['docs/tr/CHANGELOG.md', 'docs/zh-CN/CHANGELOG.md']) {
+    const source = read(relativePath);
+    assert.ok(source.includes('## 2.0.0-rc.1 - 2026-04-28'), `${relativePath} missing rc.1 entry`);
+    assert.ok(source.includes('## 1.10.0 - 2026-04-05'), `${relativePath} missing 1.10.0 entry`);
+  }
 });
 
 if (failed > 0) {
