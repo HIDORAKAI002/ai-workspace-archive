@@ -408,7 +408,104 @@ function runTests() {
     }
   })) passed++; else failed++;
 
-  // --- Test 10: MultiEdit gates first unchecked file ---
+  // --- Test 10: respects direct GateGuard env disable for recovery sessions ---
+  clearState();
+  if (test('respects ECC_GATEGUARD=off without writing gate state', () => {
+    const input = {
+      tool_name: 'Write',
+      tool_input: { file_path: '/src/env-disabled.js', content: 'export const ok = true;' }
+    };
+    const result = runHook(input, { ECC_GATEGUARD: 'off' });
+    const output = parseOutput(result.stdout);
+
+    assert.ok(output, 'should produce valid JSON output');
+    assert.strictEqual(output.tool_name, 'Write', 'disabled gate should pass through raw input');
+    assert.ok(!output.hookSpecificOutput, 'disabled gate should not deny the operation');
+    assert.ok(!fs.existsSync(stateFile), 'disabled gate should not create or mutate gate state');
+  })) passed++; else failed++;
+
+  // --- Test 11: respects legacy GATEGUARD_DISABLED env disable ---
+  clearState();
+  if (test('respects GATEGUARD_DISABLED=1 for Bash recovery', () => {
+    const input = {
+      tool_name: 'Bash',
+      tool_input: { command: 'npm test' }
+    };
+    const result = runBashHook(input, { GATEGUARD_DISABLED: '1' });
+    const output = parseOutput(result.stdout);
+
+    assert.ok(output, 'should produce valid JSON output');
+    assert.strictEqual(output.tool_name, 'Bash', 'disabled gate should pass Bash through raw input');
+    assert.ok(!output.hookSpecificOutput, 'disabled gate should not deny Bash');
+    assert.ok(!fs.existsSync(stateFile), 'disabled gate should not create or mutate gate state');
+  })) passed++; else failed++;
+
+  // --- Test 12: legacy GATEGUARD_DISABLED compatibility is scoped to =1 ---
+  clearState();
+  if (test('does not treat GATEGUARD_DISABLED=true as a disable flag', () => {
+    const input = {
+      tool_name: 'Bash',
+      tool_input: { command: 'npm test' }
+    };
+    const result = runBashHook(input, { GATEGUARD_DISABLED: 'true' });
+    const output = parseOutput(result.stdout);
+
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('current user request'));
+  })) passed++; else failed++;
+
+  // --- Test 13: denial messages show an escape hatch ---
+  clearState();
+  if (test('denial messages include direct recovery escape hatch', () => {
+    const input = {
+      tool_name: 'Write',
+      tool_input: { file_path: '/src/recovery-hint.js', content: 'export const ok = true;' }
+    };
+    const result = runHook(input);
+    const output = parseOutput(result.stdout);
+
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('ECC_GATEGUARD=off'),
+      'denial reason should show the direct recovery env toggle');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('ECC_DISABLED_HOOKS'),
+      'denial reason should mention the existing hook-id disable control');
+  })) passed++; else failed++;
+
+  // --- Test 14: routine Bash denial messages show the Bash hook escape hatch ---
+  clearState();
+  if (test('routine Bash denials include Bash hook disable id', () => {
+    const input = {
+      tool_name: 'Bash',
+      tool_input: { command: 'npm test' }
+    };
+    const result = runBashHook(input);
+    const output = parseOutput(result.stdout);
+    const reason = output.hookSpecificOutput.permissionDecisionReason;
+
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(reason.includes('pre:bash:gateguard-fact-force'),
+      'routine Bash denial should show the Bash hook ID');
+    assert.ok(!reason.includes('pre:edit-write:gateguard-fact-force'),
+      'routine Bash denial should not show the Edit/Write hook ID as the targeted disable');
+  })) passed++; else failed++;
+
+  // --- Test 15: destructive Bash denials do not advertise the recovery escape hatch ---
+  clearState();
+  if (test('destructive Bash denials omit recovery escape hatch', () => {
+    const input = {
+      tool_name: 'Bash',
+      tool_input: { command: 'rm -rf /tmp/demo' }
+    };
+    const result = runBashHook(input);
+    const output = parseOutput(result.stdout);
+
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('Destructive command detected'));
+    assert.ok(!output.hookSpecificOutput.permissionDecisionReason.includes('ECC_GATEGUARD=off'),
+      'destructive gate should not advertise disabling GateGuard');
+  })) passed++; else failed++;
+
+  // --- Test 16: MultiEdit gates first unchecked file ---
   clearState();
   if (test('denies first MultiEdit with unchecked file', () => {
     const input = {

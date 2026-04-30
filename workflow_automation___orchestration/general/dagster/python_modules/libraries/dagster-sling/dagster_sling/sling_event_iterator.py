@@ -89,7 +89,7 @@ def fetch_row_count_metadata(
     if target_table_name:
         try:
             row_count = sling_cli.get_row_count_for_table(target_name, target_table_name)
-            return dict(TableMetadataSet(row_count=row_count))
+            return dict(TableMetadataSet(row_count=row_count, storage_kind=target_name))
         except Exception as e:
             context.log.warning(
                 f"Failed to fetch row count for stream %s\nException: {e}",
@@ -156,6 +156,7 @@ def fetch_column_metadata(
                         ]
                     ),
                     column_lineage=column_lineage,
+                    storage_kind=target_name,
                 )
             )
         except Exception as e:

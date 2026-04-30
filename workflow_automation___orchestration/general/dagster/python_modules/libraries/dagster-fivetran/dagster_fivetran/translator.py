@@ -377,6 +377,7 @@ class DagsterFivetranTranslator:
             database=props.database,
             schema=schema_name,
             table=table_name,
+            service=props.service,
         )
 
         # Detect if this table is from a custom report

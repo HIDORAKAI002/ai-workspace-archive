@@ -508,6 +508,7 @@ class SlingResource(ConfigurableResource):
                 "stream_name": stream_definition["name"],
                 **TableMetadataSet(
                     table_name=table_name,
+                    storage_kind=destination_name,
                 ),
             }
 

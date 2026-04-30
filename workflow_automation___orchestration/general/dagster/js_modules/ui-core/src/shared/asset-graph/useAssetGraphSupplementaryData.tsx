@@ -12,15 +12,14 @@ import {parseExpression} from '../../asset-selection/AssetSelectionSupplementary
 import {SupplementaryInformation} from '../../asset-selection/types';
 import {getSupplementaryDataKey} from '../../asset-selection/util';
 import {AssetKey} from '../../assets/types';
-import {Asset, useAllAssets} from '../../assets/useAllAssets';
+import {Asset, WorkspaceAssetNode, useAllAssets} from '../../assets/useAllAssets';
 import {AssetHealthStatus, InstigationStatus, SensorType} from '../../graphql/types';
 import {useStableReferenceByHash} from '../../hooks/useStableReferenceByHash';
-import {WorkspaceAssetFragment} from '../../workspace/WorkspaceContext/types/WorkspaceQueries.types';
 
 const emptyObject = {} as SupplementaryInformation;
 export const useAssetGraphSupplementaryData = (
   selection: string,
-  nodes: WorkspaceAssetFragment[],
+  nodes: WorkspaceAssetNode[],
 ): {loading: boolean; data: SupplementaryInformation} => {
   const parsedFilters = useMemo(() => {
     try {
@@ -191,7 +190,7 @@ type InstigatorInfo =
 
 function buildAutomationTypeSupplementaryData(
   queryData: AssetInstigatorsQuery,
-  nodes: WorkspaceAssetFragment[],
+  nodes: WorkspaceAssetNode[],
 ): Record<string, AssetKey[]> {
   // Build a map from asset key token → instigators targeting it
   const instigatorsByAssetToken = new Map<string, InstigatorInfo[]>();

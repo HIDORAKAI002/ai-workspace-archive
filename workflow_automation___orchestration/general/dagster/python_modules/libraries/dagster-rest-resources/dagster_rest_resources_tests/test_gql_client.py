@@ -153,6 +153,16 @@ class TestDagsterPlusGraphQLClientInit:
 
         assert client.url == "https://test.dagster.plus/graphql"
 
+    def test_handles_url_trailing_slash(self):
+        client = DagsterPlusGraphQLClient(
+            url="https://test.dagster.plus/",
+            api_token=None,
+            organization=None,
+            deployment=None,
+        )
+
+        assert client.url == "https://test.dagster.plus/graphql"
+
     def test_includes_provider_headers(self):
         client = DagsterPlusGraphQLClient(
             url="https://test.dagster.plus",

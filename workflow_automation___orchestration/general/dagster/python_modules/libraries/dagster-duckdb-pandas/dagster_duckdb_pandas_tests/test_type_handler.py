@@ -132,6 +132,7 @@ def test_io_manager_asset_metadata(tmp_path) -> None:
     assert mat.materialization.metadata["dagster/table_name"] == MetadataValue.text(
         f"{db_file}.custom_schema.my_pandas_df"
     )
+    assert mat.materialization.metadata["dagster/storage_kind"] == MetadataValue.text("duckdb")
 
 
 def test_duckdb_io_manager_with_schema(tmp_path):

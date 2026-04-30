@@ -13,7 +13,7 @@ import {
   useSelectionFilterData,
   useSelectionHealthData,
 } from '../catalog/useSelectionHealthData';
-import {useAllAssets} from '../useAllAssets';
+import {Asset, useAllAssets} from '../useAllAssets';
 
 // Mock the dependencies
 jest.mock('../../asset-selection/useAssetSelectionFiltering', () => ({
@@ -101,7 +101,7 @@ function HealthOnlyComponent({
   return <div data-testid={`health-${selection}`} />;
 }
 
-const createMockAsset = (path: string[]) =>
+const createMockAsset = (path: string[]): Asset =>
   buildAsset({
     id: path.join('-'),
     key: buildAssetKey({path}),

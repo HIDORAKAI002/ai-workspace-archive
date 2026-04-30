@@ -36,10 +36,12 @@ def fetch_row_count_metadata(
 ) -> TableMetadataSet:
     if not materialization.metadata:
         raise Exception("Missing required metadata to retrieve row count.")
+    storage_kind = dlt_pipeline.destination.destination_name if dlt_pipeline.destination else None
     if context.has_partition_key:
         rows_loaded = materialization.metadata.get("rows_loaded")
         return TableMetadataSet(
-            partition_row_count=rows_loaded.value if rows_loaded else 0  # type: ignore
+            partition_row_count=rows_loaded.value if rows_loaded else 0,  # type: ignore
+            storage_kind=storage_kind,
         )
 
     jobs_metadata = materialization.metadata.get("jobs")
@@ -47,7 +49,10 @@ def fetch_row_count_metadata(
         raise Exception("Missing jobs metadata to retrieve row count.")
     table_name = jobs_metadata[0].get("table_name")
     try:
-        return TableMetadataSet(row_count=_fetch_row_count(dlt_pipeline, table_name))
+        return TableMetadataSet(
+            row_count=_fetch_row_count(dlt_pipeline, table_name),
+            storage_kind=storage_kind,
+        )
     # Filesystem does not have a SQL client and table might not be found
     except Exception as e:
         context.log.error(
@@ -55,7 +60,7 @@ def fetch_row_count_metadata(
             " will not be included in the event.\n\n"
             f"Exception: {e}"
         )
-        return TableMetadataSet(row_count=None)
+        return TableMetadataSet(row_count=None, storage_kind=storage_kind)
 
 
 class DltEventIterator(Iterator[T]):

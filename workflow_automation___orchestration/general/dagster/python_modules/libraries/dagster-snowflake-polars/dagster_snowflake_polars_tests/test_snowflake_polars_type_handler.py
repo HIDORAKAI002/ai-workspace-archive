@@ -124,6 +124,7 @@ def test_handle_output():
             TableSchema(columns=[TableColumn("col1", "String"), TableColumn("col2", "Int64")])
         ),
         "dagster/row_count": 1,
+        "dagster/storage_kind": "snowflake",
     }
 
 
