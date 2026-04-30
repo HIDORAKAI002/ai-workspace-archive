@@ -16,31 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { AliasNode } from "./AliasNode";
-import { AssetConditionNode } from "./AssetConditionNode";
-import { AssetNode } from "./AssetNode";
-import { DagNode } from "./DagNode";
-import { DefaultNode } from "./DefaultNode";
-import Edge from "./Edge";
-import { JoinNode } from "./JoinNode";
-import { TaskNode } from "./TaskNode";
+import { useContext } from "react";
 
-export const opacityStyle = (isFiltered: boolean | undefined) => ({
-  opacity: isFiltered ? 0.2 : 1,
-  transition: "opacity 0.2s",
-});
+import { GroupsContext, type GroupsContextType } from "./Context";
 
-export const nodeTypes = {
-  asset: AssetNode,
-  "asset-alias": AliasNode,
-  "asset-condition": AssetConditionNode,
-  "asset-name-ref": DefaultNode,
-  "asset-uri-ref": DefaultNode,
-  dag: DagNode,
-  join: JoinNode,
-  sensor: DefaultNode,
-  task: TaskNode,
-  trigger: DefaultNode,
+export const useGroups = (): GroupsContextType => {
+  const context = useContext(GroupsContext);
+
+  if (context === undefined) {
+    throw new Error("useGroups must be used within a GroupsProvider");
+  }
+
+  return context;
 };
-
-export const edgeTypes = { custom: Edge };

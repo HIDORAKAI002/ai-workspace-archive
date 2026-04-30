@@ -16,31 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { AliasNode } from "./AliasNode";
-import { AssetConditionNode } from "./AssetConditionNode";
-import { AssetNode } from "./AssetNode";
-import { DagNode } from "./DagNode";
-import { DefaultNode } from "./DefaultNode";
-import Edge from "./Edge";
-import { JoinNode } from "./JoinNode";
-import { TaskNode } from "./TaskNode";
+import type { Node as ReactFlowNode } from "@xyflow/react";
 
-export const opacityStyle = (isFiltered: boolean | undefined) => ({
-  opacity: isFiltered ? 0.2 : 1,
-  transition: "opacity 0.2s",
-});
+import type { CustomNodeProps } from "src/components/Graph/reactflowUtils";
 
-export const nodeTypes = {
-  asset: AssetNode,
-  "asset-alias": AliasNode,
-  "asset-condition": AssetConditionNode,
-  "asset-name-ref": DefaultNode,
-  "asset-uri-ref": DefaultNode,
-  dag: DagNode,
-  join: JoinNode,
-  sensor: DefaultNode,
-  task: TaskNode,
-  trigger: DefaultNode,
+export const nodeColor = (
+  { data: { depth, height, isOpen, taskInstance, width }, type }: ReactFlowNode<CustomNodeProps>,
+  evenColor?: string,
+  oddColor?: string,
+): string => {
+  if (height === undefined || width === undefined || type === "join") {
+    return "";
+  }
+
+  if (taskInstance?.state !== undefined && !isOpen) {
+    return `var(--chakra-colors-${taskInstance.state}-solid)`;
+  }
+
+  if (isOpen && depth !== undefined && depth % 2 === 0) {
+    return evenColor ?? "";
+  } else if (isOpen) {
+    return oddColor ?? "";
+  }
+
+  return "";
 };
-
-export const edgeTypes = { custom: Edge };
